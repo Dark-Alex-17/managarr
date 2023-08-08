@@ -21,8 +21,8 @@ pub(super) fn draw_collection_details_popup<B: Backend>(
   app: &mut App,
   content_area: Rect,
 ) {
-  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
-    match active_radarr_block {
+  if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
+    match context_option.as_ref().unwrap_or(active_radarr_block) {
       ActiveRadarrBlock::ViewMovieOverview => {
         draw_small_popup_over(
           f,
@@ -45,8 +45,8 @@ pub(super) fn draw_collection_details<B: Backend>(
 ) {
   let chunks = vertical_chunks_with_margin(
     vec![
-      Constraint::Percentage(20),
-      Constraint::Percentage(75),
+      Constraint::Percentage(25),
+      Constraint::Percentage(70),
       Constraint::Percentage(5),
     ],
     content_area,
@@ -81,6 +81,17 @@ pub(super) fn draw_collection_details<B: Backend>(
   let mut help_text =
     Text::from("<↑↓> scroll table | <enter> show overview/add movie | <esc> close");
   help_text.patch_style(style_help());
+  let monitored = if collection_selection.monitored {
+    "Yes"
+  } else {
+    "No"
+  };
+  let search_on_add = if collection_selection.search_on_add {
+    "Yes"
+  } else {
+    "No"
+  };
+  let minimum_availability = collection_selection.minimum_availability.to_display_str();
 
   let collection_description = Text::from(vec![
     spans_info_primary(
@@ -94,11 +105,13 @@ pub(super) fn draw_collection_details<B: Backend>(
         .clone()
         .unwrap_or_default(),
     ),
-    spans_info_primary(
-      "Search on Add: ".to_owned(),
-      collection_selection.search_on_add.to_string(),
-    ),
     spans_info_primary("Quality Profile: ".to_owned(), quality_profile),
+    spans_info_primary(
+      "Minimum Availability: ".to_owned(),
+      minimum_availability.to_owned(),
+    ),
+    spans_info_primary("Monitored: ".to_owned(), monitored.to_owned()),
+    spans_info_primary("Search on Add: ".to_owned(), search_on_add.to_owned()),
   ]);
 
   let description_paragraph = Paragraph::new(collection_description)

@@ -1,3 +1,4 @@
+use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::App;
 use crate::event::Key;
@@ -95,7 +96,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a>
             .into(),
         );
         self.app.data.radarr_data.selected_block = ActiveRadarrBlock::EditMovieToggleMonitored;
-        self.app.data.radarr_data.populate_movie_preferences_lists();
+        self.app.data.radarr_data.populate_preferences_lists();
       }
     }
   }
@@ -111,7 +112,21 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a>
     }
   }
 
-  fn handle_char_key_event(&mut self) {}
+  fn handle_char_key_event(&mut self) {
+    if *self.active_radarr_block == ActiveRadarrBlock::CollectionDetails
+      && *self.key == DEFAULT_KEYBINDINGS.edit.key
+    {
+      self.app.push_navigation_stack(
+        (
+          ActiveRadarrBlock::EditCollectionPrompt,
+          Some(*self.active_radarr_block),
+        )
+          .into(),
+      );
+      self.app.data.radarr_data.populate_edit_collection_fields();
+      self.app.data.radarr_data.selected_block = ActiveRadarrBlock::EditCollectionToggleMonitored;
+    }
+  }
 }
 
 #[cfg(test)]
@@ -201,7 +216,7 @@ mod tests {
         )
           .into()
       );
-      assert!(!app.data.radarr_data.movie_monitor_list.items.is_empty());
+      assert!(!app.data.radarr_data.monitor_list.items.is_empty());
       assert_eq!(
         app.data.radarr_data.selected_block,
         ActiveRadarrBlock::EditMovieToggleMonitored
@@ -209,20 +224,15 @@ mod tests {
       assert!(!app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .items
         .is_empty());
-      assert!(!app
-        .data
-        .radarr_data
-        .movie_quality_profile_list
-        .items
-        .is_empty());
+      assert!(!app.data.radarr_data.quality_profile_list.items.is_empty());
       assert_str_eq!(
         app
           .data
           .radarr_data
-          .movie_quality_profile_list
+          .quality_profile_list
           .current_selection(),
         "A - Test 1"
       );
@@ -307,6 +317,31 @@ mod tests {
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::CollectionDetails.into()
+      );
+    }
+  }
+
+  mod test_handle_key_char {
+    use bimap::BiMap;
+    use pretty_assertions::{assert_eq, assert_str_eq};
+    use serde_json::Number;
+    use strum::IntoEnumIterator;
+
+    use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
+    use crate::app::radarr::RadarrData;
+    use crate::models::radarr_models::{Collection, MinimumAvailability};
+    use crate::models::HorizontallyScrollableText;
+    use crate::models::StatefulTable;
+    use crate::test_edit_collection_key;
+
+    use super::*;
+
+    #[test]
+    fn test_edit_key() {
+      test_edit_collection_key!(
+        CollectionDetailsHandler,
+        ActiveRadarrBlock::CollectionDetails,
+        ActiveRadarrBlock::CollectionDetails
       );
     }
   }

@@ -194,7 +194,7 @@ mod tests {
     assert_eq!(app.navigation_stack, vec![DEFAULT_ROUTE]);
     assert!(app.network_tx.is_none());
     assert_eq!(app.error, HorizontallyScrollableText::default());
-    assert_eq!(app.response, String::default());
+    assert!(app.response.is_empty());
     assert_eq!(app.server_tabs.index, 0);
     assert_eq!(
       app.server_tabs.tabs,
@@ -289,7 +289,7 @@ mod tests {
 
     assert_eq!(app.tick_count, 0);
     assert_eq!(app.error, HorizontallyScrollableText::default());
-    assert_eq!(app.data.radarr_data.version, String::default());
+    assert!(app.data.radarr_data.version.is_empty());
   }
 
   #[test]

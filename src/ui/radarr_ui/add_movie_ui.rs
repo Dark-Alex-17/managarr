@@ -272,7 +272,7 @@ fn draw_select_monitor_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, po
   draw_drop_down_list(
     f,
     popup_area,
-    &mut app.data.radarr_data.movie_monitor_list,
+    &mut app.data.radarr_data.monitor_list,
     |monitor| ListItem::new(monitor.to_display_str().to_owned()),
   );
 }
@@ -319,16 +319,16 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
   let selected_block = &app.data.radarr_data.selected_block;
   let highlight_yes_no = *selected_block == ActiveRadarrBlock::AddMovieConfirmPrompt;
 
-  let selected_monitor = app.data.radarr_data.movie_monitor_list.current_selection();
+  let selected_monitor = app.data.radarr_data.monitor_list.current_selection();
   let selected_minimum_availability = app
     .data
     .radarr_data
-    .movie_minimum_availability_list
+    .minimum_availability_list
     .current_selection();
   let selected_quality_profile = app
     .data
     .radarr_data
-    .movie_quality_profile_list
+    .quality_profile_list
     .current_selection();
 
   f.render_widget(title_block_centered(title), prompt_area);

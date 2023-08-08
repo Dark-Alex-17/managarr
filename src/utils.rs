@@ -62,7 +62,7 @@ mod tests {
   }
 
   #[test]
-  fn test_strop_non_alphanumeric_characters() {
+  fn test_strip_non_alphanumeric_characters() {
     assert_eq!(
       strip_non_alphanumeric_characters("Te$t S7r!ng::'~-_}"),
       "tet s7rng".to_owned()

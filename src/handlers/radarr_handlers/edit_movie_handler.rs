@@ -39,14 +39,11 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
         .app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .scroll_up(),
-      ActiveRadarrBlock::EditMovieSelectQualityProfile => self
-        .app
-        .data
-        .radarr_data
-        .movie_quality_profile_list
-        .scroll_up(),
+      ActiveRadarrBlock::EditMovieSelectQualityProfile => {
+        self.app.data.radarr_data.quality_profile_list.scroll_up()
+      }
       ActiveRadarrBlock::EditMoviePrompt => {
         self.app.data.radarr_data.selected_block = self
           .app
@@ -54,7 +51,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
           .radarr_data
           .selected_block
           .clone()
-          .previous_edit_prompt_block()
+          .previous_edit_movie_prompt_block()
       }
       _ => (),
     }
@@ -66,21 +63,18 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
         .app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .scroll_down(),
-      ActiveRadarrBlock::EditMovieSelectQualityProfile => self
-        .app
-        .data
-        .radarr_data
-        .movie_quality_profile_list
-        .scroll_down(),
+      ActiveRadarrBlock::EditMovieSelectQualityProfile => {
+        self.app.data.radarr_data.quality_profile_list.scroll_down()
+      }
       ActiveRadarrBlock::EditMoviePrompt => {
         self.app.data.radarr_data.selected_block = self
           .app
           .data
           .radarr_data
           .selected_block
-          .next_edit_prompt_block()
+          .next_edit_movie_prompt_block()
       }
       _ => (),
     }
@@ -92,13 +86,13 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
         .app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .scroll_to_top(),
       ActiveRadarrBlock::EditMovieSelectQualityProfile => self
         .app
         .data
         .radarr_data
-        .movie_quality_profile_list
+        .quality_profile_list
         .scroll_to_top(),
       ActiveRadarrBlock::EditMoviePathInput => self.app.data.radarr_data.edit_path.scroll_home(),
       ActiveRadarrBlock::EditMovieTagsInput => self.app.data.radarr_data.edit_tags.scroll_home(),
@@ -112,13 +106,13 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
         .app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .scroll_to_bottom(),
       ActiveRadarrBlock::EditMovieSelectQualityProfile => self
         .app
         .data
         .radarr_data
-        .movie_quality_profile_list
+        .quality_profile_list
         .scroll_to_bottom(),
       ActiveRadarrBlock::EditMoviePathInput => self.app.data.radarr_data.edit_path.reset_offset(),
       ActiveRadarrBlock::EditMovieTagsInput => self.app.data.radarr_data.edit_tags.reset_offset(),
@@ -148,6 +142,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
           if self.app.data.radarr_data.prompt_confirm {
             self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditMovie);
             self.app.pop_navigation_stack();
+            self.app.should_refresh = true;
           } else {
             self.app.pop_navigation_stack();
           }
@@ -186,7 +181,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
       }
       ActiveRadarrBlock::EditMoviePrompt => {
         self.app.pop_navigation_stack();
-        self.app.data.radarr_data.reset_add_edit_movie_fields();
+        self.app.data.radarr_data.reset_add_edit_media_fields();
         self.app.data.radarr_data.prompt_confirm = false;
       }
       ActiveRadarrBlock::EditMovieToggleMonitored
@@ -232,10 +227,10 @@ mod tests {
     use super::*;
 
     test_enum_scroll!(
-      test_edit_movie_select_minimuum_availability_scroll,
+      test_edit_movie_select_minimum_availability_scroll,
       EditMovieHandler,
       MinimumAvailability,
-      movie_minimum_availability_list,
+      minimum_availability_list,
       ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
       None
     );
@@ -243,7 +238,7 @@ mod tests {
     test_iterable_scroll!(
       test_edit_movie_select_quality_profile_scroll,
       EditMovieHandler,
-      movie_quality_profile_list,
+      quality_profile_list,
       ActiveRadarrBlock::EditMovieSelectQualityProfile,
       None
     );
@@ -277,10 +272,10 @@ mod tests {
     use super::*;
 
     test_enum_home_and_end!(
-      test_edit_movie_select_minimuum_availability_home_end,
+      test_edit_movie_select_minimum_availability_home_end,
       EditMovieHandler,
       MinimumAvailability,
-      movie_minimum_availability_list,
+      minimum_availability_list,
       ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
       None
     );
@@ -288,7 +283,7 @@ mod tests {
     test_iterable_home_and_end!(
       test_edit_movie_select_quality_profile_scroll,
       EditMovieHandler,
-      movie_quality_profile_list,
+      quality_profile_list,
       ActiveRadarrBlock::EditMovieSelectQualityProfile,
       None
     );
@@ -451,6 +446,7 @@ mod tests {
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::EditMovie)
       );
+      assert!(app.should_refresh);
     }
 
     #[test]
@@ -567,7 +563,7 @@ mod tests {
     use rstest::rstest;
 
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
-    use crate::{assert_edit_movie_reset, assert_movie_preferences_selections_reset};
+    use crate::{assert_edit_media_reset, assert_preferences_selections_reset};
 
     use super::*;
 
@@ -611,13 +607,11 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
-      {
-        let radarr_data = &app.data.radarr_data;
+      let radarr_data = &app.data.radarr_data;
 
-        assert_movie_preferences_selections_reset!(radarr_data);
-        assert_edit_movie_reset!(radarr_data);
-        assert!(!radarr_data.prompt_confirm);
-      }
+      assert_preferences_selections_reset!(radarr_data);
+      assert_edit_media_reset!(radarr_data);
+      assert!(!radarr_data.prompt_confirm);
     }
 
     #[rstest]

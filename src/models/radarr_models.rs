@@ -83,11 +83,15 @@ pub struct CollectionMovie {
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Collection {
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub id: Number,
   #[serde(default)]
   pub title: HorizontallyScrollableText,
   pub root_folder_path: Option<String>,
   pub search_on_add: bool,
+  pub monitored: bool,
   pub overview: Option<String>,
+  pub minimum_availability: MinimumAvailability,
   #[derivative(Default(value = "Number::from(0)"))]
   pub quality_profile_id: Number,
   pub movies: Option<Vec<CollectionMovie>>,

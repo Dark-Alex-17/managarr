@@ -37,20 +37,17 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         self.app.data.radarr_data.add_searched_movies.scroll_up()
       }
       ActiveRadarrBlock::AddMovieSelectMonitor => {
-        self.app.data.radarr_data.movie_monitor_list.scroll_up()
+        self.app.data.radarr_data.monitor_list.scroll_up()
       }
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability => self
         .app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .scroll_up(),
-      ActiveRadarrBlock::AddMovieSelectQualityProfile => self
-        .app
-        .data
-        .radarr_data
-        .movie_quality_profile_list
-        .scroll_up(),
+      ActiveRadarrBlock::AddMovieSelectQualityProfile => {
+        self.app.data.radarr_data.quality_profile_list.scroll_up()
+      }
       ActiveRadarrBlock::AddMoviePrompt => {
         self.app.data.radarr_data.selected_block = self
           .app
@@ -58,7 +55,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
           .radarr_data
           .selected_block
           .clone()
-          .previous_add_prompt_block()
+          .previous_add_movie_prompt_block()
       }
       _ => (),
     }
@@ -70,27 +67,24 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         self.app.data.radarr_data.add_searched_movies.scroll_down()
       }
       ActiveRadarrBlock::AddMovieSelectMonitor => {
-        self.app.data.radarr_data.movie_monitor_list.scroll_down()
+        self.app.data.radarr_data.monitor_list.scroll_down()
       }
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability => self
         .app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .scroll_down(),
-      ActiveRadarrBlock::AddMovieSelectQualityProfile => self
-        .app
-        .data
-        .radarr_data
-        .movie_quality_profile_list
-        .scroll_down(),
+      ActiveRadarrBlock::AddMovieSelectQualityProfile => {
+        self.app.data.radarr_data.quality_profile_list.scroll_down()
+      }
       ActiveRadarrBlock::AddMoviePrompt => {
         self.app.data.radarr_data.selected_block = self
           .app
           .data
           .radarr_data
           .selected_block
-          .next_add_prompt_block()
+          .next_add_movie_prompt_block()
       }
       _ => (),
     }
@@ -105,19 +99,19 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         .add_searched_movies
         .scroll_to_top(),
       ActiveRadarrBlock::AddMovieSelectMonitor => {
-        self.app.data.radarr_data.movie_monitor_list.scroll_to_top()
+        self.app.data.radarr_data.monitor_list.scroll_to_top()
       }
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability => self
         .app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .scroll_to_top(),
       ActiveRadarrBlock::AddMovieSelectQualityProfile => self
         .app
         .data
         .radarr_data
-        .movie_quality_profile_list
+        .quality_profile_list
         .scroll_to_top(),
       ActiveRadarrBlock::AddMovieSearchInput => self.app.data.radarr_data.search.scroll_home(),
       ActiveRadarrBlock::AddMovieTagsInput => self.app.data.radarr_data.edit_tags.scroll_home(),
@@ -133,23 +127,20 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         .radarr_data
         .add_searched_movies
         .scroll_to_bottom(),
-      ActiveRadarrBlock::AddMovieSelectMonitor => self
-        .app
-        .data
-        .radarr_data
-        .movie_monitor_list
-        .scroll_to_bottom(),
+      ActiveRadarrBlock::AddMovieSelectMonitor => {
+        self.app.data.radarr_data.monitor_list.scroll_to_bottom()
+      }
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability => self
         .app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .scroll_to_bottom(),
       ActiveRadarrBlock::AddMovieSelectQualityProfile => self
         .app
         .data
         .radarr_data
-        .movie_quality_profile_list
+        .quality_profile_list
         .scroll_to_bottom(),
       ActiveRadarrBlock::AddMovieSearchInput => self.app.data.radarr_data.search.reset_offset(),
       ActiveRadarrBlock::AddMovieTagsInput => self.app.data.radarr_data.edit_tags.reset_offset(),
@@ -214,7 +205,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
-          self.app.data.radarr_data.populate_movie_preferences_lists();
+          self.app.data.radarr_data.populate_preferences_lists();
           self.app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieSelectMonitor;
         }
       }
@@ -265,7 +256,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
       }
       ActiveRadarrBlock::AddMoviePrompt => {
         self.app.pop_navigation_stack();
-        self.app.data.radarr_data.reset_add_edit_movie_fields();
+        self.app.data.radarr_data.reset_add_edit_media_fields();
         self.app.data.radarr_data.prompt_confirm = false;
       }
       ActiveRadarrBlock::AddMovieSelectMonitor
@@ -331,16 +322,16 @@ mod tests {
       test_add_movie_select_monitor_scroll,
       AddMovieHandler,
       Monitor,
-      movie_monitor_list,
+      monitor_list,
       ActiveRadarrBlock::AddMovieSelectMonitor,
       None
     );
 
     test_enum_scroll!(
-      test_add_movie_select_minimuum_availability_scroll,
+      test_add_movie_select_minimum_availability_scroll,
       AddMovieHandler,
       MinimumAvailability,
-      movie_minimum_availability_list,
+      minimum_availability_list,
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
       None
     );
@@ -348,7 +339,7 @@ mod tests {
     test_iterable_scroll!(
       test_add_movie_select_quality_profile_scroll,
       AddMovieHandler,
-      movie_quality_profile_list,
+      quality_profile_list,
       ActiveRadarrBlock::AddMovieSelectQualityProfile,
       None
     );
@@ -399,16 +390,16 @@ mod tests {
       test_add_movie_select_monitor_home_end,
       AddMovieHandler,
       Monitor,
-      movie_monitor_list,
+      monitor_list,
       ActiveRadarrBlock::AddMovieSelectMonitor,
       None
     );
 
     test_enum_home_and_end!(
-      test_add_movie_select_minimuum_availability_home_end,
+      test_add_movie_select_minimum_availability_home_end,
       AddMovieHandler,
       MinimumAvailability,
-      movie_minimum_availability_list,
+      minimum_availability_list,
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
       None
     );
@@ -416,7 +407,7 @@ mod tests {
     test_iterable_home_and_end!(
       test_add_movie_select_quality_profile_scroll,
       AddMovieHandler,
-      movie_quality_profile_list,
+      quality_profile_list,
       ActiveRadarrBlock::AddMovieSelectQualityProfile,
       None
     );
@@ -539,24 +530,19 @@ mod tests {
         app.data.radarr_data.selected_block,
         ActiveRadarrBlock::AddMovieSelectMonitor
       );
-      assert!(!app.data.radarr_data.movie_monitor_list.items.is_empty());
+      assert!(!app.data.radarr_data.monitor_list.items.is_empty());
       assert!(!app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .items
         .is_empty());
-      assert!(!app
-        .data
-        .radarr_data
-        .movie_quality_profile_list
-        .items
-        .is_empty());
+      assert!(!app.data.radarr_data.quality_profile_list.items.is_empty());
       assert_str_eq!(
         app
           .data
           .radarr_data
-          .movie_quality_profile_list
+          .quality_profile_list
           .current_selection(),
         "A - Test 1"
       );
@@ -728,7 +714,7 @@ mod tests {
 
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
     use crate::{
-      assert_edit_movie_reset, assert_movie_preferences_selections_reset, assert_search_reset,
+      assert_edit_media_reset, assert_preferences_selections_reset, assert_search_reset,
       simple_stateful_iterable_vec,
     };
 
@@ -850,8 +836,8 @@ mod tests {
         app.get_current_route(),
         &ActiveRadarrBlock::AddMovieSearchResults.into()
       );
-      assert_movie_preferences_selections_reset!(app.data.radarr_data);
-      assert_edit_movie_reset!(app.data.radarr_data);
+      assert_preferences_selections_reset!(app.data.radarr_data);
+      assert_edit_media_reset!(app.data.radarr_data);
     }
 
     #[test]

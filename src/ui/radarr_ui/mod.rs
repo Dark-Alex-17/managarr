@@ -10,8 +10,8 @@ use tui::widgets::{Cell, ListItem, Paragraph, Row};
 use tui::Frame;
 
 use crate::app::radarr::{
-  ActiveRadarrBlock, RadarrData, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, EDIT_MOVIE_BLOCKS,
-  FILTER_BLOCKS, MOVIE_DETAILS_BLOCKS, SEARCH_BLOCKS,
+  ActiveRadarrBlock, RadarrData, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS,
+  EDIT_COLLECTION_BLOCKS, EDIT_MOVIE_BLOCKS, FILTER_BLOCKS, MOVIE_DETAILS_BLOCKS, SEARCH_BLOCKS,
 };
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
@@ -19,6 +19,7 @@ use crate::models::radarr_models::{Collection, DiskSpace, DownloadRecord, Movie}
 use crate::models::{HorizontallyScrollableText, Route};
 use crate::ui::radarr_ui::add_movie_ui::draw_add_movie_search_popup;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details_popup;
+use crate::ui::radarr_ui::edit_collection_ui::draw_edit_collection_prompt;
 use crate::ui::radarr_ui::edit_movie_ui::draw_edit_movie_prompt;
 use crate::ui::radarr_ui::movie_details_ui::draw_movie_info_popup;
 use crate::ui::utils::{
@@ -35,6 +36,7 @@ use crate::utils::{convert_runtime, convert_to_gb};
 
 mod add_movie_ui;
 mod collection_details_ui;
+mod edit_collection_ui;
 mod edit_movie_ui;
 mod movie_details_ui;
 
@@ -108,6 +110,30 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
             _ if MOVIE_DETAILS_BLOCKS.contains(&context) => {
               draw_large_popup_over(f, app, content_rect, draw_library, draw_movie_info_popup);
               draw_popup(f, app, draw_edit_movie_prompt, 60, 60);
+            }
+            _ => (),
+          }
+        }
+      }
+      _ if EDIT_COLLECTION_BLOCKS.contains(&active_radarr_block) => {
+        if let Some(context) = context_option {
+          match context {
+            ActiveRadarrBlock::Collections => draw_medium_popup_over(
+              f,
+              app,
+              content_rect,
+              draw_collections,
+              draw_edit_collection_prompt,
+            ),
+            _ if COLLECTION_DETAILS_BLOCKS.contains(&context) => {
+              draw_large_popup_over(
+                f,
+                app,
+                content_rect,
+                draw_collections,
+                draw_collection_details_popup,
+              );
+              draw_popup(f, app, draw_edit_collection_prompt, 60, 60);
             }
             _ => (),
           }
@@ -547,12 +573,20 @@ fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect)
       content,
       table_headers: vec![
         "Collection",
-        "Search on Add?",
         "Number of Movies",
         "Root Folder Path",
         "Quality Profile",
+        "Search on Add",
+        "Monitored",
       ],
-      constraints: iter::repeat(Constraint::Ratio(1, 5)).take(5).collect(),
+      constraints: vec![
+        Constraint::Percentage(25),
+        Constraint::Percentage(15),
+        Constraint::Percentage(15),
+        Constraint::Percentage(15),
+        Constraint::Percentage(15),
+        Constraint::Percentage(15),
+      ],
       help: app
         .data
         .radarr_data
@@ -562,14 +596,19 @@ fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect)
     |collection| {
       let number_of_movies = collection.movies.clone().unwrap_or_default().len();
       collection.title.scroll_left_or_reset(
-        get_width_from_percentage(area, 100 / 5),
+        get_width_from_percentage(area, 25),
         *collection == current_selection,
         app.tick_count % app.ticks_until_scroll == 0,
       );
+      let monitored = if collection.monitored { "🏷" } else { "" };
+      let search_on_add = if collection.search_on_add {
+        "Yes"
+      } else {
+        "No"
+      };
 
       Row::new(vec![
         Cell::from(collection.title.to_string()),
-        Cell::from(collection.search_on_add.to_string()),
         Cell::from(number_of_movies.to_string()),
         Cell::from(collection.root_folder_path.clone().unwrap_or_default()),
         Cell::from(
@@ -578,6 +617,8 @@ fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect)
             .unwrap()
             .to_owned(),
         ),
+        Cell::from(search_on_add),
+        Cell::from(monitored),
       ])
       .style(style_primary())
     },
@@ -704,7 +745,7 @@ fn draw_select_minimum_availability_popup<B: Backend>(
   draw_drop_down_list(
     f,
     popup_area,
-    &mut app.data.radarr_data.movie_minimum_availability_list,
+    &mut app.data.radarr_data.minimum_availability_list,
     |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
   );
 }
@@ -717,7 +758,7 @@ fn draw_select_quality_profile_popup<B: Backend>(
   draw_drop_down_list(
     f,
     popup_area,
-    &mut app.data.radarr_data.movie_quality_profile_list,
+    &mut app.data.radarr_data.quality_profile_list,
     |quality_profile| ListItem::new(quality_profile.clone()),
   );
 }

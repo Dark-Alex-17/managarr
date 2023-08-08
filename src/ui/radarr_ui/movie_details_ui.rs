@@ -26,12 +26,7 @@ pub(super) fn draw_movie_info_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut 
   let (content_area, _) = draw_tabs(f, area, "Movie Info", &app.data.radarr_data.movie_info_tabs);
 
   if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
-    let match_block = if let Some(context) = context_option {
-      context
-    } else {
-      active_radarr_block
-    };
-    match match_block {
+    match context_option.as_ref().unwrap_or(active_radarr_block) {
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt => draw_prompt_popup_over(
         f,
         app,

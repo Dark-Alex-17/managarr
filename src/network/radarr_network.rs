@@ -24,6 +24,7 @@ pub enum RadarrEvent {
   DeleteMovie,
   DownloadRelease,
   EditMovie,
+  EditCollection,
   GetCollections,
   GetDownloads,
   GetMovieCredits,
@@ -48,7 +49,7 @@ pub enum RadarrEvent {
 impl RadarrEvent {
   const fn resource(self) -> &'static str {
     match self {
-      RadarrEvent::GetCollections => "/collection",
+      RadarrEvent::GetCollections | RadarrEvent::EditCollection => "/collection",
       RadarrEvent::GetDownloads | RadarrEvent::DeleteDownload => "/queue",
       RadarrEvent::AddMovie
       | RadarrEvent::EditMovie
@@ -88,6 +89,7 @@ impl<'a> Network<'a> {
       RadarrEvent::DeleteDownload => self.delete_download().await,
       RadarrEvent::DownloadRelease => self.download_release().await,
       RadarrEvent::EditMovie => self.edit_movie().await,
+      RadarrEvent::EditCollection => self.edit_collection().await,
       RadarrEvent::GetCollections => self.get_collections().await,
       RadarrEvent::GetDownloads => self.get_downloads().await,
       RadarrEvent::GetMovieCredits => self.get_credits().await,
@@ -762,13 +764,13 @@ impl<'a> Network<'a> {
       let monitor = app
         .data
         .radarr_data
-        .movie_monitor_list
+        .monitor_list
         .current_selection()
         .to_string();
       let minimum_availability = app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .current_selection()
         .to_string();
 
@@ -827,8 +829,8 @@ impl<'a> Network<'a> {
       let quality_profile_id = self.extract_quality_profile_id().await;
       let tag_ids_vec = self.extract_and_add_tag_ids_vec().await;
       let mut app = self.app.lock().await;
-      let mut detailed_movie_body: Value = serde_json::from_str(&app.response).unwrap();
-      app.response = String::default();
+      let response = app.response.drain(..).collect::<String>();
+      let mut detailed_movie_body: Value = serde_json::from_str(&response).unwrap();
 
       let path: String = app.data.radarr_data.edit_path.drain();
 
@@ -836,7 +838,7 @@ impl<'a> Network<'a> {
       let minimum_availability = app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .current_selection()
         .to_string();
 
@@ -854,6 +856,82 @@ impl<'a> Network<'a> {
     let request_props = self
       .radarr_request_props_from(
         format!("{}/{}", RadarrEvent::EditMovie.resource(), movie_id).as_str(),
+        RequestMethod::Put,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<Value, ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn edit_collection(&self) {
+    info!("Editing Radarr collection");
+
+    info!("Fetching collection details");
+    let collection_id = self.extract_collection_id().await;
+    let request_props = self
+      .radarr_request_props_from(
+        format!(
+          "{}/{}",
+          RadarrEvent::GetCollections.resource(),
+          collection_id
+        )
+        .as_str(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_collection_body, mut app| {
+        app.response = detailed_collection_body.to_string()
+      })
+      .await;
+
+    info!("Constructing edit collection body");
+
+    let body = {
+      let quality_profile_id = self.extract_quality_profile_id().await;
+      let mut app = self.app.lock().await;
+      let response = app.response.drain(..).collect::<String>();
+      let mut detailed_collection_body: Value = serde_json::from_str(&response).unwrap();
+
+      let root_folder_path: String = app.data.radarr_data.edit_path.drain();
+
+      let monitored = app.data.radarr_data.edit_monitored.unwrap_or_default();
+      let search_on_add = app.data.radarr_data.edit_search_on_add.unwrap_or_default();
+      let minimum_availability = app
+        .data
+        .radarr_data
+        .minimum_availability_list
+        .current_selection()
+        .to_string();
+
+      *detailed_collection_body.get_mut("monitored").unwrap() = json!(monitored);
+      *detailed_collection_body
+        .get_mut("minimumAvailability")
+        .unwrap() = json!(minimum_availability);
+      *detailed_collection_body
+        .get_mut("qualityProfileId")
+        .unwrap() = json!(quality_profile_id);
+      *detailed_collection_body.get_mut("rootFolderPath").unwrap() = json!(root_folder_path);
+      *detailed_collection_body.get_mut("searchOnAdd").unwrap() = json!(search_on_add);
+
+      detailed_collection_body
+    };
+
+    debug!("Edit collection body: {:?}", body);
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!(
+          "{}/{}",
+          RadarrEvent::EditCollection.resource(),
+          collection_id
+        )
+        .as_str(),
         RequestMethod::Put,
         Some(body),
       )
@@ -899,7 +977,7 @@ impl<'a> Network<'a> {
     let quality_profile = app
       .data
       .radarr_data
-      .movie_quality_profile_list
+      .quality_profile_list
       .current_selection();
     *app
       .data
@@ -981,6 +1059,43 @@ impl<'a> Network<'a> {
         .data
         .radarr_data
         .movies
+        .current_selection()
+        .id
+        .as_u64()
+        .unwrap()
+    }
+  }
+
+  async fn extract_collection_id(&self) -> u64 {
+    if !self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .filtered_collections
+      .items
+      .is_empty()
+    {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .filtered_collections
+        .current_selection()
+        .id
+        .as_u64()
+        .unwrap()
+    } else {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .collections
         .current_selection()
         .id
         .as_u64()
@@ -1117,8 +1232,12 @@ mod test {
           }
         },
         "collection": {
+          "id": 123,
           "title": "Test Collection",
+          "rootFolderPath": "/nfs/movies",
           "searchOnAdd": true,
+          "monitored": true,
+          "minimumAvailability": "released",
           "overview": "Collection blah blah blah",
           "qualityProfileId": 2222,
           "movies": [
@@ -1791,8 +1910,12 @@ mod test {
   #[tokio::test]
   async fn test_handle_get_collections_event() {
     let collection_json = json!([{
+      "id": 123,
       "title": "Test Collection",
+      "rootFolderPath": "/nfs/movies",
       "searchOnAdd": true,
+      "monitored": true,
+      "minimumAvailability": "released",
       "overview": "Collection blah blah blah",
       "qualityProfileId": 2222,
       "movies": [{
@@ -2110,17 +2233,17 @@ mod test {
       app
         .data
         .radarr_data
-        .movie_quality_profile_list
+        .quality_profile_list
         .set_items(vec!["HD - 1080p".to_owned()]);
       app
         .data
         .radarr_data
-        .movie_monitor_list
+        .monitor_list
         .set_items(Vec::from_iter(Monitor::iter()));
       app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .set_items(Vec::from_iter(MinimumAvailability::iter()));
       if collection_details_context {
         app
@@ -2180,12 +2303,12 @@ mod test {
       app
         .data
         .radarr_data
-        .movie_quality_profile_list
+        .quality_profile_list
         .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
       app
         .data
         .radarr_data
-        .movie_minimum_availability_list
+        .minimum_availability_list
         .set_items(Vec::from_iter(MinimumAvailability::iter()));
       app.data.radarr_data.movies.set_items(vec![Movie {
         monitored: false,
@@ -2201,11 +2324,105 @@ mod test {
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
 
+    let app = app_arc.lock().await;
+    assert!(app.response.is_empty());
+    assert!(app.data.radarr_data.edit_path.text.is_empty());
+    assert!(app.data.radarr_data.movie_details.items.is_empty());
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_collection_event() {
+    let detailed_collection_body = json!({
+      "id": 123,
+      "title": "Test Collection",
+      "rootFolderPath": "/nfs/movies",
+      "searchOnAdd": true,
+      "monitored": true,
+      "minimumAvailability": "released",
+      "overview": "Collection blah blah blah",
+      "qualityProfileId": 2222,
+      "movies": [
+        {
+          "title": "Test",
+          "overview": "Collection blah blah blah",
+          "year": 2023,
+          "runtime": 120,
+          "tmdbId": 1234,
+          "genres": ["cool", "family", "fun"],
+          "ratings": {
+            "imdb": {
+              "value": 9.9
+            },
+            "tmdb": {
+              "value": 9.9
+            },
+            "rottenTomatoes": {
+              "value": 9.9
+            }
+          }
+        }
+      ]
+    });
+    let mut expected_body = detailed_collection_body.clone();
+    *expected_body.get_mut("monitored").unwrap() = json!(false);
+    *expected_body.get_mut("minimumAvailability").unwrap() = json!("announced");
+    *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
+    *expected_body.get_mut("rootFolderPath").unwrap() = json!("/nfs/Test Path");
+    *expected_body.get_mut("searchOnAdd").unwrap() = json!(false);
+
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(detailed_collection_body),
+      format!("{}/123", RadarrEvent::GetCollections.resource()).as_str(),
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/123", RadarrEvent::EditCollection.resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
     {
-      let app = app_arc.lock().await;
-      assert!(app.data.radarr_data.edit_path.text.is_empty());
-      assert!(app.data.radarr_data.movie_details.items.is_empty());
+      let mut app = app_arc.lock().await;
+      app.data.radarr_data.edit_path = "/nfs/Test Path".to_owned().into();
+      app.data.radarr_data.edit_monitored = Some(false);
+      app.data.radarr_data.edit_search_on_add = Some(false);
+      app
+        .data
+        .radarr_data
+        .quality_profile_list
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      app
+        .data
+        .radarr_data
+        .minimum_availability_list
+        .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      app.data.radarr_data.collections.set_items(vec![Collection {
+        monitored: false,
+        search_on_add: false,
+        ..collection()
+      }]);
+      app.data.radarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
     }
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network
+      .handle_radarr_event(RadarrEvent::EditCollection)
+      .await;
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+
+    let app = app_arc.lock().await;
+    assert!(app.response.is_empty());
+    assert!(app.data.radarr_data.edit_path.text.is_empty());
+    assert!(app.data.radarr_data.movie_details.items.is_empty());
   }
 
   #[tokio::test]
@@ -2244,7 +2461,7 @@ mod test {
       app
         .data
         .radarr_data
-        .movie_quality_profile_list
+        .quality_profile_list
         .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(1, "Any".to_owned()), (2, "HD - 1080p".to_owned())]);
@@ -2336,6 +2553,42 @@ mod test {
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     assert_eq!(network.extract_movie_id().await, 1);
+  }
+
+  #[tokio::test]
+  async fn test_extract_collection_id() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .collections
+      .set_items(vec![Collection {
+        id: Number::from(1),
+        ..Collection::default()
+      }]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    assert_eq!(network.extract_collection_id().await, 1);
+  }
+
+  #[tokio::test]
+  async fn test_extract_collection_id_filtered_collection() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .filtered_collections
+      .set_items(vec![Collection {
+        id: Number::from(1),
+        ..Collection::default()
+      }]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    assert_eq!(network.extract_collection_id().await, 1);
   }
 
   #[tokio::test]
@@ -2562,9 +2815,12 @@ mod test {
 
   fn collection() -> Collection {
     Collection {
+      id: Number::from(123),
       title: "Test Collection".to_owned().into(),
-      root_folder_path: None,
+      root_folder_path: Some("/nfs/movies".to_owned()),
       search_on_add: true,
+      monitored: true,
+      minimum_availability: MinimumAvailability::Released,
       overview: Some("Collection blah blah blah".to_owned()),
       quality_profile_id: Number::from(2222),
       movies: Some(vec![collection_movie()]),
