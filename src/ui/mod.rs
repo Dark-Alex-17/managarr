@@ -1,4 +1,5 @@
 use std::iter;
+use std::rc::Rc;
 
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
@@ -44,7 +45,7 @@ pub fn ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
 
     draw_error(f, app, chunks[1]);
 
-    vec![chunks[0], chunks[2], chunks[3]]
+    Rc::new([chunks[0], chunks[2], chunks[3]])
   } else {
     vertical_chunks_with_margin(
       vec![
@@ -365,7 +366,7 @@ pub fn draw_prompt_box_with_content<B: Backend>(
 
     f.render_widget(content_paragraph, vertical_chunks[1]);
 
-    vec![vertical_chunks[0], vertical_chunks[2], vertical_chunks[3]]
+    Rc::new([vertical_chunks[0], vertical_chunks[2], vertical_chunks[3]])
   } else {
     vertical_chunks_with_margin(
       vec![

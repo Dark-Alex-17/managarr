@@ -1461,12 +1461,12 @@ mod test {
       vec![
         DiskSpace {
           free_space: Number::from(1111),
-          total_space: Number::from(2222)
+          total_space: Number::from(2222),
         },
         DiskSpace {
           free_space: Number::from(3333),
-          total_space: Number::from(4444)
-        }
+          total_space: Number::from(4444),
+        },
       ]
     );
   }

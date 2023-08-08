@@ -95,7 +95,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a>
           )
             .into(),
         );
-        self.app.data.radarr_data.selected_block = ActiveRadarrBlock::EditMovieToggleMonitored;
+        self.app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieSelectRootFolder;
         self.app.data.radarr_data.populate_preferences_lists();
       }
     }
@@ -124,7 +124,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a>
           .into(),
       );
       self.app.data.radarr_data.populate_edit_collection_fields();
-      self.app.data.radarr_data.selected_block = ActiveRadarrBlock::EditCollectionToggleMonitored;
+      self.app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieSelectRootFolder;
     }
   }
 }
@@ -219,7 +219,7 @@ mod tests {
       assert!(!app.data.radarr_data.monitor_list.items.is_empty());
       assert_eq!(
         app.data.radarr_data.selected_block,
-        ActiveRadarrBlock::EditMovieToggleMonitored
+        ActiveRadarrBlock::AddMovieSelectRootFolder
       );
       assert!(!app
         .data

@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
@@ -15,7 +16,7 @@ pub const COLOR_ORANGE: Color = Color::Rgb(255, 170, 66);
 pub const COLOR_WHITE: Color = Color::White;
 pub const COLOR_MAGENTA: Color = Color::Magenta;
 
-pub fn horizontal_chunks(constraints: Vec<Constraint>, area: Rect) -> Vec<Rect> {
+pub fn horizontal_chunks(constraints: Vec<Constraint>, area: Rect) -> Rc<[Rect]> {
   layout_with_constraints(constraints)
     .direction(Direction::Horizontal)
     .split(area)
@@ -25,14 +26,14 @@ pub fn horizontal_chunks_with_margin(
   constraints: Vec<Constraint>,
   area: Rect,
   margin: u16,
-) -> Vec<Rect> {
+) -> Rc<[Rect]> {
   layout_with_constraints(constraints)
     .direction(Direction::Horizontal)
     .margin(margin)
     .split(area)
 }
 
-pub fn vertical_chunks(constraints: Vec<Constraint>, area: Rect) -> Vec<Rect> {
+pub fn vertical_chunks(constraints: Vec<Constraint>, area: Rect) -> Rc<[Rect]> {
   layout_with_constraints(constraints)
     .direction(Direction::Vertical)
     .split(area)
@@ -42,7 +43,7 @@ pub fn vertical_chunks_with_margin(
   constraints: Vec<Constraint>,
   area: Rect,
   margin: u16,
-) -> Vec<Rect> {
+) -> Rc<[Rect]> {
   layout_with_constraints(constraints)
     .direction(Direction::Vertical)
     .margin(margin)
