@@ -3,15 +3,15 @@ mod test {
   use pretty_assertions::assert_eq;
   use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
   use tui::style::{Color, Modifier, Style};
-  use tui::text::{Span, Spans};
+  use tui::text::{Line, Span};
   use tui::widgets::{Block, BorderType, Borders};
 
   use crate::ui::utils::{
     borderless_block, centered_rect, get_width_from_percentage, horizontal_chunks,
     horizontal_chunks_with_margin, layout_block, layout_block_bottom_border,
     layout_block_top_border, layout_block_top_border_with_title, layout_block_with_title,
-    layout_with_constraints, logo_block, spans_info_default, spans_info_primary,
-    spans_info_with_style, style_block_highlight, style_bold, style_default, style_default_bold,
+    layout_with_constraints, line_info_default, line_info_primary, line_info_with_style,
+    logo_block, style_block_highlight, style_bold, style_default, style_default_bold,
     style_failure, style_help, style_highlight, style_primary, style_secondary, style_success,
     style_system_function, style_unmonitored, style_warning, title_block, title_block_centered,
     title_style, vertical_chunks, vertical_chunks_with_margin,
@@ -177,32 +177,32 @@ mod test {
   }
 
   #[test]
-  fn test_spans_info_with_style() {
+  fn test_line_info_with_style() {
     let first_style = Style::default()
       .fg(Color::DarkGray)
       .add_modifier(Modifier::BOLD);
     let second_style = Style::default()
       .fg(Color::LightYellow)
       .add_modifier(Modifier::ITALIC);
-    let expected_spans = Spans::from(vec![
+    let expected_lines = Line::from(vec![
       Span::styled("title".to_owned(), first_style),
       Span::styled("content".to_owned(), second_style),
     ]);
 
     assert_eq!(
-      spans_info_with_style(
+      line_info_with_style(
         "title".to_owned(),
         "content".to_owned(),
         first_style,
         second_style
       ),
-      expected_spans
+      expected_lines
     );
   }
 
   #[test]
-  fn test_spans_info_default() {
-    let expected_spans = Spans::from(vec![
+  fn test_line_info_default() {
+    let expected_line = Line::from(vec![
       Span::styled(
         "title".to_owned(),
         Style::default().add_modifier(Modifier::BOLD),
@@ -211,14 +211,14 @@ mod test {
     ]);
 
     assert_eq!(
-      spans_info_default("title".to_owned(), "content".to_owned()),
-      expected_spans
+      line_info_default("title".to_owned(), "content".to_owned()),
+      expected_line
     );
   }
 
   #[test]
-  fn test_spans_info_primary() {
-    let expected_spans = Spans::from(vec![
+  fn test_line_info_primary() {
+    let expected_line = Line::from(vec![
       Span::styled(
         "title".to_owned(),
         Style::default()
@@ -229,8 +229,8 @@ mod test {
     ]);
 
     assert_eq!(
-      spans_info_primary("title".to_owned(), "content".to_owned()),
-      expected_spans
+      line_info_primary("title".to_owned(), "content".to_owned()),
+      expected_line
     );
   }
 

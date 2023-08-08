@@ -4,7 +4,7 @@ use std::rc::Rc;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::Modifier;
-use tui::text::{Span, Spans, Text};
+use tui::text::{Line, Span, Text};
 use tui::widgets::Paragraph;
 use tui::widgets::Row;
 use tui::widgets::Table;
@@ -81,7 +81,7 @@ fn draw_header_row<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Re
     .server_tabs
     .tabs
     .iter()
-    .map(|tab| Spans::from(Span::styled(tab.title, style_default_bold())))
+    .map(|tab| Line::from(Span::styled(tab.title, style_default_bold())))
     .collect();
   let tabs = Tabs::new(titles)
     .block(logo_block())
@@ -273,7 +273,7 @@ fn draw_tabs<'a, B: Backend>(
   let titles = tab_state
     .tabs
     .iter()
-    .map(|tab_route| Spans::from(Span::styled(tab_route.title, style_default_bold())))
+    .map(|tab_route| Line::from(Span::styled(tab_route.title, style_default_bold())))
     .collect();
   let tabs = Tabs::new(titles)
     .block(block)

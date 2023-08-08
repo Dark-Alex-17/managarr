@@ -21,6 +21,7 @@ Managarr assumes reasonable defaults to connect to each service (i.e. Radarr is 
 but all servers will require you to input the API token. 
 
 The configuration file is located somewhere different for each OS
+
 ### Linux
 ```
 $HOME/.config/managarr/config.yml

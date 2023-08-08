@@ -11,7 +11,7 @@ use crate::models::Route;
 use crate::ui::radarr_ui::collections_ui::draw_collections;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_top_border_with_title,
-  spans_info_primary, style_default, style_help, style_primary, title_block, title_style,
+  line_info_primary, style_default, style_help, style_primary, title_block, title_style,
   vertical_chunks_with_margin,
 };
 use crate::ui::{draw_large_popup_over, draw_small_popup_over, draw_table, DrawUi, TableProps};
@@ -106,24 +106,24 @@ pub(super) fn draw_collection_details<B: Backend>(
   let minimum_availability = collection_selection.minimum_availability.to_display_str();
 
   let collection_description = Text::from(vec![
-    spans_info_primary(
+    line_info_primary(
       "Overview: ".to_owned(),
       collection_selection.overview.clone().unwrap_or_default(),
     ),
-    spans_info_primary(
+    line_info_primary(
       "Root Folder Path: ".to_owned(),
       collection_selection
         .root_folder_path
         .clone()
         .unwrap_or_default(),
     ),
-    spans_info_primary("Quality Profile: ".to_owned(), quality_profile),
-    spans_info_primary(
+    line_info_primary("Quality Profile: ".to_owned(), quality_profile),
+    line_info_primary(
       "Minimum Availability: ".to_owned(),
       minimum_availability.to_owned(),
     ),
-    spans_info_primary("Monitored: ".to_owned(), monitored.to_owned()),
-    spans_info_primary("Search on Add: ".to_owned(), search_on_add.to_owned()),
+    line_info_primary("Monitored: ".to_owned(), monitored.to_owned()),
+    line_info_primary("Search on Add: ".to_owned(), search_on_add.to_owned()),
   ]);
 
   let description_paragraph = Paragraph::new(collection_description)

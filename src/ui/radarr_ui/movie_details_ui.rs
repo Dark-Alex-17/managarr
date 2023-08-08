@@ -3,7 +3,7 @@ use std::iter;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Modifier, Style};
-use tui::text::{Span, Spans, Text};
+use tui::text::{Line, Span, Text};
 use tui::widgets::{Cell, ListItem, Paragraph, Row, Wrap};
 use tui::Frame;
 
@@ -14,7 +14,7 @@ use crate::models::Route;
 use crate::ui::radarr_ui::library_ui::draw_library;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_bottom_border, layout_block_top_border,
-  spans_info_default, style_awaiting_import, style_bold, style_default, style_failure,
+  line_info_default, style_awaiting_import, style_bold, style_default, style_failure,
   style_primary, style_success, style_warning, vertical_chunks,
 };
 use crate::ui::{
@@ -216,9 +216,9 @@ fn draw_movie_details<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, content_a
           let split = line.split(':').collect::<Vec<&str>>();
           let title = format!("{}:", split[0]);
 
-          spans_info_default(title, split[1..].join(":"))
+          line_info_default(title, split[1..].join(":"))
         })
-        .collect::<Vec<Spans<'_>>>(),
+        .collect::<Vec<Line<'_>>>(),
     );
     text.patch_style(determine_style_from_download_status(download_status));
 
@@ -524,7 +524,7 @@ fn draw_manual_search_confirm_prompt<B: Backend>(
   };
 
   if current_selection.rejected {
-    let mut spans_vec = vec![Spans::from(vec![Span::styled(
+    let mut lines_vec = vec![Line::from(vec![Span::styled(
       "Rejection reasons: ",
       style_primary().add_modifier(Modifier::BOLD),
     )])];
@@ -533,11 +533,11 @@ fn draw_manual_search_confirm_prompt<B: Backend>(
       .clone()
       .unwrap_or_default()
       .iter()
-      .map(|item| Spans::from(vec![Span::styled(format!("• {}", item), style_primary())]))
-      .collect::<Vec<Spans<'_>>>();
-    spans_vec.append(&mut rejections_spans);
+      .map(|item| Line::from(vec![Span::styled(format!("• {}", item), style_primary())]))
+      .collect::<Vec<Line<'_>>>();
+    lines_vec.append(&mut rejections_spans);
 
-    let content_paragraph = Paragraph::new(spans_vec)
+    let content_paragraph = Paragraph::new(lines_vec)
       .block(borderless_block())
       .wrap(Wrap { trim: false })
       .alignment(Alignment::Left);

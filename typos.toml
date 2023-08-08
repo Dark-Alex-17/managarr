@@ -1,0 +1,14 @@
+# configuration for https://github.com/crate-ci/typos
+
+[default.extend-words]
+ratatui = "ratatui"
+managarr = "managarr"
+radarr = "radarr"
+sonarr = "sonarr"
+servarr = "servarr"
+readarr = "readarr"
+lidarr = "lidarr"
+whisparr = "whisparr"
+bazarr = "bazarr"
+prowlarr = "prowlarr"
+tautulli = "tautulli"

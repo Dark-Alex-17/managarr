@@ -2,7 +2,7 @@ use std::rc::Rc;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::text::{Span, Spans, Text};
+use tui::text::{Line, Span, Text};
 use tui::widgets::{Block, BorderType, Borders, LineGauge, Paragraph, Wrap};
 use tui::{symbols, Frame};
 
@@ -120,24 +120,24 @@ pub fn borderless_block<'a>() -> Block<'a> {
   Block::default()
 }
 
-pub fn spans_info_with_style<'a>(
+pub fn line_info_with_style<'a>(
   title: String,
   content: String,
   title_style: Style,
   content_style: Style,
-) -> Spans<'a> {
-  Spans::from(vec![
+) -> Line<'a> {
+  Line::from(vec![
     Span::styled(title, title_style),
     Span::styled(content, content_style),
   ])
 }
 
-pub fn spans_info_default<'a>(title: String, content: String) -> Spans<'a> {
-  spans_info_with_style(title, content, style_bold(), style_default())
+pub fn line_info_default<'a>(title: String, content: String) -> Line<'a> {
+  line_info_with_style(title, content, style_bold(), style_default())
 }
 
-pub fn spans_info_primary<'a>(title: String, content: String) -> Spans<'a> {
-  spans_info_with_style(
+pub fn line_info_primary<'a>(title: String, content: String) -> Line<'a> {
+  line_info_with_style(
     title,
     content,
     style_primary().add_modifier(Modifier::BOLD),
@@ -256,7 +256,7 @@ pub fn line_gauge_with_title(title: &str, ratio: f64) -> LineGauge<'_> {
     .gauge_style(Style::default().fg(COLOR_CYAN))
     .line_set(symbols::line::THICK)
     .ratio(ratio)
-    .label(Spans::from(format!("{:.0}%", ratio * 100.0)))
+    .label(Line::from(format!("{:.0}%", ratio * 100.0)))
 }
 
 pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge<'_> {
@@ -265,7 +265,7 @@ pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge<'_> {
     .gauge_style(Style::default().fg(COLOR_CYAN))
     .line_set(symbols::line::THICK)
     .ratio(ratio)
-    .label(Spans::from(format!("{}: {:.0}%", title, ratio * 100.0)))
+    .label(Line::from(format!("{}: {:.0}%", title, ratio * 100.0)))
 }
 
 pub fn show_cursor<B: Backend>(f: &mut Frame<'_, B>, area: Rect, offset: usize, string: &str) {
