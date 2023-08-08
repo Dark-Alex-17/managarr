@@ -10,7 +10,6 @@ Managarr is a TUI to help you manage your HTPC (Home Theater PC). Built with lov
 - ![prowlarr_logo](servarr_logos/prowlarr.png) [Prowlarr](https://wiki.servarr.com/en/prowlarr)
 - ![whisparr_logo](servarr_logos/whisparr.png) [Whisparr](https://wiki.servarr.com/whisparr)
 - ![bazarr_logo](servarr_logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
-- ![overseerr_logo](servarr_logos/overseerr.png) [Overseerr](https://docs.overseerr.dev/)
 - ![tautulli_logo](servarr_logos/tautulli.png) [Tautulli](https://tautulli.com/)
 
 # Configuration 
@@ -63,10 +62,6 @@ prowlarr:
   host: 127.0.0.1
   port: 9696
   api_token: someApiToken1234567890
-overseerr:
-  host: 127.0.0.1
-  port: 5055
-  api_token: someApiToken1234567890
 tautulli:
   host: 127.0.0.1
   port: 8181
@@ -108,10 +103,6 @@ tautulli:
 
 - [ ] Support for Prowlarr
 
-### Overseerr
-
-- [ ] Support for Overseerr
-
 ### Tautulli
 
 - [ ] Support for Tautulli
@@ -137,5 +128,4 @@ tautulli:
 * [Whisparr >= v3](https://whisparr.com/docs/api/)
 * [Prowlarr v1](https://prowlarr.com/docs/api/)
 * [Bazarr v1.1.4](http://localhost:6767/api)
-* [Overseerr v1](https://api-docs.overseerr.dev/)
 * [Tautulli >= v2](https://github.com/Tautulli/Tautulli/wiki/Tautulli-API-Reference)
