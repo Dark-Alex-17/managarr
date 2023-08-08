@@ -108,7 +108,7 @@ pub(super) fn draw_collection_details<B: Backend>(
     .block(borderless_block())
     .alignment(Alignment::Center);
 
-  f.render_widget(title_block(&collection_selection.title), content_area);
+  f.render_widget(title_block(&collection_selection.title.text), content_area);
 
   f.render_widget(description_paragraph, chunks[0]);
   f.render_widget(help_paragraph, chunks[2]);

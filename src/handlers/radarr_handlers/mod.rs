@@ -231,9 +231,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       }
       ActiveRadarrBlock::DeleteMoviePrompt
       | ActiveRadarrBlock::DeleteDownloadPrompt
-      | ActiveRadarrBlock::RefreshAllMoviesPrompt
-      | ActiveRadarrBlock::RefreshAllCollectionsPrompt
-      | ActiveRadarrBlock::RefreshDownloadsPrompt => handle_prompt_toggle(self.app, self.key),
+      | ActiveRadarrBlock::UpdateAllMoviesPrompt
+      | ActiveRadarrBlock::UpdateAllCollectionsPrompt
+      | ActiveRadarrBlock::UpdateDownloadsPrompt => handle_prompt_toggle(self.app, self.key),
       ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => {
         handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.search)
       }
@@ -256,7 +256,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         if self.app.data.radarr_data.filtered_movies.items.is_empty() {
           let selected_index = self
             .search_table(&self.app.data.radarr_data.movies.items.clone(), |movie| {
-              &movie.title
+              &movie.title.text
             });
           self
             .app
@@ -267,7 +267,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         } else {
           let selected_index = self.search_table(
             &self.app.data.radarr_data.filtered_movies.items.clone(),
-            |movie| &movie.title,
+            |movie| &movie.title.text,
           );
           self
             .app
@@ -288,7 +288,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         {
           let selected_index = self.search_table(
             &self.app.data.radarr_data.collections.items.clone(),
-            |collection| &collection.title,
+            |collection| &collection.title.text,
           );
           self
             .app
@@ -299,7 +299,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         } else {
           let selected_index = self.search_table(
             &self.app.data.radarr_data.filtered_collections.items.clone(),
-            |collection| &collection.title,
+            |collection| &collection.title.text,
           );
           self
             .app
@@ -312,7 +312,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       ActiveRadarrBlock::FilterMovies => {
         let filtered_movies = self
           .filter_table(&self.app.data.radarr_data.movies.items.clone(), |movie| {
-            &movie.title
+            &movie.title.text
           });
 
         if !filtered_movies.is_empty() {
@@ -327,7 +327,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       ActiveRadarrBlock::FilterCollections => {
         let filtered_collections = self.filter_table(
           &self.app.data.radarr_data.collections.items.clone(),
-          |collection| &collection.title,
+          |collection| &collection.title.text,
         );
 
         if !filtered_collections.is_empty() {
@@ -353,23 +353,23 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
 
         self.app.pop_navigation_stack();
       }
-      ActiveRadarrBlock::RefreshAllMoviesPrompt => {
+      ActiveRadarrBlock::UpdateAllMoviesPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAllMovies);
         }
 
         self.app.pop_navigation_stack();
       }
-      ActiveRadarrBlock::RefreshDownloadsPrompt => {
+      ActiveRadarrBlock::UpdateDownloadsPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::RefreshDownloads);
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateDownloads);
         }
 
         self.app.pop_navigation_stack();
       }
-      ActiveRadarrBlock::RefreshAllCollectionsPrompt => {
+      ActiveRadarrBlock::UpdateAllCollectionsPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::RefreshCollections);
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateCollections);
         }
 
         self.app.pop_navigation_stack();
@@ -392,9 +392,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       }
       ActiveRadarrBlock::DeleteMoviePrompt
       | ActiveRadarrBlock::DeleteDownloadPrompt
-      | ActiveRadarrBlock::RefreshAllMoviesPrompt
-      | ActiveRadarrBlock::RefreshAllCollectionsPrompt
-      | ActiveRadarrBlock::RefreshDownloadsPrompt => {
+      | ActiveRadarrBlock::UpdateAllMoviesPrompt
+      | ActiveRadarrBlock::UpdateAllCollectionsPrompt
+      | ActiveRadarrBlock::UpdateDownloadsPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.prompt_confirm = false;
       }
@@ -441,18 +441,28 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
             .push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
           self.app.should_ignore_quit_key = true;
         }
+        _ if *key == DEFAULT_KEYBINDINGS.update.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::UpdateAllMoviesPrompt.into());
+        }
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
           self
             .app
-            .push_navigation_stack(ActiveRadarrBlock::RefreshAllMoviesPrompt.into());
+            .pop_and_push_navigation_stack((*self.active_radarr_block).into());
         }
         _ => (),
       },
       ActiveRadarrBlock::Downloads => match self.key {
+        _ if *key == DEFAULT_KEYBINDINGS.update.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::UpdateDownloadsPrompt.into());
+        }
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
           self
             .app
-            .push_navigation_stack(ActiveRadarrBlock::RefreshDownloadsPrompt.into());
+            .pop_and_push_navigation_stack((*self.active_radarr_block).into());
         }
         _ => (),
       },
@@ -471,10 +481,15 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
           self.app.data.radarr_data.is_filtering = true;
           self.app.should_ignore_quit_key = true;
         }
+        _ if *key == DEFAULT_KEYBINDINGS.update.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::UpdateAllCollectionsPrompt.into());
+        }
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
           self
             .app
-            .push_navigation_stack(ActiveRadarrBlock::RefreshAllCollectionsPrompt.into());
+            .pop_and_push_navigation_stack((*self.active_radarr_block).into());
         }
         _ => (),
       },
@@ -614,6 +629,7 @@ mod tests {
   use crate::handlers::radarr_handlers::RadarrHandler;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::{Collection, Movie};
+  use crate::models::HorizontallyScrollableText;
   use crate::{extended_stateful_iterable_vec, test_handler_delegation};
 
   mod test_handle_scroll_up_and_down {
@@ -628,40 +644,44 @@ mod tests {
       test_collections_scroll,
       RadarrHandler,
       collections,
-      Collection,
+      simple_stateful_iterable_vec!(Collection, HorizontallyScrollableText),
       ActiveRadarrBlock::Collections,
       None,
-      title
+      title,
+      to_string
     );
 
     test_iterable_scroll!(
       test_filtered_collections_scroll,
       RadarrHandler,
       filtered_collections,
-      Collection,
+      simple_stateful_iterable_vec!(Collection, HorizontallyScrollableText),
       ActiveRadarrBlock::Collections,
       None,
-      title
+      title,
+      to_string
     );
 
     test_iterable_scroll!(
       test_movies_scroll,
       RadarrHandler,
       movies,
-      Movie,
+      simple_stateful_iterable_vec!(Movie, HorizontallyScrollableText),
       ActiveRadarrBlock::Movies,
       None,
-      title
+      title,
+      to_string
     );
 
     test_iterable_scroll!(
       test_filtered_movies_scroll,
       RadarrHandler,
       filtered_movies,
-      Movie,
+      simple_stateful_iterable_vec!(Movie, HorizontallyScrollableText),
       ActiveRadarrBlock::Movies,
       None,
-      title
+      title,
+      to_string
     );
 
     test_iterable_scroll!(
@@ -689,40 +709,44 @@ mod tests {
       test_collections_home_end,
       RadarrHandler,
       collections,
-      Collection,
+      extended_stateful_iterable_vec!(Collection, HorizontallyScrollableText),
       ActiveRadarrBlock::Collections,
       None,
-      title
+      title,
+      to_string
     );
 
     test_iterable_home_and_end!(
       test_filtered_collections_home_end,
       RadarrHandler,
       filtered_collections,
-      Collection,
+      extended_stateful_iterable_vec!(Collection, HorizontallyScrollableText),
       ActiveRadarrBlock::Collections,
       None,
-      title
+      title,
+      to_string
     );
 
     test_iterable_home_and_end!(
       test_movies_home_end,
       RadarrHandler,
       movies,
-      Movie,
+      extended_stateful_iterable_vec!(Movie, HorizontallyScrollableText),
       ActiveRadarrBlock::Movies,
       None,
-      title
+      title,
+      to_string
     );
 
     test_iterable_home_and_end!(
       test_filtered_movies_home_end,
       RadarrHandler,
       filtered_movies,
-      Movie,
+      extended_stateful_iterable_vec!(Movie, HorizontallyScrollableText),
       ActiveRadarrBlock::Movies,
       None,
-      title
+      title,
+      to_string
     );
 
     test_iterable_home_and_end!(
@@ -851,9 +875,9 @@ mod tests {
       #[values(
         ActiveRadarrBlock::DeleteMoviePrompt,
         ActiveRadarrBlock::DeleteDownloadPrompt,
-        ActiveRadarrBlock::RefreshAllMoviesPrompt,
-        ActiveRadarrBlock::RefreshAllCollectionsPrompt,
-        ActiveRadarrBlock::RefreshDownloadsPrompt
+        ActiveRadarrBlock::UpdateAllMoviesPrompt,
+        ActiveRadarrBlock::UpdateAllCollectionsPrompt,
+        ActiveRadarrBlock::UpdateDownloadsPrompt
       )]
       active_radarr_block: ActiveRadarrBlock,
       #[values(DEFAULT_KEYBINDINGS.left.key, DEFAULT_KEYBINDINGS.right.key)] key: Key,
@@ -917,7 +941,10 @@ mod tests {
         .data
         .radarr_data
         .movies
-        .set_items(extended_stateful_iterable_vec!(Movie));
+        .set_items(extended_stateful_iterable_vec!(
+          Movie,
+          HorizontallyScrollableText
+        ));
       app.data.radarr_data.search = "Test 2".to_owned().into();
 
       RadarrHandler::with(
@@ -929,7 +956,7 @@ mod tests {
       .handle();
 
       assert_str_eq!(
-        app.data.radarr_data.movies.current_selection().title,
+        app.data.radarr_data.movies.current_selection().title.text,
         "Test 2"
       );
     }
@@ -941,7 +968,10 @@ mod tests {
         .data
         .radarr_data
         .filtered_movies
-        .set_items(extended_stateful_iterable_vec!(Movie));
+        .set_items(extended_stateful_iterable_vec!(
+          Movie,
+          HorizontallyScrollableText
+        ));
       app.data.radarr_data.search = "Test 2".to_owned().into();
 
       RadarrHandler::with(
@@ -958,7 +988,8 @@ mod tests {
           .radarr_data
           .filtered_movies
           .current_selection()
-          .title,
+          .title
+          .text,
         "Test 2"
       );
     }
@@ -970,7 +1001,10 @@ mod tests {
         .data
         .radarr_data
         .collections
-        .set_items(extended_stateful_iterable_vec!(Collection));
+        .set_items(extended_stateful_iterable_vec!(
+          Collection,
+          HorizontallyScrollableText
+        ));
       app.data.radarr_data.search = "Test 2".to_owned().into();
 
       RadarrHandler::with(
@@ -982,7 +1016,13 @@ mod tests {
       .handle();
 
       assert_str_eq!(
-        app.data.radarr_data.collections.current_selection().title,
+        app
+          .data
+          .radarr_data
+          .collections
+          .current_selection()
+          .title
+          .text,
         "Test 2"
       );
     }
@@ -994,7 +1034,10 @@ mod tests {
         .data
         .radarr_data
         .filtered_collections
-        .set_items(extended_stateful_iterable_vec!(Collection));
+        .set_items(extended_stateful_iterable_vec!(
+          Collection,
+          HorizontallyScrollableText
+        ));
       app.data.radarr_data.search = "Test 2".to_owned().into();
 
       RadarrHandler::with(
@@ -1011,7 +1054,8 @@ mod tests {
           .radarr_data
           .filtered_collections
           .current_selection()
-          .title,
+          .title
+          .text,
         "Test 2"
       );
     }
@@ -1023,7 +1067,10 @@ mod tests {
         .data
         .radarr_data
         .movies
-        .set_items(extended_stateful_iterable_vec!(Movie));
+        .set_items(extended_stateful_iterable_vec!(
+          Movie,
+          HorizontallyScrollableText
+        ));
       app.data.radarr_data.filter = "Test".to_owned().into();
 
       RadarrHandler::with(
@@ -1041,7 +1088,8 @@ mod tests {
           .radarr_data
           .filtered_movies
           .current_selection()
-          .title,
+          .title
+          .text,
         "Test 1"
       );
     }
@@ -1053,7 +1101,10 @@ mod tests {
         .data
         .radarr_data
         .collections
-        .set_items(extended_stateful_iterable_vec!(Collection));
+        .set_items(extended_stateful_iterable_vec!(
+          Collection,
+          HorizontallyScrollableText
+        ));
       app.data.radarr_data.filter = "Test".to_owned().into();
 
       RadarrHandler::with(
@@ -1071,7 +1122,8 @@ mod tests {
           .radarr_data
           .filtered_collections
           .current_selection()
-          .title,
+          .title
+          .text,
         "Test 1"
       );
     }
@@ -1089,18 +1141,18 @@ mod tests {
     )]
     #[case(
       ActiveRadarrBlock::Movies,
-      ActiveRadarrBlock::RefreshAllMoviesPrompt,
+      ActiveRadarrBlock::UpdateAllMoviesPrompt,
       RadarrEvent::UpdateAllMovies
     )]
     #[case(
       ActiveRadarrBlock::Downloads,
-      ActiveRadarrBlock::RefreshDownloadsPrompt,
-      RadarrEvent::RefreshDownloads
+      ActiveRadarrBlock::UpdateDownloadsPrompt,
+      RadarrEvent::UpdateDownloads
     )]
     #[case(
       ActiveRadarrBlock::Collections,
-      ActiveRadarrBlock::RefreshAllCollectionsPrompt,
-      RadarrEvent::RefreshCollections
+      ActiveRadarrBlock::UpdateAllCollectionsPrompt,
+      RadarrEvent::UpdateCollections
     )]
     fn test_prompt_confirm_submit(
       #[case] base_route: ActiveRadarrBlock,
@@ -1125,14 +1177,11 @@ mod tests {
     #[rstest]
     #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::DeleteMoviePrompt)]
     #[case(ActiveRadarrBlock::Downloads, ActiveRadarrBlock::DeleteDownloadPrompt)]
-    #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::RefreshAllMoviesPrompt)]
-    #[case(
-      ActiveRadarrBlock::Downloads,
-      ActiveRadarrBlock::RefreshDownloadsPrompt
-    )]
+    #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::UpdateAllMoviesPrompt)]
+    #[case(ActiveRadarrBlock::Downloads, ActiveRadarrBlock::UpdateDownloadsPrompt)]
     #[case(
       ActiveRadarrBlock::Collections,
-      ActiveRadarrBlock::RefreshAllCollectionsPrompt
+      ActiveRadarrBlock::UpdateAllCollectionsPrompt
     )]
     fn test_prompt_decline_submit(
       #[case] base_route: ActiveRadarrBlock,
@@ -1203,15 +1252,12 @@ mod tests {
 
     #[rstest]
     #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::DeleteMoviePrompt)]
-    #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::RefreshAllMoviesPrompt)]
+    #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::UpdateAllMoviesPrompt)]
     #[case(ActiveRadarrBlock::Downloads, ActiveRadarrBlock::DeleteDownloadPrompt)]
-    #[case(
-      ActiveRadarrBlock::Downloads,
-      ActiveRadarrBlock::RefreshDownloadsPrompt
-    )]
+    #[case(ActiveRadarrBlock::Downloads, ActiveRadarrBlock::UpdateDownloadsPrompt)]
     #[case(
       ActiveRadarrBlock::Collections,
-      ActiveRadarrBlock::RefreshAllCollectionsPrompt
+      ActiveRadarrBlock::UpdateAllCollectionsPrompt
     )]
     fn test_prompt_blocks_esc(
       #[case] base_block: ActiveRadarrBlock,
@@ -1337,18 +1383,37 @@ mod tests {
     }
 
     #[rstest]
-    #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::RefreshAllMoviesPrompt)]
-    #[case(
-      ActiveRadarrBlock::Downloads,
-      ActiveRadarrBlock::RefreshDownloadsPrompt
-    )]
+    #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::UpdateAllMoviesPrompt)]
+    #[case(ActiveRadarrBlock::Downloads, ActiveRadarrBlock::UpdateDownloadsPrompt)]
     #[case(
       ActiveRadarrBlock::Collections,
-      ActiveRadarrBlock::RefreshAllCollectionsPrompt
+      ActiveRadarrBlock::UpdateAllCollectionsPrompt
     )]
-    fn test_refresh_key(
+    fn test_update_key(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] expected_radarr_block: ActiveRadarrBlock,
+    ) {
+      let mut app = App::default();
+
+      RadarrHandler::with(
+        &DEFAULT_KEYBINDINGS.update.key,
+        &mut app,
+        &active_radarr_block,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), &expected_radarr_block.into());
+    }
+
+    #[rstest]
+    fn test_refresh_key(
+      #[values(
+        ActiveRadarrBlock::Movies,
+        ActiveRadarrBlock::Collections,
+        ActiveRadarrBlock::Downloads
+      )]
+      active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
 
@@ -1360,7 +1425,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &expected_radarr_block.into());
+      assert_eq!(app.get_current_route(), &active_radarr_block.into());
+      assert!(app.is_routing);
     }
 
     #[rstest]
@@ -1433,7 +1499,10 @@ mod tests {
       .data
       .radarr_data
       .movies
-      .set_items(extended_stateful_iterable_vec!(Movie));
+      .set_items(extended_stateful_iterable_vec!(
+        Movie,
+        HorizontallyScrollableText
+      ));
     app.data.radarr_data.search = "Test 2".to_owned().into();
     app.data.radarr_data.is_searching = true;
     app.should_ignore_quit_key = true;
@@ -1447,7 +1516,7 @@ mod tests {
       &ActiveRadarrBlock::SearchMovie,
       &None,
     )
-    .search_table(movies, |movie| &movie.title);
+    .search_table(movies, |movie| &movie.title.text);
 
     assert_eq!(index, Some(1));
     assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
@@ -1463,7 +1532,10 @@ mod tests {
       .data
       .radarr_data
       .movies
-      .set_items(extended_stateful_iterable_vec!(Movie));
+      .set_items(extended_stateful_iterable_vec!(
+        Movie,
+        HorizontallyScrollableText
+      ));
     app.data.radarr_data.search = "Test 5".to_owned().into();
     app.data.radarr_data.is_searching = true;
     app.should_ignore_quit_key = true;
@@ -1477,7 +1549,7 @@ mod tests {
       &ActiveRadarrBlock::SearchMovie,
       &None,
     )
-    .search_table(movies, |movie| &movie.title);
+    .search_table(movies, |movie| &movie.title.text);
 
     assert_eq!(index, None);
     assert_eq!(
@@ -1496,7 +1568,10 @@ mod tests {
       .data
       .radarr_data
       .movies
-      .set_items(extended_stateful_iterable_vec!(Movie));
+      .set_items(extended_stateful_iterable_vec!(
+        Movie,
+        HorizontallyScrollableText
+      ));
     app.data.radarr_data.filter = "Test 2".to_owned().into();
     app.data.radarr_data.is_searching = true;
     app.should_ignore_quit_key = true;
@@ -1510,10 +1585,10 @@ mod tests {
       &ActiveRadarrBlock::FilterMovies,
       &None,
     )
-    .filter_table(movies, |movie| &movie.title);
+    .filter_table(movies, |movie| &movie.title.text);
 
     assert_eq!(filter_matches.len(), 1);
-    assert_str_eq!(filter_matches[0].title, "Test 2");
+    assert_str_eq!(filter_matches[0].title.text, "Test 2");
     assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     assert!(!app.data.radarr_data.is_filtering);
     assert!(!app.should_ignore_quit_key);
@@ -1527,7 +1602,10 @@ mod tests {
       .data
       .radarr_data
       .movies
-      .set_items(extended_stateful_iterable_vec!(Movie));
+      .set_items(extended_stateful_iterable_vec!(
+        Movie,
+        HorizontallyScrollableText
+      ));
     app.data.radarr_data.filter = "Test 5".to_owned().into();
     app.data.radarr_data.is_filtering = true;
     app.should_ignore_quit_key = true;
@@ -1541,7 +1619,7 @@ mod tests {
       &ActiveRadarrBlock::FilterMovies,
       &None,
     )
-    .filter_table(movies, |movie| &movie.title);
+    .filter_table(movies, |movie| &movie.title.text);
 
     assert!(filter_matches.is_empty());
     assert_eq!(
@@ -1590,7 +1668,7 @@ mod tests {
       ActiveRadarrBlock::Cast,
       ActiveRadarrBlock::Crew,
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
-      ActiveRadarrBlock::RefreshAndScanPrompt,
+      ActiveRadarrBlock::UpdateAndScanPrompt,
       ActiveRadarrBlock::ManualSearch,
       ActiveRadarrBlock::ManualSearchConfirmPrompt
     )]

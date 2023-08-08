@@ -127,7 +127,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
         _ => (),
       },
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt
-      | ActiveRadarrBlock::RefreshAndScanPrompt
+      | ActiveRadarrBlock::UpdateAndScanPrompt
       | ActiveRadarrBlock::ManualSearchConfirmPrompt => handle_prompt_toggle(self.app, self.key),
       _ => (),
     }
@@ -143,9 +143,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
 
         self.app.pop_navigation_stack();
       }
-      ActiveRadarrBlock::RefreshAndScanPrompt => {
+      ActiveRadarrBlock::UpdateAndScanPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::RefreshAndScan);
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAndScan);
         }
 
         self.app.pop_navigation_stack();
@@ -201,7 +201,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
         self.app.data.radarr_data.reset_movie_info_tabs();
       }
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt
-      | ActiveRadarrBlock::RefreshAndScanPrompt
+      | ActiveRadarrBlock::UpdateAndScanPrompt
       | ActiveRadarrBlock::ManualSearchConfirmPrompt
       | ActiveRadarrBlock::ManualSearchSortPrompt => {
         self.app.pop_navigation_stack();
@@ -236,10 +236,15 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
           self.app.data.radarr_data.populate_edit_movie_fields();
           self.app.data.radarr_data.selected_block = ActiveRadarrBlock::EditMovieToggleMonitored;
         }
+        _ if *key == DEFAULT_KEYBINDINGS.update.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::UpdateAndScanPrompt.into());
+        }
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
           self
             .app
-            .push_navigation_stack(ActiveRadarrBlock::RefreshAndScanPrompt.into());
+            .pop_and_push_navigation_stack((*self.active_radarr_block).into());
         }
         _ if *key == DEFAULT_KEYBINDINGS.sort.key => {
           self
@@ -534,7 +539,7 @@ mod tests {
     fn test_left_right_prompt_toggle(
       #[values(
         ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
-        ActiveRadarrBlock::RefreshAndScanPrompt,
+        ActiveRadarrBlock::UpdateAndScanPrompt,
         ActiveRadarrBlock::ManualSearchConfirmPrompt
       )]
       active_radarr_block: ActiveRadarrBlock,
@@ -628,7 +633,7 @@ mod tests {
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
       RadarrEvent::TriggerAutomaticSearch
     )]
-    #[case(ActiveRadarrBlock::RefreshAndScanPrompt, RadarrEvent::RefreshAndScan)]
+    #[case(ActiveRadarrBlock::UpdateAndScanPrompt, RadarrEvent::UpdateAndScan)]
     #[case(
       ActiveRadarrBlock::ManualSearchConfirmPrompt,
       RadarrEvent::DownloadRelease
@@ -659,7 +664,7 @@ mod tests {
     fn test_movie_info_prompt_decline_submit(
       #[values(
         ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
-        ActiveRadarrBlock::RefreshAndScanPrompt,
+        ActiveRadarrBlock::UpdateAndScanPrompt,
         ActiveRadarrBlock::ManualSearchConfirmPrompt
       )]
       prompt_block: ActiveRadarrBlock,
@@ -748,7 +753,7 @@ mod tests {
     fn test_movie_info_prompts_esc(
       #[values(
         ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
-        ActiveRadarrBlock::RefreshAndScanPrompt,
+        ActiveRadarrBlock::UpdateAndScanPrompt,
         ActiveRadarrBlock::ManualSearchConfirmPrompt,
         ActiveRadarrBlock::ManualSearchSortPrompt
       )]
@@ -850,6 +855,34 @@ mod tests {
     }
 
     #[rstest]
+    fn test_update_key(
+      #[values(
+        ActiveRadarrBlock::MovieDetails,
+        ActiveRadarrBlock::MovieHistory,
+        ActiveRadarrBlock::FileInfo,
+        ActiveRadarrBlock::Cast,
+        ActiveRadarrBlock::Crew,
+        ActiveRadarrBlock::ManualSearch
+      )]
+      active_radarr_block: ActiveRadarrBlock,
+    ) {
+      let mut app = App::default();
+
+      MovieDetailsHandler::with(
+        &DEFAULT_KEYBINDINGS.update.key,
+        &mut app,
+        &active_radarr_block,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::UpdateAndScanPrompt.into()
+      );
+    }
+
+    #[rstest]
     fn test_refresh_key(
       #[values(
         ActiveRadarrBlock::MovieDetails,
@@ -871,10 +904,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::RefreshAndScanPrompt.into()
-      );
+      assert_eq!(app.get_current_route(), &active_radarr_block.into());
+      assert!(app.is_routing);
     }
   }
 

@@ -15,7 +15,7 @@ use crate::app::radarr::{
 };
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
-use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie};
+use crate::models::radarr_models::{Collection, DiskSpace, DownloadRecord, Movie};
 use crate::models::Route;
 use crate::ui::radarr_ui::add_movie_ui::draw_add_movie_search_popup;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details_popup;
@@ -123,26 +123,26 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
         draw_downloads,
         draw_delete_download_prompt,
       ),
-      ActiveRadarrBlock::RefreshDownloadsPrompt => draw_prompt_popup_over(
+      ActiveRadarrBlock::UpdateDownloadsPrompt => draw_prompt_popup_over(
         f,
         app,
         content_rect,
         draw_downloads,
-        draw_refresh_downloads_prompt,
+        draw_update_downloads_prompt,
       ),
-      ActiveRadarrBlock::RefreshAllMoviesPrompt => draw_prompt_popup_over(
+      ActiveRadarrBlock::UpdateAllMoviesPrompt => draw_prompt_popup_over(
         f,
         app,
         content_rect,
         draw_library,
-        draw_refresh_all_movies_prompt,
+        draw_update_all_movies_prompt,
       ),
-      ActiveRadarrBlock::RefreshAllCollectionsPrompt => draw_prompt_popup_over(
+      ActiveRadarrBlock::UpdateAllCollectionsPrompt => draw_prompt_popup_over(
         f,
         app,
         content_rect,
         draw_collections,
-        draw_refresh_all_collections_prompt,
+        draw_update_all_collections_prompt,
       ),
       _ => (),
     }
@@ -157,6 +157,18 @@ pub(super) fn draw_radarr_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &Ap
 }
 
 fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+  let current_selection = if !app.data.radarr_data.filtered_movies.items.is_empty() {
+    app
+      .data
+      .radarr_data
+      .filtered_movies
+      .current_selection()
+      .clone()
+  } else if !app.data.radarr_data.movies.items.is_empty() {
+    app.data.radarr_data.movies.current_selection().clone()
+  } else {
+    Movie::default()
+  };
   let quality_profile_map = &app.data.radarr_data.quality_profile_map;
   let tags_map = &app.data.radarr_data.tags_map;
   let downloads_vec = &app.data.radarr_data.downloads.items;
@@ -205,6 +217,11 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
         .get_active_tab_contextual_help(),
     },
     |movie| {
+      movie.title.scroll_left_or_reset(
+        get_width_from_percentage(area, 27),
+        *movie == current_selection,
+        app.tick_count % app.ticks_until_scroll == 0,
+      );
       let monitored = if movie.monitored { "🏷" } else { "" };
       let (hours, minutes) = convert_runtime(movie.runtime.as_u64().unwrap());
       let file_size: f64 = convert_to_gb(movie.size_on_disk.as_u64().unwrap());
@@ -226,7 +243,7 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
         .join(", ");
 
       Row::new(vec![
-        Cell::from(movie.title.to_owned()),
+        Cell::from(movie.title.to_string()),
         Cell::from(movie.year.to_string()),
         Cell::from(movie.studio.to_string()),
         Cell::from(format!("{}h {}m", hours, minutes)),
@@ -243,7 +260,7 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   );
 }
 
-fn draw_refresh_all_movies_prompt<B: Backend>(
+fn draw_update_all_movies_prompt<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App,
   prompt_area: Rect,
@@ -251,13 +268,13 @@ fn draw_refresh_all_movies_prompt<B: Backend>(
   draw_prompt_box(
     f,
     prompt_area,
-    "Refresh All Movies",
-    "Do you want to refresh info and scan your disks for all of your movies?",
+    "Update All Movies",
+    "Do you want to update info and scan your disks for all of your movies?",
     &app.data.radarr_data.prompt_confirm,
   );
 }
 
-fn draw_refresh_downloads_prompt<B: Backend>(
+fn draw_update_downloads_prompt<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App,
   prompt_area: Rect,
@@ -265,13 +282,13 @@ fn draw_refresh_downloads_prompt<B: Backend>(
   draw_prompt_box(
     f,
     prompt_area,
-    "Refresh Downloads",
-    "Do you want to refresh your downloads?",
+    "Update Downloads",
+    "Do you want to update your downloads?",
     &app.data.radarr_data.prompt_confirm,
   );
 }
 
-fn draw_refresh_all_collections_prompt<B: Backend>(
+fn draw_update_all_collections_prompt<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App,
   prompt_area: Rect,
@@ -279,8 +296,8 @@ fn draw_refresh_all_collections_prompt<B: Backend>(
   draw_prompt_box(
     f,
     prompt_area,
-    "Refresh All Collections",
-    "Do you want to refresh all of your collections?",
+    "Update All Collections",
+    "Do you want to update all of your collections?",
     &app.data.radarr_data.prompt_confirm,
   );
 }
@@ -496,6 +513,18 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
 }
 
 fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+  let current_selection = if !app.data.radarr_data.filtered_collections.items.is_empty() {
+    app
+      .data
+      .radarr_data
+      .filtered_collections
+      .current_selection()
+      .clone()
+  } else if !app.data.radarr_data.collections.items.is_empty() {
+    app.data.radarr_data.collections.current_selection().clone()
+  } else {
+    Collection::default()
+  };
   let quality_profile_map = &app.data.radarr_data.quality_profile_map;
   let content = if !app.data.radarr_data.filtered_collections.items.is_empty()
     && !app.data.radarr_data.is_filtering
@@ -526,9 +555,14 @@ fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect)
     },
     |collection| {
       let number_of_movies = collection.movies.clone().unwrap_or_default().len();
+      collection.title.scroll_left_or_reset(
+        get_width_from_percentage(area, 100 / 5),
+        *collection == current_selection,
+        app.tick_count % app.ticks_until_scroll == 0,
+      );
 
       Row::new(vec![
-        Cell::from(collection.title.to_owned()),
+        Cell::from(collection.title.to_string()),
         Cell::from(collection.search_on_add.to_string()),
         Cell::from(number_of_movies.to_string()),
         Cell::from(collection.root_folder_path.clone().unwrap_or_default()),

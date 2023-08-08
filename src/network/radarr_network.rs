@@ -37,12 +37,12 @@ pub enum RadarrEvent {
   GetStatus,
   GetTags,
   HealthCheck,
-  RefreshAndScan,
-  RefreshCollections,
-  RefreshDownloads,
   SearchNewMovie,
   TriggerAutomaticSearch,
   UpdateAllMovies,
+  UpdateAndScan,
+  UpdateCollections,
+  UpdateDownloads,
 }
 
 impl RadarrEvent {
@@ -65,10 +65,10 @@ impl RadarrEvent {
       RadarrEvent::GetStatus => "/system/status",
       RadarrEvent::GetTags => "/tag",
       RadarrEvent::TriggerAutomaticSearch
-      | RadarrEvent::RefreshAndScan
+      | RadarrEvent::UpdateAndScan
       | RadarrEvent::UpdateAllMovies
-      | RadarrEvent::RefreshDownloads
-      | RadarrEvent::RefreshCollections => "/command",
+      | RadarrEvent::UpdateDownloads
+      | RadarrEvent::UpdateCollections => "/command",
       RadarrEvent::HealthCheck => "/health",
     }
   }
@@ -101,12 +101,12 @@ impl<'a> Network<'a> {
       RadarrEvent::GetStatus => self.get_status().await,
       RadarrEvent::GetTags => self.get_tags().await,
       RadarrEvent::HealthCheck => self.get_healthcheck().await,
-      RadarrEvent::RefreshAndScan => self.refresh_and_scan().await,
-      RadarrEvent::RefreshCollections => self.refresh_collections().await,
-      RadarrEvent::RefreshDownloads => self.refresh_downloads().await,
       RadarrEvent::SearchNewMovie => self.search_movie().await,
       RadarrEvent::TriggerAutomaticSearch => self.trigger_automatic_search().await,
       RadarrEvent::UpdateAllMovies => self.update_all_movies().await,
+      RadarrEvent::UpdateAndScan => self.update_and_scan().await,
+      RadarrEvent::UpdateCollections => self.update_collections().await,
+      RadarrEvent::UpdateDownloads => self.update_downloads().await,
     }
   }
 
@@ -258,9 +258,9 @@ impl<'a> Network<'a> {
       .await;
   }
 
-  async fn refresh_and_scan(&self) {
+  async fn update_and_scan(&self) {
     let movie_id = self.extract_movie_id().await;
-    info!("Refreshing and scanning movie with id: {}", movie_id);
+    info!("Updating and scanning movie with id: {}", movie_id);
     let body = MovieCommandBody {
       name: "RefreshMovie".to_owned(),
       movie_ids: vec![movie_id],
@@ -268,7 +268,7 @@ impl<'a> Network<'a> {
 
     let request_props = self
       .radarr_request_props_from(
-        RadarrEvent::RefreshAndScan.resource(),
+        RadarrEvent::UpdateAndScan.resource(),
         RequestMethod::Post,
         Some(body),
       )
@@ -299,15 +299,15 @@ impl<'a> Network<'a> {
       .await;
   }
 
-  async fn refresh_downloads(&self) {
-    info!("Refreshing downloads");
+  async fn update_downloads(&self) {
+    info!("Updating downloads");
     let body = CommandBody {
       name: "RefreshMonitoredDownloads".to_owned(),
     };
 
     let request_props = self
       .radarr_request_props_from(
-        RadarrEvent::RefreshDownloads.resource(),
+        RadarrEvent::UpdateDownloads.resource(),
         RequestMethod::Post,
         Some(body),
       )
@@ -318,15 +318,15 @@ impl<'a> Network<'a> {
       .await;
   }
 
-  async fn refresh_collections(&self) {
-    info!("Refreshing collections");
+  async fn update_collections(&self) {
+    info!("Updating collections");
     let body = CommandBody {
       name: "RefreshCollections".to_owned(),
     };
 
     let request_props = self
       .radarr_request_props_from(
-        RadarrEvent::RefreshCollections.resource(),
+        RadarrEvent::UpdateCollections.resource(),
         RequestMethod::Post,
         Some(body),
       )
@@ -1176,10 +1176,10 @@ mod test {
   fn test_resource_command(
     #[values(
       RadarrEvent::TriggerAutomaticSearch,
-      RadarrEvent::RefreshAndScan,
+      RadarrEvent::UpdateAndScan,
       RadarrEvent::UpdateAllMovies,
-      RadarrEvent::RefreshDownloads,
-      RadarrEvent::RefreshCollections
+      RadarrEvent::UpdateDownloads,
+      RadarrEvent::UpdateCollections
     )]
     event: RadarrEvent,
   ) {
@@ -1484,7 +1484,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_refresh_and_scan_event() {
+  async fn test_handle_update_and_scan_event() {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -1492,7 +1492,7 @@ mod test {
         "movieIds": [ 1 ]
       })),
       None,
-      RadarrEvent::RefreshAndScan.resource(),
+      RadarrEvent::UpdateAndScan.resource(),
     )
     .await;
     app_arc
@@ -1505,7 +1505,7 @@ mod test {
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network
-      .handle_radarr_event(RadarrEvent::RefreshAndScan)
+      .handle_radarr_event(RadarrEvent::UpdateAndScan)
       .await;
 
     async_server.assert_async().await;
@@ -1533,40 +1533,40 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_refresh_downloads_event() {
+  async fn test_handle_update_downloads_event() {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "RefreshMonitoredDownloads"
       })),
       None,
-      RadarrEvent::RefreshDownloads.resource(),
+      RadarrEvent::UpdateDownloads.resource(),
     )
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network
-      .handle_radarr_event(RadarrEvent::RefreshDownloads)
+      .handle_radarr_event(RadarrEvent::UpdateDownloads)
       .await;
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_handle_refresh_collections_event() {
+  async fn test_handle_update_collections_event() {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "RefreshCollections"
       })),
       None,
-      RadarrEvent::RefreshCollections.resource(),
+      RadarrEvent::UpdateCollections.resource(),
     )
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network
-      .handle_radarr_event(RadarrEvent::RefreshCollections)
+      .handle_radarr_event(RadarrEvent::UpdateCollections)
       .await;
 
     async_server.assert_async().await;
@@ -2562,7 +2562,7 @@ mod test {
 
   fn collection() -> Collection {
     Collection {
-      title: "Test Collection".to_owned(),
+      title: "Test Collection".to_owned().into(),
       root_folder_path: None,
       search_on_add: true,
       overview: Some("Collection blah blah blah".to_owned()),
@@ -2574,7 +2574,7 @@ mod test {
   fn movie() -> Movie {
     Movie {
       id: Number::from(1),
-      title: "Test".to_owned(),
+      title: "Test".to_owned().into(),
       original_language: language(),
       size_on_disk: Number::from(3543348019u64),
       status: "Downloaded".to_owned(),

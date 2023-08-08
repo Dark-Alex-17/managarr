@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use anyhow::anyhow;
 use log::{debug, error};
 use reqwest::Client;
@@ -28,7 +26,6 @@ pub struct App {
   pub ticks_until_scroll: u64,
   pub tick_count: u64,
   pub last_tick: Instant,
-  pub network_tick_frequency: Duration,
   pub is_routing: bool,
   pub is_loading: bool,
   pub should_refresh: bool,
@@ -137,10 +134,9 @@ impl Default for App {
       ]),
       client: Client::new(),
       title: "Managarr",
-      tick_until_poll: 50,
+      tick_until_poll: 400,
       ticks_until_scroll: 4,
       tick_count: 0,
-      network_tick_frequency: Duration::from_secs(20),
       last_tick: Instant::now(),
       is_loading: false,
       is_routing: false,
@@ -181,8 +177,6 @@ impl Default for RadarrConfig {
 
 #[cfg(test)]
 mod tests {
-  use std::time::Duration;
-
   use anyhow::anyhow;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use tokio::sync::mpsc;
@@ -220,10 +214,9 @@ mod tests {
       ]
     );
     assert_str_eq!(app.title, "Managarr");
-    assert_eq!(app.tick_until_poll, 50);
+    assert_eq!(app.tick_until_poll, 400);
     assert_eq!(app.ticks_until_scroll, 4);
     assert_eq!(app.tick_count, 0);
-    assert_eq!(app.network_tick_frequency, Duration::from_secs(20));
     assert!(!app.is_loading);
     assert!(!app.is_routing);
     assert!(!app.should_refresh);

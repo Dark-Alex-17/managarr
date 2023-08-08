@@ -92,9 +92,11 @@ fn draw_error<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
     .style(style_failure())
     .borders(Borders::ALL);
 
-  if app.error.text.len() > area.width as usize {
-    app.error.scroll_left();
-  }
+  app.error.scroll_left_or_reset(
+    area.width as usize,
+    true,
+    app.tick_count % app.ticks_until_scroll == 0,
+  );
 
   let mut text = Text::from(app.error.to_string());
   text.patch_style(style_failure());

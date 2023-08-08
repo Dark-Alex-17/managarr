@@ -39,12 +39,12 @@ pub(super) fn draw_movie_info_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut 
         draw_movie_info,
         draw_search_movie_prompt,
       ),
-      ActiveRadarrBlock::RefreshAndScanPrompt => draw_prompt_popup_over(
+      ActiveRadarrBlock::UpdateAndScanPrompt => draw_prompt_popup_over(
         f,
         app,
         content_area,
         draw_movie_info,
-        draw_refresh_and_scan_prompt,
+        draw_update_and_scan_prompt,
       ),
       ActiveRadarrBlock::ManualSearchSortPrompt => draw_drop_down_popup(
         f,
@@ -102,17 +102,13 @@ fn draw_search_movie_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
   );
 }
 
-fn draw_refresh_and_scan_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App,
-  prompt_area: Rect,
-) {
+fn draw_update_and_scan_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
   draw_prompt_box(
     f,
     prompt_area,
-    "Refresh and Scan",
+    "Update and Scan",
     format!(
-      "Do you want to trigger a refresh and disk scan for the movie: {}?",
+      "Do you want to trigger an update and disk scan for the movie: {}?",
       app.data.radarr_data.movies.current_selection().title
     )
     .as_str(),

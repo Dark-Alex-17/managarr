@@ -20,6 +20,7 @@ generate_keybindings! {
   sort,
   edit,
   refresh,
+  update,
   home,
   end,
   delete,
@@ -77,6 +78,10 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   refresh: KeyBinding {
     key: Key::Char('r'),
     desc: "Refresh",
+  },
+  update: KeyBinding {
+    key: Key::Char('u'),
+    desc: "Update All",
   },
   home: KeyBinding {
     key: Key::Home,

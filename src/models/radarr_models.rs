@@ -36,7 +36,7 @@ pub struct RootFolder {
 pub struct Movie {
   #[derivative(Default(value = "Number::from(0)"))]
   pub id: Number,
-  pub title: String,
+  pub title: HorizontallyScrollableText,
   pub original_language: Language,
   #[derivative(Default(value = "Number::from(0)"))]
   pub size_on_disk: Number,
@@ -84,7 +84,7 @@ pub struct CollectionMovie {
 #[serde(rename_all = "camelCase")]
 pub struct Collection {
   #[serde(default)]
-  pub title: String,
+  pub title: HorizontallyScrollableText,
   pub root_folder_path: Option<String>,
   pub search_on_add: bool,
   pub overview: Option<String>,

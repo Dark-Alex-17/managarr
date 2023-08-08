@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use bimap::BiMap;
 use chrono::{DateTime, Utc};
 use strum::IntoEnumIterator;
@@ -218,7 +216,7 @@ impl Default for RadarrData {
           title: "Library".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
           help: String::default(),
-          contextual_help: Some("<a> add | <e> edit | <s> search | <f> filter | <r> refresh | <enter> details | <esc> cancel filter | <del> delete"
+          contextual_help: Some("<a> add | <e> edit | <s> search | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter | <del> delete"
             .to_owned()),
         },
         TabRoute {
@@ -231,7 +229,7 @@ impl Default for RadarrData {
           title: "Collections".to_owned(),
           route: ActiveRadarrBlock::Collections.into(),
           help: String::default(),
-          contextual_help: Some("<s> search | <f> filter | <r> refresh | <enter> details | <esc> cancel filter"
+          contextual_help: Some("<s> search | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"
             .to_owned()),
         },
       ]),
@@ -239,37 +237,37 @@ impl Default for RadarrData {
         TabRoute {
           title: "Details".to_owned(),
           route: ActiveRadarrBlock::MovieDetails.into(),
-          help: "<r> refresh | <e> edit | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close".to_owned(),
           contextual_help: None
         },
         TabRoute {
           title: "History".to_owned(),
           route: ActiveRadarrBlock::MovieHistory.into(),
-          help: "<r> refresh | <e> edit | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close".to_owned(),
           contextual_help: None
         },
         TabRoute {
           title: "File".to_owned(),
           route: ActiveRadarrBlock::FileInfo.into(),
-          help: "<r> refresh | <e> edit | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close".to_owned(),
           contextual_help: None,
         },
         TabRoute {
           title: "Cast".to_owned(),
           route: ActiveRadarrBlock::Cast.into(),
-          help: "<r> refresh | <e> edit | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close".to_owned(),
           contextual_help: None,
         },
         TabRoute {
           title: "Crew".to_owned(),
           route: ActiveRadarrBlock::Crew.into(),
-          help: "<r> refresh | <e> edit | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close".to_owned(),
           contextual_help: None,
         },
         TabRoute {
           title: "Manual Search".to_owned(),
           route: ActiveRadarrBlock::ManualSearch.into(),
-          help: "<r> refresh | <e> edit | <o> sort | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <u> update | <e> edit | <o> sort | <s> auto search | <esc> close".to_owned(),
           contextual_help: Some("<enter> details".to_owned())
         }
       ]),
@@ -313,10 +311,10 @@ pub enum ActiveRadarrBlock {
   MovieDetails,
   MovieHistory,
   Movies,
-  RefreshAndScanPrompt,
-  RefreshAllCollectionsPrompt,
-  RefreshAllMoviesPrompt,
-  RefreshDownloadsPrompt,
+  UpdateAndScanPrompt,
+  UpdateAllCollectionsPrompt,
+  UpdateAllMoviesPrompt,
+  UpdateDownloadsPrompt,
   SearchMovie,
   SearchCollection,
   ViewMovieOverview,
@@ -349,7 +347,7 @@ pub const MOVIE_DETAILS_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::Cast,
   ActiveRadarrBlock::Crew,
   ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
-  ActiveRadarrBlock::RefreshAndScanPrompt,
+  ActiveRadarrBlock::UpdateAndScanPrompt,
   ActiveRadarrBlock::ManualSearch,
   ActiveRadarrBlock::ManualSearchSortPrompt,
   ActiveRadarrBlock::ManualSearchConfirmPrompt,
@@ -540,13 +538,7 @@ impl App {
       self.dispatch_by_radarr_block(&active_radarr_block).await;
     }
 
-    if self.is_routing
-      || self
-        .network_tick_frequency
-        .checked_sub(self.last_tick.elapsed())
-        .unwrap_or_else(|| Duration::from_secs(0))
-        .is_zero()
-    {
+    if self.is_routing || self.tick_count % self.tick_until_poll == 0 {
       self.refresh_metadata().await;
       self.dispatch_by_radarr_block(&active_radarr_block).await;
     }
@@ -558,6 +550,9 @@ impl App {
       .await;
     self
       .dispatch_network_event(RadarrEvent::GetTags.into())
+      .await;
+    self
+      .dispatch_network_event(RadarrEvent::GetDownloads.into())
       .await;
   }
 
@@ -1019,8 +1014,6 @@ mod tests {
   }
 
   mod radarr_tests {
-    use std::time::Duration;
-
     use pretty_assertions::assert_eq;
     use tokio::sync::mpsc;
 
@@ -1456,7 +1449,8 @@ mod tests {
     #[tokio::test]
     async fn test_radarr_on_tick_network_tick_frequency() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
-      app.network_tick_frequency = Duration::from_secs(0);
+      app.tick_count = 2;
+      app.tick_until_poll = 2;
 
       app
         .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
