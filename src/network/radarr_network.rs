@@ -2197,7 +2197,9 @@ mod test {
       id: Number::from(1),
       size: Number::from(3543348019u64),
       sizeleft: Number::from(1771674009u64),
-      output_path: HorizontallyScrollableText::from("/nfs/movies/Test".to_owned()),
+      output_path: Some(HorizontallyScrollableText::from(
+        "/nfs/movies/Test".to_owned(),
+      )),
       indexer: "kickass torrents".to_owned(),
       download_client: "transmission".to_owned(),
     }

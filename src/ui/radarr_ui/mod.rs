@@ -384,7 +384,8 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
         ..
       } = download_record;
 
-      output_path.scroll_or_reset(get_width(area), current_selection == *download_record);
+      let path = output_path.clone().unwrap_or_default();
+      path.scroll_or_reset(get_width(area), current_selection == *download_record);
 
       let percent = 1f64 - (sizeleft.as_f64().unwrap() / size.as_f64().unwrap());
       let file_size: f64 = convert_to_gb(size.as_u64().unwrap());
@@ -393,7 +394,7 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
         Cell::from(title.to_owned()),
         Cell::from(format!("{:.0}%", percent * 100.0)),
         Cell::from(format!("{:.2} GB", file_size)),
-        Cell::from(output_path.to_string()),
+        Cell::from(path.to_string()),
         Cell::from(indexer.to_owned()),
         Cell::from(download_client.to_owned()),
       ])

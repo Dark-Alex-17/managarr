@@ -155,7 +155,7 @@ pub struct DownloadRecord {
   pub size: Number,
   #[derivative(Default(value = "Number::from(0)"))]
   pub sizeleft: Number,
-  pub output_path: HorizontallyScrollableText,
+  pub output_path: Option<HorizontallyScrollableText>,
   pub indexer: String,
   pub download_client: String,
 }
