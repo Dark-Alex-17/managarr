@@ -8,6 +8,8 @@ use crate::app::radarr::ActiveRadarrBlock;
 
 pub mod radarr_models;
 
+// Allowing dead code for now since we'll eventually be implementing additional Servarr support and we'll need it then
+#[allow(dead_code)]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Route {
   Radarr(ActiveRadarrBlock, Option<ActiveRadarrBlock>),
@@ -238,6 +240,8 @@ impl TabState {
     TabState { tabs, index: 0 }
   }
 
+  // Allowing this code for now since we'll eventually be implementing additional Servarr support and we'll need it then
+  #[allow(dead_code)]
   pub fn set_index(&mut self, index: usize) -> &TabRoute {
     self.index = index;
     &self.tabs[self.index]

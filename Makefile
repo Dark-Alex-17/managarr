@@ -3,6 +3,7 @@
 default: run
 
 .PHONY: test test-cov build run lint lint-fix fmt analyze sonar release delete-tag
+
 test:
 	@cargo test
 
@@ -10,8 +11,8 @@ test:
 test-cov:
 	@cargo tarpaulin
 
-build:
-	@make test && cargo build --release
+build: test
+	@cargo build --release
 
 run:
 	@CARGO_INCREMENTAL=1 cargo fmt && make lint && cargo run

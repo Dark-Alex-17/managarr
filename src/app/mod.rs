@@ -12,7 +12,7 @@ use crate::models::{HorizontallyScrollableText, Route, TabRoute, TabState};
 use crate::network::NetworkEvent;
 
 pub(crate) mod key_binding;
-pub mod radarr;
+pub(crate) mod radarr;
 
 const DEFAULT_ROUTE: Route = Route::Radarr(ActiveRadarrBlock::Movies, None);
 
@@ -58,6 +58,8 @@ impl App {
     self.tick_count = 0;
   }
 
+  // Allowing this code for now since we'll eventually be implementing additional Servarr support and we'll need it then
+  #[allow(dead_code)]
   pub fn reset(&mut self) {
     self.reset_tick_count();
     self.error = HorizontallyScrollableText::default();
