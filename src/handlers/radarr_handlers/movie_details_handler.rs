@@ -48,6 +48,26 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
     }
   }
 
+  fn handle_home(&mut self) {
+    match self.active_radarr_block {
+      ActiveRadarrBlock::MovieDetails => self.app.data.radarr_data.movie_details.scroll_to_top(),
+      ActiveRadarrBlock::MovieHistory => self.app.data.radarr_data.movie_history.scroll_to_top(),
+      ActiveRadarrBlock::Cast => self.app.data.radarr_data.movie_cast.scroll_to_top(),
+      ActiveRadarrBlock::Crew => self.app.data.radarr_data.movie_crew.scroll_to_top(),
+      _ => (),
+    }
+  }
+
+  fn handle_end(&mut self) {
+    match self.active_radarr_block {
+      ActiveRadarrBlock::MovieDetails => self.app.data.radarr_data.movie_details.scroll_to_bottom(),
+      ActiveRadarrBlock::MovieHistory => self.app.data.radarr_data.movie_history.scroll_to_bottom(),
+      ActiveRadarrBlock::Cast => self.app.data.radarr_data.movie_cast.scroll_to_bottom(),
+      ActiveRadarrBlock::Crew => self.app.data.radarr_data.movie_crew.scroll_to_bottom(),
+      _ => (),
+    }
+  }
+
   fn handle_tab_action(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::MovieDetails

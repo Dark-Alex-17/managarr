@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 
-use log::debug;
 use serde::Deserialize;
 use tui::widgets::TableState;
 
@@ -25,6 +24,8 @@ pub enum Route {
 pub trait Scrollable {
   fn scroll_down(&mut self);
   fn scroll_up(&mut self);
+  fn scroll_to_top(&mut self);
+  fn scroll_to_bottom(&mut self);
 }
 
 pub struct StatefulTable<T> {
@@ -102,6 +103,14 @@ impl<T> Scrollable for StatefulTable<T> {
 
     self.state.select(Some(selected_row));
   }
+
+  fn scroll_to_top(&mut self) {
+    self.state.select(Some(0));
+  }
+
+  fn scroll_to_bottom(&mut self) {
+    self.state.select(Some(self.items.len() - 1));
+  }
 }
 
 #[derive(Default)]
@@ -133,6 +142,14 @@ impl Scrollable for ScrollableText {
     if self.offset > 0 {
       self.offset -= 1;
     }
+  }
+
+  fn scroll_to_top(&mut self) {
+    self.offset = 0;
+  }
+
+  fn scroll_to_bottom(&mut self) {
+    self.offset = (self.items.len() - 1) as u16;
   }
 }
 

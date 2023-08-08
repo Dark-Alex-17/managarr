@@ -39,6 +39,23 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a>
     }
   }
 
+  fn handle_home(&mut self) {
+    if ActiveRadarrBlock::CollectionDetails == *self.active_radarr_block {
+      self.app.data.radarr_data.collection_movies.scroll_to_top();
+    }
+  }
+
+  fn handle_end(&mut self) {
+    if ActiveRadarrBlock::CollectionDetails == *self.active_radarr_block {
+      self
+        .app
+        .data
+        .radarr_data
+        .collection_movies
+        .scroll_to_bottom();
+    }
+  }
+
   fn handle_tab_action(&mut self) {}
 
   fn handle_submit(&mut self) {

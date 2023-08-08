@@ -12,6 +12,8 @@ pub enum Key {
   Enter,
   Esc,
   Backspace,
+  Home,
+  End,
   Char(char),
   Unknown,
 }
@@ -47,6 +49,14 @@ impl From<KeyEvent> for Key {
         code: KeyCode::Backspace,
         ..
       } => Key::Backspace,
+      KeyEvent {
+        code: KeyCode::Home,
+        ..
+      } => Key::Home,
+      KeyEvent {
+        code: KeyCode::End,
+        ..
+      } => Key::End,
       KeyEvent {
         code: KeyCode::Enter,
         ..

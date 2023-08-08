@@ -3,7 +3,6 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::handlers::radarr_handlers::collection_details_handler::CollectionDetailsHandler;
 use crate::handlers::radarr_handlers::movie_details_handler::MovieDetailsHandler;
 use crate::handlers::{handle_clear_errors, KeyEventHandler};
-use crate::models::radarr_models::{Collection, Movie};
 use crate::models::Scrollable;
 use crate::utils::strip_non_alphanumeric_characters;
 use crate::{App, Key};
@@ -66,9 +65,6 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
           self.app.data.radarr_data.collections.scroll_up()
         }
       }
-      ActiveRadarrBlock::CollectionDetails => {
-        self.app.data.radarr_data.collection_movies.scroll_up()
-      }
       ActiveRadarrBlock::Movies => {
         if !self.app.data.radarr_data.filtered_movies.items.is_empty() {
           self.app.data.radarr_data.filtered_movies.scroll_up();
@@ -97,9 +93,6 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
           self.app.data.radarr_data.collections.scroll_down()
         }
       }
-      ActiveRadarrBlock::CollectionDetails => {
-        self.app.data.radarr_data.collection_movies.scroll_down()
-      }
       ActiveRadarrBlock::Movies => {
         if !self.app.data.radarr_data.filtered_movies.items.is_empty() {
           self.app.data.radarr_data.filtered_movies.scroll_down();
@@ -108,6 +101,72 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         }
       }
       ActiveRadarrBlock::Downloads => self.app.data.radarr_data.downloads.scroll_down(),
+      _ => (),
+    }
+  }
+
+  fn handle_home(&mut self) {
+    match self.active_radarr_block {
+      ActiveRadarrBlock::Collections => {
+        if !self
+          .app
+          .data
+          .radarr_data
+          .filtered_collections
+          .items
+          .is_empty()
+        {
+          self
+            .app
+            .data
+            .radarr_data
+            .filtered_collections
+            .scroll_to_top();
+        } else {
+          self.app.data.radarr_data.collections.scroll_to_top()
+        }
+      }
+      ActiveRadarrBlock::Movies => {
+        if !self.app.data.radarr_data.filtered_movies.items.is_empty() {
+          self.app.data.radarr_data.filtered_movies.scroll_to_top();
+        } else {
+          self.app.data.radarr_data.movies.scroll_to_top()
+        }
+      }
+      ActiveRadarrBlock::Downloads => self.app.data.radarr_data.downloads.scroll_to_top(),
+      _ => (),
+    }
+  }
+
+  fn handle_end(&mut self) {
+    match self.active_radarr_block {
+      ActiveRadarrBlock::Collections => {
+        if !self
+          .app
+          .data
+          .radarr_data
+          .filtered_collections
+          .items
+          .is_empty()
+        {
+          self
+            .app
+            .data
+            .radarr_data
+            .filtered_collections
+            .scroll_to_bottom();
+        } else {
+          self.app.data.radarr_data.collections.scroll_to_bottom()
+        }
+      }
+      ActiveRadarrBlock::Movies => {
+        if !self.app.data.radarr_data.filtered_movies.items.is_empty() {
+          self.app.data.radarr_data.filtered_movies.scroll_to_bottom();
+        } else {
+          self.app.data.radarr_data.movies.scroll_to_bottom()
+        }
+      }
+      ActiveRadarrBlock::Downloads => self.app.data.radarr_data.downloads.scroll_to_bottom(),
       _ => (),
     }
   }
@@ -156,123 +215,57 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         .app
         .push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into()),
       ActiveRadarrBlock::SearchMovie => {
-        let search_string = self
-          .app
-          .data
-          .radarr_data
-          .search
-          .drain(..)
-          .collect::<String>()
-          .to_lowercase();
-        let movie_index = self
+        let selected_index = self
+          .search_table(&self.app.data.radarr_data.movies.items.clone(), |movie| {
+            &movie.title
+          });
+        self
           .app
           .data
           .radarr_data
           .movies
-          .items
-          .iter()
-          .position(|movie| {
-            strip_non_alphanumeric_characters(&movie.title).contains(&search_string)
-          });
-
-        self.app.data.radarr_data.is_searching = false;
-        self.app.data.radarr_data.movies.select_index(movie_index);
-
-        if movie_index.is_some() {
-          self.app.pop_navigation_stack();
-        }
+          .select_index(selected_index);
       }
       ActiveRadarrBlock::SearchCollection => {
-        let search_string = self
-          .app
-          .data
-          .radarr_data
-          .search
-          .drain(..)
-          .collect::<String>()
-          .to_lowercase();
-        let collection_index =
-          self
-            .app
-            .data
-            .radarr_data
-            .collections
-            .items
-            .iter()
-            .position(|collection| {
-              strip_non_alphanumeric_characters(&collection.title).contains(&search_string)
-            });
-
-        self.app.data.radarr_data.is_searching = false;
+        let selected_index = self.search_table(
+          &self.app.data.radarr_data.collections.items.clone(),
+          |movie| &movie.title,
+        );
         self
           .app
           .data
           .radarr_data
           .collections
-          .select_index(collection_index);
-
-        if collection_index.is_some() {
-          self.app.pop_navigation_stack();
-        }
+          .select_index(selected_index);
       }
       ActiveRadarrBlock::FilterMovies => {
-        let filter = strip_non_alphanumeric_characters(
-          &self
-            .app
-            .data
-            .radarr_data
-            .filter
-            .drain(..)
-            .collect::<String>(),
-        );
-        let movie_list = self.app.data.radarr_data.movies.items.clone();
-        let filter_matches = movie_list
-          .iter()
-          .filter(|&movie| strip_non_alphanumeric_characters(&movie.title).contains(&filter))
-          .map(|movie| movie.to_owned())
-          .collect::<Vec<Movie>>();
+        let filtered_movies = self
+          .filter_table(&self.app.data.radarr_data.movies.items.clone(), |movie| {
+            &movie.title
+          });
 
-        self.app.data.radarr_data.is_searching = false;
-
-        if !filter_matches.is_empty() {
-          self.app.pop_navigation_stack();
+        if !filtered_movies.is_empty() {
           self
             .app
             .data
             .radarr_data
             .filtered_movies
-            .set_items(filter_matches);
+            .set_items(filtered_movies);
         }
       }
       ActiveRadarrBlock::FilterCollections => {
-        let filter = strip_non_alphanumeric_characters(
-          &self
-            .app
-            .data
-            .radarr_data
-            .filter
-            .drain(..)
-            .collect::<String>(),
+        let filtered_collections = self.filter_table(
+          &self.app.data.radarr_data.collections.items.clone(),
+          |collection| &collection.title,
         );
-        let collection_list = self.app.data.radarr_data.collections.items.clone();
-        let filter_matches = collection_list
-          .iter()
-          .filter(|&collection| {
-            strip_non_alphanumeric_characters(&collection.title).contains(&filter)
-          })
-          .map(|collection| collection.to_owned())
-          .collect::<Vec<Collection>>();
 
-        self.app.data.radarr_data.is_searching = false;
-
-        if !filter_matches.is_empty() {
-          self.app.pop_navigation_stack();
+        if !filtered_collections.is_empty() {
           self
             .app
             .data
             .radarr_data
             .filtered_collections
-            .set_items(filter_matches);
+            .set_items(filtered_collections);
         }
       }
       _ => (),
@@ -348,5 +341,61 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       },
       _ => (),
     }
+  }
+}
+
+impl RadarrHandler<'_> {
+  fn search_table<T, F>(&mut self, rows: &[T], field_selection_fn: F) -> Option<usize>
+  where
+    F: Fn(&T) -> &str,
+  {
+    let search_string = self
+      .app
+      .data
+      .radarr_data
+      .search
+      .drain(..)
+      .collect::<String>()
+      .to_lowercase();
+    let collection_index = rows.iter().position(|item| {
+      strip_non_alphanumeric_characters(field_selection_fn(item)).contains(&search_string)
+    });
+
+    self.app.data.radarr_data.is_searching = false;
+
+    if collection_index.is_some() {
+      self.app.pop_navigation_stack();
+    }
+
+    collection_index
+  }
+
+  fn filter_table<T, F>(&mut self, rows: &[T], field_selection_fn: F) -> Vec<T>
+  where
+    F: Fn(&T) -> &str,
+    T: Clone,
+  {
+    let filter = strip_non_alphanumeric_characters(
+      &self
+        .app
+        .data
+        .radarr_data
+        .filter
+        .drain(..)
+        .collect::<String>(),
+    );
+    let filter_matches: Vec<T> = rows
+      .iter()
+      .filter(|&item| strip_non_alphanumeric_characters(field_selection_fn(item)).contains(&filter))
+      .cloned()
+      .collect();
+
+    self.app.data.radarr_data.is_searching = false;
+
+    if !filter_matches.is_empty() {
+      self.app.pop_navigation_stack();
+    }
+
+    filter_matches
   }
 }
