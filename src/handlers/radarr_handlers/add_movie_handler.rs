@@ -175,7 +175,15 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
           .push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
         self.app.should_ignore_quit_key = false;
       }
-      ActiveRadarrBlock::AddMovieSearchResults => {
+      _ if *self.active_radarr_block == ActiveRadarrBlock::AddMovieSearchResults
+        && !self
+          .app
+          .data
+          .radarr_data
+          .add_searched_movies
+          .items
+          .is_empty() =>
+      {
         self
           .app
           .push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
@@ -439,6 +447,11 @@ mod tests {
     #[test]
     fn test_add_movie_search_results_submit() {
       let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .add_searched_movies
+        .set_items(vec![AddMovieSearchResult::default()]);
       app.data.radarr_data.quality_profile_map =
         HashMap::from([(1, "B - Test 2".to_owned()), (0, "A - Test 1".to_owned())]);
 
@@ -473,6 +486,23 @@ mod tests {
           .add_movie_quality_profile_list
           .current_selection(),
         "A - Test 1"
+      );
+    }
+
+    #[test]
+    fn test_add_movie_search_results_submit_does_nothing_on_empty_table() {
+      let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
+      AddMovieHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSearchResults,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::AddMovieSearchResults.into()
       );
     }
 

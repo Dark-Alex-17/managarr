@@ -9,8 +9,8 @@ use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::Route;
 use crate::ui::utils::{
   borderless_block, get_width_with_margin, horizontal_chunks, layout_block,
-  layout_paragraph_borderless, show_cursor, style_default, style_help, style_primary,
-  title_block_centered, vertical_chunks_with_margin,
+  layout_paragraph_borderless, show_cursor, style_default, style_failure, style_help,
+  style_primary, title_block_centered, vertical_chunks_with_margin,
 };
 use crate::ui::{
   draw_button, draw_drop_down_list, draw_drop_down_menu_button, draw_drop_down_popup,
@@ -91,75 +91,82 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
           .alignment(Alignment::Center);
         f.render_widget(help_paragraph, chunks[2]);
 
-        draw_table(
-          f,
-          chunks[1],
-          layout_block(),
-          TableProps {
-            content: &mut app.data.radarr_data.add_searched_movies,
-            table_headers: vec![
-              "Title",
-              "Year",
-              "Runtime",
-              "IMDB",
-              "Rotten Tomatoes",
-              "Genres",
-            ],
-            constraints: vec![
-              Constraint::Percentage(27),
-              Constraint::Percentage(8),
-              Constraint::Percentage(10),
-              Constraint::Percentage(8),
-              Constraint::Percentage(14),
-              Constraint::Percentage(30),
-            ],
-            help: None,
-          },
-          |movie| {
-            let (hours, minutes) = convert_runtime(movie.runtime.as_u64().unwrap());
-            let imdb_rating = movie
-              .ratings
-              .imdb
-              .clone()
-              .unwrap_or_default()
-              .value
-              .as_f64()
-              .unwrap();
-            let rotten_tomatoes_rating = movie
-              .ratings
-              .rotten_tomatoes
-              .clone()
-              .unwrap_or_default()
-              .value
-              .as_u64()
-              .unwrap();
-            let imdb_rating = if imdb_rating == 0.0 {
-              String::default()
-            } else {
-              format!("{:.1}", imdb_rating)
-            };
-            let rotten_tomatoes_rating = if rotten_tomatoes_rating == 0 {
-              String::default()
-            } else {
-              format!("{}%", rotten_tomatoes_rating)
-            };
+        if app.data.radarr_data.add_searched_movies.items.is_empty() && !app.is_loading {
+          let mut error_text = Text::from("No movies found matching your query!");
+          error_text.patch_style(style_failure());
+          let error_paragraph = Paragraph::new(error_text).block(layout_block());
+          f.render_widget(error_paragraph, chunks[1]);
+        } else {
+          draw_table(
+            f,
+            chunks[1],
+            layout_block(),
+            TableProps {
+              content: &mut app.data.radarr_data.add_searched_movies,
+              table_headers: vec![
+                "Title",
+                "Year",
+                "Runtime",
+                "IMDB",
+                "Rotten Tomatoes",
+                "Genres",
+              ],
+              constraints: vec![
+                Constraint::Percentage(27),
+                Constraint::Percentage(8),
+                Constraint::Percentage(10),
+                Constraint::Percentage(8),
+                Constraint::Percentage(14),
+                Constraint::Percentage(30),
+              ],
+              help: None,
+            },
+            |movie| {
+              let (hours, minutes) = convert_runtime(movie.runtime.as_u64().unwrap());
+              let imdb_rating = movie
+                .ratings
+                .imdb
+                .clone()
+                .unwrap_or_default()
+                .value
+                .as_f64()
+                .unwrap();
+              let rotten_tomatoes_rating = movie
+                .ratings
+                .rotten_tomatoes
+                .clone()
+                .unwrap_or_default()
+                .value
+                .as_u64()
+                .unwrap();
+              let imdb_rating = if imdb_rating == 0.0 {
+                String::default()
+              } else {
+                format!("{:.1}", imdb_rating)
+              };
+              let rotten_tomatoes_rating = if rotten_tomatoes_rating == 0 {
+                String::default()
+              } else {
+                format!("{}%", rotten_tomatoes_rating)
+              };
 
-            movie
-              .title
-              .scroll_or_reset(get_width_with_margin(area), *movie == current_selection);
+              movie
+                .title
+                .scroll_or_reset(get_width_with_margin(area), *movie == current_selection);
 
-            Row::new(vec![
-              Cell::from(movie.title.to_string()),
-              Cell::from(movie.year.as_u64().unwrap().to_string()),
-              Cell::from(format!("{}h {}m", hours, minutes)),
-              Cell::from(imdb_rating),
-              Cell::from(rotten_tomatoes_rating),
-              Cell::from(movie.genres.join(", ")),
-            ])
-            .style(style_primary())
-          },
-          app.is_loading,
-        );
+              Row::new(vec![
+                Cell::from(movie.title.to_string()),
+                Cell::from(movie.year.as_u64().unwrap().to_string()),
+                Cell::from(format!("{}h {}m", hours, minutes)),
+                Cell::from(imdb_rating),
+                Cell::from(rotten_tomatoes_rating),
+                Cell::from(movie.genres.join(", ")),
+              ])
+              .style(style_primary())
+            },
+            app.is_loading,
+          );
+        }
       }
       _ => (),
     }
