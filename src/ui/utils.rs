@@ -6,10 +6,7 @@ use tui::widgets::{Block, Borders, LineGauge};
 use tui::{symbols, Frame};
 
 pub fn horizontal_chunks(constraints: Vec<Constraint>, size: Rect) -> Vec<Rect> {
-  Layout::default()
-    .constraints(<Vec<Constraint> as AsRef<[Constraint]>>::as_ref(
-      &constraints,
-    ))
+  layout_with_constraints(constraints)
     .direction(Direction::Horizontal)
     .split(size)
 }
@@ -19,20 +16,14 @@ pub fn horizontal_chunks_with_margin(
   size: Rect,
   margin: u16,
 ) -> Vec<Rect> {
-  Layout::default()
-    .constraints(<Vec<Constraint> as AsRef<[Constraint]>>::as_ref(
-      &constraints,
-    ))
+  layout_with_constraints(constraints)
     .direction(Direction::Horizontal)
     .margin(margin)
     .split(size)
 }
 
 pub fn vertical_chunks(constraints: Vec<Constraint>, size: Rect) -> Vec<Rect> {
-  Layout::default()
-    .constraints(<Vec<Constraint> as AsRef<[Constraint]>>::as_ref(
-      &constraints,
-    ))
+  layout_with_constraints(constraints)
     .direction(Direction::Vertical)
     .split(size)
 }
@@ -42,13 +33,16 @@ pub fn vertical_chunks_with_margin(
   size: Rect,
   margin: u16,
 ) -> Vec<Rect> {
-  Layout::default()
-    .constraints(<Vec<Constraint> as AsRef<[Constraint]>>::as_ref(
-      &constraints,
-    ))
+  layout_with_constraints(constraints)
     .direction(Direction::Vertical)
     .margin(margin)
     .split(size)
+}
+
+fn layout_with_constraints(constraints: Vec<Constraint>) -> Layout {
+  Layout::default().constraints(<Vec<Constraint> as AsRef<[Constraint]>>::as_ref(
+    &constraints,
+  ))
 }
 
 pub fn layout_block<'a>() -> Block<'a> {
@@ -167,17 +161,14 @@ pub fn logo_block<'a>() -> Block<'a> {
 }
 
 pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
-  let popup_layout = Layout::default()
-    .direction(Direction::Vertical)
-    .constraints(
-      [
-        Constraint::Percentage((100 - percent_y) / 2),
-        Constraint::Percentage(percent_y),
-        Constraint::Percentage((100 - percent_y) / 2),
-      ]
-      .as_ref(),
-    )
-    .split(r);
+  let popup_layout = vertical_chunks(
+    vec![
+      Constraint::Percentage((100 - percent_y) / 2),
+      Constraint::Percentage(percent_y),
+      Constraint::Percentage((100 - percent_y) / 2),
+    ],
+    r,
+  );
 
   Layout::default()
     .direction(Direction::Horizontal)

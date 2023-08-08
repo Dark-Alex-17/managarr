@@ -6,14 +6,14 @@ use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Color, Style};
 use tui::text::Text;
-use tui::widgets::{Cell, Paragraph, Row};
+use tui::widgets::{Block, Cell, Paragraph, Row};
 use tui::Frame;
 
 use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
-use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie};
-use crate::models::Route;
+use crate::models::radarr_models::{AddMovieSearchResult, DiskSpace, DownloadRecord, Movie};
+use crate::models::{Route, StatefulTable};
 use crate::ui::radarr_ui::add_movie_ui::draw_add_movie_search_popup;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details_popup;
 use crate::ui::radarr_ui::movie_details_ui::draw_movie_info;

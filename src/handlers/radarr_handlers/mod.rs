@@ -3,8 +3,9 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::handlers::radarr_handlers::add_movie_handler::AddMovieHandler;
 use crate::handlers::radarr_handlers::collection_details_handler::CollectionDetailsHandler;
 use crate::handlers::radarr_handlers::movie_details_handler::MovieDetailsHandler;
-use crate::handlers::{handle_clear_errors, KeyEventHandler};
+use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::Scrollable;
+use crate::network::radarr_network::RadarrEvent;
 use crate::utils::strip_non_alphanumeric_characters;
 use crate::{App, Key};
 
@@ -217,14 +218,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
           _ => (),
         }
       }
-      ActiveRadarrBlock::DeleteMoviePrompt => match self.key {
-        _ if *self.key == DEFAULT_KEYBINDINGS.left.key
-          || *self.key == DEFAULT_KEYBINDINGS.right.key =>
-        {
-          self.app.data.radarr_data.prompt_confirm = !self.app.data.radarr_data.prompt_confirm;
-        }
-        _ => (),
-      },
+      ActiveRadarrBlock::DeleteMoviePrompt => handle_prompt_toggle(self.app, self.key),
       _ => (),
     }
   }
@@ -292,7 +286,10 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         }
       }
       ActiveRadarrBlock::DeleteMoviePrompt => {
-        self.app.should_refresh = self.app.data.radarr_data.prompt_confirm;
+        if self.app.data.radarr_data.prompt_confirm {
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteMovie);
+        }
+
         self.app.pop_navigation_stack();
       }
       _ => (),

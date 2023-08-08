@@ -43,16 +43,22 @@ pub trait KeyEventHandler<'a, T: Into<Route>> {
 }
 
 pub fn handle_events(key: Key, app: &mut App) {
-  match app.get_current_route().clone() {
-    Route::Radarr(active_radarr_block) => {
-      RadarrHandler::with(&key, app, &active_radarr_block).handle()
-    }
-    _ => (),
+  if let Route::Radarr(active_radarr_block) = app.get_current_route().clone() {
+    RadarrHandler::with(&key, app, &active_radarr_block).handle()
   }
 }
 
-pub fn handle_clear_errors(app: &mut App) {
+fn handle_clear_errors(app: &mut App) {
   if !app.error.text.is_empty() {
     app.error = HorizontallyScrollableText::default();
+  }
+}
+
+fn handle_prompt_toggle(app: &mut App, key: &Key) {
+  match key {
+    _ if *key == DEFAULT_KEYBINDINGS.left.key || *key == DEFAULT_KEYBINDINGS.right.key => {
+      app.data.radarr_data.prompt_confirm = !app.data.radarr_data.prompt_confirm;
+    }
+    _ => (),
   }
 }

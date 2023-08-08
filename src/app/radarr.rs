@@ -7,12 +7,13 @@ use strum::EnumIter;
 use crate::app::{App, Route};
 use crate::models::radarr_models::{
   AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Movie,
-  MovieHistoryItem,
+  MovieHistoryItem, RootFolder,
 };
 use crate::models::{ScrollableText, StatefulTable, TabRoute, TabState};
 use crate::network::radarr_network::RadarrEvent;
 
 pub struct RadarrData {
+  pub root_folders: Vec<RootFolder>,
   pub disk_space_vec: Vec<DiskSpace>,
   pub version: String,
   pub start_time: DateTime<Utc>,
@@ -31,6 +32,7 @@ pub struct RadarrData {
   pub collections: StatefulTable<Collection>,
   pub filtered_collections: StatefulTable<Collection>,
   pub collection_movies: StatefulTable<CollectionMovie>,
+  pub prompt_confirm_action: Option<RadarrEvent>,
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
   pub search: String,
@@ -72,6 +74,7 @@ impl RadarrData {
 impl Default for RadarrData {
   fn default() -> RadarrData {
     RadarrData {
+      root_folders: Vec::new(),
       disk_space_vec: Vec::new(),
       version: String::default(),
       start_time: DateTime::default(),
@@ -90,6 +93,7 @@ impl Default for RadarrData {
       collections: StatefulTable::default(),
       filtered_collections: StatefulTable::default(),
       collection_movies: StatefulTable::default(),
+      prompt_confirm_action: None,
       search: String::default(),
       filter: String::default(),
       is_searching: false,
@@ -201,19 +205,15 @@ impl App {
         self
           .dispatch_network_event(RadarrEvent::GetDownloads.into())
           .await;
-
-        if self.data.radarr_data.prompt_confirm {
-          self.data.radarr_data.prompt_confirm = false;
-          self
-            .dispatch_network_event(RadarrEvent::DeleteMovie.into())
-            .await;
-        }
+        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::AddMovieSearchResults => {
         self.is_loading = true;
         self
           .dispatch_network_event(RadarrEvent::SearchNewMovie.into())
           .await;
+
+        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::MovieDetails | ActiveRadarrBlock::FileInfo => {
         self.is_loading = true;
@@ -243,6 +243,19 @@ impl App {
     self.reset_tick_count();
   }
 
+  async fn check_for_prompt_action(&mut self) {
+    if self.data.radarr_data.prompt_confirm {
+      self.data.radarr_data.prompt_confirm = false;
+      if let Some(radarr_event) = &self.data.radarr_data.prompt_confirm_action {
+        self
+          .dispatch_network_event(radarr_event.clone().into())
+          .await;
+        self.should_refresh = true;
+        self.data.radarr_data.prompt_confirm_action = None;
+      }
+    }
+  }
+
   pub(super) async fn radarr_on_tick(
     &mut self,
     active_radarr_block: ActiveRadarrBlock,
@@ -251,6 +264,9 @@ impl App {
     if is_first_render {
       self
         .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
+        .await;
+      self
+        .dispatch_network_event(RadarrEvent::GetRootFolders.into())
         .await;
       self
         .dispatch_network_event(RadarrEvent::GetOverview.into())

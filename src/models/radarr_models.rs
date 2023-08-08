@@ -19,6 +19,14 @@ pub struct SystemStatus {
   pub start_time: DateTime<Utc>,
 }
 
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct RootFolder {
+  pub path: String,
+  pub accessible: bool,
+  pub free_space: Number,
+}
+
 #[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
@@ -200,19 +208,19 @@ pub struct Credit {
   pub credit_type: CreditType,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Default, Derivative, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AddMovieBody {
-  pub tmdb_id: Number,
+  pub tmdb_id: u64,
   pub title: String,
   pub root_folder_path: String,
-  pub quality_profile_id: Number,
+  pub quality_profile_id: u64,
   pub minimum_availability: String,
   pub monitored: bool,
   pub add_options: AddOptions,
 }
 
-#[derive(Serialize, Debug, PartialEq, Eq)]
+#[derive(Default, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AddOptions {
   pub search_for_movie: bool,

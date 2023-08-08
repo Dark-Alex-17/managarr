@@ -54,9 +54,8 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
 
   draw_header_row(f, app, main_chunks[0]);
   draw_context_row(f, app, main_chunks[1]);
-  match app.get_current_route() {
-    Route::Radarr(_) => radarr_ui::draw_radarr_ui(f, app, main_chunks[2]),
-    _ => (),
+  if let Route::Radarr(_) = app.get_current_route() {
+    radarr_ui::draw_radarr_ui(f, app, main_chunks[2])
   }
 }
 
@@ -152,9 +151,8 @@ pub fn draw_large_popup_over<B: Backend>(
 }
 
 fn draw_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
-  match app.get_current_route() {
-    Route::Radarr(_) => radarr_ui::draw_radarr_context_row(f, app, area),
-    _ => (),
+  if let Route::Radarr(_) = app.get_current_route() {
+    radarr_ui::draw_radarr_context_row(f, app, area)
   }
 }
 
