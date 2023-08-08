@@ -534,7 +534,8 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
       "Radarr Version:  {}",
       app.data.radarr_data.version
     )))
-    .block(borderless_block());
+    .block(borderless_block())
+    .style(style_bold());
 
     let uptime = Utc::now().sub(start_time.to_owned());
     let days = uptime.num_days();
@@ -554,7 +555,8 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
       seconds,
       width = 2
     )))
-    .block(borderless_block());
+    .block(borderless_block())
+    .style(style_bold());
 
     let storage =
       Paragraph::new(Text::from("Storage:")).block(borderless_block().style(style_bold()));
