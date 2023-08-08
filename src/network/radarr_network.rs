@@ -992,15 +992,8 @@ impl<'a> Network<'a> {
 
   async fn extract_and_add_tag_ids_vec(&self) -> Vec<u64> {
     let tags_map = self.app.lock().await.data.radarr_data.tags_map.clone();
-    let edit_tags = self
-      .app
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .edit_tags
-      .text
-      .clone();
+    let edit_tags = self.app.lock().await.data.radarr_data.edit_tags.drain();
+    let tags = edit_tags.clone();
     let missing_tags_vec = edit_tags
       .split(',')
       .filter(|&tag| !tag.is_empty() && tags_map.get_by_right(tag.trim()).is_none())
@@ -1011,11 +1004,7 @@ impl<'a> Network<'a> {
     }
 
     let app = self.app.lock().await;
-    app
-      .data
-      .radarr_data
-      .edit_tags
-      .text
+    tags
       .split(',')
       .filter(|tag| !tag.is_empty())
       .map(|tag| {
@@ -2327,6 +2316,7 @@ mod test {
     let app = app_arc.lock().await;
     assert!(app.response.is_empty());
     assert!(app.data.radarr_data.edit_path.text.is_empty());
+    assert!(app.data.radarr_data.edit_tags.text.is_empty());
     assert!(app.data.radarr_data.movie_details.items.is_empty());
   }
 
