@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use anyhow::anyhow;
 use indoc::formatdoc;
 use log::{debug, error};
@@ -197,7 +195,6 @@ impl<'a> Network<'a> {
 
           let status = get_movie_status(has_file, &app.data.radarr_data.downloads.items, id);
           let collection = collection.unwrap_or_default();
-          debug!("title: {:?}", title);
 
           app.data.radarr_data.movie_details = ScrollableText::with_string(formatdoc!(
             "Title: {}

@@ -120,7 +120,7 @@ fn draw_movie_details<B: Backend>(
           let split = line.split(':').collect::<Vec<&str>>();
           let title = format!("{}:", split[0]);
 
-          spans_info_default(title, split[1].to_owned())
+          spans_info_default(title, split[1..].join(":"))
         })
         .collect::<Vec<Spans>>(),
     );
