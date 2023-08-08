@@ -1040,27 +1040,16 @@ mod test {
     assert_str_eq!(event.resource(), expected_resource);
   }
 
-  #[tokio::test]
-  async fn test_extract_movie_id_filtered_movies() {
-    let id = Number::from(1);
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .filtered_movies
-      .set_items(vec![Movie {
-        id: id.clone(),
-        ..Movie::default()
-      }]);
-    let network = Network::new(reqwest::Client::new(), &app_arc);
-
-    assert_eq!(network.extract_movie_id().await, 1);
+  #[test]
+  fn test_from_radarr_event() {
+    assert_eq!(
+      NetworkEvent::Radarr(RadarrEvent::HealthCheck),
+      NetworkEvent::from(RadarrEvent::HealthCheck)
+    );
   }
 
   #[tokio::test]
-  async fn test_get_healthcheck() {
+  async fn test_handle_get_healthcheck_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1070,13 +1059,13 @@ mod test {
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.get_healthcheck().await;
+    network.handle_radarr_event(RadarrEvent::HealthCheck).await;
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_get_diskspace() {
+  async fn test_handle_get_diskspace_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1095,7 +1084,7 @@ mod test {
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.get_diskspace().await;
+    network.handle_radarr_event(RadarrEvent::GetOverview).await;
 
     async_server.assert_async().await;
     assert_eq!(
@@ -1114,7 +1103,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_get_status() {
+  async fn test_handle_get_status_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1127,7 +1116,7 @@ mod test {
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.get_status().await;
+    network.handle_radarr_event(RadarrEvent::GetStatus).await;
 
     async_server.assert_async().await;
     assert_str_eq!(app_arc.lock().await.data.radarr_data.version, "v1");
@@ -1139,7 +1128,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_get_movies() {
+  async fn test_handle_get_movies_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1149,7 +1138,7 @@ mod test {
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.get_movies().await;
+    network.handle_radarr_event(RadarrEvent::GetMovies).await;
 
     async_server.assert_async().await;
     assert_eq!(
@@ -1159,7 +1148,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_get_releases() {
+  async fn test_handle_get_releases_event() {
     let release_json = json!([{
       "guid": "1234",
       "protocol": "torrent",
@@ -1191,7 +1180,7 @@ mod test {
       .set_items(vec![movie()]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.get_releases().await;
+    network.handle_radarr_event(RadarrEvent::GetReleases).await;
 
     async_server.assert_async().await;
     assert_eq!(
@@ -1201,7 +1190,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_search_movie() {
+  async fn test_handle_search_new_movie_event() {
     let add_movie_search_result_json = json!([{
       "tmdbId": 1,
       "title": "Test",
@@ -1237,7 +1226,9 @@ mod test {
     app_arc.lock().await.data.radarr_data.search = "test term".to_owned();
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.search_movie().await;
+    network
+      .handle_radarr_event(RadarrEvent::SearchNewMovie)
+      .await;
 
     async_server.assert_async().await;
     assert_eq!(
@@ -1253,7 +1244,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_trigger_automatic_search() {
+  async fn test_handle_trigger_automatic_search_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -1273,13 +1264,15 @@ mod test {
       .set_items(vec![movie()]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.trigger_automatic_search().await;
+    network
+      .handle_radarr_event(RadarrEvent::TriggerAutomaticSearch)
+      .await;
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_refresh_and_scan() {
+  async fn test_handle_refresh_and_scan_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -1299,13 +1292,15 @@ mod test {
       .set_items(vec![movie()]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.refresh_and_scan().await;
+    network
+      .handle_radarr_event(RadarrEvent::RefreshAndScan)
+      .await;
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_update_all_movies() {
+  async fn test_handle_update_all_movies_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -1318,13 +1313,15 @@ mod test {
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.update_all_movies().await;
+    network
+      .handle_radarr_event(RadarrEvent::UpdateAllMovies)
+      .await;
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_refresh_downloads() {
+  async fn test_handle_refresh_downloads_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -1336,13 +1333,15 @@ mod test {
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.refresh_downloads().await;
+    network
+      .handle_radarr_event(RadarrEvent::RefreshDownloads)
+      .await;
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_refresh_collections() {
+  async fn test_handle_refresh_collections_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -1354,13 +1353,15 @@ mod test {
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.refresh_collections().await;
+    network
+      .handle_radarr_event(RadarrEvent::RefreshCollections)
+      .await;
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_get_movie_details() {
+  async fn test_handle_get_movie_details_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1379,7 +1380,9 @@ mod test {
       HashMap::from([(2222, "HD - 1080p".to_owned())]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.get_movie_details().await;
+    network
+      .handle_radarr_event(RadarrEvent::GetMovieDetails)
+      .await;
 
     async_server.assert_async().await;
     assert_str_eq!(
@@ -1442,7 +1445,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_get_movie_details_empty_options_give_correct_defaults() {
+  async fn test_handle_get_movie_details_event_empty_options_give_correct_defaults() {
     let movie_json_with_missing_fields = json!({
       "id": 1,
       "title": "Test",
@@ -1480,7 +1483,9 @@ mod test {
       HashMap::from([(2222, "HD - 1080p".to_owned())]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.get_movie_details().await;
+    network
+      .handle_radarr_event(RadarrEvent::GetMovieDetails)
+      .await;
 
     async_server.assert_async().await;
     assert_str_eq!(
@@ -1533,7 +1538,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_get_movie_history() {
+  async fn test_handle_get_movie_history_event() {
     let movie_history_item_json = json!([{
       "sourceTitle": "Test",
       "quality": { "quality": { "name": "HD - 1080p" }},
@@ -1557,7 +1562,9 @@ mod test {
       .set_items(vec![movie()]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.get_movie_history().await;
+    network
+      .handle_radarr_event(RadarrEvent::GetMovieHistory)
+      .await;
 
     async_server.assert_async().await;
     assert_eq!(
@@ -1567,7 +1574,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_get_collections() {
+  async fn test_handle_get_collections_event() {
     let collection_json = json!([{
       "title": "Test Collection",
       "searchOnAdd": true,
@@ -1601,7 +1608,9 @@ mod test {
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.get_collections().await;
+    network
+      .handle_radarr_event(RadarrEvent::GetCollections)
+      .await;
 
     async_server.assert_async().await;
     assert_eq!(
@@ -1611,7 +1620,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_get_downloads() {
+  async fn test_handle_get_downloads_event() {
     let downloads_response_json = json!({
       "records": [{
         "title": "Test Download Title",
@@ -1633,7 +1642,7 @@ mod test {
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.get_downloads().await;
+    network.handle_radarr_event(RadarrEvent::GetDownloads).await;
 
     async_server.assert_async().await;
     assert_eq!(
@@ -1643,7 +1652,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_get_quality_profiles() {
+  async fn test_handle_get_quality_profiles_event() {
     let quality_profile_json = json!([{
       "id": 2222,
       "name": "HD - 1080p"
@@ -1657,7 +1666,9 @@ mod test {
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.get_quality_profiles().await;
+    network
+      .handle_radarr_event(RadarrEvent::GetQualityProfiles)
+      .await;
 
     async_server.assert_async().await;
     assert_eq!(
@@ -1667,7 +1678,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_get_root_folders() {
+  async fn test_handle_get_root_folders_event() {
     let root_folder_json = json!([{
       "path": "/nfs",
       "accessible": true,
@@ -1682,7 +1693,9 @@ mod test {
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.get_root_folders().await;
+    network
+      .handle_radarr_event(RadarrEvent::GetRootFolders)
+      .await;
 
     async_server.assert_async().await;
     assert_eq!(
@@ -1692,7 +1705,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_get_credits() {
+  async fn test_handle_get_movie_credits_event() {
     let credits_json = json!([
         {
           "personName": "Madison Clarke",
@@ -1722,7 +1735,9 @@ mod test {
       .set_items(vec![movie()]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.get_credits().await;
+    network
+      .handle_radarr_event(RadarrEvent::GetMovieCredits)
+      .await;
 
     async_server.assert_async().await;
     assert_eq!(
@@ -1736,7 +1751,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_delete_movie() {
+  async fn test_handle_delete_movie_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Delete,
       None,
@@ -1753,13 +1768,13 @@ mod test {
       .set_items(vec![movie()]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.delete_movie().await;
+    network.handle_radarr_event(RadarrEvent::DeleteMovie).await;
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_delete_download() {
+  async fn test_handle_delete_download_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Delete,
       None,
@@ -1776,13 +1791,15 @@ mod test {
       .set_items(vec![download_record()]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.delete_download().await;
+    network
+      .handle_radarr_event(RadarrEvent::DeleteDownload)
+      .await;
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_add_movie() {
+  async fn test_handle_add_movie_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -1840,13 +1857,13 @@ mod test {
     }
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.add_movie().await;
+    network.handle_radarr_event(RadarrEvent::AddMovie).await;
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_download_release() {
+  async fn test_handle_download_release_event() {
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -1866,7 +1883,9 @@ mod test {
       .set_items(vec![release()]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.download_release().await;
+    network
+      .handle_radarr_event(RadarrEvent::DownloadRelease)
+      .await;
 
     async_server.assert_async().await;
   }
@@ -1881,6 +1900,25 @@ mod test {
       .data
       .radarr_data
       .movies
+      .set_items(vec![Movie {
+        id: id.clone(),
+        ..Movie::default()
+      }]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    assert_eq!(network.extract_movie_id().await, 1);
+  }
+
+  #[tokio::test]
+  async fn test_extract_movie_id_filtered_movies() {
+    let id = Number::from(1);
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .filtered_movies
       .set_items(vec![Movie {
         id: id.clone(),
         ..Movie::default()
