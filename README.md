@@ -80,7 +80,7 @@ tautulli:
 - [x] View your library, downloads, collections, or calendar
 - [x] View details of a specific movie including description, history, downloaded file info, or the credits
 - [x] View details of any collection and the movies in them
-- [x] Search your library for specific movies
+- [x] Search your library or collections
 - [ ] Add movies to Radarr
 - [ ] Search your collections
 - [ ] Manage your quality profiles

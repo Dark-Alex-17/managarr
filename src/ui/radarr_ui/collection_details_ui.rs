@@ -150,6 +150,7 @@ fn draw_collection_details<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, cont
       ])
       .style(style_primary())
     },
+    |_| true,
     app.is_loading,
   );
 }

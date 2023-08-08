@@ -30,12 +30,19 @@ pub struct RadarrData {
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
   pub search: String,
+  pub filter: String,
   pub is_searching: bool,
 }
 
 impl RadarrData {
   pub fn reset_movie_collection_table(&mut self) {
     self.collection_movies = StatefulTable::default();
+  }
+
+  pub fn reset_search(&mut self) {
+    self.is_searching = false;
+    self.search = String::default();
+    self.filter = String::default();
   }
 
   pub fn reset_movie_info_tabs(&mut self) {
@@ -73,23 +80,25 @@ impl Default for RadarrData {
       collections: StatefulTable::default(),
       collection_movies: StatefulTable::default(),
       search: String::default(),
+      filter: String::default(),
       is_searching: false,
       main_tabs: TabState::new(vec![
         TabRoute {
           title: "Library".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
-          help: "<↑↓> scroll table | <s> search | <enter> movie details | ←→ change tab "
+          help: "<↑↓> scroll | <s> search | <f> filter | <enter> details | ←→ change tab "
             .to_owned(),
         },
         TabRoute {
           title: "Downloads".to_owned(),
           route: ActiveRadarrBlock::Downloads.into(),
-          help: "<↑↓> scroll table | ←→ change tab ".to_owned(),
+          help: "<↑↓> scroll | ←→ change tab ".to_owned(),
         },
         TabRoute {
           title: "Collections".to_owned(),
           route: ActiveRadarrBlock::Collections.into(),
-          help: "<↑↓> scroll table | <enter> collection details | ←→ change tab ".to_owned(),
+          help: "<↑↓> scroll | <s> search | <f> filter | <enter> details | ←→ change tab "
+            .to_owned(),
         },
       ]),
       movie_info_tabs: TabState::new(vec![
@@ -101,7 +110,7 @@ impl Default for RadarrData {
         TabRoute {
           title: "History".to_owned(),
           route: ActiveRadarrBlock::MovieHistory.into(),
-          help: "<↑↓> scroll table | ←→ change tab | <esc> close ".to_owned(),
+          help: "<↑↓> scroll | ←→ change tab | <esc> close ".to_owned(),
         },
         TabRoute {
           title: "File".to_owned(),
@@ -111,12 +120,12 @@ impl Default for RadarrData {
         TabRoute {
           title: "Cast".to_owned(),
           route: ActiveRadarrBlock::Cast.into(),
-          help: "<↑↓> scroll table | ←→ change tab | <esc> close ".to_owned(),
+          help: "<↑↓> scroll | ←→ change tab | <esc> close ".to_owned(),
         },
         TabRoute {
           title: "Crew".to_owned(),
           route: ActiveRadarrBlock::Crew.into(),
-          help: "<↑↓> scroll table | ←→ change tab | <esc> close ".to_owned(),
+          help: "<↑↓> scroll | ←→ change tab | <esc> close ".to_owned(),
         },
       ]),
     }
@@ -132,11 +141,14 @@ pub enum ActiveRadarrBlock {
   Cast,
   Crew,
   FileInfo,
+  FilterCollections,
+  FilterMovies,
   Movies,
   MovieDetails,
   MovieHistory,
   Downloads,
   SearchMovie,
+  SearchCollection,
   SortOptions,
   ViewMovieOverview,
 }

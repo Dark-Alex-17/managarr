@@ -2,6 +2,7 @@ use log::LevelFilter;
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Root};
 use log4rs::encode::pattern::PatternEncoder;
+use regex::Regex;
 
 pub fn init_logging_config() -> log4rs::Config {
   let file_path = "/tmp/managarr.log";
@@ -29,4 +30,11 @@ pub fn convert_runtime(runtime: u64) -> (u64, u64) {
   let minutes = runtime % 60;
 
   (hours, minutes)
+}
+
+pub fn strip_non_alphanumeric_characters(input: &str) -> String {
+  Regex::new(r"[^a-zA-Z0-9\s]")
+    .unwrap()
+    .replace_all(&input.to_lowercase(), "")
+    .to_string()
 }

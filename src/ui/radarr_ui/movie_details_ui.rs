@@ -196,6 +196,7 @@ fn draw_movie_history<B: Backend>(
       ])
       .style(style_success())
     },
+    |_| true,
     app.is_loading,
   );
 }
@@ -228,6 +229,7 @@ fn draw_movie_cast<B: Backend>(
       ])
       .style(style_success())
     },
+    |_| true,
     app.is_loading,
   )
 }
@@ -262,6 +264,7 @@ fn draw_movie_crew<B: Backend>(
       ])
       .style(style_success())
     },
+    |_| true,
     app.is_loading,
   );
 }

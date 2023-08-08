@@ -1,3 +1,6 @@
+use std::iter::Map;
+use std::slice::Iter;
+
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::text::{Span, Spans, Text};
@@ -198,16 +201,18 @@ pub struct TableProps<'a, T> {
   pub constraints: Vec<Constraint>,
 }
 
-fn draw_table<'a, B, T, F>(
+fn draw_table<'a, B, T, F, S>(
   f: &mut Frame<'_, B>,
   content_area: Rect,
   block: Block,
   table_props: TableProps<'a, T>,
   row_mapper: F,
+  filter_fn: S,
   is_loading: bool,
 ) where
   B: Backend,
   F: Fn(&T) -> Row<'a>,
+  S: FnMut(&&T) -> bool,
 {
   let TableProps {
     content,
@@ -216,7 +221,7 @@ fn draw_table<'a, B, T, F>(
   } = table_props;
 
   if !content.items.is_empty() {
-    let rows = content.items.iter().map(row_mapper);
+    let rows = content.items.iter().filter(filter_fn).map(row_mapper);
 
     let headers = Row::new(table_headers)
       .style(style_default_bold())

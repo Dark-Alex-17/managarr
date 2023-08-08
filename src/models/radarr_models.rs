@@ -19,7 +19,7 @@ pub struct SystemStatus {
   pub start_time: DateTime<Utc>,
 }
 
-#[derive(Derivative, Deserialize, Debug, Clone)]
+#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Movie {
@@ -48,7 +48,7 @@ pub struct Movie {
   pub collection: Option<Collection>,
 }
 
-#[derive(Derivative, Deserialize, Debug, Clone)]
+#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionMovie {
@@ -62,7 +62,7 @@ pub struct CollectionMovie {
   pub ratings: RatingsList,
 }
 
-#[derive(Deserialize, Derivative, Clone, Debug)]
+#[derive(Deserialize, Derivative, Clone, Debug, PartialEq, Eq)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Collection {
@@ -75,7 +75,7 @@ pub struct Collection {
   pub movies: Option<Vec<CollectionMovie>>,
 }
 
-#[derive(Deserialize, Derivative, Debug, Clone)]
+#[derive(Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct MovieFile {
@@ -85,7 +85,7 @@ pub struct MovieFile {
   pub media_info: MediaInfo,
 }
 
-#[derive(Deserialize, Derivative, Debug, Clone)]
+#[derive(Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaInfo {
@@ -109,7 +109,7 @@ pub struct MediaInfo {
   pub scan_type: String,
 }
 
-#[derive(Default, Deserialize, Debug, Clone)]
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RatingsList {
   pub imdb: Option<Rating>,
@@ -117,7 +117,7 @@ pub struct RatingsList {
   pub rotten_tomatoes: Option<Rating>,
 }
 
-#[derive(Derivative, Deserialize, Debug, Clone)]
+#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 pub struct Rating {
   #[derivative(Default(value = "Number::from(0)"))]
@@ -189,7 +189,7 @@ pub enum CreditType {
   Crew,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Credit {
   pub person_name: String,

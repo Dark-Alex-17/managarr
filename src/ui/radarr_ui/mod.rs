@@ -2,6 +2,7 @@ use std::iter;
 use std::ops::Sub;
 
 use chrono::{Duration, Utc};
+use regex::Regex;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Color, Style};
@@ -12,14 +13,15 @@ use tui::Frame;
 use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
-use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie};
+use crate::models::radarr_models::{Collection, DiskSpace, DownloadRecord, Movie};
 use crate::models::Route;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details_popup;
 use crate::ui::radarr_ui::movie_details_ui::draw_movie_info;
 use crate::ui::utils::{
-  borderless_block, horizontal_chunks, layout_block_top_border, line_gauge_with_label,
-  line_gauge_with_title, style_bold, style_default, style_failure, style_primary, style_success,
-  style_warning, title_block, vertical_chunks_with_margin,
+  borderless_block, horizontal_chunks, layout_block, layout_block_top_border,
+  line_gauge_with_label, line_gauge_with_title, show_cursor, style_bold, style_default,
+  style_failure, style_primary, style_success, style_warning, title_block,
+  vertical_chunks_with_margin,
 };
 use crate::ui::{
   draw_large_popup_over, draw_popup_over, draw_table, draw_tabs, loading, TableProps,
@@ -35,8 +37,19 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
   if let Route::Radarr(active_radarr_block) = app.get_current_route().clone() {
     match active_radarr_block {
       ActiveRadarrBlock::Movies => draw_library(f, app, content_rect),
-      ActiveRadarrBlock::SearchMovie => {
+      ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::FilterMovies => {
         draw_popup_over(f, app, content_rect, draw_library, draw_search_box, 30, 10)
+      }
+      ActiveRadarrBlock::SearchCollection | ActiveRadarrBlock::FilterCollections => {
+        draw_popup_over(
+          f,
+          app,
+          content_rect,
+          draw_collections,
+          draw_search_box,
+          30,
+          10,
+        )
       }
       ActiveRadarrBlock::Downloads => draw_downloads(f, app, content_rect),
       ActiveRadarrBlock::Collections => draw_collections(f, app, content_rect),
@@ -71,6 +84,16 @@ pub(super) fn draw_radarr_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &Ap
 fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let quality_profile_map = &app.data.radarr_data.quality_profile_map;
   let downloads_vec = &app.data.radarr_data.downloads.items;
+  let filter_fn: Box<dyn FnMut(&&Movie) -> bool> = if !app.data.radarr_data.filter.is_empty() {
+    Box::new(|&movie| {
+      Regex::new(r"[^a-zA-Z0-9\s]")
+        .unwrap()
+        .replace_all(&movie.title.to_lowercase(), "")
+        .starts_with(&app.data.radarr_data.filter)
+    })
+  } else {
+    Box::new(|_| true)
+  };
 
   draw_table(
     f,
@@ -118,6 +141,7 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
       ])
       .style(determine_row_style(downloads_vec, movie))
     },
+    filter_fn,
     app.is_loading,
   );
 }
@@ -125,23 +149,36 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
 fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let chunks = vertical_chunks_with_margin(vec![Constraint::Length(3)], area, 1);
   if !app.data.radarr_data.is_searching {
-    let input = Paragraph::new("Movie not found!")
+    let error_msg = match app.get_current_route() {
+      Route::Radarr(active_radarr_block) => match active_radarr_block {
+        ActiveRadarrBlock::SearchMovie => "Movie not found!",
+        ActiveRadarrBlock::SearchCollection => "Collection not found!",
+        ActiveRadarrBlock::FilterMovies => "No movies found matching filter!",
+        ActiveRadarrBlock::FilterCollections => "No collections found matching filter!",
+        _ => "",
+      },
+      _ => "",
+    };
+
+    let input = Paragraph::new(error_msg)
       .style(style_failure())
-      .block(title_block("Search"));
-    f.set_cursor(
-      chunks[0].x + app.data.radarr_data.search.len() as u16 + 1,
-      chunks[0].y + 1,
-    );
+      .block(layout_block());
 
     f.render_widget(input, chunks[0]);
   } else {
+    let block_title = match app.get_current_route() {
+      Route::Radarr(active_radarr_block) => match active_radarr_block {
+        ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => "Search",
+        ActiveRadarrBlock::FilterMovies | ActiveRadarrBlock::FilterCollections => "Filter",
+        _ => "",
+      },
+      _ => "",
+    };
+
     let input = Paragraph::new(app.data.radarr_data.search.as_ref())
       .style(style_default())
-      .block(title_block("Search"));
-    f.set_cursor(
-      chunks[0].x + app.data.radarr_data.search.len() as u16 + 1,
-      chunks[0].y + 1,
-    );
+      .block(title_block(block_title));
+    show_cursor(f, chunks[0], &app.data.radarr_data.search);
 
     f.render_widget(input, chunks[0]);
   }
@@ -238,12 +275,23 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
       ])
       .style(style_primary())
     },
+    |_| true,
     app.is_loading,
   );
 }
 
 fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let quality_profile_map = &app.data.radarr_data.quality_profile_map;
+  let filter_fn: Box<dyn FnMut(&&Collection) -> bool> = if !app.data.radarr_data.filter.is_empty() {
+    Box::new(|&collection| {
+      Regex::new(r"[^a-zA-Z0-9\s]")
+        .unwrap()
+        .replace_all(&collection.title.to_lowercase(), "")
+        .starts_with(&app.data.radarr_data.filter)
+    })
+  } else {
+    Box::new(|_| true)
+  };
   draw_table(
     f,
     area,
@@ -276,6 +324,7 @@ fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect)
       ])
       .style(style_primary())
     },
+    filter_fn,
     app.is_loading,
   );
 }

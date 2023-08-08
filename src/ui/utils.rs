@@ -1,8 +1,9 @@
+use tui::backend::Backend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::symbols;
 use tui::text::{Span, Spans};
 use tui::widgets::{Block, Borders, LineGauge};
+use tui::{symbols, Frame};
 
 pub fn horizontal_chunks(constraints: Vec<Constraint>, size: Rect) -> Vec<Rect> {
   Layout::default()
@@ -203,4 +204,8 @@ pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge {
     .line_set(symbols::line::THICK)
     .ratio(ratio)
     .label(Spans::from(format!("{}: {:.0}%", title, ratio * 100.0)))
+}
+
+pub fn show_cursor<B: Backend>(f: &mut Frame<'_, B>, area: Rect, string: &String) {
+  f.set_cursor(area.x + string.len() as u16 + 1, area.y + 1);
 }
