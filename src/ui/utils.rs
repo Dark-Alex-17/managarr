@@ -165,7 +165,7 @@ pub fn style_button_highlight(is_selected: bool) -> Style {
 }
 
 pub fn title_style(title: &str) -> Span<'_> {
-  Span::styled(title, style_bold())
+  Span::styled(format!("  {}  ", title), style_bold())
 }
 
 pub fn title_block(title: &str) -> Block<'_> {

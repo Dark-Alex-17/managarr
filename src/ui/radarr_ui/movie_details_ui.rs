@@ -55,6 +55,7 @@ fn draw_movie_info<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
       ActiveRadarrBlock::MovieHistory => draw_movie_history(f, app, area),
       ActiveRadarrBlock::Cast => draw_movie_cast(f, app, area),
       ActiveRadarrBlock::Crew => draw_movie_crew(f, app, area),
+      ActiveRadarrBlock::ManualSearch => draw_movie_releases(f, app, area),
       _ => (),
     }
   }
@@ -64,7 +65,7 @@ fn draw_search_movie_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
   draw_prompt_box(
     f,
     prompt_area,
-    "  Confirm Search Movie?  ",
+    "Confirm Search Movie?",
     format!(
       "Do you want to trigger an automatic search of your indexers for the movie: {}?",
       app.data.radarr_data.movies.current_selection().title
@@ -82,7 +83,7 @@ fn draw_refresh_and_scan_prompt<B: Backend>(
   draw_prompt_box(
     f,
     prompt_area,
-    "  Confirm Refresh and Scan?  ",
+    "Confirm Refresh and Scan?",
     format!(
       "Do you want to trigger a refresh and disk scan for the movie: {}?",
       app.data.radarr_data.movies.current_selection().title
@@ -334,12 +335,12 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       constraints: vec![
         Constraint::Length(8),
         Constraint::Length(10),
-        Constraint::Length(1),
-        Constraint::Percentage(40),
-        Constraint::Percentage(10),
-        Constraint::Length(8),
-        Constraint::Length(8),
-        Constraint::Percentage(10),
+        Constraint::Length(4),
+        Constraint::Percentage(30),
+        Constraint::Percentage(18),
+        Constraint::Length(12),
+        Constraint::Length(12),
+        Constraint::Percentage(7),
         Constraint::Percentage(10),
       ],
       table_headers: vec![
@@ -360,14 +361,15 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
         quality,
         ..
       } = release;
-      let age = format!("{} days", age.as_u64().unwrap());
+      let age = format!("{} days", age.as_u64().unwrap_or(0));
       title.scroll_or_reset(get_width(content_area), current_selection == *release);
-      indexer.scroll_or_reset(get_width(content_area), current_selection == *release);
       let size = convert_to_gb(size.as_u64().unwrap());
       let rejected_str = if *rejected { "⛔" } else { "" };
       let seeders = seeders.as_u64().unwrap();
       let leechers = leechers.as_u64().unwrap();
-      let peers = format!("{} / {}", seeders, leechers);
+      let mut peers = Text::from(format!("{} / {}", seeders, leechers));
+      peers.patch_style(determine_peer_style(seeders, leechers));
+
       let language = if languages.is_some() {
         languages.clone().unwrap()[0].name.clone()
       } else {
@@ -378,11 +380,11 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       Row::new(vec![
         Cell::from(protocol.clone()),
         Cell::from(age),
-        Cell::from(rejected_str).style(determine_style_from_rejection(*rejected)),
+        Cell::from(rejected_str),
         Cell::from(title.to_string()),
-        Cell::from(indexer.to_string()),
-        Cell::from(format!("{} GB", size)),
-        Cell::from(peers).style(determine_peer_style(seeders, leechers)),
+        Cell::from(indexer.clone()),
+        Cell::from(format!("{:.1} GB", size)),
+        Cell::from(peers),
         Cell::from(language),
         Cell::from(quality),
       ])
@@ -398,14 +400,6 @@ fn determine_style_from_download_status(download_status: &str) -> Style {
     "Downloading" => style_warning(),
     "Missing" => style_failure(),
     _ => style_success(),
-  }
-}
-
-fn determine_style_from_rejection(rejected: bool) -> Style {
-  if rejected {
-    style_failure()
-  } else {
-    style_primary()
   }
 }
 

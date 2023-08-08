@@ -64,7 +64,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
 
   let search_paragraph = Paragraph::new(Text::from(block_content))
     .style(style_default())
-    .block(title_block_centered("  Add Movie  "));
+    .block(title_block_centered("Add Movie"));
 
   if let Route::Radarr(active_radarr_block) = app.get_current_route().clone() {
     match active_radarr_block {
@@ -239,7 +239,7 @@ fn draw_select_quality_profile_popup<B: Backend>(
 }
 
 fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
-  let title = "  Confirm Add Movie?  ";
+  let title = "Confirm Add Movie?";
   let prompt = format!(
     "{}:\n\n{}",
     app

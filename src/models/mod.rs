@@ -252,7 +252,15 @@ impl Display for HorizontallyScrollableText {
     if *self.offset.borrow() == 0 {
       write!(f, "{}", self.text)
     } else {
-      write!(f, "{}", &self.text[*self.offset.borrow()..])
+      let text_vec = self.text.chars().collect::<Vec<_>>();
+      write!(
+        f,
+        "{}",
+        text_vec[*self.offset.borrow()..]
+          .iter()
+          .cloned()
+          .collect::<String>()
+      )
     }
   }
 }

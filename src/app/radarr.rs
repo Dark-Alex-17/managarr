@@ -297,10 +297,13 @@ impl App {
         self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::ManualSearch => {
-        self.is_loading = true;
-        self
-          .dispatch_network_event(RadarrEvent::GetReleases.into())
-          .await;
+        if self.data.radarr_data.movie_releases.items.is_empty() {
+          self.is_loading = true;
+          self
+            .dispatch_network_event(RadarrEvent::GetReleases.into())
+            .await;
+        }
+
         self.check_for_prompt_action().await;
       }
       _ => (),

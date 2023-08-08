@@ -34,7 +34,7 @@ mod collection_details_ui;
 mod movie_details_ui;
 
 pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
-  let (content_rect, _) = draw_tabs(f, area, "  Movies  ", &app.data.radarr_data.main_tabs);
+  let (content_rect, _) = draw_tabs(f, area, "Movies", &app.data.radarr_data.main_tabs);
 
   if let Route::Radarr(active_radarr_block) = app.get_current_route().clone() {
     match active_radarr_block {
@@ -173,7 +173,7 @@ fn draw_delete_movie_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
   draw_prompt_box(
     f,
     prompt_area,
-    "  Confirm Delete Movie?  ",
+    "Confirm Delete Movie?",
     format!(
       "Do you really want to delete: {}?",
       app.data.radarr_data.movies.current_selection().title
@@ -187,7 +187,7 @@ fn draw_delete_download_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, 
   draw_prompt_box(
     f,
     prompt_area,
-    "  Confirm Cancel Download?  ",
+    "Confirm Cancel Download?",
     format!(
       "Do you really want to delete this download: {}?",
       app.data.radarr_data.downloads.current_selection().title

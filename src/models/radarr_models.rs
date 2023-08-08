@@ -222,7 +222,7 @@ pub struct Release {
   #[derivative(Default(value = "Number::from(0)"))]
   pub age: Number,
   pub title: HorizontallyScrollableText,
-  pub indexer: HorizontallyScrollableText,
+  pub indexer: String,
   #[derivative(Default(value = "Number::from(0)"))]
   pub size: Number,
   pub rejected: bool,
