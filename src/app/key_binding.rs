@@ -9,6 +9,7 @@ macro_rules! generate_keybindings {
 }
 
 generate_keybindings! {
+  add,
   up,
   down,
   left,
@@ -30,6 +31,10 @@ pub struct KeyBinding {
 }
 
 pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
+  add: KeyBinding {
+    key: Key::Char('a'),
+    desc: "Add",
+  },
   up: KeyBinding {
     key: Key::Up,
     desc: "Scroll up",

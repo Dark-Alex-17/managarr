@@ -83,7 +83,7 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<()> {
 
     match input_events.next()? {
       InputEvent::KeyEvent(key) => {
-        if key == Key::Char('q') {
+        if key == Key::Char('q') && !app.should_ignore_quit_key {
           break;
         }
 

@@ -30,6 +30,7 @@ pub struct App {
   pub is_routing: bool,
   pub is_loading: bool,
   pub should_refresh: bool,
+  pub should_ignore_quit_key: bool,
   pub config: AppConfig,
   pub data: Data,
 }
@@ -119,7 +120,8 @@ impl Default for App {
         TabRoute {
           title: "Radarr".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
-          help: "<tab> change servarr | <?> help | <q> quit ".to_owned(),
+          help: "<↑↓> scroll | ←→ change tab | <tab> change servarr | <?> help | <q> quit "
+            .to_owned(),
         },
         TabRoute {
           title: "Sonarr".to_owned(),
@@ -136,6 +138,7 @@ impl Default for App {
       is_loading: false,
       is_routing: false,
       should_refresh: false,
+      should_ignore_quit_key: false,
       config: AppConfig::default(),
       data: Data::default(),
     }

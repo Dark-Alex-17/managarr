@@ -1,5 +1,6 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::radarr::ActiveRadarrBlock;
+use crate::handlers::radarr_handlers::add_movie_handler::AddMovieHandler;
 use crate::handlers::radarr_handlers::collection_details_handler::CollectionDetailsHandler;
 use crate::handlers::radarr_handlers::movie_details_handler::MovieDetailsHandler;
 use crate::handlers::{handle_clear_errors, KeyEventHandler};
@@ -7,6 +8,7 @@ use crate::models::Scrollable;
 use crate::utils::strip_non_alphanumeric_characters;
 use crate::{App, Key};
 
+mod add_movie_handler;
 mod collection_details_handler;
 mod movie_details_handler;
 
@@ -28,6 +30,11 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       }
       ActiveRadarrBlock::CollectionDetails | ActiveRadarrBlock::ViewMovieOverview => {
         CollectionDetailsHandler::with(self.key, self.app, self.active_radarr_block).handle()
+      }
+      ActiveRadarrBlock::AddMovieSearchInput
+      | ActiveRadarrBlock::AddMovieSearchResults
+      | ActiveRadarrBlock::AddMoviePrompt => {
+        AddMovieHandler::with(self.key, self.app, self.active_radarr_block).handle()
       }
       _ => self.handle_key_event(),
     }
@@ -300,6 +307,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       | ActiveRadarrBlock::FilterCollections => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.reset_search();
+        self.app.should_ignore_quit_key = false;
       }
       ActiveRadarrBlock::DeleteMoviePrompt => {
         self.app.pop_navigation_stack();
@@ -321,12 +329,20 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
             .app
             .push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
           self.app.data.radarr_data.is_searching = true;
+          self.app.should_ignore_quit_key = true;
         }
         _ if *key == DEFAULT_KEYBINDINGS.filter.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
           self.app.data.radarr_data.is_searching = true;
+          self.app.should_ignore_quit_key = true;
+        }
+        _ if *key == DEFAULT_KEYBINDINGS.add.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
+          self.app.should_ignore_quit_key = true;
         }
         _ => (),
       },
@@ -336,12 +352,14 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
             .app
             .push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
           self.app.data.radarr_data.is_searching = true;
+          self.app.should_ignore_quit_key = true;
         }
         _ if *key == DEFAULT_KEYBINDINGS.filter.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
           self.app.data.radarr_data.is_searching = true;
+          self.app.should_ignore_quit_key = true;
         }
         _ => (),
       },
@@ -386,6 +404,7 @@ impl RadarrHandler<'_> {
     });
 
     self.app.data.radarr_data.is_searching = false;
+    self.app.should_ignore_quit_key = false;
 
     if collection_index.is_some() {
       self.app.pop_navigation_stack();
@@ -415,6 +434,7 @@ impl RadarrHandler<'_> {
       .collect();
 
     self.app.data.radarr_data.is_searching = false;
+    self.app.should_ignore_quit_key = false;
 
     if !filter_matches.is_empty() {
       self.app.pop_navigation_stack();

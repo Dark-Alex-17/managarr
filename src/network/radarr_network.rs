@@ -4,11 +4,12 @@ use log::{debug, error};
 use reqwest::{RequestBuilder, StatusCode};
 use serde::de::DeserializeOwned;
 use tokio::sync::MutexGuard;
+use urlencoding::encode;
 
 use crate::app::{App, RadarrConfig};
 use crate::models::radarr_models::{
-  Collection, Credit, CreditType, DiskSpace, DownloadsResponse, Movie, MovieHistoryItem,
-  QualityProfile, SystemStatus,
+  AddMovieSearchResult, Collection, Credit, CreditType, DiskSpace, DownloadsResponse, Movie,
+  MovieHistoryItem, QualityProfile, SystemStatus,
 };
 use crate::models::ScrollableText;
 use crate::network::utils::get_movie_status;
@@ -27,6 +28,7 @@ pub enum RadarrEvent {
   GetOverview,
   GetQualityProfiles,
   GetStatus,
+  SearchNewMovie,
   HealthCheck,
 }
 
@@ -48,6 +50,7 @@ impl RadarrEvent {
       RadarrEvent::GetCollections => "/collection",
       RadarrEvent::GetDownloads => "/queue",
       RadarrEvent::GetMovies | RadarrEvent::GetMovieDetails | RadarrEvent::DeleteMovie => "/movie",
+      RadarrEvent::SearchNewMovie => "/movie/lookup",
       RadarrEvent::GetMovieCredits => "/credit",
       RadarrEvent::GetMovieHistory => "/history/movie",
       RadarrEvent::GetOverview => "/diskspace",
@@ -122,6 +125,11 @@ impl<'a> Network<'a> {
           .get_quality_profiles(RadarrEvent::GetQualityProfiles.resource().to_owned())
           .await
       }
+      RadarrEvent::SearchNewMovie => {
+        self
+          .search_movie(RadarrEvent::SearchNewMovie.resource().to_owned())
+          .await
+      }
     }
   }
 
@@ -142,13 +150,13 @@ impl<'a> Network<'a> {
   }
 
   async fn get_diskspace(&self, resource: String) {
-    type RequestType = Vec<DiskSpace>;
+    type ResponseType = Vec<DiskSpace>;
     self
-      .handle_request::<RequestType>(
+      .handle_request::<ResponseType>(
         RequestProps {
           resource,
           method: RequestMethod::GET,
-          body: None::<RequestType>,
+          body: None::<ResponseType>,
         },
         |disk_space_vec, mut app| {
           app.data.radarr_data.disk_space_vec = disk_space_vec;
@@ -174,15 +182,40 @@ impl<'a> Network<'a> {
   }
 
   async fn get_movies(&self, resource: String) {
-    type RequestType = Vec<Movie>;
+    type ResponseType = Vec<Movie>;
     self
-      .handle_request::<RequestType>(
+      .handle_request::<ResponseType>(
         RequestProps {
           resource,
           method: RequestMethod::GET,
-          body: None::<RequestType>,
+          body: None::<ResponseType>,
         },
         |movie_vec, mut app| app.data.radarr_data.movies.set_items(movie_vec),
+      )
+      .await;
+  }
+
+  async fn search_movie(&self, resource: String) {
+    type ResponseType = Vec<AddMovieSearchResult>;
+    let search_string = self.app.lock().await.data.radarr_data.search.clone();
+    debug!(
+      "Searching for movie: {:?}",
+      format!("{}?term={}", resource, encode(search_string.as_str()))
+    );
+    self
+      .handle_request::<ResponseType>(
+        RequestProps {
+          resource: format!("{}?term={}", resource, encode(&search_string)),
+          method: RequestMethod::GET,
+          body: None::<ResponseType>,
+        },
+        |movie_vec, mut app| {
+          app
+            .data
+            .radarr_data
+            .add_searched_movies
+            .set_items(movie_vec)
+        },
       )
       .await;
   }
@@ -338,13 +371,13 @@ impl<'a> Network<'a> {
   }
 
   async fn get_movie_history(&self, resource: String) {
-    type RequestType = Vec<MovieHistoryItem>;
+    type ResponseType = Vec<MovieHistoryItem>;
     self
-      .handle_request::<RequestType>(
+      .handle_request::<ResponseType>(
         RequestProps {
           resource: self.append_movie_id_param(&resource).await,
           method: RequestMethod::GET,
-          body: None::<RequestType>,
+          body: None::<ResponseType>,
         },
         |movie_history_vec, mut app| {
           let mut reversed_movie_history_vec = movie_history_vec.to_vec();
@@ -360,13 +393,13 @@ impl<'a> Network<'a> {
   }
 
   async fn get_collections(&self, resource: String) {
-    type RequestType = Vec<Collection>;
+    type ResponseType = Vec<Collection>;
     self
-      .handle_request::<RequestType>(
+      .handle_request::<ResponseType>(
         RequestProps {
           resource,
           method: RequestMethod::GET,
-          body: None::<RequestType>,
+          body: None::<ResponseType>,
         },
         |collections_vec, mut app| {
           app.data.radarr_data.collections.set_items(collections_vec);
@@ -395,13 +428,13 @@ impl<'a> Network<'a> {
   }
 
   async fn get_quality_profiles(&self, resource: String) {
-    type RequestType = Vec<QualityProfile>;
+    type ResponseType = Vec<QualityProfile>;
     self
-      .handle_request::<RequestType>(
+      .handle_request::<ResponseType>(
         RequestProps {
           resource,
           method: RequestMethod::GET,
-          body: None::<RequestType>,
+          body: None::<ResponseType>,
         },
         |quality_profiles, mut app| {
           app.data.radarr_data.quality_profile_map = quality_profiles
@@ -414,13 +447,13 @@ impl<'a> Network<'a> {
   }
 
   async fn get_credits(&self, resource: String) {
-    type RequestType = Vec<Credit>;
+    type ResponseType = Vec<Credit>;
     self
-      .handle_request::<RequestType>(
+      .handle_request::<ResponseType>(
         RequestProps {
           resource: self.append_movie_id_param(&resource).await,
           method: RequestMethod::GET,
-          body: None::<RequestType>,
+          body: None::<ResponseType>,
         },
         |credit_vec, mut app| {
           let cast_vec: Vec<Credit> = credit_vec

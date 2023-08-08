@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use derivative::Derivative;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Number;
 
 use crate::models::HorizontallyScrollableText;
@@ -198,4 +198,40 @@ pub struct Credit {
   pub job: Option<String>,
   #[serde(rename(deserialize = "type"))]
   pub credit_type: CreditType,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AddMovieBody {
+  pub tmdb_id: Number,
+  pub title: String,
+  pub root_folder_path: String,
+  pub quality_profile_id: Number,
+  pub minimum_availability: String,
+  pub monitored: bool,
+  pub add_options: AddOptions,
+}
+
+#[derive(Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AddOptions {
+  pub search_for_movie: bool,
+}
+
+#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct AddMovieSearchResult {
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub tmdb_id: Number,
+  pub title: String,
+  pub original_language: Language,
+  pub status: String,
+  pub overview: String,
+  pub genres: Vec<String>,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub year: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub runtime: Number,
+  pub ratings: RatingsList,
 }

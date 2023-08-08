@@ -16,7 +16,7 @@ use crate::ui::utils::{
   borderless_block, centered_rect, horizontal_chunks, horizontal_chunks_with_margin, layout_block,
   layout_block_top_border, logo_block, style_default_bold, style_failure, style_help,
   style_highlight, style_primary, style_secondary, style_system_function, title_block,
-  vertical_chunks_with_margin,
+  title_block_centered, vertical_chunks_with_margin,
 };
 
 mod radarr_ui;
@@ -259,10 +259,7 @@ pub fn draw_prompt_box<B: Backend>(
   prompt: &str,
   yes_no_value: &bool,
 ) {
-  f.render_widget(
-    title_block(title).title_alignment(Alignment::Center),
-    prompt_area,
-  );
+  f.render_widget(title_block_centered(title), prompt_area);
 
   let chunks = vertical_chunks_with_margin(
     vec![

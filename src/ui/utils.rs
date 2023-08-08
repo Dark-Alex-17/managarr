@@ -1,5 +1,5 @@
 use tui::backend::Backend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
+use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans};
 use tui::widgets::{Block, Borders, LineGauge};
@@ -150,6 +150,10 @@ pub fn title_style(title: &str) -> Span<'_> {
 
 pub fn title_block(title: &str) -> Block<'_> {
   layout_block_with_title(title_style(title))
+}
+
+pub fn title_block_centered(title: &str) -> Block<'_> {
+  title_block(title).title_alignment(Alignment::Center)
 }
 
 pub fn logo_block<'a>() -> Block<'a> {

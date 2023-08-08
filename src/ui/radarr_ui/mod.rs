@@ -14,12 +14,13 @@ use crate::app::App;
 use crate::logos::RADARR_LOGO;
 use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie};
 use crate::models::Route;
+use crate::ui::radarr_ui::add_movie_ui::draw_add_movie_search_popup;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details_popup;
 use crate::ui::radarr_ui::movie_details_ui::draw_movie_info;
 use crate::ui::utils::{
   borderless_block, horizontal_chunks, layout_block, layout_block_top_border,
   line_gauge_with_label, line_gauge_with_title, show_cursor, style_bold, style_default,
-  style_failure, style_primary, style_success, style_warning, title_block,
+  style_failure, style_primary, style_success, style_warning, title_block, title_block_centered,
   vertical_chunks_with_margin,
 };
 use crate::ui::{
@@ -28,6 +29,7 @@ use crate::ui::{
 };
 use crate::utils::{convert_runtime, convert_to_gb};
 
+mod add_movie_ui;
 mod collection_details_ui;
 mod movie_details_ui;
 
@@ -60,6 +62,15 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
       | ActiveRadarrBlock::Crew => {
         draw_large_popup_over(f, app, content_rect, draw_library, draw_movie_info)
       }
+      ActiveRadarrBlock::AddMovieSearchInput
+      | ActiveRadarrBlock::AddMovieSearchResults
+      | ActiveRadarrBlock::AddMoviePrompt => draw_large_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_library,
+        draw_add_movie_search_popup,
+      ),
       ActiveRadarrBlock::CollectionDetails | ActiveRadarrBlock::ViewMovieOverview => {
         draw_large_popup_over(
           f,
@@ -200,7 +211,7 @@ fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
 
     let input = Paragraph::new(block_content)
       .style(style_default())
-      .block(title_block(block_title));
+      .block(title_block_centered(block_title));
     show_cursor(f, chunks[0], block_content);
 
     f.render_widget(input, chunks[0]);

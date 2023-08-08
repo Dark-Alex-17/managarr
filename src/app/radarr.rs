@@ -5,10 +5,11 @@ use chrono::{DateTime, Utc};
 use strum::EnumIter;
 
 use crate::app::{App, Route};
-use crate::models::{ScrollableText, StatefulMatrix, StatefulTable, TabRoute, TabState};
 use crate::models::radarr_models::{
-  Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Movie, MovieHistoryItem,
+  AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Movie,
+  MovieHistoryItem,
 };
+use crate::models::{ScrollableText, StatefulTable, TabRoute, TabState};
 use crate::network::radarr_network::RadarrEvent;
 
 pub struct RadarrData {
@@ -17,6 +18,7 @@ pub struct RadarrData {
   pub start_time: DateTime<Utc>,
   pub movies: StatefulTable<Movie>,
   pub filtered_movies: StatefulTable<Movie>,
+  pub add_searched_movies: StatefulTable<AddMovieSearchResult>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub quality_profile_map: HashMap<u64, String>,
   pub movie_details: ScrollableText,
@@ -29,7 +31,6 @@ pub struct RadarrData {
   pub collections: StatefulTable<Collection>,
   pub filtered_collections: StatefulTable<Collection>,
   pub collection_movies: StatefulTable<CollectionMovie>,
-  pub calendar: StatefulMatrix<>
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
   pub search: String,
@@ -49,6 +50,7 @@ impl RadarrData {
     self.filter = String::default();
     self.filtered_movies = StatefulTable::default();
     self.filtered_collections = StatefulTable::default();
+    self.add_searched_movies = StatefulTable::default();
   }
 
   pub fn reset_movie_info_tabs(&mut self) {
@@ -74,6 +76,7 @@ impl Default for RadarrData {
       version: String::default(),
       start_time: DateTime::default(),
       movies: StatefulTable::default(),
+      add_searched_movies: StatefulTable::default(),
       filtered_movies: StatefulTable::default(),
       downloads: StatefulTable::default(),
       quality_profile_map: HashMap::default(),
@@ -95,25 +98,20 @@ impl Default for RadarrData {
         TabRoute {
           title: "Library".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
-          help: "<↑↓> scroll | <s> search | <f> filter | <enter> details | <esc> cancel filter | <del> delete | ←→ change tab "
+          help: "<a> add | <s> search | <f> filter | <enter> details | <esc> cancel filter | <del> delete  "
             .to_owned(),
         },
         TabRoute {
           title: "Downloads".to_owned(),
           route: ActiveRadarrBlock::Downloads.into(),
-          help: "<↑↓> scroll | ←→ change tab ".to_owned(),
+          help: String::default(),
         },
         TabRoute {
           title: "Collections".to_owned(),
           route: ActiveRadarrBlock::Collections.into(),
-          help: "<↑↓> scroll | <s> search | <f> filter | <enter> details | <esc> cancel filter | ←→ change tab "
+          help: "<s> search | <f> filter | <enter> details | <esc> cancel filter "
             .to_owned(),
         },
-        TabRoute {
-          title: "Calendar".to_owned(),
-          route: ActiveRadarrBlock::Calendar.into(),
-          help: "<↑↓> scroll | <enter> details | ←→ change tab ".to_owned()
-        }
       ]),
       movie_info_tabs: TabState::new(vec![
         TabRoute {
@@ -148,7 +146,9 @@ impl Default for RadarrData {
 
 #[derive(Clone, PartialEq, Eq, Debug, EnumIter)]
 pub enum ActiveRadarrBlock {
-  AddMovie,
+  AddMovieSearchInput,
+  AddMovieSearchResults,
+  AddMoviePrompt,
   Calendar,
   Collections,
   CollectionDetails,
@@ -208,6 +208,12 @@ impl App {
             .dispatch_network_event(RadarrEvent::DeleteMovie.into())
             .await;
         }
+      }
+      ActiveRadarrBlock::AddMovieSearchResults => {
+        self.is_loading = true;
+        self
+          .dispatch_network_event(RadarrEvent::SearchNewMovie.into())
+          .await;
       }
       ActiveRadarrBlock::MovieDetails | ActiveRadarrBlock::FileInfo => {
         self.is_loading = true;
