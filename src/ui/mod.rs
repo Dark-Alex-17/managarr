@@ -497,7 +497,11 @@ pub fn draw_checkbox_with_label<B: Backend>(
   is_selected: bool,
 ) {
   let horizontal_chunks = horizontal_chunks(
-    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
+    vec![
+      Constraint::Percentage(48),
+      Constraint::Percentage(48),
+      Constraint::Percentage(4),
+    ],
     area,
   );
 
@@ -528,7 +532,11 @@ pub fn draw_button_with_icon<B: Backend>(
   let icon_paragraph = layout_button_paragraph_borderless(is_selected, icon, Alignment::Right);
 
   let horizontal_chunks = horizontal_chunks_with_margin(
-    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
+    vec![
+      Constraint::Percentage(50),
+      Constraint::Percentage(49),
+      Constraint::Percentage(1),
+    ],
     area,
     1,
   );
@@ -549,7 +557,11 @@ pub fn draw_drop_down_menu_button<B: Backend>(
   is_selected: bool,
 ) {
   let horizontal_chunks = horizontal_chunks(
-    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
+    vec![
+      Constraint::Percentage(48),
+      Constraint::Percentage(48),
+      Constraint::Percentage(4),
+    ],
     area,
   );
 
@@ -679,7 +691,11 @@ pub fn draw_text_box_with_label<B: Backend>(
   should_show_cursor: bool,
 ) {
   let horizontal_chunks = horizontal_chunks(
-    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
+    vec![
+      Constraint::Percentage(48),
+      Constraint::Percentage(48),
+      Constraint::Percentage(4),
+    ],
     area,
   );
 

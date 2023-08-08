@@ -9,7 +9,7 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::indexers::IndexersHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::servarr_data::radarr_data::{
+  use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
   };
   use crate::test_handler_delegation;
@@ -254,7 +254,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::assert_refresh_key;
-    use crate::models::servarr_data::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS;
+    use crate::models::servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS;
 
     use super::*;
 

@@ -2,7 +2,9 @@
 mod tests {
   use strum::IntoEnumIterator;
 
-  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
+  use crate::models::servarr_data::radarr::radarr_data::{
+    ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS,
+  };
   use crate::ui::radarr_ui::system::system_details_ui::SystemDetailsUi;
   use crate::ui::DrawUi;
 

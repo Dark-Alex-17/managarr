@@ -5,18 +5,16 @@ use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Color, Style};
 use tui::text::Text;
-use tui::widgets::ListItem;
 use tui::widgets::Paragraph;
 use tui::Frame;
 
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
 use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie, RootFolder};
-use crate::models::servarr_data::radarr_data::{
+use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, RadarrData, FILTER_BLOCKS, SEARCH_BLOCKS,
 };
 use crate::models::Route;
-use crate::ui::draw_selectable_list;
 use crate::ui::draw_tabs;
 use crate::ui::loading;
 use crate::ui::radarr_ui::collections::CollectionsUi;
@@ -230,45 +228,6 @@ fn determine_row_style(downloads_vec: &[DownloadRecord], movie: &Movie) -> Style
   } else {
     style_success()
   }
-}
-
-fn draw_select_minimum_availability_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  popup_area: Rect,
-) {
-  draw_selectable_list(
-    f,
-    popup_area,
-    &mut app.data.radarr_data.minimum_availability_list,
-    |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
-  );
-}
-
-fn draw_select_quality_profile_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  popup_area: Rect,
-) {
-  draw_selectable_list(
-    f,
-    popup_area,
-    &mut app.data.radarr_data.quality_profile_list,
-    |quality_profile| ListItem::new(quality_profile.clone()),
-  );
-}
-
-fn draw_select_root_folder_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  popup_area: Rect,
-) {
-  draw_selectable_list(
-    f,
-    popup_area,
-    &mut app.data.radarr_data.root_folder_list,
-    |root_folder| ListItem::new(root_folder.path.to_owned()),
-  );
 }
 
 fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {

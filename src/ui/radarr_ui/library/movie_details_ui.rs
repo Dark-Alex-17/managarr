@@ -9,7 +9,7 @@ use tui::Frame;
 
 use crate::app::App;
 use crate::models::radarr_models::{Credit, MovieHistoryItem, Release, ReleaseField};
-use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
+use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::utils::{

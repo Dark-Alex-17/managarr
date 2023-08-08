@@ -9,35 +9,139 @@ mod tests {
   use crate::handlers::radarr_handlers::collections::edit_collection_handler::EditCollectionHandler;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::MinimumAvailability;
-  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, EDIT_COLLECTION_BLOCKS};
+  use crate::models::servarr_data::radarr::radarr_data::{
+    ActiveRadarrBlock, EDIT_COLLECTION_BLOCKS,
+  };
 
   mod test_handle_scroll_up_and_down {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
-    use crate::models::servarr_data::radarr_data::EDIT_COLLECTION_SELECTION_BLOCKS;
+    use crate::models::servarr_data::radarr::modals::EditCollectionModal;
+    use crate::models::servarr_data::radarr::radarr_data::EDIT_COLLECTION_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
-    use crate::{test_enum_scroll, test_iterable_scroll};
 
     use super::*;
 
-    test_enum_scroll!(
-      test_edit_collection_select_minimum_availability_scroll,
-      EditCollectionHandler,
-      MinimumAvailability,
-      minimum_availability_list,
-      ActiveRadarrBlock::EditCollectionSelectMinimumAvailability,
-      None
-    );
+    #[rstest]
+    fn test_edit_collection_select_minimum_availability_scroll(
+      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
+    ) {
+      let minimum_availability_vec = Vec::from_iter(MinimumAvailability::iter());
+      let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
+      app
+        .data
+        .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
+        .minimum_availability_list
+        .set_items(minimum_availability_vec.clone());
 
-    test_iterable_scroll!(
-      test_edit_collection_select_quality_profile_scroll,
-      EditCollectionHandler,
-      quality_profile_list,
-      ActiveRadarrBlock::EditCollectionSelectQualityProfile,
-      None
-    );
+      if key == Key::Up {
+        for i in (0..minimum_availability_vec.len()).rev() {
+          EditCollectionHandler::with(
+            &key,
+            &mut app,
+            &ActiveRadarrBlock::EditCollectionSelectMinimumAvailability,
+            &None,
+          )
+          .handle();
+
+          assert_eq!(
+            app
+              .data
+              .radarr_data
+              .edit_collection_modal
+              .as_ref()
+              .unwrap()
+              .minimum_availability_list
+              .current_selection(),
+            &minimum_availability_vec[i]
+          );
+        }
+      } else {
+        for i in 0..minimum_availability_vec.len() {
+          EditCollectionHandler::with(
+            &key,
+            &mut app,
+            &ActiveRadarrBlock::EditCollectionSelectMinimumAvailability,
+            &None,
+          )
+          .handle();
+
+          assert_eq!(
+            app
+              .data
+              .radarr_data
+              .edit_collection_modal
+              .as_ref()
+              .unwrap()
+              .minimum_availability_list
+              .current_selection(),
+            &minimum_availability_vec[(i + 1) % minimum_availability_vec.len()]
+          );
+        }
+      }
+    }
+
+    #[rstest]
+    fn test_edit_collection_select_quality_profile_scroll(
+      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
+    ) {
+      let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
+      app
+        .data
+        .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
+        .quality_profile_list
+        .set_items(vec!["Test 1".to_owned(), "Test 2".to_owned()]);
+
+      EditCollectionHandler::with(
+        &key,
+        &mut app,
+        &ActiveRadarrBlock::EditCollectionSelectQualityProfile,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .quality_profile_list
+          .current_selection(),
+        "Test 2"
+      );
+
+      EditCollectionHandler::with(
+        &key,
+        &mut app,
+        &ActiveRadarrBlock::EditCollectionSelectQualityProfile,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .quality_profile_list
+          .current_selection(),
+        "Test 1"
+      );
+    }
 
     #[rstest]
     fn test_edit_collection_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
@@ -69,43 +173,181 @@ mod tests {
   }
 
   mod test_handle_home_end {
+    use pretty_assertions::assert_eq;
     use strum::IntoEnumIterator;
 
-    use crate::{test_enum_home_and_end, test_iterable_home_and_end, test_text_box_home_end_keys};
+    use crate::models::servarr_data::radarr::modals::EditCollectionModal;
 
     use super::*;
 
-    test_enum_home_and_end!(
-      test_edit_collection_select_minimum_availability_home_end,
-      EditCollectionHandler,
-      MinimumAvailability,
-      minimum_availability_list,
-      ActiveRadarrBlock::EditCollectionSelectMinimumAvailability,
-      None
-    );
+    #[test]
+    fn test_edit_collection_select_minimum_availability_home_end() {
+      let minimum_availability_vec = Vec::from_iter(MinimumAvailability::iter());
+      let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
+      app
+        .data
+        .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
+        .minimum_availability_list
+        .set_items(minimum_availability_vec.clone());
 
-    test_iterable_home_and_end!(
-      test_edit_collection_select_quality_profile_scroll,
-      EditCollectionHandler,
-      quality_profile_list,
-      ActiveRadarrBlock::EditCollectionSelectQualityProfile,
-      None
-    );
+      EditCollectionHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::EditCollectionSelectMinimumAvailability,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .minimum_availability_list
+          .current_selection(),
+        &minimum_availability_vec[minimum_availability_vec.len() - 1]
+      );
+
+      EditCollectionHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::EditCollectionSelectMinimumAvailability,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .minimum_availability_list
+          .current_selection(),
+        &minimum_availability_vec[0]
+      );
+    }
+
+    #[test]
+    fn test_edit_collection_select_quality_profile_scroll() {
+      let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
+      app
+        .data
+        .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
+        .quality_profile_list
+        .set_items(vec![
+          "Test 1".to_owned(),
+          "Test 2".to_owned(),
+          "Test 3".to_owned(),
+        ]);
+
+      EditCollectionHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::EditCollectionSelectQualityProfile,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .quality_profile_list
+          .current_selection(),
+        "Test 3"
+      );
+
+      EditCollectionHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::EditCollectionSelectQualityProfile,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .quality_profile_list
+          .current_selection(),
+        "Test 1"
+      );
+    }
 
     #[test]
     fn test_edit_collection_root_folder_path_input_home_end_keys() {
-      test_text_box_home_end_keys!(
-        EditCollectionHandler,
-        ActiveRadarrBlock::EditCollectionRootFolderPathInput,
-        edit_path
+      let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal {
+        path: "Test".into(),
+        ..EditCollectionModal::default()
+      });
+
+      EditCollectionHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::EditCollectionRootFolderPathInput,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .path
+          .offset
+          .borrow(),
+        4
+      );
+
+      EditCollectionHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::EditCollectionRootFolderPathInput,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .path
+          .offset
+          .borrow(),
+        0
       );
     }
   }
 
   mod test_handle_left_right_action {
+    use crate::models::servarr_data::radarr::modals::EditCollectionModal;
     use rstest::rstest;
-
-    use crate::test_text_box_left_right_keys;
 
     use super::*;
 
@@ -136,10 +378,52 @@ mod tests {
 
     #[test]
     fn test_edit_collection_root_folder_path_input_left_right_keys() {
-      test_text_box_left_right_keys!(
-        EditCollectionHandler,
-        ActiveRadarrBlock::EditCollectionRootFolderPathInput,
-        edit_path
+      let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal {
+        path: "Test".into(),
+        ..EditCollectionModal::default()
+      });
+
+      EditCollectionHandler::with(
+        &DEFAULT_KEYBINDINGS.left.key,
+        &mut app,
+        &ActiveRadarrBlock::EditCollectionRootFolderPathInput,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .path
+          .offset
+          .borrow(),
+        1
+      );
+
+      EditCollectionHandler::with(
+        &DEFAULT_KEYBINDINGS.right.key,
+        &mut app,
+        &ActiveRadarrBlock::EditCollectionRootFolderPathInput,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .path
+          .offset
+          .borrow(),
+        0
       );
     }
   }
@@ -148,7 +432,8 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::models::servarr_data::radarr_data::EDIT_COLLECTION_SELECTION_BLOCKS;
+    use crate::models::servarr_data::radarr::modals::EditCollectionModal;
+    use crate::models::servarr_data::radarr::radarr_data::EDIT_COLLECTION_SELECTION_BLOCKS;
     use crate::models::{BlockSelectionState, Route};
     use crate::network::radarr_network::RadarrEvent;
 
@@ -248,6 +533,7 @@ mod tests {
         Some(ActiveRadarrBlock::Collections),
       ));
       let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
       app.push_navigation_stack(current_route);
@@ -261,7 +547,16 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), &current_route);
-      assert_eq!(app.data.radarr_data.edit_monitored, Some(true));
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .monitored,
+        Some(true)
+      );
 
       EditCollectionHandler::with(
         &SUBMIT_KEY,
@@ -272,7 +567,16 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), &current_route);
-      assert_eq!(app.data.radarr_data.edit_monitored, Some(false));
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .monitored,
+        Some(false)
+      );
     }
 
     #[test]
@@ -282,6 +586,7 @@ mod tests {
         Some(ActiveRadarrBlock::Collections),
       ));
       let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
       app
@@ -300,7 +605,16 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), &current_route);
-      assert_eq!(app.data.radarr_data.edit_search_on_add, Some(true));
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .search_on_add,
+        Some(true)
+      );
 
       EditCollectionHandler::with(
         &SUBMIT_KEY,
@@ -311,7 +625,16 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), &current_route);
-      assert_eq!(app.data.radarr_data.edit_search_on_add, Some(false));
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .search_on_add,
+        Some(false)
+      );
     }
 
     #[rstest]
@@ -389,8 +712,7 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
-    use crate::{assert_edit_media_reset, assert_preferences_selections_reset};
+    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
 
     use super::*;
 
@@ -440,8 +762,7 @@ mod tests {
       );
       let radarr_data = &app.data.radarr_data;
 
-      assert_preferences_selections_reset!(radarr_data);
-      assert_edit_media_reset!(radarr_data);
+      assert!(radarr_data.edit_collection_modal.is_none());
       assert!(!radarr_data.prompt_confirm);
     }
 
@@ -469,11 +790,15 @@ mod tests {
 
   mod test_handle_key_char {
     use super::*;
+    use crate::models::servarr_data::radarr::modals::EditCollectionModal;
 
     #[test]
     fn test_edit_collection_root_folder_path_input_backspace() {
       let mut app = App::default();
-      app.data.radarr_data.edit_path = "Test".to_owned().into();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal {
+        path: "Test".into(),
+        ..EditCollectionModal::default()
+      });
 
       EditCollectionHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -483,12 +808,23 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.edit_path.text, "Tes");
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .path
+          .text,
+        "Tes"
+      );
     }
 
     #[test]
     fn test_edit_collection_root_folder_path_input_char_key() {
       let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
 
       EditCollectionHandler::with(
         &Key::Char('h'),
@@ -498,7 +834,17 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.edit_path.text, "h");
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .path
+          .text,
+        "h"
+      );
     }
   }
 

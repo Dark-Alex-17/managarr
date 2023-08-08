@@ -4,7 +4,7 @@ use crate::event::Key;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::radarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
-use crate::models::servarr_data::radarr_data::{
+use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, INDEXERS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS,
 };
 use crate::models::{BlockSelectionState, Scrollable};

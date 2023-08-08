@@ -7,13 +7,13 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::library::delete_movie_handler::DeleteMovieHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
+  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 
   mod test_handle_scroll_up_and_down {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::models::servarr_data::radarr_data::DELETE_MOVIE_SELECTION_BLOCKS;
+    use crate::models::servarr_data::radarr::radarr_data::DELETE_MOVIE_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
 
     use super::*;
@@ -66,7 +66,7 @@ mod tests {
   mod test_handle_submit {
     use pretty_assertions::assert_eq;
 
-    use crate::models::servarr_data::radarr_data::DELETE_MOVIE_SELECTION_BLOCKS;
+    use crate::models::servarr_data::radarr::radarr_data::DELETE_MOVIE_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
     use crate::network::radarr_network::RadarrEvent;
 

@@ -203,42 +203,6 @@ mod test_utils {
   }
 
   #[macro_export]
-  macro_rules! test_enum_scroll {
-    ($func:ident, $handler:ident, $name:ident, $data_ref:ident, $block:expr, $context:expr) => {
-      #[rstest]
-      fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
-        let reference_vec = Vec::from_iter($name::iter());
-        let mut app = App::default();
-        app
-          .data
-          .radarr_data
-          .$data_ref
-          .set_items(reference_vec.clone());
-
-        if key == Key::Up {
-          for i in (0..reference_vec.len()).rev() {
-            $handler::with(&key, &mut app, &$block, &$context).handle();
-
-            assert_eq!(
-              app.data.radarr_data.$data_ref.current_selection(),
-              &reference_vec[i]
-            );
-          }
-        } else {
-          for i in 0..reference_vec.len() {
-            $handler::with(&key, &mut app, &$block, &$context).handle();
-
-            assert_eq!(
-              app.data.radarr_data.$data_ref.current_selection(),
-              &reference_vec[(i + 1) % reference_vec.len()]
-            );
-          }
-        }
-      }
-    };
-  }
-
-  #[macro_export]
   macro_rules! test_scrollable_text_scroll {
     ($func:ident, $handler:ident, $data_ref:ident, $block:expr) => {
       #[test]
@@ -357,36 +321,6 @@ mod test_utils {
             .$field
             .$conversion_fn(),
           "Test 1"
-        );
-      }
-    };
-  }
-
-  #[macro_export]
-  macro_rules! test_enum_home_and_end {
-    ($func:ident, $handler:ident, $name:ident, $data_ref:ident, $block:expr, $context:expr) => {
-      #[test]
-      fn $func() {
-        let reference_vec = Vec::from_iter($name::iter());
-        let mut app = App::default();
-        app
-          .data
-          .radarr_data
-          .$data_ref
-          .set_items(reference_vec.clone());
-
-        $handler::with(&DEFAULT_KEYBINDINGS.end.key, &mut app, &$block, &$context).handle();
-
-        assert_eq!(
-          app.data.radarr_data.$data_ref.current_selection(),
-          &reference_vec[reference_vec.len() - 1]
-        );
-
-        $handler::with(&DEFAULT_KEYBINDINGS.home.key, &mut app, &$block, &$context).handle();
-
-        assert_eq!(
-          app.data.radarr_data.$data_ref.current_selection(),
-          &reference_vec[0]
         );
       }
     };

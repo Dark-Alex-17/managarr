@@ -6,7 +6,7 @@ use crate::handlers::radarr_handlers::library::LibraryHandler;
 use crate::handlers::radarr_handlers::root_folders::RootFoldersHandler;
 use crate::handlers::radarr_handlers::system::SystemHandler;
 use crate::handlers::KeyEventHandler;
-use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
+use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::utils::strip_non_search_characters;
 use crate::{App, Key};
 

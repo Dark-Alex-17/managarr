@@ -11,7 +11,7 @@ mod tests {
   use crate::models::radarr_models::{
     AddMovieSearchResult, MinimumAvailability, Monitor, RootFolder,
   };
-  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
+  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
   use crate::models::HorizontallyScrollableText;
 
   mod test_handle_scroll_up_and_down {
@@ -19,9 +19,10 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
-    use crate::models::servarr_data::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
+    use crate::models::servarr_data::radarr::modals::AddMovieModal;
+    use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
-    use crate::{simple_stateful_iterable_vec, test_enum_scroll, test_iterable_scroll};
+    use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
 
     use super::*;
 
@@ -36,41 +37,245 @@ mod tests {
       to_string
     );
 
-    test_enum_scroll!(
-      test_add_movie_select_monitor_scroll,
-      AddMovieHandler,
-      Monitor,
-      monitor_list,
-      ActiveRadarrBlock::AddMovieSelectMonitor,
-      None
-    );
+    #[rstest]
+    fn test_add_movie_select_monitor_scroll(
+      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
+    ) {
+      let monitor_vec = Vec::from_iter(Monitor::iter());
+      let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
+      app
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_mut()
+        .unwrap()
+        .monitor_list
+        .set_items(monitor_vec.clone());
 
-    test_enum_scroll!(
-      test_add_movie_select_minimum_availability_scroll,
-      AddMovieHandler,
-      MinimumAvailability,
-      minimum_availability_list,
-      ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
-      None
-    );
+      if key == Key::Up {
+        for i in (0..monitor_vec.len()).rev() {
+          AddMovieHandler::with(
+            &key,
+            &mut app,
+            &ActiveRadarrBlock::AddMovieSelectMonitor,
+            &None,
+          )
+          .handle();
 
-    test_iterable_scroll!(
-      test_add_movie_select_quality_profile_scroll,
-      AddMovieHandler,
-      quality_profile_list,
-      ActiveRadarrBlock::AddMovieSelectQualityProfile,
-      None
-    );
+          assert_eq!(
+            app
+              .data
+              .radarr_data
+              .add_movie_modal
+              .as_ref()
+              .unwrap()
+              .monitor_list
+              .current_selection(),
+            &monitor_vec[i]
+          );
+        }
+      } else {
+        for i in 0..monitor_vec.len() {
+          AddMovieHandler::with(
+            &key,
+            &mut app,
+            &ActiveRadarrBlock::AddMovieSelectMonitor,
+            &None,
+          )
+          .handle();
 
-    test_iterable_scroll!(
-      test_add_movie_select_root_folder_scroll,
-      AddMovieHandler,
-      root_folder_list,
-      simple_stateful_iterable_vec!(RootFolder, String, path),
-      ActiveRadarrBlock::AddMovieSelectRootFolder,
-      None,
-      path
-    );
+          assert_eq!(
+            app
+              .data
+              .radarr_data
+              .add_movie_modal
+              .as_ref()
+              .unwrap()
+              .monitor_list
+              .current_selection(),
+            &monitor_vec[(i + 1) % monitor_vec.len()]
+          );
+        }
+      }
+    }
+
+    #[rstest]
+    fn test_add_movie_select_minimum_availability_scroll(
+      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
+    ) {
+      let minimum_availability_vec = Vec::from_iter(MinimumAvailability::iter());
+      let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
+      app
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_mut()
+        .unwrap()
+        .minimum_availability_list
+        .set_items(minimum_availability_vec.clone());
+
+      if key == Key::Up {
+        for i in (0..minimum_availability_vec.len()).rev() {
+          AddMovieHandler::with(
+            &key,
+            &mut app,
+            &ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+            &None,
+          )
+          .handle();
+
+          assert_eq!(
+            app
+              .data
+              .radarr_data
+              .add_movie_modal
+              .as_ref()
+              .unwrap()
+              .minimum_availability_list
+              .current_selection(),
+            &minimum_availability_vec[i]
+          );
+        }
+      } else {
+        for i in 0..minimum_availability_vec.len() {
+          AddMovieHandler::with(
+            &key,
+            &mut app,
+            &ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+            &None,
+          )
+          .handle();
+
+          assert_eq!(
+            app
+              .data
+              .radarr_data
+              .add_movie_modal
+              .as_ref()
+              .unwrap()
+              .minimum_availability_list
+              .current_selection(),
+            &minimum_availability_vec[(i + 1) % minimum_availability_vec.len()]
+          );
+        }
+      }
+    }
+
+    #[rstest]
+    fn test_add_movie_select_quality_profile_scroll(
+      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
+    ) {
+      let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
+      app
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_mut()
+        .unwrap()
+        .quality_profile_list
+        .set_items(vec!["Test 1".to_owned(), "Test 2".to_owned()]);
+
+      AddMovieHandler::with(
+        &key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSelectQualityProfile,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .quality_profile_list
+          .current_selection(),
+        "Test 2"
+      );
+
+      AddMovieHandler::with(
+        &key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSelectQualityProfile,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .quality_profile_list
+          .current_selection(),
+        "Test 1"
+      );
+    }
+
+    #[rstest]
+    fn test_add_movie_select_root_folder_scroll(
+      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
+    ) {
+      let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
+      app
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_mut()
+        .unwrap()
+        .root_folder_list
+        .set_items(simple_stateful_iterable_vec!(RootFolder, String, path));
+
+      AddMovieHandler::with(
+        &key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSelectRootFolder,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .root_folder_list
+          .current_selection()
+          .path,
+        "Test 2"
+      );
+
+      AddMovieHandler::with(
+        &key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSelectRootFolder,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .root_folder_list
+          .current_selection()
+          .path,
+        "Test 1"
+      );
+    }
 
     #[rstest]
     fn test_add_movie_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
@@ -97,9 +302,9 @@ mod tests {
   mod test_handle_home_end {
     use strum::IntoEnumIterator;
 
+    use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::{
-      extended_stateful_iterable_vec, test_enum_home_and_end, test_iterable_home_and_end,
-      test_text_box_home_end_keys,
+      extended_stateful_iterable_vec, test_iterable_home_and_end, test_text_box_home_end_keys,
     };
 
     use super::*;
@@ -115,41 +320,229 @@ mod tests {
       to_string
     );
 
-    test_enum_home_and_end!(
-      test_add_movie_select_monitor_home_end,
-      AddMovieHandler,
-      Monitor,
-      monitor_list,
-      ActiveRadarrBlock::AddMovieSelectMonitor,
-      None
-    );
+    #[test]
+    fn test_add_movie_select_monitor_home_end() {
+      let monitor_vec = Vec::from_iter(Monitor::iter());
+      let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
+      app
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_mut()
+        .unwrap()
+        .monitor_list
+        .set_items(monitor_vec.clone());
 
-    test_enum_home_and_end!(
-      test_add_movie_select_minimum_availability_home_end,
-      AddMovieHandler,
-      MinimumAvailability,
-      minimum_availability_list,
-      ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
-      None
-    );
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSelectMonitor,
+        &None,
+      )
+      .handle();
 
-    test_iterable_home_and_end!(
-      test_add_movie_select_quality_profile_home_end,
-      AddMovieHandler,
-      quality_profile_list,
-      ActiveRadarrBlock::AddMovieSelectQualityProfile,
-      None
-    );
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .monitor_list
+          .current_selection(),
+        &monitor_vec[monitor_vec.len() - 1]
+      );
 
-    test_iterable_home_and_end!(
-      test_add_movie_select_root_folder_home_end,
-      AddMovieHandler,
-      root_folder_list,
-      extended_stateful_iterable_vec!(RootFolder, String, path),
-      ActiveRadarrBlock::AddMovieSelectRootFolder,
-      None,
-      path
-    );
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSelectMonitor,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .monitor_list
+          .current_selection(),
+        &monitor_vec[0]
+      );
+    }
+
+    #[test]
+    fn test_add_movie_select_minimum_availability_home_end() {
+      let minimum_availability_vec = Vec::from_iter(MinimumAvailability::iter());
+      let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
+      app
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_mut()
+        .unwrap()
+        .minimum_availability_list
+        .set_items(minimum_availability_vec.clone());
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .minimum_availability_list
+          .current_selection(),
+        &minimum_availability_vec[minimum_availability_vec.len() - 1]
+      );
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .minimum_availability_list
+          .current_selection(),
+        &minimum_availability_vec[0]
+      );
+    }
+
+    #[test]
+    fn test_add_movie_select_quality_profile_home_end() {
+      let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
+      app
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_mut()
+        .unwrap()
+        .quality_profile_list
+        .set_items(vec![
+          "Test 1".to_owned(),
+          "Test 2".to_owned(),
+          "Test 3".to_owned(),
+        ]);
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSelectQualityProfile,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .quality_profile_list
+          .current_selection(),
+        "Test 3"
+      );
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSelectQualityProfile,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .quality_profile_list
+          .current_selection(),
+        "Test 1"
+      );
+    }
+
+    #[test]
+    fn test_add_movie_select_root_folder_home_end() {
+      let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
+      app
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_mut()
+        .unwrap()
+        .root_folder_list
+        .set_items(extended_stateful_iterable_vec!(RootFolder, String, path));
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSelectRootFolder,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .root_folder_list
+          .current_selection()
+          .path,
+        "Test 3"
+      );
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSelectRootFolder,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .root_folder_list
+          .current_selection()
+          .path,
+        "Test 1"
+      );
+    }
 
     #[test]
     fn test_add_movie_search_input_home_end_keys() {
@@ -162,15 +555,58 @@ mod tests {
 
     #[test]
     fn test_add_movie_tags_input_home_end_keys() {
-      test_text_box_home_end_keys!(
-        AddMovieHandler,
-        ActiveRadarrBlock::AddMovieTagsInput,
-        edit_tags
+      let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal {
+        tags: "Test".into(),
+        ..AddMovieModal::default()
+      });
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieTagsInput,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .offset
+          .borrow(),
+        4
+      );
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieTagsInput,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .offset
+          .borrow(),
+        0
       );
     }
   }
 
   mod test_handle_left_right_action {
+    use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use rstest::rstest;
 
     use crate::test_text_box_left_right_keys;
@@ -201,10 +637,52 @@ mod tests {
 
     #[test]
     fn test_add_movie_tags_input_left_right_keys() {
-      test_text_box_left_right_keys!(
-        AddMovieHandler,
-        ActiveRadarrBlock::AddMovieTagsInput,
-        edit_tags
+      let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal {
+        tags: "Test".into(),
+        ..AddMovieModal::default()
+      });
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.left.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieTagsInput,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .offset
+          .borrow(),
+        1
+      );
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.right.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieTagsInput,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .offset
+          .borrow(),
+        0
       );
     }
   }
@@ -215,7 +693,8 @@ mod tests {
     use rstest::rstest;
 
     use crate::models::radarr_models::Movie;
-    use crate::models::servarr_data::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
+    use crate::models::servarr_data::radarr::modals::AddMovieModal;
+    use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
     use crate::network::radarr_network::RadarrEvent;
 
@@ -227,6 +706,7 @@ mod tests {
     fn test_add_movie_search_input_submit() {
       let mut app = App::default();
       app.should_ignore_quit_key = true;
+      app.data.radarr_data.search = "test".into();
 
       AddMovieHandler::with(
         &SUBMIT_KEY,
@@ -240,6 +720,27 @@ mod tests {
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::AddMovieSearchResults.into()
+      );
+    }
+
+    #[test]
+    fn test_add_movie_search_input_submit_noop_on_empty_search() {
+      let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
+      app.should_ignore_quit_key = true;
+
+      AddMovieHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSearchInput,
+        &None,
+      )
+      .handle();
+
+      assert!(app.should_ignore_quit_key);
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::AddMovieSearchInput.into()
       );
     }
 
@@ -270,18 +771,41 @@ mod tests {
         app.data.radarr_data.selected_block.get_active_block(),
         &ActiveRadarrBlock::AddMovieSelectRootFolder
       );
-      assert!(!app.data.radarr_data.monitor_list.items.is_empty());
+      assert!(app.data.radarr_data.add_movie_modal.is_some());
       assert!(!app
         .data
         .radarr_data
+        .add_movie_modal
+        .as_ref()
+        .unwrap()
+        .monitor_list
+        .items
+        .is_empty());
+      assert!(!app
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_ref()
+        .unwrap()
         .minimum_availability_list
         .items
         .is_empty());
-      assert!(!app.data.radarr_data.quality_profile_list.items.is_empty());
+      assert!(!app
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_ref()
+        .unwrap()
+        .quality_profile_list
+        .items
+        .is_empty());
       assert_str_eq!(
         app
           .data
           .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
           .quality_profile_list
           .current_selection(),
         "A - Test 1"
@@ -361,6 +885,7 @@ mod tests {
     #[test]
     fn test_add_movie_confirm_prompt_prompt_confirmation_submit() {
       let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
       app.data.radarr_data.prompt_confirm = true;
@@ -384,6 +909,7 @@ mod tests {
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::AddMovie)
       );
+      assert!(app.data.radarr_data.add_movie_modal.is_some());
     }
 
     #[rstest]
@@ -464,11 +990,9 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
-    use crate::{
-      assert_edit_media_reset, assert_preferences_selections_reset, assert_search_reset,
-      simple_stateful_iterable_vec,
-    };
+    use crate::models::servarr_data::radarr::modals::AddMovieModal;
+    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
+    use crate::{assert_search_reset, simple_stateful_iterable_vec};
 
     use super::*;
 
@@ -571,6 +1095,7 @@ mod tests {
     #[test]
     fn test_add_movie_prompt_esc() {
       let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app.data.radarr_data = create_test_radarr_data();
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
@@ -588,8 +1113,7 @@ mod tests {
         app.get_current_route(),
         &ActiveRadarrBlock::AddMovieSearchResults.into()
       );
-      assert_preferences_selections_reset!(app.data.radarr_data);
-      assert_edit_media_reset!(app.data.radarr_data);
+      assert!(app.data.radarr_data.add_movie_modal.is_none());
     }
 
     #[test]
@@ -662,6 +1186,7 @@ mod tests {
 
   mod test_handle_key_char {
     use super::*;
+    use crate::models::servarr_data::radarr::modals::AddMovieModal;
 
     #[test]
     fn test_add_movie_search_input_backspace() {
@@ -682,7 +1207,10 @@ mod tests {
     #[test]
     fn test_add_movie_tags_input_backspace() {
       let mut app = App::default();
-      app.data.radarr_data.edit_tags = "Test".to_owned().into();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal {
+        tags: "Test".into(),
+        ..AddMovieModal::default()
+      });
 
       AddMovieHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -692,7 +1220,17 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.edit_tags.text, "Tes");
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .text,
+        "Tes"
+      );
     }
 
     #[test]
@@ -713,6 +1251,7 @@ mod tests {
     #[test]
     fn test_add_movie_tags_input_char_key() {
       let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
 
       AddMovieHandler::with(
         &Key::Char('h'),
@@ -722,7 +1261,17 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.edit_tags.text, "h");
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .text,
+        "h"
+      );
     }
   }
 

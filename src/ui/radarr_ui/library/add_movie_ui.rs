@@ -7,14 +7,11 @@ use tui::Frame;
 use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
 use crate::app::radarr::radarr_context_clues::ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES;
 use crate::models::radarr_models::AddMovieSearchResult;
-use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
+use crate::models::servarr_data::radarr::modals::AddMovieModal;
+use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::collections::{draw_collection_details, draw_collections};
 use crate::ui::radarr_ui::library::draw_library;
-use crate::ui::radarr_ui::{
-  draw_select_minimum_availability_popup, draw_select_quality_profile_popup,
-  draw_select_root_folder_popup,
-};
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, horizontal_chunks, layout_block,
   layout_paragraph_borderless, style_help, style_primary, title_block_centered,
@@ -284,7 +281,7 @@ fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, 
           app,
           prompt_area,
           draw_confirmation_prompt,
-          draw_select_monitor_popup,
+          draw_add_movie_select_monitor_popup,
         );
       }
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability => {
@@ -293,7 +290,7 @@ fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, 
           app,
           prompt_area,
           draw_confirmation_prompt,
-          draw_select_minimum_availability_popup,
+          draw_add_movie_select_minimum_availability_popup,
         );
       }
       ActiveRadarrBlock::AddMovieSelectQualityProfile => {
@@ -302,7 +299,7 @@ fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, 
           app,
           prompt_area,
           draw_confirmation_prompt,
-          draw_select_quality_profile_popup,
+          draw_add_movie_select_quality_profile_popup,
         );
       }
       ActiveRadarrBlock::AddMovieSelectRootFolder => {
@@ -311,7 +308,7 @@ fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, 
           app,
           prompt_area,
           draw_confirmation_prompt,
-          draw_select_root_folder_popup,
+          draw_add_movie_select_root_folder_popup,
         );
       }
       ActiveRadarrBlock::AddMoviePrompt | ActiveRadarrBlock::AddMovieTagsInput => {
@@ -320,19 +317,6 @@ fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, 
       _ => (),
     }
   }
-}
-
-fn draw_select_monitor_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  popup_area: Rect,
-) {
-  draw_selectable_list(
-    f,
-    popup_area,
-    &mut app.data.radarr_data.monitor_list,
-    |monitor| ListItem::new(monitor.to_display_str().to_owned()),
-  );
 }
 
 fn draw_confirmation_prompt<B: Backend>(
@@ -380,19 +364,19 @@ fn draw_confirmation_prompt<B: Backend>(
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();
   let highlight_yes_no = selected_block == &ActiveRadarrBlock::AddMovieConfirmPrompt;
+  let AddMovieModal {
+    monitor_list,
+    minimum_availability_list,
+    quality_profile_list,
+    root_folder_list,
+    tags,
+    ..
+  } = app.data.radarr_data.add_movie_modal.as_ref().unwrap();
 
-  let selected_monitor = app.data.radarr_data.monitor_list.current_selection();
-  let selected_minimum_availability = app
-    .data
-    .radarr_data
-    .minimum_availability_list
-    .current_selection();
-  let selected_quality_profile = app
-    .data
-    .radarr_data
-    .quality_profile_list
-    .current_selection();
-  let selected_root_folder = app.data.radarr_data.root_folder_list.current_selection();
+  let selected_monitor = monitor_list.current_selection();
+  let selected_minimum_availability = minimum_availability_list.current_selection();
+  let selected_quality_profile = quality_profile_list.current_selection();
+  let selected_root_folder = root_folder_list.current_selection();
 
   f.render_widget(title_block_centered(&title), prompt_area);
 
@@ -455,8 +439,8 @@ fn draw_confirmation_prompt<B: Backend>(
       f,
       chunks[5],
       "Tags",
-      &app.data.radarr_data.edit_tags.text,
-      *app.data.radarr_data.edit_tags.offset.borrow(),
+      &tags.text,
+      *tags.offset.borrow(),
       selected_block == &ActiveRadarrBlock::AddMovieTagsInput,
       active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput,
     );
@@ -473,5 +457,81 @@ fn draw_confirmation_prompt<B: Backend>(
     horizontal_chunks[1],
     "Cancel",
     !yes_no_value && highlight_yes_no,
+  );
+}
+
+fn draw_add_movie_select_monitor_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  popup_area: Rect,
+) {
+  draw_selectable_list(
+    f,
+    popup_area,
+    &mut app
+      .data
+      .radarr_data
+      .add_movie_modal
+      .as_mut()
+      .unwrap()
+      .monitor_list,
+    |monitor| ListItem::new(monitor.to_display_str().to_owned()),
+  );
+}
+
+fn draw_add_movie_select_minimum_availability_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  popup_area: Rect,
+) {
+  draw_selectable_list(
+    f,
+    popup_area,
+    &mut app
+      .data
+      .radarr_data
+      .add_movie_modal
+      .as_mut()
+      .unwrap()
+      .minimum_availability_list,
+    |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
+  );
+}
+
+fn draw_add_movie_select_quality_profile_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  popup_area: Rect,
+) {
+  draw_selectable_list(
+    f,
+    popup_area,
+    &mut app
+      .data
+      .radarr_data
+      .add_movie_modal
+      .as_mut()
+      .unwrap()
+      .quality_profile_list,
+    |quality_profile| ListItem::new(quality_profile.clone()),
+  );
+}
+
+fn draw_add_movie_select_root_folder_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  popup_area: Rect,
+) {
+  draw_selectable_list(
+    f,
+    popup_area,
+    &mut app
+      .data
+      .radarr_data
+      .add_movie_modal
+      .as_mut()
+      .unwrap()
+      .root_folder_list,
+    |root_folder| ListItem::new(root_folder.path.to_owned()),
   );
 }

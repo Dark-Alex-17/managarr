@@ -16,7 +16,7 @@ mod test {
     CollectionMovie, IndexerField, IndexerSelectOption, Language, MediaInfo, MinimumAvailability,
     Monitor, MovieFile, Quality, QualityWrapper, Rating, RatingsList,
   };
-  use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
+  use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::HorizontallyScrollableText;
   use crate::App;
 
@@ -1481,7 +1481,7 @@ mod test {
       Some(json!({
         "tmdbId": 1234,
         "title": "Test",
-        "rootFolderPath": "/nfs",
+        "rootFolderPath": "/nfs2",
         "minimumAvailability": "announced",
         "monitored": true,
         "qualityProfileId": 2222,
@@ -1498,7 +1498,11 @@ mod test {
 
     {
       let mut app = app_arc.lock().await;
-      app.data.radarr_data.root_folders.set_items(vec![
+      let mut add_movie_modal = AddMovieModal {
+        tags: "usenet, testing".into(),
+        ..AddMovieModal::default()
+      };
+      add_movie_modal.root_folder_list.set_items(vec![
         RootFolder {
           id: Number::from(1),
           path: "/nfs".to_owned(),
@@ -1514,26 +1518,21 @@ mod test {
           unmapped_folders: None,
         },
       ]);
+      add_movie_modal.root_folder_list.state.select(Some(1));
+      add_movie_modal
+        .quality_profile_list
+        .set_items(vec!["HD - 1080p".to_owned()]);
+      add_movie_modal
+        .monitor_list
+        .set_items(Vec::from_iter(Monitor::iter()));
+      add_movie_modal
+        .minimum_availability_list
+        .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      app.data.radarr_data.add_movie_modal = Some(add_movie_modal);
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
       app.data.radarr_data.tags_map =
         BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-      app.data.radarr_data.edit_tags = "usenet, testing".to_owned().into();
-      app
-        .data
-        .radarr_data
-        .quality_profile_list
-        .set_items(vec!["HD - 1080p".to_owned()]);
-      app
-        .data
-        .radarr_data
-        .monitor_list
-        .set_items(Vec::from_iter(Monitor::iter()));
-      app
-        .data
-        .radarr_data
-        .minimum_availability_list
-        .set_items(Vec::from_iter(MinimumAvailability::iter()));
       if movie_details_context {
         app
           .data
@@ -1554,6 +1553,13 @@ mod test {
     network.handle_radarr_event(RadarrEvent::AddMovie).await;
 
     async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .add_movie_modal
+      .is_none());
   }
 
   #[tokio::test]
@@ -1617,19 +1623,19 @@ mod test {
       let mut app = app_arc.lock().await;
       app.data.radarr_data.tags_map =
         BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-      app.data.radarr_data.edit_tags = "usenet, testing".to_owned().into();
-      app.data.radarr_data.edit_path = "/nfs/Test Path".to_owned().into();
-      app.data.radarr_data.edit_monitored = Some(false);
-      app
-        .data
-        .radarr_data
+      let mut edit_movie = EditMovieModal {
+        tags: "usenet, testing".to_owned().into(),
+        path: "/nfs/Test Path".to_owned().into(),
+        monitored: Some(false),
+        ..EditMovieModal::default()
+      };
+      edit_movie
         .quality_profile_list
         .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
-      app
-        .data
-        .radarr_data
+      edit_movie
         .minimum_availability_list
         .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      app.data.radarr_data.edit_movie_modal = Some(edit_movie);
       app.data.radarr_data.movies.set_items(vec![Movie {
         monitored: false,
         ..movie()
@@ -1646,8 +1652,7 @@ mod test {
 
     let app = app_arc.lock().await;
     assert!(app.response.is_empty());
-    assert!(app.data.radarr_data.edit_path.text.is_empty());
-    assert!(app.data.radarr_data.edit_tags.text.is_empty());
+    assert!(app.data.radarr_data.edit_movie_modal.is_none());
     assert!(app.data.radarr_data.movie_details.items.is_empty());
   }
 
@@ -1711,19 +1716,19 @@ mod test {
       .await;
     {
       let mut app = app_arc.lock().await;
-      app.data.radarr_data.edit_path = "/nfs/Test Path".to_owned().into();
-      app.data.radarr_data.edit_monitored = Some(false);
-      app.data.radarr_data.edit_search_on_add = Some(false);
-      app
-        .data
-        .radarr_data
+      let mut edit_collection_modal = EditCollectionModal {
+        path: "/nfs/Test Path".into(),
+        monitored: Some(false),
+        search_on_add: Some(false),
+        ..EditCollectionModal::default()
+      };
+      edit_collection_modal
         .quality_profile_list
         .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
-      app
-        .data
-        .radarr_data
+      edit_collection_modal
         .minimum_availability_list
         .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      app.data.radarr_data.edit_collection_modal = Some(edit_collection_modal);
       app.data.radarr_data.collections.set_items(vec![Collection {
         monitored: false,
         search_on_add: false,
@@ -1743,7 +1748,7 @@ mod test {
 
     let app = app_arc.lock().await;
     assert!(app.response.is_empty());
-    assert!(app.data.radarr_data.edit_path.text.is_empty());
+    assert!(app.data.radarr_data.edit_collection_modal.is_none());
     assert!(app.data.radarr_data.movie_details.items.is_empty());
   }
 
@@ -1776,29 +1781,11 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_extract_quality_profile_id() {
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    {
-      let mut app = app_arc.lock().await;
-      app
-        .data
-        .radarr_data
-        .quality_profile_list
-        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
-      app.data.radarr_data.quality_profile_map =
-        BiMap::from_iter([(1, "Any".to_owned()), (2, "HD - 1080p".to_owned())]);
-    }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
-
-    assert_eq!(network.extract_quality_profile_id().await, 1);
-  }
-
-  #[tokio::test]
   async fn test_extract_and_add_tag_ids_vec() {
     let app_arc = Arc::new(Mutex::new(App::default()));
+    let tags = "    test,hi ,, usenet ".to_owned();
     {
       let mut app = app_arc.lock().await;
-      app.data.radarr_data.edit_tags = "    test,hi ,, usenet ".to_owned().into();
       app.data.radarr_data.tags_map = BiMap::from_iter([
         (1, "usenet".to_owned()),
         (2, "test".to_owned()),
@@ -1807,7 +1794,10 @@ mod test {
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    assert_eq!(network.extract_and_add_tag_ids_vec().await, vec![2, 3, 1]);
+    assert_eq!(
+      network.extract_and_add_tag_ids_vec(tags).await,
+      vec![2, 3, 1]
+    );
   }
 
   #[tokio::test]
@@ -1819,15 +1809,19 @@ mod test {
       RadarrEvent::GetTags.resource(),
     )
     .await;
+    let tags = "usenet, test, testing".to_owned();
     {
       let mut app = app_arc.lock().await;
-      app.data.radarr_data.edit_tags = "usenet, test, testing".to_owned().into();
+      app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
+        tags: tags.clone().into(),
+        ..EditMovieModal::default()
+      });
       app.data.radarr_data.tags_map =
         BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    let tag_ids_vec = network.extract_and_add_tag_ids_vec().await;
+    let tag_ids_vec = network.extract_and_add_tag_ids_vec(tags).await;
 
     async_server.assert_async().await;
     assert_eq!(tag_ids_vec, vec![1, 2, 3]);

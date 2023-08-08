@@ -1,1 +1,1 @@
-pub mod radarr_data;
+pub mod radarr;

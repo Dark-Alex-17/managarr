@@ -9,7 +9,7 @@ use crate::handlers::radarr_handlers::{
   filter_table, handle_change_tab_left_right_keys, search_table,
 };
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
-use crate::models::servarr_data::radarr_data::{
+use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, DELETE_MOVIE_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, LIBRARY_BLOCKS,
 };
 use crate::models::{BlockSelectionState, Scrollable};
@@ -266,7 +266,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
             )
               .into(),
           );
-          self.app.data.radarr_data.populate_edit_movie_fields();
+          self.app.data.radarr_data.edit_movie_modal = Some((&self.app.data.radarr_data).into());
           self.app.data.radarr_data.selected_block =
             BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
         }

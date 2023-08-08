@@ -2,7 +2,9 @@
 mod tests {
   use strum::IntoEnumIterator;
 
-  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS};
+  use crate::models::servarr_data::radarr::radarr_data::{
+    ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS,
+  };
   use crate::ui::radarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
   use crate::ui::DrawUi;
 

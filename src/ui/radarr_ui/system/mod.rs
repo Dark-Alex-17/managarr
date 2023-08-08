@@ -13,7 +13,7 @@ use tui::{
 
 use crate::app::App;
 use crate::models::radarr_models::Task;
-use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
+use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::ui::radarr_ui::radarr_ui_utils::{
   convert_to_minutes_hours_days, determine_log_style_by_level,
 };

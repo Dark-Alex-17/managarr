@@ -7,13 +7,15 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS};
+  use crate::models::servarr_data::radarr::radarr_data::{
+    ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS,
+  };
 
   mod test_handle_scroll_up_and_down {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::models::servarr_data::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS;
+    use crate::models::servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
 
     use super::*;
@@ -56,7 +58,7 @@ mod tests {
   mod test_handle_esc {
     use pretty_assertions::assert_eq;
 
-    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
+    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
 
     use super::*;
 

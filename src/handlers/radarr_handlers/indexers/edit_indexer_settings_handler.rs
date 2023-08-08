@@ -1,7 +1,9 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::KeyEventHandler;
-use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS};
+use crate::models::servarr_data::radarr::radarr_data::{
+  ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS,
+};
 
 #[cfg(test)]
 #[path = "./edit_indexer_settings_handler_tests.rs"]

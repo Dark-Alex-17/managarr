@@ -2,7 +2,7 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
-use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, EDIT_COLLECTION_BLOCKS};
+use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_COLLECTION_BLOCKS};
 use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
@@ -47,11 +47,20 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
         .app
         .data
         .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
         .minimum_availability_list
         .scroll_up(),
-      ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
-        self.app.data.radarr_data.quality_profile_list.scroll_up()
-      }
+      ActiveRadarrBlock::EditCollectionSelectQualityProfile => self
+        .app
+        .data
+        .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
+        .quality_profile_list
+        .scroll_up(),
       ActiveRadarrBlock::EditCollectionPrompt => {
         self.app.data.radarr_data.selected_block.previous()
       }
@@ -65,11 +74,20 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
         .app
         .data
         .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
         .minimum_availability_list
         .scroll_down(),
-      ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
-        self.app.data.radarr_data.quality_profile_list.scroll_down()
-      }
+      ActiveRadarrBlock::EditCollectionSelectQualityProfile => self
+        .app
+        .data
+        .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
+        .quality_profile_list
+        .scroll_down(),
       ActiveRadarrBlock::EditCollectionPrompt => self.app.data.radarr_data.selected_block.next(),
       _ => (),
     }
@@ -81,17 +99,29 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
         .app
         .data
         .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
         .minimum_availability_list
         .scroll_to_top(),
       ActiveRadarrBlock::EditCollectionSelectQualityProfile => self
         .app
         .data
         .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
         .quality_profile_list
         .scroll_to_top(),
-      ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
-        self.app.data.radarr_data.edit_path.scroll_home()
-      }
+      ActiveRadarrBlock::EditCollectionRootFolderPathInput => self
+        .app
+        .data
+        .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
+        .path
+        .scroll_home(),
       _ => (),
     }
   }
@@ -102,17 +132,29 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
         .app
         .data
         .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
         .minimum_availability_list
         .scroll_to_bottom(),
       ActiveRadarrBlock::EditCollectionSelectQualityProfile => self
         .app
         .data
         .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
         .quality_profile_list
         .scroll_to_bottom(),
-      ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
-        self.app.data.radarr_data.edit_path.reset_offset()
-      }
+      ActiveRadarrBlock::EditCollectionRootFolderPathInput => self
+        .app
+        .data
+        .radarr_data
+        .edit_collection_modal
+        .as_mut()
+        .unwrap()
+        .path
+        .reset_offset(),
       _ => (),
     }
   }
@@ -123,7 +165,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
     match self.active_radarr_block {
       ActiveRadarrBlock::EditCollectionPrompt => handle_prompt_toggle(self.app, self.key),
       ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
-        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.edit_path)
+        handle_text_box_left_right_keys!(
+          self,
+          self.key,
+          self
+            .app
+            .data
+            .radarr_data
+            .edit_collection_modal
+            .as_mut()
+            .unwrap()
+            .path
+        )
       }
       _ => (),
     }
@@ -162,16 +215,42 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
             self.app.should_ignore_quit_key = true;
           }
           ActiveRadarrBlock::EditCollectionToggleMonitored => {
-            self.app.data.radarr_data.edit_monitored =
-              Some(!self.app.data.radarr_data.edit_monitored.unwrap_or_default())
-          }
-          ActiveRadarrBlock::EditCollectionToggleSearchOnAdd => {
-            self.app.data.radarr_data.edit_search_on_add = Some(
+            self
+              .app
+              .data
+              .radarr_data
+              .edit_collection_modal
+              .as_mut()
+              .unwrap()
+              .monitored = Some(
               !self
                 .app
                 .data
                 .radarr_data
-                .edit_search_on_add
+                .edit_collection_modal
+                .as_mut()
+                .unwrap()
+                .monitored
+                .unwrap_or_default(),
+            )
+          }
+          ActiveRadarrBlock::EditCollectionToggleSearchOnAdd => {
+            self
+              .app
+              .data
+              .radarr_data
+              .edit_collection_modal
+              .as_mut()
+              .unwrap()
+              .search_on_add = Some(
+              !self
+                .app
+                .data
+                .radarr_data
+                .edit_collection_modal
+                .as_mut()
+                .unwrap()
+                .search_on_add
                 .unwrap_or_default(),
             )
           }
@@ -196,7 +275,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
       }
       ActiveRadarrBlock::EditCollectionPrompt => {
         self.app.pop_navigation_stack();
-        self.app.data.radarr_data.reset_add_edit_media_fields();
+        self.app.data.radarr_data.edit_collection_modal = None;
         self.app.data.radarr_data.prompt_confirm = false;
       }
       ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
@@ -208,7 +287,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
   fn handle_char_key_event(&mut self) {
     let key = self.key;
     if self.active_radarr_block == &ActiveRadarrBlock::EditCollectionRootFolderPathInput {
-      handle_text_box_keys!(self, key, self.app.data.radarr_data.edit_path)
+      handle_text_box_keys!(
+        self,
+        key,
+        self
+          .app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_mut()
+          .unwrap()
+          .path
+      )
     }
   }
 }

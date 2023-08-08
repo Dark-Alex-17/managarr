@@ -8,7 +8,7 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::root_folders::RootFoldersHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
+  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
   use crate::models::HorizontallyScrollableText;
 
   mod test_handle_scroll_up_and_down {

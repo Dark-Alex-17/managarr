@@ -4,7 +4,7 @@ use crate::event::Key;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::radarr_handlers::system::system_details_handler::SystemDetailsHandler;
 use crate::handlers::{handle_clear_errors, KeyEventHandler};
-use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
+use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::Scrollable;
 
 mod system_details_handler;

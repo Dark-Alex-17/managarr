@@ -6,10 +6,6 @@ mod utils {
     ($handler:ident, $block:expr, $context:expr) => {
       let mut app = App::default();
       let mut radarr_data = RadarrData {
-        edit_path: HorizontallyScrollableText::default(),
-        edit_tags: HorizontallyScrollableText::default(),
-        edit_monitored: None,
-        edit_search_on_add: None,
         quality_profile_map: BiMap::from_iter([
           (2222, "HD - 1080p".to_owned()),
           (1111, "Any".to_owned()),
@@ -39,32 +35,81 @@ mod utils {
         &ActiveRadarrBlock::EditMovieToggleMonitored
       );
       assert_eq!(
-        app.data.radarr_data.minimum_availability_list.items,
+        app
+          .data
+          .radarr_data
+          .edit_movie_modal
+          .as_ref()
+          .unwrap()
+          .minimum_availability_list
+          .items,
         Vec::from_iter(MinimumAvailability::iter())
       );
       assert_eq!(
         app
           .data
           .radarr_data
+          .edit_movie_modal
+          .as_ref()
+          .unwrap()
           .minimum_availability_list
           .current_selection(),
         &MinimumAvailability::Released
       );
       assert_eq!(
-        app.data.radarr_data.quality_profile_list.items,
+        app
+          .data
+          .radarr_data
+          .edit_movie_modal
+          .as_ref()
+          .unwrap()
+          .quality_profile_list
+          .items,
         vec!["Any".to_owned(), "HD - 1080p".to_owned()]
       );
       assert_str_eq!(
         app
           .data
           .radarr_data
+          .edit_movie_modal
+          .as_ref()
+          .unwrap()
           .quality_profile_list
           .current_selection(),
         "HD - 1080p"
       );
-      assert_str_eq!(app.data.radarr_data.edit_path.text, "/nfs/movies/Test");
-      assert_str_eq!(app.data.radarr_data.edit_tags.text, "test");
-      assert_eq!(app.data.radarr_data.edit_monitored, Some(true));
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_movie_modal
+          .as_ref()
+          .unwrap()
+          .path
+          .text,
+        "/nfs/movies/Test"
+      );
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_movie_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .text,
+        "test"
+      );
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_movie_modal
+          .as_ref()
+          .unwrap()
+          .monitored,
+        Some(true)
+      );
       assert_eq!(
         app.data.radarr_data.selected_block.blocks,
         &EDIT_MOVIE_SELECTION_BLOCKS
@@ -77,10 +122,6 @@ mod utils {
     ($handler:ident, $block:expr, $context:expr) => {
       let mut app = App::default();
       let mut radarr_data = RadarrData {
-        edit_path: HorizontallyScrollableText::default(),
-        edit_tags: HorizontallyScrollableText::default(),
-        edit_monitored: None,
-        edit_search_on_add: None,
         quality_profile_map: BiMap::from_iter([
           (2222, "HD - 1080p".to_owned()),
           (1111, "Any".to_owned()),
@@ -109,32 +150,80 @@ mod utils {
         &ActiveRadarrBlock::EditCollectionToggleMonitored
       );
       assert_eq!(
-        app.data.radarr_data.minimum_availability_list.items,
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .minimum_availability_list
+          .items,
         Vec::from_iter(MinimumAvailability::iter())
       );
       assert_eq!(
         app
           .data
           .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
           .minimum_availability_list
           .current_selection(),
         &MinimumAvailability::Released
       );
       assert_eq!(
-        app.data.radarr_data.quality_profile_list.items,
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .quality_profile_list
+          .items,
         vec!["Any".to_owned(), "HD - 1080p".to_owned()]
       );
       assert_str_eq!(
         app
           .data
           .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
           .quality_profile_list
           .current_selection(),
         "HD - 1080p"
       );
-      assert_str_eq!(app.data.radarr_data.edit_path.text, "/nfs/movies/Test");
-      assert_eq!(app.data.radarr_data.edit_monitored, Some(true));
-      assert_eq!(app.data.radarr_data.edit_search_on_add, Some(true));
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .path
+          .text,
+        "/nfs/movies/Test"
+      );
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .monitored,
+        Some(true)
+      );
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .edit_collection_modal
+          .as_ref()
+          .unwrap()
+          .search_on_add,
+        Some(true)
+      );
       assert_eq!(
         app.data.radarr_data.selected_block.blocks,
         &EDIT_COLLECTION_SELECTION_BLOCKS

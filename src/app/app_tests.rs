@@ -6,7 +6,7 @@ mod tests {
 
   use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
   use crate::app::{App, Data, RadarrConfig, DEFAULT_ROUTE};
-  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, RadarrData};
+  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::{HorizontallyScrollableText, Route, TabRoute};
   use crate::network::radarr_network::RadarrEvent;
   use crate::network::NetworkEvent;

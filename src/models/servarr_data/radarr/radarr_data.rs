@@ -10,6 +10,9 @@ use crate::models::radarr_models::{
   IndexerSettings, MinimumAvailability, Monitor, Movie, MovieHistoryItem, QueueEvent, Release,
   ReleaseField, RootFolder, Task,
 };
+use crate::models::servarr_data::radarr::modals::{
+  AddMovieModal, EditCollectionModal, EditMovieModal,
+};
 use crate::models::{
   BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, StatefulList,
   StatefulTable, TabRoute, TabState,
@@ -17,7 +20,7 @@ use crate::models::{
 use crate::network::radarr_network::RadarrEvent;
 use bimap::BiMap;
 use chrono::{DateTime, Utc};
-use strum::{EnumIter, IntoEnumIterator};
+use strum::EnumIter;
 
 #[cfg(test)]
 #[path = "radarr_data_tests.rs"]
@@ -67,6 +70,9 @@ pub struct RadarrData<'a> {
   pub movie_info_tabs: TabState,
   pub search: HorizontallyScrollableText,
   pub filter: HorizontallyScrollableText,
+  pub add_movie_modal: Option<AddMovieModal>,
+  pub edit_movie_modal: Option<EditMovieModal>,
+  pub edit_collection_modal: Option<EditCollectionModal>,
   pub edit_path: HorizontallyScrollableText,
   pub edit_tags: HorizontallyScrollableText,
   pub edit_monitored: Option<bool>,
@@ -80,14 +86,6 @@ pub struct RadarrData<'a> {
 }
 
 impl<'a> RadarrData<'a> {
-  pub fn reset_movie_collection_table(&mut self) {
-    self.collection_movies = StatefulTable::default();
-  }
-
-  pub fn reset_log_details_list(&mut self) {
-    self.log_details = StatefulList::default();
-  }
-
   pub fn reset_delete_movie_preferences(&mut self) {
     self.delete_movie_files = false;
     self.add_list_exclusion = false;
@@ -109,14 +107,6 @@ impl<'a> RadarrData<'a> {
     self.filtered_collections = StatefulTable::default();
   }
 
-  pub fn reset_add_edit_media_fields(&mut self) {
-    self.edit_monitored = None;
-    self.edit_search_on_add = None;
-    self.edit_path = HorizontallyScrollableText::default();
-    self.edit_tags = HorizontallyScrollableText::default();
-    self.reset_preferences_selections();
-  }
-
   pub fn reset_movie_info_tabs(&mut self) {
     self.file_details = String::default();
     self.audio_details = String::default();
@@ -129,126 +119,6 @@ impl<'a> RadarrData<'a> {
     self.movie_releases_sort = StatefulList::default();
     self.sort_ascending = None;
     self.movie_info_tabs.index = 0;
-  }
-
-  pub fn reset_preferences_selections(&mut self) {
-    self.monitor_list = StatefulList::default();
-    self.minimum_availability_list = StatefulList::default();
-    self.quality_profile_list = StatefulList::default();
-    self.root_folder_list = StatefulList::default();
-  }
-
-  pub fn populate_preferences_lists(&mut self) {
-    self.monitor_list.set_items(Vec::from_iter(Monitor::iter()));
-    self
-      .minimum_availability_list
-      .set_items(Vec::from_iter(MinimumAvailability::iter()));
-    let mut quality_profile_names: Vec<String> =
-      self.quality_profile_map.right_values().cloned().collect();
-    quality_profile_names.sort();
-    self.quality_profile_list.set_items(quality_profile_names);
-    self
-      .root_folder_list
-      .set_items(self.root_folders.items.to_vec());
-  }
-
-  pub fn populate_edit_movie_fields(&mut self) {
-    self.populate_preferences_lists();
-    let Movie {
-      path,
-      tags,
-      monitored,
-      minimum_availability,
-      quality_profile_id,
-      ..
-    } = if self.filtered_movies.items.is_empty() {
-      self.movies.current_selection()
-    } else {
-      self.filtered_movies.current_selection()
-    };
-
-    self.edit_path = path.clone().into();
-    self.edit_tags = tags
-      .iter()
-      .map(|tag_id| {
-        self
-          .tags_map
-          .get_by_left(&tag_id.as_u64().unwrap())
-          .unwrap()
-          .clone()
-      })
-      .collect::<Vec<String>>()
-      .join(", ")
-      .into();
-    self.edit_monitored = Some(*monitored);
-
-    let minimum_availability_index = self
-      .minimum_availability_list
-      .items
-      .iter()
-      .position(|ma| ma == minimum_availability);
-    self
-      .minimum_availability_list
-      .state
-      .select(minimum_availability_index);
-
-    let quality_profile_name = self
-      .quality_profile_map
-      .get_by_left(&quality_profile_id.as_u64().unwrap())
-      .unwrap();
-    let quality_profile_index = self
-      .quality_profile_list
-      .items
-      .iter()
-      .position(|profile| profile == quality_profile_name);
-    self
-      .quality_profile_list
-      .state
-      .select(quality_profile_index);
-  }
-
-  pub fn populate_edit_collection_fields(&mut self) {
-    self.populate_preferences_lists();
-    let Collection {
-      root_folder_path,
-      monitored,
-      search_on_add,
-      minimum_availability,
-      quality_profile_id,
-      ..
-    } = if self.filtered_collections.items.is_empty() {
-      self.collections.current_selection()
-    } else {
-      self.filtered_collections.current_selection()
-    };
-
-    self.edit_path = root_folder_path.clone().unwrap_or_default().into();
-    self.edit_monitored = Some(*monitored);
-    self.edit_search_on_add = Some(*search_on_add);
-
-    let minimum_availability_index = self
-      .minimum_availability_list
-      .items
-      .iter()
-      .position(|ma| ma == minimum_availability);
-    self
-      .minimum_availability_list
-      .state
-      .select(minimum_availability_index);
-
-    let quality_profile_name = self
-      .quality_profile_map
-      .get_by_left(&quality_profile_id.as_u64().unwrap())
-      .unwrap();
-    let quality_profile_index = self
-      .quality_profile_list
-      .items
-      .iter()
-      .position(|profile| profile == quality_profile_name);
-    self
-      .quality_profile_list
-      .state
-      .select(quality_profile_index);
   }
 }
 
@@ -292,6 +162,9 @@ impl<'a> Default for RadarrData<'a> {
       prompt_confirm_action: None,
       search: HorizontallyScrollableText::default(),
       filter: HorizontallyScrollableText::default(),
+      add_movie_modal: None,
+      edit_movie_modal: None,
+      edit_collection_modal: None,
       edit_path: HorizontallyScrollableText::default(),
       edit_tags: HorizontallyScrollableText::default(),
       edit_monitored: None,
@@ -622,4 +495,16 @@ impl From<(ActiveRadarrBlock, Option<ActiveRadarrBlock>)> for Route {
   fn from(value: (ActiveRadarrBlock, Option<ActiveRadarrBlock>)) -> Route {
     Route::Radarr(value.0, value.1)
   }
+}
+
+pub struct EditIndexerSettings {
+  pub allow_hardcoded_subs: bool,
+  pub availability_delay: HorizontallyScrollableText,
+  pub id: HorizontallyScrollableText,
+  pub maximum_size: HorizontallyScrollableText,
+  pub minimum_age: HorizontallyScrollableText,
+  pub prefer_indexer_flags: bool,
+  pub retention: HorizontallyScrollableText,
+  pub rss_sync_interval: HorizontallyScrollableText,
+  pub whitelisted_hardcoded_subs: HorizontallyScrollableText,
 }

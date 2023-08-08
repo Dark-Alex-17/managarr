@@ -1,5 +1,5 @@
 use crate::app::App;
-use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
+use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::network::radarr_network::RadarrEvent;
 
 pub mod radarr_context_clues;

@@ -8,7 +8,7 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::radarr_models::{Language, Release, ReleaseField};
-use crate::models::servarr_data::radarr_data::{
+use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, EDIT_MOVIE_SELECTION_BLOCKS, MOVIE_DETAILS_BLOCKS,
 };
 use crate::models::{BlockSelectionState, Scrollable};
@@ -243,7 +243,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
             )
               .into(),
           );
-          self.app.data.radarr_data.populate_edit_movie_fields();
+          self.app.data.radarr_data.edit_movie_modal = Some((&self.app.data.radarr_data).into());
           self.app.data.radarr_data.selected_block =
             BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
         }

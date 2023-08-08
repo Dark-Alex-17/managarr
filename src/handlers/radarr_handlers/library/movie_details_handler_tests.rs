@@ -15,7 +15,7 @@ mod tests {
   use crate::models::radarr_models::{
     Credit, Language, MovieHistoryItem, Quality, QualityWrapper, Release, ReleaseField,
   };
-  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
+  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
   use crate::models::{HorizontallyScrollableText, ScrollableText};
 
   mod test_handle_scroll_up_and_down {
@@ -24,10 +24,7 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use crate::models::radarr_models::ReleaseField;
-    use crate::{
-      simple_stateful_iterable_vec, test_enum_scroll, test_iterable_scroll,
-      test_scrollable_text_scroll,
-    };
+    use crate::{simple_stateful_iterable_vec, test_iterable_scroll, test_scrollable_text_scroll};
 
     use super::*;
 
@@ -82,14 +79,50 @@ mod tests {
       to_string
     );
 
-    test_enum_scroll!(
-      test_manual_search_sort_scroll,
-      MovieDetailsHandler,
-      ReleaseField,
-      movie_releases_sort,
-      ActiveRadarrBlock::ManualSearchSortPrompt,
-      None
-    );
+    #[rstest]
+    fn test_manual_search_sort_scroll(
+      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
+    ) {
+      let release_field_vec = Vec::from_iter(ReleaseField::iter());
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .movie_releases_sort
+        .set_items(release_field_vec.clone());
+
+      if key == Key::Up {
+        for i in (0..release_field_vec.len()).rev() {
+          MovieDetailsHandler::with(
+            &key,
+            &mut app,
+            &ActiveRadarrBlock::ManualSearchSortPrompt,
+            &None,
+          )
+          .handle();
+
+          assert_eq!(
+            app.data.radarr_data.movie_releases_sort.current_selection(),
+            &release_field_vec[i]
+          );
+        }
+      } else {
+        for i in 0..release_field_vec.len() {
+          MovieDetailsHandler::with(
+            &key,
+            &mut app,
+            &ActiveRadarrBlock::ManualSearchSortPrompt,
+            &None,
+          )
+          .handle();
+
+          assert_eq!(
+            app.data.radarr_data.movie_releases_sort.current_selection(),
+            &release_field_vec[(i + 1) % release_field_vec.len()]
+          );
+        }
+      }
+    }
   }
 
   mod test_handle_home_end {
@@ -97,8 +130,7 @@ mod tests {
 
     use crate::models::radarr_models::ReleaseField;
     use crate::{
-      extended_stateful_iterable_vec, test_enum_home_and_end, test_iterable_home_and_end,
-      test_scrollable_text_home_and_end,
+      extended_stateful_iterable_vec, test_iterable_home_and_end, test_scrollable_text_home_and_end,
     };
 
     use super::*;
@@ -154,14 +186,42 @@ mod tests {
       to_string
     );
 
-    test_enum_home_and_end!(
-      test_manual_search_sort_home_end,
-      MovieDetailsHandler,
-      ReleaseField,
-      movie_releases_sort,
-      ActiveRadarrBlock::ManualSearchSortPrompt,
-      None
-    );
+    #[test]
+    fn test_manual_search_sort_home_end() {
+      let release_field_vec = Vec::from_iter(ReleaseField::iter());
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .movie_releases_sort
+        .set_items(release_field_vec.clone());
+
+      MovieDetailsHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::ManualSearchSortPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.data.radarr_data.movie_releases_sort.current_selection(),
+        &release_field_vec[release_field_vec.len() - 1]
+      );
+
+      MovieDetailsHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::ManualSearchSortPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.data.radarr_data.movie_releases_sort.current_selection(),
+        &release_field_vec[0]
+      );
+    }
   }
 
   mod test_handle_left_right_action {
@@ -355,7 +415,7 @@ mod tests {
     use rstest::rstest;
 
     use crate::assert_movie_info_tabs_reset;
-    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
+    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
 
     use super::*;
 
@@ -413,9 +473,10 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use crate::models::radarr_models::{MinimumAvailability, Movie};
-    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
-    use crate::models::servarr_data::radarr_data::{RadarrData, EDIT_MOVIE_SELECTION_BLOCKS};
-    use crate::models::HorizontallyScrollableText;
+    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
+    use crate::models::servarr_data::radarr::radarr_data::{
+      RadarrData, EDIT_MOVIE_SELECTION_BLOCKS,
+    };
     use crate::models::StatefulTable;
     use crate::test_edit_movie_key;
 

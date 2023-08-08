@@ -5,7 +5,7 @@ use tui::Frame;
 
 use crate::app::App;
 use crate::models::radarr_models::Movie;
-use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, LIBRARY_BLOCKS};
+use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, LIBRARY_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::library::add_movie_ui::AddMovieUi;
 use crate::ui::radarr_ui::library::delete_movie_ui::DeleteMovieUi;

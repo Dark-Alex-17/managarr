@@ -1,24 +1,23 @@
 use tui::backend::Backend;
 use tui::layout::{Constraint, Rect};
+use tui::widgets::ListItem;
 use tui::Frame;
 
 use crate::app::App;
-use crate::models::servarr_data::radarr_data::{
+use crate::models::servarr_data::radarr::modals::EditCollectionModal;
+use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS,
 };
 use crate::models::Route;
 use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsUi;
 use crate::ui::radarr_ui::collections::draw_collections;
-use crate::ui::radarr_ui::{
-  draw_select_minimum_availability_popup, draw_select_quality_profile_popup,
-};
 use crate::ui::utils::{
   horizontal_chunks, layout_paragraph_borderless, title_block_centered, vertical_chunks_with_margin,
 };
 use crate::ui::{
   draw_button, draw_checkbox_with_label, draw_drop_down_menu_button, draw_drop_down_popup,
   draw_large_popup_over_background_fn_with_ui, draw_medium_popup_over, draw_popup,
-  draw_text_box_with_label, DrawUi,
+  draw_selectable_list, draw_text_box_with_label, DrawUi,
 };
 
 #[cfg(test)]
@@ -46,7 +45,7 @@ impl DrawUi for EditCollectionUi {
               app,
               prompt_area,
               draw_edit_collection_confirmation_prompt,
-              draw_select_minimum_availability_popup,
+              draw_edit_collection_select_minimum_availability_popup,
             );
           }
           ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
@@ -55,7 +54,7 @@ impl DrawUi for EditCollectionUi {
               app,
               prompt_area,
               draw_edit_collection_confirmation_prompt,
-              draw_select_quality_profile_popup,
+              draw_edit_collection_select_quality_profile_popup,
             );
           }
           ActiveRadarrBlock::EditCollectionPrompt
@@ -141,17 +140,16 @@ fn draw_edit_collection_confirmation_prompt<B: Backend>(
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();
   let highlight_yes_no = selected_block == &ActiveRadarrBlock::EditCollectionConfirmPrompt;
+  let EditCollectionModal {
+    minimum_availability_list,
+    quality_profile_list,
+    monitored,
+    search_on_add,
+    path,
+  } = app.data.radarr_data.edit_collection_modal.as_ref().unwrap();
 
-  let selected_minimum_availability = app
-    .data
-    .radarr_data
-    .minimum_availability_list
-    .current_selection();
-  let selected_quality_profile = app
-    .data
-    .radarr_data
-    .quality_profile_list
-    .current_selection();
+  let selected_minimum_availability = minimum_availability_list.current_selection();
+  let selected_quality_profile = quality_profile_list.current_selection();
 
   f.render_widget(title_block_centered(&title), prompt_area);
 
@@ -182,7 +180,7 @@ fn draw_edit_collection_confirmation_prompt<B: Backend>(
     f,
     chunks[1],
     "Monitored",
-    app.data.radarr_data.edit_monitored.unwrap_or_default(),
+    monitored.unwrap_or_default(),
     selected_block == &ActiveRadarrBlock::EditCollectionToggleMonitored,
   );
 
@@ -206,8 +204,8 @@ fn draw_edit_collection_confirmation_prompt<B: Backend>(
       f,
       chunks[4],
       "Root Folder",
-      &app.data.radarr_data.edit_path.text,
-      *app.data.radarr_data.edit_path.offset.borrow(),
+      &path.text,
+      *path.offset.borrow(),
       selected_block == &ActiveRadarrBlock::EditCollectionRootFolderPathInput,
       active_radarr_block == ActiveRadarrBlock::EditCollectionRootFolderPathInput,
     );
@@ -217,7 +215,7 @@ fn draw_edit_collection_confirmation_prompt<B: Backend>(
     f,
     chunks[5],
     "Search on Add",
-    app.data.radarr_data.edit_search_on_add.unwrap_or_default(),
+    search_on_add.unwrap_or_default(),
     selected_block == &ActiveRadarrBlock::EditCollectionToggleSearchOnAdd,
   );
 
@@ -232,5 +230,43 @@ fn draw_edit_collection_confirmation_prompt<B: Backend>(
     horizontal_chunks[1],
     "Cancel",
     !yes_no_value && highlight_yes_no,
+  );
+}
+
+fn draw_edit_collection_select_minimum_availability_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  popup_area: Rect,
+) {
+  draw_selectable_list(
+    f,
+    popup_area,
+    &mut app
+      .data
+      .radarr_data
+      .edit_collection_modal
+      .as_mut()
+      .unwrap()
+      .minimum_availability_list,
+    |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
+  );
+}
+
+fn draw_edit_collection_select_quality_profile_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  popup_area: Rect,
+) {
+  draw_selectable_list(
+    f,
+    popup_area,
+    &mut app
+      .data
+      .radarr_data
+      .edit_collection_modal
+      .as_mut()
+      .unwrap()
+      .quality_profile_list,
+    |quality_profile| ListItem::new(quality_profile.clone()),
   );
 }

@@ -5,7 +5,7 @@ use tui::Frame;
 
 use crate::app::App;
 use crate::models::radarr_models::RootFolder;
-use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
+use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
 use crate::models::Route;
 use crate::ui::utils::{
   borderless_block, layout_block_top_border, show_cursor, style_default, style_help, style_primary,

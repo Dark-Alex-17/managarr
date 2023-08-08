@@ -2,11 +2,11 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::KeyEventHandler;
-use crate::models::servarr_data::radarr_data::{
+use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, ADD_MOVIE_SELECTION_BLOCKS, COLLECTION_DETAILS_BLOCKS,
   EDIT_COLLECTION_SELECTION_BLOCKS,
 };
-use crate::models::{BlockSelectionState, Scrollable};
+use crate::models::{BlockSelectionState, Scrollable, StatefulTable};
 
 #[cfg(test)]
 #[path = "collection_details_handler_tests.rs"]
@@ -108,7 +108,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
         );
         self.app.data.radarr_data.selected_block =
           BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
-        self.app.data.radarr_data.populate_preferences_lists();
+        self.app.data.radarr_data.add_movie_modal = Some((&self.app.data.radarr_data).into());
       }
     }
   }
@@ -116,8 +116,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
   fn handle_esc(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::CollectionDetails => {
+        self.app.data.radarr_data.collection_movies = StatefulTable::default();
         self.app.pop_navigation_stack();
-        self.app.data.radarr_data.reset_movie_collection_table();
       }
       ActiveRadarrBlock::ViewMovieOverview => self.app.pop_navigation_stack(),
       _ => (),
@@ -135,7 +135,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
         )
           .into(),
       );
-      self.app.data.radarr_data.populate_edit_collection_fields();
+      self.app.data.radarr_data.edit_collection_modal = Some((&self.app.data.radarr_data).into());
       self.app.data.radarr_data.selected_block =
         BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
     }

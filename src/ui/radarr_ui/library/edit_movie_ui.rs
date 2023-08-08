@@ -1,24 +1,24 @@
 use tui::backend::Backend;
 use tui::layout::{Constraint, Rect};
+use tui::widgets::ListItem;
 use tui::Frame;
 
 use crate::app::App;
-use crate::models::servarr_data::radarr_data::{
+use crate::models::servarr_data::radarr::modals::EditMovieModal;
+use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, EDIT_MOVIE_BLOCKS, MOVIE_DETAILS_BLOCKS,
 };
 use crate::models::Route;
 use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::radarr_ui::library::movie_details_ui::MovieDetailsUi;
-use crate::ui::radarr_ui::{
-  draw_select_minimum_availability_popup, draw_select_quality_profile_popup,
-};
+
 use crate::ui::utils::{
   horizontal_chunks, layout_paragraph_borderless, title_block_centered, vertical_chunks_with_margin,
 };
 use crate::ui::{
   draw_button, draw_checkbox_with_label, draw_drop_down_menu_button, draw_drop_down_popup,
   draw_large_popup_over_background_fn_with_ui, draw_medium_popup_over, draw_popup,
-  draw_text_box_with_label, DrawUi,
+  draw_selectable_list, draw_text_box_with_label, DrawUi,
 };
 
 #[cfg(test)]
@@ -46,7 +46,7 @@ impl DrawUi for EditMovieUi {
               app,
               prompt_area,
               draw_edit_movie_confirmation_prompt,
-              draw_select_minimum_availability_popup,
+              draw_edit_movie_select_minimum_availability_popup,
             );
           }
           ActiveRadarrBlock::EditMovieSelectQualityProfile => {
@@ -55,7 +55,7 @@ impl DrawUi for EditMovieUi {
               app,
               prompt_area,
               draw_edit_movie_confirmation_prompt,
-              draw_select_quality_profile_popup,
+              draw_edit_movie_select_quality_profile_popup,
             );
           }
           ActiveRadarrBlock::EditMoviePrompt
@@ -134,17 +134,16 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();
   let highlight_yes_no = selected_block == &ActiveRadarrBlock::EditMovieConfirmPrompt;
+  let EditMovieModal {
+    minimum_availability_list,
+    quality_profile_list,
+    monitored,
+    path,
+    tags,
+  } = app.data.radarr_data.edit_movie_modal.as_ref().unwrap();
 
-  let selected_minimum_availability = app
-    .data
-    .radarr_data
-    .minimum_availability_list
-    .current_selection();
-  let selected_quality_profile = app
-    .data
-    .radarr_data
-    .quality_profile_list
-    .current_selection();
+  let selected_minimum_availability = minimum_availability_list.current_selection();
+  let selected_quality_profile = quality_profile_list.current_selection();
 
   f.render_widget(title_block_centered(&title), prompt_area);
 
@@ -175,7 +174,7 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
     f,
     chunks[1],
     "Monitored",
-    app.data.radarr_data.edit_monitored.unwrap_or_default(),
+    monitored.unwrap_or_default(),
     selected_block == &ActiveRadarrBlock::EditMovieToggleMonitored,
   );
 
@@ -199,8 +198,8 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
       f,
       chunks[4],
       "Path",
-      &app.data.radarr_data.edit_path.text,
-      *app.data.radarr_data.edit_path.offset.borrow(),
+      &path.text,
+      *path.offset.borrow(),
       selected_block == &ActiveRadarrBlock::EditMoviePathInput,
       active_radarr_block == ActiveRadarrBlock::EditMoviePathInput,
     );
@@ -208,8 +207,8 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
       f,
       chunks[5],
       "Tags",
-      &app.data.radarr_data.edit_tags.text,
-      *app.data.radarr_data.edit_tags.offset.borrow(),
+      &tags.text,
+      *tags.offset.borrow(),
       selected_block == &ActiveRadarrBlock::EditMovieTagsInput,
       active_radarr_block == ActiveRadarrBlock::EditMovieTagsInput,
     );
@@ -226,5 +225,43 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
     horizontal_chunks[1],
     "Cancel",
     !yes_no_value && highlight_yes_no,
+  );
+}
+
+fn draw_edit_movie_select_minimum_availability_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  popup_area: Rect,
+) {
+  draw_selectable_list(
+    f,
+    popup_area,
+    &mut app
+      .data
+      .radarr_data
+      .edit_movie_modal
+      .as_mut()
+      .unwrap()
+      .minimum_availability_list,
+    |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
+  );
+}
+
+fn draw_edit_movie_select_quality_profile_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  popup_area: Rect,
+) {
+  draw_selectable_list(
+    f,
+    popup_area,
+    &mut app
+      .data
+      .radarr_data
+      .edit_movie_modal
+      .as_mut()
+      .unwrap()
+      .quality_profile_list,
+    |quality_profile| ListItem::new(quality_profile.clone()),
   );
 }

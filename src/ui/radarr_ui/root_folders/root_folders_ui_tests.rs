@@ -2,7 +2,7 @@
 mod tests {
   use strum::IntoEnumIterator;
 
-  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
+  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
   use crate::ui::radarr_ui::root_folders::RootFoldersUi;
   use crate::ui::DrawUi;
 

@@ -11,7 +11,7 @@ mod tests {
   };
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::Movie;
-  use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
+  use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::HorizontallyScrollableText;
   use crate::{extended_stateful_iterable_vec, test_handler_delegation};
 

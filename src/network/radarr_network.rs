@@ -13,7 +13,10 @@ use crate::models::radarr_models::{
   IndexerSettings, LogResponse, Movie, MovieCommandBody, MovieHistoryItem, QualityProfile,
   QueueEvent, Release, ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task, Update,
 };
-use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
+use crate::models::servarr_data::radarr::modals::{
+  AddMovieModal, EditCollectionModal, EditMovieModal,
+};
+use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
 use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
 use crate::utils::{convert_runtime, convert_to_gb};
@@ -151,55 +154,76 @@ impl<'a, 'b> Network<'a, 'b> {
   async fn add_movie(&mut self) {
     info!("Adding new movie to Radarr");
     let body = {
-      let quality_profile_id = self.extract_quality_profile_id().await;
-      let tag_ids_vec = self.extract_and_add_tag_ids_vec().await;
-      let app = self.app.lock().await;
-      let root_folders = app.data.radarr_data.root_folders.items.to_vec();
-      let (tmdb_id, title) = if let Route::Radarr(active_radarr_block, _) = app.get_current_route()
+      let tags = self
+        .app
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_ref()
+        .unwrap()
+        .tags
+        .text
+        .clone();
+      let tag_ids_vec = self.extract_and_add_tag_ids_vec(tags).await;
+      let mut app = self.app.lock().await;
+      let AddMovieModal {
+        root_folder_list,
+        monitor_list,
+        minimum_availability_list,
+        quality_profile_list,
+        ..
+      } = app.data.radarr_data.add_movie_modal.as_ref().unwrap();
+      let (tmdb_id, title) = if let Route::Radarr(active_radarr_block, _) = *app.get_current_route()
       {
-        if *active_radarr_block == ActiveRadarrBlock::CollectionDetails {
-          let CollectionMovie { tmdb_id, title, .. } =
-            app.data.radarr_data.collection_movies.current_selection();
+        if active_radarr_block == ActiveRadarrBlock::CollectionDetails {
+          let CollectionMovie { tmdb_id, title, .. } = app
+            .data
+            .radarr_data
+            .collection_movies
+            .current_selection()
+            .clone();
           (tmdb_id, title.text.clone())
         } else {
-          let AddMovieSearchResult { tmdb_id, title, .. } =
-            app.data.radarr_data.add_searched_movies.current_selection();
+          let AddMovieSearchResult { tmdb_id, title, .. } = app
+            .data
+            .radarr_data
+            .add_searched_movies
+            .current_selection()
+            .clone();
           (tmdb_id, title.text.clone())
         }
       } else {
-        let AddMovieSearchResult { tmdb_id, title, .. } =
-          app.data.radarr_data.add_searched_movies.current_selection();
+        let AddMovieSearchResult { tmdb_id, title, .. } = app
+          .data
+          .radarr_data
+          .add_searched_movies
+          .current_selection()
+          .clone();
         (tmdb_id, title.text.clone())
       };
-
-      let RootFolder { path, .. } = root_folders
+      let quality_profile = quality_profile_list.current_selection();
+      let quality_profile_id = *app
+        .data
+        .radarr_data
+        .quality_profile_map
         .iter()
-        .filter(|folder| folder.accessible)
-        .reduce(|a, b| {
-          if a.free_space.as_u64().unwrap() > b.free_space.as_u64().unwrap() {
-            a
-          } else {
-            b
-          }
-        })
+        .filter(|(_, value)| *value == quality_profile)
+        .map(|(key, _)| key)
+        .next()
         .unwrap();
-      let monitor = app
-        .data
-        .radarr_data
-        .monitor_list
-        .current_selection()
-        .to_string();
-      let minimum_availability = app
-        .data
-        .radarr_data
-        .minimum_availability_list
-        .current_selection()
-        .to_string();
+
+      let path = root_folder_list.current_selection().path.clone();
+      let monitor = monitor_list.current_selection().to_string();
+      let minimum_availability = minimum_availability_list.current_selection().to_string();
+
+      app.data.radarr_data.add_movie_modal = None;
 
       AddMovieBody {
         tmdb_id: tmdb_id.as_u64().unwrap(),
         title,
-        root_folder_path: path.to_owned(),
+        root_folder_path: path,
         minimum_availability,
         monitored: true,
         quality_profile_id,
@@ -462,21 +486,31 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Constructing edit collection body");
 
     let body = {
-      let quality_profile_id = self.extract_quality_profile_id().await;
       let mut app = self.app.lock().await;
       let response = app.response.drain(..).collect::<String>();
       let mut detailed_collection_body: Value = serde_json::from_str(&response).unwrap();
-
-      let root_folder_path: String = app.data.radarr_data.edit_path.drain();
-
-      let monitored = app.data.radarr_data.edit_monitored.unwrap_or_default();
-      let search_on_add = app.data.radarr_data.edit_search_on_add.unwrap_or_default();
-      let minimum_availability = app
+      let EditCollectionModal {
+        path,
+        search_on_add,
+        minimum_availability_list,
+        monitored,
+        quality_profile_list,
+      } = app.data.radarr_data.edit_collection_modal.as_ref().unwrap();
+      let quality_profile = quality_profile_list.current_selection();
+      let quality_profile_id = *app
         .data
         .radarr_data
-        .minimum_availability_list
-        .current_selection()
-        .to_string();
+        .quality_profile_map
+        .iter()
+        .filter(|(_, value)| *value == quality_profile)
+        .map(|(key, _)| key)
+        .next()
+        .unwrap();
+
+      let root_folder_path: String = path.text.clone();
+      let monitored = monitored.unwrap_or_default();
+      let search_on_add = search_on_add.unwrap_or_default();
+      let minimum_availability = minimum_availability_list.current_selection().to_string();
 
       *detailed_collection_body.get_mut("monitored").unwrap() = json!(monitored);
       *detailed_collection_body
@@ -487,6 +521,8 @@ impl<'a, 'b> Network<'a, 'b> {
         .unwrap() = json!(quality_profile_id);
       *detailed_collection_body.get_mut("rootFolderPath").unwrap() = json!(root_folder_path);
       *detailed_collection_body.get_mut("searchOnAdd").unwrap() = json!(search_on_add);
+
+      app.data.radarr_data.edit_collection_modal = None;
 
       detailed_collection_body
     };
@@ -533,27 +569,49 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Constructing edit movie body");
 
     let body = {
-      let quality_profile_id = self.extract_quality_profile_id().await;
-      let tag_ids_vec = self.extract_and_add_tag_ids_vec().await;
+      let tags = self
+        .app
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .edit_movie_modal
+        .as_ref()
+        .unwrap()
+        .tags
+        .text
+        .clone();
+      let tag_ids_vec = self.extract_and_add_tag_ids_vec(tags).await;
       let mut app = self.app.lock().await;
       let response = app.response.drain(..).collect::<String>();
       let mut detailed_movie_body: Value = serde_json::from_str(&response).unwrap();
 
-      let path: String = app.data.radarr_data.edit_path.drain();
-
-      let monitored = app.data.radarr_data.edit_monitored.unwrap_or_default();
-      let minimum_availability = app
+      let EditMovieModal {
+        monitored,
+        path,
+        minimum_availability_list,
+        quality_profile_list,
+        ..
+      } = app.data.radarr_data.edit_movie_modal.as_ref().unwrap();
+      let quality_profile = quality_profile_list.current_selection();
+      let quality_profile_id = *app
         .data
         .radarr_data
-        .minimum_availability_list
-        .current_selection()
-        .to_string();
+        .quality_profile_map
+        .iter()
+        .filter(|(_, value)| *value == quality_profile)
+        .map(|(key, _)| key)
+        .next()
+        .unwrap();
 
-      *detailed_movie_body.get_mut("monitored").unwrap() = json!(monitored);
-      *detailed_movie_body.get_mut("minimumAvailability").unwrap() = json!(minimum_availability);
+      *detailed_movie_body.get_mut("monitored").unwrap() = json!(monitored.unwrap_or_default());
+      *detailed_movie_body.get_mut("minimumAvailability").unwrap() =
+        json!(minimum_availability_list.current_selection().to_string());
       *detailed_movie_body.get_mut("qualityProfileId").unwrap() = json!(quality_profile_id);
-      *detailed_movie_body.get_mut("path").unwrap() = json!(path);
+      *detailed_movie_body.get_mut("path").unwrap() = json!(path.text.clone());
       *detailed_movie_body.get_mut("tags").unwrap() = json!(tag_ids_vec);
+
+      app.data.radarr_data.edit_movie_modal = None;
 
       detailed_movie_body
     };
@@ -1408,27 +1466,8 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn extract_quality_profile_id(&mut self) -> u64 {
-    let app = self.app.lock().await;
-    let quality_profile = app
-      .data
-      .radarr_data
-      .quality_profile_list
-      .current_selection();
-    *app
-      .data
-      .radarr_data
-      .quality_profile_map
-      .iter()
-      .filter(|(_, value)| *value == quality_profile)
-      .map(|(key, _)| key)
-      .next()
-      .unwrap()
-  }
-
-  async fn extract_and_add_tag_ids_vec(&mut self) -> Vec<u64> {
+  async fn extract_and_add_tag_ids_vec(&mut self, edit_tags: String) -> Vec<u64> {
     let tags_map = self.app.lock().await.data.radarr_data.tags_map.clone();
-    let edit_tags = self.app.lock().await.data.radarr_data.edit_tags.drain();
     let tags = edit_tags.clone();
     let missing_tags_vec = edit_tags
       .split(',')

@@ -2,7 +2,7 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
-use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, EDIT_MOVIE_BLOCKS};
+use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_MOVIE_BLOCKS};
 use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
@@ -47,11 +47,20 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
         .app
         .data
         .radarr_data
+        .edit_movie_modal
+        .as_mut()
+        .unwrap()
         .minimum_availability_list
         .scroll_up(),
-      ActiveRadarrBlock::EditMovieSelectQualityProfile => {
-        self.app.data.radarr_data.quality_profile_list.scroll_up()
-      }
+      ActiveRadarrBlock::EditMovieSelectQualityProfile => self
+        .app
+        .data
+        .radarr_data
+        .edit_movie_modal
+        .as_mut()
+        .unwrap()
+        .quality_profile_list
+        .scroll_up(),
       ActiveRadarrBlock::EditMoviePrompt => self.app.data.radarr_data.selected_block.previous(),
       _ => (),
     }
@@ -63,11 +72,20 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
         .app
         .data
         .radarr_data
+        .edit_movie_modal
+        .as_mut()
+        .unwrap()
         .minimum_availability_list
         .scroll_down(),
-      ActiveRadarrBlock::EditMovieSelectQualityProfile => {
-        self.app.data.radarr_data.quality_profile_list.scroll_down()
-      }
+      ActiveRadarrBlock::EditMovieSelectQualityProfile => self
+        .app
+        .data
+        .radarr_data
+        .edit_movie_modal
+        .as_mut()
+        .unwrap()
+        .quality_profile_list
+        .scroll_down(),
       ActiveRadarrBlock::EditMoviePrompt => self.app.data.radarr_data.selected_block.next(),
       _ => (),
     }
@@ -79,16 +97,38 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
         .app
         .data
         .radarr_data
+        .edit_movie_modal
+        .as_mut()
+        .unwrap()
         .minimum_availability_list
         .scroll_to_top(),
       ActiveRadarrBlock::EditMovieSelectQualityProfile => self
         .app
         .data
         .radarr_data
+        .edit_movie_modal
+        .as_mut()
+        .unwrap()
         .quality_profile_list
         .scroll_to_top(),
-      ActiveRadarrBlock::EditMoviePathInput => self.app.data.radarr_data.edit_path.scroll_home(),
-      ActiveRadarrBlock::EditMovieTagsInput => self.app.data.radarr_data.edit_tags.scroll_home(),
+      ActiveRadarrBlock::EditMoviePathInput => self
+        .app
+        .data
+        .radarr_data
+        .edit_movie_modal
+        .as_mut()
+        .unwrap()
+        .path
+        .scroll_home(),
+      ActiveRadarrBlock::EditMovieTagsInput => self
+        .app
+        .data
+        .radarr_data
+        .edit_movie_modal
+        .as_mut()
+        .unwrap()
+        .tags
+        .scroll_home(),
       _ => (),
     }
   }
@@ -99,16 +139,38 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
         .app
         .data
         .radarr_data
+        .edit_movie_modal
+        .as_mut()
+        .unwrap()
         .minimum_availability_list
         .scroll_to_bottom(),
       ActiveRadarrBlock::EditMovieSelectQualityProfile => self
         .app
         .data
         .radarr_data
+        .edit_movie_modal
+        .as_mut()
+        .unwrap()
         .quality_profile_list
         .scroll_to_bottom(),
-      ActiveRadarrBlock::EditMoviePathInput => self.app.data.radarr_data.edit_path.reset_offset(),
-      ActiveRadarrBlock::EditMovieTagsInput => self.app.data.radarr_data.edit_tags.reset_offset(),
+      ActiveRadarrBlock::EditMoviePathInput => self
+        .app
+        .data
+        .radarr_data
+        .edit_movie_modal
+        .as_mut()
+        .unwrap()
+        .path
+        .reset_offset(),
+      ActiveRadarrBlock::EditMovieTagsInput => self
+        .app
+        .data
+        .radarr_data
+        .edit_movie_modal
+        .as_mut()
+        .unwrap()
+        .tags
+        .reset_offset(),
       _ => (),
     }
   }
@@ -119,10 +181,32 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
     match self.active_radarr_block {
       ActiveRadarrBlock::EditMoviePrompt => handle_prompt_toggle(self.app, self.key),
       ActiveRadarrBlock::EditMoviePathInput => {
-        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.edit_path)
+        handle_text_box_left_right_keys!(
+          self,
+          self.key,
+          self
+            .app
+            .data
+            .radarr_data
+            .edit_movie_modal
+            .as_mut()
+            .unwrap()
+            .path
+        )
       }
       ActiveRadarrBlock::EditMovieTagsInput => {
-        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.edit_tags)
+        handle_text_box_left_right_keys!(
+          self,
+          self.key,
+          self
+            .app
+            .data
+            .radarr_data
+            .edit_movie_modal
+            .as_mut()
+            .unwrap()
+            .tags
+        )
       }
       _ => (),
     }
@@ -159,8 +243,24 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
             self.app.should_ignore_quit_key = true;
           }
           ActiveRadarrBlock::EditMovieToggleMonitored => {
-            self.app.data.radarr_data.edit_monitored =
-              Some(!self.app.data.radarr_data.edit_monitored.unwrap_or_default())
+            self
+              .app
+              .data
+              .radarr_data
+              .edit_movie_modal
+              .as_mut()
+              .unwrap()
+              .monitored = Some(
+              !self
+                .app
+                .data
+                .radarr_data
+                .edit_movie_modal
+                .as_mut()
+                .unwrap()
+                .monitored
+                .unwrap_or_default(),
+            )
           }
           _ => (),
         }
@@ -183,7 +283,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
       }
       ActiveRadarrBlock::EditMoviePrompt => {
         self.app.pop_navigation_stack();
-        self.app.data.radarr_data.reset_add_edit_media_fields();
+        self.app.data.radarr_data.edit_movie_modal = None;
         self.app.data.radarr_data.prompt_confirm = false;
       }
       ActiveRadarrBlock::EditMovieSelectMinimumAvailability
@@ -196,10 +296,32 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::EditMoviePathInput => {
-        handle_text_box_keys!(self, key, self.app.data.radarr_data.edit_path)
+        handle_text_box_keys!(
+          self,
+          key,
+          self
+            .app
+            .data
+            .radarr_data
+            .edit_movie_modal
+            .as_mut()
+            .unwrap()
+            .path
+        )
       }
       ActiveRadarrBlock::EditMovieTagsInput => {
-        handle_text_box_keys!(self, key, self.app.data.radarr_data.edit_tags)
+        handle_text_box_keys!(
+          self,
+          key,
+          self
+            .app
+            .data
+            .radarr_data
+            .edit_movie_modal
+            .as_mut()
+            .unwrap()
+            .tags
+        )
       }
       _ => (),
     }

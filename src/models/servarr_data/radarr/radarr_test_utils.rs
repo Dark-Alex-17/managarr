@@ -4,7 +4,7 @@ pub mod utils {
     AddMovieSearchResult, Collection, CollectionMovie, Credit, MinimumAvailability, Monitor, Movie,
     MovieHistoryItem, Release, ReleaseField, RootFolder,
   };
-  use crate::models::servarr_data::radarr_data::RadarrData;
+  use crate::models::servarr_data::radarr::radarr_data::RadarrData;
   use crate::models::{HorizontallyScrollableText, ScrollableText};
 
   pub fn create_test_radarr_data<'a>() -> RadarrData<'a> {
@@ -80,16 +80,6 @@ pub mod utils {
   }
 
   #[macro_export]
-  macro_rules! assert_edit_media_reset {
-    ($radarr_data:expr) => {
-      assert!($radarr_data.edit_monitored.is_none());
-      assert!($radarr_data.edit_search_on_add.is_none());
-      assert!($radarr_data.edit_path.text.is_empty());
-      assert!($radarr_data.edit_tags.text.is_empty());
-    };
-  }
-
-  #[macro_export]
   macro_rules! assert_filter_reset {
     ($radarr_data:expr) => {
       assert!(!$radarr_data.is_filtering);
@@ -113,16 +103,6 @@ pub mod utils {
       assert!($radarr_data.movie_releases_sort.items.is_empty());
       assert!($radarr_data.sort_ascending.is_none());
       assert_eq!($radarr_data.movie_info_tabs.index, 0);
-    };
-  }
-
-  #[macro_export]
-  macro_rules! assert_preferences_selections_reset {
-    ($radarr_data:expr) => {
-      assert!($radarr_data.monitor_list.items.is_empty());
-      assert!($radarr_data.minimum_availability_list.items.is_empty());
-      assert!($radarr_data.quality_profile_list.items.is_empty());
-      assert!($radarr_data.root_folder_list.items.is_empty());
     };
   }
 }

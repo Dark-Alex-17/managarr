@@ -2,8 +2,8 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
-use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
-use crate::models::Scrollable;
+use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
+use crate::models::{Scrollable, StatefulList};
 use crate::network::radarr_network::RadarrEvent;
 
 #[cfg(test)]
@@ -141,7 +141,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler
   fn handle_esc(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::SystemLogs => {
-        self.app.data.radarr_data.reset_log_details_list();
+        self.app.data.radarr_data.log_details = StatefulList::default();
         self.app.pop_navigation_stack()
       }
       ActiveRadarrBlock::SystemQueuedEvents

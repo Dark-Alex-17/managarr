@@ -1,12 +1,9 @@
 #[cfg(test)]
 mod tests {
   mod radarr_data_tests {
-    use bimap::BiMap;
+
     use chrono::{DateTime, Utc};
     use pretty_assertions::{assert_eq, assert_str_eq};
-    use rstest::rstest;
-    use serde_json::Number;
-    use strum::IntoEnumIterator;
 
     use crate::app::context_clues::build_context_clue_string;
     use crate::app::radarr::radarr_context_clues::{
@@ -15,18 +12,13 @@ mod tests {
       MANUAL_MOVIE_SEARCH_CONTEXT_CLUES, MOVIE_DETAILS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
       SYSTEM_CONTEXT_CLUES,
     };
-    use crate::models::radarr_models::{
-      Collection, MinimumAvailability, Monitor, Movie, RootFolder,
-    };
-    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils;
-    use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, RadarrData};
+
+    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils;
+    use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
     use crate::models::Route;
-    use crate::models::StatefulTable;
-    use crate::models::{BlockSelectionState, HorizontallyScrollableText};
-    use crate::{
-      assert_edit_media_reset, assert_filter_reset, assert_movie_info_tabs_reset,
-      assert_preferences_selections_reset, assert_search_reset,
-    };
+
+    use crate::models::BlockSelectionState;
+    use crate::{assert_filter_reset, assert_movie_info_tabs_reset, assert_search_reset};
 
     #[test]
     fn test_from_tuple_to_route_with_context() {
@@ -40,24 +32,6 @@ mod tests {
           Some(ActiveRadarrBlock::AddMovieSearchResults),
         )
       );
-    }
-
-    #[test]
-    fn test_reset_movie_collection_table() {
-      let mut radarr_data = utils::create_test_radarr_data();
-
-      radarr_data.reset_movie_collection_table();
-
-      assert!(radarr_data.collection_movies.items.is_empty());
-    }
-
-    #[test]
-    fn test_reset_log_details_list() {
-      let mut radarr_data = utils::create_test_radarr_data();
-
-      radarr_data.reset_log_details_list();
-
-      assert!(radarr_data.log_details.items.is_empty());
     }
 
     #[test]
@@ -95,172 +69,6 @@ mod tests {
       radarr_data.reset_movie_info_tabs();
 
       assert_movie_info_tabs_reset!(radarr_data);
-    }
-
-    #[test]
-    fn test_reset_add_edit_media_fields() {
-      let mut radarr_data = RadarrData {
-        edit_monitored: Some(true),
-        edit_search_on_add: Some(true),
-        edit_path: "test path".to_owned().into(),
-        edit_tags: "test tag".to_owned().into(),
-        ..RadarrData::default()
-      };
-
-      radarr_data.reset_add_edit_media_fields();
-
-      assert_edit_media_reset!(radarr_data);
-    }
-
-    #[test]
-    fn test_reset_preferences_selections() {
-      let mut radarr_data = utils::create_test_radarr_data();
-
-      radarr_data.reset_preferences_selections();
-
-      assert_preferences_selections_reset!(radarr_data);
-    }
-
-    #[test]
-    fn test_populate_preferences_lists() {
-      let root_folder = RootFolder {
-        id: Number::from(1),
-        path: "/nfs".to_owned(),
-        accessible: true,
-        free_space: Number::from(219902325555200u64),
-        unmapped_folders: None,
-      };
-      let mut radarr_data = RadarrData {
-        quality_profile_map: BiMap::from_iter([
-          (2222, "HD - 1080p".to_owned()),
-          (1111, "Any".to_owned()),
-        ]),
-        ..RadarrData::default()
-      };
-      radarr_data
-        .root_folders
-        .set_items(vec![root_folder.clone()]);
-
-      radarr_data.populate_preferences_lists();
-
-      assert_eq!(
-        radarr_data.monitor_list.items,
-        Vec::from_iter(Monitor::iter())
-      );
-      assert_eq!(
-        radarr_data.minimum_availability_list.items,
-        Vec::from_iter(MinimumAvailability::iter())
-      );
-      assert_eq!(
-        radarr_data.quality_profile_list.items,
-        vec!["Any".to_owned(), "HD - 1080p".to_owned()]
-      );
-      assert_eq!(radarr_data.root_folder_list.items, vec![root_folder]);
-    }
-
-    #[rstest]
-    fn test_populate_edit_movie_fields(#[values(true, false)] test_filtered_movies: bool) {
-      let mut radarr_data = RadarrData {
-        edit_path: HorizontallyScrollableText::default(),
-        edit_tags: HorizontallyScrollableText::default(),
-        edit_monitored: None,
-        quality_profile_map: BiMap::from_iter([
-          (2222, "HD - 1080p".to_owned()),
-          (1111, "Any".to_owned()),
-        ]),
-        tags_map: BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]),
-        filtered_movies: StatefulTable::default(),
-        ..utils::create_test_radarr_data()
-      };
-      let movie = Movie {
-        path: "/nfs/movies/Test".to_owned(),
-        monitored: true,
-        quality_profile_id: Number::from(2222),
-        minimum_availability: MinimumAvailability::Released,
-        tags: vec![Number::from(1), Number::from(2)],
-        ..Movie::default()
-      };
-
-      if test_filtered_movies {
-        radarr_data.filtered_movies.set_items(vec![movie]);
-      } else {
-        radarr_data.movies.set_items(vec![movie]);
-      }
-
-      radarr_data.populate_edit_movie_fields();
-
-      assert_eq!(
-        radarr_data.minimum_availability_list.items,
-        Vec::from_iter(MinimumAvailability::iter())
-      );
-      assert_eq!(
-        radarr_data.minimum_availability_list.current_selection(),
-        &MinimumAvailability::Released
-      );
-      assert_eq!(
-        radarr_data.quality_profile_list.items,
-        vec!["Any".to_owned(), "HD - 1080p".to_owned()]
-      );
-      assert_str_eq!(
-        radarr_data.quality_profile_list.current_selection(),
-        "HD - 1080p"
-      );
-      assert_str_eq!(radarr_data.edit_path.text, "/nfs/movies/Test");
-      assert_str_eq!(radarr_data.edit_tags.text, "usenet, test");
-      assert_eq!(radarr_data.edit_monitored, Some(true));
-    }
-
-    #[rstest]
-    fn test_populate_edit_collection_fields(
-      #[values(true, false)] test_filtered_collections: bool,
-    ) {
-      let mut radarr_data = RadarrData {
-        edit_path: HorizontallyScrollableText::default(),
-        edit_monitored: None,
-        edit_search_on_add: None,
-        quality_profile_map: BiMap::from_iter([
-          (2222, "HD - 1080p".to_owned()),
-          (1111, "Any".to_owned()),
-        ]),
-        filtered_collections: StatefulTable::default(),
-        ..utils::create_test_radarr_data()
-      };
-      let collection = Collection {
-        root_folder_path: Some("/nfs/movies/Test".to_owned()),
-        monitored: true,
-        search_on_add: true,
-        quality_profile_id: Number::from(2222),
-        minimum_availability: MinimumAvailability::Released,
-        ..Collection::default()
-      };
-
-      if test_filtered_collections {
-        radarr_data.filtered_collections.set_items(vec![collection]);
-      } else {
-        radarr_data.collections.set_items(vec![collection]);
-      }
-
-      radarr_data.populate_edit_collection_fields();
-
-      assert_eq!(
-        radarr_data.minimum_availability_list.items,
-        Vec::from_iter(MinimumAvailability::iter())
-      );
-      assert_eq!(
-        radarr_data.minimum_availability_list.current_selection(),
-        &MinimumAvailability::Released
-      );
-      assert_eq!(
-        radarr_data.quality_profile_list.items,
-        vec!["Any".to_owned(), "HD - 1080p".to_owned()]
-      );
-      assert_str_eq!(
-        radarr_data.quality_profile_list.current_selection(),
-        "HD - 1080p"
-      );
-      assert_str_eq!(radarr_data.edit_path.text, "/nfs/movies/Test");
-      assert_eq!(radarr_data.edit_monitored, Some(true));
-      assert_eq!(radarr_data.edit_search_on_add, Some(true));
     }
 
     #[test]
@@ -304,6 +112,9 @@ mod tests {
       assert!(radarr_data.prompt_confirm_action.is_none());
       assert!(radarr_data.search.text.is_empty());
       assert!(radarr_data.filter.text.is_empty());
+      assert!(radarr_data.add_movie_modal.is_none());
+      assert!(radarr_data.edit_movie_modal.is_none());
+      assert!(radarr_data.edit_collection_modal.is_none());
       assert!(radarr_data.edit_path.text.is_empty());
       assert!(radarr_data.edit_tags.text.is_empty());
       assert!(radarr_data.edit_monitored.is_none());
@@ -471,7 +282,7 @@ mod tests {
   mod active_radarr_block_tests {
     use pretty_assertions::assert_eq;
 
-    use crate::models::servarr_data::radarr_data::{
+    use crate::models::servarr_data::radarr::radarr_data::{
       ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS, COLLECTIONS_BLOCKS,
       COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS, DELETE_MOVIE_SELECTION_BLOCKS,
       DOWNLOADS_BLOCKS, EDIT_COLLECTION_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,

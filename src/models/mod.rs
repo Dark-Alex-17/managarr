@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 
-use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
+use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use serde::Deserialize;
 use tui::widgets::{ListState, TableState};
 

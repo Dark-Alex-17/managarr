@@ -10,7 +10,7 @@ mod tests {
   use crate::handlers::radarr_handlers::collections::CollectionsHandler;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::Collection;
-  use crate::models::servarr_data::radarr_data::{
+  use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, COLLECTIONS_BLOCKS, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS,
   };
   use crate::models::HorizontallyScrollableText;
@@ -375,7 +375,7 @@ mod tests {
   mod test_handle_esc {
     use pretty_assertions::assert_eq;
 
-    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
+    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::{assert_filter_reset, assert_search_reset};
 
     use super::*;
@@ -479,9 +479,11 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use crate::models::radarr_models::MinimumAvailability;
-    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
-    use crate::models::servarr_data::radarr_data::{RadarrData, EDIT_COLLECTION_SELECTION_BLOCKS};
-    use crate::models::HorizontallyScrollableText;
+    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
+    use crate::models::servarr_data::radarr::radarr_data::{
+      RadarrData, EDIT_COLLECTION_SELECTION_BLOCKS,
+    };
+
     use crate::models::StatefulTable;
     use crate::{assert_refresh_key, test_edit_collection_key};
 
