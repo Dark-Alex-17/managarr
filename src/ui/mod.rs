@@ -123,8 +123,8 @@ fn draw_stats<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let seconds = hour_difference.sub(Duration::minutes(minutes)).num_seconds();
 
   let uptime_paragraph = Paragraph::new(Text::from(format!(
-    "Uptime: {}d {}:{}:{}",
-    days, hours, minutes, seconds
+    "Uptime: {}d {:0width$}:{:0width$}:{:0width$}",
+    days, hours, minutes, seconds, width = 2
   ))).block(Block::default());
 
   let space_gauge = LineGauge::default()
