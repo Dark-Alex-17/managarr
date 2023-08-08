@@ -1,19 +1,25 @@
-use log::error;
+use log::{debug, error};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
-use tui::widgets::TableState;
 
 use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
-use crate::network::NetworkEvent;
 use crate::network::radarr_network::RadarrEvent;
+use crate::network::NetworkEvent;
 
 pub(crate) mod key_binding;
+pub mod models;
 pub mod radarr;
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Route {
   Radarr(ActiveRadarrBlock),
+}
+
+impl From<ActiveRadarrBlock> for Route {
+  fn from(active_radarr_block: ActiveRadarrBlock) -> Route {
+    Route::Radarr(active_radarr_block)
+  }
 }
 
 const DEFAULT_ROUTE: Route = Route::Radarr(ActiveRadarrBlock::Movies);
@@ -26,6 +32,7 @@ pub struct App {
   pub tick_until_poll: u64,
   pub tick_count: u64,
   pub is_routing: bool,
+  pub is_loading: bool,
   pub config: AppConfig,
   pub data: Data,
 }
@@ -41,8 +48,10 @@ impl App {
   }
 
   pub async fn dispatch(&mut self, action: NetworkEvent) {
+    self.is_loading = true;
     if let Some(network_tx) = &self.network_tx {
       if let Err(e) = network_tx.send(action).await {
+        self.is_loading = false;
         error!("Failed to send event. {:?}", e);
       }
     }
@@ -70,7 +79,6 @@ impl App {
           self.dispatch(RadarrEvent::GetOverview.into()).await;
           self.dispatch(RadarrEvent::GetStatus.into()).await;
 
-
           self.dispatch_by_radarr_block(active_block).await;
         }
       }
@@ -87,6 +95,7 @@ impl App {
   }
 
   pub fn pop_navigation_stack(&mut self) {
+    self.is_routing = true;
     if self.navigation_stack.len() > 1 {
       self.navigation_stack.pop();
     }
@@ -106,6 +115,7 @@ impl Default for App {
       title: "Managarr",
       tick_until_poll: 0,
       tick_count: 0,
+      is_loading: false,
       is_routing: false,
       config: AppConfig::default(),
       data: Data::default(),
@@ -137,68 +147,5 @@ impl Default for RadarrConfig {
       port: Some(7878),
       api_token: "".to_string(),
     }
-  }
-}
-
-pub struct StatefulTable<T> {
-  pub state: TableState,
-  pub items: Vec<T>
-}
-
-impl<T> Default for StatefulTable<T> {
-  fn default() -> StatefulTable<T> {
-    StatefulTable {
-      state: TableState::default(),
-      items: Vec::new()
-    }
-  }
-}
-
-impl<T> StatefulTable<T> {
-  pub fn set_items(&mut self, items: Vec<T>) {
-    let items_len = items.len();
-    self.items = items;
-    if !self.items.is_empty() {
-      let selected_row = self.state.selected().map_or(0, |i| {
-        if i > 0 && i < items_len {
-          i
-        } else if i >= items_len {
-          items_len - 1
-        } else {
-          0
-        }
-      });
-      self.state.select(Some(selected_row));
-    }
-  }
-
-  pub fn scroll_down(&mut self) {
-    let selected_row = match self.state.selected() {
-      Some(i) => {
-        if i >= self.items.len() - 1 {
-          0
-        } else {
-          i + 1
-        }
-      }
-      None => 0
-    };
-
-    self.state.select(Some(selected_row));
-  }
-
-  pub fn scroll_up(&mut self) {
-    let selected_row = match self.state.selected() {
-      Some(i) => {
-        if i == 0 {
-          self.items.len() - 1
-        } else {
-          i - 1
-        }
-      }
-      None => 0
-    };
-
-    self.state.select(Some(selected_row));
   }
 }

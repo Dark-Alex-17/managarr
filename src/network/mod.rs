@@ -11,7 +11,7 @@ mod utils;
 
 #[derive(PartialEq, Eq, Debug)]
 pub enum NetworkEvent {
-  Radarr(RadarrEvent)
+  Radarr(RadarrEvent),
 }
 
 pub struct Network<'a> {
@@ -27,7 +27,10 @@ impl<'a> Network<'a> {
 
   pub async fn handle_network_event(&self, network_event: NetworkEvent) {
     match network_event {
-      NetworkEvent::Radarr(radarr_event) => self.handle_radarr_event(radarr_event).await
+      NetworkEvent::Radarr(radarr_event) => self.handle_radarr_event(radarr_event).await,
     }
+
+    let mut app = self.app.lock().await;
+    app.is_loading = false;
   }
 }

@@ -1,29 +1,13 @@
-use crate::app::App;
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+use crate::app::{App, Route};
 use crate::event::Key;
+use crate::handlers::radarr_handler::handle_radarr_key_events;
+
+mod radarr_handler;
 
 pub async fn handle_key_events(key: Key, app: &mut App) {
-    match key {
-        _ if key == DEFAULT_KEYBINDINGS.up.key => handle_scroll_up(app).await,
-        _ if key == DEFAULT_KEYBINDINGS.down.key => handle_scroll_down(app).await,
-        _ if key == DEFAULT_KEYBINDINGS.submit.key => handle_submit(app).await,
-        _ if key == DEFAULT_KEYBINDINGS.esc.key => handle_esc(app).await,
-        _ => ()
+  match *app.get_current_route() {
+    Route::Radarr(active_radarr_block) => {
+      handle_radarr_key_events(key, app, active_radarr_block).await
     }
-}
-
-async fn handle_scroll_up(app: &mut App) {
-    app.data.radarr_data.movies.scroll_up();
-}
-
-async fn handle_scroll_down(app: &mut App) {
-    app.data.radarr_data.movies.scroll_down();
-}
-
-async fn handle_submit(app: &mut App) {
-    todo!()
-}
-
-async fn handle_esc(app: &mut App) {
-    todo!()
+  }
 }

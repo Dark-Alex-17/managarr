@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
 
-use crate::app::{App, StatefulTable};
+use crate::app::models::{ScrollableText, StatefulTable};
+use crate::app::App;
 use crate::network::radarr_network::{DownloadRecord, Movie, RadarrEvent};
 
 #[derive(Default)]
@@ -14,9 +15,10 @@ pub struct RadarrData {
   pub movies: StatefulTable<Movie>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub quality_profile_map: HashMap<u64, String>,
+  pub movie_details: ScrollableText,
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum ActiveRadarrBlock {
   AddMovie,
   Calendar,
@@ -33,13 +35,15 @@ pub enum ActiveRadarrBlock {
 
 impl App {
   pub(super) async fn dispatch_by_radarr_block(&mut self, active_radarr_block: ActiveRadarrBlock) {
+    self.reset_tick_count();
     match active_radarr_block {
       ActiveRadarrBlock::Downloads => self.dispatch(RadarrEvent::GetDownloads.into()).await,
       ActiveRadarrBlock::Movies => {
         self.dispatch(RadarrEvent::GetMovies.into()).await;
         self.dispatch(RadarrEvent::GetDownloads.into()).await;
-      },
-      _ => ()
+      }
+      ActiveRadarrBlock::MovieDetails => self.dispatch(RadarrEvent::GetMovieDetails.into()).await,
+      _ => (),
     }
   }
 }

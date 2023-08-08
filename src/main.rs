@@ -8,8 +8,8 @@ use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
 use log::debug;
-use tokio::sync::{mpsc, Mutex};
 use tokio::sync::mpsc::Receiver;
+use tokio::sync::{mpsc, Mutex};
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
 
@@ -55,7 +55,10 @@ async fn start_networking(mut network_rx: Receiver<NetworkEvent>, app: &Arc<Mute
   let network = Network::new(reqwest::Client::new(), app);
 
   while let Some(network_event) = network_rx.recv().await {
-    debug!("Received network event: {:?}", network_event);
+    debug!(
+      "**************************************MAIN Received network event: {:?}",
+      network_event
+    );
     network.handle_network_event(network_event).await;
   }
 }
@@ -85,6 +88,7 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<()> {
 
         handlers::handle_key_events(key, &mut app).await;
       }
+
       InputEvent::Tick => app.on_tick(is_first_render).await,
     }
 

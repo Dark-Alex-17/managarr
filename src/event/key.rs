@@ -26,8 +26,7 @@ impl From<KeyEvent> for Key {
   fn from(key_event: KeyEvent) -> Self {
     match key_event {
       KeyEvent {
-        code: KeyCode::Up,
-        ..
+        code: KeyCode::Up, ..
       } => Key::Up,
       KeyEvent {
         code: KeyCode::Down,
@@ -37,6 +36,9 @@ impl From<KeyEvent> for Key {
         code: KeyCode::Enter,
         ..
       } => Key::Enter,
+      KeyEvent {
+        code: KeyCode::Esc, ..
+      } => Key::Esc,
       KeyEvent {
         code: KeyCode::Char(c),
         ..

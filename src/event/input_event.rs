@@ -31,8 +31,8 @@ impl Events {
           .checked_sub(last_tick.elapsed())
           .unwrap_or_else(|| Duration::from_secs(0));
         if event::poll(timeout).unwrap() {
-          if let CrosstermEvent::Key(key) = event::read().unwrap() {
-            let key = Key::from(key);
+          if let CrosstermEvent::Key(key_event) = event::read().unwrap() {
+            let key = Key::from(key_event);
             event_tx.send(InputEvent::KeyEvent(key)).unwrap();
           }
         }
