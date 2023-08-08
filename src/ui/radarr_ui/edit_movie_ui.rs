@@ -112,7 +112,7 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
 
   let chunks = vertical_chunks_with_margin(
     vec![
-      Constraint::Percentage(35),
+      Constraint::Percentage(25),
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),

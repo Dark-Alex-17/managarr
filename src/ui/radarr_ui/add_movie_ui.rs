@@ -335,7 +335,7 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
 
   let chunks = vertical_chunks_with_margin(
     vec![
-      Constraint::Percentage(40),
+      Constraint::Percentage(30),
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
