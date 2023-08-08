@@ -3,9 +3,9 @@ use tui::layout::{Constraint, Rect};
 use tui::widgets::{Cell, Row};
 use tui::Frame;
 
-use crate::app::radarr::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
 use crate::app::App;
 use crate::models::radarr_models::DownloadRecord;
+use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
 use crate::models::{HorizontallyScrollableText, Route};
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border, style_primary};
 use crate::ui::{draw_prompt_box, draw_prompt_popup_over, draw_table, DrawUi, TableProps};

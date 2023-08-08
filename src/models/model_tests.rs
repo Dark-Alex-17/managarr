@@ -4,7 +4,7 @@ mod tests {
 
   use pretty_assertions::{assert_eq, assert_str_eq};
 
-  use crate::app::radarr::ActiveRadarrBlock;
+  use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
   use crate::models::{
     BlockSelectionState, HorizontallyScrollableText, Scrollable, ScrollableText, StatefulList,
     StatefulTable, TabRoute, TabState,

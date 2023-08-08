@@ -4,11 +4,11 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::app::radarr::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::downloads::DownloadsHandler;
   use crate::handlers::KeyEventHandler;
+  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
 
   mod test_handle_scroll_up_and_down {
     use rstest::rstest;

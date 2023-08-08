@@ -4,12 +4,12 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::app::radarr::{ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS};
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::collections::collection_details_handler::CollectionDetailsHandler;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::CollectionMovie;
+  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS};
   use crate::models::HorizontallyScrollableText;
 
   mod test_handle_scroll_up_and_down {
@@ -52,8 +52,8 @@ mod tests {
     use bimap::BiMap;
     use pretty_assertions::assert_eq;
 
-    use crate::app::radarr::ADD_MOVIE_SELECTION_BLOCKS;
     use crate::models::radarr_models::Movie;
+    use crate::models::servarr_data::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
 
     use super::*;
@@ -204,10 +204,9 @@ mod tests {
     use serde_json::Number;
     use strum::IntoEnumIterator;
 
-    use crate::app::radarr::radarr_test_utils::utils::create_test_radarr_data;
-    use crate::app::radarr::RadarrData;
-    use crate::app::radarr::EDIT_COLLECTION_SELECTION_BLOCKS;
     use crate::models::radarr_models::{Collection, MinimumAvailability};
+    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
+    use crate::models::servarr_data::radarr_data::{RadarrData, EDIT_COLLECTION_SELECTION_BLOCKS};
     use crate::models::HorizontallyScrollableText;
     use crate::models::StatefulTable;
     use crate::test_edit_collection_key;

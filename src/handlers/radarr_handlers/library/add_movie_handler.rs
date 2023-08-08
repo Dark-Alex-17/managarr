@@ -1,6 +1,8 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-use crate::app::radarr::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS};
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::models::servarr_data::radarr_data::{
+  ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS,
+};
 use crate::models::{BlockSelectionState, Scrollable, StatefulTable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys, App, Key};

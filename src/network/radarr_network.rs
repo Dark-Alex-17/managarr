@@ -6,7 +6,6 @@ use serde::Serialize;
 use serde_json::{json, Number, Value};
 use urlencoding::encode;
 
-use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, Collection, CollectionMovie,
@@ -14,6 +13,7 @@ use crate::models::radarr_models::{
   IndexerSettings, LogResponse, Movie, MovieCommandBody, MovieHistoryItem, QualityProfile,
   QueueEvent, Release, ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task, Update,
 };
+use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
 use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
 use crate::utils::{convert_runtime, convert_to_gb};

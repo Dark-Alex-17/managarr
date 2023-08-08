@@ -2,8 +2,8 @@ use tui::backend::Backend;
 use tui::layout::Rect;
 use tui::Frame;
 
-use crate::app::radarr::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 use crate::app::App;
+use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::{draw_prompt_box_with_checkboxes, draw_prompt_popup_over, DrawUi};

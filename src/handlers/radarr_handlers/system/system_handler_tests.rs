@@ -5,11 +5,11 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::app::radarr::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::system::SystemHandler;
   use crate::handlers::KeyEventHandler;
+  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
   use crate::test_handler_delegation;
 
   mod test_handle_left_right_action {

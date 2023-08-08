@@ -4,9 +4,9 @@ use tui::text::Text;
 use tui::widgets::{Cell, Row};
 use tui::Frame;
 
-use crate::app::radarr::{ActiveRadarrBlock, INDEXERS_BLOCKS};
 use crate::app::App;
 use crate::models::radarr_models::Indexer;
+use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, INDEXERS_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
 use crate::ui::utils::{layout_block_top_border, style_failure, style_primary, style_success};

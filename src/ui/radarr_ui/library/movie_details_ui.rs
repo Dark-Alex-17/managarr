@@ -7,9 +7,9 @@ use tui::text::{Line, Span, Text};
 use tui::widgets::{Cell, ListItem, Paragraph, Row, Wrap};
 use tui::Frame;
 
-use crate::app::radarr::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
 use crate::app::App;
 use crate::models::radarr_models::{Credit, MovieHistoryItem, Release, ReleaseField};
+use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::utils::{

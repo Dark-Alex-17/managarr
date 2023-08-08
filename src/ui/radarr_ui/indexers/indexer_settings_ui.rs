@@ -2,8 +2,8 @@ use tui::backend::Backend;
 use tui::layout::Rect;
 use tui::Frame;
 
-use crate::app::radarr::INDEXER_SETTINGS_BLOCKS;
 use crate::app::App;
+use crate::models::servarr_data::radarr_data::INDEXER_SETTINGS_BLOCKS;
 use crate::models::Route;
 use crate::ui::DrawUi;
 

@@ -1,7 +1,4 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-use crate::app::radarr::{
-  ActiveRadarrBlock, DELETE_MOVIE_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, LIBRARY_BLOCKS,
-};
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handlers::library::add_movie_handler::AddMovieHandler;
@@ -12,6 +9,9 @@ use crate::handlers::radarr_handlers::{
   filter_table, handle_change_tab_left_right_keys, search_table,
 };
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
+use crate::models::servarr_data::radarr_data::{
+  ActiveRadarrBlock, DELETE_MOVIE_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, LIBRARY_BLOCKS,
+};
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};

@@ -6,8 +6,8 @@ use tui::Frame;
 
 use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
 use crate::app::radarr::radarr_context_clues::SYSTEM_TASKS_CONTEXT_CLUES;
-use crate::app::radarr::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::app::App;
+use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::radarr_ui_utils::determine_log_style_by_level;
 use crate::ui::radarr_ui::system::{

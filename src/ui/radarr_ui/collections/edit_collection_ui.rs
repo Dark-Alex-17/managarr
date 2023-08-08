@@ -2,8 +2,10 @@ use tui::backend::Backend;
 use tui::layout::{Constraint, Rect};
 use tui::Frame;
 
-use crate::app::radarr::{ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS};
 use crate::app::App;
+use crate::models::servarr_data::radarr_data::{
+  ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS,
+};
 use crate::models::Route;
 use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsUi;
 use crate::ui::radarr_ui::collections::draw_collections;

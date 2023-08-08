@@ -5,11 +5,13 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::app::radarr::{ActiveRadarrBlock, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS};
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::indexers::IndexersHandler;
   use crate::handlers::KeyEventHandler;
+  use crate::models::servarr_data::radarr_data::{
+    ActiveRadarrBlock, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
+  };
   use crate::test_handler_delegation;
 
   mod test_handle_scroll_up_and_down {
@@ -251,8 +253,8 @@ mod tests {
   mod test_handle_key_char {
     use pretty_assertions::assert_eq;
 
-    use crate::app::radarr::INDEXER_SETTINGS_SELECTION_BLOCKS;
     use crate::assert_refresh_key;
+    use crate::models::servarr_data::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS;
 
     use super::*;
 

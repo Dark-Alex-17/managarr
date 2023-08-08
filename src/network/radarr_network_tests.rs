@@ -12,11 +12,11 @@ mod test {
   use tokio::sync::Mutex;
   use tokio_util::sync::CancellationToken;
 
-  use crate::app::radarr::ActiveRadarrBlock;
   use crate::models::radarr_models::{
     CollectionMovie, IndexerField, IndexerSelectOption, Language, MediaInfo, MinimumAvailability,
     Monitor, MovieFile, Quality, QualityWrapper, Rating, RatingsList,
   };
+  use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
   use crate::models::HorizontallyScrollableText;
   use crate::App;
 

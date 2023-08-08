@@ -5,13 +5,13 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::app::radarr::ActiveRadarrBlock;
   use crate::app::App;
   use crate::handlers::radarr_handlers::{
     filter_table, handle_change_tab_left_right_keys, search_table, RadarrHandler,
   };
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::Movie;
+  use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
   use crate::models::HorizontallyScrollableText;
   use crate::{extended_stateful_iterable_vec, test_handler_delegation};
 

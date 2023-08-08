@@ -9,10 +9,12 @@ use tui::widgets::ListItem;
 use tui::widgets::Paragraph;
 use tui::Frame;
 
-use crate::app::radarr::{ActiveRadarrBlock, RadarrData, FILTER_BLOCKS, SEARCH_BLOCKS};
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
 use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie, RootFolder};
+use crate::models::servarr_data::radarr_data::{
+  ActiveRadarrBlock, RadarrData, FILTER_BLOCKS, SEARCH_BLOCKS,
+};
 use crate::models::Route;
 use crate::ui::draw_selectable_list;
 use crate::ui::draw_tabs;

@@ -4,11 +4,13 @@ use serde_json::Number;
 use strum::IntoEnumIterator;
 
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-use crate::app::radarr::{ActiveRadarrBlock, EDIT_MOVIE_SELECTION_BLOCKS, MOVIE_DETAILS_BLOCKS};
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::radarr_models::{Language, Release, ReleaseField};
+use crate::models::servarr_data::radarr_data::{
+  ActiveRadarrBlock, EDIT_MOVIE_SELECTION_BLOCKS, MOVIE_DETAILS_BLOCKS,
+};
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 

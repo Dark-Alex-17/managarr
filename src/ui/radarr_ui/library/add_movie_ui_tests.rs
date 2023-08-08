@@ -2,7 +2,7 @@
 mod tests {
   use strum::IntoEnumIterator;
 
-  use crate::app::radarr::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
+  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
   use crate::ui::radarr_ui::library::add_movie_ui::AddMovieUi;
   use crate::ui::DrawUi;
 

@@ -6,8 +6,8 @@ use tui::Frame;
 
 use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
 use crate::app::radarr::radarr_context_clues::ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES;
-use crate::app::radarr::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
 use crate::models::radarr_models::AddMovieSearchResult;
+use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::collections::{draw_collection_details, draw_collections};
 use crate::ui::radarr_ui::library::draw_library;

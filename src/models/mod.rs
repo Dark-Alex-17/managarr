@@ -1,12 +1,12 @@
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 
+use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
 use serde::Deserialize;
 use tui::widgets::{ListState, TableState};
 
-use crate::app::radarr::ActiveRadarrBlock;
-
 pub mod radarr_models;
+pub mod servarr_data;
 
 #[cfg(test)]
 #[path = "model_tests.rs"]

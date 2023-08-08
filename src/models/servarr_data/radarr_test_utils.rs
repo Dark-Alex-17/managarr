@@ -1,10 +1,10 @@
 #[cfg(test)]
 pub mod utils {
-  use crate::app::radarr::RadarrData;
   use crate::models::radarr_models::{
     AddMovieSearchResult, Collection, CollectionMovie, Credit, MinimumAvailability, Monitor, Movie,
     MovieHistoryItem, Release, ReleaseField, RootFolder,
   };
+  use crate::models::servarr_data::radarr_data::RadarrData;
   use crate::models::{HorizontallyScrollableText, ScrollableText};
 
   pub fn create_test_radarr_data<'a>() -> RadarrData<'a> {

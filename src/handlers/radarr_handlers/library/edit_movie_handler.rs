@@ -1,8 +1,8 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-use crate::app::radarr::{ActiveRadarrBlock, EDIT_MOVIE_BLOCKS};
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, EDIT_MOVIE_BLOCKS};
 use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};

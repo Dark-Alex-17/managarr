@@ -1,5 +1,4 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-use crate::app::radarr::{ActiveRadarrBlock, COLLECTIONS_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS};
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handlers::collections::collection_details_handler::CollectionDetailsHandler;
@@ -11,6 +10,7 @@ use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, COLLECTIONS_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS};
 
 mod collection_details_handler;
 mod edit_collection_handler;

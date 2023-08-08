@@ -4,7 +4,6 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::app::radarr::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::library::add_movie_handler::AddMovieHandler;
@@ -12,6 +11,7 @@ mod tests {
   use crate::models::radarr_models::{
     AddMovieSearchResult, MinimumAvailability, Monitor, RootFolder,
   };
+  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
   use crate::models::HorizontallyScrollableText;
 
   mod test_handle_scroll_up_and_down {
@@ -19,7 +19,7 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
-    use crate::app::radarr::ADD_MOVIE_SELECTION_BLOCKS;
+    use crate::models::servarr_data::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
     use crate::{simple_stateful_iterable_vec, test_enum_scroll, test_iterable_scroll};
 
@@ -214,8 +214,8 @@ mod tests {
     use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;
 
-    use crate::app::radarr::ADD_MOVIE_SELECTION_BLOCKS;
     use crate::models::radarr_models::Movie;
+    use crate::models::servarr_data::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
     use crate::network::radarr_network::RadarrEvent;
 
@@ -464,7 +464,7 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::app::radarr::radarr_test_utils::utils::create_test_radarr_data;
+    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::{
       assert_edit_media_reset, assert_preferences_selections_reset, assert_search_reset,
       simple_stateful_iterable_vec,

@@ -11,7 +11,9 @@ use tui::{
   Frame,
 };
 
+use crate::app::App;
 use crate::models::radarr_models::Task;
+use crate::models::servarr_data::radarr_data::ActiveRadarrBlock;
 use crate::ui::radarr_ui::radarr_ui_utils::{
   convert_to_minutes_hours_days, determine_log_style_by_level,
 };
@@ -19,7 +21,6 @@ use crate::ui::radarr_ui::system::system_details_ui::SystemDetailsUi;
 use crate::ui::utils::{layout_block_top_border, style_help, style_primary};
 use crate::ui::{draw_table, ListProps, TableProps};
 use crate::{
-  app::{radarr::ActiveRadarrBlock, App},
   models::Route,
   ui::{
     draw_list_box,

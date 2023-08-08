@@ -5,14 +5,14 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::app::radarr::{
-    ActiveRadarrBlock, COLLECTIONS_BLOCKS, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS,
-  };
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::collections::CollectionsHandler;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::Collection;
+  use crate::models::servarr_data::radarr_data::{
+    ActiveRadarrBlock, COLLECTIONS_BLOCKS, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS,
+  };
   use crate::models::HorizontallyScrollableText;
   use crate::{extended_stateful_iterable_vec, test_handler_delegation};
 
@@ -375,7 +375,7 @@ mod tests {
   mod test_handle_esc {
     use pretty_assertions::assert_eq;
 
-    use crate::app::radarr::radarr_test_utils::utils::create_test_radarr_data;
+    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::{assert_filter_reset, assert_search_reset};
 
     use super::*;
@@ -478,10 +478,9 @@ mod tests {
     use serde_json::Number;
     use strum::IntoEnumIterator;
 
-    use crate::app::radarr::radarr_test_utils::utils::create_test_radarr_data;
-    use crate::app::radarr::RadarrData;
-    use crate::app::radarr::EDIT_COLLECTION_SELECTION_BLOCKS;
     use crate::models::radarr_models::MinimumAvailability;
+    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
+    use crate::models::servarr_data::radarr_data::{RadarrData, EDIT_COLLECTION_SELECTION_BLOCKS};
     use crate::models::HorizontallyScrollableText;
     use crate::models::StatefulTable;
     use crate::{assert_refresh_key, test_edit_collection_key};

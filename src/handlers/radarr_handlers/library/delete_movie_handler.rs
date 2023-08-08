@@ -1,7 +1,7 @@
-use crate::app::radarr::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 use crate::network::radarr_network::RadarrEvent;
 
 #[cfg(test)]

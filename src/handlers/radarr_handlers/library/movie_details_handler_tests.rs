@@ -6,7 +6,6 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::app::radarr::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::library::movie_details_handler::{
@@ -16,6 +15,7 @@ mod tests {
   use crate::models::radarr_models::{
     Credit, Language, MovieHistoryItem, Quality, QualityWrapper, Release, ReleaseField,
   };
+  use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
   use crate::models::{HorizontallyScrollableText, ScrollableText};
 
   mod test_handle_scroll_up_and_down {
@@ -354,8 +354,8 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::app::radarr::radarr_test_utils::utils::create_test_radarr_data;
     use crate::assert_movie_info_tabs_reset;
+    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
 
     use super::*;
 
@@ -412,10 +412,9 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
-    use crate::app::radarr::radarr_test_utils::utils::create_test_radarr_data;
-    use crate::app::radarr::RadarrData;
-    use crate::app::radarr::EDIT_MOVIE_SELECTION_BLOCKS;
     use crate::models::radarr_models::{MinimumAvailability, Movie};
+    use crate::models::servarr_data::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
+    use crate::models::servarr_data::radarr_data::{RadarrData, EDIT_MOVIE_SELECTION_BLOCKS};
     use crate::models::HorizontallyScrollableText;
     use crate::models::StatefulTable;
     use crate::test_edit_movie_key;

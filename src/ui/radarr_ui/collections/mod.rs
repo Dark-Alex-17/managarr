@@ -5,9 +5,9 @@ use tui::Frame;
 
 pub(super) use collection_details_ui::draw_collection_details;
 
-use crate::app::radarr::{ActiveRadarrBlock, COLLECTIONS_BLOCKS};
 use crate::app::App;
 use crate::models::radarr_models::Collection;
+use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, COLLECTIONS_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsUi;
 use crate::ui::radarr_ui::collections::edit_collection_ui::EditCollectionUi;

@@ -6,8 +6,8 @@ use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
 use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
-use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
 use crate::models::{HorizontallyScrollableText, Route, TabRoute, TabState};
+use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, RadarrData};
 use crate::network::NetworkEvent;
 
 #[cfg(test)]
