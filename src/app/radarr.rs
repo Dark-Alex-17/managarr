@@ -131,16 +131,13 @@ pub enum ActiveRadarrBlock {
   CollectionDetails,
   Cast,
   Crew,
-  Events,
   FileInfo,
-  Logs,
   Movies,
   MovieDetails,
   MovieHistory,
   Downloads,
   SearchMovie,
   SortOptions,
-  Tasks,
   ViewMovieOverview,
 }
 

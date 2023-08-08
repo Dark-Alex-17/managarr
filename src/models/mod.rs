@@ -12,6 +12,13 @@ pub mod radarr_models;
 pub enum Route {
   Radarr(ActiveRadarrBlock),
   Sonarr,
+  Readarr,
+  Lidarr,
+  Whisparr,
+  Bazarr,
+  Prowlarr,
+  Overseerr,
+  Tautulli,
 }
 
 pub trait Scrollable {

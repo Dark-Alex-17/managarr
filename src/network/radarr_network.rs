@@ -175,7 +175,7 @@ impl<'a> Network<'a> {
 
           let tmdb_rating = if let Some(rating) = ratings.tmdb {
             if let Some(value) = rating.value.as_f64() {
-              format!("{}%", value * 10f64)
+              format!("{}%", (value * 10f64).ceil())
             } else {
               "".to_owned()
             }
