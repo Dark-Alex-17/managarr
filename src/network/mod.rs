@@ -125,3 +125,48 @@ pub struct RequestProps<T: Serialize + Debug> {
   pub body: Option<T>,
   pub api_token: String,
 }
+
+#[cfg(test)]
+mod tests {
+  use std::sync::Arc;
+
+  use mockito::Server;
+  use tokio::sync::Mutex;
+
+  use crate::app::{App, RadarrConfig};
+  use crate::network::radarr_network::RadarrEvent;
+  use crate::network::Network;
+
+  #[tokio::test]
+  async fn test_handle_network_event() {
+    let mut server = Server::new_async().await;
+    let radarr_server = server
+      .mock("GET", "/api/v3/health")
+      .with_status(200)
+      .create_async()
+      .await;
+    let host = server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned();
+    let port = Some(
+      server.host_with_port().split(':').collect::<Vec<&str>>()[1]
+        .parse()
+        .unwrap(),
+    );
+    let mut app = App::default();
+    app.is_loading = true;
+    let radarr_config = RadarrConfig {
+      host,
+      api_token: String::default(),
+      port,
+    };
+    app.config.radarr = radarr_config;
+    let app_arc = Arc::new(Mutex::new(app));
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network
+      .handle_network_event(RadarrEvent::HealthCheck.into())
+      .await;
+
+    radarr_server.assert_async().await;
+    assert!(!app_arc.lock().await.is_loading);
+  }
+}
