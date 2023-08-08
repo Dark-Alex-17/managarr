@@ -116,6 +116,10 @@ tautulli:
 
 - [ ] Support for Tautulli
 
+## Demos
+
+### Radarr
+![radarr_demo](demos/radarr_demo.mp4)
 
 ## Dependencies
 - [tui-rs](https://github.com/fdehau/tui-rs)
@@ -126,12 +130,12 @@ tautulli:
 - [reqwest](https://github.com/seanmonstar/reqwest)
 
 ## Servarr Requirements
-* [Radarr v3](https://radarr.video/docs/api/)
-* [Sonarr v3](https://sonarr.tv/docs/api/)
+* [Radarr >= v3](https://radarr.video/docs/api/)
+* [Sonarr >= v3](https://sonarr.tv/docs/api/)
 * [Readarr v1](https://readarr.com/docs/api/)
 * [Lidarr v1](https://lidarr.audio/docs/api/)
-* [Whisparr v3](https://whisparr.com/docs/api/)
+* [Whisparr >= v3](https://whisparr.com/docs/api/)
 * [Prowlarr v1](https://prowlarr.com/docs/api/)
 * [Bazarr v1.1.4](http://localhost:6767/api)
 * [Overseerr v1](https://api-docs.overseerr.dev/)
-* [Tautulli v2](https://github.com/Tautulli/Tautulli/wiki/Tautulli-API-Reference)
+* [Tautulli >= v2](https://github.com/Tautulli/Tautulli/wiki/Tautulli-API-Reference)
