@@ -33,7 +33,7 @@ pub fn ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
       vec![
         Constraint::Length(3),
         Constraint::Length(3),
-        Constraint::Length(16),
+        Constraint::Length(10),
         Constraint::Length(0),
       ],
       f.size(),
@@ -47,7 +47,7 @@ pub fn ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
     vertical_chunks_with_margin(
       vec![
         Constraint::Length(3),
-        Constraint::Length(16),
+        Constraint::Length(10),
         Constraint::Length(0),
       ],
       f.size(),

@@ -176,10 +176,16 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
 }
 
 pub(super) fn draw_radarr_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
-  let chunks = horizontal_chunks(vec![Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)], area);
+  let chunks = horizontal_chunks(vec![Constraint::Min(0), Constraint::Length(20)], area);
 
-  draw_stats_context(f, app, chunks[0]);
-  draw_downloads_context(f, app, chunks[1]);
+  let context_chunks = horizontal_chunks(
+    vec![Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)],
+    chunks[0],
+  );
+
+  draw_stats_context(f, app, context_chunks[0]);
+  draw_downloads_context(f, app, context_chunks[1]);
+  draw_radarr_logo(f, chunks[1]);
 }
 
 fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
@@ -438,6 +444,94 @@ fn draw_filter_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
   }
 }
 
+fn draw_radarr_logo<B: Backend>(f: &mut Frame<'_, B>, area: Rect) {
+  let mut logo_text = Text::from(RADARR_LOGO);
+  logo_text.patch_style(Style::default().fg(Color::LightYellow));
+  let logo = Paragraph::new(logo_text)
+    .block(layout_block())
+    .alignment(Alignment::Center);
+  f.render_widget(logo, area);
+}
+
+fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+  let block = title_block("Stats");
+
+  if !app.data.radarr_data.version.is_empty() {
+    f.render_widget(block, area);
+    let RadarrData {
+      disk_space_vec,
+      start_time,
+      ..
+    } = &app.data.radarr_data;
+
+    let mut constraints = vec![
+      Constraint::Length(1),
+      Constraint::Length(1),
+      Constraint::Length(1),
+    ];
+
+    constraints.append(
+      &mut iter::repeat(Constraint::Min(2))
+        .take(disk_space_vec.len())
+        .collect(),
+    );
+
+    let chunks = vertical_chunks_with_margin(constraints, area, 1);
+
+    let version_paragraph = Paragraph::new(Text::from(format!(
+      "Radarr Version:  {}",
+      app.data.radarr_data.version
+    )))
+    .block(borderless_block());
+
+    let uptime = Utc::now().sub(start_time.to_owned());
+    let days = uptime.num_days();
+    let day_difference = uptime.sub(Duration::days(days));
+    let hours = day_difference.num_hours();
+    let hour_difference = day_difference.sub(Duration::hours(hours));
+    let minutes = hour_difference.num_minutes();
+    let seconds = hour_difference
+      .sub(Duration::minutes(minutes))
+      .num_seconds();
+
+    let uptime_paragraph = Paragraph::new(Text::from(format!(
+      "Uptime: {}d {:0width$}:{:0width$}:{:0width$}",
+      days,
+      hours,
+      minutes,
+      seconds,
+      width = 2
+    )))
+    .block(borderless_block());
+
+    let storage =
+      Paragraph::new(Text::from("Storage:")).block(borderless_block().style(style_bold()));
+
+    f.render_widget(version_paragraph, chunks[0]);
+    f.render_widget(uptime_paragraph, chunks[1]);
+    f.render_widget(storage, chunks[2]);
+
+    for i in 0..disk_space_vec.len() {
+      let DiskSpace {
+        free_space,
+        total_space,
+      } = &disk_space_vec[i];
+      let title = format!("Disk {}", i + 1);
+      let ratio = if total_space.as_u64().unwrap() == 0 {
+        0f64
+      } else {
+        1f64 - (free_space.as_u64().unwrap() as f64 / total_space.as_u64().unwrap() as f64)
+      };
+
+      let space_gauge = line_gauge_with_label(title.as_str(), ratio);
+
+      f.render_widget(space_gauge, chunks[i + 3]);
+    }
+  } else {
+    loading(f, block, area, app.is_loading);
+  }
+}
+
 fn draw_downloads_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let block = title_block("Downloads");
   let downloads_vec = &app.data.radarr_data.downloads.items;
@@ -459,9 +553,9 @@ fn draw_downloads_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rec
         ..
       } = &downloads_vec[i];
       let percent = 1f64 - (sizeleft.as_f64().unwrap() / size.as_f64().unwrap());
-      let download_gague = line_gauge_with_title(title, percent);
+      let download_gauge = line_gauge_with_title(title, percent);
 
-      f.render_widget(download_gague, chunks[i]);
+      f.render_widget(download_gauge, chunks[i]);
     }
   } else {
     loading(f, block, area, app.is_loading);
@@ -624,92 +718,6 @@ fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect)
     },
     app.is_loading,
   );
-}
-
-fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
-  let block = title_block("Stats");
-
-  if !app.data.radarr_data.version.is_empty() {
-    f.render_widget(block, area);
-    let RadarrData {
-      disk_space_vec,
-      start_time,
-      ..
-    } = &app.data.radarr_data;
-
-    let mut constraints = vec![
-      Constraint::Percentage(60),
-      Constraint::Length(1),
-      Constraint::Length(1),
-      Constraint::Length(1),
-    ];
-
-    constraints.append(
-      &mut iter::repeat(Constraint::Min(2))
-        .take(disk_space_vec.len())
-        .collect(),
-    );
-
-    let chunks = vertical_chunks_with_margin(constraints, area, 1);
-
-    let version_paragraph = Paragraph::new(Text::from(format!(
-      "Radarr Version:  {}",
-      app.data.radarr_data.version
-    )))
-    .block(borderless_block());
-
-    let uptime = Utc::now().sub(start_time.to_owned());
-    let days = uptime.num_days();
-    let day_difference = uptime.sub(Duration::days(days));
-    let hours = day_difference.num_hours();
-    let hour_difference = day_difference.sub(Duration::hours(hours));
-    let minutes = hour_difference.num_minutes();
-    let seconds = hour_difference
-      .sub(Duration::minutes(minutes))
-      .num_seconds();
-
-    let uptime_paragraph = Paragraph::new(Text::from(format!(
-      "Uptime: {}d {:0width$}:{:0width$}:{:0width$}",
-      days,
-      hours,
-      minutes,
-      seconds,
-      width = 2
-    )))
-    .block(borderless_block());
-
-    let mut logo_text = Text::from(RADARR_LOGO);
-    logo_text.patch_style(Style::default().fg(Color::LightYellow));
-    let logo = Paragraph::new(logo_text)
-      .block(borderless_block())
-      .alignment(Alignment::Center);
-    let storage =
-      Paragraph::new(Text::from("Storage:")).block(borderless_block().style(style_bold()));
-
-    f.render_widget(logo, chunks[0]);
-    f.render_widget(version_paragraph, chunks[1]);
-    f.render_widget(uptime_paragraph, chunks[2]);
-    f.render_widget(storage, chunks[3]);
-
-    for i in 0..disk_space_vec.len() {
-      let DiskSpace {
-        free_space,
-        total_space,
-      } = &disk_space_vec[i];
-      let title = format!("Disk {}", i + 1);
-      let ratio = if total_space.as_u64().unwrap() == 0 {
-        0f64
-      } else {
-        1f64 - (free_space.as_u64().unwrap() as f64 / total_space.as_u64().unwrap() as f64)
-      };
-
-      let space_gauge = line_gauge_with_label(title.as_str(), ratio);
-
-      f.render_widget(space_gauge, chunks[i + 4]);
-    }
-  } else {
-    loading(f, block, area, app.is_loading);
-  }
 }
 
 fn determine_row_style(downloads_vec: &[DownloadRecord], movie: &Movie) -> Style {
