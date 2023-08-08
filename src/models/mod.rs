@@ -43,6 +43,10 @@ macro_rules! stateful_iterable {
 
     impl<T> Scrollable for $name<T> {
       fn scroll_down(&mut self) {
+        if self.items.is_empty() {
+          return;
+        }
+
         let selected_row = match self.state.selected() {
           Some(i) => {
             if i >= self.items.len() - 1 {
@@ -58,6 +62,10 @@ macro_rules! stateful_iterable {
       }
 
       fn scroll_up(&mut self) {
+        if self.items.is_empty() {
+          return;
+        }
+
         let selected_row = match self.state.selected() {
           Some(i) => {
             if i == 0 {
@@ -73,10 +81,18 @@ macro_rules! stateful_iterable {
       }
 
       fn scroll_to_top(&mut self) {
+        if self.items.is_empty() {
+          return;
+        }
+
         self.state.select(Some(0));
       }
 
       fn scroll_to_bottom(&mut self) {
+        if self.items.is_empty() {
+          return;
+        }
+
         self.state.select(Some(self.items.len() - 1));
       }
     }
@@ -141,12 +157,20 @@ impl ScrollableText {
 
 impl Scrollable for ScrollableText {
   fn scroll_down(&mut self) {
+    if self.items.is_empty() {
+      return;
+    }
+
     if self.offset < (self.items.len() - 1) as u16 {
       self.offset += 1;
     }
   }
 
   fn scroll_up(&mut self) {
+    if self.items.is_empty() {
+      return;
+    }
+
     if self.offset > 0 {
       self.offset -= 1;
     }

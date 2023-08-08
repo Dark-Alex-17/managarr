@@ -6,8 +6,8 @@ mod tests {
 
   use crate::app::radarr::ActiveRadarrBlock;
   use crate::models::{
-    BlockSelectionState, HorizontallyScrollableText, Scrollable, ScrollableText, StatefulTable,
-    TabRoute, TabState,
+    BlockSelectionState, HorizontallyScrollableText, Scrollable, ScrollableText, StatefulList,
+    StatefulTable, TabRoute, TabState,
   };
 
   const BLOCKS: [ActiveRadarrBlock; 6] = [
@@ -18,6 +18,27 @@ mod tests {
     ActiveRadarrBlock::AddMovieTagsInput,
     ActiveRadarrBlock::AddMovieConfirmPrompt,
   ];
+
+  #[test]
+  fn test_stateful_table_scrolling_on_empty_table_performs_no_op() {
+    let mut stateful_table: StatefulTable<String> = StatefulTable::default();
+
+    assert_eq!(stateful_table.state.selected(), None);
+
+    stateful_table.scroll_up();
+
+    assert_eq!(stateful_table.state.selected(), None);
+
+    stateful_table.scroll_down();
+
+    assert_eq!(stateful_table.state.selected(), None);
+
+    stateful_table.scroll_to_top();
+
+    assert_eq!(stateful_table.state.selected(), None);
+
+    stateful_table.scroll_to_bottom();
+  }
 
   #[test]
   fn test_stateful_table_scroll() {
@@ -112,6 +133,104 @@ mod tests {
   }
 
   #[test]
+  fn test_stateful_list_scrolling_on_empty_table_performs_no_op() {
+    let mut stateful_list: StatefulList<String> = StatefulList::default();
+
+    assert_eq!(stateful_list.state.selected(), None);
+
+    stateful_list.scroll_up();
+
+    assert_eq!(stateful_list.state.selected(), None);
+
+    stateful_list.scroll_down();
+
+    assert_eq!(stateful_list.state.selected(), None);
+
+    stateful_list.scroll_to_top();
+
+    assert_eq!(stateful_list.state.selected(), None);
+
+    stateful_list.scroll_to_bottom();
+  }
+
+  #[test]
+  fn test_stateful_list_scroll() {
+    let mut stateful_list = create_test_stateful_list();
+
+    assert_eq!(stateful_list.state.selected(), Some(0));
+
+    stateful_list.scroll_down();
+
+    assert_eq!(stateful_list.state.selected(), Some(1));
+
+    stateful_list.scroll_down();
+
+    assert_eq!(stateful_list.state.selected(), Some(0));
+
+    stateful_list.scroll_up();
+
+    assert_eq!(stateful_list.state.selected(), Some(1));
+
+    stateful_list.scroll_up();
+
+    assert_eq!(stateful_list.state.selected(), Some(0));
+
+    stateful_list.scroll_to_bottom();
+
+    assert_eq!(stateful_list.state.selected(), Some(1));
+
+    stateful_list.scroll_to_top();
+
+    assert_eq!(stateful_list.state.selected(), Some(0));
+  }
+
+  #[test]
+  fn test_stateful_list_set_items() {
+    let items_vec = vec!["Test 1", "Test 2", "Test 3"];
+    let mut stateful_list: StatefulList<&str> = StatefulList::default();
+
+    stateful_list.set_items(items_vec.clone());
+
+    assert_eq!(stateful_list.state.selected(), Some(0));
+
+    stateful_list.state.select(Some(1));
+    stateful_list.set_items(items_vec.clone());
+
+    assert_eq!(stateful_list.state.selected(), Some(1));
+
+    stateful_list.state.select(Some(3));
+    stateful_list.set_items(items_vec);
+
+    assert_eq!(stateful_list.state.selected(), Some(2));
+  }
+
+  #[test]
+  fn test_stateful_list_current_selection() {
+    let mut stateful_list = create_test_stateful_list();
+
+    assert_str_eq!(stateful_list.current_selection(), &stateful_list.items[0]);
+
+    stateful_list.state.select(Some(1));
+
+    assert_str_eq!(stateful_list.current_selection(), &stateful_list.items[1]);
+  }
+
+  #[test]
+  fn test_stateful_list_scroll_up() {
+    let mut stateful_table = create_test_stateful_table();
+
+    assert_eq!(stateful_table.state.selected(), Some(0));
+
+    stateful_table.scroll_up();
+
+    assert_eq!(stateful_table.state.selected(), Some(1));
+
+    stateful_table.scroll_up();
+
+    assert_eq!(stateful_table.state.selected(), Some(0));
+  }
+
+  #[test]
   fn test_scrollable_text_with_string() {
     let scrollable_text = ScrollableText::with_string("Test \n String \n".to_owned());
 
@@ -153,6 +272,19 @@ mod tests {
     assert_eq!(scrollable_text.offset, 1);
 
     scrollable_text.scroll_to_top();
+
+    assert_eq!(scrollable_text.offset, 0);
+  }
+
+  #[test]
+  fn test_scrollable_text_scroll_up_or_down_performs_no_op_on_empty_text() {
+    let mut scrollable_text = ScrollableText::default();
+
+    scrollable_text.scroll_up();
+
+    assert_eq!(scrollable_text.offset, 0);
+
+    scrollable_text.scroll_down();
 
     assert_eq!(scrollable_text.offset, 0);
   }
@@ -533,5 +665,12 @@ mod tests {
     stateful_table.set_items(vec!["Test 1", "Test 2"]);
 
     stateful_table
+  }
+
+  fn create_test_stateful_list() -> StatefulList<&'static str> {
+    let mut stateful_list = StatefulList::default();
+    stateful_list.set_items(vec!["Test 1", "Test 2"]);
+
+    stateful_list
   }
 }
