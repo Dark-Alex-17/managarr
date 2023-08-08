@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use anyhow::anyhow;
 use log::{debug, error};
+use regex::Regex;
 use reqwest::{Client, RequestBuilder};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -71,13 +72,21 @@ impl<'a> Network<'a> {
             RequestMethod::Delete | RequestMethod::Put => (),
           }
         } else {
+          let status = response.status();
+          let whitespace_regex = Regex::new(r"\s+").unwrap();
+          let response_body = response.text().await.unwrap_or_default();
+          let error_body = whitespace_regex
+            .replace_all(&response_body.replace('\n', " "), " ")
+            .to_string();
+
           error!(
-            "Request failed. Received {} response code",
-            response.status()
+            "Request failed. Received {} response code with body: {}",
+            status, response_body
           );
           self.app.lock().await.handle_error(anyhow!(
-            "Request failed. Received {} response code",
-            response.status()
+            "Request failed. Received {} response code with body: {}",
+            status,
+            error_body
           ));
         }
       }
@@ -337,7 +346,31 @@ mod tests {
     async_server.assert_async().await;
     assert_str_eq!(
       app_arc.lock().await.error.text,
-      "Request failed. Received 404 Not Found response code"
+      r#"Request failed. Received 404 Not Found response code with body: { "value": "Test" }"#
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_request_non_success_code_empty_response_body() {
+    let (async_server, app_arc, server) = mock_api(RequestMethod::Post, 404, false).await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network
+      .handle_request::<(), Test>(
+        RequestProps {
+          uri: format!("{}/test", server.url()),
+          method: RequestMethod::Post,
+          body: None,
+          api_token: "test1234".to_owned(),
+        },
+        |response, mut app| app.error = HorizontallyScrollableText::from(response.value),
+      )
+      .await;
+
+    async_server.assert_async().await;
+    assert_str_eq!(
+      app_arc.lock().await.error.text,
+      r#"Request failed. Received 404 Not Found response code with body: "#
     );
   }
 
@@ -360,7 +393,11 @@ mod tests {
     let mut body = None::<Test>;
 
     if request_method == RequestMethod::Post {
-      async_server = async_server.with_body(r#"{ "value": "Test" }"#);
+      async_server = async_server.with_body(
+        r#"{ 
+        "value": "Test" 
+      }"#,
+      );
       body = Some(Test {
         value: "Test".to_owned(),
       });
@@ -402,7 +439,11 @@ mod tests {
       .with_status(response_status);
 
     if has_response_body {
-      async_server = async_server.with_body(r#"{ "value": "Test" }"#);
+      async_server = async_server.with_body(
+        r#"{ 
+        "value": "Test" 
+      }"#,
+      );
     }
 
     async_server = async_server.create_async().await;

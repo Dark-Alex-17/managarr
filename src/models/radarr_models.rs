@@ -324,6 +324,11 @@ pub struct AddMovieSearchResult {
   pub ratings: RatingsList,
 }
 
+#[derive(Default, Serialize, Debug)]
+pub struct AddRootFolderBody {
+  pub path: String,
+}
+
 #[derive(Default, Derivative, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct MovieCommandBody {

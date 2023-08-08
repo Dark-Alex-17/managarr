@@ -25,8 +25,9 @@ use crate::ui::radarr_ui::movie_details_ui::draw_movie_info_popup;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, horizontal_chunks, layout_block,
   layout_block_top_border, line_gauge_with_label, line_gauge_with_title, show_cursor,
-  style_awaiting_import, style_bold, style_default, style_failure, style_primary, style_success,
-  style_unmonitored, style_warning, title_block, title_block_centered, vertical_chunks_with_margin,
+  style_awaiting_import, style_bold, style_default, style_failure, style_help, style_primary,
+  style_success, style_unmonitored, style_warning, title_block, title_block_centered,
+  vertical_chunks_with_margin,
 };
 use crate::ui::{
   draw_drop_down_list, draw_large_popup_over, draw_medium_popup_over, draw_popup, draw_popup_over,
@@ -72,6 +73,15 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
       ),
       ActiveRadarrBlock::Downloads => draw_downloads(f, app, content_rect),
       ActiveRadarrBlock::RootFolders => draw_root_folders(f, app, content_rect),
+      ActiveRadarrBlock::AddRootFolderPrompt => draw_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_root_folders,
+        draw_add_root_folder_prompt_box,
+        30,
+        15,
+      ),
       ActiveRadarrBlock::Collections => draw_collections(f, app, content_rect),
       _ if MOVIE_DETAILS_BLOCKS.contains(&active_radarr_block) => {
         draw_large_popup_over(f, app, content_rect, draw_library, draw_movie_info_popup)
@@ -149,6 +159,13 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
         content_rect,
         draw_downloads,
         draw_delete_download_prompt,
+      ),
+      ActiveRadarrBlock::DeleteRootFolderPrompt => draw_prompt_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_root_folders,
+        draw_delete_root_folder_prompt,
       ),
       ActiveRadarrBlock::UpdateDownloadsPrompt => draw_prompt_popup_over(
         f,
@@ -361,6 +378,51 @@ fn draw_delete_download_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, 
     .as_str(),
     &app.data.radarr_data.prompt_confirm,
   );
+}
+
+fn draw_delete_root_folder_prompt<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  prompt_area: Rect,
+) {
+  draw_prompt_box(
+    f,
+    prompt_area,
+    "Delete Root Folder",
+    format!(
+      "Do you really want to delete this root folder: {}?",
+      app.data.radarr_data.root_folders.current_selection().path
+    )
+    .as_str(),
+    &app.data.radarr_data.prompt_confirm,
+  );
+}
+
+fn draw_add_root_folder_prompt_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+  let chunks = vertical_chunks_with_margin(
+    vec![
+      Constraint::Length(3),
+      Constraint::Length(1),
+      Constraint::Min(0),
+    ],
+    area,
+    1,
+  );
+  let block_title = "Add Root Folder";
+  let offset = *app.data.radarr_data.edit_path.offset.borrow();
+  let block_content = &app.data.radarr_data.edit_path.text;
+
+  let input = Paragraph::new(block_content.as_str())
+    .style(style_default())
+    .block(title_block_centered(block_title));
+  let help = Paragraph::new("<esc> cancel")
+    .style(style_help())
+    .alignment(Alignment::Center)
+    .block(borderless_block());
+  show_cursor(f, chunks[0], offset, block_content);
+
+  f.render_widget(input, chunks[0]);
+  f.render_widget(help, chunks[1]);
 }
 
 fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {

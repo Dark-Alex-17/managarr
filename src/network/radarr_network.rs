@@ -9,9 +9,10 @@ use urlencoding::encode;
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
-  AddMovieBody, AddMovieSearchResult, AddOptions, Collection, CollectionMovie, CommandBody, Credit,
-  CreditType, DiskSpace, DownloadRecord, DownloadsResponse, Movie, MovieCommandBody,
-  MovieHistoryItem, QualityProfile, Release, ReleaseDownloadBody, RootFolder, SystemStatus, Tag,
+  AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, Collection, CollectionMovie,
+  CommandBody, Credit, CreditType, DiskSpace, DownloadRecord, DownloadsResponse, Movie,
+  MovieCommandBody, MovieHistoryItem, QualityProfile, Release, ReleaseDownloadBody, RootFolder,
+  SystemStatus, Tag,
 };
 use crate::models::{Route, ScrollableText};
 use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
@@ -20,8 +21,10 @@ use crate::utils::{convert_runtime, convert_to_gb};
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum RadarrEvent {
   AddMovie,
+  AddRootFolder,
   DeleteDownload,
   DeleteMovie,
+  DeleteRootFolder,
   DownloadRelease,
   EditMovie,
   EditCollection,
@@ -62,7 +65,9 @@ impl RadarrEvent {
       RadarrEvent::GetOverview => "/diskspace",
       RadarrEvent::GetQualityProfiles => "/qualityprofile",
       RadarrEvent::GetReleases | RadarrEvent::DownloadRelease => "/release",
-      RadarrEvent::GetRootFolders => "/rootfolder",
+      RadarrEvent::AddRootFolder | RadarrEvent::GetRootFolders | RadarrEvent::DeleteRootFolder => {
+        "/rootfolder"
+      }
       RadarrEvent::GetStatus => "/system/status",
       RadarrEvent::GetTags => "/tag",
       RadarrEvent::TriggerAutomaticSearch
@@ -85,8 +90,10 @@ impl<'a> Network<'a> {
   pub async fn handle_radarr_event(&self, radarr_event: RadarrEvent) {
     match radarr_event {
       RadarrEvent::AddMovie => self.add_movie().await,
+      RadarrEvent::AddRootFolder => self.add_root_folder().await,
       RadarrEvent::DeleteMovie => self.delete_movie().await,
       RadarrEvent::DeleteDownload => self.delete_download().await,
+      RadarrEvent::DeleteRootFolder => self.delete_root_folder().await,
       RadarrEvent::DownloadRelease => self.download_release().await,
       RadarrEvent::EditMovie => self.edit_movie().await,
       RadarrEvent::EditCollection => self.edit_collection().await,
@@ -726,6 +733,42 @@ impl<'a> Network<'a> {
       .await;
   }
 
+  async fn delete_root_folder(&self) {
+    let root_folder_id = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .root_folders
+      .current_selection()
+      .id
+      .as_u64()
+      .unwrap();
+
+    info!(
+      "Deleting Radarr root folder for folder with id: {}",
+      root_folder_id
+    );
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!(
+          "{}/{}",
+          RadarrEvent::DeleteRootFolder.resource(),
+          root_folder_id
+        )
+        .as_str(),
+        RequestMethod::Delete,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await;
+  }
+
   async fn add_movie(&self) {
     info!("Adding new movie to Radarr");
     let body = {
@@ -801,6 +844,27 @@ impl<'a> Network<'a> {
 
     self
       .handle_request::<AddMovieBody, Value>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn add_root_folder(&self) {
+    info!("Adding new root folder to Radarr");
+    let body = AddRootFolderBody {
+      path: self.app.lock().await.data.radarr_data.edit_path.drain(),
+    };
+
+    debug!("Add root folder body: {:?}", body);
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::AddRootFolder.resource(),
+        RequestMethod::Post,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<AddRootFolderBody, Value>(request_props, |_, _| ())
       .await;
   }
 
@@ -2178,9 +2242,34 @@ mod test {
     async_server.assert_async().await;
   }
 
+  #[tokio::test]
+  async fn test_handle_delete_root_folder_event() {
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      format!("{}/1", RadarrEvent::DeleteRootFolder.resource()).as_str(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .root_folders
+      .set_items(vec![root_folder()]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network
+      .handle_radarr_event(RadarrEvent::DeleteRootFolder)
+      .await;
+
+    async_server.assert_async().await;
+  }
+
   #[rstest]
   #[tokio::test]
-  async fn test_handle_add_movie_event(#[values(true, false)] collection_details_context: bool) {
+  async fn test_handle_add_movie_event(#[values(true, false)] movie_details_context: bool) {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -2239,7 +2328,7 @@ mod test {
         .radarr_data
         .minimum_availability_list
         .set_items(Vec::from_iter(MinimumAvailability::iter()));
-      if collection_details_context {
+      if movie_details_context {
         app
           .data
           .radarr_data
@@ -2259,6 +2348,37 @@ mod test {
     network.handle_radarr_event(RadarrEvent::AddMovie).await;
 
     async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_root_folder_event() {
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "path": "/nfs/test"
+      })),
+      None,
+      RadarrEvent::AddRootFolder.resource(),
+    )
+    .await;
+
+    app_arc.lock().await.data.radarr_data.edit_path =
+      HorizontallyScrollableText::from("/nfs/test".to_owned());
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network
+      .handle_radarr_event(RadarrEvent::AddRootFolder)
+      .await;
+
+    async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .edit_path
+      .text
+      .is_empty());
   }
 
   #[tokio::test]

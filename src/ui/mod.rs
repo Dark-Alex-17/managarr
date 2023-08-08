@@ -6,7 +6,7 @@ use tui::widgets::Paragraph;
 use tui::widgets::Row;
 use tui::widgets::Table;
 use tui::widgets::Tabs;
-use tui::widgets::{Block, Borders, Wrap};
+use tui::widgets::{Block, Wrap};
 use tui::widgets::{Clear, List, ListItem};
 use tui::Frame;
 
@@ -87,10 +87,8 @@ fn draw_header_row<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
 }
 
 fn draw_error<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
-  let block = borderless_block()
-    .title("Error | <esc> to close")
-    .style(style_failure())
-    .borders(Borders::ALL);
+  let block =
+    title_block("Error | <esc> to close").style(style_failure().add_modifier(Modifier::BOLD));
 
   app.error.scroll_left_or_reset(
     area.width as usize,

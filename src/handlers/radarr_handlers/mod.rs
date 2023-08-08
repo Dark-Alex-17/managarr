@@ -9,7 +9,7 @@ use crate::handlers::radarr_handlers::edit_collection_handler::EditCollectionHan
 use crate::handlers::radarr_handlers::edit_movie_handler::EditMovieHandler;
 use crate::handlers::radarr_handlers::movie_details_handler::MovieDetailsHandler;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
-use crate::models::Scrollable;
+use crate::models::{HorizontallyScrollableText, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::utils::strip_non_alphanumeric_characters;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
@@ -164,6 +164,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       ActiveRadarrBlock::FilterMovies | ActiveRadarrBlock::FilterCollections => {
         self.app.data.radarr_data.filter.scroll_home()
       }
+      ActiveRadarrBlock::AddRootFolderPrompt => self.app.data.radarr_data.edit_path.scroll_home(),
       _ => (),
     }
   }
@@ -204,6 +205,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       ActiveRadarrBlock::FilterMovies | ActiveRadarrBlock::FilterCollections => {
         self.app.data.radarr_data.filter.reset_offset()
       }
+      ActiveRadarrBlock::AddRootFolderPrompt => self.app.data.radarr_data.edit_path.reset_offset(),
       _ => (),
     }
   }
@@ -216,6 +218,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       ActiveRadarrBlock::Downloads => self
         .app
         .push_navigation_stack(ActiveRadarrBlock::DeleteDownloadPrompt.into()),
+      ActiveRadarrBlock::RootFolders => self
+        .app
+        .push_navigation_stack(ActiveRadarrBlock::DeleteRootFolderPrompt.into()),
       _ => (),
     }
   }
@@ -242,9 +247,13 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       },
       ActiveRadarrBlock::DeleteMoviePrompt
       | ActiveRadarrBlock::DeleteDownloadPrompt
+      | ActiveRadarrBlock::DeleteRootFolderPrompt
       | ActiveRadarrBlock::UpdateAllMoviesPrompt
       | ActiveRadarrBlock::UpdateAllCollectionsPrompt
       | ActiveRadarrBlock::UpdateDownloadsPrompt => handle_prompt_toggle(self.app, self.key),
+      ActiveRadarrBlock::AddRootFolderPrompt => {
+        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.edit_path)
+      }
       ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => {
         handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.search)
       }
@@ -364,6 +373,13 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
 
         self.app.pop_navigation_stack();
       }
+      ActiveRadarrBlock::DeleteRootFolderPrompt => {
+        if self.app.data.radarr_data.prompt_confirm {
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteRootFolder);
+        }
+
+        self.app.pop_navigation_stack();
+      }
       ActiveRadarrBlock::UpdateAllMoviesPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAllMovies);
@@ -385,6 +401,12 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
 
         self.app.pop_navigation_stack();
       }
+      ActiveRadarrBlock::AddRootFolderPrompt => {
+        self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddRootFolder);
+        self.app.data.radarr_data.prompt_confirm = true;
+        self.app.should_ignore_quit_key = false;
+        self.app.pop_navigation_stack();
+      }
       _ => (),
     }
   }
@@ -401,8 +423,15 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         self.app.data.radarr_data.reset_search();
         self.app.should_ignore_quit_key = false;
       }
+      ActiveRadarrBlock::AddRootFolderPrompt => {
+        self.app.pop_navigation_stack();
+        self.app.data.radarr_data.edit_path = HorizontallyScrollableText::default();
+        self.app.data.radarr_data.prompt_confirm = false;
+        self.app.should_ignore_quit_key = false;
+      }
       ActiveRadarrBlock::DeleteMoviePrompt
       | ActiveRadarrBlock::DeleteDownloadPrompt
+      | ActiveRadarrBlock::DeleteRootFolderPrompt
       | ActiveRadarrBlock::UpdateAllMoviesPrompt
       | ActiveRadarrBlock::UpdateAllCollectionsPrompt
       | ActiveRadarrBlock::UpdateDownloadsPrompt => {
@@ -514,8 +543,17 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
+        _ if *key == DEFAULT_KEYBINDINGS.add.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
+          self.app.should_ignore_quit_key = true;
+        }
         _ => (),
       },
+      ActiveRadarrBlock::AddRootFolderPrompt => {
+        handle_text_box_keys!(self, key, self.app.data.radarr_data.edit_path)
+      }
       _ if SEARCH_BLOCKS.contains(self.active_radarr_block) => {
         handle_text_box_keys!(self, key, self.app.data.radarr_data.search)
       }
@@ -869,6 +907,15 @@ mod tests {
       path
     );
 
+    #[test]
+    fn test_add_root_folder_prompt_home_end_keys() {
+      test_text_box_home_end_keys!(
+        RadarrHandler,
+        ActiveRadarrBlock::AddRootFolderPrompt,
+        edit_path
+      );
+    }
+
     #[rstest]
     fn test_search_boxes_home_end_keys(
       #[values(ActiveRadarrBlock::SearchMovie, ActiveRadarrBlock::SearchCollection)]
@@ -914,6 +961,24 @@ mod tests {
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::DeleteDownloadPrompt.into()
+      );
+    }
+
+    #[test]
+    fn test_root_folder_delete() {
+      let mut app = App::default();
+
+      RadarrHandler::with(
+        &DELETE_KEY,
+        &mut app,
+        &ActiveRadarrBlock::RootFolders,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::DeleteRootFolderPrompt.into()
       );
     }
   }
@@ -987,6 +1052,7 @@ mod tests {
       #[values(
         ActiveRadarrBlock::DeleteMoviePrompt,
         ActiveRadarrBlock::DeleteDownloadPrompt,
+        ActiveRadarrBlock::DeleteRootFolderPrompt,
         ActiveRadarrBlock::UpdateAllMoviesPrompt,
         ActiveRadarrBlock::UpdateAllCollectionsPrompt,
         ActiveRadarrBlock::UpdateDownloadsPrompt
@@ -1003,6 +1069,15 @@ mod tests {
       RadarrHandler::with(&key, &mut app, &active_radarr_block, &None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
+    }
+
+    #[test]
+    fn test_add_root_folder_prompt_left_right_keys() {
+      test_text_box_left_right_keys!(
+        RadarrHandler,
+        ActiveRadarrBlock::AddRootFolderPrompt,
+        edit_path
+      );
     }
 
     #[rstest]
@@ -1240,6 +1315,34 @@ mod tests {
       );
     }
 
+    #[test]
+    fn test_add_root_folder_prompt_confirm_submit() {
+      let mut app = App::default();
+      app.data.radarr_data.prompt_confirm = true;
+      app.should_ignore_quit_key = true;
+      app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
+
+      RadarrHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddRootFolderPrompt,
+        &None,
+      )
+      .handle();
+
+      assert!(app.data.radarr_data.prompt_confirm);
+      assert!(!app.should_ignore_quit_key);
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(RadarrEvent::AddRootFolder)
+      );
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::RootFolders.into()
+      );
+    }
+
     #[rstest]
     #[case(
       ActiveRadarrBlock::Movies,
@@ -1250,6 +1353,11 @@ mod tests {
       ActiveRadarrBlock::Downloads,
       ActiveRadarrBlock::DeleteDownloadPrompt,
       RadarrEvent::DeleteDownload
+    )]
+    #[case(
+      ActiveRadarrBlock::RootFolders,
+      ActiveRadarrBlock::DeleteRootFolderPrompt,
+      RadarrEvent::DeleteRootFolder
     )]
     #[case(
       ActiveRadarrBlock::Movies,
@@ -1365,6 +1473,10 @@ mod tests {
     #[rstest]
     #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::DeleteMoviePrompt)]
     #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::UpdateAllMoviesPrompt)]
+    #[case(
+      ActiveRadarrBlock::RootFolders,
+      ActiveRadarrBlock::DeleteRootFolderPrompt
+    )]
     #[case(ActiveRadarrBlock::Downloads, ActiveRadarrBlock::DeleteDownloadPrompt)]
     #[case(ActiveRadarrBlock::Downloads, ActiveRadarrBlock::UpdateDownloadsPrompt)]
     #[case(
@@ -1384,6 +1496,32 @@ mod tests {
 
       assert_eq!(app.get_current_route(), &base_block.into());
       assert!(!app.data.radarr_data.prompt_confirm);
+    }
+
+    #[test]
+    fn test_add_root_folder_prompt_esc() {
+      let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
+      app.data.radarr_data.edit_path = HorizontallyScrollableText::from("/nfs/test".to_owned());
+      app.should_ignore_quit_key = true;
+
+      RadarrHandler::with(
+        &ESC_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddRootFolderPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::RootFolders.into()
+      );
+
+      assert!(app.data.radarr_data.edit_path.text.is_empty());
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert!(!app.should_ignore_quit_key);
     }
 
     #[test]
@@ -1486,6 +1624,25 @@ mod tests {
     }
 
     #[test]
+    fn test_root_folder_add() {
+      let mut app = App::default();
+
+      RadarrHandler::with(
+        &DEFAULT_KEYBINDINGS.add.key,
+        &mut app,
+        &ActiveRadarrBlock::RootFolders,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::AddRootFolderPrompt.into()
+      );
+      assert!(app.should_ignore_quit_key);
+    }
+
+    #[test]
     fn test_movie_edit_key() {
       test_edit_movie_key!(
         RadarrHandler,
@@ -1552,6 +1709,22 @@ mod tests {
       assert!(app.should_refresh);
     }
 
+    #[test]
+    fn test_add_root_folder_prompt_backspace_key() {
+      let mut app = App::default();
+      app.data.radarr_data.edit_path = "/nfs/test".to_owned().into();
+
+      RadarrHandler::with(
+        &DEFAULT_KEYBINDINGS.backspace.key,
+        &mut app,
+        &ActiveRadarrBlock::AddRootFolderPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(app.data.radarr_data.edit_path.text, "/nfs/tes");
+    }
+
     #[rstest]
     fn test_search_boxes_backspace_key(
       #[values(ActiveRadarrBlock::SearchMovie, ActiveRadarrBlock::SearchCollection)]
@@ -1588,6 +1761,21 @@ mod tests {
       .handle();
 
       assert_str_eq!(app.data.radarr_data.filter.text, "Tes");
+    }
+
+    #[test]
+    fn test_add_root_folder_prompt_char_key() {
+      let mut app = App::default();
+
+      RadarrHandler::with(
+        &Key::Char('h'),
+        &mut app,
+        &ActiveRadarrBlock::AddRootFolderPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(app.data.radarr_data.edit_path.text, "h");
     }
 
     #[rstest]
