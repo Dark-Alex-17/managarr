@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use derivative::Derivative;
+use indoc::{formatdoc, indoc};
 use log::{debug, error};
 use reqwest::RequestBuilder;
 use serde::de::DeserializeOwned;
@@ -148,7 +149,6 @@ impl<'a> Network<'a> {
       RadarrEvent::GetStatus => self.get_status(RadarrEvent::GetStatus.resource()).await,
       RadarrEvent::GetMovies => self.get_movies(RadarrEvent::GetMovies.resource()).await,
       RadarrEvent::GetMovieDetails => {
-        debug!("TEST received GetMovieDetails event");
         self
           .get_movie_details(RadarrEvent::GetMovieDetails.resource())
           .await
@@ -164,8 +164,6 @@ impl<'a> Network<'a> {
           .await
       }
     }
-
-    let mut app = self.app.lock().await;
   }
 
   async fn get_healthcheck(&self, resource: &str) {
@@ -207,7 +205,6 @@ impl<'a> Network<'a> {
   }
 
   async fn get_movie_details(&self, resource: &str) {
-    debug!("TEST handling get_movie_details");
     let movie_id = self
       .app
       .lock()
@@ -223,7 +220,6 @@ impl<'a> Network<'a> {
     let mut url = resource.to_owned();
     url.push('/');
     url.push_str(movie_id.to_string().as_str());
-    debug!("TEST sending request{}", url.as_str());
     self
       .handle_get_request::<Movie>(url.as_str(), |movie_response, mut app| {
         let Movie {
@@ -251,39 +247,51 @@ impl<'a> Network<'a> {
           .unwrap()
           .to_owned();
         let imdb_rating = if let Some(rating) = ratings.imdb {
-          rating.value.as_f64().unwrap()
+          if let Some(value) = rating.value.as_f64() {
+            format!("{:.1}", value)
+          } else {
+            "".to_owned()
+          }
         } else {
-          0f64
+          "".to_owned()
         };
 
         let tmdb_rating = if let Some(rating) = ratings.tmdb {
-          rating.value.as_u64().unwrap()
+          if let Some(value) = rating.value.as_f64() {
+            format!("{}%", value * 10f64)
+          } else {
+            "".to_owned()
+          }
         } else {
-          0u64
+          "".to_owned()
         };
 
         let rotten_tomatoes_rating = if let Some(rating) = ratings.rotten_tomatoes {
-          rating.value.as_u64().unwrap()
+          if let Some(value) = rating.value.as_u64() {
+            format!("{}%", value)
+          } else {
+            "".to_owned()
+          }
         } else {
-          0u64
+          "".to_owned()
         };
 
         let status = get_movie_status(has_file, &app.data.radarr_data.downloads.items, id);
 
-        app.data.radarr_data.movie_details = ScrollableText::with_string(format!(
-          "Title: {}\n
-            Year: {}\n
-            Runtime: {}h {}m\n
-            Status: {}\n
-            Description: {}\n
-            TMDB: {}%\n
-            IMDB: {:.1}\n
-            Rotten Tomatoes: {}%\n
-            Quality Profile: {}\n
-            Size: {:.2} GB\n
-            Path: {}\n
-            Studio: {}\n
-            Genres: {}",
+        app.data.radarr_data.movie_details = ScrollableText::with_string(formatdoc!(
+          "Title: {}
+          Year: {}
+          Runtime: {}h {}m
+          Status: {}
+          Description: {}
+          TMDB: {}
+          IMDB: {}
+          Rotten Tomatoes: {}
+          Quality Profile: {}
+          Size: {:.2} GB
+          Path: {}
+          Studio: {}
+          Genres: {}",
           title,
           year,
           hours,

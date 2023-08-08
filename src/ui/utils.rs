@@ -65,6 +65,10 @@ pub fn style_default() -> Style {
   Style::default().fg(Color::White)
 }
 
+pub fn style_system_function() -> Style {
+  Style::default().fg(Color::Yellow)
+}
+
 pub fn style_primary() -> Style {
   Style::default().fg(Color::Green)
 }

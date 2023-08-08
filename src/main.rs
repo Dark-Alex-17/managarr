@@ -39,7 +39,7 @@ async fn main() -> Result<()> {
   let config = confy::load("managarr", "config")?;
   let (sync_network_tx, sync_network_rx) = mpsc::channel(500);
 
-  let app = Arc::new(Mutex::new(App::new(sync_network_tx, 5000 / 250, config)));
+  let app = Arc::new(Mutex::new(App::new(sync_network_tx, config)));
 
   let app_nw = Arc::clone(&app);
 
@@ -55,10 +55,6 @@ async fn start_networking(mut network_rx: Receiver<NetworkEvent>, app: &Arc<Mute
   let network = Network::new(reqwest::Client::new(), app);
 
   while let Some(network_event) = network_rx.recv().await {
-    debug!(
-      "**************************************MAIN Received network event: {:?}",
-      network_event
-    );
     network.handle_network_event(network_event).await;
   }
 }
@@ -78,6 +74,11 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<()> {
 
   loop {
     let mut app = app.lock().await;
+
+    if is_first_render {
+      app.is_loading = true;
+    }
+
     terminal.draw(|f| ui(f, &mut app))?;
 
     match input_events.next()? {

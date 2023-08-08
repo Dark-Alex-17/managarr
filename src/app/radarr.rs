@@ -18,7 +18,7 @@ pub struct RadarrData {
   pub movie_details: ScrollableText,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum ActiveRadarrBlock {
   AddMovie,
   Calendar,
@@ -35,15 +35,19 @@ pub enum ActiveRadarrBlock {
 
 impl App {
   pub(super) async fn dispatch_by_radarr_block(&mut self, active_radarr_block: ActiveRadarrBlock) {
-    self.reset_tick_count();
     match active_radarr_block {
       ActiveRadarrBlock::Downloads => self.dispatch(RadarrEvent::GetDownloads.into()).await,
       ActiveRadarrBlock::Movies => {
         self.dispatch(RadarrEvent::GetMovies.into()).await;
         self.dispatch(RadarrEvent::GetDownloads.into()).await;
       }
-      ActiveRadarrBlock::MovieDetails => self.dispatch(RadarrEvent::GetMovieDetails.into()).await,
+      ActiveRadarrBlock::MovieDetails => {
+        self.is_loading = true;
+        self.dispatch(RadarrEvent::GetMovieDetails.into()).await
+      }
       _ => (),
     }
+
+    self.reset_tick_count();
   }
 }

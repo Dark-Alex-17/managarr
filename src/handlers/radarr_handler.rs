@@ -1,5 +1,5 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-use crate::app::models::Scrollable;
+use crate::app::models::{Scrollable, ScrollableText};
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::{App, Key};
 
@@ -42,7 +42,10 @@ async fn handle_submit(app: &mut App, active_radarr_block: ActiveRadarrBlock) {
 
 async fn handle_esc(app: &mut App, active_radarr_block: ActiveRadarrBlock) {
   match active_radarr_block {
-    ActiveRadarrBlock::MovieDetails => app.pop_navigation_stack(),
+    ActiveRadarrBlock::MovieDetails => {
+      app.pop_navigation_stack();
+      app.data.radarr_data.movie_details = ScrollableText::default();
+    }
     _ => (),
   }
 }

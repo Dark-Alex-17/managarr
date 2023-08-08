@@ -1,7 +1,10 @@
+use std::time::Duration;
+
 use log::{debug, error};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
+use tokio::time::Instant;
 
 use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
 use crate::network::radarr_network::RadarrEvent;
@@ -11,7 +14,7 @@ pub(crate) mod key_binding;
 pub mod models;
 pub mod radarr;
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Route {
   Radarr(ActiveRadarrBlock),
 }
@@ -31,6 +34,8 @@ pub struct App {
   pub title: &'static str,
   pub tick_until_poll: u64,
   pub tick_count: u64,
+  pub last_tick: Instant,
+  pub network_tick_frequency: Duration,
   pub is_routing: bool,
   pub is_loading: bool,
   pub config: AppConfig,
@@ -38,17 +43,15 @@ pub struct App {
 }
 
 impl App {
-  pub fn new(network_tx: Sender<NetworkEvent>, tick_until_poll: u64, config: AppConfig) -> Self {
+  pub fn new(network_tx: Sender<NetworkEvent>, config: AppConfig) -> Self {
     App {
       network_tx: Some(network_tx),
-      tick_until_poll,
       config,
       ..App::default()
     }
   }
 
   pub async fn dispatch(&mut self, action: NetworkEvent) {
-    self.is_loading = true;
     if let Some(network_tx) = &self.network_tx {
       if let Err(e) = network_tx.send(action).await {
         self.is_loading = false;
@@ -74,12 +77,20 @@ impl App {
 
           if is_first_render {
             self.dispatch(RadarrEvent::GetQualityProfiles.into()).await;
+            self.dispatch(RadarrEvent::GetOverview.into()).await;
+            self.dispatch(RadarrEvent::GetStatus.into()).await;
+            self.dispatch_by_radarr_block(active_block.clone()).await;
           }
 
-          self.dispatch(RadarrEvent::GetOverview.into()).await;
-          self.dispatch(RadarrEvent::GetStatus.into()).await;
-
-          self.dispatch_by_radarr_block(active_block).await;
+          if self.is_routing
+            || self
+              .network_tick_frequency
+              .checked_sub(self.last_tick.elapsed())
+              .unwrap_or_else(|| Duration::from_secs(0))
+              .is_zero()
+          {
+            self.dispatch_by_radarr_block(active_block).await;
+          }
         }
       }
 
@@ -113,8 +124,10 @@ impl Default for App {
       network_tx: None,
       client: Client::new(),
       title: "Managarr",
-      tick_until_poll: 0,
+      tick_until_poll: 20,
       tick_count: 0,
+      network_tick_frequency: Duration::from_secs(5),
+      last_tick: Instant::now(),
       is_loading: false,
       is_routing: false,
       config: AppConfig::default(),

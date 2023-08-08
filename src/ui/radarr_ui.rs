@@ -1,6 +1,7 @@
 use std::ops::Sub;
 
 use chrono::{Duration, Utc};
+use log::debug;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Color, Modifier, Style};
@@ -81,11 +82,21 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
 
 pub(super) fn draw_movie_details<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let block = title_block("Movie Details");
-  let movie_details = &app.data.radarr_data.movie_details.get_text();
+  let movie_details = app.data.radarr_data.movie_details.get_text();
 
   if !movie_details.is_empty() {
-    let mut text = Text::from(movie_details.clone());
-    text.patch_style(style_primary());
+    let download_status = app
+      .data
+      .radarr_data
+      .movie_details
+      .items
+      .iter()
+      .find(|&line| line.starts_with("Status: "))
+      .unwrap()
+      .split(": ")
+      .collect::<Vec<&str>>()[1];
+    let mut text = Text::from(movie_details);
+    text.patch_style(determine_style_from_download_status(download_status));
 
     let paragraph = Paragraph::new(text)
       .block(block)
@@ -196,4 +207,13 @@ fn determine_row_style(app: &App, movie: &Movie) -> Style {
   }
 
   style_primary()
+}
+
+fn determine_style_from_download_status(download_status: &str) -> Style {
+  match download_status {
+    "Downloaded" => style_primary(),
+    "Downloading" => style_secondary(),
+    "Missing" => style_tertiary(),
+    _ => style_primary(),
+  }
 }
