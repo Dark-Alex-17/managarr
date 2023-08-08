@@ -20,8 +20,8 @@ use crate::ui::utils::{
   vertical_chunks_with_margin,
 };
 use crate::ui::{
-  draw_button, draw_drop_down_list, draw_drop_down_menu_button, draw_drop_down_popup,
-  draw_error_popup, draw_error_popup_over, draw_large_popup_over, draw_medium_popup_over,
+  draw_button, draw_drop_down_menu_button, draw_drop_down_popup, draw_error_popup,
+  draw_error_popup_over, draw_large_popup_over, draw_medium_popup_over, draw_selectable_list,
   draw_table, draw_text_box, draw_text_box_with_label, DrawUi, TableProps,
 };
 use crate::utils::convert_runtime;
@@ -311,7 +311,7 @@ fn draw_select_monitor_popup<B: Backend>(
   app: &mut App<'_>,
   popup_area: Rect,
 ) {
-  draw_drop_down_list(
+  draw_selectable_list(
     f,
     popup_area,
     &mut app.data.radarr_data.monitor_list,

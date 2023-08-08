@@ -18,9 +18,9 @@ use crate::ui::utils::{
   style_primary, style_success, style_warning, vertical_chunks,
 };
 use crate::ui::{
-  draw_drop_down_list, draw_drop_down_popup, draw_large_popup_over, draw_prompt_box,
-  draw_prompt_box_with_content, draw_prompt_popup_over, draw_small_popup_over, draw_table,
-  draw_tabs, loading, DrawUi, TableProps,
+  draw_drop_down_popup, draw_large_popup_over, draw_prompt_box, draw_prompt_box_with_content,
+  draw_prompt_popup_over, draw_selectable_list, draw_small_popup_over, draw_table, draw_tabs,
+  loading, DrawUi, TableProps,
 };
 use crate::utils::convert_to_gb;
 
@@ -58,7 +58,7 @@ impl DrawUi for MovieDetailsUi {
             content_area,
             draw_movie_info,
             |f, app, content_area| {
-              draw_drop_down_list(
+              draw_selectable_list(
                 f,
                 content_area,
                 &mut app.data.radarr_data.movie_releases_sort,

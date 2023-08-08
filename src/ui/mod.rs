@@ -566,7 +566,7 @@ pub fn draw_drop_down_menu_button<B: Backend>(
   draw_button_with_icon(f, horizontal_chunks[1], selection, "▼", is_selected);
 }
 
-pub fn draw_drop_down_list<'a, B: Backend, T>(
+pub fn draw_selectable_list<'a, B: Backend, T>(
   f: &mut Frame<'_, B>,
   area: Rect,
   content: &'a mut StatefulList<T>,
@@ -578,6 +578,26 @@ pub fn draw_drop_down_list<'a, B: Backend, T>(
     .highlight_style(style_highlight());
 
   f.render_stateful_widget(list, area, &mut content.state);
+}
+
+pub fn draw_list_box<'a, B: Backend, T>(
+  f: &mut Frame<'_, B>,
+  area: Rect,
+  content: &'a mut StatefulList<T>,
+  title: &str,
+  item_mapper: impl Fn(&T) -> ListItem<'a>,
+  is_loading: bool,
+) {
+  let block = title_block(title);
+
+  if !content.items.is_empty() {
+    let items: Vec<ListItem<'_>> = content.items.iter().map(item_mapper).collect();
+    let list = List::new(items).block(title_block(title));
+
+    f.render_stateful_widget(list, area, &mut content.state);
+  } else {
+    loading(f, block, area, is_loading);
+  }
 }
 
 pub fn draw_text_box<B: Backend>(

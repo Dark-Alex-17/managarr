@@ -18,9 +18,10 @@ use crate::app::App;
 use crate::logos::RADARR_LOGO;
 use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie, RootFolder};
 use crate::models::Route;
-use crate::ui::draw_drop_down_list;
+use crate::ui::draw_selectable_list;
 use crate::ui::draw_tabs;
 use crate::ui::loading;
+use crate::ui::radarr_ui::system_ui::SystemUi;
 use crate::ui::radarr_ui::{
   add_movie_ui::AddMoviesUi, collection_details_ui::CollectionDetailsUi,
   collections_ui::CollectionsUi, delete_movie_ui::DeleteMovieUi, downloads_ui::DownloadsUi,
@@ -45,6 +46,7 @@ mod edit_movie_ui;
 mod library_ui;
 mod movie_details_ui;
 mod root_folders_ui;
+mod system_ui;
 
 pub(super) struct RadarrUi {}
 
@@ -70,6 +72,7 @@ impl DrawUi for RadarrUi {
         ActiveRadarrBlock::RootFolders
         | ActiveRadarrBlock::AddRootFolderPrompt
         | ActiveRadarrBlock::DeleteRootFolderPrompt => RootFoldersUi::draw(f, app, content_rect),
+        ActiveRadarrBlock::System => SystemUi::draw(f, app, content_rect),
         _ if MOVIE_DETAILS_BLOCKS.contains(&active_radarr_block) => {
           MovieDetailsUi::draw(f, app, content_rect)
         }
@@ -265,7 +268,7 @@ fn draw_select_minimum_availability_popup<B: Backend>(
   app: &mut App<'_>,
   popup_area: Rect,
 ) {
-  draw_drop_down_list(
+  draw_selectable_list(
     f,
     popup_area,
     &mut app.data.radarr_data.minimum_availability_list,
@@ -278,7 +281,7 @@ fn draw_select_quality_profile_popup<B: Backend>(
   app: &mut App<'_>,
   popup_area: Rect,
 ) {
-  draw_drop_down_list(
+  draw_selectable_list(
     f,
     popup_area,
     &mut app.data.radarr_data.quality_profile_list,
@@ -291,7 +294,7 @@ fn draw_select_root_folder_popup<B: Backend>(
   app: &mut App<'_>,
   popup_area: Rect,
 ) {
-  draw_drop_down_list(
+  draw_selectable_list(
     f,
     popup_area,
     &mut app.data.radarr_data.root_folder_list,
