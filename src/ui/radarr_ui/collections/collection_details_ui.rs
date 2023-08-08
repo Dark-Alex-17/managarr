@@ -4,6 +4,8 @@ use tui::text::Text;
 use tui::widgets::{Cell, Paragraph, Row, Wrap};
 use tui::Frame;
 
+use crate::app::key_binding::{build_keymapping_string, BARE_POPUP_KEY_MAPPINGS};
+use crate::app::radarr::radarr_key_mappings::COLLECTION_DETAILS_KEY_MAPPINGS;
 use crate::app::radarr::{ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS};
 use crate::app::App;
 use crate::models::radarr_models::CollectionMovie;
@@ -102,8 +104,10 @@ pub fn draw_collection_details<B: Backend>(
       .current_selection()
       .clone()
   };
-  let mut help_text =
-    Text::from("<↑↓> scroll table | <enter> show overview/add movie | <esc> close");
+  let mut help_text = Text::from(format!(
+    "<↑↓> scroll table | {}",
+    build_keymapping_string(&COLLECTION_DETAILS_KEY_MAPPINGS)
+  ));
   help_text.patch_style(style_help());
   let monitored = if collection_selection.monitored {
     "Yes"
@@ -257,7 +261,7 @@ fn draw_movie_overview<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, cont
       .overview,
   );
   overview.patch_style(style_default());
-  let mut help_text = Text::from("<esc> close");
+  let mut help_text = Text::from(build_keymapping_string(&BARE_POPUP_KEY_MAPPINGS));
   help_text.patch_style(style_help());
 
   let paragraph = Paragraph::new(overview)

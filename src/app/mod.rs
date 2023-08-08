@@ -9,10 +9,13 @@ use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
 use crate::models::{HorizontallyScrollableText, Route, TabRoute, TabState};
 use crate::network::NetworkEvent;
 
+use self::key_binding::{build_keymapping_string, SERVARR_KEYMAPPINGS};
+
 #[cfg(test)]
 #[path = "app_tests.rs"]
 mod app_tests;
 pub mod key_binding;
+mod key_binding_tests;
 pub mod radarr;
 
 const DEFAULT_ROUTE: Route = Route::Radarr(ActiveRadarrBlock::Movies, None);
@@ -137,13 +140,16 @@ impl<'a> Default for App<'a> {
         TabRoute {
           title: "Radarr",
           route: ActiveRadarrBlock::Movies.into(),
-          help: "<↑↓> scroll | ←→ change tab | <tab> change servarr | <q> quit  ",
+          help: format!(
+            "<↑↓> scroll | ←→ change tab | {}  ",
+            build_keymapping_string(&SERVARR_KEYMAPPINGS)
+          ),
           contextual_help: None,
         },
         TabRoute {
           title: "Sonarr",
           route: Route::Sonarr,
-          help: "<tab> change servarr | <q> quit  ",
+          help: format!("{}  ", build_keymapping_string(&SERVARR_KEYMAPPINGS)),
           contextual_help: None,
         },
       ]),

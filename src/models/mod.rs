@@ -284,12 +284,12 @@ impl HorizontallyScrollableText {
   }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct TabRoute {
   pub title: &'static str,
   pub route: Route,
-  pub help: &'static str,
-  pub contextual_help: Option<&'static str>,
+  pub help: String,
+  pub contextual_help: Option<String>,
 }
 
 pub struct TabState {
@@ -313,12 +313,12 @@ impl TabState {
     &self.tabs[self.index].route
   }
 
-  pub fn get_active_tab_help(&self) -> &'static str {
-    self.tabs[self.index].help
+  pub fn get_active_tab_help(&self) -> &str {
+    &self.tabs[self.index].help
   }
 
-  pub fn get_active_tab_contextual_help(&self) -> Option<&'static str> {
-    self.tabs[self.index].contextual_help
+  pub fn get_active_tab_contextual_help(&self) -> Option<String> {
+    self.tabs[self.index].contextual_help.clone()
   }
 
   pub fn next(&mut self) {

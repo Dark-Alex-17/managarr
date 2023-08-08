@@ -4,6 +4,8 @@ use tui::text::{Span, Text};
 use tui::widgets::{Cell, ListItem, Paragraph, Row};
 use tui::Frame;
 
+use crate::app::key_binding::{build_keymapping_string, BARE_POPUP_KEY_MAPPINGS};
+use crate::app::radarr::radarr_key_mappings::SYSTEM_TASKS_KEY_MAPPINGS;
 use crate::app::radarr::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::app::App;
 use crate::models::Route;
@@ -84,7 +86,10 @@ fn draw_logs_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Re
       title: "Log Details",
       is_loading: app.is_loading,
       is_popup: true,
-      help: Some("<↑↓←→> scroll | <esc> close"),
+      help: Some(format!(
+        "<↑↓←→> scroll | {}",
+        build_keymapping_string(&BARE_POPUP_KEY_MAPPINGS)
+      )),
     },
   );
 }
@@ -93,8 +98,11 @@ fn draw_tasks_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: R
   let tasks_popup_table = |f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect| {
     f.render_widget(title_block("Tasks"), area);
 
-    let context_area =
-      draw_help_and_get_content_rect(f, area, Some("<enter> start task | <esc> close"));
+    let context_area = draw_help_and_get_content_rect(
+      f,
+      area,
+      Some(build_keymapping_string(&SYSTEM_TASKS_KEY_MAPPINGS)),
+    );
 
     draw_table(
       f,
@@ -150,7 +158,14 @@ fn draw_start_task_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, p
 fn draw_updates_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   f.render_widget(title_block("Updates"), area);
 
-  let content_rect = draw_help_and_get_content_rect(f, area, Some("<↑↓> scroll | <esc> close"));
+  let content_rect = draw_help_and_get_content_rect(
+    f,
+    area,
+    Some(format!(
+      "<↑↓> scroll | {}",
+      build_keymapping_string(&BARE_POPUP_KEY_MAPPINGS)
+    )),
+  );
   let updates = app.data.radarr_data.updates.get_text();
   let block = borderless_block();
 

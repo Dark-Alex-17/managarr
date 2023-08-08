@@ -8,6 +8,13 @@ mod tests {
     use serde_json::Number;
     use strum::IntoEnumIterator;
 
+    use crate::app::key_binding::build_keymapping_string;
+    use crate::app::radarr::radarr_key_mappings::{
+      COLLECTIONS_KEY_MAPPINGS, DOWNLOADS_KEY_MAPPINGS, INDEXERS_KEY_MAPPINGS,
+      LIBRARY_KEY_MAPPINGS, MANUAL_MOVIE_SEARCH_CONTEXTUAL_KEY_MAPPINGS,
+      MANUAL_MOVIE_SEARCH_KEY_MAPPINGS, MOVIE_DETAILS_KEY_MAPPINGS, ROOT_FOLDERS_KEY_MAPPINGS,
+      SYSTEM_KEY_MAPPINGS,
+    };
     use crate::app::radarr::radarr_test_utils::utils::create_test_radarr_data;
     use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
     use crate::models::radarr_models::{
@@ -316,8 +323,10 @@ mod tests {
         ActiveRadarrBlock::Movies.into()
       );
       assert!(radarr_data.main_tabs.tabs[0].help.is_empty());
-      assert_eq!(radarr_data.main_tabs.tabs[0].contextual_help,
-								 Some("<a> add | <e> edit | <del> delete | <s> search | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"));
+      assert_eq!(
+        radarr_data.main_tabs.tabs[0].contextual_help,
+        Some(build_keymapping_string(&LIBRARY_KEY_MAPPINGS))
+      );
 
       assert_str_eq!(radarr_data.main_tabs.tabs[1].title, "Downloads");
       assert_eq!(
@@ -327,7 +336,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[1].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[1].contextual_help,
-        Some("<r> refresh | <del> delete")
+        Some(build_keymapping_string(&DOWNLOADS_KEY_MAPPINGS))
       );
 
       assert_str_eq!(radarr_data.main_tabs.tabs[2].title, "Collections");
@@ -336,8 +345,10 @@ mod tests {
         ActiveRadarrBlock::Collections.into()
       );
       assert!(radarr_data.main_tabs.tabs[2].help.is_empty());
-      assert_eq!(radarr_data.main_tabs.tabs[2].contextual_help,
-								 Some("<s> search | <e> edit | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"));
+      assert_eq!(
+        radarr_data.main_tabs.tabs[2].contextual_help,
+        Some(build_keymapping_string(&COLLECTIONS_KEY_MAPPINGS))
+      );
 
       assert_str_eq!(radarr_data.main_tabs.tabs[3].title, "Root Folders");
       assert_eq!(
@@ -347,7 +358,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[3].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[3].contextual_help,
-        Some("<a> add | <del> delete | <r> refresh")
+        Some(build_keymapping_string(&ROOT_FOLDERS_KEY_MAPPINGS))
       );
 
       assert_str_eq!(radarr_data.main_tabs.tabs[4].title, "Indexers");
@@ -358,9 +369,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[4].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[4].contextual_help,
-        Some(
-          "<a> add | <enter> edit | <s> settings | <t> restrictions | <del> delete | <r> refresh"
-        )
+        Some(build_keymapping_string(&INDEXERS_KEY_MAPPINGS))
       );
 
       assert_str_eq!(radarr_data.main_tabs.tabs[5].title, "System");
@@ -371,7 +380,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[5].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[5].contextual_help,
-        Some("<t> open tasks | <e> open events | <l> open logs | <u> open updates | <r> refresh")
+        Some(build_keymapping_string(&SYSTEM_KEY_MAPPINGS))
       );
 
       assert_eq!(radarr_data.movie_info_tabs.tabs.len(), 6);
@@ -383,7 +392,7 @@ mod tests {
       );
       assert_str_eq!(
         radarr_data.movie_info_tabs.tabs[0].help,
-        "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close"
+        build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS)
       );
       assert!(radarr_data.movie_info_tabs.tabs[0]
         .contextual_help
@@ -396,7 +405,7 @@ mod tests {
       );
       assert_str_eq!(
         radarr_data.movie_info_tabs.tabs[1].help,
-        "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close"
+        build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS)
       );
       assert!(radarr_data.movie_info_tabs.tabs[1]
         .contextual_help
@@ -409,7 +418,7 @@ mod tests {
       );
       assert_str_eq!(
         radarr_data.movie_info_tabs.tabs[2].help,
-        "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close"
+        build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS)
       );
       assert!(radarr_data.movie_info_tabs.tabs[2]
         .contextual_help
@@ -422,7 +431,7 @@ mod tests {
       );
       assert_str_eq!(
         radarr_data.movie_info_tabs.tabs[3].help,
-        "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close"
+        build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS)
       );
       assert!(radarr_data.movie_info_tabs.tabs[3]
         .contextual_help
@@ -435,7 +444,7 @@ mod tests {
       );
       assert_str_eq!(
         radarr_data.movie_info_tabs.tabs[4].help,
-        "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close"
+        build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS)
       );
       assert!(radarr_data.movie_info_tabs.tabs[4]
         .contextual_help
@@ -448,11 +457,13 @@ mod tests {
       );
       assert_str_eq!(
         radarr_data.movie_info_tabs.tabs[5].help,
-        "<r> refresh | <u> update | <e> edit | <o> sort | <s> auto search | <esc> close"
+        build_keymapping_string(&MANUAL_MOVIE_SEARCH_KEY_MAPPINGS)
       );
       assert_eq!(
         radarr_data.movie_info_tabs.tabs[5].contextual_help,
-        Some("<enter> details")
+        Some(build_keymapping_string(
+          &MANUAL_MOVIE_SEARCH_CONTEXTUAL_KEY_MAPPINGS
+        ))
       );
     }
   }

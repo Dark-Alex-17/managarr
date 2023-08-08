@@ -294,7 +294,7 @@ pub struct TableProps<'a, T> {
   pub content: &'a mut StatefulTable<T>,
   pub table_headers: Vec<&'a str>,
   pub constraints: Vec<Constraint>,
-  pub help: Option<&'static str>,
+  pub help: Option<String>,
 }
 
 pub struct ListProps<'a, T> {
@@ -302,7 +302,7 @@ pub struct ListProps<'a, T> {
   pub title: &'static str,
   pub is_loading: bool,
   pub is_popup: bool,
-  pub help: Option<&'static str>,
+  pub help: Option<String>,
 }
 
 fn draw_table<'a, B, T, F>(
@@ -618,7 +618,7 @@ pub fn draw_list_box<'a, B: Backend, T>(
 fn draw_help_and_get_content_rect<B: Backend>(
   f: &mut Frame<'_, B>,
   area: Rect,
-  help: Option<&str>,
+  help: Option<String>,
 ) -> Rect {
   if let Some(help_string) = help {
     let chunks =

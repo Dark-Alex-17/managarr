@@ -1,13 +1,13 @@
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 #[cfg(test)]
 #[path = "key_tests.rs"]
 mod key_tests;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Key {
   Up,
   Down,
@@ -18,7 +18,9 @@ pub enum Key {
   Backspace,
   Home,
   End,
+  Tab,
   Delete,
+  Ctrl(char),
   Char(char),
   Unknown,
 }
@@ -27,6 +29,18 @@ impl Display for Key {
   fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
     match *self {
       Key::Char(c) => write!(f, "<{}>", c),
+      Key::Ctrl(c) => write!(f, "<Ctrl-{}>", c),
+      Key::Up => write!(f, "<↑>"),
+      Key::Down => write!(f, "<↓>"),
+      Key::Left => write!(f, "<←>"),
+      Key::Right => write!(f, "<→>"),
+      Key::Enter => write!(f, "<enter>"),
+      Key::Esc => write!(f, "<esc>"),
+      Key::Backspace => write!(f, "<backspace>"),
+      Key::Home => write!(f, "<home>"),
+      Key::End => write!(f, "<end>"),
+      Key::Tab => write!(f, "<tab>"),
+      Key::Delete => write!(f, "<del>"),
       _ => write!(f, "<{:?}>", self),
     }
   }
@@ -62,6 +76,9 @@ impl From<KeyEvent> for Key {
         code: KeyCode::End, ..
       } => Key::End,
       KeyEvent {
+        code: KeyCode::Tab, ..
+      } => Key::Tab,
+      KeyEvent {
         code: KeyCode::Delete,
         ..
       } => Key::Delete,
@@ -72,6 +89,11 @@ impl From<KeyEvent> for Key {
       KeyEvent {
         code: KeyCode::Esc, ..
       } => Key::Esc,
+      KeyEvent {
+        code: KeyCode::Char(c),
+        modifiers: KeyModifiers::CONTROL,
+        ..
+      } => Key::Ctrl(c),
       KeyEvent {
         code: KeyCode::Char(c),
         ..

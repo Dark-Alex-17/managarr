@@ -4,6 +4,8 @@ use tui::text::Text;
 use tui::widgets::{Cell, ListItem, Paragraph, Row};
 use tui::Frame;
 
+use crate::app::key_binding::{build_keymapping_string, BARE_POPUP_KEY_MAPPINGS};
+use crate::app::radarr::radarr_key_mappings::ADD_MOVIE_SEARCH_RESULTS_KEY_MAPPINGS;
 use crate::app::radarr::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::Route;
@@ -142,7 +144,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, ar
         );
         f.render_widget(layout_block(), chunks[1]);
 
-        let mut help_text = Text::from("<esc> close");
+        let mut help_text = Text::from(build_keymapping_string(&BARE_POPUP_KEY_MAPPINGS));
         help_text.patch_style(style_help());
         let help_paragraph = Paragraph::new(help_text)
           .block(borderless_block())
@@ -161,7 +163,9 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, ar
       | ActiveRadarrBlock::AddMovieSelectRootFolder
       | ActiveRadarrBlock::AddMovieAlreadyInLibrary
       | ActiveRadarrBlock::AddMovieTagsInput => {
-        let mut help_text = Text::from("<enter> details | <esc> edit search");
+        let mut help_text = Text::from(build_keymapping_string(
+          &ADD_MOVIE_SEARCH_RESULTS_KEY_MAPPINGS,
+        ));
         help_text.patch_style(style_help());
         let help_paragraph = Paragraph::new(help_text)
           .block(borderless_block())

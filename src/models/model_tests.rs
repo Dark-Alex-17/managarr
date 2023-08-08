@@ -533,7 +533,7 @@ mod tests {
   #[test]
   fn test_tab_state_get_active_tab_help() {
     let tabs = create_test_tab_routes();
-    let second_tab_help = tabs[1].help;
+    let second_tab_help = tabs[1].help.clone();
     let tab_state = TabState { tabs, index: 1 };
 
     let tab_help = tab_state.get_active_tab_help();
@@ -544,7 +544,7 @@ mod tests {
   #[test]
   fn test_tab_state_get_active_tab_contextual_help() {
     let tabs = create_test_tab_routes();
-    let second_tab_contextual_help = tabs[1].contextual_help.unwrap();
+    let second_tab_contextual_help = tabs[1].contextual_help.clone().unwrap();
     let tab_state = TabState { tabs, index: 1 };
 
     let tab_contextual_help = tab_state.get_active_tab_contextual_help();
@@ -648,14 +648,14 @@ mod tests {
       TabRoute {
         title: "Test 1",
         route: ActiveRadarrBlock::Movies.into(),
-        help: "Help for Test 1",
-        contextual_help: Some("Contextual Help for Test 1"),
+        help: "Help for Test 1".to_owned(),
+        contextual_help: Some("Contextual Help for Test 1".to_owned()),
       },
       TabRoute {
         title: "Test 2",
         route: ActiveRadarrBlock::Collections.into(),
-        help: "Help for Test 2",
-        contextual_help: Some("Contextual Help for Test 2"),
+        help: "Help for Test 2".to_owned(),
+        contextual_help: Some("Contextual Help for Test 2".to_owned()),
       },
     ]
   }

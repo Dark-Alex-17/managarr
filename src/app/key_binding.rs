@@ -1,5 +1,15 @@
 use crate::event::Key;
 
+pub(in crate::app) type KeyMapping = (KeyBinding, &'static str);
+
+pub fn build_keymapping_string(key_mappings: &[(KeyBinding, &str)]) -> String {
+  key_mappings
+    .iter()
+    .map(|(key_binding, desc)| format!("{} {}", key_binding.key, desc))
+    .collect::<Vec<String>>()
+    .join(" | ")
+}
+
 macro_rules! generate_keybindings {
     ($($field:ident),+) => {
         pub struct KeyBindings {
@@ -28,12 +38,14 @@ generate_keybindings! {
   events,
   home,
   end,
+  tab,
   delete,
   submit,
   quit,
   esc
 }
 
+#[derive(Clone, Copy)]
 pub struct KeyBinding {
   pub key: Key,
   pub desc: &'static str,
@@ -42,94 +54,106 @@ pub struct KeyBinding {
 pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   add: KeyBinding {
     key: Key::Char('a'),
-    desc: "Add",
+    desc: "add",
   },
   up: KeyBinding {
     key: Key::Up,
-    desc: "Scroll up",
+    desc: "up",
   },
   down: KeyBinding {
     key: Key::Down,
-    desc: "Scroll down",
+    desc: "down",
   },
   left: KeyBinding {
     key: Key::Left,
-    desc: "Move left",
+    desc: "left",
   },
   right: KeyBinding {
     key: Key::Right,
-    desc: "Move right",
+    desc: "right",
   },
   backspace: KeyBinding {
     key: Key::Backspace,
-    desc: "Backspace",
+    desc: "backspace",
   },
   search: KeyBinding {
     key: Key::Char('s'),
-    desc: "Search",
+    desc: "search",
   },
   settings: KeyBinding {
     key: Key::Char('s'),
-    desc: "Settings",
+    desc: "settings",
   },
   filter: KeyBinding {
     key: Key::Char('f'),
-    desc: "Filter",
+    desc: "filter",
   },
   sort: KeyBinding {
     key: Key::Char('o'),
-    desc: "Sort",
+    desc: "sort",
   },
   edit: KeyBinding {
     key: Key::Char('e'),
-    desc: "Edit",
+    desc: "edit",
   },
   events: KeyBinding {
     key: Key::Char('e'),
-    desc: "Events",
+    desc: "events",
   },
   logs: KeyBinding {
     key: Key::Char('l'),
-    desc: "Logs",
+    desc: "logs",
   },
   tasks: KeyBinding {
     key: Key::Char('t'),
-    desc: "Tasks",
+    desc: "tasks",
   },
   restrictions: KeyBinding {
-    key: Key::Char('t'),
-    desc: "Restrictions",
+    key: Key::Char('R'),
+    desc: "restrictions",
   },
   refresh: KeyBinding {
-    key: Key::Char('r'),
-    desc: "Refresh",
+    key: Key::Ctrl('r'),
+    desc: "refresh",
   },
   update: KeyBinding {
     key: Key::Char('u'),
-    desc: "Update",
+    desc: "update",
   },
   home: KeyBinding {
     key: Key::Home,
-    desc: "Home",
+    desc: "home",
   },
   end: KeyBinding {
     key: Key::End,
-    desc: "End",
+    desc: "end",
+  },
+  tab: KeyBinding {
+    key: Key::Tab,
+    desc: "tab",
   },
   delete: KeyBinding {
     key: Key::Delete,
-    desc: "Delete selected item",
+    desc: "delete",
   },
   submit: KeyBinding {
     key: Key::Enter,
-    desc: "Select",
+    desc: "submit",
   },
   quit: KeyBinding {
     key: Key::Char('q'),
-    desc: "Quit",
+    desc: "quit",
   },
   esc: KeyBinding {
     key: Key::Esc,
-    desc: "Exit current menu",
+    desc: "close",
   },
 };
+
+pub static SERVARR_KEYMAPPINGS: [KeyMapping; 2] = [
+  (DEFAULT_KEYBINDINGS.tab, "change servarr"),
+  (DEFAULT_KEYBINDINGS.quit, DEFAULT_KEYBINDINGS.quit.desc),
+];
+
+pub static BARE_POPUP_KEY_MAPPINGS: [KeyMapping; 1] =
+  [(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)];

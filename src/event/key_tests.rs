@@ -1,18 +1,27 @@
 #[cfg(test)]
 mod tests {
-  use crossterm::event::{KeyCode, KeyEvent};
+  use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers};
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use rstest::rstest;
 
   use crate::event::key::Key;
 
-  #[test]
-  fn test_key_formatter() {
-    assert_str_eq!(format!("{}", Key::Esc), "<Esc>");
-  }
-
-  #[test]
-  fn test_key_formatter_char() {
-    assert_str_eq!(format!("{}", Key::Char('q')), "<q>");
+  #[rstest]
+  #[case(Key::Up, "↑")]
+  #[case(Key::Down, "↓")]
+  #[case(Key::Left, "←")]
+  #[case(Key::Right, "→")]
+  #[case(Key::Enter, "enter")]
+  #[case(Key::Esc, "esc")]
+  #[case(Key::Backspace, "backspace")]
+  #[case(Key::Home, "home")]
+  #[case(Key::End, "end")]
+  #[case(Key::Tab, "tab")]
+  #[case(Key::Delete, "del")]
+  #[case(Key::Char('q'), "q")]
+  #[case(Key::Ctrl('q'), "Ctrl-q")]
+  fn test_key_formatter(#[case] key: Key, #[case] expected_str: &str) {
+    assert_str_eq!(format!("{}", key), format!("<{}>", expected_str));
   }
 
   #[test]
@@ -54,6 +63,11 @@ mod tests {
   }
 
   #[test]
+  fn test_key_from_tab() {
+    assert_eq!(Key::from(KeyEvent::from(KeyCode::Tab)), Key::Tab);
+  }
+
+  #[test]
   fn test_key_from_delete() {
     assert_eq!(Key::from(KeyEvent::from(KeyCode::Delete)), Key::Delete);
   }
@@ -74,6 +88,19 @@ mod tests {
       Key::from(KeyEvent::from(KeyCode::Char('q'))),
       Key::Char('q')
     )
+  }
+
+  #[test]
+  fn test_key_from_ctrl() {
+    assert_eq!(
+      Key::from(KeyEvent {
+        code: KeyCode::Char('c'),
+        modifiers: KeyModifiers::CONTROL,
+        kind: KeyEventKind::Press,
+        state: KeyEventState::NONE
+      }),
+      Key::Ctrl('c')
+    );
   }
 
   #[test]
