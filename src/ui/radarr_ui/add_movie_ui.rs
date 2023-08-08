@@ -8,8 +8,8 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::Route;
 use crate::ui::utils::{
-  borderless_block, get_width_with_margin, horizontal_chunks, layout_block,
-  layout_paragraph_borderless, show_cursor, style_default, style_failure, style_help,
+  borderless_block, centered_rect, get_width_with_margin, horizontal_chunks, layout_block,
+  layout_error_paragraph, layout_paragraph_borderless, show_cursor, style_default, style_help,
   style_primary, title_block_centered, vertical_chunks_with_margin,
 };
 use crate::ui::{
@@ -91,11 +91,15 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
           .alignment(Alignment::Center);
         f.render_widget(help_paragraph, chunks[2]);
 
-        if app.data.radarr_data.add_searched_movies.items.is_empty() && !app.is_loading {
-          let mut error_text = Text::from("No movies found matching your query!");
-          error_text.patch_style(style_failure());
-          let error_paragraph = Paragraph::new(error_text).block(layout_block());
-          f.render_widget(error_paragraph, chunks[1]);
+        if app.data.radarr_data.add_searched_movies.items.is_empty()
+          && !app.is_loading
+          && !app.is_routing
+        {
+          f.render_widget(layout_block(), chunks[1]);
+          f.render_widget(
+            layout_error_paragraph("No movies found matching your query!"),
+            centered_rect(30, 10, chunks[1]),
+          );
         } else {
           draw_table(
             f,
