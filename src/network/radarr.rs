@@ -1,12 +1,9 @@
-use std::borrow::Borrow;
-
 use anyhow::Result;
+use chrono::{DateTime, Utc};
 use log::{debug, error};
 use reqwest::RequestBuilder;
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
-
-use crate::app::radarr::RadarrData;
 use crate::app::RadarrConfig;
 use crate::network::{Network, RadarrEvent};
 
@@ -22,7 +19,7 @@ impl RadarrEvent {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct DiskSpace {
+struct DiskSpace {
   pub path: String,
   pub label: String,
   pub free_space: Number,
@@ -30,8 +27,10 @@ pub struct DiskSpace {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct SystemStatus {
+#[serde(rename_all = "camelCase")]
+struct SystemStatus {
   version: String,
+  start_time: DateTime<Utc>,
 }
 
 impl<'a> Network<'a> {
@@ -59,6 +58,7 @@ impl<'a> Network<'a> {
         Ok(system_status) => {
           let mut app = self.app.lock().await;
           app.data.radarr_data.version = system_status.version;
+          app.data.radarr_data.start_time = system_status.start_time;
         }
         Err(e) => {
           error!("Failed to fetch system status. {:?}", e);
