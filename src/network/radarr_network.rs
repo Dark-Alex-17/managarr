@@ -890,7 +890,7 @@ impl<'a> Network<'a> {
       .await;
 
     self
-      .handle_request::<ReleaseDownloadBody, ()>(request_props, |_, _| ())
+      .handle_request::<ReleaseDownloadBody, Value>(request_props, |_, _| ())
       .await;
   }
 
