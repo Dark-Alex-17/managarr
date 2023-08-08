@@ -208,7 +208,7 @@ impl<'a> Network<'a> {
   async fn search_movie(&self) {
     info!("Searching for specific Radarr movie");
 
-    let search_string = &self.app.lock().await.data.radarr_data.search.text;
+    let search_string = &self.app.lock().await.data.radarr_data.search.text.clone();
     let request_props = self
       .radarr_request_props_from(
         format!(
