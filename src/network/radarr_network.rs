@@ -254,7 +254,7 @@ impl<'a> Network<'a> {
       .await;
 
     self
-      .handle_request::<MovieCommandBody, ()>(request_props, |_, _| ())
+      .handle_request::<MovieCommandBody, Value>(request_props, |_, _| ())
       .await;
   }
 
@@ -275,7 +275,7 @@ impl<'a> Network<'a> {
       .await;
 
     self
-      .handle_request::<MovieCommandBody, ()>(request_props, |_, _| ())
+      .handle_request::<MovieCommandBody, Value>(request_props, |_, _| ())
       .await;
   }
 
@@ -295,7 +295,7 @@ impl<'a> Network<'a> {
       .await;
 
     self
-      .handle_request::<MovieCommandBody, ()>(request_props, |_, _| ())
+      .handle_request::<MovieCommandBody, Value>(request_props, |_, _| ())
       .await;
   }
 
@@ -314,7 +314,7 @@ impl<'a> Network<'a> {
       .await;
 
     self
-      .handle_request::<CommandBody, ()>(request_props, |_, _| ())
+      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
       .await;
   }
 
@@ -333,7 +333,7 @@ impl<'a> Network<'a> {
       .await;
 
     self
-      .handle_request::<CommandBody, ()>(request_props, |_, _| ())
+      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
       .await;
   }
 
