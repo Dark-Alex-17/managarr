@@ -1,22 +1,23 @@
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
-use tui::style::{Modifier, Style};
+use tui::style::Modifier;
 use tui::text::{Span, Spans, Text};
-use tui::widgets::Clear;
 use tui::widgets::Paragraph;
 use tui::widgets::Row;
 use tui::widgets::Table;
 use tui::widgets::Tabs;
 use tui::widgets::{Block, Borders, Wrap};
+use tui::widgets::{Clear, List, ListItem};
 use tui::Frame;
 
 use crate::app::App;
-use crate::models::{Route, StatefulTable, TabState};
+use crate::models::{Route, StatefulList, StatefulTable, TabState};
 use crate::ui::utils::{
   borderless_block, centered_rect, horizontal_chunks, horizontal_chunks_with_margin, layout_block,
-  layout_block_top_border, logo_block, style_default_bold, style_failure, style_help,
-  style_highlight, style_primary, style_secondary, style_system_function, title_block,
-  title_block_centered, vertical_chunks_with_margin,
+  layout_block_top_border, layout_button_paragraph, layout_button_paragraph_borderless, logo_block,
+  style_button_highlight, style_default_bold, style_failure, style_help, style_highlight,
+  style_primary, style_secondary, style_system_function, title_block, title_block_centered,
+  vertical_chunks_with_margin,
 };
 
 mod radarr_ui;
@@ -148,6 +149,16 @@ pub fn draw_large_popup_over<B: Backend>(
   popup_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, popup_fn, 75, 75);
+}
+
+pub fn draw_drop_down_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  area: Rect,
+  background_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+  drop_down_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+) {
+  draw_popup_over(f, app, area, background_fn, drop_down_fn, 20, 30);
 }
 
 fn draw_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
@@ -286,21 +297,36 @@ pub fn draw_prompt_box<B: Backend>(
 }
 
 pub fn draw_button<B: Backend>(f: &mut Frame<'_, B>, area: Rect, label: &str, is_selected: bool) {
-  let style = if is_selected {
-    style_system_function().add_modifier(Modifier::BOLD)
-  } else {
-    style_default_bold()
-  };
-
-  let label_paragraph = Paragraph::new(Text::from(label))
-    .block(layout_block())
-    .alignment(Alignment::Center)
-    .style(style);
+  let label_paragraph = layout_button_paragraph(is_selected, label, Alignment::Center);
 
   f.render_widget(label_paragraph, area);
 }
 
-pub fn draw_drop_down_menu<B: Backend>(
+pub fn draw_button_with_icon<B: Backend>(
+  f: &mut Frame<'_, B>,
+  area: Rect,
+  label: &str,
+  icon: &str,
+  is_selected: bool,
+) {
+  let label_paragraph = layout_button_paragraph_borderless(is_selected, label, Alignment::Left);
+  let icon_paragraph = layout_button_paragraph_borderless(is_selected, icon, Alignment::Right);
+
+  let horizontal_chunks = horizontal_chunks_with_margin(
+    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
+    area,
+    1,
+  );
+
+  f.render_widget(
+    layout_block().style(style_button_highlight(is_selected)),
+    area,
+  );
+  f.render_widget(label_paragraph, horizontal_chunks[0]);
+  f.render_widget(icon_paragraph, horizontal_chunks[1]);
+}
+
+pub fn draw_drop_down_menu_button<B: Backend>(
   f: &mut Frame<'_, B>,
   area: Rect,
   description: &str,
@@ -319,10 +345,19 @@ pub fn draw_drop_down_menu<B: Backend>(
 
   f.render_widget(description_paragraph, horizontal_chunks[0]);
 
-  draw_button(
-    f,
-    horizontal_chunks[1],
-    format!("{}     ▼", selection).as_str(),
-    is_selected,
-  );
+  draw_button_with_icon(f, horizontal_chunks[1], selection, "▼", is_selected);
+}
+
+pub fn draw_drop_down_list<'a, B: Backend, T>(
+  f: &mut Frame<'_, B>,
+  area: Rect,
+  content: &'a mut StatefulList<T>,
+  item_mapper: impl Fn(&T) -> ListItem<'a>,
+) {
+  let items: Vec<ListItem<'_>> = content.items.iter().map(item_mapper).collect();
+  let list = List::new(items)
+    .block(layout_block())
+    .highlight_style(style_highlight());
+
+  f.render_stateful_widget(list, area, &mut content.state);
 }

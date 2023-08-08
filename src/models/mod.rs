@@ -273,6 +273,14 @@ impl HorizontallyScrollableText {
   pub fn reset_offset(&self) {
     *self.offset.borrow_mut() = 0;
   }
+
+  pub fn scroll_or_reset(&self, width: usize, is_current_selection: bool) {
+    if is_current_selection && self.text.len() > width {
+      self.scroll_text();
+    } else {
+      self.reset_offset();
+    }
+  }
 }
 
 #[derive(Clone)]

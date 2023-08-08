@@ -235,7 +235,7 @@ pub struct AddOptions {
 pub struct AddMovieSearchResult {
   #[derivative(Default(value = "Number::from(0)"))]
   pub tmdb_id: Number,
-  pub title: String,
+  pub title: HorizontallyScrollableText,
   pub original_language: Language,
   pub status: String,
   pub overview: String,
@@ -249,11 +249,11 @@ pub struct AddMovieSearchResult {
 
 #[derive(Default, PartialEq, Eq, Clone, Debug)]
 pub enum MinimumAvailability {
-  Tba,
+  #[default]
   Announced,
   InCinemas,
-  #[default]
   Released,
+  Tba,
 }
 
 impl Display for MinimumAvailability {
@@ -271,19 +271,19 @@ impl Display for MinimumAvailability {
 impl MinimumAvailability {
   pub fn vec() -> Vec<Self> {
     vec![
-      MinimumAvailability::Tba,
       MinimumAvailability::Announced,
       MinimumAvailability::InCinemas,
       MinimumAvailability::Released,
+      MinimumAvailability::Tba,
     ]
   }
 
   pub fn to_display_str(&self) -> &str {
     match self {
-      MinimumAvailability::Tba => "TBA",
       MinimumAvailability::Announced => "Announced",
       MinimumAvailability::InCinemas => "In Cinemas",
       MinimumAvailability::Released => "Released",
+      MinimumAvailability::Tba => "TBA",
     }
   }
 }

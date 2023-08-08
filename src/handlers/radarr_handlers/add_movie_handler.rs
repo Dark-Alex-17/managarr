@@ -189,14 +189,15 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
           .radarr_data
           .add_movie_minimum_availability_list
           .set_items(MinimumAvailability::vec());
-        let quality_profile_names = self
+        let mut quality_profile_names: Vec<String> = self
           .app
           .data
           .radarr_data
           .quality_profile_map
-          .iter()
-          .map(|(_, value)| value.clone())
+          .values()
+          .cloned()
           .collect();
+        quality_profile_names.sort();
         self
           .app
           .data

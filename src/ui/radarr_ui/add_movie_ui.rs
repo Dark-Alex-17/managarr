@@ -2,16 +2,20 @@ use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::Modifier;
 use tui::text::Text;
-use tui::widgets::{Cell, Paragraph, Row, Wrap};
+use tui::widgets::{Cell, ListItem, Paragraph, Row, Wrap};
 use tui::Frame;
 
 use crate::app::radarr::ActiveRadarrBlock;
+use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::Route;
 use crate::ui::utils::{
-  borderless_block, horizontal_chunks, layout_block, show_cursor, style_default, style_help,
-  style_primary, title_block_centered, vertical_chunks_with_margin,
+  borderless_block, get_width, horizontal_chunks, layout_block, show_cursor, style_default,
+  style_help, style_primary, title_block_centered, vertical_chunks_with_margin,
 };
-use crate::ui::{draw_button, draw_drop_down_menu, draw_medium_popup_over, draw_table, TableProps};
+use crate::ui::{
+  draw_button, draw_drop_down_list, draw_drop_down_menu_button, draw_drop_down_popup,
+  draw_medium_popup_over, draw_table, TableProps,
+};
 use crate::utils::convert_runtime;
 use crate::App;
 
@@ -25,14 +29,11 @@ pub(super) fn draw_add_movie_search_popup<B: Backend>(
       ActiveRadarrBlock::AddMovieSearchInput | ActiveRadarrBlock::AddMovieSearchResults => {
         draw_add_movie_search(f, app, area);
       }
-      ActiveRadarrBlock::AddMoviePrompt => {
-        draw_medium_popup_over(
-          f,
-          app,
-          area,
-          draw_add_movie_search,
-          draw_add_movie_confirmation_prompt,
-        );
+      ActiveRadarrBlock::AddMoviePrompt
+      | ActiveRadarrBlock::AddMovieSelectMonitor
+      | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+      | ActiveRadarrBlock::AddMovieSelectQualityProfile => {
+        draw_medium_popup_over(f, app, area, draw_add_movie_search, draw_confirmation_popup);
       }
       _ => (),
     }
@@ -40,6 +41,16 @@ pub(super) fn draw_add_movie_search_popup<B: Backend>(
 }
 
 fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+  let current_selection = if app.data.radarr_data.add_searched_movies.items.is_empty() {
+    AddMovieSearchResult::default()
+  } else {
+    app
+      .data
+      .radarr_data
+      .add_searched_movies
+      .current_selection_clone()
+  };
+
   let chunks = vertical_chunks_with_margin(
     vec![
       Constraint::Length(3),
@@ -68,7 +79,11 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
           .alignment(Alignment::Center);
         f.render_widget(help_paragraph, chunks[2]);
       }
-      ActiveRadarrBlock::AddMovieSearchResults | ActiveRadarrBlock::AddMoviePrompt => {
+      ActiveRadarrBlock::AddMovieSearchResults
+      | ActiveRadarrBlock::AddMoviePrompt
+      | ActiveRadarrBlock::AddMovieSelectMonitor
+      | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+      | ActiveRadarrBlock::AddMovieSelectQualityProfile => {
         let mut help_text = Text::from("<esc> edit search");
         help_text.patch_style(style_help());
         let help_paragraph = Paragraph::new(help_text)
@@ -86,16 +101,16 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
               "Title",
               "Year",
               "Runtime",
-              "IMDB Rating",
-              "Rotten Tomatoes Rating",
+              "IMDB",
+              "Rotten Tomatoes",
               "Genres",
             ],
             constraints: vec![
-              Constraint::Percentage(20),
+              Constraint::Percentage(27),
               Constraint::Percentage(8),
               Constraint::Percentage(10),
-              Constraint::Percentage(10),
-              Constraint::Percentage(18),
+              Constraint::Percentage(8),
+              Constraint::Percentage(14),
               Constraint::Percentage(30),
             ],
           },
@@ -128,8 +143,12 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
               format!("{}%", rotten_tomatoes_rating)
             };
 
+            movie
+              .title
+              .scroll_or_reset(get_width(area), *movie == current_selection);
+
             Row::new(vec![
-              Cell::from(movie.title.to_owned()),
+              Cell::from(movie.title.to_string()),
               Cell::from(movie.year.as_u64().unwrap().to_string()),
               Cell::from(format!("{}h {}m", hours, minutes)),
               Cell::from(imdb_rating),
@@ -148,33 +167,78 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
   f.render_widget(search_paragraph, chunks[0]);
 }
 
-fn draw_add_movie_confirmation_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App,
-  prompt_area: Rect,
-) {
+fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
   if let Route::Radarr(active_radarr_block) = app.get_current_route().clone() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSelectMonitor => {
-        // draw_small_popup_over(f, app, prompt_area, draw_add_movie_confirmation_prompt, draw_add_movie_select_monitor);
+        draw_drop_down_popup(
+          f,
+          app,
+          prompt_area,
+          draw_confirmation_prompt,
+          draw_select_monitor_popup,
+        );
       }
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability => {
-        // draw_small_popup_over(f, app, prompt_area, draw_add_movie_confirmation_prompt, draw_add_movie_select_minimum_availability);
+        draw_drop_down_popup(
+          f,
+          app,
+          prompt_area,
+          draw_confirmation_prompt,
+          draw_select_minimum_availability_popup,
+        );
       }
       ActiveRadarrBlock::AddMovieSelectQualityProfile => {
-        // draw_small_popup_over(f, app, prompt_area, draw_add_movie_confirmation_prompt, draw_add_movie_select_quality_profile);
+        draw_drop_down_popup(
+          f,
+          app,
+          prompt_area,
+          draw_confirmation_prompt,
+          draw_select_quality_profile_popup,
+        );
       }
-      ActiveRadarrBlock::AddMoviePrompt => draw_add_movie_confirmation_prompt(f, app, prompt_area),
+      ActiveRadarrBlock::AddMoviePrompt => draw_confirmation_prompt(f, app, prompt_area),
       _ => (),
     }
   }
 }
 
-fn draw_add_movie_confirmation_prompt<B: Backend>(
+fn draw_select_monitor_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, popup_area: Rect) {
+  draw_drop_down_list(
+    f,
+    popup_area,
+    &mut app.data.radarr_data.add_movie_monitor_list,
+    |monitor| ListItem::new(monitor.to_display_str().to_owned()),
+  );
+}
+
+fn draw_select_minimum_availability_popup<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App,
-  prompt_area: Rect,
+  popup_area: Rect,
 ) {
+  draw_drop_down_list(
+    f,
+    popup_area,
+    &mut app.data.radarr_data.add_movie_minimum_availability_list,
+    |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
+  );
+}
+
+fn draw_select_quality_profile_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  popup_area: Rect,
+) {
+  draw_drop_down_list(
+    f,
+    popup_area,
+    &mut app.data.radarr_data.add_movie_quality_profile_list,
+    |quality_profile| ListItem::new(quality_profile.clone()),
+  );
+}
+
+fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
   let title = "  Confirm Add Movie?  ";
   let prompt = format!(
     "{}:\n\n{}",
@@ -183,7 +247,9 @@ fn draw_add_movie_confirmation_prompt<B: Backend>(
       .radarr_data
       .add_searched_movies
       .current_selection()
-      .title,
+      .title
+      .to_string()
+      .trim(),
     app
       .data
       .radarr_data
@@ -238,7 +304,7 @@ fn draw_add_movie_confirmation_prompt<B: Backend>(
     chunks[5],
   );
 
-  draw_drop_down_menu(
+  draw_drop_down_menu_button(
     f,
     chunks[1],
     "Monitor",
@@ -246,14 +312,14 @@ fn draw_add_movie_confirmation_prompt<B: Backend>(
     *selected_block == ActiveRadarrBlock::AddMovieSelectMonitor,
   );
 
-  draw_drop_down_menu(
+  draw_drop_down_menu_button(
     f,
     chunks[2],
     "Minimum Availability",
     selected_minimum_availability.to_display_str(),
     *selected_block == ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
   );
-  draw_drop_down_menu(
+  draw_drop_down_menu_button(
     f,
     chunks[3],
     "Quality Profile",

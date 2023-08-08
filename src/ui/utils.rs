@@ -1,8 +1,8 @@
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::text::{Span, Spans};
-use tui::widgets::{Block, Borders, LineGauge};
+use tui::text::{Span, Spans, Text};
+use tui::widgets::{Block, Borders, LineGauge, Paragraph};
 use tui::{symbols, Frame};
 
 pub fn horizontal_chunks(constraints: Vec<Constraint>, size: Rect) -> Vec<Rect> {
@@ -63,6 +63,24 @@ pub fn layout_block_top_border<'a>() -> Block<'a> {
 
 pub fn layout_block_bottom_border<'a>() -> Block<'a> {
   Block::default().borders(Borders::BOTTOM)
+}
+
+pub fn layout_button_paragraph(is_selected: bool, label: &str, alignment: Alignment) -> Paragraph {
+  Paragraph::new(Text::from(label))
+    .block(layout_block())
+    .alignment(alignment)
+    .style(style_button_highlight(is_selected))
+}
+
+pub fn layout_button_paragraph_borderless(
+  is_selected: bool,
+  label: &str,
+  alignment: Alignment,
+) -> Paragraph {
+  Paragraph::new(Text::from(label))
+    .block(borderless_block())
+    .alignment(alignment)
+    .style(style_button_highlight(is_selected))
 }
 
 pub fn borderless_block<'a>() -> Block<'a> {
@@ -138,6 +156,14 @@ pub fn style_help() -> Style {
   Style::default().fg(Color::LightBlue)
 }
 
+pub fn style_button_highlight(is_selected: bool) -> Style {
+  if is_selected {
+    style_system_function().add_modifier(Modifier::BOLD)
+  } else {
+    style_default_bold()
+  }
+}
+
 pub fn title_style(title: &str) -> Span<'_> {
   Span::styled(title, style_bold())
 }
@@ -203,4 +229,8 @@ pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge {
 
 pub fn show_cursor<B: Backend>(f: &mut Frame<'_, B>, area: Rect, string: &str) {
   f.set_cursor(area.x + string.len() as u16 + 1, area.y + 1);
+}
+
+pub fn get_width(area: Rect) -> usize {
+  (area.width as f32 * 0.30) as usize
 }

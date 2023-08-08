@@ -540,7 +540,7 @@ impl<'a> Network<'a> {
 
       AddMovieBody {
         tmdb_id: tmdb_id.as_u64().unwrap(),
-        title,
+        title: title.to_string(),
         root_folder_path: path.to_owned(),
         minimum_availability,
         monitored: true,
