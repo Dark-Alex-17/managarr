@@ -1,3 +1,5 @@
+use strum::IntoEnumIterator;
+
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
@@ -182,13 +184,13 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
           .data
           .radarr_data
           .add_movie_monitor_list
-          .set_items(Monitor::vec());
+          .set_items(Vec::from_iter(Monitor::iter()));
         self
           .app
           .data
           .radarr_data
           .add_movie_minimum_availability_list
-          .set_items(MinimumAvailability::vec());
+          .set_items(Vec::from_iter(MinimumAvailability::iter()));
         let mut quality_profile_names: Vec<String> = self
           .app
           .data

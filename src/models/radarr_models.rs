@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
+use strum_macros::EnumIter;
 
 use crate::models::HorizontallyScrollableText;
 
@@ -198,14 +199,15 @@ pub struct QualityWrapper {
   pub quality: Quality,
 }
 
-#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
+#[derive(Deserialize, Default, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum CreditType {
+  #[default]
   Cast,
   Crew,
 }
 
-#[derive(Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Default, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Credit {
   pub person_name: String,
@@ -297,7 +299,7 @@ pub struct CommandBody {
   pub name: String,
 }
 
-#[derive(Default, PartialEq, Eq, Clone, Debug)]
+#[derive(Default, PartialEq, Eq, Clone, Debug, EnumIter)]
 pub enum MinimumAvailability {
   #[default]
   Announced,
@@ -319,15 +321,6 @@ impl Display for MinimumAvailability {
 }
 
 impl MinimumAvailability {
-  pub fn vec() -> Vec<Self> {
-    vec![
-      MinimumAvailability::Announced,
-      MinimumAvailability::InCinemas,
-      MinimumAvailability::Released,
-      MinimumAvailability::Tba,
-    ]
-  }
-
   pub fn to_display_str(&self) -> &str {
     match self {
       MinimumAvailability::Announced => "Announced",
@@ -338,7 +331,7 @@ impl MinimumAvailability {
   }
 }
 
-#[derive(Default, PartialEq, Eq, Clone, Debug)]
+#[derive(Default, PartialEq, Eq, Clone, Debug, EnumIter)]
 pub enum Monitor {
   #[default]
   MovieOnly,
@@ -358,14 +351,6 @@ impl Display for Monitor {
 }
 
 impl Monitor {
-  pub fn vec() -> Vec<Self> {
-    vec![
-      Monitor::MovieOnly,
-      Monitor::MovieAndCollection,
-      Monitor::None,
-    ]
-  }
-
   pub fn to_display_str(&self) -> &str {
     match self {
       Monitor::MovieOnly => "Movie only",

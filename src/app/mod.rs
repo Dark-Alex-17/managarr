@@ -170,3 +170,164 @@ impl Default for RadarrConfig {
     }
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use pretty_assertions::assert_eq;
+  use tokio::sync::mpsc;
+
+  use crate::network::radarr_network::RadarrEvent;
+
+  use super::*;
+
+  #[test]
+  fn test_navigation_stack_methods() {
+    let mut app = App::default();
+
+    assert_eq!(app.get_current_route(), &DEFAULT_ROUTE);
+
+    app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
+
+    assert_eq!(
+      app.get_current_route(),
+      &ActiveRadarrBlock::Downloads.into()
+    );
+    assert!(app.is_routing);
+
+    app.is_routing = false;
+    app.pop_and_push_navigation_stack(ActiveRadarrBlock::Collections.into());
+
+    assert_eq!(
+      app.get_current_route(),
+      &ActiveRadarrBlock::Collections.into()
+    );
+    assert!(app.is_routing);
+
+    app.is_routing = false;
+    app.pop_navigation_stack();
+
+    assert_eq!(app.get_current_route(), &DEFAULT_ROUTE);
+    assert!(app.is_routing);
+
+    app.is_routing = false;
+    app.pop_navigation_stack();
+
+    assert_eq!(app.get_current_route(), &DEFAULT_ROUTE);
+    assert!(app.is_routing);
+  }
+
+  #[test]
+  fn test_reset_tick_count() {
+    let mut app = App {
+      tick_count: 2,
+      ..App::default()
+    };
+
+    app.reset_tick_count();
+
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[test]
+  fn test_reset() {
+    let mut app = App {
+      tick_count: 2,
+      error: String::from("Test error").into(),
+      data: Data {
+        radarr_data: RadarrData {
+          version: "test".to_owned(),
+          ..RadarrData::default()
+        },
+      },
+      ..App::default()
+    };
+
+    app.reset();
+
+    assert_eq!(app.tick_count, 0);
+    assert_eq!(app.error, HorizontallyScrollableText::default());
+    assert_eq!(app.data.radarr_data.version, String::default());
+  }
+
+  #[test]
+  fn test_handle_error() {
+    let mut app = App::default();
+    let test_string = "Testing";
+
+    app.handle_error(anyhow!(test_string));
+
+    assert_eq!(app.error.stationary_style(), test_string);
+
+    app.handle_error(anyhow!("Testing a different error"));
+
+    assert_eq!(app.error.stationary_style(), test_string);
+  }
+
+  #[tokio::test]
+  async fn test_on_tick_first_render() {
+    let (sync_network_tx, mut sync_network_rx) = mpsc::channel::<NetworkEvent>(500);
+
+    let mut app = App {
+      tick_until_poll: 2,
+      network_tx: Some(sync_network_tx),
+      ..App::default()
+    };
+
+    assert_eq!(app.tick_count, 0);
+
+    app.on_tick(true).await;
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetQualityProfiles.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetRootFolders.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetOverview.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetStatus.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetMovies.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetDownloads.into()
+    );
+    assert!(!app.is_routing);
+    assert!(!app.should_refresh);
+    assert_eq!(app.tick_count, 1);
+  }
+
+  #[tokio::test]
+  async fn test_on_tick_routing() {
+    let mut app = App {
+      tick_until_poll: 2,
+      tick_count: 2,
+      is_routing: true,
+      ..App::default()
+    };
+
+    app.on_tick(false).await;
+    assert!(!app.is_routing);
+  }
+
+  #[tokio::test]
+  async fn test_on_tick_should_refresh() {
+    let mut app = App {
+      tick_until_poll: 2,
+      tick_count: 2,
+      should_refresh: true,
+      ..App::default()
+    };
+
+    app.on_tick(false).await;
+    assert!(!app.should_refresh);
+  }
+}

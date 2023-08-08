@@ -76,10 +76,6 @@ impl RadarrData {
     self.add_movie_minimum_availability_list = StatefulList::default();
     self.add_movie_quality_profile_list = StatefulList::default();
   }
-
-  pub fn reset_main_tab_index(&mut self) {
-    self.main_tabs.index = 0;
-  }
 }
 
 impl Default for RadarrData {
@@ -395,5 +391,600 @@ impl App {
       .radarr_data
       .collection_movies
       .set_items(collection_movies);
+  }
+}
+
+#[cfg(test)]
+mod radarr_data_tests {
+  use pretty_assertions::assert_eq;
+
+  use super::*;
+
+  #[test]
+  fn test_reset_movie_collection_table() {
+    let mut radarr_data = RadarrData::default();
+    radarr_data
+      .collection_movies
+      .set_items(vec![CollectionMovie::default()]);
+
+    radarr_data.reset_movie_collection_table();
+
+    assert!(radarr_data.collection_movies.items.is_empty());
+  }
+
+  #[test]
+  fn test_rest_search() {
+    let mut radarr_data = RadarrData {
+      is_searching: true,
+      search: "test search".to_owned(),
+      filter: "test filter".to_owned(),
+      ..RadarrData::default()
+    };
+    radarr_data
+      .filtered_movies
+      .set_items(vec![Movie::default()]);
+    radarr_data
+      .filtered_collections
+      .set_items(vec![Collection::default()]);
+    radarr_data
+      .add_searched_movies
+      .set_items(vec![AddMovieSearchResult::default()]);
+
+    radarr_data.reset_search();
+
+    assert!(!radarr_data.is_searching);
+    assert!(radarr_data.search.is_empty());
+    assert!(radarr_data.filter.is_empty());
+    assert!(radarr_data.filtered_movies.items.is_empty());
+    assert!(radarr_data.filtered_collections.items.is_empty());
+    assert!(radarr_data.add_searched_movies.items.is_empty());
+  }
+
+  #[test]
+  fn test_reset_movie_info_tabs() {
+    let mut radarr_data = RadarrData {
+      file_details: "test file details".to_owned(),
+      audio_details: "test audio details".to_owned(),
+      video_details: "test video details".to_owned(),
+      movie_details: ScrollableText::with_string("test movie details".to_owned()),
+      ..RadarrData::default()
+    };
+    radarr_data
+      .movie_history
+      .set_items(vec![MovieHistoryItem::default()]);
+    radarr_data.movie_cast.set_items(vec![Credit::default()]);
+    radarr_data.movie_crew.set_items(vec![Credit::default()]);
+    radarr_data
+      .movie_releases
+      .set_items(vec![Release::default()]);
+    radarr_data.movie_info_tabs.index = 1;
+
+    radarr_data.reset_movie_info_tabs();
+
+    assert!(radarr_data.file_details.is_empty());
+    assert!(radarr_data.audio_details.is_empty());
+    assert!(radarr_data.video_details.is_empty());
+    assert!(radarr_data.movie_details.get_text().is_empty());
+    assert!(radarr_data.movie_history.items.is_empty());
+    assert!(radarr_data.movie_cast.items.is_empty());
+    assert!(radarr_data.movie_crew.items.is_empty());
+    assert!(radarr_data.movie_releases.items.is_empty());
+    assert_eq!(radarr_data.movie_info_tabs.index, 0);
+  }
+
+  #[test]
+  fn test_reset_add_movie_selections() {
+    let mut radarr_data = RadarrData::default();
+    radarr_data
+      .add_movie_monitor_list
+      .set_items(vec![Monitor::default()]);
+    radarr_data
+      .add_movie_minimum_availability_list
+      .set_items(vec![MinimumAvailability::default()]);
+    radarr_data
+      .add_movie_quality_profile_list
+      .set_items(vec![String::default()]);
+
+    radarr_data.reset_add_movie_selections();
+
+    assert!(radarr_data.add_movie_monitor_list.items.is_empty());
+    assert!(radarr_data
+      .add_movie_minimum_availability_list
+      .items
+      .is_empty());
+    assert!(radarr_data.add_movie_quality_profile_list.items.is_empty());
+  }
+}
+
+#[cfg(test)]
+mod active_radarr_block_tests {
+  use pretty_assertions::assert_eq;
+
+  use crate::app::radarr::ActiveRadarrBlock;
+
+  #[test]
+  fn test_next_add_prompt_block() {
+    let active_block = ActiveRadarrBlock::AddMovieSelectMonitor.next_add_prompt_block();
+
+    assert_eq!(
+      active_block,
+      ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+    );
+
+    let active_block = active_block.next_add_prompt_block();
+
+    assert_eq!(
+      active_block,
+      ActiveRadarrBlock::AddMovieSelectQualityProfile
+    );
+
+    let active_block = active_block.next_add_prompt_block();
+
+    assert_eq!(active_block, ActiveRadarrBlock::AddMovieConfirmPrompt);
+
+    let active_block = active_block.next_add_prompt_block();
+
+    assert_eq!(active_block, ActiveRadarrBlock::AddMovieSelectMonitor);
+  }
+
+  #[test]
+  fn test_previous_add_prompt_block() {
+    let active_block = ActiveRadarrBlock::AddMovieSelectMonitor.previous_add_prompt_block();
+
+    assert_eq!(active_block, ActiveRadarrBlock::AddMovieConfirmPrompt);
+
+    let active_block = active_block.previous_add_prompt_block();
+
+    assert_eq!(
+      active_block,
+      ActiveRadarrBlock::AddMovieSelectQualityProfile
+    );
+
+    let active_block = active_block.previous_add_prompt_block();
+
+    assert_eq!(
+      active_block,
+      ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+    );
+
+    let active_block = active_block.previous_add_prompt_block();
+
+    assert_eq!(active_block, ActiveRadarrBlock::AddMovieSelectMonitor);
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use pretty_assertions::assert_eq;
+  use tokio::sync::mpsc;
+
+  use crate::network::NetworkEvent;
+
+  use super::*;
+
+  #[tokio::test]
+  async fn test_dispatch_by_collections_block() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+
+    app
+      .dispatch_by_radarr_block(&ActiveRadarrBlock::Collections)
+      .await;
+
+    assert!(app.is_loading);
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetCollections.into()
+    );
+    assert!(!app.data.radarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_collection_details_block() {
+    let mut app = App::default();
+
+    app.data.radarr_data.collections.set_items(vec![Collection {
+      movies: Some(vec![CollectionMovie::default()]),
+      ..Collection::default()
+    }]);
+
+    app
+      .dispatch_by_radarr_block(&ActiveRadarrBlock::CollectionDetails)
+      .await;
+
+    assert!(!app.is_loading);
+    assert!(!app.data.radarr_data.collection_movies.items.is_empty());
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_downloads_block() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+
+    app
+      .dispatch_by_radarr_block(&ActiveRadarrBlock::Downloads)
+      .await;
+
+    assert!(app.is_loading);
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetDownloads.into()
+    );
+    assert!(!app.data.radarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_movies_block() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+
+    app
+      .dispatch_by_radarr_block(&ActiveRadarrBlock::Movies)
+      .await;
+
+    assert!(!app.is_loading);
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetMovies.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetDownloads.into()
+    );
+    assert!(!app.data.radarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_add_movie_search_results_block() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+
+    app
+      .dispatch_by_radarr_block(&ActiveRadarrBlock::AddMovieSearchResults)
+      .await;
+
+    assert!(app.is_loading);
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::SearchNewMovie.into()
+    );
+    assert!(!app.data.radarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_movie_details_block() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+
+    app
+      .dispatch_by_radarr_block(&ActiveRadarrBlock::MovieDetails)
+      .await;
+
+    assert!(app.is_loading);
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetMovieDetails.into()
+    );
+    assert!(!app.data.radarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_file_info_block() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+
+    app
+      .dispatch_by_radarr_block(&ActiveRadarrBlock::FileInfo)
+      .await;
+
+    assert!(app.is_loading);
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetMovieDetails.into()
+    );
+    assert!(!app.data.radarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_movie_history_block() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+
+    app
+      .dispatch_by_radarr_block(&ActiveRadarrBlock::MovieHistory)
+      .await;
+
+    assert!(app.is_loading);
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetMovieHistory.into()
+    );
+    assert!(!app.data.radarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_cast_crew_blocks() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+
+    for active_radarr_block in &[ActiveRadarrBlock::Cast, ActiveRadarrBlock::Crew] {
+      app.data.radarr_data.movie_cast = StatefulTable::default();
+      app.data.radarr_data.movie_crew = StatefulTable::default();
+
+      app.dispatch_by_radarr_block(active_radarr_block).await;
+
+      assert!(app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetMovieCredits.into()
+      );
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert_eq!(app.tick_count, 0);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_cast_crew_blocks_movie_cast_non_empty() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+
+    for active_radarr_block in &[ActiveRadarrBlock::Cast, ActiveRadarrBlock::Crew] {
+      app
+        .data
+        .radarr_data
+        .movie_cast
+        .set_items(vec![Credit::default()]);
+
+      app.dispatch_by_radarr_block(active_radarr_block).await;
+
+      assert!(app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetMovieCredits.into()
+      );
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert_eq!(app.tick_count, 0);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_cast_crew_blocks_movie_crew_non_empty() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+
+    for active_radarr_block in &[ActiveRadarrBlock::Cast, ActiveRadarrBlock::Crew] {
+      app
+        .data
+        .radarr_data
+        .movie_crew
+        .set_items(vec![Credit::default()]);
+
+      app.dispatch_by_radarr_block(active_radarr_block).await;
+
+      assert!(app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetMovieCredits.into()
+      );
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert_eq!(app.tick_count, 0);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_cast_crew_blocks_cast_and_crew_non_empty() {
+    let mut app = App::default();
+
+    for active_radarr_block in &[ActiveRadarrBlock::Cast, ActiveRadarrBlock::Crew] {
+      app
+        .data
+        .radarr_data
+        .movie_cast
+        .set_items(vec![Credit::default()]);
+      app
+        .data
+        .radarr_data
+        .movie_crew
+        .set_items(vec![Credit::default()]);
+
+      app.dispatch_by_radarr_block(active_radarr_block).await;
+
+      assert!(!app.is_loading);
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert_eq!(app.tick_count, 0);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_manual_search_block() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+
+    app
+      .dispatch_by_radarr_block(&ActiveRadarrBlock::ManualSearch)
+      .await;
+
+    assert!(app.is_loading);
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetReleases.into()
+    );
+    assert!(!app.data.radarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_manual_search_block_movie_releases_non_empty() {
+    let mut app = App::default();
+    app
+      .data
+      .radarr_data
+      .movie_releases
+      .set_items(vec![Release::default()]);
+
+    app
+      .dispatch_by_radarr_block(&ActiveRadarrBlock::ManualSearch)
+      .await;
+
+    assert!(!app.is_loading);
+    assert!(!app.data.radarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_dispatch_by_manual_search_block_is_loading() {
+    let mut app = App {
+      is_loading: true,
+      ..App::default()
+    };
+
+    app
+      .dispatch_by_radarr_block(&ActiveRadarrBlock::ManualSearch)
+      .await;
+
+    assert!(app.is_loading);
+    assert!(!app.data.radarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
+  async fn test_check_for_prompt_action_no_prompt_confirm() {
+    let mut app = App::default();
+    app.data.radarr_data.prompt_confirm = false;
+
+    app.check_for_prompt_action().await;
+
+    assert!(!app.data.radarr_data.prompt_confirm);
+    assert!(!app.should_refresh);
+  }
+
+  #[tokio::test]
+  async fn test_check_for_prompt_action() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+    app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::GetStatus);
+
+    app.check_for_prompt_action().await;
+
+    assert!(!app.data.radarr_data.prompt_confirm);
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetStatus.into()
+    );
+    assert!(app.should_refresh);
+    assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+  }
+
+  #[tokio::test]
+  async fn test_radarr_on_tick_first_render() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+
+    app.radarr_on_tick(ActiveRadarrBlock::Downloads, true).await;
+
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetQualityProfiles.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetRootFolders.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetOverview.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetStatus.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetDownloads.into()
+    );
+    assert!(app.is_loading);
+    assert!(!app.data.radarr_data.prompt_confirm);
+  }
+
+  #[tokio::test]
+  async fn test_radarr_on_tick_not_routing() {
+    let mut app = App::default();
+
+    app
+      .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
+      .await;
+
+    assert!(!app.is_routing);
+  }
+
+  #[tokio::test]
+  async fn test_radarr_on_tick_routing() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+    app.is_routing = true;
+
+    app
+      .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
+      .await;
+
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetDownloads.into()
+    );
+    assert!(app.is_loading);
+    assert!(!app.data.radarr_data.prompt_confirm);
+  }
+
+  #[tokio::test]
+  async fn test_radarr_on_tick_network_tick_frequency() {
+    let (mut app, mut sync_network_rx) = construct_app_unit();
+    app.network_tick_frequency = Duration::from_secs(0);
+
+    app
+      .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
+      .await;
+
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetDownloads.into()
+    );
+    assert!(app.is_loading);
+    assert!(!app.data.radarr_data.prompt_confirm);
+  }
+
+  #[tokio::test]
+  async fn test_populate_movie_collection_table_unfiltered() {
+    let mut app = App::default();
+    app.data.radarr_data.collections.set_items(vec![Collection {
+      movies: Some(vec![CollectionMovie::default()]),
+      ..Collection::default()
+    }]);
+
+    app.populate_movie_collection_table().await;
+
+    assert!(!app.data.radarr_data.collection_movies.items.is_empty());
+  }
+
+  #[tokio::test]
+  async fn test_populate_movie_collection_table_filtered() {
+    let mut app = App::default();
+    app
+      .data
+      .radarr_data
+      .filtered_collections
+      .set_items(vec![Collection {
+        movies: Some(vec![CollectionMovie::default()]),
+        ..Collection::default()
+      }]);
+
+    app.populate_movie_collection_table().await;
+
+    assert!(!app.data.radarr_data.collection_movies.items.is_empty());
+  }
+
+  fn construct_app_unit() -> (App, mpsc::Receiver<NetworkEvent>) {
+    let (sync_network_tx, sync_network_rx) = mpsc::channel::<NetworkEvent>(500);
+    let mut app = App {
+      network_tx: Some(sync_network_tx),
+      tick_count: 1,
+      ..App::default()
+    };
+    app.data.radarr_data.prompt_confirm = true;
+
+    (app, sync_network_rx)
   }
 }
