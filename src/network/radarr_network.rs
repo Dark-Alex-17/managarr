@@ -352,6 +352,7 @@ impl<'a> Network<'a> {
           size_on_disk,
           genres,
           runtime,
+          certification,
           ratings,
           movie_file,
           collection,
@@ -403,6 +404,7 @@ impl<'a> Network<'a> {
           "Title: {}
           Year: {}
           Runtime: {}h {}m
+          Rating: {}
           Collection: {}
           Status: {}
           Description: {}
@@ -418,6 +420,7 @@ impl<'a> Network<'a> {
           year,
           hours,
           minutes,
+          certification.unwrap_or_default(),
           collection.title,
           status,
           overview,
@@ -443,37 +446,37 @@ impl<'a> Network<'a> {
             file.date_added
           );
 
-          let media_info = file.media_info;
-
-          app.data.radarr_data.audio_details = formatdoc!(
-            "Bitrate: {}
+          if let Some(media_info) = file.media_info {
+            app.data.radarr_data.audio_details = formatdoc!(
+              "Bitrate: {}
               Channels: {:.1}
               Codec: {}
               Languages: {}
               Stream Count: {}",
-            media_info.audio_bitrate.as_u64().unwrap(),
-            media_info.audio_channels.as_f64().unwrap(),
-            media_info.audio_codec.unwrap_or_default(),
-            media_info.audio_languages.unwrap_or_default(),
-            media_info.audio_stream_count.as_u64().unwrap()
-          );
+              media_info.audio_bitrate.as_u64().unwrap(),
+              media_info.audio_channels.as_f64().unwrap(),
+              media_info.audio_codec.unwrap_or_default(),
+              media_info.audio_languages.unwrap_or_default(),
+              media_info.audio_stream_count.as_u64().unwrap()
+            );
 
-          app.data.radarr_data.video_details = formatdoc!(
-            "Bit Depth: {}
+            app.data.radarr_data.video_details = formatdoc!(
+              "Bit Depth: {}
               Bitrate: {}
               Codec: {}
               FPS: {}
               Resolution: {}
               Scan Type: {}
               Runtime: {}",
-            media_info.video_bit_depth.as_u64().unwrap(),
-            media_info.video_bitrate.as_u64().unwrap(),
-            media_info.video_codec,
-            media_info.video_fps.as_f64().unwrap(),
-            media_info.resolution,
-            media_info.scan_type,
-            media_info.run_time
-          );
+              media_info.video_bit_depth.as_u64().unwrap(),
+              media_info.video_bitrate.as_u64().unwrap(),
+              media_info.video_codec,
+              media_info.video_fps.as_f64().unwrap(),
+              media_info.resolution,
+              media_info.scan_type,
+              media_info.run_time
+            );
+          }
         }
       })
       .await;
@@ -637,7 +640,7 @@ impl<'a> Network<'a> {
   }
 
   async fn delete_download(&self) {
-    let movie_id = self
+    let download_id = self
       .app
       .lock()
       .await
@@ -649,11 +652,14 @@ impl<'a> Network<'a> {
       .as_u64()
       .unwrap();
 
-    info!("Deleting Radarr download for movie with id: {}", movie_id);
+    info!(
+      "Deleting Radarr download for download with id: {}",
+      download_id
+    );
 
     let request_props = self
       .radarr_request_props_from(
-        format!("{}/{}", RadarrEvent::DeleteDownload.resource(), movie_id).as_str(),
+        format!("{}/{}", RadarrEvent::DeleteDownload.resource(), download_id).as_str(),
         RequestMethod::Delete,
         None::<()>,
       )
@@ -714,7 +720,7 @@ impl<'a> Network<'a> {
 
       AddMovieBody {
         tmdb_id: tmdb_id.as_u64().unwrap(),
-        title: title.to_string(),
+        title: title.stationary_style(),
         root_folder_path: path.to_owned(),
         minimum_availability,
         monitored: true,
@@ -874,11 +880,12 @@ mod test {
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use serde_json::{json, Value};
+  use strum::IntoEnumIterator;
   use tokio::sync::Mutex;
 
   use crate::models::radarr_models::{
-    CollectionMovie, Language, MediaInfo, MovieFile, Quality, QualityHistory, QualityWrapper,
-    Rating, RatingsList,
+    CollectionMovie, Language, MediaInfo, MinimumAvailability, Monitor, MovieFile, Quality,
+    QualityWrapper, Rating, RatingsList,
   };
   use crate::models::HorizontallyScrollableText;
   use crate::App;
@@ -891,7 +898,7 @@ mod test {
         "originalLanguage": {
           "name": "English"
         },
-        "sizeOnDisk": 1111,
+        "sizeOnDisk": 3543348019,
         "status": "Downloaded",
         "overview": "Blah blah blah",
         "path": "/nfs/movies",
@@ -937,7 +944,7 @@ mod test {
           "title": "Test Collection",
           "searchOnAdd": true,
           "overview": "Collection blah blah blah",
-          "qualityProfileId": 1,
+          "qualityProfileId": 2222,
           "movies": [
             {
               "title": "Test",
@@ -1123,7 +1130,6 @@ mod test {
     network.get_status().await;
 
     async_server.assert_async().await;
-
     assert_str_eq!(app_arc.lock().await.data.radarr_data.version, "v1");
     assert_eq!(
       app_arc.lock().await.data.radarr_data.start_time,
@@ -1146,7 +1152,6 @@ mod test {
     network.get_movies().await;
 
     async_server.assert_async().await;
-
     assert_eq!(
       app_arc.lock().await.data.radarr_data.movies.items,
       vec![movie()]
@@ -1155,7 +1160,7 @@ mod test {
 
   #[tokio::test]
   async fn test_get_releases() {
-    let release_json = json!({
+    let release_json = json!([{
       "guid": "1234",
       "protocol": "torrent",
       "age": 1,
@@ -1168,8 +1173,8 @@ mod test {
       "seeders": 2,
       "leechers": 1,
       "languages": [ { "name": "English" } ],
-      "quality": { "quality": { "name": "1080" }}
-    });
+      "quality": { "quality": { "name": "HD - 1080p" }}
+    }]);
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1189,7 +1194,6 @@ mod test {
     network.get_releases().await;
 
     async_server.assert_async().await;
-
     assert_eq!(
       app_arc.lock().await.data.radarr_data.movie_releases.items,
       vec![release()]
@@ -1198,7 +1202,7 @@ mod test {
 
   #[tokio::test]
   async fn test_search_movie() {
-    let add_movie_search_result_json = json!({
+    let add_movie_search_result_json = json!([{
       "tmdbId": 1,
       "title": "Test",
       "originalLanguage": { "name": "English" },
@@ -1218,7 +1222,7 @@ mod test {
           "value": 9.9
         }
       }
-    });
+    }]);
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1236,7 +1240,6 @@ mod test {
     network.search_movie().await;
 
     async_server.assert_async().await;
-
     assert_eq!(
       app_arc
         .lock()
@@ -1373,13 +1376,12 @@ mod test {
       .movies
       .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.quality_profile_map =
-      HashMap::from([(2222, "1080".to_owned())]);
+      HashMap::from([(2222, "HD - 1080p".to_owned())]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network.get_movie_details().await;
 
     async_server.assert_async().await;
-
     assert_str_eq!(
       app_arc
         .lock()
@@ -1392,14 +1394,15 @@ mod test {
         "Title: Test
           Year: 2023
           Runtime: 2h 0m
+          Rating: R
           Collection: Test Collection
           Status: Downloaded
           Description: Blah blah blah
           TMDB: 99%
           IMDB: 9.9
           Rotten Tomatoes: 
-          Quality Profile: 1080
-          Size: 0.00 GB
+          Quality Profile: HD - 1080p
+          Size: 3.30 GB
           Path: /nfs/movies
           Studio: 21st Century Alex
           Genres: cool, family, fun"
@@ -1410,7 +1413,7 @@ mod test {
       formatdoc!(
         "Relative Path: Test.mkv
         Absolute Path: /nfs/movies/Test.mkv
-        Size: 0.00 GB
+        Size: 3.30 GB
         Date Added: 2022-12-30 07:37:56 UTC"
       )
     );
@@ -1439,14 +1442,105 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_get_movie_details_empty_options_give_correct_defaults() {
+    let movie_json_with_missing_fields = json!({
+      "id": 1,
+      "title": "Test",
+      "originalLanguage": {
+        "name": "English"
+      },
+      "sizeOnDisk": 0,
+      "status": "Downloaded",
+      "overview": "Blah blah blah",
+      "path": "/nfs/movies",
+      "studio": "21st Century Alex",
+      "genres": ["cool", "family", "fun"],
+      "year": 2023,
+      "monitored": true,
+      "hasFile": false,
+      "runtime": 120,
+      "qualityProfileId": 2222,
+      "ratings": {}
+    });
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(movie_json_with_missing_fields),
+      format!("{}/1", RadarrEvent::GetMovieDetails.resource()).as_str(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie()]);
+    app_arc.lock().await.data.radarr_data.quality_profile_map =
+      HashMap::from([(2222, "HD - 1080p".to_owned())]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.get_movie_details().await;
+
+    async_server.assert_async().await;
+    assert_str_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .movie_details
+        .get_text(),
+      formatdoc!(
+        "Title: Test
+          Year: 2023
+          Runtime: 2h 0m
+          Rating: 
+          Collection: 
+          Status: Missing
+          Description: Blah blah blah
+          TMDB: 
+          IMDB: 
+          Rotten Tomatoes: 
+          Quality Profile: HD - 1080p
+          Size: 0.00 GB
+          Path: /nfs/movies
+          Studio: 21st Century Alex
+          Genres: cool, family, fun"
+      )
+    );
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .file_details
+      .is_empty());
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .audio_details
+      .is_empty());
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .video_details
+      .is_empty());
+  }
+
+  #[tokio::test]
   async fn test_get_movie_history() {
-    let movie_history_item_json = json!({
+    let movie_history_item_json = json!([{
       "sourceTitle": "Test",
-      "quality": { "quality": { "name": "1080" }},
+      "quality": { "quality": { "name": "HD - 1080p" }},
       "languages": [ { "name": "English" } ],
       "date": "2022-12-30T07:37:56Z",
       "eventType": "grabbed"
-    });
+    }]);
     let (async_server, app_arc) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1466,11 +1560,315 @@ mod test {
     network.get_movie_history().await;
 
     async_server.assert_async().await;
-
     assert_eq!(
       app_arc.lock().await.data.radarr_data.movie_history.items,
       vec![movie_history_item()]
     );
+  }
+
+  #[tokio::test]
+  async fn test_get_collections() {
+    let collection_json = json!([{
+      "title": "Test Collection",
+      "searchOnAdd": true,
+      "overview": "Collection blah blah blah",
+      "qualityProfileId": 2222,
+      "movies": [{
+        "title": "Test",
+        "overview": "Collection blah blah blah",
+        "year": 2023,
+        "runtime": 120,
+        "genres": ["cool", "family", "fun"],
+        "ratings": {
+          "imdb": {
+            "value": 9.9
+          },
+          "tmdb": {
+            "value": 9.9
+          },
+          "rottenTomatoes": {
+            "value": 9.9
+          }
+        }
+      }],
+    }]);
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(collection_json),
+      RadarrEvent::GetCollections.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.get_collections().await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.collections.items,
+      vec![collection()]
+    );
+  }
+
+  #[tokio::test]
+  async fn test_get_downloads() {
+    let downloads_response_json = json!({
+      "records": [{
+        "title": "Test Download Title",
+        "status": "downloading",
+        "id": 1,
+        "size": 3543348019u64,
+        "sizeleft": 1771674009,
+        "outputPath": "/nfs/movies/Test",
+        "indexer": "kickass torrents",
+        "downloadClient": "transmission",
+      }]
+    });
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(downloads_response_json),
+      RadarrEvent::GetDownloads.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.get_downloads().await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.downloads.items,
+      downloads_response().records
+    );
+  }
+
+  #[tokio::test]
+  async fn test_get_quality_profiles() {
+    let quality_profile_json = json!([{
+      "id": 2222,
+      "name": "HD - 1080p"
+    }]);
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(quality_profile_json),
+      RadarrEvent::GetQualityProfiles.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.get_quality_profiles().await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.quality_profile_map,
+      HashMap::from([(2222u64, "HD - 1080p".to_owned())])
+    );
+  }
+
+  #[tokio::test]
+  async fn test_get_root_folders() {
+    let root_folder_json = json!([{
+      "path": "/nfs",
+      "accessible": true,
+      "freeSpace": 219902325555200u64,
+    }]);
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(root_folder_json),
+      RadarrEvent::GetRootFolders.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.get_root_folders().await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.root_folders,
+      vec![root_folder()]
+    );
+  }
+
+  #[tokio::test]
+  async fn test_get_credits() {
+    let credits_json = json!([
+        {
+          "personName": "Madison Clarke",
+          "character": "Johnny Blaze",
+          "type": "cast",
+        },
+        {
+          "personName": "Alex Clarke",
+          "department": "Music",
+          "job": "Composition",
+          "type": "crew",
+        }
+    ]);
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(credits_json),
+      format!("{}?movieId=1", RadarrEvent::GetMovieCredits.resource()).as_str(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie()]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.get_credits().await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.movie_cast.items,
+      vec![cast_credit()]
+    );
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.movie_crew.items,
+      vec![crew_credit()]
+    );
+  }
+
+  #[tokio::test]
+  async fn test_delete_movie() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      format!("{}/1", RadarrEvent::DeleteMovie.resource()).as_str(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie()]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.delete_movie().await;
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_delete_download() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      format!("{}/1", RadarrEvent::DeleteDownload.resource()).as_str(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .downloads
+      .set_items(vec![download_record()]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.delete_download().await;
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_add_movie() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "tmdbId": 1,
+        "title": "Test",
+        "rootFolderPath": "/nfs",
+        "minimumAvailability": "announced",
+        "monitored": true,
+        "qualityProfileId": 2222,
+        "addOptions": {
+          "monitor": "movieOnly",
+          "searchForMovie": true
+        }
+      })),
+      None,
+      RadarrEvent::AddMovie.resource(),
+    )
+    .await;
+
+    {
+      let mut app = app_arc.lock().await;
+      app.data.radarr_data.root_folders = vec![
+        RootFolder {
+          path: "/nfs".to_owned(),
+          accessible: true,
+          free_space: Number::from(219902325555200u64),
+        },
+        RootFolder {
+          path: "/nfs2".to_owned(),
+          accessible: true,
+          free_space: Number::from(21990232555520u64),
+        },
+      ];
+      app
+        .data
+        .radarr_data
+        .add_searched_movies
+        .set_items(vec![add_movie_search_result()]);
+      app.data.radarr_data.quality_profile_map = HashMap::from([(2222, "HD - 1080p".to_owned())]);
+      app
+        .data
+        .radarr_data
+        .add_movie_quality_profile_list
+        .set_items(vec!["HD - 1080p".to_owned()]);
+      app
+        .data
+        .radarr_data
+        .add_movie_monitor_list
+        .set_items(Vec::from_iter(Monitor::iter()));
+      app
+        .data
+        .radarr_data
+        .add_movie_minimum_availability_list
+        .set_items(Vec::from_iter(MinimumAvailability::iter()));
+    }
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.add_movie().await;
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_download_release() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "guid": "1234",
+        "indexerId": 2
+      })),
+      None,
+      RadarrEvent::DownloadRelease.resource(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movie_releases
+      .set_items(vec![release()]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.download_release().await;
+
+    async_server.assert_async().await;
   }
 
   #[tokio::test]
@@ -1684,7 +2082,7 @@ mod test {
       relative_path: "Test.mkv".to_owned(),
       path: "/nfs/movies/Test.mkv".to_owned(),
       date_added: DateTime::from(DateTime::parse_from_rfc3339("2022-12-30T07:37:56Z").unwrap()),
-      media_info: media_info(),
+      media_info: Some(media_info()),
     }
   }
 
@@ -1705,7 +2103,7 @@ mod test {
       root_folder_path: None,
       search_on_add: true,
       overview: Some("Collection blah blah blah".to_owned()),
-      quality_profile_id: Number::from(1),
+      quality_profile_id: Number::from(2222),
       movies: Some(vec![collection_movie()]),
     }
   }
@@ -1715,7 +2113,7 @@ mod test {
       id: Number::from(1),
       title: "Test".to_owned(),
       original_language: language(),
-      size_on_disk: Number::from(1111),
+      size_on_disk: Number::from(3543348019u64),
       status: "Downloaded".to_owned(),
       overview: "Blah blah blah".to_owned(),
       path: "/nfs/movies".to_owned(),
@@ -1742,7 +2140,7 @@ mod test {
 
   fn quality() -> Quality {
     Quality {
-      name: "1080".to_owned(),
+      name: "HD - 1080p".to_owned(),
     }
   }
 
@@ -1782,17 +2180,60 @@ mod test {
     }
   }
 
-  fn quality_history() -> QualityHistory {
-    QualityHistory { quality: quality() }
-  }
-
   fn movie_history_item() -> MovieHistoryItem {
     MovieHistoryItem {
       source_title: HorizontallyScrollableText::from("Test".to_owned()),
-      quality: quality_history(),
+      quality: quality_wrapper(),
       languages: vec![language()],
       date: DateTime::from(DateTime::parse_from_rfc3339("2022-12-30T07:37:56Z").unwrap()),
       event_type: "grabbed".to_owned(),
+    }
+  }
+
+  fn download_record() -> DownloadRecord {
+    DownloadRecord {
+      title: "Test Download Title".to_owned(),
+      status: "downloading".to_owned(),
+      id: Number::from(1),
+      size: Number::from(3543348019u64),
+      sizeleft: Number::from(1771674009u64),
+      output_path: HorizontallyScrollableText::from("/nfs/movies/Test".to_owned()),
+      indexer: "kickass torrents".to_owned(),
+      download_client: "transmission".to_owned(),
+    }
+  }
+
+  fn downloads_response() -> DownloadsResponse {
+    DownloadsResponse {
+      records: vec![download_record()],
+    }
+  }
+
+  fn root_folder() -> RootFolder {
+    RootFolder {
+      path: "/nfs".to_owned(),
+      accessible: true,
+      free_space: Number::from(219902325555200u64),
+    }
+  }
+
+  fn cast_credit() -> Credit {
+    Credit {
+      person_name: "Madison Clarke".to_owned(),
+      character: Some("Johnny Blaze".to_owned()),
+      department: None,
+      job: None,
+      credit_type: CreditType::Cast,
+    }
+  }
+
+  fn crew_credit() -> Credit {
+    Credit {
+      person_name: "Alex Clarke".to_owned(),
+      character: None,
+      department: Some("Music".to_owned()),
+      job: Some("Composition".to_owned()),
+      credit_type: CreditType::Crew,
     }
   }
 }

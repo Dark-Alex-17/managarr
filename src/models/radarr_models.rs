@@ -22,7 +22,7 @@ pub struct SystemStatus {
   pub start_time: DateTime<Utc>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct RootFolder {
   pub path: String,
@@ -94,7 +94,7 @@ pub struct MovieFile {
   pub relative_path: String,
   pub path: String,
   pub date_added: DateTime<Utc>,
-  pub media_info: MediaInfo,
+  pub media_info: Option<MediaInfo>,
 }
 
 #[derive(Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
@@ -173,7 +173,7 @@ pub struct QualityProfile {
 #[serde(rename_all = "camelCase")]
 pub struct MovieHistoryItem {
   pub source_title: HorizontallyScrollableText,
-  pub quality: QualityHistory,
+  pub quality: QualityWrapper,
   pub languages: Vec<Language>,
   pub date: DateTime<Utc>,
   pub event_type: String,
@@ -182,11 +182,6 @@ pub struct MovieHistoryItem {
 #[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 pub struct Language {
   pub name: String,
-}
-
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
-pub struct QualityHistory {
-  pub quality: Quality,
 }
 
 #[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
