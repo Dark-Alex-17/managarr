@@ -3,16 +3,16 @@ use std::fmt::Debug;
 use indoc::formatdoc;
 use log::{debug, info};
 use serde::Serialize;
+use serde_json::Number;
 use urlencoding::encode;
 
 use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, Collection, CommandBody, Credit, CreditType,
-  DiskSpace, DownloadsResponse, Movie, MovieCommandBody, MovieHistoryItem, QualityProfile, Release,
-  ReleaseDownloadBody, RootFolder, SystemStatus,
+  DiskSpace, DownloadRecord, DownloadsResponse, Movie, MovieCommandBody, MovieHistoryItem,
+  QualityProfile, Release, ReleaseDownloadBody, RootFolder, SystemStatus,
 };
 use crate::models::ScrollableText;
-use crate::network::utils::get_movie_status;
 use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
 use crate::utils::{convert_runtime, convert_to_gb};
 
@@ -845,4 +845,21 @@ impl<'a> Network<'a> {
       api_token: api_token.to_owned(),
     }
   }
+}
+
+fn get_movie_status(has_file: bool, downloads_vec: &[DownloadRecord], movie_id: Number) -> String {
+  if !has_file {
+    if let Some(download) = downloads_vec
+      .iter()
+      .find(|&download| download.id.as_u64().unwrap() == movie_id.as_u64().unwrap())
+    {
+      if download.status == "downloading" {
+        return "Downloading".to_owned();
+      }
+    }
+
+    return "Missing".to_owned();
+  }
+
+  "Downloaded".to_owned()
 }
