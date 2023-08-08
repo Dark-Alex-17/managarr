@@ -1,21 +1,21 @@
+use std::iter;
 use std::ops::Sub;
 
 use chrono::{Duration, Utc};
-use log::debug;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans, Text};
-use tui::widgets::{Block, Borders, Cell, LineGauge, Paragraph, Row, Table, Wrap};
-use tui::{symbols, Frame};
+use tui::widgets::{Block, Borders, Cell, Paragraph, Row, Table, Wrap};
+use tui::Frame;
 
 use crate::app::radarr::RadarrData;
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
-use crate::network::radarr_network::Movie;
+use crate::network::radarr_network::{DownloadRecord, Movie};
 use crate::ui::utils::{
-  style_default, style_highlight, style_primary, style_secondary, style_tertiary, title_block,
-  vertical_chunks, vertical_chunks_with_margin,
+  horizontal_chunks_with_margin, line_gague, style_default, style_highlight, style_primary,
+  style_secondary, style_tertiary, title_block, vertical_chunks_with_margin,
 };
 use crate::ui::{loading, HIGHLIGHT_SYMBOL};
 use crate::utils::{convert_runtime, convert_to_gb};
@@ -80,6 +80,52 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
   }
 }
 
+pub(super) fn draw_radarr_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+  let chunks = horizontal_chunks_with_margin(
+    vec![
+      Constraint::Ratio(1, 3),
+      Constraint::Ratio(1, 3),
+      Constraint::Ratio(1, 3),
+    ],
+    area,
+    1,
+  );
+
+  draw_stats(f, app, chunks[0]);
+  f.render_widget(Block::default().borders(Borders::ALL), chunks[1]);
+  draw_downloads(f, app, chunks[2]);
+}
+
+pub(super) fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+  let block = title_block("Downloads");
+  let downloads_vec = &app.data.radarr_data.downloads.items;
+
+  if !downloads_vec.is_empty() {
+    f.render_widget(block, area);
+
+    let constraints = iter::repeat(Constraint::Min(2))
+      .take(downloads_vec.len())
+      .collect::<Vec<Constraint>>();
+
+    let chunks = vertical_chunks_with_margin(constraints, area, 1);
+
+    for i in 0..downloads_vec.len() {
+      let DownloadRecord {
+        title,
+        sizeleft,
+        size,
+        ..
+      } = &downloads_vec[i];
+      let percent = 1f64 - (sizeleft.as_f64().unwrap() / size.as_f64().unwrap());
+      let download_gague = line_gague(title, percent);
+
+      f.render_widget(download_gague, chunks[i]);
+    }
+  } else {
+    loading(f, block, area, app.is_loading);
+  }
+}
+
 pub(super) fn draw_movie_details<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let block = title_block("Movie Details");
   let movie_details = app.data.radarr_data.movie_details.get_text();
@@ -129,6 +175,7 @@ pub(super) fn draw_stats<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect
 
     let chunks = vertical_chunks_with_margin(
       vec![
+        Constraint::Percentage(60),
         Constraint::Length(1),
         Constraint::Length(1),
         Constraint::Min(2),
@@ -163,31 +210,18 @@ pub(super) fn draw_stats<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect
     )))
     .block(Block::default());
 
-    let space_gauge = LineGauge::default()
-      .block(Block::default().title("Storage:"))
-      .gauge_style(Style::default().fg(Color::Cyan))
-      .line_set(symbols::line::THICK)
-      .ratio(ratio)
-      .label(Spans::from(format!("{:.0}%", ratio * 100.0)));
+    let space_gauge = line_gague("Storage:", ratio);
+    let logo = Paragraph::new(Text::from(RADARR_LOGO))
+      .block(Block::default())
+      .alignment(Alignment::Center);
 
-    f.render_widget(version_paragraph, chunks[0]);
-    f.render_widget(uptime_paragraph, chunks[1]);
-    f.render_widget(space_gauge, chunks[2]);
+    f.render_widget(logo, chunks[0]);
+    f.render_widget(version_paragraph, chunks[1]);
+    f.render_widget(uptime_paragraph, chunks[2]);
+    f.render_widget(space_gauge, chunks[3]);
   } else {
     loading(f, block, area, app.is_loading);
   }
-}
-
-pub(super) fn draw_logo<B: Backend>(f: &mut Frame<'_, B>, area: Rect) {
-  let chunks = vertical_chunks(
-    vec![Constraint::Percentage(60), Constraint::Percentage(40)],
-    area,
-  );
-  let logo = Paragraph::new(Text::from(RADARR_LOGO))
-    .block(Block::default())
-    .alignment(Alignment::Center);
-
-  f.render_widget(logo, chunks[0]);
 }
 
 fn determine_row_style(app: &App, movie: &Movie) -> Style {

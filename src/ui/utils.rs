@@ -1,7 +1,8 @@
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::text::Span;
-use tui::widgets::{Block, Borders};
+use tui::symbols;
+use tui::text::{Span, Spans};
+use tui::widgets::{Block, Borders, LineGauge};
 
 pub fn horizontal_chunks(constraints: Vec<Constraint>, size: Rect) -> Vec<Rect> {
   Layout::default()
@@ -113,4 +114,13 @@ pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
       .as_ref(),
     )
     .split(popup_layout[1])[1]
+}
+
+pub fn line_gague(title: &str, ratio: f64) -> LineGauge {
+  LineGauge::default()
+    .block(Block::default().title(title))
+    .gauge_style(Style::default().fg(Color::Cyan))
+    .line_set(symbols::line::THICK)
+    .ratio(ratio)
+    .label(Spans::from(format!("{:.0}%", ratio * 100.0)))
 }

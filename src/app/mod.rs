@@ -126,7 +126,7 @@ impl Default for App {
       title: "Managarr",
       tick_until_poll: 20,
       tick_count: 0,
-      network_tick_frequency: Duration::from_secs(5),
+      network_tick_frequency: Duration::from_secs(10),
       last_tick: Instant::now(),
       is_loading: false,
       is_routing: false,
