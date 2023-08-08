@@ -86,6 +86,7 @@ tautulli:
 - [x] Manually search for movies
 - [x] Edit your movies and collections
 - [x] Manage your tags
+- [x] Manage your root folders
 - [ ] Manage your quality profiles
 - [ ] Manage your quality definitions
 - [ ] Manage your indexers

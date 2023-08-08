@@ -23,6 +23,7 @@ pub struct RadarrData {
   pub monitor_list: StatefulList<Monitor>,
   pub minimum_availability_list: StatefulList<MinimumAvailability>,
   pub quality_profile_list: StatefulList<String>,
+  pub root_folder_list: StatefulList<RootFolder>,
   pub selected_block: ActiveRadarrBlock,
   pub downloads: StatefulTable<DownloadRecord>,
   pub quality_profile_map: BiMap<u64, String>,
@@ -101,6 +102,7 @@ impl RadarrData {
     self.monitor_list = StatefulList::default();
     self.minimum_availability_list = StatefulList::default();
     self.quality_profile_list = StatefulList::default();
+    self.root_folder_list = StatefulList::default();
   }
 
   pub fn populate_preferences_lists(&mut self) {
@@ -112,6 +114,9 @@ impl RadarrData {
       self.quality_profile_map.right_values().cloned().collect();
     quality_profile_names.sort();
     self.quality_profile_list.set_items(quality_profile_names);
+    self
+      .root_folder_list
+      .set_items(self.root_folders.items.to_vec());
   }
 
   pub fn populate_edit_movie_fields(&mut self) {
@@ -226,7 +231,8 @@ impl Default for RadarrData {
       monitor_list: StatefulList::default(),
       minimum_availability_list: StatefulList::default(),
       quality_profile_list: StatefulList::default(),
-      selected_block: ActiveRadarrBlock::AddMovieSelectMonitor,
+      root_folder_list: StatefulList::default(),
+      selected_block: ActiveRadarrBlock::AddMovieSelectRootFolder,
       filtered_movies: StatefulTable::default(),
       downloads: StatefulTable::default(),
       quality_profile_map: BiMap::default(),
@@ -333,6 +339,7 @@ pub enum ActiveRadarrBlock {
   AddMovieSelectMinimumAvailability,
   AddMovieSelectQualityProfile,
   AddMovieSelectMonitor,
+  AddMovieSelectRootFolder,
   AddMovieConfirmPrompt,
   AddMovieTagsInput,
   AddMovieEmptySearchResults,
@@ -379,7 +386,7 @@ pub enum ActiveRadarrBlock {
   ViewMovieOverview,
 }
 
-pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 9] = [
+pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::AddMovieSearchInput,
   ActiveRadarrBlock::AddMovieSearchResults,
   ActiveRadarrBlock::AddMovieEmptySearchResults,
@@ -387,6 +394,7 @@ pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 9] = [
   ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
   ActiveRadarrBlock::AddMovieSelectMonitor,
   ActiveRadarrBlock::AddMovieSelectQualityProfile,
+  ActiveRadarrBlock::AddMovieSelectRootFolder,
   ActiveRadarrBlock::AddMovieAlreadyInLibrary,
   ActiveRadarrBlock::AddMovieTagsInput,
 ];
@@ -436,6 +444,7 @@ pub const FILTER_BLOCKS: [ActiveRadarrBlock; 2] = [
 impl ActiveRadarrBlock {
   pub fn next_add_movie_prompt_block(&self) -> Self {
     match self {
+      ActiveRadarrBlock::AddMovieSelectRootFolder => ActiveRadarrBlock::AddMovieSelectMonitor,
       ActiveRadarrBlock::AddMovieSelectMonitor => {
         ActiveRadarrBlock::AddMovieSelectMinimumAvailability
       }
@@ -444,7 +453,7 @@ impl ActiveRadarrBlock {
       }
       ActiveRadarrBlock::AddMovieSelectQualityProfile => ActiveRadarrBlock::AddMovieTagsInput,
       ActiveRadarrBlock::AddMovieTagsInput => ActiveRadarrBlock::AddMovieConfirmPrompt,
-      _ => ActiveRadarrBlock::AddMovieSelectMonitor,
+      _ => ActiveRadarrBlock::AddMovieSelectRootFolder,
     }
   }
 
@@ -486,7 +495,8 @@ impl ActiveRadarrBlock {
 
   pub fn previous_add_movie_prompt_block(&self) -> Self {
     match self {
-      ActiveRadarrBlock::AddMovieSelectMonitor => ActiveRadarrBlock::AddMovieConfirmPrompt,
+      ActiveRadarrBlock::AddMovieSelectRootFolder => ActiveRadarrBlock::AddMovieConfirmPrompt,
+      ActiveRadarrBlock::AddMovieSelectMonitor => ActiveRadarrBlock::AddMovieSelectRootFolder,
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability => {
         ActiveRadarrBlock::AddMovieSelectMonitor
       }
@@ -495,7 +505,7 @@ impl ActiveRadarrBlock {
       }
       ActiveRadarrBlock::AddMovieTagsInput => ActiveRadarrBlock::AddMovieSelectQualityProfile,
       ActiveRadarrBlock::AddMovieConfirmPrompt => ActiveRadarrBlock::AddMovieTagsInput,
-      _ => ActiveRadarrBlock::AddMovieSelectMonitor,
+      _ => ActiveRadarrBlock::AddMovieSelectRootFolder,
     }
   }
 
@@ -712,7 +722,7 @@ pub mod radarr_test_utils {
   use crate::app::radarr::RadarrData;
   use crate::models::radarr_models::{
     AddMovieSearchResult, Collection, CollectionMovie, Credit, MinimumAvailability, Monitor, Movie,
-    MovieHistoryItem, Release, ReleaseField,
+    MovieHistoryItem, Release, ReleaseField, RootFolder,
   };
   use crate::models::ScrollableText;
 
@@ -748,6 +758,9 @@ pub mod radarr_test_utils {
     radarr_data
       .quality_profile_list
       .set_items(vec![String::default()]);
+    radarr_data
+      .root_folder_list
+      .set_items(vec![RootFolder::default()]);
     radarr_data
       .movie_releases_sort
       .set_items(vec![ReleaseField::default()]);
@@ -830,6 +843,7 @@ pub mod radarr_test_utils {
       assert!($radarr_data.monitor_list.items.is_empty());
       assert!($radarr_data.minimum_availability_list.items.is_empty());
       assert!($radarr_data.quality_profile_list.items.is_empty());
+      assert!($radarr_data.root_folder_list.items.is_empty());
     };
   }
 }
@@ -846,7 +860,9 @@ mod tests {
 
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
     use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
-    use crate::models::radarr_models::{Collection, MinimumAvailability, Monitor, Movie};
+    use crate::models::radarr_models::{
+      Collection, MinimumAvailability, Monitor, Movie, RootFolder,
+    };
     use crate::models::HorizontallyScrollableText;
     use crate::models::Route;
     use crate::models::StatefulTable;
@@ -927,6 +943,13 @@ mod tests {
 
     #[test]
     fn test_populate_preferences_lists() {
+      let root_folder = RootFolder {
+        id: Number::from(1),
+        path: "/nfs".to_owned(),
+        accessible: true,
+        free_space: Number::from(219902325555200u64),
+        unmapped_folders: None,
+      };
       let mut radarr_data = RadarrData {
         quality_profile_map: BiMap::from_iter([
           (2222, "HD - 1080p".to_owned()),
@@ -934,6 +957,9 @@ mod tests {
         ]),
         ..RadarrData::default()
       };
+      radarr_data
+        .root_folders
+        .set_items(vec![root_folder.clone()]);
 
       radarr_data.populate_preferences_lists();
 
@@ -949,6 +975,7 @@ mod tests {
         radarr_data.quality_profile_list.items,
         vec!["Any".to_owned(), "HD - 1080p".to_owned()]
       );
+      assert_eq!(radarr_data.root_folder_list.items, vec![root_folder]);
     }
 
     #[rstest]
@@ -1069,9 +1096,10 @@ mod tests {
       assert!(radarr_data.monitor_list.items.is_empty());
       assert!(radarr_data.minimum_availability_list.items.is_empty());
       assert!(radarr_data.quality_profile_list.items.is_empty());
+      assert!(radarr_data.root_folder_list.items.is_empty());
       assert_eq!(
         radarr_data.selected_block,
-        ActiveRadarrBlock::AddMovieSelectMonitor
+        ActiveRadarrBlock::AddMovieSelectRootFolder
       );
       assert!(radarr_data.filtered_movies.items.is_empty());
       assert!(radarr_data.downloads.items.is_empty());
@@ -1233,7 +1261,11 @@ mod tests {
 
     #[test]
     fn test_next_add_movie_prompt_block() {
-      let active_block = ActiveRadarrBlock::AddMovieSelectMonitor.next_add_movie_prompt_block();
+      let active_block = ActiveRadarrBlock::AddMovieSelectRootFolder.next_add_movie_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::AddMovieSelectMonitor);
+
+      let active_block = active_block.next_add_movie_prompt_block();
 
       assert_eq!(
         active_block,
@@ -1257,7 +1289,7 @@ mod tests {
 
       let active_block = active_block.next_add_movie_prompt_block();
 
-      assert_eq!(active_block, ActiveRadarrBlock::AddMovieSelectMonitor);
+      assert_eq!(active_block, ActiveRadarrBlock::AddMovieSelectRootFolder);
     }
 
     #[test]
@@ -1338,7 +1370,8 @@ mod tests {
 
     #[test]
     fn test_previous_add_movie_prompt_block() {
-      let active_block = ActiveRadarrBlock::AddMovieSelectMonitor.previous_add_movie_prompt_block();
+      let active_block =
+        ActiveRadarrBlock::AddMovieSelectRootFolder.previous_add_movie_prompt_block();
 
       assert_eq!(active_block, ActiveRadarrBlock::AddMovieConfirmPrompt);
 
@@ -1363,6 +1396,10 @@ mod tests {
       let active_block = active_block.previous_add_movie_prompt_block();
 
       assert_eq!(active_block, ActiveRadarrBlock::AddMovieSelectMonitor);
+
+      let active_block = active_block.previous_add_movie_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::AddMovieSelectRootFolder);
     }
 
     #[test]

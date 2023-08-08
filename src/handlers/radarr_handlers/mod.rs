@@ -11,7 +11,7 @@ use crate::handlers::radarr_handlers::movie_details_handler::MovieDetailsHandler
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::{HorizontallyScrollableText, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
-use crate::utils::strip_non_alphanumeric_characters;
+use crate::utils::strip_non_search_characters;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
 
 mod add_movie_handler;
@@ -572,7 +572,7 @@ impl RadarrHandler<'_> {
   {
     let search_string = self.app.data.radarr_data.search.drain().to_lowercase();
     let search_index = rows.iter().position(|item| {
-      strip_non_alphanumeric_characters(field_selection_fn(item)).contains(&search_string)
+      strip_non_search_characters(field_selection_fn(item)).contains(&search_string)
     });
 
     self.app.data.radarr_data.is_searching = false;
@@ -590,10 +590,10 @@ impl RadarrHandler<'_> {
     F: Fn(&T) -> &str,
     T: Clone,
   {
-    let filter = strip_non_alphanumeric_characters(&self.app.data.radarr_data.filter.drain());
+    let filter = strip_non_search_characters(&self.app.data.radarr_data.filter.drain());
     let filter_matches: Vec<T> = rows
       .iter()
-      .filter(|&item| strip_non_alphanumeric_characters(field_selection_fn(item)).contains(&filter))
+      .filter(|&item| strip_non_search_characters(field_selection_fn(item)).contains(&filter))
       .cloned()
       .collect();
 
@@ -1951,6 +1951,7 @@ mod tests {
       ActiveRadarrBlock::AddMovieSelectMonitor,
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
       ActiveRadarrBlock::AddMovieSelectQualityProfile,
+      ActiveRadarrBlock::AddMovieSelectRootFolder,
       ActiveRadarrBlock::AddMovieAlreadyInLibrary,
       ActiveRadarrBlock::AddMovieTagsInput
     )]

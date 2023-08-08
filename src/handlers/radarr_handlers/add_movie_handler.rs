@@ -48,6 +48,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
       ActiveRadarrBlock::AddMovieSelectQualityProfile => {
         self.app.data.radarr_data.quality_profile_list.scroll_up()
       }
+      ActiveRadarrBlock::AddMovieSelectRootFolder => {
+        self.app.data.radarr_data.root_folder_list.scroll_up()
+      }
       ActiveRadarrBlock::AddMoviePrompt => {
         self.app.data.radarr_data.selected_block = self
           .app
@@ -77,6 +80,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         .scroll_down(),
       ActiveRadarrBlock::AddMovieSelectQualityProfile => {
         self.app.data.radarr_data.quality_profile_list.scroll_down()
+      }
+      ActiveRadarrBlock::AddMovieSelectRootFolder => {
+        self.app.data.radarr_data.root_folder_list.scroll_down()
       }
       ActiveRadarrBlock::AddMoviePrompt => {
         self.app.data.radarr_data.selected_block = self
@@ -113,6 +119,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         .radarr_data
         .quality_profile_list
         .scroll_to_top(),
+      ActiveRadarrBlock::AddMovieSelectRootFolder => {
+        self.app.data.radarr_data.root_folder_list.scroll_to_top()
+      }
       ActiveRadarrBlock::AddMovieSearchInput => self.app.data.radarr_data.search.scroll_home(),
       ActiveRadarrBlock::AddMovieTagsInput => self.app.data.radarr_data.edit_tags.scroll_home(),
       _ => (),
@@ -141,6 +150,12 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         .data
         .radarr_data
         .quality_profile_list
+        .scroll_to_bottom(),
+      ActiveRadarrBlock::AddMovieSelectRootFolder => self
+        .app
+        .data
+        .radarr_data
+        .root_folder_list
         .scroll_to_bottom(),
       ActiveRadarrBlock::AddMovieSearchInput => self.app.data.radarr_data.search.reset_offset(),
       ActiveRadarrBlock::AddMovieTagsInput => self.app.data.radarr_data.edit_tags.reset_offset(),
@@ -206,7 +221,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
             .app
             .push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
           self.app.data.radarr_data.populate_preferences_lists();
-          self.app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieSelectMonitor;
+          self.app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieSelectRootFolder;
         }
       }
       ActiveRadarrBlock::AddMoviePrompt => match self.app.data.radarr_data.selected_block {
@@ -220,7 +235,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         }
         ActiveRadarrBlock::AddMovieSelectMonitor
         | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
-        | ActiveRadarrBlock::AddMovieSelectQualityProfile => self
+        | ActiveRadarrBlock::AddMovieSelectQualityProfile
+        | ActiveRadarrBlock::AddMovieSelectRootFolder => self
           .app
           .push_navigation_stack((self.app.data.radarr_data.selected_block, *self.context).into()),
         ActiveRadarrBlock::AddMovieTagsInput => {
@@ -233,7 +249,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
       },
       ActiveRadarrBlock::AddMovieSelectMonitor
       | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
-      | ActiveRadarrBlock::AddMovieSelectQualityProfile => self.app.pop_navigation_stack(),
+      | ActiveRadarrBlock::AddMovieSelectQualityProfile
+      | ActiveRadarrBlock::AddMovieSelectRootFolder => self.app.pop_navigation_stack(),
       ActiveRadarrBlock::AddMovieTagsInput => {
         self.app.pop_navigation_stack();
         self.app.should_ignore_quit_key = false;
@@ -262,7 +279,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
       ActiveRadarrBlock::AddMovieSelectMonitor
       | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
       | ActiveRadarrBlock::AddMovieSelectQualityProfile
-      | ActiveRadarrBlock::AddMovieAlreadyInLibrary => self.app.pop_navigation_stack(),
+      | ActiveRadarrBlock::AddMovieAlreadyInLibrary
+      | ActiveRadarrBlock::AddMovieSelectRootFolder => self.app.pop_navigation_stack(),
       ActiveRadarrBlock::AddMovieTagsInput => {
         self.app.pop_navigation_stack();
         self.app.should_ignore_quit_key = false;
@@ -295,7 +313,9 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::add_movie_handler::AddMovieHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::{AddMovieSearchResult, MinimumAvailability, Monitor};
+  use crate::models::radarr_models::{
+    AddMovieSearchResult, MinimumAvailability, Monitor, RootFolder,
+  };
   use crate::models::HorizontallyScrollableText;
 
   mod test_handle_scroll_up_and_down {
@@ -342,6 +362,16 @@ mod tests {
       quality_profile_list,
       ActiveRadarrBlock::AddMovieSelectQualityProfile,
       None
+    );
+
+    test_iterable_scroll!(
+      test_add_movie_select_root_folder_scroll,
+      AddMovieHandler,
+      root_folder_list,
+      simple_stateful_iterable_vec!(RootFolder, String, path),
+      ActiveRadarrBlock::AddMovieSelectRootFolder,
+      None,
+      path
     );
 
     #[rstest]
@@ -405,11 +435,21 @@ mod tests {
     );
 
     test_iterable_home_and_end!(
-      test_add_movie_select_quality_profile_scroll,
+      test_add_movie_select_quality_profile_home_end,
       AddMovieHandler,
       quality_profile_list,
       ActiveRadarrBlock::AddMovieSelectQualityProfile,
       None
+    );
+
+    test_iterable_home_and_end!(
+      test_add_movie_select_root_folder_home_end,
+      AddMovieHandler,
+      root_folder_list,
+      extended_stateful_iterable_vec!(RootFolder, String, path),
+      ActiveRadarrBlock::AddMovieSelectRootFolder,
+      None,
+      path
     );
 
     #[test]
@@ -528,7 +568,7 @@ mod tests {
       );
       assert_eq!(
         app.data.radarr_data.selected_block,
-        ActiveRadarrBlock::AddMovieSelectMonitor
+        ActiveRadarrBlock::AddMovieSelectRootFolder
       );
       assert!(!app.data.radarr_data.monitor_list.items.is_empty());
       assert!(!app
@@ -642,6 +682,7 @@ mod tests {
         ActiveRadarrBlock::AddMovieSelectMonitor,
         ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
         ActiveRadarrBlock::AddMovieSelectQualityProfile,
+        ActiveRadarrBlock::AddMovieSelectRootFolder,
         ActiveRadarrBlock::AddMovieTagsInput
       )]
       selected_block: ActiveRadarrBlock,
@@ -681,6 +722,7 @@ mod tests {
         ActiveRadarrBlock::AddMovieSelectMonitor,
         ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
         ActiveRadarrBlock::AddMovieSelectQualityProfile,
+        ActiveRadarrBlock::AddMovieSelectRootFolder,
         ActiveRadarrBlock::AddMovieTagsInput
       )]
       active_radarr_block: ActiveRadarrBlock,
@@ -868,7 +910,8 @@ mod tests {
       #[values(
         ActiveRadarrBlock::AddMovieSelectMonitor,
         ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
-        ActiveRadarrBlock::AddMovieSelectQualityProfile
+        ActiveRadarrBlock::AddMovieSelectQualityProfile,
+        ActiveRadarrBlock::AddMovieSelectRootFolder
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {

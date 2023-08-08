@@ -10,6 +10,7 @@ use crate::models::Route;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details;
 use crate::ui::radarr_ui::{
   draw_select_minimum_availability_popup, draw_select_quality_profile_popup,
+  draw_select_root_folder_popup,
 };
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, horizontal_chunks, layout_block,
@@ -40,6 +41,7 @@ pub(super) fn draw_add_movie_search_popup<B: Backend>(
       | ActiveRadarrBlock::AddMovieSelectMonitor
       | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
       | ActiveRadarrBlock::AddMovieSelectQualityProfile
+      | ActiveRadarrBlock::AddMovieSelectRootFolder
       | ActiveRadarrBlock::AddMovieTagsInput => {
         if context_option.is_some() {
           draw_medium_popup_over(
@@ -119,6 +121,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
       | ActiveRadarrBlock::AddMovieSelectMonitor
       | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
       | ActiveRadarrBlock::AddMovieSelectQualityProfile
+      | ActiveRadarrBlock::AddMovieSelectRootFolder
       | ActiveRadarrBlock::AddMovieAlreadyInLibrary
       | ActiveRadarrBlock::AddMovieTagsInput => {
         let mut help_text = Text::from("<enter> details | <esc> edit search");
@@ -260,6 +263,15 @@ fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prom
           draw_select_quality_profile_popup,
         );
       }
+      ActiveRadarrBlock::AddMovieSelectRootFolder => {
+        draw_drop_down_popup(
+          f,
+          app,
+          prompt_area,
+          draw_confirmation_prompt,
+          draw_select_root_folder_popup,
+        );
+      }
       ActiveRadarrBlock::AddMoviePrompt | ActiveRadarrBlock::AddMovieTagsInput => {
         draw_confirmation_prompt(f, app, prompt_area)
       }
@@ -278,7 +290,6 @@ fn draw_select_monitor_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, po
 }
 
 fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
-  let title = "Add Movie";
   let (movie_title, movie_overview) = if let Route::Radarr(_, Some(_)) = app.get_current_route() {
     (
       &app
@@ -314,7 +325,8 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
         .clone(),
     )
   };
-  let prompt = format!("{}:\n\n{}", movie_title, movie_overview);
+  let title = format!("Add Movie - {}", movie_title);
+  let prompt = movie_overview;
   let yes_no_value = &app.data.radarr_data.prompt_confirm;
   let selected_block = &app.data.radarr_data.selected_block;
   let highlight_yes_no = *selected_block == ActiveRadarrBlock::AddMovieConfirmPrompt;
@@ -330,17 +342,19 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
     .radarr_data
     .quality_profile_list
     .current_selection();
+  let selected_root_folder = app.data.radarr_data.root_folder_list.current_selection();
 
-  f.render_widget(title_block_centered(title), prompt_area);
+  f.render_widget(title_block_centered(&title), prompt_area);
 
   let chunks = vertical_chunks_with_margin(
     vec![
-      Constraint::Percentage(30),
+      Constraint::Length(6),
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
-      Constraint::Min(3),
+      Constraint::Length(3),
+      Constraint::Min(0),
       Constraint::Length(3),
     ],
     prompt_area,
@@ -352,12 +366,20 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
 
   let horizontal_chunks = horizontal_chunks(
     vec![Constraint::Percentage(50), Constraint::Percentage(50)],
-    chunks[6],
+    chunks[7],
   );
 
   draw_drop_down_menu_button(
     f,
     chunks[1],
+    "Root Folder",
+    &selected_root_folder.path,
+    *selected_block == ActiveRadarrBlock::AddMovieSelectRootFolder,
+  );
+
+  draw_drop_down_menu_button(
+    f,
+    chunks[2],
     "Monitor",
     selected_monitor.to_display_str(),
     *selected_block == ActiveRadarrBlock::AddMovieSelectMonitor,
@@ -365,14 +387,14 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
 
   draw_drop_down_menu_button(
     f,
-    chunks[2],
+    chunks[3],
     "Minimum Availability",
     selected_minimum_availability.to_display_str(),
     *selected_block == ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
   );
   draw_drop_down_menu_button(
     f,
-    chunks[3],
+    chunks[4],
     "Quality Profile",
     selected_quality_profile,
     *selected_block == ActiveRadarrBlock::AddMovieSelectQualityProfile,
@@ -381,7 +403,7 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     draw_text_box_with_label(
       f,
-      chunks[4],
+      chunks[5],
       "Tags",
       &app.data.radarr_data.edit_tags.text,
       *app.data.radarr_data.edit_tags.offset.borrow(),

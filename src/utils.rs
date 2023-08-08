@@ -34,8 +34,8 @@ pub fn convert_runtime(runtime: u64) -> (u64, u64) {
   (hours, minutes)
 }
 
-pub fn strip_non_alphanumeric_characters(input: &str) -> String {
-  Regex::new(r"[^a-zA-Z0-9\s]")
+pub fn strip_non_search_characters(input: &str) -> String {
+  Regex::new(r"[^a-zA-Z0-9.,/'\-:\s]")
     .unwrap()
     .replace_all(&input.to_lowercase(), "")
     .to_string()
@@ -45,7 +45,7 @@ pub fn strip_non_alphanumeric_characters(input: &str) -> String {
 mod tests {
   use pretty_assertions::assert_eq;
 
-  use crate::utils::{convert_runtime, convert_to_gb, strip_non_alphanumeric_characters};
+  use crate::utils::{convert_runtime, convert_to_gb, strip_non_search_characters};
 
   #[test]
   fn test_convert_to_gb() {
@@ -64,8 +64,8 @@ mod tests {
   #[test]
   fn test_strip_non_alphanumeric_characters() {
     assert_eq!(
-      strip_non_alphanumeric_characters("Te$t S7r!ng::'~-_}"),
-      "tet s7rng".to_owned()
+      strip_non_search_characters("Te$t S7r!ng::'~-@_`,(.)/*}^&%#+="),
+      "tet s7rng::'-,./".to_owned()
     )
   }
 }

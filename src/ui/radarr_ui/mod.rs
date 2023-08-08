@@ -879,3 +879,16 @@ fn draw_select_quality_profile_popup<B: Backend>(
     |quality_profile| ListItem::new(quality_profile.clone()),
   );
 }
+
+fn draw_select_root_folder_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  popup_area: Rect,
+) {
+  draw_drop_down_list(
+    f,
+    popup_area,
+    &mut app.data.radarr_data.root_folder_list,
+    |root_folder| ListItem::new(root_folder.path.to_owned()),
+  );
+}
