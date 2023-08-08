@@ -82,7 +82,6 @@ tautulli:
 - [x] View details of any collection and the movies in them
 - [x] Search your library or collections
 - [ ] Add movies to Radarr
-- [ ] Search your collections
 - [ ] Manage your quality profiles
 - [ ] Modify your Radarr settings
 
