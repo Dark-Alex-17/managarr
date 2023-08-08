@@ -46,7 +46,15 @@ fn draw_collection_details<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, cont
     content_area,
     1,
   );
-  let collection_selection = app.data.radarr_data.collections.current_selection();
+  let collection_selection = if !app.data.radarr_data.filtered_collections.items.is_empty() {
+    app
+      .data
+      .radarr_data
+      .filtered_collections
+      .current_selection()
+  } else {
+    app.data.radarr_data.collections.current_selection()
+  };
   let quality_profile = app
     .data
     .radarr_data
@@ -150,7 +158,6 @@ fn draw_collection_details<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, cont
       ])
       .style(style_primary())
     },
-    |_| true,
     app.is_loading,
   );
 }

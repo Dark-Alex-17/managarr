@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use anyhow::anyhow;
 use indoc::formatdoc;
 use log::{debug, error};
@@ -195,6 +197,7 @@ impl<'a> Network<'a> {
 
           let status = get_movie_status(has_file, &app.data.radarr_data.downloads.items, id);
           let collection = collection.unwrap_or_default();
+          debug!("title: {:?}", title);
 
           app.data.radarr_data.movie_details = ScrollableText::with_string(formatdoc!(
             "Title: {}
@@ -394,18 +397,42 @@ impl<'a> Network<'a> {
   }
 
   async fn extract_movie_id(&self) -> u64 {
-    self
+    if !self
       .app
       .lock()
       .await
       .data
       .radarr_data
-      .movies
-      .current_selection()
-      .id
-      .clone()
-      .as_u64()
-      .unwrap()
+      .filtered_movies
+      .items
+      .is_empty()
+    {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .filtered_movies
+        .current_selection()
+        .id
+        .clone()
+        .as_u64()
+        .unwrap()
+    } else {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .movies
+        .current_selection()
+        .id
+        .clone()
+        .as_u64()
+        .unwrap()
+    }
   }
 
   async fn append_movie_id_param(&self, resource: &str) -> String {

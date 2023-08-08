@@ -1,11 +1,9 @@
-use regex::Regex;
-
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::handlers::radarr_handlers::collection_details_handler::CollectionDetailsHandler;
 use crate::handlers::radarr_handlers::movie_details_handler::MovieDetailsHandler;
 use crate::handlers::{handle_clear_errors, KeyEventHandler};
-use crate::models::radarr_models::Movie;
+use crate::models::radarr_models::{Collection, Movie};
 use crate::models::Scrollable;
 use crate::utils::strip_non_alphanumeric_characters;
 use crate::{App, Key};
@@ -55,16 +53,15 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
   fn handle_scroll_up(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::Collections => {
-        if !self.app.data.radarr_data.filter.is_empty() {
-          self
-            .app
-            .data
-            .radarr_data
-            .collections
-            .scroll_up_with_filter(|&collection| {
-              strip_non_alphanumeric_characters(&collection.title)
-                .starts_with(&self.app.data.radarr_data.filter)
-            });
+        if !self
+          .app
+          .data
+          .radarr_data
+          .filtered_collections
+          .items
+          .is_empty()
+        {
+          self.app.data.radarr_data.filtered_collections.scroll_up();
         } else {
           self.app.data.radarr_data.collections.scroll_up()
         }
@@ -73,16 +70,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         self.app.data.radarr_data.collection_movies.scroll_up()
       }
       ActiveRadarrBlock::Movies => {
-        if !self.app.data.radarr_data.filter.is_empty() {
-          self
-            .app
-            .data
-            .radarr_data
-            .movies
-            .scroll_up_with_filter(|&movie| {
-              strip_non_alphanumeric_characters(&movie.title)
-                .starts_with(&self.app.data.radarr_data.filter)
-            });
+        if !self.app.data.radarr_data.filtered_movies.items.is_empty() {
+          self.app.data.radarr_data.filtered_movies.scroll_up();
         } else {
           self.app.data.radarr_data.movies.scroll_up()
         }
@@ -95,16 +84,15 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
   fn handle_scroll_down(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::Collections => {
-        if !self.app.data.radarr_data.filter.is_empty() {
-          self
-            .app
-            .data
-            .radarr_data
-            .collections
-            .scroll_down_with_filter(|&collection| {
-              strip_non_alphanumeric_characters(&collection.title)
-                .starts_with(&self.app.data.radarr_data.filter)
-            });
+        if !self
+          .app
+          .data
+          .radarr_data
+          .filtered_collections
+          .items
+          .is_empty()
+        {
+          self.app.data.radarr_data.filtered_collections.scroll_down();
         } else {
           self.app.data.radarr_data.collections.scroll_down()
         }
@@ -113,16 +101,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         self.app.data.radarr_data.collection_movies.scroll_down()
       }
       ActiveRadarrBlock::Movies => {
-        if !self.app.data.radarr_data.filter.is_empty() {
-          self
-            .app
-            .data
-            .radarr_data
-            .movies
-            .scroll_down_with_filter(|&movie| {
-              strip_non_alphanumeric_characters(&movie.title)
-                .starts_with(&self.app.data.radarr_data.filter)
-            });
+        if !self.app.data.radarr_data.filtered_movies.items.is_empty() {
+          self.app.data.radarr_data.filtered_movies.scroll_down();
         } else {
           self.app.data.radarr_data.movies.scroll_down()
         }
@@ -192,7 +172,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
           .items
           .iter()
           .position(|movie| {
-            strip_non_alphanumeric_characters(&movie.title).starts_with(&search_string)
+            strip_non_alphanumeric_characters(&movie.title).contains(&search_string)
           });
 
         self.app.data.radarr_data.is_searching = false;
@@ -220,7 +200,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
             .items
             .iter()
             .position(|collection| {
-              strip_non_alphanumeric_characters(&collection.title).starts_with(&search_string)
+              strip_non_alphanumeric_characters(&collection.title).contains(&search_string)
             });
 
         self.app.data.radarr_data.is_searching = false;
@@ -236,47 +216,63 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         }
       }
       ActiveRadarrBlock::FilterMovies => {
-        self.app.data.radarr_data.filter =
-          strip_non_alphanumeric_characters(&self.app.data.radarr_data.filter);
-        let filter_string = &self.app.data.radarr_data.filter;
-        let filter_matches = self
-          .app
-          .data
-          .radarr_data
-          .movies
-          .items
+        let filter = strip_non_alphanumeric_characters(
+          &self
+            .app
+            .data
+            .radarr_data
+            .filter
+            .drain(..)
+            .collect::<String>(),
+        );
+        let movie_list = self.app.data.radarr_data.movies.items.clone();
+        let filter_matches = movie_list
           .iter()
-          .filter(|&movie| {
-            strip_non_alphanumeric_characters(&movie.title).starts_with(filter_string)
-          })
-          .count();
+          .filter(|&movie| strip_non_alphanumeric_characters(&movie.title).contains(&filter))
+          .map(|movie| movie.to_owned())
+          .collect::<Vec<Movie>>();
 
         self.app.data.radarr_data.is_searching = false;
 
-        if filter_matches > 0 {
+        if !filter_matches.is_empty() {
           self.app.pop_navigation_stack();
+          self
+            .app
+            .data
+            .radarr_data
+            .filtered_movies
+            .set_items(filter_matches);
         }
       }
       ActiveRadarrBlock::FilterCollections => {
-        self.app.data.radarr_data.filter =
-          strip_non_alphanumeric_characters(&self.app.data.radarr_data.filter);
-        let filter_string = &self.app.data.radarr_data.filter;
-        let filter_matches = self
-          .app
-          .data
-          .radarr_data
-          .collections
-          .items
+        let filter = strip_non_alphanumeric_characters(
+          &self
+            .app
+            .data
+            .radarr_data
+            .filter
+            .drain(..)
+            .collect::<String>(),
+        );
+        let collection_list = self.app.data.radarr_data.collections.items.clone();
+        let filter_matches = collection_list
           .iter()
           .filter(|&collection| {
-            strip_non_alphanumeric_characters(&collection.title).starts_with(filter_string)
+            strip_non_alphanumeric_characters(&collection.title).contains(&filter)
           })
-          .count();
+          .map(|collection| collection.to_owned())
+          .collect::<Vec<Collection>>();
 
         self.app.data.radarr_data.is_searching = false;
 
-        if filter_matches > 0 {
+        if !filter_matches.is_empty() {
           self.app.pop_navigation_stack();
+          self
+            .app
+            .data
+            .radarr_data
+            .filtered_collections
+            .set_items(filter_matches);
         }
       }
       _ => (),

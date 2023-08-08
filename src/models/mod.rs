@@ -1,6 +1,7 @@
 use std::cell::RefCell;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 
+use log::debug;
 use serde::Deserialize;
 use tui::widgets::TableState;
 
@@ -40,7 +41,7 @@ impl<T> Default for StatefulTable<T> {
   }
 }
 
-impl<T: Clone + PartialEq + Eq> StatefulTable<T> {
+impl<T: Clone + PartialEq + Eq + Debug> StatefulTable<T> {
   pub fn set_items(&mut self, items: Vec<T>) {
     let items_len = items.len();
     self.items = items;
@@ -68,55 +69,6 @@ impl<T: Clone + PartialEq + Eq> StatefulTable<T> {
 
   pub fn select_index(&mut self, index: Option<usize>) {
     self.state.select(index);
-  }
-
-  pub fn scroll_up_with_filter<F>(&mut self, filter: F)
-  where
-    F: FnMut(&&T) -> bool,
-  {
-    let filtered_list: Vec<&T> = self.items.iter().filter(filter).collect();
-
-    let element_position = filtered_list
-      .iter()
-      .position(|&item| item == self.current_selection())
-      .unwrap();
-
-    if element_position == 0 {
-      let selected_index = self
-        .items
-        .iter()
-        .position(|item| item == filtered_list[filtered_list.len()]);
-      self.select_index(selected_index);
-    } else {
-      let selected_index = self
-        .items
-        .iter()
-        .position(|item| item == filtered_list[element_position - 1]);
-      self.select_index(selected_index)
-    }
-  }
-
-  pub fn scroll_down_with_filter<F>(&mut self, filter: F)
-  where
-    F: FnMut(&&T) -> bool,
-  {
-    let filtered_list: Vec<&T> = self.items.iter().filter(filter).collect();
-
-    let element_position = filtered_list
-      .iter()
-      .position(|&item| item == self.current_selection())
-      .unwrap();
-
-    if element_position + 1 > filtered_list.len() {
-      let selected_index = self.items.iter().position(|item| item == filtered_list[0]);
-      self.select_index(selected_index);
-    } else {
-      let selected_index = self
-        .items
-        .iter()
-        .position(|item| item == filtered_list[element_position + 1]);
-      self.select_index(selected_index)
-    }
   }
 }
 

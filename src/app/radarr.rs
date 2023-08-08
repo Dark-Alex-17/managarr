@@ -16,6 +16,7 @@ pub struct RadarrData {
   pub version: String,
   pub start_time: DateTime<Utc>,
   pub movies: StatefulTable<Movie>,
+  pub filtered_movies: StatefulTable<Movie>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub quality_profile_map: HashMap<u64, String>,
   pub movie_details: ScrollableText,
@@ -26,6 +27,7 @@ pub struct RadarrData {
   pub movie_cast: StatefulTable<Credit>,
   pub movie_crew: StatefulTable<Credit>,
   pub collections: StatefulTable<Collection>,
+  pub filtered_collections: StatefulTable<Collection>,
   pub collection_movies: StatefulTable<CollectionMovie>,
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
@@ -43,6 +45,8 @@ impl RadarrData {
     self.is_searching = false;
     self.search = String::default();
     self.filter = String::default();
+    self.filtered_movies = StatefulTable::default();
+    self.filtered_collections = StatefulTable::default();
   }
 
   pub fn reset_movie_info_tabs(&mut self) {
@@ -68,6 +72,7 @@ impl Default for RadarrData {
       version: String::default(),
       start_time: DateTime::default(),
       movies: StatefulTable::default(),
+      filtered_movies: StatefulTable::default(),
       downloads: StatefulTable::default(),
       quality_profile_map: HashMap::default(),
       file_details: String::default(),
@@ -78,6 +83,7 @@ impl Default for RadarrData {
       movie_cast: StatefulTable::default(),
       movie_crew: StatefulTable::default(),
       collections: StatefulTable::default(),
+      filtered_collections: StatefulTable::default(),
       collection_movies: StatefulTable::default(),
       search: String::default(),
       filter: String::default(),
@@ -86,7 +92,7 @@ impl Default for RadarrData {
         TabRoute {
           title: "Library".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
-          help: "<↑↓> scroll | <s> search | <f> filter | <enter> details | ←→ change tab "
+          help: "<↑↓> scroll | <s> search | <f> filter | <enter> details | <esc> cancel filter | ←→ change tab "
             .to_owned(),
         },
         TabRoute {
@@ -97,7 +103,7 @@ impl Default for RadarrData {
         TabRoute {
           title: "Collections".to_owned(),
           route: ActiveRadarrBlock::Collections.into(),
-          help: "<↑↓> scroll | <s> search | <f> filter | <enter> details | ←→ change tab "
+          help: "<↑↓> scroll | <s> search | <f> filter | <enter> details | <esc> cancel filter | ←→ change tab "
             .to_owned(),
         },
       ]),
@@ -245,14 +251,27 @@ impl App {
   }
 
   async fn populate_movie_collection_table(&mut self) {
-    self.data.radarr_data.collection_movies.set_items(
+    let collection_movies = if !self.data.radarr_data.filtered_collections.items.is_empty() {
+      self
+        .data
+        .radarr_data
+        .filtered_collections
+        .current_selection_clone()
+        .movies
+        .unwrap_or_default()
+    } else {
       self
         .data
         .radarr_data
         .collections
         .current_selection_clone()
         .movies
-        .unwrap_or_default(),
-    );
+        .unwrap_or_default()
+    };
+    self
+      .data
+      .radarr_data
+      .collection_movies
+      .set_items(collection_movies);
   }
 }

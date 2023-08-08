@@ -206,6 +206,6 @@ pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge {
     .label(Spans::from(format!("{}: {:.0}%", title, ratio * 100.0)))
 }
 
-pub fn show_cursor<B: Backend>(f: &mut Frame<'_, B>, area: Rect, string: &String) {
+pub fn show_cursor<B: Backend>(f: &mut Frame<'_, B>, area: Rect, string: &str) {
   f.set_cursor(area.x + string.len() as u16 + 1, area.y + 1);
 }
