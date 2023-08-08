@@ -113,6 +113,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
             TableProps {
               content: &mut app.data.radarr_data.add_searched_movies,
               table_headers: vec![
+                "✓",
                 "Title",
                 "Year",
                 "Runtime",
@@ -121,12 +122,13 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
                 "Genres",
               ],
               constraints: vec![
+                Constraint::Percentage(2),
                 Constraint::Percentage(27),
                 Constraint::Percentage(8),
                 Constraint::Percentage(10),
                 Constraint::Percentage(8),
                 Constraint::Percentage(14),
-                Constraint::Percentage(30),
+                Constraint::Percentage(28),
               ],
               help: None,
             },
@@ -158,12 +160,25 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
               } else {
                 format!("{}%", rotten_tomatoes_rating)
               };
+              let in_library = if app
+                .data
+                .radarr_data
+                .movies
+                .items
+                .iter()
+                .any(|mov| mov.tmdb_id == movie.tmdb_id)
+              {
+                "✓"
+              } else {
+                ""
+              };
 
               movie
                 .title
                 .scroll_or_reset(get_width_with_margin(area), *movie == current_selection);
 
               Row::new(vec![
+                Cell::from(in_library),
                 Cell::from(movie.title.to_string()),
                 Cell::from(movie.year.as_u64().unwrap().to_string()),
                 Cell::from(format!("{}h {}m", hours, minutes)),
