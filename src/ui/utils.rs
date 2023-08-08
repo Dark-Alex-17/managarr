@@ -50,12 +50,20 @@ pub fn vertical_chunks_with_margin(
     .split(size)
 }
 
-pub fn layout_block(title_span: Span<'_>) -> Block<'_> {
-  Block::default().borders(Borders::ALL).title(title_span)
+pub fn layout_block<'a>() -> Block<'a> {
+  Block::default().borders(Borders::ALL)
 }
 
-pub fn layout_block_top_border(title_span: Span<'_>) -> Block<'_> {
-  Block::default().borders(Borders::TOP).title(title_span)
+pub fn layout_block_with_title(title_span: Span<'_>) -> Block<'_> {
+  layout_block().title(title_span)
+}
+
+pub fn layout_block_top_border_with_title(title_span: Span<'_>) -> Block<'_> {
+  layout_block_top_border().title(title_span)
+}
+
+pub fn layout_block_top_border<'a>() -> Block<'a> {
+  Block::default().borders(Borders::TOP)
 }
 
 pub fn style_bold() -> Style {
@@ -68,6 +76,10 @@ pub fn style_highlight() -> Style {
 
 pub fn style_default() -> Style {
   Style::default().fg(Color::White)
+}
+
+pub fn style_default_bold() -> Style {
+  style_default().add_modifier(Modifier::BOLD)
 }
 
 pub fn style_primary() -> Style {
@@ -99,7 +111,7 @@ pub fn title_style(title: &str) -> Span<'_> {
 }
 
 pub fn title_block(title: &str) -> Block<'_> {
-  layout_block(title_style(title))
+  layout_block_with_title(title_style(title))
 }
 
 pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
@@ -128,11 +140,20 @@ pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     .split(popup_layout[1])[1]
 }
 
-pub fn line_gague(title: &str, ratio: f64) -> LineGauge {
+pub fn line_gague_with_title(title: &str, ratio: f64) -> LineGauge {
   LineGauge::default()
     .block(Block::default().title(title))
     .gauge_style(Style::default().fg(Color::Cyan))
     .line_set(symbols::line::THICK)
     .ratio(ratio)
     .label(Spans::from(format!("{:.0}%", ratio * 100.0)))
+}
+
+pub fn line_gague_with_label(title: &str, ratio: f64) -> LineGauge {
+  LineGauge::default()
+    .block(Block::default())
+    .gauge_style(Style::default().fg(Color::Cyan))
+    .line_set(symbols::line::THICK)
+    .ratio(ratio)
+    .label(Spans::from(format!("{}: {:.0}%", title, ratio * 100.0)))
 }

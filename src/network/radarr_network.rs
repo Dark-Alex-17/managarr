@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use derivative::Derivative;
-use indoc::{formatdoc, indoc};
+use indoc::formatdoc;
 use log::{debug, error};
 use reqwest::RequestBuilder;
 use serde::de::DeserializeOwned;
@@ -16,24 +16,26 @@ use crate::utils::{convert_runtime, convert_to_gb};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum RadarrEvent {
-  HealthCheck,
   GetDownloads,
-  GetOverview,
-  GetStatus,
   GetMovies,
   GetMovieDetails,
+  GetMovieHistory,
+  GetOverview,
   GetQualityProfiles,
+  GetStatus,
+  HealthCheck,
 }
 
 impl RadarrEvent {
   const fn resource(self) -> &'static str {
     match self {
-      RadarrEvent::HealthCheck => "/health",
-      RadarrEvent::GetOverview => "/diskspace",
-      RadarrEvent::GetStatus => "/system/status",
-      RadarrEvent::GetMovies | RadarrEvent::GetMovieDetails => "/movie",
       RadarrEvent::GetDownloads => "/queue",
+      RadarrEvent::GetMovies | RadarrEvent::GetMovieDetails => "/movie",
+      RadarrEvent::GetMovieHistory => "/history/movie",
+      RadarrEvent::GetOverview => "/diskspace",
       RadarrEvent::GetQualityProfiles => "/qualityprofile",
+      RadarrEvent::GetStatus => "/system/status",
+      RadarrEvent::HealthCheck => "/health",
     }
   }
 }
@@ -46,9 +48,7 @@ impl From<RadarrEvent> for NetworkEvent {
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-struct DiskSpace {
-  pub path: String,
-  pub label: String,
+pub struct DiskSpace {
   pub free_space: Number,
   pub total_space: Number,
 }
@@ -67,6 +67,7 @@ pub struct Movie {
   #[derivative(Default(value = "Number::from(0)"))]
   pub id: Number,
   pub title: String,
+  pub original_language: Language,
   #[derivative(Default(value = "Number::from(0)"))]
   pub size_on_disk: Number,
   pub status: String,
@@ -82,6 +83,7 @@ pub struct Movie {
   pub runtime: Number,
   #[derivative(Default(value = "Number::from(0)"))]
   pub quality_profile_id: Number,
+  pub certification: Option<String>,
   pub ratings: RatingsList,
 }
 
@@ -133,6 +135,31 @@ struct QualityProfile {
   pub name: String,
 }
 
+#[derive(Deserialize, Default, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct MovieHistoryItem {
+  pub source_title: String,
+  pub quality: QualityHistory,
+  pub languages: Vec<Language>,
+  pub date: DateTime<Utc>,
+  pub event_type: String,
+}
+
+#[derive(Deserialize, Default, Debug, Clone)]
+pub struct Language {
+  pub name: String,
+}
+
+#[derive(Deserialize, Default, Debug, Clone)]
+pub struct QualityHistory {
+  pub quality: Quality,
+}
+
+#[derive(Deserialize, Default, Debug, Clone)]
+pub struct Quality {
+  pub name: String,
+}
+
 impl<'a> Network<'a> {
   pub async fn handle_radarr_event(&self, radarr_event: RadarrEvent) {
     match radarr_event {
@@ -151,6 +178,11 @@ impl<'a> Network<'a> {
       RadarrEvent::GetMovieDetails => {
         self
           .get_movie_details(RadarrEvent::GetMovieDetails.resource())
+          .await
+      }
+      RadarrEvent::GetMovieHistory => {
+        self
+          .get_movie_history(RadarrEvent::GetMovieHistory.resource())
           .await
       }
       RadarrEvent::GetDownloads => {
@@ -175,14 +207,7 @@ impl<'a> Network<'a> {
   async fn get_diskspace(&self, resource: &str) {
     self
       .handle_get_request::<Vec<DiskSpace>>(resource, |disk_space_vec, mut app| {
-        let DiskSpace {
-          free_space,
-          total_space,
-          ..
-        } = &disk_space_vec[0];
-
-        app.data.radarr_data.free_space = free_space.as_u64().unwrap();
-        app.data.radarr_data.total_space = total_space.as_u64().unwrap();
+        app.data.radarr_data.disk_space_vec = disk_space_vec;
       })
       .await;
   }
@@ -199,87 +224,75 @@ impl<'a> Network<'a> {
   async fn get_movies(&self, resource: &str) {
     self
       .handle_get_request::<Vec<Movie>>(resource, |movie_vec, mut app| {
-        app.data.radarr_data.movies.set_items(movie_vec);
+        app.data.radarr_data.movies.set_items(movie_vec)
       })
       .await;
   }
 
   async fn get_movie_details(&self, resource: &str) {
-    let movie_id = self
-      .app
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .current_selection()
-      .id
-      .clone()
-      .as_u64()
-      .unwrap();
-    let mut url = resource.to_owned();
-    url.push('/');
-    url.push_str(movie_id.to_string().as_str());
+    let movie_id = self.extract_movie_id().await;
     self
-      .handle_get_request::<Movie>(url.as_str(), |movie_response, mut app| {
-        let Movie {
-          id,
-          title,
-          year,
-          overview,
-          path,
-          studio,
-          has_file,
-          quality_profile_id,
-          size_on_disk,
-          genres,
-          runtime,
-          ratings,
-          ..
-        } = movie_response;
-        let (hours, minutes) = convert_runtime(runtime.as_u64().unwrap());
-        let size = convert_to_gb(size_on_disk.as_u64().unwrap());
-        let quality_profile = app
-          .data
-          .radarr_data
-          .quality_profile_map
-          .get(&quality_profile_id.as_u64().unwrap())
-          .unwrap()
-          .to_owned();
-        let imdb_rating = if let Some(rating) = ratings.imdb {
-          if let Some(value) = rating.value.as_f64() {
-            format!("{:.1}", value)
+      .handle_get_request::<Movie>(
+        format!("{}/{}", resource, movie_id).as_str(),
+        |movie_response, mut app| {
+          let Movie {
+            id,
+            title,
+            year,
+            overview,
+            path,
+            studio,
+            has_file,
+            quality_profile_id,
+            size_on_disk,
+            genres,
+            runtime,
+            ratings,
+            ..
+          } = movie_response;
+          let (hours, minutes) = convert_runtime(runtime.as_u64().unwrap());
+          let size = convert_to_gb(size_on_disk.as_u64().unwrap());
+          let quality_profile = app
+            .data
+            .radarr_data
+            .quality_profile_map
+            .get(&quality_profile_id.as_u64().unwrap())
+            .unwrap()
+            .to_owned();
+          let imdb_rating = if let Some(rating) = ratings.imdb {
+            if let Some(value) = rating.value.as_f64() {
+              format!("{:.1}", value)
+            } else {
+              "".to_owned()
+            }
           } else {
             "".to_owned()
-          }
-        } else {
-          "".to_owned()
-        };
+          };
 
-        let tmdb_rating = if let Some(rating) = ratings.tmdb {
-          if let Some(value) = rating.value.as_f64() {
-            format!("{}%", value * 10f64)
+          let tmdb_rating = if let Some(rating) = ratings.tmdb {
+            if let Some(value) = rating.value.as_f64() {
+              format!("{}%", value * 10f64)
+            } else {
+              "".to_owned()
+            }
           } else {
             "".to_owned()
-          }
-        } else {
-          "".to_owned()
-        };
+          };
 
-        let rotten_tomatoes_rating = if let Some(rating) = ratings.rotten_tomatoes {
-          if let Some(value) = rating.value.as_u64() {
-            format!("{}%", value)
+          let rotten_tomatoes_rating = if let Some(rating) = ratings.rotten_tomatoes {
+            if let Some(value) = rating.value.as_u64() {
+              format!("{}%", value)
+            } else {
+              "".to_owned()
+            }
           } else {
             "".to_owned()
-          }
-        } else {
-          "".to_owned()
-        };
+          };
 
-        let status = get_movie_status(has_file, &app.data.radarr_data.downloads.items, id);
+          let status = get_movie_status(has_file, &app.data.radarr_data.downloads.items, id);
 
-        app.data.radarr_data.movie_details = ScrollableText::with_string(formatdoc!(
-          "Title: {}
+          app.data.radarr_data.movie_details = ScrollableText::with_string(formatdoc!(
+            "Title: {}
           Year: {}
           Runtime: {}h {}m
           Status: {}
@@ -292,22 +305,41 @@ impl<'a> Network<'a> {
           Path: {}
           Studio: {}
           Genres: {}",
-          title,
-          year,
-          hours,
-          minutes,
-          status,
-          overview,
-          tmdb_rating,
-          imdb_rating,
-          rotten_tomatoes_rating,
-          quality_profile,
-          size,
-          path,
-          studio,
-          genres.join(", ")
-        ))
-      })
+            title,
+            year,
+            hours,
+            minutes,
+            status,
+            overview,
+            tmdb_rating,
+            imdb_rating,
+            rotten_tomatoes_rating,
+            quality_profile,
+            size,
+            path,
+            studio,
+            genres.join(", ")
+          ))
+        },
+      )
+      .await;
+  }
+
+  async fn get_movie_history(&self, resource: &str) {
+    let movie_id = self.extract_movie_id().await;
+    self
+      .handle_get_request::<Vec<MovieHistoryItem>>(
+        format!("{}?movieId={}", resource.to_owned(), movie_id).as_str(),
+        |movie_history_vec, mut app| {
+          let mut reversed_movie_history_vec = movie_history_vec.to_vec();
+          reversed_movie_history_vec.reverse();
+          app
+            .data
+            .radarr_data
+            .movie_history
+            .set_items(reversed_movie_history_vec)
+        },
+      )
       .await;
   }
 
@@ -327,8 +359,8 @@ impl<'a> Network<'a> {
     self
       .handle_get_request::<Vec<QualityProfile>>(resource, |quality_profiles, mut app| {
         app.data.radarr_data.quality_profile_map = quality_profiles
-          .into_iter()
-          .map(|profile| (profile.id.as_u64().unwrap(), profile.name))
+          .iter()
+          .map(|profile| (profile.id.as_u64().unwrap(), profile.name.clone()))
           .collect();
       })
       .await;
@@ -371,5 +403,20 @@ impl<'a> Network<'a> {
       },
       Err(e) => error!("Failed to fetch resource. {:?}", e),
     }
+  }
+
+  async fn extract_movie_id(&self) -> u64 {
+    self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .current_selection()
+      .id
+      .clone()
+      .as_u64()
+      .unwrap()
   }
 }

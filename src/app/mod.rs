@@ -112,6 +112,11 @@ impl App {
     }
   }
 
+  pub fn pop_and_push_navigation_stack(&mut self, route: Route) {
+    self.pop_navigation_stack();
+    self.push_navigation_stack(route);
+  }
+
   pub fn get_current_route(&self) -> &Route {
     self.navigation_stack.last().unwrap_or(&DEFAULT_ROUTE)
   }
