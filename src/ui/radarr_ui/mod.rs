@@ -47,10 +47,10 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
     match active_radarr_block {
       ActiveRadarrBlock::Movies => draw_library(f, app, content_rect),
       ActiveRadarrBlock::SearchMovie => {
-        draw_popup_over(f, app, content_rect, draw_library, draw_search_box, 30, 10)
+        draw_popup_over(f, app, content_rect, draw_library, draw_search_box, 30, 11)
       }
       ActiveRadarrBlock::FilterMovies => {
-        draw_popup_over(f, app, content_rect, draw_library, draw_filter_box, 30, 10)
+        draw_popup_over(f, app, content_rect, draw_library, draw_filter_box, 30, 11)
       }
       ActiveRadarrBlock::SearchCollection => draw_popup_over(
         f,
@@ -59,7 +59,7 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
         draw_collections,
         draw_search_box,
         30,
-        10,
+        11,
       ),
       ActiveRadarrBlock::FilterCollections => draw_popup_over(
         f,
@@ -68,7 +68,7 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
         draw_collections,
         draw_filter_box,
         30,
-        10,
+        11,
       ),
       ActiveRadarrBlock::Downloads => draw_downloads(f, app, content_rect),
       ActiveRadarrBlock::Collections => draw_collections(f, app, content_rect),
