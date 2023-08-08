@@ -962,11 +962,11 @@ mod tests {
     }
 
     #[test]
-    fn test_queue_key() {
+    fn test_queued_events_key() {
       let mut app = App::default();
 
       RadarrHandler::with(
-        &DEFAULT_KEYBINDINGS.queue.key,
+        &DEFAULT_KEYBINDINGS.events.key,
         &mut app,
         &ActiveRadarrBlock::System,
         &None,
@@ -975,7 +975,7 @@ mod tests {
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::SystemQueue.into()
+        &ActiveRadarrBlock::SystemQueuedEvents.into()
       );
     }
 
@@ -1293,7 +1293,7 @@ mod tests {
       ActiveRadarrBlock::System,
       ActiveRadarrBlock::SystemLogs,
       ActiveRadarrBlock::SystemTasks,
-      ActiveRadarrBlock::SystemQueue,
+      ActiveRadarrBlock::SystemQueuedEvents,
       ActiveRadarrBlock::SystemUpdates
     )]
     active_radarr_block: ActiveRadarrBlock,

@@ -43,7 +43,7 @@ mod tests {
       SystemDetailsHandler,
       queued_events,
       simple_stateful_iterable_vec!(QueueEvent, String, name),
-      ActiveRadarrBlock::SystemQueue,
+      ActiveRadarrBlock::SystemQueuedEvents,
       None,
       name
     );
@@ -89,7 +89,7 @@ mod tests {
       SystemDetailsHandler,
       queued_events,
       extended_stateful_iterable_vec!(QueueEvent, String, name),
-      ActiveRadarrBlock::SystemQueue,
+      ActiveRadarrBlock::SystemQueuedEvents,
       None,
       name
     );
@@ -357,18 +357,23 @@ mod tests {
     }
 
     #[test]
-    fn test_esc_system_queue() {
+    fn test_esc_system_queued_events() {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
-      app.push_navigation_stack(ActiveRadarrBlock::SystemQueue.into());
+      app.push_navigation_stack(ActiveRadarrBlock::SystemQueuedEvents.into());
       app
         .data
         .radarr_data
         .queued_events
         .set_items(vec![QueueEvent::default()]);
 
-      SystemDetailsHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::SystemQueue, &None)
-        .handle();
+      SystemDetailsHandler::with(
+        &ESC_KEY,
+        &mut app,
+        &ActiveRadarrBlock::SystemQueuedEvents,
+        &None,
+      )
+      .handle();
 
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
     }
@@ -423,7 +428,7 @@ mod tests {
       #[values(
         ActiveRadarrBlock::SystemLogs,
         ActiveRadarrBlock::SystemTasks,
-        ActiveRadarrBlock::SystemQueue,
+        ActiveRadarrBlock::SystemQueuedEvents,
         ActiveRadarrBlock::SystemUpdates
       )]
       active_radarr_block: ActiveRadarrBlock,

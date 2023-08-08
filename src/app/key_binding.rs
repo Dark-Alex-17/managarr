@@ -23,7 +23,7 @@ generate_keybindings! {
   tasks,
   refresh,
   update,
-  queue,
+  events,
   home,
   end,
   delete,
@@ -78,6 +78,10 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
     key: Key::Char('e'),
     desc: "Edit",
   },
+  events: KeyBinding {
+    key: Key::Char('e'),
+    desc: "Events",
+  },
   logs: KeyBinding {
     key: Key::Char('l'),
     desc: "Logs",
@@ -93,10 +97,6 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   update: KeyBinding {
     key: Key::Char('u'),
     desc: "Update",
-  },
-  queue: KeyBinding {
-    key: Key::Char('z'),
-    desc: "Queue",
   },
   home: KeyBinding {
     key: Key::Home,

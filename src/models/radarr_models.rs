@@ -180,6 +180,8 @@ pub struct IndexerField {
   pub name: Option<String>,
   pub label: Option<String>,
   pub value: Option<Value>,
+  #[serde(rename(deserialize = "type"))]
+  pub field_type: Option<String>,
   pub advanced: bool,
   pub select_options: Option<Vec<IndexerSelectOption>>,
 }

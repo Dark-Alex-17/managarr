@@ -36,7 +36,7 @@ impl DrawUi for SystemDetailsUi {
             draw_tasks_popup,
           )
         }
-        ActiveRadarrBlock::SystemQueue => draw_medium_popup_over(
+        ActiveRadarrBlock::SystemQueuedEvents => draw_medium_popup_over(
           f,
           app,
           content_rect,

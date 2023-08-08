@@ -585,10 +585,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
-        _ if *key == DEFAULT_KEYBINDINGS.queue.key => {
+        _ if *key == DEFAULT_KEYBINDINGS.events.key => {
           self
             .app
-            .push_navigation_stack(ActiveRadarrBlock::SystemQueue.into());
+            .push_navigation_stack(ActiveRadarrBlock::SystemQueuedEvents.into());
         }
         _ if *key == DEFAULT_KEYBINDINGS.logs.key => {
           self

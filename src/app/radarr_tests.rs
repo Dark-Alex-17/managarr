@@ -368,7 +368,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[5].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[5].contextual_help,
-        Some("<t> open tasks | <z> open queue | <l> open logs | <u> open updates | <r> refresh")
+        Some("<t> open tasks | <e> open events | <l> open logs | <u> open updates | <r> refresh")
       );
 
       assert_eq!(radarr_data.movie_info_tabs.tabs.len(), 6);

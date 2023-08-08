@@ -330,7 +330,7 @@ impl<'a> Default for RadarrData<'a> {
           title: "System",
           route: ActiveRadarrBlock::System.into(),
           help: "",
-          contextual_help: Some("<t> open tasks | <z> open queue | <l> open logs | <u> open updates | <r> refresh")
+          contextual_help: Some("<t> open tasks | <e> open events | <l> open logs | <u> open updates | <r> refresh")
         }
       ]),
       movie_info_tabs: TabState::new(vec![
@@ -429,7 +429,7 @@ pub enum ActiveRadarrBlock {
   RootFolders,
   System,
   SystemLogs,
-  SystemQueue,
+  SystemQueuedEvents,
   SystemTasks,
   SystemTaskStartConfirmPrompt,
   SystemUpdates,
@@ -533,7 +533,7 @@ pub static DELETE_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 3] = [
 ];
 pub static SYSTEM_DETAILS_BLOCKS: [ActiveRadarrBlock; 5] = [
   ActiveRadarrBlock::SystemLogs,
-  ActiveRadarrBlock::SystemQueue,
+  ActiveRadarrBlock::SystemQueuedEvents,
   ActiveRadarrBlock::SystemTasks,
   ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
   ActiveRadarrBlock::SystemUpdates,

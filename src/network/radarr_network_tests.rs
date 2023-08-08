@@ -872,6 +872,7 @@ mod test {
                 "name": "valueIsString",
                 "label": "Value Is String",
                 "value": "hello",
+                "type": "textbox",
                 "advanced": false
             },
             {
@@ -879,6 +880,7 @@ mod test {
                 "name": "emptyValueWithSelectOptions",
                 "label": "Empty Value With Select Options",
                 "advanced": true,
+                "type": "select",
                 "selectOptions": [
                     {
                         "value": -2,
@@ -892,6 +894,7 @@ mod test {
                 "name": "valueIsAnArray",
                 "label": "Value is an array",
                 "value": [1, 2],
+                "type": "select",
                 "advanced": false,
             },
         ],
@@ -2214,6 +2217,7 @@ mod test {
           label: Some("Value Is String".to_owned()),
           value: Some(json!("hello")),
           advanced: false,
+          field_type: Some("textbox".to_owned()),
           select_options: None,
         },
         IndexerField {
@@ -2222,6 +2226,7 @@ mod test {
           label: Some("Empty Value With Select Options".to_owned()),
           value: None,
           advanced: true,
+          field_type: Some("select".to_owned()),
           select_options: Some(vec![IndexerSelectOption {
             value: Number::from(-2),
             name: Some("Original".to_owned()),
@@ -2234,6 +2239,7 @@ mod test {
           label: Some("Value is an array".to_owned()),
           value: Some(json!([1, 2])),
           advanced: false,
+          field_type: Some("select".to_owned()),
           select_options: None,
         },
       ]),
