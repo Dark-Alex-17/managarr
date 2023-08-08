@@ -116,6 +116,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
         }
       }
       ActiveRadarrBlock::Downloads => self.app.data.radarr_data.downloads.scroll_up(),
+      ActiveRadarrBlock::Indexers => self.app.data.radarr_data.indexers.scroll_up(),
       ActiveRadarrBlock::RootFolders => self.app.data.radarr_data.root_folders.scroll_up(),
       _ => (),
     }
@@ -145,6 +146,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
         }
       }
       ActiveRadarrBlock::Downloads => self.app.data.radarr_data.downloads.scroll_down(),
+      ActiveRadarrBlock::Indexers => self.app.data.radarr_data.indexers.scroll_down(),
       ActiveRadarrBlock::RootFolders => self.app.data.radarr_data.root_folders.scroll_down(),
       _ => (),
     }
@@ -179,6 +181,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
         }
       }
       ActiveRadarrBlock::Downloads => self.app.data.radarr_data.downloads.scroll_to_top(),
+      ActiveRadarrBlock::Indexers => self.app.data.radarr_data.indexers.scroll_to_top(),
       ActiveRadarrBlock::RootFolders => self.app.data.radarr_data.root_folders.scroll_to_top(),
       ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => {
         self.app.data.radarr_data.search.scroll_home()
@@ -220,6 +223,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
         }
       }
       ActiveRadarrBlock::Downloads => self.app.data.radarr_data.downloads.scroll_to_bottom(),
+      ActiveRadarrBlock::Indexers => self.app.data.radarr_data.indexers.scroll_to_bottom(),
       ActiveRadarrBlock::RootFolders => self.app.data.radarr_data.root_folders.scroll_to_bottom(),
       ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => {
         self.app.data.radarr_data.search.reset_offset()
@@ -257,6 +261,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
       | ActiveRadarrBlock::Downloads
       | ActiveRadarrBlock::Collections
       | ActiveRadarrBlock::RootFolders
+      | ActiveRadarrBlock::Indexers
       | ActiveRadarrBlock::System => match self.key {
         _ if *self.key == DEFAULT_KEYBINDINGS.left.key => {
           self.app.data.radarr_data.main_tabs.previous();
@@ -516,6 +521,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
             .app
             .push_navigation_stack(ActiveRadarrBlock::UpdateDownloadsPrompt.into());
         }
+        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+          self.app.should_refresh = true;
+        }
+        _ => (),
+      },
+      ActiveRadarrBlock::Indexers => match self.key {
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }

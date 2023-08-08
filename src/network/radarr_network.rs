@@ -10,8 +10,8 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, Collection, CollectionMovie,
-  CommandBody, Credit, CreditType, DiskSpace, DownloadRecord, DownloadsResponse, LogResponse,
-  Movie, MovieCommandBody, MovieHistoryItem, QualityProfile, QueueEvent, Release,
+  CommandBody, Credit, CreditType, DiskSpace, DownloadRecord, DownloadsResponse, Indexer,
+  LogResponse, Movie, MovieCommandBody, MovieHistoryItem, QualityProfile, QueueEvent, Release,
   ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task, Update,
 };
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
@@ -30,11 +30,11 @@ pub enum RadarrEvent {
   DeleteMovie,
   DeleteRootFolder,
   DownloadRelease,
-  EditMovie,
   EditCollection,
+  EditMovie,
   GetCollections,
   GetDownloads,
-  GetQueuedEvents,
+  GetIndexers,
   GetLogs,
   GetMovieCredits,
   GetMovieDetails,
@@ -42,6 +42,7 @@ pub enum RadarrEvent {
   GetMovies,
   GetOverview,
   GetQualityProfiles,
+  GetQueuedEvents,
   GetReleases,
   GetRootFolders,
   GetStatus,
@@ -63,6 +64,7 @@ impl RadarrEvent {
     match self {
       RadarrEvent::GetCollections | RadarrEvent::EditCollection => "/collection",
       RadarrEvent::GetDownloads | RadarrEvent::DeleteDownload => "/queue",
+      RadarrEvent::GetIndexers => "/indexer",
       RadarrEvent::GetLogs => "/log",
       RadarrEvent::AddMovie
       | RadarrEvent::EditMovie
@@ -109,11 +111,11 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::DeleteDownload => self.delete_download().await,
       RadarrEvent::DeleteRootFolder => self.delete_root_folder().await,
       RadarrEvent::DownloadRelease => self.download_release().await,
-      RadarrEvent::EditMovie => self.edit_movie().await,
       RadarrEvent::EditCollection => self.edit_collection().await,
+      RadarrEvent::EditMovie => self.edit_movie().await,
       RadarrEvent::GetCollections => self.get_collections().await,
       RadarrEvent::GetDownloads => self.get_downloads().await,
-      RadarrEvent::GetQueuedEvents => self.get_queued_events().await,
+      RadarrEvent::GetIndexers => self.get_indexers().await,
       RadarrEvent::GetLogs => self.get_logs().await,
       RadarrEvent::GetMovieCredits => self.get_credits().await,
       RadarrEvent::GetMovieDetails => self.get_movie_details().await,
@@ -121,6 +123,7 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::GetMovies => self.get_movies().await,
       RadarrEvent::GetOverview => self.get_diskspace().await,
       RadarrEvent::GetQualityProfiles => self.get_quality_profiles().await,
+      RadarrEvent::GetQueuedEvents => self.get_queued_events().await,
       RadarrEvent::GetReleases => self.get_releases().await,
       RadarrEvent::GetRootFolders => self.get_root_folders().await,
       RadarrEvent::GetStatus => self.get_status().await,
@@ -138,19 +141,448 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn get_healthcheck(&self) {
-    info!("Performing Radarr health check");
+  async fn add_movie(&self) {
+    info!("Adding new movie to Radarr");
+    let body = {
+      let quality_profile_id = self.extract_quality_profile_id().await;
+      let tag_ids_vec = self.extract_and_add_tag_ids_vec().await;
+      let app = self.app.lock().await;
+      let root_folders = app.data.radarr_data.root_folders.items.to_vec();
+      let (tmdb_id, title) = if let Route::Radarr(active_radarr_block, _) = app.get_current_route()
+      {
+        if *active_radarr_block == ActiveRadarrBlock::CollectionDetails {
+          let CollectionMovie { tmdb_id, title, .. } =
+            app.data.radarr_data.collection_movies.current_selection();
+          (tmdb_id, title.text.clone())
+        } else {
+          let AddMovieSearchResult { tmdb_id, title, .. } =
+            app.data.radarr_data.add_searched_movies.current_selection();
+          (tmdb_id, title.text.clone())
+        }
+      } else {
+        let AddMovieSearchResult { tmdb_id, title, .. } =
+          app.data.radarr_data.add_searched_movies.current_selection();
+        (tmdb_id, title.text.clone())
+      };
+
+      let RootFolder { path, .. } = root_folders
+        .iter()
+        .filter(|folder| folder.accessible)
+        .reduce(|a, b| {
+          if a.free_space.as_u64().unwrap() > b.free_space.as_u64().unwrap() {
+            a
+          } else {
+            b
+          }
+        })
+        .unwrap();
+      let monitor = app
+        .data
+        .radarr_data
+        .monitor_list
+        .current_selection()
+        .to_string();
+      let minimum_availability = app
+        .data
+        .radarr_data
+        .minimum_availability_list
+        .current_selection()
+        .to_string();
+
+      AddMovieBody {
+        tmdb_id: tmdb_id.as_u64().unwrap(),
+        title,
+        root_folder_path: path.to_owned(),
+        minimum_availability,
+        monitored: true,
+        quality_profile_id,
+        tags: tag_ids_vec,
+        add_options: AddOptions {
+          monitor,
+          search_for_movie: true,
+        },
+      }
+    };
+
+    debug!("Add movie body: {:?}", body);
 
     let request_props = self
       .radarr_request_props_from(
-        RadarrEvent::HealthCheck.resource(),
-        RequestMethod::Get,
+        RadarrEvent::AddMovie.resource(),
+        RequestMethod::Post,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<AddMovieBody, Value>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn add_root_folder(&self) {
+    info!("Adding new root folder to Radarr");
+    let body = AddRootFolderBody {
+      path: self.app.lock().await.data.radarr_data.edit_path.drain(),
+    };
+
+    debug!("Add root folder body: {:?}", body);
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::AddRootFolder.resource(),
+        RequestMethod::Post,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<AddRootFolderBody, Value>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn add_tag(&self, tag: String) {
+    info!("Adding a new Radarr tag");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::GetTags.resource(),
+        RequestMethod::Post,
+        Some(json!({ "label": tag })),
+      )
+      .await;
+
+    self
+      .handle_request::<Value, Tag>(request_props, |tag, mut app| {
+        app
+          .data
+          .radarr_data
+          .tags_map
+          .insert(tag.id.as_u64().unwrap(), tag.label);
+      })
+      .await;
+  }
+
+  async fn delete_download(&self) {
+    let download_id = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .downloads
+      .current_selection()
+      .id
+      .as_u64()
+      .unwrap();
+
+    info!(
+      "Deleting Radarr download for download with id: {}",
+      download_id
+    );
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!("{}/{}", RadarrEvent::DeleteDownload.resource(), download_id).as_str(),
+        RequestMethod::Delete,
         None::<()>,
       )
       .await;
 
     self
       .handle_request::<(), ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn delete_movie(&self) {
+    let movie_id = self.extract_movie_id().await;
+    let delete_files = self.app.lock().await.data.radarr_data.delete_movie_files;
+    let add_import_exclusion = self.app.lock().await.data.radarr_data.add_list_exclusion;
+
+    info!(
+      "Deleting Radarr movie with id: {} with deleteFiles={} and addImportExclusion={}",
+      movie_id, delete_files, add_import_exclusion
+    );
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!(
+          "{}/{}?deleteFiles={}&addImportExclusion={}",
+          RadarrEvent::DeleteMovie.resource(),
+          movie_id,
+          delete_files,
+          add_import_exclusion
+        )
+        .as_str(),
+        RequestMethod::Delete,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await;
+
+    self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .reset_delete_movie_preferences();
+  }
+
+  async fn delete_root_folder(&self) {
+    let root_folder_id = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .root_folders
+      .current_selection()
+      .id
+      .as_u64()
+      .unwrap();
+
+    info!(
+      "Deleting Radarr root folder for folder with id: {}",
+      root_folder_id
+    );
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!(
+          "{}/{}",
+          RadarrEvent::DeleteRootFolder.resource(),
+          root_folder_id
+        )
+        .as_str(),
+        RequestMethod::Delete,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn download_release(&self) {
+    let (guid, title, indexer_id) = {
+      let app = self.app.lock().await;
+      let Release {
+        guid,
+        title,
+        indexer_id,
+        ..
+      } = app.data.radarr_data.movie_releases.current_selection();
+
+      (guid.clone(), title.clone(), indexer_id.as_u64().unwrap())
+    };
+
+    info!("Downloading release: {}", title);
+
+    let download_release_body = ReleaseDownloadBody { guid, indexer_id };
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::DownloadRelease.resource(),
+        RequestMethod::Post,
+        Some(download_release_body),
+      )
+      .await;
+
+    self
+      .handle_request::<ReleaseDownloadBody, Value>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn edit_collection(&self) {
+    info!("Editing Radarr collection");
+
+    info!("Fetching collection details");
+    let collection_id = self.extract_collection_id().await;
+    let request_props = self
+      .radarr_request_props_from(
+        format!(
+          "{}/{}",
+          RadarrEvent::GetCollections.resource(),
+          collection_id
+        )
+        .as_str(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_collection_body, mut app| {
+        app.response = detailed_collection_body.to_string()
+      })
+      .await;
+
+    info!("Constructing edit collection body");
+
+    let body = {
+      let quality_profile_id = self.extract_quality_profile_id().await;
+      let mut app = self.app.lock().await;
+      let response = app.response.drain(..).collect::<String>();
+      let mut detailed_collection_body: Value = serde_json::from_str(&response).unwrap();
+
+      let root_folder_path: String = app.data.radarr_data.edit_path.drain();
+
+      let monitored = app.data.radarr_data.edit_monitored.unwrap_or_default();
+      let search_on_add = app.data.radarr_data.edit_search_on_add.unwrap_or_default();
+      let minimum_availability = app
+        .data
+        .radarr_data
+        .minimum_availability_list
+        .current_selection()
+        .to_string();
+
+      *detailed_collection_body.get_mut("monitored").unwrap() = json!(monitored);
+      *detailed_collection_body
+        .get_mut("minimumAvailability")
+        .unwrap() = json!(minimum_availability);
+      *detailed_collection_body
+        .get_mut("qualityProfileId")
+        .unwrap() = json!(quality_profile_id);
+      *detailed_collection_body.get_mut("rootFolderPath").unwrap() = json!(root_folder_path);
+      *detailed_collection_body.get_mut("searchOnAdd").unwrap() = json!(search_on_add);
+
+      detailed_collection_body
+    };
+
+    debug!("Edit collection body: {:?}", body);
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!(
+          "{}/{}",
+          RadarrEvent::EditCollection.resource(),
+          collection_id
+        )
+        .as_str(),
+        RequestMethod::Put,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<Value, ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn edit_movie(&self) {
+    info!("Editing Radarr movie");
+
+    info!("Fetching movie details");
+    let movie_id = self.extract_movie_id().await;
+    let request_props = self
+      .radarr_request_props_from(
+        format!("{}/{}", RadarrEvent::GetMovieDetails.resource(), movie_id).as_str(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_movie_body, mut app| {
+        app.response = detailed_movie_body.to_string()
+      })
+      .await;
+
+    info!("Constructing edit movie body");
+
+    let body = {
+      let quality_profile_id = self.extract_quality_profile_id().await;
+      let tag_ids_vec = self.extract_and_add_tag_ids_vec().await;
+      let mut app = self.app.lock().await;
+      let response = app.response.drain(..).collect::<String>();
+      let mut detailed_movie_body: Value = serde_json::from_str(&response).unwrap();
+
+      let path: String = app.data.radarr_data.edit_path.drain();
+
+      let monitored = app.data.radarr_data.edit_monitored.unwrap_or_default();
+      let minimum_availability = app
+        .data
+        .radarr_data
+        .minimum_availability_list
+        .current_selection()
+        .to_string();
+
+      *detailed_movie_body.get_mut("monitored").unwrap() = json!(monitored);
+      *detailed_movie_body.get_mut("minimumAvailability").unwrap() = json!(minimum_availability);
+      *detailed_movie_body.get_mut("qualityProfileId").unwrap() = json!(quality_profile_id);
+      *detailed_movie_body.get_mut("path").unwrap() = json!(path);
+      *detailed_movie_body.get_mut("tags").unwrap() = json!(tag_ids_vec);
+
+      detailed_movie_body
+    };
+
+    debug!("Edit movie body: {:?}", body);
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!("{}/{}", RadarrEvent::EditMovie.resource(), movie_id).as_str(),
+        RequestMethod::Put,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<Value, ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn get_collections(&self) {
+    info!("Fetching Radarr collections");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::GetCollections.resource(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<Collection>>(request_props, |collections_vec, mut app| {
+        app.data.radarr_data.collections.set_items(collections_vec);
+      })
+      .await;
+  }
+
+  async fn get_credits(&self) {
+    info!("Fetching Radarr movie credits");
+
+    let request_props = self
+      .radarr_request_props_from(
+        self
+          .append_movie_id_param(RadarrEvent::GetMovieCredits.resource())
+          .await
+          .as_str(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<Credit>>(request_props, |credit_vec, mut app| {
+        let cast_vec: Vec<Credit> = credit_vec
+          .iter()
+          .cloned()
+          .filter(|credit| credit.credit_type == CreditType::Cast)
+          .collect();
+        let crew_vec: Vec<Credit> = credit_vec
+          .iter()
+          .cloned()
+          .filter(|credit| credit.credit_type == CreditType::Crew)
+          .collect();
+
+        app.data.radarr_data.movie_cast.set_items(cast_vec);
+        app.data.radarr_data.movie_crew.set_items(crew_vec);
+      })
       .await;
   }
 
@@ -172,225 +604,105 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_status(&self) {
-    info!("Fetching Radarr system status");
+  async fn get_downloads(&self) {
+    info!("Fetching Radarr downloads");
 
     let request_props = self
       .radarr_request_props_from(
-        RadarrEvent::GetStatus.resource(),
+        RadarrEvent::GetDownloads.resource(),
         RequestMethod::Get,
         None::<()>,
       )
       .await;
 
     self
-      .handle_request::<(), SystemStatus>(request_props, |system_status, mut app| {
-        app.data.radarr_data.version = system_status.version;
-        app.data.radarr_data.start_time = system_status.start_time;
+      .handle_request::<(), DownloadsResponse>(request_props, |queue_response, mut app| {
+        app
+          .data
+          .radarr_data
+          .downloads
+          .set_items(queue_response.records);
       })
-      .await;
-  }
-
-  async fn get_movies(&self) {
-    info!("Fetching Radarr library");
-
-    let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetMovies.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
-      .await;
-
-    self
-      .handle_request::<(), Vec<Movie>>(request_props, |movie_vec, mut app| {
-        app.data.radarr_data.movies.set_items(movie_vec)
-      })
-      .await;
-  }
-
-  async fn get_releases(&self) {
-    let movie_id = self.extract_movie_id().await;
-    info!("Fetching releases for movie with id: {}", movie_id);
-
-    let request_props = self
-      .radarr_request_props_from(
-        format!(
-          "{}?movieId={}",
-          RadarrEvent::GetReleases.resource(),
-          movie_id
-        )
-        .as_str(),
-        RequestMethod::Get,
-        None::<()>,
-      )
-      .await;
-
-    self
-      .handle_request::<(), Vec<Release>>(request_props, |release_vec, mut app| {
-        app.data.radarr_data.movie_releases.set_items(release_vec)
-      })
-      .await;
-  }
-
-  async fn search_movie(&self) {
-    info!("Searching for specific Radarr movie");
-
-    let search_string = self.app.lock().await.data.radarr_data.search.text.clone();
-    let request_props = self
-      .radarr_request_props_from(
-        format!(
-          "{}?term={}",
-          RadarrEvent::SearchNewMovie.resource(),
-          encode(&search_string)
-        )
-        .as_str(),
-        RequestMethod::Get,
-        None::<()>,
-      )
-      .await;
-
-    self
-      .handle_request::<(), Vec<AddMovieSearchResult>>(request_props, |movie_vec, mut app| {
-        if movie_vec.is_empty() {
-          app.pop_and_push_navigation_stack(ActiveRadarrBlock::AddMovieEmptySearchResults.into());
-        } else {
-          app
-            .data
-            .radarr_data
-            .add_searched_movies
-            .set_items(movie_vec);
-        }
-      })
-      .await;
-  }
-
-  async fn trigger_automatic_search(&self) {
-    let movie_id = self.extract_movie_id().await;
-    info!("Searching indexers for movie with id: {}", movie_id);
-    let body = MovieCommandBody {
-      name: "MoviesSearch".to_owned(),
-      movie_ids: vec![movie_id],
-    };
-
-    let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::TriggerAutomaticSearch.resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
-      .await;
-
-    self
-      .handle_request::<MovieCommandBody, Value>(request_props, |_, _| ())
-      .await;
-  }
-
-  async fn start_task(&self) {
-    let task_name = self
-      .app
-      .lock()
       .await
-      .data
-      .radarr_data
-      .tasks
-      .current_selection()
-      .task_name
-      .clone();
+  }
 
-    info!("Starting Radarr task: {}", task_name);
-
-    let body = CommandBody { name: task_name };
+  async fn get_indexers(&self) {
+    info!("Fetching Radarr indexers");
 
     let request_props = self
       .radarr_request_props_from(
-        RadarrEvent::StartTask.resource(),
-        RequestMethod::Post,
-        Some(body),
+        RadarrEvent::GetIndexers.resource(),
+        RequestMethod::Get,
+        None::<()>,
       )
       .await;
 
     self
-      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
+      .handle_request::<(), Vec<Indexer>>(request_props, |indexers, mut app| {
+        app.data.radarr_data.indexers.set_items(indexers);
+      })
+      .await
+  }
+
+  async fn get_healthcheck(&self) {
+    info!("Performing Radarr health check");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::HealthCheck.resource(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
       .await;
   }
 
-  async fn update_and_scan(&self) {
-    let movie_id = self.extract_movie_id().await;
-    info!("Updating and scanning movie with id: {}", movie_id);
-    let body = MovieCommandBody {
-      name: "RefreshMovie".to_owned(),
-      movie_ids: vec![movie_id],
-    };
+  async fn get_logs(&self) {
+    info!("Fetching Radarr logs");
 
+    let resource = format!(
+      "{}?pageSize=100&sortDirection=descending&sortKey=time",
+      RadarrEvent::GetLogs.resource()
+    );
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::UpdateAndScan.resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
+      .radarr_request_props_from(&resource, RequestMethod::Get, None::<()>)
       .await;
 
     self
-      .handle_request::<MovieCommandBody, Value>(request_props, |_, _| ())
-      .await;
-  }
+      .handle_request::<(), LogResponse>(request_props, |log_response, mut app| {
+        let mut logs = log_response.records;
+        logs.reverse();
 
-  async fn update_all_movies(&self) {
-    info!("Updating all movies");
-    let body = MovieCommandBody {
-      name: "RefreshMovie".to_owned(),
-      movie_ids: Vec::new(),
-    };
+        let log_lines = logs
+          .into_iter()
+          .map(|log| {
+            if log.exception.is_some() {
+              HorizontallyScrollableText::from(format!(
+                "{}|{}|{}|{}|{}",
+                log.time,
+                log.level.to_uppercase(),
+                log.logger.as_ref().unwrap(),
+                log.exception_type.as_ref().unwrap(),
+                log.exception.as_ref().unwrap()
+              ))
+            } else {
+              HorizontallyScrollableText::from(format!(
+                "{}|{}|{}|{}",
+                log.time,
+                log.level.to_uppercase(),
+                log.logger.as_ref().unwrap(),
+                log.message.as_ref().unwrap()
+              ))
+            }
+          })
+          .collect();
 
-    let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::UpdateAllMovies.resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
-      .await;
-
-    self
-      .handle_request::<MovieCommandBody, Value>(request_props, |_, _| ())
-      .await;
-  }
-
-  async fn update_downloads(&self) {
-    info!("Updating downloads");
-    let body = CommandBody {
-      name: "RefreshMonitoredDownloads".to_owned(),
-    };
-
-    let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::UpdateDownloads.resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
-      .await;
-
-    self
-      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
-      .await;
-  }
-
-  async fn update_collections(&self) {
-    info!("Updating collections");
-    let body = CommandBody {
-      name: "RefreshCollections".to_owned(),
-    };
-
-    let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::UpdateCollections.resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
-      .await;
-
-    self
-      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
+        app.data.radarr_data.logs.set_items(log_lines);
+        app.data.radarr_data.logs.scroll_to_bottom();
+      })
       .await;
   }
 
@@ -577,90 +889,43 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_collections(&self) {
-    info!("Fetching Radarr collections");
+  async fn get_movies(&self) {
+    info!("Fetching Radarr library");
 
     let request_props = self
       .radarr_request_props_from(
-        RadarrEvent::GetCollections.resource(),
+        RadarrEvent::GetMovies.resource(),
         RequestMethod::Get,
         None::<()>,
       )
       .await;
 
     self
-      .handle_request::<(), Vec<Collection>>(request_props, |collections_vec, mut app| {
-        app.data.radarr_data.collections.set_items(collections_vec);
+      .handle_request::<(), Vec<Movie>>(request_props, |movie_vec, mut app| {
+        app.data.radarr_data.movies.set_items(movie_vec)
       })
       .await;
   }
 
-  async fn get_logs(&self) {
-    info!("Fetching Radarr logs");
+  async fn get_quality_profiles(&self) {
+    info!("Fetching Radarr quality profiles");
 
-    let resource = format!(
-      "{}?pageSize=100&sortDirection=descending&sortKey=time",
-      RadarrEvent::GetLogs.resource()
-    );
     let request_props = self
-      .radarr_request_props_from(&resource, RequestMethod::Get, None::<()>)
+      .radarr_request_props_from(
+        RadarrEvent::GetQualityProfiles.resource(),
+        RequestMethod::Get,
+        None::<()>,
+      )
       .await;
 
     self
-      .handle_request::<(), LogResponse>(request_props, |log_response, mut app| {
-        let mut logs = log_response.records;
-        logs.reverse();
-
-        let log_lines = logs
+      .handle_request::<(), Vec<QualityProfile>>(request_props, |quality_profiles, mut app| {
+        app.data.radarr_data.quality_profile_map = quality_profiles
           .into_iter()
-          .map(|log| {
-            if log.exception.is_some() {
-              HorizontallyScrollableText::from(format!(
-                "{}|{}|{}|{}|{}",
-                log.time,
-                log.level.to_uppercase(),
-                log.logger.as_ref().unwrap(),
-                log.exception_type.as_ref().unwrap(),
-                log.exception.as_ref().unwrap()
-              ))
-            } else {
-              HorizontallyScrollableText::from(format!(
-                "{}|{}|{}|{}",
-                log.time,
-                log.level.to_uppercase(),
-                log.logger.as_ref().unwrap(),
-                log.message.as_ref().unwrap()
-              ))
-            }
-          })
+          .map(|profile| (profile.id.as_u64().unwrap(), profile.name))
           .collect();
-
-        app.data.radarr_data.logs.set_items(log_lines);
-        app.data.radarr_data.logs.scroll_to_bottom();
       })
       .await;
-  }
-
-  async fn get_downloads(&self) {
-    info!("Fetching Radarr downloads");
-
-    let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetDownloads.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
-      .await;
-
-    self
-      .handle_request::<(), DownloadsResponse>(request_props, |queue_response, mut app| {
-        app
-          .data
-          .radarr_data
-          .downloads
-          .set_items(queue_response.records);
-      })
-      .await
   }
 
   async fn get_queued_events(&self) {
@@ -685,23 +950,63 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_quality_profiles(&self) {
-    info!("Fetching Radarr quality profiles");
+  async fn get_releases(&self) {
+    let movie_id = self.extract_movie_id().await;
+    info!("Fetching releases for movie with id: {}", movie_id);
 
     let request_props = self
       .radarr_request_props_from(
-        RadarrEvent::GetQualityProfiles.resource(),
+        format!(
+          "{}?movieId={}",
+          RadarrEvent::GetReleases.resource(),
+          movie_id
+        )
+        .as_str(),
         RequestMethod::Get,
         None::<()>,
       )
       .await;
 
     self
-      .handle_request::<(), Vec<QualityProfile>>(request_props, |quality_profiles, mut app| {
-        app.data.radarr_data.quality_profile_map = quality_profiles
-          .into_iter()
-          .map(|profile| (profile.id.as_u64().unwrap(), profile.name))
-          .collect();
+      .handle_request::<(), Vec<Release>>(request_props, |release_vec, mut app| {
+        app.data.radarr_data.movie_releases.set_items(release_vec)
+      })
+      .await;
+  }
+
+  async fn get_root_folders(&self) {
+    info!("Fetching Radarr root folders");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::GetRootFolders.resource(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<RootFolder>>(request_props, |root_folders, mut app| {
+        app.data.radarr_data.root_folders.set_items(root_folders);
+      })
+      .await;
+  }
+
+  async fn get_status(&self) {
+    info!("Fetching Radarr system status");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::GetStatus.resource(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), SystemStatus>(request_props, |system_status, mut app| {
+        app.data.radarr_data.version = system_status.version;
+        app.data.radarr_data.start_time = system_status.start_time;
       })
       .await;
   }
@@ -836,449 +1141,192 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn add_tag(&self, tag: String) {
-    info!("Adding a new Radarr tag");
+  async fn search_movie(&self) {
+    info!("Searching for specific Radarr movie");
 
+    let search_string = self.app.lock().await.data.radarr_data.search.text.clone();
     let request_props = self
       .radarr_request_props_from(
-        RadarrEvent::GetTags.resource(),
-        RequestMethod::Post,
-        Some(json!({ "label": tag })),
-      )
-      .await;
-
-    self
-      .handle_request::<Value, Tag>(request_props, |tag, mut app| {
-        app
-          .data
-          .radarr_data
-          .tags_map
-          .insert(tag.id.as_u64().unwrap(), tag.label);
-      })
-      .await;
-  }
-
-  async fn get_root_folders(&self) {
-    info!("Fetching Radarr root folders");
-
-    let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetRootFolders.resource(),
+        format!(
+          "{}?term={}",
+          RadarrEvent::SearchNewMovie.resource(),
+          encode(&search_string)
+        )
+        .as_str(),
         RequestMethod::Get,
         None::<()>,
       )
       .await;
 
     self
-      .handle_request::<(), Vec<RootFolder>>(request_props, |root_folders, mut app| {
-        app.data.radarr_data.root_folders.set_items(root_folders);
-      })
-      .await;
-  }
-
-  async fn get_credits(&self) {
-    info!("Fetching Radarr movie credits");
-
-    let request_props = self
-      .radarr_request_props_from(
-        self
-          .append_movie_id_param(RadarrEvent::GetMovieCredits.resource())
-          .await
-          .as_str(),
-        RequestMethod::Get,
-        None::<()>,
-      )
-      .await;
-
-    self
-      .handle_request::<(), Vec<Credit>>(request_props, |credit_vec, mut app| {
-        let cast_vec: Vec<Credit> = credit_vec
-          .iter()
-          .cloned()
-          .filter(|credit| credit.credit_type == CreditType::Cast)
-          .collect();
-        let crew_vec: Vec<Credit> = credit_vec
-          .iter()
-          .cloned()
-          .filter(|credit| credit.credit_type == CreditType::Crew)
-          .collect();
-
-        app.data.radarr_data.movie_cast.set_items(cast_vec);
-        app.data.radarr_data.movie_crew.set_items(crew_vec);
-      })
-      .await;
-  }
-
-  async fn delete_movie(&self) {
-    let movie_id = self.extract_movie_id().await;
-    let delete_files = self.app.lock().await.data.radarr_data.delete_movie_files;
-    let add_import_exclusion = self.app.lock().await.data.radarr_data.add_list_exclusion;
-
-    info!(
-      "Deleting Radarr movie with id: {} with deleteFiles={} and addImportExclusion={}",
-      movie_id, delete_files, add_import_exclusion
-    );
-
-    let request_props = self
-      .radarr_request_props_from(
-        format!(
-          "{}/{}?deleteFiles={}&addImportExclusion={}",
-          RadarrEvent::DeleteMovie.resource(),
-          movie_id,
-          delete_files,
-          add_import_exclusion
-        )
-        .as_str(),
-        RequestMethod::Delete,
-        None::<()>,
-      )
-      .await;
-
-    self
-      .handle_request::<(), ()>(request_props, |_, _| ())
-      .await;
-
-    self
-      .app
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .reset_delete_movie_preferences();
-  }
-
-  async fn delete_download(&self) {
-    let download_id = self
-      .app
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .downloads
-      .current_selection()
-      .id
-      .as_u64()
-      .unwrap();
-
-    info!(
-      "Deleting Radarr download for download with id: {}",
-      download_id
-    );
-
-    let request_props = self
-      .radarr_request_props_from(
-        format!("{}/{}", RadarrEvent::DeleteDownload.resource(), download_id).as_str(),
-        RequestMethod::Delete,
-        None::<()>,
-      )
-      .await;
-
-    self
-      .handle_request::<(), ()>(request_props, |_, _| ())
-      .await;
-  }
-
-  async fn delete_root_folder(&self) {
-    let root_folder_id = self
-      .app
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .root_folders
-      .current_selection()
-      .id
-      .as_u64()
-      .unwrap();
-
-    info!(
-      "Deleting Radarr root folder for folder with id: {}",
-      root_folder_id
-    );
-
-    let request_props = self
-      .radarr_request_props_from(
-        format!(
-          "{}/{}",
-          RadarrEvent::DeleteRootFolder.resource(),
-          root_folder_id
-        )
-        .as_str(),
-        RequestMethod::Delete,
-        None::<()>,
-      )
-      .await;
-
-    self
-      .handle_request::<(), ()>(request_props, |_, _| ())
-      .await;
-  }
-
-  async fn add_movie(&self) {
-    info!("Adding new movie to Radarr");
-    let body = {
-      let quality_profile_id = self.extract_quality_profile_id().await;
-      let tag_ids_vec = self.extract_and_add_tag_ids_vec().await;
-      let app = self.app.lock().await;
-      let root_folders = app.data.radarr_data.root_folders.items.to_vec();
-      let (tmdb_id, title) = if let Route::Radarr(active_radarr_block, _) = app.get_current_route()
-      {
-        if *active_radarr_block == ActiveRadarrBlock::CollectionDetails {
-          let CollectionMovie { tmdb_id, title, .. } =
-            app.data.radarr_data.collection_movies.current_selection();
-          (tmdb_id, title.text.clone())
+      .handle_request::<(), Vec<AddMovieSearchResult>>(request_props, |movie_vec, mut app| {
+        if movie_vec.is_empty() {
+          app.pop_and_push_navigation_stack(ActiveRadarrBlock::AddMovieEmptySearchResults.into());
         } else {
-          let AddMovieSearchResult { tmdb_id, title, .. } =
-            app.data.radarr_data.add_searched_movies.current_selection();
-          (tmdb_id, title.text.clone())
+          app
+            .data
+            .radarr_data
+            .add_searched_movies
+            .set_items(movie_vec);
         }
-      } else {
-        let AddMovieSearchResult { tmdb_id, title, .. } =
-          app.data.radarr_data.add_searched_movies.current_selection();
-        (tmdb_id, title.text.clone())
-      };
+      })
+      .await;
+  }
 
-      let RootFolder { path, .. } = root_folders
-        .iter()
-        .filter(|folder| folder.accessible)
-        .reduce(|a, b| {
-          if a.free_space.as_u64().unwrap() > b.free_space.as_u64().unwrap() {
-            a
-          } else {
-            b
-          }
-        })
-        .unwrap();
-      let monitor = app
-        .data
-        .radarr_data
-        .monitor_list
-        .current_selection()
-        .to_string();
-      let minimum_availability = app
-        .data
-        .radarr_data
-        .minimum_availability_list
-        .current_selection()
-        .to_string();
+  async fn start_task(&self) {
+    let task_name = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .tasks
+      .current_selection()
+      .task_name
+      .clone();
 
-      AddMovieBody {
-        tmdb_id: tmdb_id.as_u64().unwrap(),
-        title,
-        root_folder_path: path.to_owned(),
-        minimum_availability,
-        monitored: true,
-        quality_profile_id,
-        tags: tag_ids_vec,
-        add_options: AddOptions {
-          monitor,
-          search_for_movie: true,
-        },
-      }
-    };
+    info!("Starting Radarr task: {}", task_name);
 
-    debug!("Add movie body: {:?}", body);
+    let body = CommandBody { name: task_name };
 
     let request_props = self
       .radarr_request_props_from(
-        RadarrEvent::AddMovie.resource(),
+        RadarrEvent::StartTask.resource(),
         RequestMethod::Post,
         Some(body),
       )
       .await;
 
     self
-      .handle_request::<AddMovieBody, Value>(request_props, |_, _| ())
+      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
       .await;
   }
 
-  async fn add_root_folder(&self) {
-    info!("Adding new root folder to Radarr");
-    let body = AddRootFolderBody {
-      path: self.app.lock().await.data.radarr_data.edit_path.drain(),
-    };
-
-    debug!("Add root folder body: {:?}", body);
-
-    let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::AddRootFolder.resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
-      .await;
-
-    self
-      .handle_request::<AddRootFolderBody, Value>(request_props, |_, _| ())
-      .await;
-  }
-
-  async fn edit_movie(&self) {
-    info!("Editing Radarr movie");
-
-    info!("Fetching movie details");
+  async fn trigger_automatic_search(&self) {
     let movie_id = self.extract_movie_id().await;
-    let request_props = self
-      .radarr_request_props_from(
-        format!("{}/{}", RadarrEvent::GetMovieDetails.resource(), movie_id).as_str(),
-        RequestMethod::Get,
-        None::<()>,
-      )
-      .await;
-
-    self
-      .handle_request::<(), Value>(request_props, |detailed_movie_body, mut app| {
-        app.response = detailed_movie_body.to_string()
-      })
-      .await;
-
-    info!("Constructing edit movie body");
-
-    let body = {
-      let quality_profile_id = self.extract_quality_profile_id().await;
-      let tag_ids_vec = self.extract_and_add_tag_ids_vec().await;
-      let mut app = self.app.lock().await;
-      let response = app.response.drain(..).collect::<String>();
-      let mut detailed_movie_body: Value = serde_json::from_str(&response).unwrap();
-
-      let path: String = app.data.radarr_data.edit_path.drain();
-
-      let monitored = app.data.radarr_data.edit_monitored.unwrap_or_default();
-      let minimum_availability = app
-        .data
-        .radarr_data
-        .minimum_availability_list
-        .current_selection()
-        .to_string();
-
-      *detailed_movie_body.get_mut("monitored").unwrap() = json!(monitored);
-      *detailed_movie_body.get_mut("minimumAvailability").unwrap() = json!(minimum_availability);
-      *detailed_movie_body.get_mut("qualityProfileId").unwrap() = json!(quality_profile_id);
-      *detailed_movie_body.get_mut("path").unwrap() = json!(path);
-      *detailed_movie_body.get_mut("tags").unwrap() = json!(tag_ids_vec);
-
-      detailed_movie_body
+    info!("Searching indexers for movie with id: {}", movie_id);
+    let body = MovieCommandBody {
+      name: "MoviesSearch".to_owned(),
+      movie_ids: vec![movie_id],
     };
 
-    debug!("Edit movie body: {:?}", body);
-
     let request_props = self
       .radarr_request_props_from(
-        format!("{}/{}", RadarrEvent::EditMovie.resource(), movie_id).as_str(),
-        RequestMethod::Put,
-        Some(body),
-      )
-      .await;
-
-    self
-      .handle_request::<Value, ()>(request_props, |_, _| ())
-      .await;
-  }
-
-  async fn edit_collection(&self) {
-    info!("Editing Radarr collection");
-
-    info!("Fetching collection details");
-    let collection_id = self.extract_collection_id().await;
-    let request_props = self
-      .radarr_request_props_from(
-        format!(
-          "{}/{}",
-          RadarrEvent::GetCollections.resource(),
-          collection_id
-        )
-        .as_str(),
-        RequestMethod::Get,
-        None::<()>,
-      )
-      .await;
-
-    self
-      .handle_request::<(), Value>(request_props, |detailed_collection_body, mut app| {
-        app.response = detailed_collection_body.to_string()
-      })
-      .await;
-
-    info!("Constructing edit collection body");
-
-    let body = {
-      let quality_profile_id = self.extract_quality_profile_id().await;
-      let mut app = self.app.lock().await;
-      let response = app.response.drain(..).collect::<String>();
-      let mut detailed_collection_body: Value = serde_json::from_str(&response).unwrap();
-
-      let root_folder_path: String = app.data.radarr_data.edit_path.drain();
-
-      let monitored = app.data.radarr_data.edit_monitored.unwrap_or_default();
-      let search_on_add = app.data.radarr_data.edit_search_on_add.unwrap_or_default();
-      let minimum_availability = app
-        .data
-        .radarr_data
-        .minimum_availability_list
-        .current_selection()
-        .to_string();
-
-      *detailed_collection_body.get_mut("monitored").unwrap() = json!(monitored);
-      *detailed_collection_body
-        .get_mut("minimumAvailability")
-        .unwrap() = json!(minimum_availability);
-      *detailed_collection_body
-        .get_mut("qualityProfileId")
-        .unwrap() = json!(quality_profile_id);
-      *detailed_collection_body.get_mut("rootFolderPath").unwrap() = json!(root_folder_path);
-      *detailed_collection_body.get_mut("searchOnAdd").unwrap() = json!(search_on_add);
-
-      detailed_collection_body
-    };
-
-    debug!("Edit collection body: {:?}", body);
-
-    let request_props = self
-      .radarr_request_props_from(
-        format!(
-          "{}/{}",
-          RadarrEvent::EditCollection.resource(),
-          collection_id
-        )
-        .as_str(),
-        RequestMethod::Put,
-        Some(body),
-      )
-      .await;
-
-    self
-      .handle_request::<Value, ()>(request_props, |_, _| ())
-      .await;
-  }
-
-  async fn download_release(&self) {
-    let (guid, title, indexer_id) = {
-      let app = self.app.lock().await;
-      let Release {
-        guid,
-        title,
-        indexer_id,
-        ..
-      } = app.data.radarr_data.movie_releases.current_selection();
-
-      (guid.clone(), title.clone(), indexer_id.as_u64().unwrap())
-    };
-
-    info!("Downloading release: {}", title);
-
-    let download_release_body = ReleaseDownloadBody { guid, indexer_id };
-
-    let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::DownloadRelease.resource(),
+        RadarrEvent::TriggerAutomaticSearch.resource(),
         RequestMethod::Post,
-        Some(download_release_body),
+        Some(body),
       )
       .await;
 
     self
-      .handle_request::<ReleaseDownloadBody, Value>(request_props, |_, _| ())
+      .handle_request::<MovieCommandBody, Value>(request_props, |_, _| ())
       .await;
+  }
+
+  async fn update_all_movies(&self) {
+    info!("Updating all movies");
+    let body = MovieCommandBody {
+      name: "RefreshMovie".to_owned(),
+      movie_ids: Vec::new(),
+    };
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::UpdateAllMovies.resource(),
+        RequestMethod::Post,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<MovieCommandBody, Value>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn update_and_scan(&self) {
+    let movie_id = self.extract_movie_id().await;
+    info!("Updating and scanning movie with id: {}", movie_id);
+    let body = MovieCommandBody {
+      name: "RefreshMovie".to_owned(),
+      movie_ids: vec![movie_id],
+    };
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::UpdateAndScan.resource(),
+        RequestMethod::Post,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<MovieCommandBody, Value>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn update_collections(&self) {
+    info!("Updating collections");
+    let body = CommandBody {
+      name: "RefreshCollections".to_owned(),
+    };
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::UpdateCollections.resource(),
+        RequestMethod::Post,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn update_downloads(&self) {
+    info!("Updating downloads");
+    let body = CommandBody {
+      name: "RefreshMonitoredDownloads".to_owned(),
+    };
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::UpdateDownloads.resource(),
+        RequestMethod::Post,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn radarr_request_props_from<T: Serialize + Debug>(
+    &self,
+    resource: &str,
+    method: RequestMethod,
+    body: Option<T>,
+  ) -> RequestProps<T> {
+    let app = self.app.lock().await;
+    let RadarrConfig {
+      host,
+      port,
+      api_token,
+    } = &app.config.radarr;
+    let uri = format!(
+      "http://{}:{}/api/v3{}",
+      host,
+      port.unwrap_or(7878),
+      resource
+    );
+
+    RequestProps {
+      uri,
+      method,
+      body,
+      api_token: api_token.to_owned(),
+    }
   }
 
   async fn extract_quality_profile_id(&self) -> u64 {
@@ -1404,33 +1452,6 @@ impl<'a, 'b> Network<'a, 'b> {
   async fn append_movie_id_param(&self, resource: &str) -> String {
     let movie_id = self.extract_movie_id().await;
     format!("{}?movieId={}", resource, movie_id)
-  }
-
-  async fn radarr_request_props_from<T: Serialize + Debug>(
-    &self,
-    resource: &str,
-    method: RequestMethod,
-    body: Option<T>,
-  ) -> RequestProps<T> {
-    let app = self.app.lock().await;
-    let RadarrConfig {
-      host,
-      port,
-      api_token,
-    } = &app.config.radarr;
-    let uri = format!(
-      "http://{}:{}/api/v3{}",
-      host,
-      port.unwrap_or(7878),
-      resource
-    );
-
-    RequestProps {
-      uri,
-      method,
-      body,
-      api_token: api_token.to_owned(),
-    }
   }
 }
 

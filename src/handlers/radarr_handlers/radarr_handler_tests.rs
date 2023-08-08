@@ -16,7 +16,7 @@ mod tests {
   mod test_handle_scroll_up_and_down {
     use rstest::rstest;
 
-    use crate::models::radarr_models::{DownloadRecord, RootFolder};
+    use crate::models::radarr_models::{DownloadRecord, Indexer, RootFolder};
     use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
 
     use super::*;
@@ -76,6 +76,16 @@ mod tests {
     );
 
     test_iterable_scroll!(
+      test_indexers_scroll,
+      RadarrHandler,
+      indexers,
+      simple_stateful_iterable_vec!(Indexer, String, protocol),
+      ActiveRadarrBlock::Indexers,
+      None,
+      protocol
+    );
+
+    test_iterable_scroll!(
       test_root_folders_scroll,
       RadarrHandler,
       root_folders,
@@ -89,7 +99,7 @@ mod tests {
   mod test_handle_home_end {
     use pretty_assertions::assert_eq;
 
-    use crate::models::radarr_models::{DownloadRecord, RootFolder};
+    use crate::models::radarr_models::{DownloadRecord, Indexer, RootFolder};
     use crate::{
       extended_stateful_iterable_vec, test_iterable_home_and_end, test_text_box_home_end_keys,
     };
@@ -148,6 +158,16 @@ mod tests {
       ActiveRadarrBlock::Downloads,
       None,
       title
+    );
+
+    test_iterable_home_and_end!(
+      test_indexers_home_end,
+      RadarrHandler,
+      indexers,
+      extended_stateful_iterable_vec!(Indexer, String, protocol),
+      ActiveRadarrBlock::Indexers,
+      None,
+      protocol
     );
 
     test_iterable_home_and_end!(
@@ -250,7 +270,8 @@ mod tests {
 
     #[rstest]
     #[case(ActiveRadarrBlock::Movies, 0, ActiveRadarrBlock::System)]
-    #[case(ActiveRadarrBlock::System, 4, ActiveRadarrBlock::RootFolders)]
+    #[case(ActiveRadarrBlock::System, 5, ActiveRadarrBlock::Indexers)]
+    #[case(ActiveRadarrBlock::Indexers, 4, ActiveRadarrBlock::RootFolders)]
     #[case(ActiveRadarrBlock::RootFolders, 3, ActiveRadarrBlock::Collections)]
     #[case(ActiveRadarrBlock::Collections, 2, ActiveRadarrBlock::Downloads)]
     #[case(ActiveRadarrBlock::Downloads, 1, ActiveRadarrBlock::Movies)]
@@ -281,8 +302,9 @@ mod tests {
     #[case(ActiveRadarrBlock::Movies, 0, ActiveRadarrBlock::Downloads)]
     #[case(ActiveRadarrBlock::Downloads, 1, ActiveRadarrBlock::Collections)]
     #[case(ActiveRadarrBlock::Collections, 2, ActiveRadarrBlock::RootFolders)]
-    #[case(ActiveRadarrBlock::RootFolders, 3, ActiveRadarrBlock::System)]
-    #[case(ActiveRadarrBlock::System, 4, ActiveRadarrBlock::Movies)]
+    #[case(ActiveRadarrBlock::RootFolders, 3, ActiveRadarrBlock::Indexers)]
+    #[case(ActiveRadarrBlock::Indexers, 4, ActiveRadarrBlock::System)]
+    #[case(ActiveRadarrBlock::System, 5, ActiveRadarrBlock::Movies)]
     fn test_radarr_tab_right(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] index: usize,
@@ -963,6 +985,7 @@ mod tests {
         ActiveRadarrBlock::Movies,
         ActiveRadarrBlock::Collections,
         ActiveRadarrBlock::Downloads,
+        ActiveRadarrBlock::Indexers,
         ActiveRadarrBlock::RootFolders,
         ActiveRadarrBlock::System
       )]

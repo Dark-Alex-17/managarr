@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use chrono::{DateTime, Utc};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
-use serde_json::Number;
+use serde_json::{Number, Value};
 use strum_macros::{Display, EnumIter};
 
 use crate::models::HorizontallyScrollableText;
@@ -12,86 +12,47 @@ use crate::models::HorizontallyScrollableText;
 #[path = "radarr_models_tests.rs"]
 mod radarr_models_tests;
 
-#[derive(Deserialize, Debug, Clone, Eq, PartialEq)]
+#[derive(Default, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct DiskSpace {
-  pub free_space: Number,
-  pub total_space: Number,
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct SystemStatus {
-  pub version: String,
-  pub start_time: DateTime<Utc>,
-}
-
-#[derive(Derivative, Deserialize, Debug, Clone, Eq, PartialEq)]
-#[derivative(Default)]
-#[serde(rename_all = "camelCase")]
-pub struct RootFolder {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
-  pub path: String,
-  pub accessible: bool,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub free_space: Number,
-  pub unmapped_folders: Option<Vec<UnmappedFolder>>,
-}
-
-#[derive(Deserialize, Default, Debug, Clone, Eq, PartialEq)]
-pub struct UnmappedFolder {
-  pub name: String,
-  pub path: String,
+pub struct AddMovieBody {
+  pub tmdb_id: u64,
+  pub title: String,
+  pub root_folder_path: String,
+  pub quality_profile_id: u64,
+  pub minimum_availability: String,
+  pub monitored: bool,
+  pub tags: Vec<u64>,
+  pub add_options: AddOptions,
 }
 
 #[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
-pub struct Movie {
+pub struct AddMovieSearchResult {
   #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
+  pub tmdb_id: Number,
   pub title: HorizontallyScrollableText,
   pub original_language: Language,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub size_on_disk: Number,
   pub status: String,
   pub overview: String,
-  pub path: String,
-  pub studio: String,
   pub genres: Vec<String>,
   #[derivative(Default(value = "Number::from(0)"))]
   pub year: Number,
-  pub monitored: bool,
-  pub has_file: bool,
   #[derivative(Default(value = "Number::from(0)"))]
   pub runtime: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub tmdb_id: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub quality_profile_id: Number,
-  pub minimum_availability: MinimumAvailability,
-  pub certification: Option<String>,
-  pub tags: Vec<Number>,
   pub ratings: RatingsList,
-  pub movie_file: Option<MovieFile>,
-  pub collection: Option<Collection>,
 }
 
-#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[derivative(Default)]
+#[derive(Default, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct CollectionMovie {
-  pub title: HorizontallyScrollableText,
-  pub overview: String,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub year: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub runtime: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub tmdb_id: Number,
-  pub genres: Vec<String>,
-  pub ratings: RatingsList,
+pub struct AddOptions {
+  pub monitor: String,
+  pub search_for_movie: bool,
+}
+
+#[derive(Default, Serialize, Debug)]
+pub struct AddRootFolderBody {
+  pub path: String,
 }
 
 #[derive(Deserialize, Derivative, Clone, Debug, PartialEq, Eq)]
@@ -112,14 +73,148 @@ pub struct Collection {
   pub movies: Option<Vec<CollectionMovie>>,
 }
 
-#[derive(Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
+#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
-pub struct MovieFile {
-  pub relative_path: String,
-  pub path: String,
-  pub date_added: DateTime<Utc>,
-  pub media_info: Option<MediaInfo>,
+pub struct CollectionMovie {
+  pub title: HorizontallyScrollableText,
+  pub overview: String,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub year: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub runtime: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub tmdb_id: Number,
+  pub genres: Vec<String>,
+  pub ratings: RatingsList,
+}
+
+#[derive(Default, Derivative, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CommandBody {
+  pub name: String,
+}
+
+#[derive(Deserialize, Default, Clone, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Credit {
+  pub person_name: String,
+  pub character: Option<String>,
+  pub department: Option<String>,
+  pub job: Option<String>,
+  #[serde(rename(deserialize = "type"))]
+  pub credit_type: CreditType,
+}
+
+#[derive(Deserialize, Default, PartialEq, Eq, Clone, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum CreditType {
+  #[default]
+  Cast,
+  Crew,
+}
+
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct DiskSpace {
+  pub free_space: Number,
+  pub total_space: Number,
+}
+
+#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct DownloadRecord {
+  pub title: String,
+  pub status: String,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub id: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub movie_id: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub size: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub sizeleft: Number,
+  pub output_path: Option<HorizontallyScrollableText>,
+  pub indexer: String,
+  pub download_client: String,
+}
+
+#[derive(Derivative, Deserialize, Debug)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct DownloadsResponse {
+  pub records: Vec<DownloadRecord>,
+}
+
+#[derive(Derivative, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct Indexer {
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub id: Number,
+  pub name: Option<String>,
+  pub implementation: Option<String>,
+  pub implementation_name: Option<String>,
+  pub config_contract: Option<String>,
+  pub supports_rss: bool,
+  pub supports_search: bool,
+  pub fields: Option<Vec<IndexerField>>,
+  pub enable_rss: bool,
+  pub enable_automatic_search: bool,
+  pub enable_interactive_search: bool,
+  pub protocol: String,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub priority: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub download_client_id: Number,
+  pub tags: Option<Vec<String>>,
+}
+
+#[derive(Derivative, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct IndexerField {
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub order: Number,
+  pub name: Option<String>,
+  pub label: Option<String>,
+  pub value: Option<Value>,
+  pub advanced: bool,
+  pub select_options: Option<Vec<IndexerSelectOption>>,
+}
+
+#[derive(Derivative, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct IndexerSelectOption {
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub value: Number,
+  pub name: Option<String>,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub order: Number,
+}
+
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
+pub struct Language {
+  pub name: String,
+}
+
+#[derive(Default, Deserialize, Clone, Debug, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct Log {
+  pub time: DateTime<Utc>,
+  pub exception: Option<String>,
+  pub exception_type: Option<String>,
+  pub level: String,
+  pub logger: Option<String>,
+  pub message: Option<String>,
+  pub method: Option<String>,
+}
+
+#[derive(Default, Deserialize, Debug, Eq, PartialEq)]
+pub struct LogResponse {
+  pub records: Vec<Log>,
 }
 
 #[derive(Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
@@ -144,206 +239,6 @@ pub struct MediaInfo {
   pub resolution: String,
   pub run_time: String,
   pub scan_type: String,
-}
-
-#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct RatingsList {
-  pub imdb: Option<Rating>,
-  pub tmdb: Option<Rating>,
-  pub rotten_tomatoes: Option<Rating>,
-}
-
-#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[derivative(Default)]
-pub struct Rating {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub value: Number,
-}
-
-#[derive(Derivative, Deserialize, Debug)]
-#[derivative(Default)]
-#[serde(rename_all = "camelCase")]
-pub struct DownloadsResponse {
-  pub records: Vec<DownloadRecord>,
-}
-
-#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[derivative(Default)]
-#[serde(rename_all = "camelCase")]
-pub struct DownloadRecord {
-  pub title: String,
-  pub status: String,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub movie_id: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub size: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub sizeleft: Number,
-  pub output_path: Option<HorizontallyScrollableText>,
-  pub indexer: String,
-  pub download_client: String,
-}
-
-#[derive(Derivative, Deserialize, Debug)]
-#[derivative(Default)]
-pub struct QualityProfile {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
-  pub name: String,
-}
-
-#[derive(Derivative, Deserialize, Debug)]
-#[derivative(Default)]
-pub struct Tag {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
-  pub label: String,
-}
-
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct MovieHistoryItem {
-  pub source_title: HorizontallyScrollableText,
-  pub quality: QualityWrapper,
-  pub languages: Vec<Language>,
-  pub date: DateTime<Utc>,
-  pub event_type: String,
-}
-
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
-pub struct Language {
-  pub name: String,
-}
-
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
-pub struct Quality {
-  pub name: String,
-}
-
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
-pub struct QualityWrapper {
-  pub quality: Quality,
-}
-
-#[derive(Deserialize, Default, PartialEq, Eq, Clone, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum CreditType {
-  #[default]
-  Cast,
-  Crew,
-}
-
-#[derive(Deserialize, Default, Clone, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct Credit {
-  pub person_name: String,
-  pub character: Option<String>,
-  pub department: Option<String>,
-  pub job: Option<String>,
-  #[serde(rename(deserialize = "type"))]
-  pub credit_type: CreditType,
-}
-
-#[derive(Deserialize, Derivative, Clone, Debug, PartialEq, Eq)]
-#[derivative(Default)]
-#[serde(rename_all = "camelCase")]
-pub struct Release {
-  pub guid: String,
-  pub protocol: String,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub age: Number,
-  pub title: HorizontallyScrollableText,
-  pub indexer: String,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub indexer_id: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub size: Number,
-  pub rejected: bool,
-  pub rejections: Option<Vec<String>>,
-  pub seeders: Option<Number>,
-  pub leechers: Option<Number>,
-  pub languages: Option<Vec<Language>>,
-  pub quality: QualityWrapper,
-}
-
-#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
-pub enum ReleaseField {
-  #[default]
-  Source,
-  Age,
-  Rejected,
-  Title,
-  Indexer,
-  Size,
-  Peers,
-  Language,
-  Quality,
-}
-
-#[derive(Default, Serialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct AddMovieBody {
-  pub tmdb_id: u64,
-  pub title: String,
-  pub root_folder_path: String,
-  pub quality_profile_id: u64,
-  pub minimum_availability: String,
-  pub monitored: bool,
-  pub tags: Vec<u64>,
-  pub add_options: AddOptions,
-}
-
-#[derive(Default, Serialize, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct AddOptions {
-  pub monitor: String,
-  pub search_for_movie: bool,
-}
-
-#[derive(Default, Serialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct ReleaseDownloadBody {
-  pub guid: String,
-  pub indexer_id: u64,
-}
-
-#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[derivative(Default)]
-#[serde(rename_all = "camelCase")]
-pub struct AddMovieSearchResult {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub tmdb_id: Number,
-  pub title: HorizontallyScrollableText,
-  pub original_language: Language,
-  pub status: String,
-  pub overview: String,
-  pub genres: Vec<String>,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub year: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub runtime: Number,
-  pub ratings: RatingsList,
-}
-
-#[derive(Default, Serialize, Debug)]
-pub struct AddRootFolderBody {
-  pub path: String,
-}
-
-#[derive(Default, Derivative, Serialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct MovieCommandBody {
-  pub name: String,
-  pub movie_ids: Vec<u64>,
-}
-
-#[derive(Default, Derivative, Serialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct CommandBody {
-  pub name: String,
 }
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter)]
@@ -408,21 +303,181 @@ impl Monitor {
   }
 }
 
-#[derive(Default, Deserialize, Clone, Debug, Eq, PartialEq)]
+#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derivative(Default)]
 #[serde(rename_all = "camelCase")]
-pub struct Log {
-  pub time: DateTime<Utc>,
-  pub exception: Option<String>,
-  pub exception_type: Option<String>,
-  pub level: String,
-  pub logger: Option<String>,
-  pub message: Option<String>,
-  pub method: Option<String>,
+pub struct Movie {
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub id: Number,
+  pub title: HorizontallyScrollableText,
+  pub original_language: Language,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub size_on_disk: Number,
+  pub status: String,
+  pub overview: String,
+  pub path: String,
+  pub studio: String,
+  pub genres: Vec<String>,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub year: Number,
+  pub monitored: bool,
+  pub has_file: bool,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub runtime: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub tmdb_id: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub quality_profile_id: Number,
+  pub minimum_availability: MinimumAvailability,
+  pub certification: Option<String>,
+  pub tags: Vec<Number>,
+  pub ratings: RatingsList,
+  pub movie_file: Option<MovieFile>,
+  pub collection: Option<Collection>,
 }
 
-#[derive(Default, Deserialize, Debug, Eq, PartialEq)]
-pub struct LogResponse {
-  pub records: Vec<Log>,
+#[derive(Default, Derivative, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct MovieCommandBody {
+  pub name: String,
+  pub movie_ids: Vec<u64>,
+}
+
+#[derive(Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct MovieFile {
+  pub relative_path: String,
+  pub path: String,
+  pub date_added: DateTime<Utc>,
+  pub media_info: Option<MediaInfo>,
+}
+
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct MovieHistoryItem {
+  pub source_title: HorizontallyScrollableText,
+  pub quality: QualityWrapper,
+  pub languages: Vec<Language>,
+  pub date: DateTime<Utc>,
+  pub event_type: String,
+}
+
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
+pub struct Quality {
+  pub name: String,
+}
+
+#[derive(Derivative, Deserialize, Debug)]
+#[derivative(Default)]
+pub struct QualityProfile {
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub id: Number,
+  pub name: String,
+}
+
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
+pub struct QualityWrapper {
+  pub quality: Quality,
+}
+
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct QueueEvent {
+  pub trigger: String,
+  pub name: String,
+  pub command_name: String,
+  pub status: String,
+  pub queued: DateTime<Utc>,
+  pub started: Option<DateTime<Utc>>,
+  pub ended: Option<DateTime<Utc>>,
+  pub duration: Option<String>,
+}
+
+#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derivative(Default)]
+pub struct Rating {
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub value: Number,
+}
+
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct RatingsList {
+  pub imdb: Option<Rating>,
+  pub tmdb: Option<Rating>,
+  pub rotten_tomatoes: Option<Rating>,
+}
+
+#[derive(Deserialize, Derivative, Clone, Debug, PartialEq, Eq)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct Release {
+  pub guid: String,
+  pub protocol: String,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub age: Number,
+  pub title: HorizontallyScrollableText,
+  pub indexer: String,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub indexer_id: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub size: Number,
+  pub rejected: bool,
+  pub rejections: Option<Vec<String>>,
+  pub seeders: Option<Number>,
+  pub leechers: Option<Number>,
+  pub languages: Option<Vec<Language>>,
+  pub quality: QualityWrapper,
+}
+
+#[derive(Default, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ReleaseDownloadBody {
+  pub guid: String,
+  pub indexer_id: u64,
+}
+
+#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
+pub enum ReleaseField {
+  #[default]
+  Source,
+  Age,
+  Rejected,
+  Title,
+  Indexer,
+  Size,
+  Peers,
+  Language,
+  Quality,
+}
+
+#[derive(Derivative, Deserialize, Debug, Clone, Eq, PartialEq)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct RootFolder {
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub id: Number,
+  pub path: String,
+  pub accessible: bool,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub free_space: Number,
+  pub unmapped_folders: Option<Vec<UnmappedFolder>>,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemStatus {
+  pub version: String,
+  pub start_time: DateTime<Utc>,
+}
+
+#[derive(Derivative, Deserialize, Debug)]
+#[derivative(Default)]
+pub struct Tag {
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub id: Number,
+  pub label: String,
 }
 
 #[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -438,17 +493,10 @@ pub struct Task {
   pub next_execution: DateTime<Utc>,
 }
 
-#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct QueueEvent {
-  pub trigger: String,
+#[derive(Deserialize, Default, Debug, Clone, Eq, PartialEq)]
+pub struct UnmappedFolder {
   pub name: String,
-  pub command_name: String,
-  pub status: String,
-  pub queued: DateTime<Utc>,
-  pub started: Option<DateTime<Utc>>,
-  pub ended: Option<DateTime<Utc>>,
-  pub duration: Option<String>,
+  pub path: String,
 }
 
 #[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]

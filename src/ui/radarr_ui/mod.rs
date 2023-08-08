@@ -21,6 +21,7 @@ use crate::models::Route;
 use crate::ui::draw_selectable_list;
 use crate::ui::draw_tabs;
 use crate::ui::loading;
+use crate::ui::radarr_ui::indexers_ui::IndexersUi;
 use crate::ui::radarr_ui::system_details_ui::SystemDetailsUi;
 use crate::ui::radarr_ui::system_ui::SystemUi;
 use crate::ui::radarr_ui::{
@@ -44,6 +45,7 @@ mod delete_movie_ui;
 mod downloads_ui;
 mod edit_collection_ui;
 mod edit_movie_ui;
+mod indexers_ui;
 mod library_ui;
 mod movie_details_ui;
 mod radarr_ui_utils;
@@ -72,6 +74,7 @@ impl DrawUi for RadarrUi {
         ActiveRadarrBlock::Downloads
         | ActiveRadarrBlock::DeleteDownloadPrompt
         | ActiveRadarrBlock::UpdateDownloadsPrompt => DownloadsUi::draw(f, app, content_rect),
+        ActiveRadarrBlock::Indexers => IndexersUi::draw(f, app, content_rect),
         ActiveRadarrBlock::RootFolders
         | ActiveRadarrBlock::AddRootFolderPrompt
         | ActiveRadarrBlock::DeleteRootFolderPrompt => RootFoldersUi::draw(f, app, content_rect),

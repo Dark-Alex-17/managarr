@@ -13,8 +13,8 @@ mod test {
 
   use crate::app::radarr::ActiveRadarrBlock;
   use crate::models::radarr_models::{
-    CollectionMovie, Language, MediaInfo, MinimumAvailability, Monitor, MovieFile, Quality,
-    QualityWrapper, Rating, RatingsList,
+    CollectionMovie, IndexerField, IndexerSelectOption, Language, MediaInfo, MinimumAvailability,
+    Monitor, MovieFile, Quality, QualityWrapper, Rating, RatingsList,
   };
   use crate::models::HorizontallyScrollableText;
   use crate::App;
@@ -851,6 +851,71 @@ mod test {
     assert_eq!(
       app_arc.lock().await.data.radarr_data.downloads.items,
       downloads_response().records
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_indexers_event() {
+    let indexers_response_json = json!([{
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "supportsRss": true,
+        "supportsSearch": true,
+        "protocol": "torrent",
+        "priority": 25,
+        "downloadClientId": 0,
+        "name": "Test Indexer",
+        "fields": [
+            {
+                "order": 0,
+                "name": "valueIsString",
+                "label": "Value Is String",
+                "value": "hello",
+                "advanced": false
+            },
+            {
+                "order": 1,
+                "name": "emptyValueWithSelectOptions",
+                "label": "Empty Value With Select Options",
+                "advanced": true,
+                "selectOptions": [
+                    {
+                        "value": -2,
+                        "name": "Original",
+                        "order": 0,
+                    }
+                ]
+            },
+            {
+                "order": 2,
+                "name": "valueIsAnArray",
+                "label": "Value is an array",
+                "value": [1, 2],
+                "advanced": false,
+            },
+        ],
+        "implementationName": "Torznab",
+        "implementation": "Torznab",
+        "configContract": "TorznabSettings",
+        "tags": ["test_tag"],
+        "id": 1
+    }]);
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexers_response_json),
+      RadarrEvent::GetIndexers.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.handle_radarr_event(RadarrEvent::GetIndexers).await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.indexers.items,
+      vec![indexer()]
     );
   }
 
@@ -2123,6 +2188,55 @@ mod test {
       department: Some("Music".to_owned()),
       job: Some("Composition".to_owned()),
       credit_type: CreditType::Crew,
+    }
+  }
+
+  fn indexer() -> Indexer {
+    Indexer {
+      enable_rss: true,
+      enable_automatic_search: true,
+      enable_interactive_search: true,
+      supports_rss: true,
+      supports_search: true,
+      protocol: "torrent".to_owned(),
+      priority: Number::from(25),
+      download_client_id: Number::from(0),
+      name: Some("Test Indexer".to_owned()),
+      implementation_name: Some("Torznab".to_owned()),
+      implementation: Some("Torznab".to_owned()),
+      config_contract: Some("TorznabSettings".to_owned()),
+      tags: Some(vec!["test_tag".to_owned()]),
+      id: Number::from(1),
+      fields: Some(vec![
+        IndexerField {
+          order: Number::from(0),
+          name: Some("valueIsString".to_owned()),
+          label: Some("Value Is String".to_owned()),
+          value: Some(json!("hello")),
+          advanced: false,
+          select_options: None,
+        },
+        IndexerField {
+          order: Number::from(1),
+          name: Some("emptyValueWithSelectOptions".to_owned()),
+          label: Some("Empty Value With Select Options".to_owned()),
+          value: None,
+          advanced: true,
+          select_options: Some(vec![IndexerSelectOption {
+            value: Number::from(-2),
+            name: Some("Original".to_owned()),
+            order: Number::from(0),
+          }]),
+        },
+        IndexerField {
+          order: Number::from(2),
+          name: Some("valueIsAnArray".to_owned()),
+          label: Some("Value is an array".to_owned()),
+          value: Some(json!([1, 2])),
+          advanced: false,
+          select_options: None,
+        },
+      ]),
     }
   }
 }

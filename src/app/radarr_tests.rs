@@ -273,6 +273,7 @@ mod tests {
       assert_eq!(radarr_data.selected_block, BlockSelectionState::default());
       assert!(radarr_data.filtered_movies.items.is_empty());
       assert!(radarr_data.downloads.items.is_empty());
+      assert!(radarr_data.indexers.items.is_empty());
       assert!(radarr_data.quality_profile_map.is_empty());
       assert!(radarr_data.tags_map.is_empty());
       assert!(radarr_data.file_details.is_empty());
@@ -306,7 +307,7 @@ mod tests {
       assert!(!radarr_data.delete_movie_files);
       assert!(!radarr_data.add_list_exclusion);
 
-      assert_eq!(radarr_data.main_tabs.tabs.len(), 5);
+      assert_eq!(radarr_data.main_tabs.tabs.len(), 6);
 
       assert_str_eq!(radarr_data.main_tabs.tabs[0].title, "Library");
       assert_eq!(
@@ -348,14 +349,25 @@ mod tests {
         Some("<a> add | <del> delete | <r> refresh")
       );
 
-      assert_str_eq!(radarr_data.main_tabs.tabs[4].title, "System");
+      assert_str_eq!(radarr_data.main_tabs.tabs[4].title, "Indexers");
       assert_eq!(
         radarr_data.main_tabs.tabs[4].route,
-        ActiveRadarrBlock::System.into()
+        ActiveRadarrBlock::Indexers.into()
       );
       assert!(radarr_data.main_tabs.tabs[4].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[4].contextual_help,
+        Some("<r> refresh")
+      );
+
+      assert_str_eq!(radarr_data.main_tabs.tabs[5].title, "System");
+      assert_eq!(
+        radarr_data.main_tabs.tabs[5].route,
+        ActiveRadarrBlock::System.into()
+      );
+      assert!(radarr_data.main_tabs.tabs[5].help.is_empty());
+      assert_eq!(
+        radarr_data.main_tabs.tabs[5].contextual_help,
         Some("<t> open tasks | <z> open queue | <l> open logs | <u> open updates | <r> refresh")
       );
 
@@ -679,6 +691,23 @@ mod tests {
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetDownloads.into()
+      );
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert_eq!(app.tick_count, 0);
+    }
+
+    #[tokio::test]
+    async fn test_dispatch_by_indexers_block() {
+      let (mut app, mut sync_network_rx) = construct_app_unit();
+
+      app
+        .dispatch_by_radarr_block(&ActiveRadarrBlock::Indexers)
+        .await;
+
+      assert!(app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetIndexers.into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);

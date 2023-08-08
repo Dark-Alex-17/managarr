@@ -4,7 +4,7 @@ use strum::IntoEnumIterator;
 
 use crate::app::{App, Route};
 use crate::models::radarr_models::{
-  AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord,
+  AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Indexer,
   MinimumAvailability, Monitor, Movie, MovieHistoryItem, QueueEvent, Release, ReleaseField,
   RootFolder, Task,
 };
@@ -36,6 +36,7 @@ pub struct RadarrData<'a> {
   pub root_folder_list: StatefulList<RootFolder>,
   pub selected_block: BlockSelectionState<'a, ActiveRadarrBlock>,
   pub downloads: StatefulTable<DownloadRecord>,
+  pub indexers: StatefulTable<Indexer>,
   pub quality_profile_map: BiMap<u64, String>,
   pub tags_map: BiMap<u64, String>,
   pub movie_details: ScrollableText,
@@ -261,6 +262,7 @@ impl<'a> Default for RadarrData<'a> {
       selected_block: BlockSelectionState::default(),
       filtered_movies: StatefulTable::default(),
       downloads: StatefulTable::default(),
+      indexers: StatefulTable::default(),
       quality_profile_map: BiMap::default(),
       tags_map: BiMap::default(),
       file_details: String::default(),
@@ -317,6 +319,12 @@ impl<'a> Default for RadarrData<'a> {
           route: ActiveRadarrBlock::RootFolders.into(),
           help: "",
           contextual_help: Some("<a> add | <del> delete | <r> refresh"),
+        },
+        TabRoute {
+          title: "Indexers",
+          route: ActiveRadarrBlock::Indexers.into(),
+          help: "",
+          contextual_help: Some("<r> refresh"),
         },
         TabRoute {
           title: "System",
@@ -410,6 +418,7 @@ pub enum ActiveRadarrBlock {
   FileInfo,
   FilterCollections,
   FilterMovies,
+  Indexers,
   ManualSearch,
   ManualSearchSortPrompt,
   ManualSearchConfirmPrompt,
@@ -571,6 +580,11 @@ impl<'a> App<'a> {
           .await;
         self
           .dispatch_network_event(RadarrEvent::GetDownloads.into())
+          .await;
+      }
+      ActiveRadarrBlock::Indexers => {
+        self
+          .dispatch_network_event(RadarrEvent::GetIndexers.into())
           .await;
       }
       ActiveRadarrBlock::System => {
