@@ -399,7 +399,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       );
       let size = convert_to_gb(size.as_u64().unwrap());
       let rejected_str = if *rejected { "⛔" } else { "" };
-      let mut peers = if seeders.is_none() || leechers.is_none() {
+      let peers = if seeders.is_none() || leechers.is_none() {
         Text::default()
       } else {
         let seeders = seeders.clone().unwrap().as_u64().unwrap();
