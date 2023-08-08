@@ -6,9 +6,9 @@ use crate::ui::radarr_ui::system_ui::{
   draw_queued_events, draw_system_ui_layout, extract_task_props, TASK_TABLE_CONSTRAINTS,
   TASK_TABLE_HEADERS,
 };
-use crate::ui::utils::{style_primary, title_block};
+use crate::ui::utils::{borderless_block, style_primary, title_block};
 use crate::ui::{
-  draw_large_popup_over, draw_list_box, draw_medium_popup_over, draw_prompt_box,
+  draw_help, draw_large_popup_over, draw_list_box, draw_medium_popup_over, draw_prompt_box,
   draw_prompt_popup_over, draw_table, DrawUi, ListProps, TableProps,
 };
 use tui::backend::Backend;
@@ -71,10 +71,14 @@ fn draw_logs_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Re
 
 fn draw_tasks_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   let tasks_popup_table = |f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect| {
+    f.render_widget(title_block("Tasks"), area);
+
+    let context_area = draw_help(f, area, Some("<enter> start task | <esc> close"));
+
     draw_table(
       f,
-      area,
-      title_block("Tasks"),
+      context_area,
+      borderless_block(),
       TableProps {
         content: &mut app.data.radarr_data.tasks,
         table_headers: TASK_TABLE_HEADERS.to_vec(),
