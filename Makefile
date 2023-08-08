@@ -27,7 +27,7 @@ analyze:
 	@cargo geiger
 
 ## Analyze the project with SonarQube - `cargo install cargo-sonar`
-# sonar-scanner must be installed and LastPass
+# sonar-scanner must be installed and the LastPass CLI must be installed
 sonar:
 	@cargo clippy --message-format json > /tmp/clippy-report.json &&\
 	cargo sonar --issues clippy --clippy-path /tmp/clippy-report.json --issues-path /tmp/sonar-issues.json &&\
