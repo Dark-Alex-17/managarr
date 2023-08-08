@@ -7,7 +7,7 @@ default: run
 test:
 	@cargo test
 
- ## Run all tests with coverage - `cargo install cargo-tarpaulin`
+## Run all tests with coverage - `cargo install cargo-tarpaulin`
 test-cov:
 	@cargo tarpaulin
 
