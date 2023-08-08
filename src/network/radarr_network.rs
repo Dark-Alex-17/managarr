@@ -794,7 +794,7 @@ impl<'a> Network<'a> {
       .await;
 
     self
-      .handle_request::<AddMovieBody, ()>(request_props, |_, _| ())
+      .handle_request::<AddMovieBody, Value>(request_props, |_, _| ())
       .await;
   }
 
@@ -921,7 +921,6 @@ impl<'a> Network<'a> {
       .clone();
     let missing_tags_vec = edit_tags
       .split(',')
-      .into_iter()
       .filter(|&tag| !tag.is_empty() && tags_map.get_by_right(tag.trim()).is_none())
       .collect::<Vec<&str>>();
 
@@ -936,7 +935,6 @@ impl<'a> Network<'a> {
       .edit_tags
       .text
       .split(',')
-      .into_iter()
       .filter(|tag| !tag.is_empty())
       .map(|tag| {
         *app
@@ -1027,6 +1025,10 @@ fn get_movie_status(has_file: bool, downloads_vec: &[DownloadRecord], movie_id: 
     {
       if download.status == "downloading" {
         return "Downloading".to_owned();
+      }
+
+      if download.status == "completed" {
+        return "Awaiting Import".to_owned();
       }
     }
 
@@ -2396,6 +2398,22 @@ mod test {
         1.into()
       ),
       "Downloading"
+    );
+  }
+
+  #[test]
+  fn test_get_movie_status_awaiting_import() {
+    assert_str_eq!(
+      get_movie_status(
+        false,
+        &[DownloadRecord {
+          movie_id: 1.into(),
+          status: "completed".to_owned(),
+          ..DownloadRecord::default()
+        }],
+        1.into()
+      ),
+      "Awaiting Import"
     );
   }
 

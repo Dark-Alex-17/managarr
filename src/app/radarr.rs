@@ -77,7 +77,7 @@ impl RadarrData {
     self.filtered_collections = StatefulTable::default();
   }
 
-  pub fn reset_edit_movie(&mut self) {
+  pub fn reset_add_edit_movie_fields(&mut self) {
     self.edit_monitored = None;
     self.edit_path = HorizontallyScrollableText::default();
     self.edit_tags = HorizontallyScrollableText::default();
@@ -288,6 +288,7 @@ pub enum ActiveRadarrBlock {
   AddMovieSelectQualityProfile,
   AddMovieSelectMonitor,
   AddMovieConfirmPrompt,
+  AddMovieTagsInput,
   AutomaticallySearchMoviePrompt,
   Collections,
   CollectionDetails,
@@ -321,7 +322,7 @@ pub enum ActiveRadarrBlock {
   ViewMovieOverview,
 }
 
-pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
+pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 8] = [
   ActiveRadarrBlock::AddMovieSearchInput,
   ActiveRadarrBlock::AddMovieSearchResults,
   ActiveRadarrBlock::AddMoviePrompt,
@@ -329,6 +330,7 @@ pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::AddMovieSelectMonitor,
   ActiveRadarrBlock::AddMovieSelectQualityProfile,
   ActiveRadarrBlock::AddMovieAlreadyInLibrary,
+  ActiveRadarrBlock::AddMovieTagsInput,
 ];
 pub const EDIT_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditMoviePrompt,
@@ -373,7 +375,8 @@ impl ActiveRadarrBlock {
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability => {
         ActiveRadarrBlock::AddMovieSelectQualityProfile
       }
-      ActiveRadarrBlock::AddMovieSelectQualityProfile => ActiveRadarrBlock::AddMovieConfirmPrompt,
+      ActiveRadarrBlock::AddMovieSelectQualityProfile => ActiveRadarrBlock::AddMovieTagsInput,
+      ActiveRadarrBlock::AddMovieTagsInput => ActiveRadarrBlock::AddMovieConfirmPrompt,
       _ => ActiveRadarrBlock::AddMovieSelectMonitor,
     }
   }
@@ -402,7 +405,8 @@ impl ActiveRadarrBlock {
       ActiveRadarrBlock::AddMovieSelectQualityProfile => {
         ActiveRadarrBlock::AddMovieSelectMinimumAvailability
       }
-      ActiveRadarrBlock::AddMovieConfirmPrompt => ActiveRadarrBlock::AddMovieSelectQualityProfile,
+      ActiveRadarrBlock::AddMovieTagsInput => ActiveRadarrBlock::AddMovieSelectQualityProfile,
+      ActiveRadarrBlock::AddMovieConfirmPrompt => ActiveRadarrBlock::AddMovieTagsInput,
       _ => ActiveRadarrBlock::AddMovieSelectMonitor,
     }
   }
@@ -803,7 +807,7 @@ mod tests {
         ..RadarrData::default()
       };
 
-      radarr_data.reset_edit_movie();
+      radarr_data.reset_add_edit_movie_fields();
 
       assert_edit_movie_reset!(radarr_data);
     }
@@ -921,6 +925,10 @@ mod tests {
 
       let active_block = active_block.next_add_prompt_block();
 
+      assert_eq!(active_block, ActiveRadarrBlock::AddMovieTagsInput);
+
+      let active_block = active_block.next_add_prompt_block();
+
       assert_eq!(active_block, ActiveRadarrBlock::AddMovieConfirmPrompt);
 
       let active_block = active_block.next_add_prompt_block();
@@ -966,6 +974,10 @@ mod tests {
       let active_block = ActiveRadarrBlock::AddMovieSelectMonitor.previous_add_prompt_block();
 
       assert_eq!(active_block, ActiveRadarrBlock::AddMovieConfirmPrompt);
+
+      let active_block = active_block.previous_add_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::AddMovieTagsInput);
 
       let active_block = active_block.previous_add_prompt_block();
 

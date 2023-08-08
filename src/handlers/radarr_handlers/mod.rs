@@ -1564,7 +1564,8 @@ mod tests {
       ActiveRadarrBlock::AddMovieSelectMonitor,
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
       ActiveRadarrBlock::AddMovieSelectQualityProfile,
-      ActiveRadarrBlock::AddMovieAlreadyInLibrary
+      ActiveRadarrBlock::AddMovieAlreadyInLibrary,
+      ActiveRadarrBlock::AddMovieTagsInput
     )]
     active_radarr_block: ActiveRadarrBlock,
   ) {

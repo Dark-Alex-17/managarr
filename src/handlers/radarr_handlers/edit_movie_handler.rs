@@ -186,7 +186,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
       }
       ActiveRadarrBlock::EditMoviePrompt => {
         self.app.pop_navigation_stack();
-        self.app.data.radarr_data.reset_edit_movie();
+        self.app.data.radarr_data.reset_add_edit_movie_fields();
         self.app.data.radarr_data.prompt_confirm = false;
       }
       ActiveRadarrBlock::EditMovieToggleMonitored
@@ -587,7 +587,7 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data = create_test_radarr_data();
       app.should_ignore_quit_key = true;
-      app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
+      app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
       app.push_navigation_stack(active_radarr_block.into());
 
       EditMovieHandler::with(&ESC_KEY, &mut app, &active_radarr_block, &None).handle();
@@ -595,7 +595,7 @@ mod tests {
       assert!(!app.should_ignore_quit_key);
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::AddMovieSearchInput.into()
+        &ActiveRadarrBlock::EditMoviePrompt.into()
       );
     }
 

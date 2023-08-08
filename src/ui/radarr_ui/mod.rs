@@ -23,9 +23,9 @@ use crate::ui::radarr_ui::edit_movie_ui::draw_edit_movie_prompt;
 use crate::ui::radarr_ui::movie_details_ui::draw_movie_info_popup;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, horizontal_chunks, layout_block,
-  layout_block_top_border, line_gauge_with_label, line_gauge_with_title, show_cursor, style_bold,
-  style_default, style_failure, style_primary, style_success, style_unmonitored, style_warning,
-  title_block, title_block_centered, vertical_chunks_with_margin,
+  layout_block_top_border, line_gauge_with_label, line_gauge_with_title, show_cursor,
+  style_awaiting_import, style_bold, style_default, style_failure, style_primary, style_success,
+  style_unmonitored, style_warning, title_block, title_block_centered, vertical_chunks_with_margin,
 };
 use crate::ui::{
   draw_drop_down_list, draw_large_popup_over, draw_medium_popup_over, draw_popup, draw_popup_over,
@@ -638,6 +638,10 @@ fn determine_row_style(downloads_vec: &[DownloadRecord], movie: &Movie) -> Style
     {
       if download.status == "downloading" {
         return style_warning();
+      }
+
+      if download.status == "completed" {
+        return style_awaiting_import();
       }
     }
 

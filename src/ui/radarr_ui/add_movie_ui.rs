@@ -19,7 +19,7 @@ use crate::ui::utils::{
 use crate::ui::{
   draw_button, draw_drop_down_list, draw_drop_down_menu_button, draw_drop_down_popup,
   draw_error_popup, draw_error_popup_over, draw_medium_popup_over, draw_table, draw_text_box,
-  TableProps,
+  draw_text_box_with_label, TableProps,
 };
 use crate::utils::convert_runtime;
 use crate::App;
@@ -37,7 +37,8 @@ pub(super) fn draw_add_movie_search_popup<B: Backend>(
       ActiveRadarrBlock::AddMoviePrompt
       | ActiveRadarrBlock::AddMovieSelectMonitor
       | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
-      | ActiveRadarrBlock::AddMovieSelectQualityProfile => {
+      | ActiveRadarrBlock::AddMovieSelectQualityProfile
+      | ActiveRadarrBlock::AddMovieTagsInput => {
         if context_option.is_some() {
           draw_medium_popup_over(
             f,
@@ -112,7 +113,8 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
       | ActiveRadarrBlock::AddMovieSelectMonitor
       | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
       | ActiveRadarrBlock::AddMovieSelectQualityProfile
-      | ActiveRadarrBlock::AddMovieAlreadyInLibrary => {
+      | ActiveRadarrBlock::AddMovieAlreadyInLibrary
+      | ActiveRadarrBlock::AddMovieTagsInput => {
         let mut help_text = Text::from("<enter> details | <esc> edit search");
         help_text.patch_style(style_help());
         let help_paragraph = Paragraph::new(help_text)
@@ -259,7 +261,9 @@ fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prom
           draw_select_quality_profile_popup,
         );
       }
-      ActiveRadarrBlock::AddMoviePrompt => draw_confirmation_prompt(f, app, prompt_area),
+      ActiveRadarrBlock::AddMoviePrompt | ActiveRadarrBlock::AddMovieTagsInput => {
+        draw_confirmation_prompt(f, app, prompt_area)
+      }
       _ => (),
     }
   }
@@ -336,7 +340,8 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
-      Constraint::Min(5),
+      Constraint::Length(3),
+      Constraint::Min(3),
       Constraint::Length(3),
     ],
     prompt_area,
@@ -348,7 +353,7 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
 
   let horizontal_chunks = horizontal_chunks(
     vec![Constraint::Percentage(50), Constraint::Percentage(50)],
-    chunks[5],
+    chunks[6],
   );
 
   draw_drop_down_menu_button(
@@ -373,6 +378,18 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
     selected_quality_profile,
     *selected_block == ActiveRadarrBlock::AddMovieSelectQualityProfile,
   );
+
+  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+    draw_text_box_with_label(
+      f,
+      chunks[4],
+      "Tags",
+      &app.data.radarr_data.edit_tags.text,
+      *app.data.radarr_data.edit_tags.offset.borrow(),
+      *selected_block == ActiveRadarrBlock::AddMovieTagsInput,
+      active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput,
+    );
+  }
 
   draw_button(
     f,

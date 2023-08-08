@@ -6,20 +6,13 @@ use tui::widgets::{Block, BorderType, Borders, LineGauge, Paragraph, Wrap};
 use tui::{symbols, Frame};
 
 pub const COLOR_TEAL: Color = Color::Rgb(35, 50, 55);
-// pub const COLOR_CYAN: Color = Color::Rgb(0, 230, 230);
 pub const COLOR_CYAN: Color = Color::Cyan;
-// pub const COLOR_LIGHT_BLUE: Color = Color::Rgb(138, 196, 255);
 pub const COLOR_LIGHT_BLUE: Color = Color::LightBlue;
-// pub const COLOR_YELLOW: Color = Color::Rgb(249, 229, 113);
 pub const COLOR_YELLOW: Color = Color::Yellow;
-// pub const COLOR_GREEN: Color = Color::Rgb(72, 213, 150);
 pub const COLOR_GREEN: Color = Color::Green;
-// pub const COLOR_RED: Color = Color::Rgb(249, 140, 164);
 pub const COLOR_RED: Color = Color::Red;
-// pub const COLOR_ORANGE: Color = Color::Rgb(255, 170, 66);
-// pub const COLOR_WHITE: Color = Color::Rgb(255, 255, 255);
+pub const COLOR_ORANGE: Color = Color::Rgb(255, 170, 66);
 pub const COLOR_WHITE: Color = Color::White;
-// pub const COLOR_MAGENTA: Color = Color::Rgb(139, 0, 139);
 pub const COLOR_MAGENTA: Color = Color::Magenta;
 
 pub fn horizontal_chunks(constraints: Vec<Constraint>, area: Rect) -> Vec<Rect> {
@@ -189,6 +182,10 @@ pub fn style_warning() -> Style {
 
 pub fn style_failure() -> Style {
   Style::default().fg(COLOR_RED)
+}
+
+pub fn style_awaiting_import() -> Style {
+  Style::default().fg(COLOR_ORANGE)
 }
 
 pub fn style_help() -> Style {

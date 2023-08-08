@@ -13,8 +13,8 @@ use crate::models::radarr_models::{Credit, MovieHistoryItem, Release, ReleaseFie
 use crate::models::Route;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_bottom_border, layout_block_top_border,
-  spans_info_default, style_bold, style_default, style_failure, style_primary, style_success,
-  style_warning, vertical_chunks,
+  spans_info_default, style_awaiting_import, style_bold, style_default, style_failure,
+  style_primary, style_success, style_warning, vertical_chunks,
 };
 use crate::ui::{
   draw_drop_down_list, draw_drop_down_popup, draw_prompt_box, draw_prompt_box_with_content,
@@ -544,6 +544,7 @@ fn draw_manual_search_confirm_prompt<B: Backend>(
 fn determine_style_from_download_status(download_status: &str) -> Style {
   match download_status {
     "Downloaded" => style_success(),
+    "Awaiting Import" => style_awaiting_import(),
     "Downloading" => style_warning(),
     "Missing" => style_failure(),
     _ => style_success(),

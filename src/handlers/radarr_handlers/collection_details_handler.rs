@@ -94,6 +94,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a>
           )
             .into(),
         );
+        self.app.data.radarr_data.selected_block = ActiveRadarrBlock::EditMovieToggleMonitored;
         self.app.data.radarr_data.populate_movie_preferences_lists();
       }
     }
@@ -183,6 +184,7 @@ mod tests {
         .set_items(vec![CollectionMovie::default()]);
       app.data.radarr_data.quality_profile_map =
         HashMap::from([(1, "B - Test 2".to_owned()), (0, "A - Test 1".to_owned())]);
+      app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieConfirmPrompt;
 
       CollectionDetailsHandler::with(
         &SUBMIT_KEY,
@@ -201,6 +203,10 @@ mod tests {
           .into()
       );
       assert!(!app.data.radarr_data.movie_monitor_list.items.is_empty());
+      assert_eq!(
+        app.data.radarr_data.selected_block,
+        ActiveRadarrBlock::EditMovieToggleMonitored
+      );
       assert!(!app
         .data
         .radarr_data

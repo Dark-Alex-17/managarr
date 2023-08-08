@@ -120,6 +120,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         .movie_quality_profile_list
         .scroll_to_top(),
       ActiveRadarrBlock::AddMovieSearchInput => self.app.data.radarr_data.search.scroll_home(),
+      ActiveRadarrBlock::AddMovieTagsInput => self.app.data.radarr_data.edit_tags.scroll_home(),
       _ => (),
     }
   }
@@ -151,6 +152,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         .movie_quality_profile_list
         .scroll_to_bottom(),
       ActiveRadarrBlock::AddMovieSearchInput => self.app.data.radarr_data.search.reset_offset(),
+      ActiveRadarrBlock::AddMovieTagsInput => self.app.data.radarr_data.edit_tags.reset_offset(),
       _ => (),
     }
   }
@@ -162,6 +164,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
       ActiveRadarrBlock::AddMoviePrompt => handle_prompt_toggle(self.app, self.key),
       ActiveRadarrBlock::AddMovieSearchInput => {
         handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.search)
+      }
+      ActiveRadarrBlock::AddMovieTagsInput => {
+        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.edit_tags)
       }
       _ => (),
     }
@@ -210,7 +215,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
             .app
             .push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
           self.app.data.radarr_data.populate_movie_preferences_lists();
-          self.app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieSelectMonitor
+          self.app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieSelectMonitor;
         }
       }
       ActiveRadarrBlock::AddMoviePrompt => match self.app.data.radarr_data.selected_block {
@@ -227,11 +232,21 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         | ActiveRadarrBlock::AddMovieSelectQualityProfile => self
           .app
           .push_navigation_stack((self.app.data.radarr_data.selected_block, *self.context).into()),
+        ActiveRadarrBlock::AddMovieTagsInput => {
+          self.app.push_navigation_stack(
+            (self.app.data.radarr_data.selected_block, *self.context).into(),
+          );
+          self.app.should_ignore_quit_key = true;
+        }
         _ => (),
       },
       ActiveRadarrBlock::AddMovieSelectMonitor
       | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
       | ActiveRadarrBlock::AddMovieSelectQualityProfile => self.app.pop_navigation_stack(),
+      ActiveRadarrBlock::AddMovieTagsInput => {
+        self.app.pop_navigation_stack();
+        self.app.should_ignore_quit_key = false;
+      }
       _ => (),
     }
   }
@@ -250,25 +265,31 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
       }
       ActiveRadarrBlock::AddMoviePrompt => {
         self.app.pop_navigation_stack();
-        self
-          .app
-          .data
-          .radarr_data
-          .reset_movie_preferences_selections();
+        self.app.data.radarr_data.reset_add_edit_movie_fields();
         self.app.data.radarr_data.prompt_confirm = false;
       }
       ActiveRadarrBlock::AddMovieSelectMonitor
       | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
       | ActiveRadarrBlock::AddMovieSelectQualityProfile
       | ActiveRadarrBlock::AddMovieAlreadyInLibrary => self.app.pop_navigation_stack(),
+      ActiveRadarrBlock::AddMovieTagsInput => {
+        self.app.pop_navigation_stack();
+        self.app.should_ignore_quit_key = false;
+      }
       _ => (),
     }
   }
 
   fn handle_char_key_event(&mut self) {
     let key = self.key;
-    if self.active_radarr_block == &ActiveRadarrBlock::AddMovieSearchInput {
-      handle_text_box_keys!(self, key, self.app.data.radarr_data.search)
+    match self.active_radarr_block {
+      ActiveRadarrBlock::AddMovieSearchInput => {
+        handle_text_box_keys!(self, key, self.app.data.radarr_data.search)
+      }
+      ActiveRadarrBlock::AddMovieTagsInput => {
+        handle_text_box_keys!(self, key, self.app.data.radarr_data.edit_tags)
+      }
+      _ => (),
     }
   }
 }
@@ -410,6 +431,15 @@ mod tests {
         search
       );
     }
+
+    #[test]
+    fn test_add_movie_tags_input_home_end_keys() {
+      test_text_box_home_end_keys!(
+        AddMovieHandler,
+        ActiveRadarrBlock::AddMovieTagsInput,
+        edit_tags
+      );
+    }
   }
 
   mod test_handle_left_right_action {
@@ -438,6 +468,15 @@ mod tests {
         AddMovieHandler,
         ActiveRadarrBlock::AddMovieSearchInput,
         search
+      );
+    }
+
+    #[test]
+    fn test_add_movie_tags_input_left_right_keys() {
+      test_text_box_left_right_keys!(
+        AddMovieHandler,
+        ActiveRadarrBlock::AddMovieTagsInput,
+        edit_tags
       );
     }
   }
@@ -619,7 +658,8 @@ mod tests {
       #[values(
         ActiveRadarrBlock::AddMovieSelectMonitor,
         ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
-        ActiveRadarrBlock::AddMovieSelectQualityProfile
+        ActiveRadarrBlock::AddMovieSelectQualityProfile,
+        ActiveRadarrBlock::AddMovieTagsInput
       )]
       selected_block: ActiveRadarrBlock,
     ) {
@@ -646,6 +686,10 @@ mod tests {
         &(selected_block, Some(ActiveRadarrBlock::CollectionDetails)).into()
       );
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+
+      if selected_block == ActiveRadarrBlock::AddMovieTagsInput {
+        assert!(app.should_ignore_quit_key);
+      }
     }
 
     #[rstest]
@@ -653,7 +697,8 @@ mod tests {
       #[values(
         ActiveRadarrBlock::AddMovieSelectMonitor,
         ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
-        ActiveRadarrBlock::AddMovieSelectQualityProfile
+        ActiveRadarrBlock::AddMovieSelectQualityProfile,
+        ActiveRadarrBlock::AddMovieTagsInput
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
@@ -673,6 +718,10 @@ mod tests {
         app.get_current_route(),
         &ActiveRadarrBlock::AddMoviePrompt.into()
       );
+
+      if active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput {
+        assert!(!app.should_ignore_quit_key);
+      }
     }
   }
 
@@ -682,7 +731,8 @@ mod tests {
 
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
     use crate::{
-      assert_movie_preferences_selections_reset, assert_search_reset, simple_stateful_iterable_vec,
+      assert_edit_movie_reset, assert_movie_preferences_selections_reset, assert_search_reset,
+      simple_stateful_iterable_vec,
     };
 
     use super::*;
@@ -707,6 +757,29 @@ mod tests {
       assert!(!app.should_ignore_quit_key);
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
       assert_search_reset!(app.data.radarr_data);
+    }
+
+    #[test]
+    fn test_add_movie_input_esc() {
+      let mut app = App::default();
+      app.data.radarr_data = create_test_radarr_data();
+      app.should_ignore_quit_key = true;
+      app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AddMovieTagsInput.into());
+
+      AddMovieHandler::with(
+        &ESC_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieTagsInput,
+        &None,
+      )
+      .handle();
+
+      assert!(!app.should_ignore_quit_key);
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::AddMoviePrompt.into()
+      );
     }
 
     #[test]
@@ -781,6 +854,30 @@ mod tests {
         &ActiveRadarrBlock::AddMovieSearchResults.into()
       );
       assert_movie_preferences_selections_reset!(app.data.radarr_data);
+      assert_edit_movie_reset!(app.data.radarr_data);
+    }
+
+    #[test]
+    fn test_add_movie_tags_input_esc() {
+      let mut app = App::default();
+      app.data.radarr_data = create_test_radarr_data();
+      app.should_ignore_quit_key = true;
+      app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AddMovieTagsInput.into());
+
+      AddMovieHandler::with(
+        &ESC_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieTagsInput,
+        &None,
+      )
+      .handle();
+
+      assert!(!app.should_ignore_quit_key);
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::AddMoviePrompt.into()
+      );
     }
 
     #[rstest]
@@ -847,6 +944,22 @@ mod tests {
     }
 
     #[test]
+    fn test_add_movie_tags_input_backspace() {
+      let mut app = App::default();
+      app.data.radarr_data.edit_tags = "Test".to_owned().into();
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.backspace.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieTagsInput,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(app.data.radarr_data.edit_tags.text, "Tes");
+    }
+
+    #[test]
     fn test_add_movie_search_input_char_key() {
       let mut app = App::default();
 
@@ -859,6 +972,21 @@ mod tests {
       .handle();
 
       assert_str_eq!(app.data.radarr_data.search.text, "h");
+    }
+
+    #[test]
+    fn test_add_movie_tags_input_char_key() {
+      let mut app = App::default();
+
+      AddMovieHandler::with(
+        &Key::Char('h'),
+        &mut app,
+        &ActiveRadarrBlock::AddMovieTagsInput,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(app.data.radarr_data.edit_tags.text, "h");
     }
   }
 }
