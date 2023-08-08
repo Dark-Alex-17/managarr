@@ -522,6 +522,7 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   if !app.data.radarr_data.version.is_empty() {
     f.render_widget(block, area);
     let RadarrData {
+      root_folders,
       disk_space_vec,
       start_time,
       ..
@@ -534,8 +535,8 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
     ];
 
     constraints.append(
-      &mut iter::repeat(Constraint::Min(2))
-        .take(disk_space_vec.len())
+      &mut iter::repeat(Constraint::Length(1))
+        .take(disk_space_vec.len() + root_folders.items.len() + 1)
         .collect(),
     );
 
@@ -569,6 +570,8 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 
     let storage =
       Paragraph::new(Text::from("Storage:")).block(borderless_block().style(style_bold()));
+    let folders =
+      Paragraph::new(Text::from("Root Folders:")).block(borderless_block().style(style_bold()));
 
     f.render_widget(version_paragraph, chunks[0]);
     f.render_widget(uptime_paragraph, chunks[1]);
@@ -590,6 +593,20 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 
       f.render_widget(space_gauge, chunks[i + 3]);
     }
+
+    f.render_widget(folders, chunks[disk_space_vec.len() + 3]);
+
+    for i in 0..root_folders.items.len() {
+      let RootFolder {
+        path, free_space, ..
+      } = &root_folders.items[i];
+      let space: f64 = convert_to_gb(free_space.as_u64().unwrap());
+      let root_folder_space = Paragraph::new(format!("{}: {:.2} GB free", path.to_owned(), space))
+        .block(borderless_block())
+        .style(style_default());
+
+      f.render_widget(root_folder_space, chunks[i + disk_space_vec.len() + 4])
+    }
   } else {
     loading(f, block, area, app.is_loading);
   }
@@ -602,7 +619,7 @@ fn draw_downloads_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rec
   if !downloads_vec.is_empty() {
     f.render_widget(block, area);
 
-    let constraints = iter::repeat(Constraint::Min(2))
+    let constraints = iter::repeat(Constraint::Length(2))
       .take(downloads_vec.len())
       .collect::<Vec<Constraint>>();
 
