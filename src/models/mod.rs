@@ -114,6 +114,61 @@ impl<T> Scrollable for StatefulTable<T> {
 }
 
 #[derive(Default)]
+pub struct StatefulMatrix<T> {
+  pub selection: (usize, usize),
+  pub items: Vec<Vec<T>>,
+}
+
+impl<T> Scrollable for StatefulMatrix<T> {
+  fn scroll_down(&mut self) {
+    if self.selection.0 >= self.items.len() - 1 {
+      self.selection.0 = 0;
+    } else {
+      self.selection.0 += 1;
+    }
+  }
+
+  fn scroll_up(&mut self) {
+    if self.selection.0 == 0 {
+      self.selection.0 = self.items.len() - 1;
+    } else {
+      self.selection.0 -= 1;
+    }
+  }
+
+  fn scroll_to_top(&mut self) {
+    self.selection.0 = 0;
+  }
+
+  fn scroll_to_bottom(&mut self) {
+    self.selection.0 = self.items.len() - 1;
+  }
+}
+
+impl<T> StatefulMatrix<T> {
+  pub fn current_selection(&self) -> &T {
+    let (x, y) = self.selection;
+    &self.items[x][y]
+  }
+
+  pub fn scroll_left(&mut self) {
+    if self.selection.1 == 0 {
+      self.selection.1 = self.items[0].len() - 1;
+    } else {
+      self.selection.1 -= 1;
+    }
+  }
+
+  pub fn scroll_right(&mut self) {
+    if self.selection.1 >= self.items[0].len() - 1 {
+      self.selection.1 = 0;
+    } else {
+      self.selection.1 += 1;
+    }
+  }
+}
+
+#[derive(Default)]
 pub struct ScrollableText {
   pub items: Vec<String>,
   pub offset: u16,

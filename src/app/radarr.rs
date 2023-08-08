@@ -5,10 +5,10 @@ use chrono::{DateTime, Utc};
 use strum::EnumIter;
 
 use crate::app::{App, Route};
+use crate::models::{ScrollableText, StatefulMatrix, StatefulTable, TabRoute, TabState};
 use crate::models::radarr_models::{
   Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Movie, MovieHistoryItem,
 };
-use crate::models::{ScrollableText, StatefulTable, TabRoute, TabState};
 use crate::network::radarr_network::RadarrEvent;
 
 pub struct RadarrData {
@@ -29,6 +29,7 @@ pub struct RadarrData {
   pub collections: StatefulTable<Collection>,
   pub filtered_collections: StatefulTable<Collection>,
   pub collection_movies: StatefulTable<CollectionMovie>,
+  pub calendar: StatefulMatrix<>
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
   pub search: String,
@@ -94,7 +95,7 @@ impl Default for RadarrData {
         TabRoute {
           title: "Library".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
-          help: "<↑↓> scroll | <s> search | <f> filter | <enter> details | <esc> cancel filter | ←→ change tab "
+          help: "<↑↓> scroll | <s> search | <f> filter | <enter> details | <esc> cancel filter | <del> delete | ←→ change tab "
             .to_owned(),
         },
         TabRoute {
@@ -108,6 +109,11 @@ impl Default for RadarrData {
           help: "<↑↓> scroll | <s> search | <f> filter | <enter> details | <esc> cancel filter | ←→ change tab "
             .to_owned(),
         },
+        TabRoute {
+          title: "Calendar".to_owned(),
+          route: ActiveRadarrBlock::Calendar.into(),
+          help: "<↑↓> scroll | <enter> details | ←→ change tab ".to_owned()
+        }
       ]),
       movie_info_tabs: TabState::new(vec![
         TabRoute {
