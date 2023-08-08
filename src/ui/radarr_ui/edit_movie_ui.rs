@@ -87,7 +87,8 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
         .movies
         .current_selection()
         .title
-        .to_string(),
+        .text
+        .clone(),
       app
         .data
         .radarr_data
@@ -104,7 +105,8 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
         .filtered_movies
         .current_selection()
         .title
-        .to_string(),
+        .text
+        .clone(),
       app
         .data
         .radarr_data

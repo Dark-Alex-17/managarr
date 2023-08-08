@@ -109,7 +109,7 @@ impl<'a> App<'a> {
     self.push_navigation_stack(route);
   }
 
-  pub fn get_current_route(&'a self) -> &'a Route {
+  pub fn get_current_route(&self) -> &Route {
     self.navigation_stack.last().unwrap_or(&DEFAULT_ROUTE)
   }
 }

@@ -92,7 +92,8 @@ fn draw_edit_collection_confirmation_prompt<B: Backend>(
           .collections
           .current_selection()
           .title
-          .to_string(),
+          .text
+          .clone(),
         app
           .data
           .radarr_data
@@ -110,7 +111,8 @@ fn draw_edit_collection_confirmation_prompt<B: Backend>(
           .filtered_collections
           .current_selection()
           .title
-          .to_string(),
+          .text
+          .clone(),
         app
           .data
           .radarr_data
