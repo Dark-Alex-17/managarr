@@ -1,0 +1,123 @@
+use crate::app::radarr::ActiveRadarrBlock;
+use crate::app::App;
+use crate::models::Route;
+use crate::ui::radarr_ui::radarr_ui_utils::determine_log_style_by_level;
+use crate::ui::radarr_ui::system_ui::{
+  draw_queued_events, draw_system_ui_layout, extract_task_props, TASK_TABLE_CONSTRAINTS,
+  TASK_TABLE_HEADERS,
+};
+use crate::ui::utils::{style_primary, title_block};
+use crate::ui::{
+  draw_large_popup_over, draw_list_box, draw_medium_popup_over, draw_prompt_box,
+  draw_prompt_popup_over, draw_table, DrawUi, ListProps, TableProps,
+};
+use tui::backend::Backend;
+use tui::layout::Rect;
+use tui::text::{Span, Text};
+use tui::widgets::{Cell, ListItem, Row};
+use tui::Frame;
+
+pub(super) struct SystemDetailsUi {}
+
+impl DrawUi for SystemDetailsUi {
+  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+    if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+      match active_radarr_block {
+        ActiveRadarrBlock::SystemLogs => {
+          draw_large_popup_over(f, app, content_rect, draw_system_ui_layout, draw_logs_popup)
+        }
+        ActiveRadarrBlock::SystemTasks | ActiveRadarrBlock::SystemTaskStartConfirmPrompt => {
+          draw_large_popup_over(
+            f,
+            app,
+            content_rect,
+            draw_system_ui_layout,
+            draw_tasks_popup,
+          )
+        }
+        ActiveRadarrBlock::SystemQueue => draw_medium_popup_over(
+          f,
+          app,
+          content_rect,
+          draw_system_ui_layout,
+          draw_queued_events,
+        ),
+        _ => (),
+      }
+    }
+  }
+}
+
+fn draw_logs_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+  draw_list_box(
+    f,
+    area,
+    |log| {
+      let log_line = log.to_string();
+      let level = log.text.split('|').collect::<Vec<&str>>()[1];
+      let style = determine_log_style_by_level(level);
+
+      ListItem::new(Text::from(Span::raw(log_line))).style(style)
+    },
+    ListProps {
+      content: &mut app.data.radarr_data.log_details,
+      title: "Log Details",
+      is_loading: app.is_loading,
+      is_popup: true,
+      help: Some("<esc> close | <↑↓←→> scroll"),
+    },
+  );
+}
+
+fn draw_tasks_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+  let tasks_popup_table = |f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect| {
+    draw_table(
+      f,
+      area,
+      title_block("Tasks"),
+      TableProps {
+        content: &mut app.data.radarr_data.tasks,
+        table_headers: TASK_TABLE_HEADERS.to_vec(),
+        constraints: TASK_TABLE_CONSTRAINTS.to_vec(),
+        help: None,
+      },
+      |task| {
+        let task_props = extract_task_props(task);
+
+        Row::new(vec![
+          Cell::from(task_props.name),
+          Cell::from(task_props.interval),
+          Cell::from(task_props.last_execution),
+          Cell::from(task_props.last_duration),
+          Cell::from(task_props.next_execution),
+        ])
+        .style(style_primary())
+      },
+      app.is_loading,
+      true,
+    )
+  };
+
+  if matches!(
+    app.get_current_route(),
+    Route::Radarr(ActiveRadarrBlock::SystemTaskStartConfirmPrompt, _)
+  ) {
+    draw_prompt_popup_over(f, app, area, tasks_popup_table, draw_start_task_prompt)
+  } else {
+    tasks_popup_table(f, app, area);
+  }
+}
+
+fn draw_start_task_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, prompt_area: Rect) {
+  draw_prompt_box(
+    f,
+    prompt_area,
+    "Start Task",
+    format!(
+      "Do you want to manually start this task: {}?",
+      app.data.radarr_data.tasks.current_selection().name
+    )
+    .as_str(),
+    app.data.radarr_data.prompt_confirm,
+  );
+}

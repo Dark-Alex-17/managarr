@@ -13,7 +13,7 @@ mod test {
 
   use crate::app::radarr::ActiveRadarrBlock;
   use crate::models::radarr_models::{
-    CollectionMovie, Language, Log, MediaInfo, MinimumAvailability, Monitor, MovieFile, Quality,
+    CollectionMovie, Language, MediaInfo, MinimumAvailability, Monitor, MovieFile, Quality,
     QualityWrapper, Rating, RatingsList,
   };
   use crate::models::HorizontallyScrollableText;
@@ -374,6 +374,34 @@ mod test {
         .items,
       vec![add_movie_search_result()]
     );
+  }
+
+  #[tokio::test]
+  async fn test_handle_start_task_event() {
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "TestTask"
+      })),
+      None,
+      RadarrEvent::StartTask.resource(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .tasks
+      .set_items(vec![Task {
+        task_name: "TestTask".to_owned(),
+        ..Task::default()
+      }]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.handle_radarr_event(RadarrEvent::StartTask).await;
+
+    async_server.assert_async().await;
   }
 
   #[tokio::test]
@@ -827,8 +855,8 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_events_event() {
-    let events_json = json!([{
+  async fn test_handle_get_queued_events_event() {
+    let queued_events_json = json!([{
         "name": "RefreshMonitoredDownloads",
         "commandName": "Refresh Monitored Downloads",
         "status": "completed",
@@ -839,31 +867,33 @@ mod test {
         "trigger": "scheduled",
     }]);
     let timestamp = DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap());
-    let expected_event = Event {
+    let expected_event = QueueEvent {
       name: "RefreshMonitoredDownloads".to_owned(),
       command_name: "Refresh Monitored Downloads".to_owned(),
       status: "completed".to_owned(),
       queued: timestamp,
       started: Some(timestamp),
       ended: Some(timestamp),
-      duration: "00:00:00.5111547".to_owned(),
+      duration: Some("00:00:00.5111547".to_owned()),
       trigger: "scheduled".to_owned(),
     };
 
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
-      Some(events_json),
-      RadarrEvent::GetEvents.resource(),
+      Some(queued_events_json),
+      RadarrEvent::GetQueuedEvents.resource(),
     )
     .await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
-    network.handle_radarr_event(RadarrEvent::GetEvents).await;
+    network
+      .handle_radarr_event(RadarrEvent::GetQueuedEvents)
+      .await;
 
     async_server.assert_async().await;
     assert_eq!(
-      app_arc.lock().await.data.radarr_data.events.items,
+      app_arc.lock().await.data.radarr_data.queued_events.items,
       vec![expected_event]
     );
   }
@@ -871,26 +901,14 @@ mod test {
   #[tokio::test]
   async fn test_handle_get_logs_event() {
     let resource = format!(
-      "{}?pageSize=1000&sortDirection=descending&sortKey=time",
+      "{}?pageSize=100&sortDirection=descending&sortKey=time",
       RadarrEvent::GetLogs.resource()
     );
-    let timestamp = DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap());
     let expected_logs = vec![
-      Log {
-        time: timestamp,
-        level: Some("fatal".to_owned()),
-        logger: Some("RadarrError".to_owned()),
-        exception: Some("test exception".to_owned()),
-        exception_type: Some("Some.Big.Bad.Exception".to_owned()),
-        ..Log::default()
-      },
-      Log {
-        time: timestamp,
-        level: Some("info".to_owned()),
-        logger: Some("TestLogger".to_owned()),
-        message: Some("test message".to_owned()),
-        ..Log::default()
-      },
+      HorizontallyScrollableText::from(
+        "2023-05-20 21:29:16 UTC|FATAL|RadarrError|Some.Big.Bad.Exception|test exception",
+      ),
+      HorizontallyScrollableText::from("2023-05-20 21:29:16 UTC|INFO|TestLogger|test message"),
     ];
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
@@ -931,19 +949,15 @@ mod test {
       app_arc.lock().await.data.radarr_data.logs.items,
       expected_logs
     );
-    assert_str_eq!(
-      app_arc
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .logs
-        .current_selection()
-        .level
-        .as_ref()
-        .unwrap(),
-      "info"
-    );
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .logs
+      .current_selection()
+      .text
+      .contains("INFO"));
   }
 
   #[tokio::test]
@@ -1307,8 +1321,7 @@ mod test {
     )
     .await;
 
-    app_arc.lock().await.data.radarr_data.edit_path =
-      HorizontallyScrollableText::from("/nfs/test".to_owned());
+    app_arc.lock().await.data.radarr_data.edit_path = HorizontallyScrollableText::from("/nfs/test");
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network
@@ -1937,7 +1950,7 @@ mod test {
       guid: "1234".to_owned(),
       protocol: "torrent".to_owned(),
       age: Number::from(1),
-      title: HorizontallyScrollableText::from("Test Release".to_owned()),
+      title: HorizontallyScrollableText::from("Test Release"),
       indexer: "kickass torrents".to_owned(),
       indexer_id: Number::from(2),
       size: Number::from(1234),
@@ -1953,7 +1966,7 @@ mod test {
   fn add_movie_search_result() -> AddMovieSearchResult {
     AddMovieSearchResult {
       tmdb_id: Number::from(1234),
-      title: HorizontallyScrollableText::from("Test".to_owned()),
+      title: HorizontallyScrollableText::from("Test"),
       original_language: language(),
       status: "released".to_owned(),
       overview: "New movie blah blah blah".to_owned(),
@@ -1966,7 +1979,7 @@ mod test {
 
   fn movie_history_item() -> MovieHistoryItem {
     MovieHistoryItem {
-      source_title: HorizontallyScrollableText::from("Test".to_owned()),
+      source_title: HorizontallyScrollableText::from("Test"),
       quality: quality_wrapper(),
       languages: vec![language()],
       date: DateTime::from(DateTime::parse_from_rfc3339("2022-12-30T07:37:56Z").unwrap()),
@@ -1982,9 +1995,7 @@ mod test {
       movie_id: Number::from(1),
       size: Number::from(3543348019u64),
       sizeleft: Number::from(1771674009u64),
-      output_path: Some(HorizontallyScrollableText::from(
-        "/nfs/movies/Test".to_owned(),
-      )),
+      output_path: Some(HorizontallyScrollableText::from("/nfs/movies/Test")),
       indexer: "kickass torrents".to_owned(),
       download_client: "transmission".to_owned(),
     }

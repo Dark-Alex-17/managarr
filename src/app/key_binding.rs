@@ -19,6 +19,8 @@ generate_keybindings! {
   filter,
   sort,
   edit,
+  logs,
+  tasks,
   refresh,
   update,
   home,
@@ -74,6 +76,14 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   edit: KeyBinding {
     key: Key::Char('e'),
     desc: "Edit",
+  },
+  logs: KeyBinding {
+    key: Key::Char('l'),
+    desc: "Logs",
+  },
+  tasks: KeyBinding {
+    key: Key::Char('t'),
+    desc: "Tasks",
   },
   refresh: KeyBinding {
     key: Key::Char('r'),

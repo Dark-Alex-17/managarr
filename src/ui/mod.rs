@@ -22,7 +22,7 @@ use crate::ui::utils::{
   layout_button_paragraph_borderless, layout_paragraph_borderless, logo_block, show_cursor,
   style_block_highlight, style_default, style_default_bold, style_failure, style_help,
   style_highlight, style_primary, style_secondary, style_system_function, title_block,
-  title_block_centered, vertical_chunks, vertical_chunks_with_margin,
+  title_block_centered, vertical_chunks_with_margin,
 };
 
 mod radarr_ui;
@@ -209,7 +209,7 @@ pub fn draw_large_popup_over<B: Backend>(
   draw_popup_over(f, app, area, background_fn, popup_fn, 75, 75);
 }
 
-pub fn draw_large_popup_over_ui<B: Backend, T: DrawUi>(
+pub fn draw_large_popup_over_background_fn_with_ui<B: Backend, T: DrawUi>(
   f: &mut Frame<'_, B>,
   app: &mut App<'_>,
   area: Rect,
@@ -296,6 +296,14 @@ pub struct TableProps<'a, T> {
   pub help: Option<&'static str>,
 }
 
+pub struct ListProps<'a, T> {
+  pub content: &'a mut StatefulList<T>,
+  pub title: &'static str,
+  pub is_loading: bool,
+  pub is_popup: bool,
+  pub help: Option<&'static str>,
+}
+
 fn draw_table<'a, B, T, F>(
   f: &mut Frame<'_, B>,
   content_area: Rect,
@@ -315,23 +323,7 @@ fn draw_table<'a, B, T, F>(
     help,
   } = table_props;
 
-  let content_area = if let Some(help_string) = help {
-    let chunks = vertical_chunks(
-      vec![Constraint::Min(0), Constraint::Length(2)],
-      content_area,
-    );
-    let mut help_text = Text::from(format!(" {}", help_string));
-    help_text.patch_style(style_help());
-    let help_paragraph = Paragraph::new(help_text)
-      .block(layout_block_top_border())
-      .alignment(Alignment::Left);
-
-    f.render_widget(help_paragraph, chunks[1]);
-
-    chunks[0]
-  } else {
-    content_area
-  };
+  let content_area = draw_help(f, content_area, help);
 
   if !content.items.is_empty() {
     let rows = content.items.iter().map(row_mapper);
@@ -587,20 +579,54 @@ pub fn draw_selectable_list<'a, B: Backend, T>(
 pub fn draw_list_box<'a, B: Backend, T>(
   f: &mut Frame<'_, B>,
   area: Rect,
-  content: &'a mut StatefulList<T>,
-  title: &str,
   item_mapper: impl Fn(&T) -> ListItem<'a>,
-  is_loading: bool,
+  list_props: ListProps<'a, T>,
 ) {
-  let block = title_block(title);
+  let ListProps {
+    content,
+    title,
+    is_loading,
+    is_popup,
+    help,
+  } = list_props;
+
+  let (content_area, block) = if is_popup {
+    f.render_widget(title_block(title), area);
+    (draw_help(f, area, help), borderless_block())
+  } else {
+    (area, title_block(title))
+  };
 
   if !content.items.is_empty() {
     let items: Vec<ListItem<'_>> = content.items.iter().map(item_mapper).collect();
-    let list = List::new(items).block(title_block(title));
+    let mut list = List::new(items).block(block);
 
-    f.render_stateful_widget(list, area, &mut content.state);
+    if is_popup {
+      list = list.highlight_style(style_highlight());
+    }
+
+    f.render_stateful_widget(list, content_area, &mut content.state);
   } else {
-    loading(f, block, area, is_loading);
+    loading(f, block, content_area, is_loading);
+  }
+}
+
+fn draw_help<B: Backend>(f: &mut Frame<'_, B>, area: Rect, help: Option<&str>) -> Rect {
+  if let Some(help_string) = help {
+    let chunks =
+      vertical_chunks_with_margin(vec![Constraint::Min(0), Constraint::Length(2)], area, 1);
+
+    let mut help_test = Text::from(format!(" {}", help_string));
+    help_test.patch_style(style_help());
+    let help_paragraph = Paragraph::new(help_test)
+      .block(layout_block_top_border())
+      .alignment(Alignment::Left);
+
+    f.render_widget(help_paragraph, chunks[1]);
+
+    chunks[0]
+  } else {
+    area
   }
 }
 

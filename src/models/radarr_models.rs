@@ -414,7 +414,7 @@ pub struct Log {
   pub time: DateTime<Utc>,
   pub exception: Option<String>,
   pub exception_type: Option<String>,
-  pub level: Option<String>,
+  pub level: String,
   pub logger: Option<String>,
   pub message: Option<String>,
   pub method: Option<String>,
@@ -440,7 +440,7 @@ pub struct Task {
 
 #[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Event {
+pub struct QueueEvent {
   pub trigger: String,
   pub name: String,
   pub command_name: String,
@@ -448,5 +448,5 @@ pub struct Event {
   pub queued: DateTime<Utc>,
   pub started: Option<DateTime<Utc>>,
   pub ended: Option<DateTime<Utc>>,
-  pub duration: String,
+  pub duration: Option<String>,
 }

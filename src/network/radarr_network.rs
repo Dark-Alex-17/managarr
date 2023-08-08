@@ -10,11 +10,11 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, Collection, CollectionMovie,
-  CommandBody, Credit, CreditType, DiskSpace, DownloadRecord, DownloadsResponse, Event,
-  LogResponse, Movie, MovieCommandBody, MovieHistoryItem, QualityProfile, Release,
+  CommandBody, Credit, CreditType, DiskSpace, DownloadRecord, DownloadsResponse, LogResponse,
+  Movie, MovieCommandBody, MovieHistoryItem, QualityProfile, QueueEvent, Release,
   ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task,
 };
-use crate::models::{Route, Scrollable, ScrollableText};
+use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
 use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
 use crate::utils::{convert_runtime, convert_to_gb};
 
@@ -34,7 +34,7 @@ pub enum RadarrEvent {
   EditCollection,
   GetCollections,
   GetDownloads,
-  GetEvents,
+  GetQueuedEvents,
   GetLogs,
   GetMovieCredits,
   GetMovieDetails,
@@ -49,6 +49,7 @@ pub enum RadarrEvent {
   GetTasks,
   HealthCheck,
   SearchNewMovie,
+  StartTask,
   TriggerAutomaticSearch,
   UpdateAllMovies,
   UpdateAndScan,
@@ -79,7 +80,8 @@ impl RadarrEvent {
       RadarrEvent::GetStatus => "/system/status",
       RadarrEvent::GetTags => "/tag",
       RadarrEvent::GetTasks => "/system/task",
-      RadarrEvent::GetEvents
+      RadarrEvent::StartTask
+      | RadarrEvent::GetQueuedEvents
       | RadarrEvent::TriggerAutomaticSearch
       | RadarrEvent::UpdateAndScan
       | RadarrEvent::UpdateAllMovies
@@ -109,7 +111,7 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::EditCollection => self.edit_collection().await,
       RadarrEvent::GetCollections => self.get_collections().await,
       RadarrEvent::GetDownloads => self.get_downloads().await,
-      RadarrEvent::GetEvents => self.get_events().await,
+      RadarrEvent::GetQueuedEvents => self.get_queued_events().await,
       RadarrEvent::GetLogs => self.get_logs().await,
       RadarrEvent::GetMovieCredits => self.get_credits().await,
       RadarrEvent::GetMovieDetails => self.get_movie_details().await,
@@ -124,6 +126,7 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::GetTasks => self.get_tasks().await,
       RadarrEvent::HealthCheck => self.get_healthcheck().await,
       RadarrEvent::SearchNewMovie => self.search_movie().await,
+      RadarrEvent::StartTask => self.start_task().await,
       RadarrEvent::TriggerAutomaticSearch => self.trigger_automatic_search().await,
       RadarrEvent::UpdateAllMovies => self.update_all_movies().await,
       RadarrEvent::UpdateAndScan => self.update_and_scan().await,
@@ -277,6 +280,35 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<MovieCommandBody, Value>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn start_task(&self) {
+    let task_name = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .tasks
+      .current_selection()
+      .task_name
+      .clone();
+
+    info!("Starting Radarr task: {}", task_name);
+
+    let body = CommandBody { name: task_name };
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::StartTask.resource(),
+        RequestMethod::Post,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
       .await;
   }
 
@@ -564,7 +596,7 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Fetching Radarr logs");
 
     let resource = format!(
-      "{}?pageSize=1000&sortDirection=descending&sortKey=time",
+      "{}?pageSize=100&sortDirection=descending&sortKey=time",
       RadarrEvent::GetLogs.resource()
     );
     let request_props = self
@@ -576,7 +608,31 @@ impl<'a, 'b> Network<'a, 'b> {
         let mut logs = log_response.records;
         logs.reverse();
 
-        app.data.radarr_data.logs.set_items(logs);
+        let log_lines = logs
+          .into_iter()
+          .map(|log| {
+            if log.exception.is_some() {
+              HorizontallyScrollableText::from(format!(
+                "{}|{}|{}|{}|{}",
+                log.time,
+                log.level.to_uppercase(),
+                log.logger.as_ref().unwrap(),
+                log.exception_type.as_ref().unwrap(),
+                log.exception.as_ref().unwrap()
+              ))
+            } else {
+              HorizontallyScrollableText::from(format!(
+                "{}|{}|{}|{}",
+                log.time,
+                log.level.to_uppercase(),
+                log.logger.as_ref().unwrap(),
+                log.message.as_ref().unwrap()
+              ))
+            }
+          })
+          .collect();
+
+        app.data.radarr_data.logs.set_items(log_lines);
         app.data.radarr_data.logs.scroll_to_bottom();
       })
       .await;
@@ -604,20 +660,24 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_events(&self) {
-    info!("Fetching Radarr events");
+  async fn get_queued_events(&self) {
+    info!("Fetching Radarr queued events");
 
     let request_props = self
       .radarr_request_props_from(
-        RadarrEvent::GetEvents.resource(),
+        RadarrEvent::GetQueuedEvents.resource(),
         RequestMethod::Get,
         None::<()>,
       )
       .await;
 
     self
-      .handle_request::<(), Vec<Event>>(request_props, |events_vec, mut app| {
-        app.data.radarr_data.events.set_items(events_vec);
+      .handle_request::<(), Vec<QueueEvent>>(request_props, |queued_events_vec, mut app| {
+        app
+          .data
+          .radarr_data
+          .queued_events
+          .set_items(queued_events_vec);
       })
       .await;
   }

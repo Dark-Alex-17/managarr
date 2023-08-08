@@ -754,7 +754,7 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
-      app.data.radarr_data.edit_path = HorizontallyScrollableText::from("/nfs/test".to_owned());
+      app.data.radarr_data.edit_path = HorizontallyScrollableText::from("/nfs/test");
       app.should_ignore_quit_key = true;
 
       RadarrHandler::with(
@@ -921,6 +921,7 @@ mod tests {
       ActiveRadarrBlock::Collections,
       ActiveRadarrBlock::UpdateAllCollectionsPrompt
     )]
+    #[case(ActiveRadarrBlock::System, ActiveRadarrBlock::SystemQueue)]
     fn test_update_key(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] expected_radarr_block: ActiveRadarrBlock,
@@ -944,7 +945,8 @@ mod tests {
         ActiveRadarrBlock::Movies,
         ActiveRadarrBlock::Collections,
         ActiveRadarrBlock::Downloads,
-        ActiveRadarrBlock::RootFolders
+        ActiveRadarrBlock::RootFolders,
+        ActiveRadarrBlock::System
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
@@ -961,6 +963,54 @@ mod tests {
 
       assert_eq!(app.get_current_route(), &active_radarr_block.into());
       assert!(app.should_refresh);
+    }
+
+    #[test]
+    fn test_logs_key() {
+      let mut app = App::default();
+      app.data.radarr_data.logs.set_items(vec![
+        HorizontallyScrollableText::from("test 1"),
+        HorizontallyScrollableText::from("test 2"),
+      ]);
+
+      RadarrHandler::with(
+        &DEFAULT_KEYBINDINGS.logs.key,
+        &mut app,
+        &ActiveRadarrBlock::System,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::SystemLogs.into()
+      );
+      assert_eq!(
+        app.data.radarr_data.log_details.items,
+        app.data.radarr_data.logs.items
+      );
+      assert_str_eq!(
+        app.data.radarr_data.log_details.current_selection().text,
+        "test 2"
+      );
+    }
+
+    #[test]
+    fn test_tasks_key() {
+      let mut app = App::default();
+
+      RadarrHandler::with(
+        &DEFAULT_KEYBINDINGS.tasks.key,
+        &mut app,
+        &ActiveRadarrBlock::System,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::SystemTasks.into()
+      );
     }
 
     #[test]
@@ -1194,6 +1244,19 @@ mod tests {
     assert!(!app.data.radarr_data.is_searching);
     assert!(!app.should_ignore_quit_key);
     assert!(app.data.radarr_data.filter.text.is_empty());
+  }
+
+  #[rstest]
+  fn test_delegates_system_details_blocks_to_system_details_handler(
+    #[values(
+      ActiveRadarrBlock::System,
+      ActiveRadarrBlock::SystemLogs,
+      ActiveRadarrBlock::SystemTasks,
+      ActiveRadarrBlock::SystemQueue
+    )]
+    active_radarr_block: ActiveRadarrBlock,
+  ) {
+    test_handler_delegation!(ActiveRadarrBlock::System, active_radarr_block);
   }
 
   #[rstest]

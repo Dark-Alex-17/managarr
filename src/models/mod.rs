@@ -174,6 +174,12 @@ impl From<String> for HorizontallyScrollableText {
   }
 }
 
+impl From<&str> for HorizontallyScrollableText {
+  fn from(text: &str) -> HorizontallyScrollableText {
+    HorizontallyScrollableText::new(text.to_owned())
+  }
+}
+
 impl Display for HorizontallyScrollableText {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
     if *self.offset.borrow() == 0 {

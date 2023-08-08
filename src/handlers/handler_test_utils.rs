@@ -15,6 +15,7 @@ mod test_utils {
         },
       ]
     };
+
     ($name:ident, $title_ident:ident) => {
       vec![
         $name {
@@ -27,6 +28,7 @@ mod test_utils {
         },
       ]
     };
+
     ($name:ident, $title_ident:ident, $field:ident) => {
       vec![
         $name {
@@ -59,6 +61,7 @@ mod test_utils {
         },
       ]
     };
+
     ($name:ident, $title_ident:ident) => {
       vec![
         $name {
@@ -75,6 +78,7 @@ mod test_utils {
         },
       ]
     };
+
     ($name:ident, $title_ident:ident, $field:ident) => {
       vec![
         $name {
@@ -114,6 +118,7 @@ mod test_utils {
         assert_str_eq!(app.data.radarr_data.$data_ref.current_selection(), "Test 1");
       }
     };
+
     ($func:ident, $handler:ident, $data_ref:ident, $items:ident, $block:expr, $context:expr, $field:ident) => {
       #[rstest]
       fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
@@ -139,6 +144,7 @@ mod test_utils {
         );
       }
     };
+
     ($func:ident, $handler:ident, $data_ref:ident, $items:expr, $block:expr, $context:expr, $field:ident) => {
       #[rstest]
       fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
@@ -160,6 +166,7 @@ mod test_utils {
         );
       }
     };
+
     ($func:ident, $handler:ident, $data_ref:ident, $items:expr, $block:expr, $context:expr, $field:ident, $conversion_fn:ident) => {
       #[rstest]
       fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
@@ -252,6 +259,7 @@ mod test_utils {
         assert_str_eq!(app.data.radarr_data.$data_ref.current_selection(), "Test 1");
       }
     };
+
     ($func:ident, $handler:ident, $data_ref:ident, $items:ident, $block:expr, $context:expr, $field:ident) => {
       #[test]
       fn $func() {
@@ -277,6 +285,7 @@ mod test_utils {
         );
       }
     };
+
     ($func:ident, $handler:ident, $data_ref:ident, $items:expr, $block:expr, $context:expr, $field:ident) => {
       #[test]
       fn $func() {
@@ -298,6 +307,7 @@ mod test_utils {
         );
       }
     };
+
     ($func:ident, $handler:ident, $data_ref:ident, $items:expr, $block:expr, $context:expr, $field:ident, $conversion_fn:ident) => {
       #[test]
       fn $func() {

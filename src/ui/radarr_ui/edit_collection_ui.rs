@@ -15,7 +15,8 @@ use crate::ui::utils::{
 };
 use crate::ui::{
   draw_button, draw_checkbox_with_label, draw_drop_down_menu_button, draw_drop_down_popup,
-  draw_large_popup_over_ui, draw_medium_popup_over, draw_popup, draw_text_box_with_label, DrawUi,
+  draw_large_popup_over_background_fn_with_ui, draw_medium_popup_over, draw_popup,
+  draw_text_box_with_label, DrawUi,
 };
 
 pub(super) struct EditCollectionUi {}
@@ -62,7 +63,7 @@ impl DrawUi for EditCollectionUi {
             draw_edit_collection_prompt,
           ),
           _ if COLLECTION_DETAILS_BLOCKS.contains(&context) => {
-            draw_large_popup_over_ui::<B, CollectionDetailsUi>(
+            draw_large_popup_over_background_fn_with_ui::<B, CollectionDetailsUi>(
               f,
               app,
               content_rect,

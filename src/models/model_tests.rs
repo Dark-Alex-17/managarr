@@ -158,7 +158,7 @@ mod tests {
   }
 
   #[test]
-  fn test_horizontally_scrollable_text_from() {
+  fn test_horizontally_scrollable_text_from_string() {
     let test_text = "Test string";
     let horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
 
@@ -167,9 +167,18 @@ mod tests {
   }
 
   #[test]
+  fn test_horizontally_scrollable_text_from_str() {
+    let test_text = "Test string";
+    let horizontally_scrollable_text = HorizontallyScrollableText::from(test_text);
+
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_str_eq!(horizontally_scrollable_text.text, test_text);
+  }
+
+  #[test]
   fn test_horizontally_scrollable_text_to_string() {
     let test_text = "Test string";
-    let horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
+    let horizontally_scrollable_text = HorizontallyScrollableText::from(test_text);
 
     assert_str_eq!(horizontally_scrollable_text.to_string(), test_text);
 
@@ -199,7 +208,7 @@ mod tests {
 
   #[test]
   fn test_horizontally_scrollable_text_scroll_text_left() {
-    let horizontally_scrollable_text = HorizontallyScrollableText::from("Test string".to_owned());
+    let horizontally_scrollable_text = HorizontallyScrollableText::from("Test string");
 
     assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
 
@@ -219,7 +228,7 @@ mod tests {
 
   #[test]
   fn test_horizontally_scrollable_text_scroll_text_right() {
-    let horizontally_scrollable_text = HorizontallyScrollableText::from("Test string".to_owned());
+    let horizontally_scrollable_text = HorizontallyScrollableText::from("Test string");
     *horizontally_scrollable_text.offset.borrow_mut() = horizontally_scrollable_text.text.len();
 
     for i in 1..horizontally_scrollable_text.text.len() {
@@ -238,7 +247,7 @@ mod tests {
 
   #[test]
   fn test_horizontally_scrollable_text_scroll_home() {
-    let horizontally_scrollable_text = HorizontallyScrollableText::from("Test string".to_owned());
+    let horizontally_scrollable_text = HorizontallyScrollableText::from("Test string");
 
     horizontally_scrollable_text.scroll_home();
 
@@ -264,7 +273,7 @@ mod tests {
   fn test_horizontally_scrollable_text_scroll_or_reset() {
     let width = 3;
     let test_text = "Test string";
-    let horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
+    let horizontally_scrollable_text = HorizontallyScrollableText::from(test_text);
 
     horizontally_scrollable_text.scroll_left_or_reset(width, true, true);
 
@@ -289,7 +298,7 @@ mod tests {
 
   #[test]
   fn test_horizontally_scrollable_test_scroll_or_reset_resets_when_text_unselected() {
-    let horizontally_scrollable_test = HorizontallyScrollableText::from("Test string".to_owned());
+    let horizontally_scrollable_test = HorizontallyScrollableText::from("Test string");
     horizontally_scrollable_test.scroll_left();
 
     assert_eq!(*horizontally_scrollable_test.offset.borrow(), 1);
@@ -302,7 +311,7 @@ mod tests {
   #[test]
   fn test_horizontally_scrollable_text_drain() {
     let test_text = "Test string";
-    let mut horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
+    let mut horizontally_scrollable_text = HorizontallyScrollableText::from(test_text);
 
     assert_str_eq!(horizontally_scrollable_text.drain(), test_text);
     assert!(horizontally_scrollable_text.text.is_empty());
@@ -312,7 +321,7 @@ mod tests {
   #[test]
   fn test_horizontally_scrollable_text_pop() {
     let test_text = "Test string";
-    let mut horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
+    let mut horizontally_scrollable_text = HorizontallyScrollableText::from(test_text);
     horizontally_scrollable_text.pop();
 
     assert_str_eq!(horizontally_scrollable_text.text, "Test strin");
@@ -341,7 +350,7 @@ mod tests {
   #[test]
   fn test_horizontally_scrollable_text_push() {
     let test_text = "Test string";
-    let mut horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
+    let mut horizontally_scrollable_text = HorizontallyScrollableText::from(test_text);
     horizontally_scrollable_text.push('h');
 
     assert_str_eq!(horizontally_scrollable_text.text, "Test stringh");

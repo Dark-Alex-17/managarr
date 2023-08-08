@@ -3,7 +3,7 @@ use crate::app::radarr::{
   ActiveRadarrBlock, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS,
   DELETE_MOVIE_SELECTION_BLOCKS, EDIT_COLLECTION_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
   EDIT_MOVIE_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, FILTER_BLOCKS, MOVIE_DETAILS_BLOCKS,
-  SEARCH_BLOCKS,
+  SEARCH_BLOCKS, SYSTEM_DETAILS_BLOCKS,
 };
 use crate::handlers::radarr_handlers::add_movie_handler::AddMovieHandler;
 use crate::handlers::radarr_handlers::collection_details_handler::CollectionDetailsHandler;
@@ -11,6 +11,7 @@ use crate::handlers::radarr_handlers::delete_movie_handler::DeleteMovieHandler;
 use crate::handlers::radarr_handlers::edit_collection_handler::EditCollectionHandler;
 use crate::handlers::radarr_handlers::edit_movie_handler::EditMovieHandler;
 use crate::handlers::radarr_handlers::movie_details_handler::MovieDetailsHandler;
+use crate::handlers::radarr_handlers::system_details_handler::SystemDetailsHandler;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
@@ -23,6 +24,7 @@ mod delete_movie_handler;
 mod edit_collection_handler;
 mod edit_movie_handler;
 mod movie_details_handler;
+mod system_details_handler;
 
 #[cfg(test)]
 #[path = "radarr_handler_tests.rs"]
@@ -63,6 +65,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
       _ if EDIT_COLLECTION_BLOCKS.contains(self.active_radarr_block) => {
         EditCollectionHandler::with(self.key, self.app, self.active_radarr_block, self.context)
           .handle()
+      }
+      _ if SYSTEM_DETAILS_BLOCKS.contains(self.active_radarr_block) => {
+        SystemDetailsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+          .handle();
       }
       _ => self.handle_key_event(),
     }
@@ -561,6 +567,34 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
             .app
             .push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
           self.app.should_ignore_quit_key = true;
+        }
+        _ => (),
+      },
+      ActiveRadarrBlock::System => match self.key {
+        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+          self.app.should_refresh = true;
+        }
+        _ if *key == DEFAULT_KEYBINDINGS.update.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::SystemQueue.into());
+        }
+        _ if *key == DEFAULT_KEYBINDINGS.logs.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::SystemLogs.into());
+          self
+            .app
+            .data
+            .radarr_data
+            .log_details
+            .set_items(self.app.data.radarr_data.logs.items.to_vec());
+          self.app.data.radarr_data.log_details.scroll_to_bottom();
+        }
+        _ if *key == DEFAULT_KEYBINDINGS.tasks.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
         }
         _ => (),
       },

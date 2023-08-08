@@ -15,7 +15,8 @@ use crate::ui::utils::{
 };
 use crate::ui::{
   draw_button, draw_checkbox_with_label, draw_drop_down_menu_button, draw_drop_down_popup,
-  draw_large_popup_over_ui, draw_medium_popup_over, draw_popup, draw_text_box_with_label, DrawUi,
+  draw_large_popup_over_background_fn_with_ui, draw_medium_popup_over, draw_popup,
+  draw_text_box_with_label, DrawUi,
 };
 
 pub(super) struct EditMovieUi {}
@@ -58,7 +59,12 @@ impl DrawUi for EditMovieUi {
             draw_medium_popup_over(f, app, content_rect, draw_library, draw_edit_movie_prompt);
           }
           _ if MOVIE_DETAILS_BLOCKS.contains(&context) => {
-            draw_large_popup_over_ui::<B, MovieDetailsUi>(f, app, content_rect, draw_library);
+            draw_large_popup_over_background_fn_with_ui::<B, MovieDetailsUi>(
+              f,
+              app,
+              content_rect,
+              draw_library,
+            );
             draw_popup(f, app, draw_edit_movie_prompt, 60, 60);
           }
           _ => (),

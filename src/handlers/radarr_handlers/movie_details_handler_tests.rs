@@ -625,7 +625,7 @@ mod tests {
     let release_a = Release {
       protocol: "Protocol A".to_owned(),
       age: Number::from(1),
-      title: HorizontallyScrollableText::from("Title A".to_owned()),
+      title: HorizontallyScrollableText::from("Title A"),
       indexer: "Indexer A".to_owned(),
       size: Number::from(1),
       rejected: true,
@@ -643,7 +643,7 @@ mod tests {
     let release_b = Release {
       protocol: "Protocol B".to_owned(),
       age: Number::from(2),
-      title: HorizontallyScrollableText::from("Title B".to_owned()),
+      title: HorizontallyScrollableText::from("Title B"),
       indexer: "Indexer B".to_owned(),
       size: Number::from(2),
       rejected: false,
@@ -661,7 +661,7 @@ mod tests {
     let release_c = Release {
       protocol: "Protocol C".to_owned(),
       age: Number::from(3),
-      title: HorizontallyScrollableText::from("Title C".to_owned()),
+      title: HorizontallyScrollableText::from("Title C"),
       indexer: "Indexer C".to_owned(),
       size: Number::from(3),
       rejected: false,

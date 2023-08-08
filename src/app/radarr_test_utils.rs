@@ -2,10 +2,10 @@
 pub mod utils {
   use crate::app::radarr::RadarrData;
   use crate::models::radarr_models::{
-    AddMovieSearchResult, Collection, CollectionMovie, Credit, Log, MinimumAvailability, Monitor,
-    Movie, MovieHistoryItem, Release, ReleaseField, RootFolder,
+    AddMovieSearchResult, Collection, CollectionMovie, Credit, MinimumAvailability, Monitor, Movie,
+    MovieHistoryItem, Release, ReleaseField, RootFolder,
   };
-  use crate::models::ScrollableText;
+  use crate::models::{HorizontallyScrollableText, ScrollableText};
 
   pub fn create_test_radarr_data<'a>() -> RadarrData<'a> {
     let mut radarr_data = RadarrData {
@@ -60,7 +60,9 @@ pub mod utils {
     radarr_data
       .collection_movies
       .set_items(vec![CollectionMovie::default()]);
-    radarr_data.logs.set_items(vec![Log::default()]);
+    radarr_data
+      .log_details
+      .set_items(vec![HorizontallyScrollableText::default()]);
 
     radarr_data
   }

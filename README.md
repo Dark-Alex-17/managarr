@@ -90,6 +90,8 @@ tautulli:
 - [ ] Manage your quality profiles
 - [ ] Manage your quality definitions
 - [ ] Manage your indexers
+- [x] View and browse logs, tasks, and events queues
+- [x] Manually trigger scheduled tasks
 
 ### Sonarr
 - [ ] Support for Sonarr
@@ -119,7 +121,7 @@ tautulli:
 - [ ] Support for Tautulli
 
 ## Dependencies
-* [tui-rs](https://github.com/fdehau/tui-rs)
+* [ratatui](https://github.com/tui-rs-revival/ratatui)
 * [crossterm](https://github.com/crossterm-rs/crossterm)
 * [clap](https://github.com/clap-rs/clap)
 * [tokio](https://github.com/tokio-rs/tokio)

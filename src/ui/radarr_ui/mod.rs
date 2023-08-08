@@ -1,5 +1,4 @@
 use std::iter;
-use std::ops::Sub;
 
 use chrono::{Duration, Utc};
 use tui::backend::Backend;
@@ -13,6 +12,7 @@ use tui::Frame;
 use crate::app::radarr::{
   ActiveRadarrBlock, RadarrData, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS,
   EDIT_COLLECTION_BLOCKS, EDIT_MOVIE_BLOCKS, FILTER_BLOCKS, MOVIE_DETAILS_BLOCKS, SEARCH_BLOCKS,
+  SYSTEM_DETAILS_BLOCKS,
 };
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
@@ -21,6 +21,7 @@ use crate::models::Route;
 use crate::ui::draw_selectable_list;
 use crate::ui::draw_tabs;
 use crate::ui::loading;
+use crate::ui::radarr_ui::system_details_ui::SystemDetailsUi;
 use crate::ui::radarr_ui::system_ui::SystemUi;
 use crate::ui::radarr_ui::{
   add_movie_ui::AddMoviesUi, collection_details_ui::CollectionDetailsUi,
@@ -45,7 +46,9 @@ mod edit_collection_ui;
 mod edit_movie_ui;
 mod library_ui;
 mod movie_details_ui;
+mod radarr_ui_utils;
 mod root_folders_ui;
+mod system_details_ui;
 mod system_ui;
 
 pub(super) struct RadarrUi {}
@@ -73,6 +76,9 @@ impl DrawUi for RadarrUi {
         | ActiveRadarrBlock::AddRootFolderPrompt
         | ActiveRadarrBlock::DeleteRootFolderPrompt => RootFoldersUi::draw(f, app, content_rect),
         ActiveRadarrBlock::System => SystemUi::draw(f, app, content_rect),
+        _ if SYSTEM_DETAILS_BLOCKS.contains(&active_radarr_block) => {
+          SystemDetailsUi::draw(f, app, content_rect)
+        }
         _ if MOVIE_DETAILS_BLOCKS.contains(&active_radarr_block) => {
           MovieDetailsUi::draw(f, app, content_rect)
         }
@@ -143,15 +149,13 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area: Rec
     .block(borderless_block())
     .style(style_bold());
 
-    let uptime = Utc::now().sub(start_time.to_owned());
+    let uptime = Utc::now() - start_time.to_owned();
     let days = uptime.num_days();
-    let day_difference = uptime.sub(Duration::days(days));
+    let day_difference = uptime - Duration::days(days);
     let hours = day_difference.num_hours();
-    let hour_difference = day_difference.sub(Duration::hours(hours));
+    let hour_difference = day_difference - Duration::hours(hours);
     let minutes = hour_difference.num_minutes();
-    let seconds = hour_difference
-      .sub(Duration::minutes(minutes))
-      .num_seconds();
+    let seconds = (hour_difference - Duration::minutes(minutes)).num_seconds();
 
     let uptime_paragraph = Paragraph::new(Text::from(format!(
       "Uptime: {}d {:0width$}:{:0width$}:{:0width$}",

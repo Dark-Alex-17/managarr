@@ -4,8 +4,9 @@ use strum::IntoEnumIterator;
 
 use crate::app::{App, Route};
 use crate::models::radarr_models::{
-  AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Event, Log,
-  MinimumAvailability, Monitor, Movie, MovieHistoryItem, Release, ReleaseField, RootFolder, Task,
+  AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord,
+  MinimumAvailability, Monitor, Movie, MovieHistoryItem, QueueEvent, Release, ReleaseField,
+  RootFolder, Task,
 };
 use crate::models::{
   BlockSelectionState, HorizontallyScrollableText, ScrollableText, StatefulList, StatefulTable,
@@ -49,9 +50,10 @@ pub struct RadarrData<'a> {
   pub collections: StatefulTable<Collection>,
   pub filtered_collections: StatefulTable<Collection>,
   pub collection_movies: StatefulTable<CollectionMovie>,
-  pub logs: StatefulList<Log>,
+  pub logs: StatefulList<HorizontallyScrollableText>,
+  pub log_details: StatefulList<HorizontallyScrollableText>,
   pub tasks: StatefulTable<Task>,
-  pub events: StatefulTable<Event>,
+  pub queued_events: StatefulTable<QueueEvent>,
   pub prompt_confirm_action: Option<RadarrEvent>,
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
@@ -72,6 +74,10 @@ pub struct RadarrData<'a> {
 impl<'a> RadarrData<'a> {
   pub fn reset_movie_collection_table(&mut self) {
     self.collection_movies = StatefulTable::default();
+  }
+
+  pub fn reset_log_details_list(&mut self) {
+    self.log_details = StatefulList::default();
   }
 
   pub fn reset_delete_movie_preferences(&mut self) {
@@ -269,8 +275,9 @@ impl<'a> Default for RadarrData<'a> {
       filtered_collections: StatefulTable::default(),
       collection_movies: StatefulTable::default(),
       logs: StatefulList::default(),
+      log_details: StatefulList::default(),
       tasks: StatefulTable::default(),
-      events: StatefulTable::default(),
+      queued_events: StatefulTable::default(),
       prompt_confirm_action: None,
       search: HorizontallyScrollableText::default(),
       filter: HorizontallyScrollableText::default(),
@@ -313,7 +320,7 @@ impl<'a> Default for RadarrData<'a> {
           title: "System",
           route: ActiveRadarrBlock::System.into(),
           help: "",
-          contextual_help: Some("<t> open tasks | <u> open queue | <l> open logs")
+          contextual_help: Some("<t> open tasks | <u> open queue | <l> open logs | <r> refresh")
         }
       ]),
       movie_info_tabs: TabState::new(vec![
@@ -410,6 +417,10 @@ pub enum ActiveRadarrBlock {
   Movies,
   RootFolders,
   System,
+  SystemLogs,
+  SystemTasks,
+  SystemTaskStartConfirmPrompt,
+  SystemQueue,
   UpdateAndScanPrompt,
   UpdateAllCollectionsPrompt,
   UpdateAllMoviesPrompt,
@@ -508,6 +519,12 @@ pub static DELETE_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
   ActiveRadarrBlock::DeleteMovieConfirmPrompt,
 ];
+pub static SYSTEM_DETAILS_BLOCKS: [ActiveRadarrBlock; 4] = [
+  ActiveRadarrBlock::SystemLogs,
+  ActiveRadarrBlock::SystemTasks,
+  ActiveRadarrBlock::SystemQueue,
+  ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
+];
 
 impl From<ActiveRadarrBlock> for Route {
   fn from(active_radarr_block: ActiveRadarrBlock) -> Route {
@@ -557,7 +574,7 @@ impl<'a> App<'a> {
           .dispatch_network_event(RadarrEvent::GetTasks.into())
           .await;
         self
-          .dispatch_network_event(RadarrEvent::GetEvents.into())
+          .dispatch_network_event(RadarrEvent::GetQueuedEvents.into())
           .await;
         self
           .dispatch_network_event(RadarrEvent::GetLogs.into())

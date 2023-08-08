@@ -45,6 +45,15 @@ mod tests {
     }
 
     #[test]
+    fn test_reset_log_details_list() {
+      let mut radarr_data = create_test_radarr_data();
+
+      radarr_data.reset_log_details_list();
+
+      assert!(radarr_data.log_details.items.is_empty());
+    }
+
+    #[test]
     fn test_reset_delete_movie_preferences() {
       let mut radarr_data = create_test_radarr_data();
 
@@ -279,8 +288,9 @@ mod tests {
       assert!(radarr_data.filtered_collections.items.is_empty());
       assert!(radarr_data.collection_movies.items.is_empty());
       assert!(radarr_data.logs.items.is_empty());
+      assert!(radarr_data.log_details.items.is_empty());
       assert!(radarr_data.tasks.items.is_empty());
-      assert!(radarr_data.events.items.is_empty());
+      assert!(radarr_data.queued_events.items.is_empty());
       assert!(radarr_data.prompt_confirm_action.is_none());
       assert!(radarr_data.search.text.is_empty());
       assert!(radarr_data.filter.text.is_empty());
@@ -345,7 +355,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[4].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[4].contextual_help,
-        Some("<t> open tasks | <u> open queue | <l> open logs")
+        Some("<t> open tasks | <u> open queue | <l> open logs | <r> refresh")
       );
 
       assert_eq!(radarr_data.movie_info_tabs.tabs.len(), 6);
@@ -688,7 +698,7 @@ mod tests {
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetEvents.into()
+        RadarrEvent::GetQueuedEvents.into()
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
