@@ -1805,7 +1805,8 @@ mod test {
       RequestMethod::Post,
       Some(json!({
         "guid": "1234",
-        "indexerId": 2
+        "indexerId": 2,
+        "movieId": 1
       })),
       None,
       RadarrEvent::DownloadRelease.resource(),
@@ -1818,6 +1819,13 @@ mod test {
       .radarr_data
       .movie_releases
       .set_items(vec![release()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network

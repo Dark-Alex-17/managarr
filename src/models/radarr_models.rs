@@ -458,6 +458,7 @@ pub struct Release {
 pub struct ReleaseDownloadBody {
   pub guid: String,
   pub indexer_id: u64,
+  pub movie_id: u64,
 }
 
 #[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]

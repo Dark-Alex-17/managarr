@@ -443,6 +443,7 @@ impl<'a, 'b> Network<'a, 'b> {
   }
 
   async fn download_release(&mut self) {
+    let (movie_id, _) = self.extract_movie_id().await;
     let (guid, title, indexer_id) = {
       let app = self.app.lock().await;
       let Release {
@@ -457,7 +458,11 @@ impl<'a, 'b> Network<'a, 'b> {
 
     info!("Downloading release: {}", title);
 
-    let download_release_body = ReleaseDownloadBody { guid, indexer_id };
+    let download_release_body = ReleaseDownloadBody {
+      guid,
+      indexer_id,
+      movie_id,
+    };
 
     let request_props = self
       .radarr_request_props_from(
