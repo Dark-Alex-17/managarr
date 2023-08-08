@@ -68,8 +68,8 @@ impl<'a, 'b> Network<'a, 'b> {
         self.cancellation_token = app.reset_cancellation_token();
         app.is_loading = false;
       }
-    resp = tokio::spawn(self.call_api(request_props).await.send()) => {
-         match resp.unwrap() {
+    resp = self.call_api(request_props).await.send() => {
+         match resp {
           Ok(response) => {
             if response.status().is_success() {
               match method {
