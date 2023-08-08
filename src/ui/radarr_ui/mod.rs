@@ -43,7 +43,7 @@ mod edit_collection_ui;
 mod edit_movie_ui;
 mod movie_details_ui;
 
-pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   let (content_rect, _) = draw_tabs(f, area, "Movies", &app.data.radarr_data.main_tabs);
 
   if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
@@ -195,7 +195,7 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
   }
 }
 
-pub(super) fn draw_radarr_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+pub(super) fn draw_radarr_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area: Rect) {
   let chunks = horizontal_chunks(vec![Constraint::Min(0), Constraint::Length(20)], area);
 
   let context_chunks = horizontal_chunks(
@@ -208,7 +208,7 @@ pub(super) fn draw_radarr_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &Ap
   draw_radarr_logo(f, chunks[1]);
 }
 
-fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   let current_selection = if !app.data.radarr_data.filtered_movies.items.is_empty() {
     app
       .data
@@ -314,7 +314,7 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
 
 fn draw_update_all_movies_prompt<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   prompt_area: Rect,
 ) {
   draw_prompt_box(
@@ -328,7 +328,7 @@ fn draw_update_all_movies_prompt<B: Backend>(
 
 fn draw_update_downloads_prompt<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   prompt_area: Rect,
 ) {
   draw_prompt_box(
@@ -342,7 +342,7 @@ fn draw_update_downloads_prompt<B: Backend>(
 
 fn draw_update_all_collections_prompt<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   prompt_area: Rect,
 ) {
   draw_prompt_box(
@@ -354,7 +354,11 @@ fn draw_update_all_collections_prompt<B: Backend>(
   );
 }
 
-fn draw_delete_download_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
+fn draw_delete_download_prompt<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  prompt_area: Rect,
+) {
   draw_prompt_box(
     f,
     prompt_area,
@@ -370,7 +374,7 @@ fn draw_delete_download_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, 
 
 fn draw_delete_root_folder_prompt<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   prompt_area: Rect,
 ) {
   draw_prompt_box(
@@ -386,7 +390,11 @@ fn draw_delete_root_folder_prompt<B: Backend>(
   );
 }
 
-fn draw_add_root_folder_prompt_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+fn draw_add_root_folder_prompt_box<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  area: Rect,
+) {
   let chunks = vertical_chunks_with_margin(
     vec![
       Constraint::Length(3),
@@ -413,7 +421,7 @@ fn draw_add_root_folder_prompt_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut A
   f.render_widget(help, chunks[1]);
 }
 
-fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   let chunks =
     vertical_chunks_with_margin(vec![Constraint::Length(3), Constraint::Min(0)], area, 1);
   if !app.data.radarr_data.is_searching {
@@ -454,7 +462,7 @@ fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
   }
 }
 
-fn draw_filter_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+fn draw_filter_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   let chunks =
     vertical_chunks_with_margin(vec![Constraint::Length(3), Constraint::Min(0)], area, 1);
   if !app.data.radarr_data.is_filtering {
@@ -504,7 +512,7 @@ fn draw_radarr_logo<B: Backend>(f: &mut Frame<'_, B>, area: Rect) {
   f.render_widget(logo, area);
 }
 
-fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area: Rect) {
   let block = title_block("Stats");
 
   if !app.data.radarr_data.version.is_empty() {
@@ -602,7 +610,7 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   }
 }
 
-fn draw_downloads_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_downloads_context<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area: Rect) {
   let block = title_block("Downloads");
   let downloads_vec = &app.data.radarr_data.downloads.items;
 
@@ -632,7 +640,7 @@ fn draw_downloads_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rec
   }
 }
 
-fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   let current_selection = if app.data.radarr_data.downloads.items.is_empty() {
     DownloadRecord::default()
   } else {
@@ -708,7 +716,7 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   );
 }
 
-fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   let current_selection = if !app.data.radarr_data.filtered_collections.items.is_empty() {
     app
       .data
@@ -790,7 +798,7 @@ fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect)
   );
 }
 
-fn draw_root_folders<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+fn draw_root_folders<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   draw_table(
     f,
     area,
@@ -863,7 +871,7 @@ fn determine_row_style(downloads_vec: &[DownloadRecord], movie: &Movie) -> Style
 
 fn draw_select_minimum_availability_popup<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   popup_area: Rect,
 ) {
   draw_drop_down_list(
@@ -876,7 +884,7 @@ fn draw_select_minimum_availability_popup<B: Backend>(
 
 fn draw_select_quality_profile_popup<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   popup_area: Rect,
 ) {
   draw_drop_down_list(
@@ -889,7 +897,7 @@ fn draw_select_quality_profile_popup<B: Backend>(
 
 fn draw_select_root_folder_popup<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   popup_area: Rect,
 ) {
   draw_drop_down_list(

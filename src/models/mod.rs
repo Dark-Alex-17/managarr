@@ -250,12 +250,12 @@ impl HorizontallyScrollableText {
   }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct TabRoute {
-  pub title: String,
+  pub title: &'static str,
   pub route: Route,
-  pub help: String,
-  pub contextual_help: Option<String>,
+  pub help: &'static str,
+  pub contextual_help: Option<&'static str>,
 }
 
 pub struct TabState {
@@ -279,12 +279,12 @@ impl TabState {
     &self.tabs[self.index].route
   }
 
-  pub fn get_active_tab_help(&self) -> String {
-    self.tabs[self.index].help.clone()
+  pub fn get_active_tab_help(&self) -> &'static str {
+    self.tabs[self.index].help
   }
 
-  pub fn get_active_tab_contextual_help(&self) -> Option<String> {
-    self.tabs[self.index].contextual_help.clone()
+  pub fn get_active_tab_contextual_help(&self) -> Option<&'static str> {
+    self.tabs[self.index].contextual_help
   }
 
   pub fn next(&mut self) {
@@ -300,6 +300,50 @@ impl TabState {
   }
 }
 
+#[derive(Default, Eq, PartialEq, Debug)]
+pub struct BlockSelectionState<'a, T>
+where
+  T: Sized + Clone + Copy + Default,
+{
+  pub blocks: &'a [T],
+  pub index: usize,
+}
+
+impl<'a, T> BlockSelectionState<'a, T>
+where
+  T: Sized + Clone + Copy + Default,
+{
+  pub fn new(blocks: &'a [T]) -> BlockSelectionState<'a, T> {
+    BlockSelectionState { blocks, index: 0 }
+  }
+
+  pub fn get_active_block(&self) -> &T {
+    &self.blocks[self.index]
+  }
+
+  pub fn next(&mut self) {
+    self.index = (self.index + 1) % self.blocks.len();
+  }
+
+  pub fn previous(&mut self) {
+    if self.index > 0 {
+      self.index -= 1;
+    } else {
+      self.index = self.blocks.len() - 1;
+    }
+  }
+}
+
+#[cfg(test)]
+impl<'a, T> BlockSelectionState<'a, T>
+where
+  T: Sized + Clone + Copy + Default,
+{
+  pub fn set_index(&mut self, index: usize) {
+    self.index = index;
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use std::cell::RefCell;
@@ -308,8 +352,18 @@ mod tests {
 
   use crate::app::radarr::ActiveRadarrBlock;
   use crate::models::{
-    HorizontallyScrollableText, Scrollable, ScrollableText, StatefulTable, TabRoute, TabState,
+    BlockSelectionState, HorizontallyScrollableText, Scrollable, ScrollableText, StatefulTable,
+    TabRoute, TabState,
   };
+
+  const BLOCKS: [ActiveRadarrBlock; 6] = [
+    ActiveRadarrBlock::AddMovieSelectRootFolder,
+    ActiveRadarrBlock::AddMovieSelectMonitor,
+    ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+    ActiveRadarrBlock::AddMovieSelectQualityProfile,
+    ActiveRadarrBlock::AddMovieTagsInput,
+    ActiveRadarrBlock::AddMovieConfirmPrompt,
+  ];
 
   #[test]
   fn test_stateful_table_scroll() {
@@ -672,11 +726,9 @@ mod tests {
 
   #[test]
   fn test_tab_state_get_active_route() {
-    let second_tab = create_test_tab_routes()[1].clone().route;
-    let tab_state = TabState {
-      tabs: create_test_tab_routes(),
-      index: 1,
-    };
+    let tabs = create_test_tab_routes();
+    let second_tab = tabs[1].route;
+    let tab_state = TabState { tabs, index: 1 };
 
     let active_route = tab_state.get_active_route();
 
@@ -685,11 +737,9 @@ mod tests {
 
   #[test]
   fn test_tab_state_get_active_tab_help() {
-    let second_tab_help = create_test_tab_routes()[1].clone().help;
-    let tab_state = TabState {
-      tabs: create_test_tab_routes(),
-      index: 1,
-    };
+    let tabs = create_test_tab_routes();
+    let second_tab_help = tabs[1].help;
+    let tab_state = TabState { tabs, index: 1 };
 
     let tab_help = tab_state.get_active_tab_help();
 
@@ -698,11 +748,9 @@ mod tests {
 
   #[test]
   fn test_tab_state_get_active_tab_contextual_help() {
-    let second_tab_contextual_help = create_test_tab_routes()[1].clone().contextual_help.unwrap();
-    let tab_state = TabState {
-      tabs: create_test_tab_routes(),
-      index: 1,
-    };
+    let tabs = create_test_tab_routes();
+    let second_tab_contextual_help = tabs[1].contextual_help.unwrap();
+    let tab_state = TabState { tabs, index: 1 };
 
     let tab_contextual_help = tab_state.get_active_tab_contextual_help();
 
@@ -742,19 +790,77 @@ mod tests {
     assert_eq!(tab_state.get_active_route(), &tab_routes[0].route);
   }
 
+  #[test]
+  fn test_block_selection_state_new() {
+    let block_selection_state = BlockSelectionState::new(&BLOCKS);
+
+    assert_eq!(block_selection_state.index, 0);
+  }
+
+  #[test]
+  fn test_block_selection_state_get_active_block() {
+    let second_block = BLOCKS[1];
+    let block_selection_state = BlockSelectionState {
+      blocks: &BLOCKS,
+      index: 1,
+    };
+
+    let active_block = block_selection_state.get_active_block();
+
+    assert_eq!(active_block, &second_block);
+  }
+
+  #[test]
+  fn test_block_selection_state_next() {
+    let blocks = [
+      ActiveRadarrBlock::AddMovieSelectRootFolder,
+      ActiveRadarrBlock::AddMovieSelectMonitor,
+    ];
+    let mut block_selection_state = BlockSelectionState::new(&blocks);
+
+    assert_eq!(block_selection_state.get_active_block(), &blocks[0]);
+
+    block_selection_state.next();
+
+    assert_eq!(block_selection_state.get_active_block(), &blocks[1]);
+
+    block_selection_state.next();
+
+    assert_eq!(block_selection_state.get_active_block(), &blocks[0]);
+  }
+
+  #[test]
+  fn test_block_selection_state_previous() {
+    let blocks = [
+      ActiveRadarrBlock::AddMovieSelectRootFolder,
+      ActiveRadarrBlock::AddMovieSelectMonitor,
+    ];
+    let mut block_selection_state = BlockSelectionState::new(&blocks);
+
+    assert_eq!(block_selection_state.get_active_block(), &blocks[0]);
+
+    block_selection_state.previous();
+
+    assert_eq!(block_selection_state.get_active_block(), &blocks[1]);
+
+    block_selection_state.previous();
+
+    assert_eq!(block_selection_state.get_active_block(), &blocks[0]);
+  }
+
   fn create_test_tab_routes() -> Vec<TabRoute> {
     vec![
       TabRoute {
-        title: "Test 1".to_owned(),
+        title: "Test 1",
         route: ActiveRadarrBlock::Movies.into(),
-        help: "Help for Test 1".to_owned(),
-        contextual_help: Some("Contextual Help for Test 1".to_owned()),
+        help: "Help for Test 1",
+        contextual_help: Some("Contextual Help for Test 1"),
       },
       TabRoute {
-        title: "Test 2".to_owned(),
+        title: "Test 2",
         route: ActiveRadarrBlock::Collections.into(),
-        help: "Help for Test 2".to_owned(),
-        contextual_help: Some("Contextual Help for Test 2".to_owned()),
+        help: "Help for Test 2",
+        contextual_help: Some("Contextual Help for Test 2"),
       },
     ]
   }

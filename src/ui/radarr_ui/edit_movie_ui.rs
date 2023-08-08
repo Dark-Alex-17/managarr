@@ -18,7 +18,7 @@ use crate::ui::{
 
 pub(super) fn draw_edit_movie_prompt<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   prompt_area: Rect,
 ) {
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
@@ -54,7 +54,7 @@ pub(super) fn draw_edit_movie_prompt<B: Backend>(
 
 fn draw_edit_movie_confirmation_prompt<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   prompt_area: Rect,
 ) {
   let (movie_title, movie_overview) = if app.data.radarr_data.filtered_movies.items.is_empty() {
@@ -94,8 +94,8 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
   };
   let title = format!("Edit - {}", movie_title);
   let yes_no_value = app.data.radarr_data.prompt_confirm;
-  let selected_block = app.data.radarr_data.selected_block;
-  let highlight_yes_no = selected_block == ActiveRadarrBlock::EditMovieConfirmPrompt;
+  let selected_block = app.data.radarr_data.selected_block.get_active_block();
+  let highlight_yes_no = selected_block == &ActiveRadarrBlock::EditMovieConfirmPrompt;
 
   let selected_minimum_availability = app
     .data
@@ -138,7 +138,7 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
     chunks[1],
     "Monitored",
     app.data.radarr_data.edit_monitored.unwrap_or_default(),
-    selected_block == ActiveRadarrBlock::EditMovieToggleMonitored,
+    selected_block == &ActiveRadarrBlock::EditMovieToggleMonitored,
   );
 
   draw_drop_down_menu_button(
@@ -146,14 +146,14 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
     chunks[2],
     "Minimum Availability",
     selected_minimum_availability.to_display_str(),
-    selected_block == ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
+    selected_block == &ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
   );
   draw_drop_down_menu_button(
     f,
     chunks[3],
     "Quality Profile",
     selected_quality_profile,
-    selected_block == ActiveRadarrBlock::EditMovieSelectQualityProfile,
+    selected_block == &ActiveRadarrBlock::EditMovieSelectQualityProfile,
   );
 
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
@@ -163,7 +163,7 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
       "Path",
       &app.data.radarr_data.edit_path.text,
       *app.data.radarr_data.edit_path.offset.borrow(),
-      selected_block == ActiveRadarrBlock::EditMoviePathInput,
+      selected_block == &ActiveRadarrBlock::EditMoviePathInput,
       active_radarr_block == ActiveRadarrBlock::EditMoviePathInput,
     );
     draw_text_box_with_label(
@@ -172,7 +172,7 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
       "Tags",
       &app.data.radarr_data.edit_tags.text,
       *app.data.radarr_data.edit_tags.offset.borrow(),
-      selected_block == ActiveRadarrBlock::EditMovieTagsInput,
+      selected_block == &ActiveRadarrBlock::EditMovieTagsInput,
       active_radarr_block == ActiveRadarrBlock::EditMovieTagsInput,
     );
   }

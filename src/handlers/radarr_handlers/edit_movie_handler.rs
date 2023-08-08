@@ -7,20 +7,20 @@ use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
 
-pub(super) struct EditMovieHandler<'a> {
+pub(super) struct EditMovieHandler<'a, 'b> {
   key: &'a Key,
-  app: &'a mut App,
+  app: &'a mut App<'b>,
   active_radarr_block: &'a ActiveRadarrBlock,
   context: &'a Option<ActiveRadarrBlock>,
 }
 
-impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
+impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a, 'b> {
   fn with(
     key: &'a Key,
-    app: &'a mut App,
+    app: &'a mut App<'b>,
     active_block: &'a ActiveRadarrBlock,
     context: &'a Option<ActiveRadarrBlock>,
-  ) -> EditMovieHandler<'a> {
+  ) -> EditMovieHandler<'a, 'b> {
     EditMovieHandler {
       key,
       app,
@@ -44,14 +44,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
       ActiveRadarrBlock::EditMovieSelectQualityProfile => {
         self.app.data.radarr_data.quality_profile_list.scroll_up()
       }
-      ActiveRadarrBlock::EditMoviePrompt => {
-        self.app.data.radarr_data.selected_block = self
-          .app
-          .data
-          .radarr_data
-          .selected_block
-          .previous_edit_movie_prompt_block()
-      }
+      ActiveRadarrBlock::EditMoviePrompt => self.app.data.radarr_data.selected_block.previous(),
       _ => (),
     }
   }
@@ -67,14 +60,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
       ActiveRadarrBlock::EditMovieSelectQualityProfile => {
         self.app.data.radarr_data.quality_profile_list.scroll_down()
       }
-      ActiveRadarrBlock::EditMoviePrompt => {
-        self.app.data.radarr_data.selected_block = self
-          .app
-          .data
-          .radarr_data
-          .selected_block
-          .next_edit_movie_prompt_block()
-      }
+      ActiveRadarrBlock::EditMoviePrompt => self.app.data.radarr_data.selected_block.next(),
       _ => (),
     }
   }
@@ -136,31 +122,41 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
 
   fn handle_submit(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::EditMoviePrompt => match self.app.data.radarr_data.selected_block {
-        ActiveRadarrBlock::EditMovieConfirmPrompt => {
-          if self.app.data.radarr_data.prompt_confirm {
-            self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditMovie);
-            self.app.should_refresh = true;
-          }
+      ActiveRadarrBlock::EditMoviePrompt => {
+        match self.app.data.radarr_data.selected_block.get_active_block() {
+          ActiveRadarrBlock::EditMovieConfirmPrompt => {
+            if self.app.data.radarr_data.prompt_confirm {
+              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditMovie);
+              self.app.should_refresh = true;
+            }
 
-          self.app.pop_navigation_stack();
+            self.app.pop_navigation_stack();
+          }
+          ActiveRadarrBlock::EditMovieSelectMinimumAvailability
+          | ActiveRadarrBlock::EditMovieSelectQualityProfile => self.app.push_navigation_stack(
+            (
+              *self.app.data.radarr_data.selected_block.get_active_block(),
+              *self.context,
+            )
+              .into(),
+          ),
+          ActiveRadarrBlock::EditMoviePathInput | ActiveRadarrBlock::EditMovieTagsInput => {
+            self.app.push_navigation_stack(
+              (
+                *self.app.data.radarr_data.selected_block.get_active_block(),
+                *self.context,
+              )
+                .into(),
+            );
+            self.app.should_ignore_quit_key = true;
+          }
+          ActiveRadarrBlock::EditMovieToggleMonitored => {
+            self.app.data.radarr_data.edit_monitored =
+              Some(!self.app.data.radarr_data.edit_monitored.unwrap_or_default())
+          }
+          _ => (),
         }
-        ActiveRadarrBlock::EditMovieSelectMinimumAvailability
-        | ActiveRadarrBlock::EditMovieSelectQualityProfile => self
-          .app
-          .push_navigation_stack((self.app.data.radarr_data.selected_block, *self.context).into()),
-        ActiveRadarrBlock::EditMoviePathInput | ActiveRadarrBlock::EditMovieTagsInput => {
-          self.app.push_navigation_stack(
-            (self.app.data.radarr_data.selected_block, *self.context).into(),
-          );
-          self.app.should_ignore_quit_key = true;
-        }
-        ActiveRadarrBlock::EditMovieToggleMonitored => {
-          self.app.data.radarr_data.edit_monitored =
-            Some(!self.app.data.radarr_data.edit_monitored.unwrap_or_default())
-        }
-        _ => (),
-      },
+      }
       ActiveRadarrBlock::EditMovieSelectMinimumAvailability
       | ActiveRadarrBlock::EditMovieSelectQualityProfile => self.app.pop_navigation_stack(),
       ActiveRadarrBlock::EditMoviePathInput | ActiveRadarrBlock::EditMovieTagsInput => {
@@ -219,6 +215,8 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
+    use crate::app::radarr::EDIT_MOVIE_SELECTION_BLOCKS;
+    use crate::models::BlockSelectionState;
     use crate::{test_enum_scroll, test_iterable_scroll};
 
     use super::*;
@@ -243,19 +241,20 @@ mod tests {
     #[rstest]
     fn test_edit_movie_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
       let mut app = App::default();
-      app.data.radarr_data.selected_block = ActiveRadarrBlock::EditMovieSelectMinimumAvailability;
+      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.next();
 
       EditMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::EditMoviePrompt, &None).handle();
 
       if key == Key::Up {
         assert_eq!(
-          app.data.radarr_data.selected_block,
-          ActiveRadarrBlock::EditMovieToggleMonitored
+          app.data.radarr_data.selected_block.get_active_block(),
+          &ActiveRadarrBlock::EditMovieToggleMonitored
         );
       } else {
         assert_eq!(
-          app.data.radarr_data.selected_block,
-          ActiveRadarrBlock::EditMovieSelectQualityProfile
+          app.data.radarr_data.selected_block.get_active_block(),
+          &ActiveRadarrBlock::EditMovieSelectQualityProfile
         );
       }
     }
@@ -347,7 +346,8 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::models::Route;
+    use crate::app::radarr::{EDIT_COLLECTION_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS};
+    use crate::models::{BlockSelectionState, Route};
     use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
@@ -407,7 +407,12 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
-      app.data.radarr_data.selected_block = ActiveRadarrBlock::EditMovieConfirmPrompt;
+      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditMovieHandler::with(
         &SUBMIT_KEY,
@@ -427,7 +432,12 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
       app.data.radarr_data.prompt_confirm = true;
-      app.data.radarr_data.selected_block = ActiveRadarrBlock::EditMovieConfirmPrompt;
+      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditMovieHandler::with(
         &SUBMIT_KEY,
@@ -452,7 +462,7 @@ mod tests {
         Some(ActiveRadarrBlock::Movies),
       ));
       let mut app = App::default();
-      app.data.radarr_data.selected_block = ActiveRadarrBlock::EditMovieToggleMonitored;
+      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
       app.push_navigation_stack(current_route);
 
       EditMovieHandler::with(
@@ -479,14 +489,13 @@ mod tests {
     }
 
     #[rstest]
+    #[case(ActiveRadarrBlock::EditMovieSelectMinimumAvailability, 1)]
+    #[case(ActiveRadarrBlock::EditMovieSelectQualityProfile, 2)]
+    #[case(ActiveRadarrBlock::EditMoviePathInput, 3)]
+    #[case(ActiveRadarrBlock::EditMovieTagsInput, 4)]
     fn test_edit_movie_prompt_selected_block_submit(
-      #[values(
-        ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
-        ActiveRadarrBlock::EditMovieSelectQualityProfile,
-        ActiveRadarrBlock::EditMoviePathInput,
-        ActiveRadarrBlock::EditMovieTagsInput
-      )]
-      selected_block: ActiveRadarrBlock,
+      #[case] selected_block: ActiveRadarrBlock,
+      #[case] index: usize,
     ) {
       let mut app = App::default();
       app.push_navigation_stack(
@@ -496,7 +505,8 @@ mod tests {
         )
           .into(),
       );
-      app.data.radarr_data.selected_block = selected_block;
+      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.set_index(index);
 
       EditMovieHandler::with(
         &SUBMIT_KEY,

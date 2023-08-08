@@ -14,7 +14,7 @@ pub(crate) mod radarr;
 
 const DEFAULT_ROUTE: Route = Route::Radarr(ActiveRadarrBlock::Movies, None);
 
-pub struct App {
+pub struct App<'a> {
   navigation_stack: Vec<Route>,
   network_tx: Option<Sender<NetworkEvent>>,
   pub server_tabs: TabState,
@@ -31,10 +31,10 @@ pub struct App {
   pub should_refresh: bool,
   pub should_ignore_quit_key: bool,
   pub config: AppConfig,
-  pub data: Data,
+  pub data: Data<'a>,
 }
 
-impl App {
+impl<'a> App<'a> {
   pub fn new(network_tx: Sender<NetworkEvent>, config: AppConfig) -> Self {
     App {
       network_tx: Some(network_tx),
@@ -106,12 +106,12 @@ impl App {
     self.push_navigation_stack(route);
   }
 
-  pub fn get_current_route(&self) -> &Route {
+  pub fn get_current_route(&'a self) -> &'a Route {
     self.navigation_stack.last().unwrap_or(&DEFAULT_ROUTE)
   }
 }
 
-impl Default for App {
+impl<'a> Default for App<'a> {
   fn default() -> Self {
     App {
       navigation_stack: vec![DEFAULT_ROUTE],
@@ -120,15 +120,15 @@ impl Default for App {
       response: String::default(),
       server_tabs: TabState::new(vec![
         TabRoute {
-          title: "Radarr".to_owned(),
+          title: "Radarr",
           route: ActiveRadarrBlock::Movies.into(),
-          help: "<↑↓> scroll | ←→ change tab | <tab> change servarr | <q> quit  ".to_owned(),
+          help: "<↑↓> scroll | ←→ change tab | <tab> change servarr | <q> quit  ",
           contextual_help: None,
         },
         TabRoute {
-          title: "Sonarr".to_owned(),
+          title: "Sonarr",
           route: Route::Sonarr,
-          help: "<tab> change servarr | <q> quit  ".to_owned(),
+          help: "<tab> change servarr | <q> quit  ",
           contextual_help: None,
         },
       ]),
@@ -149,8 +149,8 @@ impl Default for App {
 }
 
 #[derive(Default)]
-pub struct Data {
-  pub radarr_data: RadarrData,
+pub struct Data<'a> {
+  pub radarr_data: RadarrData<'a>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -200,15 +200,15 @@ mod tests {
       app.server_tabs.tabs,
       vec![
         TabRoute {
-          title: "Radarr".to_owned(),
+          title: "Radarr",
           route: ActiveRadarrBlock::Movies.into(),
-          help: "<↑↓> scroll | ←→ change tab | <tab> change servarr | <q> quit  ".to_owned(),
+          help: "<↑↓> scroll | ←→ change tab | <tab> change servarr | <q> quit  ",
           contextual_help: None,
         },
         TabRoute {
-          title: "Sonarr".to_owned(),
+          title: "Sonarr",
           route: Route::Sonarr,
-          help: "<tab> change servarr | <q> quit  ".to_owned(),
+          help: "<tab> change servarr | <q> quit  ",
           contextual_help: None,
         }
       ]

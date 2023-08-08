@@ -27,7 +27,7 @@ use crate::App;
 
 pub(super) fn draw_add_movie_search_popup<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   area: Rect,
 ) {
   if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
@@ -67,7 +67,7 @@ pub(super) fn draw_add_movie_search_popup<B: Backend>(
   }
 }
 
-fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   let current_selection = if app.data.radarr_data.add_searched_movies.items.is_empty() {
     AddMovieSearchResult::default()
   } else {
@@ -233,7 +233,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
   );
 }
 
-fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
+fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, prompt_area: Rect) {
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSelectMonitor => {
@@ -280,7 +280,11 @@ fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prom
   }
 }
 
-fn draw_select_monitor_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, popup_area: Rect) {
+fn draw_select_monitor_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  popup_area: Rect,
+) {
   draw_drop_down_list(
     f,
     popup_area,
@@ -289,7 +293,11 @@ fn draw_select_monitor_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, po
   );
 }
 
-fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
+fn draw_confirmation_prompt<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  prompt_area: Rect,
+) {
   let (movie_title, movie_overview) = if let Route::Radarr(_, Some(_)) = app.get_current_route() {
     (
       &app
@@ -328,8 +336,8 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
   let title = format!("Add Movie - {}", movie_title);
   let prompt = movie_overview;
   let yes_no_value = app.data.radarr_data.prompt_confirm;
-  let selected_block = app.data.radarr_data.selected_block;
-  let highlight_yes_no = selected_block == ActiveRadarrBlock::AddMovieConfirmPrompt;
+  let selected_block = app.data.radarr_data.selected_block.get_active_block();
+  let highlight_yes_no = selected_block == &ActiveRadarrBlock::AddMovieConfirmPrompt;
 
   let selected_monitor = app.data.radarr_data.monitor_list.current_selection();
   let selected_minimum_availability = app
@@ -374,7 +382,7 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
     chunks[1],
     "Root Folder",
     &selected_root_folder.path,
-    selected_block == ActiveRadarrBlock::AddMovieSelectRootFolder,
+    selected_block == &ActiveRadarrBlock::AddMovieSelectRootFolder,
   );
 
   draw_drop_down_menu_button(
@@ -382,7 +390,7 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
     chunks[2],
     "Monitor",
     selected_monitor.to_display_str(),
-    selected_block == ActiveRadarrBlock::AddMovieSelectMonitor,
+    selected_block == &ActiveRadarrBlock::AddMovieSelectMonitor,
   );
 
   draw_drop_down_menu_button(
@@ -390,14 +398,14 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
     chunks[3],
     "Minimum Availability",
     selected_minimum_availability.to_display_str(),
-    selected_block == ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+    selected_block == &ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
   );
   draw_drop_down_menu_button(
     f,
     chunks[4],
     "Quality Profile",
     selected_quality_profile,
-    selected_block == ActiveRadarrBlock::AddMovieSelectQualityProfile,
+    selected_block == &ActiveRadarrBlock::AddMovieSelectQualityProfile,
   );
 
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
@@ -407,7 +415,7 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
       "Tags",
       &app.data.radarr_data.edit_tags.text,
       *app.data.radarr_data.edit_tags.offset.borrow(),
-      selected_block == ActiveRadarrBlock::AddMovieTagsInput,
+      selected_block == &ActiveRadarrBlock::AddMovieTagsInput,
       active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput,
     );
   }

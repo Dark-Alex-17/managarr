@@ -29,7 +29,7 @@ mod utils;
 
 static HIGHLIGHT_SYMBOL: &str = "=> ";
 
-pub fn ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
+pub fn ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>) {
   f.render_widget(background_block(), f.size());
   let main_chunks = if !app.error.text.is_empty() {
     let chunks = vertical_chunks_with_margin(
@@ -65,7 +65,7 @@ pub fn ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
   }
 }
 
-fn draw_header_row<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+fn draw_header_row<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   let chunks =
     horizontal_chunks_with_margin(vec![Constraint::Length(75), Constraint::Min(0)], area, 1);
   let help_text = Text::from(app.server_tabs.get_active_tab_help());
@@ -74,7 +74,7 @@ fn draw_header_row<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
     .server_tabs
     .tabs
     .iter()
-    .map(|tab| Spans::from(Span::styled(&tab.title, style_default_bold())))
+    .map(|tab| Spans::from(Span::styled(tab.title, style_default_bold())))
     .collect();
   let tabs = Tabs::new(titles)
     .block(logo_block())
@@ -89,7 +89,7 @@ fn draw_header_row<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
   f.render_widget(help, chunks[1]);
 }
 
-fn draw_error<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+fn draw_error<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   let block =
     title_block("Error | <esc> to close").style(style_failure().add_modifier(Modifier::BOLD));
 
@@ -112,8 +112,8 @@ fn draw_error<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
 
 pub fn draw_popup<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
-  popup_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+  app: &mut App<'_>,
+  popup_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
   percent_x: u16,
   percent_y: u16,
 ) {
@@ -125,10 +125,10 @@ pub fn draw_popup<B: Backend>(
 
 pub fn draw_popup_over<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   area: Rect,
-  background_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
-  popup_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  popup_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
   percent_x: u16,
   percent_y: u16,
 ) {
@@ -139,55 +139,55 @@ pub fn draw_popup_over<B: Backend>(
 
 pub fn draw_prompt_popup_over<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   area: Rect,
-  background_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
-  popup_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  popup_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, popup_fn, 35, 35);
 }
 
 pub fn draw_small_popup_over<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   area: Rect,
-  background_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
-  popup_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  popup_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, popup_fn, 40, 40);
 }
 
 pub fn draw_medium_popup_over<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   area: Rect,
-  background_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
-  popup_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  popup_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, popup_fn, 60, 60);
 }
 
 pub fn draw_large_popup_over<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   area: Rect,
-  background_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
-  popup_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  popup_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, popup_fn, 75, 75);
 }
 
 pub fn draw_drop_down_popup<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   area: Rect,
-  background_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
-  drop_down_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  drop_down_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, drop_down_fn, 20, 30);
 }
 
-fn draw_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area: Rect) {
   if let Route::Radarr(_, _) = app.get_current_route() {
     radarr_ui::draw_radarr_context_row(f, app, area)
   }
@@ -195,10 +195,10 @@ fn draw_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 
 pub fn draw_error_popup_over<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   area: Rect,
   message: &str,
-  background_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
 ) {
   background_fn(f, app, area);
   draw_error_popup(f, message);
@@ -238,7 +238,7 @@ fn draw_tabs<'a, B: Backend>(
   let titles = tab_state
     .tabs
     .iter()
-    .map(|tab_route| Spans::from(Span::styled(&tab_route.title, style_default_bold())))
+    .map(|tab_route| Spans::from(Span::styled(tab_route.title, style_default_bold())))
     .collect();
   let tabs = Tabs::new(titles)
     .block(block)
@@ -258,7 +258,7 @@ pub struct TableProps<'a, T> {
   pub content: &'a mut StatefulTable<T>,
   pub table_headers: Vec<&'a str>,
   pub constraints: Vec<Constraint>,
-  pub help: Option<String>,
+  pub help: Option<&'static str>,
 }
 
 fn draw_table<'a, B, T, F>(

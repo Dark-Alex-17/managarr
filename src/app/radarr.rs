@@ -8,11 +8,12 @@ use crate::models::radarr_models::{
   MinimumAvailability, Monitor, Movie, MovieHistoryItem, Release, ReleaseField, RootFolder,
 };
 use crate::models::{
-  HorizontallyScrollableText, ScrollableText, StatefulList, StatefulTable, TabRoute, TabState,
+  BlockSelectionState, HorizontallyScrollableText, ScrollableText, StatefulList, StatefulTable,
+  TabRoute, TabState,
 };
 use crate::network::radarr_network::RadarrEvent;
 
-pub struct RadarrData {
+pub struct RadarrData<'a> {
   pub root_folders: StatefulTable<RootFolder>,
   pub disk_space_vec: Vec<DiskSpace>,
   pub version: String,
@@ -24,7 +25,7 @@ pub struct RadarrData {
   pub minimum_availability_list: StatefulList<MinimumAvailability>,
   pub quality_profile_list: StatefulList<String>,
   pub root_folder_list: StatefulList<RootFolder>,
-  pub selected_block: ActiveRadarrBlock,
+  pub selected_block: BlockSelectionState<'a, ActiveRadarrBlock>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub quality_profile_map: BiMap<u64, String>,
   pub tags_map: BiMap<u64, String>,
@@ -57,7 +58,7 @@ pub struct RadarrData {
   pub is_filtering: bool,
 }
 
-impl RadarrData {
+impl<'a> RadarrData<'a> {
   pub fn reset_movie_collection_table(&mut self) {
     self.collection_movies = StatefulTable::default();
   }
@@ -226,8 +227,8 @@ impl RadarrData {
   }
 }
 
-impl Default for RadarrData {
-  fn default() -> RadarrData {
+impl<'a> Default for RadarrData<'a> {
+  fn default() -> RadarrData<'a> {
     RadarrData {
       root_folders: StatefulTable::default(),
       disk_space_vec: Vec::new(),
@@ -239,7 +240,7 @@ impl Default for RadarrData {
       minimum_availability_list: StatefulList::default(),
       quality_profile_list: StatefulList::default(),
       root_folder_list: StatefulList::default(),
-      selected_block: ActiveRadarrBlock::AddMovieSelectRootFolder,
+      selected_block: BlockSelectionState::default(),
       filtered_movies: StatefulTable::default(),
       downloads: StatefulTable::default(),
       quality_profile_map: BiMap::default(),
@@ -271,75 +272,79 @@ impl Default for RadarrData {
       add_list_exclusion: false,
       main_tabs: TabState::new(vec![
         TabRoute {
-          title: "Library".to_owned(),
+          title: "Library",
           route: ActiveRadarrBlock::Movies.into(),
-          help: String::default(),
-          contextual_help: Some("<a> add | <e> edit | <del> delete | <s> search | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"
-            .to_owned()),
+          help: "",
+          contextual_help: Some("<a> add | <e> edit | <del> delete | <s> search | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"),
         },
         TabRoute {
-          title: "Downloads".to_owned(),
+          title: "Downloads",
           route: ActiveRadarrBlock::Downloads.into(),
-          help: String::default(),
-          contextual_help: Some("<r> refresh | <del> delete".to_owned()),
+          help: "",
+          contextual_help: Some("<r> refresh | <del> delete"),
         },
         TabRoute {
-          title: "Collections".to_owned(),
+          title: "Collections",
           route: ActiveRadarrBlock::Collections.into(),
-          help: String::default(),
-          contextual_help: Some("<s> search | <e> edit | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"
-            .to_owned()),
+          help: "",
+          contextual_help: Some("<s> search | <e> edit | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"),
         },
         TabRoute {
-          title: "Root Folders".to_owned(),
+          title: "Root Folders",
           route: ActiveRadarrBlock::RootFolders.into(),
-          help: String::default(),
-          contextual_help: Some("<a> add | <del> delete | <r> refresh".to_owned()),
+          help: "",
+          contextual_help: Some("<a> add | <del> delete | <r> refresh"),
         },
+        TabRoute {
+          title: "System",
+          route: ActiveRadarrBlock::System.into(),
+          help: "",
+          contextual_help: Some("<enter> select menu item | <esc> go back to menu selection")
+        }
       ]),
       movie_info_tabs: TabState::new(vec![
         TabRoute {
-          title: "Details".to_owned(),
+          title: "Details",
           route: ActiveRadarrBlock::MovieDetails.into(),
-          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
           contextual_help: None
         },
         TabRoute {
-          title: "History".to_owned(),
+          title: "History",
           route: ActiveRadarrBlock::MovieHistory.into(),
-          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
           contextual_help: None
         },
         TabRoute {
-          title: "File".to_owned(),
+          title: "File",
           route: ActiveRadarrBlock::FileInfo.into(),
-          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
           contextual_help: None,
         },
         TabRoute {
-          title: "Cast".to_owned(),
+          title: "Cast",
           route: ActiveRadarrBlock::Cast.into(),
-          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
           contextual_help: None,
         },
         TabRoute {
-          title: "Crew".to_owned(),
+          title: "Crew",
           route: ActiveRadarrBlock::Crew.into(),
-          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
           contextual_help: None,
         },
         TabRoute {
-          title: "Manual Search".to_owned(),
+          title: "Manual Search",
           route: ActiveRadarrBlock::ManualSearch.into(),
-          help: "<r> refresh | <u> update | <e> edit | <o> sort | <s> auto search | <esc> close".to_owned(),
-          contextual_help: Some("<enter> details".to_owned())
+          help: "<r> refresh | <u> update | <e> edit | <o> sort | <s> auto search | <esc> close",
+          contextual_help: Some("<enter> details")
         }
       ]),
     }
   }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub enum ActiveRadarrBlock {
   AddMovieAlreadyInLibrary,
   AddMovieSearchInput,
@@ -387,8 +392,10 @@ pub enum ActiveRadarrBlock {
   ManualSearchConfirmPrompt,
   MovieDetails,
   MovieHistory,
+  #[default]
   Movies,
   RootFolders,
+  System,
   UpdateAndScanPrompt,
   UpdateAllCollectionsPrompt,
   UpdateAllMoviesPrompt,
@@ -410,6 +417,14 @@ pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::AddMovieAlreadyInLibrary,
   ActiveRadarrBlock::AddMovieTagsInput,
 ];
+pub const ADD_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
+  ActiveRadarrBlock::AddMovieSelectRootFolder,
+  ActiveRadarrBlock::AddMovieSelectMonitor,
+  ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+  ActiveRadarrBlock::AddMovieSelectQualityProfile,
+  ActiveRadarrBlock::AddMovieTagsInput,
+  ActiveRadarrBlock::AddMovieConfirmPrompt,
+];
 pub const EDIT_COLLECTION_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditCollectionPrompt,
   ActiveRadarrBlock::EditCollectionConfirmPrompt,
@@ -419,6 +434,14 @@ pub const EDIT_COLLECTION_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditCollectionToggleSearchOnAdd,
   ActiveRadarrBlock::EditCollectionToggleMonitored,
 ];
+pub const EDIT_COLLECTION_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
+  ActiveRadarrBlock::EditCollectionToggleMonitored,
+  ActiveRadarrBlock::EditCollectionSelectMinimumAvailability,
+  ActiveRadarrBlock::EditCollectionSelectQualityProfile,
+  ActiveRadarrBlock::EditCollectionRootFolderPathInput,
+  ActiveRadarrBlock::EditCollectionToggleSearchOnAdd,
+  ActiveRadarrBlock::EditCollectionConfirmPrompt,
+];
 pub const EDIT_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditMoviePrompt,
   ActiveRadarrBlock::EditMovieConfirmPrompt,
@@ -427,6 +450,14 @@ pub const EDIT_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditMovieSelectQualityProfile,
   ActiveRadarrBlock::EditMovieTagsInput,
   ActiveRadarrBlock::EditMovieToggleMonitored,
+];
+pub const EDIT_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
+  ActiveRadarrBlock::EditMovieToggleMonitored,
+  ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
+  ActiveRadarrBlock::EditMovieSelectQualityProfile,
+  ActiveRadarrBlock::EditMoviePathInput,
+  ActiveRadarrBlock::EditMovieTagsInput,
+  ActiveRadarrBlock::EditMovieConfirmPrompt,
 ];
 pub const MOVIE_DETAILS_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::MovieDetails,
@@ -458,141 +489,11 @@ pub const DELETE_MOVIE_BLOCKS: [ActiveRadarrBlock; 4] = [
   ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
   ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
 ];
-
-impl ActiveRadarrBlock {
-  pub fn next_add_movie_prompt_block(&self) -> Self {
-    match self {
-      ActiveRadarrBlock::AddMovieSelectRootFolder => ActiveRadarrBlock::AddMovieSelectMonitor,
-      ActiveRadarrBlock::AddMovieSelectMonitor => {
-        ActiveRadarrBlock::AddMovieSelectMinimumAvailability
-      }
-      ActiveRadarrBlock::AddMovieSelectMinimumAvailability => {
-        ActiveRadarrBlock::AddMovieSelectQualityProfile
-      }
-      ActiveRadarrBlock::AddMovieSelectQualityProfile => ActiveRadarrBlock::AddMovieTagsInput,
-      ActiveRadarrBlock::AddMovieTagsInput => ActiveRadarrBlock::AddMovieConfirmPrompt,
-      _ => ActiveRadarrBlock::AddMovieSelectRootFolder,
-    }
-  }
-
-  pub fn next_edit_movie_prompt_block(&self) -> Self {
-    match self {
-      ActiveRadarrBlock::EditMovieToggleMonitored => {
-        ActiveRadarrBlock::EditMovieSelectMinimumAvailability
-      }
-      ActiveRadarrBlock::EditMovieSelectMinimumAvailability => {
-        ActiveRadarrBlock::EditMovieSelectQualityProfile
-      }
-      ActiveRadarrBlock::EditMovieSelectQualityProfile => ActiveRadarrBlock::EditMoviePathInput,
-      ActiveRadarrBlock::EditMoviePathInput => ActiveRadarrBlock::EditMovieTagsInput,
-      ActiveRadarrBlock::EditMovieTagsInput => ActiveRadarrBlock::EditMovieConfirmPrompt,
-      _ => ActiveRadarrBlock::EditMovieToggleMonitored,
-    }
-  }
-
-  pub fn next_edit_collection_prompt_block(&self) -> Self {
-    match self {
-      ActiveRadarrBlock::EditCollectionToggleMonitored => {
-        ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
-      }
-      ActiveRadarrBlock::EditCollectionSelectMinimumAvailability => {
-        ActiveRadarrBlock::EditCollectionSelectQualityProfile
-      }
-      ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
-        ActiveRadarrBlock::EditCollectionRootFolderPathInput
-      }
-      ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
-        ActiveRadarrBlock::EditCollectionToggleSearchOnAdd
-      }
-      ActiveRadarrBlock::EditCollectionToggleSearchOnAdd => {
-        ActiveRadarrBlock::EditCollectionConfirmPrompt
-      }
-      _ => ActiveRadarrBlock::EditCollectionToggleMonitored,
-    }
-  }
-
-  pub fn next_delete_movie_prompt_block(&self) -> Self {
-    match self {
-      ActiveRadarrBlock::DeleteMovieToggleDeleteFile => {
-        ActiveRadarrBlock::DeleteMovieToggleAddListExclusion
-      }
-      ActiveRadarrBlock::DeleteMovieToggleAddListExclusion => {
-        ActiveRadarrBlock::DeleteMovieConfirmPrompt
-      }
-      ActiveRadarrBlock::DeleteMovieConfirmPrompt => ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
-      _ => ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
-    }
-  }
-
-  pub fn previous_add_movie_prompt_block(&self) -> Self {
-    match self {
-      ActiveRadarrBlock::AddMovieSelectRootFolder => ActiveRadarrBlock::AddMovieConfirmPrompt,
-      ActiveRadarrBlock::AddMovieSelectMonitor => ActiveRadarrBlock::AddMovieSelectRootFolder,
-      ActiveRadarrBlock::AddMovieSelectMinimumAvailability => {
-        ActiveRadarrBlock::AddMovieSelectMonitor
-      }
-      ActiveRadarrBlock::AddMovieSelectQualityProfile => {
-        ActiveRadarrBlock::AddMovieSelectMinimumAvailability
-      }
-      ActiveRadarrBlock::AddMovieTagsInput => ActiveRadarrBlock::AddMovieSelectQualityProfile,
-      ActiveRadarrBlock::AddMovieConfirmPrompt => ActiveRadarrBlock::AddMovieTagsInput,
-      _ => ActiveRadarrBlock::AddMovieSelectRootFolder,
-    }
-  }
-
-  pub fn previous_edit_movie_prompt_block(&self) -> Self {
-    match self {
-      ActiveRadarrBlock::EditMovieToggleMonitored => ActiveRadarrBlock::EditMovieConfirmPrompt,
-      ActiveRadarrBlock::EditMovieSelectMinimumAvailability => {
-        ActiveRadarrBlock::EditMovieToggleMonitored
-      }
-      ActiveRadarrBlock::EditMovieSelectQualityProfile => {
-        ActiveRadarrBlock::EditMovieSelectMinimumAvailability
-      }
-      ActiveRadarrBlock::EditMoviePathInput => ActiveRadarrBlock::EditMovieSelectQualityProfile,
-      ActiveRadarrBlock::EditMovieTagsInput => ActiveRadarrBlock::EditMoviePathInput,
-      ActiveRadarrBlock::EditMovieConfirmPrompt => ActiveRadarrBlock::EditMovieTagsInput,
-      _ => ActiveRadarrBlock::EditMovieToggleMonitored,
-    }
-  }
-
-  pub fn previous_edit_collection_prompt_block(&self) -> Self {
-    match self {
-      ActiveRadarrBlock::EditCollectionToggleMonitored => {
-        ActiveRadarrBlock::EditCollectionConfirmPrompt
-      }
-      ActiveRadarrBlock::EditCollectionSelectMinimumAvailability => {
-        ActiveRadarrBlock::EditCollectionToggleMonitored
-      }
-      ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
-        ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
-      }
-      ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
-        ActiveRadarrBlock::EditCollectionSelectQualityProfile
-      }
-      ActiveRadarrBlock::EditCollectionToggleSearchOnAdd => {
-        ActiveRadarrBlock::EditCollectionRootFolderPathInput
-      }
-      ActiveRadarrBlock::EditCollectionConfirmPrompt => {
-        ActiveRadarrBlock::EditCollectionToggleSearchOnAdd
-      }
-      _ => ActiveRadarrBlock::EditCollectionToggleMonitored,
-    }
-  }
-
-  pub fn previous_delete_movie_prompt_block(&self) -> Self {
-    match self {
-      ActiveRadarrBlock::DeleteMovieToggleDeleteFile => ActiveRadarrBlock::DeleteMovieConfirmPrompt,
-      ActiveRadarrBlock::DeleteMovieToggleAddListExclusion => {
-        ActiveRadarrBlock::DeleteMovieToggleDeleteFile
-      }
-      ActiveRadarrBlock::DeleteMovieConfirmPrompt => {
-        ActiveRadarrBlock::DeleteMovieToggleAddListExclusion
-      }
-      _ => ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
-    }
-  }
-}
+pub const DELETE_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 3] = [
+  ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
+  ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
+  ActiveRadarrBlock::DeleteMovieConfirmPrompt,
+];
 
 impl From<ActiveRadarrBlock> for Route {
   fn from(active_radarr_block: ActiveRadarrBlock) -> Route {
@@ -606,7 +507,7 @@ impl From<(ActiveRadarrBlock, Option<ActiveRadarrBlock>)> for Route {
   }
 }
 
-impl App {
+impl<'a> App<'a> {
   pub(super) async fn dispatch_by_radarr_block(&mut self, active_radarr_block: &ActiveRadarrBlock) {
     match active_radarr_block {
       ActiveRadarrBlock::Collections => {
@@ -773,7 +674,7 @@ pub mod radarr_test_utils {
   };
   use crate::models::ScrollableText;
 
-  pub fn create_test_radarr_data() -> RadarrData {
+  pub fn create_test_radarr_data<'a>() -> RadarrData<'a> {
     let mut radarr_data = RadarrData {
       is_searching: true,
       is_filtering: true,
@@ -905,9 +806,9 @@ mod tests {
     use crate::models::radarr_models::{
       Collection, MinimumAvailability, Monitor, Movie, RootFolder,
     };
-    use crate::models::HorizontallyScrollableText;
     use crate::models::Route;
     use crate::models::StatefulTable;
+    use crate::models::{BlockSelectionState, HorizontallyScrollableText};
 
     #[test]
     fn test_from_tuple_to_route_with_context() {
@@ -1149,10 +1050,7 @@ mod tests {
       assert!(radarr_data.minimum_availability_list.items.is_empty());
       assert!(radarr_data.quality_profile_list.items.is_empty());
       assert!(radarr_data.root_folder_list.items.is_empty());
-      assert_eq!(
-        radarr_data.selected_block,
-        ActiveRadarrBlock::AddMovieSelectRootFolder
-      );
+      assert_eq!(radarr_data.selected_block, BlockSelectionState::default());
       assert!(radarr_data.filtered_movies.items.is_empty());
       assert!(radarr_data.downloads.items.is_empty());
       assert!(radarr_data.quality_profile_map.is_empty());
@@ -1183,7 +1081,7 @@ mod tests {
       assert!(!radarr_data.delete_movie_files);
       assert!(!radarr_data.add_list_exclusion);
 
-      assert_eq!(radarr_data.main_tabs.tabs.len(), 4);
+      assert_eq!(radarr_data.main_tabs.tabs.len(), 5);
 
       assert_str_eq!(radarr_data.main_tabs.tabs[0].title, "Library");
       assert_eq!(
@@ -1192,7 +1090,7 @@ mod tests {
       );
       assert!(radarr_data.main_tabs.tabs[0].help.is_empty());
       assert_eq!(radarr_data.main_tabs.tabs[0].contextual_help,
-                 Some("<a> add | <e> edit | <del> delete | <s> search | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter".to_owned()));
+                 Some("<a> add | <e> edit | <del> delete | <s> search | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"));
 
       assert_str_eq!(radarr_data.main_tabs.tabs[1].title, "Downloads");
       assert_eq!(
@@ -1202,7 +1100,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[1].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[1].contextual_help,
-        Some("<r> refresh | <del> delete".to_owned())
+        Some("<r> refresh | <del> delete")
       );
 
       assert_str_eq!(radarr_data.main_tabs.tabs[2].title, "Collections");
@@ -1212,7 +1110,7 @@ mod tests {
       );
       assert!(radarr_data.main_tabs.tabs[2].help.is_empty());
       assert_eq!(radarr_data.main_tabs.tabs[2].contextual_help,
-                 Some("<s> search | <e> edit | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter".to_owned()));
+                 Some("<s> search | <e> edit | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"));
 
       assert_str_eq!(radarr_data.main_tabs.tabs[3].title, "Root Folders");
       assert_eq!(
@@ -1222,7 +1120,18 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[3].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[3].contextual_help,
-        Some("<a> add | <del> delete | <r> refresh".to_owned())
+        Some("<a> add | <del> delete | <r> refresh")
+      );
+
+      assert_str_eq!(radarr_data.main_tabs.tabs[4].title, "System");
+      assert_eq!(
+        radarr_data.main_tabs.tabs[4].route,
+        ActiveRadarrBlock::System.into()
+      );
+      assert!(radarr_data.main_tabs.tabs[4].help.is_empty());
+      assert_eq!(
+        radarr_data.main_tabs.tabs[4].contextual_help,
+        Some("<enter> select menu item | <esc> go back to menu selection")
       );
 
       assert_eq!(radarr_data.movie_info_tabs.tabs.len(), 6);
@@ -1303,7 +1212,7 @@ mod tests {
       );
       assert_eq!(
         radarr_data.movie_info_tabs.tabs[5].contextual_help,
-        Some("<enter> details".to_owned())
+        Some("<enter> details")
       );
     }
   }
@@ -1311,264 +1220,116 @@ mod tests {
   mod active_radarr_block_tests {
     use pretty_assertions::assert_eq;
 
-    use crate::app::radarr::ActiveRadarrBlock;
+    use crate::app::radarr::{
+      ActiveRadarrBlock, ADD_MOVIE_SELECTION_BLOCKS, DELETE_MOVIE_SELECTION_BLOCKS,
+      EDIT_COLLECTION_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS,
+    };
 
     #[test]
-    fn test_next_add_movie_prompt_block() {
-      let active_block = ActiveRadarrBlock::AddMovieSelectRootFolder.next_add_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::AddMovieSelectMonitor);
-
-      let active_block = active_block.next_add_movie_prompt_block();
+    fn test_add_movie_prompt_block_order() {
+      let mut add_movie_block_iter = ADD_MOVIE_SELECTION_BLOCKS.iter();
 
       assert_eq!(
-        active_block,
-        ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+        add_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::AddMovieSelectRootFolder
       );
-
-      let active_block = active_block.next_add_movie_prompt_block();
-
       assert_eq!(
-        active_block,
-        ActiveRadarrBlock::AddMovieSelectQualityProfile
+        add_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::AddMovieSelectMonitor
       );
-
-      let active_block = active_block.next_add_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::AddMovieTagsInput);
-
-      let active_block = active_block.next_add_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::AddMovieConfirmPrompt);
-
-      let active_block = active_block.next_add_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::AddMovieSelectRootFolder);
-    }
-
-    #[test]
-    fn test_next_edit_movie_prompt_block() {
-      let active_block = ActiveRadarrBlock::EditMovieToggleMonitored.next_edit_movie_prompt_block();
-
       assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditMovieSelectMinimumAvailability
+        add_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::AddMovieSelectMinimumAvailability
       );
-
-      let active_block = active_block.next_edit_movie_prompt_block();
-
       assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditMovieSelectQualityProfile
+        add_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::AddMovieSelectQualityProfile
       );
-
-      let active_block = active_block.next_edit_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::EditMoviePathInput);
-
-      let active_block = active_block.next_edit_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::EditMovieTagsInput);
-
-      let active_block = active_block.next_edit_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::EditMovieConfirmPrompt);
-
-      let active_block = active_block.next_edit_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::EditMovieToggleMonitored);
-    }
-
-    #[test]
-    fn test_next_edit_collection_prompt_block() {
-      let active_block =
-        ActiveRadarrBlock::EditCollectionToggleMonitored.next_edit_collection_prompt_block();
-
       assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
+        add_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::AddMovieTagsInput
       );
-
-      let active_block = active_block.next_edit_collection_prompt_block();
-
       assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditCollectionSelectQualityProfile
-      );
-
-      let active_block = active_block.next_edit_collection_prompt_block();
-
-      assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditCollectionRootFolderPathInput
-      );
-
-      let active_block = active_block.next_edit_collection_prompt_block();
-
-      assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditCollectionToggleSearchOnAdd
-      );
-
-      let active_block = active_block.next_edit_collection_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::EditCollectionConfirmPrompt);
-
-      let active_block = active_block.next_edit_collection_prompt_block();
-
-      assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditCollectionToggleMonitored
+        add_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::AddMovieConfirmPrompt
       );
     }
 
     #[test]
-    fn test_next_delete_movie_prompt_block() {
-      let active_block =
-        ActiveRadarrBlock::DeleteMovieToggleDeleteFile.next_delete_movie_prompt_block();
+    fn test_edit_movie_prompt_block_order() {
+      let mut edit_movie_block_iter = EDIT_MOVIE_SELECTION_BLOCKS.iter();
 
       assert_eq!(
-        active_block,
-        ActiveRadarrBlock::DeleteMovieToggleAddListExclusion
+        edit_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditMovieToggleMonitored
       );
-
-      let active_block = active_block.next_delete_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::DeleteMovieConfirmPrompt);
-
-      let active_block = active_block.next_delete_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::DeleteMovieToggleDeleteFile);
-    }
-
-    #[test]
-    fn test_previous_add_movie_prompt_block() {
-      let active_block =
-        ActiveRadarrBlock::AddMovieSelectRootFolder.previous_add_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::AddMovieConfirmPrompt);
-
-      let active_block = active_block.previous_add_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::AddMovieTagsInput);
-
-      let active_block = active_block.previous_add_movie_prompt_block();
-
       assert_eq!(
-        active_block,
-        ActiveRadarrBlock::AddMovieSelectQualityProfile
+        edit_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditMovieSelectMinimumAvailability
       );
-
-      let active_block = active_block.previous_add_movie_prompt_block();
-
       assert_eq!(
-        active_block,
-        ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+        edit_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditMovieSelectQualityProfile
       );
-
-      let active_block = active_block.previous_add_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::AddMovieSelectMonitor);
-
-      let active_block = active_block.previous_add_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::AddMovieSelectRootFolder);
-    }
-
-    #[test]
-    fn test_previous_edit_movie_prompt_block() {
-      let active_block =
-        ActiveRadarrBlock::EditMovieToggleMonitored.previous_edit_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::EditMovieConfirmPrompt);
-
-      let active_block = active_block.previous_edit_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::EditMovieTagsInput);
-
-      let active_block = active_block.previous_edit_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::EditMoviePathInput);
-
-      let active_block = active_block.previous_edit_movie_prompt_block();
-
       assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditMovieSelectQualityProfile
+        edit_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditMoviePathInput
       );
-
-      let active_block = active_block.previous_edit_movie_prompt_block();
-
       assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditMovieSelectMinimumAvailability
+        edit_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditMovieTagsInput
       );
-
-      let active_block = active_block.previous_edit_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::EditMovieToggleMonitored);
-    }
-
-    #[test]
-    fn test_previous_edit_collection_prompt_block() {
-      let active_block =
-        ActiveRadarrBlock::EditCollectionToggleMonitored.previous_edit_collection_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::EditCollectionConfirmPrompt);
-
-      let active_block = active_block.previous_edit_collection_prompt_block();
-
       assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditCollectionToggleSearchOnAdd
-      );
-
-      let active_block = active_block.previous_edit_collection_prompt_block();
-
-      assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditCollectionRootFolderPathInput
-      );
-
-      let active_block = active_block.previous_edit_collection_prompt_block();
-
-      assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditCollectionSelectQualityProfile
-      );
-
-      let active_block = active_block.previous_edit_collection_prompt_block();
-
-      assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
-      );
-
-      let active_block = active_block.previous_edit_collection_prompt_block();
-
-      assert_eq!(
-        active_block,
-        ActiveRadarrBlock::EditCollectionToggleMonitored
+        edit_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditMovieConfirmPrompt
       );
     }
 
     #[test]
-    fn test_previous_delete_movie_prompt_block() {
-      let active_block =
-        ActiveRadarrBlock::DeleteMovieToggleDeleteFile.previous_delete_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::DeleteMovieConfirmPrompt);
-
-      let active_block = active_block.previous_delete_movie_prompt_block();
+    fn test_edit_collection_prompt_block_order() {
+      let mut edit_collection_block_iter = EDIT_COLLECTION_SELECTION_BLOCKS.iter();
 
       assert_eq!(
-        active_block,
-        ActiveRadarrBlock::DeleteMovieToggleAddListExclusion
+        edit_collection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditCollectionToggleMonitored
       );
+      assert_eq!(
+        edit_collection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
+      );
+      assert_eq!(
+        edit_collection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditCollectionSelectQualityProfile
+      );
+      assert_eq!(
+        edit_collection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditCollectionRootFolderPathInput
+      );
+      assert_eq!(
+        edit_collection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditCollectionToggleSearchOnAdd
+      );
+      assert_eq!(
+        edit_collection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditCollectionConfirmPrompt
+      );
+    }
 
-      let active_block = active_block.previous_delete_movie_prompt_block();
-
-      assert_eq!(active_block, ActiveRadarrBlock::DeleteMovieToggleDeleteFile);
+    #[test]
+    fn test_delete_movie_prompt_block_order() {
+      let mut delete_movie_block_iter = DELETE_MOVIE_SELECTION_BLOCKS.iter();
+      assert_eq!(
+        delete_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::DeleteMovieToggleDeleteFile
+      );
+      assert_eq!(
+        delete_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::DeleteMovieToggleAddListExclusion
+      );
+      assert_eq!(
+        delete_movie_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::DeleteMovieConfirmPrompt
+      );
     }
   }
 
@@ -2120,7 +1881,7 @@ mod tests {
       assert!(!app.data.radarr_data.collection_movies.items.is_empty());
     }
 
-    fn construct_app_unit() -> (App, mpsc::Receiver<NetworkEvent>) {
+    fn construct_app_unit<'a>() -> (App<'a>, mpsc::Receiver<NetworkEvent>) {
       let (sync_network_tx, sync_network_rx) = mpsc::channel::<NetworkEvent>(500);
       let mut app = App {
         network_tx: Some(sync_network_tx),

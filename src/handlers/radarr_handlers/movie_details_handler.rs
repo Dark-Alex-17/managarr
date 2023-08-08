@@ -4,28 +4,28 @@ use serde_json::Number;
 use strum::IntoEnumIterator;
 
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-use crate::app::radarr::ActiveRadarrBlock;
+use crate::app::radarr::{ActiveRadarrBlock, EDIT_MOVIE_SELECTION_BLOCKS};
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::radarr_models::{Language, Release, ReleaseField};
-use crate::models::Scrollable;
+use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 
-pub(super) struct MovieDetailsHandler<'a> {
+pub(super) struct MovieDetailsHandler<'a, 'b> {
   key: &'a Key,
-  app: &'a mut App,
+  app: &'a mut App<'b>,
   active_radarr_block: &'a ActiveRadarrBlock,
   _context: &'a Option<ActiveRadarrBlock>,
 }
 
-impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
+impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<'a, 'b> {
   fn with(
     key: &'a Key,
-    app: &'a mut App,
+    app: &'a mut App<'b>,
     active_block: &'a ActiveRadarrBlock,
     _context: &'a Option<ActiveRadarrBlock>,
-  ) -> MovieDetailsHandler<'a> {
+  ) -> MovieDetailsHandler<'a, 'b> {
     MovieDetailsHandler {
       key,
       app,
@@ -234,7 +234,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
               .into(),
           );
           self.app.data.radarr_data.populate_edit_movie_fields();
-          self.app.data.radarr_data.selected_block = ActiveRadarrBlock::EditMovieToggleMonitored;
+          self.app.data.radarr_data.selected_block =
+            BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
         }
         _ if *key == DEFAULT_KEYBINDINGS.update.key => {
           self
@@ -779,7 +780,9 @@ mod tests {
 
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
     use crate::app::radarr::RadarrData;
+    use crate::app::radarr::EDIT_MOVIE_SELECTION_BLOCKS;
     use crate::models::radarr_models::{MinimumAvailability, Movie};
+    use crate::models::BlockSelectionState;
     use crate::models::HorizontallyScrollableText;
     use crate::models::StatefulTable;
     use crate::test_edit_movie_key;

@@ -57,7 +57,7 @@ async fn main() -> Result<()> {
 }
 
 #[tokio::main]
-async fn start_networking(mut network_rx: Receiver<NetworkEvent>, app: &Arc<Mutex<App>>) {
+async fn start_networking(mut network_rx: Receiver<NetworkEvent>, app: &Arc<Mutex<App<'_>>>) {
   let network = Network::new(reqwest::Client::new(), app);
 
   while let Some(network_event) = network_rx.recv().await {
@@ -65,7 +65,7 @@ async fn start_networking(mut network_rx: Receiver<NetworkEvent>, app: &Arc<Mute
   }
 }
 
-async fn start_ui(app: &Arc<Mutex<App>>) -> Result<()> {
+async fn start_ui(app: &Arc<Mutex<App<'_>>>) -> Result<()> {
   let mut stdout = io::stdout();
   enable_raw_mode()?;
 

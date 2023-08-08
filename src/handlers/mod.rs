@@ -7,7 +7,7 @@ use crate::models::{HorizontallyScrollableText, Route};
 
 mod radarr_handlers;
 
-pub trait KeyEventHandler<'a, T: Into<Route>> {
+pub trait KeyEventHandler<'a, 'b, T: Into<Route>> {
   fn handle_key_event(&mut self) {
     let key = self.get_key();
     match key {
@@ -29,7 +29,7 @@ pub trait KeyEventHandler<'a, T: Into<Route>> {
     self.handle_key_event();
   }
 
-  fn with(key: &'a Key, app: &'a mut App, active_block: &'a T, context: &'a Option<T>) -> Self;
+  fn with(key: &'a Key, app: &'a mut App<'b>, active_block: &'a T, context: &'a Option<T>) -> Self;
   fn get_key(&self) -> &Key;
   fn handle_scroll_up(&mut self);
   fn handle_scroll_down(&mut self);
@@ -42,19 +42,19 @@ pub trait KeyEventHandler<'a, T: Into<Route>> {
   fn handle_char_key_event(&mut self);
 }
 
-pub fn handle_events(key: Key, app: &mut App) {
+pub fn handle_events(key: Key, app: &mut App<'_>) {
   if let Route::Radarr(active_radarr_block, context) = *app.get_current_route() {
     RadarrHandler::with(&key, app, &active_radarr_block, &context).handle()
   }
 }
 
-fn handle_clear_errors(app: &mut App) {
+fn handle_clear_errors(app: &mut App<'_>) {
   if !app.error.text.is_empty() {
     app.error = HorizontallyScrollableText::default();
   }
 }
 
-fn handle_prompt_toggle(app: &mut App, key: &Key) {
+fn handle_prompt_toggle(app: &mut App<'_>, key: &Key) {
   match key {
     _ if *key == DEFAULT_KEYBINDINGS.left.key || *key == DEFAULT_KEYBINDINGS.right.key => {
       if let Route::Radarr(_, _) = *app.get_current_route() {

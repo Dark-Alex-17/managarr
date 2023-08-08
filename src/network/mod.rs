@@ -21,13 +21,13 @@ pub enum NetworkEvent {
   Radarr(RadarrEvent),
 }
 
-pub struct Network<'a> {
+pub struct Network<'a, 'b> {
   pub client: Client,
-  pub app: &'a Arc<Mutex<App>>,
+  pub app: &'a Arc<Mutex<App<'b>>>,
 }
 
-impl<'a> Network<'a> {
-  pub fn new(client: Client, app: &'a Arc<Mutex<App>>) -> Self {
+impl<'a, 'b> Network<'a, 'b> {
+  pub fn new(client: Client, app: &'a Arc<Mutex<App<'b>>>) -> Self {
     Network { client, app }
   }
 
@@ -43,7 +43,7 @@ impl<'a> Network<'a> {
   pub async fn handle_request<B, R>(
     &self,
     request_props: RequestProps<B>,
-    mut app_update_fn: impl FnMut(R, MutexGuard<'_, App>),
+    mut app_update_fn: impl FnMut(R, MutexGuard<'_, App<'_>>),
   ) where
     B: Serialize + Default + Debug,
     R: DeserializeOwned,
@@ -427,11 +427,11 @@ mod tests {
     pub value: String,
   }
 
-  async fn mock_api(
+  async fn mock_api<'a>(
     method: RequestMethod,
     response_status: usize,
     has_response_body: bool,
-  ) -> (Mock, Arc<Mutex<App>>, ServerGuard) {
+  ) -> (Mock, Arc<Mutex<App<'a>>>, ServerGuard) {
     let mut server = Server::new_async().await;
     let mut async_server = server
       .mock(&method.to_string().to_uppercase(), "/test")

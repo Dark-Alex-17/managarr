@@ -7,20 +7,20 @@ use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
 
-pub(super) struct EditCollectionHandler<'a> {
+pub(super) struct EditCollectionHandler<'a, 'b> {
   key: &'a Key,
-  app: &'a mut App,
+  app: &'a mut App<'b>,
   active_radarr_block: &'a ActiveRadarrBlock,
   context: &'a Option<ActiveRadarrBlock>,
 }
 
-impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditCollectionHandler<'a> {
+impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandler<'a, 'b> {
   fn with(
     key: &'a Key,
-    app: &'a mut App,
+    app: &'a mut App<'b>,
     active_block: &'a ActiveRadarrBlock,
     context: &'a Option<ActiveRadarrBlock>,
-  ) -> EditCollectionHandler<'a> {
+  ) -> EditCollectionHandler<'a, 'b> {
     EditCollectionHandler {
       key,
       app,
@@ -45,12 +45,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditCollectionHandler<'a> {
         self.app.data.radarr_data.quality_profile_list.scroll_up()
       }
       ActiveRadarrBlock::EditCollectionPrompt => {
-        self.app.data.radarr_data.selected_block = self
-          .app
-          .data
-          .radarr_data
-          .selected_block
-          .previous_edit_collection_prompt_block()
+        self.app.data.radarr_data.selected_block.previous()
       }
       _ => (),
     }
@@ -67,14 +62,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditCollectionHandler<'a> {
       ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
         self.app.data.radarr_data.quality_profile_list.scroll_down()
       }
-      ActiveRadarrBlock::EditCollectionPrompt => {
-        self.app.data.radarr_data.selected_block = self
-          .app
-          .data
-          .radarr_data
-          .selected_block
-          .next_edit_collection_prompt_block()
-      }
+      ActiveRadarrBlock::EditCollectionPrompt => self.app.data.radarr_data.selected_block.next(),
       _ => (),
     }
   }
@@ -135,41 +123,53 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditCollectionHandler<'a> {
 
   fn handle_submit(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::EditCollectionPrompt => match self.app.data.radarr_data.selected_block {
-        ActiveRadarrBlock::EditCollectionConfirmPrompt => {
-          if self.app.data.radarr_data.prompt_confirm {
-            self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditCollection);
-            self.app.should_refresh = true;
-          }
+      ActiveRadarrBlock::EditCollectionPrompt => {
+        match self.app.data.radarr_data.selected_block.get_active_block() {
+          ActiveRadarrBlock::EditCollectionConfirmPrompt => {
+            if self.app.data.radarr_data.prompt_confirm {
+              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditCollection);
+              self.app.should_refresh = true;
+            }
 
-          self.app.pop_navigation_stack();
+            self.app.pop_navigation_stack();
+          }
+          ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
+          | ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
+            self.app.push_navigation_stack(
+              (
+                *self.app.data.radarr_data.selected_block.get_active_block(),
+                *self.context,
+              )
+                .into(),
+            )
+          }
+          ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
+            self.app.push_navigation_stack(
+              (
+                *self.app.data.radarr_data.selected_block.get_active_block(),
+                *self.context,
+              )
+                .into(),
+            );
+            self.app.should_ignore_quit_key = true;
+          }
+          ActiveRadarrBlock::EditCollectionToggleMonitored => {
+            self.app.data.radarr_data.edit_monitored =
+              Some(!self.app.data.radarr_data.edit_monitored.unwrap_or_default())
+          }
+          ActiveRadarrBlock::EditCollectionToggleSearchOnAdd => {
+            self.app.data.radarr_data.edit_search_on_add = Some(
+              !self
+                .app
+                .data
+                .radarr_data
+                .edit_search_on_add
+                .unwrap_or_default(),
+            )
+          }
+          _ => (),
         }
-        ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
-        | ActiveRadarrBlock::EditCollectionSelectQualityProfile => self
-          .app
-          .push_navigation_stack((self.app.data.radarr_data.selected_block, *self.context).into()),
-        ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
-          self.app.push_navigation_stack(
-            (self.app.data.radarr_data.selected_block, *self.context).into(),
-          );
-          self.app.should_ignore_quit_key = true;
-        }
-        ActiveRadarrBlock::EditCollectionToggleMonitored => {
-          self.app.data.radarr_data.edit_monitored =
-            Some(!self.app.data.radarr_data.edit_monitored.unwrap_or_default())
-        }
-        ActiveRadarrBlock::EditCollectionToggleSearchOnAdd => {
-          self.app.data.radarr_data.edit_search_on_add = Some(
-            !self
-              .app
-              .data
-              .radarr_data
-              .edit_search_on_add
-              .unwrap_or_default(),
-          )
-        }
-        _ => (),
-      },
+      }
       ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
       | ActiveRadarrBlock::EditCollectionSelectQualityProfile => self.app.pop_navigation_stack(),
       ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
@@ -222,6 +222,8 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
+    use crate::app::radarr::EDIT_COLLECTION_SELECTION_BLOCKS;
+    use crate::models::BlockSelectionState;
     use crate::{test_enum_scroll, test_iterable_scroll};
 
     use super::*;
@@ -247,7 +249,8 @@ mod tests {
     fn test_edit_collection_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
       let mut app = App::default();
       app.data.radarr_data.selected_block =
-        ActiveRadarrBlock::EditCollectionSelectMinimumAvailability;
+        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.next();
 
       EditCollectionHandler::with(
         &key,
@@ -259,13 +262,13 @@ mod tests {
 
       if key == Key::Up {
         assert_eq!(
-          app.data.radarr_data.selected_block,
-          ActiveRadarrBlock::EditCollectionToggleMonitored
+          app.data.radarr_data.selected_block.get_active_block(),
+          &ActiveRadarrBlock::EditCollectionToggleMonitored
         );
       } else {
         assert_eq!(
-          app.data.radarr_data.selected_block,
-          ActiveRadarrBlock::EditCollectionSelectQualityProfile
+          app.data.radarr_data.selected_block.get_active_block(),
+          &ActiveRadarrBlock::EditCollectionSelectQualityProfile
         );
       }
     }
@@ -351,7 +354,8 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::models::Route;
+    use crate::app::radarr::EDIT_COLLECTION_SELECTION_BLOCKS;
+    use crate::models::{BlockSelectionState, Route};
     use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
@@ -387,7 +391,13 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
-      app.data.radarr_data.selected_block = ActiveRadarrBlock::EditCollectionConfirmPrompt;
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditCollectionHandler::with(
         &SUBMIT_KEY,
@@ -410,7 +420,13 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
       app.data.radarr_data.prompt_confirm = true;
-      app.data.radarr_data.selected_block = ActiveRadarrBlock::EditCollectionConfirmPrompt;
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditCollectionHandler::with(
         &SUBMIT_KEY,
@@ -438,7 +454,8 @@ mod tests {
         Some(ActiveRadarrBlock::Collections),
       ));
       let mut app = App::default();
-      app.data.radarr_data.selected_block = ActiveRadarrBlock::EditCollectionToggleMonitored;
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
       app.push_navigation_stack(current_route);
 
       EditCollectionHandler::with(
@@ -471,7 +488,13 @@ mod tests {
         Some(ActiveRadarrBlock::Collections),
       ));
       let mut app = App::default();
-      app.data.radarr_data.selected_block = ActiveRadarrBlock::EditCollectionToggleSearchOnAdd;
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 2);
       app.push_navigation_stack(current_route);
 
       EditCollectionHandler::with(
@@ -498,13 +521,12 @@ mod tests {
     }
 
     #[rstest]
+    #[case(ActiveRadarrBlock::EditCollectionSelectMinimumAvailability, 1)]
+    #[case(ActiveRadarrBlock::EditCollectionSelectQualityProfile, 2)]
+    #[case(ActiveRadarrBlock::EditCollectionRootFolderPathInput, 3)]
     fn test_edit_collection_prompt_selected_block_submit(
-      #[values(
-        ActiveRadarrBlock::EditCollectionSelectMinimumAvailability,
-        ActiveRadarrBlock::EditCollectionSelectQualityProfile,
-        ActiveRadarrBlock::EditCollectionRootFolderPathInput
-      )]
-      selected_block: ActiveRadarrBlock,
+      #[case] selected_block: ActiveRadarrBlock,
+      #[case] index: usize,
     ) {
       let mut app = App::default();
       app.push_navigation_stack(
@@ -514,7 +536,9 @@ mod tests {
         )
           .into(),
       );
-      app.data.radarr_data.selected_block = selected_block;
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.set_index(index);
 
       EditCollectionHandler::with(
         &SUBMIT_KEY,

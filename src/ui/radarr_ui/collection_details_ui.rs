@@ -18,7 +18,7 @@ use crate::utils::convert_runtime;
 
 pub(super) fn draw_collection_details_popup<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   content_area: Rect,
 ) {
   if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
@@ -40,7 +40,7 @@ pub(super) fn draw_collection_details_popup<B: Backend>(
 
 pub(super) fn draw_collection_details<B: Backend>(
   f: &mut Frame<'_, B>,
-  app: &mut App,
+  app: &mut App<'_>,
   content_area: Rect,
 ) {
   let chunks = vertical_chunks_with_margin(
@@ -213,7 +213,7 @@ pub(super) fn draw_collection_details<B: Backend>(
   );
 }
 
-fn draw_movie_overview<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_area: Rect) {
+fn draw_movie_overview<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_area: Rect) {
   let title_block = title_block("Overview");
   f.render_widget(title_block, content_area);
 

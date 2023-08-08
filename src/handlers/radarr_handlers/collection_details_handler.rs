@@ -1,24 +1,26 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-use crate::app::radarr::ActiveRadarrBlock;
+use crate::app::radarr::{
+  ActiveRadarrBlock, ADD_MOVIE_SELECTION_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
+};
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::KeyEventHandler;
-use crate::models::Scrollable;
+use crate::models::{BlockSelectionState, Scrollable};
 
-pub(super) struct CollectionDetailsHandler<'a> {
+pub(super) struct CollectionDetailsHandler<'a, 'b> {
   key: &'a Key,
-  app: &'a mut App,
+  app: &'a mut App<'b>,
   active_radarr_block: &'a ActiveRadarrBlock,
   _context: &'a Option<ActiveRadarrBlock>,
 }
 
-impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a> {
+impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHandler<'a, 'b> {
   fn with(
     key: &'a Key,
-    app: &'a mut App,
+    app: &'a mut App<'b>,
     active_block: &'a ActiveRadarrBlock,
     _context: &'a Option<ActiveRadarrBlock>,
-  ) -> CollectionDetailsHandler<'a> {
+  ) -> CollectionDetailsHandler<'a, 'b> {
     CollectionDetailsHandler {
       key,
       app,
@@ -95,7 +97,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a>
           )
             .into(),
         );
-        self.app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieSelectRootFolder;
+        self.app.data.radarr_data.selected_block =
+          BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
         self.app.data.radarr_data.populate_preferences_lists();
       }
     }
@@ -124,7 +127,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a>
           .into(),
       );
       self.app.data.radarr_data.populate_edit_collection_fields();
-      self.app.data.radarr_data.selected_block = ActiveRadarrBlock::EditCollectionToggleMonitored;
+      self.app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
     }
   }
 }
@@ -182,7 +186,9 @@ mod tests {
     use bimap::BiMap;
     use pretty_assertions::assert_eq;
 
+    use crate::app::radarr::ADD_MOVIE_SELECTION_BLOCKS;
     use crate::models::radarr_models::Movie;
+    use crate::models::BlockSelectionState;
 
     use super::*;
 
@@ -198,7 +204,12 @@ mod tests {
         .set_items(vec![CollectionMovie::default()]);
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(1, "B - Test 2".to_owned()), (0, "A - Test 1".to_owned())]);
-      app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieConfirmPrompt;
+      app.data.radarr_data.selected_block = BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
 
       CollectionDetailsHandler::with(
         &SUBMIT_KEY,
@@ -218,8 +229,8 @@ mod tests {
       );
       assert!(!app.data.radarr_data.monitor_list.items.is_empty());
       assert_eq!(
-        app.data.radarr_data.selected_block,
-        ActiveRadarrBlock::AddMovieSelectRootFolder
+        app.data.radarr_data.selected_block.get_active_block(),
+        &ActiveRadarrBlock::AddMovieSelectRootFolder
       );
       assert!(!app
         .data
@@ -329,7 +340,9 @@ mod tests {
 
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
     use crate::app::radarr::RadarrData;
+    use crate::app::radarr::EDIT_COLLECTION_SELECTION_BLOCKS;
     use crate::models::radarr_models::{Collection, MinimumAvailability};
+    use crate::models::BlockSelectionState;
     use crate::models::HorizontallyScrollableText;
     use crate::models::StatefulTable;
     use crate::test_edit_collection_key;

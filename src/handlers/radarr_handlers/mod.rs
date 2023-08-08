@@ -1,7 +1,9 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::radarr::{
   ActiveRadarrBlock, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS,
-  EDIT_COLLECTION_BLOCKS, EDIT_MOVIE_BLOCKS, FILTER_BLOCKS, MOVIE_DETAILS_BLOCKS, SEARCH_BLOCKS,
+  DELETE_MOVIE_SELECTION_BLOCKS, EDIT_COLLECTION_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
+  EDIT_MOVIE_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, FILTER_BLOCKS, MOVIE_DETAILS_BLOCKS,
+  SEARCH_BLOCKS,
 };
 use crate::handlers::radarr_handlers::add_movie_handler::AddMovieHandler;
 use crate::handlers::radarr_handlers::collection_details_handler::CollectionDetailsHandler;
@@ -10,7 +12,7 @@ use crate::handlers::radarr_handlers::edit_collection_handler::EditCollectionHan
 use crate::handlers::radarr_handlers::edit_movie_handler::EditMovieHandler;
 use crate::handlers::radarr_handlers::movie_details_handler::MovieDetailsHandler;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
-use crate::models::{HorizontallyScrollableText, Scrollable};
+use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::utils::strip_non_search_characters;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
@@ -22,14 +24,14 @@ mod edit_collection_handler;
 mod edit_movie_handler;
 mod movie_details_handler;
 
-pub(super) struct RadarrHandler<'a> {
+pub(super) struct RadarrHandler<'a, 'b> {
   key: &'a Key,
-  app: &'a mut App,
+  app: &'a mut App<'b>,
   active_radarr_block: &'a ActiveRadarrBlock,
   context: &'a Option<ActiveRadarrBlock>,
 }
 
-impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
+impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b> {
   fn handle(&mut self) {
     match self.active_radarr_block {
       _ if MOVIE_DETAILS_BLOCKS.contains(self.active_radarr_block) => {
@@ -60,10 +62,10 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
 
   fn with(
     key: &'a Key,
-    app: &'a mut App,
+    app: &'a mut App<'b>,
     active_block: &'a ActiveRadarrBlock,
     context: &'a Option<ActiveRadarrBlock>,
-  ) -> RadarrHandler<'a> {
+  ) -> RadarrHandler<'a, 'b> {
     RadarrHandler {
       key,
       app,
@@ -222,7 +224,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         self
           .app
           .push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
-        self.app.data.radarr_data.selected_block = ActiveRadarrBlock::DeleteMovieToggleDeleteFile;
+        self.app.data.radarr_data.selected_block =
+          BlockSelectionState::new(&DELETE_MOVIE_SELECTION_BLOCKS);
       }
       ActiveRadarrBlock::Downloads => self
         .app
@@ -239,7 +242,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       ActiveRadarrBlock::Movies
       | ActiveRadarrBlock::Downloads
       | ActiveRadarrBlock::Collections
-      | ActiveRadarrBlock::RootFolders => match self.key {
+      | ActiveRadarrBlock::RootFolders
+      | ActiveRadarrBlock::System => match self.key {
         _ if *self.key == DEFAULT_KEYBINDINGS.left.key => {
           self.app.data.radarr_data.main_tabs.previous();
           self
@@ -473,7 +477,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
               .into(),
           );
           self.app.data.radarr_data.populate_edit_movie_fields();
-          self.app.data.radarr_data.selected_block = ActiveRadarrBlock::EditMovieToggleMonitored;
+          self.app.data.radarr_data.selected_block =
+            BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
         }
         _ if *key == DEFAULT_KEYBINDINGS.add.key => {
           self
@@ -527,7 +532,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
           );
           self.app.data.radarr_data.populate_edit_collection_fields();
           self.app.data.radarr_data.selected_block =
-            ActiveRadarrBlock::EditCollectionToggleMonitored;
+            BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
         }
         _ if *key == DEFAULT_KEYBINDINGS.update.key => {
           self
@@ -565,7 +570,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
   }
 }
 
-impl RadarrHandler<'_> {
+impl<'a, 'b> RadarrHandler<'a, 'b> {
   fn search_table<T, F>(&mut self, rows: &[T], field_selection_fn: F) -> Option<usize>
   where
     F: Fn(&T) -> &str,
@@ -636,6 +641,7 @@ mod radarr_handler_test_utils {
         tags: vec![Number::from(1)],
         ..Movie::default()
       }]);
+      radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
       app.data.radarr_data = radarr_data;
 
       $handler::with(&DEFAULT_KEYBINDINGS.edit.key, &mut app, &$block, &None).handle();
@@ -645,8 +651,8 @@ mod radarr_handler_test_utils {
         &(ActiveRadarrBlock::EditMoviePrompt, Some($context)).into()
       );
       assert_eq!(
-        app.data.radarr_data.selected_block,
-        ActiveRadarrBlock::EditMovieToggleMonitored
+        app.data.radarr_data.selected_block.get_active_block(),
+        &ActiveRadarrBlock::EditMovieToggleMonitored
       );
       assert_eq!(
         app.data.radarr_data.minimum_availability_list.items,
@@ -702,6 +708,7 @@ mod radarr_handler_test_utils {
         minimum_availability: MinimumAvailability::Released,
         ..Collection::default()
       }]);
+      radarr_data.selected_block = BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
       app.data.radarr_data = radarr_data;
 
       $handler::with(&DEFAULT_KEYBINDINGS.edit.key, &mut app, &$block, &None).handle();
@@ -711,8 +718,8 @@ mod radarr_handler_test_utils {
         &(ActiveRadarrBlock::EditCollectionPrompt, Some($context)).into()
       );
       assert_eq!(
-        app.data.radarr_data.selected_block,
-        ActiveRadarrBlock::EditCollectionToggleMonitored
+        app.data.radarr_data.selected_block.get_active_block(),
+        &ActiveRadarrBlock::EditCollectionToggleMonitored
       );
       assert_eq!(
         app.data.radarr_data.minimum_availability_list.items,
@@ -951,8 +958,8 @@ mod tests {
         &ActiveRadarrBlock::DeleteMoviePrompt.into()
       );
       assert_eq!(
-        app.data.radarr_data.selected_block,
-        ActiveRadarrBlock::DeleteMovieToggleDeleteFile
+        app.data.radarr_data.selected_block.get_active_block(),
+        &ActiveRadarrBlock::DeleteMovieToggleDeleteFile
       );
     }
 
@@ -996,10 +1003,11 @@ mod tests {
     use super::*;
 
     #[rstest]
-    #[case(ActiveRadarrBlock::Movies, 0, ActiveRadarrBlock::RootFolders)]
-    #[case(ActiveRadarrBlock::Downloads, 1, ActiveRadarrBlock::Movies)]
-    #[case(ActiveRadarrBlock::Collections, 2, ActiveRadarrBlock::Downloads)]
+    #[case(ActiveRadarrBlock::Movies, 0, ActiveRadarrBlock::System)]
+    #[case(ActiveRadarrBlock::System, 4, ActiveRadarrBlock::RootFolders)]
     #[case(ActiveRadarrBlock::RootFolders, 3, ActiveRadarrBlock::Collections)]
+    #[case(ActiveRadarrBlock::Collections, 2, ActiveRadarrBlock::Downloads)]
+    #[case(ActiveRadarrBlock::Downloads, 1, ActiveRadarrBlock::Movies)]
     fn test_radarr_tab_left(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] index: usize,
@@ -1027,7 +1035,8 @@ mod tests {
     #[case(ActiveRadarrBlock::Movies, 0, ActiveRadarrBlock::Downloads)]
     #[case(ActiveRadarrBlock::Downloads, 1, ActiveRadarrBlock::Collections)]
     #[case(ActiveRadarrBlock::Collections, 2, ActiveRadarrBlock::RootFolders)]
-    #[case(ActiveRadarrBlock::RootFolders, 3, ActiveRadarrBlock::Movies)]
+    #[case(ActiveRadarrBlock::RootFolders, 3, ActiveRadarrBlock::System)]
+    #[case(ActiveRadarrBlock::System, 4, ActiveRadarrBlock::Movies)]
     fn test_radarr_tab_right(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] index: usize,
@@ -1549,7 +1558,10 @@ mod tests {
 
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
     use crate::app::radarr::RadarrData;
+    use crate::app::radarr::EDIT_COLLECTION_SELECTION_BLOCKS;
+    use crate::app::radarr::EDIT_MOVIE_SELECTION_BLOCKS;
     use crate::models::radarr_models::MinimumAvailability;
+    use crate::models::BlockSelectionState;
     use crate::models::HorizontallyScrollableText;
     use crate::models::StatefulTable;
 

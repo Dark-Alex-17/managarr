@@ -4,17 +4,17 @@ use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::network::radarr_network::RadarrEvent;
 
-pub(super) struct DeleteMovieHandler<'a> {
+pub(super) struct DeleteMovieHandler<'a, 'b> {
   key: &'a Key,
-  app: &'a mut App,
+  app: &'a mut App<'b>,
   active_radarr_block: &'a ActiveRadarrBlock,
   _context: &'a Option<ActiveRadarrBlock>,
 }
 
-impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for DeleteMovieHandler<'a> {
+impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'a, 'b> {
   fn with(
     key: &'a Key,
-    app: &'a mut App,
+    app: &'a mut App<'b>,
     active_block: &'a ActiveRadarrBlock,
     _context: &'a Option<ActiveRadarrBlock>,
   ) -> Self {
@@ -32,23 +32,13 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for DeleteMovieHandler<'a> {
 
   fn handle_scroll_up(&mut self) {
     if *self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
-      self.app.data.radarr_data.selected_block = self
-        .app
-        .data
-        .radarr_data
-        .selected_block
-        .previous_delete_movie_prompt_block();
+      self.app.data.radarr_data.selected_block.previous();
     }
   }
 
   fn handle_scroll_down(&mut self) {
     if *self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
-      self.app.data.radarr_data.selected_block = self
-        .app
-        .data
-        .radarr_data
-        .selected_block
-        .next_delete_movie_prompt_block();
+      self.app.data.radarr_data.selected_block.next();
     }
   }
 
@@ -66,7 +56,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for DeleteMovieHandler<'a> {
 
   fn handle_submit(&mut self) {
     if self.active_radarr_block == &ActiveRadarrBlock::DeleteMoviePrompt {
-      match self.app.data.radarr_data.selected_block {
+      match self.app.data.radarr_data.selected_block.get_active_block() {
         ActiveRadarrBlock::DeleteMovieConfirmPrompt => {
           if self.app.data.radarr_data.prompt_confirm {
             self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteMovie);
@@ -114,25 +104,30 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
+    use crate::app::radarr::DELETE_MOVIE_SELECTION_BLOCKS;
+    use crate::models::BlockSelectionState;
+
     use super::*;
 
     #[rstest]
     fn test_delete_movie_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
       let mut app = App::default();
-      app.data.radarr_data.selected_block = ActiveRadarrBlock::DeleteMovieToggleAddListExclusion;
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&DELETE_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.next();
 
       DeleteMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::DeleteMoviePrompt, &None)
         .handle();
 
       if key == Key::Up {
         assert_eq!(
-          app.data.radarr_data.selected_block,
-          ActiveRadarrBlock::DeleteMovieToggleDeleteFile
+          app.data.radarr_data.selected_block.get_active_block(),
+          &ActiveRadarrBlock::DeleteMovieToggleDeleteFile
         );
       } else {
         assert_eq!(
-          app.data.radarr_data.selected_block,
-          ActiveRadarrBlock::DeleteMovieConfirmPrompt
+          app.data.radarr_data.selected_block.get_active_block(),
+          &ActiveRadarrBlock::DeleteMovieConfirmPrompt
         );
       }
     }
@@ -162,6 +157,8 @@ mod tests {
   mod test_handle_submit {
     use pretty_assertions::assert_eq;
 
+    use crate::app::radarr::DELETE_MOVIE_SELECTION_BLOCKS;
+    use crate::models::BlockSelectionState;
     use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
@@ -173,7 +170,13 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
-      app.data.radarr_data.selected_block = ActiveRadarrBlock::DeleteMovieConfirmPrompt;
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&DELETE_MOVIE_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(DELETE_MOVIE_SELECTION_BLOCKS.len() - 1);
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
 
@@ -200,7 +203,13 @@ mod tests {
       app.data.radarr_data.prompt_confirm = true;
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
-      app.data.radarr_data.selected_block = ActiveRadarrBlock::DeleteMovieConfirmPrompt;
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&DELETE_MOVIE_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(DELETE_MOVIE_SELECTION_BLOCKS.len() - 1);
 
       DeleteMovieHandler::with(
         &SUBMIT_KEY,
@@ -225,7 +234,8 @@ mod tests {
     fn test_delete_movie_toggle_delete_files_submit() {
       let current_route = ActiveRadarrBlock::DeleteMoviePrompt.into();
       let mut app = App::default();
-      app.data.radarr_data.selected_block = ActiveRadarrBlock::DeleteMovieToggleDeleteFile;
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&DELETE_MOVIE_SELECTION_BLOCKS);
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
 
       DeleteMovieHandler::with(
