@@ -648,7 +648,7 @@ impl<'a> Network<'a> {
       .radarr_data
       .downloads
       .current_selection()
-      .id
+      .movie_id
       .as_u64()
       .unwrap();
 
@@ -857,7 +857,7 @@ fn get_movie_status(has_file: bool, downloads_vec: &[DownloadRecord], movie_id: 
   if !has_file {
     if let Some(download) = downloads_vec
       .iter()
-      .find(|&download| download.id.as_u64().unwrap() == movie_id.as_u64().unwrap())
+      .find(|&download| download.movie_id.as_u64().unwrap() == movie_id.as_u64().unwrap())
     {
       if download.status == "downloading" {
         return "Downloading".to_owned();
@@ -2004,7 +2004,7 @@ mod test {
   #[test]
   fn test_get_movie_status_missing() {
     let download_record = DownloadRecord {
-      id: 1.into(),
+      movie_id: 1.into(),
       ..DownloadRecord::default()
     };
 
@@ -2025,7 +2025,7 @@ mod test {
       get_movie_status(
         false,
         &[DownloadRecord {
-          id: 1.into(),
+          movie_id: 1.into(),
           status: "downloading".to_owned(),
           ..DownloadRecord::default()
         }],
@@ -2238,7 +2238,7 @@ mod test {
     DownloadRecord {
       title: "Test Download Title".to_owned(),
       status: "downloading".to_owned(),
-      id: Number::from(1),
+      movie_id: Number::from(1),
       size: Number::from(3543348019u64),
       sizeleft: Number::from(1771674009u64),
       output_path: Some(HorizontallyScrollableText::from(

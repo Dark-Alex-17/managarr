@@ -591,7 +591,7 @@ fn determine_row_style(downloads_vec: &[DownloadRecord], movie: &Movie) -> Style
   if !movie.has_file {
     if let Some(download) = downloads_vec
       .iter()
-      .find(|&download| download.id == movie.id)
+      .find(|&download| download.movie_id == movie.id)
     {
       if download.status == "downloading" {
         return style_warning();

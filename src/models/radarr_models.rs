@@ -154,7 +154,7 @@ pub struct DownloadRecord {
   pub title: String,
   pub status: String,
   #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
+  pub movie_id: Number,
   #[derivative(Default(value = "Number::from(0)"))]
   pub size: Number,
   #[derivative(Default(value = "Number::from(0)"))]
