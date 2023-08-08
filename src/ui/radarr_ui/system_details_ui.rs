@@ -14,8 +14,8 @@ use crate::ui::radarr_ui::system_ui::{
 };
 use crate::ui::utils::{borderless_block, style_primary, title_block};
 use crate::ui::{
-  draw_help, draw_large_popup_over, draw_list_box, draw_medium_popup_over, draw_prompt_box,
-  draw_prompt_popup_over, draw_table, loading, DrawUi, ListProps, TableProps,
+  draw_help_and_get_content_rect, draw_large_popup_over, draw_list_box, draw_medium_popup_over,
+  draw_prompt_box, draw_prompt_popup_over, draw_table, loading, DrawUi, ListProps, TableProps,
 };
 
 pub(super) struct SystemDetailsUi {}
@@ -72,7 +72,7 @@ fn draw_logs_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Re
       title: "Log Details",
       is_loading: app.is_loading,
       is_popup: true,
-      help: Some("<esc> close | <↑↓←→> scroll"),
+      help: Some("<↑↓←→> scroll | <esc> close"),
     },
   );
 }
@@ -81,7 +81,8 @@ fn draw_tasks_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: R
   let tasks_popup_table = |f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect| {
     f.render_widget(title_block("Tasks"), area);
 
-    let context_area = draw_help(f, area, Some("<enter> start task | <esc> close"));
+    let context_area =
+      draw_help_and_get_content_rect(f, area, Some("<enter> start task | <esc> close"));
 
     draw_table(
       f,
@@ -135,16 +136,19 @@ fn draw_start_task_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, p
 }
 
 fn draw_updates_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+  f.render_widget(title_block("Updates"), area);
+
+  let content_rect = draw_help_and_get_content_rect(f, area, Some("<↑↓> scroll | <esc> close"));
   let updates = app.data.radarr_data.updates.get_text();
-  let block = title_block("Updates");
+  let block = borderless_block();
 
   if !updates.is_empty() {
     let updates_paragraph = Paragraph::new(Text::from(updates))
       .block(block)
       .scroll((app.data.radarr_data.updates.offset, 0));
 
-    f.render_widget(updates_paragraph, area);
+    f.render_widget(updates_paragraph, content_rect);
   } else {
-    loading(f, block, area, app.is_loading);
+    loading(f, block, content_rect, app.is_loading);
   }
 }

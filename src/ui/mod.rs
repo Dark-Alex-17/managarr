@@ -323,7 +323,7 @@ fn draw_table<'a, B, T, F>(
     help,
   } = table_props;
 
-  let content_area = draw_help(f, content_area, help);
+  let content_area = draw_help_and_get_content_rect(f, content_area, help);
 
   if !content.items.is_empty() {
     let rows = content.items.iter().map(row_mapper);
@@ -592,7 +592,10 @@ pub fn draw_list_box<'a, B: Backend, T>(
 
   let (content_area, block) = if is_popup {
     f.render_widget(title_block(title), area);
-    (draw_help(f, area, help), borderless_block())
+    (
+      draw_help_and_get_content_rect(f, area, help),
+      borderless_block(),
+    )
   } else {
     (area, title_block(title))
   };
@@ -611,7 +614,11 @@ pub fn draw_list_box<'a, B: Backend, T>(
   }
 }
 
-fn draw_help<B: Backend>(f: &mut Frame<'_, B>, area: Rect, help: Option<&str>) -> Rect {
+fn draw_help_and_get_content_rect<B: Backend>(
+  f: &mut Frame<'_, B>,
+  area: Rect,
+  help: Option<&str>,
+) -> Rect {
   if let Some(help_string) = help {
     let chunks =
       vertical_chunks_with_margin(vec![Constraint::Min(0), Constraint::Length(2)], area, 1);
