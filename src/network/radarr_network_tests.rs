@@ -10,6 +10,7 @@ mod test {
   use serde_json::{json, Value};
   use strum::IntoEnumIterator;
   use tokio::sync::Mutex;
+  use tokio_util::sync::CancellationToken;
 
   use crate::app::radarr::ActiveRadarrBlock;
   use crate::models::radarr_models::{
@@ -194,7 +195,7 @@ mod test {
       RadarrEvent::HealthCheck.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::HealthCheck).await;
 
@@ -219,7 +220,7 @@ mod test {
       RadarrEvent::GetOverview.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::GetOverview).await;
 
@@ -251,7 +252,7 @@ mod test {
       RadarrEvent::GetStatus.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::GetStatus).await;
 
@@ -273,7 +274,7 @@ mod test {
       RadarrEvent::GetMovies.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::GetMovies).await;
 
@@ -311,7 +312,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::GetReleases).await;
 
@@ -357,7 +358,7 @@ mod test {
     )
     .await;
     app_arc.lock().await.data.radarr_data.search = "test term".to_owned().into();
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::SearchNewMovie)
@@ -397,7 +398,7 @@ mod test {
         task_name: "TestTask".to_owned(),
         ..Task::default()
       }]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::StartTask).await;
 
@@ -413,7 +414,7 @@ mod test {
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Get, None, Some(json!([])), &resource).await;
     app_arc.lock().await.data.radarr_data.search = "test term".to_owned().into();
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::SearchNewMovie)
@@ -453,7 +454,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::TriggerAutomaticSearch)
@@ -481,7 +482,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::UpdateAndScan)
@@ -502,7 +503,7 @@ mod test {
       RadarrEvent::UpdateAllMovies.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::UpdateAllMovies)
@@ -522,7 +523,7 @@ mod test {
       RadarrEvent::UpdateDownloads.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::UpdateDownloads)
@@ -553,7 +554,7 @@ mod test {
     .await;
 
     app_arc.lock().await.data.radarr_data.indexer_settings = Some(indexer_settings());
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::UpdateIndexerSettings)
@@ -580,7 +581,7 @@ mod test {
       RadarrEvent::UpdateCollections.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::UpdateCollections)
@@ -608,7 +609,7 @@ mod test {
       .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.quality_profile_map =
       BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::GetMovieDetails)
@@ -715,7 +716,7 @@ mod test {
       .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.quality_profile_map =
       BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::GetMovieDetails)
@@ -795,7 +796,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::GetMovieHistory)
@@ -846,7 +847,7 @@ mod test {
       RadarrEvent::GetCollections.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::GetCollections)
@@ -881,7 +882,7 @@ mod test {
       RadarrEvent::GetDownloads.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::GetDownloads).await;
 
@@ -946,7 +947,7 @@ mod test {
       RadarrEvent::GetIndexers.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::GetIndexers).await;
 
@@ -977,7 +978,7 @@ mod test {
       RadarrEvent::GetIndexerSettings.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::GetIndexerSettings)
@@ -1021,7 +1022,7 @@ mod test {
       RadarrEvent::GetQueuedEvents.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::GetQueuedEvents)
@@ -1076,7 +1077,7 @@ mod test {
       &resource,
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::GetLogs).await;
 
@@ -1109,7 +1110,7 @@ mod test {
       RadarrEvent::GetQualityProfiles.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::GetQualityProfiles)
@@ -1135,7 +1136,7 @@ mod test {
       RadarrEvent::GetTags.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::GetTags).await;
 
@@ -1190,7 +1191,7 @@ mod test {
       RadarrEvent::GetTasks.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::GetTasks).await;
 
@@ -1279,7 +1280,7 @@ mod test {
       RadarrEvent::GetUpdates.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::GetUpdates).await;
 
@@ -1301,7 +1302,7 @@ mod test {
     .await;
     app_arc.lock().await.data.radarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.add_tag("testing".to_owned()).await;
 
@@ -1331,7 +1332,7 @@ mod test {
       RadarrEvent::GetRootFolders.resource(),
     )
     .await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::GetRootFolders)
@@ -1369,7 +1370,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::GetMovieCredits)
@@ -1400,7 +1401,7 @@ mod test {
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
     }
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::DeleteMovie).await;
 
@@ -1421,7 +1422,7 @@ mod test {
       .radarr_data
       .downloads
       .set_items(vec![download_record()]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::DeleteDownload)
@@ -1442,7 +1443,7 @@ mod test {
       .radarr_data
       .indexers
       .set_items(vec![indexer()]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::DeleteIndexer)
@@ -1463,7 +1464,7 @@ mod test {
       .radarr_data
       .root_folders
       .set_items(vec![root_folder()]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::DeleteRootFolder)
@@ -1548,7 +1549,7 @@ mod test {
           .set_items(vec![add_movie_search_result()]);
       }
     }
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::AddMovie).await;
 
@@ -1568,7 +1569,7 @@ mod test {
     .await;
 
     app_arc.lock().await.data.radarr_data.edit_path = HorizontallyScrollableText::from("/nfs/test");
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::AddRootFolder)
@@ -1636,7 +1637,7 @@ mod test {
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
     }
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::EditMovie).await;
 
@@ -1731,7 +1732,7 @@ mod test {
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
     }
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::EditCollection)
@@ -1765,7 +1766,7 @@ mod test {
       .radarr_data
       .movie_releases
       .set_items(vec![release()]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::DownloadRelease)
@@ -1787,7 +1788,7 @@ mod test {
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(1, "Any".to_owned()), (2, "HD - 1080p".to_owned())]);
     }
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     assert_eq!(network.extract_quality_profile_id().await, 1);
   }
@@ -1804,7 +1805,7 @@ mod test {
         (3, "hi".to_owned()),
       ]);
     }
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     assert_eq!(network.extract_and_add_tag_ids_vec().await, vec![2, 3, 1]);
   }
@@ -1824,7 +1825,7 @@ mod test {
       app.data.radarr_data.tags_map =
         BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
     }
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     let tag_ids_vec = network.extract_and_add_tag_ids_vec().await;
 
@@ -1853,7 +1854,7 @@ mod test {
         id: Number::from(1),
         ..Movie::default()
       }]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     assert_eq!(network.extract_movie_id().await, 1);
   }
@@ -1871,7 +1872,7 @@ mod test {
         id: Number::from(1),
         ..Movie::default()
       }]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     assert_eq!(network.extract_movie_id().await, 1);
   }
@@ -1889,7 +1890,7 @@ mod test {
         id: Number::from(1),
         ..Collection::default()
       }]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     assert_eq!(network.extract_collection_id().await, 1);
   }
@@ -1907,7 +1908,7 @@ mod test {
         id: Number::from(1),
         ..Collection::default()
       }]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     assert_eq!(network.extract_collection_id().await, 1);
   }
@@ -1925,7 +1926,7 @@ mod test {
         id: Number::from(1),
         ..Movie::default()
       }]);
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     assert_str_eq!(
       network.append_movie_id_param("/test").await,
@@ -1936,7 +1937,7 @@ mod test {
   #[tokio::test]
   async fn test_radarr_request_props_from_default_radarr_config() {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let network = Network::new(&app_arc);
+    let network = Network::new(&app_arc, CancellationToken::new());
 
     let request_props = network
       .radarr_request_props_from("/test", RequestMethod::Get, None::<()>)
@@ -1963,7 +1964,7 @@ mod test {
       port: Some(8080),
       api_token: api_token.clone(),
     };
-    let network = Network::new(&app_arc);
+    let network = Network::new(&app_arc, CancellationToken::new());
 
     let request_props = network
       .radarr_request_props_from("/test", RequestMethod::Get, None::<()>)

@@ -3,6 +3,7 @@ use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
 use tokio::time::Instant;
+use tokio_util::sync::CancellationToken;
 
 use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
 use crate::models::{HorizontallyScrollableText, Route, TabRoute, TabState};
@@ -19,6 +20,7 @@ const DEFAULT_ROUTE: Route = Route::Radarr(ActiveRadarrBlock::Movies, None);
 pub struct App<'a> {
   navigation_stack: Vec<Route>,
   network_tx: Option<Sender<NetworkEvent>>,
+  cancellation_token: CancellationToken,
   pub server_tabs: TabState,
   pub error: HorizontallyScrollableText,
   pub response: String,
@@ -36,10 +38,15 @@ pub struct App<'a> {
 }
 
 impl<'a> App<'a> {
-  pub fn new(network_tx: Sender<NetworkEvent>, config: AppConfig) -> Self {
+  pub fn new(
+    network_tx: Sender<NetworkEvent>,
+    config: AppConfig,
+    cancellation_token: CancellationToken,
+  ) -> Self {
     App {
       network_tx: Some(network_tx),
       config,
+      cancellation_token,
       ..App::default()
     }
   }
@@ -102,6 +109,12 @@ impl<'a> App<'a> {
     }
   }
 
+  pub fn reset_cancellation_token(&mut self) -> CancellationToken {
+    self.cancellation_token = CancellationToken::new();
+
+    self.cancellation_token.clone()
+  }
+
   pub fn pop_and_push_navigation_stack(&mut self, route: Route) {
     self.pop_navigation_stack();
     self.push_navigation_stack(route);
@@ -117,6 +130,7 @@ impl<'a> Default for App<'a> {
     App {
       navigation_stack: vec![DEFAULT_ROUTE],
       network_tx: None,
+      cancellation_token: CancellationToken::new(),
       error: HorizontallyScrollableText::default(),
       response: String::default(),
       server_tabs: TabState::new(vec![

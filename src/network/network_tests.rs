@@ -8,12 +8,13 @@ mod tests {
   use pretty_assertions::assert_str_eq;
   use rstest::rstest;
   use serde::{Deserialize, Serialize};
-  use tokio::sync::Mutex;
+  use tokio::sync::{mpsc, Mutex};
+  use tokio_util::sync::CancellationToken;
 
-  use crate::app::{App, RadarrConfig};
+  use crate::app::{App, AppConfig, RadarrConfig};
   use crate::models::HorizontallyScrollableText;
   use crate::network::radarr_network::RadarrEvent;
-  use crate::network::{Network, RequestMethod, RequestProps};
+  use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
 
   #[tokio::test]
   async fn test_handle_network_event_radarr_event() {
@@ -38,7 +39,7 @@ mod tests {
     };
     app.config.radarr = radarr_config;
     let app_arc = Arc::new(Mutex::new(app));
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_network_event(RadarrEvent::HealthCheck.into())
@@ -62,7 +63,7 @@ mod tests {
       .create_async()
       .await;
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_request::<Test, ()>(
@@ -87,7 +88,7 @@ mod tests {
     #[values(RequestMethod::Get, RequestMethod::Post)] request_method: RequestMethod,
   ) {
     let (async_server, app_arc, server) = mock_api(request_method, 200, true).await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_request::<(), Test>(
@@ -106,6 +107,37 @@ mod tests {
   }
 
   #[tokio::test]
+  async fn test_handle_request_request_is_cancelled() {
+    let (async_server, _, server) = mock_api(RequestMethod::Get, 200, true).await;
+    let cancellation_token = CancellationToken::new();
+    let (tx, _) = mpsc::channel::<NetworkEvent>(500);
+    let app_arc = Arc::new(Mutex::new(App::new(
+      tx,
+      AppConfig::default(),
+      cancellation_token.clone(),
+    )));
+    app_arc.lock().await.is_loading = true;
+    let mut network = Network::new(&app_arc, cancellation_token);
+    network.cancellation_token.cancel();
+
+    network
+      .handle_request::<(), Test>(
+        RequestProps {
+          uri: format!("{}/test", server.url()),
+          method: RequestMethod::Get,
+          body: None,
+          api_token: "test1234".to_owned(),
+        },
+        |_, _| (),
+      )
+      .await;
+
+    assert!(!async_server.matched_async().await);
+    assert!(app_arc.lock().await.error.text.is_empty());
+    assert!(!network.cancellation_token.is_cancelled());
+  }
+
+  #[tokio::test]
   async fn test_handle_request_get_invalid_body() {
     let mut server = Server::new_async().await;
     let async_server = server
@@ -116,7 +148,7 @@ mod tests {
       .create_async()
       .await;
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_request::<(), Test>(
@@ -142,7 +174,7 @@ mod tests {
   #[tokio::test]
   async fn test_handle_request_failure_to_send_request() {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_request::<(), Test>(
@@ -176,7 +208,7 @@ mod tests {
     request_method: RequestMethod,
   ) {
     let (async_server, app_arc, server) = mock_api(request_method, 404, true).await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_request::<(), Test>(
@@ -200,7 +232,7 @@ mod tests {
   #[tokio::test]
   async fn test_handle_request_non_success_code_empty_response_body() {
     let (async_server, app_arc, server) = mock_api(RequestMethod::Post, 404, false).await;
-    let network = Network::new(&app_arc);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_request::<(), Test>(
@@ -252,7 +284,7 @@ mod tests {
 
     async_server = async_server.create_async().await;
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let network = Network::new(&app_arc);
+    let network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .call_api(RequestProps {

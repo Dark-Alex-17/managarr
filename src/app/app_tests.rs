@@ -16,6 +16,7 @@ mod tests {
 
     assert_eq!(app.navigation_stack, vec![DEFAULT_ROUTE]);
     assert!(app.network_tx.is_none());
+    assert!(!app.cancellation_token.is_cancelled());
     assert_eq!(app.error, HorizontallyScrollableText::default());
     assert!(app.response.is_empty());
     assert_eq!(app.server_tabs.index, 0);
@@ -80,6 +81,19 @@ mod tests {
 
     assert_eq!(app.get_current_route(), &DEFAULT_ROUTE);
     assert!(app.is_routing);
+  }
+
+  #[test]
+  fn test_reset_cancellation_token() {
+    let mut app = App::default();
+    app.cancellation_token.cancel();
+
+    assert!(app.cancellation_token.is_cancelled());
+
+    let new_token = app.reset_cancellation_token();
+
+    assert!(!app.cancellation_token.is_cancelled());
+    assert!(!new_token.is_cancelled());
   }
 
   #[test]

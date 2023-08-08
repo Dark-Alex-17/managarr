@@ -107,7 +107,7 @@ impl From<RadarrEvent> for NetworkEvent {
 }
 
 impl<'a, 'b> Network<'a, 'b> {
-  pub async fn handle_radarr_event(&self, radarr_event: RadarrEvent) {
+  pub async fn handle_radarr_event(&mut self, radarr_event: RadarrEvent) {
     match radarr_event {
       RadarrEvent::AddMovie => self.add_movie().await,
       RadarrEvent::AddRootFolder => self.add_root_folder().await,
@@ -148,7 +148,7 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn add_movie(&self) {
+  async fn add_movie(&mut self) {
     info!("Adding new movie to Radarr");
     let body = {
       let quality_profile_id = self.extract_quality_profile_id().await;
@@ -226,7 +226,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn add_root_folder(&self) {
+  async fn add_root_folder(&mut self) {
     info!("Adding new root folder to Radarr");
     let body = AddRootFolderBody {
       path: self.app.lock().await.data.radarr_data.edit_path.drain(),
@@ -247,7 +247,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn add_tag(&self, tag: String) {
+  async fn add_tag(&mut self, tag: String) {
     info!("Adding a new Radarr tag");
 
     let request_props = self
@@ -269,7 +269,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn delete_download(&self) {
+  async fn delete_download(&mut self) {
     let download_id = self
       .app
       .lock()
@@ -300,7 +300,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn delete_indexer(&self) {
+  async fn delete_indexer(&mut self) {
     let indexer_id = self
       .app
       .lock()
@@ -331,7 +331,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn delete_movie(&self) {
+  async fn delete_movie(&mut self) {
     let movie_id = self.extract_movie_id().await;
     let delete_files = self.app.lock().await.data.radarr_data.delete_movie_files;
     let add_import_exclusion = self.app.lock().await.data.radarr_data.add_list_exclusion;
@@ -369,7 +369,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .reset_delete_movie_preferences();
   }
 
-  async fn delete_root_folder(&self) {
+  async fn delete_root_folder(&mut self) {
     let root_folder_id = self
       .app
       .lock()
@@ -405,7 +405,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn download_release(&self) {
+  async fn download_release(&mut self) {
     let (guid, title, indexer_id) = {
       let app = self.app.lock().await;
       let Release {
@@ -435,7 +435,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn edit_collection(&self) {
+  async fn edit_collection(&mut self) {
     info!("Editing Radarr collection");
 
     info!("Fetching collection details");
@@ -511,7 +511,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn edit_movie(&self) {
+  async fn edit_movie(&mut self) {
     info!("Editing Radarr movie");
 
     info!("Fetching movie details");
@@ -573,7 +573,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_collections(&self) {
+  async fn get_collections(&mut self) {
     info!("Fetching Radarr collections");
 
     let request_props = self
@@ -591,18 +591,14 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_credits(&self) {
+  async fn get_credits(&mut self) {
     info!("Fetching Radarr movie credits");
 
+    let request_uri = self
+      .append_movie_id_param(RadarrEvent::GetMovieCredits.resource())
+      .await;
     let request_props = self
-      .radarr_request_props_from(
-        self
-          .append_movie_id_param(RadarrEvent::GetMovieCredits.resource())
-          .await
-          .as_str(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .radarr_request_props_from(request_uri.as_str(), RequestMethod::Get, None::<()>)
       .await;
 
     self
@@ -624,7 +620,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_diskspace(&self) {
+  async fn get_diskspace(&mut self) {
     info!("Fetching Radarr disk space");
 
     let request_props = self
@@ -642,7 +638,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_downloads(&self) {
+  async fn get_downloads(&mut self) {
     info!("Fetching Radarr downloads");
 
     let request_props = self
@@ -664,7 +660,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_indexers(&self) {
+  async fn get_indexers(&mut self) {
     info!("Fetching Radarr indexers");
 
     let request_props = self
@@ -682,7 +678,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_indexer_settings(&self) {
+  async fn get_indexer_settings(&mut self) {
     info!("Fetching Radarr indexer settings");
 
     let request_props = self
@@ -700,7 +696,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_healthcheck(&self) {
+  async fn get_healthcheck(&mut self) {
     info!("Performing Radarr health check");
 
     let request_props = self
@@ -716,7 +712,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_logs(&self) {
+  async fn get_logs(&mut self) {
     info!("Fetching Radarr logs");
 
     let resource = format!(
@@ -762,7 +758,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_movie_details(&self) {
+  async fn get_movie_details(&mut self) {
     info!("Fetching Radarr movie details");
 
     let movie_id = self.extract_movie_id().await;
@@ -918,18 +914,14 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_movie_history(&self) {
+  async fn get_movie_history(&mut self) {
     info!("Fetching Radarr movie history");
 
+    let request_uri = self
+      .append_movie_id_param(RadarrEvent::GetMovieHistory.resource())
+      .await;
     let request_props = self
-      .radarr_request_props_from(
-        self
-          .append_movie_id_param(RadarrEvent::GetMovieHistory.resource())
-          .await
-          .as_str(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .radarr_request_props_from(request_uri.as_str(), RequestMethod::Get, None::<()>)
       .await;
 
     self
@@ -945,7 +937,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_movies(&self) {
+  async fn get_movies(&mut self) {
     info!("Fetching Radarr library");
 
     let request_props = self
@@ -963,7 +955,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_quality_profiles(&self) {
+  async fn get_quality_profiles(&mut self) {
     info!("Fetching Radarr quality profiles");
 
     let request_props = self
@@ -984,7 +976,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_queued_events(&self) {
+  async fn get_queued_events(&mut self) {
     info!("Fetching Radarr queued events");
 
     let request_props = self
@@ -1006,7 +998,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_releases(&self) {
+  async fn get_releases(&mut self) {
     let movie_id = self.extract_movie_id().await;
     info!("Fetching releases for movie with id: {}", movie_id);
 
@@ -1030,7 +1022,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_root_folders(&self) {
+  async fn get_root_folders(&mut self) {
     info!("Fetching Radarr root folders");
 
     let request_props = self
@@ -1048,7 +1040,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_status(&self) {
+  async fn get_status(&mut self) {
     info!("Fetching Radarr system status");
 
     let request_props = self
@@ -1067,7 +1059,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_tags(&self) {
+  async fn get_tags(&mut self) {
     info!("Fetching Radarr tags");
 
     let request_props = self
@@ -1088,7 +1080,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_tasks(&self) {
+  async fn get_tasks(&mut self) {
     info!("Fetching Radarr tasks");
 
     let request_props = self
@@ -1106,7 +1098,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn get_updates(&self) {
+  async fn get_updates(&mut self) {
     info!("Fetching Radarr updates");
 
     let request_props = self
@@ -1197,7 +1189,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn search_movie(&self) {
+  async fn search_movie(&mut self) {
     info!("Searching for specific Radarr movie");
 
     let search_string = self.app.lock().await.data.radarr_data.search.text.clone();
@@ -1229,7 +1221,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn start_task(&self) {
+  async fn start_task(&mut self) {
     let task_name = self
       .app
       .lock()
@@ -1258,7 +1250,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn trigger_automatic_search(&self) {
+  async fn trigger_automatic_search(&mut self) {
     let movie_id = self.extract_movie_id().await;
     info!("Searching indexers for movie with id: {}", movie_id);
     let body = MovieCommandBody {
@@ -1279,7 +1271,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn update_all_movies(&self) {
+  async fn update_all_movies(&mut self) {
     info!("Updating all movies");
     let body = MovieCommandBody {
       name: "RefreshMovie".to_owned(),
@@ -1299,7 +1291,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn update_and_scan(&self) {
+  async fn update_and_scan(&mut self) {
     let movie_id = self.extract_movie_id().await;
     info!("Updating and scanning movie with id: {}", movie_id);
     let body = MovieCommandBody {
@@ -1320,7 +1312,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn update_collections(&self) {
+  async fn update_collections(&mut self) {
     info!("Updating collections");
     let body = CommandBody {
       name: "RefreshCollections".to_owned(),
@@ -1339,7 +1331,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn update_downloads(&self) {
+  async fn update_downloads(&mut self) {
     info!("Updating downloads");
     let body = CommandBody {
       name: "RefreshMonitoredDownloads".to_owned(),
@@ -1358,7 +1350,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
-  async fn update_indexer_settings(&self) {
+  async fn update_indexer_settings(&mut self) {
     info!("Updating Radarr indexer settings");
 
     let body = self
@@ -1416,7 +1408,7 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn extract_quality_profile_id(&self) -> u64 {
+  async fn extract_quality_profile_id(&mut self) -> u64 {
     let app = self.app.lock().await;
     let quality_profile = app
       .data
@@ -1434,7 +1426,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .unwrap()
   }
 
-  async fn extract_and_add_tag_ids_vec(&self) -> Vec<u64> {
+  async fn extract_and_add_tag_ids_vec(&mut self) -> Vec<u64> {
     let tags_map = self.app.lock().await.data.radarr_data.tags_map.clone();
     let edit_tags = self.app.lock().await.data.radarr_data.edit_tags.drain();
     let tags = edit_tags.clone();
@@ -1462,7 +1454,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .collect()
   }
 
-  async fn extract_movie_id(&self) -> u64 {
+  async fn extract_movie_id(&mut self) -> u64 {
     if !self
       .app
       .lock()
@@ -1499,7 +1491,7 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn extract_collection_id(&self) -> u64 {
+  async fn extract_collection_id(&mut self) -> u64 {
     if !self
       .app
       .lock()
@@ -1536,7 +1528,7 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn append_movie_id_param(&self, resource: &str) -> String {
+  async fn append_movie_id_param(&mut self, resource: &str) -> String {
     let movie_id = self.extract_movie_id().await;
     format!("{}?movieId={}", resource, movie_id)
   }

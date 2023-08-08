@@ -12,6 +12,7 @@ use crossterm::terminal::{
 };
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::{mpsc, Mutex};
+use tokio_util::sync::CancellationToken;
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
 
@@ -44,12 +45,17 @@ async fn main() -> Result<()> {
 
   let config = confy::load("managarr", "config")?;
   let (sync_network_tx, sync_network_rx) = mpsc::channel(500);
+  let cancellation_token = CancellationToken::new();
 
-  let app = Arc::new(Mutex::new(App::new(sync_network_tx, config)));
+  let app = Arc::new(Mutex::new(App::new(
+    sync_network_tx,
+    config,
+    cancellation_token.clone(),
+  )));
 
   let app_nw = Arc::clone(&app);
 
-  std::thread::spawn(move || start_networking(sync_network_rx, &app_nw));
+  std::thread::spawn(move || start_networking(sync_network_rx, &app_nw, cancellation_token));
 
   start_ui(&app).await?;
 
@@ -57,8 +63,12 @@ async fn main() -> Result<()> {
 }
 
 #[tokio::main]
-async fn start_networking(mut network_rx: Receiver<NetworkEvent>, app: &Arc<Mutex<App<'_>>>) {
-  let network = Network::new(app);
+async fn start_networking(
+  mut network_rx: Receiver<NetworkEvent>,
+  app: &Arc<Mutex<App<'_>>>,
+  cancellation_token: CancellationToken,
+) {
+  let mut network = Network::new(app, cancellation_token);
 
   while let Some(network_event) = network_rx.recv().await {
     network.handle_network_event(network_event).await;

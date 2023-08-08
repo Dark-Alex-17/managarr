@@ -1116,17 +1116,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_radarr_on_tick_not_routing() {
-      let mut app = App::default();
-
-      app
-        .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
-        .await;
-
-      assert!(!app.is_routing);
-    }
-
-    #[tokio::test]
     async fn test_radarr_on_tick_routing() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
       app.is_routing = true;
@@ -1160,6 +1149,41 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_radarr_on_tick_routing_while_long_request_is_running_should_cancel_request() {
+      let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.is_routing = true;
+      app.is_loading = true;
+
+      app
+        .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
+        .await;
+
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetDownloads.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetQualityProfiles.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetTags.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetRootFolders.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetDownloads.into()
+      );
+      assert!(app.is_loading);
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert!(app.cancellation_token.is_cancelled());
+    }
+
+    #[tokio::test]
     async fn test_radarr_on_tick_should_refresh() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
       app.should_refresh = true;
@@ -1189,10 +1213,6 @@ mod tests {
 
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetDownloads.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetQualityProfiles.into()
       );
       assert_eq!(
@@ -1208,7 +1228,6 @@ mod tests {
         RadarrEvent::GetDownloads.into()
       );
       assert!(app.is_loading);
-      assert!(!app.data.radarr_data.prompt_confirm);
     }
 
     #[tokio::test]

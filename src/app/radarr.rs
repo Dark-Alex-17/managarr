@@ -752,8 +752,16 @@ impl<'a> App<'a> {
       self.dispatch_by_radarr_block(&active_radarr_block).await;
     }
 
-    if self.is_routing || self.tick_count % self.tick_until_poll == 0 {
+    if self.is_routing {
+      if self.is_loading {
+        self.cancellation_token.cancel();
+      }
+
       self.dispatch_by_radarr_block(&active_radarr_block).await;
+      self.refresh_metadata().await;
+    }
+
+    if self.tick_count % self.tick_until_poll == 0 {
       self.refresh_metadata().await;
     }
   }
