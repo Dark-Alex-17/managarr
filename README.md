@@ -118,12 +118,12 @@ tautulli:
 - [ ] Support for Tautulli
 
 ## Dependencies
-- [tui-rs](https://github.com/fdehau/tui-rs)
-- [crossterm](https://github.com/crossterm-rs/crossterm)
-- [clap](https://github.com/clap-rs/clap)
-- [tokio](https://github.com/tokio-rs/tokio)
-- [serde](https://github.com/serde-rs/serde)
-- [reqwest](https://github.com/seanmonstar/reqwest)
+* [tui-rs](https://github.com/fdehau/tui-rs)
+* [crossterm](https://github.com/crossterm-rs/crossterm)
+* [clap](https://github.com/clap-rs/clap)
+* [tokio](https://github.com/tokio-rs/tokio)
+* [serde](https://github.com/serde-rs/serde)
+* [reqwest](https://github.com/seanmonstar/reqwest)
 
 ## Servarr Requirements
 * [Radarr >= v3](https://radarr.video/docs/api/)
