@@ -385,7 +385,7 @@ mod tests {
     );
   }
 
-  mod test_left_right_action {
+  mod test_handle_left_right_action {
     use rstest::rstest;
 
     use super::*;
@@ -404,7 +404,7 @@ mod tests {
     }
   }
 
-  mod test_submit {
+  mod test_handle_submit {
     use std::collections::HashMap;
 
     use pretty_assertions::{assert_eq, assert_str_eq};
@@ -547,7 +547,7 @@ mod tests {
     }
   }
 
-  mod test_esc {
+  mod test_handle_esc {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -560,7 +560,7 @@ mod tests {
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
     #[test]
-    fn test_esc_add_movie_search_input() {
+    fn test_add_movie_search_input_esc() {
       let mut radarr_data = RadarrData {
         is_searching: true,
         search: "test search".to_owned(),
@@ -594,7 +594,7 @@ mod tests {
     }
 
     #[test]
-    fn test_esc_add_movie_search_results() {
+    fn test_add_movie_search_results_esc() {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
@@ -623,7 +623,7 @@ mod tests {
     }
 
     #[test]
-    fn test_esc_add_movie_prompt() {
+    fn test_add_movie_prompt_esc() {
       let mut radarr_data = RadarrData::default();
       radarr_data
         .add_movie_monitor_list
@@ -663,7 +663,7 @@ mod tests {
     }
 
     #[rstest]
-    fn test_esc_selecting_preferences_blocks(
+    fn test_selecting_preferences_blocks_esc(
       #[values(
         ActiveRadarrBlock::AddMovieSelectMonitor,
         ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
@@ -684,11 +684,11 @@ mod tests {
     }
   }
 
-  mod test_key_char {
+  mod test_handle_key_char {
     use super::*;
 
     #[test]
-    fn test_backspace_add_movie_search_input() {
+    fn test_add_movie_search_input_backspace() {
       let mut app = App::default();
       app.data.radarr_data.search = "Test".to_owned();
 
@@ -703,7 +703,7 @@ mod tests {
     }
 
     #[test]
-    fn test_char_key_add_movie_search_input() {
+    fn test_add_movie_search_input_char_key() {
       let mut app = App::default();
 
       AddMovieHandler::with(

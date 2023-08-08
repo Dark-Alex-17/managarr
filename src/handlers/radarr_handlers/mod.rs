@@ -503,10 +503,10 @@ mod tests {
   use crate::app::radarr::ActiveRadarrBlock;
   use crate::app::App;
   use crate::event::Key;
-  use crate::extended_stateful_iterable_vec;
   use crate::handlers::radarr_handlers::RadarrHandler;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::{Collection, Movie};
+  use crate::{extended_stateful_iterable_vec, test_handler_delegation};
 
   mod test_handle_scroll_up_and_down {
     use rstest::rstest;
@@ -614,7 +614,7 @@ mod tests {
     );
   }
 
-  mod test_delete {
+  mod test_handle_delete {
     use pretty_assertions::assert_eq;
 
     use super::*;
@@ -646,7 +646,7 @@ mod tests {
     }
   }
 
-  mod test_left_right_action {
+  mod test_handle_left_right_action {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -656,7 +656,7 @@ mod tests {
     #[case(ActiveRadarrBlock::Movies, 0, ActiveRadarrBlock::Collections)]
     #[case(ActiveRadarrBlock::Downloads, 1, ActiveRadarrBlock::Movies)]
     #[case(ActiveRadarrBlock::Collections, 2, ActiveRadarrBlock::Downloads)]
-    fn test_left_movies_downloads_collections(
+    fn test_movies_downloads_collections_left(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] index: usize,
       #[case] expected_radarr_block: ActiveRadarrBlock,
@@ -682,7 +682,7 @@ mod tests {
     #[case(ActiveRadarrBlock::Movies, 0, ActiveRadarrBlock::Downloads)]
     #[case(ActiveRadarrBlock::Downloads, 1, ActiveRadarrBlock::Collections)]
     #[case(ActiveRadarrBlock::Collections, 2, ActiveRadarrBlock::Movies)]
-    fn test_right_movie_downloads_collections(
+    fn test_movie_downloads_collections_right(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] index: usize,
       #[case] expected_radarr_block: ActiveRadarrBlock,
@@ -728,7 +728,7 @@ mod tests {
     }
   }
 
-  mod test_submit {
+  mod test_handle_submit {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -741,7 +741,7 @@ mod tests {
     #[rstest]
     #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::MovieDetails)]
     #[case(ActiveRadarrBlock::Collections, ActiveRadarrBlock::CollectionDetails)]
-    fn test_submit_movies_collections_details(
+    fn test_movies_collections_details_submit(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] expected_radarr_block: ActiveRadarrBlock,
     ) {
@@ -753,7 +753,7 @@ mod tests {
     }
 
     #[test]
-    fn test_submit_search_movie() {
+    fn test_search_movie_submit() {
       let mut app = App::default();
       app
         .data
@@ -771,7 +771,7 @@ mod tests {
     }
 
     #[test]
-    fn test_submit_search_collections() {
+    fn test_search_collections_submit() {
       let mut app = App::default();
       app
         .data
@@ -789,7 +789,7 @@ mod tests {
     }
 
     #[test]
-    fn test_submit_filter_movies() {
+    fn test_filter_movies_submit() {
       let mut app = App::default();
       app
         .data
@@ -813,7 +813,7 @@ mod tests {
     }
 
     #[test]
-    fn test_submit_filter_collections() {
+    fn test_filter_collections_submit() {
       let mut app = App::default();
       app
         .data
@@ -862,7 +862,7 @@ mod tests {
       ActiveRadarrBlock::RefreshAllCollectionsPrompt,
       RadarrEvent::RefreshCollections
     )]
-    fn test_submit_prompt_confirm(
+    fn test_prompt_confirm_submit(
       #[case] base_route: ActiveRadarrBlock,
       #[case] prompt_block: ActiveRadarrBlock,
       #[case] expected_action: RadarrEvent,
@@ -894,7 +894,7 @@ mod tests {
       ActiveRadarrBlock::Collections,
       ActiveRadarrBlock::RefreshAllCollectionsPrompt
     )]
-    fn test_submit_prompt_decline(
+    fn test_prompt_decline_submit(
       #[case] base_route: ActiveRadarrBlock,
       #[case] prompt_block: ActiveRadarrBlock,
     ) {
@@ -910,7 +910,7 @@ mod tests {
     }
   }
 
-  mod test_esc {
+  mod test_handle_esc {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -926,7 +926,7 @@ mod tests {
     #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::FilterMovies)]
     #[case(ActiveRadarrBlock::Collections, ActiveRadarrBlock::SearchCollection)]
     #[case(ActiveRadarrBlock::Collections, ActiveRadarrBlock::FilterCollections)]
-    fn test_esc_search_and_filter_blocks(
+    fn test_search_and_filter_blocks_esc(
       #[case] base_block: ActiveRadarrBlock,
       #[case] search_block: ActiveRadarrBlock,
     ) {
@@ -975,7 +975,7 @@ mod tests {
       ActiveRadarrBlock::Collections,
       ActiveRadarrBlock::RefreshAllCollectionsPrompt
     )]
-    fn test_esc_prompt_blocks(
+    fn test_prompt_blocks_esc(
       #[case] base_block: ActiveRadarrBlock,
       #[case] prompt_block: ActiveRadarrBlock,
     ) {
@@ -991,7 +991,7 @@ mod tests {
     }
 
     #[test]
-    fn test_esc_default() {
+    fn test_default_esc() {
       let mut app = App::default();
       app.error = "test error".to_owned().into();
       app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
@@ -1029,7 +1029,7 @@ mod tests {
     }
   }
 
-  mod test_key_char {
+  mod test_handle_key_char {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -1124,7 +1124,7 @@ mod tests {
     }
 
     #[rstest]
-    fn test_backspace_key_search_boxes(
+    fn test_search_boxes_backspace_key(
       #[values(ActiveRadarrBlock::SearchMovie, ActiveRadarrBlock::SearchCollection)]
       active_radarr_block: ActiveRadarrBlock,
     ) {
@@ -1142,7 +1142,7 @@ mod tests {
     }
 
     #[rstest]
-    fn test_backspace_key_filter_boxes(
+    fn test_filter_boxes_backspace_key(
       #[values(ActiveRadarrBlock::FilterMovies, ActiveRadarrBlock::FilterCollections)]
       active_radarr_block: ActiveRadarrBlock,
     ) {
@@ -1160,7 +1160,7 @@ mod tests {
     }
 
     #[rstest]
-    fn test_char_key_search_boxes(
+    fn test_search_boxes_char_key(
       #[values(ActiveRadarrBlock::SearchMovie, ActiveRadarrBlock::SearchCollection)]
       active_radarr_block: ActiveRadarrBlock,
     ) {
@@ -1172,7 +1172,7 @@ mod tests {
     }
 
     #[rstest]
-    fn test_char_key_filter_boxes(
+    fn test_filter_boxes_char_key(
       #[values(ActiveRadarrBlock::FilterMovies, ActiveRadarrBlock::FilterCollections)]
       active_radarr_block: ActiveRadarrBlock,
     ) {
@@ -1319,11 +1319,17 @@ mod tests {
     )]
     active_radarr_block: ActiveRadarrBlock,
   ) {
-    let mut app = App::default();
-    app.push_navigation_stack(active_radarr_block.clone().into());
+    test_handler_delegation!(ActiveRadarrBlock::Movies, active_radarr_block);
+  }
 
-    RadarrHandler::with(&DEFAULT_KEYBINDINGS.esc.key, &mut app, &active_radarr_block).handle();
-
-    assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
+  #[rstest]
+  fn test_delegate_collection_details_blocks_to_collection_details_handler(
+    #[values(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::ViewMovieOverview
+    )]
+    active_radarr_block: ActiveRadarrBlock,
+  ) {
+    test_handler_delegation!(ActiveRadarrBlock::Collections, active_radarr_block);
   }
 }
