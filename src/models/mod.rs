@@ -225,6 +225,8 @@ impl HorizontallyScrollableText {
       } else {
         self.reset_offset();
       }
+    } else if *self.offset.borrow() != 0 && !is_current_selection {
+      self.reset_offset();
     }
   }
 
@@ -562,19 +564,31 @@ mod tests {
 
     horizontally_scrollable_text.scroll_left_or_reset(width, false, true);
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
 
     horizontally_scrollable_text.scroll_left_or_reset(width, true, false);
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
 
     horizontally_scrollable_text.scroll_left_or_reset(width, true, true);
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 2);
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
 
     horizontally_scrollable_text.scroll_left_or_reset(test_text.len(), false, true);
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 2);
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+  }
+
+  #[test]
+  fn test_horizontally_scrollable_test_scroll_or_reset_resets_when_text_unselected() {
+    let horizontally_scrollable_test = HorizontallyScrollableText::from("Test string".to_owned());
+    horizontally_scrollable_test.scroll_left();
+
+    assert_eq!(*horizontally_scrollable_test.offset.borrow(), 1);
+
+    horizontally_scrollable_test.scroll_left_or_reset(3, true, false);
+
+    assert_eq!(*horizontally_scrollable_test.offset.borrow(), 0);
   }
 
   #[test]
