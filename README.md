@@ -3,7 +3,7 @@ Managarr is a TUI to help you manage your HTPC (Home Theater PC). Built with lov
 
 ![radarr_demo](demos/radarr_demo.gif)
 
-<a href="https://wekan.alextusa.com/b/NPSm8BkivuAKy2HXf/managarr"><h3 style="text-align: center">Wekan Board</h3></a>
+![wekan_logo](logos/wekan.png) [Wekan Board](https://wekan.alextusa.com/b/NPSm8BkivuAKy2HXf/managarr)
 
 ## What Servarrs are supported?
 
