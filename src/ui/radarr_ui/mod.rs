@@ -143,6 +143,11 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
         Constraint::Percentage(12),
         Constraint::Percentage(12),
       ],
+      help: app
+        .data
+        .radarr_data
+        .main_tabs
+        .get_active_tab_contextual_help(),
     },
     |movie| {
       let (hours, minutes) = convert_runtime(movie.runtime.as_u64().unwrap());
@@ -298,6 +303,11 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
         Constraint::Percentage(17),
         Constraint::Percentage(13),
       ],
+      help: app
+        .data
+        .radarr_data
+        .main_tabs
+        .get_active_tab_contextual_help(),
     },
     |download_record| {
       let DownloadRecord {
@@ -352,6 +362,11 @@ fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect)
         "Quality Profile",
       ],
       constraints: iter::repeat(Constraint::Ratio(1, 5)).take(5).collect(),
+      help: app
+        .data
+        .radarr_data
+        .main_tabs
+        .get_active_tab_contextual_help(),
     },
     |collection| {
       let number_of_movies = collection.movies.clone().unwrap_or_default().len();

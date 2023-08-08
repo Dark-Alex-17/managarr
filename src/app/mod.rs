@@ -72,13 +72,10 @@ impl App {
 
   pub async fn on_tick(&mut self, is_first_render: bool) {
     if self.tick_count % self.tick_until_poll == 0 || self.is_routing || self.should_refresh {
-      match self.get_current_route() {
-        Route::Radarr(active_radarr_block) => {
-          self
-            .radarr_on_tick(active_radarr_block.clone(), is_first_render)
-            .await;
-        }
-        _ => (),
+      if let Route::Radarr(active_radarr_block) = self.get_current_route() {
+        self
+          .radarr_on_tick(active_radarr_block.clone(), is_first_render)
+          .await;
       }
 
       self.is_routing = false;
@@ -108,14 +105,6 @@ impl App {
   pub fn get_current_route(&self) -> &Route {
     self.navigation_stack.last().unwrap_or(&DEFAULT_ROUTE)
   }
-  
-  pub fn get_previous_route(&self) -> &Route {
-    if self.navigation_stack.len() > 1 {
-      &self.navigation_stack[self.navigation_stack.len() - 2]
-    } else {
-      self.get_current_route()
-    }
-  }
 }
 
 impl Default for App {
@@ -128,13 +117,15 @@ impl Default for App {
         TabRoute {
           title: "Radarr".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
-          help: "<↑↓> scroll | ←→ change tab | <tab> change servarr | <?> help | <q> quit "
+          help: "<↑↓> scroll | ←→ change tab | <tab> change servarr | <?> help | <q> quit  "
             .to_owned(),
+          contextual_help: None,
         },
         TabRoute {
           title: "Sonarr".to_owned(),
           route: Route::Sonarr,
-          help: "<tab> change servarr | <?> help | <q> quit ".to_owned(),
+          help: "<tab> change servarr | <?> help | <q> quit  ".to_owned(),
+          contextual_help: None,
         },
       ]),
       client: Client::new(),

@@ -84,7 +84,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
       | ActiveRadarrBlock::AddMovieSelectMonitor
       | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
       | ActiveRadarrBlock::AddMovieSelectQualityProfile => {
-        let mut help_text = Text::from("<esc> edit search");
+        let mut help_text = Text::from("<enter> details | <esc> edit search");
         help_text.patch_style(style_help());
         let help_paragraph = Paragraph::new(help_text)
           .block(borderless_block())
@@ -113,6 +113,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
               Constraint::Percentage(14),
               Constraint::Percentage(30),
             ],
+            help: None,
           },
           |movie| {
             let (hours, minutes) = convert_runtime(movie.runtime.as_u64().unwrap());

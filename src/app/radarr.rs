@@ -118,51 +118,60 @@ impl Default for RadarrData {
         TabRoute {
           title: "Library".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
-          help: "<a> add | <s> search | <f> filter | <enter> details | <esc> cancel filter | <del> delete  "
-            .to_owned(),
+          help: String::default(),
+          contextual_help: Some("<a> add | <s> search | <f> filter | <enter> details | <esc> cancel filter | <del> delete"
+            .to_owned()),
         },
         TabRoute {
           title: "Downloads".to_owned(),
           route: ActiveRadarrBlock::Downloads.into(),
-          help: "<del> delete  ".to_owned(),
+          help: String::default(),
+          contextual_help: Some("<del> delete".to_owned()),
         },
         TabRoute {
           title: "Collections".to_owned(),
           route: ActiveRadarrBlock::Collections.into(),
-          help: "<s> search | <f> filter | <enter> details | <esc> cancel filter "
-            .to_owned(),
+          help: String::default(),
+          contextual_help: Some("<s> search | <f> filter | <enter> details | <esc> cancel filter"
+            .to_owned()),
         },
       ]),
       movie_info_tabs: TabState::new(vec![
         TabRoute {
           title: "Details".to_owned(),
           route: ActiveRadarrBlock::MovieDetails.into(),
-          help: "<r> refresh | <s> auto search | ←→ change tab | <esc> close ".to_owned(),
+          help: "<r> refresh | <s> auto search | <esc> close".to_owned(),
+          contextual_help: None
         },
         TabRoute {
           title: "History".to_owned(),
           route: ActiveRadarrBlock::MovieHistory.into(),
-          help: "<r> refresh | <s> auto search | <↑↓> scroll | ←→ change tab | <esc> close ".to_owned(),
+          help: "<r> refresh | <s> auto search | <esc> close".to_owned(),
+          contextual_help: None
         },
         TabRoute {
           title: "File".to_owned(),
           route: ActiveRadarrBlock::FileInfo.into(),
-          help: "<r> refresh | <s> auto search | ←→ change tab | <esc> close ".to_owned(),
+          help: "<r> refresh | <s> auto search | <esc> close".to_owned(),
+          contextual_help: None,
         },
         TabRoute {
           title: "Cast".to_owned(),
           route: ActiveRadarrBlock::Cast.into(),
-          help: "<r> refresh | <s> auto search | <↑↓> scroll | ←→ change tab | <esc> close ".to_owned(),
+          help: "<r> refresh | <s> auto search | <esc> close".to_owned(),
+          contextual_help: None,
         },
         TabRoute {
           title: "Crew".to_owned(),
           route: ActiveRadarrBlock::Crew.into(),
-          help: "<r> refresh | <s> auto search | <↑↓> scroll | ←→ change tab | <esc> close ".to_owned(),
+          help: "<r> refresh | <s> auto search | <esc> close".to_owned(),
+          contextual_help: None,
         },
         TabRoute {
           title: "Manual Search".to_owned(),
           route: ActiveRadarrBlock::ManualSearch.into(),
-          help: "<r> refresh | <s> auto search | <↑↓> scroll | <enter> details | ←→ change tab | <esc> close ".to_owned(),
+          help: "<r> refresh | <s> auto search | <esc> close".to_owned(),
+          contextual_help: Some("<enter> details | <o> sort".to_owned())
         }
       ]),
     }
@@ -189,6 +198,7 @@ pub enum ActiveRadarrBlock {
   FilterCollections,
   FilterMovies,
   ManualSearch,
+  ManualSearchConfirmPrompt,
   Movies,
   MovieDetails,
   MovieHistory,

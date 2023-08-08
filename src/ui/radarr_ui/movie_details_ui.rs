@@ -220,6 +220,11 @@ fn draw_movie_history<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_a
           Constraint::Percentage(14),
           Constraint::Percentage(21),
         ],
+        help: app
+          .data
+          .radarr_data
+          .movie_info_tabs
+          .get_active_tab_contextual_help(),
       },
       |movie_history_item| {
         let MovieHistoryItem {
@@ -268,6 +273,11 @@ fn draw_movie_cast<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_area
       content: &mut app.data.radarr_data.movie_cast,
       constraints: iter::repeat(Constraint::Ratio(1, 2)).take(2).collect(),
       table_headers: vec!["Cast Member", "Character"],
+      help: app
+        .data
+        .radarr_data
+        .movie_info_tabs
+        .get_active_tab_contextual_help(),
     },
     |cast_member| {
       let Credit {
@@ -295,6 +305,11 @@ fn draw_movie_crew<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_area
       content: &mut app.data.radarr_data.movie_crew,
       constraints: iter::repeat(Constraint::Ratio(1, 3)).take(3).collect(),
       table_headers: vec!["Crew Member", "Job", "Department"],
+      help: app
+        .data
+        .radarr_data
+        .movie_info_tabs
+        .get_active_tab_contextual_help(),
     },
     |crew_member| {
       let Credit {
@@ -346,6 +361,11 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       table_headers: vec![
         "Source", "Age", "⛔", "Title", "Indexer", "Size", "Peers", "Language", "Quality",
       ],
+      help: app
+        .data
+        .radarr_data
+        .movie_info_tabs
+        .get_active_tab_contextual_help(),
     },
     |release| {
       let Release {

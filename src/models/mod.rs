@@ -296,6 +296,7 @@ pub struct TabRoute {
   pub title: String,
   pub route: Route,
   pub help: String,
+  pub contextual_help: Option<String>,
 }
 
 pub struct TabState {
@@ -319,6 +320,10 @@ impl TabState {
 
   pub fn get_active_tab_help(&self) -> String {
     self.tabs[self.index].help.clone()
+  }
+
+  pub fn get_active_tab_contextual_help(&self) -> Option<String> {
+    self.tabs[self.index].contextual_help.clone()
   }
 
   pub fn next(&mut self) {

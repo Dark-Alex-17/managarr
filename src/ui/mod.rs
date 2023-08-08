@@ -17,7 +17,7 @@ use crate::ui::utils::{
   layout_block_top_border, layout_button_paragraph, layout_button_paragraph_borderless, logo_block,
   style_button_highlight, style_default_bold, style_failure, style_help, style_highlight,
   style_primary, style_secondary, style_system_function, title_block, title_block_centered,
-  vertical_chunks_with_margin,
+  vertical_chunks, vertical_chunks_with_margin,
 };
 
 mod radarr_ui;
@@ -217,6 +217,7 @@ pub struct TableProps<'a, T> {
   pub content: &'a mut StatefulTable<T>,
   pub table_headers: Vec<&'a str>,
   pub constraints: Vec<Constraint>,
+  pub help: Option<String>,
 }
 
 fn draw_table<'a, B, T, F>(
@@ -234,7 +235,26 @@ fn draw_table<'a, B, T, F>(
     content,
     table_headers,
     constraints,
+    help,
   } = table_props;
+
+  let content_area = if let Some(help_string) = help {
+    let chunks = vertical_chunks(
+      vec![Constraint::Min(0), Constraint::Length(3)],
+      content_area,
+    );
+    let mut help_text = Text::from(format!(" {}", help_string));
+    help_text.patch_style(style_help());
+    let help_paragraph = Paragraph::new(help_text)
+      .block(layout_block_top_border())
+      .alignment(Alignment::Left);
+
+    f.render_widget(help_paragraph, chunks[1]);
+
+    chunks[0]
+  } else {
+    content_area
+  };
 
   if !content.items.is_empty() {
     let rows = content.items.iter().map(row_mapper);
