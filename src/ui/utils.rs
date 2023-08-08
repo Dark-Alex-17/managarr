@@ -1,4 +1,7 @@
 use tui::layout::{Constraint, Direction, Layout, Rect};
+use tui::style::{Color, Modifier, Style};
+use tui::text::Span;
+use tui::widgets::{Block, Borders};
 
 pub fn horizontal_chunks(constraints: Vec<Constraint>, size: Rect) -> Vec<Rect> {
   Layout::default()
@@ -44,4 +47,40 @@ pub fn vertical_chunks_with_margin(
     .direction(Direction::Vertical)
     .margin(margin)
     .split(size)
+}
+
+pub fn layout_block(title_span: Span<'_>) -> Block<'_> {
+    Block::default().borders(Borders::ALL).title(title_span)
+}
+
+pub fn style_bold() -> Style {
+    Style::default().add_modifier(Modifier::BOLD)
+}
+
+pub fn style_highlight() -> Style {
+    Style::default().add_modifier(Modifier::REVERSED)
+}
+
+pub fn style_default() -> Style {
+    Style::default().fg(Color::White)
+}
+
+pub fn style_primary() -> Style {
+    Style::default().fg(Color::Green)
+}
+
+pub fn style_secondary() -> Style {
+    Style::default().fg(Color::Magenta)
+}
+
+pub fn style_tertiary() -> Style {
+    Style::default().fg(Color::Red)
+}
+
+pub fn title_style(title: &str) -> Span<'_> {
+    Span::styled(title, style_bold())
+}
+
+pub fn title_block(title: &str) -> Block<'_> {
+    layout_block(title_style(title))
 }

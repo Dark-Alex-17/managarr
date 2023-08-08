@@ -7,6 +7,8 @@ use crossterm::event::{KeyCode, KeyEvent};
 pub enum Key {
   Up,
   Down,
+  Enter,
+  Esc,
   Char(char),
   Unknown,
 }
@@ -31,6 +33,10 @@ impl From<KeyEvent> for Key {
         code: KeyCode::Down,
         ..
       } => Key::Down,
+      KeyEvent {
+        code: KeyCode::Enter,
+        ..
+      } => Key::Enter,
       KeyEvent {
         code: KeyCode::Char(c),
         ..

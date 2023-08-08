@@ -11,7 +11,9 @@ macro_rules! generate_keybindings {
 generate_keybindings! {
     quit,
     up,
-    down
+    down,
+    submit,
+    esc
 }
 
 pub struct KeyBinding {
@@ -31,5 +33,13 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
     down: KeyBinding {
         key: Key::Down,
         desc: "Scroll down"
+    },
+    submit: KeyBinding {
+        key: Key::Enter,
+        desc: "Select"
+    },
+    esc: KeyBinding {
+        key: Key::Esc,
+        desc: "Exit menu"
     }
 };

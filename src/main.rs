@@ -7,7 +7,7 @@ use crossterm::execute;
 use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
-use log::{debug, info};
+use log::debug;
 use tokio::sync::{mpsc, Mutex};
 use tokio::sync::mpsc::Receiver;
 use tui::backend::CrosstermBackend;
@@ -16,7 +16,7 @@ use tui::Terminal;
 use crate::app::App;
 use crate::event::input_event::{Events, InputEvent};
 use crate::event::Key;
-use crate::network::{Network, RadarrEvent};
+use crate::network::{Network, NetworkEvent};
 use crate::ui::ui;
 
 mod app;
@@ -45,21 +45,18 @@ async fn main() -> Result<()> {
 
   std::thread::spawn(move || start_networking(sync_network_rx, &app_nw));
 
-  info!("Checking if Radarr server is up and running...");
-  app.lock().await.dispatch(RadarrEvent::HealthCheck).await;
-
   start_ui(&app).await?;
 
   Ok(())
 }
 
 #[tokio::main]
-async fn start_networking(mut network_rx: Receiver<RadarrEvent>, app: &Arc<Mutex<App>>) {
+async fn start_networking(mut network_rx: Receiver<NetworkEvent>, app: &Arc<Mutex<App>>) {
   let network = Network::new(reqwest::Client::new(), app);
 
   while let Some(network_event) = network_rx.recv().await {
     debug!("Received network event: {:?}", network_event);
-    network.handle_radarr_event(network_event).await;
+    network.handle_network_event(network_event).await;
   }
 }
 
@@ -74,6 +71,7 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<()> {
   terminal.hide_cursor()?;
 
   let input_events = Events::new();
+  let mut is_first_render = true;
 
   loop {
     let mut app = app.lock().await;
@@ -87,8 +85,10 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<()> {
 
         handlers::handle_key_events(key, &mut app).await;
       }
-      InputEvent::Tick => app.on_tick().await,
+      InputEvent::Tick => app.on_tick(is_first_render).await,
     }
+
+    is_first_render = false;
   }
 
   terminal.show_cursor()?;
