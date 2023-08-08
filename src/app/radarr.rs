@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use chrono::{DateTime, Utc};
+use strum::IntoEnumIterator;
 
 use crate::app::{App, Route};
 use crate::models::radarr_models::{
@@ -87,6 +88,21 @@ impl RadarrData {
     self.add_movie_monitor_list = StatefulList::default();
     self.add_movie_minimum_availability_list = StatefulList::default();
     self.add_movie_quality_profile_list = StatefulList::default();
+  }
+
+  pub fn populate_add_movie_preferences_lists(&mut self) {
+    self
+      .add_movie_monitor_list
+      .set_items(Vec::from_iter(Monitor::iter()));
+    self
+      .add_movie_minimum_availability_list
+      .set_items(Vec::from_iter(MinimumAvailability::iter()));
+    let mut quality_profile_names: Vec<String> =
+      self.quality_profile_map.values().cloned().collect();
+    quality_profile_names.sort();
+    self
+      .add_movie_quality_profile_list
+      .set_items(quality_profile_names);
   }
 }
 
@@ -290,7 +306,13 @@ impl ActiveRadarrBlock {
 
 impl From<ActiveRadarrBlock> for Route {
   fn from(active_radarr_block: ActiveRadarrBlock) -> Route {
-    Route::Radarr(active_radarr_block)
+    Route::Radarr(active_radarr_block, None)
+  }
+}
+
+impl From<(ActiveRadarrBlock, Option<ActiveRadarrBlock>)> for Route {
+  fn from(value: (ActiveRadarrBlock, Option<ActiveRadarrBlock>)) -> Route {
+    Route::Radarr(value.0, value.1)
   }
 }
 
@@ -565,9 +587,29 @@ pub mod radarr_test_utils {
 #[cfg(test)]
 mod tests {
   mod radarr_data_tests {
+    use std::collections::HashMap;
+
     use pretty_assertions::assert_eq;
+    use strum::IntoEnumIterator;
 
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
+    use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
+    use crate::models::radarr_models::{MinimumAvailability, Monitor};
+    use crate::models::Route;
+
+    #[test]
+    fn test_from_tuple_to_route_with_context() {
+      assert_eq!(
+        Route::from((
+          ActiveRadarrBlock::AddMoviePrompt,
+          Some(ActiveRadarrBlock::AddMovieSearchResults)
+        )),
+        Route::Radarr(
+          ActiveRadarrBlock::AddMoviePrompt,
+          Some(ActiveRadarrBlock::AddMovieSearchResults)
+        )
+      );
+    }
 
     #[test]
     fn test_reset_movie_collection_table() {
@@ -612,6 +654,32 @@ mod tests {
       radarr_data.reset_add_movie_selections();
 
       assert_add_movie_selections_reset!(radarr_data);
+    }
+
+    #[test]
+    fn test_populate_add_movie_preferences_lists() {
+      let mut radarr_data = RadarrData {
+        quality_profile_map: HashMap::from([
+          (2222, "HD - 1080p".to_owned()),
+          (1111, "Any".to_owned()),
+        ]),
+        ..RadarrData::default()
+      };
+
+      radarr_data.populate_add_movie_preferences_lists();
+
+      assert_eq!(
+        radarr_data.add_movie_monitor_list.items,
+        Vec::from_iter(Monitor::iter())
+      );
+      assert_eq!(
+        radarr_data.add_movie_minimum_availability_list.items,
+        Vec::from_iter(MinimumAvailability::iter())
+      );
+      assert_eq!(
+        radarr_data.add_movie_quality_profile_list.items,
+        vec!["Any".to_owned(), "HD - 1080p".to_owned()]
+      );
     }
   }
 

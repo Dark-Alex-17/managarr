@@ -12,7 +12,7 @@ use crate::app::App;
 use crate::models::radarr_models::{Credit, MovieHistoryItem, Release, ReleaseField};
 use crate::models::Route;
 use crate::ui::utils::{
-  borderless_block, get_width_with_margin, layout_block_bottom_border, layout_block_top_border,
+  borderless_block, get_width_from_percentage, layout_block_bottom_border, layout_block_top_border,
   spans_info_default, style_bold, style_default, style_failure, style_primary, style_success,
   style_warning, vertical_chunks,
 };
@@ -25,7 +25,7 @@ use crate::utils::convert_to_gb;
 pub(super) fn draw_movie_info_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let (content_area, _) = draw_tabs(f, area, "Movie Info", &app.data.radarr_data.movie_info_tabs);
 
-  if let Route::Radarr(active_radarr_block) = app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt => draw_prompt_popup_over(
         f,
@@ -68,7 +68,7 @@ pub(super) fn draw_movie_info_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut 
 }
 
 fn draw_movie_info<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
-  if let Route::Radarr(active_radarr_block) =
+  if let Route::Radarr(active_radarr_block, _) =
     app.data.radarr_data.movie_info_tabs.get_active_route()
   {
     match active_radarr_block {
@@ -258,14 +258,10 @@ fn draw_movie_history<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_a
           event_type,
         } = movie_history_item;
 
-        if current_selection == *movie_history_item
-          && movie_history_item.source_title.text.len()
-            > (content_area.width as f64 * 0.34) as usize
-        {
-          source_title.scroll_text();
-        } else {
-          source_title.reset_offset();
-        }
+        movie_history_item.source_title.scroll_or_reset(
+          get_width_from_percentage(content_area, 34),
+          current_selection == *movie_history_item,
+        );
 
         Row::new(vec![
           Cell::from(source_title.to_string()),
@@ -432,7 +428,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       } = release;
       let age = format!("{} days", age.as_u64().unwrap_or(0));
       title.scroll_or_reset(
-        get_width_with_margin(content_area),
+        get_width_from_percentage(content_area, 30),
         current_selection == *release
           && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
       );

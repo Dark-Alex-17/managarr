@@ -1,9 +1,6 @@
-use strum::IntoEnumIterator;
-
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
-use crate::models::radarr_models::{MinimumAvailability, Monitor};
 use crate::models::{Scrollable, StatefulTable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, App, Key};
@@ -12,6 +9,7 @@ pub(super) struct AddMovieHandler<'a> {
   key: &'a Key,
   app: &'a mut App,
   active_radarr_block: &'a ActiveRadarrBlock,
+  context: &'a Option<ActiveRadarrBlock>,
 }
 
 impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
@@ -19,11 +17,13 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
     key: &'a Key,
     app: &'a mut App,
     active_block: &'a ActiveRadarrBlock,
+    context: &'a Option<ActiveRadarrBlock>,
   ) -> AddMovieHandler<'a> {
     AddMovieHandler {
       key,
       app,
       active_radarr_block: active_block,
+      context,
     }
   }
 
@@ -192,6 +192,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
           .current_selection()
           .tmdb_id
           .clone();
+
         if self
           .app
           .data
@@ -212,29 +213,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
             .app
             .data
             .radarr_data
-            .add_movie_monitor_list
-            .set_items(Vec::from_iter(Monitor::iter()));
-          self
-            .app
-            .data
-            .radarr_data
-            .add_movie_minimum_availability_list
-            .set_items(Vec::from_iter(MinimumAvailability::iter()));
-          let mut quality_profile_names: Vec<String> = self
-            .app
-            .data
-            .radarr_data
-            .quality_profile_map
-            .values()
-            .cloned()
-            .collect();
-          quality_profile_names.sort();
-          self
-            .app
-            .data
-            .radarr_data
-            .add_movie_quality_profile_list
-            .set_items(quality_profile_names);
+            .populate_add_movie_preferences_lists();
         }
       }
       ActiveRadarrBlock::AddMoviePrompt => match self.app.data.radarr_data.selected_block {
@@ -248,13 +227,21 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         }
         ActiveRadarrBlock::AddMovieSelectMonitor => self
           .app
-          .push_navigation_stack(ActiveRadarrBlock::AddMovieSelectMonitor.into()),
-        ActiveRadarrBlock::AddMovieSelectMinimumAvailability => self
-          .app
-          .push_navigation_stack(ActiveRadarrBlock::AddMovieSelectMinimumAvailability.into()),
-        ActiveRadarrBlock::AddMovieSelectQualityProfile => self
-          .app
-          .push_navigation_stack(ActiveRadarrBlock::AddMovieSelectQualityProfile.into()),
+          .push_navigation_stack((ActiveRadarrBlock::AddMovieSelectMonitor, *self.context).into()),
+        ActiveRadarrBlock::AddMovieSelectMinimumAvailability => self.app.push_navigation_stack(
+          (
+            ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+            *self.context,
+          )
+            .into(),
+        ),
+        ActiveRadarrBlock::AddMovieSelectQualityProfile => self.app.push_navigation_stack(
+          (
+            ActiveRadarrBlock::AddMovieSelectQualityProfile,
+            *self.context,
+          )
+            .into(),
+        ),
         _ => (),
       },
       ActiveRadarrBlock::AddMovieSelectMonitor
@@ -298,6 +285,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
 }
 
 #[cfg(test)]
+#[allow(unused_imports)]
 mod tests {
   use pretty_assertions::assert_str_eq;
 
@@ -325,6 +313,7 @@ mod tests {
       add_searched_movies,
       simple_stateful_iterable_vec!(AddMovieSearchResult, HorizontallyScrollableText),
       ActiveRadarrBlock::AddMovieSearchResults,
+      None,
       title,
       stationary_style
     );
@@ -334,7 +323,8 @@ mod tests {
       AddMovieHandler,
       Monitor,
       add_movie_monitor_list,
-      ActiveRadarrBlock::AddMovieSelectMonitor
+      ActiveRadarrBlock::AddMovieSelectMonitor,
+      None
     );
 
     test_enum_scroll!(
@@ -342,14 +332,16 @@ mod tests {
       AddMovieHandler,
       MinimumAvailability,
       add_movie_minimum_availability_list,
-      ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+      ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+      None
     );
 
     test_iterable_scroll!(
       test_add_movie_select_quality_profile_scroll,
       AddMovieHandler,
       add_movie_quality_profile_list,
-      ActiveRadarrBlock::AddMovieSelectQualityProfile
+      ActiveRadarrBlock::AddMovieSelectQualityProfile,
+      None
     );
 
     #[rstest]
@@ -357,7 +349,7 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieSelectMinimumAvailability;
 
-      AddMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::AddMoviePrompt).handle();
+      AddMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::AddMoviePrompt, &None).handle();
 
       if key == Key::Up {
         assert_eq!(
@@ -388,6 +380,7 @@ mod tests {
       add_searched_movies,
       extended_stateful_iterable_vec!(AddMovieSearchResult, HorizontallyScrollableText),
       ActiveRadarrBlock::AddMovieSearchResults,
+      None,
       title,
       stationary_style
     );
@@ -397,7 +390,8 @@ mod tests {
       AddMovieHandler,
       Monitor,
       add_movie_monitor_list,
-      ActiveRadarrBlock::AddMovieSelectMonitor
+      ActiveRadarrBlock::AddMovieSelectMonitor,
+      None
     );
 
     test_enum_home_and_end!(
@@ -405,14 +399,16 @@ mod tests {
       AddMovieHandler,
       MinimumAvailability,
       add_movie_minimum_availability_list,
-      ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+      ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+      None
     );
 
     test_iterable_home_and_end!(
       test_add_movie_select_quality_profile_scroll,
       AddMovieHandler,
       add_movie_quality_profile_list,
-      ActiveRadarrBlock::AddMovieSelectQualityProfile
+      ActiveRadarrBlock::AddMovieSelectQualityProfile,
+      None
     );
   }
 
@@ -425,11 +421,11 @@ mod tests {
     fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
       let mut app = App::default();
 
-      AddMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::AddMoviePrompt).handle();
+      AddMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::AddMoviePrompt, &None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      AddMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::AddMoviePrompt).handle();
+      AddMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::AddMoviePrompt, &None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
     }
@@ -458,6 +454,7 @@ mod tests {
         &SUBMIT_KEY,
         &mut app,
         &ActiveRadarrBlock::AddMovieSearchInput,
+        &None,
       )
       .handle();
 
@@ -483,6 +480,7 @@ mod tests {
         &SUBMIT_KEY,
         &mut app,
         &ActiveRadarrBlock::AddMovieSearchResults,
+        &None,
       )
       .handle();
 
@@ -521,6 +519,7 @@ mod tests {
         &SUBMIT_KEY,
         &mut app,
         &ActiveRadarrBlock::AddMovieSearchResults,
+        &None,
       )
       .handle();
 
@@ -548,6 +547,7 @@ mod tests {
         &SUBMIT_KEY,
         &mut app,
         &ActiveRadarrBlock::AddMovieSearchResults,
+        &None,
       )
       .handle();
 
@@ -564,7 +564,13 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
       app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieConfirmPrompt;
 
-      AddMovieHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::AddMoviePrompt).handle();
+      AddMovieHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddMoviePrompt,
+        &None,
+      )
+      .handle();
 
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
@@ -578,7 +584,13 @@ mod tests {
       app.data.radarr_data.prompt_confirm = true;
       app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieConfirmPrompt;
 
-      AddMovieHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::AddMoviePrompt).handle();
+      AddMovieHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddMoviePrompt,
+        &None,
+      )
+      .handle();
 
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
       assert_eq!(
@@ -597,12 +609,27 @@ mod tests {
       selected_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
+      app.push_navigation_stack(
+        (
+          ActiveRadarrBlock::AddMoviePrompt,
+          Some(ActiveRadarrBlock::CollectionDetails),
+        )
+          .into(),
+      );
       app.data.radarr_data.selected_block = selected_block;
 
-      AddMovieHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::AddMoviePrompt).handle();
+      AddMovieHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddMoviePrompt,
+        &Some(ActiveRadarrBlock::CollectionDetails),
+      )
+      .handle();
 
-      assert_eq!(app.get_current_route(), &selected_block.into());
+      assert_eq!(
+        app.get_current_route(),
+        &(selected_block, Some(ActiveRadarrBlock::CollectionDetails)).into()
+      );
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
     }
 
@@ -619,7 +646,13 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
       app.push_navigation_stack(active_radarr_block.into());
 
-      AddMovieHandler::with(&SUBMIT_KEY, &mut app, &active_radarr_block).handle();
+      AddMovieHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &active_radarr_block,
+        &Some(ActiveRadarrBlock::CollectionDetails),
+      )
+      .handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -648,7 +681,13 @@ mod tests {
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
 
-      AddMovieHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::AddMovieSearchInput).handle();
+      AddMovieHandler::with(
+        &ESC_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSearchInput,
+        &None,
+      )
+      .handle();
 
       assert!(!app.should_ignore_quit_key);
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
@@ -673,6 +712,7 @@ mod tests {
         &ESC_KEY,
         &mut app,
         &ActiveRadarrBlock::AddMovieSearchResults,
+        &None,
       )
       .handle();
 
@@ -695,6 +735,7 @@ mod tests {
         &ESC_KEY,
         &mut app,
         &ActiveRadarrBlock::AddMovieAlreadyInLibrary,
+        &None,
       )
       .handle();
 
@@ -711,7 +752,13 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
 
-      AddMovieHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::AddMoviePrompt).handle();
+      AddMovieHandler::with(
+        &ESC_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddMoviePrompt,
+        &None,
+      )
+      .handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(
@@ -731,14 +778,36 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
-      app.push_navigation_stack(active_radarr_block.into());
+      app.push_navigation_stack(
+        (
+          ActiveRadarrBlock::AddMoviePrompt,
+          Some(ActiveRadarrBlock::CollectionDetails),
+        )
+          .into(),
+      );
+      app.push_navigation_stack(
+        (
+          active_radarr_block,
+          Some(ActiveRadarrBlock::CollectionDetails),
+        )
+          .into(),
+      );
 
-      AddMovieHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::AddMoviePrompt).handle();
+      AddMovieHandler::with(
+        &ESC_KEY,
+        &mut app,
+        &active_radarr_block,
+        &Some(ActiveRadarrBlock::CollectionDetails),
+      )
+      .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::AddMoviePrompt.into()
+        &(
+          ActiveRadarrBlock::AddMoviePrompt,
+          Some(ActiveRadarrBlock::CollectionDetails),
+        )
+          .into()
       );
     }
   }
@@ -755,6 +824,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
         &ActiveRadarrBlock::AddMovieSearchInput,
+        &None,
       )
       .handle();
 
@@ -769,6 +839,7 @@ mod tests {
         &Key::Char('h'),
         &mut app,
         &ActiveRadarrBlock::AddMovieSearchInput,
+        &None,
       )
       .handle();
 

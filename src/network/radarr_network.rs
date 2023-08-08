@@ -952,6 +952,7 @@ mod test {
               "overview": "Collection blah blah blah",
               "year": 2023,
               "runtime": 120,
+              "tmdbId": 1234,
               "genres": ["cool", "family", "fun"],
               "ratings": {
                 "imdb": {
@@ -1587,6 +1588,7 @@ mod test {
         "overview": "Collection blah blah blah",
         "year": 2023,
         "runtime": 120,
+        "tmdbId": 1234,
         "genres": ["cool", "family", "fun"],
         "ratings": {
           "imdb": {
@@ -2128,10 +2130,11 @@ mod test {
 
   fn collection_movie() -> CollectionMovie {
     CollectionMovie {
-      title: "Test".to_owned(),
+      title: "Test".to_owned().into(),
       overview: "Collection blah blah blah".to_owned(),
       year: Number::from(2023),
       runtime: Number::from(120),
+      tmdb_id: Number::from(1234),
       genres: genres(),
       ratings: ratings_list(),
     }

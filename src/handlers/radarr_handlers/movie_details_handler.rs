@@ -16,6 +16,7 @@ pub(super) struct MovieDetailsHandler<'a> {
   key: &'a Key,
   app: &'a mut App,
   active_radarr_block: &'a ActiveRadarrBlock,
+  _context: &'a Option<ActiveRadarrBlock>,
 }
 
 impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
@@ -23,11 +24,13 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
     key: &'a Key,
     app: &'a mut App,
     active_block: &'a ActiveRadarrBlock,
+    _context: &'a Option<ActiveRadarrBlock>,
   ) -> MovieDetailsHandler<'a> {
     MovieDetailsHandler {
       key,
       app,
       active_radarr_block: active_block,
+      _context,
     }
   }
 
@@ -317,6 +320,7 @@ fn sort_releases_by_selected_field(
 }
 
 #[cfg(test)]
+#[allow(unused_imports)]
 mod tests {
   use pretty_assertions::assert_str_eq;
   use rstest::rstest;
@@ -354,6 +358,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.up.key,
         &mut app,
         &ActiveRadarrBlock::MovieDetails,
+        &None,
       )
       .handle();
 
@@ -363,6 +368,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.down.key,
         &mut app,
         &ActiveRadarrBlock::MovieDetails,
+        &None,
       )
       .handle();
 
@@ -375,6 +381,7 @@ mod tests {
       movie_history,
       simple_stateful_iterable_vec!(MovieHistoryItem, HorizontallyScrollableText, source_title),
       ActiveRadarrBlock::MovieHistory,
+      None,
       source_title,
       stationary_style
     );
@@ -385,6 +392,7 @@ mod tests {
       movie_cast,
       simple_stateful_iterable_vec!(Credit, String, person_name),
       ActiveRadarrBlock::Cast,
+      None,
       person_name,
       to_owned
     );
@@ -395,6 +403,7 @@ mod tests {
       movie_crew,
       simple_stateful_iterable_vec!(Credit, String, person_name),
       ActiveRadarrBlock::Crew,
+      None,
       person_name,
       to_owned
     );
@@ -405,6 +414,7 @@ mod tests {
       movie_releases,
       simple_stateful_iterable_vec!(Release, HorizontallyScrollableText),
       ActiveRadarrBlock::ManualSearch,
+      None,
       title,
       stationary_style
     );
@@ -414,7 +424,8 @@ mod tests {
       MovieDetailsHandler,
       ReleaseField,
       movie_releases_sort,
-      ActiveRadarrBlock::ManualSearchSortPrompt
+      ActiveRadarrBlock::ManualSearchSortPrompt,
+      None
     );
   }
 
@@ -437,6 +448,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         &ActiveRadarrBlock::MovieDetails,
+        &None,
       )
       .handle();
 
@@ -446,6 +458,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         &ActiveRadarrBlock::MovieDetails,
+        &None,
       )
       .handle();
 
@@ -458,6 +471,7 @@ mod tests {
       movie_history,
       extended_stateful_iterable_vec!(MovieHistoryItem, HorizontallyScrollableText, source_title),
       ActiveRadarrBlock::MovieHistory,
+      None,
       source_title,
       stationary_style
     );
@@ -468,6 +482,7 @@ mod tests {
       movie_cast,
       extended_stateful_iterable_vec!(Credit, String, person_name),
       ActiveRadarrBlock::Cast,
+      None,
       person_name,
       to_owned
     );
@@ -478,6 +493,7 @@ mod tests {
       movie_crew,
       extended_stateful_iterable_vec!(Credit, String, person_name),
       ActiveRadarrBlock::Crew,
+      None,
       person_name,
       to_owned
     );
@@ -488,6 +504,7 @@ mod tests {
       movie_releases,
       extended_stateful_iterable_vec!(Release, HorizontallyScrollableText),
       ActiveRadarrBlock::ManualSearch,
+      None,
       title,
       stationary_style
     );
@@ -497,7 +514,8 @@ mod tests {
       MovieDetailsHandler,
       ReleaseField,
       movie_releases_sort,
-      ActiveRadarrBlock::ManualSearchSortPrompt
+      ActiveRadarrBlock::ManualSearchSortPrompt,
+      None
     );
   }
 
@@ -519,11 +537,11 @@ mod tests {
     ) {
       let mut app = App::default();
 
-      MovieDetailsHandler::with(&key, &mut app, &active_radarr_block).handle();
+      MovieDetailsHandler::with(&key, &mut app, &active_radarr_block, &None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      MovieDetailsHandler::with(&key, &mut app, &active_radarr_block).handle();
+      MovieDetailsHandler::with(&key, &mut app, &active_radarr_block, &None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
     }
@@ -550,7 +568,8 @@ mod tests {
         .position(|tab_route| tab_route.route == right_block.into())
         .unwrap_or_default();
 
-      MovieDetailsHandler::with(&DEFAULT_KEYBINDINGS.left.key, &mut app, &right_block).handle();
+      MovieDetailsHandler::with(&DEFAULT_KEYBINDINGS.left.key, &mut app, &right_block, &None)
+        .handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -558,7 +577,8 @@ mod tests {
       );
       assert_eq!(app.get_current_route(), &left_block.into());
 
-      MovieDetailsHandler::with(&DEFAULT_KEYBINDINGS.right.key, &mut app, &left_block).handle();
+      MovieDetailsHandler::with(&DEFAULT_KEYBINDINGS.right.key, &mut app, &left_block, &None)
+        .handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -584,7 +604,13 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::ManualSearch.into());
 
-      MovieDetailsHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::ManualSearch).handle();
+      MovieDetailsHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::ManualSearch,
+        &None,
+      )
+      .handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -611,7 +637,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
-      MovieDetailsHandler::with(&SUBMIT_KEY, &mut app, &prompt_block).handle();
+      MovieDetailsHandler::with(&SUBMIT_KEY, &mut app, &prompt_block, &None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
       assert_eq!(
@@ -637,7 +663,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
-      MovieDetailsHandler::with(&SUBMIT_KEY, &mut app, &prompt_block).handle();
+      MovieDetailsHandler::with(&SUBMIT_KEY, &mut app, &prompt_block, &None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(
@@ -667,6 +693,7 @@ mod tests {
         &SUBMIT_KEY,
         &mut app,
         &ActiveRadarrBlock::ManualSearchSortPrompt,
+        &None,
       )
       .handle();
 
@@ -706,7 +733,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(active_radarr_block.into());
 
-      MovieDetailsHandler::with(&ESC_KEY, &mut app, &active_radarr_block).handle();
+      MovieDetailsHandler::with(&ESC_KEY, &mut app, &active_radarr_block, &None).handle();
 
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
       assert_movie_info_tabs_reset!(app.data.radarr_data);
@@ -727,7 +754,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(prompt_block.into());
 
-      MovieDetailsHandler::with(&ESC_KEY, &mut app, &prompt_block).handle();
+      MovieDetailsHandler::with(&ESC_KEY, &mut app, &prompt_block, &None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
@@ -758,6 +785,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.search.key,
         &mut app,
         &active_radarr_block,
+        &None,
       )
       .handle();
 
@@ -775,6 +803,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.sort.key,
         &mut app,
         &ActiveRadarrBlock::ManualSearch,
+        &None,
       )
       .handle();
 
@@ -805,6 +834,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         &active_radarr_block,
+        &None,
       )
       .handle();
 

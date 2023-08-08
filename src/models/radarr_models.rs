@@ -65,12 +65,14 @@ pub struct Movie {
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionMovie {
-  pub title: String,
+  pub title: HorizontallyScrollableText,
   pub overview: String,
   #[derivative(Default(value = "Number::from(0)"))]
   pub year: Number,
   #[derivative(Default(value = "Number::from(0)"))]
   pub runtime: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub tmdb_id: Number,
   pub genres: Vec<String>,
   pub ratings: RatingsList,
 }

@@ -8,6 +8,7 @@ pub(super) struct CollectionDetailsHandler<'a> {
   key: &'a Key,
   app: &'a mut App,
   active_radarr_block: &'a ActiveRadarrBlock,
+  _context: &'a Option<ActiveRadarrBlock>,
 }
 
 impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a> {
@@ -15,11 +16,13 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a>
     key: &'a Key,
     app: &'a mut App,
     active_block: &'a ActiveRadarrBlock,
+    _context: &'a Option<ActiveRadarrBlock>,
   ) -> CollectionDetailsHandler<'a> {
     CollectionDetailsHandler {
       key,
       app,
       active_radarr_block: active_block,
+      _context,
     }
   }
 
@@ -62,9 +65,41 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a>
 
   fn handle_submit(&mut self) {
     if ActiveRadarrBlock::CollectionDetails == *self.active_radarr_block {
-      self
+      let tmdb_id = self
         .app
-        .push_navigation_stack(ActiveRadarrBlock::ViewMovieOverview.into())
+        .data
+        .radarr_data
+        .collection_movies
+        .current_selection()
+        .tmdb_id
+        .clone();
+
+      if self
+        .app
+        .data
+        .radarr_data
+        .movies
+        .items
+        .iter()
+        .any(|movie| movie.tmdb_id == tmdb_id)
+      {
+        self
+          .app
+          .push_navigation_stack(ActiveRadarrBlock::ViewMovieOverview.into());
+      } else {
+        self.app.push_navigation_stack(
+          (
+            ActiveRadarrBlock::AddMoviePrompt,
+            Some(ActiveRadarrBlock::CollectionDetails),
+          )
+            .into(),
+        );
+        self
+          .app
+          .data
+          .radarr_data
+          .populate_add_movie_preferences_lists();
+      }
     }
   }
 
@@ -93,6 +128,7 @@ mod tests {
   use crate::handlers::radarr_handlers::collection_details_handler::CollectionDetailsHandler;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::CollectionMovie;
+  use crate::models::HorizontallyScrollableText;
 
   mod test_handle_scroll_up_and_down {
     use rstest::rstest;
@@ -105,9 +141,11 @@ mod tests {
       test_collection_details_scroll,
       CollectionDetailsHandler,
       collection_movies,
-      CollectionMovie,
+      simple_stateful_iterable_vec!(CollectionMovie, HorizontallyScrollableText),
       ActiveRadarrBlock::CollectionDetails,
-      title
+      None,
+      title,
+      stationary_style
     );
   }
 
@@ -120,14 +158,20 @@ mod tests {
       test_collection_details_home_end,
       CollectionDetailsHandler,
       collection_movies,
-      CollectionMovie,
+      extended_stateful_iterable_vec!(CollectionMovie, HorizontallyScrollableText),
       ActiveRadarrBlock::CollectionDetails,
-      title
+      None,
+      title,
+      stationary_style
     );
   }
 
   mod test_handle_submit {
+    use std::collections::HashMap;
+
     use pretty_assertions::assert_eq;
+
+    use crate::models::radarr_models::Movie;
 
     use super::*;
 
@@ -136,10 +180,74 @@ mod tests {
     #[test]
     fn test_collection_details_submit() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into());
+      app
+        .data
+        .radarr_data
+        .collection_movies
+        .set_items(vec![CollectionMovie::default()]);
+      app.data.radarr_data.quality_profile_map =
+        HashMap::from([(1, "B - Test 2".to_owned()), (0, "A - Test 1".to_owned())]);
 
-      CollectionDetailsHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::CollectionDetails)
-        .handle();
+      CollectionDetailsHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::CollectionDetails,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &(
+          ActiveRadarrBlock::AddMoviePrompt,
+          Some(ActiveRadarrBlock::CollectionDetails)
+        )
+          .into()
+      );
+      assert!(!app.data.radarr_data.add_movie_monitor_list.items.is_empty());
+      assert!(!app
+        .data
+        .radarr_data
+        .add_movie_minimum_availability_list
+        .items
+        .is_empty());
+      assert!(!app
+        .data
+        .radarr_data
+        .add_movie_quality_profile_list
+        .items
+        .is_empty());
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_movie_quality_profile_list
+          .current_selection(),
+        "A - Test 1"
+      );
+    }
+
+    #[test]
+    fn test_collection_details_submit_movie_already_in_library() {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collection_movies
+        .set_items(vec![CollectionMovie::default()]);
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_items(vec![Movie::default()]);
+
+      CollectionDetailsHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::CollectionDetails,
+        &None,
+      )
+      .handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -166,8 +274,13 @@ mod tests {
         .collection_movies
         .set_items(vec![CollectionMovie::default()]);
 
-      CollectionDetailsHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::CollectionDetails)
-        .handle();
+      CollectionDetailsHandler::with(
+        &ESC_KEY,
+        &mut app,
+        &ActiveRadarrBlock::CollectionDetails,
+        &None,
+      )
+      .handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -182,8 +295,13 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into());
       app.push_navigation_stack(ActiveRadarrBlock::ViewMovieOverview.into());
 
-      CollectionDetailsHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::ViewMovieOverview)
-        .handle();
+      CollectionDetailsHandler::with(
+        &ESC_KEY,
+        &mut app,
+        &ActiveRadarrBlock::ViewMovieOverview,
+        &None,
+      )
+      .handle();
 
       assert_eq!(
         app.get_current_route(),

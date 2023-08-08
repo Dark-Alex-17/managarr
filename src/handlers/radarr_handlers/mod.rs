@@ -20,19 +20,22 @@ pub(super) struct RadarrHandler<'a> {
   key: &'a Key,
   app: &'a mut App,
   active_radarr_block: &'a ActiveRadarrBlock,
+  context: &'a Option<ActiveRadarrBlock>,
 }
 
 impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
   fn handle(&mut self) {
     match self.active_radarr_block {
       _ if MOVIE_DETAILS_BLOCKS.contains(self.active_radarr_block) => {
-        MovieDetailsHandler::with(self.key, self.app, self.active_radarr_block).handle()
+        MovieDetailsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+          .handle()
       }
       _ if COLLECTION_DETAILS_BLOCKS.contains(self.active_radarr_block) => {
-        CollectionDetailsHandler::with(self.key, self.app, self.active_radarr_block).handle()
+        CollectionDetailsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+          .handle()
       }
       _ if ADD_MOVIE_BLOCKS.contains(self.active_radarr_block) => {
-        AddMovieHandler::with(self.key, self.app, self.active_radarr_block).handle()
+        AddMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context).handle()
       }
       _ => self.handle_key_event(),
     }
@@ -42,11 +45,13 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
     key: &'a Key,
     app: &'a mut App,
     active_block: &'a ActiveRadarrBlock,
+    context: &'a Option<ActiveRadarrBlock>,
   ) -> RadarrHandler<'a> {
     RadarrHandler {
       key,
       app,
       active_radarr_block: active_block,
+      context,
     }
   }
 
@@ -536,6 +541,7 @@ mod tests {
       collections,
       Collection,
       ActiveRadarrBlock::Collections,
+      None,
       title
     );
 
@@ -545,6 +551,7 @@ mod tests {
       filtered_collections,
       Collection,
       ActiveRadarrBlock::Collections,
+      None,
       title
     );
 
@@ -554,6 +561,7 @@ mod tests {
       movies,
       Movie,
       ActiveRadarrBlock::Movies,
+      None,
       title
     );
 
@@ -563,6 +571,7 @@ mod tests {
       filtered_movies,
       Movie,
       ActiveRadarrBlock::Movies,
+      None,
       title
     );
 
@@ -572,6 +581,7 @@ mod tests {
       downloads,
       DownloadRecord,
       ActiveRadarrBlock::Downloads,
+      None,
       title
     );
   }
@@ -588,6 +598,7 @@ mod tests {
       collections,
       Collection,
       ActiveRadarrBlock::Collections,
+      None,
       title
     );
 
@@ -597,6 +608,7 @@ mod tests {
       filtered_collections,
       Collection,
       ActiveRadarrBlock::Collections,
+      None,
       title
     );
 
@@ -606,6 +618,7 @@ mod tests {
       movies,
       Movie,
       ActiveRadarrBlock::Movies,
+      None,
       title
     );
 
@@ -615,6 +628,7 @@ mod tests {
       filtered_movies,
       Movie,
       ActiveRadarrBlock::Movies,
+      None,
       title
     );
 
@@ -624,6 +638,7 @@ mod tests {
       downloads,
       DownloadRecord,
       ActiveRadarrBlock::Downloads,
+      None,
       title
     );
   }
@@ -639,7 +654,7 @@ mod tests {
     fn test_movies_delete() {
       let mut app = App::default();
 
-      RadarrHandler::with(&DELETE_KEY, &mut app, &ActiveRadarrBlock::Movies).handle();
+      RadarrHandler::with(&DELETE_KEY, &mut app, &ActiveRadarrBlock::Movies, &None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -651,7 +666,7 @@ mod tests {
     fn test_downloads_delete() {
       let mut app = App::default();
 
-      RadarrHandler::with(&DELETE_KEY, &mut app, &ActiveRadarrBlock::Downloads).handle();
+      RadarrHandler::with(&DELETE_KEY, &mut app, &ActiveRadarrBlock::Downloads, &None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -682,6 +697,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         &active_radarr_block,
+        &None,
       )
       .handle();
 
@@ -708,6 +724,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         &active_radarr_block,
+        &None,
       )
       .handle();
 
@@ -732,11 +749,11 @@ mod tests {
     ) {
       let mut app = App::default();
 
-      RadarrHandler::with(&key, &mut app, &active_radarr_block).handle();
+      RadarrHandler::with(&key, &mut app, &active_radarr_block, &None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      RadarrHandler::with(&key, &mut app, &active_radarr_block).handle();
+      RadarrHandler::with(&key, &mut app, &active_radarr_block, &None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
     }
@@ -761,7 +778,7 @@ mod tests {
     ) {
       let mut app = App::default();
 
-      RadarrHandler::with(&SUBMIT_KEY, &mut app, &active_radarr_block).handle();
+      RadarrHandler::with(&SUBMIT_KEY, &mut app, &active_radarr_block, &None).handle();
 
       assert_eq!(app.get_current_route(), &expected_radarr_block.into());
     }
@@ -776,7 +793,13 @@ mod tests {
         .set_items(extended_stateful_iterable_vec!(Movie));
       app.data.radarr_data.search = "Test 2".to_owned();
 
-      RadarrHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::SearchMovie).handle();
+      RadarrHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::SearchMovie,
+        &None,
+      )
+      .handle();
 
       assert_str_eq!(
         app.data.radarr_data.movies.current_selection().title,
@@ -794,7 +817,13 @@ mod tests {
         .set_items(extended_stateful_iterable_vec!(Movie));
       app.data.radarr_data.search = "Test 2".to_owned();
 
-      RadarrHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::SearchMovie).handle();
+      RadarrHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::SearchMovie,
+        &None,
+      )
+      .handle();
 
       assert_str_eq!(
         app
@@ -817,7 +846,13 @@ mod tests {
         .set_items(extended_stateful_iterable_vec!(Collection));
       app.data.radarr_data.search = "Test 2".to_owned();
 
-      RadarrHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::SearchCollection).handle();
+      RadarrHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::SearchCollection,
+        &None,
+      )
+      .handle();
 
       assert_str_eq!(
         app.data.radarr_data.collections.current_selection().title,
@@ -835,7 +870,13 @@ mod tests {
         .set_items(extended_stateful_iterable_vec!(Collection));
       app.data.radarr_data.search = "Test 2".to_owned();
 
-      RadarrHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::SearchCollection).handle();
+      RadarrHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::SearchCollection,
+        &None,
+      )
+      .handle();
 
       assert_str_eq!(
         app
@@ -858,7 +899,13 @@ mod tests {
         .set_items(extended_stateful_iterable_vec!(Movie));
       app.data.radarr_data.filter = "Test".to_owned();
 
-      RadarrHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::FilterMovies).handle();
+      RadarrHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::FilterMovies,
+        &None,
+      )
+      .handle();
 
       assert_eq!(app.data.radarr_data.filtered_movies.items.len(), 3);
       assert_str_eq!(
@@ -882,7 +929,13 @@ mod tests {
         .set_items(extended_stateful_iterable_vec!(Collection));
       app.data.radarr_data.filter = "Test".to_owned();
 
-      RadarrHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::FilterCollections).handle();
+      RadarrHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::FilterCollections,
+        &None,
+      )
+      .handle();
 
       assert_eq!(app.data.radarr_data.filtered_collections.items.len(), 3);
       assert_str_eq!(
@@ -932,7 +985,7 @@ mod tests {
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
 
-      RadarrHandler::with(&SUBMIT_KEY, &mut app, &prompt_block).handle();
+      RadarrHandler::with(&SUBMIT_KEY, &mut app, &prompt_block, &None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
       assert_eq!(
@@ -962,7 +1015,7 @@ mod tests {
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
 
-      RadarrHandler::with(&SUBMIT_KEY, &mut app, &prompt_block).handle();
+      RadarrHandler::with(&SUBMIT_KEY, &mut app, &prompt_block, &None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
@@ -994,7 +1047,7 @@ mod tests {
       app.push_navigation_stack(search_block.into());
       app.data.radarr_data = create_test_radarr_data();
 
-      RadarrHandler::with(&ESC_KEY, &mut app, &search_block).handle();
+      RadarrHandler::with(&ESC_KEY, &mut app, &search_block, &None).handle();
 
       assert_eq!(app.get_current_route(), &base_block.into());
       assert!(!app.should_ignore_quit_key);
@@ -1014,7 +1067,7 @@ mod tests {
       app.push_navigation_stack(filter_block.into());
       app.data.radarr_data = create_test_radarr_data();
 
-      RadarrHandler::with(&ESC_KEY, &mut app, &filter_block).handle();
+      RadarrHandler::with(&ESC_KEY, &mut app, &filter_block, &None).handle();
 
       assert_eq!(app.get_current_route(), &base_block.into());
       assert!(!app.should_ignore_quit_key);
@@ -1042,7 +1095,7 @@ mod tests {
       app.push_navigation_stack(prompt_block.into());
       app.data.radarr_data.prompt_confirm = true;
 
-      RadarrHandler::with(&ESC_KEY, &mut app, &prompt_block).handle();
+      RadarrHandler::with(&ESC_KEY, &mut app, &prompt_block, &None).handle();
 
       assert_eq!(app.get_current_route(), &base_block.into());
       assert!(!app.data.radarr_data.prompt_confirm);
@@ -1056,7 +1109,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
       app.data.radarr_data = create_test_radarr_data();
 
-      RadarrHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::Downloads).handle();
+      RadarrHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::Downloads, &None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -1089,6 +1142,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.search.key,
         &mut app,
         &active_radarr_block,
+        &None,
       )
       .handle();
 
@@ -1110,6 +1164,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.filter.key,
         &mut app,
         &active_radarr_block,
+        &None,
       )
       .handle();
 
@@ -1126,6 +1181,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.add.key,
         &mut app,
         &ActiveRadarrBlock::Movies,
+        &None,
       )
       .handle();
 
@@ -1156,6 +1212,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         &active_radarr_block,
+        &None,
       )
       .handle();
 
@@ -1174,6 +1231,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
         &active_radarr_block,
+        &None,
       )
       .handle();
 
@@ -1192,6 +1250,7 @@ mod tests {
         &DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
         &active_radarr_block,
+        &None,
       )
       .handle();
 
@@ -1205,7 +1264,7 @@ mod tests {
     ) {
       let mut app = App::default();
 
-      RadarrHandler::with(&Key::Char('h'), &mut app, &active_radarr_block).handle();
+      RadarrHandler::with(&Key::Char('h'), &mut app, &active_radarr_block, &None).handle();
 
       assert_str_eq!(app.data.radarr_data.search, "h");
     }
@@ -1217,7 +1276,7 @@ mod tests {
     ) {
       let mut app = App::default();
 
-      RadarrHandler::with(&Key::Char('h'), &mut app, &active_radarr_block).handle();
+      RadarrHandler::with(&Key::Char('h'), &mut app, &active_radarr_block, &None).handle();
 
       assert_str_eq!(app.data.radarr_data.filter, "h");
     }
@@ -1242,6 +1301,7 @@ mod tests {
       &DEFAULT_KEYBINDINGS.submit.key,
       &mut app,
       &ActiveRadarrBlock::SearchMovie,
+      &None,
     )
     .search_table(movies, |movie| &movie.title);
 
@@ -1271,6 +1331,7 @@ mod tests {
       &DEFAULT_KEYBINDINGS.submit.key,
       &mut app,
       &ActiveRadarrBlock::SearchMovie,
+      &None,
     )
     .search_table(movies, |movie| &movie.title);
 
@@ -1303,6 +1364,7 @@ mod tests {
       &DEFAULT_KEYBINDINGS.submit.key,
       &mut app,
       &ActiveRadarrBlock::FilterMovies,
+      &None,
     )
     .filter_table(movies, |movie| &movie.title);
 
@@ -1333,6 +1395,7 @@ mod tests {
       &DEFAULT_KEYBINDINGS.submit.key,
       &mut app,
       &ActiveRadarrBlock::FilterMovies,
+      &None,
     )
     .filter_table(movies, |movie| &movie.title);
 

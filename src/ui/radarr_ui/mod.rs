@@ -21,7 +21,7 @@ use crate::ui::radarr_ui::add_movie_ui::draw_add_movie_search_popup;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details_popup;
 use crate::ui::radarr_ui::movie_details_ui::draw_movie_info_popup;
 use crate::ui::utils::{
-  borderless_block, get_width_with_margin, horizontal_chunks, layout_block,
+  borderless_block, get_width_from_percentage, horizontal_chunks, layout_block,
   layout_block_top_border, line_gauge_with_label, line_gauge_with_title, show_cursor, style_bold,
   style_default, style_failure, style_primary, style_success, style_warning, title_block,
   title_block_centered, vertical_chunks_with_margin,
@@ -39,7 +39,7 @@ mod movie_details_ui;
 pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let (content_rect, _) = draw_tabs(f, area, "Movies", &app.data.radarr_data.main_tabs);
 
-  if let Route::Radarr(active_radarr_block) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::Movies => draw_library(f, app, content_rect),
       ActiveRadarrBlock::SearchMovie => {
@@ -71,13 +71,25 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
       _ if MOVIE_DETAILS_BLOCKS.contains(&active_radarr_block) => {
         draw_large_popup_over(f, app, content_rect, draw_library, draw_movie_info_popup)
       }
-      _ if ADD_MOVIE_BLOCKS.contains(&active_radarr_block) => draw_large_popup_over(
-        f,
-        app,
-        content_rect,
-        draw_library,
-        draw_add_movie_search_popup,
-      ),
+      _ if ADD_MOVIE_BLOCKS.contains(&active_radarr_block) => {
+        if let Route::Radarr(_, Some(_)) = app.get_current_route() {
+          draw_large_popup_over(
+            f,
+            app,
+            content_rect,
+            draw_collections,
+            draw_add_movie_search_popup,
+          )
+        } else {
+          draw_large_popup_over(
+            f,
+            app,
+            content_rect,
+            draw_library,
+            draw_add_movie_search_popup,
+          )
+        }
+      }
       _ if COLLECTION_DETAILS_BLOCKS.contains(&active_radarr_block) => draw_large_popup_over(
         f,
         app,
@@ -269,7 +281,7 @@ fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
     vertical_chunks_with_margin(vec![Constraint::Length(3), Constraint::Min(0)], area, 1);
   if !app.data.radarr_data.is_searching {
     let error_msg = match app.get_current_route() {
-      Route::Radarr(active_radarr_block) => match active_radarr_block {
+      Route::Radarr(active_radarr_block, _) => match active_radarr_block {
         ActiveRadarrBlock::SearchMovie => "Movie not found!",
         ActiveRadarrBlock::SearchCollection => "Collection not found!",
         _ => "",
@@ -284,7 +296,7 @@ fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
     f.render_widget(input, chunks[0]);
   } else {
     let (block_title, block_content) = match app.get_current_route() {
-      Route::Radarr(active_radarr_block) => match active_radarr_block {
+      Route::Radarr(active_radarr_block, _) => match active_radarr_block {
         _ if SEARCH_BLOCKS.contains(active_radarr_block) => {
           ("Search", app.data.radarr_data.search.as_str())
         }
@@ -307,7 +319,7 @@ fn draw_filter_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
     vertical_chunks_with_margin(vec![Constraint::Length(3), Constraint::Min(0)], area, 1);
   if !app.data.radarr_data.is_filtering {
     let error_msg = match app.get_current_route() {
-      Route::Radarr(active_radarr_block) => match active_radarr_block {
+      Route::Radarr(active_radarr_block, _) => match active_radarr_block {
         ActiveRadarrBlock::FilterMovies => "No movies found matching filter!",
         ActiveRadarrBlock::FilterCollections => "No collections found matching filter!",
         _ => "",
@@ -322,7 +334,7 @@ fn draw_filter_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
     f.render_widget(input, chunks[0]);
   } else {
     let (block_title, block_content) = match app.get_current_route() {
-      Route::Radarr(active_radarr_block) => match active_radarr_block {
+      Route::Radarr(active_radarr_block, _) => match active_radarr_block {
         _ if FILTER_BLOCKS.contains(active_radarr_block) => {
           ("Filter", app.data.radarr_data.filter.as_str())
         }
@@ -418,7 +430,7 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
 
       let path = output_path.clone().unwrap_or_default();
       path.scroll_or_reset(
-        get_width_with_margin(area),
+        get_width_from_percentage(area, 18),
         current_selection == *download_record,
       );
 

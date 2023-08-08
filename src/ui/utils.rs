@@ -241,8 +241,8 @@ pub fn show_cursor<B: Backend>(f: &mut Frame<'_, B>, area: Rect, string: &str) {
   f.set_cursor(area.x + string.len() as u16 + 1, area.y + 1);
 }
 
-pub fn get_width_with_margin(area: Rect) -> usize {
-  (area.width as f32 * 0.30) as usize
+pub fn get_width_from_percentage(area: Rect, percentage: u16) -> usize {
+  (area.width as f64 * (percentage as f64 / 100.0)) as usize
 }
 
 #[cfg(test)]
@@ -254,7 +254,7 @@ mod test {
   use tui::widgets::{Block, BorderType, Borders};
 
   use crate::ui::utils::{
-    borderless_block, centered_rect, get_width_with_margin, horizontal_chunks,
+    borderless_block, centered_rect, get_width_from_percentage, horizontal_chunks,
     horizontal_chunks_with_margin, layout_block, layout_block_bottom_border,
     layout_block_top_border, layout_block_top_border_with_title, layout_block_with_title,
     layout_with_constraints, logo_block, spans_info_default, spans_info_primary,
@@ -625,14 +625,17 @@ mod test {
   }
 
   #[test]
-  fn test_get_width_with_margin() {
+  fn test_get_width_from_percentage() {
     assert_eq!(
-      get_width_with_margin(Rect {
-        x: 0,
-        y: 0,
-        width: 100,
-        height: 10
-      }),
+      get_width_from_percentage(
+        Rect {
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 10
+        },
+        30
+      ),
       30
     );
   }

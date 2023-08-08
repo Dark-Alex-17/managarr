@@ -6,10 +6,12 @@ use tui::Frame;
 
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::App;
+use crate::models::radarr_models::CollectionMovie;
 use crate::models::Route;
 use crate::ui::utils::{
-  borderless_block, layout_block_top_border_with_title, spans_info_primary, style_default,
-  style_help, style_primary, title_block, title_style, vertical_chunks_with_margin,
+  borderless_block, get_width_from_percentage, layout_block_top_border_with_title,
+  spans_info_primary, style_default, style_help, style_primary, title_block, title_style,
+  vertical_chunks_with_margin,
 };
 use crate::ui::{draw_small_popup_over, draw_table, TableProps};
 use crate::utils::convert_runtime;
@@ -19,7 +21,7 @@ pub(super) fn draw_collection_details_popup<B: Backend>(
   app: &mut App,
   content_area: Rect,
 ) {
-  if let Route::Radarr(active_radarr_block) = app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::ViewMovieOverview => {
         draw_small_popup_over(
@@ -36,7 +38,11 @@ pub(super) fn draw_collection_details_popup<B: Backend>(
   }
 }
 
-fn draw_collection_details<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_area: Rect) {
+pub(super) fn draw_collection_details<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  content_area: Rect,
+) {
   let chunks = vertical_chunks_with_margin(
     vec![
       Constraint::Percentage(20),
@@ -62,7 +68,17 @@ fn draw_collection_details<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, cont
     .get(&collection_selection.quality_profile_id.as_u64().unwrap())
     .unwrap()
     .to_owned();
-  let mut help_text = Text::from("<↑↓> scroll table | <enter> show overview | <esc> close");
+  let current_selection = if app.data.radarr_data.collection_movies.items.is_empty() {
+    CollectionMovie::default()
+  } else {
+    app
+      .data
+      .radarr_data
+      .collection_movies
+      .current_selection_clone()
+  };
+  let mut help_text =
+    Text::from("<↑↓> scroll table | <enter> show overview/add movie | <esc> close");
   help_text.patch_style(style_help());
 
   let collection_description = Text::from(vec![
@@ -103,6 +119,7 @@ fn draw_collection_details<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, cont
     TableProps {
       content: &mut app.data.radarr_data.collection_movies,
       table_headers: vec![
+        "✓",
         "Title",
         "Year",
         "Runtime",
@@ -111,16 +128,33 @@ fn draw_collection_details<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, cont
         "Genres",
       ],
       constraints: vec![
+        Constraint::Percentage(2),
         Constraint::Percentage(20),
         Constraint::Percentage(8),
         Constraint::Percentage(10),
         Constraint::Percentage(10),
         Constraint::Percentage(18),
-        Constraint::Percentage(30),
+        Constraint::Percentage(28),
       ],
       help: None,
     },
     |movie| {
+      let in_library = if app
+        .data
+        .radarr_data
+        .movies
+        .items
+        .iter()
+        .any(|mov| mov.tmdb_id == movie.tmdb_id)
+      {
+        "✓"
+      } else {
+        ""
+      };
+      movie.title.scroll_or_reset(
+        get_width_from_percentage(chunks[1], 20),
+        current_selection == *movie,
+      );
       let (hours, minutes) = convert_runtime(movie.runtime.as_u64().unwrap());
       let imdb_rating = movie
         .ratings
@@ -150,7 +184,8 @@ fn draw_collection_details<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, cont
       };
 
       Row::new(vec![
-        Cell::from(movie.title.to_owned()),
+        Cell::from(in_library),
+        Cell::from(movie.title.to_string()),
         Cell::from(movie.year.as_u64().unwrap().to_string()),
         Cell::from(format!("{}h {}m", hours, minutes)),
         Cell::from(imdb_rating),

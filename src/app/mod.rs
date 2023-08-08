@@ -14,7 +14,7 @@ use crate::network::NetworkEvent;
 pub(crate) mod key_binding;
 pub mod radarr;
 
-const DEFAULT_ROUTE: Route = Route::Radarr(ActiveRadarrBlock::Movies);
+const DEFAULT_ROUTE: Route = Route::Radarr(ActiveRadarrBlock::Movies, None);
 
 pub struct App {
   navigation_stack: Vec<Route>,
@@ -72,7 +72,7 @@ impl App {
 
   pub async fn on_tick(&mut self, is_first_render: bool) {
     if self.tick_count % self.tick_until_poll == 0 || self.is_routing || self.should_refresh {
-      if let Route::Radarr(active_radarr_block) = self.get_current_route() {
+      if let Route::Radarr(active_radarr_block, _) = self.get_current_route() {
         self
           .radarr_on_tick(*active_radarr_block, is_first_render)
           .await;
@@ -117,14 +117,13 @@ impl Default for App {
         TabRoute {
           title: "Radarr".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
-          help: "<↑↓> scroll | ←→ change tab | <tab> change servarr | <?> help | <q> quit  "
-            .to_owned(),
+          help: "<↑↓> scroll | ←→ change tab | <tab> change servarr | <q> quit  ".to_owned(),
           contextual_help: None,
         },
         TabRoute {
           title: "Sonarr".to_owned(),
           route: Route::Sonarr,
-          help: "<tab> change servarr | <?> help | <q> quit  ".to_owned(),
+          help: "<tab> change servarr | <q> quit  ".to_owned(),
           contextual_help: None,
         },
       ]),

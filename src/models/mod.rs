@@ -10,7 +10,7 @@ pub mod radarr_models;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Route {
-  Radarr(ActiveRadarrBlock),
+  Radarr(ActiveRadarrBlock, Option<ActiveRadarrBlock>),
   Sonarr,
   Readarr,
   Lidarr,

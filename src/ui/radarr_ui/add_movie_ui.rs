@@ -7,8 +7,9 @@ use tui::Frame;
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::Route;
+use crate::ui::radarr_ui::collection_details_ui::draw_collection_details;
 use crate::ui::utils::{
-  borderless_block, get_width_with_margin, horizontal_chunks, layout_block,
+  borderless_block, get_width_from_percentage, horizontal_chunks, layout_block,
   layout_paragraph_borderless, show_cursor, style_default, style_help, style_primary,
   title_block_centered, vertical_chunks_with_margin,
 };
@@ -24,7 +25,7 @@ pub(super) fn draw_add_movie_search_popup<B: Backend>(
   app: &mut App,
   area: Rect,
 ) {
-  if let Route::Radarr(active_radarr_block) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSearchInput | ActiveRadarrBlock::AddMovieSearchResults => {
         draw_add_movie_search(f, app, area);
@@ -33,7 +34,17 @@ pub(super) fn draw_add_movie_search_popup<B: Backend>(
       | ActiveRadarrBlock::AddMovieSelectMonitor
       | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
       | ActiveRadarrBlock::AddMovieSelectQualityProfile => {
-        draw_medium_popup_over(f, app, area, draw_add_movie_search, draw_confirmation_popup);
+        if context_option.is_some() {
+          draw_medium_popup_over(
+            f,
+            app,
+            area,
+            draw_collection_details,
+            draw_confirmation_popup,
+          );
+        } else {
+          draw_medium_popup_over(f, app, area, draw_add_movie_search, draw_confirmation_popup);
+        }
       }
       ActiveRadarrBlock::AddMovieAlreadyInLibrary => draw_error_popup_over(
         f,
@@ -73,7 +84,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
     .style(style_default())
     .block(title_block_centered("Add Movie"));
 
-  if let Route::Radarr(active_radarr_block) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSearchInput => {
         show_cursor(f, chunks[0], block_content);
@@ -173,9 +184,10 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
                 ""
               };
 
-              movie
-                .title
-                .scroll_or_reset(get_width_with_margin(area), *movie == current_selection);
+              movie.title.scroll_or_reset(
+                get_width_from_percentage(area, 27),
+                *movie == current_selection,
+              );
 
               Row::new(vec![
                 Cell::from(in_library),
@@ -200,7 +212,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
 }
 
 fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
-  if let Route::Radarr(active_radarr_block) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSelectMonitor => {
         draw_drop_down_popup(
@@ -272,23 +284,42 @@ fn draw_select_quality_profile_popup<B: Backend>(
 
 fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
   let title = "Add Movie";
-  let prompt = format!(
-    "{}:\n\n{}",
-    app
-      .data
-      .radarr_data
-      .add_searched_movies
-      .current_selection()
-      .title
-      .to_string()
-      .trim(),
-    app
-      .data
-      .radarr_data
-      .add_searched_movies
-      .current_selection()
-      .overview
-  );
+  let (movie_title, movie_overview) = if let Route::Radarr(_, Some(_)) = app.get_current_route() {
+    (
+      app
+        .data
+        .radarr_data
+        .collection_movies
+        .current_selection()
+        .title
+        .to_string(),
+      app
+        .data
+        .radarr_data
+        .collection_movies
+        .current_selection()
+        .overview
+        .clone(),
+    )
+  } else {
+    (
+      app
+        .data
+        .radarr_data
+        .add_searched_movies
+        .current_selection()
+        .title
+        .stationary_style(),
+      app
+        .data
+        .radarr_data
+        .add_searched_movies
+        .current_selection()
+        .overview
+        .clone(),
+    )
+  };
+  let prompt = format!("{}:\n\n{}", movie_title, movie_overview);
   let yes_no_value = &app.data.radarr_data.prompt_confirm;
   let selected_block = &app.data.radarr_data.selected_block;
   let highlight_yes_no = *selected_block == ActiveRadarrBlock::AddMovieConfirmPrompt;
