@@ -2,7 +2,7 @@ use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans, Text};
-use tui::widgets::{Block, Borders, LineGauge, Paragraph, Wrap};
+use tui::widgets::{Block, BorderType, Borders, LineGauge, Paragraph, Wrap};
 use tui::{symbols, Frame};
 
 pub fn horizontal_chunks(constraints: Vec<Constraint>, size: Rect) -> Vec<Rect> {
@@ -46,7 +46,9 @@ fn layout_with_constraints(constraints: Vec<Constraint>) -> Layout {
 }
 
 pub fn layout_block<'a>() -> Block<'a> {
-  Block::default().borders(Borders::ALL)
+  Block::default()
+    .borders(Borders::ALL)
+    .border_type(BorderType::Rounded)
 }
 
 pub fn layout_block_with_title(title_span: Span<'_>) -> Block<'_> {

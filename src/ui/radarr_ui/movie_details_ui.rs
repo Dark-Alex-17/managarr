@@ -109,7 +109,7 @@ fn draw_file_info<B: Backend>(f: &mut Frame<'_, B>, app: &App, content_area: Rec
     let video_details = app.data.radarr_data.video_details.to_owned();
     let chunks = vertical_chunks(
       vec![
-        Constraint::Length(1),
+        Constraint::Length(2),
         Constraint::Length(5),
         Constraint::Length(1),
         Constraint::Length(6),
@@ -125,7 +125,8 @@ fn draw_file_info<B: Backend>(f: &mut Frame<'_, B>, app: &App, content_area: Rec
     audio_details_title.patch_style(style_bold());
     video_details_title.patch_style(style_bold());
 
-    let file_details_title_paragraph = Paragraph::new(file_details_title).block(borderless_block());
+    let file_details_title_paragraph =
+      Paragraph::new(file_details_title).block(layout_block_top_border());
     let audio_details_title_paragraph =
       Paragraph::new(audio_details_title).block(borderless_block());
     let video_details_title_paragraph =
