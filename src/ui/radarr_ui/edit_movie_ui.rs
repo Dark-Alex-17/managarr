@@ -2,9 +2,11 @@ use tui::backend::Backend;
 use tui::layout::{Constraint, Rect};
 use tui::Frame;
 
-use crate::app::radarr::ActiveRadarrBlock;
+use crate::app::radarr::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
 use crate::app::App;
 use crate::models::Route;
+use crate::ui::radarr_ui::library_ui::draw_library;
+use crate::ui::radarr_ui::movie_details_ui::MovieDetailsUi;
 use crate::ui::radarr_ui::{
   draw_select_minimum_availability_popup, draw_select_quality_profile_popup,
 };
@@ -13,41 +15,55 @@ use crate::ui::utils::{
 };
 use crate::ui::{
   draw_button, draw_checkbox_with_label, draw_drop_down_menu_button, draw_drop_down_popup,
-  draw_text_box_with_label,
+  draw_large_popup_over_ui, draw_medium_popup_over, draw_popup, draw_text_box_with_label, DrawUi,
 };
 
-pub(super) fn draw_edit_movie_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
-    match active_radarr_block {
-      ActiveRadarrBlock::EditMovieSelectMinimumAvailability => {
-        draw_drop_down_popup(
-          f,
-          app,
-          prompt_area,
-          draw_edit_movie_confirmation_prompt,
-          draw_select_minimum_availability_popup,
-        );
+pub(super) struct EditMovieUi {}
+
+impl DrawUi for EditMovieUi {
+  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+    if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
+      let draw_edit_movie_prompt =
+        |f: &mut Frame<'_, B>, app: &mut App<'_>, prompt_area: Rect| match active_radarr_block {
+          ActiveRadarrBlock::EditMovieSelectMinimumAvailability => {
+            draw_drop_down_popup(
+              f,
+              app,
+              prompt_area,
+              draw_edit_movie_confirmation_prompt,
+              draw_select_minimum_availability_popup,
+            );
+          }
+          ActiveRadarrBlock::EditMovieSelectQualityProfile => {
+            draw_drop_down_popup(
+              f,
+              app,
+              prompt_area,
+              draw_edit_movie_confirmation_prompt,
+              draw_select_quality_profile_popup,
+            );
+          }
+          ActiveRadarrBlock::EditMoviePrompt
+          | ActiveRadarrBlock::EditMovieToggleMonitored
+          | ActiveRadarrBlock::EditMoviePathInput
+          | ActiveRadarrBlock::EditMovieTagsInput => {
+            draw_edit_movie_confirmation_prompt(f, app, prompt_area)
+          }
+          _ => (),
+        };
+
+      if let Some(context) = context_option {
+        match context {
+          ActiveRadarrBlock::Movies => {
+            draw_medium_popup_over(f, app, content_rect, draw_library, draw_edit_movie_prompt);
+          }
+          _ if MOVIE_DETAILS_BLOCKS.contains(&context) => {
+            draw_large_popup_over_ui::<B, MovieDetailsUi>(f, app, content_rect, draw_library);
+            draw_popup(f, app, draw_edit_movie_prompt, 60, 60);
+          }
+          _ => (),
+        }
       }
-      ActiveRadarrBlock::EditMovieSelectQualityProfile => {
-        draw_drop_down_popup(
-          f,
-          app,
-          prompt_area,
-          draw_edit_movie_confirmation_prompt,
-          draw_select_quality_profile_popup,
-        );
-      }
-      ActiveRadarrBlock::EditMoviePrompt
-      | ActiveRadarrBlock::EditMovieToggleMonitored
-      | ActiveRadarrBlock::EditMoviePathInput
-      | ActiveRadarrBlock::EditMovieTagsInput => {
-        draw_edit_movie_confirmation_prompt(f, app, prompt_area)
-      }
-      _ => (),
     }
   }
 }

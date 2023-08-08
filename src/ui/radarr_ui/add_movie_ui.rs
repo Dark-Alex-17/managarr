@@ -4,10 +4,12 @@ use tui::text::Text;
 use tui::widgets::{Cell, ListItem, Paragraph, Row};
 use tui::Frame;
 
-use crate::app::radarr::ActiveRadarrBlock;
+use crate::app::radarr::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::Route;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details;
+use crate::ui::radarr_ui::collections_ui::draw_collections;
+use crate::ui::radarr_ui::library_ui::draw_library;
 use crate::ui::radarr_ui::{
   draw_select_minimum_availability_popup, draw_select_quality_profile_popup,
   draw_select_root_folder_popup,
@@ -19,50 +21,74 @@ use crate::ui::utils::{
 };
 use crate::ui::{
   draw_button, draw_drop_down_list, draw_drop_down_menu_button, draw_drop_down_popup,
-  draw_error_popup, draw_error_popup_over, draw_medium_popup_over, draw_table, draw_text_box,
-  draw_text_box_with_label, TableProps,
+  draw_error_popup, draw_error_popup_over, draw_large_popup_over, draw_medium_popup_over,
+  draw_table, draw_text_box, draw_text_box_with_label, DrawUi, TableProps,
 };
 use crate::utils::convert_runtime;
 use crate::App;
 
-pub(super) fn draw_add_movie_search_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  area: Rect,
-) {
-  if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
-    match active_radarr_block {
-      ActiveRadarrBlock::AddMovieSearchInput
-      | ActiveRadarrBlock::AddMovieSearchResults
-      | ActiveRadarrBlock::AddMovieEmptySearchResults => {
-        draw_add_movie_search(f, app, area);
-      }
-      ActiveRadarrBlock::AddMoviePrompt
-      | ActiveRadarrBlock::AddMovieSelectMonitor
-      | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
-      | ActiveRadarrBlock::AddMovieSelectQualityProfile
-      | ActiveRadarrBlock::AddMovieSelectRootFolder
-      | ActiveRadarrBlock::AddMovieTagsInput => {
-        if context_option.is_some() {
-          draw_medium_popup_over(
+pub(super) struct AddMoviesUi {}
+
+impl DrawUi for AddMoviesUi {
+  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+    if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
+      let draw_add_movie_search_popup =
+        |f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect| match active_radarr_block {
+          ActiveRadarrBlock::AddMovieSearchInput
+          | ActiveRadarrBlock::AddMovieSearchResults
+          | ActiveRadarrBlock::AddMovieEmptySearchResults => {
+            draw_add_movie_search(f, app, area);
+          }
+          ActiveRadarrBlock::AddMoviePrompt
+          | ActiveRadarrBlock::AddMovieSelectMonitor
+          | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+          | ActiveRadarrBlock::AddMovieSelectQualityProfile
+          | ActiveRadarrBlock::AddMovieSelectRootFolder
+          | ActiveRadarrBlock::AddMovieTagsInput => {
+            if context_option.is_some() {
+              draw_medium_popup_over(
+                f,
+                app,
+                area,
+                draw_collection_details,
+                draw_confirmation_popup,
+              );
+            } else {
+              draw_medium_popup_over(f, app, area, draw_add_movie_search, draw_confirmation_popup);
+            }
+          }
+          ActiveRadarrBlock::AddMovieAlreadyInLibrary => draw_error_popup_over(
             f,
             app,
             area,
-            draw_collection_details,
-            draw_confirmation_popup,
-          );
-        } else {
-          draw_medium_popup_over(f, app, area, draw_add_movie_search, draw_confirmation_popup);
+            "This film is already in your library",
+            draw_add_movie_search,
+          ),
+          _ => (),
+        };
+
+      match active_radarr_block {
+        _ if ADD_MOVIE_BLOCKS.contains(&active_radarr_block) => {
+          if context_option.is_some() {
+            draw_large_popup_over(
+              f,
+              app,
+              content_rect,
+              draw_collections,
+              draw_add_movie_search_popup,
+            )
+          } else {
+            draw_large_popup_over(
+              f,
+              app,
+              content_rect,
+              draw_library,
+              draw_add_movie_search_popup,
+            )
+          }
         }
+        _ => (),
       }
-      ActiveRadarrBlock::AddMovieAlreadyInLibrary => draw_error_popup_over(
-        f,
-        app,
-        area,
-        "This film is already in your library",
-        draw_add_movie_search,
-      ),
-      _ => (),
     }
   }
 }

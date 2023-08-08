@@ -11,62 +11,73 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::App;
 use crate::models::radarr_models::{Credit, MovieHistoryItem, Release, ReleaseField};
 use crate::models::Route;
+use crate::ui::radarr_ui::library_ui::draw_library;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_bottom_border, layout_block_top_border,
   spans_info_default, style_awaiting_import, style_bold, style_default, style_failure,
   style_primary, style_success, style_warning, vertical_chunks,
 };
 use crate::ui::{
-  draw_drop_down_list, draw_drop_down_popup, draw_prompt_box, draw_prompt_box_with_content,
-  draw_prompt_popup_over, draw_small_popup_over, draw_table, draw_tabs, loading, TableProps,
+  draw_drop_down_list, draw_drop_down_popup, draw_large_popup_over, draw_prompt_box,
+  draw_prompt_box_with_content, draw_prompt_popup_over, draw_small_popup_over, draw_table,
+  draw_tabs, loading, DrawUi, TableProps,
 };
 use crate::utils::convert_to_gb;
 
-pub(super) fn draw_movie_info_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  area: Rect,
-) {
-  let (content_area, _) = draw_tabs(f, area, "Movie Info", &app.data.radarr_data.movie_info_tabs);
+pub(super) struct MovieDetailsUi {}
 
-  if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
-    match context_option.as_ref().unwrap_or(active_radarr_block) {
-      ActiveRadarrBlock::AutomaticallySearchMoviePrompt => draw_prompt_popup_over(
-        f,
-        app,
-        content_area,
-        draw_movie_info,
-        draw_search_movie_prompt,
-      ),
-      ActiveRadarrBlock::UpdateAndScanPrompt => draw_prompt_popup_over(
-        f,
-        app,
-        content_area,
-        draw_movie_info,
-        draw_update_and_scan_prompt,
-      ),
-      ActiveRadarrBlock::ManualSearchSortPrompt => draw_drop_down_popup(
-        f,
-        app,
-        content_area,
-        draw_movie_info,
-        |f, app, content_area| {
-          draw_drop_down_list(
+impl DrawUi for MovieDetailsUi {
+  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+    if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
+      let draw_movie_info_popup = |f: &mut Frame<'_, B>, app: &mut App<'_>, popup_area: Rect| {
+        let (content_area, _) = draw_tabs(
+          f,
+          popup_area,
+          "Movie Info",
+          &app.data.radarr_data.movie_info_tabs,
+        );
+
+        match context_option.unwrap_or(active_radarr_block) {
+          ActiveRadarrBlock::AutomaticallySearchMoviePrompt => draw_prompt_popup_over(
             f,
+            app,
             content_area,
-            &mut app.data.radarr_data.movie_releases_sort,
-            |sort_option| ListItem::new(sort_option.to_string()),
-          )
-        },
-      ),
-      ActiveRadarrBlock::ManualSearchConfirmPrompt => draw_small_popup_over(
-        f,
-        app,
-        content_area,
-        draw_movie_info,
-        draw_manual_search_confirm_prompt,
-      ),
-      _ => draw_movie_info(f, app, content_area),
+            draw_movie_info,
+            draw_search_movie_prompt,
+          ),
+          ActiveRadarrBlock::UpdateAndScanPrompt => draw_prompt_popup_over(
+            f,
+            app,
+            content_area,
+            draw_movie_info,
+            draw_update_and_scan_prompt,
+          ),
+          ActiveRadarrBlock::ManualSearchSortPrompt => draw_drop_down_popup(
+            f,
+            app,
+            content_area,
+            draw_movie_info,
+            |f, app, content_area| {
+              draw_drop_down_list(
+                f,
+                content_area,
+                &mut app.data.radarr_data.movie_releases_sort,
+                |sort_option| ListItem::new(sort_option.to_string()),
+              )
+            },
+          ),
+          ActiveRadarrBlock::ManualSearchConfirmPrompt => draw_small_popup_over(
+            f,
+            app,
+            content_area,
+            draw_movie_info,
+            draw_manual_search_confirm_prompt,
+          ),
+          _ => draw_movie_info(f, app, content_area),
+        }
+      };
+
+      draw_large_popup_over(f, app, content_rect, draw_library, draw_movie_info_popup);
     }
   }
 }

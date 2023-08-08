@@ -15,6 +15,7 @@ use tui::Frame;
 
 use crate::app::App;
 use crate::models::{Route, StatefulList, StatefulTable, TabState};
+use crate::ui::radarr_ui::RadarrUi;
 use crate::ui::utils::{
   background_block, borderless_block, centered_rect, horizontal_chunks,
   horizontal_chunks_with_margin, layout_block, layout_block_top_border, layout_button_paragraph,
@@ -28,6 +29,11 @@ mod radarr_ui;
 mod utils;
 
 static HIGHLIGHT_SYMBOL: &str = "=> ";
+
+pub trait DrawUi {
+  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect);
+  fn draw_context_row<B: Backend>(_f: &mut Frame<'_, B>, _app: &App<'_>, _area: Rect) {}
+}
 
 pub fn ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>) {
   f.render_widget(background_block(), f.size());
@@ -59,9 +65,10 @@ pub fn ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>) {
   };
 
   draw_header_row(f, app, main_chunks[0]);
-  draw_context_row(f, app, main_chunks[1]);
-  if let Route::Radarr(_, _) = app.get_current_route() {
-    radarr_ui::draw_radarr_ui(f, app, main_chunks[2]);
+
+  if let Route::Radarr(_, _) = *app.get_current_route() {
+    RadarrUi::draw_context_row(f, app, main_chunks[1]);
+    RadarrUi::draw(f, app, main_chunks[2]);
   }
 }
 
@@ -113,7 +120,7 @@ fn draw_error<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
 pub fn draw_popup<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App<'_>,
-  popup_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  popup_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
   percent_x: u16,
   percent_y: u16,
 ) {
@@ -123,12 +130,24 @@ pub fn draw_popup<B: Backend>(
   popup_fn(f, app, popup_area);
 }
 
+pub fn draw_popup_ui<B: Backend, T: DrawUi>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  percent_x: u16,
+  percent_y: u16,
+) {
+  let popup_area = centered_rect(percent_x, percent_y, f.size());
+  f.render_widget(Clear, popup_area);
+  f.render_widget(background_block(), popup_area);
+  T::draw(f, app, popup_area);
+}
+
 pub fn draw_popup_over<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
-  popup_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  popup_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
   percent_x: u16,
   percent_y: u16,
 ) {
@@ -137,12 +156,25 @@ pub fn draw_popup_over<B: Backend>(
   draw_popup(f, app, popup_fn, percent_x, percent_y);
 }
 
+pub fn draw_popup_over_ui<B: Backend, T: DrawUi>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  area: Rect,
+  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  percent_x: u16,
+  percent_y: u16,
+) {
+  background_fn(f, app, area);
+
+  draw_popup_ui::<B, T>(f, app, percent_x, percent_y);
+}
+
 pub fn draw_prompt_popup_over<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
-  popup_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  popup_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, popup_fn, 35, 35);
 }
@@ -151,8 +183,8 @@ pub fn draw_small_popup_over<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
-  popup_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  popup_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, popup_fn, 40, 40);
 }
@@ -161,8 +193,8 @@ pub fn draw_medium_popup_over<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
-  popup_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  popup_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, popup_fn, 60, 60);
 }
@@ -171,26 +203,29 @@ pub fn draw_large_popup_over<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
-  popup_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  popup_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, popup_fn, 75, 75);
+}
+
+pub fn draw_large_popup_over_ui<B: Backend, T: DrawUi>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  area: Rect,
+  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+) {
+  draw_popup_over_ui::<B, T>(f, app, area, background_fn, 75, 75);
 }
 
 pub fn draw_drop_down_popup<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
-  drop_down_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  drop_down_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, drop_down_fn, 20, 30);
-}
-
-fn draw_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area: Rect) {
-  if let Route::Radarr(_, _) = app.get_current_route() {
-    radarr_ui::draw_radarr_context_row(f, app, area)
-  }
 }
 
 pub fn draw_error_popup_over<B: Backend>(

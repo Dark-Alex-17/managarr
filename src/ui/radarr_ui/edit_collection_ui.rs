@@ -2,9 +2,11 @@ use tui::backend::Backend;
 use tui::layout::{Constraint, Rect};
 use tui::Frame;
 
-use crate::app::radarr::ActiveRadarrBlock;
+use crate::app::radarr::{ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS};
 use crate::app::App;
 use crate::models::Route;
+use crate::ui::radarr_ui::collection_details_ui::CollectionDetailsUi;
+use crate::ui::radarr_ui::collections_ui::draw_collections;
 use crate::ui::radarr_ui::{
   draw_select_minimum_availability_popup, draw_select_quality_profile_popup,
 };
@@ -13,41 +15,64 @@ use crate::ui::utils::{
 };
 use crate::ui::{
   draw_button, draw_checkbox_with_label, draw_drop_down_menu_button, draw_drop_down_popup,
-  draw_text_box_with_label,
+  draw_large_popup_over_ui, draw_medium_popup_over, draw_popup, draw_text_box_with_label, DrawUi,
 };
 
-pub(super) fn draw_edit_collection_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
-    match active_radarr_block {
-      ActiveRadarrBlock::EditCollectionSelectMinimumAvailability => {
-        draw_drop_down_popup(
-          f,
-          app,
-          prompt_area,
-          draw_edit_collection_confirmation_prompt,
-          draw_select_minimum_availability_popup,
-        );
+pub(super) struct EditCollectionUi {}
+
+impl DrawUi for EditCollectionUi {
+  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+    if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
+      let draw_edit_collection_prompt =
+        |f: &mut Frame<'_, B>, app: &mut App<'_>, prompt_area: Rect| match active_radarr_block {
+          ActiveRadarrBlock::EditCollectionSelectMinimumAvailability => {
+            draw_drop_down_popup(
+              f,
+              app,
+              prompt_area,
+              draw_edit_collection_confirmation_prompt,
+              draw_select_minimum_availability_popup,
+            );
+          }
+          ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
+            draw_drop_down_popup(
+              f,
+              app,
+              prompt_area,
+              draw_edit_collection_confirmation_prompt,
+              draw_select_quality_profile_popup,
+            );
+          }
+          ActiveRadarrBlock::EditCollectionPrompt
+          | ActiveRadarrBlock::EditCollectionToggleMonitored
+          | ActiveRadarrBlock::EditCollectionRootFolderPathInput
+          | ActiveRadarrBlock::EditCollectionToggleSearchOnAdd => {
+            draw_edit_collection_confirmation_prompt(f, app, prompt_area)
+          }
+          _ => (),
+        };
+
+      if let Some(context) = context_option {
+        match context {
+          ActiveRadarrBlock::Collections => draw_medium_popup_over(
+            f,
+            app,
+            content_rect,
+            draw_collections,
+            draw_edit_collection_prompt,
+          ),
+          _ if COLLECTION_DETAILS_BLOCKS.contains(&context) => {
+            draw_large_popup_over_ui::<B, CollectionDetailsUi>(
+              f,
+              app,
+              content_rect,
+              draw_collections,
+            );
+            draw_popup(f, app, draw_edit_collection_prompt, 60, 60);
+          }
+          _ => (),
+        }
       }
-      ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
-        draw_drop_down_popup(
-          f,
-          app,
-          prompt_area,
-          draw_edit_collection_confirmation_prompt,
-          draw_select_quality_profile_popup,
-        );
-      }
-      ActiveRadarrBlock::EditCollectionPrompt
-      | ActiveRadarrBlock::EditCollectionToggleMonitored
-      | ActiveRadarrBlock::EditCollectionRootFolderPathInput
-      | ActiveRadarrBlock::EditCollectionToggleSearchOnAdd => {
-        draw_edit_collection_confirmation_prompt(f, app, prompt_area)
-      }
-      _ => (),
     }
   }
 }

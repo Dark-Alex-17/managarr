@@ -8,32 +8,44 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::App;
 use crate::models::radarr_models::CollectionMovie;
 use crate::models::Route;
+use crate::ui::radarr_ui::collections_ui::draw_collections;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_top_border_with_title,
   spans_info_primary, style_default, style_help, style_primary, title_block, title_style,
   vertical_chunks_with_margin,
 };
-use crate::ui::{draw_small_popup_over, draw_table, TableProps};
+use crate::ui::{draw_large_popup_over, draw_small_popup_over, draw_table, DrawUi, TableProps};
 use crate::utils::convert_runtime;
 
-pub(super) fn draw_collection_details_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  content_area: Rect,
-) {
-  if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
-    match context_option.as_ref().unwrap_or(active_radarr_block) {
-      ActiveRadarrBlock::ViewMovieOverview => {
-        draw_small_popup_over(
-          f,
-          app,
-          content_area,
-          draw_collection_details,
-          draw_movie_overview,
-        );
-      }
-      ActiveRadarrBlock::CollectionDetails => draw_collection_details(f, app, content_area),
-      _ => (),
+pub(super) struct CollectionDetailsUi {}
+
+impl DrawUi for CollectionDetailsUi {
+  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+    if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
+      let draw_collection_details_popup =
+        |f: &mut Frame<'_, B>, app: &mut App<'_>, popup_area: Rect| match context_option
+          .unwrap_or(active_radarr_block)
+        {
+          ActiveRadarrBlock::ViewMovieOverview => {
+            draw_small_popup_over(
+              f,
+              app,
+              popup_area,
+              draw_collection_details,
+              draw_movie_overview,
+            );
+          }
+          ActiveRadarrBlock::CollectionDetails => draw_collection_details(f, app, popup_area),
+          _ => (),
+        };
+
+      draw_large_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_collections,
+        draw_collection_details_popup,
+      );
     }
   }
 }

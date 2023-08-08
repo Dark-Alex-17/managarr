@@ -405,7 +405,7 @@ pub enum ActiveRadarrBlock {
   ViewMovieOverview,
 }
 
-pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 10] = [
+pub static ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::AddMovieSearchInput,
   ActiveRadarrBlock::AddMovieSearchResults,
   ActiveRadarrBlock::AddMovieEmptySearchResults,
@@ -417,7 +417,7 @@ pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::AddMovieAlreadyInLibrary,
   ActiveRadarrBlock::AddMovieTagsInput,
 ];
-pub const ADD_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
+pub static ADD_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
   ActiveRadarrBlock::AddMovieSelectRootFolder,
   ActiveRadarrBlock::AddMovieSelectMonitor,
   ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
@@ -425,7 +425,7 @@ pub const ADD_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
   ActiveRadarrBlock::AddMovieTagsInput,
   ActiveRadarrBlock::AddMovieConfirmPrompt,
 ];
-pub const EDIT_COLLECTION_BLOCKS: [ActiveRadarrBlock; 7] = [
+pub static EDIT_COLLECTION_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditCollectionPrompt,
   ActiveRadarrBlock::EditCollectionConfirmPrompt,
   ActiveRadarrBlock::EditCollectionRootFolderPathInput,
@@ -434,7 +434,7 @@ pub const EDIT_COLLECTION_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditCollectionToggleSearchOnAdd,
   ActiveRadarrBlock::EditCollectionToggleMonitored,
 ];
-pub const EDIT_COLLECTION_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
+pub static EDIT_COLLECTION_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
   ActiveRadarrBlock::EditCollectionToggleMonitored,
   ActiveRadarrBlock::EditCollectionSelectMinimumAvailability,
   ActiveRadarrBlock::EditCollectionSelectQualityProfile,
@@ -442,7 +442,7 @@ pub const EDIT_COLLECTION_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
   ActiveRadarrBlock::EditCollectionToggleSearchOnAdd,
   ActiveRadarrBlock::EditCollectionConfirmPrompt,
 ];
-pub const EDIT_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
+pub static EDIT_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditMoviePrompt,
   ActiveRadarrBlock::EditMovieConfirmPrompt,
   ActiveRadarrBlock::EditMoviePathInput,
@@ -451,7 +451,7 @@ pub const EDIT_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditMovieTagsInput,
   ActiveRadarrBlock::EditMovieToggleMonitored,
 ];
-pub const EDIT_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
+pub static EDIT_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
   ActiveRadarrBlock::EditMovieToggleMonitored,
   ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
   ActiveRadarrBlock::EditMovieSelectQualityProfile,
@@ -459,7 +459,7 @@ pub const EDIT_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
   ActiveRadarrBlock::EditMovieTagsInput,
   ActiveRadarrBlock::EditMovieConfirmPrompt,
 ];
-pub const MOVIE_DETAILS_BLOCKS: [ActiveRadarrBlock; 10] = [
+pub static MOVIE_DETAILS_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::MovieDetails,
   ActiveRadarrBlock::MovieHistory,
   ActiveRadarrBlock::FileInfo,
@@ -471,25 +471,25 @@ pub const MOVIE_DETAILS_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::ManualSearchSortPrompt,
   ActiveRadarrBlock::ManualSearchConfirmPrompt,
 ];
-pub const COLLECTION_DETAILS_BLOCKS: [ActiveRadarrBlock; 2] = [
+pub static COLLECTION_DETAILS_BLOCKS: [ActiveRadarrBlock; 2] = [
   ActiveRadarrBlock::CollectionDetails,
   ActiveRadarrBlock::ViewMovieOverview,
 ];
-pub const SEARCH_BLOCKS: [ActiveRadarrBlock; 2] = [
+pub static SEARCH_BLOCKS: [ActiveRadarrBlock; 2] = [
   ActiveRadarrBlock::SearchMovie,
   ActiveRadarrBlock::SearchCollection,
 ];
-pub const FILTER_BLOCKS: [ActiveRadarrBlock; 2] = [
+pub static FILTER_BLOCKS: [ActiveRadarrBlock; 2] = [
   ActiveRadarrBlock::FilterMovies,
   ActiveRadarrBlock::FilterCollections,
 ];
-pub const DELETE_MOVIE_BLOCKS: [ActiveRadarrBlock; 4] = [
+pub static DELETE_MOVIE_BLOCKS: [ActiveRadarrBlock; 4] = [
   ActiveRadarrBlock::DeleteMoviePrompt,
   ActiveRadarrBlock::DeleteMovieConfirmPrompt,
   ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
   ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
 ];
-pub const DELETE_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 3] = [
+pub static DELETE_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
   ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
   ActiveRadarrBlock::DeleteMovieConfirmPrompt,
