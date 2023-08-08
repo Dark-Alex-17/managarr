@@ -15,15 +15,16 @@ use crate::models::{
 };
 use crate::network::radarr_network::RadarrEvent;
 
-use self::radarr_key_mappings::{
-  COLLECTIONS_KEY_MAPPINGS, DOWNLOADS_KEY_MAPPINGS, INDEXERS_KEY_MAPPINGS, LIBRARY_KEY_MAPPINGS,
-  MANUAL_MOVIE_SEARCH_CONTEXTUAL_KEY_MAPPINGS, MANUAL_MOVIE_SEARCH_KEY_MAPPINGS,
-  MOVIE_DETAILS_KEY_MAPPINGS, ROOT_FOLDERS_KEY_MAPPINGS, SYSTEM_KEY_MAPPINGS,
+use super::context_clues::build_context_clue_string;
+
+use self::radarr_context_clues::{
+  COLLECTIONS_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
+  LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
+  MANUAL_MOVIE_SEARCH_CONTEXT_CLUES, MOVIE_DETAILS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
+  SYSTEM_CONTEXT_CLUES,
 };
 
-use super::key_binding::build_keymapping_string;
-
-pub mod radarr_key_mappings;
+pub mod radarr_context_clues;
 
 #[cfg(test)]
 #[path = "radarr_tests.rs"]
@@ -313,76 +314,76 @@ impl<'a> Default for RadarrData<'a> {
           title: "Library",
           route: ActiveRadarrBlock::Movies.into(),
           help: String::new(),
-          contextual_help: Some(build_keymapping_string(&LIBRARY_KEY_MAPPINGS)),
+          contextual_help: Some(build_context_clue_string(&LIBRARY_CONTEXT_CLUES)),
         },
         TabRoute {
           title: "Downloads",
           route: ActiveRadarrBlock::Downloads.into(),
           help: String::new(),
-          contextual_help: Some(build_keymapping_string(&DOWNLOADS_KEY_MAPPINGS)),
+          contextual_help: Some(build_context_clue_string(&DOWNLOADS_CONTEXT_CLUES)),
         },
         TabRoute {
           title: "Collections",
           route: ActiveRadarrBlock::Collections.into(),
           help: String::new(),
-          contextual_help: Some(build_keymapping_string(&COLLECTIONS_KEY_MAPPINGS)),
+          contextual_help: Some(build_context_clue_string(&COLLECTIONS_CONTEXT_CLUES)),
         },
         TabRoute {
           title: "Root Folders",
           route: ActiveRadarrBlock::RootFolders.into(),
           help: String::new(),
-          contextual_help: Some(build_keymapping_string(&ROOT_FOLDERS_KEY_MAPPINGS)),
+          contextual_help: Some(build_context_clue_string(&ROOT_FOLDERS_CONTEXT_CLUES)),
         },
         TabRoute {
           title: "Indexers",
           route: ActiveRadarrBlock::Indexers.into(),
           help: String::new(),
-          contextual_help: Some(build_keymapping_string(&INDEXERS_KEY_MAPPINGS)),
+          contextual_help: Some(build_context_clue_string(&INDEXERS_CONTEXT_CLUES)),
         },
         TabRoute {
           title: "System",
           route: ActiveRadarrBlock::System.into(),
           help: String::new(),
-          contextual_help: Some(build_keymapping_string(&SYSTEM_KEY_MAPPINGS)),
+          contextual_help: Some(build_context_clue_string(&SYSTEM_CONTEXT_CLUES)),
         },
       ]),
       movie_info_tabs: TabState::new(vec![
         TabRoute {
           title: "Details",
           route: ActiveRadarrBlock::MovieDetails.into(),
-          help: build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS),
+          help: build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES),
           contextual_help: None,
         },
         TabRoute {
           title: "History",
           route: ActiveRadarrBlock::MovieHistory.into(),
-          help: build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS),
+          help: build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES),
           contextual_help: None,
         },
         TabRoute {
           title: "File",
           route: ActiveRadarrBlock::FileInfo.into(),
-          help: build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS),
+          help: build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES),
           contextual_help: None,
         },
         TabRoute {
           title: "Cast",
           route: ActiveRadarrBlock::Cast.into(),
-          help: build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS),
+          help: build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES),
           contextual_help: None,
         },
         TabRoute {
           title: "Crew",
           route: ActiveRadarrBlock::Crew.into(),
-          help: build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS),
+          help: build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES),
           contextual_help: None,
         },
         TabRoute {
           title: "Manual Search",
           route: ActiveRadarrBlock::ManualSearch.into(),
-          help: build_keymapping_string(&MANUAL_MOVIE_SEARCH_KEY_MAPPINGS),
-          contextual_help: Some(build_keymapping_string(
-            &MANUAL_MOVIE_SEARCH_CONTEXTUAL_KEY_MAPPINGS,
+          help: build_context_clue_string(&MANUAL_MOVIE_SEARCH_CONTEXT_CLUES),
+          contextual_help: Some(build_context_clue_string(
+            &MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
           )),
         },
       ]),

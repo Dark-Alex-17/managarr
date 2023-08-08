@@ -8,12 +8,12 @@ mod tests {
     use serde_json::Number;
     use strum::IntoEnumIterator;
 
-    use crate::app::key_binding::build_keymapping_string;
-    use crate::app::radarr::radarr_key_mappings::{
-      COLLECTIONS_KEY_MAPPINGS, DOWNLOADS_KEY_MAPPINGS, INDEXERS_KEY_MAPPINGS,
-      LIBRARY_KEY_MAPPINGS, MANUAL_MOVIE_SEARCH_CONTEXTUAL_KEY_MAPPINGS,
-      MANUAL_MOVIE_SEARCH_KEY_MAPPINGS, MOVIE_DETAILS_KEY_MAPPINGS, ROOT_FOLDERS_KEY_MAPPINGS,
-      SYSTEM_KEY_MAPPINGS,
+    use crate::app::context_clues::build_context_clue_string;
+    use crate::app::radarr::radarr_context_clues::{
+      COLLECTIONS_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
+      LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
+      MANUAL_MOVIE_SEARCH_CONTEXT_CLUES, MOVIE_DETAILS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
+      SYSTEM_CONTEXT_CLUES,
     };
     use crate::app::radarr::radarr_test_utils::utils::create_test_radarr_data;
     use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
@@ -325,7 +325,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[0].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[0].contextual_help,
-        Some(build_keymapping_string(&LIBRARY_KEY_MAPPINGS))
+        Some(build_context_clue_string(&LIBRARY_CONTEXT_CLUES))
       );
 
       assert_str_eq!(radarr_data.main_tabs.tabs[1].title, "Downloads");
@@ -336,7 +336,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[1].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[1].contextual_help,
-        Some(build_keymapping_string(&DOWNLOADS_KEY_MAPPINGS))
+        Some(build_context_clue_string(&DOWNLOADS_CONTEXT_CLUES))
       );
 
       assert_str_eq!(radarr_data.main_tabs.tabs[2].title, "Collections");
@@ -347,7 +347,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[2].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[2].contextual_help,
-        Some(build_keymapping_string(&COLLECTIONS_KEY_MAPPINGS))
+        Some(build_context_clue_string(&COLLECTIONS_CONTEXT_CLUES))
       );
 
       assert_str_eq!(radarr_data.main_tabs.tabs[3].title, "Root Folders");
@@ -358,7 +358,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[3].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[3].contextual_help,
-        Some(build_keymapping_string(&ROOT_FOLDERS_KEY_MAPPINGS))
+        Some(build_context_clue_string(&ROOT_FOLDERS_CONTEXT_CLUES))
       );
 
       assert_str_eq!(radarr_data.main_tabs.tabs[4].title, "Indexers");
@@ -369,7 +369,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[4].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[4].contextual_help,
-        Some(build_keymapping_string(&INDEXERS_KEY_MAPPINGS))
+        Some(build_context_clue_string(&INDEXERS_CONTEXT_CLUES))
       );
 
       assert_str_eq!(radarr_data.main_tabs.tabs[5].title, "System");
@@ -380,7 +380,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[5].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[5].contextual_help,
-        Some(build_keymapping_string(&SYSTEM_KEY_MAPPINGS))
+        Some(build_context_clue_string(&SYSTEM_CONTEXT_CLUES))
       );
 
       assert_eq!(radarr_data.movie_info_tabs.tabs.len(), 6);
@@ -392,7 +392,7 @@ mod tests {
       );
       assert_str_eq!(
         radarr_data.movie_info_tabs.tabs[0].help,
-        build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS)
+        build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES)
       );
       assert!(radarr_data.movie_info_tabs.tabs[0]
         .contextual_help
@@ -405,7 +405,7 @@ mod tests {
       );
       assert_str_eq!(
         radarr_data.movie_info_tabs.tabs[1].help,
-        build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS)
+        build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES)
       );
       assert!(radarr_data.movie_info_tabs.tabs[1]
         .contextual_help
@@ -418,7 +418,7 @@ mod tests {
       );
       assert_str_eq!(
         radarr_data.movie_info_tabs.tabs[2].help,
-        build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS)
+        build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES)
       );
       assert!(radarr_data.movie_info_tabs.tabs[2]
         .contextual_help
@@ -431,7 +431,7 @@ mod tests {
       );
       assert_str_eq!(
         radarr_data.movie_info_tabs.tabs[3].help,
-        build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS)
+        build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES)
       );
       assert!(radarr_data.movie_info_tabs.tabs[3]
         .contextual_help
@@ -444,7 +444,7 @@ mod tests {
       );
       assert_str_eq!(
         radarr_data.movie_info_tabs.tabs[4].help,
-        build_keymapping_string(&MOVIE_DETAILS_KEY_MAPPINGS)
+        build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES)
       );
       assert!(radarr_data.movie_info_tabs.tabs[4]
         .contextual_help
@@ -457,12 +457,12 @@ mod tests {
       );
       assert_str_eq!(
         radarr_data.movie_info_tabs.tabs[5].help,
-        build_keymapping_string(&MANUAL_MOVIE_SEARCH_KEY_MAPPINGS)
+        build_context_clue_string(&MANUAL_MOVIE_SEARCH_CONTEXT_CLUES)
       );
       assert_eq!(
         radarr_data.movie_info_tabs.tabs[5].contextual_help,
-        Some(build_keymapping_string(
-          &MANUAL_MOVIE_SEARCH_CONTEXTUAL_KEY_MAPPINGS
+        Some(build_context_clue_string(
+          &MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES
         ))
       );
     }
@@ -472,13 +472,180 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::app::radarr::{
-      ActiveRadarrBlock, ADD_MOVIE_SELECTION_BLOCKS, DELETE_MOVIE_SELECTION_BLOCKS,
-      EDIT_COLLECTION_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS,
-      INDEXER_SETTINGS_SELECTION_BLOCKS,
+      ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS, COLLECTIONS_BLOCKS,
+      COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS, DELETE_MOVIE_SELECTION_BLOCKS,
+      DOWNLOADS_BLOCKS, EDIT_COLLECTION_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
+      EDIT_MOVIE_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, FILTER_BLOCKS, INDEXERS_BLOCKS,
+      INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS,
+      MOVIE_DETAILS_BLOCKS, ROOT_FOLDERS_BLOCKS, SEARCH_BLOCKS, SYSTEM_DETAILS_BLOCKS,
     };
 
     #[test]
-    fn test_add_movie_prompt_block_order() {
+    fn test_library_blocks_contents() {
+      assert_eq!(LIBRARY_BLOCKS.len(), 4);
+      assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::Movies));
+      assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::SearchMovie));
+      assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::FilterMovies));
+      assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::UpdateAllMoviesPrompt));
+    }
+
+    #[test]
+    fn test_collections_blocks_contents() {
+      assert_eq!(COLLECTIONS_BLOCKS.len(), 4);
+      assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::Collections));
+      assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::SearchCollection));
+      assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::FilterCollections));
+      assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::UpdateAllCollectionsPrompt));
+    }
+
+    #[test]
+    fn test_indexers_blocks_contents() {
+      assert_eq!(INDEXERS_BLOCKS.len(), 4);
+      assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::AddIndexer));
+      assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::EditIndexer));
+      assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::DeleteIndexerPrompt));
+      assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::Indexers));
+    }
+
+    #[test]
+    fn test_root_folders_blocks_contents() {
+      assert_eq!(ROOT_FOLDERS_BLOCKS.len(), 3);
+      assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveRadarrBlock::RootFolders));
+      assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveRadarrBlock::AddRootFolderPrompt));
+      assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveRadarrBlock::DeleteRootFolderPrompt));
+    }
+
+    #[test]
+    fn test_add_movie_blocks_contents() {
+      assert_eq!(ADD_MOVIE_BLOCKS.len(), 10);
+      assert!(ADD_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::AddMovieSearchInput));
+      assert!(ADD_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::AddMovieSearchResults));
+      assert!(ADD_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::AddMovieEmptySearchResults));
+      assert!(ADD_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::AddMoviePrompt));
+      assert!(ADD_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::AddMovieSelectMinimumAvailability));
+      assert!(ADD_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::AddMovieSelectMonitor));
+      assert!(ADD_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::AddMovieSelectQualityProfile));
+      assert!(ADD_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::AddMovieSelectRootFolder));
+      assert!(ADD_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::AddMovieAlreadyInLibrary));
+      assert!(ADD_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::AddMovieTagsInput));
+    }
+
+    #[test]
+    fn test_edit_collection_blocks_contents() {
+      assert_eq!(EDIT_COLLECTION_BLOCKS.len(), 7);
+      assert!(EDIT_COLLECTION_BLOCKS.contains(&ActiveRadarrBlock::EditCollectionPrompt));
+      assert!(EDIT_COLLECTION_BLOCKS.contains(&ActiveRadarrBlock::EditCollectionConfirmPrompt));
+      assert!(
+        EDIT_COLLECTION_BLOCKS.contains(&ActiveRadarrBlock::EditCollectionRootFolderPathInput)
+      );
+      assert!(EDIT_COLLECTION_BLOCKS
+        .contains(&ActiveRadarrBlock::EditCollectionSelectMinimumAvailability));
+      assert!(
+        EDIT_COLLECTION_BLOCKS.contains(&ActiveRadarrBlock::EditCollectionSelectQualityProfile)
+      );
+      assert!(EDIT_COLLECTION_BLOCKS.contains(&ActiveRadarrBlock::EditCollectionToggleSearchOnAdd));
+      assert!(EDIT_COLLECTION_BLOCKS.contains(&ActiveRadarrBlock::EditCollectionToggleMonitored));
+    }
+
+    #[test]
+    fn test_edit_movie_blocks_contents() {
+      assert_eq!(EDIT_MOVIE_BLOCKS.len(), 7);
+      assert!(EDIT_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::EditMoviePrompt));
+      assert!(EDIT_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::EditMovieConfirmPrompt));
+      assert!(EDIT_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::EditMoviePathInput));
+      assert!(EDIT_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::EditMovieSelectMinimumAvailability));
+      assert!(EDIT_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::EditMovieSelectQualityProfile));
+      assert!(EDIT_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::EditMovieTagsInput));
+      assert!(EDIT_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::EditMovieToggleMonitored));
+    }
+
+    #[test]
+    fn test_downloads_blocks_contents() {
+      assert_eq!(DOWNLOADS_BLOCKS.len(), 3);
+      assert!(DOWNLOADS_BLOCKS.contains(&ActiveRadarrBlock::Downloads));
+      assert!(DOWNLOADS_BLOCKS.contains(&ActiveRadarrBlock::DeleteDownloadPrompt));
+      assert!(DOWNLOADS_BLOCKS.contains(&ActiveRadarrBlock::UpdateDownloadsPrompt));
+    }
+
+    #[test]
+    fn test_movie_details_blocks_contents() {
+      assert_eq!(MOVIE_DETAILS_BLOCKS.len(), 10);
+      assert!(MOVIE_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::MovieDetails));
+      assert!(MOVIE_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::MovieHistory));
+      assert!(MOVIE_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::FileInfo));
+      assert!(MOVIE_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::Cast));
+      assert!(MOVIE_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::Crew));
+      assert!(MOVIE_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::AutomaticallySearchMoviePrompt));
+      assert!(MOVIE_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::UpdateAndScanPrompt));
+      assert!(MOVIE_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::ManualSearch));
+      assert!(MOVIE_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::ManualSearchSortPrompt));
+      assert!(MOVIE_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::ManualSearchConfirmPrompt));
+    }
+
+    #[test]
+    fn test_collection_details_blocks_contents() {
+      assert_eq!(COLLECTION_DETAILS_BLOCKS.len(), 2);
+      assert!(COLLECTION_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::CollectionDetails));
+      assert!(COLLECTION_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::ViewMovieOverview));
+    }
+
+    #[test]
+    fn test_search_blocks_contents() {
+      assert_eq!(SEARCH_BLOCKS.len(), 2);
+      assert!(SEARCH_BLOCKS.contains(&ActiveRadarrBlock::SearchMovie));
+      assert!(SEARCH_BLOCKS.contains(&ActiveRadarrBlock::SearchCollection));
+    }
+
+    #[test]
+    fn test_filter_blocks_contents() {
+      assert_eq!(FILTER_BLOCKS.len(), 2);
+      assert!(FILTER_BLOCKS.contains(&ActiveRadarrBlock::FilterMovies));
+      assert!(FILTER_BLOCKS.contains(&ActiveRadarrBlock::FilterCollections));
+    }
+
+    #[test]
+    fn test_delete_movie_blocks_contents() {
+      assert_eq!(DELETE_MOVIE_BLOCKS.len(), 4);
+      assert!(DELETE_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::DeleteMoviePrompt));
+      assert!(DELETE_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::DeleteMovieConfirmPrompt));
+      assert!(DELETE_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::DeleteMovieToggleDeleteFile));
+      assert!(DELETE_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::DeleteMovieToggleAddListExclusion));
+    }
+
+    #[test]
+    fn test_indexer_settings_blocks_contents() {
+      assert_eq!(INDEXER_SETTINGS_BLOCKS.len(), 10);
+      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsPrompt));
+      assert!(
+        INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput)
+      );
+      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsConfirmPrompt));
+      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsMaximumSizeInput));
+      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsMinimumAgeInput));
+      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsRetentionInput));
+      assert!(
+        INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput)
+      );
+      assert!(INDEXER_SETTINGS_BLOCKS
+        .contains(&ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs));
+      assert!(INDEXER_SETTINGS_BLOCKS
+        .contains(&ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags));
+      assert!(INDEXER_SETTINGS_BLOCKS
+        .contains(&ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput));
+    }
+
+    #[test]
+    fn test_system_details_blocks_contents() {
+      assert_eq!(SYSTEM_DETAILS_BLOCKS.len(), 5);
+      assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::SystemLogs));
+      assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::SystemQueuedEvents));
+      assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::SystemTasks));
+      assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::SystemTaskStartConfirmPrompt));
+      assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::SystemUpdates));
+    }
+
+    #[test]
+    fn test_add_movie_selection_blocks_ordering() {
       let mut add_movie_block_iter = ADD_MOVIE_SELECTION_BLOCKS.iter();
 
       assert_eq!(
@@ -505,10 +672,11 @@ mod tests {
         add_movie_block_iter.next().unwrap(),
         &ActiveRadarrBlock::AddMovieConfirmPrompt
       );
+      assert_eq!(add_movie_block_iter.next(), None);
     }
 
     #[test]
-    fn test_edit_movie_prompt_block_order() {
+    fn test_edit_movie_selection_blocks_ordering() {
       let mut edit_movie_block_iter = EDIT_MOVIE_SELECTION_BLOCKS.iter();
 
       assert_eq!(
@@ -535,10 +703,11 @@ mod tests {
         edit_movie_block_iter.next().unwrap(),
         &ActiveRadarrBlock::EditMovieConfirmPrompt
       );
+      assert_eq!(edit_movie_block_iter.next(), None);
     }
 
     #[test]
-    fn test_edit_collection_prompt_block_order() {
+    fn test_edit_collection_selection_blocks_ordering() {
       let mut edit_collection_block_iter = EDIT_COLLECTION_SELECTION_BLOCKS.iter();
 
       assert_eq!(
@@ -565,10 +734,11 @@ mod tests {
         edit_collection_block_iter.next().unwrap(),
         &ActiveRadarrBlock::EditCollectionConfirmPrompt
       );
+      assert_eq!(edit_collection_block_iter.next(), None);
     }
 
     #[test]
-    fn test_delete_movie_prompt_block_order() {
+    fn test_delete_movie_selection_blocks_ordering() {
       let mut delete_movie_block_iter = DELETE_MOVIE_SELECTION_BLOCKS.iter();
 
       assert_eq!(
@@ -583,10 +753,11 @@ mod tests {
         delete_movie_block_iter.next().unwrap(),
         &ActiveRadarrBlock::DeleteMovieConfirmPrompt
       );
+      assert_eq!(delete_movie_block_iter.next(), None);
     }
 
     #[test]
-    fn test_indexer_settings_prompt_block_order() {
+    fn test_indexer_settings_selection_blocks_ordering() {
       let mut indexer_settings_block_iter = INDEXER_SETTINGS_SELECTION_BLOCKS.iter();
 
       assert_eq!(
@@ -625,6 +796,7 @@ mod tests {
         indexer_settings_block_iter.next().unwrap(),
         &ActiveRadarrBlock::IndexerSettingsConfirmPrompt
       );
+      assert_eq!(indexer_settings_block_iter.next(), None);
     }
   }
 

@@ -5,15 +5,15 @@ use tokio::sync::mpsc::Sender;
 use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
+use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
 use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
 use crate::models::{HorizontallyScrollableText, Route, TabRoute, TabState};
 use crate::network::NetworkEvent;
 
-use self::key_binding::{build_keymapping_string, SERVARR_KEYMAPPINGS};
-
 #[cfg(test)]
 #[path = "app_tests.rs"]
 mod app_tests;
+pub mod context_clues;
 pub mod key_binding;
 mod key_binding_tests;
 pub mod radarr;
@@ -142,14 +142,14 @@ impl<'a> Default for App<'a> {
           route: ActiveRadarrBlock::Movies.into(),
           help: format!(
             "<↑↓> scroll | ←→ change tab | {}  ",
-            build_keymapping_string(&SERVARR_KEYMAPPINGS)
+            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
           ),
           contextual_help: None,
         },
         TabRoute {
           title: "Sonarr",
           route: Route::Sonarr,
-          help: format!("{}  ", build_keymapping_string(&SERVARR_KEYMAPPINGS)),
+          help: format!("{}  ", build_context_clue_string(&SERVARR_CONTEXT_CLUES)),
           contextual_help: None,
         },
       ]),

@@ -1,15 +1,5 @@
 use crate::event::Key;
 
-pub(in crate::app) type KeyMapping = (KeyBinding, &'static str);
-
-pub fn build_keymapping_string(key_mappings: &[(KeyBinding, &str)]) -> String {
-  key_mappings
-    .iter()
-    .map(|(key_binding, desc)| format!("{} {}", key_binding.key, desc))
-    .collect::<Vec<String>>()
-    .join(" | ")
-}
-
 macro_rules! generate_keybindings {
     ($($field:ident),+) => {
         pub struct KeyBindings {
@@ -45,7 +35,7 @@ generate_keybindings! {
   esc
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub struct KeyBinding {
   pub key: Key,
   pub desc: &'static str,
@@ -149,11 +139,3 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
     desc: "close",
   },
 };
-
-pub static SERVARR_KEYMAPPINGS: [KeyMapping; 2] = [
-  (DEFAULT_KEYBINDINGS.tab, "change servarr"),
-  (DEFAULT_KEYBINDINGS.quit, DEFAULT_KEYBINDINGS.quit.desc),
-];
-
-pub static BARE_POPUP_KEY_MAPPINGS: [KeyMapping; 1] =
-  [(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)];

@@ -4,7 +4,7 @@ mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
   use tokio::sync::mpsc;
 
-  use crate::app::key_binding::{build_keymapping_string, SERVARR_KEYMAPPINGS};
+  use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
   use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
   use crate::app::{App, Data, RadarrConfig, DEFAULT_ROUTE};
   use crate::models::{HorizontallyScrollableText, Route, TabRoute};
@@ -29,14 +29,14 @@ mod tests {
           route: ActiveRadarrBlock::Movies.into(),
           help: format!(
             "<↑↓> scroll | ←→ change tab | {}  ",
-            build_keymapping_string(&SERVARR_KEYMAPPINGS)
+            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
           ),
           contextual_help: None,
         },
         TabRoute {
           title: "Sonarr",
           route: Route::Sonarr,
-          help: format!("{}  ", build_keymapping_string(&SERVARR_KEYMAPPINGS)),
+          help: format!("{}  ", build_context_clue_string(&SERVARR_CONTEXT_CLUES)),
           contextual_help: None,
         },
       ]

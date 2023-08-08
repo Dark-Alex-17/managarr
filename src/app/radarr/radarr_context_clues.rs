@@ -1,6 +1,11 @@
-use crate::app::key_binding::{KeyMapping, DEFAULT_KEYBINDINGS};
+use crate::app::context_clues::ContextClue;
+use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 
-pub static LIBRARY_KEY_MAPPINGS: [KeyMapping; 9] = [
+#[cfg(test)]
+#[path = "radarr_context_clues_tests.rs"]
+mod radarr_context_clues_tests;
+
+pub static LIBRARY_CONTEXT_CLUES: [ContextClue; 9] = [
   (DEFAULT_KEYBINDINGS.add, DEFAULT_KEYBINDINGS.add.desc),
   (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
   (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
@@ -15,7 +20,7 @@ pub static LIBRARY_KEY_MAPPINGS: [KeyMapping; 9] = [
   (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
 ];
 
-pub static DOWNLOADS_KEY_MAPPINGS: [KeyMapping; 2] = [
+pub static DOWNLOADS_CONTEXT_CLUES: [ContextClue; 2] = [
   (
     DEFAULT_KEYBINDINGS.refresh,
     DEFAULT_KEYBINDINGS.refresh.desc,
@@ -23,7 +28,7 @@ pub static DOWNLOADS_KEY_MAPPINGS: [KeyMapping; 2] = [
   (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
 ];
 
-pub static COLLECTIONS_KEY_MAPPINGS: [KeyMapping; 7] = [
+pub static COLLECTIONS_CONTEXT_CLUES: [ContextClue; 7] = [
   (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
   (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
   (DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc),
@@ -36,7 +41,7 @@ pub static COLLECTIONS_KEY_MAPPINGS: [KeyMapping; 7] = [
   (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
 ];
 
-pub static ROOT_FOLDERS_KEY_MAPPINGS: [KeyMapping; 3] = [
+pub static ROOT_FOLDERS_CONTEXT_CLUES: [ContextClue; 3] = [
   (DEFAULT_KEYBINDINGS.add, DEFAULT_KEYBINDINGS.add.desc),
   (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
   (
@@ -45,7 +50,7 @@ pub static ROOT_FOLDERS_KEY_MAPPINGS: [KeyMapping; 3] = [
   ),
 ];
 
-pub static INDEXERS_KEY_MAPPINGS: [KeyMapping; 6] = [
+pub static INDEXERS_CONTEXT_CLUES: [ContextClue; 6] = [
   (DEFAULT_KEYBINDINGS.add, DEFAULT_KEYBINDINGS.add.desc),
   (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
   (
@@ -63,7 +68,7 @@ pub static INDEXERS_KEY_MAPPINGS: [KeyMapping; 6] = [
   ),
 ];
 
-pub static SYSTEM_KEY_MAPPINGS: [KeyMapping; 5] = [
+pub static SYSTEM_CONTEXT_CLUES: [ContextClue; 5] = [
   (DEFAULT_KEYBINDINGS.tasks, "open tasks"),
   (DEFAULT_KEYBINDINGS.events, "open events"),
   (DEFAULT_KEYBINDINGS.logs, "open logs"),
@@ -74,7 +79,7 @@ pub static SYSTEM_KEY_MAPPINGS: [KeyMapping; 5] = [
   ),
 ];
 
-pub static MOVIE_DETAILS_KEY_MAPPINGS: [KeyMapping; 5] = [
+pub static MOVIE_DETAILS_CONTEXT_CLUES: [ContextClue; 5] = [
   (
     DEFAULT_KEYBINDINGS.refresh,
     DEFAULT_KEYBINDINGS.refresh.desc,
@@ -85,7 +90,7 @@ pub static MOVIE_DETAILS_KEY_MAPPINGS: [KeyMapping; 5] = [
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
-pub static MANUAL_MOVIE_SEARCH_KEY_MAPPINGS: [KeyMapping; 6] = [
+pub static MANUAL_MOVIE_SEARCH_CONTEXT_CLUES: [ContextClue; 6] = [
   (
     DEFAULT_KEYBINDINGS.refresh,
     DEFAULT_KEYBINDINGS.refresh.desc,
@@ -97,20 +102,20 @@ pub static MANUAL_MOVIE_SEARCH_KEY_MAPPINGS: [KeyMapping; 6] = [
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
-pub static MANUAL_MOVIE_SEARCH_CONTEXTUAL_KEY_MAPPINGS: [KeyMapping; 1] =
+pub static MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES: [ContextClue; 1] =
   [(DEFAULT_KEYBINDINGS.submit, "details")];
 
-pub static ADD_MOVIE_SEARCH_RESULTS_KEY_MAPPINGS: [KeyMapping; 2] = [
+pub static ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.submit, "details"),
   (DEFAULT_KEYBINDINGS.esc, "edit search"),
 ];
 
-pub static SYSTEM_TASKS_KEY_MAPPINGS: [KeyMapping; 2] = [
+pub static SYSTEM_TASKS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.submit, "start task"),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
-pub static COLLECTION_DETAILS_KEY_MAPPINGS: [KeyMapping; 2] = [
+pub static COLLECTION_DETAILS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.submit, "show overview/add movie"),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];

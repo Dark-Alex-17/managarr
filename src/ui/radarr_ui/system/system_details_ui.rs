@@ -4,8 +4,8 @@ use tui::text::{Span, Text};
 use tui::widgets::{Cell, ListItem, Paragraph, Row};
 use tui::Frame;
 
-use crate::app::key_binding::{build_keymapping_string, BARE_POPUP_KEY_MAPPINGS};
-use crate::app::radarr::radarr_key_mappings::SYSTEM_TASKS_KEY_MAPPINGS;
+use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
+use crate::app::radarr::radarr_context_clues::SYSTEM_TASKS_CONTEXT_CLUES;
 use crate::app::radarr::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::app::App;
 use crate::models::Route;
@@ -88,7 +88,7 @@ fn draw_logs_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Re
       is_popup: true,
       help: Some(format!(
         "<↑↓←→> scroll | {}",
-        build_keymapping_string(&BARE_POPUP_KEY_MAPPINGS)
+        build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES)
       )),
     },
   );
@@ -101,7 +101,7 @@ fn draw_tasks_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: R
     let context_area = draw_help_and_get_content_rect(
       f,
       area,
-      Some(build_keymapping_string(&SYSTEM_TASKS_KEY_MAPPINGS)),
+      Some(build_context_clue_string(&SYSTEM_TASKS_CONTEXT_CLUES)),
     );
 
     draw_table(
@@ -163,7 +163,7 @@ fn draw_updates_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area:
     area,
     Some(format!(
       "<↑↓> scroll | {}",
-      build_keymapping_string(&BARE_POPUP_KEY_MAPPINGS)
+      build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES)
     )),
   );
   let updates = app.data.radarr_data.updates.get_text();
