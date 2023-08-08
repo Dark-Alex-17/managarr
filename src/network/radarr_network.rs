@@ -224,11 +224,15 @@ impl<'a> Network<'a> {
 
     self
       .handle_request::<(), Vec<AddMovieSearchResult>>(request_props, |movie_vec, mut app| {
-        app
-          .data
-          .radarr_data
-          .add_searched_movies
-          .set_items(movie_vec)
+        if movie_vec.is_empty() {
+          app.pop_and_push_navigation_stack(ActiveRadarrBlock::AddMovieEmptySearchResults.into());
+        } else {
+          app
+            .data
+            .radarr_data
+            .add_searched_movies
+            .set_items(movie_vec);
+        }
       })
       .await;
   }
@@ -371,7 +375,7 @@ impl<'a> Network<'a> {
           .data
           .radarr_data
           .quality_profile_map
-          .get(&quality_profile_id.as_u64().unwrap())
+          .get_by_left(&quality_profile_id.as_u64().unwrap())
           .unwrap()
           .to_owned();
         let imdb_rating = if let Some(rating) = ratings.imdb {
@@ -1040,7 +1044,6 @@ fn get_movie_status(has_file: bool, downloads_vec: &[DownloadRecord], movie_id: 
 
 #[cfg(test)]
 mod test {
-  use std::collections::HashMap;
   use std::sync::Arc;
 
   use bimap::BiMap;
@@ -1418,6 +1421,41 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_search_new_movie_event_no_results() {
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([])),
+      format!(
+        "{}?term=test%20term",
+        RadarrEvent::SearchNewMovie.resource()
+      )
+      .as_str(),
+    )
+    .await;
+    app_arc.lock().await.data.radarr_data.search = "test term".to_owned().into();
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network
+      .handle_radarr_event(RadarrEvent::SearchNewMovie)
+      .await;
+
+    async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .add_searched_movies
+      .items
+      .is_empty());
+    assert_eq!(
+      app_arc.lock().await.get_current_route(),
+      &ActiveRadarrBlock::AddMovieEmptySearchResults.into()
+    );
+  }
+
+  #[tokio::test]
   async fn test_handle_trigger_automatic_search_event() {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
@@ -1551,7 +1589,7 @@ mod test {
       .movies
       .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.quality_profile_map =
-      HashMap::from([(2222, "HD - 1080p".to_owned())]);
+      BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network
@@ -1657,7 +1695,7 @@ mod test {
       .movies
       .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.quality_profile_map =
-      HashMap::from([(2222, "HD - 1080p".to_owned())]);
+      BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network
@@ -1852,7 +1890,7 @@ mod test {
     async_server.assert_async().await;
     assert_eq!(
       app_arc.lock().await.data.radarr_data.quality_profile_map,
-      HashMap::from([(2222u64, "HD - 1080p".to_owned())])
+      BiMap::from_iter([(2222u64, "HD - 1080p".to_owned())])
     );
   }
 
@@ -2064,7 +2102,8 @@ mod test {
           free_space: Number::from(21990232555520u64),
         },
       ];
-      app.data.radarr_data.quality_profile_map = HashMap::from([(2222, "HD - 1080p".to_owned())]);
+      app.data.radarr_data.quality_profile_map =
+        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
       app.data.radarr_data.tags_map =
         BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
       app.data.radarr_data.edit_tags = "usenet, testing".to_owned().into();
@@ -2153,7 +2192,7 @@ mod test {
         ..movie()
       }]);
       app.data.radarr_data.quality_profile_map =
-        HashMap::from([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
     }
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
@@ -2208,7 +2247,7 @@ mod test {
         .movie_quality_profile_list
         .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
       app.data.radarr_data.quality_profile_map =
-        HashMap::from_iter([(1, "Any".to_owned()), (2, "HD - 1080p".to_owned())]);
+        BiMap::from_iter([(1, "Any".to_owned()), (2, "HD - 1080p".to_owned())]);
     }
     let network = Network::new(reqwest::Client::new(), &app_arc);
 

@@ -81,10 +81,6 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<()> {
   loop {
     let mut app = app.lock().await;
 
-    if is_first_render {
-      app.is_loading = true;
-    }
-
     terminal.draw(|f| ui(f, &mut app))?;
 
     match input_events.next()? {

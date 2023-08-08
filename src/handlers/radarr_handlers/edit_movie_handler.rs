@@ -211,7 +211,6 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
 }
 
 #[cfg(test)]
-#[allow(unused_imports)]
 mod tests {
   use pretty_assertions::assert_str_eq;
 
@@ -221,7 +220,7 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::edit_movie_handler::EditMovieHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::{MinimumAvailability, Monitor};
+  use crate::models::radarr_models::MinimumAvailability;
 
   mod test_handle_scroll_up_and_down {
     use pretty_assertions::assert_eq;
@@ -316,7 +315,7 @@ mod tests {
   mod test_handle_left_right_action {
     use rstest::rstest;
 
-    use crate::{test_text_box_home_end_keys, test_text_box_left_right_keys};
+    use crate::test_text_box_left_right_keys;
 
     use super::*;
 
@@ -353,9 +352,7 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use std::collections::HashMap;
-
-    use pretty_assertions::{assert_eq, assert_str_eq};
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use crate::app::key_binding::DEFAULT_KEYBINDINGS;

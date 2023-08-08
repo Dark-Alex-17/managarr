@@ -271,6 +271,7 @@ fn draw_movie_history<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_a
         movie_history_item.source_title.scroll_left_or_reset(
           get_width_from_percentage(content_area, 34),
           current_selection == *movie_history_item,
+          app.tick_count % app.ticks_until_scroll == 0,
         );
 
         Row::new(vec![
@@ -322,7 +323,7 @@ fn draw_movie_cast<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_area
       .style(style_success())
     },
     app.is_loading,
-  )
+  );
 }
 
 fn draw_movie_crew<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_area: Rect) {
@@ -442,6 +443,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
         get_width_from_percentage(content_area, 30),
         current_selection == *release
           && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
+        app.tick_count % app.ticks_until_scroll == 0,
       );
       let size = convert_to_gb(size.as_u64().unwrap());
       let rejected_str = if *rejected { "⛔" } else { "" };
@@ -477,7 +479,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       .style(style_primary())
     },
     app.is_loading,
-  )
+  );
 }
 
 fn draw_manual_search_confirm_prompt<B: Backend>(

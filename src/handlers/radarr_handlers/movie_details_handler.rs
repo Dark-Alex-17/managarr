@@ -326,7 +326,6 @@ fn sort_releases_by_selected_field(
 }
 
 #[cfg(test)]
-#[allow(unused_imports)]
 mod tests {
   use pretty_assertions::assert_str_eq;
   use rstest::rstest;
@@ -712,13 +711,11 @@ mod tests {
   }
 
   mod test_handle_esc {
-    use bimap::BiMap;
-    use pretty_assertions::{assert_eq, assert_str_eq};
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
     use crate::assert_movie_info_tabs_reset;
-    use crate::models::HorizontallyScrollableText;
 
     use super::*;
 
@@ -770,8 +767,6 @@ mod tests {
   }
 
   mod test_handle_key_char {
-    use std::collections::HashMap;
-
     use bimap::BiMap;
     use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;
@@ -779,7 +774,6 @@ mod tests {
 
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
     use crate::app::radarr::RadarrData;
-    use crate::handlers::radarr_handlers::RadarrHandler;
     use crate::models::radarr_models::{MinimumAvailability, Movie};
     use crate::models::HorizontallyScrollableText;
     use crate::models::StatefulTable;

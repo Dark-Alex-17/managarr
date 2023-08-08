@@ -65,7 +65,7 @@ pub(super) fn draw_collection_details<B: Backend>(
     .data
     .radarr_data
     .quality_profile_map
-    .get(&collection_selection.quality_profile_id.as_u64().unwrap())
+    .get_by_left(&collection_selection.quality_profile_id.as_u64().unwrap())
     .unwrap()
     .to_owned();
   let current_selection = if app.data.radarr_data.collection_movies.items.is_empty() {
@@ -155,6 +155,7 @@ pub(super) fn draw_collection_details<B: Backend>(
       movie.title.scroll_left_or_reset(
         get_width_from_percentage(chunks[1], 20),
         current_selection == *movie,
+        app.tick_count % app.ticks_until_scroll == 0,
       );
       let (hours, minutes) = convert_runtime(movie.runtime.as_u64().unwrap());
       let imdb_rating = movie

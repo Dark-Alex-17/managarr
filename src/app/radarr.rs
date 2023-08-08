@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::time::Duration;
 
 use bimap::BiMap;
@@ -28,7 +27,7 @@ pub struct RadarrData {
   pub movie_quality_profile_list: StatefulList<String>,
   pub selected_block: ActiveRadarrBlock,
   pub downloads: StatefulTable<DownloadRecord>,
-  pub quality_profile_map: HashMap<u64, String>,
+  pub quality_profile_map: BiMap<u64, String>,
   pub tags_map: BiMap<u64, String>,
   pub movie_details: ScrollableText,
   pub file_details: String,
@@ -112,7 +111,7 @@ impl RadarrData {
       .movie_minimum_availability_list
       .set_items(Vec::from_iter(MinimumAvailability::iter()));
     let mut quality_profile_names: Vec<String> =
-      self.quality_profile_map.values().cloned().collect();
+      self.quality_profile_map.right_values().cloned().collect();
     quality_profile_names.sort();
     self
       .movie_quality_profile_list
@@ -161,7 +160,7 @@ impl RadarrData {
 
     let quality_profile_name = self
       .quality_profile_map
-      .get(&quality_profile_id.as_u64().unwrap())
+      .get_by_left(&quality_profile_id.as_u64().unwrap())
       .unwrap();
     let quality_profile_index = self
       .movie_quality_profile_list
@@ -190,7 +189,7 @@ impl Default for RadarrData {
       selected_block: ActiveRadarrBlock::AddMovieSelectMonitor,
       filtered_movies: StatefulTable::default(),
       downloads: StatefulTable::default(),
-      quality_profile_map: HashMap::default(),
+      quality_profile_map: BiMap::default(),
       tags_map: BiMap::default(),
       file_details: String::default(),
       audio_details: String::default(),
@@ -289,6 +288,7 @@ pub enum ActiveRadarrBlock {
   AddMovieSelectMonitor,
   AddMovieConfirmPrompt,
   AddMovieTagsInput,
+  AddMovieEmptySearchResults,
   AutomaticallySearchMoviePrompt,
   Collections,
   CollectionDetails,
@@ -322,9 +322,10 @@ pub enum ActiveRadarrBlock {
   ViewMovieOverview,
 }
 
-pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 8] = [
+pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 9] = [
   ActiveRadarrBlock::AddMovieSearchInput,
   ActiveRadarrBlock::AddMovieSearchResults,
+  ActiveRadarrBlock::AddMovieEmptySearchResults,
   ActiveRadarrBlock::AddMoviePrompt,
   ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
   ActiveRadarrBlock::AddMovieSelectMonitor,
@@ -444,24 +445,19 @@ impl App {
   pub(super) async fn dispatch_by_radarr_block(&mut self, active_radarr_block: &ActiveRadarrBlock) {
     match active_radarr_block {
       ActiveRadarrBlock::Collections => {
-        self.is_loading = true;
         self
           .dispatch_network_event(RadarrEvent::GetCollections.into())
           .await;
-        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::CollectionDetails => {
         self.is_loading = true;
         self.populate_movie_collection_table().await;
         self.is_loading = false;
-        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::Downloads => {
-        self.is_loading = true;
         self
           .dispatch_network_event(RadarrEvent::GetDownloads.into())
           .await;
-        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::Movies => {
         self
@@ -470,54 +466,42 @@ impl App {
         self
           .dispatch_network_event(RadarrEvent::GetDownloads.into())
           .await;
-        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::AddMovieSearchResults => {
-        self.is_loading = true;
         self
           .dispatch_network_event(RadarrEvent::SearchNewMovie.into())
           .await;
-
-        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::MovieDetails | ActiveRadarrBlock::FileInfo => {
-        self.is_loading = true;
         self
           .dispatch_network_event(RadarrEvent::GetMovieDetails.into())
           .await;
-        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::MovieHistory => {
-        self.is_loading = true;
         self
           .dispatch_network_event(RadarrEvent::GetMovieHistory.into())
           .await;
-        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::Cast | ActiveRadarrBlock::Crew => {
         if self.data.radarr_data.movie_cast.items.is_empty()
           || self.data.radarr_data.movie_crew.items.is_empty()
         {
-          self.is_loading = true;
           self
             .dispatch_network_event(RadarrEvent::GetMovieCredits.into())
             .await;
         }
-        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::ManualSearch => {
         if self.data.radarr_data.movie_releases.items.is_empty() && !self.is_loading {
-          self.is_loading = true;
           self
             .dispatch_network_event(RadarrEvent::GetReleases.into())
             .await;
         }
-
-        self.check_for_prompt_action().await;
       }
       _ => (),
     }
 
+    self.check_for_prompt_action().await;
     self.reset_tick_count();
   }
 
@@ -563,14 +547,18 @@ impl App {
         .unwrap_or_else(|| Duration::from_secs(0))
         .is_zero()
     {
-      self
-        .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
-        .await;
-      self
-        .dispatch_network_event(RadarrEvent::GetTags.into())
-        .await;
+      self.refresh_metadata().await;
       self.dispatch_by_radarr_block(&active_radarr_block).await;
     }
+  }
+
+  async fn refresh_metadata(&mut self) {
+    self
+      .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
+      .await;
+    self
+      .dispatch_network_event(RadarrEvent::GetTags.into())
+      .await;
   }
 
   async fn populate_movie_collection_table(&mut self) {
@@ -735,8 +723,6 @@ pub mod radarr_test_utils {
 #[cfg(test)]
 mod tests {
   mod radarr_data_tests {
-    use std::collections::HashMap;
-
     use bimap::BiMap;
     use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;
@@ -824,7 +810,7 @@ mod tests {
     #[test]
     fn test_populate_movie_preferences_lists() {
       let mut radarr_data = RadarrData {
-        quality_profile_map: HashMap::from([
+        quality_profile_map: BiMap::from_iter([
           (2222, "HD - 1080p".to_owned()),
           (1111, "Any".to_owned()),
         ]),
@@ -853,7 +839,7 @@ mod tests {
         edit_path: HorizontallyScrollableText::default(),
         edit_tags: HorizontallyScrollableText::default(),
         edit_monitored: None,
-        quality_profile_map: HashMap::from([
+        quality_profile_map: BiMap::from_iter([
           (2222, "HD - 1080p".to_owned()),
           (1111, "Any".to_owned()),
         ]),
@@ -1064,6 +1050,25 @@ mod tests {
 
     #[tokio::test]
     async fn test_dispatch_by_collection_details_block() {
+      let (mut app, _) = construct_app_unit();
+
+      app.data.radarr_data.collections.set_items(vec![Collection {
+        movies: Some(vec![CollectionMovie::default()]),
+        ..Collection::default()
+      }]);
+
+      app
+        .dispatch_by_radarr_block(&ActiveRadarrBlock::CollectionDetails)
+        .await;
+
+      assert!(!app.is_loading);
+      assert!(!app.data.radarr_data.collection_movies.items.is_empty());
+      assert_eq!(app.tick_count, 0);
+      assert!(!app.data.radarr_data.prompt_confirm);
+    }
+
+    #[tokio::test]
+    async fn test_dispatch_by_collection_details_block_with_add_movie() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
       app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddMovie);
 
@@ -1076,7 +1081,7 @@ mod tests {
         .dispatch_by_radarr_block(&ActiveRadarrBlock::CollectionDetails)
         .await;
 
-      assert!(!app.is_loading);
+      assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::AddMovie.into()
@@ -1111,7 +1116,7 @@ mod tests {
         .dispatch_by_radarr_block(&ActiveRadarrBlock::Movies)
         .await;
 
-      assert!(!app.is_loading);
+      assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetMovies.into()
@@ -1358,6 +1363,24 @@ mod tests {
       );
       assert!(app.should_refresh);
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+    }
+
+    #[tokio::test]
+    async fn test_radarr_refresh_metadata() {
+      let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.is_routing = true;
+
+      app.refresh_metadata().await;
+
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetQualityProfiles.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetTags.into()
+      );
+      assert!(app.is_loading);
     }
 
     #[tokio::test]

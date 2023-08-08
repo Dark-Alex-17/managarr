@@ -218,11 +218,14 @@ impl HorizontallyScrollableText {
     *self.offset.borrow_mut() = 0;
   }
 
-  pub fn scroll_left_or_reset(&self, width: usize, is_current_selection: bool) {
-    if is_current_selection && self.text.len() >= width && *self.offset.borrow() < self.text.len() {
-      self.scroll_left();
-    } else {
-      self.reset_offset();
+  pub fn scroll_left_or_reset(&self, width: usize, is_current_selection: bool, can_scroll: bool) {
+    if can_scroll {
+      if is_current_selection && self.text.len() >= width && *self.offset.borrow() < self.text.len()
+      {
+        self.scroll_left();
+      } else {
+        self.reset_offset();
+      }
     }
   }
 
@@ -554,19 +557,23 @@ mod tests {
     let test_text = "Test string";
     let horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
 
-    horizontally_scrollable_text.scroll_left_or_reset(width, true);
+    horizontally_scrollable_text.scroll_left_or_reset(width, true, true);
 
     assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
 
-    horizontally_scrollable_text.scroll_left_or_reset(width, false);
+    horizontally_scrollable_text.scroll_left_or_reset(width, false, true);
 
     assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
 
-    horizontally_scrollable_text.scroll_left_or_reset(width, true);
+    horizontally_scrollable_text.scroll_left_or_reset(width, true, false);
+
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+
+    horizontally_scrollable_text.scroll_left_or_reset(width, true, true);
 
     assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
 
-    horizontally_scrollable_text.scroll_left_or_reset(test_text.len(), false);
+    horizontally_scrollable_text.scroll_left_or_reset(test_text.len(), false, true);
 
     assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
   }

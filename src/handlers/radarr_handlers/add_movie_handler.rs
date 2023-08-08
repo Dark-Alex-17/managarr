@@ -258,7 +258,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         self.app.data.radarr_data.reset_search();
         self.app.should_ignore_quit_key = false;
       }
-      ActiveRadarrBlock::AddMovieSearchResults => {
+      ActiveRadarrBlock::AddMovieSearchResults | ActiveRadarrBlock::AddMovieEmptySearchResults => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.add_searched_movies = StatefulTable::default();
         self.app.should_ignore_quit_key = true;
@@ -295,7 +295,6 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
 }
 
 #[cfg(test)]
-#[allow(unused_imports)]
 mod tests {
   use pretty_assertions::assert_str_eq;
 
@@ -376,7 +375,6 @@ mod tests {
   }
 
   mod test_handle_home_end {
-    use rstest::rstest;
     use strum::IntoEnumIterator;
 
     use crate::{
@@ -482,8 +480,7 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use std::collections::HashMap;
-
+    use bimap::BiMap;
     use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;
 
@@ -524,7 +521,7 @@ mod tests {
         .add_searched_movies
         .set_items(vec![AddMovieSearchResult::default()]);
       app.data.radarr_data.quality_profile_map =
-        HashMap::from([(1, "B - Test 2".to_owned()), (0, "A - Test 1".to_owned())]);
+        BiMap::from_iter([(1, "B - Test 2".to_owned()), (0, "A - Test 1".to_owned())]);
 
       AddMovieHandler::with(
         &SUBMIT_KEY,
@@ -782,11 +779,17 @@ mod tests {
       );
     }
 
-    #[test]
-    fn test_add_movie_search_results_esc() {
+    #[rstest]
+    fn test_add_movie_search_results_esc(
+      #[values(
+        ActiveRadarrBlock::AddMovieSearchResults,
+        ActiveRadarrBlock::AddMovieEmptySearchResults
+      )]
+      active_radarr_block: ActiveRadarrBlock,
+    ) {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
-      app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
+      app.push_navigation_stack(active_radarr_block.into());
       app
         .data
         .radarr_data
@@ -796,13 +799,7 @@ mod tests {
           HorizontallyScrollableText
         ));
 
-      AddMovieHandler::with(
-        &ESC_KEY,
-        &mut app,
-        &ActiveRadarrBlock::AddMovieSearchResults,
-        &None,
-      )
-      .handle();
+      AddMovieHandler::with(&ESC_KEY, &mut app, &active_radarr_block, &None).handle();
 
       assert_eq!(
         app.get_current_route(),

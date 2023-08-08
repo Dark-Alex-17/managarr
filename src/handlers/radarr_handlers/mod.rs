@@ -543,7 +543,7 @@ mod radarr_handler_test_utils {
         edit_path: HorizontallyScrollableText::default(),
         edit_tags: HorizontallyScrollableText::default(),
         edit_monitored: None,
-        quality_profile_map: HashMap::from([
+        quality_profile_map: BiMap::from_iter([
           (2222, "HD - 1080p".to_owned()),
           (1111, "Any".to_owned()),
         ]),
@@ -1249,8 +1249,6 @@ mod tests {
   }
 
   mod test_handle_key_char {
-    use std::collections::HashMap;
-
     use bimap::BiMap;
     use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;

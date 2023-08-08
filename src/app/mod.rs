@@ -25,6 +25,7 @@ pub struct App {
   pub client: Client,
   pub title: &'static str,
   pub tick_until_poll: u64,
+  pub ticks_until_scroll: u64,
   pub tick_count: u64,
   pub last_tick: Instant,
   pub network_tick_frequency: Duration,
@@ -48,6 +49,7 @@ impl App {
   pub async fn dispatch_network_event(&mut self, action: NetworkEvent) {
     debug!("Dispatching network event: {:?}", action);
 
+    self.is_loading = true;
     if let Some(network_tx) = &self.network_tx {
       if let Err(e) = network_tx.send(action).await {
         self.is_loading = false;
@@ -136,6 +138,7 @@ impl Default for App {
       client: Client::new(),
       title: "Managarr",
       tick_until_poll: 50,
+      ticks_until_scroll: 4,
       tick_count: 0,
       network_tick_frequency: Duration::from_secs(20),
       last_tick: Instant::now(),
@@ -178,15 +181,54 @@ impl Default for RadarrConfig {
 
 #[cfg(test)]
 mod tests {
+  use std::time::Duration;
+
   use anyhow::anyhow;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use tokio::sync::mpsc;
 
   use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
   use crate::app::{App, Data, RadarrConfig, DEFAULT_ROUTE};
-  use crate::models::HorizontallyScrollableText;
+  use crate::models::{HorizontallyScrollableText, Route, TabRoute};
   use crate::network::radarr_network::RadarrEvent;
   use crate::network::NetworkEvent;
+
+  #[test]
+  fn test_app_default() {
+    let app = App::default();
+
+    assert_eq!(app.navigation_stack, vec![DEFAULT_ROUTE]);
+    assert!(app.network_tx.is_none());
+    assert_eq!(app.error, HorizontallyScrollableText::default());
+    assert_eq!(app.response, String::default());
+    assert_eq!(app.server_tabs.index, 0);
+    assert_eq!(
+      app.server_tabs.tabs,
+      vec![
+        TabRoute {
+          title: "Radarr".to_owned(),
+          route: ActiveRadarrBlock::Movies.into(),
+          help: "<↑↓> scroll | ←→ change tab | <tab> change servarr | <q> quit  ".to_owned(),
+          contextual_help: None,
+        },
+        TabRoute {
+          title: "Sonarr".to_owned(),
+          route: Route::Sonarr,
+          help: "<tab> change servarr | <q> quit  ".to_owned(),
+          contextual_help: None,
+        }
+      ]
+    );
+    assert_str_eq!(app.title, "Managarr");
+    assert_eq!(app.tick_until_poll, 50);
+    assert_eq!(app.ticks_until_scroll, 4);
+    assert_eq!(app.tick_count, 0);
+    assert_eq!(app.network_tick_frequency, Duration::from_secs(20));
+    assert!(!app.is_loading);
+    assert!(!app.is_routing);
+    assert!(!app.should_refresh);
+    assert!(!app.should_ignore_quit_key);
+  }
 
   #[test]
   fn test_navigation_stack_methods() {

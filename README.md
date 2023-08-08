@@ -84,10 +84,10 @@ tautulli:
 - [x] Trigger automatic searches for movies
 - [x] Trigger refresh and disk scan for movies, downloads, and collections
 - [x] Manually search for movies
-- [ ] Edit movies
+- [x] Edit movies
 - [ ] Manage your quality profiles
 - [ ] Manage your quality definitions
-- [ ] Manage your tags
+- [x] Manage your tags
 - [ ] Manage your indexers
 
 ### Sonarr

@@ -164,8 +164,7 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use std::collections::HashMap;
-
+    use bimap::BiMap;
     use pretty_assertions::assert_eq;
 
     use crate::models::radarr_models::Movie;
@@ -183,7 +182,7 @@ mod tests {
         .collection_movies
         .set_items(vec![CollectionMovie::default()]);
       app.data.radarr_data.quality_profile_map =
-        HashMap::from([(1, "B - Test 2".to_owned()), (0, "A - Test 1".to_owned())]);
+        BiMap::from_iter([(1, "B - Test 2".to_owned()), (0, "A - Test 1".to_owned())]);
       app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieConfirmPrompt;
 
       CollectionDetailsHandler::with(

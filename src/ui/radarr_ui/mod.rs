@@ -210,7 +210,7 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
       let file_size: f64 = convert_to_gb(movie.size_on_disk.as_u64().unwrap());
       let certification = movie.certification.clone().unwrap_or_else(|| "".to_owned());
       let quality_profile = quality_profile_map
-        .get(&movie.quality_profile_id.as_u64().unwrap())
+        .get_by_left(&movie.quality_profile_id.as_u64().unwrap())
         .unwrap()
         .to_owned();
       let tags = movie
@@ -475,6 +475,7 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
       path.scroll_left_or_reset(
         get_width_from_percentage(area, 18),
         current_selection == *download_record,
+        app.tick_count % app.ticks_until_scroll == 0,
       );
 
       let percent = 1f64 - (sizeleft.as_f64().unwrap() / size.as_f64().unwrap());
@@ -533,7 +534,7 @@ fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect)
         Cell::from(collection.root_folder_path.clone().unwrap_or_default()),
         Cell::from(
           quality_profile_map
-            .get(&collection.quality_profile_id.as_u64().unwrap())
+            .get_by_left(&collection.quality_profile_id.as_u64().unwrap())
             .unwrap()
             .to_owned(),
         ),
