@@ -1,15 +1,15 @@
 use std::ops::Sub;
+
 use chrono::{Duration, Utc};
+use tui::{Frame, symbols};
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
-use tui::style::Color::Cyan;
-use tui::style::Style;
-use tui::text::{Spans, Text};
-use tui::widgets::{Block, Borders, LineGauge, Paragraph};
-use tui::{symbols, Frame};
+use tui::style::{Color, Modifier, Style};
+use tui::text::{Span, Spans, Text};
+use tui::widgets::{Block, Borders, Cell, LineGauge, Paragraph, Row, Table};
 
-use crate::app::radarr::RadarrData;
 use crate::app::App;
+use crate::app::radarr::RadarrData;
 use crate::logos::{
   BAZARR_LOGO, LIDARR_LOGO, PROWLARR_LOGO, RADARR_LOGO, READARR_LOGO, SONARR_LOGO,
 };
@@ -19,14 +19,17 @@ use crate::ui::utils::{
 
 mod utils;
 
-pub fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
-  let main_chunks = vertical_chunks(
+static HIGHLIGHT_SYMBOL: &str = "=> ";
+
+pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
+  let main_chunks = vertical_chunks_with_margin(
     vec![Constraint::Length(20), Constraint::Length(0)],
     f.size(),
+    1
   );
 
   draw_context_row(f, app, main_chunks[0]);
-  f.render_widget(Block::default().borders(Borders::ALL), main_chunks[1]);
+  draw_radarr_ui(f, app, main_chunks[1]);
 }
 
 fn draw_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
@@ -47,6 +50,40 @@ fn draw_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   f.render_widget(Block::default().borders(Borders::ALL), chunks[3]);
 
   draw_logo(f, chunks[4]);
+}
+
+fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+  let block = Block::default().borders(Borders::ALL).title(Spans::from(vec![
+    Span::styled("Movies", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))
+  ]));
+
+  let row_style = Style::default().fg(Color::Cyan);
+  let rows = app.data.radarr_data.movies.items
+      .iter()
+      .map(|movie| Row::new(vec![
+        Cell::from(movie.title.to_owned()),
+        Cell::from(movie.year.to_string()),
+        Cell::from(movie.monitored.to_string()),
+        Cell::from(movie.has_file.to_string())
+  ]).style(row_style));
+  let header_row = Row::new(vec!["Title", "Year", "Monitored", "Downloaded"])
+      .style(Style::default().fg(Color::White))
+      .bottom_margin(0);
+  let constraints = vec![
+    Constraint::Percentage(25),
+    Constraint::Percentage(25),
+    Constraint::Percentage(25),
+    Constraint::Percentage(25),
+  ];
+
+  let table = Table::new(rows)
+      .header(header_row)
+      .block(block)
+      .highlight_style(Style::default().add_modifier(Modifier::REVERSED))
+      .highlight_symbol(HIGHLIGHT_SYMBOL)
+      .widths(&constraints);
+
+  f.render_stateful_widget(table, area, &mut app.data.radarr_data.movies.state)
 }
 
 fn draw_stats<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
@@ -92,7 +129,7 @@ fn draw_stats<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 
   let space_gauge = LineGauge::default()
       .block(Block::default().title("Storage:"))
-      .gauge_style(Style::default().fg(Cyan))
+      .gauge_style(Style::default().fg(Color::Cyan))
       .line_set(symbols::line::THICK)
       .ratio(ratio)
       .label(Spans::from(format!("{:.0}%", ratio * 100.0)));

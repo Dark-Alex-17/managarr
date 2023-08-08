@@ -2,6 +2,7 @@ use log::error;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
+use tui::widgets::TableState;
 
 use crate::app::radarr::RadarrData;
 
@@ -10,7 +11,6 @@ use super::network::RadarrEvent;
 pub(crate) mod key_binding;
 pub mod radarr;
 
-#[derive(Debug)]
 pub struct App {
   network_tx: Option<Sender<RadarrEvent>>,
   pub client: Client,
@@ -39,15 +39,15 @@ impl App {
     }
   }
 
-  pub fn reset(&mut self) {
+  pub fn reset_tick_count(&mut self) {
     self.tick_count = 0;
-    // self.data = Data::default();
   }
 
   pub async fn on_tick(&mut self) {
     if self.tick_count % self.tick_until_poll == 0 {
       self.dispatch(RadarrEvent::GetOverview).await;
       self.dispatch(RadarrEvent::GetStatus).await;
+      self.dispatch(RadarrEvent::GetMovies).await;
     }
 
     self.tick_count += 1;
@@ -68,7 +68,7 @@ impl Default for App {
   }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct Data {
   pub radarr_data: RadarrData,
 }
@@ -92,5 +92,68 @@ impl Default for RadarrConfig {
       port: Some(7878),
       api_token: "".to_string(),
     }
+  }
+}
+
+pub struct StatefulTable<T> {
+  pub state: TableState,
+  pub items: Vec<T>
+}
+
+impl<T> Default for StatefulTable<T> {
+  fn default() -> StatefulTable<T> {
+    StatefulTable {
+      state: TableState::default(),
+      items: Vec::new()
+    }
+  }
+}
+
+impl<T> StatefulTable<T> {
+  pub fn set_items(&mut self, items: Vec<T>) {
+    let items_len = items.len();
+    self.items = items;
+    if !self.items.is_empty() {
+      let selected_row = self.state.selected().map_or(0, |i| {
+        if i > 0 && i < items_len {
+          i
+        } else if i >= items_len {
+          items_len - 1
+        } else {
+          0
+        }
+      });
+      self.state.select(Some(selected_row));
+    }
+  }
+
+  pub fn scroll_down(&mut self) {
+    let selected_row = match self.state.selected() {
+      Some(i) => {
+        if i >= self.items.len() - 1 {
+          0
+        } else {
+          i + 1
+        }
+      }
+      None => 0
+    };
+
+    self.state.select(Some(selected_row));
+  }
+
+  pub fn scroll_up(&mut self) {
+    let selected_row = match self.state.selected() {
+      Some(i) => {
+        if i == 0 {
+          self.items.len() - 1
+        } else {
+          i - 1
+        }
+      }
+      None => 0
+    };
+
+    self.state.select(Some(selected_row));
   }
 }

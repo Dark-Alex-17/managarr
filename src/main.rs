@@ -8,12 +8,10 @@ use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
 use log::{debug, info};
-use tokio::sync::mpsc::Receiver;
 use tokio::sync::{mpsc, Mutex};
+use tokio::sync::mpsc::Receiver;
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
-
-use utils::init_logging_config;
 
 use crate::app::App;
 use crate::event::input_event::{Events, InputEvent};
@@ -35,7 +33,7 @@ struct Cli {}
 
 #[tokio::main]
 async fn main() -> Result<()> {
-  log4rs::init_config(init_logging_config())?;
+  log4rs::init_config(utils::init_logging_config())?;
   Cli::parse();
 
   let config = confy::load("managarr", "config")?;
@@ -50,7 +48,7 @@ async fn main() -> Result<()> {
   info!("Checking if Radarr server is up and running...");
   app.lock().await.dispatch(RadarrEvent::HealthCheck).await;
 
-  simple_ui(&app).await?;
+  start_ui(&app).await?;
 
   Ok(())
 }
@@ -65,7 +63,7 @@ async fn start_networking(mut network_rx: Receiver<RadarrEvent>, app: &Arc<Mutex
   }
 }
 
-async fn simple_ui(app: &Arc<Mutex<App>>) -> Result<()> {
+async fn start_ui(app: &Arc<Mutex<App>>) -> Result<()> {
   let mut stdout = io::stdout();
   enable_raw_mode()?;
 
@@ -79,13 +77,15 @@ async fn simple_ui(app: &Arc<Mutex<App>>) -> Result<()> {
 
   loop {
     let mut app = app.lock().await;
-    terminal.draw(|f| ui(f, &app))?;
+    terminal.draw(|f| ui(f, &mut app))?;
 
     match input_events.next()? {
       InputEvent::KeyEvent(key) => {
         if key == Key::Char('q') {
           break;
         }
+
+        handlers::handle_key_events(key, &mut app).await;
       }
       InputEvent::Tick => app.on_tick().await,
     }

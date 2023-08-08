@@ -5,6 +5,8 @@ use crossterm::event::{KeyCode, KeyEvent};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Key {
+  Up,
+  Down,
   Char(char),
   Unknown,
 }
@@ -21,6 +23,14 @@ impl Display for Key {
 impl From<KeyEvent> for Key {
   fn from(key_event: KeyEvent) -> Self {
     match key_event {
+      KeyEvent {
+        code: KeyCode::Up,
+        ..
+      } => Key::Up,
+      KeyEvent {
+        code: KeyCode::Down,
+        ..
+      } => Key::Down,
       KeyEvent {
         code: KeyCode::Char(c),
         ..

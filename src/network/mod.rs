@@ -6,12 +6,14 @@ use tokio::sync::Mutex;
 use crate::app::App;
 
 pub(crate) mod radarr;
+mod utils;
 
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum RadarrEvent {
   HealthCheck,
   GetOverview,
   GetStatus,
+  GetMovies,
 }
 
 pub struct Network<'a> {
