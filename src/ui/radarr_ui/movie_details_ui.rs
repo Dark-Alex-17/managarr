@@ -12,8 +12,8 @@ use crate::app::App;
 use crate::models::radarr_models::{Credit, MovieHistoryItem};
 use crate::models::Route;
 use crate::ui::utils::{
-  borderless_block, layout_block_bottom_border, spans_info_default, style_bold, style_failure,
-  style_success, style_warning, vertical_chunks,
+  borderless_block, layout_block_bottom_border, spans_info_default, style_bold, style_default,
+  style_failure, style_success, style_warning, vertical_chunks,
 };
 use crate::ui::{draw_table, draw_tabs, loading, TableProps};
 
@@ -149,55 +149,64 @@ fn draw_movie_history<B: Backend>(
     app.data.radarr_data.movie_history.current_selection_clone()
   };
 
-  draw_table(
-    f,
-    content_area,
-    block,
-    TableProps {
-      content: &mut app.data.radarr_data.movie_history,
-      table_headers: vec!["Source Title", "Event Type", "Languages", "Quality", "Date"],
-      constraints: vec![
-        Constraint::Percentage(34),
-        Constraint::Percentage(17),
-        Constraint::Percentage(14),
-        Constraint::Percentage(14),
-        Constraint::Percentage(21),
-      ],
-    },
-    |movie_history_item| {
-      let MovieHistoryItem {
-        source_title,
-        quality,
-        languages,
-        date,
-        event_type,
-      } = movie_history_item;
+  if app.data.radarr_data.movie_history.items.is_empty() && !app.is_loading {
+    let no_history_paragraph = Paragraph::new(Text::from("No history"))
+      .style(style_default())
+      .block(block);
 
-      if current_selection == *movie_history_item
-        && movie_history_item.source_title.text.len() > (content_area.width as f64 * 0.34) as usize
-      {
-        source_title.scroll_text();
-      } else {
-        source_title.reset_offset();
-      }
+    f.render_widget(no_history_paragraph, content_area);
+  } else {
+    draw_table(
+      f,
+      content_area,
+      block,
+      TableProps {
+        content: &mut app.data.radarr_data.movie_history,
+        table_headers: vec!["Source Title", "Event Type", "Languages", "Quality", "Date"],
+        constraints: vec![
+          Constraint::Percentage(34),
+          Constraint::Percentage(17),
+          Constraint::Percentage(14),
+          Constraint::Percentage(14),
+          Constraint::Percentage(21),
+        ],
+      },
+      |movie_history_item| {
+        let MovieHistoryItem {
+          source_title,
+          quality,
+          languages,
+          date,
+          event_type,
+        } = movie_history_item;
 
-      Row::new(vec![
-        Cell::from(source_title.to_string()),
-        Cell::from(event_type.to_owned()),
-        Cell::from(
-          languages
-            .iter()
-            .map(|language| language.name.to_owned())
-            .collect::<Vec<String>>()
-            .join(","),
-        ),
-        Cell::from(quality.quality.name.to_owned()),
-        Cell::from(date.to_string()),
-      ])
-      .style(style_success())
-    },
-    app.is_loading,
-  );
+        if current_selection == *movie_history_item
+          && movie_history_item.source_title.text.len()
+            > (content_area.width as f64 * 0.34) as usize
+        {
+          source_title.scroll_text();
+        } else {
+          source_title.reset_offset();
+        }
+
+        Row::new(vec![
+          Cell::from(source_title.to_string()),
+          Cell::from(event_type.to_owned()),
+          Cell::from(
+            languages
+              .iter()
+              .map(|language| language.name.to_owned())
+              .collect::<Vec<String>>()
+              .join(","),
+          ),
+          Cell::from(quality.quality.name.to_owned()),
+          Cell::from(date.to_string()),
+        ])
+        .style(style_success())
+      },
+      app.is_loading,
+    );
+  }
 }
 
 fn draw_movie_cast<B: Backend>(
