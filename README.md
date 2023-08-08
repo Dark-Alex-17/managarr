@@ -1,17 +1,17 @@
 # managarr - A TUI to manage your Servarrs
-Managarr is a TUI to help you manage your HTPC (Home Theater PC).
+Managarr is a TUI to help you manage your HTPC (Home Theater PC). Built with love in Rust!
 
 ## What Servarrs are supported?
 
-## ![radarr_logo](servarr_logos/radarr.png) [Radarr](https://wiki.servarr.com/radarr)
-## ![sonarr_logo](servarr_logos/sonarr.png) [Sonarr](https://wiki.servarr.com/en/sonarr)
-## ![readarr_logo](servarr_logos/readarr.png) [Readarr](https://wiki.servarr.com/en/readarr)
-## ![lidarr_logo](servarr_logos/lidarr.png) [Lidarr](https://wiki.servarr.com/en/lidarr)
-## ![prowlarr_logo](servarr_logos/prowlarr.png) [Prowlarr](https://wiki.servarr.com/en/prowlarr)
-## ![whisparr_logo](servarr_logos/whisparr.png) [Whisparr](https://wiki.servarr.com/whisparr)
-## ![bazarr_logo](servarr_logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
-## ![overseerr_logo](servarr_logos/overseerr.png) [Overseerr](https://docs.overseerr.dev/)
-## ![tautulli_logo](servarr_logos/tautulli.png) [Tautulli](https://tautulli.com/)
+- ![radarr_logo](servarr_logos/radarr.png) [Radarr](https://wiki.servarr.com/radarr)
+- ![sonarr_logo](servarr_logos/sonarr.png) [Sonarr](https://wiki.servarr.com/en/sonarr)
+- ![readarr_logo](servarr_logos/readarr.png) [Readarr](https://wiki.servarr.com/en/readarr)
+- ![lidarr_logo](servarr_logos/lidarr.png) [Lidarr](https://wiki.servarr.com/en/lidarr)
+- ![prowlarr_logo](servarr_logos/prowlarr.png) [Prowlarr](https://wiki.servarr.com/en/prowlarr)
+- ![whisparr_logo](servarr_logos/whisparr.png) [Whisparr](https://wiki.servarr.com/whisparr)
+- ![bazarr_logo](servarr_logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
+- ![overseerr_logo](servarr_logos/overseerr.png) [Overseerr](https://docs.overseerr.dev/)
+- ![tautulli_logo](servarr_logos/tautulli.png) [Tautulli](https://tautulli.com/)
 
 # Configuration 
 Managarr assumes reasonable defaults to connect to each service (i.e. Radarr is on localhost:7878), 
@@ -77,11 +77,45 @@ tautulli:
 
 ### Radarr
 
-- View your library, downloads, collections, or calendar
-- Search your library for specific movies
-- View details of a specific movie including description, history, downloaded file info, or the credits
-- View details of any collection and the movies in them
-- Add movies to Radarr
+- [x] View your library, downloads, collections, or calendar
+- [x] Search your library for specific movies
+- [x] View details of a specific movie including description, history, downloaded file info, or the credits
+- [x] View details of any collection and the movies in them
+- [ ] Add movies to Radarr
+- [ ] Manage your quality profiles
+- [ ] Modify your Radarr settings
+
+### Sonarr
+- [ ] Support for Sonarr
+
+### Readarr
+
+- [ ] Support for Readarr
+
+### Lidarr
+
+- [ ] Support for Lidarr
+
+### Whisparr
+
+- [ ] Support for Whisparr
+
+### Bazarr
+
+- [ ] Support for Bazarr
+
+### Prowlarr
+
+- [ ] Support for Prowlarr
+
+### Overseerr
+
+- [ ] Support for Overseerr
+
+### Tautulli
+
+- [ ] Support for Tautulli
+
 
 ## Dependencies
 - [tui-rs](https://github.com/fdehau/tui-rs)
