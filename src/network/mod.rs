@@ -20,19 +20,22 @@ mod utils;
 #[path = "network_tests.rs"]
 mod network_tests;
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum NetworkEvent {
   Radarr(RadarrEvent),
 }
 
 pub struct Network<'a, 'b> {
-  pub client: Client,
+  client: Client,
   pub app: &'a Arc<Mutex<App<'b>>>,
 }
 
 impl<'a, 'b> Network<'a, 'b> {
-  pub fn new(client: Client, app: &'a Arc<Mutex<App<'b>>>) -> Self {
-    Network { client, app }
+  pub fn new(app: &'a Arc<Mutex<App<'b>>>) -> Self {
+    Network {
+      client: Client::new(),
+      app,
+    }
   }
 
   pub async fn handle_network_event(&self, network_event: NetworkEvent) {
@@ -116,25 +119,24 @@ impl<'a, 'b> Network<'a, 'b> {
       api_token,
     } = request_props;
     debug!("Creating RequestBuilder for resource: {:?}", uri);
-    let app = self.app.lock().await;
     debug!(
       "Sending {:?} request to {} with body {:?}",
       method, uri, body
     );
 
     match method {
-      RequestMethod::Get => app.client.get(uri).header("X-Api-Key", api_token),
-      RequestMethod::Post => app
+      RequestMethod::Get => self.client.get(uri).header("X-Api-Key", api_token),
+      RequestMethod::Post => self
         .client
         .post(uri)
         .json(&body.unwrap_or_default())
         .header("X-Api-Key", api_token),
-      RequestMethod::Put => app
+      RequestMethod::Put => self
         .client
         .put(uri)
         .json(&body.unwrap_or_default())
         .header("X-Api-Key", api_token),
-      RequestMethod::Delete => app.client.delete(uri).header("X-Api-Key", api_token),
+      RequestMethod::Delete => self.client.delete(uri).header("X-Api-Key", api_token),
     }
   }
 }

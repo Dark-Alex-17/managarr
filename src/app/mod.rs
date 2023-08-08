@@ -1,6 +1,5 @@
 use anyhow::anyhow;
 use log::{debug, error};
-use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
 use tokio::time::Instant;
@@ -23,7 +22,6 @@ pub struct App<'a> {
   pub server_tabs: TabState,
   pub error: HorizontallyScrollableText,
   pub response: String,
-  pub client: Client,
   pub title: &'static str,
   pub tick_until_poll: u64,
   pub ticks_until_scroll: u64,
@@ -135,7 +133,6 @@ impl<'a> Default for App<'a> {
           contextual_help: None,
         },
       ]),
-      client: Client::new(),
       title: "Managarr",
       tick_until_poll: 400,
       ticks_until_scroll: 4,

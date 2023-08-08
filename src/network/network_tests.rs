@@ -38,7 +38,7 @@ mod tests {
     };
     app.config.radarr = radarr_config;
     let app_arc = Arc::new(Mutex::new(app));
-    let network = Network::new(reqwest::Client::new(), &app_arc);
+    let network = Network::new(&app_arc);
 
     network
       .handle_network_event(RadarrEvent::HealthCheck.into())
@@ -62,7 +62,7 @@ mod tests {
       .create_async()
       .await;
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let network = Network::new(reqwest::Client::new(), &app_arc);
+    let network = Network::new(&app_arc);
 
     network
       .handle_request::<Test, ()>(
@@ -87,7 +87,7 @@ mod tests {
     #[values(RequestMethod::Get, RequestMethod::Post)] request_method: RequestMethod,
   ) {
     let (async_server, app_arc, server) = mock_api(request_method, 200, true).await;
-    let network = Network::new(reqwest::Client::new(), &app_arc);
+    let network = Network::new(&app_arc);
 
     network
       .handle_request::<(), Test>(
@@ -116,7 +116,7 @@ mod tests {
       .create_async()
       .await;
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let network = Network::new(reqwest::Client::new(), &app_arc);
+    let network = Network::new(&app_arc);
 
     network
       .handle_request::<(), Test>(
@@ -142,7 +142,7 @@ mod tests {
   #[tokio::test]
   async fn test_handle_request_failure_to_send_request() {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let network = Network::new(reqwest::Client::new(), &app_arc);
+    let network = Network::new(&app_arc);
 
     network
       .handle_request::<(), Test>(
@@ -176,7 +176,7 @@ mod tests {
     request_method: RequestMethod,
   ) {
     let (async_server, app_arc, server) = mock_api(request_method, 404, true).await;
-    let network = Network::new(reqwest::Client::new(), &app_arc);
+    let network = Network::new(&app_arc);
 
     network
       .handle_request::<(), Test>(
@@ -200,7 +200,7 @@ mod tests {
   #[tokio::test]
   async fn test_handle_request_non_success_code_empty_response_body() {
     let (async_server, app_arc, server) = mock_api(RequestMethod::Post, 404, false).await;
-    let network = Network::new(reqwest::Client::new(), &app_arc);
+    let network = Network::new(&app_arc);
 
     network
       .handle_request::<(), Test>(
@@ -252,7 +252,7 @@ mod tests {
 
     async_server = async_server.create_async().await;
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let network = Network::new(reqwest::Client::new(), &app_arc);
+    let network = Network::new(&app_arc);
 
     network
       .call_api(RequestProps {
