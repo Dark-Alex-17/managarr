@@ -1,3 +1,4 @@
+use log::debug;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::text::{Span, Spans, Text};
@@ -26,7 +27,7 @@ mod utils;
 static HIGHLIGHT_SYMBOL: &str = "=> ";
 
 pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
-  let main_chunks = if !app.error.is_empty() {
+  let main_chunks = if !app.error.text.is_empty() {
     let chunks = vertical_chunks_with_margin(
       vec![
         Constraint::Length(3),
@@ -92,7 +93,11 @@ fn draw_error<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
     .style(style_failure())
     .borders(Borders::ALL);
 
-  let mut text = Text::from(app.error.clone());
+  if app.error.text.len() > area.width as usize {
+    app.error.scroll_text();
+  }
+
+  let mut text = Text::from(app.error.to_string());
   text.patch_style(style_failure());
 
   let paragraph = Paragraph::new(text)

@@ -36,7 +36,10 @@ async fn handle_tab_action(key: Key, app: &mut App, active_radarr_block: ActiveR
       }
       _ => (),
     },
-    ActiveRadarrBlock::MovieDetails | ActiveRadarrBlock::MovieHistory => match key {
+    ActiveRadarrBlock::MovieDetails
+    | ActiveRadarrBlock::MovieHistory
+    | ActiveRadarrBlock::Cast
+    | ActiveRadarrBlock::Crew => match key {
       _ if key == DEFAULT_KEYBINDINGS.left.key => {
         app.data.radarr_data.movie_info_tabs.previous();
         app.pop_and_push_navigation_stack(
@@ -70,6 +73,8 @@ async fn handle_scroll_up(app: &mut App, active_radarr_block: ActiveRadarrBlock)
     ActiveRadarrBlock::Movies => app.data.radarr_data.movies.scroll_up(),
     ActiveRadarrBlock::MovieDetails => app.data.radarr_data.movie_details.scroll_up(),
     ActiveRadarrBlock::MovieHistory => app.data.radarr_data.movie_history.scroll_up(),
+    ActiveRadarrBlock::Cast => app.data.radarr_data.movie_cast.scroll_up(),
+    ActiveRadarrBlock::Crew => app.data.radarr_data.movie_crew.scroll_up(),
     ActiveRadarrBlock::Downloads => app.data.radarr_data.downloads.scroll_up(),
     _ => (),
   }
@@ -80,6 +85,8 @@ async fn handle_scroll_down(app: &mut App, active_radarr_block: ActiveRadarrBloc
     ActiveRadarrBlock::Movies => app.data.radarr_data.movies.scroll_down(),
     ActiveRadarrBlock::MovieDetails => app.data.radarr_data.movie_details.scroll_down(),
     ActiveRadarrBlock::MovieHistory => app.data.radarr_data.movie_history.scroll_down(),
+    ActiveRadarrBlock::Cast => app.data.radarr_data.movie_cast.scroll_down(),
+    ActiveRadarrBlock::Crew => app.data.radarr_data.movie_crew.scroll_down(),
     ActiveRadarrBlock::Downloads => app.data.radarr_data.downloads.scroll_down(),
     _ => (),
   }
@@ -94,9 +101,12 @@ async fn handle_submit(app: &mut App, active_radarr_block: ActiveRadarrBlock) {
 
 async fn handle_esc(app: &mut App, active_radarr_block: ActiveRadarrBlock) {
   match active_radarr_block {
-    ActiveRadarrBlock::MovieDetails | ActiveRadarrBlock::MovieHistory => {
+    ActiveRadarrBlock::MovieDetails
+    | ActiveRadarrBlock::MovieHistory
+    | ActiveRadarrBlock::Cast
+    | ActiveRadarrBlock::Crew => {
       app.pop_navigation_stack();
-      app.data.radarr_data.reset_movie_info_tab();
+      app.data.radarr_data.reset_movie_info_tabs();
     }
     _ => handle_clear_errors(app).await,
   }

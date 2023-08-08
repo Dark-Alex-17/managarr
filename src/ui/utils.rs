@@ -120,10 +120,9 @@ pub fn title_block(title: &str) -> Block<'_> {
 
 pub fn logo_block<'a>() -> Block<'a> {
   Block::default().borders(Borders::ALL).title(Span::styled(
-    "Managarr - A Servarr management TUI",
+    " Managarr - A Servarr management TUI ",
     Style::default()
-      .fg(Color::Black)
-      .bg(Color::LightGreen)
+      .fg(Color::Magenta)
       .add_modifier(Modifier::BOLD)
       .add_modifier(Modifier::ITALIC),
   ))
@@ -155,7 +154,7 @@ pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     .split(popup_layout[1])[1]
 }
 
-pub fn line_gague_with_title(title: &str, ratio: f64) -> LineGauge {
+pub fn line_gauge_with_title(title: &str, ratio: f64) -> LineGauge {
   LineGauge::default()
     .block(Block::default().title(title))
     .gauge_style(Style::default().fg(Color::Cyan))
@@ -164,7 +163,7 @@ pub fn line_gague_with_title(title: &str, ratio: f64) -> LineGauge {
     .label(Spans::from(format!("{:.0}%", ratio * 100.0)))
 }
 
-pub fn line_gague_with_label(title: &str, ratio: f64) -> LineGauge {
+pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge {
   LineGauge::default()
     .block(Block::default())
     .gauge_style(Style::default().fg(Color::Cyan))

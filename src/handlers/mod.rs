@@ -1,3 +1,4 @@
+use crate::app::models::HorizontallyScrollableText;
 use crate::app::{App, Route};
 use crate::event::Key;
 use crate::handlers::radarr_handler::handle_radarr_key_events;
@@ -14,7 +15,7 @@ pub async fn handle_key_events(key: Key, app: &mut App) {
 }
 
 pub async fn handle_clear_errors(app: &mut App) {
-  if !app.error.is_empty() {
-    app.error = String::default();
+  if !app.error.text.is_empty() {
+    app.error = HorizontallyScrollableText::default();
   }
 }

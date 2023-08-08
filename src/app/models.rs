@@ -1,3 +1,7 @@
+use std::cell::RefCell;
+use std::fmt::{Display, Formatter};
+
+use serde::Deserialize;
 use tui::widgets::TableState;
 
 use crate::app::Route;
@@ -21,7 +25,7 @@ impl<T> Default for StatefulTable<T> {
   }
 }
 
-impl<T> StatefulTable<T> {
+impl<T: Clone> StatefulTable<T> {
   pub fn set_items(&mut self, items: Vec<T>) {
     let items_len = items.len();
     self.items = items;
@@ -41,6 +45,10 @@ impl<T> StatefulTable<T> {
 
   pub fn current_selection(&self) -> &T {
     &self.items[self.state.selected().unwrap_or(0)]
+  }
+
+  pub fn current_selection_clone(&self) -> T {
+    self.items[self.state.selected().unwrap_or(0)].clone()
   }
 }
 
@@ -105,6 +113,47 @@ impl Scrollable for ScrollableText {
     if self.offset > 0 {
       self.offset -= 1;
     }
+  }
+}
+
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(from = "String")]
+pub struct HorizontallyScrollableText {
+  pub text: String,
+  pub offset: RefCell<usize>,
+}
+
+impl From<String> for HorizontallyScrollableText {
+  fn from(input: String) -> HorizontallyScrollableText {
+    HorizontallyScrollableText::new(input)
+  }
+}
+
+impl Display for HorizontallyScrollableText {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    if *self.offset.borrow() == 0 {
+      write!(f, "{}", self.text)
+    } else {
+      write!(f, "{}", &self.text[*self.offset.borrow()..])
+    }
+  }
+}
+
+impl HorizontallyScrollableText {
+  pub fn new(input: String) -> HorizontallyScrollableText {
+    HorizontallyScrollableText {
+      text: format!("{}        ", input),
+      offset: RefCell::new(0),
+    }
+  }
+
+  pub fn scroll_text(&self) {
+    let new_offset = *self.offset.borrow() + 1;
+    *self.offset.borrow_mut() = new_offset % self.text.len();
+  }
+
+  pub fn reset_offset(&self) {
+    *self.offset.borrow_mut() = 0;
   }
 }
 

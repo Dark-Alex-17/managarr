@@ -7,9 +7,8 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
 use tokio::time::Instant;
 
-use crate::app::models::{TabRoute, TabState};
+use crate::app::models::{HorizontallyScrollableText, TabRoute, TabState};
 use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
-use crate::network::radarr_network::RadarrEvent;
 use crate::network::NetworkEvent;
 
 pub(crate) mod key_binding;
@@ -34,7 +33,7 @@ pub struct App {
   navigation_stack: Vec<Route>,
   network_tx: Option<Sender<NetworkEvent>>,
   pub server_tabs: TabState,
-  pub error: String,
+  pub error: HorizontallyScrollableText,
   pub client: Client,
   pub title: &'static str,
   pub tick_until_poll: u64,
@@ -72,47 +71,23 @@ impl App {
 
   pub fn reset(&mut self) {
     self.reset_tick_count();
-    self.error = String::default();
+    self.error = HorizontallyScrollableText::default();
     self.data = Data::default();
   }
 
   pub fn handle_error(&mut self, error: anyhow::Error) {
-    if self.error.is_empty() {
-      self.error = format!("{}        ", error);
+    if self.error.text.is_empty() {
+      self.error = HorizontallyScrollableText::new(error.to_string());
     }
-  }
-
-  fn scroll_error_horizontally(&mut self) {
-    let first_char = self.error.chars().next().unwrap();
-    self.error = format!("{}{}", &self.error[1..], first_char);
   }
 
   pub async fn on_tick(&mut self, is_first_render: bool) {
-    if !self.error.is_empty() {
-      self.scroll_error_horizontally();
-    }
-
     if self.tick_count % self.tick_until_poll == 0 || self.is_routing {
       match self.get_current_route() {
         Route::Radarr(active_radarr_block) => {
-          let active_block = active_radarr_block.clone();
-
-          if is_first_render {
-            self.dispatch(RadarrEvent::GetQualityProfiles.into()).await;
-            self.dispatch(RadarrEvent::GetOverview.into()).await;
-            self.dispatch(RadarrEvent::GetStatus.into()).await;
-            self.dispatch_by_radarr_block(active_block.clone()).await;
-          }
-
-          if self.is_routing
-            || self
-              .network_tick_frequency
-              .checked_sub(self.last_tick.elapsed())
-              .unwrap_or_else(|| Duration::from_secs(0))
-              .is_zero()
-          {
-            self.dispatch_by_radarr_block(active_block).await;
-          }
+          self
+            .radarr_on_tick(active_radarr_block.clone(), is_first_render)
+            .await;
         }
         _ => (),
       }
@@ -150,7 +125,7 @@ impl Default for App {
     App {
       navigation_stack: vec![DEFAULT_ROUTE],
       network_tx: None,
-      error: String::default(),
+      error: HorizontallyScrollableText::default(),
       server_tabs: TabState::new(vec![
         TabRoute {
           title: "Radarr".to_owned(),
@@ -163,9 +138,9 @@ impl Default for App {
       ]),
       client: Client::new(),
       title: "Managarr",
-      tick_until_poll: 20,
+      tick_until_poll: 50,
       tick_count: 0,
-      network_tick_frequency: Duration::from_secs(10),
+      network_tick_frequency: Duration::from_secs(20),
       last_tick: Instant::now(),
       is_loading: false,
       is_routing: false,

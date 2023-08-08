@@ -2,7 +2,6 @@ use std::iter;
 use std::ops::Sub;
 
 use chrono::{Duration, Utc};
-use log::debug;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Color, Style};
@@ -13,10 +12,10 @@ use tui::Frame;
 use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
 use crate::app::{App, Route};
 use crate::logos::RADARR_LOGO;
-use crate::network::radarr_network::{DiskSpace, DownloadRecord, Movie, MovieHistoryItem};
+use crate::network::radarr_network::{Credit, DiskSpace, DownloadRecord, Movie, MovieHistoryItem};
 use crate::ui::utils::{
-  horizontal_chunks, horizontal_chunks_with_margin, layout_block_top_border, line_gague_with_label,
-  line_gague_with_title, style_bold, style_failure, style_success, style_warning, title_block,
+  horizontal_chunks, layout_block_top_border, line_gauge_with_label, line_gauge_with_title,
+  style_bold, style_failure, style_success, style_warning, title_block,
   vertical_chunks_with_margin,
 };
 use crate::ui::{draw_large_popup_over, draw_table, draw_tabs, loading, TableProps};
@@ -29,7 +28,10 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
     match active_radarr_block {
       ActiveRadarrBlock::Movies => draw_library(f, app, content_rect),
       ActiveRadarrBlock::Downloads => draw_downloads(f, app, content_rect),
-      ActiveRadarrBlock::MovieDetails | ActiveRadarrBlock::MovieHistory => {
+      ActiveRadarrBlock::MovieDetails
+      | ActiveRadarrBlock::MovieHistory
+      | ActiveRadarrBlock::Cast
+      | ActiveRadarrBlock::Crew => {
         draw_large_popup_over(f, app, content_rect, draw_library, draw_movie_info)
       }
       _ => (),
@@ -119,7 +121,7 @@ fn draw_downloads_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rec
         ..
       } = &downloads_vec[i];
       let percent = 1f64 - (sizeleft.as_f64().unwrap() / size.as_f64().unwrap());
-      let download_gague = line_gague_with_title(title, percent);
+      let download_gague = line_gauge_with_title(title, percent);
 
       f.render_widget(download_gague, chunks[i]);
     }
@@ -129,6 +131,13 @@ fn draw_downloads_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rec
 }
 
 fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+  let current_selection = if app.data.radarr_data.downloads.items.is_empty() {
+    DownloadRecord::default()
+  } else {
+    app.data.radarr_data.downloads.current_selection_clone()
+  };
+  let width = (area.width as f32 * 0.30) as usize;
+
   draw_table(
     f,
     area,
@@ -162,6 +171,13 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
         output_path,
         ..
       } = download_record;
+
+      if current_selection == *download_record && output_path.text.len() > width {
+        output_path.scroll_text()
+      } else {
+        output_path.reset_offset();
+      }
+
       let percent = 1f64 - (sizeleft.as_f64().unwrap() / size.as_f64().unwrap());
       let file_size: f64 = convert_to_gb(size.as_u64().unwrap());
 
@@ -169,7 +185,7 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
         Cell::from(title.to_owned()),
         Cell::from(format!("{:.0}%", percent * 100.0)),
         Cell::from(format!("{:.2} GB", file_size)),
-        Cell::from(output_path.to_owned()),
+        Cell::from(output_path.to_string()),
         Cell::from(indexer.to_owned()),
         Cell::from(download_client.to_owned()),
       ])
@@ -189,6 +205,8 @@ fn draw_movie_info<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
     match active_radarr_block {
       ActiveRadarrBlock::MovieDetails => draw_movie_details(f, app, content_area, block),
       ActiveRadarrBlock::MovieHistory => draw_movie_history(f, app, content_area, block),
+      ActiveRadarrBlock::Cast => draw_movie_cast(f, app, content_area, block),
+      ActiveRadarrBlock::Crew => draw_movie_crew(f, app, content_area, block),
       _ => (),
     }
   }
@@ -233,6 +251,12 @@ fn draw_movie_history<B: Backend>(
   content_area: Rect,
   block: Block,
 ) {
+  let current_selection = if app.data.radarr_data.movie_history.items.is_empty() {
+    MovieHistoryItem::default()
+  } else {
+    app.data.radarr_data.movie_history.current_selection_clone()
+  };
+
   draw_table(
     f,
     content_area,
@@ -257,8 +281,16 @@ fn draw_movie_history<B: Backend>(
         event_type,
       } = movie_history_item;
 
+      if current_selection == *movie_history_item
+        && movie_history_item.source_title.text.len() > (content_area.width as f64 * 0.34) as usize
+      {
+        source_title.scroll_text();
+      } else {
+        source_title.reset_offset();
+      }
+
       Row::new(vec![
-        Cell::from(source_title.to_owned()),
+        Cell::from(source_title.to_string()),
         Cell::from(event_type.to_owned()),
         Cell::from(
           languages
@@ -269,6 +301,72 @@ fn draw_movie_history<B: Backend>(
         ),
         Cell::from(quality.quality.name.to_owned()),
         Cell::from(date.to_string()),
+      ])
+      .style(style_success())
+    },
+    app.is_loading,
+  );
+}
+
+fn draw_movie_cast<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  content_area: Rect,
+  block: Block,
+) {
+  draw_table(
+    f,
+    content_area,
+    block,
+    TableProps {
+      content: &mut app.data.radarr_data.movie_cast,
+      constraints: iter::repeat(Constraint::Ratio(1, 2)).take(2).collect(),
+      table_headers: vec!["Cast Member", "Character"],
+    },
+    |cast_member| {
+      let Credit {
+        person_name,
+        character,
+        ..
+      } = cast_member;
+
+      Row::new(vec![
+        Cell::from(person_name.to_owned()),
+        Cell::from(character.clone().unwrap_or_default()),
+      ])
+      .style(style_success())
+    },
+    app.is_loading,
+  )
+}
+
+fn draw_movie_crew<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  content_area: Rect,
+  block: Block,
+) {
+  draw_table(
+    f,
+    content_area,
+    block,
+    TableProps {
+      content: &mut app.data.radarr_data.movie_crew,
+      constraints: iter::repeat(Constraint::Ratio(1, 3)).take(3).collect(),
+      table_headers: vec!["Crew Member", "Job", "Department"],
+    },
+    |crew_member| {
+      let Credit {
+        person_name,
+        job,
+        department,
+        ..
+      } = crew_member;
+
+      Row::new(vec![
+        Cell::from(person_name.to_owned()),
+        Cell::from(job.clone().unwrap_or_default()),
+        Cell::from(department.clone().unwrap_or_default()),
       ])
       .style(style_success())
     },
@@ -353,7 +451,7 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
         1f64 - (free_space.as_u64().unwrap() as f64 / total_space.as_u64().unwrap() as f64)
       };
 
-      let space_gauge = line_gague_with_label(title.as_str(), ratio);
+      let space_gauge = line_gauge_with_label(title.as_str(), ratio);
 
       f.render_widget(space_gauge, chunks[i + 4]);
     }

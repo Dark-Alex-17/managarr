@@ -9,7 +9,7 @@ use serde::Deserialize;
 use serde_json::Number;
 use tokio::sync::MutexGuard;
 
-use crate::app::models::ScrollableText;
+use crate::app::models::{HorizontallyScrollableText, ScrollableText};
 use crate::app::{App, RadarrConfig};
 use crate::network::utils::get_movie_status;
 use crate::network::{utils, Network, NetworkEvent};
@@ -19,6 +19,7 @@ use crate::utils::{convert_runtime, convert_to_gb};
 pub enum RadarrEvent {
   GetDownloads,
   GetMovies,
+  GetMovieCredits,
   GetMovieDetails,
   GetMovieHistory,
   GetOverview,
@@ -32,6 +33,7 @@ impl RadarrEvent {
     match self {
       RadarrEvent::GetDownloads => "/queue",
       RadarrEvent::GetMovies | RadarrEvent::GetMovieDetails => "/movie",
+      RadarrEvent::GetMovieCredits => "/credit",
       RadarrEvent::GetMovieHistory => "/history/movie",
       RadarrEvent::GetOverview => "/diskspace",
       RadarrEvent::GetQualityProfiles => "/qualityprofile",
@@ -61,7 +63,7 @@ struct SystemStatus {
   start_time: DateTime<Utc>,
 }
 
-#[derive(Derivative, Deserialize, Debug)]
+#[derive(Derivative, Deserialize, Debug, Clone)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Movie {
@@ -88,7 +90,7 @@ pub struct Movie {
   pub ratings: RatingsList,
 }
 
-#[derive(Default, Deserialize, Debug)]
+#[derive(Default, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RatingsList {
   pub imdb: Option<Rating>,
@@ -96,7 +98,7 @@ pub struct RatingsList {
   pub rotten_tomatoes: Option<Rating>,
 }
 
-#[derive(Derivative, Deserialize, Debug)]
+#[derive(Derivative, Deserialize, Debug, Clone)]
 #[derivative(Default)]
 pub struct Rating {
   #[derivative(Default(value = "Number::from(0)"))]
@@ -110,7 +112,7 @@ pub struct DownloadsResponse {
   pub records: Vec<DownloadRecord>,
 }
 
-#[derive(Derivative, Deserialize, Debug)]
+#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {
@@ -122,7 +124,7 @@ pub struct DownloadRecord {
   pub size: Number,
   #[derivative(Default(value = "Number::from(0)"))]
   pub sizeleft: Number,
-  pub output_path: String,
+  pub output_path: HorizontallyScrollableText,
   pub indexer: String,
   pub download_client: String,
 }
@@ -136,29 +138,47 @@ struct QualityProfile {
   pub name: String,
 }
 
-#[derive(Deserialize, Default, Debug, Clone)]
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct MovieHistoryItem {
-  pub source_title: String,
+  pub source_title: HorizontallyScrollableText,
   pub quality: QualityHistory,
   pub languages: Vec<Language>,
   pub date: DateTime<Utc>,
   pub event_type: String,
 }
 
-#[derive(Deserialize, Default, Debug, Clone)]
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 pub struct Language {
   pub name: String,
 }
 
-#[derive(Deserialize, Default, Debug, Clone)]
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 pub struct QualityHistory {
   pub quality: Quality,
 }
 
-#[derive(Deserialize, Default, Debug, Clone)]
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 pub struct Quality {
   pub name: String,
+}
+
+#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum CreditType {
+  Cast,
+  Crew,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct Credit {
+  pub person_name: String,
+  pub character: Option<String>,
+  pub department: Option<String>,
+  pub job: Option<String>,
+  #[serde(rename(deserialize = "type"))]
+  pub credit_type: CreditType,
 }
 
 impl<'a> Network<'a> {
@@ -176,6 +196,11 @@ impl<'a> Network<'a> {
       }
       RadarrEvent::GetStatus => self.get_status(RadarrEvent::GetStatus.resource()).await,
       RadarrEvent::GetMovies => self.get_movies(RadarrEvent::GetMovies.resource()).await,
+      RadarrEvent::GetMovieCredits => {
+        self
+          .get_credits(RadarrEvent::GetMovieCredits.resource())
+          .await
+      }
       RadarrEvent::GetMovieDetails => {
         self
           .get_movie_details(RadarrEvent::GetMovieDetails.resource())
@@ -328,10 +353,9 @@ impl<'a> Network<'a> {
   }
 
   async fn get_movie_history(&self, resource: &str) {
-    let movie_id = self.extract_movie_id().await;
     self
       .handle_get_request::<Vec<MovieHistoryItem>>(
-        format!("{}?movieId={}", resource.to_owned(), movie_id).as_str(),
+        self.append_movie_id_param(resource).await.as_str(),
         |movie_history_vec, mut app| {
           let mut reversed_movie_history_vec = movie_history_vec.to_vec();
           reversed_movie_history_vec.reverse();
@@ -365,6 +389,29 @@ impl<'a> Network<'a> {
           .map(|profile| (profile.id.as_u64().unwrap(), profile.name.clone()))
           .collect();
       })
+      .await;
+  }
+
+  async fn get_credits(&self, resource: &str) {
+    self
+      .handle_get_request::<Vec<Credit>>(
+        self.append_movie_id_param(resource).await.as_str(),
+        |credit_vec, mut app| {
+          let cast_vec: Vec<Credit> = credit_vec
+            .iter()
+            .cloned()
+            .filter(|credit| credit.credit_type == CreditType::Cast)
+            .collect();
+          let crew_vec: Vec<Credit> = credit_vec
+            .iter()
+            .cloned()
+            .filter(|credit| credit.credit_type == CreditType::Crew)
+            .collect();
+
+          app.data.radarr_data.movie_cast.set_items(cast_vec);
+          app.data.radarr_data.movie_crew.set_items(crew_vec);
+        },
+      )
       .await;
   }
 
@@ -426,5 +473,10 @@ impl<'a> Network<'a> {
       .clone()
       .as_u64()
       .unwrap()
+  }
+
+  async fn append_movie_id_param(&self, resource: &str) -> String {
+    let movie_id = self.extract_movie_id().await;
+    format!("{}?movieId={}", resource.to_owned(), movie_id.to_owned())
   }
 }

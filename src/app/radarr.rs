@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::time::Duration;
 
 use chrono::{DateTime, Utc};
 use strum::EnumIter;
@@ -6,7 +7,7 @@ use strum::EnumIter;
 use crate::app::models::{ScrollableText, StatefulTable, TabRoute, TabState};
 use crate::app::App;
 use crate::network::radarr_network::{
-  DiskSpace, DownloadRecord, Movie, MovieHistoryItem, RadarrEvent,
+  Credit, DiskSpace, DownloadRecord, Movie, MovieHistoryItem, RadarrEvent,
 };
 
 pub struct RadarrData {
@@ -18,14 +19,18 @@ pub struct RadarrData {
   pub quality_profile_map: HashMap<u64, String>,
   pub movie_details: ScrollableText,
   pub movie_history: StatefulTable<MovieHistoryItem>,
+  pub movie_cast: StatefulTable<Credit>,
+  pub movie_crew: StatefulTable<Credit>,
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
 }
 
 impl RadarrData {
-  pub fn reset_movie_info_tab(&mut self) {
+  pub fn reset_movie_info_tabs(&mut self) {
     self.movie_details = ScrollableText::default();
     self.movie_history = StatefulTable::default();
+    self.movie_cast = StatefulTable::default();
+    self.movie_crew = StatefulTable::default();
     self.movie_info_tabs.index = 0;
   }
 
@@ -45,6 +50,8 @@ impl Default for RadarrData {
       quality_profile_map: HashMap::default(),
       movie_details: ScrollableText::default(),
       movie_history: StatefulTable::default(),
+      movie_cast: StatefulTable::default(),
+      movie_crew: StatefulTable::default(),
       main_tabs: TabState::new(vec![
         TabRoute {
           title: "Library".to_owned(),
@@ -64,6 +71,14 @@ impl Default for RadarrData {
           title: "History".to_owned(),
           route: ActiveRadarrBlock::MovieHistory.into(),
         },
+        TabRoute {
+          title: "Cast".to_owned(),
+          route: ActiveRadarrBlock::Cast.into(),
+        },
+        TabRoute {
+          title: "Crew".to_owned(),
+          route: ActiveRadarrBlock::Crew.into(),
+        },
       ]),
     }
   }
@@ -74,6 +89,8 @@ pub enum ActiveRadarrBlock {
   AddMovie,
   Calendar,
   Collections,
+  Cast,
+  Crew,
   Events,
   Logs,
   Movies,
@@ -86,7 +103,7 @@ pub enum ActiveRadarrBlock {
 }
 
 impl App {
-  pub(super) async fn dispatch_by_radarr_block(&mut self, active_radarr_block: ActiveRadarrBlock) {
+  pub(super) async fn dispatch_by_radarr_block(&mut self, active_radarr_block: &ActiveRadarrBlock) {
     match active_radarr_block {
       ActiveRadarrBlock::Downloads => self.dispatch(RadarrEvent::GetDownloads.into()).await,
       ActiveRadarrBlock::Movies => {
@@ -95,15 +112,46 @@ impl App {
       }
       ActiveRadarrBlock::MovieDetails => {
         self.is_loading = true;
-        self.dispatch(RadarrEvent::GetMovieDetails.into()).await
+        self.dispatch(RadarrEvent::GetMovieDetails.into()).await;
       }
       ActiveRadarrBlock::MovieHistory => {
         self.is_loading = true;
-        self.dispatch(RadarrEvent::GetMovieHistory.into()).await
+        self.dispatch(RadarrEvent::GetMovieHistory.into()).await;
+      }
+      ActiveRadarrBlock::Cast | ActiveRadarrBlock::Crew => {
+        if self.data.radarr_data.movie_cast.items.is_empty()
+          || self.data.radarr_data.movie_crew.items.is_empty()
+        {
+          self.is_loading = true;
+          self.dispatch(RadarrEvent::GetMovieCredits.into()).await;
+        }
       }
       _ => (),
     }
 
     self.reset_tick_count();
+  }
+
+  pub(super) async fn radarr_on_tick(
+    &mut self,
+    active_radarr_block: ActiveRadarrBlock,
+    is_first_render: bool,
+  ) {
+    if is_first_render {
+      self.dispatch(RadarrEvent::GetQualityProfiles.into()).await;
+      self.dispatch(RadarrEvent::GetOverview.into()).await;
+      self.dispatch(RadarrEvent::GetStatus.into()).await;
+      self.dispatch_by_radarr_block(&active_radarr_block).await;
+    }
+
+    if self.is_routing
+      || self
+        .network_tick_frequency
+        .checked_sub(self.last_tick.elapsed())
+        .unwrap_or_else(|| Duration::from_secs(0))
+        .is_zero()
+    {
+      self.dispatch_by_radarr_block(&active_radarr_block).await;
+    }
   }
 }
