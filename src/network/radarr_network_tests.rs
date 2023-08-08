@@ -915,7 +915,7 @@ mod test {
       None,
       Some(json!({
         "page": 1,
-        "pageSize": 1000,
+        "pageSize": 100,
         "sortKey": "time",
         "sortDirection": "descending",
         "totalRecords": 2,
