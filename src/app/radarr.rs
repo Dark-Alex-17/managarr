@@ -490,7 +490,7 @@ impl App {
         }
       }
       ActiveRadarrBlock::ManualSearch => {
-        if self.data.radarr_data.movie_releases.items.is_empty() && !self.is_loading {
+        if self.data.radarr_data.movie_releases.items.is_empty() {
           self
             .dispatch_network_event(RadarrEvent::GetReleases.into())
             .await;
