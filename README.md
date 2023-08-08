@@ -81,7 +81,7 @@ tautulli:
 - [x] View details of a specific movie including description, history, downloaded file info, or the credits
 - [x] View details of any collection and the movies in them
 - [x] Search your library or collections
-- [ ] Add movies to Radarr
+- [ ] Add or delete movies
 - [ ] Manage your quality profiles
 - [ ] Modify your Radarr settings
 

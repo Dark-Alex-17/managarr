@@ -29,6 +29,7 @@ pub struct App {
   pub network_tick_frequency: Duration,
   pub is_routing: bool,
   pub is_loading: bool,
+  pub should_refresh: bool,
   pub config: AppConfig,
   pub data: Data,
 }
@@ -69,7 +70,7 @@ impl App {
   }
 
   pub async fn on_tick(&mut self, is_first_render: bool) {
-    if self.tick_count % self.tick_until_poll == 0 || self.is_routing {
+    if self.tick_count % self.tick_until_poll == 0 || self.is_routing || self.should_refresh {
       match self.get_current_route() {
         Route::Radarr(active_radarr_block) => {
           self
@@ -80,6 +81,7 @@ impl App {
       }
 
       self.is_routing = false;
+      self.should_refresh = false;
     }
 
     self.tick_count += 1;
@@ -133,6 +135,7 @@ impl Default for App {
       last_tick: Instant::now(),
       is_loading: false,
       is_routing: false,
+      should_refresh: false,
       config: AppConfig::default(),
       data: Data::default(),
     }

@@ -33,6 +33,7 @@ pub struct RadarrData {
   pub movie_info_tabs: TabState,
   pub search: String,
   pub filter: String,
+  pub prompt_confirm: bool,
   pub is_searching: bool,
 }
 
@@ -88,6 +89,7 @@ impl Default for RadarrData {
       search: String::default(),
       filter: String::default(),
       is_searching: false,
+      prompt_confirm: false,
       main_tabs: TabState::new(vec![
         TabRoute {
           title: "Library".to_owned(),
@@ -146,6 +148,7 @@ pub enum ActiveRadarrBlock {
   CollectionDetails,
   Cast,
   Crew,
+  DeleteMoviePrompt,
   FileInfo,
   FilterCollections,
   FilterMovies,
@@ -192,6 +195,13 @@ impl App {
         self
           .dispatch_network_event(RadarrEvent::GetDownloads.into())
           .await;
+
+        if self.data.radarr_data.prompt_confirm {
+          self.data.radarr_data.prompt_confirm = false;
+          self
+            .dispatch_network_event(RadarrEvent::DeleteMovie.into())
+            .await;
+        }
       }
       ActiveRadarrBlock::MovieDetails | ActiveRadarrBlock::FileInfo => {
         self.is_loading = true;

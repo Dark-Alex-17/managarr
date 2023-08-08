@@ -171,7 +171,15 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
     }
   }
 
-  fn handle_tab_action(&mut self) {
+  fn handle_delete(&mut self) {
+    if *self.active_radarr_block == ActiveRadarrBlock::Movies {
+      self
+        .app
+        .push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
+    }
+  }
+
+  fn handle_left_right_action(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::Movies | ActiveRadarrBlock::Downloads | ActiveRadarrBlock::Collections => {
         match self.key {
@@ -202,6 +210,14 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
           _ => (),
         }
       }
+      ActiveRadarrBlock::DeleteMoviePrompt => match self.key {
+        _ if *self.key == DEFAULT_KEYBINDINGS.left.key
+          || *self.key == DEFAULT_KEYBINDINGS.right.key =>
+        {
+          self.app.data.radarr_data.prompt_confirm = !self.app.data.radarr_data.prompt_confirm;
+        }
+        _ => (),
+      },
       _ => (),
     }
   }
@@ -268,6 +284,10 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
             .set_items(filtered_collections);
         }
       }
+      ActiveRadarrBlock::DeleteMoviePrompt => {
+        self.app.should_refresh = self.app.data.radarr_data.prompt_confirm;
+        self.app.pop_navigation_stack();
+      }
       _ => (),
     }
   }
@@ -280,6 +300,10 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       | ActiveRadarrBlock::FilterCollections => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.reset_search();
+      }
+      ActiveRadarrBlock::DeleteMoviePrompt => {
+        self.app.pop_navigation_stack();
+        self.app.data.radarr_data.prompt_confirm = false;
       }
       _ => {
         self.app.data.radarr_data.reset_search();

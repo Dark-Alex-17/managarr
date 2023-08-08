@@ -15,8 +15,9 @@ pub trait KeyEventHandler<'a, T: Into<Route>> {
       _ if *key == DEFAULT_KEYBINDINGS.down.key => self.handle_scroll_down(),
       _ if *key == DEFAULT_KEYBINDINGS.home.key => self.handle_home(),
       _ if *key == DEFAULT_KEYBINDINGS.end.key => self.handle_end(),
+      _ if *key == DEFAULT_KEYBINDINGS.delete.key => self.handle_delete(),
       _ if *key == DEFAULT_KEYBINDINGS.left.key || *key == DEFAULT_KEYBINDINGS.right.key => {
-        self.handle_tab_action()
+        self.handle_left_right_action()
       }
       _ if *key == DEFAULT_KEYBINDINGS.submit.key => self.handle_submit(),
       _ if *key == DEFAULT_KEYBINDINGS.esc.key => self.handle_esc(),
@@ -34,7 +35,8 @@ pub trait KeyEventHandler<'a, T: Into<Route>> {
   fn handle_scroll_down(&mut self);
   fn handle_home(&mut self);
   fn handle_end(&mut self);
-  fn handle_tab_action(&mut self);
+  fn handle_delete(&mut self);
+  fn handle_left_right_action(&mut self);
   fn handle_submit(&mut self);
   fn handle_esc(&mut self);
   fn handle_char_key_event(&mut self);

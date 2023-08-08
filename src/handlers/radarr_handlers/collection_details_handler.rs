@@ -56,7 +56,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a>
     }
   }
 
-  fn handle_tab_action(&mut self) {}
+  fn handle_delete(&mut self) {}
+
+  fn handle_left_right_action(&mut self) {}
 
   fn handle_submit(&mut self) {
     if ActiveRadarrBlock::CollectionDetails == *self.active_radarr_block {

@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use indoc::formatdoc;
 use log::{debug, error};
-use reqwest::RequestBuilder;
+use reqwest::{RequestBuilder, StatusCode};
 use serde::de::DeserializeOwned;
 use tokio::sync::MutexGuard;
 
@@ -17,6 +17,7 @@ use crate::utils::{convert_runtime, convert_to_gb};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum RadarrEvent {
+  DeleteMovie,
   GetCollections,
   GetDownloads,
   GetMovies,
@@ -29,12 +30,24 @@ pub enum RadarrEvent {
   HealthCheck,
 }
 
+#[derive(Clone)]
+enum RequestMethod {
+  GET,
+  DELETE,
+}
+
+struct RequestProps<T> {
+  pub resource: String,
+  pub method: RequestMethod,
+  pub body: Option<T>,
+}
+
 impl RadarrEvent {
   const fn resource(self) -> &'static str {
     match self {
       RadarrEvent::GetCollections => "/collection",
       RadarrEvent::GetDownloads => "/queue",
-      RadarrEvent::GetMovies | RadarrEvent::GetMovieDetails => "/movie",
+      RadarrEvent::GetMovies | RadarrEvent::GetMovieDetails | RadarrEvent::DeleteMovie => "/movie",
       RadarrEvent::GetMovieCredits => "/credit",
       RadarrEvent::GetMovieHistory => "/history/movie",
       RadarrEvent::GetOverview => "/diskspace",
@@ -56,86 +69,133 @@ impl<'a> Network<'a> {
     match radarr_event {
       RadarrEvent::GetCollections => {
         self
-          .get_collections(RadarrEvent::GetCollections.resource())
+          .get_collections(RadarrEvent::GetCollections.resource().to_owned())
           .await
       }
       RadarrEvent::HealthCheck => {
         self
-          .get_healthcheck(RadarrEvent::HealthCheck.resource())
+          .get_healthcheck(RadarrEvent::HealthCheck.resource().to_owned())
           .await
       }
       RadarrEvent::GetOverview => {
         self
-          .get_diskspace(RadarrEvent::GetOverview.resource())
+          .get_diskspace(RadarrEvent::GetOverview.resource().to_owned())
           .await
       }
-      RadarrEvent::GetStatus => self.get_status(RadarrEvent::GetStatus.resource()).await,
-      RadarrEvent::GetMovies => self.get_movies(RadarrEvent::GetMovies.resource()).await,
+      RadarrEvent::GetStatus => {
+        self
+          .get_status(RadarrEvent::GetStatus.resource().to_owned())
+          .await
+      }
+      RadarrEvent::GetMovies => {
+        self
+          .get_movies(RadarrEvent::GetMovies.resource().to_owned())
+          .await
+      }
+      RadarrEvent::DeleteMovie => {
+        self
+          .delete_movie(RadarrEvent::DeleteMovie.resource().to_owned())
+          .await
+      }
       RadarrEvent::GetMovieCredits => {
         self
-          .get_credits(RadarrEvent::GetMovieCredits.resource())
+          .get_credits(RadarrEvent::GetMovieCredits.resource().to_owned())
           .await
       }
       RadarrEvent::GetMovieDetails => {
         self
-          .get_movie_details(RadarrEvent::GetMovieDetails.resource())
+          .get_movie_details(RadarrEvent::GetMovieDetails.resource().to_owned())
           .await
       }
       RadarrEvent::GetMovieHistory => {
         self
-          .get_movie_history(RadarrEvent::GetMovieHistory.resource())
+          .get_movie_history(RadarrEvent::GetMovieHistory.resource().to_owned())
           .await
       }
       RadarrEvent::GetDownloads => {
         self
-          .get_downloads(RadarrEvent::GetDownloads.resource())
+          .get_downloads(RadarrEvent::GetDownloads.resource().to_owned())
           .await
       }
       RadarrEvent::GetQualityProfiles => {
         self
-          .get_quality_profiles(RadarrEvent::GetQualityProfiles.resource())
+          .get_quality_profiles(RadarrEvent::GetQualityProfiles.resource().to_owned())
           .await
       }
     }
   }
 
-  async fn get_healthcheck(&self, resource: &str) {
-    if let Err(e) = self.call_radarr_api(resource).await.send().await {
+  async fn get_healthcheck(&self, resource: String) {
+    if let Err(e) = self
+      .call_radarr_api::<()>(RequestProps {
+        resource,
+        method: RequestMethod::GET,
+        body: None::<()>,
+      })
+      .await
+      .send()
+      .await
+    {
       error!("Healthcheck failed. {:?}", e);
       self.app.lock().await.handle_error(anyhow!(e));
     }
   }
 
-  async fn get_diskspace(&self, resource: &str) {
+  async fn get_diskspace(&self, resource: String) {
+    type RequestType = Vec<DiskSpace>;
     self
-      .handle_get_request::<Vec<DiskSpace>>(resource, |disk_space_vec, mut app| {
-        app.data.radarr_data.disk_space_vec = disk_space_vec;
-      })
+      .handle_request::<RequestType>(
+        RequestProps {
+          resource,
+          method: RequestMethod::GET,
+          body: None::<RequestType>,
+        },
+        |disk_space_vec, mut app| {
+          app.data.radarr_data.disk_space_vec = disk_space_vec;
+        },
+      )
       .await;
   }
 
-  async fn get_status(&self, resource: &str) {
+  async fn get_status(&self, resource: String) {
     self
-      .handle_get_request::<SystemStatus>(resource, |system_status, mut app| {
-        app.data.radarr_data.version = system_status.version;
-        app.data.radarr_data.start_time = system_status.start_time;
-      })
+      .handle_request::<SystemStatus>(
+        RequestProps {
+          resource,
+          method: RequestMethod::GET,
+          body: None::<SystemStatus>,
+        },
+        |system_status, mut app| {
+          app.data.radarr_data.version = system_status.version;
+          app.data.radarr_data.start_time = system_status.start_time;
+        },
+      )
       .await;
   }
 
-  async fn get_movies(&self, resource: &str) {
+  async fn get_movies(&self, resource: String) {
+    type RequestType = Vec<Movie>;
     self
-      .handle_get_request::<Vec<Movie>>(resource, |movie_vec, mut app| {
-        app.data.radarr_data.movies.set_items(movie_vec)
-      })
+      .handle_request::<RequestType>(
+        RequestProps {
+          resource,
+          method: RequestMethod::GET,
+          body: None::<RequestType>,
+        },
+        |movie_vec, mut app| app.data.radarr_data.movies.set_items(movie_vec),
+      )
       .await;
   }
 
-  async fn get_movie_details(&self, resource: &str) {
+  async fn get_movie_details(&self, resource: String) {
     let movie_id = self.extract_movie_id().await;
     self
-      .handle_get_request::<Movie>(
-        format!("{}/{}", resource, movie_id).as_str(),
+      .handle_request::<Movie>(
+        RequestProps {
+          resource: format!("{}/{}", resource, movie_id),
+          method: RequestMethod::GET,
+          body: None::<Movie>,
+        },
         |movie_response, mut app| {
           let Movie {
             id,
@@ -277,10 +337,15 @@ impl<'a> Network<'a> {
       .await;
   }
 
-  async fn get_movie_history(&self, resource: &str) {
+  async fn get_movie_history(&self, resource: String) {
+    type RequestType = Vec<MovieHistoryItem>;
     self
-      .handle_get_request::<Vec<MovieHistoryItem>>(
-        self.append_movie_id_param(resource).await.as_str(),
+      .handle_request::<RequestType>(
+        RequestProps {
+          resource: self.append_movie_id_param(&resource).await,
+          method: RequestMethod::GET,
+          body: None::<RequestType>,
+        },
         |movie_history_vec, mut app| {
           let mut reversed_movie_history_vec = movie_history_vec.to_vec();
           reversed_movie_history_vec.reverse();
@@ -294,41 +359,69 @@ impl<'a> Network<'a> {
       .await;
   }
 
-  async fn get_collections(&self, resource: &str) {
+  async fn get_collections(&self, resource: String) {
+    type RequestType = Vec<Collection>;
     self
-      .handle_get_request::<Vec<Collection>>(resource, |collections_vec, mut app| {
-        app.data.radarr_data.collections.set_items(collections_vec);
-      })
+      .handle_request::<RequestType>(
+        RequestProps {
+          resource,
+          method: RequestMethod::GET,
+          body: None::<RequestType>,
+        },
+        |collections_vec, mut app| {
+          app.data.radarr_data.collections.set_items(collections_vec);
+        },
+      )
       .await;
   }
 
-  async fn get_downloads(&self, resource: &str) {
+  async fn get_downloads(&self, resource: String) {
     self
-      .handle_get_request::<DownloadsResponse>(resource, |queue_response, mut app| {
-        app
-          .data
-          .radarr_data
-          .downloads
-          .set_items(queue_response.records);
-      })
+      .handle_request::<DownloadsResponse>(
+        RequestProps {
+          resource,
+          method: RequestMethod::GET,
+          body: None::<DownloadsResponse>,
+        },
+        |queue_response, mut app| {
+          app
+            .data
+            .radarr_data
+            .downloads
+            .set_items(queue_response.records);
+        },
+      )
       .await
   }
 
-  async fn get_quality_profiles(&self, resource: &str) {
+  async fn get_quality_profiles(&self, resource: String) {
+    type RequestType = Vec<QualityProfile>;
     self
-      .handle_get_request::<Vec<QualityProfile>>(resource, |quality_profiles, mut app| {
-        app.data.radarr_data.quality_profile_map = quality_profiles
-          .iter()
-          .map(|profile| (profile.id.as_u64().unwrap(), profile.name.clone()))
-          .collect();
-      })
+      .handle_request::<RequestType>(
+        RequestProps {
+          resource,
+          method: RequestMethod::GET,
+          body: None::<RequestType>,
+        },
+        |quality_profiles, mut app| {
+          app.data.radarr_data.quality_profile_map = quality_profiles
+            .iter()
+            .map(|profile| (profile.id.as_u64().unwrap(), profile.name.clone()))
+            .collect();
+        },
+      )
       .await;
   }
 
-  async fn get_credits(&self, resource: &str) {
+  async fn get_credits(&self, resource: String) {
+    type RequestType = Vec<Credit>;
     self
-      .handle_get_request::<Vec<Credit>>(
-        self.append_movie_id_param(resource).await.as_str(),
+      .handle_request::<RequestType>(
+        RequestProps {
+          resource: self.append_movie_id_param(&resource).await,
+          method: RequestMethod::GET,
+          body: None::<RequestType>,
+        },
         |credit_vec, mut app| {
           let cast_vec: Vec<Credit> = credit_vec
             .iter()
@@ -348,7 +441,26 @@ impl<'a> Network<'a> {
       .await;
   }
 
-  async fn call_radarr_api(&self, resource: &str) -> RequestBuilder {
+  async fn delete_movie(&self, resource: String) {
+    let movie_id = self.extract_movie_id().await;
+    self
+      .handle_request::<()>(
+        RequestProps {
+          resource: format!("{}/{}", resource, movie_id),
+          method: RequestMethod::DELETE,
+          body: None::<()>,
+        },
+        |_, _| (),
+      )
+      .await;
+  }
+
+  async fn call_radarr_api<T>(&self, request_props: RequestProps<T>) -> RequestBuilder {
+    let RequestProps {
+      resource,
+      method,
+      body,
+    } = request_props;
     debug!("Creating RequestBuilder for resource: {:?}", resource);
     let app = self.app.lock().await;
     let RadarrConfig {
@@ -356,38 +468,53 @@ impl<'a> Network<'a> {
       port,
       api_token,
     } = &app.config.radarr;
+    let uri = format!(
+      "http://{}:{}/api/v3{}",
+      host,
+      port.unwrap_or(7878),
+      resource
+    );
 
-    app
-      .client
-      .get(format!(
-        "http://{}:{}/api/v3{}",
-        host,
-        port.unwrap_or(7878),
-        resource
-      ))
-      .header("X-Api-Key", api_token)
+    match method {
+      RequestMethod::GET => app.client.get(uri).header("X-Api-Key", api_token),
+      RequestMethod::DELETE => app.client.delete(uri).header("X-Api-Key", api_token),
+    }
   }
 
-  async fn handle_get_request<T>(
+  async fn handle_request<T>(
     &self,
-    resource: &str,
+    request_props: RequestProps<T>,
     mut app_update_fn: impl FnMut(T, MutexGuard<App>),
   ) where
     T: DeserializeOwned,
   {
-    match self.call_radarr_api(resource).await.send().await {
-      Ok(response) => match utils::parse_response::<T>(response).await {
-        Ok(value) => {
-          let app = self.app.lock().await;
-          app_update_fn(value, app);
-        }
-        Err(e) => {
-          error!("Failed to parse response! {:?}", e);
-          self.app.lock().await.handle_error(anyhow!(e));
+    let method = request_props.method.clone();
+    match self.call_radarr_api(request_props).await.send().await {
+      Ok(response) => match method {
+        RequestMethod::GET => match utils::parse_response::<T>(response).await {
+          Ok(value) => {
+            let app = self.app.lock().await;
+            app_update_fn(value, app);
+          }
+          Err(e) => {
+            error!("Failed to parse response! {:?}", e);
+            self.app.lock().await.handle_error(anyhow!(e));
+          }
+        },
+        RequestMethod::DELETE => {
+          if response.status() != StatusCode::OK {
+            error!(
+              "Received the following code for delete operation: {:?}",
+              response.status()
+            );
+            self.app.lock().await.handle_error(anyhow!(
+              "Received a non 200 OK response for delete operation"
+            ));
+          }
         }
       },
       Err(e) => {
-        error!("Failed to fetch resource. {:?}", e);
+        error!("Failed to send request. {:?}", e);
         self.app.lock().await.handle_error(anyhow!(e));
       }
     }

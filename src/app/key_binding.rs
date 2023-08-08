@@ -9,18 +9,19 @@ macro_rules! generate_keybindings {
 }
 
 generate_keybindings! {
-    up,
-    down,
-    left,
-    right,
-    backspace,
-    search,
-    filter,
-    home,
-    end,
-    submit,
-    quit,
-    esc
+  up,
+  down,
+  left,
+  right,
+  backspace,
+  search,
+  filter,
+  home,
+  end,
+  delete,
+  submit,
+  quit,
+  esc
 }
 
 pub struct KeyBinding {
@@ -64,6 +65,10 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   end: KeyBinding {
     key: Key::End,
     desc: "End",
+  },
+  delete: KeyBinding {
+    key: Key::Delete,
+    desc: "Delete selected item",
   },
   submit: KeyBinding {
     key: Key::Enter,

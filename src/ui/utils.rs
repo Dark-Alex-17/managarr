@@ -153,7 +153,7 @@ pub fn title_block(title: &str) -> Block<'_> {
 }
 
 pub fn logo_block<'a>() -> Block<'a> {
-  Block::default().borders(Borders::ALL).title(Span::styled(
+  layout_block().title(Span::styled(
     " Managarr - A Servarr management TUI ",
     Style::default()
       .fg(Color::Magenta)

@@ -68,7 +68,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
     }
   }
 
-  fn handle_tab_action(&mut self) {
+  fn handle_delete(&mut self) {}
+
+  fn handle_left_right_action(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::MovieDetails
       | ActiveRadarrBlock::MovieHistory

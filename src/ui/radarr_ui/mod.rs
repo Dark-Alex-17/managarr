@@ -23,7 +23,8 @@ use crate::ui::utils::{
   vertical_chunks_with_margin,
 };
 use crate::ui::{
-  draw_large_popup_over, draw_popup_over, draw_table, draw_tabs, loading, TableProps,
+  draw_large_popup_over, draw_popup_over, draw_prompt_box, draw_table, draw_tabs, loading,
+  TableProps,
 };
 use crate::utils::{convert_runtime, convert_to_gb};
 
@@ -68,6 +69,15 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
           draw_collection_details_popup,
         )
       }
+      ActiveRadarrBlock::DeleteMoviePrompt => draw_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_library,
+        draw_delete_movie_prompt,
+        30,
+        30,
+      ),
       _ => (),
     }
   }
@@ -138,6 +148,20 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
       .style(determine_row_style(downloads_vec, movie))
     },
     app.is_loading,
+  );
+}
+
+fn draw_delete_movie_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
+  draw_prompt_box(
+    f,
+    prompt_area,
+    "  Confirm Delete Movie?  ",
+    format!(
+      "Do you really want to delete {}?",
+      app.data.radarr_data.movies.current_selection().title
+    )
+    .as_str(),
+    &app.data.radarr_data.prompt_confirm,
   );
 }
 

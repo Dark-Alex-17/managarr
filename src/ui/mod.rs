@@ -1,8 +1,6 @@
-use std::iter::Map;
-use std::slice::Iter;
-
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
+use tui::style::{Modifier, Style};
 use tui::text::{Span, Spans, Text};
 use tui::widgets::Clear;
 use tui::widgets::Paragraph;
@@ -15,9 +13,10 @@ use tui::Frame;
 use crate::app::App;
 use crate::models::{Route, StatefulTable, TabState};
 use crate::ui::utils::{
-  borderless_block, centered_rect, horizontal_chunks_with_margin, layout_block_top_border,
-  logo_block, style_default_bold, style_failure, style_help, style_highlight, style_primary,
-  style_secondary, style_system_function, title_block, vertical_chunks_with_margin,
+  borderless_block, centered_rect, horizontal_chunks, horizontal_chunks_with_margin, layout_block,
+  layout_block_top_border, logo_block, style_default_bold, style_failure, style_help,
+  style_highlight, style_primary, style_secondary, style_system_function, title_block,
+  vertical_chunks_with_margin,
 };
 
 mod radarr_ui;
@@ -251,4 +250,57 @@ pub fn loading<B: Backend>(f: &mut Frame<'_, B>, block: Block<'_>, area: Rect, i
   } else {
     f.render_widget(block, area)
   }
+}
+
+pub fn draw_prompt_box<B: Backend>(
+  f: &mut Frame<'_, B>,
+  prompt_area: Rect,
+  title: &str,
+  prompt: &str,
+  yes_no_value: &bool,
+) {
+  f.render_widget(
+    title_block(title).title_alignment(Alignment::Center),
+    prompt_area,
+  );
+
+  let chunks = vertical_chunks_with_margin(
+    vec![
+      Constraint::Percentage(72),
+      Constraint::Min(0),
+      Constraint::Length(3),
+    ],
+    prompt_area,
+    1,
+  );
+
+  let prompt_paragraph = Paragraph::new(Text::from(prompt))
+    .block(borderless_block())
+    .style(style_primary().add_modifier(Modifier::BOLD))
+    .wrap(Wrap { trim: false })
+    .alignment(Alignment::Center);
+  f.render_widget(prompt_paragraph, chunks[0]);
+
+  let horizontal_chunks = horizontal_chunks(
+    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
+    chunks[2],
+  );
+
+  draw_button(f, horizontal_chunks[0], "Yes", *yes_no_value);
+  draw_button(f, horizontal_chunks[1], "No", !*yes_no_value);
+}
+
+pub fn draw_button<B: Backend>(f: &mut Frame<'_, B>, area: Rect, label: &str, is_selected: bool) {
+  let style = if is_selected {
+    style_system_function().add_modifier(Modifier::BOLD)
+  } else {
+    style_default_bold()
+  };
+
+  let label_paragraph = Paragraph::new(Text::from(label))
+    .block(layout_block())
+    .alignment(Alignment::Center)
+    .style(style);
+
+  f.render_widget(label_paragraph, area);
 }
