@@ -5,7 +5,6 @@ use std::sync::Arc;
 use std::{io, panic};
 
 use anyhow::Result;
-use clap::Parser;
 use crossterm::execute;
 use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
@@ -31,17 +30,12 @@ mod network;
 mod ui;
 mod utils;
 
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-struct Cli {}
-
 #[tokio::main]
 async fn main() -> Result<()> {
   log4rs::init_config(utils::init_logging_config())?;
   panic::set_hook(Box::new(|info| {
     panic_hook(info);
   }));
-  Cli::parse();
 
   let config = confy::load("managarr", "config")?;
   let (sync_network_tx, sync_network_rx) = mpsc::channel(500);
