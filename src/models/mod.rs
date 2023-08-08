@@ -586,7 +586,7 @@ mod tests {
 
     assert_eq!(*horizontally_scrollable_test.offset.borrow(), 1);
 
-    horizontally_scrollable_test.scroll_left_or_reset(3, true, false);
+    horizontally_scrollable_test.scroll_left_or_reset(3, false, false);
 
     assert_eq!(*horizontally_scrollable_test.offset.borrow(), 0);
   }
