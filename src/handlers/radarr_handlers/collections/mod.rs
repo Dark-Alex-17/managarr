@@ -7,10 +7,12 @@ use crate::handlers::radarr_handlers::{
   filter_table, handle_change_tab_left_right_keys, search_table,
 };
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
+use crate::models::servarr_data::radarr_data::{
+  ActiveRadarrBlock, COLLECTIONS_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
+};
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
-use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, COLLECTIONS_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS};
 
 mod collection_details_handler;
 mod edit_collection_handler;

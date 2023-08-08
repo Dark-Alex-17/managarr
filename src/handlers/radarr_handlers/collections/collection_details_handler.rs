@@ -2,8 +2,11 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::KeyEventHandler;
+use crate::models::servarr_data::radarr_data::{
+  ActiveRadarrBlock, ADD_MOVIE_SELECTION_BLOCKS, COLLECTION_DETAILS_BLOCKS,
+  EDIT_COLLECTION_SELECTION_BLOCKS,
+};
 use crate::models::{BlockSelectionState, Scrollable};
-use crate::models::servarr_data::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_SELECTION_BLOCKS, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS};
 
 #[cfg(test)]
 #[path = "collection_details_handler_tests.rs"]
