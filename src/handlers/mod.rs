@@ -57,7 +57,9 @@ fn handle_clear_errors(app: &mut App) {
 fn handle_prompt_toggle(app: &mut App, key: &Key) {
   match key {
     _ if *key == DEFAULT_KEYBINDINGS.left.key || *key == DEFAULT_KEYBINDINGS.right.key => {
-      app.data.radarr_data.prompt_confirm = !app.data.radarr_data.prompt_confirm;
+      if let Route::Radarr(_) = app.get_current_route().clone() {
+        app.data.radarr_data.prompt_confirm = !app.data.radarr_data.prompt_confirm;
+      }
     }
     _ => (),
   }
@@ -76,4 +78,104 @@ macro_rules! handle_text_box_keys {
       _ => (),
     }
   };
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::app::App;
+  use crate::event::Key;
+  use crate::handlers::{handle_clear_errors, handle_prompt_toggle};
+
+  #[macro_export]
+  macro_rules! simple_stateful_iterable_vec {
+    ($name:ident) => {
+      vec![
+        $name {
+          title: "Test 1".to_owned(),
+          ..$name::default()
+        },
+        $name {
+          title: "Test 2".to_owned(),
+          ..$name::default()
+        },
+      ]
+    };
+  }
+
+  #[macro_export]
+  macro_rules! extended_stateful_iterable_vec {
+    ($name:ident) => {
+      vec![
+        $name {
+          title: "Test 1".to_owned(),
+          ..$name::default()
+        },
+        $name {
+          title: "Test 2".to_owned(),
+          ..$name::default()
+        },
+        $name {
+          title: "Test 3".to_owned(),
+          ..$name::default()
+        },
+      ]
+    };
+  }
+
+  #[test]
+  fn test_handle_clear_errors() {
+    let mut app = App::default();
+    app.error = "test error".to_owned().into();
+
+    handle_clear_errors(&mut app);
+
+    assert!(app.error.text.is_empty());
+  }
+
+  #[test]
+  fn test_handle_prompt_toggle_left() {
+    let mut app = App::default();
+    let key = Key::Left;
+
+    assert!(!app.data.radarr_data.prompt_confirm);
+
+    handle_prompt_toggle(&mut app, &key);
+
+    assert!(app.data.radarr_data.prompt_confirm);
+
+    handle_prompt_toggle(&mut app, &key);
+
+    assert!(!app.data.radarr_data.prompt_confirm);
+  }
+
+  #[test]
+  fn test_handle_prompt_toggle_right() {
+    let mut app = App::default();
+    let key = Key::Right;
+
+    assert!(!app.data.radarr_data.prompt_confirm);
+
+    handle_prompt_toggle(&mut app, &key);
+
+    assert!(app.data.radarr_data.prompt_confirm);
+
+    handle_prompt_toggle(&mut app, &key);
+
+    assert!(!app.data.radarr_data.prompt_confirm);
+  }
+
+  #[test]
+  fn test_handle_prompt_toggle_left_and_right_are_inverses() {
+    let mut app = App::default();
+
+    assert!(!app.data.radarr_data.prompt_confirm);
+
+    handle_prompt_toggle(&mut app, &Key::Left);
+
+    assert!(app.data.radarr_data.prompt_confirm);
+
+    handle_prompt_toggle(&mut app, &Key::Right);
+
+    assert!(!app.data.radarr_data.prompt_confirm);
+  }
 }

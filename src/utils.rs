@@ -65,7 +65,7 @@ mod tests {
   fn test_strop_non_alphanumeric_characters() {
     assert_eq!(
       strip_non_alphanumeric_characters("Te$t S7r!ng::'~-_}"),
-      String::from("tet s7rng")
+      "tet s7rng".to_owned()
     )
   }
 }

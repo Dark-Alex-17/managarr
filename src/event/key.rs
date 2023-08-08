@@ -55,8 +55,7 @@ impl From<KeyEvent> for Key {
         ..
       } => Key::Home,
       KeyEvent {
-        code: KeyCode::End,
-        ..
+        code: KeyCode::End, ..
       } => Key::End,
       KeyEvent {
         code: KeyCode::Delete,

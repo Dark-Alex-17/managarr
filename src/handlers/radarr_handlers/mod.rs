@@ -493,3 +493,311 @@ impl RadarrHandler<'_> {
     filter_matches
   }
 }
+
+#[cfg(test)]
+mod tests {
+  mod test_handle_scroll_up_and_down {
+    use pretty_assertions::assert_eq;
+    use rstest::rstest;
+
+    use crate::app::radarr::ActiveRadarrBlock;
+    use crate::app::App;
+    use crate::event::Key;
+    use crate::handlers::radarr_handlers::RadarrHandler;
+    use crate::handlers::KeyEventHandler;
+    use crate::models::radarr_models::{Collection, DownloadRecord, Movie};
+    use crate::simple_stateful_iterable_vec;
+
+    #[rstest]
+    fn test_collections_scroll(#[values(Key::Up, Key::Down)] key: Key) {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(simple_stateful_iterable_vec!(Collection));
+
+      RadarrHandler::with(&key, &mut app, &ActiveRadarrBlock::Collections).handle();
+
+      assert_eq!(
+        app.data.radarr_data.collections.current_selection().title,
+        "Test 2".to_owned()
+      );
+
+      RadarrHandler::with(&key, &mut app, &ActiveRadarrBlock::Collections).handle();
+
+      assert_eq!(
+        app.data.radarr_data.collections.current_selection().title,
+        "Test 1".to_owned()
+      );
+    }
+
+    #[rstest]
+    fn test_filtered_collections_scroll(#[values(Key::Up, Key::Down)] key: Key) {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .filtered_collections
+        .set_items(simple_stateful_iterable_vec!(Collection));
+
+      RadarrHandler::with(&key, &mut app, &ActiveRadarrBlock::Collections).handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_collections
+          .current_selection()
+          .title,
+        "Test 2".to_owned()
+      );
+
+      RadarrHandler::with(&key, &mut app, &ActiveRadarrBlock::Collections).handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_collections
+          .current_selection()
+          .title,
+        "Test 1".to_owned()
+      );
+    }
+
+    #[rstest]
+    fn test_movies_scroll(#[values(Key::Up, Key::Down)] key: Key) {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_items(simple_stateful_iterable_vec!(Movie));
+
+      RadarrHandler::with(&key, &mut app, &ActiveRadarrBlock::Movies).handle();
+
+      assert_eq!(
+        app.data.radarr_data.movies.current_selection().title,
+        "Test 2".to_owned()
+      );
+
+      RadarrHandler::with(&key, &mut app, &ActiveRadarrBlock::Movies).handle();
+
+      assert_eq!(
+        app.data.radarr_data.movies.current_selection().title,
+        "Test 1".to_owned()
+      );
+    }
+
+    #[rstest]
+    fn test_filtered_movies_scroll(#[values(Key::Up, Key::Down)] key: Key) {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .filtered_movies
+        .set_items(simple_stateful_iterable_vec!(Movie));
+
+      RadarrHandler::with(&key, &mut app, &ActiveRadarrBlock::Movies).handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_movies
+          .current_selection()
+          .title,
+        "Test 2".to_owned()
+      );
+
+      RadarrHandler::with(&key, &mut app, &ActiveRadarrBlock::Movies).handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_movies
+          .current_selection()
+          .title,
+        "Test 1".to_owned()
+      );
+    }
+
+    #[rstest]
+    fn test_downloads_scroll(#[values(Key::Up, Key::Down)] key: Key) {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .downloads
+        .set_items(simple_stateful_iterable_vec!(DownloadRecord));
+
+      RadarrHandler::with(&key, &mut app, &ActiveRadarrBlock::Downloads).handle();
+
+      assert_eq!(
+        app.data.radarr_data.downloads.current_selection().title,
+        "Test 2".to_owned()
+      );
+
+      RadarrHandler::with(&key, &mut app, &ActiveRadarrBlock::Downloads).handle();
+
+      assert_eq!(
+        app.data.radarr_data.downloads.current_selection().title,
+        "Test 1".to_owned()
+      );
+    }
+  }
+
+  mod test_handle_home_end {
+    use pretty_assertions::assert_eq;
+
+    use crate::app::radarr::ActiveRadarrBlock;
+    use crate::app::App;
+    use crate::event::Key;
+    use crate::extended_stateful_iterable_vec;
+    use crate::handlers::radarr_handlers::RadarrHandler;
+    use crate::handlers::KeyEventHandler;
+    use crate::models::radarr_models::{Collection, DownloadRecord, Movie};
+
+    #[test]
+    fn test_collections_home_end() {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(extended_stateful_iterable_vec!(Collection));
+
+      RadarrHandler::with(&Key::End, &mut app, &ActiveRadarrBlock::Collections).handle();
+
+      assert_eq!(
+        app.data.radarr_data.collections.current_selection().title,
+        "Test 3".to_owned()
+      );
+
+      RadarrHandler::with(&Key::Home, &mut app, &ActiveRadarrBlock::Collections).handle();
+
+      assert_eq!(
+        app.data.radarr_data.collections.current_selection().title,
+        "Test 1".to_owned()
+      );
+    }
+
+    #[test]
+    fn test_filtered_collections_home_end() {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .filtered_collections
+        .set_items(extended_stateful_iterable_vec!(Collection));
+
+      RadarrHandler::with(&Key::End, &mut app, &ActiveRadarrBlock::Collections).handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_collections
+          .current_selection()
+          .title,
+        "Test 3".to_owned()
+      );
+
+      RadarrHandler::with(&Key::Home, &mut app, &ActiveRadarrBlock::Collections).handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_collections
+          .current_selection()
+          .title,
+        "Test 1".to_owned()
+      );
+    }
+
+    #[test]
+    fn test_movies_home_end() {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_items(extended_stateful_iterable_vec!(Movie));
+
+      RadarrHandler::with(&Key::End, &mut app, &ActiveRadarrBlock::Movies).handle();
+
+      assert_eq!(
+        app.data.radarr_data.movies.current_selection().title,
+        "Test 3".to_owned()
+      );
+
+      RadarrHandler::with(&Key::Home, &mut app, &ActiveRadarrBlock::Movies).handle();
+
+      assert_eq!(
+        app.data.radarr_data.movies.current_selection().title,
+        "Test 1".to_owned()
+      );
+    }
+
+    #[test]
+    fn test_filtered_movies_home_end() {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .filtered_movies
+        .set_items(extended_stateful_iterable_vec!(Movie));
+
+      RadarrHandler::with(&Key::End, &mut app, &ActiveRadarrBlock::Movies).handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_movies
+          .current_selection()
+          .title,
+        "Test 3".to_owned()
+      );
+
+      RadarrHandler::with(&Key::Home, &mut app, &ActiveRadarrBlock::Movies).handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_movies
+          .current_selection()
+          .title,
+        "Test 1".to_owned()
+      );
+    }
+
+    #[test]
+    fn test_downloads_home_end() {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .downloads
+        .set_items(extended_stateful_iterable_vec!(DownloadRecord));
+
+      RadarrHandler::with(&Key::End, &mut app, &ActiveRadarrBlock::Downloads).handle();
+
+      assert_eq!(
+        app.data.radarr_data.downloads.current_selection().title,
+        "Test 3".to_owned()
+      );
+
+      RadarrHandler::with(&Key::Home, &mut app, &ActiveRadarrBlock::Downloads).handle();
+
+      assert_eq!(
+        app.data.radarr_data.downloads.current_selection().title,
+        "Test 1".to_owned()
+      );
+    }
+  }
+}

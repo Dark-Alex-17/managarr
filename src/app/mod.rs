@@ -173,12 +173,15 @@ impl Default for RadarrConfig {
 
 #[cfg(test)]
 mod tests {
+  use anyhow::anyhow;
   use pretty_assertions::assert_eq;
   use tokio::sync::mpsc;
 
+  use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
+  use crate::app::{App, Data, DEFAULT_ROUTE};
+  use crate::models::HorizontallyScrollableText;
   use crate::network::radarr_network::RadarrEvent;
-
-  use super::*;
+  use crate::network::NetworkEvent;
 
   #[test]
   fn test_navigation_stack_methods() {
@@ -232,7 +235,7 @@ mod tests {
   fn test_reset() {
     let mut app = App {
       tick_count: 2,
-      error: String::from("Test error").into(),
+      error: "Test error".to_owned().into(),
       data: Data {
         radarr_data: RadarrData {
           version: "test".to_owned(),

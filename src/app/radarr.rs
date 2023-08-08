@@ -555,12 +555,17 @@ mod active_radarr_block_tests {
 
 #[cfg(test)]
 mod tests {
+  use std::time::Duration;
+
   use pretty_assertions::assert_eq;
   use tokio::sync::mpsc;
 
+  use crate::app::radarr::ActiveRadarrBlock;
+  use crate::app::App;
+  use crate::models::radarr_models::{Collection, CollectionMovie, Credit, Release};
+  use crate::models::StatefulTable;
+  use crate::network::radarr_network::RadarrEvent;
   use crate::network::NetworkEvent;
-
-  use super::*;
 
   #[tokio::test]
   async fn test_dispatch_by_collections_block() {
