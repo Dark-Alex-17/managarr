@@ -22,8 +22,8 @@ lint-fix:
 fmt:
 	@cargo fmt
 
-## Analyse for unsafe usage - `cargo install cargo-geiger`
-analyse:
+## Analyze for unsafe usage - `cargo install cargo-geiger`
+analyze:
 	@cargo geiger
 
 release:

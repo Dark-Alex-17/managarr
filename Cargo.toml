@@ -10,9 +10,9 @@ anyhow = "1.0.68"
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4.0.30", features = ["help", "usage", "error-context", "derive"] }
 confy = { version = "0.5.1", default_features = false, features = ["yaml_conf"] }
-crossterm = "0.25.0"
+crossterm = "0.26.1"
 derivative = "2.2.0"
-indoc = "1.0.8"
+indoc = "2.0.0"
 log = "0.4.17"
 log4rs = { version = "1.2.0", features = ["file_appender"] }
 regex = "1.7.1"
