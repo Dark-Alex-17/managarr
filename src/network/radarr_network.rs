@@ -648,7 +648,7 @@ impl<'a> Network<'a> {
       .radarr_data
       .downloads
       .current_selection()
-      .movie_id
+      .id
       .as_u64()
       .unwrap();
 
@@ -1630,6 +1630,7 @@ mod test {
         "title": "Test Download Title",
         "status": "downloading",
         "id": 1,
+        "movieId": 1,
         "size": 3543348019u64,
         "sizeleft": 1771674009,
         "outputPath": "/nfs/movies/Test",
@@ -2238,6 +2239,7 @@ mod test {
     DownloadRecord {
       title: "Test Download Title".to_owned(),
       status: "downloading".to_owned(),
+      id: Number::from(1),
       movie_id: Number::from(1),
       size: Number::from(3543348019u64),
       sizeleft: Number::from(1771674009u64),
