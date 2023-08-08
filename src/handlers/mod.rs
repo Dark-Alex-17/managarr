@@ -62,3 +62,18 @@ fn handle_prompt_toggle(app: &mut App, key: &Key) {
     _ => (),
   }
 }
+
+#[macro_export]
+macro_rules! handle_text_box_keys {
+  ($self:expr, $key:expr, $input:expr) => {
+    match $self.key {
+      _ if *$key == DEFAULT_KEYBINDINGS.backspace.key => {
+        $input.pop();
+      }
+      Key::Char(character) => {
+        $input.push(*character);
+      }
+      _ => (),
+    }
+  };
+}

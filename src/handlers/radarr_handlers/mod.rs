@@ -7,7 +7,7 @@ use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler
 use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 use crate::utils::strip_non_alphanumeric_characters;
-use crate::{App, Key};
+use crate::{handle_text_box_keys, App, Key};
 
 mod add_movie_handler;
 mod collection_details_handler;
@@ -425,24 +425,12 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         }
         _ => (),
       },
-      ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => match self.key {
-        _ if *key == DEFAULT_KEYBINDINGS.backspace.key => {
-          self.app.data.radarr_data.search.pop();
-        }
-        Key::Char(character) => {
-          self.app.data.radarr_data.search.push(*character);
-        }
-        _ => (),
-      },
-      ActiveRadarrBlock::FilterMovies | ActiveRadarrBlock::FilterCollections => match self.key {
-        _ if *key == DEFAULT_KEYBINDINGS.backspace.key => {
-          self.app.data.radarr_data.filter.pop();
-        }
-        Key::Char(character) => {
-          self.app.data.radarr_data.filter.push(*character);
-        }
-        _ => (),
-      },
+      ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => {
+        handle_text_box_keys!(self, key, self.app.data.radarr_data.search)
+      }
+      ActiveRadarrBlock::FilterMovies | ActiveRadarrBlock::FilterCollections => {
+        handle_text_box_keys!(self, key, self.app.data.radarr_data.filter)
+      }
       _ => (),
     }
   }

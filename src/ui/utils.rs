@@ -2,7 +2,7 @@ use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans, Text};
-use tui::widgets::{Block, Borders, LineGauge, Paragraph};
+use tui::widgets::{Block, Borders, LineGauge, Paragraph, Wrap};
 use tui::{symbols, Frame};
 
 pub fn horizontal_chunks(constraints: Vec<Constraint>, size: Rect) -> Vec<Rect> {
@@ -81,6 +81,14 @@ pub fn layout_button_paragraph_borderless(
     .block(borderless_block())
     .alignment(alignment)
     .style(style_button_highlight(is_selected))
+}
+
+pub fn layout_paragraph_borderless(string: &str) -> Paragraph {
+  Paragraph::new(Text::from(string))
+    .block(borderless_block())
+    .style(style_primary().add_modifier(Modifier::BOLD))
+    .wrap(Wrap { trim: false })
+    .alignment(Alignment::Center)
 }
 
 pub fn borderless_block<'a>() -> Block<'a> {

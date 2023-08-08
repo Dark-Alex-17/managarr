@@ -1,16 +1,16 @@
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
-use tui::style::Modifier;
 use tui::text::Text;
-use tui::widgets::{Cell, ListItem, Paragraph, Row, Wrap};
+use tui::widgets::{Cell, ListItem, Paragraph, Row};
 use tui::Frame;
 
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::Route;
 use crate::ui::utils::{
-  borderless_block, get_width, horizontal_chunks, layout_block, show_cursor, style_default,
-  style_help, style_primary, title_block_centered, vertical_chunks_with_margin,
+  borderless_block, get_width, horizontal_chunks, layout_block, layout_paragraph_borderless,
+  show_cursor, style_default, style_help, style_primary, title_block_centered,
+  vertical_chunks_with_margin,
 };
 use crate::ui::{
   draw_button, draw_drop_down_list, draw_drop_down_menu_button, draw_drop_down_popup,
@@ -293,11 +293,7 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
     1,
   );
 
-  let prompt_paragraph = Paragraph::new(Text::from(prompt))
-    .block(borderless_block())
-    .style(style_primary().add_modifier(Modifier::BOLD))
-    .wrap(Wrap { trim: false })
-    .alignment(Alignment::Center);
+  let prompt_paragraph = layout_paragraph_borderless(&prompt);
   f.render_widget(prompt_paragraph, chunks[0]);
 
   let horizontal_chunks = horizontal_chunks(
@@ -331,13 +327,13 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
   draw_button(
     f,
     horizontal_chunks[0],
-    "Yes",
+    "Add",
     *yes_no_value && highlight_yes_no,
   );
   draw_button(
     f,
     horizontal_chunks[1],
-    "No",
+    "Cancel",
     !*yes_no_value && highlight_yes_no,
   );
 }

@@ -3,7 +3,7 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
-use crate::models::{Scrollable, StatefulTable};
+use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 
 pub(super) struct MovieDetailsHandler<'a> {

@@ -13,12 +13,12 @@ use crate::models::radarr_models::{Credit, MovieHistoryItem, Release};
 use crate::models::Route;
 use crate::ui::utils::{
   borderless_block, get_width, layout_block_bottom_border, layout_block_top_border,
-  spans_info_default, spans_info_primary, style_bold, style_default, style_failure, style_primary,
-  style_success, style_warning, vertical_chunks,
+  spans_info_default, style_bold, style_default, style_failure, style_primary, style_success,
+  style_warning, vertical_chunks,
 };
 use crate::ui::{
-  draw_medium_popup_over, draw_prompt_box, draw_prompt_box_with_content, draw_prompt_popup_over,
-  draw_small_popup_over, draw_table, draw_tabs, loading, TableProps,
+  draw_prompt_box, draw_prompt_box_with_content, draw_prompt_popup_over, draw_small_popup_over,
+  draw_table, draw_tabs, loading, TableProps,
 };
 use crate::utils::convert_to_gb;
 

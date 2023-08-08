@@ -4,7 +4,7 @@ use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::radarr_models::{MinimumAvailability, Monitor};
 use crate::models::{Scrollable, StatefulTable};
 use crate::network::radarr_network::RadarrEvent;
-use crate::{App, Key};
+use crate::{handle_text_box_keys, App, Key};
 
 pub(super) struct AddMovieHandler<'a> {
   key: &'a Key,
@@ -259,15 +259,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
   fn handle_char_key_event(&mut self) {
     let key = self.key;
     if self.active_radarr_block == &ActiveRadarrBlock::AddMovieSearchInput {
-      match self.key {
-        _ if *key == DEFAULT_KEYBINDINGS.backspace.key => {
-          self.app.data.radarr_data.search.pop();
-        }
-        Key::Char(character) => {
-          self.app.data.radarr_data.search.push(*character);
-        }
-        _ => (),
-      }
+      handle_text_box_keys!(self, key, self.app.data.radarr_data.search)
     }
   }
 }

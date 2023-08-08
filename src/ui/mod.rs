@@ -1,6 +1,5 @@
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
-use tui::style::Modifier;
 use tui::text::{Span, Spans, Text};
 use tui::widgets::Paragraph;
 use tui::widgets::Row;
@@ -14,10 +13,11 @@ use crate::app::App;
 use crate::models::{Route, StatefulList, StatefulTable, TabState};
 use crate::ui::utils::{
   borderless_block, centered_rect, horizontal_chunks, horizontal_chunks_with_margin, layout_block,
-  layout_block_top_border, layout_button_paragraph, layout_button_paragraph_borderless, logo_block,
-  style_button_highlight, style_default_bold, style_failure, style_help, style_highlight,
-  style_primary, style_secondary, style_system_function, title_block, title_block_centered,
-  vertical_chunks, vertical_chunks_with_margin,
+  layout_block_top_border, layout_button_paragraph, layout_button_paragraph_borderless,
+  layout_paragraph_borderless, logo_block, style_button_highlight, style_default_bold,
+  style_failure, style_help, style_highlight, style_primary, style_secondary,
+  style_system_function, title_block, title_block_centered, vertical_chunks,
+  vertical_chunks_with_margin,
 };
 
 mod radarr_ui;
@@ -338,11 +338,7 @@ pub fn draw_prompt_box_with_content<B: Backend>(
     )
   };
 
-  let prompt_paragraph = Paragraph::new(Text::from(prompt))
-    .block(borderless_block())
-    .style(style_primary().add_modifier(Modifier::BOLD))
-    .wrap(Wrap { trim: false })
-    .alignment(Alignment::Center);
+  let prompt_paragraph = layout_paragraph_borderless(prompt);
   f.render_widget(prompt_paragraph, chunks[0]);
 
   let horizontal_chunks = horizontal_chunks(
