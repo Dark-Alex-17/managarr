@@ -6,7 +6,7 @@ mod test {
   };
   use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
   use crate::models::servarr_data::radarr::radarr_data::RadarrData;
-  use crate::models::{HorizontallyScrollableText, StatefulTable};
+  use crate::models::StatefulTable;
   use bimap::BiMap;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
@@ -16,9 +16,6 @@ mod test {
   #[rstest]
   fn test_edit_movie_modal_from_radarr_data(#[values(true, false)] test_filtered_movies: bool) {
     let mut radarr_data = RadarrData {
-      edit_path: HorizontallyScrollableText::default(),
-      edit_tags: HorizontallyScrollableText::default(),
-      edit_monitored: None,
       quality_profile_map: BiMap::from_iter([
         (2222, "HD - 1080p".to_owned()),
         (1111, "Any".to_owned()),

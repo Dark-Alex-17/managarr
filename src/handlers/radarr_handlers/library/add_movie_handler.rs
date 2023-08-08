@@ -177,7 +177,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         .unwrap()
         .root_folder_list
         .scroll_to_top(),
-      ActiveRadarrBlock::AddMovieSearchInput => self.app.data.radarr_data.search.scroll_home(),
+      ActiveRadarrBlock::AddMovieSearchInput => self
+        .app
+        .data
+        .radarr_data
+        .search
+        .as_mut()
+        .unwrap()
+        .scroll_home(),
       ActiveRadarrBlock::AddMovieTagsInput => self
         .app
         .data
@@ -235,7 +242,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         .unwrap()
         .root_folder_list
         .scroll_to_bottom(),
-      ActiveRadarrBlock::AddMovieSearchInput => self.app.data.radarr_data.search.reset_offset(),
+      ActiveRadarrBlock::AddMovieSearchInput => self
+        .app
+        .data
+        .radarr_data
+        .search
+        .as_mut()
+        .unwrap()
+        .reset_offset(),
       ActiveRadarrBlock::AddMovieTagsInput => self
         .app
         .data
@@ -255,7 +269,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
     match self.active_radarr_block {
       ActiveRadarrBlock::AddMoviePrompt => handle_prompt_toggle(self.app, self.key),
       ActiveRadarrBlock::AddMovieSearchInput => {
-        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.search)
+        handle_text_box_left_right_keys!(
+          self,
+          self.key,
+          self.app.data.radarr_data.search.as_mut().unwrap()
+        )
       }
       ActiveRadarrBlock::AddMovieTagsInput => {
         handle_text_box_left_right_keys!(
@@ -278,7 +296,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
   fn handle_submit(&mut self) {
     match self.active_radarr_block {
       _ if *self.active_radarr_block == ActiveRadarrBlock::AddMovieSearchInput
-        && !self.app.data.radarr_data.search.text.is_empty() =>
+        && !self
+          .app
+          .data
+          .radarr_data
+          .search
+          .as_mut()
+          .unwrap()
+          .text
+          .is_empty() =>
       {
         self
           .app
@@ -402,7 +428,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::AddMovieSearchInput => {
-        handle_text_box_keys!(self, key, self.app.data.radarr_data.search)
+        handle_text_box_keys!(
+          self,
+          key,
+          self.app.data.radarr_data.search.as_mut().unwrap()
+        )
       }
       ActiveRadarrBlock::AddMovieTagsInput => {
         handle_text_box_keys!(

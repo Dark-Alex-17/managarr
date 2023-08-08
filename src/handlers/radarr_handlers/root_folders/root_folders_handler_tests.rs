@@ -34,9 +34,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::models::radarr_models::RootFolder;
-    use crate::{
-      extended_stateful_iterable_vec, test_iterable_home_and_end, test_text_box_home_end_keys,
-    };
+    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
 
     use super::*;
 
@@ -52,10 +50,47 @@ mod tests {
 
     #[test]
     fn test_add_root_folder_prompt_home_end_keys() {
-      test_text_box_home_end_keys!(
-        RootFoldersHandler,
-        ActiveRadarrBlock::AddRootFolderPrompt,
-        edit_path
+      let mut app = App::default();
+      app.data.radarr_data.edit_root_folder = Some("Test".into());
+
+      RootFoldersHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::AddRootFolderPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .edit_root_folder
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        4
+      );
+
+      RootFoldersHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::AddRootFolderPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .edit_root_folder
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        0
       );
     }
   }
@@ -82,8 +117,6 @@ mod tests {
   mod test_handle_left_right_action {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
-
-    use crate::test_text_box_left_right_keys;
 
     use super::*;
 
@@ -159,10 +192,47 @@ mod tests {
 
     #[test]
     fn test_add_root_folder_prompt_left_right_keys() {
-      test_text_box_left_right_keys!(
-        RootFoldersHandler,
-        ActiveRadarrBlock::AddRootFolderPrompt,
-        edit_path
+      let mut app = App::default();
+      app.data.radarr_data.edit_root_folder = Some("Test".into());
+
+      RootFoldersHandler::with(
+        &DEFAULT_KEYBINDINGS.left.key,
+        &mut app,
+        &ActiveRadarrBlock::AddRootFolderPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .edit_root_folder
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        1
+      );
+
+      RootFoldersHandler::with(
+        &DEFAULT_KEYBINDINGS.right.key,
+        &mut app,
+        &ActiveRadarrBlock::AddRootFolderPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .edit_root_folder
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        0
       );
     }
   }
@@ -179,6 +249,7 @@ mod tests {
     #[test]
     fn test_add_root_folder_prompt_confirm_submit() {
       let mut app = App::default();
+      app.data.radarr_data.edit_root_folder = Some("Test".into());
       app.data.radarr_data.prompt_confirm = true;
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
@@ -201,6 +272,32 @@ mod tests {
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::RootFolders.into()
+      );
+    }
+
+    #[test]
+    fn test_add_root_folder_prompt_confirm_submit_noop_on_empty_folder() {
+      let mut app = App::default();
+      app.data.radarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
+      app.data.radarr_data.prompt_confirm = false;
+      app.should_ignore_quit_key = true;
+      app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
+
+      RootFoldersHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddRootFolderPrompt,
+        &None,
+      )
+      .handle();
+
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert!(app.should_ignore_quit_key);
+      assert!(app.data.radarr_data.prompt_confirm_action.is_none());
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::AddRootFolderPrompt.into()
       );
     }
 
@@ -287,7 +384,7 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
-      app.data.radarr_data.edit_path = HorizontallyScrollableText::from("/nfs/test");
+      app.data.radarr_data.edit_root_folder = Some("/nfs/test".into());
       app.should_ignore_quit_key = true;
 
       RootFoldersHandler::with(
@@ -303,7 +400,7 @@ mod tests {
         &ActiveRadarrBlock::RootFolders.into()
       );
 
-      assert!(app.data.radarr_data.edit_path.text.is_empty());
+      assert!(app.data.radarr_data.edit_root_folder.is_none());
       assert!(!app.data.radarr_data.prompt_confirm);
       assert!(!app.should_ignore_quit_key);
     }
@@ -349,6 +446,7 @@ mod tests {
         &ActiveRadarrBlock::AddRootFolderPrompt.into()
       );
       assert!(app.should_ignore_quit_key);
+      assert!(app.data.radarr_data.edit_root_folder.is_some());
     }
 
     #[test]
@@ -359,7 +457,7 @@ mod tests {
     #[test]
     fn test_add_root_folder_prompt_backspace_key() {
       let mut app = App::default();
-      app.data.radarr_data.edit_path = "/nfs/test".to_owned().into();
+      app.data.radarr_data.edit_root_folder = Some("/nfs/test".into());
 
       RootFoldersHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -369,12 +467,16 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.edit_path.text, "/nfs/tes");
+      assert_str_eq!(
+        app.data.radarr_data.edit_root_folder.as_ref().unwrap().text,
+        "/nfs/tes"
+      );
     }
 
     #[test]
     fn test_add_root_folder_prompt_char_key() {
       let mut app = App::default();
+      app.data.radarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
 
       RootFoldersHandler::with(
         &Key::Char('h'),
@@ -384,7 +486,10 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.edit_path.text, "h");
+      assert_str_eq!(
+        app.data.radarr_data.edit_root_folder.as_ref().unwrap().text,
+        "h"
+      );
     }
   }
 

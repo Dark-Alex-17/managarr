@@ -1,6 +1,6 @@
 [package]
 name = "managarr"
-version = "0.0.20"
+version = "0.0.22"
 authors = ["Alex Clarke <alex.j.tusa@gmail.com>"]
 description = "A TUI for managing *arr servers"
 keywords = ["managarr", "tui-rs", "dashboard", "servarr"]
@@ -9,7 +9,7 @@ repository = "https://github.com/Dark-Alex-17/managarr"
 homepage = "https://github.com/Dark-Alex-17/managarr"
 readme = "README.md"
 edition = "2021"
-rust-version = "1.65.0"
+rust-version = "1.69.0"
 
 [dependencies]
 anyhow = "1.0.68"
@@ -32,7 +32,7 @@ strum = {version = "0.25.0", features = ["derive"] }
 strum_macros = "0.25.0"
 tokio = { version = "1.29.0", features = ["full"] }
 tokio-util = "0.7.8"
-tui = { version = "0.21.0", package = "ratatui", features = ["all-widgets"] }
+tui = { version = "0.22.0", package = "ratatui", features = ["all-widgets"] }
 urlencoding = "2.1.2"
 
 [dev-dependencies]

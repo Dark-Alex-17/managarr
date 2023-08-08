@@ -445,7 +445,10 @@ mod tests {
     fn test_edit_collection_root_folder_path_input_submit() {
       let mut app = App::default();
       app.should_ignore_quit_key = true;
-      app.data.radarr_data.edit_path = "Test Path".to_owned().into();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal {
+        path: "Test Path".into(),
+        ..EditCollectionModal::default()
+      });
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionRootFolderPathInput.into());
 
@@ -458,7 +461,15 @@ mod tests {
       .handle();
 
       assert!(!app.should_ignore_quit_key);
-      assert!(!app.data.radarr_data.edit_path.text.is_empty());
+      assert!(!app
+        .data
+        .radarr_data
+        .edit_collection_modal
+        .as_ref()
+        .unwrap()
+        .path
+        .text
+        .is_empty());
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::EditCollectionPrompt.into()

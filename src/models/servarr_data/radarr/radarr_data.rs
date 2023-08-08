@@ -7,8 +7,7 @@ use crate::app::radarr::radarr_context_clues::{
 };
 use crate::models::radarr_models::{
   AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Indexer,
-  IndexerSettings, MinimumAvailability, Monitor, Movie, MovieHistoryItem, QueueEvent, Release,
-  ReleaseField, RootFolder, Task,
+  IndexerSettings, Movie, MovieHistoryItem, QueueEvent, Release, ReleaseField, RootFolder, Task,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditMovieModal,
@@ -38,10 +37,6 @@ pub struct RadarrData<'a> {
   pub movies: StatefulTable<Movie>,
   pub filtered_movies: StatefulTable<Movie>,
   pub add_searched_movies: StatefulTable<AddMovieSearchResult>,
-  pub monitor_list: StatefulList<Monitor>,
-  pub minimum_availability_list: StatefulList<MinimumAvailability>,
-  pub quality_profile_list: StatefulList<String>,
-  pub root_folder_list: StatefulList<RootFolder>,
   pub selected_block: BlockSelectionState<'a, ActiveRadarrBlock>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub indexers: StatefulTable<Indexer>,
@@ -68,15 +63,12 @@ pub struct RadarrData<'a> {
   pub prompt_confirm_action: Option<RadarrEvent>,
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
-  pub search: HorizontallyScrollableText,
-  pub filter: HorizontallyScrollableText,
+  pub search: Option<HorizontallyScrollableText>,
+  pub filter: Option<HorizontallyScrollableText>,
   pub add_movie_modal: Option<AddMovieModal>,
   pub edit_movie_modal: Option<EditMovieModal>,
   pub edit_collection_modal: Option<EditCollectionModal>,
-  pub edit_path: HorizontallyScrollableText,
-  pub edit_tags: HorizontallyScrollableText,
-  pub edit_monitored: Option<bool>,
-  pub edit_search_on_add: Option<bool>,
+  pub edit_root_folder: Option<HorizontallyScrollableText>,
   pub sort_ascending: Option<bool>,
   pub prompt_confirm: bool,
   pub delete_movie_files: bool,
@@ -93,8 +85,8 @@ impl<'a> RadarrData<'a> {
 
   pub fn reset_search(&mut self) {
     self.is_searching = false;
-    self.search = HorizontallyScrollableText::default();
-    self.filter = HorizontallyScrollableText::default();
+    self.search = None;
+    self.filter = None;
     self.filtered_movies = StatefulTable::default();
     self.filtered_collections = StatefulTable::default();
     self.add_searched_movies = StatefulTable::default();
@@ -102,7 +94,7 @@ impl<'a> RadarrData<'a> {
 
   pub fn reset_filter(&mut self) {
     self.is_filtering = false;
-    self.filter = HorizontallyScrollableText::default();
+    self.filter = None;
     self.filtered_movies = StatefulTable::default();
     self.filtered_collections = StatefulTable::default();
   }
@@ -131,10 +123,6 @@ impl<'a> Default for RadarrData<'a> {
       start_time: DateTime::default(),
       movies: StatefulTable::default(),
       add_searched_movies: StatefulTable::default(),
-      monitor_list: StatefulList::default(),
-      minimum_availability_list: StatefulList::default(),
-      quality_profile_list: StatefulList::default(),
-      root_folder_list: StatefulList::default(),
       selected_block: BlockSelectionState::default(),
       filtered_movies: StatefulTable::default(),
       downloads: StatefulTable::default(),
@@ -160,15 +148,12 @@ impl<'a> Default for RadarrData<'a> {
       queued_events: StatefulTable::default(),
       updates: ScrollableText::default(),
       prompt_confirm_action: None,
-      search: HorizontallyScrollableText::default(),
-      filter: HorizontallyScrollableText::default(),
+      search: None,
+      filter: None,
       add_movie_modal: None,
       edit_movie_modal: None,
       edit_collection_modal: None,
-      edit_path: HorizontallyScrollableText::default(),
-      edit_tags: HorizontallyScrollableText::default(),
-      edit_monitored: None,
-      edit_search_on_add: None,
+      edit_root_folder: None,
       sort_ascending: None,
       is_searching: false,
       is_filtering: false,
@@ -497,6 +482,7 @@ impl From<(ActiveRadarrBlock, Option<ActiveRadarrBlock>)> for Route {
   }
 }
 
+#[allow(dead_code)] // Returning to this work tomorrow
 pub struct EditIndexerSettings {
   pub allow_hardcoded_subs: bool,
   pub availability_delay: HorizontallyScrollableText,

@@ -104,10 +104,25 @@ pub fn search_table<T, F>(app: &mut App<'_>, rows: &[T], field_selection_fn: F) 
 where
   F: Fn(&T) -> &str,
 {
-  let search_string = app.data.radarr_data.search.drain().to_lowercase();
-  let search_index = rows.iter().position(|item| {
-    strip_non_search_characters(field_selection_fn(item)).contains(&search_string)
-  });
+  let search_index = if app.data.radarr_data.search.is_some() {
+    let search_string = app
+      .data
+      .radarr_data
+      .search
+      .as_ref()
+      .unwrap()
+      .text
+      .clone()
+      .to_lowercase();
+
+    app.data.radarr_data.search = None;
+
+    rows.iter().position(|item| {
+      strip_non_search_characters(field_selection_fn(item)).contains(&search_string)
+    })
+  } else {
+    None
+  };
 
   app.data.radarr_data.is_searching = false;
   app.should_ignore_quit_key = false;
@@ -124,17 +139,42 @@ where
   F: Fn(&T) -> &str,
   T: Clone,
 {
-  let filter = strip_non_search_characters(&app.data.radarr_data.filter.drain());
-  let filter_matches: Vec<T> = rows
-    .iter()
-    .filter(|&item| strip_non_search_characters(field_selection_fn(item)).contains(&filter))
-    .cloned()
-    .collect();
+  let empty_filter = app.data.radarr_data.filter.is_some()
+    && app
+      .data
+      .radarr_data
+      .filter
+      .as_ref()
+      .unwrap()
+      .text
+      .is_empty();
+  let filter_matches = if app.data.radarr_data.filter.is_some()
+    && !app
+      .data
+      .radarr_data
+      .filter
+      .as_ref()
+      .unwrap()
+      .text
+      .is_empty()
+  {
+    let filter =
+      strip_non_search_characters(&app.data.radarr_data.filter.as_ref().unwrap().text.clone());
 
+    rows
+      .iter()
+      .filter(|&item| strip_non_search_characters(field_selection_fn(item)).contains(&filter))
+      .cloned()
+      .collect()
+  } else {
+    Vec::new()
+  };
+
+  app.data.radarr_data.filter = None;
   app.data.radarr_data.is_filtering = false;
   app.should_ignore_quit_key = false;
 
-  if !filter_matches.is_empty() {
+  if !filter_matches.is_empty() || empty_filter {
     app.pop_navigation_stack();
   }
 

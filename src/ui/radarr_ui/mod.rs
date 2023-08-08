@@ -254,8 +254,15 @@ fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Re
       Route::Radarr(active_radarr_block, _) => match active_radarr_block {
         _ if SEARCH_BLOCKS.contains(active_radarr_block) => (
           "Search",
-          *app.data.radarr_data.search.offset.borrow(),
-          &app.data.radarr_data.search.text,
+          *app
+            .data
+            .radarr_data
+            .search
+            .as_ref()
+            .unwrap()
+            .offset
+            .borrow(),
+          &app.data.radarr_data.search.as_ref().unwrap().text,
         ),
         _ => ("", 0, &default_content),
       },
@@ -295,8 +302,15 @@ fn draw_filter_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Re
       Route::Radarr(active_radarr_block, _) => match active_radarr_block {
         _ if FILTER_BLOCKS.contains(active_radarr_block) => (
           "Filter",
-          *app.data.radarr_data.filter.offset.borrow(),
-          &app.data.radarr_data.filter.text,
+          *app
+            .data
+            .radarr_data
+            .filter
+            .as_ref()
+            .unwrap()
+            .offset
+            .borrow(),
+          &app.data.radarr_data.filter.as_ref().unwrap().text,
         ),
         _ => ("", 0, &default_content),
       },

@@ -12,7 +12,7 @@ use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, DELETE_MOVIE_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, LIBRARY_BLOCKS,
 };
-use crate::models::{BlockSelectionState, Scrollable};
+use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
 
@@ -109,10 +109,24 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
         }
       }
       ActiveRadarrBlock::SearchMovie => {
-        self.app.data.radarr_data.search.scroll_home();
+        self
+          .app
+          .data
+          .radarr_data
+          .search
+          .as_mut()
+          .unwrap()
+          .scroll_home();
       }
       ActiveRadarrBlock::FilterMovies => {
-        self.app.data.radarr_data.filter.scroll_home();
+        self
+          .app
+          .data
+          .radarr_data
+          .filter
+          .as_mut()
+          .unwrap()
+          .scroll_home();
       }
       _ => (),
     }
@@ -127,8 +141,22 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
           self.app.data.radarr_data.movies.scroll_to_bottom()
         }
       }
-      ActiveRadarrBlock::SearchMovie => self.app.data.radarr_data.search.reset_offset(),
-      ActiveRadarrBlock::FilterMovies => self.app.data.radarr_data.filter.reset_offset(),
+      ActiveRadarrBlock::SearchMovie => self
+        .app
+        .data
+        .radarr_data
+        .search
+        .as_mut()
+        .unwrap()
+        .reset_offset(),
+      ActiveRadarrBlock::FilterMovies => self
+        .app
+        .data
+        .radarr_data
+        .filter
+        .as_mut()
+        .unwrap()
+        .reset_offset(),
       _ => (),
     }
   }
@@ -148,10 +176,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
       ActiveRadarrBlock::Movies => handle_change_tab_left_right_keys(self.app, self.key),
       ActiveRadarrBlock::UpdateAllMoviesPrompt => handle_prompt_toggle(self.app, self.key),
       ActiveRadarrBlock::SearchMovie => {
-        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.search)
+        handle_text_box_left_right_keys!(
+          self,
+          self.key,
+          self.app.data.radarr_data.search.as_mut().unwrap()
+        )
       }
       ActiveRadarrBlock::FilterMovies => {
-        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.filter)
+        handle_text_box_left_right_keys!(
+          self,
+          self.key,
+          self.app.data.radarr_data.filter.as_mut().unwrap()
+        )
       }
       _ => (),
     }
@@ -248,6 +284,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
+          self.app.data.radarr_data.search = Some(HorizontallyScrollableText::default());
           self.app.data.radarr_data.is_searching = true;
           self.app.should_ignore_quit_key = true;
         }
@@ -255,6 +292,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
+          self.app.data.radarr_data.filter = Some(HorizontallyScrollableText::default());
           self.app.data.radarr_data.is_filtering = true;
           self.app.should_ignore_quit_key = true;
         }
@@ -274,6 +312,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
+          self.app.data.radarr_data.search = Some(HorizontallyScrollableText::default());
           self.app.should_ignore_quit_key = true;
         }
         _ if *key == DEFAULT_KEYBINDINGS.update.key => {
@@ -287,10 +326,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
         _ => (),
       },
       ActiveRadarrBlock::SearchMovie => {
-        handle_text_box_keys!(self, key, self.app.data.radarr_data.search)
+        handle_text_box_keys!(
+          self,
+          key,
+          self.app.data.radarr_data.search.as_mut().unwrap()
+        )
       }
       ActiveRadarrBlock::FilterMovies => {
-        handle_text_box_keys!(self, key, self.app.data.radarr_data.filter)
+        handle_text_box_keys!(
+          self,
+          key,
+          self.app.data.radarr_data.filter.as_mut().unwrap()
+        )
       }
       _ => (),
     }

@@ -346,38 +346,6 @@ mod test_utils {
   }
 
   #[macro_export]
-  macro_rules! test_text_box_home_end_keys {
-    ($handler:ident, $block:expr, $field:ident) => {
-      let mut app = App::default();
-      app.data.radarr_data.$field = "Test".to_owned().into();
-
-      $handler::with(&DEFAULT_KEYBINDINGS.home.key, &mut app, &$block, &None).handle();
-
-      assert_eq!(*app.data.radarr_data.$field.offset.borrow(), 4);
-
-      $handler::with(&DEFAULT_KEYBINDINGS.end.key, &mut app, &$block, &None).handle();
-
-      assert_eq!(*app.data.radarr_data.$field.offset.borrow(), 0);
-    };
-  }
-
-  #[macro_export]
-  macro_rules! test_text_box_left_right_keys {
-    ($handler:ident, $block:expr, $field:ident) => {
-      let mut app = App::default();
-      app.data.radarr_data.$field = "Test".to_owned().into();
-
-      $handler::with(&DEFAULT_KEYBINDINGS.left.key, &mut app, &$block, &None).handle();
-
-      assert_eq!(*app.data.radarr_data.$field.offset.borrow(), 1);
-
-      $handler::with(&DEFAULT_KEYBINDINGS.right.key, &mut app, &$block, &None).handle();
-
-      assert_eq!(*app.data.radarr_data.$field.offset.borrow(), 0);
-    };
-  }
-
-  #[macro_export]
   macro_rules! test_handler_delegation {
     ($handler:ident, $base:expr, $active_block:expr) => {
       let mut app = App::default();

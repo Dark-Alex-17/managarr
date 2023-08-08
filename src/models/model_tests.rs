@@ -441,16 +441,6 @@ mod tests {
   }
 
   #[test]
-  fn test_horizontally_scrollable_text_drain() {
-    let test_text = "Test string";
-    let mut horizontally_scrollable_text = HorizontallyScrollableText::from(test_text);
-
-    assert_str_eq!(horizontally_scrollable_text.drain(), test_text);
-    assert!(horizontally_scrollable_text.text.is_empty());
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
-  }
-
-  #[test]
   fn test_horizontally_scrollable_text_pop() {
     let test_text = "Test string";
     let mut horizontally_scrollable_text = HorizontallyScrollableText::from(test_text);

@@ -26,7 +26,6 @@ pub struct App<'a> {
   cancellation_token: CancellationToken,
   pub server_tabs: TabState,
   pub error: HorizontallyScrollableText,
-  pub response: String,
   pub title: &'static str,
   pub tick_until_poll: u64,
   pub ticks_until_scroll: u64,
@@ -135,7 +134,6 @@ impl<'a> Default for App<'a> {
       network_tx: None,
       cancellation_token: CancellationToken::new(),
       error: HorizontallyScrollableText::default(),
-      response: String::default(),
       server_tabs: TabState::new(vec![
         TabRoute {
           title: "Radarr",

@@ -19,7 +19,6 @@ mod tests {
     assert!(app.network_tx.is_none());
     assert!(!app.cancellation_token.is_cancelled());
     assert_eq!(app.error, HorizontallyScrollableText::default());
-    assert!(app.response.is_empty());
     assert_eq!(app.server_tabs.index, 0);
     assert_eq!(
       app.server_tabs.tabs,

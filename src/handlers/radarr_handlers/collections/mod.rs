@@ -10,7 +10,7 @@ use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTIONS_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
 };
-use crate::models::{BlockSelectionState, Scrollable};
+use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
 
@@ -122,8 +122,22 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
           self.app.data.radarr_data.collections.scroll_to_top()
         }
       }
-      ActiveRadarrBlock::SearchCollection => self.app.data.radarr_data.search.scroll_home(),
-      ActiveRadarrBlock::FilterCollections => self.app.data.radarr_data.filter.scroll_home(),
+      ActiveRadarrBlock::SearchCollection => self
+        .app
+        .data
+        .radarr_data
+        .search
+        .as_mut()
+        .unwrap()
+        .scroll_home(),
+      ActiveRadarrBlock::FilterCollections => self
+        .app
+        .data
+        .radarr_data
+        .filter
+        .as_mut()
+        .unwrap()
+        .scroll_home(),
       _ => (),
     }
   }
@@ -149,8 +163,22 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
           self.app.data.radarr_data.collections.scroll_to_bottom()
         }
       }
-      ActiveRadarrBlock::SearchCollection => self.app.data.radarr_data.search.reset_offset(),
-      ActiveRadarrBlock::FilterCollections => self.app.data.radarr_data.filter.reset_offset(),
+      ActiveRadarrBlock::SearchCollection => self
+        .app
+        .data
+        .radarr_data
+        .search
+        .as_mut()
+        .unwrap()
+        .reset_offset(),
+      ActiveRadarrBlock::FilterCollections => self
+        .app
+        .data
+        .radarr_data
+        .filter
+        .as_mut()
+        .unwrap()
+        .reset_offset(),
       _ => (),
     }
   }
@@ -162,10 +190,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
       ActiveRadarrBlock::Collections => handle_change_tab_left_right_keys(self.app, self.key),
       ActiveRadarrBlock::UpdateAllCollectionsPrompt => handle_prompt_toggle(self.app, self.key),
       ActiveRadarrBlock::SearchCollection => {
-        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.search)
+        handle_text_box_left_right_keys!(
+          self,
+          self.key,
+          self.app.data.radarr_data.search.as_mut().unwrap()
+        )
       }
       ActiveRadarrBlock::FilterCollections => {
-        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.filter)
+        handle_text_box_left_right_keys!(
+          self,
+          self.key,
+          self.app.data.radarr_data.filter.as_mut().unwrap()
+        )
       }
       _ => (),
     }
@@ -269,6 +305,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
+          self.app.data.radarr_data.search = Some(HorizontallyScrollableText::default());
           self.app.data.radarr_data.is_searching = true;
           self.app.should_ignore_quit_key = true;
         }
@@ -276,6 +313,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
+          self.app.data.radarr_data.filter = Some(HorizontallyScrollableText::default());
           self.app.data.radarr_data.is_filtering = true;
           self.app.should_ignore_quit_key = true;
         }
@@ -287,7 +325,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
             )
               .into(),
           );
-          self.app.data.radarr_data.edit_collection_modal = Some((&self.app.data.radarr_data).into());
+          self.app.data.radarr_data.edit_collection_modal =
+            Some((&self.app.data.radarr_data).into());
           self.app.data.radarr_data.selected_block =
             BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
         }
@@ -302,10 +341,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
         _ => (),
       },
       ActiveRadarrBlock::SearchCollection => {
-        handle_text_box_keys!(self, key, self.app.data.radarr_data.search)
+        handle_text_box_keys!(
+          self,
+          key,
+          self.app.data.radarr_data.search.as_mut().unwrap()
+        )
       }
       ActiveRadarrBlock::FilterCollections => {
-        handle_text_box_keys!(self, key, self.app.data.radarr_data.filter)
+        handle_text_box_keys!(
+          self,
+          key,
+          self.app.data.radarr_data.filter.as_mut().unwrap()
+        )
       }
       _ => (),
     }

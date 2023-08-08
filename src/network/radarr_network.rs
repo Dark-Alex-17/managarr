@@ -1,7 +1,8 @@
+use anyhow::anyhow;
 use std::fmt::Debug;
 
 use indoc::formatdoc;
-use log::{debug, info};
+use log::{debug, info, warn};
 use serde::Serialize;
 use serde_json::{json, Number, Value};
 use urlencoding::encode;
@@ -184,7 +185,7 @@ impl<'a, 'b> Network<'a, 'b> {
             .collection_movies
             .current_selection()
             .clone();
-          (tmdb_id, title.text.clone())
+          (tmdb_id, title.text)
         } else {
           let AddMovieSearchResult { tmdb_id, title, .. } = app
             .data
@@ -192,7 +193,7 @@ impl<'a, 'b> Network<'a, 'b> {
             .add_searched_movies
             .current_selection()
             .clone();
-          (tmdb_id, title.text.clone())
+          (tmdb_id, title.text)
         }
       } else {
         let AddMovieSearchResult { tmdb_id, title, .. } = app
@@ -201,7 +202,7 @@ impl<'a, 'b> Network<'a, 'b> {
           .add_searched_movies
           .current_selection()
           .clone();
-        (tmdb_id, title.text.clone())
+        (tmdb_id, title.text)
       };
       let quality_profile = quality_profile_list.current_selection();
       let quality_profile_id = *app
@@ -252,8 +253,20 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn add_root_folder(&mut self) {
     info!("Adding new root folder to Radarr");
-    let body = AddRootFolderBody {
-      path: self.app.lock().await.data.radarr_data.edit_path.drain(),
+    let body = {
+      let mut app = self.app.lock().await;
+      let path = app
+        .data
+        .radarr_data
+        .edit_root_folder
+        .as_ref()
+        .unwrap()
+        .text
+        .clone();
+
+      app.data.radarr_data.edit_root_folder = None;
+
+      AddRootFolderBody { path }
     };
 
     debug!("Add root folder body: {:?}", body);
@@ -356,13 +369,13 @@ impl<'a, 'b> Network<'a, 'b> {
   }
 
   async fn delete_movie(&mut self) {
-    let movie_id = self.extract_movie_id().await;
+    let (movie_id, tmdb_id) = self.extract_movie_id().await;
     let delete_files = self.app.lock().await.data.radarr_data.delete_movie_files;
     let add_import_exclusion = self.app.lock().await.data.radarr_data.add_list_exclusion;
 
     info!(
-      "Deleting Radarr movie with id: {} with deleteFiles={} and addImportExclusion={}",
-      movie_id, delete_files, add_import_exclusion
+      "Deleting Radarr movie with tmdb_id {} and Radarr id: {} with deleteFiles={} and addImportExclusion={}",
+      tmdb_id, movie_id, delete_files, add_import_exclusion
     );
 
     let request_props = self
@@ -477,9 +490,11 @@ impl<'a, 'b> Network<'a, 'b> {
       )
       .await;
 
+    let mut response = String::new();
+
     self
-      .handle_request::<(), Value>(request_props, |detailed_collection_body, mut app| {
-        app.response = detailed_collection_body.to_string()
+      .handle_request::<(), Value>(request_props, |detailed_collection_body, _| {
+        response = detailed_collection_body.to_string()
       })
       .await;
 
@@ -487,7 +502,6 @@ impl<'a, 'b> Network<'a, 'b> {
 
     let body = {
       let mut app = self.app.lock().await;
-      let response = app.response.drain(..).collect::<String>();
       let mut detailed_collection_body: Value = serde_json::from_str(&response).unwrap();
       let EditCollectionModal {
         path,
@@ -550,8 +564,9 @@ impl<'a, 'b> Network<'a, 'b> {
   async fn edit_movie(&mut self) {
     info!("Editing Radarr movie");
 
-    info!("Fetching movie details");
-    let movie_id = self.extract_movie_id().await;
+    let (movie_id, tmdb_id) = self.extract_movie_id().await;
+    info!("Fetching movie details for movie with TMDB ID: {tmdb_id}");
+
     let request_props = self
       .radarr_request_props_from(
         format!("{}/{}", RadarrEvent::GetMovieDetails.resource(), movie_id).as_str(),
@@ -560,9 +575,11 @@ impl<'a, 'b> Network<'a, 'b> {
       )
       .await;
 
+    let mut response = String::new();
+
     self
-      .handle_request::<(), Value>(request_props, |detailed_movie_body, mut app| {
-        app.response = detailed_movie_body.to_string()
+      .handle_request::<(), Value>(request_props, |detailed_movie_body, _| {
+        response = detailed_movie_body.to_string()
       })
       .await;
 
@@ -583,7 +600,6 @@ impl<'a, 'b> Network<'a, 'b> {
         .clone();
       let tag_ids_vec = self.extract_and_add_tag_ids_vec(tags).await;
       let mut app = self.app.lock().await;
-      let response = app.response.drain(..).collect::<String>();
       let mut detailed_movie_body: Value = serde_json::from_str(&response).unwrap();
 
       let EditMovieModal {
@@ -819,7 +835,9 @@ impl<'a, 'b> Network<'a, 'b> {
   async fn get_movie_details(&mut self) {
     info!("Fetching Radarr movie details");
 
-    let movie_id = self.extract_movie_id().await;
+    let (movie_id, tmdb_id) = self.extract_movie_id().await;
+    info!("Fetching movie details for movie with TMDB ID: {tmdb_id}");
+
     let request_props = self
       .radarr_request_props_from(
         format!("{}/{}", RadarrEvent::GetMovieDetails.resource(), movie_id).as_str(),
@@ -1057,8 +1075,11 @@ impl<'a, 'b> Network<'a, 'b> {
   }
 
   async fn get_releases(&mut self) {
-    let movie_id = self.extract_movie_id().await;
-    info!("Fetching releases for movie with id: {}", movie_id);
+    let (movie_id, tmdb_id) = self.extract_movie_id().await;
+    info!(
+      "Fetching releases for movie with TMDB id {} and with Radarr id: {}",
+      tmdb_id, movie_id
+    );
 
     let request_props = self
       .radarr_request_props_from(
@@ -1249,34 +1270,56 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn search_movie(&mut self) {
     info!("Searching for specific Radarr movie");
+    let search = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .search
+      .clone()
+      .ok_or(anyhow!("Encountered a race condition"));
 
-    let search_string = self.app.lock().await.data.radarr_data.search.text.clone();
-    let request_props = self
-      .radarr_request_props_from(
-        format!(
-          "{}?term={}",
-          RadarrEvent::SearchNewMovie.resource(),
-          encode(&search_string)
-        )
-        .as_str(),
-        RequestMethod::Get,
-        None::<()>,
-      )
-      .await;
+    match search {
+      Ok(search_string) => {
+        let request_props = self
+          .radarr_request_props_from(
+            format!(
+              "{}?term={}",
+              RadarrEvent::SearchNewMovie.resource(),
+              encode(&search_string.text)
+            )
+            .as_str(),
+            RequestMethod::Get,
+            None::<()>,
+          )
+          .await;
 
-    self
-      .handle_request::<(), Vec<AddMovieSearchResult>>(request_props, |movie_vec, mut app| {
-        if movie_vec.is_empty() {
-          app.pop_and_push_navigation_stack(ActiveRadarrBlock::AddMovieEmptySearchResults.into());
-        } else {
-          app
-            .data
-            .radarr_data
-            .add_searched_movies
-            .set_items(movie_vec);
-        }
-      })
-      .await;
+        self
+          .handle_request::<(), Vec<AddMovieSearchResult>>(request_props, |movie_vec, mut app| {
+            if movie_vec.is_empty() {
+              app.pop_and_push_navigation_stack(
+                ActiveRadarrBlock::AddMovieEmptySearchResults.into(),
+              );
+            } else {
+              app
+                .data
+                .radarr_data
+                .add_searched_movies
+                .set_items(movie_vec);
+            }
+          })
+          .await;
+      }
+      Err(e) => {
+        warn!(
+          "Encountered a race condition: {}\n \
+          This is most likely caused by the user trying to navigate between modals rapidly. \
+          Ignoring search request.",
+          e
+        );
+      }
+    }
   }
 
   async fn start_task(&mut self) {
@@ -1309,8 +1352,11 @@ impl<'a, 'b> Network<'a, 'b> {
   }
 
   async fn trigger_automatic_search(&mut self) {
-    let movie_id = self.extract_movie_id().await;
-    info!("Searching indexers for movie with id: {}", movie_id);
+    let (movie_id, tmdb_id) = self.extract_movie_id().await;
+    info!(
+      "Searching indexers for movie with TMDB id {} and with Radarr id: {}",
+      tmdb_id, movie_id
+    );
     let body = MovieCommandBody {
       name: "MoviesSearch".to_owned(),
       movie_ids: vec![movie_id],
@@ -1350,8 +1396,11 @@ impl<'a, 'b> Network<'a, 'b> {
   }
 
   async fn update_and_scan(&mut self) {
-    let movie_id = self.extract_movie_id().await;
-    info!("Updating and scanning movie with id: {}", movie_id);
+    let (movie_id, tmdb_id) = self.extract_movie_id().await;
+    info!(
+      "Updating and scanning movie with TMDB id {} and with Radarr id: {}",
+      tmdb_id, movie_id
+    );
     let body = MovieCommandBody {
       name: "RefreshMovie".to_owned(),
       movie_ids: vec![movie_id],
@@ -1493,40 +1542,46 @@ impl<'a, 'b> Network<'a, 'b> {
       .collect()
   }
 
-  async fn extract_movie_id(&mut self) -> u64 {
-    if !self
-      .app
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .filtered_movies
-      .items
-      .is_empty()
-    {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .filtered_movies
-        .current_selection()
-        .id
-        .as_u64()
-        .unwrap()
+  async fn extract_movie_id(&mut self) -> (u64, u64) {
+    let app = self.app.lock().await;
+    if !app.data.radarr_data.filtered_movies.items.is_empty() {
+      (
+        app
+          .data
+          .radarr_data
+          .filtered_movies
+          .current_selection()
+          .id
+          .as_u64()
+          .unwrap(),
+        app
+          .data
+          .radarr_data
+          .filtered_movies
+          .current_selection()
+          .tmdb_id
+          .as_u64()
+          .unwrap(),
+      )
     } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .movies
-        .current_selection()
-        .id
-        .as_u64()
-        .unwrap()
+      (
+        app
+          .data
+          .radarr_data
+          .movies
+          .current_selection()
+          .id
+          .as_u64()
+          .unwrap(),
+        app
+          .data
+          .radarr_data
+          .movies
+          .current_selection()
+          .tmdb_id
+          .as_u64()
+          .unwrap(),
+      )
     }
   }
 
@@ -1568,7 +1623,7 @@ impl<'a, 'b> Network<'a, 'b> {
   }
 
   async fn append_movie_id_param(&mut self, resource: &str) -> String {
-    let movie_id = self.extract_movie_id().await;
+    let (movie_id, _) = self.extract_movie_id().await;
     format!("{}?movieId={}", resource, movie_id)
   }
 }

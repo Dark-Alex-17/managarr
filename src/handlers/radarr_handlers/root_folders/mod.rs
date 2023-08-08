@@ -57,7 +57,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
   fn handle_home(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::RootFolders => self.app.data.radarr_data.root_folders.scroll_to_top(),
-      ActiveRadarrBlock::AddRootFolderPrompt => self.app.data.radarr_data.edit_path.scroll_home(),
+      ActiveRadarrBlock::AddRootFolderPrompt => self
+        .app
+        .data
+        .radarr_data
+        .edit_root_folder
+        .as_mut()
+        .unwrap()
+        .scroll_home(),
       _ => (),
     }
   }
@@ -65,7 +72,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
   fn handle_end(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::RootFolders => self.app.data.radarr_data.root_folders.scroll_to_bottom(),
-      ActiveRadarrBlock::AddRootFolderPrompt => self.app.data.radarr_data.edit_path.reset_offset(),
+      ActiveRadarrBlock::AddRootFolderPrompt => self
+        .app
+        .data
+        .radarr_data
+        .edit_root_folder
+        .as_mut()
+        .unwrap()
+        .reset_offset(),
       _ => (),
     }
   }
@@ -83,7 +97,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
       ActiveRadarrBlock::RootFolders => handle_change_tab_left_right_keys(self.app, self.key),
       ActiveRadarrBlock::DeleteRootFolderPrompt => handle_prompt_toggle(self.app, self.key),
       ActiveRadarrBlock::AddRootFolderPrompt => {
-        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.edit_path)
+        handle_text_box_left_right_keys!(
+          self,
+          self.key,
+          self.app.data.radarr_data.edit_root_folder.as_mut().unwrap()
+        )
       }
       _ => (),
     }
@@ -98,7 +116,17 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
 
         self.app.pop_navigation_stack();
       }
-      ActiveRadarrBlock::AddRootFolderPrompt => {
+      _ if *self.active_radarr_block == ActiveRadarrBlock::AddRootFolderPrompt
+        && !self
+          .app
+          .data
+          .radarr_data
+          .edit_root_folder
+          .as_ref()
+          .unwrap()
+          .text
+          .is_empty() =>
+      {
         self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddRootFolder);
         self.app.data.radarr_data.prompt_confirm = true;
         self.app.should_ignore_quit_key = false;
@@ -112,7 +140,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
     match self.active_radarr_block {
       ActiveRadarrBlock::AddRootFolderPrompt => {
         self.app.pop_navigation_stack();
-        self.app.data.radarr_data.edit_path = HorizontallyScrollableText::default();
+        self.app.data.radarr_data.edit_root_folder = None;
         self.app.data.radarr_data.prompt_confirm = false;
         self.app.should_ignore_quit_key = false;
       }
@@ -135,12 +163,17 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
+          self.app.data.radarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
           self.app.should_ignore_quit_key = true;
         }
         _ => (),
       },
       ActiveRadarrBlock::AddRootFolderPrompt => {
-        handle_text_box_keys!(self, key, self.app.data.radarr_data.edit_path)
+        handle_text_box_keys!(
+          self,
+          key,
+          self.app.data.radarr_data.edit_root_folder.as_mut().unwrap()
+        )
       }
       _ => (),
     }

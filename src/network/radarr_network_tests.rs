@@ -357,7 +357,7 @@ mod test {
       &resource,
     )
     .await;
-    app_arc.lock().await.data.radarr_data.search = "test term".to_owned().into();
+    app_arc.lock().await.data.radarr_data.search = Some("test term".into());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
@@ -413,7 +413,7 @@ mod test {
     );
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Get, None, Some(json!([])), &resource).await;
-    app_arc.lock().await.data.radarr_data.search = "test term".to_owned().into();
+    app_arc.lock().await.data.radarr_data.search = Some("test term".into());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
@@ -432,6 +432,56 @@ mod test {
     assert_eq!(
       app_arc.lock().await.get_current_route(),
       &ActiveRadarrBlock::AddMovieEmptySearchResults.into()
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_search_new_movie_event_no_panic_on_race_condition() {
+    let resource = format!(
+      "{}?term=test%20term",
+      RadarrEvent::SearchNewMovie.resource()
+    );
+    let mut server = Server::new_async().await;
+    let mut async_server = server
+      .mock(
+        &RequestMethod::Get.to_string().to_uppercase(),
+        format!("/api/v3{}", resource).as_str(),
+      )
+      .match_header("X-Api-Key", "test1234");
+    async_server = async_server.expect_at_most(0).create_async().await;
+
+    let host = server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned();
+    let port = Some(
+      server.host_with_port().split(':').collect::<Vec<&str>>()[1]
+        .parse()
+        .unwrap(),
+    );
+    let mut app = App::default();
+    let radarr_config = RadarrConfig {
+      host,
+      port,
+      api_token: "test1234".to_owned(),
+    };
+    app.config.radarr = radarr_config;
+    let app_arc = Arc::new(Mutex::new(app));
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network
+      .handle_radarr_event(RadarrEvent::SearchNewMovie)
+      .await;
+
+    async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .add_searched_movies
+      .items
+      .is_empty());
+    assert_eq!(
+      app_arc.lock().await.get_current_route(),
+      &ActiveRadarrBlock::Movies.into()
     );
   }
 
@@ -1574,7 +1624,7 @@ mod test {
     )
     .await;
 
-    app_arc.lock().await.data.radarr_data.edit_path = HorizontallyScrollableText::from("/nfs/test");
+    app_arc.lock().await.data.radarr_data.edit_root_folder = Some("/nfs/test".into());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
@@ -1587,9 +1637,8 @@ mod test {
       .await
       .data
       .radarr_data
-      .edit_path
-      .text
-      .is_empty());
+      .edit_root_folder
+      .is_none());
   }
 
   #[tokio::test]
@@ -1651,7 +1700,6 @@ mod test {
     async_edit_server.assert_async().await;
 
     let app = app_arc.lock().await;
-    assert!(app.response.is_empty());
     assert!(app.data.radarr_data.edit_movie_modal.is_none());
     assert!(app.data.radarr_data.movie_details.items.is_empty());
   }
@@ -1747,7 +1795,6 @@ mod test {
     async_edit_server.assert_async().await;
 
     let app = app_arc.lock().await;
-    assert!(app.response.is_empty());
     assert!(app.data.radarr_data.edit_collection_modal.is_none());
     assert!(app.data.radarr_data.movie_details.items.is_empty());
   }
@@ -1846,11 +1893,12 @@ mod test {
       .movies
       .set_items(vec![Movie {
         id: Number::from(1),
+        tmdb_id: Number::from(2),
         ..Movie::default()
       }]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    assert_eq!(network.extract_movie_id().await, 1);
+    assert_eq!(network.extract_movie_id().await, (1, 2));
   }
 
   #[tokio::test]
@@ -1864,11 +1912,12 @@ mod test {
       .filtered_movies
       .set_items(vec![Movie {
         id: Number::from(1),
+        tmdb_id: Number::from(2),
         ..Movie::default()
       }]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    assert_eq!(network.extract_movie_id().await, 1);
+    assert_eq!(network.extract_movie_id().await, (1, 2));
   }
 
   #[tokio::test]

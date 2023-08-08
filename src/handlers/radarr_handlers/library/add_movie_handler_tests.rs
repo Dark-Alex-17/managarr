@@ -303,9 +303,7 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
-    use crate::{
-      extended_stateful_iterable_vec, test_iterable_home_and_end, test_text_box_home_end_keys,
-    };
+    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
 
     use super::*;
 
@@ -546,10 +544,47 @@ mod tests {
 
     #[test]
     fn test_add_movie_search_input_home_end_keys() {
-      test_text_box_home_end_keys!(
-        AddMovieHandler,
-        ActiveRadarrBlock::AddMovieSearchInput,
-        search
+      let mut app = App::default();
+      app.data.radarr_data.search = Some("Test".into());
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSearchInput,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .search
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        4
+      );
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSearchInput,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .search
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        0
       );
     }
 
@@ -609,8 +644,6 @@ mod tests {
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use rstest::rstest;
 
-    use crate::test_text_box_left_right_keys;
-
     use super::*;
 
     #[rstest]
@@ -628,10 +661,47 @@ mod tests {
 
     #[test]
     fn test_add_movie_search_input_left_right_keys() {
-      test_text_box_left_right_keys!(
-        AddMovieHandler,
-        ActiveRadarrBlock::AddMovieSearchInput,
-        search
+      let mut app = App::default();
+      app.data.radarr_data.search = Some("Test".into());
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.left.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSearchInput,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .search
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        1
+      );
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.right.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSearchInput,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .search
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        0
       );
     }
 
@@ -706,7 +776,7 @@ mod tests {
     fn test_add_movie_search_input_submit() {
       let mut app = App::default();
       app.should_ignore_quit_key = true;
-      app.data.radarr_data.search = "test".into();
+      app.data.radarr_data.search = Some("test".into());
 
       AddMovieHandler::with(
         &SUBMIT_KEY,
@@ -726,6 +796,7 @@ mod tests {
     #[test]
     fn test_add_movie_search_input_submit_noop_on_empty_search() {
       let mut app = App::default();
+      app.data.radarr_data.search = Some(HorizontallyScrollableText::default());
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
       app.should_ignore_quit_key = true;
 
@@ -1191,7 +1262,7 @@ mod tests {
     #[test]
     fn test_add_movie_search_input_backspace() {
       let mut app = App::default();
-      app.data.radarr_data.search = "Test".to_owned().into();
+      app.data.radarr_data.search = Some("Test".into());
 
       AddMovieHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -1201,7 +1272,7 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.search.text, "Tes");
+      assert_str_eq!(app.data.radarr_data.search.as_ref().unwrap().text, "Tes");
     }
 
     #[test]
@@ -1236,6 +1307,7 @@ mod tests {
     #[test]
     fn test_add_movie_search_input_char_key() {
       let mut app = App::default();
+      app.data.radarr_data.search = Some(HorizontallyScrollableText::default());
 
       AddMovieHandler::with(
         &Key::Char('h'),
@@ -1245,7 +1317,7 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.search.text, "h");
+      assert_str_eq!(app.data.radarr_data.search.as_ref().unwrap().text, "h");
     }
 
     #[test]

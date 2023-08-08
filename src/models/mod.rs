@@ -264,11 +264,6 @@ impl HorizontallyScrollableText {
     }
   }
 
-  pub fn drain(&mut self) -> String {
-    self.reset_offset();
-    self.text.drain(..).collect()
-  }
-
   pub fn pop(&mut self) {
     if *self.offset.borrow() < self.text.len() {
       self

@@ -1,8 +1,8 @@
 #[cfg(test)]
 pub mod utils {
   use crate::models::radarr_models::{
-    AddMovieSearchResult, Collection, CollectionMovie, Credit, MinimumAvailability, Monitor, Movie,
-    MovieHistoryItem, Release, ReleaseField, RootFolder,
+    AddMovieSearchResult, Collection, CollectionMovie, Credit, Movie, MovieHistoryItem, Release,
+    ReleaseField,
   };
   use crate::models::servarr_data::radarr::radarr_data::RadarrData;
   use crate::models::{HorizontallyScrollableText, ScrollableText};
@@ -13,12 +13,9 @@ pub mod utils {
       is_filtering: true,
       delete_movie_files: true,
       add_list_exclusion: true,
-      search: "test search".to_owned().into(),
-      filter: "test filter".to_owned().into(),
-      edit_path: "test path".to_owned().into(),
-      edit_tags: "usenet, test".to_owned().into(),
-      edit_monitored: Some(true),
-      edit_search_on_add: Some(true),
+      search: Some("test search".into()),
+      filter: Some("test filter".into()),
+      edit_root_folder: Some("test path".into()),
       file_details: "test file details".to_owned(),
       audio_details: "test audio details".to_owned(),
       video_details: "test video details".to_owned(),
@@ -34,16 +31,6 @@ pub mod utils {
       .movie_releases
       .set_items(vec![Release::default()]);
     radarr_data.movie_info_tabs.index = 1;
-    radarr_data.monitor_list.set_items(vec![Monitor::default()]);
-    radarr_data
-      .minimum_availability_list
-      .set_items(vec![MinimumAvailability::default()]);
-    radarr_data
-      .quality_profile_list
-      .set_items(vec![String::default()]);
-    radarr_data
-      .root_folder_list
-      .set_items(vec![RootFolder::default()]);
     radarr_data
       .movie_releases_sort
       .set_items(vec![ReleaseField::default()]);
@@ -71,8 +58,8 @@ pub mod utils {
   macro_rules! assert_search_reset {
     ($radarr_data:expr) => {
       assert!(!$radarr_data.is_searching);
-      assert!($radarr_data.search.text.is_empty());
-      assert!($radarr_data.filter.text.is_empty());
+      assert!($radarr_data.search.is_none());
+      assert!($radarr_data.filter.is_none());
       assert!($radarr_data.filtered_movies.items.is_empty());
       assert!($radarr_data.filtered_collections.items.is_empty());
       assert!($radarr_data.add_searched_movies.items.is_empty());
@@ -83,7 +70,7 @@ pub mod utils {
   macro_rules! assert_filter_reset {
     ($radarr_data:expr) => {
       assert!(!$radarr_data.is_filtering);
-      assert!($radarr_data.filter.text.is_empty());
+      assert!($radarr_data.filter.is_none());
       assert!($radarr_data.filtered_movies.items.is_empty());
       assert!($radarr_data.filtered_collections.items.is_empty());
     };

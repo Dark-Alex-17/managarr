@@ -124,8 +124,15 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, ar
     area,
     1,
   );
-  let block_content = &app.data.radarr_data.search.text;
-  let offset = *app.data.radarr_data.search.offset.borrow();
+  let block_content = &app.data.radarr_data.search.as_ref().unwrap().text;
+  let offset = *app
+    .data
+    .radarr_data
+    .search
+    .as_ref()
+    .unwrap()
+    .offset
+    .borrow();
 
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     match active_radarr_block {

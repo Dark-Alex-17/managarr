@@ -49,9 +49,7 @@ mod tests {
   mod test_handle_home_end {
     use pretty_assertions::assert_eq;
 
-    use crate::{
-      extended_stateful_iterable_vec, test_iterable_home_and_end, test_text_box_home_end_keys,
-    };
+    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
 
     use super::*;
 
@@ -79,19 +77,93 @@ mod tests {
 
     #[test]
     fn test_collection_search_box_home_end_keys() {
-      test_text_box_home_end_keys!(
-        CollectionsHandler,
-        ActiveRadarrBlock::SearchCollection,
-        search
+      let mut app = App::default();
+      app.data.radarr_data.search = Some("Test".into());
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::SearchCollection,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .search
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        4
+      );
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::SearchCollection,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .search
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        0
       );
     }
 
     #[test]
     fn test_collection_filter_box_home_end_keys() {
-      test_text_box_home_end_keys!(
-        CollectionsHandler,
-        ActiveRadarrBlock::FilterCollections,
-        filter
+      let mut app = App::default();
+      app.data.radarr_data.filter = Some("Test".into());
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::FilterCollections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .filter
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        4
+      );
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::FilterCollections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .filter
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        0
       );
     }
   }
@@ -99,8 +171,6 @@ mod tests {
   mod test_handle_left_right_action {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
-
-    use crate::test_text_box_left_right_keys;
 
     use super::*;
 
@@ -179,19 +249,93 @@ mod tests {
 
     #[test]
     fn test_collection_search_box_left_right_keys() {
-      test_text_box_left_right_keys!(
-        CollectionsHandler,
-        ActiveRadarrBlock::SearchCollection,
-        search
+      let mut app = App::default();
+      app.data.radarr_data.search = Some("Test".into());
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.left.key,
+        &mut app,
+        &ActiveRadarrBlock::SearchCollection,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .search
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        1
+      );
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.right.key,
+        &mut app,
+        &ActiveRadarrBlock::SearchCollection,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .search
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        0
       );
     }
 
     #[test]
     fn test_collection_filter_box_left_right_keys() {
-      test_text_box_left_right_keys!(
-        CollectionsHandler,
-        ActiveRadarrBlock::FilterCollections,
-        filter
+      let mut app = App::default();
+      app.data.radarr_data.filter = Some("Test".into());
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.left.key,
+        &mut app,
+        &ActiveRadarrBlock::FilterCollections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .filter
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        1
+      );
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.right.key,
+        &mut app,
+        &ActiveRadarrBlock::FilterCollections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        *app
+          .data
+          .radarr_data
+          .filter
+          .as_ref()
+          .unwrap()
+          .offset
+          .borrow(),
+        0
       );
     }
   }
@@ -234,7 +378,7 @@ mod tests {
           Collection,
           HorizontallyScrollableText
         ));
-      app.data.radarr_data.search = "Test 2".to_owned().into();
+      app.data.radarr_data.search = Some("Test 2".into());
 
       CollectionsHandler::with(
         &SUBMIT_KEY,
@@ -267,7 +411,7 @@ mod tests {
           Collection,
           HorizontallyScrollableText
         ));
-      app.data.radarr_data.search = "Test 2".to_owned().into();
+      app.data.radarr_data.search = Some("Test 2".into());
 
       CollectionsHandler::with(
         &SUBMIT_KEY,
@@ -300,7 +444,7 @@ mod tests {
           Collection,
           HorizontallyScrollableText
         ));
-      app.data.radarr_data.filter = "Test".to_owned().into();
+      app.data.radarr_data.filter = Some("Test".into());
 
       CollectionsHandler::with(
         &SUBMIT_KEY,
@@ -507,6 +651,7 @@ mod tests {
       );
       assert!(app.data.radarr_data.is_searching);
       assert!(app.should_ignore_quit_key);
+      assert!(app.data.radarr_data.search.is_some());
     }
 
     #[test]
@@ -527,6 +672,7 @@ mod tests {
       );
       assert!(app.data.radarr_data.is_filtering);
       assert!(app.should_ignore_quit_key);
+      assert!(app.data.radarr_data.filter.is_some());
     }
 
     #[test]
@@ -564,7 +710,7 @@ mod tests {
     #[test]
     fn test_search_collections_box_backspace_key() {
       let mut app = App::default();
-      app.data.radarr_data.search = "Test".to_owned().into();
+      app.data.radarr_data.search = Some("Test".into());
 
       CollectionsHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -574,13 +720,13 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.search.text, "Tes");
+      assert_str_eq!(app.data.radarr_data.search.as_ref().unwrap().text, "Tes");
     }
 
     #[test]
     fn test_filter_collections_box_backspace_key() {
       let mut app = App::default();
-      app.data.radarr_data.filter = "Test".to_owned().into();
+      app.data.radarr_data.filter = Some("Test".into());
 
       CollectionsHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -590,12 +736,13 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.filter.text, "Tes");
+      assert_str_eq!(app.data.radarr_data.filter.as_ref().unwrap().text, "Tes");
     }
 
     #[test]
     fn test_search_collections_box_char_key() {
       let mut app = App::default();
+      app.data.radarr_data.search = Some(HorizontallyScrollableText::default());
 
       CollectionsHandler::with(
         &Key::Char('h'),
@@ -605,12 +752,13 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.search.text, "h");
+      assert_str_eq!(app.data.radarr_data.search.as_ref().unwrap().text, "h");
     }
 
     #[test]
     fn test_filter_collections_box_char_key() {
       let mut app = App::default();
+      app.data.radarr_data.filter = Some(HorizontallyScrollableText::default());
 
       CollectionsHandler::with(
         &Key::Char('h'),
@@ -620,7 +768,7 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.filter.text, "h");
+      assert_str_eq!(app.data.radarr_data.filter.as_ref().unwrap().text, "h");
     }
   }
 

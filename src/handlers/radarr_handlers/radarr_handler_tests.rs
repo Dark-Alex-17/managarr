@@ -26,7 +26,7 @@ mod tests {
         Movie,
         HorizontallyScrollableText
       ));
-    app.data.radarr_data.search = "Test 2".to_owned().into();
+    app.data.radarr_data.search = Some("Test 2".into());
     app.data.radarr_data.is_searching = true;
     app.should_ignore_quit_key = true;
     app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
@@ -39,7 +39,7 @@ mod tests {
     assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     assert!(!app.data.radarr_data.is_searching);
     assert!(!app.should_ignore_quit_key);
-    assert!(app.data.radarr_data.search.text.is_empty());
+    assert!(app.data.radarr_data.search.is_none());
   }
 
   #[test]
@@ -53,7 +53,7 @@ mod tests {
         Movie,
         HorizontallyScrollableText
       ));
-    app.data.radarr_data.search = "Test 5".to_owned().into();
+    app.data.radarr_data.search = Some("Test 5".into());
     app.data.radarr_data.is_searching = true;
     app.should_ignore_quit_key = true;
     app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
@@ -69,7 +69,7 @@ mod tests {
     );
     assert!(!app.data.radarr_data.is_searching);
     assert!(!app.should_ignore_quit_key);
-    assert!(app.data.radarr_data.search.text.is_empty());
+    assert!(app.data.radarr_data.search.is_none());
   }
 
   #[test]
@@ -83,8 +83,8 @@ mod tests {
         Movie,
         HorizontallyScrollableText
       ));
-    app.data.radarr_data.filter = "Test 2".to_owned().into();
-    app.data.radarr_data.is_searching = true;
+    app.data.radarr_data.filter = Some("Test 2".into());
+    app.data.radarr_data.is_filtering = true;
     app.should_ignore_quit_key = true;
     app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
 
@@ -97,7 +97,7 @@ mod tests {
     assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     assert!(!app.data.radarr_data.is_filtering);
     assert!(!app.should_ignore_quit_key);
-    assert!(app.data.radarr_data.filter.text.is_empty());
+    assert!(app.data.radarr_data.filter.is_none());
   }
 
   #[test]
@@ -111,7 +111,7 @@ mod tests {
         Movie,
         HorizontallyScrollableText
       ));
-    app.data.radarr_data.filter = "Test 5".to_owned().into();
+    app.data.radarr_data.filter = Some("Test 5".into());
     app.data.radarr_data.is_filtering = true;
     app.should_ignore_quit_key = true;
     app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
@@ -125,9 +125,65 @@ mod tests {
       app.get_current_route(),
       &ActiveRadarrBlock::FilterMovies.into()
     );
-    assert!(!app.data.radarr_data.is_searching);
+    assert!(!app.data.radarr_data.is_filtering);
     assert!(!app.should_ignore_quit_key);
-    assert!(app.data.radarr_data.filter.text.is_empty());
+    assert!(app.data.radarr_data.filter.is_none());
+  }
+
+  #[test]
+  fn test_filter_table_reset_and_pop_navigation_on_empty_filter() {
+    let mut app = App::default();
+    app
+      .data
+      .radarr_data
+      .movies
+      .set_items(extended_stateful_iterable_vec!(
+        Movie,
+        HorizontallyScrollableText
+      ));
+    app.data.radarr_data.filter = Some("".into());
+    app.data.radarr_data.is_filtering = true;
+    app.should_ignore_quit_key = true;
+    app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
+
+    let movies = &app.data.radarr_data.movies.items.clone();
+
+    let filter_matches = filter_table(&mut app, movies, |movie| &movie.title.text);
+
+    assert!(filter_matches.is_empty());
+    assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
+    assert!(!app.data.radarr_data.is_filtering);
+    assert!(!app.should_ignore_quit_key);
+    assert!(app.data.radarr_data.filter.is_none());
+  }
+
+  #[test]
+  fn test_filter_table_noop_on_none_filter() {
+    let mut app = App::default();
+    app
+      .data
+      .radarr_data
+      .movies
+      .set_items(extended_stateful_iterable_vec!(
+        Movie,
+        HorizontallyScrollableText
+      ));
+    app.data.radarr_data.is_filtering = true;
+    app.should_ignore_quit_key = true;
+    app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
+
+    let movies = &app.data.radarr_data.movies.items.clone();
+
+    let filter_matches = filter_table(&mut app, movies, |movie| &movie.title.text);
+
+    assert!(filter_matches.is_empty());
+    assert_eq!(
+      app.get_current_route(),
+      &ActiveRadarrBlock::FilterMovies.into()
+    );
+    assert!(!app.data.radarr_data.is_filtering);
+    assert!(!app.should_ignore_quit_key);
+    assert!(app.data.radarr_data.filter.is_none());
   }
 
   #[rstest]

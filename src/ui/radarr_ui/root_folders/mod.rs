@@ -119,8 +119,15 @@ fn draw_add_root_folder_prompt_box<B: Backend>(
     1,
   );
   let block_title = "Add Root Folder";
-  let offset = *app.data.radarr_data.edit_path.offset.borrow();
-  let block_content = &app.data.radarr_data.edit_path.text;
+  let offset = *app
+    .data
+    .radarr_data
+    .edit_root_folder
+    .as_ref()
+    .unwrap()
+    .offset
+    .borrow();
+  let block_content = &app.data.radarr_data.edit_root_folder.as_ref().unwrap().text;
 
   let input = Paragraph::new(block_content.as_str())
     .style(style_default())
