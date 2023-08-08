@@ -876,7 +876,7 @@ mod test {
   use std::sync::Arc;
 
   use chrono::{DateTime, Utc};
-  use mockito::{Matcher, Mock, Server};
+  use mockito::{Matcher, Mock, Server, ServerGuard};
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use serde_json::{json, Value};
@@ -1051,7 +1051,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_get_healthcheck_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       None,
@@ -1067,7 +1067,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_get_diskspace_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(json!([
@@ -1105,7 +1105,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_get_status_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(json!({
@@ -1130,7 +1130,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_get_movies_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(serde_json::from_str(format!("[ {} ]", MOVIE_JSON).as_str()).unwrap()),
@@ -1165,7 +1165,7 @@ mod test {
       "languages": [ { "name": "English" } ],
       "quality": { "quality": { "name": "HD - 1080p" }}
     }]);
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(release_json),
@@ -1213,7 +1213,7 @@ mod test {
         }
       }
     }]);
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(add_movie_search_result_json),
@@ -1246,7 +1246,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_trigger_automatic_search_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "MovieSearch",
@@ -1274,7 +1274,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_refresh_and_scan_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "RefreshMovie",
@@ -1302,7 +1302,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_update_all_movies_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "RefreshMovie",
@@ -1323,7 +1323,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_refresh_downloads_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "RefreshMonitoredDownloads"
@@ -1343,7 +1343,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_refresh_collections_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "RefreshCollections"
@@ -1363,7 +1363,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_get_movie_details_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
@@ -1467,7 +1467,7 @@ mod test {
       "qualityProfileId": 2222,
       "ratings": {}
     });
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(movie_json_with_missing_fields),
@@ -1548,7 +1548,7 @@ mod test {
       "date": "2022-12-30T07:37:56Z",
       "eventType": "grabbed"
     }]);
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(movie_history_item_json),
@@ -1601,7 +1601,7 @@ mod test {
         }
       }],
     }]);
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(collection_json),
@@ -1635,7 +1635,7 @@ mod test {
         "downloadClient": "transmission",
       }]
     });
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(downloads_response_json),
@@ -1659,7 +1659,7 @@ mod test {
       "id": 2222,
       "name": "HD - 1080p"
     }]);
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(quality_profile_json),
@@ -1686,7 +1686,7 @@ mod test {
       "accessible": true,
       "freeSpace": 219902325555200u64,
     }]);
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(root_folder_json),
@@ -1721,7 +1721,7 @@ mod test {
           "type": "crew",
         }
     ]);
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(credits_json),
@@ -1754,7 +1754,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_movie_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Delete,
       None,
       None,
@@ -1777,7 +1777,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_download_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Delete,
       None,
       None,
@@ -1802,7 +1802,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_add_movie_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
         "tmdbId": 1,
@@ -1866,7 +1866,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_download_release_event() {
-    let (async_server, app_arc) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
         "guid": "1234",
@@ -2038,7 +2038,7 @@ mod test {
     request_body: Option<Value>,
     response_body: Option<Value>,
     resource: &str,
-  ) -> (Mock, Arc<Mutex<App>>) {
+  ) -> (Mock, Arc<Mutex<App>>, ServerGuard) {
     let mut server = Server::new_async().await;
     let mut async_server = server
       .mock(
@@ -2073,7 +2073,7 @@ mod test {
     app.config.radarr = radarr_config;
     let app_arc = Arc::new(Mutex::new(app));
 
-    (async_server, app_arc)
+    (async_server, app_arc, server)
   }
 
   fn language() -> Language {

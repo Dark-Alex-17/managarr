@@ -141,7 +141,7 @@ mod tests {
   use std::string::ToString;
   use std::sync::Arc;
 
-  use mockito::{Mock, Server};
+  use mockito::{Mock, Server, ServerGuard};
   use pretty_assertions::assert_str_eq;
   use rstest::rstest;
   use serde::{Deserialize, Serialize};
@@ -219,13 +219,14 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_request_get() {
-    let (async_server, app_arc, url) = mock_api(RequestMethod::Get, 200, true).await;
+    let (async_server, app_arc, server) = mock_api(RequestMethod::Get, 200, true).await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network
       .handle_request::<(), Test>(
         RequestProps {
-          uri: format!("{}/test", url),
+          uri: format!("{}/test", server.url()),
+          // uri: format!("{}/test", url),
           method: RequestMethod::Get,
           body: None,
           api_token: "test1234".to_owned(),
@@ -303,13 +304,13 @@ mod tests {
     #[values(RequestMethod::Get, RequestMethod::Post, RequestMethod::Delete)]
     request_method: RequestMethod,
   ) {
-    let (async_server, app_arc, url) = mock_api(request_method, 404, true).await;
+    let (async_server, app_arc, server) = mock_api(request_method, 404, true).await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network
       .handle_request::<(), Test>(
         RequestProps {
-          uri: format!("{}/test", url),
+          uri: format!("{}/test", server.url()),
           method: request_method,
           body: None,
           api_token: "test1234".to_owned(),
@@ -373,7 +374,7 @@ mod tests {
     method: RequestMethod,
     response_status: usize,
     has_response_body: bool,
-  ) -> (Mock, Arc<Mutex<App>>, String) {
+  ) -> (Mock, Arc<Mutex<App>>, ServerGuard) {
     let mut server = Server::new_async().await;
     let mut async_server = server
       .mock(&method.to_string().to_uppercase(), "/test")
@@ -387,6 +388,6 @@ mod tests {
     async_server = async_server.create_async().await;
     let app_arc = Arc::new(Mutex::new(App::default()));
 
-    (async_server, app_arc, server.url())
+    (async_server, app_arc, server)
   }
 }

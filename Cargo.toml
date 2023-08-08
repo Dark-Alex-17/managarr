@@ -1,6 +1,6 @@
 [package]
 name = "managarr"
-version = "0.1.0"
+version = "0.1.8"
 authors = ["Alex Clarke <alex.j.tusa@gmail.com>"]
 description = "A TUI for managing *arr servers"
 edition = "2021"
@@ -28,5 +28,5 @@ urlencoding = "2.1.2"
 
 [dev-dependencies]
 pretty_assertions = "1.3.0"
-rstest = "0.16.0"
-mockito = "0.32.2"
+rstest = "0.17.0"
+mockito = "1.0.0"
