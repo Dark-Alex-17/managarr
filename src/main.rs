@@ -1,5 +1,6 @@
 use std::io;
 use std::sync::Arc;
+use std::time::Duration;
 
 use anyhow::Result;
 use clap::Parser;
@@ -52,7 +53,13 @@ async fn main() -> Result<()> {
 
 #[tokio::main]
 async fn start_networking(mut network_rx: Receiver<NetworkEvent>, app: &Arc<Mutex<App>>) {
-  let network = Network::new(reqwest::Client::new(), app);
+  let network = Network::new(
+    reqwest::Client::builder()
+      .timeout(Duration::from_secs(45))
+      .build()
+      .unwrap(),
+    app,
+  );
 
   while let Some(network_event) = network_rx.recv().await {
     network.handle_network_event(network_event).await;

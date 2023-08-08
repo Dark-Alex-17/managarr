@@ -17,6 +17,7 @@ generate_keybindings! {
   backspace,
   search,
   filter,
+  refresh,
   home,
   end,
   delete,
@@ -62,6 +63,10 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   filter: KeyBinding {
     key: Key::Char('f'),
     desc: "Filter",
+  },
+  refresh: KeyBinding {
+    key: Key::Char('r'),
+    desc: "Refresh",
   },
   home: KeyBinding {
     key: Key::Home,

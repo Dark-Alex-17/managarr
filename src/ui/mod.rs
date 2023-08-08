@@ -121,6 +121,16 @@ pub fn draw_popup_over<B: Backend>(
   popup_fn(f, app, popup_area);
 }
 
+pub fn draw_prompt_popup_over<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  area: Rect,
+  background_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+  popup_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+) {
+  draw_popup_over(f, app, area, background_fn, popup_fn, 30, 30);
+}
+
 pub fn draw_small_popup_over<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App,

@@ -6,7 +6,7 @@ use chrono::{DateTime, Utc};
 use crate::app::{App, Route};
 use crate::models::radarr_models::{
   AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord,
-  MinimumAvailability, Monitor, Movie, MovieHistoryItem, RootFolder,
+  MinimumAvailability, Monitor, Movie, MovieHistoryItem, Release, RootFolder,
 };
 use crate::models::{ScrollableText, StatefulList, StatefulTable, TabRoute, TabState};
 use crate::network::radarr_network::RadarrEvent;
@@ -32,6 +32,7 @@ pub struct RadarrData {
   pub movie_history: StatefulTable<MovieHistoryItem>,
   pub movie_cast: StatefulTable<Credit>,
   pub movie_crew: StatefulTable<Credit>,
+  pub movie_releases: StatefulTable<Release>,
   pub collections: StatefulTable<Collection>,
   pub filtered_collections: StatefulTable<Collection>,
   pub collection_movies: StatefulTable<CollectionMovie>,
@@ -66,6 +67,7 @@ impl RadarrData {
     self.movie_history = StatefulTable::default();
     self.movie_cast = StatefulTable::default();
     self.movie_crew = StatefulTable::default();
+    self.movie_releases = StatefulTable::default();
     self.movie_info_tabs.index = 0;
   }
 
@@ -103,6 +105,7 @@ impl Default for RadarrData {
       movie_history: StatefulTable::default(),
       movie_cast: StatefulTable::default(),
       movie_crew: StatefulTable::default(),
+      movie_releases: StatefulTable::default(),
       collections: StatefulTable::default(),
       filtered_collections: StatefulTable::default(),
       collection_movies: StatefulTable::default(),
@@ -134,28 +137,33 @@ impl Default for RadarrData {
         TabRoute {
           title: "Details".to_owned(),
           route: ActiveRadarrBlock::MovieDetails.into(),
-          help: "←→ change tab | <esc> close ".to_owned(),
+          help: "<r> refresh | <s> auto search | ←→ change tab | <esc> close ".to_owned(),
         },
         TabRoute {
           title: "History".to_owned(),
           route: ActiveRadarrBlock::MovieHistory.into(),
-          help: "<↑↓> scroll | ←→ change tab | <esc> close ".to_owned(),
+          help: "<r> refresh | <s> auto search | <↑↓> scroll | ←→ change tab | <esc> close ".to_owned(),
         },
         TabRoute {
           title: "File".to_owned(),
           route: ActiveRadarrBlock::FileInfo.into(),
-          help: "←→ change tab | <esc> close ".to_owned(),
+          help: "<r> refresh | <s> auto search | ←→ change tab | <esc> close ".to_owned(),
         },
         TabRoute {
           title: "Cast".to_owned(),
           route: ActiveRadarrBlock::Cast.into(),
-          help: "<↑↓> scroll | ←→ change tab | <esc> close ".to_owned(),
+          help: "<r> refresh | <s> auto search | <↑↓> scroll | ←→ change tab | <esc> close ".to_owned(),
         },
         TabRoute {
           title: "Crew".to_owned(),
           route: ActiveRadarrBlock::Crew.into(),
-          help: "<↑↓> scroll | ←→ change tab | <esc> close ".to_owned(),
+          help: "<r> refresh | <s> auto search | <↑↓> scroll | ←→ change tab | <esc> close ".to_owned(),
         },
+        TabRoute {
+          title: "Manual Search".to_owned(),
+          route: ActiveRadarrBlock::ManualSearch.into(),
+          help: "<r> refresh | <s> auto search | <↑↓> scroll | <enter> details | ←→ change tab | <esc> close ".to_owned(),
+        }
       ]),
     }
   }
@@ -170,6 +178,7 @@ pub enum ActiveRadarrBlock {
   AddMovieSelectQualityProfile,
   AddMovieSelectMonitor,
   AddMovieConfirmPrompt,
+  AutomaticallySearchMoviePrompt,
   Collections,
   CollectionDetails,
   Cast,
@@ -179,12 +188,14 @@ pub enum ActiveRadarrBlock {
   FileInfo,
   FilterCollections,
   FilterMovies,
+  ManualSearch,
   Movies,
   MovieDetails,
   MovieHistory,
   Downloads,
   SearchMovie,
   SearchCollection,
+  RefreshAndScanPrompt,
   ViewMovieOverview,
 }
 
@@ -265,12 +276,14 @@ impl App {
         self
           .dispatch_network_event(RadarrEvent::GetMovieDetails.into())
           .await;
+        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::MovieHistory => {
         self.is_loading = true;
         self
           .dispatch_network_event(RadarrEvent::GetMovieHistory.into())
           .await;
+        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::Cast | ActiveRadarrBlock::Crew => {
         if self.data.radarr_data.movie_cast.items.is_empty()
@@ -281,6 +294,14 @@ impl App {
             .dispatch_network_event(RadarrEvent::GetMovieCredits.into())
             .await;
         }
+        self.check_for_prompt_action().await;
+      }
+      ActiveRadarrBlock::ManualSearch => {
+        self.is_loading = true;
+        self
+          .dispatch_network_event(RadarrEvent::GetReleases.into())
+          .await;
+        self.check_for_prompt_action().await;
       }
       _ => (),
     }

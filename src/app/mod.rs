@@ -108,6 +108,14 @@ impl App {
   pub fn get_current_route(&self) -> &Route {
     self.navigation_stack.last().unwrap_or(&DEFAULT_ROUTE)
   }
+  
+  pub fn get_previous_route(&self) -> &Route {
+    if self.navigation_stack.len() > 1 {
+      &self.navigation_stack[self.navigation_stack.len() - 2]
+    } else {
+      self.get_current_route()
+    }
+  }
 }
 
 impl Default for App {

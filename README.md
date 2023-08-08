@@ -76,9 +76,11 @@ tautulli:
 - [x] View details of a specific movie including description, history, downloaded file info, or the credits
 - [x] View details of any collection and the movies in them
 - [x] Search your library or collections
-- [x] Add or delete movies
+- [x] Add or delete movies and downloads
+- [x] Trigger automatic searches for movies
+- [x] Trigger refresh and disk scan for movies
+- [ ] Manually search for movies
 - [ ] Manage your quality profiles
-- [ ] Modify your Radarr settings
 
 ### Sonarr
 - [ ] Support for Sonarr

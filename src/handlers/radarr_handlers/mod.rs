@@ -26,7 +26,10 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       | ActiveRadarrBlock::MovieHistory
       | ActiveRadarrBlock::FileInfo
       | ActiveRadarrBlock::Cast
-      | ActiveRadarrBlock::Crew => {
+      | ActiveRadarrBlock::Crew
+      | ActiveRadarrBlock::AutomaticallySearchMoviePrompt
+      | ActiveRadarrBlock::RefreshAndScanPrompt
+      | ActiveRadarrBlock::ManualSearch => {
         MovieDetailsHandler::with(self.key, self.app, self.active_radarr_block).handle()
       }
       ActiveRadarrBlock::CollectionDetails | ActiveRadarrBlock::ViewMovieOverview => {

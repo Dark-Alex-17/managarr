@@ -16,7 +16,7 @@ use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie};
 use crate::models::Route;
 use crate::ui::radarr_ui::add_movie_ui::draw_add_movie_search_popup;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details_popup;
-use crate::ui::radarr_ui::movie_details_ui::draw_movie_info;
+use crate::ui::radarr_ui::movie_details_ui::draw_movie_info_popup;
 use crate::ui::utils::{
   borderless_block, get_width, horizontal_chunks, layout_block, layout_block_top_border,
   line_gauge_with_label, line_gauge_with_title, show_cursor, style_bold, style_default,
@@ -24,8 +24,8 @@ use crate::ui::utils::{
   vertical_chunks_with_margin,
 };
 use crate::ui::{
-  draw_large_popup_over, draw_popup_over, draw_prompt_box, draw_table, draw_tabs, loading,
-  TableProps,
+  draw_large_popup_over, draw_popup_over, draw_prompt_box, draw_prompt_popup_over, draw_table,
+  draw_tabs, loading, TableProps,
 };
 use crate::utils::{convert_runtime, convert_to_gb};
 
@@ -59,8 +59,11 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
       | ActiveRadarrBlock::MovieHistory
       | ActiveRadarrBlock::FileInfo
       | ActiveRadarrBlock::Cast
-      | ActiveRadarrBlock::Crew => {
-        draw_large_popup_over(f, app, content_rect, draw_library, draw_movie_info)
+      | ActiveRadarrBlock::Crew
+      | ActiveRadarrBlock::AutomaticallySearchMoviePrompt
+      | ActiveRadarrBlock::RefreshAndScanPrompt
+      | ActiveRadarrBlock::ManualSearch => {
+        draw_large_popup_over(f, app, content_rect, draw_library, draw_movie_info_popup)
       }
       ActiveRadarrBlock::AddMovieSearchInput
       | ActiveRadarrBlock::AddMovieSearchResults
@@ -83,23 +86,15 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
           draw_collection_details_popup,
         )
       }
-      ActiveRadarrBlock::DeleteMoviePrompt => draw_popup_over(
-        f,
-        app,
-        content_rect,
-        draw_library,
-        draw_delete_movie_prompt,
-        30,
-        30,
-      ),
-      ActiveRadarrBlock::DeleteDownloadPrompt => draw_popup_over(
+      ActiveRadarrBlock::DeleteMoviePrompt => {
+        draw_prompt_popup_over(f, app, content_rect, draw_library, draw_delete_movie_prompt)
+      }
+      ActiveRadarrBlock::DeleteDownloadPrompt => draw_prompt_popup_over(
         f,
         app,
         content_rect,
         draw_downloads,
         draw_delete_download_prompt,
-        30,
-        30,
       ),
       _ => (),
     }

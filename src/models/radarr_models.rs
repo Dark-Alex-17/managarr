@@ -192,6 +192,11 @@ pub struct Quality {
   pub name: String,
 }
 
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+pub struct QualityWrapper {
+  pub quality: Quality,
+}
+
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum CreditType {
@@ -208,6 +213,26 @@ pub struct Credit {
   pub job: Option<String>,
   #[serde(rename(deserialize = "type"))]
   pub credit_type: CreditType,
+}
+
+#[derive(Deserialize, Derivative, Clone, Debug, PartialEq, Eq)]
+#[derivative(Default)]
+pub struct Release {
+  pub protocol: String,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub age: Number,
+  pub title: HorizontallyScrollableText,
+  pub indexer: HorizontallyScrollableText,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub size: Number,
+  pub rejected: bool,
+  pub rejections: Option<Vec<String>>,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub seeders: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub leechers: Number,
+  pub languages: Option<Vec<Language>>,
+  pub quality: QualityWrapper,
 }
 
 #[derive(Default, Derivative, Serialize, Debug)]
@@ -245,6 +270,13 @@ pub struct AddMovieSearchResult {
   #[derivative(Default(value = "Number::from(0)"))]
   pub runtime: Number,
   pub ratings: RatingsList,
+}
+
+#[derive(Default, Derivative, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CommandBody {
+  pub name: String,
+  pub movie_ids: Vec<u64>,
 }
 
 #[derive(Default, PartialEq, Eq, Clone, Debug)]
