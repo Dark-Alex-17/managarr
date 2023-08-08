@@ -80,17 +80,18 @@ impl From<KeyEvent> for Key {
 #[cfg(test)]
 mod tests {
   use crossterm::event::{KeyCode, KeyEvent};
+  use pretty_assertions::{assert_eq, assert_str_eq};
 
   use crate::event::key::Key;
 
   #[test]
   fn test_key_formatter() {
-    assert_eq!(format!("{}", Key::Esc), "<Esc>");
+    assert_str_eq!(format!("{}", Key::Esc), "<Esc>");
   }
 
   #[test]
   fn test_key_formatter_char() {
-    assert_eq!(format!("{}", Key::Char('q')), "<q>");
+    assert_str_eq!(format!("{}", Key::Char('q')), "<q>");
   }
 
   #[test]

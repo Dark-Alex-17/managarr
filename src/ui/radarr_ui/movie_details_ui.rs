@@ -12,7 +12,7 @@ use crate::app::App;
 use crate::models::radarr_models::{Credit, MovieHistoryItem, Release};
 use crate::models::Route;
 use crate::ui::utils::{
-  borderless_block, get_width, layout_block_bottom_border, layout_block_top_border,
+  borderless_block, get_width_with_margin, layout_block_bottom_border, layout_block_top_border,
   spans_info_default, style_bold, style_default, style_failure, style_primary, style_success,
   style_warning, vertical_chunks,
 };
@@ -393,7 +393,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       } = release;
       let age = format!("{} days", age.as_u64().unwrap_or(0));
       title.scroll_or_reset(
-        get_width(content_area),
+        get_width_with_margin(content_area),
         current_selection == *release
           && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
       );

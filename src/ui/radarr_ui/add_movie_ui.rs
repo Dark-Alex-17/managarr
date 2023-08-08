@@ -8,9 +8,9 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::Route;
 use crate::ui::utils::{
-  borderless_block, get_width, horizontal_chunks, layout_block, layout_paragraph_borderless,
-  show_cursor, style_default, style_help, style_primary, title_block_centered,
-  vertical_chunks_with_margin,
+  borderless_block, get_width_with_margin, horizontal_chunks, layout_block,
+  layout_paragraph_borderless, show_cursor, style_default, style_help, style_primary,
+  title_block_centered, vertical_chunks_with_margin,
 };
 use crate::ui::{
   draw_button, draw_drop_down_list, draw_drop_down_menu_button, draw_drop_down_popup,
@@ -146,7 +146,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
 
             movie
               .title
-              .scroll_or_reset(get_width(area), *movie == current_selection);
+              .scroll_or_reset(get_width_with_margin(area), *movie == current_selection);
 
             Row::new(vec![
               Cell::from(movie.title.to_string()),

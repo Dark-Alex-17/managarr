@@ -18,10 +18,10 @@ use crate::ui::radarr_ui::add_movie_ui::draw_add_movie_search_popup;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details_popup;
 use crate::ui::radarr_ui::movie_details_ui::draw_movie_info_popup;
 use crate::ui::utils::{
-  borderless_block, get_width, horizontal_chunks, layout_block, layout_block_top_border,
-  line_gauge_with_label, line_gauge_with_title, show_cursor, style_bold, style_default,
-  style_failure, style_primary, style_success, style_warning, title_block, title_block_centered,
-  vertical_chunks_with_margin,
+  borderless_block, get_width_with_margin, horizontal_chunks, layout_block,
+  layout_block_top_border, line_gauge_with_label, line_gauge_with_title, show_cursor, style_bold,
+  style_default, style_failure, style_primary, style_success, style_warning, title_block,
+  title_block_centered, vertical_chunks_with_margin,
 };
 use crate::ui::{
   draw_large_popup_over, draw_popup_over, draw_prompt_box, draw_prompt_popup_over, draw_table,
@@ -385,7 +385,10 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
       } = download_record;
 
       let path = output_path.clone().unwrap_or_default();
-      path.scroll_or_reset(get_width(area), current_selection == *download_record);
+      path.scroll_or_reset(
+        get_width_with_margin(area),
+        current_selection == *download_record,
+      );
 
       let percent = 1f64 - (sizeleft.as_f64().unwrap() / size.as_f64().unwrap());
       let file_size: f64 = convert_to_gb(size.as_u64().unwrap());
