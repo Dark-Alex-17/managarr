@@ -93,7 +93,7 @@ fn draw_search_movie_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
       app.data.radarr_data.movies.current_selection().title
     )
     .as_str(),
-    &app.data.radarr_data.prompt_confirm,
+    app.data.radarr_data.prompt_confirm,
   );
 }
 
@@ -107,7 +107,7 @@ fn draw_update_and_scan_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, 
       app.data.radarr_data.movies.current_selection().title
     )
     .as_str(),
-    &app.data.radarr_data.prompt_confirm,
+    app.data.radarr_data.prompt_confirm,
   );
 }
 
@@ -521,7 +521,7 @@ fn draw_manual_search_confirm_prompt<B: Backend>(
       title,
       &prompt,
       Some(content_paragraph),
-      &app.data.radarr_data.prompt_confirm,
+      app.data.radarr_data.prompt_confirm,
     );
   } else {
     draw_prompt_box(
@@ -529,7 +529,7 @@ fn draw_manual_search_confirm_prompt<B: Backend>(
       prompt_area,
       title,
       &prompt,
-      &app.data.radarr_data.prompt_confirm,
+      app.data.radarr_data.prompt_confirm,
     );
   }
 }

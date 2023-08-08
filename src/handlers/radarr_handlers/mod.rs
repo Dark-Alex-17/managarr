@@ -1,10 +1,11 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::radarr::{
-  ActiveRadarrBlock, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS,
-  EDIT_MOVIE_BLOCKS, FILTER_BLOCKS, MOVIE_DETAILS_BLOCKS, SEARCH_BLOCKS,
+  ActiveRadarrBlock, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS,
+  EDIT_COLLECTION_BLOCKS, EDIT_MOVIE_BLOCKS, FILTER_BLOCKS, MOVIE_DETAILS_BLOCKS, SEARCH_BLOCKS,
 };
 use crate::handlers::radarr_handlers::add_movie_handler::AddMovieHandler;
 use crate::handlers::radarr_handlers::collection_details_handler::CollectionDetailsHandler;
+use crate::handlers::radarr_handlers::delete_movie_handler::DeleteMovieHandler;
 use crate::handlers::radarr_handlers::edit_collection_handler::EditCollectionHandler;
 use crate::handlers::radarr_handlers::edit_movie_handler::EditMovieHandler;
 use crate::handlers::radarr_handlers::movie_details_handler::MovieDetailsHandler;
@@ -16,6 +17,7 @@ use crate::{handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
 
 mod add_movie_handler;
 mod collection_details_handler;
+mod delete_movie_handler;
 mod edit_collection_handler;
 mod edit_movie_handler;
 mod movie_details_handler;
@@ -43,6 +45,10 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       }
       _ if EDIT_MOVIE_BLOCKS.contains(self.active_radarr_block) => {
         EditMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context).handle()
+      }
+      _ if DELETE_MOVIE_BLOCKS.contains(self.active_radarr_block) => {
+        DeleteMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+          .handle()
       }
       _ if EDIT_COLLECTION_BLOCKS.contains(self.active_radarr_block) => {
         EditCollectionHandler::with(self.key, self.app, self.active_radarr_block, self.context)
@@ -212,9 +218,12 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
 
   fn handle_delete(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::Movies => self
-        .app
-        .push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into()),
+      ActiveRadarrBlock::Movies => {
+        self
+          .app
+          .push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
+        self.app.data.radarr_data.selected_block = ActiveRadarrBlock::DeleteMovieToggleDeleteFile;
+      }
       ActiveRadarrBlock::Downloads => self
         .app
         .push_navigation_stack(ActiveRadarrBlock::DeleteDownloadPrompt.into()),
@@ -245,8 +254,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         }
         _ => (),
       },
-      ActiveRadarrBlock::DeleteMoviePrompt
-      | ActiveRadarrBlock::DeleteDownloadPrompt
+      ActiveRadarrBlock::DeleteDownloadPrompt
       | ActiveRadarrBlock::DeleteRootFolderPrompt
       | ActiveRadarrBlock::UpdateAllMoviesPrompt
       | ActiveRadarrBlock::UpdateAllCollectionsPrompt
@@ -359,13 +367,6 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
             .set_items(filtered_collections);
         }
       }
-      ActiveRadarrBlock::DeleteMoviePrompt => {
-        if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteMovie);
-        }
-
-        self.app.pop_navigation_stack();
-      }
       ActiveRadarrBlock::DeleteDownloadPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteDownload);
@@ -429,8 +430,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         self.app.data.radarr_data.prompt_confirm = false;
         self.app.should_ignore_quit_key = false;
       }
-      ActiveRadarrBlock::DeleteMoviePrompt
-      | ActiveRadarrBlock::DeleteDownloadPrompt
+      ActiveRadarrBlock::DeleteDownloadPrompt
       | ActiveRadarrBlock::DeleteRootFolderPrompt
       | ActiveRadarrBlock::UpdateAllMoviesPrompt
       | ActiveRadarrBlock::UpdateAllCollectionsPrompt
@@ -950,6 +950,10 @@ mod tests {
         app.get_current_route(),
         &ActiveRadarrBlock::DeleteMoviePrompt.into()
       );
+      assert_eq!(
+        app.data.radarr_data.selected_block,
+        ActiveRadarrBlock::DeleteMovieToggleDeleteFile
+      );
     }
 
     #[test]
@@ -1050,7 +1054,6 @@ mod tests {
     #[rstest]
     fn test_left_right_prompt_toggle(
       #[values(
-        ActiveRadarrBlock::DeleteMoviePrompt,
         ActiveRadarrBlock::DeleteDownloadPrompt,
         ActiveRadarrBlock::DeleteRootFolderPrompt,
         ActiveRadarrBlock::UpdateAllMoviesPrompt,
@@ -1345,11 +1348,6 @@ mod tests {
 
     #[rstest]
     #[case(
-      ActiveRadarrBlock::Movies,
-      ActiveRadarrBlock::DeleteMoviePrompt,
-      RadarrEvent::DeleteMovie
-    )]
-    #[case(
       ActiveRadarrBlock::Downloads,
       ActiveRadarrBlock::DeleteDownloadPrompt,
       RadarrEvent::DeleteDownload
@@ -1395,7 +1393,6 @@ mod tests {
     }
 
     #[rstest]
-    #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::DeleteMoviePrompt)]
     #[case(ActiveRadarrBlock::Downloads, ActiveRadarrBlock::DeleteDownloadPrompt)]
     #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::UpdateAllMoviesPrompt)]
     #[case(ActiveRadarrBlock::Downloads, ActiveRadarrBlock::UpdateDownloadsPrompt)]
@@ -1471,7 +1468,6 @@ mod tests {
     }
 
     #[rstest]
-    #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::DeleteMoviePrompt)]
     #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::UpdateAllMoviesPrompt)]
     #[case(
       ActiveRadarrBlock::RootFolders,
@@ -1551,7 +1547,6 @@ mod tests {
     use serde_json::Number;
     use strum::IntoEnumIterator;
 
-    use crate::app::key_binding::DEFAULT_KEYBINDINGS;
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
     use crate::app::radarr::RadarrData;
     use crate::models::radarr_models::MinimumAvailability;
@@ -1996,12 +1991,19 @@ mod tests {
       ActiveRadarrBlock::EditMoviePathInput,
       ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
       ActiveRadarrBlock::EditMovieSelectQualityProfile,
-      ActiveRadarrBlock::EditMovieTagsInput,
-      ActiveRadarrBlock::EditMovieToggleMonitored
+      ActiveRadarrBlock::EditMovieTagsInput
     )]
     active_radarr_block: ActiveRadarrBlock,
   ) {
     test_handler_delegation!(ActiveRadarrBlock::Movies, active_radarr_block);
+  }
+
+  #[test]
+  fn test_delegate_delete_movie_blocks_to_delete_movie_handler() {
+    test_handler_delegation!(
+      ActiveRadarrBlock::Movies,
+      ActiveRadarrBlock::DeleteMoviePrompt
+    );
   }
 
   #[rstest]
@@ -2010,9 +2012,7 @@ mod tests {
       ActiveRadarrBlock::EditCollectionPrompt,
       ActiveRadarrBlock::EditCollectionRootFolderPathInput,
       ActiveRadarrBlock::EditCollectionSelectMinimumAvailability,
-      ActiveRadarrBlock::EditCollectionSelectQualityProfile,
-      ActiveRadarrBlock::EditCollectionToggleSearchOnAdd,
-      ActiveRadarrBlock::EditCollectionToggleMonitored
+      ActiveRadarrBlock::EditCollectionSelectQualityProfile
     )]
     active_radarr_block: ActiveRadarrBlock,
   ) {

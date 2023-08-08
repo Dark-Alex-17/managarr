@@ -51,6 +51,8 @@ pub struct RadarrData {
   pub edit_search_on_add: Option<bool>,
   pub sort_ascending: Option<bool>,
   pub prompt_confirm: bool,
+  pub delete_movie_files: bool,
+  pub add_list_exclusion: bool,
   pub is_searching: bool,
   pub is_filtering: bool,
 }
@@ -58,6 +60,11 @@ pub struct RadarrData {
 impl RadarrData {
   pub fn reset_movie_collection_table(&mut self) {
     self.collection_movies = StatefulTable::default();
+  }
+
+  pub fn reset_delete_movie_preferences(&mut self) {
+    self.delete_movie_files = false;
+    self.add_list_exclusion = false;
   }
 
   pub fn reset_search(&mut self) {
@@ -260,6 +267,8 @@ impl Default for RadarrData {
       is_searching: false,
       is_filtering: false,
       prompt_confirm: false,
+      delete_movie_files: false,
+      add_list_exclusion: false,
       main_tabs: TabState::new(vec![
         TabRoute {
           title: "Library".to_owned(),
@@ -350,6 +359,9 @@ pub enum ActiveRadarrBlock {
   Cast,
   Crew,
   DeleteMoviePrompt,
+  DeleteMovieConfirmPrompt,
+  DeleteMovieToggleDeleteFile,
+  DeleteMovieToggleAddListExclusion,
   DeleteDownloadPrompt,
   DeleteRootFolderPrompt,
   Downloads,
@@ -440,6 +452,12 @@ pub const FILTER_BLOCKS: [ActiveRadarrBlock; 2] = [
   ActiveRadarrBlock::FilterMovies,
   ActiveRadarrBlock::FilterCollections,
 ];
+pub const DELETE_MOVIE_BLOCKS: [ActiveRadarrBlock; 4] = [
+  ActiveRadarrBlock::DeleteMoviePrompt,
+  ActiveRadarrBlock::DeleteMovieConfirmPrompt,
+  ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
+  ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
+];
 
 impl ActiveRadarrBlock {
   pub fn next_add_movie_prompt_block(&self) -> Self {
@@ -490,6 +508,19 @@ impl ActiveRadarrBlock {
         ActiveRadarrBlock::EditCollectionConfirmPrompt
       }
       _ => ActiveRadarrBlock::EditCollectionToggleMonitored,
+    }
+  }
+
+  pub fn next_delete_movie_prompt_block(&self) -> Self {
+    match self {
+      ActiveRadarrBlock::DeleteMovieToggleDeleteFile => {
+        ActiveRadarrBlock::DeleteMovieToggleAddListExclusion
+      }
+      ActiveRadarrBlock::DeleteMovieToggleAddListExclusion => {
+        ActiveRadarrBlock::DeleteMovieConfirmPrompt
+      }
+      ActiveRadarrBlock::DeleteMovieConfirmPrompt => ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
+      _ => ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
     }
   }
 
@@ -546,6 +577,19 @@ impl ActiveRadarrBlock {
         ActiveRadarrBlock::EditCollectionToggleSearchOnAdd
       }
       _ => ActiveRadarrBlock::EditCollectionToggleMonitored,
+    }
+  }
+
+  pub fn previous_delete_movie_prompt_block(&self) -> Self {
+    match self {
+      ActiveRadarrBlock::DeleteMovieToggleDeleteFile => ActiveRadarrBlock::DeleteMovieConfirmPrompt,
+      ActiveRadarrBlock::DeleteMovieToggleAddListExclusion => {
+        ActiveRadarrBlock::DeleteMovieToggleDeleteFile
+      }
+      ActiveRadarrBlock::DeleteMovieConfirmPrompt => {
+        ActiveRadarrBlock::DeleteMovieToggleAddListExclusion
+      }
+      _ => ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
     }
   }
 }
@@ -684,6 +728,9 @@ impl App {
       .dispatch_network_event(RadarrEvent::GetTags.into())
       .await;
     self
+      .dispatch_network_event(RadarrEvent::GetRootFolders.into())
+      .await;
+    self
       .dispatch_network_event(RadarrEvent::GetDownloads.into())
       .await;
   }
@@ -730,6 +777,8 @@ pub mod radarr_test_utils {
     let mut radarr_data = RadarrData {
       is_searching: true,
       is_filtering: true,
+      delete_movie_files: true,
+      add_list_exclusion: true,
       search: "test search".to_owned().into(),
       filter: "test filter".to_owned().into(),
       edit_path: "test path".to_owned().into(),
@@ -779,13 +828,6 @@ pub mod radarr_test_utils {
       .set_items(vec![CollectionMovie::default()]);
 
     radarr_data
-  }
-
-  #[macro_export]
-  macro_rules! assert_movie_collection_table_reset {
-    ($radarr_data:expr) => {
-      assert!($radarr_data.collection_movies.items.is_empty());
-    };
   }
 
   #[macro_export]
@@ -887,7 +929,17 @@ mod tests {
 
       radarr_data.reset_movie_collection_table();
 
-      assert_movie_collection_table_reset!(radarr_data);
+      assert!(radarr_data.collection_movies.items.is_empty());
+    }
+
+    #[test]
+    fn test_reset_delete_movie_preferences() {
+      let mut radarr_data = create_test_radarr_data();
+
+      radarr_data.reset_delete_movie_preferences();
+
+      assert!(!radarr_data.delete_movie_files);
+      assert!(!radarr_data.add_list_exclusion);
     }
 
     #[test]
@@ -1128,6 +1180,8 @@ mod tests {
       assert!(!radarr_data.is_searching);
       assert!(!radarr_data.is_filtering);
       assert!(!radarr_data.prompt_confirm);
+      assert!(!radarr_data.delete_movie_files);
+      assert!(!radarr_data.add_list_exclusion);
 
       assert_eq!(radarr_data.main_tabs.tabs.len(), 4);
 
@@ -1369,6 +1423,25 @@ mod tests {
     }
 
     #[test]
+    fn test_next_delete_movie_prompt_block() {
+      let active_block =
+        ActiveRadarrBlock::DeleteMovieToggleDeleteFile.next_delete_movie_prompt_block();
+
+      assert_eq!(
+        active_block,
+        ActiveRadarrBlock::DeleteMovieToggleAddListExclusion
+      );
+
+      let active_block = active_block.next_delete_movie_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::DeleteMovieConfirmPrompt);
+
+      let active_block = active_block.next_delete_movie_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::DeleteMovieToggleDeleteFile);
+    }
+
+    #[test]
     fn test_previous_add_movie_prompt_block() {
       let active_block =
         ActiveRadarrBlock::AddMovieSelectRootFolder.previous_add_movie_prompt_block();
@@ -1477,6 +1550,25 @@ mod tests {
         active_block,
         ActiveRadarrBlock::EditCollectionToggleMonitored
       );
+    }
+
+    #[test]
+    fn test_previous_delete_movie_prompt_block() {
+      let active_block =
+        ActiveRadarrBlock::DeleteMovieToggleDeleteFile.previous_delete_movie_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::DeleteMovieConfirmPrompt);
+
+      let active_block = active_block.previous_delete_movie_prompt_block();
+
+      assert_eq!(
+        active_block,
+        ActiveRadarrBlock::DeleteMovieToggleAddListExclusion
+      );
+
+      let active_block = active_block.previous_delete_movie_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::DeleteMovieToggleDeleteFile);
     }
   }
 
@@ -1857,6 +1949,14 @@ mod tests {
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetTags.into()
       );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetRootFolders.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetDownloads.into()
+      );
       assert!(app.is_loading);
     }
 
@@ -1928,6 +2028,10 @@ mod tests {
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetRootFolders.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetDownloads.into()
       );
       assert!(app.is_loading);
@@ -1973,6 +2077,10 @@ mod tests {
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetTags.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetRootFolders.into()
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),

@@ -10,7 +10,7 @@ use tui::widgets::{Cell, ListItem, Paragraph, Row};
 use tui::Frame;
 
 use crate::app::radarr::{
-  ActiveRadarrBlock, RadarrData, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS,
+  ActiveRadarrBlock, RadarrData, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS,
   EDIT_COLLECTION_BLOCKS, EDIT_MOVIE_BLOCKS, FILTER_BLOCKS, MOVIE_DETAILS_BLOCKS, SEARCH_BLOCKS,
 };
 use crate::app::App;
@@ -19,6 +19,7 @@ use crate::models::radarr_models::{Collection, DiskSpace, DownloadRecord, Movie,
 use crate::models::{HorizontallyScrollableText, Route};
 use crate::ui::radarr_ui::add_movie_ui::draw_add_movie_search_popup;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details_popup;
+use crate::ui::radarr_ui::delete_movie_ui::draw_delete_movie_prompt;
 use crate::ui::radarr_ui::edit_collection_ui::draw_edit_collection_prompt;
 use crate::ui::radarr_ui::edit_movie_ui::draw_edit_movie_prompt;
 use crate::ui::radarr_ui::movie_details_ui::draw_movie_info_popup;
@@ -37,6 +38,7 @@ use crate::utils::{convert_runtime, convert_to_gb};
 
 mod add_movie_ui;
 mod collection_details_ui;
+mod delete_movie_ui;
 mod edit_collection_ui;
 mod edit_movie_ui;
 mod movie_details_ui;
@@ -150,7 +152,7 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
           }
         }
       }
-      ActiveRadarrBlock::DeleteMoviePrompt => {
+      _ if DELETE_MOVIE_BLOCKS.contains(&active_radarr_block) => {
         draw_prompt_popup_over(f, app, content_rect, draw_library, draw_delete_movie_prompt)
       }
       ActiveRadarrBlock::DeleteDownloadPrompt => draw_prompt_popup_over(
@@ -320,7 +322,7 @@ fn draw_update_all_movies_prompt<B: Backend>(
     prompt_area,
     "Update All Movies",
     "Do you want to update info and scan your disks for all of your movies?",
-    &app.data.radarr_data.prompt_confirm,
+    app.data.radarr_data.prompt_confirm,
   );
 }
 
@@ -334,7 +336,7 @@ fn draw_update_downloads_prompt<B: Backend>(
     prompt_area,
     "Update Downloads",
     "Do you want to update your downloads?",
-    &app.data.radarr_data.prompt_confirm,
+    app.data.radarr_data.prompt_confirm,
   );
 }
 
@@ -348,21 +350,7 @@ fn draw_update_all_collections_prompt<B: Backend>(
     prompt_area,
     "Update All Collections",
     "Do you want to update all of your collections?",
-    &app.data.radarr_data.prompt_confirm,
-  );
-}
-
-fn draw_delete_movie_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
-  draw_prompt_box(
-    f,
-    prompt_area,
-    "Delete Movie",
-    format!(
-      "Do you really want to delete: {}?",
-      app.data.radarr_data.movies.current_selection().title
-    )
-    .as_str(),
-    &app.data.radarr_data.prompt_confirm,
+    app.data.radarr_data.prompt_confirm,
   );
 }
 
@@ -376,7 +364,7 @@ fn draw_delete_download_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, 
       app.data.radarr_data.downloads.current_selection().title
     )
     .as_str(),
-    &app.data.radarr_data.prompt_confirm,
+    app.data.radarr_data.prompt_confirm,
   );
 }
 
@@ -394,7 +382,7 @@ fn draw_delete_root_folder_prompt<B: Backend>(
       app.data.radarr_data.root_folders.current_selection().path
     )
     .as_str(),
-    &app.data.radarr_data.prompt_confirm,
+    app.data.radarr_data.prompt_confirm,
   );
 }
 

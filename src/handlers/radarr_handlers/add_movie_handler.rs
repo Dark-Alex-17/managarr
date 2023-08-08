@@ -57,7 +57,6 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
           .data
           .radarr_data
           .selected_block
-          .clone()
           .previous_add_movie_prompt_block()
       }
       _ => (),
@@ -228,10 +227,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         ActiveRadarrBlock::AddMovieConfirmPrompt => {
           if self.app.data.radarr_data.prompt_confirm {
             self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddMovie);
-            self.app.pop_navigation_stack();
-          } else {
-            self.app.pop_navigation_stack();
           }
+
+          self.app.pop_navigation_stack();
         }
         ActiveRadarrBlock::AddMovieSelectMonitor
         | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
@@ -515,7 +513,6 @@ mod tests {
     use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;
 
-    use crate::app::key_binding::DEFAULT_KEYBINDINGS;
     use crate::models::radarr_models::Movie;
     use crate::network::radarr_network::RadarrEvent;
 

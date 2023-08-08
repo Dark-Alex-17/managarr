@@ -50,7 +50,6 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
           .data
           .radarr_data
           .selected_block
-          .clone()
           .previous_edit_movie_prompt_block()
       }
       _ => (),
@@ -141,11 +140,10 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
         ActiveRadarrBlock::EditMovieConfirmPrompt => {
           if self.app.data.radarr_data.prompt_confirm {
             self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditMovie);
-            self.app.pop_navigation_stack();
             self.app.should_refresh = true;
-          } else {
-            self.app.pop_navigation_stack();
           }
+
+          self.app.pop_navigation_stack();
         }
         ActiveRadarrBlock::EditMovieSelectMinimumAvailability
         | ActiveRadarrBlock::EditMovieSelectQualityProfile => self
@@ -184,8 +182,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
         self.app.data.radarr_data.reset_add_edit_media_fields();
         self.app.data.radarr_data.prompt_confirm = false;
       }
-      ActiveRadarrBlock::EditMovieToggleMonitored
-      | ActiveRadarrBlock::EditMovieSelectMinimumAvailability
+      ActiveRadarrBlock::EditMovieSelectMinimumAvailability
       | ActiveRadarrBlock::EditMovieSelectQualityProfile => self.app.pop_navigation_stack(),
       _ => (),
     }
@@ -350,7 +347,6 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::app::key_binding::DEFAULT_KEYBINDINGS;
     use crate::models::Route;
     use crate::network::radarr_network::RadarrEvent;
 
@@ -617,7 +613,6 @@ mod tests {
     #[rstest]
     fn test_edit_movie_esc(
       #[values(
-        ActiveRadarrBlock::EditMovieToggleMonitored,
         ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
         ActiveRadarrBlock::EditMovieSelectQualityProfile
       )]

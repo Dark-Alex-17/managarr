@@ -686,12 +686,24 @@ impl<'a> Network<'a> {
 
   async fn delete_movie(&self) {
     let movie_id = self.extract_movie_id().await;
+    let delete_files = self.app.lock().await.data.radarr_data.delete_movie_files;
+    let add_import_exclusion = self.app.lock().await.data.radarr_data.add_list_exclusion;
 
-    info!("Deleting Radarr movie with id: {}", movie_id);
+    info!(
+      "Deleting Radarr movie with id: {} with deleteFiles={} and addImportExclusion={}",
+      movie_id, delete_files, add_import_exclusion
+    );
 
     let request_props = self
       .radarr_request_props_from(
-        format!("{}/{}", RadarrEvent::DeleteMovie.resource(), movie_id).as_str(),
+        format!(
+          "{}/{}?deleteFiles={}&addImportExclusion={}",
+          RadarrEvent::DeleteMovie.resource(),
+          movie_id,
+          delete_files,
+          add_import_exclusion
+        )
+        .as_str(),
         RequestMethod::Delete,
         None::<()>,
       )
@@ -700,6 +712,14 @@ impl<'a> Network<'a> {
     self
       .handle_request::<(), ()>(request_props, |_, _| ())
       .await;
+
+    self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .reset_delete_movie_preferences();
   }
 
   async fn delete_download(&self) {
@@ -2200,21 +2220,26 @@ mod test {
       RequestMethod::Delete,
       None,
       None,
-      format!("{}/1", RadarrEvent::DeleteMovie.resource()).as_str(),
+      format!(
+        "{}/1?deleteFiles=true&addImportExclusion=true",
+        RadarrEvent::DeleteMovie.resource()
+      )
+      .as_str(),
     )
     .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![movie()]);
+    {
+      let mut app = app_arc.lock().await;
+      app.data.radarr_data.movies.set_items(vec![movie()]);
+      app.data.radarr_data.delete_movie_files = true;
+      app.data.radarr_data.add_list_exclusion = true;
+    }
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network.handle_radarr_event(RadarrEvent::DeleteMovie).await;
 
     async_server.assert_async().await;
+    assert!(!app_arc.lock().await.data.radarr_data.delete_movie_files);
+    assert!(!app_arc.lock().await.data.radarr_data.add_list_exclusion);
   }
 
   #[tokio::test]

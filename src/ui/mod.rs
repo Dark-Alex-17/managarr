@@ -1,3 +1,5 @@
+use std::iter;
+
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::Modifier;
@@ -141,7 +143,7 @@ pub fn draw_prompt_popup_over<B: Backend>(
   background_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
   popup_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
 ) {
-  draw_popup_over(f, app, area, background_fn, popup_fn, 30, 30);
+  draw_popup_over(f, app, area, background_fn, popup_fn, 35, 35);
 }
 
 pub fn draw_small_popup_over<B: Backend>(
@@ -334,7 +336,7 @@ pub fn draw_prompt_box<B: Backend>(
   prompt_area: Rect,
   title: &str,
   prompt: &str,
-  yes_no_value: &bool,
+  yes_no_value: bool,
 ) {
   draw_prompt_box_with_content(f, prompt_area, title, prompt, None, yes_no_value);
 }
@@ -345,7 +347,7 @@ pub fn draw_prompt_box_with_content<B: Backend>(
   title: &str,
   prompt: &str,
   content: Option<Paragraph<'_>>,
-  yes_no_value: &bool,
+  yes_no_value: bool,
 ) {
   f.render_widget(title_block_centered(title), prompt_area);
 
@@ -384,8 +386,58 @@ pub fn draw_prompt_box_with_content<B: Backend>(
     chunks[2],
   );
 
-  draw_button(f, horizontal_chunks[0], "Yes", *yes_no_value);
-  draw_button(f, horizontal_chunks[1], "No", !*yes_no_value);
+  draw_button(f, horizontal_chunks[0], "Yes", yes_no_value);
+  draw_button(f, horizontal_chunks[1], "No", !yes_no_value);
+}
+
+pub fn draw_prompt_box_with_checkboxes<B: Backend>(
+  f: &mut Frame<'_, B>,
+  prompt_area: Rect,
+  title: &str,
+  prompt: &str,
+  checkboxes: Vec<(&str, bool, bool)>,
+  highlight_yes_no: bool,
+  yes_no_value: bool,
+) {
+  f.render_widget(title_block_centered(title), prompt_area);
+  let mut constraints = vec![
+    Constraint::Length(4),
+    Constraint::Min(0),
+    Constraint::Length(3),
+  ];
+
+  constraints.splice(
+    1..1,
+    iter::repeat(Constraint::Length(3)).take(checkboxes.len()),
+  );
+
+  let chunks = vertical_chunks_with_margin(constraints, prompt_area, 1);
+
+  let prompt_paragraph = layout_paragraph_borderless(prompt);
+  f.render_widget(prompt_paragraph, chunks[0]);
+
+  for i in 0..checkboxes.len() {
+    let (label, is_checked, is_selected) = checkboxes[i];
+    draw_checkbox_with_label(f, chunks[i + 1], label, is_checked, is_selected);
+  }
+
+  let horizontal_chunks = horizontal_chunks(
+    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
+    chunks[checkboxes.len() + 2],
+  );
+
+  draw_button(
+    f,
+    horizontal_chunks[0],
+    "Yes",
+    highlight_yes_no && yes_no_value,
+  );
+  draw_button(
+    f,
+    horizontal_chunks[1],
+    "No",
+    highlight_yes_no && !yes_no_value,
+  );
 }
 
 pub fn draw_checkbox<B: Backend>(

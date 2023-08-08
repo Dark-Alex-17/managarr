@@ -327,9 +327,9 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
   };
   let title = format!("Add Movie - {}", movie_title);
   let prompt = movie_overview;
-  let yes_no_value = &app.data.radarr_data.prompt_confirm;
-  let selected_block = &app.data.radarr_data.selected_block;
-  let highlight_yes_no = *selected_block == ActiveRadarrBlock::AddMovieConfirmPrompt;
+  let yes_no_value = app.data.radarr_data.prompt_confirm;
+  let selected_block = app.data.radarr_data.selected_block;
+  let highlight_yes_no = selected_block == ActiveRadarrBlock::AddMovieConfirmPrompt;
 
   let selected_monitor = app.data.radarr_data.monitor_list.current_selection();
   let selected_minimum_availability = app
@@ -374,7 +374,7 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
     chunks[1],
     "Root Folder",
     &selected_root_folder.path,
-    *selected_block == ActiveRadarrBlock::AddMovieSelectRootFolder,
+    selected_block == ActiveRadarrBlock::AddMovieSelectRootFolder,
   );
 
   draw_drop_down_menu_button(
@@ -382,7 +382,7 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
     chunks[2],
     "Monitor",
     selected_monitor.to_display_str(),
-    *selected_block == ActiveRadarrBlock::AddMovieSelectMonitor,
+    selected_block == ActiveRadarrBlock::AddMovieSelectMonitor,
   );
 
   draw_drop_down_menu_button(
@@ -390,14 +390,14 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
     chunks[3],
     "Minimum Availability",
     selected_minimum_availability.to_display_str(),
-    *selected_block == ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+    selected_block == ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
   );
   draw_drop_down_menu_button(
     f,
     chunks[4],
     "Quality Profile",
     selected_quality_profile,
-    *selected_block == ActiveRadarrBlock::AddMovieSelectQualityProfile,
+    selected_block == ActiveRadarrBlock::AddMovieSelectQualityProfile,
   );
 
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
@@ -407,7 +407,7 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
       "Tags",
       &app.data.radarr_data.edit_tags.text,
       *app.data.radarr_data.edit_tags.offset.borrow(),
-      *selected_block == ActiveRadarrBlock::AddMovieTagsInput,
+      selected_block == ActiveRadarrBlock::AddMovieTagsInput,
       active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput,
     );
   }
@@ -416,12 +416,12 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
     f,
     horizontal_chunks[0],
     "Add",
-    *yes_no_value && highlight_yes_no,
+    yes_no_value && highlight_yes_no,
   );
   draw_button(
     f,
     horizontal_chunks[1],
     "Cancel",
-    !*yes_no_value && highlight_yes_no,
+    !yes_no_value && highlight_yes_no,
   );
 }
