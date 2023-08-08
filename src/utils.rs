@@ -2,7 +2,6 @@ use log::LevelFilter;
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Root};
 use log4rs::encode::pattern::PatternEncoder;
-use serde_json::Number;
 
 pub fn init_logging_config() -> log4rs::Config {
   let file_path = "/tmp/managarr.log";

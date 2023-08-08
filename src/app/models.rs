@@ -1,5 +1,7 @@
 use tui::widgets::TableState;
 
+use crate::app::Route;
+
 pub trait Scrollable {
   fn scroll_down(&mut self);
   fn scroll_up(&mut self);
@@ -102,6 +104,44 @@ impl Scrollable for ScrollableText {
   fn scroll_up(&mut self) {
     if self.offset > 0 {
       self.offset -= 1;
+    }
+  }
+}
+
+#[derive(Clone)]
+pub struct TabRoute {
+  pub title: String,
+  pub route: Route,
+}
+
+pub struct TabState {
+  pub tabs: Vec<TabRoute>,
+  pub index: usize,
+}
+
+impl TabState {
+  pub fn new(tabs: Vec<TabRoute>) -> TabState {
+    TabState { tabs, index: 0 }
+  }
+
+  pub fn set_index(&mut self, index: usize) -> &TabRoute {
+    self.index = index;
+    &self.tabs[self.index]
+  }
+
+  pub fn get_active_route(&self) -> &Route {
+    &self.tabs[self.index].route
+  }
+
+  pub fn next(&mut self) {
+    self.index = (self.index + 1) % self.tabs.len();
+  }
+
+  pub fn previous(&mut self) {
+    if self.index > 0 {
+      self.index -= 1;
+    } else {
+      self.index = self.tabs.len() - 1;
     }
   }
 }

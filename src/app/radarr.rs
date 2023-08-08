@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
+use strum::EnumIter;
 
-use crate::app::models::{ScrollableText, StatefulTable};
+use crate::app::models::{ScrollableText, StatefulTable, TabRoute, TabState};
 use crate::app::App;
 use crate::network::radarr_network::{DownloadRecord, Movie, RadarrEvent};
 
-#[derive(Default)]
 pub struct RadarrData {
   pub free_space: u64,
   pub total_space: u64,
@@ -16,9 +16,35 @@ pub struct RadarrData {
   pub downloads: StatefulTable<DownloadRecord>,
   pub quality_profile_map: HashMap<u64, String>,
   pub movie_details: ScrollableText,
+  pub main_tabs: TabState,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+impl Default for RadarrData {
+  fn default() -> RadarrData {
+    RadarrData {
+      free_space: u64::default(),
+      total_space: u64::default(),
+      version: String::default(),
+      start_time: DateTime::default(),
+      movies: StatefulTable::default(),
+      downloads: StatefulTable::default(),
+      quality_profile_map: HashMap::default(),
+      movie_details: ScrollableText::default(),
+      main_tabs: TabState::new(vec![
+        TabRoute {
+          title: "Library".to_owned(),
+          route: ActiveRadarrBlock::Movies.into(),
+        },
+        TabRoute {
+          title: "Downloads".to_owned(),
+          route: ActiveRadarrBlock::Downloads.into(),
+        },
+      ]),
+    }
+  }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, EnumIter)]
 pub enum ActiveRadarrBlock {
   AddMovie,
   Calendar,

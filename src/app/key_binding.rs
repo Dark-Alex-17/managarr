@@ -12,6 +12,8 @@ generate_keybindings! {
     quit,
     up,
     down,
+    left,
+    right,
     submit,
     esc
 }
@@ -33,6 +35,14 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   down: KeyBinding {
     key: Key::Down,
     desc: "Scroll down",
+  },
+  left: KeyBinding {
+    key: Key::Left,
+    desc: "Move left",
+  },
+  right: KeyBinding {
+    key: Key::Right,
+    desc: "Move right",
   },
   submit: KeyBinding {
     key: Key::Enter,

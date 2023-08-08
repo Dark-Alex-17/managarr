@@ -10,8 +10,8 @@ use crate::logos::{
   BAZARR_LOGO, LIDARR_LOGO, PROWLARR_LOGO, RADARR_LOGO, READARR_LOGO, SONARR_LOGO,
 };
 use crate::ui::utils::{
-  centered_rect, horizontal_chunks, horizontal_chunks_with_margin, style_secondary,
-  style_system_function, vertical_chunks, vertical_chunks_with_margin,
+  centered_rect, horizontal_chunks, horizontal_chunks_with_margin, style_system_function,
+  style_warning, vertical_chunks, vertical_chunks_with_margin,
 };
 
 mod radarr_ui;
@@ -28,17 +28,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
 
   draw_context_row(f, app, main_chunks[0]);
   match app.get_current_route().clone() {
-    Route::Radarr(active_radarr_block) => match active_radarr_block {
-      ActiveRadarrBlock::Movies => radarr_ui::draw_radarr_ui(f, app, main_chunks[1]),
-      ActiveRadarrBlock::MovieDetails => draw_small_popup_over(
-        f,
-        app,
-        main_chunks[1],
-        radarr_ui::draw_radarr_ui,
-        radarr_ui::draw_movie_details,
-      ),
-      _ => (),
-    },
+    Route::Radarr(_) => radarr_ui::draw_radarr_ui(f, app, main_chunks[1]),
   }
 }
 

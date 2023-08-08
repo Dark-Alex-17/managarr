@@ -54,6 +54,10 @@ pub fn layout_block(title_span: Span<'_>) -> Block<'_> {
   Block::default().borders(Borders::ALL).title(title_span)
 }
 
+pub fn layout_block_top_border(title_span: Span<'_>) -> Block<'_> {
+  Block::default().borders(Borders::TOP).title(title_span)
+}
+
 pub fn style_bold() -> Style {
   Style::default().add_modifier(Modifier::BOLD)
 }
@@ -66,19 +70,27 @@ pub fn style_default() -> Style {
   Style::default().fg(Color::White)
 }
 
+pub fn style_primary() -> Style {
+  Style::default().fg(Color::Cyan)
+}
+
+pub fn style_secondary() -> Style {
+  Style::default().fg(Color::Yellow)
+}
+
 pub fn style_system_function() -> Style {
   Style::default().fg(Color::Yellow)
 }
 
-pub fn style_primary() -> Style {
+pub fn style_success() -> Style {
   Style::default().fg(Color::Green)
 }
 
-pub fn style_secondary() -> Style {
+pub fn style_warning() -> Style {
   Style::default().fg(Color::Magenta)
 }
 
-pub fn style_tertiary() -> Style {
+pub fn style_failure() -> Style {
   Style::default().fg(Color::Red)
 }
 
