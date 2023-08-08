@@ -82,6 +82,8 @@ macro_rules! handle_text_box_keys {
 
 #[cfg(test)]
 mod tests {
+  use rstest::rstest;
+
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::{handle_clear_errors, handle_prompt_toggle};
@@ -132,10 +134,9 @@ mod tests {
     assert!(app.error.text.is_empty());
   }
 
-  #[test]
-  fn test_handle_prompt_toggle_left() {
+  #[rstest]
+  fn test_handle_prompt_toggle_left_right(#[values(Key::Left, Key::Right)] key: Key) {
     let mut app = App::default();
-    let key = Key::Left;
 
     assert!(!app.data.radarr_data.prompt_confirm);
 
@@ -144,37 +145,6 @@ mod tests {
     assert!(app.data.radarr_data.prompt_confirm);
 
     handle_prompt_toggle(&mut app, &key);
-
-    assert!(!app.data.radarr_data.prompt_confirm);
-  }
-
-  #[test]
-  fn test_handle_prompt_toggle_right() {
-    let mut app = App::default();
-    let key = Key::Right;
-
-    assert!(!app.data.radarr_data.prompt_confirm);
-
-    handle_prompt_toggle(&mut app, &key);
-
-    assert!(app.data.radarr_data.prompt_confirm);
-
-    handle_prompt_toggle(&mut app, &key);
-
-    assert!(!app.data.radarr_data.prompt_confirm);
-  }
-
-  #[test]
-  fn test_handle_prompt_toggle_left_and_right_are_inverses() {
-    let mut app = App::default();
-
-    assert!(!app.data.radarr_data.prompt_confirm);
-
-    handle_prompt_toggle(&mut app, &Key::Left);
-
-    assert!(app.data.radarr_data.prompt_confirm);
-
-    handle_prompt_toggle(&mut app, &Key::Right);
 
     assert!(!app.data.radarr_data.prompt_confirm);
   }
