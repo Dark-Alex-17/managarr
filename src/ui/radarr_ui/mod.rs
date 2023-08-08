@@ -6,12 +6,12 @@ use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Color, Style};
 use tui::text::Text;
-use tui::widgets::{Cell, Paragraph, Row};
+use tui::widgets::{Cell, ListItem, Paragraph, Row};
 use tui::Frame;
 
 use crate::app::radarr::{
-  ActiveRadarrBlock, RadarrData, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, FILTER_BLOCKS,
-  MOVIE_DETAILS_BLOCKS, SEARCH_BLOCKS,
+  ActiveRadarrBlock, RadarrData, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, EDIT_MOVIE_BLOCKS,
+  FILTER_BLOCKS, MOVIE_DETAILS_BLOCKS, SEARCH_BLOCKS,
 };
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
@@ -19,27 +19,29 @@ use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie};
 use crate::models::Route;
 use crate::ui::radarr_ui::add_movie_ui::draw_add_movie_search_popup;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details_popup;
+use crate::ui::radarr_ui::edit_movie_ui::draw_edit_movie_prompt;
 use crate::ui::radarr_ui::movie_details_ui::draw_movie_info_popup;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, horizontal_chunks, layout_block,
   layout_block_top_border, line_gauge_with_label, line_gauge_with_title, show_cursor, style_bold,
-  style_default, style_failure, style_primary, style_success, style_warning, title_block,
-  title_block_centered, vertical_chunks_with_margin,
+  style_default, style_failure, style_primary, style_success, style_unmonitored, style_warning,
+  title_block, title_block_centered, vertical_chunks_with_margin,
 };
 use crate::ui::{
-  draw_large_popup_over, draw_popup_over, draw_prompt_box, draw_prompt_popup_over, draw_table,
-  draw_tabs, loading, TableProps,
+  draw_drop_down_list, draw_large_popup_over, draw_medium_popup_over, draw_popup, draw_popup_over,
+  draw_prompt_box, draw_prompt_popup_over, draw_table, draw_tabs, loading, TableProps,
 };
 use crate::utils::{convert_runtime, convert_to_gb};
 
 mod add_movie_ui;
 mod collection_details_ui;
+mod edit_movie_ui;
 mod movie_details_ui;
 
 pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let (content_rect, _) = draw_tabs(f, area, "Movies", &app.data.radarr_data.main_tabs);
 
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::Movies => draw_library(f, app, content_rect),
       ActiveRadarrBlock::SearchMovie => {
@@ -97,6 +99,20 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
         draw_collections,
         draw_collection_details_popup,
       ),
+      _ if EDIT_MOVIE_BLOCKS.contains(&active_radarr_block) => {
+        if let Some(context) = context_option {
+          match context {
+            ActiveRadarrBlock::Movies => {
+              draw_medium_popup_over(f, app, content_rect, draw_library, draw_edit_movie_prompt)
+            }
+            _ if MOVIE_DETAILS_BLOCKS.contains(&context) => {
+              draw_large_popup_over(f, app, content_rect, draw_library, draw_movie_info_popup);
+              draw_popup(f, app, draw_edit_movie_prompt, 60, 60);
+            }
+            _ => (),
+          }
+        }
+      }
       ActiveRadarrBlock::DeleteMoviePrompt => {
         draw_prompt_popup_over(f, app, content_rect, draw_library, draw_delete_movie_prompt)
       }
@@ -160,19 +176,25 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
       table_headers: vec![
         "Title",
         "Year",
+        "Studio",
         "Runtime",
         "Rating",
         "Language",
         "Size",
         "Quality Profile",
+        "Monitored",
+        "Tags",
       ],
       constraints: vec![
-        Constraint::Percentage(25),
-        Constraint::Percentage(12),
-        Constraint::Percentage(12),
-        Constraint::Percentage(12),
-        Constraint::Percentage(12),
-        Constraint::Percentage(12),
+        Constraint::Percentage(27),
+        Constraint::Percentage(4),
+        Constraint::Percentage(17),
+        Constraint::Percentage(6),
+        Constraint::Percentage(6),
+        Constraint::Percentage(6),
+        Constraint::Percentage(6),
+        Constraint::Percentage(10),
+        Constraint::Percentage(6),
         Constraint::Percentage(12),
       ],
       help: app
@@ -182,13 +204,16 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
         .get_active_tab_contextual_help(),
     },
     |movie| {
+      let monitored = if movie.monitored { "🏷" } else { "" };
       let (hours, minutes) = convert_runtime(movie.runtime.as_u64().unwrap());
       let file_size: f64 = convert_to_gb(movie.size_on_disk.as_u64().unwrap());
       let certification = movie.certification.clone().unwrap_or_else(|| "".to_owned());
+      let tags = "";
 
       Row::new(vec![
         Cell::from(movie.title.to_owned()),
         Cell::from(movie.year.to_string()),
+        Cell::from(movie.studio.to_string()),
         Cell::from(format!("{}h {}m", hours, minutes)),
         Cell::from(certification),
         Cell::from(movie.original_language.name.to_owned()),
@@ -199,6 +224,8 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
             .unwrap()
             .to_owned(),
         ),
+        Cell::from(monitored.to_owned()),
+        Cell::from(tags.to_owned()),
       ])
       .style(determine_row_style(downloads_vec, movie))
     },
@@ -601,5 +628,35 @@ fn determine_row_style(downloads_vec: &[DownloadRecord], movie: &Movie) -> Style
     return style_failure();
   }
 
-  style_success()
+  if !movie.monitored {
+    style_unmonitored()
+  } else {
+    style_success()
+  }
+}
+
+fn draw_select_minimum_availability_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  popup_area: Rect,
+) {
+  draw_drop_down_list(
+    f,
+    popup_area,
+    &mut app.data.radarr_data.movie_minimum_availability_list,
+    |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
+  );
+}
+
+fn draw_select_quality_profile_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  popup_area: Rect,
+) {
+  draw_drop_down_list(
+    f,
+    popup_area,
+    &mut app.data.radarr_data.movie_quality_profile_list,
+    |quality_profile| ListItem::new(quality_profile.clone()),
+  );
 }

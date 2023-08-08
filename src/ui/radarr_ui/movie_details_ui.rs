@@ -25,8 +25,13 @@ use crate::utils::convert_to_gb;
 pub(super) fn draw_movie_info_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let (content_area, _) = draw_tabs(f, area, "Movie Info", &app.data.radarr_data.movie_info_tabs);
 
-  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
-    match active_radarr_block {
+  if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
+    let match_block = if let Some(context) = context_option {
+      context
+    } else {
+      active_radarr_block
+    };
+    match match_block {
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt => draw_prompt_popup_over(
         f,
         app,

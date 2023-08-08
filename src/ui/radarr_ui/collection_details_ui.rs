@@ -119,7 +119,7 @@ pub(super) fn draw_collection_details<B: Backend>(
     TableProps {
       content: &mut app.data.radarr_data.collection_movies,
       table_headers: vec![
-        "✓",
+        "✔",
         "Title",
         "Year",
         "Runtime",
@@ -147,7 +147,7 @@ pub(super) fn draw_collection_details<B: Backend>(
         .iter()
         .any(|mov| mov.tmdb_id == movie.tmdb_id)
       {
-        "✓"
+        "✔"
       } else {
         ""
       };

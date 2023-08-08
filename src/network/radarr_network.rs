@@ -3,16 +3,17 @@ use std::fmt::Debug;
 use indoc::formatdoc;
 use log::{debug, info};
 use serde::Serialize;
-use serde_json::Number;
+use serde_json::{json, Number, Value};
 use urlencoding::encode;
 
+use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
-  AddMovieBody, AddMovieSearchResult, AddOptions, Collection, CommandBody, Credit, CreditType,
-  DiskSpace, DownloadRecord, DownloadsResponse, Movie, MovieCommandBody, MovieHistoryItem,
-  QualityProfile, Release, ReleaseDownloadBody, RootFolder, SystemStatus,
+  AddMovieBody, AddMovieSearchResult, AddOptions, Collection, CollectionMovie, CommandBody, Credit,
+  CreditType, DiskSpace, DownloadRecord, DownloadsResponse, Movie, MovieCommandBody,
+  MovieHistoryItem, QualityProfile, Release, ReleaseDownloadBody, RootFolder, SystemStatus,
 };
-use crate::models::ScrollableText;
+use crate::models::{Route, ScrollableText};
 use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
 use crate::utils::{convert_runtime, convert_to_gb};
 
@@ -22,6 +23,7 @@ pub enum RadarrEvent {
   DeleteDownload,
   DeleteMovie,
   DownloadRelease,
+  EditMovie,
   GetCollections,
   GetDownloads,
   GetMovieCredits,
@@ -48,6 +50,7 @@ impl RadarrEvent {
       RadarrEvent::GetCollections => "/collection",
       RadarrEvent::GetDownloads | RadarrEvent::DeleteDownload => "/queue",
       RadarrEvent::AddMovie
+      | RadarrEvent::EditMovie
       | RadarrEvent::GetMovies
       | RadarrEvent::GetMovieDetails
       | RadarrEvent::DeleteMovie => "/movie",
@@ -82,6 +85,7 @@ impl<'a> Network<'a> {
       RadarrEvent::DeleteMovie => self.delete_movie().await,
       RadarrEvent::DeleteDownload => self.delete_download().await,
       RadarrEvent::DownloadRelease => self.download_release().await,
+      RadarrEvent::EditMovie => self.edit_movie().await,
       RadarrEvent::GetCollections => self.get_collections().await,
       RadarrEvent::GetDownloads => self.get_downloads().await,
       RadarrEvent::GetMovieCredits => self.get_credits().await,
@@ -675,11 +679,31 @@ impl<'a> Network<'a> {
     let body = {
       let app = self.app.lock().await;
       let root_folders = app.data.radarr_data.root_folders.to_vec();
-      let current_selection = app
-        .data
-        .radarr_data
-        .add_searched_movies
-        .current_selection_clone();
+      let (tmdb_id, title) = if let Route::Radarr(active_radarr_block, _) = app.get_current_route()
+      {
+        if *active_radarr_block == ActiveRadarrBlock::CollectionDetails {
+          let CollectionMovie { tmdb_id, title, .. } = app
+            .data
+            .radarr_data
+            .collection_movies
+            .current_selection_clone();
+          (tmdb_id, title.stationary_style())
+        } else {
+          let AddMovieSearchResult { tmdb_id, title, .. } = app
+            .data
+            .radarr_data
+            .add_searched_movies
+            .current_selection_clone();
+          (tmdb_id, title.stationary_style())
+        }
+      } else {
+        let AddMovieSearchResult { tmdb_id, title, .. } = app
+          .data
+          .radarr_data
+          .add_searched_movies
+          .current_selection_clone();
+        (tmdb_id, title.stationary_style())
+      };
       let quality_profile_map = app.data.radarr_data.quality_profile_map.clone();
 
       let RootFolder { path, .. } = root_folders
@@ -696,21 +720,20 @@ impl<'a> Network<'a> {
       let monitor = app
         .data
         .radarr_data
-        .add_movie_monitor_list
+        .movie_monitor_list
         .current_selection()
         .to_string();
       let minimum_availability = app
         .data
         .radarr_data
-        .add_movie_minimum_availability_list
+        .movie_minimum_availability_list
         .current_selection()
         .to_string();
       let quality_profile = app
         .data
         .radarr_data
-        .add_movie_quality_profile_list
+        .movie_quality_profile_list
         .current_selection_clone();
-      let AddMovieSearchResult { tmdb_id, title, .. } = current_selection;
       let quality_profile_id = quality_profile_map
         .iter()
         .filter(|(_, value)| **value == quality_profile)
@@ -720,7 +743,7 @@ impl<'a> Network<'a> {
 
       AddMovieBody {
         tmdb_id: tmdb_id.as_u64().unwrap(),
-        title: title.stationary_style(),
+        title,
         root_folder_path: path.to_owned(),
         minimum_availability,
         monitored: true,
@@ -744,6 +767,80 @@ impl<'a> Network<'a> {
 
     self
       .handle_request::<AddMovieBody, ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn edit_movie(&self) {
+    info!("Editing Radarr movie");
+
+    info!("Fetching movie details");
+    let movie_id = self.extract_movie_id().await;
+    let request_props = self
+      .radarr_request_props_from(
+        format!("{}/{}", RadarrEvent::GetMovieDetails.resource(), movie_id).as_str(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_movie_body, mut app| {
+        app.data.radarr_data.movie_details =
+          ScrollableText::with_string(detailed_movie_body.to_string())
+      })
+      .await;
+
+    info!("Constructing edit movie body");
+
+    let body = {
+      let mut app = self.app.lock().await;
+      let mut detailed_movie_body: Value =
+        serde_json::from_str(&app.data.radarr_data.movie_details.get_text()).unwrap();
+      app.data.radarr_data.movie_details = ScrollableText::default();
+
+      let quality_profile_map = app.data.radarr_data.quality_profile_map.clone();
+      let path: String = app.data.radarr_data.edit_path.drain(..).collect();
+      let _tags: String = app.data.radarr_data.edit_tags.drain(..).collect();
+
+      let monitored = app.data.radarr_data.edit_monitored.unwrap_or_default();
+      let minimum_availability = app
+        .data
+        .radarr_data
+        .movie_minimum_availability_list
+        .current_selection()
+        .to_string();
+      let quality_profile = app
+        .data
+        .radarr_data
+        .movie_quality_profile_list
+        .current_selection_clone();
+      let quality_profile_id = quality_profile_map
+        .iter()
+        .filter(|(_, value)| **value == quality_profile)
+        .map(|(key, _)| key)
+        .next()
+        .unwrap();
+
+      *detailed_movie_body.get_mut("monitored").unwrap() = json!(monitored);
+      *detailed_movie_body.get_mut("minimumAvailability").unwrap() = json!(minimum_availability);
+      *detailed_movie_body.get_mut("qualityProfileId").unwrap() = json!(quality_profile_id);
+      *detailed_movie_body.get_mut("path").unwrap() = json!(path);
+
+      detailed_movie_body
+    };
+
+    debug!("Edit movie body: {:?}", body);
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!("{}/{}", RadarrEvent::EditMovie.resource(), movie_id).as_str(),
+        RequestMethod::Put,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<Value, ()>(request_props, |_, _| ())
       .await;
   }
 
@@ -883,6 +980,7 @@ mod test {
   use strum::IntoEnumIterator;
   use tokio::sync::Mutex;
 
+  use crate::app::radarr::ActiveRadarrBlock;
   use crate::models::radarr_models::{
     CollectionMovie, Language, MediaInfo, MinimumAvailability, Monitor, MovieFile, Quality,
     QualityWrapper, Rating, RatingsList,
@@ -910,6 +1008,7 @@ mod test {
         "hasFile": true,
         "runtime": 120,
         "qualityProfileId": 2222,
+        "minimumAvailability": "announced",
         "certification": "R",
         "ratings": {
           "imdb": {
@@ -1194,7 +1293,7 @@ mod test {
   #[tokio::test]
   async fn test_handle_search_new_movie_event() {
     let add_movie_search_result_json = json!([{
-      "tmdbId": 1,
+      "tmdbId": 1234,
       "title": "Test",
       "originalLanguage": { "name": "English" },
       "status": "released",
@@ -1466,6 +1565,7 @@ mod test {
       "runtime": 120,
       "tmdbId": 1234,
       "qualityProfileId": 2222,
+      "minimumAvailability": "released",
       "ratings": {}
     });
     let (async_server, app_arc, _server) = mock_radarr_api(
@@ -1803,12 +1903,13 @@ mod test {
     async_server.assert_async().await;
   }
 
+  #[rstest]
   #[tokio::test]
-  async fn test_handle_add_movie_event() {
+  async fn test_handle_add_movie_event(#[values(true, false)] collection_details_context: bool) {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
-        "tmdbId": 1,
+        "tmdbId": 1234,
         "title": "Test",
         "rootFolderPath": "/nfs",
         "minimumAvailability": "announced",
@@ -1838,33 +1939,104 @@ mod test {
           free_space: Number::from(21990232555520u64),
         },
       ];
-      app
-        .data
-        .radarr_data
-        .add_searched_movies
-        .set_items(vec![add_movie_search_result()]);
       app.data.radarr_data.quality_profile_map = HashMap::from([(2222, "HD - 1080p".to_owned())]);
       app
         .data
         .radarr_data
-        .add_movie_quality_profile_list
+        .movie_quality_profile_list
         .set_items(vec!["HD - 1080p".to_owned()]);
       app
         .data
         .radarr_data
-        .add_movie_monitor_list
+        .movie_monitor_list
         .set_items(Vec::from_iter(Monitor::iter()));
       app
         .data
         .radarr_data
-        .add_movie_minimum_availability_list
+        .movie_minimum_availability_list
         .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      if collection_details_context {
+        app
+          .data
+          .radarr_data
+          .collection_movies
+          .set_items(vec![collection_movie()]);
+        app.push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into());
+      } else {
+        app
+          .data
+          .radarr_data
+          .add_searched_movies
+          .set_items(vec![add_movie_search_result()]);
+      }
     }
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network.handle_radarr_event(RadarrEvent::AddMovie).await;
 
     async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_movie_event() {
+    let mut expected_body: Value = serde_json::from_str(MOVIE_JSON).unwrap();
+    *expected_body.get_mut("monitored").unwrap() = json!(false);
+    *expected_body.get_mut("minimumAvailability").unwrap() = json!("announced");
+    *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
+    *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
+
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(MOVIE_JSON).unwrap()),
+      format!("{}/1", RadarrEvent::GetMovieDetails.resource()).as_str(),
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", RadarrEvent::EditMovie.resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    {
+      let mut app = app_arc.lock().await;
+      app.data.radarr_data.edit_tags = "test tag".to_owned();
+      app.data.radarr_data.edit_path = "/nfs/Test Path".to_owned();
+      app.data.radarr_data.edit_monitored = Some(false);
+      app
+        .data
+        .radarr_data
+        .movie_quality_profile_list
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      app
+        .data
+        .radarr_data
+        .movie_minimum_availability_list
+        .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      app.data.radarr_data.movies.set_items(vec![Movie {
+        monitored: false,
+        ..movie()
+      }]);
+      app.data.radarr_data.quality_profile_map =
+        HashMap::from([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+    }
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.handle_radarr_event(RadarrEvent::EditMovie).await;
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+
+    {
+      let app = app_arc.lock().await;
+      assert!(app.data.radarr_data.edit_path.is_empty());
+      assert!(app.data.radarr_data.edit_tags.is_empty());
+      assert!(app.data.radarr_data.movie_details.items.is_empty());
+    }
   }
 
   #[tokio::test]
@@ -2048,8 +2220,7 @@ mod test {
         &method.to_string().to_uppercase(),
         format!("/api/v3{}", resource).as_str(),
       )
-      .match_header("X-Api-Key", "test1234")
-      .with_status(200);
+      .match_header("X-Api-Key", "test1234");
 
     if let Some(body) = request_body {
       async_server = async_server.match_body(Matcher::Json(body));
@@ -2169,6 +2340,7 @@ mod test {
       runtime: Number::from(120),
       tmdb_id: Number::from(1234),
       quality_profile_id: Number::from(2222),
+      minimum_availability: MinimumAvailability::Announced,
       certification: Some("R".to_owned()),
       ratings: ratings_list(),
       movie_file: Some(movie_file()),
@@ -2213,7 +2385,7 @@ mod test {
 
   fn add_movie_search_result() -> AddMovieSearchResult {
     AddMovieSearchResult {
-      tmdb_id: Number::from(1),
+      tmdb_id: Number::from(1234),
       title: HorizontallyScrollableText::from("Test".to_owned()),
       original_language: language(),
       status: "released".to_owned(),

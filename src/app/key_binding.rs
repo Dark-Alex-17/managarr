@@ -18,6 +18,7 @@ generate_keybindings! {
   search,
   filter,
   sort,
+  edit,
   refresh,
   home,
   end,
@@ -68,6 +69,10 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   sort: KeyBinding {
     key: Key::Char('o'),
     desc: "Sort",
+  },
+  edit: KeyBinding {
+    key: Key::Char('e'),
+    desc: "Edit",
   },
   refresh: KeyBinding {
     key: Key::Char('r'),

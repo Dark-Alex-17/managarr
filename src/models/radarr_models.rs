@@ -55,6 +55,7 @@ pub struct Movie {
   pub tmdb_id: Number,
   #[derivative(Default(value = "Number::from(0)"))]
   pub quality_profile_id: Number,
+  pub minimum_availability: MinimumAvailability,
   pub certification: Option<String>,
   pub ratings: RatingsList,
   pub movie_file: Option<MovieFile>,
@@ -312,7 +313,8 @@ pub struct CommandBody {
   pub name: String,
 }
 
-#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter)]
+#[serde(rename_all = "lowercase")]
 pub enum MinimumAvailability {
   #[default]
   Announced,

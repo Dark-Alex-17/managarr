@@ -94,11 +94,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a>
           )
             .into(),
         );
-        self
-          .app
-          .data
-          .radarr_data
-          .populate_add_movie_preferences_lists();
+        self.app.data.radarr_data.populate_movie_preferences_lists();
       }
     }
   }
@@ -204,24 +200,24 @@ mod tests {
         )
           .into()
       );
-      assert!(!app.data.radarr_data.add_movie_monitor_list.items.is_empty());
+      assert!(!app.data.radarr_data.movie_monitor_list.items.is_empty());
       assert!(!app
         .data
         .radarr_data
-        .add_movie_minimum_availability_list
+        .movie_minimum_availability_list
         .items
         .is_empty());
       assert!(!app
         .data
         .radarr_data
-        .add_movie_quality_profile_list
+        .movie_quality_profile_list
         .items
         .is_empty());
       assert_str_eq!(
         app
           .data
           .radarr_data
-          .add_movie_quality_profile_list
+          .movie_quality_profile_list
           .current_selection(),
         "A - Test 1"
       );

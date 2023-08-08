@@ -20,9 +20,9 @@ pub struct RadarrData {
   pub movies: StatefulTable<Movie>,
   pub filtered_movies: StatefulTable<Movie>,
   pub add_searched_movies: StatefulTable<AddMovieSearchResult>,
-  pub add_movie_monitor_list: StatefulList<Monitor>,
-  pub add_movie_minimum_availability_list: StatefulList<MinimumAvailability>,
-  pub add_movie_quality_profile_list: StatefulList<String>,
+  pub movie_monitor_list: StatefulList<Monitor>,
+  pub movie_minimum_availability_list: StatefulList<MinimumAvailability>,
+  pub movie_quality_profile_list: StatefulList<String>,
   pub selected_block: ActiveRadarrBlock,
   pub downloads: StatefulTable<DownloadRecord>,
   pub quality_profile_map: HashMap<u64, String>,
@@ -43,6 +43,9 @@ pub struct RadarrData {
   pub movie_info_tabs: TabState,
   pub search: String,
   pub filter: String,
+  pub edit_path: String,
+  pub edit_tags: String,
+  pub edit_monitored: Option<bool>,
   pub sort_ascending: Option<bool>,
   pub prompt_confirm: bool,
   pub is_searching: bool,
@@ -70,6 +73,13 @@ impl RadarrData {
     self.filtered_collections = StatefulTable::default();
   }
 
+  pub fn reset_edit_movie(&mut self) {
+    self.edit_monitored = None;
+    self.edit_path = String::default();
+    self.edit_tags = String::default();
+    self.reset_movie_preferences_selections();
+  }
+
   pub fn reset_movie_info_tabs(&mut self) {
     self.file_details = String::default();
     self.audio_details = String::default();
@@ -84,25 +94,67 @@ impl RadarrData {
     self.movie_info_tabs.index = 0;
   }
 
-  pub fn reset_add_movie_selections(&mut self) {
-    self.add_movie_monitor_list = StatefulList::default();
-    self.add_movie_minimum_availability_list = StatefulList::default();
-    self.add_movie_quality_profile_list = StatefulList::default();
+  pub fn reset_movie_preferences_selections(&mut self) {
+    self.movie_monitor_list = StatefulList::default();
+    self.movie_minimum_availability_list = StatefulList::default();
+    self.movie_quality_profile_list = StatefulList::default();
   }
 
-  pub fn populate_add_movie_preferences_lists(&mut self) {
+  pub fn populate_movie_preferences_lists(&mut self) {
     self
-      .add_movie_monitor_list
+      .movie_monitor_list
       .set_items(Vec::from_iter(Monitor::iter()));
     self
-      .add_movie_minimum_availability_list
+      .movie_minimum_availability_list
       .set_items(Vec::from_iter(MinimumAvailability::iter()));
     let mut quality_profile_names: Vec<String> =
       self.quality_profile_map.values().cloned().collect();
     quality_profile_names.sort();
     self
-      .add_movie_quality_profile_list
+      .movie_quality_profile_list
       .set_items(quality_profile_names);
+  }
+
+  pub fn populate_edit_movie_fields(&mut self) {
+    self.populate_movie_preferences_lists();
+    let Movie {
+      path,
+      monitored,
+      minimum_availability,
+      quality_profile_id,
+      ..
+    } = if self.filtered_movies.items.is_empty() {
+      self.movies.current_selection_clone()
+    } else {
+      self.filtered_movies.current_selection_clone()
+    };
+
+    self.edit_path = path;
+    self.edit_monitored = Some(monitored);
+
+    let minimum_availability_index = self
+      .movie_minimum_availability_list
+      .items
+      .iter()
+      .position(|&ma| ma == minimum_availability);
+    self
+      .movie_minimum_availability_list
+      .state
+      .select(minimum_availability_index);
+
+    let quality_profile_name = self
+      .quality_profile_map
+      .get(&quality_profile_id.as_u64().unwrap())
+      .unwrap();
+    let quality_profile_index = self
+      .movie_quality_profile_list
+      .items
+      .iter()
+      .position(|profile| profile == quality_profile_name);
+    self
+      .movie_quality_profile_list
+      .state
+      .select(quality_profile_index);
   }
 }
 
@@ -115,9 +167,9 @@ impl Default for RadarrData {
       start_time: DateTime::default(),
       movies: StatefulTable::default(),
       add_searched_movies: StatefulTable::default(),
-      add_movie_monitor_list: StatefulList::default(),
-      add_movie_minimum_availability_list: StatefulList::default(),
-      add_movie_quality_profile_list: StatefulList::default(),
+      movie_monitor_list: StatefulList::default(),
+      movie_minimum_availability_list: StatefulList::default(),
+      movie_quality_profile_list: StatefulList::default(),
       selected_block: ActiveRadarrBlock::AddMovieSelectMonitor,
       filtered_movies: StatefulTable::default(),
       downloads: StatefulTable::default(),
@@ -137,6 +189,9 @@ impl Default for RadarrData {
       prompt_confirm_action: None,
       search: String::default(),
       filter: String::default(),
+      edit_path: String::default(),
+      edit_tags: String::default(),
+      edit_monitored: None,
       sort_ascending: None,
       is_searching: false,
       is_filtering: false,
@@ -146,7 +201,7 @@ impl Default for RadarrData {
           title: "Library".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
           help: String::default(),
-          contextual_help: Some("<a> add | <s> search | <f> filter | <r> refresh | <enter> details | <esc> cancel filter | <del> delete"
+          contextual_help: Some("<a> add | <e> edit | <s> search | <f> filter | <r> refresh | <enter> details | <esc> cancel filter | <del> delete"
             .to_owned()),
         },
         TabRoute {
@@ -167,37 +222,37 @@ impl Default for RadarrData {
         TabRoute {
           title: "Details".to_owned(),
           route: ActiveRadarrBlock::MovieDetails.into(),
-          help: "<r> refresh | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <e> edit | <s> auto search | <esc> close".to_owned(),
           contextual_help: None
         },
         TabRoute {
           title: "History".to_owned(),
           route: ActiveRadarrBlock::MovieHistory.into(),
-          help: "<r> refresh | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <e> edit | <s> auto search | <esc> close".to_owned(),
           contextual_help: None
         },
         TabRoute {
           title: "File".to_owned(),
           route: ActiveRadarrBlock::FileInfo.into(),
-          help: "<r> refresh | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <e> edit | <s> auto search | <esc> close".to_owned(),
           contextual_help: None,
         },
         TabRoute {
           title: "Cast".to_owned(),
           route: ActiveRadarrBlock::Cast.into(),
-          help: "<r> refresh | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <e> edit | <s> auto search | <esc> close".to_owned(),
           contextual_help: None,
         },
         TabRoute {
           title: "Crew".to_owned(),
           route: ActiveRadarrBlock::Crew.into(),
-          help: "<r> refresh | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <e> edit | <s> auto search | <esc> close".to_owned(),
           contextual_help: None,
         },
         TabRoute {
           title: "Manual Search".to_owned(),
           route: ActiveRadarrBlock::ManualSearch.into(),
-          help: "<r> refresh | <o> sort | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <e> edit | <o> sort | <s> auto search | <esc> close".to_owned(),
           contextual_help: Some("<enter> details".to_owned())
         }
       ]),
@@ -223,6 +278,13 @@ pub enum ActiveRadarrBlock {
   DeleteMoviePrompt,
   DeleteDownloadPrompt,
   Downloads,
+  EditMoviePrompt,
+  EditMovieConfirmPrompt,
+  EditMoviePathInput,
+  EditMovieSelectMinimumAvailability,
+  EditMovieSelectQualityProfile,
+  EditMovieTagsInput,
+  EditMovieToggleMonitored,
   FileInfo,
   FilterCollections,
   FilterMovies,
@@ -249,6 +311,15 @@ pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::AddMovieSelectMonitor,
   ActiveRadarrBlock::AddMovieSelectQualityProfile,
   ActiveRadarrBlock::AddMovieAlreadyInLibrary,
+];
+pub const EDIT_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
+  ActiveRadarrBlock::EditMoviePrompt,
+  ActiveRadarrBlock::EditMovieConfirmPrompt,
+  ActiveRadarrBlock::EditMoviePathInput,
+  ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
+  ActiveRadarrBlock::EditMovieSelectQualityProfile,
+  ActiveRadarrBlock::EditMovieTagsInput,
+  ActiveRadarrBlock::EditMovieToggleMonitored,
 ];
 pub const MOVIE_DETAILS_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::MovieDetails,
@@ -289,6 +360,21 @@ impl ActiveRadarrBlock {
     }
   }
 
+  pub fn next_edit_prompt_block(&self) -> Self {
+    match self {
+      ActiveRadarrBlock::EditMovieToggleMonitored => {
+        ActiveRadarrBlock::EditMovieSelectMinimumAvailability
+      }
+      ActiveRadarrBlock::EditMovieSelectMinimumAvailability => {
+        ActiveRadarrBlock::EditMovieSelectQualityProfile
+      }
+      ActiveRadarrBlock::EditMovieSelectQualityProfile => ActiveRadarrBlock::EditMoviePathInput,
+      ActiveRadarrBlock::EditMoviePathInput => ActiveRadarrBlock::EditMovieTagsInput,
+      ActiveRadarrBlock::EditMovieTagsInput => ActiveRadarrBlock::EditMovieConfirmPrompt,
+      _ => ActiveRadarrBlock::EditMovieToggleMonitored,
+    }
+  }
+
   pub fn previous_add_prompt_block(&self) -> Self {
     match self {
       ActiveRadarrBlock::AddMovieSelectMonitor => ActiveRadarrBlock::AddMovieConfirmPrompt,
@@ -300,6 +386,22 @@ impl ActiveRadarrBlock {
       }
       ActiveRadarrBlock::AddMovieConfirmPrompt => ActiveRadarrBlock::AddMovieSelectQualityProfile,
       _ => ActiveRadarrBlock::AddMovieSelectMonitor,
+    }
+  }
+
+  pub fn previous_edit_prompt_block(&self) -> Self {
+    match self {
+      ActiveRadarrBlock::EditMovieToggleMonitored => ActiveRadarrBlock::EditMovieConfirmPrompt,
+      ActiveRadarrBlock::EditMovieSelectMinimumAvailability => {
+        ActiveRadarrBlock::EditMovieToggleMonitored
+      }
+      ActiveRadarrBlock::EditMovieSelectQualityProfile => {
+        ActiveRadarrBlock::EditMovieSelectMinimumAvailability
+      }
+      ActiveRadarrBlock::EditMoviePathInput => ActiveRadarrBlock::EditMovieSelectQualityProfile,
+      ActiveRadarrBlock::EditMovieTagsInput => ActiveRadarrBlock::EditMoviePathInput,
+      ActiveRadarrBlock::EditMovieConfirmPrompt => ActiveRadarrBlock::EditMovieTagsInput,
+      _ => ActiveRadarrBlock::EditMovieToggleMonitored,
     }
   }
 }
@@ -330,6 +432,7 @@ impl App {
         self.is_loading = true;
         self.populate_movie_collection_table().await;
         self.is_loading = false;
+        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::Downloads => {
         self.is_loading = true;
@@ -481,6 +584,9 @@ pub mod radarr_test_utils {
       is_filtering: true,
       search: "test search".to_owned(),
       filter: "test filter".to_owned(),
+      edit_path: "test path".to_owned(),
+      edit_tags: "test tag".to_owned(),
+      edit_monitored: Some(true),
       file_details: "test file details".to_owned(),
       audio_details: "test audio details".to_owned(),
       video_details: "test video details".to_owned(),
@@ -497,13 +603,13 @@ pub mod radarr_test_utils {
       .set_items(vec![Release::default()]);
     radarr_data.movie_info_tabs.index = 1;
     radarr_data
-      .add_movie_monitor_list
+      .movie_monitor_list
       .set_items(vec![Monitor::default()]);
     radarr_data
-      .add_movie_minimum_availability_list
+      .movie_minimum_availability_list
       .set_items(vec![MinimumAvailability::default()]);
     radarr_data
-      .add_movie_quality_profile_list
+      .movie_quality_profile_list
       .set_items(vec![String::default()]);
     radarr_data
       .movie_releases_sort
@@ -545,6 +651,15 @@ pub mod radarr_test_utils {
   }
 
   #[macro_export]
+  macro_rules! assert_edit_movie_reset {
+    ($radarr_data:expr) => {
+      assert!($radarr_data.edit_monitored.is_none());
+      assert!($radarr_data.edit_path.is_empty());
+      assert!($radarr_data.edit_tags.is_empty());
+    };
+  }
+
+  #[macro_export]
   macro_rules! assert_filter_reset {
     ($radarr_data:expr) => {
       assert!(!$radarr_data.is_filtering);
@@ -572,14 +687,14 @@ pub mod radarr_test_utils {
   }
 
   #[macro_export]
-  macro_rules! assert_add_movie_selections_reset {
+  macro_rules! assert_movie_preferences_selections_reset {
     ($radarr_data:expr) => {
-      assert!($radarr_data.add_movie_monitor_list.items.is_empty());
+      assert!($radarr_data.movie_monitor_list.items.is_empty());
       assert!($radarr_data
-        .add_movie_minimum_availability_list
+        .movie_minimum_availability_list
         .items
         .is_empty());
-      assert!($radarr_data.add_movie_quality_profile_list.items.is_empty());
+      assert!($radarr_data.movie_quality_profile_list.items.is_empty());
     };
   }
 }
@@ -590,12 +705,14 @@ mod tests {
     use std::collections::HashMap;
 
     use pretty_assertions::assert_eq;
+    use rstest::rstest;
+    use serde_json::Number;
     use strum::IntoEnumIterator;
 
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
     use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
-    use crate::models::radarr_models::{MinimumAvailability, Monitor};
-    use crate::models::Route;
+    use crate::models::radarr_models::{MinimumAvailability, Monitor, Movie};
+    use crate::models::{Route, StatefulTable};
 
     #[test]
     fn test_from_tuple_to_route_with_context() {
@@ -648,16 +765,30 @@ mod tests {
     }
 
     #[test]
-    fn test_reset_add_movie_selections() {
-      let mut radarr_data = create_test_radarr_data();
+    fn test_reset_edit_movie() {
+      let mut radarr_data = RadarrData {
+        edit_monitored: Some(true),
+        edit_path: "test path".to_owned(),
+        edit_tags: "test tag".to_owned(),
+        ..RadarrData::default()
+      };
 
-      radarr_data.reset_add_movie_selections();
+      radarr_data.reset_edit_movie();
 
-      assert_add_movie_selections_reset!(radarr_data);
+      assert_edit_movie_reset!(radarr_data);
     }
 
     #[test]
-    fn test_populate_add_movie_preferences_lists() {
+    fn test_reset_movie_preferences_selections() {
+      let mut radarr_data = create_test_radarr_data();
+
+      radarr_data.reset_movie_preferences_selections();
+
+      assert_movie_preferences_selections_reset!(radarr_data);
+    }
+
+    #[test]
+    fn test_populate_movie_preferences_lists() {
       let mut radarr_data = RadarrData {
         quality_profile_map: HashMap::from([
           (2222, "HD - 1080p".to_owned()),
@@ -666,20 +797,71 @@ mod tests {
         ..RadarrData::default()
       };
 
-      radarr_data.populate_add_movie_preferences_lists();
+      radarr_data.populate_movie_preferences_lists();
 
       assert_eq!(
-        radarr_data.add_movie_monitor_list.items,
+        radarr_data.movie_monitor_list.items,
         Vec::from_iter(Monitor::iter())
       );
       assert_eq!(
-        radarr_data.add_movie_minimum_availability_list.items,
+        radarr_data.movie_minimum_availability_list.items,
         Vec::from_iter(MinimumAvailability::iter())
       );
       assert_eq!(
-        radarr_data.add_movie_quality_profile_list.items,
+        radarr_data.movie_quality_profile_list.items,
         vec!["Any".to_owned(), "HD - 1080p".to_owned()]
       );
+    }
+
+    #[rstest]
+    fn test_populate_edit_movie_fields(#[values(true, false)] test_filtered_movies: bool) {
+      let mut radarr_data = RadarrData {
+        edit_path: String::default(),
+        edit_tags: String::default(),
+        edit_monitored: None,
+        quality_profile_map: HashMap::from([
+          (2222, "HD - 1080p".to_owned()),
+          (1111, "Any".to_owned()),
+        ]),
+        filtered_movies: StatefulTable::default(),
+        ..create_test_radarr_data()
+      };
+      let movie = Movie {
+        path: "/nfs/movies/Test".to_owned(),
+        monitored: true,
+        quality_profile_id: Number::from(2222),
+        minimum_availability: MinimumAvailability::Released,
+        ..Movie::default()
+      };
+
+      if test_filtered_movies {
+        radarr_data.filtered_movies.set_items(vec![movie]);
+      } else {
+        radarr_data.movies.set_items(vec![movie]);
+      }
+
+      radarr_data.populate_edit_movie_fields();
+
+      assert_eq!(
+        radarr_data.movie_minimum_availability_list.items,
+        Vec::from_iter(MinimumAvailability::iter())
+      );
+      assert_eq!(
+        radarr_data
+          .movie_minimum_availability_list
+          .current_selection(),
+        &MinimumAvailability::Released
+      );
+      assert_eq!(
+        radarr_data.movie_quality_profile_list.items,
+        vec!["Any".to_owned(), "HD - 1080p".to_owned()]
+      );
+      assert_eq!(
+        radarr_data.movie_quality_profile_list.current_selection(),
+        "HD - 1080p"
+      );
+      assert_eq!(radarr_data.edit_path, "/nfs/movies/Test".to_owned());
+      assert_eq!(radarr_data.edit_monitored, Some(true));
     }
   }
 
@@ -714,6 +896,39 @@ mod tests {
     }
 
     #[test]
+    fn test_next_edit_prompt_block() {
+      let active_block = ActiveRadarrBlock::EditMovieToggleMonitored.next_edit_prompt_block();
+
+      assert_eq!(
+        active_block,
+        ActiveRadarrBlock::EditMovieSelectMinimumAvailability
+      );
+
+      let active_block = active_block.next_edit_prompt_block();
+
+      assert_eq!(
+        active_block,
+        ActiveRadarrBlock::EditMovieSelectQualityProfile
+      );
+
+      let active_block = active_block.next_edit_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::EditMoviePathInput);
+
+      let active_block = active_block.next_edit_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::EditMovieTagsInput);
+
+      let active_block = active_block.next_edit_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::EditMovieConfirmPrompt);
+
+      let active_block = active_block.next_edit_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::EditMovieToggleMonitored);
+    }
+
+    #[test]
     fn test_previous_add_prompt_block() {
       let active_block = ActiveRadarrBlock::AddMovieSelectMonitor.previous_add_prompt_block();
 
@@ -736,6 +951,39 @@ mod tests {
       let active_block = active_block.previous_add_prompt_block();
 
       assert_eq!(active_block, ActiveRadarrBlock::AddMovieSelectMonitor);
+    }
+
+    #[test]
+    fn test_previous_edit_prompt_block() {
+      let active_block = ActiveRadarrBlock::EditMovieToggleMonitored.previous_edit_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::EditMovieConfirmPrompt);
+
+      let active_block = active_block.previous_edit_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::EditMovieTagsInput);
+
+      let active_block = active_block.previous_edit_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::EditMoviePathInput);
+
+      let active_block = active_block.previous_edit_prompt_block();
+
+      assert_eq!(
+        active_block,
+        ActiveRadarrBlock::EditMovieSelectQualityProfile
+      );
+
+      let active_block = active_block.previous_edit_prompt_block();
+
+      assert_eq!(
+        active_block,
+        ActiveRadarrBlock::EditMovieSelectMinimumAvailability
+      );
+
+      let active_block = active_block.previous_edit_prompt_block();
+
+      assert_eq!(active_block, ActiveRadarrBlock::EditMovieToggleMonitored);
     }
   }
 
@@ -771,7 +1019,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_dispatch_by_collection_details_block() {
-      let mut app = App::default();
+      let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddMovie);
 
       app.data.radarr_data.collections.set_items(vec![Collection {
         movies: Some(vec![CollectionMovie::default()]),
@@ -783,8 +1032,13 @@ mod tests {
         .await;
 
       assert!(!app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::AddMovie.into()
+      );
       assert!(!app.data.radarr_data.collection_movies.items.is_empty());
       assert_eq!(app.tick_count, 0);
+      assert!(!app.data.radarr_data.prompt_confirm);
     }
 
     #[tokio::test]

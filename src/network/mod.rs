@@ -67,7 +67,7 @@ impl<'a> Network<'a> {
                   .handle_error(anyhow!("Failed to parse response! {:?}", e));
               }
             },
-            RequestMethod::Delete | RequestMethod::Post => (),
+            RequestMethod::Delete | RequestMethod::Post | RequestMethod::Put => (),
           }
         } else {
           error!(
@@ -115,6 +115,11 @@ impl<'a> Network<'a> {
         .post(uri)
         .json(&body.unwrap_or_default())
         .header("X-Api-Key", api_token),
+      RequestMethod::Put => app
+        .client
+        .put(uri)
+        .json(&body.unwrap_or_default())
+        .header("X-Api-Key", api_token),
       RequestMethod::Delete => app.client.delete(uri).header("X-Api-Key", api_token),
     }
   }
@@ -124,6 +129,7 @@ impl<'a> Network<'a> {
 pub enum RequestMethod {
   Get,
   Post,
+  Put,
   Delete,
 }
 
@@ -188,7 +194,8 @@ mod tests {
   #[rstest]
   #[tokio::test]
   async fn test_handle_request_no_response_body(
-    #[values(RequestMethod::Post, RequestMethod::Delete)] request_method: RequestMethod,
+    #[values(RequestMethod::Post, RequestMethod::Put, RequestMethod::Delete)]
+    request_method: RequestMethod,
   ) {
     let mut server = Server::new_async().await;
     let async_server = server
@@ -226,7 +233,6 @@ mod tests {
       .handle_request::<(), Test>(
         RequestProps {
           uri: format!("{}/test", server.url()),
-          // uri: format!("{}/test", url),
           method: RequestMethod::Get,
           body: None,
           api_token: "test1234".to_owned(),
@@ -301,7 +307,12 @@ mod tests {
   #[rstest]
   #[tokio::test]
   async fn test_handle_request_non_success_code(
-    #[values(RequestMethod::Get, RequestMethod::Post, RequestMethod::Delete)]
+    #[values(
+      RequestMethod::Get,
+      RequestMethod::Post,
+      RequestMethod::Put,
+      RequestMethod::Delete
+    )]
     request_method: RequestMethod,
   ) {
     let (async_server, app_arc, server) = mock_api(request_method, 404, true).await;
@@ -329,7 +340,12 @@ mod tests {
   #[rstest]
   #[tokio::test]
   async fn test_call_api(
-    #[values(RequestMethod::Get, RequestMethod::Post, RequestMethod::Delete)]
+    #[values(
+      RequestMethod::Get,
+      RequestMethod::Post,
+      RequestMethod::Put,
+      RequestMethod::Delete
+    )]
     request_method: RequestMethod,
   ) {
     let mut server = Server::new_async().await;

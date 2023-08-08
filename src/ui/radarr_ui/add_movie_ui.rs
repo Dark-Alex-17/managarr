@@ -8,14 +8,18 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::Route;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details;
+use crate::ui::radarr_ui::{
+  draw_select_minimum_availability_popup, draw_select_quality_profile_popup,
+};
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, horizontal_chunks, layout_block,
-  layout_paragraph_borderless, show_cursor, style_default, style_help, style_primary,
-  title_block_centered, vertical_chunks_with_margin,
+  layout_paragraph_borderless, style_help, style_primary, title_block_centered,
+  vertical_chunks_with_margin,
 };
 use crate::ui::{
   draw_button, draw_drop_down_list, draw_drop_down_menu_button, draw_drop_down_popup,
-  draw_error_popup, draw_error_popup_over, draw_medium_popup_over, draw_table, TableProps,
+  draw_error_popup, draw_error_popup_over, draw_medium_popup_over, draw_table, draw_text_box,
+  TableProps,
 };
 use crate::utils::convert_runtime;
 use crate::App;
@@ -80,14 +84,10 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
   );
   let block_content = app.data.radarr_data.search.as_str();
 
-  let search_paragraph = Paragraph::new(Text::from(block_content))
-    .style(style_default())
-    .block(title_block_centered("Add Movie"));
-
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSearchInput => {
-        show_cursor(f, chunks[0], block_content);
+        draw_text_box(f, chunks[0], Some("Add Movie"), block_content, true, false);
         f.render_widget(layout_block(), chunks[1]);
 
         let mut help_text = Text::from("<esc> close");
@@ -124,7 +124,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
             TableProps {
               content: &mut app.data.radarr_data.add_searched_movies,
               table_headers: vec![
-                "✓",
+                "✔",
                 "Title",
                 "Year",
                 "Runtime",
@@ -179,7 +179,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
                 .iter()
                 .any(|mov| mov.tmdb_id == movie.tmdb_id)
               {
-                "✓"
+                "✔"
               } else {
                 ""
               };
@@ -208,7 +208,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
     }
   }
 
-  f.render_widget(search_paragraph, chunks[0]);
+  draw_text_box(f, chunks[0], Some("Add Movie"), block_content, false, false);
 }
 
 fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
@@ -251,34 +251,8 @@ fn draw_select_monitor_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, po
   draw_drop_down_list(
     f,
     popup_area,
-    &mut app.data.radarr_data.add_movie_monitor_list,
+    &mut app.data.radarr_data.movie_monitor_list,
     |monitor| ListItem::new(monitor.to_display_str().to_owned()),
-  );
-}
-
-fn draw_select_minimum_availability_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App,
-  popup_area: Rect,
-) {
-  draw_drop_down_list(
-    f,
-    popup_area,
-    &mut app.data.radarr_data.add_movie_minimum_availability_list,
-    |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
-  );
-}
-
-fn draw_select_quality_profile_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App,
-  popup_area: Rect,
-) {
-  draw_drop_down_list(
-    f,
-    popup_area,
-    &mut app.data.radarr_data.add_movie_quality_profile_list,
-    |quality_profile| ListItem::new(quality_profile.clone()),
   );
 }
 
@@ -292,7 +266,7 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
         .collection_movies
         .current_selection()
         .title
-        .to_string(),
+        .stationary_style(),
       app
         .data
         .radarr_data
@@ -324,20 +298,16 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
   let selected_block = &app.data.radarr_data.selected_block;
   let highlight_yes_no = *selected_block == ActiveRadarrBlock::AddMovieConfirmPrompt;
 
-  let selected_monitor = app
-    .data
-    .radarr_data
-    .add_movie_monitor_list
-    .current_selection();
+  let selected_monitor = app.data.radarr_data.movie_monitor_list.current_selection();
   let selected_minimum_availability = app
     .data
     .radarr_data
-    .add_movie_minimum_availability_list
+    .movie_minimum_availability_list
     .current_selection();
   let selected_quality_profile = app
     .data
     .radarr_data
-    .add_movie_quality_profile_list
+    .movie_quality_profile_list
     .current_selection();
 
   f.render_widget(title_block_centered(title), prompt_area);

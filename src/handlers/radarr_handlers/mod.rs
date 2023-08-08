@@ -1,10 +1,11 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::radarr::{
-  ActiveRadarrBlock, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, FILTER_BLOCKS,
+  ActiveRadarrBlock, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, EDIT_MOVIE_BLOCKS, FILTER_BLOCKS,
   MOVIE_DETAILS_BLOCKS, SEARCH_BLOCKS,
 };
 use crate::handlers::radarr_handlers::add_movie_handler::AddMovieHandler;
 use crate::handlers::radarr_handlers::collection_details_handler::CollectionDetailsHandler;
+use crate::handlers::radarr_handlers::edit_movie_handler::EditMovieHandler;
 use crate::handlers::radarr_handlers::movie_details_handler::MovieDetailsHandler;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::Scrollable;
@@ -14,6 +15,7 @@ use crate::{handle_text_box_keys, App, Key};
 
 mod add_movie_handler;
 mod collection_details_handler;
+mod edit_movie_handler;
 mod movie_details_handler;
 
 pub(super) struct RadarrHandler<'a> {
@@ -36,6 +38,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       }
       _ if ADD_MOVIE_BLOCKS.contains(self.active_radarr_block) => {
         AddMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context).handle()
+      }
+      _ if EDIT_MOVIE_BLOCKS.contains(self.active_radarr_block) => {
+        EditMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context).handle()
       }
       _ => self.handle_key_event(),
     }
@@ -401,6 +406,17 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
           self.app.data.radarr_data.is_filtering = true;
           self.app.should_ignore_quit_key = true;
         }
+        _ if *key == DEFAULT_KEYBINDINGS.edit.key => {
+          self.app.push_navigation_stack(
+            (
+              ActiveRadarrBlock::EditMoviePrompt,
+              Some(ActiveRadarrBlock::Movies),
+            )
+              .into(),
+          );
+          self.app.data.radarr_data.populate_edit_movie_fields();
+          self.app.data.radarr_data.selected_block = ActiveRadarrBlock::EditMovieToggleMonitored;
+        }
         _ if *key == DEFAULT_KEYBINDINGS.add.key => {
           self
             .app
@@ -510,6 +526,76 @@ impl RadarrHandler<'_> {
     }
 
     filter_matches
+  }
+}
+
+#[cfg(test)]
+#[macro_use]
+mod radarr_handler_test_utils {
+  #[macro_export]
+  macro_rules! test_edit_movie_key {
+    ($handler:ident, $block:expr, $context:expr) => {
+      let mut app = App::default();
+      let mut radarr_data = RadarrData {
+        edit_path: String::default(),
+        edit_tags: String::default(),
+        edit_monitored: None,
+        quality_profile_map: HashMap::from([
+          (2222, "HD - 1080p".to_owned()),
+          (1111, "Any".to_owned()),
+        ]),
+        filtered_movies: StatefulTable::default(),
+        ..create_test_radarr_data()
+      };
+      radarr_data.movies.set_items(vec![Movie {
+        path: "/nfs/movies/Test".to_owned(),
+        monitored: true,
+        quality_profile_id: Number::from(2222),
+        minimum_availability: MinimumAvailability::Released,
+        ..Movie::default()
+      }]);
+      app.data.radarr_data = radarr_data;
+
+      $handler::with(&DEFAULT_KEYBINDINGS.edit.key, &mut app, &$block, &None).handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &(ActiveRadarrBlock::EditMoviePrompt, Some($context)).into()
+      );
+      assert_eq!(
+        app.data.radarr_data.selected_block,
+        ActiveRadarrBlock::EditMovieToggleMonitored
+      );
+      assert_eq!(
+        app.data.radarr_data.movie_minimum_availability_list.items,
+        Vec::from_iter(MinimumAvailability::iter())
+      );
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .movie_minimum_availability_list
+          .current_selection(),
+        &MinimumAvailability::Released
+      );
+      assert_eq!(
+        app.data.radarr_data.movie_quality_profile_list.items,
+        vec!["Any".to_owned(), "HD - 1080p".to_owned()]
+      );
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .movie_quality_profile_list
+          .current_selection(),
+        "HD - 1080p"
+      );
+      assert_eq!(
+        app.data.radarr_data.edit_path,
+        "/nfs/movies/Test".to_owned()
+      );
+      assert_eq!(app.data.radarr_data.edit_monitored, Some(true));
+    };
   }
 }
 
@@ -1122,10 +1208,18 @@ mod tests {
   }
 
   mod test_handle_key_char {
+    use std::collections::HashMap;
+
     use pretty_assertions::assert_eq;
     use rstest::rstest;
+    use serde_json::Number;
+    use strum::IntoEnumIterator;
 
     use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+    use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
+    use crate::app::radarr::RadarrData;
+    use crate::models::radarr_models::MinimumAvailability;
+    use crate::models::StatefulTable;
 
     use super::*;
 
@@ -1190,6 +1284,15 @@ mod tests {
         &ActiveRadarrBlock::AddMovieSearchInput.into()
       );
       assert!(app.should_ignore_quit_key);
+    }
+
+    #[test]
+    fn test_movie_edit_key() {
+      test_edit_movie_key!(
+        RadarrHandler,
+        ActiveRadarrBlock::Movies,
+        ActiveRadarrBlock::Movies
+      );
     }
 
     #[rstest]
@@ -1448,6 +1551,21 @@ mod tests {
       ActiveRadarrBlock::RefreshAndScanPrompt,
       ActiveRadarrBlock::ManualSearch,
       ActiveRadarrBlock::ManualSearchConfirmPrompt
+    )]
+    active_radarr_block: ActiveRadarrBlock,
+  ) {
+    test_handler_delegation!(ActiveRadarrBlock::Movies, active_radarr_block);
+  }
+
+  #[rstest]
+  fn test_delegate_edit_movie_blocks_to_edit_movie_handler(
+    #[values(
+      ActiveRadarrBlock::EditMoviePrompt,
+      ActiveRadarrBlock::EditMoviePathInput,
+      ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
+      ActiveRadarrBlock::EditMovieSelectQualityProfile,
+      ActiveRadarrBlock::EditMovieTagsInput,
+      ActiveRadarrBlock::EditMovieToggleMonitored
     )]
     active_radarr_block: ActiveRadarrBlock,
   ) {

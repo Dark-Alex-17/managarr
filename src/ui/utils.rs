@@ -71,7 +71,7 @@ pub fn layout_button_paragraph(is_selected: bool, label: &str, alignment: Alignm
   Paragraph::new(Text::from(label))
     .block(layout_block())
     .alignment(alignment)
-    .style(style_button_highlight(is_selected))
+    .style(style_block_highlight(is_selected))
 }
 
 pub fn layout_button_paragraph_borderless(
@@ -82,7 +82,7 @@ pub fn layout_button_paragraph_borderless(
   Paragraph::new(Text::from(label))
     .block(borderless_block())
     .alignment(alignment)
-    .style(style_button_highlight(is_selected))
+    .style(style_block_highlight(is_selected))
 }
 
 pub fn layout_paragraph_borderless(string: &str) -> Paragraph {
@@ -150,6 +150,10 @@ pub fn style_system_function() -> Style {
   Style::default().fg(Color::Yellow)
 }
 
+pub fn style_unmonitored() -> Style {
+  Style::default().fg(Color::Rgb(91, 87, 87))
+}
+
 pub fn style_success() -> Style {
   Style::default().fg(Color::Green)
 }
@@ -166,7 +170,7 @@ pub fn style_help() -> Style {
   Style::default().fg(Color::LightBlue)
 }
 
-pub fn style_button_highlight(is_selected: bool) -> Style {
+pub fn style_block_highlight(is_selected: bool) -> Style {
   if is_selected {
     style_system_function().add_modifier(Modifier::BOLD)
   } else {
@@ -258,7 +262,7 @@ mod test {
     horizontal_chunks_with_margin, layout_block, layout_block_bottom_border,
     layout_block_top_border, layout_block_top_border_with_title, layout_block_with_title,
     layout_with_constraints, logo_block, spans_info_default, spans_info_primary,
-    spans_info_with_style, style_bold, style_button_highlight, style_default, style_default_bold,
+    spans_info_with_style, style_block_highlight, style_bold, style_default, style_default_bold,
     style_failure, style_help, style_highlight, style_primary, style_secondary, style_success,
     style_system_function, style_warning, title_block, title_block_centered, title_style,
     vertical_chunks, vertical_chunks_with_margin,
@@ -550,7 +554,7 @@ mod test {
       .fg(Color::Yellow)
       .add_modifier(Modifier::BOLD);
 
-    assert_eq!(style_button_highlight(true), expected_style);
+    assert_eq!(style_block_highlight(true), expected_style);
   }
 
   #[test]
@@ -559,7 +563,7 @@ mod test {
       .fg(Color::White)
       .add_modifier(Modifier::BOLD);
 
-    assert_eq!(style_button_highlight(false), expected_style);
+    assert_eq!(style_block_highlight(false), expected_style);
   }
 
   #[test]

@@ -225,6 +225,17 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
             .app
             .push_navigation_stack(ActiveRadarrBlock::AutomaticallySearchMoviePrompt.into());
         }
+        _ if *key == DEFAULT_KEYBINDINGS.edit.key => {
+          self.app.push_navigation_stack(
+            (
+              ActiveRadarrBlock::EditMoviePrompt,
+              Some(*self.active_radarr_block),
+            )
+              .into(),
+          );
+          self.app.data.radarr_data.populate_edit_movie_fields();
+          self.app.data.radarr_data.selected_block = ActiveRadarrBlock::EditMovieToggleMonitored;
+        }
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
           self
             .app
@@ -762,8 +773,18 @@ mod tests {
   }
 
   mod test_handle_key_char {
+    use std::collections::HashMap;
+
     use pretty_assertions::assert_eq;
     use rstest::rstest;
+    use strum::IntoEnumIterator;
+
+    use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
+    use crate::app::radarr::RadarrData;
+    use crate::handlers::radarr_handlers::RadarrHandler;
+    use crate::models::radarr_models::{MinimumAvailability, Movie};
+    use crate::models::StatefulTable;
+    use crate::test_edit_movie_key;
 
     use super::*;
 
@@ -814,6 +835,25 @@ mod tests {
       assert!(!app.data.radarr_data.movie_releases_sort.items.is_empty());
       assert!(app.data.radarr_data.sort_ascending.is_some());
       assert_eq!(app.data.radarr_data.sort_ascending, Some(false));
+    }
+
+    #[rstest]
+    fn test_edit_key(
+      #[values(
+        ActiveRadarrBlock::MovieDetails,
+        ActiveRadarrBlock::MovieHistory,
+        ActiveRadarrBlock::FileInfo,
+        ActiveRadarrBlock::Cast,
+        ActiveRadarrBlock::Crew,
+        ActiveRadarrBlock::ManualSearch
+      )]
+      active_radarr_block: ActiveRadarrBlock,
+    ) {
+      test_edit_movie_key!(
+        MovieDetailsHandler,
+        active_radarr_block,
+        active_radarr_block
+      );
     }
 
     #[rstest]

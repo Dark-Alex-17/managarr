@@ -15,8 +15,8 @@ use crate::models::{Route, StatefulList, StatefulTable, TabState};
 use crate::ui::utils::{
   borderless_block, centered_rect, horizontal_chunks, horizontal_chunks_with_margin, layout_block,
   layout_block_top_border, layout_button_paragraph, layout_button_paragraph_borderless,
-  layout_paragraph_borderless, logo_block, style_button_highlight, style_default_bold,
-  style_failure, style_help, style_highlight, style_primary, style_secondary,
+  layout_paragraph_borderless, logo_block, show_cursor, style_block_highlight, style_default,
+  style_default_bold, style_failure, style_help, style_highlight, style_primary, style_secondary,
   style_system_function, title_block, title_block_centered, vertical_chunks,
   vertical_chunks_with_margin,
 };
@@ -57,7 +57,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
   draw_header_row(f, app, main_chunks[0]);
   draw_context_row(f, app, main_chunks[1]);
   if let Route::Radarr(_, _) = app.get_current_route() {
-    radarr_ui::draw_radarr_ui(f, app, main_chunks[2])
+    radarr_ui::draw_radarr_ui(f, app, main_chunks[2]);
   }
 }
 
@@ -106,6 +106,18 @@ fn draw_error<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   f.render_widget(paragraph, area);
 }
 
+pub fn draw_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  popup_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+  percent_x: u16,
+  percent_y: u16,
+) {
+  let popup_area = centered_rect(percent_x, percent_y, f.size());
+  f.render_widget(Clear, popup_area);
+  popup_fn(f, app, popup_area);
+}
+
 pub fn draw_popup_over<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App,
@@ -117,9 +129,7 @@ pub fn draw_popup_over<B: Backend>(
 ) {
   background_fn(f, app, area);
 
-  let popup_area = centered_rect(percent_x, percent_y, f.size());
-  f.render_widget(Clear, popup_area);
-  popup_fn(f, app, popup_area);
+  draw_popup(f, app, popup_fn, percent_x, percent_y);
 }
 
 pub fn draw_prompt_popup_over<B: Backend>(
@@ -375,6 +385,44 @@ pub fn draw_prompt_box_with_content<B: Backend>(
   draw_button(f, horizontal_chunks[1], "No", !*yes_no_value);
 }
 
+pub fn draw_checkbox<B: Backend>(
+  f: &mut Frame<'_, B>,
+  area: Rect,
+  is_checked: bool,
+  is_selected: bool,
+) {
+  let check = if is_checked { "✔" } else { "" };
+  let label_paragraph = Paragraph::new(Text::from(check))
+    .block(layout_block())
+    .alignment(Alignment::Center)
+    .style(style_block_highlight(is_selected).add_modifier(Modifier::BOLD));
+  let checkbox_area = Rect { width: 5, ..area };
+
+  f.render_widget(label_paragraph, checkbox_area);
+}
+
+pub fn draw_checkbox_with_label<B: Backend>(
+  f: &mut Frame<'_, B>,
+  area: Rect,
+  label: &str,
+  is_checked: bool,
+  is_selected: bool,
+) {
+  let horizontal_chunks = horizontal_chunks(
+    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
+    area,
+  );
+
+  let label_paragraph = Paragraph::new(Text::from(format!("\n{}: ", label)))
+    .block(borderless_block())
+    .alignment(Alignment::Right)
+    .style(style_primary());
+
+  f.render_widget(label_paragraph, horizontal_chunks[0]);
+
+  draw_checkbox(f, horizontal_chunks[1], is_checked, is_selected);
+}
+
 pub fn draw_button<B: Backend>(f: &mut Frame<'_, B>, area: Rect, label: &str, is_selected: bool) {
   let label_paragraph = layout_button_paragraph(is_selected, label, Alignment::Center);
 
@@ -398,7 +446,7 @@ pub fn draw_button_with_icon<B: Backend>(
   );
 
   f.render_widget(
-    layout_block().style(style_button_highlight(is_selected)),
+    layout_block().style(style_block_highlight(is_selected)),
     area,
   );
   f.render_widget(label_paragraph, horizontal_chunks[0]);
@@ -439,4 +487,64 @@ pub fn draw_drop_down_list<'a, B: Backend, T>(
     .highlight_style(style_highlight());
 
   f.render_stateful_widget(list, area, &mut content.state);
+}
+
+pub fn draw_text_box<B: Backend>(
+  f: &mut Frame<'_, B>,
+  text_box_area: Rect,
+  block_title: Option<&str>,
+  block_content: &str,
+  should_show_cursor: bool,
+  is_selected: bool,
+) {
+  let (block, style) = if let Some(..) = block_title {
+    (title_block_centered(block_title.unwrap()), style_default())
+  } else {
+    (
+      layout_block(),
+      if should_show_cursor {
+        style_default()
+      } else {
+        style_block_highlight(is_selected)
+      },
+    )
+  };
+  let search_paragraph = Paragraph::new(Text::from(block_content))
+    .style(style)
+    .block(block);
+  f.render_widget(search_paragraph, text_box_area);
+
+  if should_show_cursor {
+    show_cursor(f, text_box_area, block_content);
+  }
+}
+
+pub fn draw_text_box_with_label<B: Backend>(
+  f: &mut Frame<'_, B>,
+  area: Rect,
+  label: &str,
+  text: &str,
+  is_selected: bool,
+  should_show_cursor: bool,
+) {
+  let horizontal_chunks = horizontal_chunks(
+    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
+    area,
+  );
+
+  let label_paragraph = Paragraph::new(Text::from(format!("\n{}: ", label)))
+    .block(borderless_block())
+    .alignment(Alignment::Right)
+    .style(style_primary());
+
+  f.render_widget(label_paragraph, horizontal_chunks[0]);
+
+  draw_text_box(
+    f,
+    horizontal_chunks[1],
+    None,
+    text,
+    should_show_cursor,
+    is_selected,
+  );
 }
