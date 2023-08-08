@@ -6,16 +6,12 @@ use tui::widgets::{Cell, Paragraph, Row, Wrap};
 use tui::Frame;
 
 use crate::app::radarr::ActiveRadarrBlock;
-use crate::models::radarr_models::Monitor;
 use crate::models::Route;
 use crate::ui::utils::{
   borderless_block, horizontal_chunks, layout_block, show_cursor, style_default, style_help,
   style_primary, title_block_centered, vertical_chunks_with_margin,
 };
-use crate::ui::{
-  draw_button, draw_drop_down_menu, draw_medium_popup_over, draw_prompt_box, draw_small_popup_over,
-  draw_table, TableProps,
-};
+use crate::ui::{draw_button, draw_drop_down_menu, draw_medium_popup_over, draw_table, TableProps};
 use crate::utils::convert_runtime;
 use crate::App;
 

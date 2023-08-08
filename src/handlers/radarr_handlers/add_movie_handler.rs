@@ -1,10 +1,8 @@
-use strum::IntoEnumIterator;
-
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::radarr_models::{MinimumAvailability, Monitor};
-use crate::models::{Route, Scrollable, StatefulTable};
+use crate::models::{Scrollable, StatefulTable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{App, Key};
 

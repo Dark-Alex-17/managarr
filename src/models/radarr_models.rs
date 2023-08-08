@@ -4,7 +4,6 @@ use chrono::{DateTime, Utc};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
-use strum::EnumIter;
 
 use crate::models::HorizontallyScrollableText;
 
