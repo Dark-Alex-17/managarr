@@ -303,6 +303,7 @@ fn draw_table<'a, B, T, F>(
   table_props: TableProps<'a, T>,
   row_mapper: F,
   is_loading: bool,
+  highlight: bool,
 ) where
   B: Backend,
   F: Fn(&T) -> Row<'a>,
@@ -316,7 +317,7 @@ fn draw_table<'a, B, T, F>(
 
   let content_area = if let Some(help_string) = help {
     let chunks = vertical_chunks(
-      vec![Constraint::Min(0), Constraint::Length(3)],
+      vec![Constraint::Min(0), Constraint::Length(2)],
       content_area,
     );
     let mut help_text = Text::from(format!(" {}", help_string));
@@ -339,12 +340,15 @@ fn draw_table<'a, B, T, F>(
       .style(style_default_bold())
       .bottom_margin(0);
 
-    let table = Table::new(rows)
-      .header(headers)
-      .block(block)
-      .highlight_style(style_highlight())
-      .highlight_symbol(HIGHLIGHT_SYMBOL)
-      .widths(&constraints);
+    let mut table = Table::new(rows).header(headers).block(block);
+
+    if highlight {
+      table = table
+        .highlight_style(style_highlight())
+        .highlight_symbol(HIGHLIGHT_SYMBOL);
+    }
+
+    table = table.widths(&constraints);
 
     f.render_stateful_widget(table, content_area, &mut content.state);
   } else {

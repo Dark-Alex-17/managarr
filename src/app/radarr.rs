@@ -4,7 +4,7 @@ use strum::IntoEnumIterator;
 
 use crate::app::{App, Route};
 use crate::models::radarr_models::{
-  AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Log,
+  AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Event, Log,
   MinimumAvailability, Monitor, Movie, MovieHistoryItem, Release, ReleaseField, RootFolder, Task,
 };
 use crate::models::{
@@ -51,6 +51,7 @@ pub struct RadarrData<'a> {
   pub collection_movies: StatefulTable<CollectionMovie>,
   pub logs: StatefulList<Log>,
   pub tasks: StatefulTable<Task>,
+  pub events: StatefulTable<Event>,
   pub prompt_confirm_action: Option<RadarrEvent>,
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
@@ -269,6 +270,7 @@ impl<'a> Default for RadarrData<'a> {
       collection_movies: StatefulTable::default(),
       logs: StatefulList::default(),
       tasks: StatefulTable::default(),
+      events: StatefulTable::default(),
       prompt_confirm_action: None,
       search: HorizontallyScrollableText::default(),
       filter: HorizontallyScrollableText::default(),
@@ -311,7 +313,7 @@ impl<'a> Default for RadarrData<'a> {
           title: "System",
           route: ActiveRadarrBlock::System.into(),
           help: "",
-          contextual_help: Some("<enter> select block | <esc> go back to block selection")
+          contextual_help: Some("<t> open tasks | <u> open queue | <l> open logs")
         }
       ]),
       movie_info_tabs: TabState::new(vec![
@@ -553,6 +555,9 @@ impl<'a> App<'a> {
       ActiveRadarrBlock::System => {
         self
           .dispatch_network_event(RadarrEvent::GetTasks.into())
+          .await;
+        self
+          .dispatch_network_event(RadarrEvent::GetEvents.into())
           .await;
         self
           .dispatch_network_event(RadarrEvent::GetLogs.into())

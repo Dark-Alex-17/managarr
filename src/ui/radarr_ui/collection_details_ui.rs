@@ -200,12 +200,12 @@ pub(super) fn draw_collection_details<B: Backend>(
         .as_u64()
         .unwrap();
       let imdb_rating = if imdb_rating == 0.0 {
-        String::default()
+        String::new()
       } else {
         format!("{:.1}", imdb_rating)
       };
       let rotten_tomatoes_rating = if rotten_tomatoes_rating == 0 {
-        String::default()
+        String::new()
       } else {
         format!("{}%", rotten_tomatoes_rating)
       };
@@ -222,6 +222,7 @@ pub(super) fn draw_collection_details<B: Backend>(
       .style(style_primary())
     },
     app.is_loading,
+    true,
   );
 }
 

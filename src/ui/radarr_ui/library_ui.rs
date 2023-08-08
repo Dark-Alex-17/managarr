@@ -141,6 +141,7 @@ pub(super) fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, 
       .style(determine_row_style(downloads_vec, movie))
     },
     app.is_loading,
+    true,
   );
 }
 

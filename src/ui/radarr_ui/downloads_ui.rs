@@ -111,6 +111,7 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rec
       .style(style_primary())
     },
     app.is_loading,
+    true,
   );
 }
 

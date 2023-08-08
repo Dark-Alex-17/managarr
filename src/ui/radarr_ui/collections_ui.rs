@@ -130,6 +130,7 @@ pub(super) fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'
       .style(style_primary())
     },
     app.is_loading,
+    true,
   );
 }
 

@@ -10,9 +10,9 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, Collection, CollectionMovie,
-  CommandBody, Credit, CreditType, DiskSpace, DownloadRecord, DownloadsResponse, LogResponse,
-  Movie, MovieCommandBody, MovieHistoryItem, QualityProfile, Release, ReleaseDownloadBody,
-  RootFolder, SystemStatus, Tag, Task,
+  CommandBody, Credit, CreditType, DiskSpace, DownloadRecord, DownloadsResponse, Event,
+  LogResponse, Movie, MovieCommandBody, MovieHistoryItem, QualityProfile, Release,
+  ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task,
 };
 use crate::models::{Route, Scrollable, ScrollableText};
 use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
@@ -34,6 +34,7 @@ pub enum RadarrEvent {
   EditCollection,
   GetCollections,
   GetDownloads,
+  GetEvents,
   GetLogs,
   GetMovieCredits,
   GetMovieDetails,
@@ -78,7 +79,8 @@ impl RadarrEvent {
       RadarrEvent::GetStatus => "/system/status",
       RadarrEvent::GetTags => "/tag",
       RadarrEvent::GetTasks => "/system/task",
-      RadarrEvent::TriggerAutomaticSearch
+      RadarrEvent::GetEvents
+      | RadarrEvent::TriggerAutomaticSearch
       | RadarrEvent::UpdateAndScan
       | RadarrEvent::UpdateAllMovies
       | RadarrEvent::UpdateDownloads
@@ -107,6 +109,7 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::EditCollection => self.edit_collection().await,
       RadarrEvent::GetCollections => self.get_collections().await,
       RadarrEvent::GetDownloads => self.get_downloads().await,
+      RadarrEvent::GetEvents => self.get_events().await,
       RadarrEvent::GetLogs => self.get_logs().await,
       RadarrEvent::GetMovieCredits => self.get_credits().await,
       RadarrEvent::GetMovieDetails => self.get_movie_details().await,
@@ -599,6 +602,24 @@ impl<'a, 'b> Network<'a, 'b> {
           .set_items(queue_response.records);
       })
       .await
+  }
+
+  async fn get_events(&self) {
+    info!("Fetching Radarr events");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::GetEvents.resource(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<Event>>(request_props, |events_vec, mut app| {
+        app.data.radarr_data.events.set_items(events_vec);
+      })
+      .await;
   }
 
   async fn get_quality_profiles(&self) {

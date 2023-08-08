@@ -280,6 +280,7 @@ mod tests {
       assert!(radarr_data.collection_movies.items.is_empty());
       assert!(radarr_data.logs.items.is_empty());
       assert!(radarr_data.tasks.items.is_empty());
+      assert!(radarr_data.events.items.is_empty());
       assert!(radarr_data.prompt_confirm_action.is_none());
       assert!(radarr_data.search.text.is_empty());
       assert!(radarr_data.filter.text.is_empty());
@@ -344,7 +345,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[4].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[4].contextual_help,
-        Some("<enter> select menu item | <esc> go back to menu selection")
+        Some("<t> open tasks | <u> open queue | <l> open logs")
       );
 
       assert_eq!(radarr_data.movie_info_tabs.tabs.len(), 6);
@@ -684,6 +685,10 @@ mod tests {
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetTasks.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetEvents.into()
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),

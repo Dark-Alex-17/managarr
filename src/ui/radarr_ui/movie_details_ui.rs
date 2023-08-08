@@ -304,6 +304,7 @@ fn draw_movie_history<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, conte
         .style(style_success())
       },
       app.is_loading,
+      true,
     );
   }
 }
@@ -337,6 +338,7 @@ fn draw_movie_cast<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_
       .style(style_success())
     },
     app.is_loading,
+    true,
   );
 }
 
@@ -371,6 +373,7 @@ fn draw_movie_crew<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_
       .style(style_success())
     },
     app.is_loading,
+    true,
   );
 }
 
@@ -475,7 +478,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, cont
       let language = if languages.is_some() {
         languages.clone().unwrap()[0].name.clone()
       } else {
-        String::default()
+        String::new()
       };
       let quality = quality.quality.name.clone();
 
@@ -493,6 +496,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, cont
       .style(style_primary())
     },
     app.is_loading,
+    true,
   );
 }
 

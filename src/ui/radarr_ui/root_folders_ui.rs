@@ -88,6 +88,7 @@ fn draw_root_folders<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: 
       .style(style_primary())
     },
     app.is_loading,
+    true,
   );
 }
 

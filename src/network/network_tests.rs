@@ -33,7 +33,7 @@ mod tests {
     app.is_loading = true;
     let radarr_config = RadarrConfig {
       host,
-      api_token: String::default(),
+      api_token: String::new(),
       port,
     };
     app.config.radarr = radarr_config;

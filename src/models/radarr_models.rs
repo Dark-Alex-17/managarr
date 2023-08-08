@@ -437,3 +437,16 @@ pub struct Task {
   pub last_duration: String,
   pub next_execution: DateTime<Utc>,
 }
+
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Event {
+  pub trigger: String,
+  pub name: String,
+  pub command_name: String,
+  pub status: String,
+  pub queued: DateTime<Utc>,
+  pub started: Option<DateTime<Utc>>,
+  pub ended: Option<DateTime<Utc>>,
+  pub duration: String,
+}

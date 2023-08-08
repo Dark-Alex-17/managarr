@@ -202,12 +202,12 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, ar
               .as_u64()
               .unwrap();
             let imdb_rating = if imdb_rating == 0.0 {
-              String::default()
+              String::new()
             } else {
               format!("{:.1}", imdb_rating)
             };
             let rotten_tomatoes_rating = if rotten_tomatoes_rating == 0 {
-              String::default()
+              String::new()
             } else {
               format!("{}%", rotten_tomatoes_rating)
             };
@@ -242,6 +242,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, ar
             .style(style_primary())
           },
           app.is_loading,
+          true,
         );
       }
       _ => (),

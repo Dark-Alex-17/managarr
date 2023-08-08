@@ -827,6 +827,48 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_get_events_event() {
+    let events_json = json!([{
+        "name": "RefreshMonitoredDownloads",
+        "commandName": "Refresh Monitored Downloads",
+        "status": "completed",
+        "queued": "2023-05-20T21:29:16Z",
+        "started": "2023-05-20T21:29:16Z",
+        "ended": "2023-05-20T21:29:16Z",
+        "duration": "00:00:00.5111547",
+        "trigger": "scheduled",
+    }]);
+    let timestamp = DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap());
+    let expected_event = Event {
+      name: "RefreshMonitoredDownloads".to_owned(),
+      command_name: "Refresh Monitored Downloads".to_owned(),
+      status: "completed".to_owned(),
+      queued: timestamp,
+      started: Some(timestamp),
+      ended: Some(timestamp),
+      duration: "00:00:00.5111547".to_owned(),
+      trigger: "scheduled".to_owned(),
+    };
+
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(events_json),
+      RadarrEvent::GetEvents.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.handle_radarr_event(RadarrEvent::GetEvents).await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.events.items,
+      vec![expected_event]
+    );
+  }
+
+  #[tokio::test]
   async fn test_handle_get_logs_event() {
     let resource = format!(
       "{}?pageSize=1000&sortDirection=descending&sortKey=time",
