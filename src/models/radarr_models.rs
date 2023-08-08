@@ -57,6 +57,7 @@ pub struct Movie {
   pub quality_profile_id: Number,
   pub minimum_availability: MinimumAvailability,
   pub certification: Option<String>,
+  pub tags: Vec<Number>,
   pub ratings: RatingsList,
   pub movie_file: Option<MovieFile>,
   pub collection: Option<Collection>,
@@ -169,11 +170,18 @@ pub struct DownloadRecord {
 
 #[derive(Derivative, Deserialize, Debug)]
 #[derivative(Default)]
-#[serde(rename_all = "camelCase")]
 pub struct QualityProfile {
   #[derivative(Default(value = "Number::from(0)"))]
   pub id: Number,
   pub name: String,
+}
+
+#[derive(Derivative, Deserialize, Debug)]
+#[derivative(Default)]
+pub struct Tag {
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub id: Number,
+  pub label: String,
 }
 
 #[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
@@ -265,6 +273,7 @@ pub struct AddMovieBody {
   pub quality_profile_id: u64,
   pub minimum_availability: String,
   pub monitored: bool,
+  pub tags: Vec<u64>,
   pub add_options: AddOptions,
 }
 

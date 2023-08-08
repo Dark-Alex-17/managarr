@@ -75,7 +75,8 @@ pub(super) fn draw_collection_details<B: Backend>(
       .data
       .radarr_data
       .collection_movies
-      .current_selection_clone()
+      .current_selection()
+      .clone()
   };
   let mut help_text =
     Text::from("<↑↓> scroll table | <enter> show overview/add movie | <esc> close");
@@ -151,7 +152,7 @@ pub(super) fn draw_collection_details<B: Backend>(
       } else {
         ""
       };
-      movie.title.scroll_or_reset(
+      movie.title.scroll_left_or_reset(
         get_width_from_percentage(chunks[1], 20),
         current_selection == *movie,
       );
@@ -212,7 +213,8 @@ fn draw_movie_overview<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       .data
       .radarr_data
       .collection_movies
-      .current_selection_clone()
+      .current_selection()
+      .clone()
       .overview,
   );
   overview.patch_style(style_default());

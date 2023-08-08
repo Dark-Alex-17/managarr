@@ -22,7 +22,6 @@ pub enum NetworkEvent {
 
 pub struct Network<'a> {
   pub client: Client,
-
   pub app: &'a Arc<Mutex<App>>,
 }
 
@@ -40,12 +39,12 @@ impl<'a> Network<'a> {
     app.is_loading = false;
   }
 
-  pub async fn handle_request<T, R>(
+  pub async fn handle_request<B, R>(
     &self,
-    request_props: RequestProps<T>,
+    request_props: RequestProps<B>,
     mut app_update_fn: impl FnMut(R, MutexGuard<'_, App>),
   ) where
-    T: Serialize + Default + Debug,
+    B: Serialize + Default + Debug,
     R: DeserializeOwned,
   {
     let method = request_props.method;
@@ -53,21 +52,23 @@ impl<'a> Network<'a> {
       Ok(response) => {
         if response.status().is_success() {
           match method {
-            RequestMethod::Get => match utils::parse_response::<R>(response).await {
-              Ok(value) => {
-                let app = self.app.lock().await;
-                app_update_fn(value, app);
+            RequestMethod::Get | RequestMethod::Post => {
+              match utils::parse_response::<R>(response).await {
+                Ok(value) => {
+                  let app = self.app.lock().await;
+                  app_update_fn(value, app);
+                }
+                Err(e) => {
+                  error!("Failed to parse response! {:?}", e);
+                  self
+                    .app
+                    .lock()
+                    .await
+                    .handle_error(anyhow!("Failed to parse response! {:?}", e));
+                }
               }
-              Err(e) => {
-                error!("Failed to parse response! {:?}", e);
-                self
-                  .app
-                  .lock()
-                  .await
-                  .handle_error(anyhow!("Failed to parse response! {:?}", e));
-              }
-            },
-            RequestMethod::Delete | RequestMethod::Post | RequestMethod::Put => (),
+            }
+            RequestMethod::Delete | RequestMethod::Put => (),
           }
         } else {
           error!(
@@ -224,16 +225,19 @@ mod tests {
     async_server.assert_async().await;
   }
 
+  #[rstest]
   #[tokio::test]
-  async fn test_handle_request_get() {
-    let (async_server, app_arc, server) = mock_api(RequestMethod::Get, 200, true).await;
+  async fn test_handle_request_with_response_body(
+    #[values(RequestMethod::Get, RequestMethod::Post)] request_method: RequestMethod,
+  ) {
+    let (async_server, app_arc, server) = mock_api(request_method, 200, true).await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network
       .handle_request::<(), Test>(
         RequestProps {
           uri: format!("{}/test", server.url()),
-          method: RequestMethod::Get,
+          method: request_method,
           body: None,
           api_token: "test1234".to_owned(),
         },
@@ -242,7 +246,7 @@ mod tests {
       .await;
 
     async_server.assert_async().await;
-    assert_str_eq!(app_arc.lock().await.error.stationary_style(), "Test");
+    assert_str_eq!(app_arc.lock().await.error.text, "Test");
   }
 
   #[tokio::test]
@@ -275,7 +279,7 @@ mod tests {
       .lock()
       .await
       .error
-      .stationary_style()
+      .text
       .starts_with("Failed to parse response!"));
   }
 
@@ -300,7 +304,7 @@ mod tests {
       .lock()
       .await
       .error
-      .stationary_style()
+      .text
       .starts_with("Failed to send request."));
   }
 
@@ -332,7 +336,7 @@ mod tests {
 
     async_server.assert_async().await;
     assert_str_eq!(
-      app_arc.lock().await.error.stationary_style(),
+      app_arc.lock().await.error.text,
       "Request failed. Received 404 Not Found response code"
     );
   }

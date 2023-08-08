@@ -140,7 +140,8 @@ fn draw_edit_confirmation_prompt<B: Backend>(
       f,
       chunks[4],
       "Path",
-      &app.data.radarr_data.edit_path,
+      &app.data.radarr_data.edit_path.text,
+      *app.data.radarr_data.edit_path.offset.borrow(),
       *selected_block == ActiveRadarrBlock::EditMoviePathInput,
       active_radarr_block == ActiveRadarrBlock::EditMoviePathInput,
     );
@@ -148,7 +149,8 @@ fn draw_edit_confirmation_prompt<B: Backend>(
       f,
       chunks[5],
       "Tags",
-      &app.data.radarr_data.edit_tags,
+      &app.data.radarr_data.edit_tags.text,
+      *app.data.radarr_data.edit_tags.offset.borrow(),
       *selected_block == ActiveRadarrBlock::EditMovieTagsInput,
       active_radarr_block == ActiveRadarrBlock::EditMovieTagsInput,
     );

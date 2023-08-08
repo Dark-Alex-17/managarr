@@ -158,6 +158,7 @@ pub(super) fn draw_radarr_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &Ap
 
 fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let quality_profile_map = &app.data.radarr_data.quality_profile_map;
+  let tags_map = &app.data.radarr_data.tags_map;
   let downloads_vec = &app.data.radarr_data.downloads.items;
   let content = if !app.data.radarr_data.filtered_movies.items.is_empty()
     && !app.data.radarr_data.is_filtering
@@ -208,7 +209,21 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
       let (hours, minutes) = convert_runtime(movie.runtime.as_u64().unwrap());
       let file_size: f64 = convert_to_gb(movie.size_on_disk.as_u64().unwrap());
       let certification = movie.certification.clone().unwrap_or_else(|| "".to_owned());
-      let tags = "";
+      let quality_profile = quality_profile_map
+        .get(&movie.quality_profile_id.as_u64().unwrap())
+        .unwrap()
+        .to_owned();
+      let tags = movie
+        .tags
+        .iter()
+        .map(|tag_id| {
+          tags_map
+            .get_by_left(&tag_id.as_u64().unwrap())
+            .unwrap()
+            .clone()
+        })
+        .collect::<Vec<String>>()
+        .join(", ");
 
       Row::new(vec![
         Cell::from(movie.title.to_owned()),
@@ -218,14 +233,9 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
         Cell::from(certification),
         Cell::from(movie.original_language.name.to_owned()),
         Cell::from(format!("{:.2} GB", file_size)),
-        Cell::from(
-          quality_profile_map
-            .get(&movie.quality_profile_id.as_u64().unwrap())
-            .unwrap()
-            .to_owned(),
-        ),
+        Cell::from(quality_profile),
         Cell::from(monitored.to_owned()),
-        Cell::from(tags.to_owned()),
+        Cell::from(tags),
       ])
       .style(determine_row_style(downloads_vec, movie))
     },
@@ -322,20 +332,23 @@ fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
 
     f.render_widget(input, chunks[0]);
   } else {
-    let (block_title, block_content) = match app.get_current_route() {
+    let default_content = String::default();
+    let (block_title, offset, block_content) = match app.get_current_route() {
       Route::Radarr(active_radarr_block, _) => match active_radarr_block {
-        _ if SEARCH_BLOCKS.contains(active_radarr_block) => {
-          ("Search", app.data.radarr_data.search.as_str())
-        }
-        _ => ("", ""),
+        _ if SEARCH_BLOCKS.contains(active_radarr_block) => (
+          "Search",
+          *app.data.radarr_data.search.offset.borrow(),
+          &app.data.radarr_data.search.text,
+        ),
+        _ => ("", 0, &default_content),
       },
-      _ => ("", ""),
+      _ => ("", 0, &default_content),
     };
 
-    let input = Paragraph::new(block_content)
+    let input = Paragraph::new(block_content.as_str())
       .style(style_default())
       .block(title_block_centered(block_title));
-    show_cursor(f, chunks[0], block_content);
+    show_cursor(f, chunks[0], offset, block_content);
 
     f.render_widget(input, chunks[0]);
   }
@@ -360,20 +373,23 @@ fn draw_filter_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
 
     f.render_widget(input, chunks[0]);
   } else {
-    let (block_title, block_content) = match app.get_current_route() {
+    let default_content = String::default();
+    let (block_title, offset, block_content) = match app.get_current_route() {
       Route::Radarr(active_radarr_block, _) => match active_radarr_block {
-        _ if FILTER_BLOCKS.contains(active_radarr_block) => {
-          ("Filter", app.data.radarr_data.filter.as_str())
-        }
-        _ => ("", ""),
+        _ if FILTER_BLOCKS.contains(active_radarr_block) => (
+          "Filter",
+          *app.data.radarr_data.filter.offset.borrow(),
+          &app.data.radarr_data.filter.text,
+        ),
+        _ => ("", 0, &default_content),
       },
-      _ => ("", ""),
+      _ => ("", 0, &default_content),
     };
 
-    let input = Paragraph::new(block_content)
+    let input = Paragraph::new(block_content.as_str())
       .style(style_default())
       .block(title_block_centered(block_title));
-    show_cursor(f, chunks[0], block_content);
+    show_cursor(f, chunks[0], offset, block_content);
 
     f.render_widget(input, chunks[0]);
   }
@@ -413,7 +429,7 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let current_selection = if app.data.radarr_data.downloads.items.is_empty() {
     DownloadRecord::default()
   } else {
-    app.data.radarr_data.downloads.current_selection_clone()
+    app.data.radarr_data.downloads.current_selection().clone()
   };
 
   draw_table(
@@ -456,7 +472,7 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
       } = download_record;
 
       let path = output_path.clone().unwrap_or_default();
-      path.scroll_or_reset(
+      path.scroll_left_or_reset(
         get_width_from_percentage(area, 18),
         current_selection == *download_record,
       );

@@ -11,7 +11,7 @@ use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler
 use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 use crate::utils::strip_non_alphanumeric_characters;
-use crate::{handle_text_box_keys, App, Key};
+use crate::{handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
 
 mod add_movie_handler;
 mod collection_details_handler;
@@ -149,6 +149,12 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         }
       }
       ActiveRadarrBlock::Downloads => self.app.data.radarr_data.downloads.scroll_to_top(),
+      ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => {
+        self.app.data.radarr_data.search.scroll_home()
+      }
+      ActiveRadarrBlock::FilterMovies | ActiveRadarrBlock::FilterCollections => {
+        self.app.data.radarr_data.filter.scroll_home()
+      }
       _ => (),
     }
   }
@@ -182,6 +188,12 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         }
       }
       ActiveRadarrBlock::Downloads => self.app.data.radarr_data.downloads.scroll_to_bottom(),
+      ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => {
+        self.app.data.radarr_data.search.reset_offset()
+      }
+      ActiveRadarrBlock::FilterMovies | ActiveRadarrBlock::FilterCollections => {
+        self.app.data.radarr_data.filter.reset_offset()
+      }
       _ => (),
     }
   }
@@ -222,6 +234,12 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       | ActiveRadarrBlock::RefreshAllMoviesPrompt
       | ActiveRadarrBlock::RefreshAllCollectionsPrompt
       | ActiveRadarrBlock::RefreshDownloadsPrompt => handle_prompt_toggle(self.app, self.key),
+      ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => {
+        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.search)
+      }
+      ActiveRadarrBlock::FilterMovies | ActiveRadarrBlock::FilterCollections => {
+        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.filter)
+      }
       _ => (),
     }
   }
@@ -476,14 +494,7 @@ impl RadarrHandler<'_> {
   where
     F: Fn(&T) -> &str,
   {
-    let search_string = self
-      .app
-      .data
-      .radarr_data
-      .search
-      .drain(..)
-      .collect::<String>()
-      .to_lowercase();
+    let search_string = self.app.data.radarr_data.search.drain().to_lowercase();
     let search_index = rows.iter().position(|item| {
       strip_non_alphanumeric_characters(field_selection_fn(item)).contains(&search_string)
     });
@@ -503,15 +514,7 @@ impl RadarrHandler<'_> {
     F: Fn(&T) -> &str,
     T: Clone,
   {
-    let filter = strip_non_alphanumeric_characters(
-      &self
-        .app
-        .data
-        .radarr_data
-        .filter
-        .drain(..)
-        .collect::<String>(),
-    );
+    let filter = strip_non_alphanumeric_characters(&self.app.data.radarr_data.filter.drain());
     let filter_matches: Vec<T> = rows
       .iter()
       .filter(|&item| strip_non_alphanumeric_characters(field_selection_fn(item)).contains(&filter))
@@ -537,21 +540,23 @@ mod radarr_handler_test_utils {
     ($handler:ident, $block:expr, $context:expr) => {
       let mut app = App::default();
       let mut radarr_data = RadarrData {
-        edit_path: String::default(),
-        edit_tags: String::default(),
+        edit_path: HorizontallyScrollableText::default(),
+        edit_tags: HorizontallyScrollableText::default(),
         edit_monitored: None,
         quality_profile_map: HashMap::from([
           (2222, "HD - 1080p".to_owned()),
           (1111, "Any".to_owned()),
         ]),
+        tags_map: BiMap::from_iter([(1, "test".to_owned())]),
         filtered_movies: StatefulTable::default(),
         ..create_test_radarr_data()
       };
       radarr_data.movies.set_items(vec![Movie {
-        path: "/nfs/movies/Test".to_owned(),
+        path: "/nfs/movies/Test".to_owned().into(),
         monitored: true,
         quality_profile_id: Number::from(2222),
         minimum_availability: MinimumAvailability::Released,
+        tags: vec![Number::from(1)],
         ..Movie::default()
       }]);
       app.data.radarr_data = radarr_data;
@@ -582,7 +587,7 @@ mod radarr_handler_test_utils {
         app.data.radarr_data.movie_quality_profile_list.items,
         vec!["Any".to_owned(), "HD - 1080p".to_owned()]
       );
-      assert_eq!(
+      assert_str_eq!(
         app
           .data
           .radarr_data
@@ -590,10 +595,8 @@ mod radarr_handler_test_utils {
           .current_selection(),
         "HD - 1080p"
       );
-      assert_eq!(
-        app.data.radarr_data.edit_path,
-        "/nfs/movies/Test".to_owned()
-      );
+      assert_str_eq!(app.data.radarr_data.edit_path.text, "/nfs/movies/Test");
+      assert_str_eq!(app.data.radarr_data.edit_tags.text, "test");
       assert_eq!(app.data.radarr_data.edit_monitored, Some(true));
     };
   }
@@ -673,8 +676,12 @@ mod tests {
   }
 
   mod test_handle_home_end {
+    use pretty_assertions::assert_eq;
+
     use crate::models::radarr_models::DownloadRecord;
-    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
+    use crate::{
+      extended_stateful_iterable_vec, test_iterable_home_and_end, test_text_box_home_end_keys,
+    };
 
     use super::*;
 
@@ -727,6 +734,22 @@ mod tests {
       None,
       title
     );
+
+    #[rstest]
+    fn test_search_boxes_home_end_keys(
+      #[values(ActiveRadarrBlock::SearchMovie, ActiveRadarrBlock::SearchCollection)]
+      active_radarr_block: ActiveRadarrBlock,
+    ) {
+      test_text_box_home_end_keys!(RadarrHandler, active_radarr_block, search);
+    }
+
+    #[rstest]
+    fn test_filter_boxes_home_end_keys(
+      #[values(ActiveRadarrBlock::FilterMovies, ActiveRadarrBlock::FilterCollections)]
+      active_radarr_block: ActiveRadarrBlock,
+    ) {
+      test_text_box_home_end_keys!(RadarrHandler, active_radarr_block, filter);
+    }
   }
 
   mod test_handle_delete {
@@ -764,6 +787,8 @@ mod tests {
   mod test_handle_left_right_action {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
+
+    use crate::test_text_box_left_right_keys;
 
     use super::*;
 
@@ -843,6 +868,22 @@ mod tests {
 
       assert!(!app.data.radarr_data.prompt_confirm);
     }
+
+    #[rstest]
+    fn test_search_boxes_left_right_keys(
+      #[values(ActiveRadarrBlock::SearchMovie, ActiveRadarrBlock::SearchCollection)]
+      active_radarr_block: ActiveRadarrBlock,
+    ) {
+      test_text_box_left_right_keys!(RadarrHandler, active_radarr_block, search);
+    }
+
+    #[rstest]
+    fn test_filter_boxes_left_right_keys(
+      #[values(ActiveRadarrBlock::FilterMovies, ActiveRadarrBlock::FilterCollections)]
+      active_radarr_block: ActiveRadarrBlock,
+    ) {
+      test_text_box_left_right_keys!(RadarrHandler, active_radarr_block, filter);
+    }
   }
 
   mod test_handle_submit {
@@ -877,7 +918,7 @@ mod tests {
         .radarr_data
         .movies
         .set_items(extended_stateful_iterable_vec!(Movie));
-      app.data.radarr_data.search = "Test 2".to_owned();
+      app.data.radarr_data.search = "Test 2".to_owned().into();
 
       RadarrHandler::with(
         &SUBMIT_KEY,
@@ -901,7 +942,7 @@ mod tests {
         .radarr_data
         .filtered_movies
         .set_items(extended_stateful_iterable_vec!(Movie));
-      app.data.radarr_data.search = "Test 2".to_owned();
+      app.data.radarr_data.search = "Test 2".to_owned().into();
 
       RadarrHandler::with(
         &SUBMIT_KEY,
@@ -930,7 +971,7 @@ mod tests {
         .radarr_data
         .collections
         .set_items(extended_stateful_iterable_vec!(Collection));
-      app.data.radarr_data.search = "Test 2".to_owned();
+      app.data.radarr_data.search = "Test 2".to_owned().into();
 
       RadarrHandler::with(
         &SUBMIT_KEY,
@@ -954,7 +995,7 @@ mod tests {
         .radarr_data
         .filtered_collections
         .set_items(extended_stateful_iterable_vec!(Collection));
-      app.data.radarr_data.search = "Test 2".to_owned();
+      app.data.radarr_data.search = "Test 2".to_owned().into();
 
       RadarrHandler::with(
         &SUBMIT_KEY,
@@ -983,7 +1024,7 @@ mod tests {
         .radarr_data
         .movies
         .set_items(extended_stateful_iterable_vec!(Movie));
-      app.data.radarr_data.filter = "Test".to_owned();
+      app.data.radarr_data.filter = "Test".to_owned().into();
 
       RadarrHandler::with(
         &SUBMIT_KEY,
@@ -1013,7 +1054,7 @@ mod tests {
         .radarr_data
         .collections
         .set_items(extended_stateful_iterable_vec!(Collection));
-      app.data.radarr_data.filter = "Test".to_owned();
+      app.data.radarr_data.filter = "Test".to_owned().into();
 
       RadarrHandler::with(
         &SUBMIT_KEY,
@@ -1210,7 +1251,8 @@ mod tests {
   mod test_handle_key_char {
     use std::collections::HashMap;
 
-    use pretty_assertions::assert_eq;
+    use bimap::BiMap;
+    use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;
     use serde_json::Number;
     use strum::IntoEnumIterator;
@@ -1219,6 +1261,7 @@ mod tests {
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
     use crate::app::radarr::RadarrData;
     use crate::models::radarr_models::MinimumAvailability;
+    use crate::models::HorizontallyScrollableText;
     use crate::models::StatefulTable;
 
     use super::*;
@@ -1328,7 +1371,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
-      app.data.radarr_data.search = "Test".to_owned();
+      app.data.radarr_data.search = "Test".to_owned().into();
 
       RadarrHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -1338,7 +1381,7 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.search, "Tes");
+      assert_str_eq!(app.data.radarr_data.search.text, "Tes");
     }
 
     #[rstest]
@@ -1347,7 +1390,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
-      app.data.radarr_data.filter = "Test".to_owned();
+      app.data.radarr_data.filter = "Test".to_owned().into();
 
       RadarrHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -1357,7 +1400,7 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.filter, "Tes");
+      assert_str_eq!(app.data.radarr_data.filter.text, "Tes");
     }
 
     #[rstest]
@@ -1369,7 +1412,7 @@ mod tests {
 
       RadarrHandler::with(&Key::Char('h'), &mut app, &active_radarr_block, &None).handle();
 
-      assert_str_eq!(app.data.radarr_data.search, "h");
+      assert_str_eq!(app.data.radarr_data.search.text, "h");
     }
 
     #[rstest]
@@ -1381,7 +1424,7 @@ mod tests {
 
       RadarrHandler::with(&Key::Char('h'), &mut app, &active_radarr_block, &None).handle();
 
-      assert_str_eq!(app.data.radarr_data.filter, "h");
+      assert_str_eq!(app.data.radarr_data.filter.text, "h");
     }
   }
 
@@ -1393,7 +1436,7 @@ mod tests {
       .radarr_data
       .movies
       .set_items(extended_stateful_iterable_vec!(Movie));
-    app.data.radarr_data.search = "Test 2".to_owned();
+    app.data.radarr_data.search = "Test 2".to_owned().into();
     app.data.radarr_data.is_searching = true;
     app.should_ignore_quit_key = true;
     app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
@@ -1412,7 +1455,7 @@ mod tests {
     assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     assert!(!app.data.radarr_data.is_searching);
     assert!(!app.should_ignore_quit_key);
-    assert!(app.data.radarr_data.search.is_empty());
+    assert!(app.data.radarr_data.search.text.is_empty());
   }
 
   #[test]
@@ -1423,7 +1466,7 @@ mod tests {
       .radarr_data
       .movies
       .set_items(extended_stateful_iterable_vec!(Movie));
-    app.data.radarr_data.search = "Test 5".to_owned();
+    app.data.radarr_data.search = "Test 5".to_owned().into();
     app.data.radarr_data.is_searching = true;
     app.should_ignore_quit_key = true;
     app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
@@ -1445,7 +1488,7 @@ mod tests {
     );
     assert!(!app.data.radarr_data.is_searching);
     assert!(!app.should_ignore_quit_key);
-    assert!(app.data.radarr_data.search.is_empty());
+    assert!(app.data.radarr_data.search.text.is_empty());
   }
 
   #[test]
@@ -1456,7 +1499,7 @@ mod tests {
       .radarr_data
       .movies
       .set_items(extended_stateful_iterable_vec!(Movie));
-    app.data.radarr_data.filter = "Test 2".to_owned();
+    app.data.radarr_data.filter = "Test 2".to_owned().into();
     app.data.radarr_data.is_searching = true;
     app.should_ignore_quit_key = true;
     app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
@@ -1476,7 +1519,7 @@ mod tests {
     assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     assert!(!app.data.radarr_data.is_filtering);
     assert!(!app.should_ignore_quit_key);
-    assert!(app.data.radarr_data.filter.is_empty());
+    assert!(app.data.radarr_data.filter.text.is_empty());
   }
 
   #[test]
@@ -1487,7 +1530,7 @@ mod tests {
       .radarr_data
       .movies
       .set_items(extended_stateful_iterable_vec!(Movie));
-    app.data.radarr_data.filter = "Test 5".to_owned();
+    app.data.radarr_data.filter = "Test 5".to_owned().into();
     app.data.radarr_data.is_filtering = true;
     app.should_ignore_quit_key = true;
     app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
@@ -1509,7 +1552,7 @@ mod tests {
     );
     assert!(!app.data.radarr_data.is_searching);
     assert!(!app.should_ignore_quit_key);
-    assert!(app.data.radarr_data.filter.is_empty());
+    assert!(app.data.radarr_data.filter.text.is_empty());
   }
 
   #[rstest]

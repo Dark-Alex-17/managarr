@@ -11,7 +11,7 @@ use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, Collection, CollectionMovie, CommandBody, Credit,
   CreditType, DiskSpace, DownloadRecord, DownloadsResponse, Movie, MovieCommandBody,
-  MovieHistoryItem, QualityProfile, Release, ReleaseDownloadBody, RootFolder, SystemStatus,
+  MovieHistoryItem, QualityProfile, Release, ReleaseDownloadBody, RootFolder, SystemStatus, Tag,
 };
 use crate::models::{Route, ScrollableText};
 use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
@@ -35,6 +35,7 @@ pub enum RadarrEvent {
   GetReleases,
   GetRootFolders,
   GetStatus,
+  GetTags,
   HealthCheck,
   RefreshAndScan,
   RefreshCollections,
@@ -62,6 +63,7 @@ impl RadarrEvent {
       RadarrEvent::GetReleases | RadarrEvent::DownloadRelease => "/release",
       RadarrEvent::GetRootFolders => "/rootfolder",
       RadarrEvent::GetStatus => "/system/status",
+      RadarrEvent::GetTags => "/tag",
       RadarrEvent::TriggerAutomaticSearch
       | RadarrEvent::RefreshAndScan
       | RadarrEvent::UpdateAllMovies
@@ -97,6 +99,7 @@ impl<'a> Network<'a> {
       RadarrEvent::GetReleases => self.get_releases().await,
       RadarrEvent::GetRootFolders => self.get_root_folders().await,
       RadarrEvent::GetStatus => self.get_status().await,
+      RadarrEvent::GetTags => self.get_tags().await,
       RadarrEvent::HealthCheck => self.get_healthcheck().await,
       RadarrEvent::RefreshAndScan => self.refresh_and_scan().await,
       RadarrEvent::RefreshCollections => self.refresh_collections().await,
@@ -205,13 +208,13 @@ impl<'a> Network<'a> {
   async fn search_movie(&self) {
     info!("Searching for specific Radarr movie");
 
-    let search_string = self.app.lock().await.data.radarr_data.search.clone();
+    let search_string = &self.app.lock().await.data.radarr_data.search.text;
     let request_props = self
       .radarr_request_props_from(
         format!(
           "{}?term={}",
           RadarrEvent::SearchNewMovie.resource(),
-          encode(&search_string)
+          encode(search_string)
         )
         .as_str(),
         RequestMethod::Get,
@@ -567,9 +570,52 @@ impl<'a> Network<'a> {
     self
       .handle_request::<(), Vec<QualityProfile>>(request_props, |quality_profiles, mut app| {
         app.data.radarr_data.quality_profile_map = quality_profiles
-          .iter()
-          .map(|profile| (profile.id.as_u64().unwrap(), profile.name.clone()))
+          .into_iter()
+          .map(|profile| (profile.id.as_u64().unwrap(), profile.name))
           .collect();
+      })
+      .await;
+  }
+
+  async fn get_tags(&self) {
+    info!("Fetching Radarr tags");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::GetTags.resource(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<Tag>>(request_props, |tags_vec, mut app| {
+        app.data.radarr_data.tags_map = tags_vec
+          .into_iter()
+          .map(|tag| (tag.id.as_u64().unwrap(), tag.label))
+          .collect();
+      })
+      .await;
+  }
+
+  async fn add_tag(&self, tag: String) {
+    info!("Adding a new Radarr tag");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::GetTags.resource(),
+        RequestMethod::Post,
+        Some(json!({ "label": tag })),
+      )
+      .await;
+
+    self
+      .handle_request::<Value, Tag>(request_props, |tag, mut app| {
+        app
+          .data
+          .radarr_data
+          .tags_map
+          .insert(tag.id.as_u64().unwrap(), tag.label);
       })
       .await;
   }
@@ -677,34 +723,26 @@ impl<'a> Network<'a> {
   async fn add_movie(&self) {
     info!("Adding new movie to Radarr");
     let body = {
+      let quality_profile_id = self.extract_quality_profile_id().await;
+      let tag_ids_vec = self.extract_and_add_tag_ids_vec().await;
       let app = self.app.lock().await;
       let root_folders = app.data.radarr_data.root_folders.to_vec();
       let (tmdb_id, title) = if let Route::Radarr(active_radarr_block, _) = app.get_current_route()
       {
         if *active_radarr_block == ActiveRadarrBlock::CollectionDetails {
-          let CollectionMovie { tmdb_id, title, .. } = app
-            .data
-            .radarr_data
-            .collection_movies
-            .current_selection_clone();
-          (tmdb_id, title.stationary_style())
+          let CollectionMovie { tmdb_id, title, .. } =
+            app.data.radarr_data.collection_movies.current_selection();
+          (tmdb_id, title.text.clone())
         } else {
-          let AddMovieSearchResult { tmdb_id, title, .. } = app
-            .data
-            .radarr_data
-            .add_searched_movies
-            .current_selection_clone();
-          (tmdb_id, title.stationary_style())
+          let AddMovieSearchResult { tmdb_id, title, .. } =
+            app.data.radarr_data.add_searched_movies.current_selection();
+          (tmdb_id, title.text.clone())
         }
       } else {
-        let AddMovieSearchResult { tmdb_id, title, .. } = app
-          .data
-          .radarr_data
-          .add_searched_movies
-          .current_selection_clone();
-        (tmdb_id, title.stationary_style())
+        let AddMovieSearchResult { tmdb_id, title, .. } =
+          app.data.radarr_data.add_searched_movies.current_selection();
+        (tmdb_id, title.text.clone())
       };
-      let quality_profile_map = app.data.radarr_data.quality_profile_map.clone();
 
       let RootFolder { path, .. } = root_folders
         .iter()
@@ -729,17 +767,6 @@ impl<'a> Network<'a> {
         .movie_minimum_availability_list
         .current_selection()
         .to_string();
-      let quality_profile = app
-        .data
-        .radarr_data
-        .movie_quality_profile_list
-        .current_selection_clone();
-      let quality_profile_id = quality_profile_map
-        .iter()
-        .filter(|(_, value)| **value == quality_profile)
-        .map(|(key, _)| key)
-        .next()
-        .unwrap();
 
       AddMovieBody {
         tmdb_id: tmdb_id.as_u64().unwrap(),
@@ -747,7 +774,8 @@ impl<'a> Network<'a> {
         root_folder_path: path.to_owned(),
         minimum_availability,
         monitored: true,
-        quality_profile_id: *quality_profile_id,
+        quality_profile_id,
+        tags: tag_ids_vec,
         add_options: AddOptions {
           monitor,
           search_for_movie: true,
@@ -785,22 +813,20 @@ impl<'a> Network<'a> {
 
     self
       .handle_request::<(), Value>(request_props, |detailed_movie_body, mut app| {
-        app.data.radarr_data.movie_details =
-          ScrollableText::with_string(detailed_movie_body.to_string())
+        app.response = detailed_movie_body.to_string()
       })
       .await;
 
     info!("Constructing edit movie body");
 
     let body = {
+      let quality_profile_id = self.extract_quality_profile_id().await;
+      let tag_ids_vec = self.extract_and_add_tag_ids_vec().await;
       let mut app = self.app.lock().await;
-      let mut detailed_movie_body: Value =
-        serde_json::from_str(&app.data.radarr_data.movie_details.get_text()).unwrap();
-      app.data.radarr_data.movie_details = ScrollableText::default();
+      let mut detailed_movie_body: Value = serde_json::from_str(&app.response).unwrap();
+      app.response = String::default();
 
-      let quality_profile_map = app.data.radarr_data.quality_profile_map.clone();
-      let path: String = app.data.radarr_data.edit_path.drain(..).collect();
-      let _tags: String = app.data.radarr_data.edit_tags.drain(..).collect();
+      let path: String = app.data.radarr_data.edit_path.drain();
 
       let monitored = app.data.radarr_data.edit_monitored.unwrap_or_default();
       let minimum_availability = app
@@ -809,22 +835,12 @@ impl<'a> Network<'a> {
         .movie_minimum_availability_list
         .current_selection()
         .to_string();
-      let quality_profile = app
-        .data
-        .radarr_data
-        .movie_quality_profile_list
-        .current_selection_clone();
-      let quality_profile_id = quality_profile_map
-        .iter()
-        .filter(|(_, value)| **value == quality_profile)
-        .map(|(key, _)| key)
-        .next()
-        .unwrap();
 
       *detailed_movie_body.get_mut("monitored").unwrap() = json!(monitored);
       *detailed_movie_body.get_mut("minimumAvailability").unwrap() = json!(minimum_availability);
       *detailed_movie_body.get_mut("qualityProfileId").unwrap() = json!(quality_profile_id);
       *detailed_movie_body.get_mut("path").unwrap() = json!(path);
+      *detailed_movie_body.get_mut("tags").unwrap() = json!(tag_ids_vec);
 
       detailed_movie_body
     };
@@ -845,25 +861,21 @@ impl<'a> Network<'a> {
   }
 
   async fn download_release(&self) {
-    let Release {
-      guid,
-      title,
-      indexer_id,
-      ..
-    } = self
-      .app
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movie_releases
-      .current_selection_clone();
+    let (guid, title, indexer_id) = {
+      let app = self.app.lock().await;
+      let Release {
+        guid,
+        title,
+        indexer_id,
+        ..
+      } = app.data.radarr_data.movie_releases.current_selection();
+
+      (guid.clone(), title.clone(), indexer_id.as_u64().unwrap())
+    };
+
     info!("Downloading release: {}", title);
 
-    let download_release_body = ReleaseDownloadBody {
-      guid,
-      indexer_id: indexer_id.as_u64().unwrap(),
-    };
+    let download_release_body = ReleaseDownloadBody { guid, indexer_id };
 
     let request_props = self
       .radarr_request_props_from(
@@ -876,6 +888,65 @@ impl<'a> Network<'a> {
     self
       .handle_request::<ReleaseDownloadBody, ()>(request_props, |_, _| ())
       .await;
+  }
+
+  async fn extract_quality_profile_id(&self) -> u64 {
+    let app = self.app.lock().await;
+    let quality_profile = app
+      .data
+      .radarr_data
+      .movie_quality_profile_list
+      .current_selection();
+    *app
+      .data
+      .radarr_data
+      .quality_profile_map
+      .iter()
+      .filter(|(_, value)| *value == quality_profile)
+      .map(|(key, _)| key)
+      .next()
+      .unwrap()
+  }
+
+  async fn extract_and_add_tag_ids_vec(&self) -> Vec<u64> {
+    let tags_map = self.app.lock().await.data.radarr_data.tags_map.clone();
+    let edit_tags = &self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .edit_tags
+      .text
+      .clone();
+    let missing_tags_vec = edit_tags
+      .split(',')
+      .into_iter()
+      .filter(|&tag| !tag.is_empty() && tags_map.get_by_right(tag.trim()).is_none())
+      .collect::<Vec<&str>>();
+
+    for tag in missing_tags_vec {
+      self.add_tag(tag.trim().to_owned()).await;
+    }
+
+    let app = self.app.lock().await;
+    app
+      .data
+      .radarr_data
+      .edit_tags
+      .text
+      .split(',')
+      .into_iter()
+      .filter(|tag| !tag.is_empty())
+      .map(|tag| {
+        *app
+          .data
+          .radarr_data
+          .tags_map
+          .get_by_right(tag.trim())
+          .unwrap()
+      })
+      .collect()
   }
 
   async fn extract_movie_id(&self) -> u64 {
@@ -898,7 +969,6 @@ impl<'a> Network<'a> {
         .filtered_movies
         .current_selection()
         .id
-        .clone()
         .as_u64()
         .unwrap()
     } else {
@@ -911,7 +981,6 @@ impl<'a> Network<'a> {
         .movies
         .current_selection()
         .id
-        .clone()
         .as_u64()
         .unwrap()
     }
@@ -972,6 +1041,7 @@ mod test {
   use std::collections::HashMap;
   use std::sync::Arc;
 
+  use bimap::BiMap;
   use chrono::{DateTime, Utc};
   use mockito::{Matcher, Mock, Server, ServerGuard};
   use pretty_assertions::{assert_eq, assert_str_eq};
@@ -1010,6 +1080,7 @@ mod test {
         "qualityProfileId": 2222,
         "minimumAvailability": "announced",
         "certification": "R",
+        "tags": [1],
         "ratings": {
           "imdb": {
             "value": 9.9
@@ -1324,7 +1395,7 @@ mod test {
       .as_str(),
     )
     .await;
-    app_arc.lock().await.data.radarr_data.search = "test term".to_owned();
+    app_arc.lock().await.data.radarr_data.search = "test term".to_owned().into();
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network
@@ -1565,6 +1636,7 @@ mod test {
       "runtime": 120,
       "tmdbId": 1234,
       "qualityProfileId": 2222,
+      "tags": [1],
       "minimumAvailability": "released",
       "ratings": {}
     });
@@ -1783,6 +1855,56 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_get_tags_event() {
+    let tags_json = json!([{
+      "id": 2222,
+      "label": "usenet"
+    }]);
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(tags_json),
+      RadarrEvent::GetTags.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.handle_radarr_event(RadarrEvent::GetTags).await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.tags_map,
+      BiMap::from_iter([(2222u64, "usenet".to_owned())])
+    );
+  }
+
+  #[tokio::test]
+  async fn test_add_tag() {
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({ "label": "testing" })),
+      Some(json!({ "id": 3, "label": "testing" })),
+      RadarrEvent::GetTags.resource(),
+    )
+    .await;
+    app_arc.lock().await.data.radarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.add_tag("testing".to_owned()).await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.tags_map,
+      BiMap::from_iter([
+        (1, "usenet".to_owned()),
+        (2, "test".to_owned()),
+        (3, "testing".to_owned())
+      ])
+    );
+  }
+
+  #[tokio::test]
   async fn test_handle_get_root_folders_event() {
     let root_folder_json = json!([{
       "path": "/nfs",
@@ -1915,6 +2037,7 @@ mod test {
         "minimumAvailability": "announced",
         "monitored": true,
         "qualityProfileId": 2222,
+        "tags": [1, 2],
         "addOptions": {
           "monitor": "movieOnly",
           "searchForMovie": true
@@ -1940,6 +2063,9 @@ mod test {
         },
       ];
       app.data.radarr_data.quality_profile_map = HashMap::from([(2222, "HD - 1080p".to_owned())]);
+      app.data.radarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+      app.data.radarr_data.edit_tags = "usenet, testing".to_owned().into();
       app
         .data
         .radarr_data
@@ -1984,6 +2110,7 @@ mod test {
     *expected_body.get_mut("minimumAvailability").unwrap() = json!("announced");
     *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
     *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
+    *expected_body.get_mut("tags").unwrap() = json!([1, 2]);
 
     let (async_details_server, app_arc, mut server) = mock_radarr_api(
       RequestMethod::Get,
@@ -2004,8 +2131,10 @@ mod test {
       .await;
     {
       let mut app = app_arc.lock().await;
-      app.data.radarr_data.edit_tags = "test tag".to_owned();
-      app.data.radarr_data.edit_path = "/nfs/Test Path".to_owned();
+      app.data.radarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+      app.data.radarr_data.edit_tags = "usenet, testing".to_owned().into();
+      app.data.radarr_data.edit_path = "/nfs/Test Path".to_owned().into();
       app.data.radarr_data.edit_monitored = Some(false);
       app
         .data
@@ -2033,8 +2162,7 @@ mod test {
 
     {
       let app = app_arc.lock().await;
-      assert!(app.data.radarr_data.edit_path.is_empty());
-      assert!(app.data.radarr_data.edit_tags.is_empty());
+      assert!(app.data.radarr_data.edit_path.text.is_empty());
       assert!(app.data.radarr_data.movie_details.items.is_empty());
     }
   }
@@ -2068,8 +2196,73 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_extract_quality_profile_id() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    {
+      let mut app = app_arc.lock().await;
+      app
+        .data
+        .radarr_data
+        .movie_quality_profile_list
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      app.data.radarr_data.quality_profile_map =
+        HashMap::from_iter([(1, "Any".to_owned()), (2, "HD - 1080p".to_owned())]);
+    }
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    assert_eq!(network.extract_quality_profile_id().await, 1);
+  }
+
+  #[tokio::test]
+  async fn test_extract_and_add_tag_ids_vec() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    {
+      let mut app = app_arc.lock().await;
+      app.data.radarr_data.edit_tags = "    test,hi ,, usenet ".to_owned().into();
+      app.data.radarr_data.tags_map = BiMap::from_iter([
+        (1, "usenet".to_owned()),
+        (2, "test".to_owned()),
+        (3, "hi".to_owned()),
+      ]);
+    }
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    assert_eq!(network.extract_and_add_tag_ids_vec().await, vec![2, 3, 1]);
+  }
+
+  #[tokio::test]
+  async fn test_extract_and_add_tag_ids_vec_add_missing_tags_first() {
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({ "label": "testing" })),
+      Some(json!({ "id": 3, "label": "testing" })),
+      RadarrEvent::GetTags.resource(),
+    )
+    .await;
+    {
+      let mut app = app_arc.lock().await;
+      app.data.radarr_data.edit_tags = "usenet, test, testing".to_owned().into();
+      app.data.radarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
+    }
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    let tag_ids_vec = network.extract_and_add_tag_ids_vec().await;
+
+    async_server.assert_async().await;
+    assert_eq!(tag_ids_vec, vec![1, 2, 3]);
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.tags_map,
+      BiMap::from_iter([
+        (1, "usenet".to_owned()),
+        (2, "test".to_owned()),
+        (3, "testing".to_owned())
+      ])
+    );
+  }
+
+  #[tokio::test]
   async fn test_extract_movie_id() {
-    let id = Number::from(1);
     let app_arc = Arc::new(Mutex::new(App::default()));
     app_arc
       .lock()
@@ -2078,7 +2271,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![Movie {
-        id: id.clone(),
+        id: Number::from(1),
         ..Movie::default()
       }]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
@@ -2088,7 +2281,6 @@ mod test {
 
   #[tokio::test]
   async fn test_extract_movie_id_filtered_movies() {
-    let id = Number::from(1);
     let app_arc = Arc::new(Mutex::new(App::default()));
     app_arc
       .lock()
@@ -2097,7 +2289,7 @@ mod test {
       .radarr_data
       .filtered_movies
       .set_items(vec![Movie {
-        id: id.clone(),
+        id: Number::from(1),
         ..Movie::default()
       }]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
@@ -2107,7 +2299,6 @@ mod test {
 
   #[tokio::test]
   async fn test_append_movie_id_param() {
-    let id = Number::from(1);
     let app_arc = Arc::new(Mutex::new(App::default()));
     app_arc
       .lock()
@@ -2116,7 +2307,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![Movie {
-        id: id.clone(),
+        id: Number::from(1),
         ..Movie::default()
       }]);
     let network = Network::new(reqwest::Client::new(), &app_arc);
@@ -2342,6 +2533,7 @@ mod test {
       quality_profile_id: Number::from(2222),
       minimum_availability: MinimumAvailability::Announced,
       certification: Some("R".to_owned()),
+      tags: vec![Number::from(1)],
       ratings: ratings_list(),
       movie_file: Some(movie_file()),
       collection: Some(collection()),

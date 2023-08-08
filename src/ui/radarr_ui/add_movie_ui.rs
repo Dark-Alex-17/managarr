@@ -70,7 +70,8 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
       .data
       .radarr_data
       .add_searched_movies
-      .current_selection_clone()
+      .current_selection()
+      .clone()
   };
 
   let chunks = vertical_chunks_with_margin(
@@ -82,12 +83,21 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
     area,
     1,
   );
-  let block_content = app.data.radarr_data.search.as_str();
+  let block_content = &app.data.radarr_data.search.text;
+  let offset = *app.data.radarr_data.search.offset.borrow();
 
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSearchInput => {
-        draw_text_box(f, chunks[0], Some("Add Movie"), block_content, true, false);
+        draw_text_box(
+          f,
+          chunks[0],
+          Some("Add Movie"),
+          block_content,
+          offset,
+          true,
+          false,
+        );
         f.render_widget(layout_block(), chunks[1]);
 
         let mut help_text = Text::from("<esc> close");
@@ -184,7 +194,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
                 ""
               };
 
-              movie.title.scroll_or_reset(
+              movie.title.scroll_left_or_reset(
                 get_width_from_percentage(area, 27),
                 *movie == current_selection,
               );
@@ -208,7 +218,15 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
     }
   }
 
-  draw_text_box(f, chunks[0], Some("Add Movie"), block_content, false, false);
+  draw_text_box(
+    f,
+    chunks[0],
+    Some("Add Movie"),
+    block_content,
+    offset,
+    false,
+    false,
+  );
 }
 
 fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
@@ -260,13 +278,13 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
   let title = "Add Movie";
   let (movie_title, movie_overview) = if let Route::Radarr(_, Some(_)) = app.get_current_route() {
     (
-      app
+      &app
         .data
         .radarr_data
         .collection_movies
         .current_selection()
         .title
-        .stationary_style(),
+        .text,
       app
         .data
         .radarr_data
@@ -277,13 +295,13 @@ fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
     )
   } else {
     (
-      app
+      &app
         .data
         .radarr_data
         .add_searched_movies
         .current_selection()
         .title
-        .stationary_style(),
+        .text,
       app
         .data
         .radarr_data

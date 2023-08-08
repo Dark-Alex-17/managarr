@@ -101,10 +101,6 @@ macro_rules! stateful_iterable {
       pub fn current_selection(&self) -> &T {
         &self.items[self.state.selected().unwrap_or(0)]
       }
-
-      pub fn current_selection_clone(&self) -> T {
-        self.items[self.state.selected().unwrap_or(0)].clone()
-      }
     }
   };
 }
@@ -169,8 +165,8 @@ pub struct HorizontallyScrollableText {
 }
 
 impl From<String> for HorizontallyScrollableText {
-  fn from(input: String) -> HorizontallyScrollableText {
-    HorizontallyScrollableText::new(input)
+  fn from(text: String) -> HorizontallyScrollableText {
+    HorizontallyScrollableText::new(text)
   }
 }
 
@@ -193,32 +189,60 @@ impl Display for HorizontallyScrollableText {
 }
 
 impl HorizontallyScrollableText {
-  pub fn new(input: String) -> HorizontallyScrollableText {
+  pub fn new(text: String) -> HorizontallyScrollableText {
     HorizontallyScrollableText {
-      text: format!("{}        ", input),
+      text,
       offset: RefCell::new(0),
     }
   }
 
-  pub fn scroll_text(&self) {
-    let new_offset = *self.offset.borrow() + 1;
-    *self.offset.borrow_mut() = new_offset % self.text.len();
+  pub fn scroll_left(&self) {
+    if *self.offset.borrow() < self.text.len() {
+      let new_offset = *self.offset.borrow() + 1;
+      *self.offset.borrow_mut() = new_offset;
+    }
+  }
+
+  pub fn scroll_right(&self) {
+    if *self.offset.borrow() > 0 {
+      let new_offset = *self.offset.borrow() - 1;
+      *self.offset.borrow_mut() = new_offset;
+    }
+  }
+
+  pub fn scroll_home(&self) {
+    *self.offset.borrow_mut() = self.text.len();
   }
 
   pub fn reset_offset(&self) {
     *self.offset.borrow_mut() = 0;
   }
 
-  pub fn scroll_or_reset(&self, width: usize, is_current_selection: bool) {
-    if is_current_selection && self.text.len().saturating_sub(4) > width {
-      self.scroll_text();
+  pub fn scroll_left_or_reset(&self, width: usize, is_current_selection: bool) {
+    if is_current_selection && self.text.len() >= width && *self.offset.borrow() < self.text.len() {
+      self.scroll_left();
     } else {
       self.reset_offset();
     }
   }
 
-  pub fn stationary_style(&self) -> String {
-    self.text.clone().trim().to_owned()
+  pub fn drain(&mut self) -> String {
+    self.reset_offset();
+    self.text.drain(..).collect()
+  }
+
+  pub fn pop(&mut self) {
+    if *self.offset.borrow() < self.text.len() {
+      self
+        .text
+        .remove(self.text.len() - *self.offset.borrow() - 1);
+    }
+  }
+
+  pub fn push(&mut self, character: char) {
+    self
+      .text
+      .insert(self.text.len() - *self.offset.borrow(), character);
   }
 }
 
@@ -346,23 +370,6 @@ mod tests {
   }
 
   #[test]
-  fn test_stateful_table_current_selection_clone() {
-    let mut stateful_table = create_test_stateful_table();
-
-    assert_str_eq!(
-      stateful_table.current_selection_clone(),
-      stateful_table.items[0]
-    );
-
-    stateful_table.state.select(Some(1));
-
-    assert_str_eq!(
-      stateful_table.current_selection_clone(),
-      stateful_table.items[1]
-    );
-  }
-
-  #[test]
   fn test_stateful_table_select_index() {
     let mut stateful_table = create_test_stateful_table();
 
@@ -444,10 +451,7 @@ mod tests {
     let horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
 
     assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
-    assert_str_eq!(
-      horizontally_scrollable_text.text,
-      format!("{}        ", test_text)
-    );
+    assert_str_eq!(horizontally_scrollable_text.text, test_text);
   }
 
   #[test]
@@ -455,10 +459,7 @@ mod tests {
     let test_text = "Test string";
     let horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
 
-    assert_str_eq!(
-      horizontally_scrollable_text.to_string(),
-      format!("{}        ", test_text)
-    );
+    assert_str_eq!(horizontally_scrollable_text.to_string(), test_text);
 
     let horizontally_scrollable_text = HorizontallyScrollableText {
       text: test_text.to_owned(),
@@ -481,27 +482,58 @@ mod tests {
     let horizontally_scrollable_text = HorizontallyScrollableText::new(test_text.to_owned());
 
     assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
-    assert_str_eq!(
-      horizontally_scrollable_text.text,
-      format!("{}        ", test_text)
-    );
+    assert_str_eq!(horizontally_scrollable_text.text, test_text);
   }
 
   #[test]
-  fn test_horizontally_scrollable_text_scroll_text() {
+  fn test_horizontally_scrollable_text_scroll_text_left() {
     let horizontally_scrollable_text = HorizontallyScrollableText::from("Test string".to_owned());
 
     assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
 
-    for i in 1..horizontally_scrollable_text.text.len() {
-      horizontally_scrollable_text.scroll_text();
+    for i in 1..horizontally_scrollable_text.text.len() - 1 {
+      horizontally_scrollable_text.scroll_left();
 
       assert_eq!(*horizontally_scrollable_text.offset.borrow(), i);
     }
 
-    horizontally_scrollable_text.scroll_text();
+    horizontally_scrollable_text.scroll_left();
+
+    assert_eq!(
+      *horizontally_scrollable_text.offset.borrow(),
+      horizontally_scrollable_text.text.len() - 1
+    );
+  }
+
+  #[test]
+  fn test_horizontally_scrollable_text_scroll_text_right() {
+    let horizontally_scrollable_text = HorizontallyScrollableText::from("Test string".to_owned());
+    *horizontally_scrollable_text.offset.borrow_mut() = horizontally_scrollable_text.text.len();
+
+    for i in 1..horizontally_scrollable_text.text.len() {
+      horizontally_scrollable_text.scroll_right();
+
+      assert_eq!(
+        *horizontally_scrollable_text.offset.borrow(),
+        horizontally_scrollable_text.text.len() - i
+      );
+    }
+
+    horizontally_scrollable_text.scroll_right();
 
     assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+  }
+
+  #[test]
+  fn test_horizontally_scrollable_text_scroll_home() {
+    let horizontally_scrollable_text = HorizontallyScrollableText::from("Test string".to_owned());
+
+    horizontally_scrollable_text.scroll_home();
+
+    assert_eq!(
+      *horizontally_scrollable_text.offset.borrow(),
+      horizontally_scrollable_text.text.len()
+    );
   }
 
   #[test]
@@ -522,29 +554,83 @@ mod tests {
     let test_text = "Test string";
     let horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
 
-    horizontally_scrollable_text.scroll_or_reset(width, true);
+    horizontally_scrollable_text.scroll_left_or_reset(width, true);
 
     assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
 
-    horizontally_scrollable_text.scroll_or_reset(width, false);
+    horizontally_scrollable_text.scroll_left_or_reset(width, false);
 
     assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
 
-    horizontally_scrollable_text.scroll_or_reset(width, true);
+    horizontally_scrollable_text.scroll_left_or_reset(width, true);
 
     assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
 
-    horizontally_scrollable_text.scroll_or_reset(test_text.len(), false);
+    horizontally_scrollable_text.scroll_left_or_reset(test_text.len(), false);
 
     assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
   }
 
   #[test]
-  fn test_horizontally_scrollable_text_stationary_style() {
+  fn test_horizontally_scrollable_text_drain() {
     let test_text = "Test string";
-    let horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
+    let mut horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
 
-    assert_eq!(horizontally_scrollable_text.stationary_style(), test_text);
+    assert_str_eq!(horizontally_scrollable_text.drain(), test_text);
+    assert!(horizontally_scrollable_text.text.is_empty());
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+  }
+
+  #[test]
+  fn test_horizontally_scrollable_text_pop() {
+    let test_text = "Test string";
+    let mut horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
+    horizontally_scrollable_text.pop();
+
+    assert_str_eq!(horizontally_scrollable_text.text, "Test strin");
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+
+    horizontally_scrollable_text.scroll_left();
+    horizontally_scrollable_text.pop();
+
+    assert_str_eq!(horizontally_scrollable_text.text, "Test strn");
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
+
+    horizontally_scrollable_text.scroll_right();
+    horizontally_scrollable_text.scroll_right();
+    horizontally_scrollable_text.pop();
+
+    assert_str_eq!(horizontally_scrollable_text.text, "Test str");
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+
+    horizontally_scrollable_text.scroll_home();
+    horizontally_scrollable_text.pop();
+
+    assert_str_eq!(horizontally_scrollable_text.text, "Test str");
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 8);
+  }
+
+  #[test]
+  fn test_horizontally_scrollable_text_push() {
+    let test_text = "Test string";
+    let mut horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
+    horizontally_scrollable_text.push('h');
+
+    assert_str_eq!(horizontally_scrollable_text.text, "Test stringh");
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+
+    horizontally_scrollable_text.scroll_left();
+    horizontally_scrollable_text.push('l');
+
+    assert_str_eq!(horizontally_scrollable_text.text, "Test stringlh");
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
+
+    horizontally_scrollable_text.scroll_right();
+    horizontally_scrollable_text.scroll_right();
+    horizontally_scrollable_text.push('0');
+
+    assert_str_eq!(horizontally_scrollable_text.text, "Test stringlh0");
+    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
   }
 
   #[test]

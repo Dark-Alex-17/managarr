@@ -3,7 +3,7 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::{Scrollable, StatefulTable};
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_text_box_keys, App, Key};
+use crate::{handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
 
 pub(super) struct AddMovieHandler<'a> {
   key: &'a Key,
@@ -119,6 +119,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         .radarr_data
         .movie_quality_profile_list
         .scroll_to_top(),
+      ActiveRadarrBlock::AddMovieSearchInput => self.app.data.radarr_data.search.scroll_home(),
       _ => (),
     }
   }
@@ -149,6 +150,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
         .radarr_data
         .movie_quality_profile_list
         .scroll_to_bottom(),
+      ActiveRadarrBlock::AddMovieSearchInput => self.app.data.radarr_data.search.reset_offset(),
       _ => (),
     }
   }
@@ -156,8 +158,12 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
   fn handle_delete(&mut self) {}
 
   fn handle_left_right_action(&mut self) {
-    if let ActiveRadarrBlock::AddMoviePrompt = self.active_radarr_block {
-      handle_prompt_toggle(self.app, self.key)
+    match self.active_radarr_block {
+      ActiveRadarrBlock::AddMoviePrompt => handle_prompt_toggle(self.app, self.key),
+      ActiveRadarrBlock::AddMovieSearchInput => {
+        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.search)
+      }
+      _ => (),
     }
   }
 
@@ -298,7 +304,7 @@ mod tests {
       ActiveRadarrBlock::AddMovieSearchResults,
       None,
       title,
-      stationary_style
+      to_string
     );
 
     test_enum_scroll!(
@@ -349,10 +355,12 @@ mod tests {
   }
 
   mod test_handle_home_end {
+    use rstest::rstest;
     use strum::IntoEnumIterator;
 
     use crate::{
       extended_stateful_iterable_vec, test_enum_home_and_end, test_iterable_home_and_end,
+      test_text_box_home_end_keys,
     };
 
     use super::*;
@@ -365,7 +373,7 @@ mod tests {
       ActiveRadarrBlock::AddMovieSearchResults,
       None,
       title,
-      stationary_style
+      to_string
     );
 
     test_enum_home_and_end!(
@@ -393,10 +401,21 @@ mod tests {
       ActiveRadarrBlock::AddMovieSelectQualityProfile,
       None
     );
+
+    #[test]
+    fn test_add_movie_search_input_home_end_keys() {
+      test_text_box_home_end_keys!(
+        AddMovieHandler,
+        ActiveRadarrBlock::AddMovieSearchInput,
+        search
+      );
+    }
   }
 
   mod test_handle_left_right_action {
     use rstest::rstest;
+
+    use crate::test_text_box_left_right_keys;
 
     use super::*;
 
@@ -411,6 +430,15 @@ mod tests {
       AddMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::AddMoviePrompt, &None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
+    }
+
+    #[test]
+    fn test_add_movie_search_input_left_right_keys() {
+      test_text_box_left_right_keys!(
+        AddMovieHandler,
+        ActiveRadarrBlock::AddMovieSearchInput,
+        search
+      );
     }
   }
 
@@ -805,7 +833,7 @@ mod tests {
     #[test]
     fn test_add_movie_search_input_backspace() {
       let mut app = App::default();
-      app.data.radarr_data.search = "Test".to_owned();
+      app.data.radarr_data.search = "Test".to_owned().into();
 
       AddMovieHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -815,7 +843,7 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.search, "Tes");
+      assert_str_eq!(app.data.radarr_data.search.text, "Tes");
     }
 
     #[test]
@@ -830,7 +858,7 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.search, "h");
+      assert_str_eq!(app.data.radarr_data.search.text, "h");
     }
   }
 }

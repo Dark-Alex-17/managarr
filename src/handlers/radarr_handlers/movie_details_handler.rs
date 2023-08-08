@@ -271,12 +271,7 @@ fn sort_releases_by_selected_field(
     ReleaseField::Source => |release_a, release_b| release_a.protocol.cmp(&release_b.protocol),
     ReleaseField::Age => |release_a, release_b| release_a.age.as_u64().cmp(&release_b.age.as_u64()),
     ReleaseField::Rejected => |release_a, release_b| release_a.rejected.cmp(&release_b.rejected),
-    ReleaseField::Title => |release_a, release_b| {
-      release_a
-        .title
-        .stationary_style()
-        .cmp(&release_b.title.stationary_style())
-    },
+    ReleaseField::Title => |release_a, release_b| release_a.title.text.cmp(&release_b.title.text),
     ReleaseField::Indexer => |release_a, release_b| release_a.indexer.cmp(&release_b.indexer),
     ReleaseField::Size => |release_a, release_b| {
       release_a
@@ -394,7 +389,7 @@ mod tests {
       ActiveRadarrBlock::MovieHistory,
       None,
       source_title,
-      stationary_style
+      to_string
     );
 
     test_iterable_scroll!(
@@ -427,7 +422,7 @@ mod tests {
       ActiveRadarrBlock::ManualSearch,
       None,
       title,
-      stationary_style
+      to_string
     );
 
     test_enum_scroll!(
@@ -484,7 +479,7 @@ mod tests {
       ActiveRadarrBlock::MovieHistory,
       None,
       source_title,
-      stationary_style
+      to_string
     );
 
     test_iterable_home_and_end!(
@@ -517,7 +512,7 @@ mod tests {
       ActiveRadarrBlock::ManualSearch,
       None,
       title,
-      stationary_style
+      to_string
     );
 
     test_enum_home_and_end!(
@@ -717,11 +712,13 @@ mod tests {
   }
 
   mod test_handle_esc {
-    use pretty_assertions::assert_eq;
+    use bimap::BiMap;
+    use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;
 
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
     use crate::assert_movie_info_tabs_reset;
+    use crate::models::HorizontallyScrollableText;
 
     use super::*;
 
@@ -775,7 +772,8 @@ mod tests {
   mod test_handle_key_char {
     use std::collections::HashMap;
 
-    use pretty_assertions::assert_eq;
+    use bimap::BiMap;
+    use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
@@ -783,6 +781,7 @@ mod tests {
     use crate::app::radarr::RadarrData;
     use crate::handlers::radarr_handlers::RadarrHandler;
     use crate::models::radarr_models::{MinimumAvailability, Movie};
+    use crate::models::HorizontallyScrollableText;
     use crate::models::StatefulTable;
     use crate::test_edit_movie_key;
 

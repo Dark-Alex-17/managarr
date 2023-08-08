@@ -66,6 +66,21 @@ fn handle_prompt_toggle(app: &mut App, key: &Key) {
 }
 
 #[macro_export]
+macro_rules! handle_text_box_left_right_keys {
+  ($self:expr, $key:expr, $input:expr) => {
+    match $self.key {
+      _ if *$key == DEFAULT_KEYBINDINGS.left.key => {
+        $input.scroll_left();
+      }
+      _ if *$key == DEFAULT_KEYBINDINGS.right.key => {
+        $input.scroll_right();
+      }
+      _ => (),
+    }
+  };
+}
+
+#[macro_export]
 macro_rules! handle_text_box_keys {
   ($self:expr, $key:expr, $input:expr) => {
     match $self.key {
@@ -221,6 +236,27 @@ mod test_utils {
         );
       }
     };
+    ($func:ident, $handler:ident, $data_ref:ident, $items:expr, $block:expr, $context:expr, $field:ident) => {
+      #[rstest]
+      fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
+        let mut app = App::default();
+        app.data.radarr_data.$data_ref.set_items($items);
+
+        $handler::with(&key, &mut app, &$block, &$context).handle();
+
+        assert_str_eq!(
+          app.data.radarr_data.$data_ref.current_selection().$field,
+          "Test 2"
+        );
+
+        $handler::with(&key, &mut app, &$block, &$context).handle();
+
+        assert_str_eq!(
+          app.data.radarr_data.$data_ref.current_selection().$field,
+          "Test 1"
+        );
+      }
+    };
     ($func:ident, $handler:ident, $data_ref:ident, $items:expr, $block:expr, $context:expr, $field:ident, $conversion_fn:ident) => {
       #[rstest]
       fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
@@ -338,6 +374,27 @@ mod test_utils {
         );
       }
     };
+    ($func:ident, $handler:ident, $data_ref:ident, $items:expr, $block:expr, $context:expr, $field:ident) => {
+      #[test]
+      fn $func() {
+        let mut app = App::default();
+        app.data.radarr_data.$data_ref.set_items($items);
+
+        $handler::with(&DEFAULT_KEYBINDINGS.end.key, &mut app, &$block, &$context).handle();
+
+        assert_str_eq!(
+          app.data.radarr_data.$data_ref.current_selection().$field,
+          "Test 3"
+        );
+
+        $handler::with(&DEFAULT_KEYBINDINGS.home.key, &mut app, &$block, &$context).handle();
+
+        assert_str_eq!(
+          app.data.radarr_data.$data_ref.current_selection().$field,
+          "Test 1"
+        );
+      }
+    };
     ($func:ident, $handler:ident, $data_ref:ident, $items:expr, $block:expr, $context:expr, $field:ident, $conversion_fn:ident) => {
       #[test]
       fn $func() {
@@ -400,6 +457,38 @@ mod test_utils {
           &reference_vec[0]
         );
       }
+    };
+  }
+
+  #[macro_export]
+  macro_rules! test_text_box_home_end_keys {
+    ($handler:ident, $block:expr, $field:ident) => {
+      let mut app = App::default();
+      app.data.radarr_data.$field = "Test".to_owned().into();
+
+      $handler::with(&DEFAULT_KEYBINDINGS.home.key, &mut app, &$block, &None).handle();
+
+      assert_eq!(*app.data.radarr_data.$field.offset.borrow(), 4);
+
+      $handler::with(&DEFAULT_KEYBINDINGS.end.key, &mut app, &$block, &None).handle();
+
+      assert_eq!(*app.data.radarr_data.$field.offset.borrow(), 0);
+    };
+  }
+
+  #[macro_export]
+  macro_rules! test_text_box_left_right_keys {
+    ($handler:ident, $block:expr, $field:ident) => {
+      let mut app = App::default();
+      app.data.radarr_data.$field = "Test".to_owned().into();
+
+      $handler::with(&DEFAULT_KEYBINDINGS.left.key, &mut app, &$block, &None).handle();
+
+      assert_eq!(*app.data.radarr_data.$field.offset.borrow(), 1);
+
+      $handler::with(&DEFAULT_KEYBINDINGS.right.key, &mut app, &$block, &None).handle();
+
+      assert_eq!(*app.data.radarr_data.$field.offset.borrow(), 0);
     };
   }
 

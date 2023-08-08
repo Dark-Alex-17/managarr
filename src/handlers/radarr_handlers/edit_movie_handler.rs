@@ -2,10 +2,10 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::App;
 use crate::event::Key;
-use crate::handle_text_box_keys;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
+use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
 
 pub(super) struct EditMovieHandler<'a> {
   key: &'a Key,
@@ -100,6 +100,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
         .radarr_data
         .movie_quality_profile_list
         .scroll_to_top(),
+      ActiveRadarrBlock::EditMoviePathInput => self.app.data.radarr_data.edit_path.scroll_home(),
+      ActiveRadarrBlock::EditMovieTagsInput => self.app.data.radarr_data.edit_tags.scroll_home(),
       _ => (),
     }
   }
@@ -118,6 +120,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
         .radarr_data
         .movie_quality_profile_list
         .scroll_to_bottom(),
+      ActiveRadarrBlock::EditMoviePathInput => self.app.data.radarr_data.edit_path.reset_offset(),
+      ActiveRadarrBlock::EditMovieTagsInput => self.app.data.radarr_data.edit_tags.reset_offset(),
       _ => (),
     }
   }
@@ -125,8 +129,15 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for EditMovieHandler<'a> {
   fn handle_delete(&mut self) {}
 
   fn handle_left_right_action(&mut self) {
-    if let ActiveRadarrBlock::EditMoviePrompt = self.active_radarr_block {
-      handle_prompt_toggle(self.app, self.key)
+    match self.active_radarr_block {
+      ActiveRadarrBlock::EditMoviePrompt => handle_prompt_toggle(self.app, self.key),
+      ActiveRadarrBlock::EditMoviePathInput => {
+        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.edit_path)
+      }
+      ActiveRadarrBlock::EditMovieTagsInput => {
+        handle_text_box_left_right_keys!(self, self.key, self.app.data.radarr_data.edit_tags)
+      }
+      _ => (),
     }
   }
 
@@ -262,7 +273,7 @@ mod tests {
   mod test_handle_home_end {
     use strum::IntoEnumIterator;
 
-    use crate::{test_enum_home_and_end, test_iterable_home_and_end};
+    use crate::{test_enum_home_and_end, test_iterable_home_and_end, test_text_box_home_end_keys};
 
     use super::*;
 
@@ -282,10 +293,30 @@ mod tests {
       ActiveRadarrBlock::EditMovieSelectQualityProfile,
       None
     );
+
+    #[test]
+    fn test_edit_movie_path_input_home_end_keys() {
+      test_text_box_home_end_keys!(
+        EditMovieHandler,
+        ActiveRadarrBlock::EditMoviePathInput,
+        edit_path
+      );
+    }
+
+    #[test]
+    fn test_edit_movie_tags_input_home_end_keys() {
+      test_text_box_home_end_keys!(
+        EditMovieHandler,
+        ActiveRadarrBlock::EditMovieTagsInput,
+        edit_tags
+      );
+    }
   }
 
   mod test_handle_left_right_action {
     use rstest::rstest;
+
+    use crate::{test_text_box_home_end_keys, test_text_box_left_right_keys};
 
     use super::*;
 
@@ -300,6 +331,24 @@ mod tests {
       EditMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::EditMoviePrompt, &None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
+    }
+
+    #[test]
+    fn test_edit_movie_path_input_left_right_keys() {
+      test_text_box_left_right_keys!(
+        EditMovieHandler,
+        ActiveRadarrBlock::EditMoviePathInput,
+        edit_path
+      );
+    }
+
+    #[test]
+    fn test_edit_movie_tags_input_left_right_keys() {
+      test_text_box_left_right_keys!(
+        EditMovieHandler,
+        ActiveRadarrBlock::EditMovieTagsInput,
+        edit_tags
+      );
     }
   }
 
@@ -321,7 +370,7 @@ mod tests {
     fn test_edit_movie_path_input_submit() {
       let mut app = App::default();
       app.should_ignore_quit_key = true;
-      app.data.radarr_data.edit_path = "Test Path".to_owned();
+      app.data.radarr_data.edit_path = "Test Path".to_owned().into();
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePathInput.into());
 
@@ -334,7 +383,7 @@ mod tests {
       .handle();
 
       assert!(!app.should_ignore_quit_key);
-      assert!(!app.data.radarr_data.edit_path.is_empty());
+      assert!(!app.data.radarr_data.edit_path.text.is_empty());
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::EditMoviePrompt.into()
@@ -345,7 +394,7 @@ mod tests {
     fn test_edit_movie_tags_input_submit() {
       let mut app = App::default();
       app.should_ignore_quit_key = true;
-      app.data.radarr_data.edit_tags = "Test Tags".to_owned();
+      app.data.radarr_data.edit_tags = "Test Tags".to_owned().into();
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePathInput.into());
 
@@ -358,7 +407,7 @@ mod tests {
       .handle();
 
       assert!(!app.should_ignore_quit_key);
-      assert!(!app.data.radarr_data.edit_tags.is_empty());
+      assert!(!app.data.radarr_data.edit_tags.text.is_empty());
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::EditMoviePrompt.into()
@@ -599,7 +648,7 @@ mod tests {
     #[test]
     fn test_edit_movie_path_input_backspace() {
       let mut app = App::default();
-      app.data.radarr_data.edit_path = "Test".to_owned();
+      app.data.radarr_data.edit_path = "Test".to_owned().into();
 
       EditMovieHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -609,13 +658,13 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.edit_path, "Tes");
+      assert_str_eq!(app.data.radarr_data.edit_path.text, "Tes");
     }
 
     #[test]
     fn test_edit_movie_tags_input_backspace() {
       let mut app = App::default();
-      app.data.radarr_data.edit_tags = "Test".to_owned();
+      app.data.radarr_data.edit_tags = "Test".to_owned().into();
 
       EditMovieHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -625,7 +674,7 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.edit_tags, "Tes");
+      assert_str_eq!(app.data.radarr_data.edit_tags.text, "Tes");
     }
 
     #[test]
@@ -640,7 +689,7 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.edit_path, "h");
+      assert_str_eq!(app.data.radarr_data.edit_path.text, "h");
     }
 
     #[test]
@@ -655,7 +704,7 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.edit_tags, "h");
+      assert_str_eq!(app.data.radarr_data.edit_tags.text, "h");
     }
   }
 }

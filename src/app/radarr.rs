@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
+use bimap::BiMap;
 use chrono::{DateTime, Utc};
 use strum::IntoEnumIterator;
 
@@ -9,7 +10,9 @@ use crate::models::radarr_models::{
   AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord,
   MinimumAvailability, Monitor, Movie, MovieHistoryItem, Release, ReleaseField, RootFolder,
 };
-use crate::models::{ScrollableText, StatefulList, StatefulTable, TabRoute, TabState};
+use crate::models::{
+  HorizontallyScrollableText, ScrollableText, StatefulList, StatefulTable, TabRoute, TabState,
+};
 use crate::network::radarr_network::RadarrEvent;
 
 pub struct RadarrData {
@@ -26,6 +29,7 @@ pub struct RadarrData {
   pub selected_block: ActiveRadarrBlock,
   pub downloads: StatefulTable<DownloadRecord>,
   pub quality_profile_map: HashMap<u64, String>,
+  pub tags_map: BiMap<u64, String>,
   pub movie_details: ScrollableText,
   pub file_details: String,
   pub audio_details: String,
@@ -41,10 +45,10 @@ pub struct RadarrData {
   pub prompt_confirm_action: Option<RadarrEvent>,
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
-  pub search: String,
-  pub filter: String,
-  pub edit_path: String,
-  pub edit_tags: String,
+  pub search: HorizontallyScrollableText,
+  pub filter: HorizontallyScrollableText,
+  pub edit_path: HorizontallyScrollableText,
+  pub edit_tags: HorizontallyScrollableText,
   pub edit_monitored: Option<bool>,
   pub sort_ascending: Option<bool>,
   pub prompt_confirm: bool,
@@ -59,8 +63,8 @@ impl RadarrData {
 
   pub fn reset_search(&mut self) {
     self.is_searching = false;
-    self.search = String::default();
-    self.filter = String::default();
+    self.search = HorizontallyScrollableText::default();
+    self.filter = HorizontallyScrollableText::default();
     self.filtered_movies = StatefulTable::default();
     self.filtered_collections = StatefulTable::default();
     self.add_searched_movies = StatefulTable::default();
@@ -68,15 +72,15 @@ impl RadarrData {
 
   pub fn reset_filter(&mut self) {
     self.is_filtering = false;
-    self.filter = String::default();
+    self.filter = HorizontallyScrollableText::default();
     self.filtered_movies = StatefulTable::default();
     self.filtered_collections = StatefulTable::default();
   }
 
   pub fn reset_edit_movie(&mut self) {
     self.edit_monitored = None;
-    self.edit_path = String::default();
-    self.edit_tags = String::default();
+    self.edit_path = HorizontallyScrollableText::default();
+    self.edit_tags = HorizontallyScrollableText::default();
     self.reset_movie_preferences_selections();
   }
 
@@ -119,24 +123,37 @@ impl RadarrData {
     self.populate_movie_preferences_lists();
     let Movie {
       path,
+      tags,
       monitored,
       minimum_availability,
       quality_profile_id,
       ..
     } = if self.filtered_movies.items.is_empty() {
-      self.movies.current_selection_clone()
+      self.movies.current_selection()
     } else {
-      self.filtered_movies.current_selection_clone()
+      self.filtered_movies.current_selection()
     };
 
-    self.edit_path = path;
-    self.edit_monitored = Some(monitored);
+    self.edit_path = path.clone().into();
+    self.edit_tags = tags
+      .iter()
+      .map(|tag_id| {
+        self
+          .tags_map
+          .get_by_left(&tag_id.as_u64().unwrap())
+          .unwrap()
+          .clone()
+      })
+      .collect::<Vec<String>>()
+      .join(", ")
+      .into();
+    self.edit_monitored = Some(*monitored);
 
     let minimum_availability_index = self
       .movie_minimum_availability_list
       .items
       .iter()
-      .position(|&ma| ma == minimum_availability);
+      .position(|ma| ma == minimum_availability);
     self
       .movie_minimum_availability_list
       .state
@@ -174,6 +191,7 @@ impl Default for RadarrData {
       filtered_movies: StatefulTable::default(),
       downloads: StatefulTable::default(),
       quality_profile_map: HashMap::default(),
+      tags_map: BiMap::default(),
       file_details: String::default(),
       audio_details: String::default(),
       video_details: String::default(),
@@ -187,10 +205,10 @@ impl Default for RadarrData {
       filtered_collections: StatefulTable::default(),
       collection_movies: StatefulTable::default(),
       prompt_confirm_action: None,
-      search: String::default(),
-      filter: String::default(),
-      edit_path: String::default(),
-      edit_tags: String::default(),
+      search: HorizontallyScrollableText::default(),
+      filter: HorizontallyScrollableText::default(),
+      edit_path: HorizontallyScrollableText::default(),
+      edit_tags: HorizontallyScrollableText::default(),
       edit_monitored: None,
       sort_ascending: None,
       is_searching: false,
@@ -520,6 +538,9 @@ impl App {
         .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
         .await;
       self
+        .dispatch_network_event(RadarrEvent::GetTags.into())
+        .await;
+      self
         .dispatch_network_event(RadarrEvent::GetRootFolders.into())
         .await;
       self
@@ -538,6 +559,12 @@ impl App {
         .unwrap_or_else(|| Duration::from_secs(0))
         .is_zero()
     {
+      self
+        .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
+        .await;
+      self
+        .dispatch_network_event(RadarrEvent::GetTags.into())
+        .await;
       self.dispatch_by_radarr_block(&active_radarr_block).await;
     }
   }
@@ -548,7 +575,8 @@ impl App {
         .data
         .radarr_data
         .filtered_collections
-        .current_selection_clone()
+        .current_selection()
+        .clone()
         .movies
         .unwrap_or_default()
     } else {
@@ -556,7 +584,8 @@ impl App {
         .data
         .radarr_data
         .collections
-        .current_selection_clone()
+        .current_selection()
+        .clone()
         .movies
         .unwrap_or_default()
     };
@@ -582,10 +611,10 @@ pub mod radarr_test_utils {
     let mut radarr_data = RadarrData {
       is_searching: true,
       is_filtering: true,
-      search: "test search".to_owned(),
-      filter: "test filter".to_owned(),
-      edit_path: "test path".to_owned(),
-      edit_tags: "test tag".to_owned(),
+      search: "test search".to_owned().into(),
+      filter: "test filter".to_owned().into(),
+      edit_path: "test path".to_owned().into(),
+      edit_tags: "usenet, test".to_owned().into(),
       edit_monitored: Some(true),
       file_details: "test file details".to_owned(),
       audio_details: "test audio details".to_owned(),
@@ -642,8 +671,8 @@ pub mod radarr_test_utils {
   macro_rules! assert_search_reset {
     ($radarr_data:expr) => {
       assert!(!$radarr_data.is_searching);
-      assert!($radarr_data.search.is_empty());
-      assert!($radarr_data.filter.is_empty());
+      assert!($radarr_data.search.text.is_empty());
+      assert!($radarr_data.filter.text.is_empty());
       assert!($radarr_data.filtered_movies.items.is_empty());
       assert!($radarr_data.filtered_collections.items.is_empty());
       assert!($radarr_data.add_searched_movies.items.is_empty());
@@ -654,8 +683,8 @@ pub mod radarr_test_utils {
   macro_rules! assert_edit_movie_reset {
     ($radarr_data:expr) => {
       assert!($radarr_data.edit_monitored.is_none());
-      assert!($radarr_data.edit_path.is_empty());
-      assert!($radarr_data.edit_tags.is_empty());
+      assert!($radarr_data.edit_path.text.is_empty());
+      assert!($radarr_data.edit_tags.text.is_empty());
     };
   }
 
@@ -663,7 +692,7 @@ pub mod radarr_test_utils {
   macro_rules! assert_filter_reset {
     ($radarr_data:expr) => {
       assert!(!$radarr_data.is_filtering);
-      assert!($radarr_data.filter.is_empty());
+      assert!($radarr_data.filter.text.is_empty());
       assert!($radarr_data.filtered_movies.items.is_empty());
       assert!($radarr_data.filtered_collections.items.is_empty());
     };
@@ -704,7 +733,8 @@ mod tests {
   mod radarr_data_tests {
     use std::collections::HashMap;
 
-    use pretty_assertions::assert_eq;
+    use bimap::BiMap;
+    use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;
     use serde_json::Number;
     use strum::IntoEnumIterator;
@@ -712,7 +742,7 @@ mod tests {
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
     use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
     use crate::models::radarr_models::{MinimumAvailability, Monitor, Movie};
-    use crate::models::{Route, StatefulTable};
+    use crate::models::{HorizontallyScrollableText, Route, StatefulTable};
 
     #[test]
     fn test_from_tuple_to_route_with_context() {
@@ -768,8 +798,8 @@ mod tests {
     fn test_reset_edit_movie() {
       let mut radarr_data = RadarrData {
         edit_monitored: Some(true),
-        edit_path: "test path".to_owned(),
-        edit_tags: "test tag".to_owned(),
+        edit_path: "test path".to_owned().into(),
+        edit_tags: "test tag".to_owned().into(),
         ..RadarrData::default()
       };
 
@@ -816,13 +846,14 @@ mod tests {
     #[rstest]
     fn test_populate_edit_movie_fields(#[values(true, false)] test_filtered_movies: bool) {
       let mut radarr_data = RadarrData {
-        edit_path: String::default(),
-        edit_tags: String::default(),
+        edit_path: HorizontallyScrollableText::default(),
+        edit_tags: HorizontallyScrollableText::default(),
         edit_monitored: None,
         quality_profile_map: HashMap::from([
           (2222, "HD - 1080p".to_owned()),
           (1111, "Any".to_owned()),
         ]),
+        tags_map: BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]),
         filtered_movies: StatefulTable::default(),
         ..create_test_radarr_data()
       };
@@ -831,6 +862,7 @@ mod tests {
         monitored: true,
         quality_profile_id: Number::from(2222),
         minimum_availability: MinimumAvailability::Released,
+        tags: vec![Number::from(1), Number::from(2)],
         ..Movie::default()
       };
 
@@ -856,11 +888,12 @@ mod tests {
         radarr_data.movie_quality_profile_list.items,
         vec!["Any".to_owned(), "HD - 1080p".to_owned()]
       );
-      assert_eq!(
+      assert_str_eq!(
         radarr_data.movie_quality_profile_list.current_selection(),
         "HD - 1080p"
       );
-      assert_eq!(radarr_data.edit_path, "/nfs/movies/Test".to_owned());
+      assert_str_eq!(radarr_data.edit_path.text, "/nfs/movies/Test");
+      assert_str_eq!(radarr_data.edit_tags.text, "usenet, test");
       assert_eq!(radarr_data.edit_monitored, Some(true));
     }
   }
@@ -1327,6 +1360,10 @@ mod tests {
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetTags.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetRootFolders.into()
       );
       assert_eq!(
@@ -1367,6 +1404,14 @@ mod tests {
 
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetQualityProfiles.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetTags.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetDownloads.into()
       );
       assert!(app.is_loading);
@@ -1382,6 +1427,14 @@ mod tests {
         .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
         .await;
 
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetQualityProfiles.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetTags.into()
+      );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetDownloads.into()

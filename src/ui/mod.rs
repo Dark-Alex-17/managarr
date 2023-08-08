@@ -93,7 +93,7 @@ fn draw_error<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
     .borders(Borders::ALL);
 
   if app.error.text.len() > area.width as usize {
-    app.error.scroll_text();
+    app.error.scroll_left();
   }
 
   let mut text = Text::from(app.error.to_string());
@@ -497,6 +497,7 @@ pub fn draw_text_box<B: Backend>(
   text_box_area: Rect,
   block_title: Option<&str>,
   block_content: &str,
+  offset: usize,
   should_show_cursor: bool,
   is_selected: bool,
 ) {
@@ -518,7 +519,7 @@ pub fn draw_text_box<B: Backend>(
   f.render_widget(search_paragraph, text_box_area);
 
   if should_show_cursor {
-    show_cursor(f, text_box_area, block_content);
+    show_cursor(f, text_box_area, offset, block_content);
   }
 }
 
@@ -527,6 +528,7 @@ pub fn draw_text_box_with_label<B: Backend>(
   area: Rect,
   label: &str,
   text: &str,
+  offset: usize,
   is_selected: bool,
   should_show_cursor: bool,
 ) {
@@ -547,6 +549,7 @@ pub fn draw_text_box_with_label<B: Backend>(
     horizontal_chunks[1],
     None,
     text,
+    offset,
     should_show_cursor,
     is_selected,
   );

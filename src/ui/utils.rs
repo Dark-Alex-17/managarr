@@ -266,8 +266,8 @@ pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge<'_> {
     .label(Spans::from(format!("{}: {:.0}%", title, ratio * 100.0)))
 }
 
-pub fn show_cursor<B: Backend>(f: &mut Frame<'_, B>, area: Rect, string: &str) {
-  f.set_cursor(area.x + string.len() as u16 + 1, area.y + 1);
+pub fn show_cursor<B: Backend>(f: &mut Frame<'_, B>, area: Rect, offset: usize, string: &str) {
+  f.set_cursor(area.x + (string.len() - offset) as u16 + 1, area.y + 1);
 }
 
 pub fn get_width_from_percentage(area: Rect, percentage: u16) -> usize {

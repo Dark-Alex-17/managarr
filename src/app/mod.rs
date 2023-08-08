@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use anyhow::anyhow;
-use log::error;
+use log::{debug, error};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
@@ -21,6 +21,7 @@ pub struct App {
   network_tx: Option<Sender<NetworkEvent>>,
   pub server_tabs: TabState,
   pub error: HorizontallyScrollableText,
+  pub response: String,
   pub client: Client,
   pub title: &'static str,
   pub tick_until_poll: u64,
@@ -45,6 +46,8 @@ impl App {
   }
 
   pub async fn dispatch_network_event(&mut self, action: NetworkEvent) {
+    debug!("Dispatching network event: {:?}", action);
+
     if let Some(network_tx) = &self.network_tx {
       if let Err(e) = network_tx.send(action).await {
         self.is_loading = false;
@@ -115,6 +118,7 @@ impl Default for App {
       navigation_stack: vec![DEFAULT_ROUTE],
       network_tx: None,
       error: HorizontallyScrollableText::default(),
+      response: String::default(),
       server_tabs: TabState::new(vec![
         TabRoute {
           title: "Radarr".to_owned(),
@@ -260,11 +264,11 @@ mod tests {
 
     app.handle_error(anyhow!(test_string));
 
-    assert_eq!(app.error.stationary_style(), test_string);
+    assert_eq!(app.error.text, test_string);
 
     app.handle_error(anyhow!("Testing a different error"));
 
-    assert_eq!(app.error.stationary_style(), test_string);
+    assert_eq!(app.error.text, test_string);
   }
 
   #[tokio::test]

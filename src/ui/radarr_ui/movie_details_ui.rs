@@ -113,7 +113,7 @@ fn draw_refresh_and_scan_prompt<B: Backend>(
     "Refresh and Scan",
     format!(
       "Do you want to trigger a refresh and disk scan for the movie: {}?",
-      app.data.radarr_data.movies.current_selection_clone().title
+      app.data.radarr_data.movies.current_selection().title
     )
     .as_str(),
     &app.data.radarr_data.prompt_confirm,
@@ -223,7 +223,12 @@ fn draw_movie_history<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_a
   let current_selection = if app.data.radarr_data.movie_history.items.is_empty() {
     MovieHistoryItem::default()
   } else {
-    app.data.radarr_data.movie_history.current_selection_clone()
+    app
+      .data
+      .radarr_data
+      .movie_history
+      .current_selection()
+      .clone()
   };
   let block = layout_block_top_border();
 
@@ -263,7 +268,7 @@ fn draw_movie_history<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_a
           event_type,
         } = movie_history_item;
 
-        movie_history_item.source_title.scroll_or_reset(
+        movie_history_item.source_title.scroll_left_or_reset(
           get_width_from_percentage(content_area, 34),
           current_selection == *movie_history_item,
         );
@@ -362,7 +367,8 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       .data
       .radarr_data
       .movie_releases
-      .current_selection_clone()
+      .current_selection()
+      .clone()
   };
   let current_route = *app.get_current_route();
   let mut table_headers_vec = vec![
@@ -432,7 +438,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
         ..
       } = release;
       let age = format!("{} days", age.as_u64().unwrap_or(0));
-      title.scroll_or_reset(
+      title.scroll_left_or_reset(
         get_width_from_percentage(content_area, 30),
         current_selection == *release
           && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
@@ -488,12 +494,12 @@ fn draw_manual_search_confirm_prompt<B: Backend>(
   let prompt = if current_selection.rejected {
     format!(
       "Do you really want to download the rejected release: {}?",
-      current_selection.title.stationary_style()
+      &current_selection.title.text
     )
   } else {
     format!(
       "Do you want to download the release: {}?",
-      current_selection.title.stationary_style()
+      &current_selection.title.text
     )
   };
 

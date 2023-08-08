@@ -141,7 +141,7 @@ mod tests {
       ActiveRadarrBlock::CollectionDetails,
       None,
       title,
-      stationary_style
+      to_string
     );
   }
 
@@ -158,7 +158,7 @@ mod tests {
       ActiveRadarrBlock::CollectionDetails,
       None,
       title,
-      stationary_style
+      to_string
     );
   }
 
