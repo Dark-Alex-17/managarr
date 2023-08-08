@@ -9,12 +9,14 @@ macro_rules! generate_keybindings {
 }
 
 generate_keybindings! {
-    quit,
     up,
     down,
     left,
     right,
+    backspace,
+    search,
     submit,
+    quit,
     esc
 }
 
@@ -24,10 +26,6 @@ pub struct KeyBinding {
 }
 
 pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
-  quit: KeyBinding {
-    key: Key::Char('q'),
-    desc: "Quit",
-  },
   up: KeyBinding {
     key: Key::Up,
     desc: "Scroll up",
@@ -44,9 +42,21 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
     key: Key::Right,
     desc: "Move right",
   },
+  backspace: KeyBinding {
+    key: Key::Backspace,
+    desc: "Backspace",
+  },
+  search: KeyBinding {
+    key: Key::Char('s'),
+    desc: "Search",
+  },
   submit: KeyBinding {
     key: Key::Enter,
     desc: "Select",
+  },
+  quit: KeyBinding {
+    key: Key::Char('q'),
+    desc: "Quit",
   },
   esc: KeyBinding {
     key: Key::Esc,

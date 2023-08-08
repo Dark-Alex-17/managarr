@@ -58,6 +58,10 @@ impl<T: Clone> StatefulTable<T> {
   pub fn current_selection_clone(&self) -> T {
     self.items[self.state.selected().unwrap_or(0)].clone()
   }
+
+  pub fn select_index(&mut self, index: Option<usize>) {
+    self.state.select(index);
+  }
 }
 
 impl<T> Scrollable for StatefulTable<T> {

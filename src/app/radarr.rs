@@ -29,6 +29,8 @@ pub struct RadarrData {
   pub collection_movies: StatefulTable<CollectionMovie>,
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
+  pub search: String,
+  pub is_searching: bool,
 }
 
 impl RadarrData {
@@ -70,11 +72,14 @@ impl Default for RadarrData {
       movie_crew: StatefulTable::default(),
       collections: StatefulTable::default(),
       collection_movies: StatefulTable::default(),
+      search: String::default(),
+      is_searching: false,
       main_tabs: TabState::new(vec![
         TabRoute {
           title: "Library".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
-          help: "<↑↓> scroll table | <enter> movie details | ←→ change tab ".to_owned(),
+          help: "<↑↓> scroll table | <s> search | <enter> movie details | ←→ change tab "
+            .to_owned(),
         },
         TabRoute {
           title: "Downloads".to_owned(),

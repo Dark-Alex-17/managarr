@@ -87,7 +87,7 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<()> {
           break;
         }
 
-        handlers::handle_key_events(key, &mut app).await;
+        handlers::handle_events(key, &mut app);
       }
 
       InputEvent::Tick => app.on_tick(is_first_render).await,
