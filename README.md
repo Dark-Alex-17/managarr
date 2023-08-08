@@ -119,7 +119,7 @@ tautulli:
 ## Demos
 
 ### Radarr
-![radarr_demo](demos/radarr_demo.mp4)
+![radarr_demo](demos/radarr_demo.gif)
 
 ## Dependencies
 - [tui-rs](https://github.com/fdehau/tui-rs)
