@@ -78,10 +78,11 @@ tautulli:
 ### Radarr
 
 - [x] View your library, downloads, collections, or calendar
-- [x] Search your library for specific movies
 - [x] View details of a specific movie including description, history, downloaded file info, or the credits
 - [x] View details of any collection and the movies in them
+- [x] Search your library for specific movies
 - [ ] Add movies to Radarr
+- [ ] Search your collections
 - [ ] Manage your quality profiles
 - [ ] Modify your Radarr settings
 
