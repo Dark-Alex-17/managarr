@@ -93,14 +93,6 @@ pub fn layout_paragraph_borderless(string: &str) -> Paragraph {
     .alignment(Alignment::Center)
 }
 
-pub fn layout_error_paragraph(string: &str) -> Paragraph {
-  Paragraph::new(Text::from(string))
-    .block(layout_block_with_title(title_style("Error")))
-    .style(style_failure().add_modifier(Modifier::BOLD))
-    .wrap(Wrap { trim: false })
-    .alignment(Alignment::Center)
-}
-
 pub fn borderless_block<'a>() -> Block<'a> {
   Block::default()
 }

@@ -895,6 +895,7 @@ mod test {
   const MOVIE_JSON: &str = r#"{
         "id": 1,
         "title": "Test",
+        "tmdbId": 1234,
         "originalLanguage": {
           "name": "English"
         },
@@ -1462,6 +1463,7 @@ mod test {
       "monitored": true,
       "hasFile": false,
       "runtime": 120,
+      "tmdbId": 1234,
       "qualityProfileId": 2222,
       "ratings": {}
     });
@@ -2161,6 +2163,7 @@ mod test {
       monitored: true,
       has_file: true,
       runtime: Number::from(120),
+      tmdb_id: Number::from(1234),
       quality_profile_id: Number::from(2222),
       certification: Some("R".to_owned()),
       ratings: ratings_list(),

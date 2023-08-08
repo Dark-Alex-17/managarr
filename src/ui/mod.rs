@@ -1,5 +1,6 @@
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
+use tui::style::Modifier;
 use tui::text::{Span, Spans, Text};
 use tui::widgets::Paragraph;
 use tui::widgets::Row;
@@ -289,6 +290,30 @@ pub fn loading<B: Backend>(f: &mut Frame<'_, B>, block: Block<'_>, area: Rect, i
   } else {
     f.render_widget(block, area)
   }
+}
+
+pub fn draw_error_popup_over<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  area: Rect,
+  message: &str,
+  background_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+) {
+  background_fn(f, app, area);
+  draw_error_popup(f, message);
+}
+
+pub fn draw_error_popup<B: Backend>(f: &mut Frame<'_, B>, message: &str) {
+  let prompt_area = centered_rect(25, 8, f.size());
+  f.render_widget(Clear, prompt_area);
+
+  let error_message = Paragraph::new(Text::from(message))
+    .block(title_block_centered("Error").style(style_failure()))
+    .style(style_failure().add_modifier(Modifier::BOLD))
+    .wrap(Wrap { trim: false })
+    .alignment(Alignment::Center);
+
+  f.render_widget(error_message, prompt_area);
 }
 
 pub fn draw_prompt_box<B: Backend>(

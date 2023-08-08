@@ -8,13 +8,13 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::Route;
 use crate::ui::utils::{
-  borderless_block, centered_rect, get_width_with_margin, horizontal_chunks, layout_block,
-  layout_error_paragraph, layout_paragraph_borderless, show_cursor, style_default, style_help,
-  style_primary, title_block_centered, vertical_chunks_with_margin,
+  borderless_block, get_width_with_margin, horizontal_chunks, layout_block,
+  layout_paragraph_borderless, show_cursor, style_default, style_help, style_primary,
+  title_block_centered, vertical_chunks_with_margin,
 };
 use crate::ui::{
   draw_button, draw_drop_down_list, draw_drop_down_menu_button, draw_drop_down_popup,
-  draw_medium_popup_over, draw_table, TableProps,
+  draw_error_popup, draw_error_popup_over, draw_medium_popup_over, draw_table, TableProps,
 };
 use crate::utils::convert_runtime;
 use crate::App;
@@ -35,6 +35,13 @@ pub(super) fn draw_add_movie_search_popup<B: Backend>(
       | ActiveRadarrBlock::AddMovieSelectQualityProfile => {
         draw_medium_popup_over(f, app, area, draw_add_movie_search, draw_confirmation_popup);
       }
+      ActiveRadarrBlock::AddMovieAlreadyInLibrary => draw_error_popup_over(
+        f,
+        app,
+        area,
+        "This film is already in your library",
+        draw_add_movie_search,
+      ),
       _ => (),
     }
   }
@@ -83,7 +90,8 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
       | ActiveRadarrBlock::AddMoviePrompt
       | ActiveRadarrBlock::AddMovieSelectMonitor
       | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
-      | ActiveRadarrBlock::AddMovieSelectQualityProfile => {
+      | ActiveRadarrBlock::AddMovieSelectQualityProfile
+      | ActiveRadarrBlock::AddMovieAlreadyInLibrary => {
         let mut help_text = Text::from("<enter> details | <esc> edit search");
         help_text.patch_style(style_help());
         let help_paragraph = Paragraph::new(help_text)
@@ -96,10 +104,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
           && !app.is_routing
         {
           f.render_widget(layout_block(), chunks[1]);
-          f.render_widget(
-            layout_error_paragraph("No movies found matching your query!"),
-            centered_rect(30, 10, chunks[1]),
-          );
+          draw_error_popup(f, "No movies found matching your query!");
         } else {
           draw_table(
             f,

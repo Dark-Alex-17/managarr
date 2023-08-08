@@ -176,6 +176,7 @@ impl Default for RadarrData {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum ActiveRadarrBlock {
+  AddMovieAlreadyInLibrary,
   AddMovieSearchInput,
   AddMovieSearchResults,
   AddMoviePrompt,
@@ -207,6 +208,31 @@ pub enum ActiveRadarrBlock {
   SearchCollection,
   ViewMovieOverview,
 }
+
+pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
+  ActiveRadarrBlock::AddMovieSearchInput,
+  ActiveRadarrBlock::AddMovieSearchResults,
+  ActiveRadarrBlock::AddMoviePrompt,
+  ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+  ActiveRadarrBlock::AddMovieSelectMonitor,
+  ActiveRadarrBlock::AddMovieSelectQualityProfile,
+  ActiveRadarrBlock::AddMovieAlreadyInLibrary,
+];
+pub const MOVIE_DETAILS_BLOCKS: [ActiveRadarrBlock; 9] = [
+  ActiveRadarrBlock::MovieDetails,
+  ActiveRadarrBlock::MovieHistory,
+  ActiveRadarrBlock::FileInfo,
+  ActiveRadarrBlock::Cast,
+  ActiveRadarrBlock::Crew,
+  ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
+  ActiveRadarrBlock::RefreshAndScanPrompt,
+  ActiveRadarrBlock::ManualSearch,
+  ActiveRadarrBlock::ManualSearchConfirmPrompt,
+];
+pub const COLLECTION_DETAILS_BLOCKS: [ActiveRadarrBlock; 2] = [
+  ActiveRadarrBlock::CollectionDetails,
+  ActiveRadarrBlock::ViewMovieOverview,
+];
 
 impl ActiveRadarrBlock {
   pub fn next_add_prompt_block(&self) -> Self {

@@ -52,6 +52,8 @@ pub struct Movie {
   #[derivative(Default(value = "Number::from(0)"))]
   pub runtime: Number,
   #[derivative(Default(value = "Number::from(0)"))]
+  pub tmdb_id: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
   pub quality_profile_id: Number,
   pub certification: Option<String>,
   pub ratings: RatingsList,

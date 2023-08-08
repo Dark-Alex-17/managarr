@@ -9,7 +9,9 @@ use tui::text::Text;
 use tui::widgets::{Cell, Paragraph, Row};
 use tui::Frame;
 
-use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
+use crate::app::radarr::{
+  ActiveRadarrBlock, RadarrData, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, MOVIE_DETAILS_BLOCKS,
+};
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
 use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie};
@@ -55,38 +57,23 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
       }
       ActiveRadarrBlock::Downloads => draw_downloads(f, app, content_rect),
       ActiveRadarrBlock::Collections => draw_collections(f, app, content_rect),
-      ActiveRadarrBlock::MovieDetails
-      | ActiveRadarrBlock::MovieHistory
-      | ActiveRadarrBlock::FileInfo
-      | ActiveRadarrBlock::Cast
-      | ActiveRadarrBlock::Crew
-      | ActiveRadarrBlock::AutomaticallySearchMoviePrompt
-      | ActiveRadarrBlock::RefreshAndScanPrompt
-      | ActiveRadarrBlock::ManualSearch
-      | ActiveRadarrBlock::ManualSearchConfirmPrompt => {
+      _ if MOVIE_DETAILS_BLOCKS.contains(&active_radarr_block) => {
         draw_large_popup_over(f, app, content_rect, draw_library, draw_movie_info_popup)
       }
-      ActiveRadarrBlock::AddMovieSearchInput
-      | ActiveRadarrBlock::AddMovieSearchResults
-      | ActiveRadarrBlock::AddMoviePrompt
-      | ActiveRadarrBlock::AddMovieSelectMonitor
-      | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
-      | ActiveRadarrBlock::AddMovieSelectQualityProfile => draw_large_popup_over(
+      _ if ADD_MOVIE_BLOCKS.contains(&active_radarr_block) => draw_large_popup_over(
         f,
         app,
         content_rect,
         draw_library,
         draw_add_movie_search_popup,
       ),
-      ActiveRadarrBlock::CollectionDetails | ActiveRadarrBlock::ViewMovieOverview => {
-        draw_large_popup_over(
-          f,
-          app,
-          content_rect,
-          draw_collections,
-          draw_collection_details_popup,
-        )
-      }
+      _ if COLLECTION_DETAILS_BLOCKS.contains(&active_radarr_block) => draw_large_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_collections,
+        draw_collection_details_popup,
+      ),
       ActiveRadarrBlock::DeleteMoviePrompt => {
         draw_prompt_popup_over(f, app, content_rect, draw_library, draw_delete_movie_prompt)
       }

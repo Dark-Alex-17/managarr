@@ -1,5 +1,7 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-use crate::app::radarr::ActiveRadarrBlock;
+use crate::app::radarr::{
+  ActiveRadarrBlock, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, MOVIE_DETAILS_BLOCKS,
+};
 use crate::handlers::radarr_handlers::add_movie_handler::AddMovieHandler;
 use crate::handlers::radarr_handlers::collection_details_handler::CollectionDetailsHandler;
 use crate::handlers::radarr_handlers::movie_details_handler::MovieDetailsHandler;
@@ -22,26 +24,13 @@ pub(super) struct RadarrHandler<'a> {
 impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
   fn handle(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::MovieDetails
-      | ActiveRadarrBlock::MovieHistory
-      | ActiveRadarrBlock::FileInfo
-      | ActiveRadarrBlock::Cast
-      | ActiveRadarrBlock::Crew
-      | ActiveRadarrBlock::AutomaticallySearchMoviePrompt
-      | ActiveRadarrBlock::RefreshAndScanPrompt
-      | ActiveRadarrBlock::ManualSearch
-      | ActiveRadarrBlock::ManualSearchConfirmPrompt => {
+      _ if MOVIE_DETAILS_BLOCKS.contains(self.active_radarr_block) => {
         MovieDetailsHandler::with(self.key, self.app, self.active_radarr_block).handle()
       }
-      ActiveRadarrBlock::CollectionDetails | ActiveRadarrBlock::ViewMovieOverview => {
+      _ if COLLECTION_DETAILS_BLOCKS.contains(self.active_radarr_block) => {
         CollectionDetailsHandler::with(self.key, self.app, self.active_radarr_block).handle()
       }
-      ActiveRadarrBlock::AddMovieSearchInput
-      | ActiveRadarrBlock::AddMovieSearchResults
-      | ActiveRadarrBlock::AddMoviePrompt
-      | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
-      | ActiveRadarrBlock::AddMovieSelectMonitor
-      | ActiveRadarrBlock::AddMovieSelectQualityProfile => {
+      _ if ADD_MOVIE_BLOCKS.contains(self.active_radarr_block) => {
         AddMovieHandler::with(self.key, self.app, self.active_radarr_block).handle()
       }
       _ => self.handle_key_event(),
@@ -1263,7 +1252,8 @@ mod tests {
       ActiveRadarrBlock::AddMoviePrompt,
       ActiveRadarrBlock::AddMovieSelectMonitor,
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
-      ActiveRadarrBlock::AddMovieSelectQualityProfile
+      ActiveRadarrBlock::AddMovieSelectQualityProfile,
+      ActiveRadarrBlock::AddMovieAlreadyInLibrary
     )]
     active_radarr_block: ActiveRadarrBlock,
   ) {

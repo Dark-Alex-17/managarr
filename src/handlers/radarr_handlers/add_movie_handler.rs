@@ -184,36 +184,58 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
           .items
           .is_empty() =>
       {
-        self
-          .app
-          .push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
-        self
+        let tmdb_id = self
           .app
           .data
           .radarr_data
-          .add_movie_monitor_list
-          .set_items(Vec::from_iter(Monitor::iter()));
-        self
+          .add_searched_movies
+          .current_selection()
+          .tmdb_id
+          .clone();
+        if self
           .app
           .data
           .radarr_data
-          .add_movie_minimum_availability_list
-          .set_items(Vec::from_iter(MinimumAvailability::iter()));
-        let mut quality_profile_names: Vec<String> = self
-          .app
-          .data
-          .radarr_data
-          .quality_profile_map
-          .values()
-          .cloned()
-          .collect();
-        quality_profile_names.sort();
-        self
-          .app
-          .data
-          .radarr_data
-          .add_movie_quality_profile_list
-          .set_items(quality_profile_names);
+          .movies
+          .items
+          .iter()
+          .any(|movie| movie.tmdb_id == tmdb_id)
+        {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::AddMovieAlreadyInLibrary.into());
+        } else {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
+          self
+            .app
+            .data
+            .radarr_data
+            .add_movie_monitor_list
+            .set_items(Vec::from_iter(Monitor::iter()));
+          self
+            .app
+            .data
+            .radarr_data
+            .add_movie_minimum_availability_list
+            .set_items(Vec::from_iter(MinimumAvailability::iter()));
+          let mut quality_profile_names: Vec<String> = self
+            .app
+            .data
+            .radarr_data
+            .quality_profile_map
+            .values()
+            .cloned()
+            .collect();
+          quality_profile_names.sort();
+          self
+            .app
+            .data
+            .radarr_data
+            .add_movie_quality_profile_list
+            .set_items(quality_profile_names);
+        }
       }
       ActiveRadarrBlock::AddMoviePrompt => match self.app.data.radarr_data.selected_block {
         ActiveRadarrBlock::AddMovieConfirmPrompt => {
@@ -261,7 +283,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for AddMovieHandler<'a> {
       }
       ActiveRadarrBlock::AddMovieSelectMonitor
       | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
-      | ActiveRadarrBlock::AddMovieSelectQualityProfile => self.app.pop_navigation_stack(),
+      | ActiveRadarrBlock::AddMovieSelectQualityProfile
+      | ActiveRadarrBlock::AddMovieAlreadyInLibrary => self.app.pop_navigation_stack(),
       _ => (),
     }
   }
@@ -419,6 +442,7 @@ mod tests {
     use rstest::rstest;
 
     use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+    use crate::models::radarr_models::Movie;
     use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
@@ -503,6 +527,33 @@ mod tests {
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::AddMovieSearchResults.into()
+      );
+    }
+
+    #[test]
+    fn test_add_movie_search_results_submit_movie_already_in_library() {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .add_searched_movies
+        .set_items(vec![AddMovieSearchResult::default()]);
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_items(vec![Movie::default()]);
+
+      AddMovieHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSearchResults,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::AddMovieAlreadyInLibrary.into()
       );
     }
 
@@ -631,6 +682,26 @@ mod tests {
       );
       assert!(app.data.radarr_data.add_searched_movies.items.is_empty());
       assert!(app.should_ignore_quit_key);
+    }
+
+    #[test]
+    fn test_add_movie_already_in_library_esc() {
+      let mut app = App::default();
+      app.data.radarr_data = create_test_radarr_data();
+      app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AddMovieAlreadyInLibrary.into());
+
+      AddMovieHandler::with(
+        &ESC_KEY,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieAlreadyInLibrary,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::AddMovieSearchResults.into()
+      );
     }
 
     #[test]
