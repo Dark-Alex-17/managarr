@@ -23,6 +23,7 @@ generate_keybindings! {
   tasks,
   refresh,
   update,
+  queue,
   home,
   end,
   delete,
@@ -91,7 +92,11 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   },
   update: KeyBinding {
     key: Key::Char('u'),
-    desc: "Update All",
+    desc: "Update",
+  },
+  queue: KeyBinding {
+    key: Key::Char('z'),
+    desc: "Queue",
   },
   home: KeyBinding {
     key: Key::Home,

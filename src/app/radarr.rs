@@ -54,6 +54,7 @@ pub struct RadarrData<'a> {
   pub log_details: StatefulList<HorizontallyScrollableText>,
   pub tasks: StatefulTable<Task>,
   pub queued_events: StatefulTable<QueueEvent>,
+  pub updates: ScrollableText,
   pub prompt_confirm_action: Option<RadarrEvent>,
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
@@ -278,6 +279,7 @@ impl<'a> Default for RadarrData<'a> {
       log_details: StatefulList::default(),
       tasks: StatefulTable::default(),
       queued_events: StatefulTable::default(),
+      updates: ScrollableText::default(),
       prompt_confirm_action: None,
       search: HorizontallyScrollableText::default(),
       filter: HorizontallyScrollableText::default(),
@@ -320,7 +322,7 @@ impl<'a> Default for RadarrData<'a> {
           title: "System",
           route: ActiveRadarrBlock::System.into(),
           help: "",
-          contextual_help: Some("<t> open tasks | <u> open queue | <l> open logs | <r> refresh")
+          contextual_help: Some("<t> open tasks | <z> open queue | <l> open logs | <u> open updates | <r> refresh")
         }
       ]),
       movie_info_tabs: TabState::new(vec![
@@ -418,9 +420,10 @@ pub enum ActiveRadarrBlock {
   RootFolders,
   System,
   SystemLogs,
+  SystemQueue,
   SystemTasks,
   SystemTaskStartConfirmPrompt,
-  SystemQueue,
+  SystemUpdates,
   UpdateAndScanPrompt,
   UpdateAllCollectionsPrompt,
   UpdateAllMoviesPrompt,
@@ -519,11 +522,12 @@ pub static DELETE_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
   ActiveRadarrBlock::DeleteMovieConfirmPrompt,
 ];
-pub static SYSTEM_DETAILS_BLOCKS: [ActiveRadarrBlock; 4] = [
+pub static SYSTEM_DETAILS_BLOCKS: [ActiveRadarrBlock; 5] = [
   ActiveRadarrBlock::SystemLogs,
-  ActiveRadarrBlock::SystemTasks,
   ActiveRadarrBlock::SystemQueue,
+  ActiveRadarrBlock::SystemTasks,
   ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
+  ActiveRadarrBlock::SystemUpdates,
 ];
 
 impl From<ActiveRadarrBlock> for Route {
@@ -578,6 +582,11 @@ impl<'a> App<'a> {
           .await;
         self
           .dispatch_network_event(RadarrEvent::GetLogs.into())
+          .await;
+      }
+      ActiveRadarrBlock::SystemUpdates => {
+        self
+          .dispatch_network_event(RadarrEvent::GetUpdates.into())
           .await;
       }
       ActiveRadarrBlock::AddMovieSearchResults => {

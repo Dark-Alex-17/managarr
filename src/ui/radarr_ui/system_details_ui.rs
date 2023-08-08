@@ -1,3 +1,9 @@
+use tui::backend::Backend;
+use tui::layout::Rect;
+use tui::text::{Span, Text};
+use tui::widgets::{Cell, ListItem, Paragraph, Row};
+use tui::Frame;
+
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::App;
 use crate::models::Route;
@@ -9,13 +15,8 @@ use crate::ui::radarr_ui::system_ui::{
 use crate::ui::utils::{borderless_block, style_primary, title_block};
 use crate::ui::{
   draw_help, draw_large_popup_over, draw_list_box, draw_medium_popup_over, draw_prompt_box,
-  draw_prompt_popup_over, draw_table, DrawUi, ListProps, TableProps,
+  draw_prompt_popup_over, draw_table, loading, DrawUi, ListProps, TableProps,
 };
-use tui::backend::Backend;
-use tui::layout::Rect;
-use tui::text::{Span, Text};
-use tui::widgets::{Cell, ListItem, Row};
-use tui::Frame;
 
 pub(super) struct SystemDetailsUi {}
 
@@ -41,6 +42,13 @@ impl DrawUi for SystemDetailsUi {
           content_rect,
           draw_system_ui_layout,
           draw_queued_events,
+        ),
+        ActiveRadarrBlock::SystemUpdates => draw_large_popup_over(
+          f,
+          app,
+          content_rect,
+          draw_system_ui_layout,
+          draw_updates_popup,
         ),
         _ => (),
       }
@@ -124,4 +132,19 @@ fn draw_start_task_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, p
     .as_str(),
     app.data.radarr_data.prompt_confirm,
   );
+}
+
+fn draw_updates_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+  let updates = app.data.radarr_data.updates.get_text();
+  let block = title_block("Updates");
+
+  if !updates.is_empty() {
+    let updates_paragraph = Paragraph::new(Text::from(updates))
+      .block(block)
+      .scroll((app.data.radarr_data.updates.offset, 0));
+
+    f.render_widget(updates_paragraph, area);
+  } else {
+    loading(f, block, area, app.is_loading);
+  }
 }

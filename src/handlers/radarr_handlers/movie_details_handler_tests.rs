@@ -23,35 +23,19 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use crate::models::radarr_models::ReleaseField;
-    use crate::{simple_stateful_iterable_vec, test_enum_scroll, test_iterable_scroll};
+    use crate::{
+      simple_stateful_iterable_vec, test_enum_scroll, test_iterable_scroll,
+      test_scrollable_text_scroll,
+    };
 
     use super::*;
 
-    #[test]
-    fn test_movie_details_scroll() {
-      let mut app = App::default();
-      app.data.radarr_data.movie_details = ScrollableText::with_string("Test 1\nTest 2".to_owned());
-
-      MovieDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.up.key,
-        &mut app,
-        &ActiveRadarrBlock::MovieDetails,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(app.data.radarr_data.movie_details.offset, 0);
-
-      MovieDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.down.key,
-        &mut app,
-        &ActiveRadarrBlock::MovieDetails,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(app.data.radarr_data.movie_details.offset, 1);
-    }
+    test_scrollable_text_scroll!(
+      test_movie_details_scroll,
+      MovieDetailsHandler,
+      movie_details,
+      ActiveRadarrBlock::MovieDetails
+    );
 
     test_iterable_scroll!(
       test_movie_history_scroll,
@@ -113,35 +97,17 @@ mod tests {
     use crate::models::radarr_models::ReleaseField;
     use crate::{
       extended_stateful_iterable_vec, test_enum_home_and_end, test_iterable_home_and_end,
+      test_scrollable_text_home_and_end,
     };
 
     use super::*;
 
-    #[test]
-    fn test_movie_details_home_end() {
-      let mut app = App::default();
-      app.data.radarr_data.movie_details = ScrollableText::with_string("Test 1\nTest 2".to_owned());
-
-      MovieDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
-        &mut app,
-        &ActiveRadarrBlock::MovieDetails,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(app.data.radarr_data.movie_details.offset, 1);
-
-      MovieDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
-        &mut app,
-        &ActiveRadarrBlock::MovieDetails,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(app.data.radarr_data.movie_details.offset, 0);
-    }
+    test_scrollable_text_home_and_end!(
+      test_movie_details_home_end,
+      MovieDetailsHandler,
+      movie_details,
+      ActiveRadarrBlock::MovieDetails
+    );
 
     test_iterable_home_and_end!(
       test_movie_history_home_end,

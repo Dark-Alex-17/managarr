@@ -90,7 +90,7 @@ tautulli:
 - [ ] Manage your quality profiles
 - [ ] Manage your quality definitions
 - [ ] Manage your indexers
-- [x] View and browse logs, tasks, and events queues
+- [x] View and browse logs, tasks, events queues, and updates
 - [x] Manually trigger scheduled tasks
 
 ### Sonarr

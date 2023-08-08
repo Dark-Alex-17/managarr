@@ -1066,6 +1066,95 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_get_updates_event() {
+    let tasks_json = json!([{
+      "version": "4.3.2.1",
+      "releaseDate": "2023-04-15T02:02:53Z",
+      "installed": true,
+      "installedOn": "2023-04-15T02:02:53Z",
+      "latest": true,
+      "changes": {
+        "new": [
+          "Cool new thing"
+        ],
+        "fixed": [
+          "Some bugs killed"
+        ]
+      },
+    },
+      {
+        "version": "3.2.1.0",
+        "releaseDate": "2023-04-15T02:02:53Z",
+        "installed": false,
+        "installedOn": "2023-04-15T02:02:53Z",
+        "latest": false,
+        "changes": {
+          "new": [
+            "Cool new thing (old)",
+            "Other cool new thing (old)"
+            ],
+        },
+    },
+    {
+      "version": "2.1.0",
+      "releaseDate": "2023-04-15T02:02:53Z",
+      "installed": false,
+      "latest": false,
+      "changes": {
+        "fixed": [
+          "Killed bug 1",
+          "Fixed bug 2"
+        ]
+      },
+    }]);
+    let line_break = "-".repeat(200);
+    let expected_text = ScrollableText::with_string(formatdoc!(
+      "
+    The latest version of Radarr is already installed
+
+    4.3.2.1 - 2023-04-15 02:02:53 UTC (Currently Installed)
+    {}
+    New:
+      * Cool new thing
+    Fixed:
+      * Some bugs killed
+    
+    
+    3.2.1.0 - 2023-04-15 02:02:53 UTC (Previously Installed)
+    {}
+    New:
+      * Cool new thing (old)
+      * Other cool new thing (old)
+    
+    
+    2.1.0 - 2023-04-15 02:02:53 UTC 
+    {}
+    Fixed:
+      * Killed bug 1
+      * Fixed bug 2",
+      line_break.clone(),
+      line_break.clone(),
+      line_break
+    ));
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(tasks_json),
+      RadarrEvent::GetUpdates.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.handle_radarr_event(RadarrEvent::GetUpdates).await;
+
+    async_server.assert_async().await;
+    assert_str_eq!(
+      app_arc.lock().await.data.radarr_data.updates.get_text(),
+      expected_text.get_text()
+    );
+  }
+
+  #[tokio::test]
   async fn test_add_tag() {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,

@@ -291,6 +291,7 @@ mod tests {
       assert!(radarr_data.log_details.items.is_empty());
       assert!(radarr_data.tasks.items.is_empty());
       assert!(radarr_data.queued_events.items.is_empty());
+      assert!(radarr_data.updates.get_text().is_empty());
       assert!(radarr_data.prompt_confirm_action.is_none());
       assert!(radarr_data.search.text.is_empty());
       assert!(radarr_data.filter.text.is_empty());
@@ -355,7 +356,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[4].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[4].contextual_help,
-        Some("<t> open tasks | <u> open queue | <l> open logs | <r> refresh")
+        Some("<t> open tasks | <z> open queue | <l> open logs | <u> open updates | <r> refresh")
       );
 
       assert_eq!(radarr_data.movie_info_tabs.tabs.len(), 6);
@@ -703,6 +704,23 @@ mod tests {
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetLogs.into()
+      );
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert_eq!(app.tick_count, 0);
+    }
+
+    #[tokio::test]
+    async fn test_dispatch_by_system_updates_block() {
+      let (mut app, mut sync_network_rx) = construct_app_unit();
+
+      app
+        .dispatch_by_radarr_block(&ActiveRadarrBlock::SystemUpdates)
+        .await;
+
+      assert!(app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetUpdates.into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);

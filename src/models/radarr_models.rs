@@ -450,3 +450,21 @@ pub struct QueueEvent {
   pub ended: Option<DateTime<Utc>>,
   pub duration: Option<String>,
 }
+
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Update {
+  pub version: String,
+  pub release_date: DateTime<Utc>,
+  pub installed: bool,
+  pub latest: bool,
+  pub installed_on: Option<DateTime<Utc>>,
+  pub changes: UpdateChanges,
+}
+
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateChanges {
+  pub new: Option<Vec<String>>,
+  pub fixed: Option<Vec<String>>,
+}

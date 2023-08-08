@@ -239,6 +239,25 @@ mod test_utils {
   }
 
   #[macro_export]
+  macro_rules! test_scrollable_text_scroll {
+    ($func:ident, $handler:ident, $data_ref:ident, $block:expr) => {
+      #[test]
+      fn $func() {
+        let mut app = App::default();
+        app.data.radarr_data.$data_ref = ScrollableText::with_string("Test 1\nTest 2".to_owned());
+
+        $handler::with(&DEFAULT_KEYBINDINGS.up.key, &mut app, &$block, &None).handle();
+
+        assert_eq!(app.data.radarr_data.$data_ref.offset, 0);
+
+        $handler::with(&DEFAULT_KEYBINDINGS.down.key, &mut app, &$block, &None).handle();
+
+        assert_eq!(app.data.radarr_data.$data_ref.offset, 1);
+      }
+    };
+  }
+
+  #[macro_export]
   macro_rules! test_iterable_home_and_end {
     ($func:ident, $handler:ident, $data_ref:ident, $block:expr, $context:expr) => {
       #[test]
@@ -369,6 +388,25 @@ mod test_utils {
           app.data.radarr_data.$data_ref.current_selection(),
           &reference_vec[0]
         );
+      }
+    };
+  }
+
+  #[macro_export]
+  macro_rules! test_scrollable_text_home_and_end {
+    ($func:ident, $handler:ident, $data_ref:ident, $block:expr) => {
+      #[test]
+      fn $func() {
+        let mut app = App::default();
+        app.data.radarr_data.$data_ref = ScrollableText::with_string("Test 1\nTest 2".to_owned());
+
+        $handler::with(&DEFAULT_KEYBINDINGS.end.key, &mut app, &$block, &None).handle();
+
+        assert_eq!(app.data.radarr_data.$data_ref.offset, 1);
+
+        $handler::with(&DEFAULT_KEYBINDINGS.home.key, &mut app, &$block, &None).handle();
+
+        assert_eq!(app.data.radarr_data.$data_ref.offset, 0);
       }
     };
   }

@@ -13,8 +13,8 @@ mod tests {
   mod test_handle_scroll_up_and_down {
     use rstest::rstest;
 
-    use crate::models::HorizontallyScrollableText;
-    use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
+    use crate::models::{HorizontallyScrollableText, ScrollableText};
+    use crate::{simple_stateful_iterable_vec, test_iterable_scroll, test_scrollable_text_scroll};
 
     use super::*;
 
@@ -47,11 +47,20 @@ mod tests {
       None,
       name
     );
+
+    test_scrollable_text_scroll!(
+      test_system_updates_scroll,
+      SystemDetailsHandler,
+      updates,
+      ActiveRadarrBlock::SystemUpdates
+    );
   }
 
   mod test_handle_home_end {
-    use crate::models::HorizontallyScrollableText;
-    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
+    use crate::models::{HorizontallyScrollableText, ScrollableText};
+    use crate::{
+      extended_stateful_iterable_vec, test_iterable_home_and_end, test_scrollable_text_home_and_end,
+    };
 
     use super::*;
 
@@ -84,12 +93,20 @@ mod tests {
       None,
       name
     );
+
+    test_scrollable_text_home_and_end!(
+      test_system_updates_home_end,
+      SystemDetailsHandler,
+      updates,
+      ActiveRadarrBlock::SystemUpdates
+    );
   }
 
   mod test_handle_left_right_action {
-    use super::*;
     use pretty_assertions::assert_eq;
     use rstest::rstest;
+
+    use super::*;
 
     #[test]
     fn test_handle_log_details_left_right() {
@@ -219,8 +236,9 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use crate::network::radarr_network::RadarrEvent;
     use pretty_assertions::assert_eq;
+
+    use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
 
@@ -294,8 +312,9 @@ mod tests {
   }
 
   mod test_handle_esc {
-    use crate::models::HorizontallyScrollableText;
     use pretty_assertions::assert_eq;
+
+    use crate::models::HorizontallyScrollableText;
 
     use super::*;
 
@@ -355,6 +374,23 @@ mod tests {
     }
 
     #[test]
+    fn test_esc_system_updates() {
+      let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::System.into());
+      app.push_navigation_stack(ActiveRadarrBlock::SystemUpdates.into());
+      app
+        .data
+        .radarr_data
+        .queued_events
+        .set_items(vec![QueueEvent::default()]);
+
+      SystemDetailsHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::SystemUpdates, &None)
+        .handle();
+
+      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
+    }
+
+    #[test]
     fn test_system_tasks_start_task_prompt_esc() {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
@@ -387,7 +423,8 @@ mod tests {
       #[values(
         ActiveRadarrBlock::SystemLogs,
         ActiveRadarrBlock::SystemTasks,
-        ActiveRadarrBlock::SystemQueue
+        ActiveRadarrBlock::SystemQueue,
+        ActiveRadarrBlock::SystemUpdates
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {

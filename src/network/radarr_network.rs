@@ -12,7 +12,7 @@ use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, Collection, CollectionMovie,
   CommandBody, Credit, CreditType, DiskSpace, DownloadRecord, DownloadsResponse, LogResponse,
   Movie, MovieCommandBody, MovieHistoryItem, QualityProfile, QueueEvent, Release,
-  ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task,
+  ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task, Update,
 };
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
 use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
@@ -47,6 +47,7 @@ pub enum RadarrEvent {
   GetStatus,
   GetTags,
   GetTasks,
+  GetUpdates,
   HealthCheck,
   SearchNewMovie,
   StartTask,
@@ -80,6 +81,7 @@ impl RadarrEvent {
       RadarrEvent::GetStatus => "/system/status",
       RadarrEvent::GetTags => "/tag",
       RadarrEvent::GetTasks => "/system/task",
+      RadarrEvent::GetUpdates => "/update",
       RadarrEvent::StartTask
       | RadarrEvent::GetQueuedEvents
       | RadarrEvent::TriggerAutomaticSearch
@@ -124,6 +126,7 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::GetStatus => self.get_status().await,
       RadarrEvent::GetTags => self.get_tags().await,
       RadarrEvent::GetTasks => self.get_tasks().await,
+      RadarrEvent::GetUpdates => self.get_updates().await,
       RadarrEvent::HealthCheck => self.get_healthcheck().await,
       RadarrEvent::SearchNewMovie => self.search_movie().await,
       RadarrEvent::StartTask => self.start_task().await,
@@ -738,6 +741,97 @@ impl<'a, 'b> Network<'a, 'b> {
     self
       .handle_request::<(), Vec<Task>>(request_props, |tasks_vec, mut app| {
         app.data.radarr_data.tasks.set_items(tasks_vec);
+      })
+      .await;
+  }
+
+  async fn get_updates(&self) {
+    info!("Fetching Radarr updates");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::GetUpdates.resource(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<Update>>(request_props, |updates_vec, mut app| {
+        let latest_installed = if updates_vec
+          .iter()
+          .any(|update| update.latest && update.installed_on.is_some())
+        {
+          "already".to_owned()
+        } else {
+          "not".to_owned()
+        };
+        let updates = updates_vec
+          .into_iter()
+          .map(|update| {
+            let install_status = if update.installed_on.is_some() {
+              if update.installed {
+                "(Currently Installed)".to_owned()
+              } else {
+                "(Previously Installed)".to_owned()
+              }
+            } else {
+              String::new()
+            };
+            let vec_to_bullet_points = |vec: Vec<String>| {
+              vec
+                .iter()
+                .map(|change| format!("  * {}", change))
+                .collect::<Vec<String>>()
+                .join("\n")
+            };
+
+            let mut update_info = formatdoc!(
+              "{} - {} {}
+              {}",
+              update.version,
+              update.release_date,
+              install_status,
+              "-".repeat(200)
+            );
+
+            if let Some(new_changes) = update.changes.new {
+              let changes = vec_to_bullet_points(new_changes);
+              update_info = formatdoc!(
+                "{}
+              New:
+              {}",
+                update_info,
+                changes
+              )
+            }
+
+            if let Some(fixes) = update.changes.fixed {
+              let fixes = vec_to_bullet_points(fixes);
+              update_info = formatdoc!(
+                "{}
+              Fixed:
+              {}",
+                update_info,
+                fixes
+              );
+            }
+
+            update_info
+          })
+          .reduce(|version_1, version_2| format!("{}\n\n\n{}", version_1, version_2))
+          .unwrap();
+
+        app.data.radarr_data.updates = ScrollableText::with_string(formatdoc!(
+          "{}
+          
+          {}",
+          format!(
+            "The latest version of Radarr is {} installed",
+            latest_installed
+          ),
+          updates
+        ));
       })
       .await;
   }

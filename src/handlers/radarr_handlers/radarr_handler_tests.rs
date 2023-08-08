@@ -921,7 +921,7 @@ mod tests {
       ActiveRadarrBlock::Collections,
       ActiveRadarrBlock::UpdateAllCollectionsPrompt
     )]
-    #[case(ActiveRadarrBlock::System, ActiveRadarrBlock::SystemQueue)]
+    #[case(ActiveRadarrBlock::System, ActiveRadarrBlock::SystemUpdates)]
     fn test_update_key(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] expected_radarr_block: ActiveRadarrBlock,
@@ -937,6 +937,24 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), &expected_radarr_block.into());
+    }
+
+    #[test]
+    fn test_queue_key() {
+      let mut app = App::default();
+
+      RadarrHandler::with(
+        &DEFAULT_KEYBINDINGS.queue.key,
+        &mut app,
+        &ActiveRadarrBlock::System,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::SystemQueue.into()
+      );
     }
 
     #[rstest]
@@ -1252,7 +1270,8 @@ mod tests {
       ActiveRadarrBlock::System,
       ActiveRadarrBlock::SystemLogs,
       ActiveRadarrBlock::SystemTasks,
-      ActiveRadarrBlock::SystemQueue
+      ActiveRadarrBlock::SystemQueue,
+      ActiveRadarrBlock::SystemUpdates
     )]
     active_radarr_block: ActiveRadarrBlock,
   ) {
