@@ -413,7 +413,7 @@ mod radarr_data_tests {
   }
 
   #[test]
-  fn test_rest_search() {
+  fn test_reset_search() {
     let mut radarr_data = RadarrData {
       is_searching: true,
       search: "test search".to_owned(),

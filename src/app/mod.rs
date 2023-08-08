@@ -66,7 +66,7 @@ impl App {
 
   pub fn handle_error(&mut self, error: anyhow::Error) {
     if self.error.text.is_empty() {
-      self.error = HorizontallyScrollableText::new(error.to_string());
+      self.error = error.to_string().into();
     }
   }
 

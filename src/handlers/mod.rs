@@ -81,13 +81,8 @@ macro_rules! handle_text_box_keys {
 }
 
 #[cfg(test)]
-mod tests {
-  use rstest::rstest;
-
-  use crate::app::App;
-  use crate::event::Key;
-  use crate::handlers::{handle_clear_errors, handle_prompt_toggle};
-
+#[macro_use]
+mod test_utils {
   #[macro_export]
   macro_rules! simple_stateful_iterable_vec {
     ($name:ident) => {
@@ -98,6 +93,18 @@ mod tests {
         },
         $name {
           title: "Test 2".to_owned(),
+          ..$name::default()
+        },
+      ]
+    };
+    ($name:ident, $title_ident:ident) => {
+      vec![
+        $name {
+          title: $title_ident::from("Test 1".to_owned()),
+          ..$name::default()
+        },
+        $name {
+          title: $title_ident::from("Test 2".to_owned()),
           ..$name::default()
         },
       ]
@@ -122,7 +129,259 @@ mod tests {
         },
       ]
     };
+    ($name:ident, $title_ident:ident) => {
+      vec![
+        $name {
+          title: $title_ident::from("Test 1".to_owned()),
+          ..$name::default()
+        },
+        $name {
+          title: $title_ident::from("Test 2".to_owned()),
+          ..$name::default()
+        },
+        $name {
+          title: $title_ident::from("Test 3".to_owned()),
+          ..$name::default()
+        },
+      ]
+    };
   }
+
+  #[macro_export]
+  macro_rules! test_iterable_scroll {
+    ($func:ident, $handler:ident, $data_ref:ident, $block:expr) => {
+      #[rstest]
+      fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
+        let mut app = App::default();
+        app
+          .data
+          .radarr_data
+          .$data_ref
+          .set_items(vec!["Test 1".to_owned(), "Test 2".to_owned()]);
+
+        $handler::with(&key, &mut app, &$block).handle();
+
+        assert_str_eq!(app.data.radarr_data.$data_ref.current_selection(), "Test 2");
+
+        $handler::with(&key, &mut app, &$block).handle();
+
+        assert_str_eq!(app.data.radarr_data.$data_ref.current_selection(), "Test 1");
+      }
+    };
+    ($func:ident, $handler:ident, $data_ref:ident, $items:ident, $block:expr, $field:ident) => {
+      #[rstest]
+      fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
+        let mut app = App::default();
+        app
+          .data
+          .radarr_data
+          .$data_ref
+          .set_items(simple_stateful_iterable_vec!($items));
+
+        $handler::with(&key, &mut app, &$block).handle();
+
+        assert_str_eq!(
+          app.data.radarr_data.$data_ref.current_selection().$field,
+          "Test 2"
+        );
+
+        $handler::with(&key, &mut app, &$block).handle();
+
+        assert_str_eq!(
+          app.data.radarr_data.$data_ref.current_selection().$field,
+          "Test 1"
+        );
+      }
+    };
+    ($func:ident, $handler:ident, $data_ref:ident, $items:expr, $block:expr, $field:ident, $conversion_fn:ident) => {
+      #[rstest]
+      fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
+        let mut app = App::default();
+        app.data.radarr_data.$data_ref.set_items($items);
+
+        $handler::with(&key, &mut app, &$block).handle();
+
+        assert_str_eq!(
+          app
+            .data
+            .radarr_data
+            .$data_ref
+            .current_selection()
+            .$field
+            .$conversion_fn(),
+          "Test 2"
+        );
+
+        $handler::with(&key, &mut app, &$block).handle();
+
+        assert_str_eq!(
+          app
+            .data
+            .radarr_data
+            .$data_ref
+            .current_selection()
+            .$field
+            .$conversion_fn(),
+          "Test 1"
+        );
+      }
+    };
+  }
+
+  #[macro_export]
+  macro_rules! test_enum_scroll {
+    ($func:ident, $handler:ident, $name:ident, $data_ref:ident, $block:expr) => {
+      #[rstest]
+      fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
+        let reference_vec = Vec::from_iter($name::iter());
+        let mut app = App::default();
+        app
+          .data
+          .radarr_data
+          .$data_ref
+          .set_items(reference_vec.clone());
+
+        if key == Key::Up {
+          for i in (0..reference_vec.len()).rev() {
+            $handler::with(&key, &mut app, &$block).handle();
+
+            assert_eq!(
+              app.data.radarr_data.$data_ref.current_selection(),
+              &reference_vec[i]
+            );
+          }
+        } else {
+          for i in 0..reference_vec.len() {
+            $handler::with(&key, &mut app, &$block).handle();
+
+            assert_eq!(
+              app.data.radarr_data.$data_ref.current_selection(),
+              &reference_vec[(i + 1) % reference_vec.len()]
+            );
+          }
+        }
+      }
+    };
+  }
+
+  #[macro_export]
+  macro_rules! test_iterable_home_and_end {
+    ($func:ident, $handler:ident, $data_ref:ident, $block:expr) => {
+      #[test]
+      fn $func() {
+        let mut app = App::default();
+        app.data.radarr_data.$data_ref.set_items(vec![
+          "Test 1".to_owned(),
+          "Test 2".to_owned(),
+          "Test 3".to_owned(),
+        ]);
+
+        $handler::with(&DEFAULT_KEYBINDINGS.end.key, &mut app, &$block).handle();
+
+        assert_str_eq!(app.data.radarr_data.$data_ref.current_selection(), "Test 3");
+
+        $handler::with(&DEFAULT_KEYBINDINGS.home.key, &mut app, &$block).handle();
+
+        assert_str_eq!(app.data.radarr_data.$data_ref.current_selection(), "Test 1");
+      }
+    };
+    ($func:ident, $handler:ident, $data_ref:ident, $items:ident, $block:expr, $field:ident) => {
+      #[test]
+      fn $func() {
+        let mut app = App::default();
+        app
+          .data
+          .radarr_data
+          .$data_ref
+          .set_items(extended_stateful_iterable_vec!($items));
+
+        $handler::with(&DEFAULT_KEYBINDINGS.end.key, &mut app, &$block).handle();
+
+        assert_str_eq!(
+          app.data.radarr_data.$data_ref.current_selection().$field,
+          "Test 3"
+        );
+
+        $handler::with(&DEFAULT_KEYBINDINGS.home.key, &mut app, &$block).handle();
+
+        assert_str_eq!(
+          app.data.radarr_data.$data_ref.current_selection().$field,
+          "Test 1"
+        );
+      }
+    };
+    ($func:ident, $handler:ident, $data_ref:ident, $items:expr, $block:expr, $field:ident, $conversion_fn:ident) => {
+      #[test]
+      fn $func() {
+        let mut app = App::default();
+        app.data.radarr_data.$data_ref.set_items($items);
+
+        $handler::with(&DEFAULT_KEYBINDINGS.end.key, &mut app, &$block).handle();
+
+        assert_str_eq!(
+          app
+            .data
+            .radarr_data
+            .$data_ref
+            .current_selection()
+            .$field
+            .$conversion_fn(),
+          "Test 3"
+        );
+
+        $handler::with(&DEFAULT_KEYBINDINGS.home.key, &mut app, &$block).handle();
+
+        assert_str_eq!(
+          app
+            .data
+            .radarr_data
+            .$data_ref
+            .current_selection()
+            .$field
+            .$conversion_fn(),
+          "Test 1"
+        );
+      }
+    };
+  }
+
+  #[macro_export]
+  macro_rules! test_enum_home_and_end {
+    ($func:ident, $handler:ident, $name:ident, $data_ref:ident, $block:expr) => {
+      #[test]
+      fn $func() {
+        let reference_vec = Vec::from_iter($name::iter());
+        let mut app = App::default();
+        app
+          .data
+          .radarr_data
+          .$data_ref
+          .set_items(reference_vec.clone());
+
+        $handler::with(&DEFAULT_KEYBINDINGS.end.key, &mut app, &$block).handle();
+
+        assert_eq!(
+          app.data.radarr_data.$data_ref.current_selection(),
+          &reference_vec[reference_vec.len() - 1]
+        );
+
+        $handler::with(&DEFAULT_KEYBINDINGS.home.key, &mut app, &$block).handle();
+
+        assert_eq!(
+          app.data.radarr_data.$data_ref.current_selection(),
+          &reference_vec[0]
+        );
+      }
+    };
+  }
+}
+#[cfg(test)]
+mod tests {
+  use rstest::rstest;
+
+  use crate::app::App;
+  use crate::event::Key;
+  use crate::handlers::{handle_clear_errors, handle_prompt_toggle};
 
   #[test]
   fn test_handle_clear_errors() {
