@@ -1,4 +1,3 @@
-use log::debug;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::text::{Span, Spans, Text};
@@ -10,15 +9,12 @@ use tui::widgets::Tabs;
 use tui::widgets::{Block, Borders, Wrap};
 use tui::Frame;
 
-use crate::app::models::{StatefulTable, TabState};
-use crate::app::{App, Route};
-use crate::logos::{
-  BAZARR_LOGO, LIDARR_LOGO, PROWLARR_LOGO, RADARR_LOGO, READARR_LOGO, SONARR_LOGO,
-};
+use crate::app::App;
+use crate::models::{Route, StatefulTable, TabState};
 use crate::ui::utils::{
-  centered_rect, horizontal_chunks_with_margin, layout_block_top_border, logo_block,
-  style_default_bold, style_failure, style_help, style_highlight, style_primary, style_secondary,
-  style_system_function, title_block, vertical_chunks_with_margin,
+  borderless_block, centered_rect, horizontal_chunks_with_margin, layout_block_top_border,
+  logo_block, style_default_bold, style_failure, style_help, style_highlight, style_primary,
+  style_secondary, style_system_function, title_block, vertical_chunks_with_margin,
 };
 
 mod radarr_ui;
@@ -65,6 +61,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
 fn draw_header_row<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let chunks =
     horizontal_chunks_with_margin(vec![Constraint::Length(75), Constraint::Min(0)], area, 1);
+  let help_text = Text::from(app.server_tabs.get_active_tab_help());
 
   let titles = app
     .server_tabs
@@ -76,19 +73,17 @@ fn draw_header_row<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
     .block(logo_block())
     .highlight_style(style_secondary())
     .select(app.server_tabs.index);
-  let help = Paragraph::new(Text::from(
-    "<↑↓> scroll | <enter> select | <tab> change servarr | <?> help ",
-  ))
-  .block(Block::default())
-  .style(style_help())
-  .alignment(Alignment::Right);
+  let help = Paragraph::new(help_text)
+    .block(borderless_block())
+    .style(style_help())
+    .alignment(Alignment::Right);
 
   f.render_widget(tabs, area);
   f.render_widget(help, chunks[1]);
 }
 
 fn draw_error<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
-  let block = Block::default()
+  let block = borderless_block()
     .title("Error | <esc> to close")
     .style(style_failure())
     .borders(Borders::ALL);
@@ -169,7 +164,14 @@ fn draw_tabs<'a, B: Backend>(
 ) -> (Rect, Block<'a>) {
   let chunks =
     vertical_chunks_with_margin(vec![Constraint::Length(2), Constraint::Min(0)], area, 1);
+  let horizontal_chunks = horizontal_chunks_with_margin(
+    vec![Constraint::Percentage(10), Constraint::Min(0)],
+    area,
+    1,
+  );
   let block = title_block(title);
+  let mut help_text = Text::from(tab_state.get_active_tab_help());
+  help_text.patch_style(style_help());
 
   let titles = tab_state
     .tabs
@@ -180,8 +182,12 @@ fn draw_tabs<'a, B: Backend>(
     .block(block)
     .highlight_style(style_secondary())
     .select(tab_state.index);
+  let help = Paragraph::new(help_text)
+    .block(borderless_block())
+    .alignment(Alignment::Right);
 
   f.render_widget(tabs, area);
+  f.render_widget(help, horizontal_chunks[1]);
 
   (chunks[1], layout_block_top_border())
 }

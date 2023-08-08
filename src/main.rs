@@ -7,7 +7,6 @@ use crossterm::execute;
 use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
-use log::debug;
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::{mpsc, Mutex};
 use tui::backend::CrosstermBackend;
@@ -23,6 +22,7 @@ mod app;
 mod event;
 mod handlers;
 mod logos;
+mod models;
 mod network;
 mod ui;
 mod utils;

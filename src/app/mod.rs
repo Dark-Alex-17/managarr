@@ -7,25 +7,12 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
 use tokio::time::Instant;
 
-use crate::app::models::{HorizontallyScrollableText, TabRoute, TabState};
 use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
+use crate::models::{HorizontallyScrollableText, Route, TabRoute, TabState};
 use crate::network::NetworkEvent;
 
 pub(crate) mod key_binding;
-pub mod models;
 pub mod radarr;
-
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub enum Route {
-  Radarr(ActiveRadarrBlock),
-  Sonarr,
-}
-
-impl From<ActiveRadarrBlock> for Route {
-  fn from(active_radarr_block: ActiveRadarrBlock) -> Route {
-    Route::Radarr(active_radarr_block)
-  }
-}
 
 const DEFAULT_ROUTE: Route = Route::Radarr(ActiveRadarrBlock::Movies);
 
@@ -130,10 +117,12 @@ impl Default for App {
         TabRoute {
           title: "Radarr".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
+          help: "<tab> change servarr | <?> help | <q> quit ".to_owned(),
         },
         TabRoute {
           title: "Sonarr".to_owned(),
           route: Route::Sonarr,
+          help: "<tab> change servarr | <?> help | <q> quit ".to_owned(),
         },
       ]),
       client: Client::new(),

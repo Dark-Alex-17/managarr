@@ -1,7 +1,7 @@
-use crate::app::models::HorizontallyScrollableText;
-use crate::app::{App, Route};
+use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handler::handle_radarr_key_events;
+use crate::models::{HorizontallyScrollableText, Route};
 
 mod radarr_handler;
 

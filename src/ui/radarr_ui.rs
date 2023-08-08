@@ -10,14 +10,15 @@ use tui::widgets::{Block, Cell, Paragraph, Row, Wrap};
 use tui::Frame;
 
 use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
-use crate::app::{App, Route};
+use crate::app::App;
 use crate::logos::RADARR_LOGO;
-use crate::network::radarr_network::{Credit, DiskSpace, DownloadRecord, Movie, MovieHistoryItem};
+use crate::models::radarr_models::{Credit, DiskSpace, DownloadRecord, Movie, MovieHistoryItem};
+use crate::models::Route;
 use crate::ui::utils::{
-  borderless_block, horizontal_chunks, layout_block_bottom_border, layout_block_top_border,
-  layout_block_top_border_with_title, layout_block_with_title, line_gauge_with_label,
-  line_gauge_with_title, spans_info_default, spans_info_primary, spans_info_with_style, style_bold,
-  style_default, style_default_bold, style_failure, style_primary, style_success, style_warning,
+  borderless_block, horizontal_chunks, horizontal_chunks_with_margin, layout_block_bottom_border,
+  layout_block_top_border, layout_block_top_border_with_title, layout_block_with_title,
+  line_gauge_with_label, line_gauge_with_title, spans_info_default, spans_info_primary, style_bold,
+  style_default, style_failure, style_help, style_primary, style_success, style_warning,
   title_block, title_style, vertical_chunks, vertical_chunks_with_margin,
 };
 use crate::ui::{
@@ -250,7 +251,11 @@ fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect)
 
 fn draw_collection_details<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_area: Rect) {
   let chunks = vertical_chunks_with_margin(
-    vec![Constraint::Length(10), Constraint::Min(0)],
+    vec![
+      Constraint::Percentage(20),
+      Constraint::Percentage(75),
+      Constraint::Percentage(5),
+    ],
     content_area,
     1,
   );
@@ -262,6 +267,8 @@ fn draw_collection_details<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, cont
     .get(&collection_selection.quality_profile_id.as_u64().unwrap())
     .unwrap()
     .to_owned();
+  let mut help_text = Text::from("<↑↓> scroll table | <enter> show overview | <esc> close");
+  help_text.patch_style(style_help());
 
   let collection_description = Text::from(vec![
     spans_info_primary(
@@ -285,13 +292,14 @@ fn draw_collection_details<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, cont
   let description_paragraph = Paragraph::new(collection_description)
     .block(borderless_block())
     .wrap(Wrap { trim: false });
+  let help_paragraph = Paragraph::new(help_text)
+    .block(borderless_block())
+    .alignment(Alignment::Center);
 
-  f.render_widget(
-    layout_block_with_title(title_style(&collection_selection.title)),
-    content_area,
-  );
+  f.render_widget(title_block(&collection_selection.title), content_area);
 
   f.render_widget(description_paragraph, chunks[0]);
+  f.render_widget(help_paragraph, chunks[2]);
 
   draw_table(
     f,
@@ -400,6 +408,14 @@ fn draw_movie_info<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
 }
 
 fn draw_movie_overview<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_area: Rect) {
+  let title_block = title_block("Overview");
+  f.render_widget(title_block, content_area);
+
+  let chunks = vertical_chunks_with_margin(
+    vec![Constraint::Percentage(95), Constraint::Percentage(5)],
+    content_area,
+    1,
+  );
   let mut overview = Text::from(
     app
       .data
@@ -409,12 +425,18 @@ fn draw_movie_overview<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       .overview,
   );
   overview.patch_style(style_default());
+  let mut help_text = Text::from("<esc> close");
+  help_text.patch_style(style_help());
 
   let paragraph = Paragraph::new(overview)
-    .block(layout_block_with_title(title_style("Overview")))
+    .block(borderless_block())
     .wrap(Wrap { trim: false });
+  let help_paragraph = Paragraph::new(help_text)
+    .block(borderless_block())
+    .alignment(Alignment::Center);
 
-  f.render_widget(paragraph, content_area);
+  f.render_widget(paragraph, chunks[0]);
+  f.render_widget(help_paragraph, chunks[1]);
 }
 
 fn draw_movie_details<B: Backend>(
@@ -678,7 +700,7 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
       "Radarr Version:  {}",
       app.data.radarr_data.version
     )))
-    .block(Block::default());
+    .block(borderless_block());
 
     let uptime = Utc::now().sub(start_time.to_owned());
     let days = uptime.num_days();
@@ -698,15 +720,15 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
       seconds,
       width = 2
     )))
-    .block(Block::default());
+    .block(borderless_block());
 
     let mut logo_text = Text::from(RADARR_LOGO);
     logo_text.patch_style(Style::default().fg(Color::LightYellow));
     let logo = Paragraph::new(logo_text)
-      .block(Block::default())
+      .block(borderless_block())
       .alignment(Alignment::Center);
     let storage =
-      Paragraph::new(Text::from("Storage:")).block(Block::default().style(style_bold()));
+      Paragraph::new(Text::from("Storage:")).block(borderless_block().style(style_bold()));
 
     f.render_widget(logo, chunks[0]);
     f.render_widget(version_paragraph, chunks[1]);

@@ -1,7 +1,7 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-use crate::app::models::Scrollable;
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::handlers::handle_clear_errors;
+use crate::models::Scrollable;
 use crate::{App, Key};
 
 pub async fn handle_radarr_key_events(

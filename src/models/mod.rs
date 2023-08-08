@@ -4,7 +4,15 @@ use std::fmt::{Display, Formatter};
 use serde::Deserialize;
 use tui::widgets::TableState;
 
-use crate::app::Route;
+use crate::app::radarr::ActiveRadarrBlock;
+
+pub mod radarr_models;
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum Route {
+  Radarr(ActiveRadarrBlock),
+  Sonarr,
+}
 
 pub trait Scrollable {
   fn scroll_down(&mut self);
@@ -161,6 +169,7 @@ impl HorizontallyScrollableText {
 pub struct TabRoute {
   pub title: String,
   pub route: Route,
+  pub help: String,
 }
 
 pub struct TabState {
@@ -180,6 +189,10 @@ impl TabState {
 
   pub fn get_active_route(&self) -> &Route {
     &self.tabs[self.index].route
+  }
+
+  pub fn get_active_tab_help(&self) -> String {
+    self.tabs[self.index].help.clone()
   }
 
   pub fn next(&mut self) {

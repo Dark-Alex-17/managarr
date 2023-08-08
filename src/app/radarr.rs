@@ -4,12 +4,12 @@ use std::time::Duration;
 use chrono::{DateTime, Utc};
 use strum::EnumIter;
 
-use crate::app::models::{ScrollableText, StatefulTable, TabRoute, TabState};
-use crate::app::App;
-use crate::network::radarr_network::{
+use crate::app::{App, Route};
+use crate::models::radarr_models::{
   Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Movie, MovieHistoryItem,
-  RadarrEvent,
 };
+use crate::models::{ScrollableText, StatefulTable, TabRoute, TabState};
+use crate::network::radarr_network::RadarrEvent;
 
 pub struct RadarrData {
   pub disk_space_vec: Vec<DiskSpace>,
@@ -74,36 +74,44 @@ impl Default for RadarrData {
         TabRoute {
           title: "Library".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
+          help: "<↑↓> scroll table | <enter> movie details | ←→ change tab ".to_owned(),
         },
         TabRoute {
           title: "Downloads".to_owned(),
           route: ActiveRadarrBlock::Downloads.into(),
+          help: "<↑↓> scroll table | ←→ change tab ".to_owned(),
         },
         TabRoute {
           title: "Collections".to_owned(),
           route: ActiveRadarrBlock::Collections.into(),
+          help: "<↑↓> scroll table | <enter> collection details | ←→ change tab ".to_owned(),
         },
       ]),
       movie_info_tabs: TabState::new(vec![
         TabRoute {
           title: "Details".to_owned(),
           route: ActiveRadarrBlock::MovieDetails.into(),
+          help: "←→ change tab | <esc> close ".to_owned(),
         },
         TabRoute {
           title: "History".to_owned(),
           route: ActiveRadarrBlock::MovieHistory.into(),
+          help: "<↑↓> scroll table | ←→ change tab | <esc> close ".to_owned(),
         },
         TabRoute {
           title: "File".to_owned(),
           route: ActiveRadarrBlock::FileInfo.into(),
+          help: "←→ change tab | <esc> close ".to_owned(),
         },
         TabRoute {
           title: "Cast".to_owned(),
           route: ActiveRadarrBlock::Cast.into(),
+          help: "<↑↓> scroll table | ←→ change tab | <esc> close ".to_owned(),
         },
         TabRoute {
           title: "Crew".to_owned(),
           route: ActiveRadarrBlock::Crew.into(),
+          help: "<↑↓> scroll table | ←→ change tab | <esc> close ".to_owned(),
         },
       ]),
     }
@@ -129,6 +137,12 @@ pub enum ActiveRadarrBlock {
   SortOptions,
   Tasks,
   ViewMovieOverview,
+}
+
+impl From<ActiveRadarrBlock> for Route {
+  fn from(active_radarr_block: ActiveRadarrBlock) -> Route {
+    Route::Radarr(active_radarr_block)
+  }
 }
 
 impl App {
