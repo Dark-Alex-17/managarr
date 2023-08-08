@@ -16,7 +16,7 @@ use crate::app::radarr::{
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
 use crate::models::radarr_models::{Collection, DiskSpace, DownloadRecord, Movie};
-use crate::models::Route;
+use crate::models::{HorizontallyScrollableText, Route};
 use crate::ui::radarr_ui::add_movie_ui::draw_add_movie_search_popup;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details_popup;
 use crate::ui::radarr_ui::edit_movie_ui::draw_edit_movie_prompt;
@@ -488,12 +488,13 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
         ..
       } = download_record;
 
-      let path = output_path.clone().unwrap_or_default();
-      path.scroll_left_or_reset(
-        get_width_from_percentage(area, 18),
-        current_selection == *download_record,
-        app.tick_count % app.ticks_until_scroll == 0,
-      );
+      if matches!(output_path, Some(_)) {
+        output_path.as_ref().unwrap().scroll_left_or_reset(
+          get_width_from_percentage(area, 18),
+          current_selection == *download_record,
+          app.tick_count % app.ticks_until_scroll == 0,
+        );
+      }
 
       let percent = 1f64 - (sizeleft.as_f64().unwrap() / size.as_f64().unwrap());
       let file_size: f64 = convert_to_gb(size.as_u64().unwrap());
@@ -502,7 +503,12 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
         Cell::from(title.to_owned()),
         Cell::from(format!("{:.0}%", percent * 100.0)),
         Cell::from(format!("{:.2} GB", file_size)),
-        Cell::from(path.to_string()),
+        Cell::from(
+          output_path
+            .as_ref()
+            .unwrap_or(&HorizontallyScrollableText::default())
+            .to_string(),
+        ),
         Cell::from(indexer.to_owned()),
         Cell::from(download_client.to_owned()),
       ])
