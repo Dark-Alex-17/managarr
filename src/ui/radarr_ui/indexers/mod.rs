@@ -134,7 +134,7 @@ fn draw_delete_indexer_prompt<B: Backend>(
     prompt_area,
     "Delete Indexer",
     format!(
-      "Do you really want to delete this indexer: {}?",
+      "Do you really want to delete this indexer: \n{}?",
       app
         .data
         .radarr_data

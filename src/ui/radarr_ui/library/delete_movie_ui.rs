@@ -36,8 +36,8 @@ impl DrawUi for DeleteMovieUi {
             prompt_area,
             "Delete Movie",
             format!(
-              "Do you really want to delete: {}?",
-              app.data.radarr_data.movies.current_selection().title
+              "Do you really want to delete: \n{}?",
+              app.data.radarr_data.movies.current_selection().title.text
             )
             .as_str(),
             vec![

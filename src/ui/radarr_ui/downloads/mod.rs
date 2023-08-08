@@ -137,7 +137,7 @@ fn draw_delete_download_prompt<B: Backend>(
     prompt_area,
     "Cancel Download",
     format!(
-      "Do you really want to delete this download: {}?",
+      "Do you really want to delete this download: \n{}?",
       app.data.radarr_data.downloads.current_selection().title
     )
     .as_str(),

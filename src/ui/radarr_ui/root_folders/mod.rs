@@ -152,7 +152,7 @@ fn draw_delete_root_folder_prompt<B: Backend>(
     prompt_area,
     "Delete Root Folder",
     format!(
-      "Do you really want to delete this root folder: {}?",
+      "Do you really want to delete this root folder: \n{}?",
       app.data.radarr_data.root_folders.current_selection().path
     )
     .as_str(),
