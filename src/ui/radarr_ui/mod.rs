@@ -92,6 +92,15 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
         30,
         30,
       ),
+      ActiveRadarrBlock::DeleteDownloadPrompt => draw_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_downloads,
+        draw_delete_download_prompt,
+        30,
+        30,
+      ),
       _ => (),
     }
   }
@@ -173,6 +182,20 @@ fn draw_delete_movie_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
     format!(
       "Do you really want to delete: {}?",
       app.data.radarr_data.movies.current_selection().title
+    )
+    .as_str(),
+    &app.data.radarr_data.prompt_confirm,
+  );
+}
+
+fn draw_delete_download_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
+  draw_prompt_box(
+    f,
+    prompt_area,
+    "  Confirm Cancel Download?  ",
+    format!(
+      "Do you really want to delete this download: {}?",
+      app.data.radarr_data.downloads.current_selection().title
     )
     .as_str(),
     &app.data.radarr_data.prompt_confirm,
@@ -446,7 +469,7 @@ fn determine_row_style(downloads_vec: &[DownloadRecord], movie: &Movie) -> Style
   if !movie.has_file {
     if let Some(download) = downloads_vec
       .iter()
-      .find(|&download| download.movie_id == movie.id)
+      .find(|&download| download.id == movie.id)
     {
       if download.status == "downloading" {
         return style_warning();

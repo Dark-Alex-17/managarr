@@ -16,7 +16,7 @@ pub fn get_movie_status(
   if !has_file {
     if let Some(download) = downloads_vec
       .iter()
-      .find(|&download| download.movie_id.as_u64().unwrap() == movie_id.as_u64().unwrap())
+      .find(|&download| download.id.as_u64().unwrap() == movie_id.as_u64().unwrap())
     {
       if download.status == "downloading" {
         return "Downloading".to_owned();

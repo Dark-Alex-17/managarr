@@ -121,7 +121,7 @@ impl Default for RadarrData {
         TabRoute {
           title: "Downloads".to_owned(),
           route: ActiveRadarrBlock::Downloads.into(),
-          help: String::default(),
+          help: "<del> delete  ".to_owned(),
         },
         TabRoute {
           title: "Collections".to_owned(),
@@ -170,12 +170,12 @@ pub enum ActiveRadarrBlock {
   AddMovieSelectQualityProfile,
   AddMovieSelectMonitor,
   AddMovieConfirmPrompt,
-  Calendar,
   Collections,
   CollectionDetails,
   Cast,
   Crew,
   DeleteMoviePrompt,
+  DeleteDownloadPrompt,
   FileInfo,
   FilterCollections,
   FilterMovies,
@@ -185,7 +185,6 @@ pub enum ActiveRadarrBlock {
   Downloads,
   SearchMovie,
   SearchCollection,
-  SortOptions,
   ViewMovieOverview,
 }
 

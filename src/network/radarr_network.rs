@@ -8,8 +8,7 @@ use urlencoding::encode;
 use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, Collection, Credit, CreditType, DiskSpace,
-  DownloadsResponse, MinimumAvailability, Movie, MovieHistoryItem, QualityProfile, RootFolder,
-  SystemStatus,
+  DownloadsResponse, Movie, MovieHistoryItem, QualityProfile, RootFolder, SystemStatus,
 };
 use crate::models::ScrollableText;
 use crate::network::utils::get_movie_status;
@@ -19,6 +18,7 @@ use crate::utils::{convert_runtime, convert_to_gb};
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum RadarrEvent {
   AddMovie,
+  DeleteDownload,
   DeleteMovie,
   GetCollections,
   GetDownloads,
@@ -38,7 +38,7 @@ impl RadarrEvent {
   const fn resource(self) -> &'static str {
     match self {
       RadarrEvent::GetCollections => "/collection",
-      RadarrEvent::GetDownloads => "/queue",
+      RadarrEvent::GetDownloads | RadarrEvent::DeleteDownload => "/queue",
       RadarrEvent::AddMovie
       | RadarrEvent::GetMovies
       | RadarrEvent::GetMovieDetails
@@ -70,6 +70,7 @@ impl<'a> Network<'a> {
       RadarrEvent::GetStatus => self.get_status().await,
       RadarrEvent::GetMovies => self.get_movies().await,
       RadarrEvent::DeleteMovie => self.delete_movie().await,
+      RadarrEvent::DeleteDownload => self.delete_download().await,
       RadarrEvent::GetMovieCredits => self.get_credits().await,
       RadarrEvent::GetMovieDetails => self.get_movie_details().await,
       RadarrEvent::GetMovieHistory => self.get_movie_history().await,
@@ -480,6 +481,34 @@ impl<'a> Network<'a> {
     let request_props = self
       .radarr_request_props_from(
         format!("{}/{}", RadarrEvent::DeleteMovie.resource(), movie_id).as_str(),
+        RequestMethod::Delete,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn delete_download(&self) {
+    let movie_id = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .downloads
+      .current_selection()
+      .id
+      .as_u64()
+      .unwrap();
+
+    info!("Deleting Radarr download for movie with id: {}", movie_id);
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!("{}/{}", RadarrEvent::DeleteDownload.resource(), movie_id).as_str(),
         RequestMethod::Delete,
         None::<()>,
       )

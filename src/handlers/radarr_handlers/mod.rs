@@ -183,10 +183,14 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
   }
 
   fn handle_delete(&mut self) {
-    if *self.active_radarr_block == ActiveRadarrBlock::Movies {
-      self
+    match self.active_radarr_block {
+      ActiveRadarrBlock::Movies => self
         .app
-        .push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
+        .push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into()),
+      ActiveRadarrBlock::Downloads => self
+        .app
+        .push_navigation_stack(ActiveRadarrBlock::DeleteDownloadPrompt.into()),
+      _ => (),
     }
   }
 
@@ -221,7 +225,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
           _ => (),
         }
       }
-      ActiveRadarrBlock::DeleteMoviePrompt => handle_prompt_toggle(self.app, self.key),
+      ActiveRadarrBlock::DeleteMoviePrompt | ActiveRadarrBlock::DeleteDownloadPrompt => {
+        handle_prompt_toggle(self.app, self.key)
+      }
       _ => (),
     }
   }
@@ -295,6 +301,13 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
 
         self.app.pop_navigation_stack();
       }
+      ActiveRadarrBlock::DeleteDownloadPrompt => {
+        if self.app.data.radarr_data.prompt_confirm {
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteDownload);
+        }
+
+        self.app.pop_navigation_stack();
+      }
       _ => (),
     }
   }
@@ -309,7 +322,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         self.app.data.radarr_data.reset_search();
         self.app.should_ignore_quit_key = false;
       }
-      ActiveRadarrBlock::DeleteMoviePrompt => {
+      ActiveRadarrBlock::DeleteMoviePrompt | ActiveRadarrBlock::DeleteDownloadPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.prompt_confirm = false;
       }
