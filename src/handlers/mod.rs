@@ -37,6 +37,7 @@ pub trait KeyEventHandler<'a, 'b, T: Into<Route>> {
     self.handle_key_event();
   }
 
+  fn accepts(active_block: &'a T) -> bool;
   fn with(key: &'a Key, app: &'a mut App<'b>, active_block: &'a T, context: &'a Option<T>) -> Self;
   fn get_key(&self) -> &Key;
   fn handle_scroll_up(&mut self);

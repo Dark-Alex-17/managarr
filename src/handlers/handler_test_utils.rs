@@ -445,12 +445,12 @@ mod test_utils {
 
   #[macro_export]
   macro_rules! test_handler_delegation {
-    ($base:expr, $active_block:expr) => {
+    ($handler:ident, $base:expr, $active_block:expr) => {
       let mut app = App::default();
       app.push_navigation_stack($base.clone().into());
       app.push_navigation_stack($active_block.clone().into());
 
-      RadarrHandler::with(
+      $handler::with(
         &DEFAULT_KEYBINDINGS.esc.key,
         &mut app,
         &$active_block,

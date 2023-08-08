@@ -1,0 +1,19 @@
+#[cfg(test)]
+mod tests {
+  use strum::IntoEnumIterator;
+
+  use crate::app::radarr::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
+  use crate::ui::radarr_ui::root_folders::RootFoldersUi;
+  use crate::ui::DrawUi;
+
+  #[test]
+  fn test_root_folders_ui_accepts() {
+    ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
+      if ROOT_FOLDERS_BLOCKS.contains(&active_radarr_block) {
+        assert!(RootFoldersUi::accepts(active_radarr_block.into()));
+      } else {
+        assert!(!RootFoldersUi::accepts(active_radarr_block.into()));
+      }
+    });
+  }
+}

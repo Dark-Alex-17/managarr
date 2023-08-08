@@ -1,6 +1,7 @@
 use bimap::BiMap;
 use chrono::{DateTime, Utc};
 use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 
 use crate::app::{App, Route};
 use crate::models::radarr_models::{
@@ -250,134 +251,134 @@ impl<'a> RadarrData<'a> {
 impl<'a> Default for RadarrData<'a> {
   fn default() -> RadarrData<'a> {
     RadarrData {
-      root_folders: StatefulTable::default(),
-      disk_space_vec: Vec::new(),
-      version: String::default(),
-      start_time: DateTime::default(),
-      movies: StatefulTable::default(),
-      add_searched_movies: StatefulTable::default(),
-      monitor_list: StatefulList::default(),
-      minimum_availability_list: StatefulList::default(),
-      quality_profile_list: StatefulList::default(),
-      root_folder_list: StatefulList::default(),
-      selected_block: BlockSelectionState::default(),
-      filtered_movies: StatefulTable::default(),
-      downloads: StatefulTable::default(),
-      indexers: StatefulTable::default(),
-      indexer_settings: None,
-      quality_profile_map: BiMap::default(),
-      tags_map: BiMap::default(),
-      file_details: String::default(),
-      audio_details: String::default(),
-      video_details: String::default(),
-      movie_details: ScrollableText::default(),
-      movie_history: StatefulTable::default(),
-      movie_cast: StatefulTable::default(),
-      movie_crew: StatefulTable::default(),
-      movie_releases: StatefulTable::default(),
-      movie_releases_sort: StatefulList::default(),
-      collections: StatefulTable::default(),
-      filtered_collections: StatefulTable::default(),
-      collection_movies: StatefulTable::default(),
-      logs: StatefulList::default(),
-      log_details: StatefulList::default(),
-      tasks: StatefulTable::default(),
-      queued_events: StatefulTable::default(),
-      updates: ScrollableText::default(),
-      prompt_confirm_action: None,
-      search: HorizontallyScrollableText::default(),
-      filter: HorizontallyScrollableText::default(),
-      edit_path: HorizontallyScrollableText::default(),
-      edit_tags: HorizontallyScrollableText::default(),
-      edit_monitored: None,
-      edit_search_on_add: None,
-      sort_ascending: None,
-      is_searching: false,
-      is_filtering: false,
-      prompt_confirm: false,
-      delete_movie_files: false,
-      add_list_exclusion: false,
-      main_tabs: TabState::new(vec![
-        TabRoute {
-          title: "Library",
-          route: ActiveRadarrBlock::Movies.into(),
-          help: "",
-          contextual_help: Some("<a> add | <e> edit | <del> delete | <s> search | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"),
-        },
-        TabRoute {
-          title: "Downloads",
-          route: ActiveRadarrBlock::Downloads.into(),
-          help: "",
-          contextual_help: Some("<r> refresh | <del> delete"),
-        },
-        TabRoute {
-          title: "Collections",
-          route: ActiveRadarrBlock::Collections.into(),
-          help: "",
-          contextual_help: Some("<s> search | <e> edit | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"),
-        },
-        TabRoute {
-          title: "Root Folders",
-          route: ActiveRadarrBlock::RootFolders.into(),
-          help: "",
-          contextual_help: Some("<a> add | <del> delete | <r> refresh"),
-        },
-        TabRoute {
-          title: "Indexers",
-          route: ActiveRadarrBlock::Indexers.into(),
-          help: "",
-          contextual_help: Some("<enter> edit | <s> settings | <del> delete | <r> refresh"),
-        },
-        TabRoute {
-          title: "System",
-          route: ActiveRadarrBlock::System.into(),
-          help: "",
-          contextual_help: Some("<t> open tasks | <e> open events | <l> open logs | <u> open updates | <r> refresh")
-        }
-      ]),
-      movie_info_tabs: TabState::new(vec![
-        TabRoute {
-          title: "Details",
-          route: ActiveRadarrBlock::MovieDetails.into(),
-          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
-          contextual_help: None
-        },
-        TabRoute {
-          title: "History",
-          route: ActiveRadarrBlock::MovieHistory.into(),
-          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
-          contextual_help: None
-        },
-        TabRoute {
-          title: "File",
-          route: ActiveRadarrBlock::FileInfo.into(),
-          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
-          contextual_help: None,
-        },
-        TabRoute {
-          title: "Cast",
-          route: ActiveRadarrBlock::Cast.into(),
-          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
-          contextual_help: None,
-        },
-        TabRoute {
-          title: "Crew",
-          route: ActiveRadarrBlock::Crew.into(),
-          help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
-          contextual_help: None,
-        },
-        TabRoute {
-          title: "Manual Search",
-          route: ActiveRadarrBlock::ManualSearch.into(),
-          help: "<r> refresh | <u> update | <e> edit | <o> sort | <s> auto search | <esc> close",
-          contextual_help: Some("<enter> details")
-        }
-      ]),
-    }
+			root_folders: StatefulTable::default(),
+			disk_space_vec: Vec::new(),
+			version: String::default(),
+			start_time: DateTime::default(),
+			movies: StatefulTable::default(),
+			add_searched_movies: StatefulTable::default(),
+			monitor_list: StatefulList::default(),
+			minimum_availability_list: StatefulList::default(),
+			quality_profile_list: StatefulList::default(),
+			root_folder_list: StatefulList::default(),
+			selected_block: BlockSelectionState::default(),
+			filtered_movies: StatefulTable::default(),
+			downloads: StatefulTable::default(),
+			indexers: StatefulTable::default(),
+			indexer_settings: None,
+			quality_profile_map: BiMap::default(),
+			tags_map: BiMap::default(),
+			file_details: String::default(),
+			audio_details: String::default(),
+			video_details: String::default(),
+			movie_details: ScrollableText::default(),
+			movie_history: StatefulTable::default(),
+			movie_cast: StatefulTable::default(),
+			movie_crew: StatefulTable::default(),
+			movie_releases: StatefulTable::default(),
+			movie_releases_sort: StatefulList::default(),
+			collections: StatefulTable::default(),
+			filtered_collections: StatefulTable::default(),
+			collection_movies: StatefulTable::default(),
+			logs: StatefulList::default(),
+			log_details: StatefulList::default(),
+			tasks: StatefulTable::default(),
+			queued_events: StatefulTable::default(),
+			updates: ScrollableText::default(),
+			prompt_confirm_action: None,
+			search: HorizontallyScrollableText::default(),
+			filter: HorizontallyScrollableText::default(),
+			edit_path: HorizontallyScrollableText::default(),
+			edit_tags: HorizontallyScrollableText::default(),
+			edit_monitored: None,
+			edit_search_on_add: None,
+			sort_ascending: None,
+			is_searching: false,
+			is_filtering: false,
+			prompt_confirm: false,
+			delete_movie_files: false,
+			add_list_exclusion: false,
+			main_tabs: TabState::new(vec![
+				TabRoute {
+					title: "Library",
+					route: ActiveRadarrBlock::Movies.into(),
+					help: "",
+					contextual_help: Some("<a> add | <e> edit | <del> delete | <s> search | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"),
+				},
+				TabRoute {
+					title: "Downloads",
+					route: ActiveRadarrBlock::Downloads.into(),
+					help: "",
+					contextual_help: Some("<r> refresh | <del> delete"),
+				},
+				TabRoute {
+					title: "Collections",
+					route: ActiveRadarrBlock::Collections.into(),
+					help: "",
+					contextual_help: Some("<s> search | <e> edit | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"),
+				},
+				TabRoute {
+					title: "Root Folders",
+					route: ActiveRadarrBlock::RootFolders.into(),
+					help: "",
+					contextual_help: Some("<a> add | <del> delete | <r> refresh"),
+				},
+				TabRoute {
+					title: "Indexers",
+					route: ActiveRadarrBlock::Indexers.into(),
+					help: "",
+					contextual_help: Some("<a> add | <enter> edit | <s> settings | <t> restrictions | <del> delete | <r> refresh"),
+				},
+				TabRoute {
+					title: "System",
+					route: ActiveRadarrBlock::System.into(),
+					help: "",
+					contextual_help: Some("<t> open tasks | <e> open events | <l> open logs | <u> open updates | <r> refresh"),
+				},
+			]),
+			movie_info_tabs: TabState::new(vec![
+				TabRoute {
+					title: "Details",
+					route: ActiveRadarrBlock::MovieDetails.into(),
+					help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
+					contextual_help: None,
+				},
+				TabRoute {
+					title: "History",
+					route: ActiveRadarrBlock::MovieHistory.into(),
+					help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
+					contextual_help: None,
+				},
+				TabRoute {
+					title: "File",
+					route: ActiveRadarrBlock::FileInfo.into(),
+					help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
+					contextual_help: None,
+				},
+				TabRoute {
+					title: "Cast",
+					route: ActiveRadarrBlock::Cast.into(),
+					help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
+					contextual_help: None,
+				},
+				TabRoute {
+					title: "Crew",
+					route: ActiveRadarrBlock::Crew.into(),
+					help: "<r> refresh | <u> update | <e> edit | <s> auto search | <esc> close",
+					contextual_help: None,
+				},
+				TabRoute {
+					title: "Manual Search",
+					route: ActiveRadarrBlock::ManualSearch.into(),
+					help: "<r> refresh | <u> update | <e> edit | <o> sort | <s> auto search | <esc> close",
+					contextual_help: Some("<enter> details"),
+				},
+			]),
+		}
   }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default, EnumIter)]
 pub enum ActiveRadarrBlock {
   AddIndexer,
   AddMovieAlreadyInLibrary,
@@ -424,7 +425,16 @@ pub enum ActiveRadarrBlock {
   FilterCollections,
   FilterMovies,
   Indexers,
-  IndexerSettings,
+  IndexerSettingsPrompt,
+  IndexerSettingsAvailabilityDelayInput,
+  IndexerSettingsConfirmPrompt,
+  IndexerSettingsMaximumSizeInput,
+  IndexerSettingsMinimumAgeInput,
+  IndexerSettingsRetentionInput,
+  IndexerSettingsRssSyncIntervalInput,
+  IndexerSettingsToggleAllowHardcodedSubs,
+  IndexerSettingsTogglePreferIndexerFlags,
+  IndexerSettingsWhitelistedSubtitleTagsInput,
   ManualSearch,
   ManualSearchSortPrompt,
   ManualSearchConfirmPrompt,
@@ -448,6 +458,29 @@ pub enum ActiveRadarrBlock {
   ViewMovieOverview,
 }
 
+pub static LIBRARY_BLOCKS: [ActiveRadarrBlock; 4] = [
+  ActiveRadarrBlock::Movies,
+  ActiveRadarrBlock::SearchMovie,
+  ActiveRadarrBlock::FilterMovies,
+  ActiveRadarrBlock::UpdateAllMoviesPrompt,
+];
+pub static COLLECTIONS_BLOCKS: [ActiveRadarrBlock; 4] = [
+  ActiveRadarrBlock::Collections,
+  ActiveRadarrBlock::SearchCollection,
+  ActiveRadarrBlock::FilterCollections,
+  ActiveRadarrBlock::UpdateAllCollectionsPrompt,
+];
+pub static INDEXERS_BLOCKS: [ActiveRadarrBlock; 4] = [
+  ActiveRadarrBlock::AddIndexer,
+  ActiveRadarrBlock::EditIndexer,
+  ActiveRadarrBlock::DeleteIndexerPrompt,
+  ActiveRadarrBlock::Indexers,
+];
+pub static ROOT_FOLDERS_BLOCKS: [ActiveRadarrBlock; 3] = [
+  ActiveRadarrBlock::RootFolders,
+  ActiveRadarrBlock::AddRootFolderPrompt,
+  ActiveRadarrBlock::DeleteRootFolderPrompt,
+];
 pub static ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::AddMovieSearchInput,
   ActiveRadarrBlock::AddMovieSearchResults,
@@ -502,6 +535,11 @@ pub static EDIT_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
   ActiveRadarrBlock::EditMovieTagsInput,
   ActiveRadarrBlock::EditMovieConfirmPrompt,
 ];
+pub static DOWNLOADS_BLOCKS: [ActiveRadarrBlock; 3] = [
+  ActiveRadarrBlock::Downloads,
+  ActiveRadarrBlock::DeleteDownloadPrompt,
+  ActiveRadarrBlock::UpdateDownloadsPrompt,
+];
 pub static MOVIE_DETAILS_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::MovieDetails,
   ActiveRadarrBlock::MovieHistory,
@@ -537,12 +575,28 @@ pub static DELETE_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
   ActiveRadarrBlock::DeleteMovieConfirmPrompt,
 ];
-pub static INDEXER_BLOCKS: [ActiveRadarrBlock; 5] = [
-  ActiveRadarrBlock::Indexers,
-  ActiveRadarrBlock::IndexerSettings,
-  ActiveRadarrBlock::AddIndexer,
-  ActiveRadarrBlock::EditIndexer,
-  ActiveRadarrBlock::DeleteIndexerPrompt,
+pub static INDEXER_SETTINGS_BLOCKS: [ActiveRadarrBlock; 10] = [
+  ActiveRadarrBlock::IndexerSettingsPrompt,
+  ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
+  ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
+  ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
+  ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
+  ActiveRadarrBlock::IndexerSettingsRetentionInput,
+  ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
+  ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs,
+  ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags,
+  ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
+];
+pub static INDEXER_SETTINGS_SELECTION_BLOCKS: [ActiveRadarrBlock; 9] = [
+  ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
+  ActiveRadarrBlock::IndexerSettingsRetentionInput,
+  ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
+  ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags,
+  ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
+  ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
+  ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
+  ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs,
+  ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
 ];
 pub static SYSTEM_DETAILS_BLOCKS: [ActiveRadarrBlock; 5] = [
   ActiveRadarrBlock::SystemLogs,
@@ -600,7 +654,7 @@ impl<'a> App<'a> {
           .dispatch_network_event(RadarrEvent::GetIndexers.into())
           .await;
       }
-      ActiveRadarrBlock::IndexerSettings => {
+      ActiveRadarrBlock::IndexerSettingsPrompt => {
         self
           .dispatch_network_event(RadarrEvent::GetIndexerSettings.into())
           .await;

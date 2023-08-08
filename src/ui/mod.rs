@@ -31,6 +31,7 @@ mod utils;
 static HIGHLIGHT_SYMBOL: &str = "=> ";
 
 pub trait DrawUi {
+  fn accepts(route: Route) -> bool;
   fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect);
   fn draw_context_row<B: Backend>(_f: &mut Frame<'_, B>, _app: &App<'_>, _area: Rect) {}
 }
@@ -66,7 +67,7 @@ pub fn ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>) {
 
   draw_header_row(f, app, main_chunks[0]);
 
-  if let Route::Radarr(_, _) = *app.get_current_route() {
+  if RadarrUi::accepts(*app.get_current_route()) {
     RadarrUi::draw_context_row(f, app, main_chunks[1]);
     RadarrUi::draw(f, app, main_chunks[2]);
   }

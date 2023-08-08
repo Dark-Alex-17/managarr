@@ -26,7 +26,6 @@ mod utils {
         tags: vec![Number::from(1)],
         ..Movie::default()
       }]);
-      radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
       app.data.radarr_data = radarr_data;
 
       $handler::with(&DEFAULT_KEYBINDINGS.edit.key, &mut app, &$block, &None).handle();
@@ -66,6 +65,10 @@ mod utils {
       assert_str_eq!(app.data.radarr_data.edit_path.text, "/nfs/movies/Test");
       assert_str_eq!(app.data.radarr_data.edit_tags.text, "test");
       assert_eq!(app.data.radarr_data.edit_monitored, Some(true));
+      assert_eq!(
+        app.data.radarr_data.selected_block.blocks,
+        &EDIT_MOVIE_SELECTION_BLOCKS
+      );
     };
   }
 
@@ -93,7 +96,6 @@ mod utils {
         minimum_availability: MinimumAvailability::Released,
         ..Collection::default()
       }]);
-      radarr_data.selected_block = BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
       app.data.radarr_data = radarr_data;
 
       $handler::with(&DEFAULT_KEYBINDINGS.edit.key, &mut app, &$block, &None).handle();
@@ -133,6 +135,10 @@ mod utils {
       assert_str_eq!(app.data.radarr_data.edit_path.text, "/nfs/movies/Test");
       assert_eq!(app.data.radarr_data.edit_monitored, Some(true));
       assert_eq!(app.data.radarr_data.edit_search_on_add, Some(true));
+      assert_eq!(
+        app.data.radarr_data.selected_block.blocks,
+        &EDIT_COLLECTION_SELECTION_BLOCKS
+      );
     };
   }
 
@@ -146,10 +152,37 @@ mod utils {
       assert_eq!(app.get_current_route(), &$expected_block.into());
     };
 
+    ($handler:ident, $block:expr, $expected_block:expr) => {
+      let mut app = App::default();
+
+      $handler::with(&DELETE_KEY, &mut app, &$block, &None).handle();
+
+      assert_eq!(app.get_current_route(), &$expected_block.into());
+    };
+
     ($app:expr, $block:expr, $expected_block:expr) => {
       RadarrHandler::with(&DELETE_KEY, &mut $app, &$block, &None).handle();
 
       assert_eq!($app.get_current_route(), &$expected_block.into());
+    };
+
+    ($handler:ident, $app:expr, $block:expr, $expected_block:expr) => {
+      $handler::with(&DELETE_KEY, &mut $app, &$block, &None).handle();
+
+      assert_eq!($app.get_current_route(), &$expected_block.into());
+    };
+  }
+
+  #[macro_export]
+  macro_rules! assert_refresh_key {
+    ($handler:ident, $block:expr) => {
+      let mut app = App::default();
+      app.push_navigation_stack($block.into());
+
+      $handler::with(&DEFAULT_KEYBINDINGS.refresh.key, &mut app, &$block, &None).handle();
+
+      assert_eq!(app.get_current_route(), &$block.into());
+      assert!(app.should_refresh);
     };
   }
 }

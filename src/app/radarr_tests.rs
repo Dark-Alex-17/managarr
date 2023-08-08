@@ -30,7 +30,7 @@ mod tests {
         )),
         Route::Radarr(
           ActiveRadarrBlock::AddMoviePrompt,
-          Some(ActiveRadarrBlock::AddMovieSearchResults)
+          Some(ActiveRadarrBlock::AddMovieSearchResults),
         )
       );
     }
@@ -358,7 +358,9 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[4].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[4].contextual_help,
-        Some("<enter> edit | <s> settings | <del> delete | <r> refresh")
+        Some(
+          "<a> add | <enter> edit | <s> settings | <t> restrictions | <del> delete | <r> refresh"
+        )
       );
 
       assert_str_eq!(radarr_data.main_tabs.tabs[5].title, "System");
@@ -461,6 +463,7 @@ mod tests {
     use crate::app::radarr::{
       ActiveRadarrBlock, ADD_MOVIE_SELECTION_BLOCKS, DELETE_MOVIE_SELECTION_BLOCKS,
       EDIT_COLLECTION_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS,
+      INDEXER_SETTINGS_SELECTION_BLOCKS,
     };
 
     #[test]
@@ -556,6 +559,7 @@ mod tests {
     #[test]
     fn test_delete_movie_prompt_block_order() {
       let mut delete_movie_block_iter = DELETE_MOVIE_SELECTION_BLOCKS.iter();
+
       assert_eq!(
         delete_movie_block_iter.next().unwrap(),
         &ActiveRadarrBlock::DeleteMovieToggleDeleteFile
@@ -567,6 +571,48 @@ mod tests {
       assert_eq!(
         delete_movie_block_iter.next().unwrap(),
         &ActiveRadarrBlock::DeleteMovieConfirmPrompt
+      );
+    }
+
+    #[test]
+    fn test_indexer_settings_prompt_block_order() {
+      let mut indexer_settings_block_iter = INDEXER_SETTINGS_SELECTION_BLOCKS.iter();
+
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::IndexerSettingsMinimumAgeInput
+      );
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::IndexerSettingsRetentionInput
+      );
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::IndexerSettingsMaximumSizeInput
+      );
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags
+      );
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput
+      );
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput
+      );
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput
+      );
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs
+      );
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::IndexerSettingsConfirmPrompt
       );
     }
   }
@@ -719,7 +765,7 @@ mod tests {
       let (mut app, mut sync_network_rx) = construct_app_unit();
 
       app
-        .dispatch_by_radarr_block(&ActiveRadarrBlock::IndexerSettings)
+        .dispatch_by_radarr_block(&ActiveRadarrBlock::IndexerSettingsPrompt)
         .await;
 
       assert!(app.is_loading);

@@ -9,11 +9,7 @@ use tui::widgets::ListItem;
 use tui::widgets::Paragraph;
 use tui::Frame;
 
-use crate::app::radarr::{
-  ActiveRadarrBlock, RadarrData, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS,
-  EDIT_COLLECTION_BLOCKS, EDIT_MOVIE_BLOCKS, FILTER_BLOCKS, INDEXER_BLOCKS, MOVIE_DETAILS_BLOCKS,
-  SEARCH_BLOCKS, SYSTEM_DETAILS_BLOCKS,
-};
+use crate::app::radarr::{ActiveRadarrBlock, RadarrData, FILTER_BLOCKS, SEARCH_BLOCKS};
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
 use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie, RootFolder};
@@ -21,15 +17,12 @@ use crate::models::Route;
 use crate::ui::draw_selectable_list;
 use crate::ui::draw_tabs;
 use crate::ui::loading;
-use crate::ui::radarr_ui::indexers_ui::IndexersUi;
-use crate::ui::radarr_ui::system_details_ui::SystemDetailsUi;
-use crate::ui::radarr_ui::system_ui::SystemUi;
-use crate::ui::radarr_ui::{
-  add_movie_ui::AddMoviesUi, collection_details_ui::CollectionDetailsUi,
-  collections_ui::CollectionsUi, delete_movie_ui::DeleteMovieUi, downloads_ui::DownloadsUi,
-  edit_collection_ui::EditCollectionUi, edit_movie_ui::EditMovieUi, library_ui::LibraryUi,
-  movie_details_ui::MovieDetailsUi, root_folders_ui::RootFoldersUi,
-};
+use crate::ui::radarr_ui::collections::CollectionsUi;
+use crate::ui::radarr_ui::downloads::DownloadsUi;
+use crate::ui::radarr_ui::indexers::IndexersUi;
+use crate::ui::radarr_ui::library::LibraryUi;
+use crate::ui::radarr_ui::root_folders::RootFoldersUi;
+use crate::ui::radarr_ui::system::SystemUi;
 use crate::ui::utils::{
   borderless_block, horizontal_chunks, layout_block, line_gauge_with_label, line_gauge_with_title,
   show_cursor, style_awaiting_import, style_bold, style_default, style_failure, style_success,
@@ -38,72 +31,37 @@ use crate::ui::utils::{
 use crate::ui::DrawUi;
 use crate::utils::convert_to_gb;
 
-mod add_movie_ui;
-mod collection_details_ui;
-mod collections_ui;
-mod delete_movie_ui;
-mod downloads_ui;
-mod edit_collection_ui;
-mod edit_movie_ui;
-mod indexers_ui;
-mod library_ui;
-mod movie_details_ui;
+mod collections;
+mod downloads;
+mod indexers;
+mod library;
 mod radarr_ui_utils;
-mod root_folders_ui;
-mod system_details_ui;
-mod system_ui;
+mod root_folders;
+mod system;
+
+#[cfg(test)]
+#[path = "radarr_ui_tests.rs"]
+mod radarr_ui_tests;
 
 pub(super) struct RadarrUi {}
 
 impl DrawUi for RadarrUi {
+  fn accepts(route: Route) -> bool {
+    matches!(route, Route::Radarr(_, _))
+  }
+
   fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
     let (content_rect, _) = draw_tabs(f, area, "Movies", &app.data.radarr_data.main_tabs);
+    let route = *app.get_current_route();
 
-    if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
-      match active_radarr_block {
-        ActiveRadarrBlock::Movies
-        | ActiveRadarrBlock::SearchMovie
-        | ActiveRadarrBlock::FilterMovies
-        | ActiveRadarrBlock::UpdateAllMoviesPrompt => LibraryUi::draw(f, app, content_rect),
-        ActiveRadarrBlock::Collections
-        | ActiveRadarrBlock::SearchCollection
-        | ActiveRadarrBlock::FilterCollections
-        | ActiveRadarrBlock::UpdateAllCollectionsPrompt => {
-          CollectionsUi::draw(f, app, content_rect)
-        }
-        ActiveRadarrBlock::Downloads
-        | ActiveRadarrBlock::DeleteDownloadPrompt
-        | ActiveRadarrBlock::UpdateDownloadsPrompt => DownloadsUi::draw(f, app, content_rect),
-        _ if INDEXER_BLOCKS.contains(&active_radarr_block) => {
-          IndexersUi::draw(f, app, content_rect)
-        }
-        ActiveRadarrBlock::RootFolders
-        | ActiveRadarrBlock::AddRootFolderPrompt
-        | ActiveRadarrBlock::DeleteRootFolderPrompt => RootFoldersUi::draw(f, app, content_rect),
-        ActiveRadarrBlock::System => SystemUi::draw(f, app, content_rect),
-        _ if SYSTEM_DETAILS_BLOCKS.contains(&active_radarr_block) => {
-          SystemDetailsUi::draw(f, app, content_rect)
-        }
-        _ if MOVIE_DETAILS_BLOCKS.contains(&active_radarr_block) => {
-          MovieDetailsUi::draw(f, app, content_rect)
-        }
-        _ if ADD_MOVIE_BLOCKS.contains(&active_radarr_block) => {
-          AddMoviesUi::draw(f, app, content_rect)
-        }
-        _ if COLLECTION_DETAILS_BLOCKS.contains(&active_radarr_block) => {
-          CollectionDetailsUi::draw(f, app, content_rect)
-        }
-        _ if EDIT_MOVIE_BLOCKS.contains(&active_radarr_block) => {
-          EditMovieUi::draw(f, app, content_rect)
-        }
-        _ if EDIT_COLLECTION_BLOCKS.contains(&active_radarr_block) => {
-          EditCollectionUi::draw(f, app, content_rect)
-        }
-        _ if DELETE_MOVIE_BLOCKS.contains(&active_radarr_block) => {
-          DeleteMovieUi::draw(f, app, content_rect)
-        }
-        _ => (),
-      }
+    match route {
+      _ if LibraryUi::accepts(route) => LibraryUi::draw(f, app, content_rect),
+      _ if CollectionsUi::accepts(route) => CollectionsUi::draw(f, app, content_rect),
+      _ if DownloadsUi::accepts(route) => DownloadsUi::draw(f, app, content_rect),
+      _ if IndexersUi::accepts(route) => IndexersUi::draw(f, app, content_rect),
+      _ if RootFoldersUi::accepts(route) => RootFoldersUi::draw(f, app, content_rect),
+      _ if SystemUi::accepts(route) => SystemUi::draw(f, app, content_rect),
+      _ => (),
     }
   }
 
