@@ -1,9 +1,9 @@
 use std::iter;
 
 use tui::backend::Backend;
-use tui::layout::{Constraint, Rect};
-use tui::style::Style;
-use tui::text::{Spans, Text};
+use tui::layout::{Alignment, Constraint, Rect};
+use tui::style::{Modifier, Style};
+use tui::text::{Span, Spans, Text};
 use tui::widgets::{Cell, Paragraph, Row, Wrap};
 use tui::Frame;
 
@@ -13,11 +13,12 @@ use crate::models::radarr_models::{Credit, MovieHistoryItem, Release};
 use crate::models::Route;
 use crate::ui::utils::{
   borderless_block, get_width, layout_block_bottom_border, layout_block_top_border,
-  spans_info_default, style_bold, style_default, style_failure, style_primary, style_success,
-  style_warning, vertical_chunks,
+  spans_info_default, spans_info_primary, style_bold, style_default, style_failure, style_primary,
+  style_success, style_warning, vertical_chunks,
 };
 use crate::ui::{
-  draw_prompt_box, draw_prompt_popup_over, draw_table, draw_tabs, loading, TableProps,
+  draw_medium_popup_over, draw_prompt_box, draw_prompt_box_with_content, draw_prompt_popup_over,
+  draw_small_popup_over, draw_table, draw_tabs, loading, TableProps,
 };
 use crate::utils::convert_to_gb;
 
@@ -39,6 +40,13 @@ pub(super) fn draw_movie_info_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut 
         content_area,
         draw_movie_info,
         draw_refresh_and_scan_prompt,
+      ),
+      ActiveRadarrBlock::ManualSearchConfirmPrompt => draw_small_popup_over(
+        f,
+        app,
+        content_area,
+        draw_movie_info,
+        draw_manual_search_confirm_prompt,
       ),
       _ => draw_movie_info(f, app, content_area),
     }
@@ -65,7 +73,7 @@ fn draw_search_movie_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
   draw_prompt_box(
     f,
     prompt_area,
-    "Confirm Search Movie?",
+    "Automatic Movie Search",
     format!(
       "Do you want to trigger an automatic search of your indexers for the movie: {}?",
       app.data.radarr_data.movies.current_selection().title
@@ -83,10 +91,10 @@ fn draw_refresh_and_scan_prompt<B: Backend>(
   draw_prompt_box(
     f,
     prompt_area,
-    "Confirm Refresh and Scan?",
+    "Refresh and Scan",
     format!(
       "Do you want to trigger a refresh and disk scan for the movie: {}?",
-      app.data.radarr_data.movies.current_selection().title
+      app.data.radarr_data.movies.current_selection_clone().title
     )
     .as_str(),
     &app.data.radarr_data.prompt_confirm,
@@ -340,6 +348,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       .movie_releases
       .current_selection_clone()
   };
+  let current_route = app.get_current_route().clone();
 
   draw_table(
     f,
@@ -382,7 +391,11 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
         ..
       } = release;
       let age = format!("{} days", age.as_u64().unwrap_or(0));
-      title.scroll_or_reset(get_width(content_area), current_selection == *release);
+      title.scroll_or_reset(
+        get_width(content_area),
+        current_selection == *release
+          && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
+      );
       let size = convert_to_gb(size.as_u64().unwrap());
       let rejected_str = if *rejected { "⛔" } else { "" };
       let seeders = seeders.as_u64().unwrap();
@@ -412,6 +425,67 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
     },
     app.is_loading,
   )
+}
+
+fn draw_manual_search_confirm_prompt<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  prompt_area: Rect,
+) {
+  let current_selection = app.data.radarr_data.movie_releases.current_selection();
+  let title = if current_selection.rejected {
+    "Download Rejected Release"
+  } else {
+    "Download Release"
+  };
+  let prompt = if current_selection.rejected {
+    format!(
+      "Do you really want to download the rejected release: {}?",
+      current_selection.title.stationary_style()
+    )
+  } else {
+    format!(
+      "Do you want to download the release: {}?",
+      current_selection.title.stationary_style()
+    )
+  };
+
+  if current_selection.rejected {
+    let mut spans_vec = vec![Spans::from(vec![Span::styled(
+      "Rejection reasons: ",
+      style_primary().add_modifier(Modifier::BOLD),
+    )])];
+    let mut rejections_spans = current_selection
+      .rejections
+      .clone()
+      .unwrap_or_default()
+      .iter()
+      .map(|item| Spans::from(vec![Span::styled(format!("• {}", item), style_primary())]))
+      .collect::<Vec<Spans>>();
+    spans_vec.append(&mut rejections_spans);
+
+    let content_paragraph = Paragraph::new(spans_vec)
+      .block(borderless_block())
+      .wrap(Wrap { trim: false })
+      .alignment(Alignment::Left);
+
+    draw_prompt_box_with_content(
+      f,
+      prompt_area,
+      title,
+      &prompt,
+      Some(content_paragraph),
+      &app.data.radarr_data.prompt_confirm,
+    );
+  } else {
+    draw_prompt_box(
+      f,
+      prompt_area,
+      title,
+      &prompt,
+      &app.data.radarr_data.prompt_confirm,
+    );
+  }
 }
 
 fn determine_style_from_download_status(download_status: &str) -> Style {

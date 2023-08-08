@@ -62,7 +62,8 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
       | ActiveRadarrBlock::Crew
       | ActiveRadarrBlock::AutomaticallySearchMoviePrompt
       | ActiveRadarrBlock::RefreshAndScanPrompt
-      | ActiveRadarrBlock::ManualSearch => {
+      | ActiveRadarrBlock::ManualSearch
+      | ActiveRadarrBlock::ManualSearchConfirmPrompt => {
         draw_large_popup_over(f, app, content_rect, draw_library, draw_movie_info_popup)
       }
       ActiveRadarrBlock::AddMovieSearchInput
@@ -95,6 +96,27 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
         content_rect,
         draw_downloads,
         draw_delete_download_prompt,
+      ),
+      ActiveRadarrBlock::RefreshDownloadsPrompt => draw_prompt_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_downloads,
+        draw_refresh_downloads_prompt,
+      ),
+      ActiveRadarrBlock::RefreshAllMoviesPrompt => draw_prompt_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_library,
+        draw_refresh_all_movies_prompt,
+      ),
+      ActiveRadarrBlock::RefreshAllCollectionsPrompt => draw_prompt_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_collections,
+        draw_refresh_all_collections_prompt,
       ),
       _ => (),
     }
@@ -174,11 +196,53 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   );
 }
 
+fn draw_refresh_all_movies_prompt<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  prompt_area: Rect,
+) {
+  draw_prompt_box(
+    f,
+    prompt_area,
+    "Refresh All Movies",
+    "Do you want to refresh info and scan your disks for all of your movies?",
+    &app.data.radarr_data.prompt_confirm,
+  );
+}
+
+fn draw_refresh_downloads_prompt<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  prompt_area: Rect,
+) {
+  draw_prompt_box(
+    f,
+    prompt_area,
+    "Refresh Downloads",
+    "Do you want to refresh your downloads?",
+    &app.data.radarr_data.prompt_confirm,
+  );
+}
+
+fn draw_refresh_all_collections_prompt<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  prompt_area: Rect,
+) {
+  draw_prompt_box(
+    f,
+    prompt_area,
+    "Refresh All Collections",
+    "Do you want to refresh all of your collections?",
+    &app.data.radarr_data.prompt_confirm,
+  );
+}
+
 fn draw_delete_movie_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
   draw_prompt_box(
     f,
     prompt_area,
-    "Confirm Delete Movie?",
+    "Delete Movie",
     format!(
       "Do you really want to delete: {}?",
       app.data.radarr_data.movies.current_selection().title
@@ -192,7 +256,7 @@ fn draw_delete_download_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, 
   draw_prompt_box(
     f,
     prompt_area,
-    "Confirm Cancel Download?",
+    "Cancel Download",
     format!(
       "Do you really want to delete this download: {}?",
       app.data.radarr_data.downloads.current_selection().title

@@ -7,7 +7,9 @@ use regex::Regex;
 pub fn init_logging_config() -> log4rs::Config {
   let file_path = "/tmp/managarr.log";
   let logfile = FileAppender::builder()
-    .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))
+    .encoder(Box::new(PatternEncoder::new(
+      "{h({d(%Y-%m-%d %H:%M:%S)(utc)} - {l}: {m}{n})}",
+    )))
     .build(file_path)
     .unwrap();
 

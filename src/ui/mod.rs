@@ -298,17 +298,45 @@ pub fn draw_prompt_box<B: Backend>(
   prompt: &str,
   yes_no_value: &bool,
 ) {
+  draw_prompt_box_with_content(f, prompt_area, title, prompt, None, yes_no_value);
+}
+
+pub fn draw_prompt_box_with_content<B: Backend>(
+  f: &mut Frame<'_, B>,
+  prompt_area: Rect,
+  title: &str,
+  prompt: &str,
+  content: Option<Paragraph>,
+  yes_no_value: &bool,
+) {
   f.render_widget(title_block_centered(title), prompt_area);
 
-  let chunks = vertical_chunks_with_margin(
-    vec![
-      Constraint::Percentage(72),
-      Constraint::Min(0),
-      Constraint::Length(3),
-    ],
-    prompt_area,
-    1,
-  );
+  let chunks = if let Some(content_paragraph) = content {
+    let vertical_chunks = vertical_chunks_with_margin(
+      vec![
+        Constraint::Length(4),
+        Constraint::Length(7),
+        Constraint::Min(0),
+        Constraint::Length(3),
+      ],
+      prompt_area,
+      1,
+    );
+
+    f.render_widget(content_paragraph, vertical_chunks[1]);
+
+    vec![vertical_chunks[0], vertical_chunks[2], vertical_chunks[3]]
+  } else {
+    vertical_chunks_with_margin(
+      vec![
+        Constraint::Percentage(72),
+        Constraint::Min(0),
+        Constraint::Length(3),
+      ],
+      prompt_area,
+      1,
+    )
+  };
 
   let prompt_paragraph = Paragraph::new(Text::from(prompt))
     .block(borderless_block())

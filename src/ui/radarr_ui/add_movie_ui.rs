@@ -240,7 +240,7 @@ fn draw_select_quality_profile_popup<B: Backend>(
 }
 
 fn draw_confirmation_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
-  let title = "Confirm Add Movie?";
+  let title = "Add Movie";
   let prompt = format!(
     "{}:\n\n{}",
     app

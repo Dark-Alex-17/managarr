@@ -289,6 +289,10 @@ impl HorizontallyScrollableText {
       self.reset_offset();
     }
   }
+
+  pub fn stationary_style(&self) -> String {
+    self.text.clone().trim().to_owned()
+  }
 }
 
 #[derive(Clone)]

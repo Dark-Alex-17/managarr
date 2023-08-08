@@ -8,8 +8,8 @@ use urlencoding::encode;
 use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, Collection, CommandBody, Credit, CreditType,
-  DiskSpace, DownloadsResponse, Movie, MovieHistoryItem, QualityProfile, Release, RootFolder,
-  SystemStatus,
+  DiskSpace, DownloadsResponse, Movie, MovieCommandBody, MovieHistoryItem, QualityProfile, Release,
+  ReleaseDownloadBody, RootFolder, SystemStatus,
 };
 use crate::models::ScrollableText;
 use crate::network::utils::get_movie_status;
@@ -21,21 +21,25 @@ pub enum RadarrEvent {
   AddMovie,
   DeleteDownload,
   DeleteMovie,
+  DownloadRelease,
   GetCollections,
   GetDownloads,
-  GetMovies,
   GetMovieCredits,
   GetMovieDetails,
   GetMovieHistory,
+  GetMovies,
   GetOverview,
   GetQualityProfiles,
   GetReleases,
   GetRootFolders,
   GetStatus,
+  HealthCheck,
+  RefreshAndScan,
+  RefreshCollections,
+  RefreshDownloads,
   SearchNewMovie,
   TriggerAutomaticSearch,
-  RefreshAndScan,
-  HealthCheck,
+  UpdateAllMovies,
 }
 
 impl RadarrEvent {
@@ -52,10 +56,14 @@ impl RadarrEvent {
       RadarrEvent::GetMovieHistory => "/history/movie",
       RadarrEvent::GetOverview => "/diskspace",
       RadarrEvent::GetQualityProfiles => "/qualityprofile",
-      RadarrEvent::GetReleases => "/release",
+      RadarrEvent::GetReleases | RadarrEvent::DownloadRelease => "/release",
       RadarrEvent::GetRootFolders => "/rootfolder",
       RadarrEvent::GetStatus => "/system/status",
-      RadarrEvent::TriggerAutomaticSearch | RadarrEvent::RefreshAndScan => "/command",
+      RadarrEvent::TriggerAutomaticSearch
+      | RadarrEvent::RefreshAndScan
+      | RadarrEvent::UpdateAllMovies
+      | RadarrEvent::RefreshDownloads
+      | RadarrEvent::RefreshCollections => "/command",
       RadarrEvent::HealthCheck => "/health",
     }
   }
@@ -70,24 +78,28 @@ impl From<RadarrEvent> for NetworkEvent {
 impl<'a> Network<'a> {
   pub async fn handle_radarr_event(&self, radarr_event: RadarrEvent) {
     match radarr_event {
-      RadarrEvent::GetCollections => self.get_collections().await,
-      RadarrEvent::HealthCheck => self.get_healthcheck().await,
-      RadarrEvent::GetOverview => self.get_diskspace().await,
-      RadarrEvent::GetStatus => self.get_status().await,
-      RadarrEvent::GetMovies => self.get_movies().await,
+      RadarrEvent::AddMovie => self.add_movie().await,
       RadarrEvent::DeleteMovie => self.delete_movie().await,
       RadarrEvent::DeleteDownload => self.delete_download().await,
+      RadarrEvent::DownloadRelease => self.download_release().await,
+      RadarrEvent::GetCollections => self.get_collections().await,
+      RadarrEvent::GetDownloads => self.get_downloads().await,
       RadarrEvent::GetMovieCredits => self.get_credits().await,
       RadarrEvent::GetMovieDetails => self.get_movie_details().await,
       RadarrEvent::GetMovieHistory => self.get_movie_history().await,
-      RadarrEvent::GetDownloads => self.get_downloads().await,
+      RadarrEvent::GetMovies => self.get_movies().await,
+      RadarrEvent::GetOverview => self.get_diskspace().await,
       RadarrEvent::GetQualityProfiles => self.get_quality_profiles().await,
       RadarrEvent::GetReleases => self.get_releases().await,
       RadarrEvent::GetRootFolders => self.get_root_folders().await,
-      RadarrEvent::SearchNewMovie => self.search_movie().await,
-      RadarrEvent::AddMovie => self.add_movie().await,
-      RadarrEvent::TriggerAutomaticSearch => self.trigger_automatic_search().await,
+      RadarrEvent::GetStatus => self.get_status().await,
+      RadarrEvent::HealthCheck => self.get_healthcheck().await,
       RadarrEvent::RefreshAndScan => self.refresh_and_scan().await,
+      RadarrEvent::RefreshCollections => self.refresh_collections().await,
+      RadarrEvent::RefreshDownloads => self.refresh_downloads().await,
+      RadarrEvent::SearchNewMovie => self.search_movie().await,
+      RadarrEvent::TriggerAutomaticSearch => self.trigger_automatic_search().await,
+      RadarrEvent::UpdateAllMovies => self.update_all_movies().await,
     }
   }
 
@@ -217,7 +229,7 @@ impl<'a> Network<'a> {
   async fn trigger_automatic_search(&self) {
     let movie_id = self.extract_movie_id().await;
     info!("Searching indexers for movie with id: {}", movie_id);
-    let body = CommandBody {
+    let body = MovieCommandBody {
       name: "MovieSearch".to_owned(),
       movie_ids: vec![movie_id],
     };
@@ -231,14 +243,14 @@ impl<'a> Network<'a> {
       .await;
 
     self
-      .handle_request::<CommandBody, ()>(request_props, |_, _| ())
+      .handle_request::<MovieCommandBody, ()>(request_props, |_, _| ())
       .await;
   }
 
   async fn refresh_and_scan(&self) {
     let movie_id = self.extract_movie_id().await;
     info!("Refreshing and scanning movie with id: {}", movie_id);
-    let body = CommandBody {
+    let body = MovieCommandBody {
       name: "RefreshMovie".to_owned(),
       movie_ids: vec![movie_id],
     };
@@ -246,6 +258,64 @@ impl<'a> Network<'a> {
     let request_props = self
       .radarr_request_props_from(
         RadarrEvent::RefreshAndScan.resource(),
+        RequestMethod::Post,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<MovieCommandBody, ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn update_all_movies(&self) {
+    info!("Updating all movies");
+    let body = MovieCommandBody {
+      name: "RefreshMovie".to_owned(),
+      movie_ids: Vec::new(),
+    };
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::UpdateAllMovies.resource(),
+        RequestMethod::Post,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<MovieCommandBody, ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn refresh_downloads(&self) {
+    info!("Refreshing downloads");
+    let body = CommandBody {
+      name: "RefreshMonitoredDownloads".to_owned(),
+    };
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::RefreshDownloads.resource(),
+        RequestMethod::Post,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<CommandBody, ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn refresh_collections(&self) {
+    info!("Refreshing collections");
+    let body = CommandBody {
+      name: "RefreshCollections".to_owned(),
+    };
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::RefreshCollections.resource(),
         RequestMethod::Post,
         Some(body),
       )
@@ -668,6 +738,40 @@ impl<'a> Network<'a> {
 
     self
       .handle_request::<AddMovieBody, ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn download_release(&self) {
+    let Release {
+      guid,
+      title,
+      indexer_id,
+      ..
+    } = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movie_releases
+      .current_selection_clone();
+    info!("Downloading release: {}", title);
+
+    let download_release_body = ReleaseDownloadBody {
+      guid,
+      indexer_id: indexer_id.as_u64().unwrap(),
+    };
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::DownloadRelease.resource(),
+        RequestMethod::Post,
+        Some(download_release_body),
+      )
+      .await;
+
+    self
+      .handle_request::<ReleaseDownloadBody, ()>(request_props, |_, _| ())
       .await;
   }
 

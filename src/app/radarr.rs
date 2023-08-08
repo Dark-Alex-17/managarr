@@ -119,20 +119,20 @@ impl Default for RadarrData {
           title: "Library".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
           help: String::default(),
-          contextual_help: Some("<a> add | <s> search | <f> filter | <enter> details | <esc> cancel filter | <del> delete"
+          contextual_help: Some("<a> add | <s> search | <f> filter | <r> refresh | <enter> details | <esc> cancel filter | <del> delete"
             .to_owned()),
         },
         TabRoute {
           title: "Downloads".to_owned(),
           route: ActiveRadarrBlock::Downloads.into(),
           help: String::default(),
-          contextual_help: Some("<del> delete".to_owned()),
+          contextual_help: Some("<r> refresh | <del> delete".to_owned()),
         },
         TabRoute {
           title: "Collections".to_owned(),
           route: ActiveRadarrBlock::Collections.into(),
           help: String::default(),
-          contextual_help: Some("<s> search | <f> filter | <enter> details | <esc> cancel filter"
+          contextual_help: Some("<s> search | <f> filter | <r> refresh | <enter> details | <esc> cancel filter"
             .to_owned()),
         },
       ]),
@@ -171,7 +171,7 @@ impl Default for RadarrData {
           title: "Manual Search".to_owned(),
           route: ActiveRadarrBlock::ManualSearch.into(),
           help: "<r> refresh | <s> auto search | <esc> close".to_owned(),
-          contextual_help: Some("<enter> details | <o> sort".to_owned())
+          contextual_help: Some("<enter> details".to_owned())
         }
       ]),
     }
@@ -194,18 +194,21 @@ pub enum ActiveRadarrBlock {
   Crew,
   DeleteMoviePrompt,
   DeleteDownloadPrompt,
+  Downloads,
   FileInfo,
   FilterCollections,
   FilterMovies,
   ManualSearch,
   ManualSearchConfirmPrompt,
-  Movies,
   MovieDetails,
   MovieHistory,
-  Downloads,
+  Movies,
+  RefreshAndScanPrompt,
+  RefreshAllCollectionsPrompt,
+  RefreshAllMoviesPrompt,
+  RefreshDownloadsPrompt,
   SearchMovie,
   SearchCollection,
-  RefreshAndScanPrompt,
   ViewMovieOverview,
 }
 
@@ -251,7 +254,8 @@ impl App {
         self.is_loading = true;
         self
           .dispatch_network_event(RadarrEvent::GetCollections.into())
-          .await
+          .await;
+        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::CollectionDetails => {
         self.is_loading = true;
@@ -262,7 +266,8 @@ impl App {
         self.is_loading = true;
         self
           .dispatch_network_event(RadarrEvent::GetDownloads.into())
-          .await
+          .await;
+        self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::Movies => {
         self
@@ -307,7 +312,7 @@ impl App {
         self.check_for_prompt_action().await;
       }
       ActiveRadarrBlock::ManualSearch => {
-        if self.data.radarr_data.movie_releases.items.is_empty() {
+        if self.data.radarr_data.movie_releases.items.is_empty() && !self.is_loading {
           self.is_loading = true;
           self
             .dispatch_network_event(RadarrEvent::GetReleases.into())

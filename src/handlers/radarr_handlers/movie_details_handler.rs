@@ -3,7 +3,7 @@ use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
-use crate::models::Scrollable;
+use crate::models::{Scrollable, StatefulTable};
 use crate::network::radarr_network::RadarrEvent;
 
 pub(super) struct MovieDetailsHandler<'a> {
@@ -112,7 +112,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
         _ => (),
       },
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt
-      | ActiveRadarrBlock::RefreshAndScanPrompt => handle_prompt_toggle(self.app, self.key),
+      | ActiveRadarrBlock::RefreshAndScanPrompt
+      | ActiveRadarrBlock::ManualSearchConfirmPrompt => handle_prompt_toggle(self.app, self.key),
       _ => (),
     }
   }
@@ -134,6 +135,18 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
 
         self.app.pop_navigation_stack();
       }
+      ActiveRadarrBlock::ManualSearch => {
+        self
+          .app
+          .push_navigation_stack(ActiveRadarrBlock::ManualSearchConfirmPrompt.into());
+      }
+      ActiveRadarrBlock::ManualSearchConfirmPrompt => {
+        if self.app.data.radarr_data.prompt_confirm {
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DownloadRelease);
+        }
+
+        self.app.pop_navigation_stack();
+      }
       _ => (),
     }
   }
@@ -150,7 +163,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
         self.app.data.radarr_data.reset_movie_info_tabs();
       }
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt
-      | ActiveRadarrBlock::RefreshAndScanPrompt => {
+      | ActiveRadarrBlock::RefreshAndScanPrompt
+      | ActiveRadarrBlock::ManualSearchConfirmPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.prompt_confirm = false;
       }

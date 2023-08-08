@@ -29,7 +29,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       | ActiveRadarrBlock::Crew
       | ActiveRadarrBlock::AutomaticallySearchMoviePrompt
       | ActiveRadarrBlock::RefreshAndScanPrompt
-      | ActiveRadarrBlock::ManualSearch => {
+      | ActiveRadarrBlock::ManualSearch
+      | ActiveRadarrBlock::ManualSearchConfirmPrompt => {
         MovieDetailsHandler::with(self.key, self.app, self.active_radarr_block).handle()
       }
       ActiveRadarrBlock::CollectionDetails | ActiveRadarrBlock::ViewMovieOverview => {
@@ -228,9 +229,11 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
           _ => (),
         }
       }
-      ActiveRadarrBlock::DeleteMoviePrompt | ActiveRadarrBlock::DeleteDownloadPrompt => {
-        handle_prompt_toggle(self.app, self.key)
-      }
+      ActiveRadarrBlock::DeleteMoviePrompt
+      | ActiveRadarrBlock::DeleteDownloadPrompt
+      | ActiveRadarrBlock::RefreshAllMoviesPrompt
+      | ActiveRadarrBlock::RefreshAllCollectionsPrompt
+      | ActiveRadarrBlock::RefreshDownloadsPrompt => handle_prompt_toggle(self.app, self.key),
       _ => (),
     }
   }
@@ -258,7 +261,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       ActiveRadarrBlock::SearchCollection => {
         let selected_index = self.search_table(
           &self.app.data.radarr_data.collections.items.clone(),
-          |movie| &movie.title,
+          |collection| &collection.title,
         );
         self
           .app
@@ -311,6 +314,27 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
 
         self.app.pop_navigation_stack();
       }
+      ActiveRadarrBlock::RefreshAllMoviesPrompt => {
+        if self.app.data.radarr_data.prompt_confirm {
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAllMovies);
+        }
+
+        self.app.pop_navigation_stack();
+      }
+      ActiveRadarrBlock::RefreshDownloadsPrompt => {
+        if self.app.data.radarr_data.prompt_confirm {
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::RefreshDownloads);
+        }
+
+        self.app.pop_navigation_stack();
+      }
+      ActiveRadarrBlock::RefreshAllCollectionsPrompt => {
+        if self.app.data.radarr_data.prompt_confirm {
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::RefreshCollections);
+        }
+
+        self.app.pop_navigation_stack();
+      }
       _ => (),
     }
   }
@@ -325,7 +349,11 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         self.app.data.radarr_data.reset_search();
         self.app.should_ignore_quit_key = false;
       }
-      ActiveRadarrBlock::DeleteMoviePrompt | ActiveRadarrBlock::DeleteDownloadPrompt => {
+      ActiveRadarrBlock::DeleteMoviePrompt
+      | ActiveRadarrBlock::DeleteDownloadPrompt
+      | ActiveRadarrBlock::RefreshAllMoviesPrompt
+      | ActiveRadarrBlock::RefreshAllCollectionsPrompt
+      | ActiveRadarrBlock::RefreshDownloadsPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.prompt_confirm = false;
       }
@@ -360,6 +388,19 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
             .push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
           self.app.should_ignore_quit_key = true;
         }
+        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::RefreshAllMoviesPrompt.into());
+        }
+        _ => (),
+      },
+      ActiveRadarrBlock::Downloads => match self.key {
+        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::RefreshDownloadsPrompt.into());
+        }
         _ => (),
       },
       ActiveRadarrBlock::Collections => match self.key {
@@ -376,6 +417,11 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
             .push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
           self.app.data.radarr_data.is_searching = true;
           self.app.should_ignore_quit_key = true;
+        }
+        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::RefreshAllCollectionsPrompt.into());
         }
         _ => (),
       },

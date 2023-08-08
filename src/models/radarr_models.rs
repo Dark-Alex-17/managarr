@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 
 use chrono::{DateTime, Utc};
 use derivative::Derivative;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Number;
 
 use crate::models::HorizontallyScrollableText;
@@ -76,6 +76,7 @@ pub struct CollectionMovie {
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Collection {
+  #[serde(default)]
   pub title: String,
   pub root_folder_path: Option<String>,
   pub search_on_add: bool,
@@ -217,12 +218,16 @@ pub struct Credit {
 
 #[derive(Deserialize, Derivative, Clone, Debug, PartialEq, Eq)]
 #[derivative(Default)]
+#[serde(rename_all = "camelCase")]
 pub struct Release {
+  pub guid: String,
   pub protocol: String,
   #[derivative(Default(value = "Number::from(0)"))]
   pub age: Number,
   pub title: HorizontallyScrollableText,
   pub indexer: String,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub indexer_id: Number,
   #[derivative(Default(value = "Number::from(0)"))]
   pub size: Number,
   pub rejected: bool,
@@ -235,7 +240,7 @@ pub struct Release {
   pub quality: QualityWrapper,
 }
 
-#[derive(Default, Derivative, Serialize, Debug)]
+#[derive(Default, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AddMovieBody {
   pub tmdb_id: u64,
@@ -252,6 +257,13 @@ pub struct AddMovieBody {
 pub struct AddOptions {
   pub monitor: String,
   pub search_for_movie: bool,
+}
+
+#[derive(Default, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ReleaseDownloadBody {
+  pub guid: String,
+  pub indexer_id: u64,
 }
 
 #[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -274,9 +286,15 @@ pub struct AddMovieSearchResult {
 
 #[derive(Default, Derivative, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct CommandBody {
+pub struct MovieCommandBody {
   pub name: String,
   pub movie_ids: Vec<u64>,
+}
+
+#[derive(Default, Derivative, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CommandBody {
+  pub name: String,
 }
 
 #[derive(Default, PartialEq, Eq, Clone, Debug)]

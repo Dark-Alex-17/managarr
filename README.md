@@ -79,7 +79,8 @@ tautulli:
 - [x] Add or delete movies and downloads
 - [x] Trigger automatic searches for movies
 - [x] Trigger refresh and disk scan for movies
-- [ ] Manually search for movies
+- [x] Manually search for movies
+- [ ] Edit movies
 - [ ] Manage your quality profiles
 
 ### Sonarr
