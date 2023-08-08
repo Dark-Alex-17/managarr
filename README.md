@@ -1,16 +1,20 @@
 # managarr - A TUI to manage your Servarrs
 Managarr is a TUI to help you manage your HTPC (Home Theater PC). Built with love in Rust!
 
+![radarr_demo](demos/radarr_demo.gif)
+
+<a href="https://wekan.alextusa.com/b/NPSm8BkivuAKy2HXf/managarr"><h3 style="text-align: center">Wekan Board</h3></a>
+
 ## What Servarrs are supported?
 
-- ![radarr_logo](servarr_logos/radarr.png) [Radarr](https://wiki.servarr.com/radarr)
-- ![sonarr_logo](servarr_logos/sonarr.png) [Sonarr](https://wiki.servarr.com/en/sonarr)
-- ![readarr_logo](servarr_logos/readarr.png) [Readarr](https://wiki.servarr.com/en/readarr)
-- ![lidarr_logo](servarr_logos/lidarr.png) [Lidarr](https://wiki.servarr.com/en/lidarr)
-- ![prowlarr_logo](servarr_logos/prowlarr.png) [Prowlarr](https://wiki.servarr.com/en/prowlarr)
-- ![whisparr_logo](servarr_logos/whisparr.png) [Whisparr](https://wiki.servarr.com/whisparr)
-- ![bazarr_logo](servarr_logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
-- ![tautulli_logo](servarr_logos/tautulli.png) [Tautulli](https://tautulli.com/)
+- ![radarr_logo](logos/radarr.png) [Radarr](https://wiki.servarr.com/radarr)
+- ![sonarr_logo](logos/sonarr.png) [Sonarr](https://wiki.servarr.com/en/sonarr)
+- ![readarr_logo](logos/readarr.png) [Readarr](https://wiki.servarr.com/en/readarr)
+- ![lidarr_logo](logos/lidarr.png) [Lidarr](https://wiki.servarr.com/en/lidarr)
+- ![prowlarr_logo](logos/prowlarr.png) [Prowlarr](https://wiki.servarr.com/en/prowlarr)
+- ![whisparr_logo](logos/whisparr.png) [Whisparr](https://wiki.servarr.com/whisparr)
+- ![bazarr_logo](logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
+- ![tautulli_logo](logos/tautulli.png) [Tautulli](https://tautulli.com/)
 
 # Configuration 
 Managarr assumes reasonable defaults to connect to each service (i.e. Radarr is on localhost:7878), 
@@ -85,7 +89,6 @@ tautulli:
 - [ ] Manage your quality definitions
 - [ ] Manage your tags
 - [ ] Manage your indexers
-- [ ] Import existing library
 
 ### Sonarr
 - [ ] Support for Sonarr
@@ -113,11 +116,6 @@ tautulli:
 ### Tautulli
 
 - [ ] Support for Tautulli
-
-## Demos
-
-### Radarr
-![radarr_demo](demos/radarr_demo.gif)
 
 ## Dependencies
 - [tui-rs](https://github.com/fdehau/tui-rs)
