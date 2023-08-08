@@ -1,11 +1,13 @@
 use std::time::Duration;
 
-use log::{debug, error};
+use anyhow::anyhow;
+use log::error;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
 use tokio::time::Instant;
 
+use crate::app::models::{TabRoute, TabState};
 use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
 use crate::network::radarr_network::RadarrEvent;
 use crate::network::NetworkEvent;
@@ -17,6 +19,7 @@ pub mod radarr;
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Route {
   Radarr(ActiveRadarrBlock),
+  Sonarr,
 }
 
 impl From<ActiveRadarrBlock> for Route {
@@ -30,6 +33,8 @@ const DEFAULT_ROUTE: Route = Route::Radarr(ActiveRadarrBlock::Movies);
 pub struct App {
   navigation_stack: Vec<Route>,
   network_tx: Option<Sender<NetworkEvent>>,
+  pub server_tabs: TabState,
+  pub error: String,
   pub client: Client,
   pub title: &'static str,
   pub tick_until_poll: u64,
@@ -56,6 +61,7 @@ impl App {
       if let Err(e) = network_tx.send(action).await {
         self.is_loading = false;
         error!("Failed to send event. {:?}", e);
+        self.handle_error(anyhow!(e));
       }
     }
   }
@@ -66,10 +72,26 @@ impl App {
 
   pub fn reset(&mut self) {
     self.reset_tick_count();
+    self.error = String::default();
     self.data = Data::default();
   }
 
+  pub fn handle_error(&mut self, error: anyhow::Error) {
+    if self.error.is_empty() {
+      self.error = format!("{}        ", error);
+    }
+  }
+
+  fn scroll_error_horizontally(&mut self) {
+    let first_char = self.error.chars().next().unwrap();
+    self.error = format!("{}{}", &self.error[1..], first_char);
+  }
+
   pub async fn on_tick(&mut self, is_first_render: bool) {
+    if !self.error.is_empty() {
+      self.scroll_error_horizontally();
+    }
+
     if self.tick_count % self.tick_until_poll == 0 || self.is_routing {
       match self.get_current_route() {
         Route::Radarr(active_radarr_block) => {
@@ -92,6 +114,7 @@ impl App {
             self.dispatch_by_radarr_block(active_block).await;
           }
         }
+        _ => (),
       }
 
       self.is_routing = false;
@@ -127,6 +150,17 @@ impl Default for App {
     App {
       navigation_stack: vec![DEFAULT_ROUTE],
       network_tx: None,
+      error: String::default(),
+      server_tabs: TabState::new(vec![
+        TabRoute {
+          title: "Radarr".to_owned(),
+          route: ActiveRadarrBlock::Movies.into(),
+        },
+        TabRoute {
+          title: "Sonarr".to_owned(),
+          route: Route::Sonarr,
+        },
+      ]),
       client: Client::new(),
       title: "Managarr",
       tick_until_poll: 20,

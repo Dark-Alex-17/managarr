@@ -1,6 +1,7 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::models::{Scrollable, ScrollableText, StatefulTable};
 use crate::app::radarr::ActiveRadarrBlock;
+use crate::handlers::handle_clear_errors;
 use crate::{App, Key};
 
 pub async fn handle_radarr_key_events(
@@ -97,6 +98,6 @@ async fn handle_esc(app: &mut App, active_radarr_block: ActiveRadarrBlock) {
       app.pop_navigation_stack();
       app.data.radarr_data.reset_movie_info_tab();
     }
-    _ => (),
+    _ => handle_clear_errors(app).await,
   }
 }

@@ -106,12 +106,27 @@ pub fn style_failure() -> Style {
   Style::default().fg(Color::Red)
 }
 
+pub fn style_help() -> Style {
+  Style::default().fg(Color::LightBlue)
+}
+
 pub fn title_style(title: &str) -> Span<'_> {
   Span::styled(title, style_bold())
 }
 
 pub fn title_block(title: &str) -> Block<'_> {
   layout_block_with_title(title_style(title))
+}
+
+pub fn logo_block<'a>() -> Block<'a> {
+  Block::default().borders(Borders::ALL).title(Span::styled(
+    "Managarr - A Servarr management TUI",
+    Style::default()
+      .fg(Color::Black)
+      .bg(Color::LightGreen)
+      .add_modifier(Modifier::BOLD)
+      .add_modifier(Modifier::ITALIC),
+  ))
 }
 
 pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {

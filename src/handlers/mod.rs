@@ -9,5 +9,12 @@ pub async fn handle_key_events(key: Key, app: &mut App) {
     Route::Radarr(active_radarr_block) => {
       handle_radarr_key_events(key, app, active_radarr_block).await
     }
+    _ => (),
+  }
+}
+
+pub async fn handle_clear_errors(app: &mut App) {
+  if !app.error.is_empty() {
+    app.error = String::default();
   }
 }

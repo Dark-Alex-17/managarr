@@ -5,7 +5,7 @@ use chrono::{Duration, Utc};
 use log::debug;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
-use tui::style::Style;
+use tui::style::{Color, Style};
 use tui::text::Text;
 use tui::widgets::{Block, Cell, Paragraph, Row, Wrap};
 use tui::Frame;
@@ -15,7 +15,7 @@ use crate::app::{App, Route};
 use crate::logos::RADARR_LOGO;
 use crate::network::radarr_network::{DiskSpace, DownloadRecord, Movie, MovieHistoryItem};
 use crate::ui::utils::{
-  horizontal_chunks_with_margin, layout_block_top_border, line_gague_with_label,
+  horizontal_chunks, horizontal_chunks_with_margin, layout_block_top_border, line_gague_with_label,
   line_gague_with_title, style_bold, style_failure, style_success, style_warning, title_block,
   vertical_chunks_with_margin,
 };
@@ -38,11 +38,7 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
 }
 
 pub(super) fn draw_radarr_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
-  let chunks = horizontal_chunks_with_margin(
-    vec![Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)],
-    area,
-    1,
-  );
+  let chunks = horizontal_chunks(vec![Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)], area);
 
   draw_stats_context(f, app, chunks[0]);
   draw_downloads_context(f, app, chunks[1]);
@@ -332,7 +328,9 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
     )))
     .block(Block::default());
 
-    let logo = Paragraph::new(Text::from(RADARR_LOGO))
+    let mut logo_text = Text::from(RADARR_LOGO);
+    logo_text.patch_style(Style::default().fg(Color::LightYellow));
+    let logo = Paragraph::new(logo_text)
       .block(Block::default())
       .alignment(Alignment::Center);
     let storage =

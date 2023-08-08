@@ -1,2 +1,2 @@
 # managarr
-A TUI for managing *arr servers.
+A Servarr management TUI.

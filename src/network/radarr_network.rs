@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use chrono::{DateTime, Utc};
 use derivative::Derivative;
 use indoc::formatdoc;
@@ -200,7 +201,8 @@ impl<'a> Network<'a> {
 
   async fn get_healthcheck(&self, resource: &str) {
     if let Err(e) = self.call_radarr_api(resource).await.send().await {
-      error!("Healthcheck failed. {:?}", e)
+      error!("Healthcheck failed. {:?}", e);
+      self.app.lock().await.handle_error(anyhow!(e));
     }
   }
 
@@ -399,9 +401,15 @@ impl<'a> Network<'a> {
           let app = self.app.lock().await;
           app_update_fn(value, app);
         }
-        Err(e) => error!("Failed to parse response! {:?}", e),
+        Err(e) => {
+          error!("Failed to parse response! {:?}", e);
+          self.app.lock().await.handle_error(anyhow!(e));
+        }
       },
-      Err(e) => error!("Failed to fetch resource. {:?}", e),
+      Err(e) => {
+        error!("Failed to fetch resource. {:?}", e);
+        self.app.lock().await.handle_error(anyhow!(e));
+      }
     }
   }
 

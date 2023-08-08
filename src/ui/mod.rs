@@ -1,12 +1,12 @@
 use tui::backend::Backend;
-use tui::layout::{Constraint, Rect};
+use tui::layout::{Alignment, Constraint, Rect};
 use tui::text::{Span, Spans, Text};
-use tui::widgets::Block;
 use tui::widgets::Clear;
 use tui::widgets::Paragraph;
 use tui::widgets::Row;
 use tui::widgets::Table;
 use tui::widgets::Tabs;
+use tui::widgets::{Block, Borders, Wrap};
 use tui::Frame;
 
 use crate::app::models::{StatefulTable, TabState};
@@ -15,7 +15,8 @@ use crate::logos::{
   BAZARR_LOGO, LIDARR_LOGO, PROWLARR_LOGO, RADARR_LOGO, READARR_LOGO, SONARR_LOGO,
 };
 use crate::ui::utils::{
-  centered_rect, layout_block_top_border, style_default_bold, style_highlight, style_secondary,
+  centered_rect, horizontal_chunks_with_margin, layout_block_top_border, logo_block,
+  style_default_bold, style_failure, style_help, style_highlight, style_primary, style_secondary,
   style_system_function, title_block, vertical_chunks_with_margin,
 };
 
@@ -25,16 +26,81 @@ mod utils;
 static HIGHLIGHT_SYMBOL: &str = "=> ";
 
 pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
-  let main_chunks = vertical_chunks_with_margin(
-    vec![Constraint::Length(16), Constraint::Length(0)],
-    f.size(),
-    1,
-  );
+  let main_chunks = if !app.error.is_empty() {
+    let chunks = vertical_chunks_with_margin(
+      vec![
+        Constraint::Length(3),
+        Constraint::Length(3),
+        Constraint::Length(16),
+        Constraint::Length(0),
+      ],
+      f.size(),
+      1,
+    );
 
-  draw_context_row(f, app, main_chunks[0]);
+    draw_error(f, app, chunks[1]);
+
+    vec![chunks[0], chunks[2], chunks[3]]
+  } else {
+    vertical_chunks_with_margin(
+      vec![
+        Constraint::Length(3),
+        Constraint::Length(16),
+        Constraint::Length(0),
+      ],
+      f.size(),
+      1,
+    )
+  };
+
+  draw_header_row(f, app, main_chunks[0]);
+  draw_context_row(f, app, main_chunks[1]);
   match app.get_current_route() {
-    Route::Radarr(_) => radarr_ui::draw_radarr_ui(f, app, main_chunks[1]),
+    Route::Radarr(_) => radarr_ui::draw_radarr_ui(f, app, main_chunks[2]),
+    _ => (),
   }
+}
+
+fn draw_header_row<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+  let chunks =
+    horizontal_chunks_with_margin(vec![Constraint::Length(75), Constraint::Min(0)], area, 1);
+
+  let titles = app
+    .server_tabs
+    .tabs
+    .iter()
+    .map(|tab| Spans::from(Span::styled(&tab.title, style_default_bold())))
+    .collect();
+  let tabs = Tabs::new(titles)
+    .block(logo_block())
+    .highlight_style(style_secondary())
+    .select(app.server_tabs.index);
+  let help = Paragraph::new(Text::from(
+    "<↑↓> scroll | <enter> select | <tab> change servarr | <?> help ",
+  ))
+  .block(Block::default())
+  .style(style_help())
+  .alignment(Alignment::Right);
+
+  f.render_widget(tabs, area);
+  f.render_widget(help, chunks[1]);
+}
+
+fn draw_error<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+  let block = Block::default()
+    .title("Error | <esc> to close")
+    .style(style_failure())
+    .borders(Borders::ALL);
+
+  let mut text = Text::from(app.error.clone());
+  text.patch_style(style_failure());
+
+  let paragraph = Paragraph::new(text)
+    .block(block)
+    .wrap(Wrap { trim: true })
+    .style(style_primary());
+
+  f.render_widget(paragraph, area);
 }
 
 pub fn draw_popup_over<B: Backend>(
@@ -86,6 +152,7 @@ pub fn draw_large_popup_over<B: Backend>(
 fn draw_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   match app.get_current_route() {
     Route::Radarr(_) => radarr_ui::draw_radarr_context_row(f, app, area),
+    _ => (),
   }
 }
 
