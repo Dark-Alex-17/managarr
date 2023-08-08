@@ -45,6 +45,7 @@ pub struct RadarrData {
   pub sort_ascending: Option<bool>,
   pub prompt_confirm: bool,
   pub is_searching: bool,
+  pub is_filtering: bool,
 }
 
 impl RadarrData {
@@ -59,6 +60,13 @@ impl RadarrData {
     self.filtered_movies = StatefulTable::default();
     self.filtered_collections = StatefulTable::default();
     self.add_searched_movies = StatefulTable::default();
+  }
+
+  pub fn reset_filter(&mut self) {
+    self.is_filtering = false;
+    self.filter = String::default();
+    self.filtered_movies = StatefulTable::default();
+    self.filtered_collections = StatefulTable::default();
   }
 
   pub fn reset_movie_info_tabs(&mut self) {
@@ -115,6 +123,7 @@ impl Default for RadarrData {
       filter: String::default(),
       sort_ascending: None,
       is_searching: false,
+      is_filtering: false,
       prompt_confirm: false,
       main_tabs: TabState::new(vec![
         TabRoute {
@@ -240,6 +249,14 @@ pub const MOVIE_DETAILS_BLOCKS: [ActiveRadarrBlock; 10] = [
 pub const COLLECTION_DETAILS_BLOCKS: [ActiveRadarrBlock; 2] = [
   ActiveRadarrBlock::CollectionDetails,
   ActiveRadarrBlock::ViewMovieOverview,
+];
+pub const SEARCH_BLOCKS: [ActiveRadarrBlock; 2] = [
+  ActiveRadarrBlock::SearchMovie,
+  ActiveRadarrBlock::SearchCollection,
+];
+pub const FILTER_BLOCKS: [ActiveRadarrBlock; 2] = [
+  ActiveRadarrBlock::FilterMovies,
+  ActiveRadarrBlock::FilterCollections,
 ];
 
 impl ActiveRadarrBlock {
@@ -439,6 +456,7 @@ pub mod radarr_test_utils {
   pub fn create_test_radarr_data() -> RadarrData {
     let mut radarr_data = RadarrData {
       is_searching: true,
+      is_filtering: true,
       search: "test search".to_owned(),
       filter: "test filter".to_owned(),
       file_details: "test file details".to_owned(),
@@ -505,6 +523,16 @@ pub mod radarr_test_utils {
   }
 
   #[macro_export]
+  macro_rules! assert_filter_reset {
+    ($radarr_data:expr) => {
+      assert!(!$radarr_data.is_filtering);
+      assert!($radarr_data.filter.is_empty());
+      assert!($radarr_data.filtered_movies.items.is_empty());
+      assert!($radarr_data.filtered_collections.items.is_empty());
+    };
+  }
+
+  #[macro_export]
   macro_rules! assert_movie_info_tabs_reset {
     ($radarr_data:expr) => {
       assert!($radarr_data.file_details.is_empty());
@@ -557,6 +585,15 @@ mod tests {
       radarr_data.reset_search();
 
       assert_search_reset!(radarr_data);
+    }
+
+    #[test]
+    fn test_reset_filter() {
+      let mut radarr_data = create_test_radarr_data();
+
+      radarr_data.reset_filter();
+
+      assert_filter_reset!(radarr_data);
     }
 
     #[test]

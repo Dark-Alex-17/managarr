@@ -10,7 +10,8 @@ use tui::widgets::{Cell, Paragraph, Row};
 use tui::Frame;
 
 use crate::app::radarr::{
-  ActiveRadarrBlock, RadarrData, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, MOVIE_DETAILS_BLOCKS,
+  ActiveRadarrBlock, RadarrData, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, FILTER_BLOCKS,
+  MOVIE_DETAILS_BLOCKS, SEARCH_BLOCKS,
 };
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
@@ -41,20 +42,30 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
   if let Route::Radarr(active_radarr_block) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::Movies => draw_library(f, app, content_rect),
-      ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::FilterMovies => {
+      ActiveRadarrBlock::SearchMovie => {
         draw_popup_over(f, app, content_rect, draw_library, draw_search_box, 30, 10)
       }
-      ActiveRadarrBlock::SearchCollection | ActiveRadarrBlock::FilterCollections => {
-        draw_popup_over(
-          f,
-          app,
-          content_rect,
-          draw_collections,
-          draw_search_box,
-          30,
-          10,
-        )
+      ActiveRadarrBlock::FilterMovies => {
+        draw_popup_over(f, app, content_rect, draw_library, draw_filter_box, 30, 10)
       }
+      ActiveRadarrBlock::SearchCollection => draw_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_collections,
+        draw_search_box,
+        30,
+        10,
+      ),
+      ActiveRadarrBlock::FilterCollections => draw_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_collections,
+        draw_filter_box,
+        30,
+        10,
+      ),
       ActiveRadarrBlock::Downloads => draw_downloads(f, app, content_rect),
       ActiveRadarrBlock::Collections => draw_collections(f, app, content_rect),
       _ if MOVIE_DETAILS_BLOCKS.contains(&active_radarr_block) => {
@@ -121,7 +132,7 @@ fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let quality_profile_map = &app.data.radarr_data.quality_profile_map;
   let downloads_vec = &app.data.radarr_data.downloads.items;
   let content = if !app.data.radarr_data.filtered_movies.items.is_empty()
-    && !app.data.radarr_data.is_searching
+    && !app.data.radarr_data.is_filtering
   {
     &mut app.data.radarr_data.filtered_movies
   } else {
@@ -254,12 +265,49 @@ fn draw_delete_download_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, 
 }
 
 fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
-  let chunks = vertical_chunks_with_margin(vec![Constraint::Length(3)], area, 1);
+  let chunks =
+    vertical_chunks_with_margin(vec![Constraint::Length(3), Constraint::Min(0)], area, 1);
   if !app.data.radarr_data.is_searching {
     let error_msg = match app.get_current_route() {
       Route::Radarr(active_radarr_block) => match active_radarr_block {
         ActiveRadarrBlock::SearchMovie => "Movie not found!",
         ActiveRadarrBlock::SearchCollection => "Collection not found!",
+        _ => "",
+      },
+      _ => "",
+    };
+
+    let input = Paragraph::new(error_msg)
+      .style(style_failure())
+      .block(layout_block());
+
+    f.render_widget(input, chunks[0]);
+  } else {
+    let (block_title, block_content) = match app.get_current_route() {
+      Route::Radarr(active_radarr_block) => match active_radarr_block {
+        _ if SEARCH_BLOCKS.contains(active_radarr_block) => {
+          ("Search", app.data.radarr_data.search.as_str())
+        }
+        _ => ("", ""),
+      },
+      _ => ("", ""),
+    };
+
+    let input = Paragraph::new(block_content)
+      .style(style_default())
+      .block(title_block_centered(block_title));
+    show_cursor(f, chunks[0], block_content);
+
+    f.render_widget(input, chunks[0]);
+  }
+}
+
+fn draw_filter_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+  let chunks =
+    vertical_chunks_with_margin(vec![Constraint::Length(3), Constraint::Min(0)], area, 1);
+  if !app.data.radarr_data.is_filtering {
+    let error_msg = match app.get_current_route() {
+      Route::Radarr(active_radarr_block) => match active_radarr_block {
         ActiveRadarrBlock::FilterMovies => "No movies found matching filter!",
         ActiveRadarrBlock::FilterCollections => "No collections found matching filter!",
         _ => "",
@@ -275,10 +323,7 @@ fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) 
   } else {
     let (block_title, block_content) = match app.get_current_route() {
       Route::Radarr(active_radarr_block) => match active_radarr_block {
-        ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => {
-          ("Search", app.data.radarr_data.search.as_str())
-        }
-        ActiveRadarrBlock::FilterMovies | ActiveRadarrBlock::FilterCollections => {
+        _ if FILTER_BLOCKS.contains(active_radarr_block) => {
           ("Filter", app.data.radarr_data.filter.as_str())
         }
         _ => ("", ""),
@@ -397,7 +442,7 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
 fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let quality_profile_map = &app.data.radarr_data.quality_profile_map;
   let content = if !app.data.radarr_data.filtered_collections.items.is_empty()
-    && !app.data.radarr_data.is_searching
+    && !app.data.radarr_data.is_filtering
   {
     &mut app.data.radarr_data.filtered_collections
   } else {

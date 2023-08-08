@@ -1,6 +1,7 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::radarr::{
-  ActiveRadarrBlock, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, MOVIE_DETAILS_BLOCKS,
+  ActiveRadarrBlock, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, FILTER_BLOCKS,
+  MOVIE_DETAILS_BLOCKS, SEARCH_BLOCKS,
 };
 use crate::handlers::radarr_handlers::add_movie_handler::AddMovieHandler;
 use crate::handlers::radarr_handlers::collection_details_handler::CollectionDetailsHandler;
@@ -224,28 +225,61 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         .app
         .push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into()),
       ActiveRadarrBlock::SearchMovie => {
-        let selected_index = self
-          .search_table(&self.app.data.radarr_data.movies.items.clone(), |movie| {
-            &movie.title
-          });
-        self
-          .app
-          .data
-          .radarr_data
-          .movies
-          .select_index(selected_index);
+        if self.app.data.radarr_data.filtered_movies.items.is_empty() {
+          let selected_index = self
+            .search_table(&self.app.data.radarr_data.movies.items.clone(), |movie| {
+              &movie.title
+            });
+          self
+            .app
+            .data
+            .radarr_data
+            .movies
+            .select_index(selected_index);
+        } else {
+          let selected_index = self.search_table(
+            &self.app.data.radarr_data.filtered_movies.items.clone(),
+            |movie| &movie.title,
+          );
+          self
+            .app
+            .data
+            .radarr_data
+            .filtered_movies
+            .select_index(selected_index);
+        };
       }
       ActiveRadarrBlock::SearchCollection => {
-        let selected_index = self.search_table(
-          &self.app.data.radarr_data.collections.items.clone(),
-          |collection| &collection.title,
-        );
-        self
+        if self
           .app
           .data
           .radarr_data
-          .collections
-          .select_index(selected_index);
+          .filtered_collections
+          .items
+          .is_empty()
+        {
+          let selected_index = self.search_table(
+            &self.app.data.radarr_data.collections.items.clone(),
+            |collection| &collection.title,
+          );
+          self
+            .app
+            .data
+            .radarr_data
+            .collections
+            .select_index(selected_index);
+        } else {
+          let selected_index = self.search_table(
+            &self.app.data.radarr_data.filtered_collections.items.clone(),
+            |collection| &collection.title,
+          );
+          self
+            .app
+            .data
+            .radarr_data
+            .filtered_collections
+            .select_index(selected_index);
+        }
       }
       ActiveRadarrBlock::FilterMovies => {
         let filtered_movies = self
@@ -318,10 +352,12 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
 
   fn handle_esc(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::SearchMovie
-      | ActiveRadarrBlock::SearchCollection
-      | ActiveRadarrBlock::FilterMovies
-      | ActiveRadarrBlock::FilterCollections => {
+      _ if FILTER_BLOCKS.contains(self.active_radarr_block) => {
+        self.app.pop_navigation_stack();
+        self.app.data.radarr_data.reset_filter();
+        self.app.should_ignore_quit_key = false;
+      }
+      _ if SEARCH_BLOCKS.contains(self.active_radarr_block) => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.reset_search();
         self.app.should_ignore_quit_key = false;
@@ -336,6 +372,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       }
       _ => {
         self.app.data.radarr_data.reset_search();
+        self.app.data.radarr_data.reset_filter();
         handle_clear_errors(self.app);
       }
     }
@@ -356,7 +393,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
-          self.app.data.radarr_data.is_searching = true;
+          self.app.data.radarr_data.is_filtering = true;
           self.app.should_ignore_quit_key = true;
         }
         _ if *key == DEFAULT_KEYBINDINGS.add.key => {
@@ -392,7 +429,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
-          self.app.data.radarr_data.is_searching = true;
+          self.app.data.radarr_data.is_filtering = true;
           self.app.should_ignore_quit_key = true;
         }
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
@@ -402,10 +439,10 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         }
         _ => (),
       },
-      ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => {
+      _ if SEARCH_BLOCKS.contains(self.active_radarr_block) => {
         handle_text_box_keys!(self, key, self.app.data.radarr_data.search)
       }
-      ActiveRadarrBlock::FilterMovies | ActiveRadarrBlock::FilterCollections => {
+      _ if FILTER_BLOCKS.contains(self.active_radarr_block) => {
         handle_text_box_keys!(self, key, self.app.data.radarr_data.filter)
       }
       _ => (),
@@ -426,18 +463,18 @@ impl RadarrHandler<'_> {
       .drain(..)
       .collect::<String>()
       .to_lowercase();
-    let collection_index = rows.iter().position(|item| {
+    let search_index = rows.iter().position(|item| {
       strip_non_alphanumeric_characters(field_selection_fn(item)).contains(&search_string)
     });
 
     self.app.data.radarr_data.is_searching = false;
     self.app.should_ignore_quit_key = false;
 
-    if collection_index.is_some() {
+    if search_index.is_some() {
       self.app.pop_navigation_stack();
     }
 
-    collection_index
+    search_index
   }
 
   fn filter_table<T, F>(&mut self, rows: &[T], field_selection_fn: F) -> Vec<T>
@@ -460,7 +497,7 @@ impl RadarrHandler<'_> {
       .cloned()
       .collect();
 
-    self.app.data.radarr_data.is_searching = false;
+    self.app.data.radarr_data.is_filtering = false;
     self.app.should_ignore_quit_key = false;
 
     if !filter_matches.is_empty() {
@@ -748,6 +785,29 @@ mod tests {
     }
 
     #[test]
+    fn test_search_filtered_movies_submit() {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .filtered_movies
+        .set_items(extended_stateful_iterable_vec!(Movie));
+      app.data.radarr_data.search = "Test 2".to_owned();
+
+      RadarrHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::SearchMovie).handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_movies
+          .current_selection()
+          .title,
+        "Test 2"
+      );
+    }
+
+    #[test]
     fn test_search_collections_submit() {
       let mut app = App::default();
       app
@@ -761,6 +821,29 @@ mod tests {
 
       assert_str_eq!(
         app.data.radarr_data.collections.current_selection().title,
+        "Test 2"
+      );
+    }
+
+    #[test]
+    fn test_search_filtered_collections_submit() {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .filtered_collections
+        .set_items(extended_stateful_iterable_vec!(Collection));
+      app.data.radarr_data.search = "Test 2".to_owned();
+
+      RadarrHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::SearchCollection).handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_collections
+          .current_selection()
+          .title,
         "Test 2"
       );
     }
@@ -892,7 +975,7 @@ mod tests {
     use rstest::rstest;
 
     use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
-    use crate::assert_search_reset;
+    use crate::{assert_filter_reset, assert_search_reset};
 
     use super::*;
 
@@ -900,10 +983,8 @@ mod tests {
 
     #[rstest]
     #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::SearchMovie)]
-    #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::FilterMovies)]
     #[case(ActiveRadarrBlock::Collections, ActiveRadarrBlock::SearchCollection)]
-    #[case(ActiveRadarrBlock::Collections, ActiveRadarrBlock::FilterCollections)]
-    fn test_search_and_filter_blocks_esc(
+    fn test_search_blocks_esc(
       #[case] base_block: ActiveRadarrBlock,
       #[case] search_block: ActiveRadarrBlock,
     ) {
@@ -918,6 +999,26 @@ mod tests {
       assert_eq!(app.get_current_route(), &base_block.into());
       assert!(!app.should_ignore_quit_key);
       assert_search_reset!(app.data.radarr_data);
+    }
+
+    #[rstest]
+    #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::FilterMovies)]
+    #[case(ActiveRadarrBlock::Collections, ActiveRadarrBlock::FilterCollections)]
+    fn test_filter_blocks_esc(
+      #[case] base_block: ActiveRadarrBlock,
+      #[case] filter_block: ActiveRadarrBlock,
+    ) {
+      let mut app = App::default();
+      app.should_ignore_quit_key = true;
+      app.push_navigation_stack(base_block.into());
+      app.push_navigation_stack(filter_block.into());
+      app.data.radarr_data = create_test_radarr_data();
+
+      RadarrHandler::with(&ESC_KEY, &mut app, &filter_block).handle();
+
+      assert_eq!(app.get_current_route(), &base_block.into());
+      assert!(!app.should_ignore_quit_key);
+      assert_filter_reset!(app.data.radarr_data);
     }
 
     #[rstest]
@@ -963,6 +1064,7 @@ mod tests {
       );
       assert!(app.error.text.is_empty());
       assert_search_reset!(app.data.radarr_data);
+      assert_filter_reset!(app.data.radarr_data);
     }
   }
 
@@ -1012,7 +1114,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), &expected_radarr_block.into());
-      assert!(app.data.radarr_data.is_searching);
+      assert!(app.data.radarr_data.is_filtering);
       assert!(app.should_ignore_quit_key);
     }
 
@@ -1207,7 +1309,7 @@ mod tests {
     assert_eq!(filter_matches.len(), 1);
     assert_str_eq!(filter_matches[0].title, "Test 2");
     assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
-    assert!(!app.data.radarr_data.is_searching);
+    assert!(!app.data.radarr_data.is_filtering);
     assert!(!app.should_ignore_quit_key);
     assert!(app.data.radarr_data.filter.is_empty());
   }
@@ -1221,7 +1323,7 @@ mod tests {
       .movies
       .set_items(extended_stateful_iterable_vec!(Movie));
     app.data.radarr_data.filter = "Test 5".to_owned();
-    app.data.radarr_data.is_searching = true;
+    app.data.radarr_data.is_filtering = true;
     app.should_ignore_quit_key = true;
     app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
 
