@@ -72,16 +72,20 @@ tautulli:
 
 ### Radarr
 
-- [x] View your library, downloads, collections, or calendar
+- [x] View your library, downloads, collections
 - [x] View details of a specific movie including description, history, downloaded file info, or the credits
 - [x] View details of any collection and the movies in them
 - [x] Search your library or collections
 - [x] Add or delete movies and downloads
 - [x] Trigger automatic searches for movies
-- [x] Trigger refresh and disk scan for movies
+- [x] Trigger refresh and disk scan for movies, downloads, and collections
 - [x] Manually search for movies
 - [ ] Edit movies
 - [ ] Manage your quality profiles
+- [ ] Manage your quality definitions
+- [ ] Manage your tags
+- [ ] Manage your indexers
+- [ ] Import existing library
 
 ### Sonarr
 - [ ] Support for Sonarr

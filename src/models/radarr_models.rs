@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 
 use chrono::{DateTime, Utc};
 use derivative::Derivative;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_json::Number;
 
 use crate::models::HorizontallyScrollableText;

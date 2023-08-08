@@ -17,7 +17,6 @@ pub enum Route {
   Whisparr,
   Bazarr,
   Prowlarr,
-  Overseerr,
   Tautulli,
 }
 
