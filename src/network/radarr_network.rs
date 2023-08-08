@@ -250,7 +250,7 @@ impl<'a> Network<'a> {
     let movie_id = self.extract_movie_id().await;
     info!("Searching indexers for movie with id: {}", movie_id);
     let body = MovieCommandBody {
-      name: "MovieSearch".to_owned(),
+      name: "MoviesSearch".to_owned(),
       movie_ids: vec![movie_id],
     };
 
@@ -1652,7 +1652,7 @@ mod test {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
-        "name": "MovieSearch",
+        "name": "MoviesSearch",
         "movieIds": [ 1 ]
       })),
       None,
