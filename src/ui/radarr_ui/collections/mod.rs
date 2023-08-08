@@ -47,7 +47,7 @@ impl DrawUi for CollectionsUi {
         draw_collections,
         draw_search_box,
         30,
-        11,
+        13,
       ),
       ActiveRadarrBlock::FilterCollections => draw_popup_over(
         f,
@@ -56,7 +56,7 @@ impl DrawUi for CollectionsUi {
         draw_collections,
         draw_filter_box,
         30,
-        11,
+        13,
       ),
       ActiveRadarrBlock::UpdateAllCollectionsPrompt => draw_prompt_popup_over(
         f,

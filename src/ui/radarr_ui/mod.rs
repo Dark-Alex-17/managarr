@@ -25,8 +25,9 @@ use crate::ui::radarr_ui::root_folders::RootFoldersUi;
 use crate::ui::radarr_ui::system::SystemUi;
 use crate::ui::utils::{
   borderless_block, horizontal_chunks, layout_block, line_gauge_with_label, line_gauge_with_title,
-  show_cursor, style_awaiting_import, style_bold, style_default, style_failure, style_success,
-  style_unmonitored, style_warning, title_block, title_block_centered, vertical_chunks_with_margin,
+  show_cursor, style_awaiting_import, style_bold, style_default, style_failure, style_help,
+  style_success, style_unmonitored, style_warning, title_block, title_block_centered,
+  vertical_chunks_with_margin,
 };
 use crate::ui::DrawUi;
 use crate::utils::convert_to_gb;
@@ -231,8 +232,15 @@ fn determine_row_style(downloads_vec: &[DownloadRecord], movie: &Movie) -> Style
 }
 
 fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
-  let chunks =
-    vertical_chunks_with_margin(vec![Constraint::Length(3), Constraint::Min(0)], area, 1);
+  let chunks = vertical_chunks_with_margin(
+    vec![
+      Constraint::Length(3),
+      Constraint::Length(1),
+      Constraint::Min(0),
+    ],
+    area,
+    1,
+  );
   if !app.data.radarr_data.is_searching {
     let error_msg = match app.get_current_route() {
       Route::Radarr(active_radarr_block, _) => match active_radarr_block {
@@ -272,15 +280,27 @@ fn draw_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Re
     let input = Paragraph::new(block_content.as_str())
       .style(style_default())
       .block(title_block_centered(block_title));
+    let help = Paragraph::new("<esc> cancel")
+      .style(style_help())
+      .alignment(Alignment::Center)
+      .block(borderless_block());
     show_cursor(f, chunks[0], offset, block_content);
 
     f.render_widget(input, chunks[0]);
+    f.render_widget(help, chunks[1]);
   }
 }
 
 fn draw_filter_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
-  let chunks =
-    vertical_chunks_with_margin(vec![Constraint::Length(3), Constraint::Min(0)], area, 1);
+  let chunks = vertical_chunks_with_margin(
+    vec![
+      Constraint::Length(3),
+      Constraint::Length(1),
+      Constraint::Min(0),
+    ],
+    area,
+    1,
+  );
   if !app.data.radarr_data.is_filtering {
     let error_msg = match app.get_current_route() {
       Route::Radarr(active_radarr_block, _) => match active_radarr_block {
@@ -320,9 +340,14 @@ fn draw_filter_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Re
     let input = Paragraph::new(block_content.as_str())
       .style(style_default())
       .block(title_block_centered(block_title));
+    let help = Paragraph::new("<esc> cancel")
+      .style(style_help())
+      .alignment(Alignment::Center)
+      .block(borderless_block());
     show_cursor(f, chunks[0], offset, block_content);
 
     f.render_widget(input, chunks[0]);
+    f.render_widget(help, chunks[1]);
   }
 }
 

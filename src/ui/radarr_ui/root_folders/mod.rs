@@ -42,7 +42,7 @@ impl DrawUi for RootFoldersUi {
           draw_root_folders,
           draw_add_root_folder_prompt_box,
           30,
-          15,
+          13,
         ),
         ActiveRadarrBlock::DeleteRootFolderPrompt => draw_prompt_popup_over(
           f,

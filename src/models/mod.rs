@@ -270,14 +270,49 @@ impl HorizontallyScrollableText {
 
   pub fn pop(&mut self) {
     if *self.offset.borrow() < self.len() {
-      self.text.remove(self.len() - *self.offset.borrow() - 1);
+      let (index, _) = self
+        .text
+        .chars()
+        .enumerate()
+        .nth(self.len() - *self.offset.borrow() - 1)
+        .unwrap();
+      self.text = self
+        .text
+        .chars()
+        .enumerate()
+        .filter(|(idx, _)| *idx != index)
+        .map(|tuple| tuple.1)
+        .collect();
     }
   }
 
   pub fn push(&mut self, character: char) {
-    self
-      .text
-      .insert(self.len() - *self.offset.borrow(), character);
+    if self.text.is_empty() {
+      self.text.push(character);
+    } else {
+      let index = self.len() - *self.offset.borrow();
+
+      if index == self.len() {
+        self.text.push(character);
+      } else {
+        let mut new_text = String::new();
+        self
+          .text
+          .chars()
+          .collect::<Vec<char>>()
+          .iter()
+          .enumerate()
+          .for_each(|(idx, &c)| {
+            if idx == index {
+              new_text.push(character);
+            }
+
+            new_text.push(c);
+          });
+
+        self.text = new_text;
+      }
+    }
   }
 }
 

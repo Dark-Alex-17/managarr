@@ -48,10 +48,10 @@ impl DrawUi for LibraryUi {
     {
       ActiveRadarrBlock::Movies => draw_library(f, app, content_rect),
       ActiveRadarrBlock::SearchMovie => {
-        draw_popup_over(f, app, content_rect, draw_library, draw_search_box, 30, 11)
+        draw_popup_over(f, app, content_rect, draw_library, draw_search_box, 30, 13)
       }
       ActiveRadarrBlock::FilterMovies => {
-        draw_popup_over(f, app, content_rect, draw_library, draw_filter_box, 30, 11)
+        draw_popup_over(f, app, content_rect, draw_library, draw_filter_box, 30, 13)
       }
       ActiveRadarrBlock::UpdateAllMoviesPrompt => draw_prompt_popup_over(
         f,
