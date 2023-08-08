@@ -399,10 +399,16 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       );
       let size = convert_to_gb(size.as_u64().unwrap());
       let rejected_str = if *rejected { "⛔" } else { "" };
-      let seeders = seeders.as_u64().unwrap();
-      let leechers = leechers.as_u64().unwrap();
-      let mut peers = Text::from(format!("{} / {}", seeders, leechers));
-      peers.patch_style(determine_peer_style(seeders, leechers));
+      let mut peers = if seeders.is_none() || leechers.is_none() {
+        Text::default()
+      } else {
+        let seeders = seeders.clone().unwrap().as_u64().unwrap();
+        let leechers = leechers.clone().unwrap().as_u64().unwrap();
+        let mut text = Text::from(format!("{} / {}", seeders, leechers));
+        text.patch_style(determine_peer_style(seeders, leechers));
+
+        text
+      };
 
       let language = if languages.is_some() {
         languages.clone().unwrap()[0].name.clone()

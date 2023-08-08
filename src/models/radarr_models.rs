@@ -234,10 +234,8 @@ pub struct Release {
   pub size: Number,
   pub rejected: bool,
   pub rejections: Option<Vec<String>>,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub seeders: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub leechers: Number,
+  pub seeders: Option<Number>,
+  pub leechers: Option<Number>,
   pub languages: Option<Vec<Language>>,
   pub quality: QualityWrapper,
 }
