@@ -327,7 +327,7 @@ pub struct CommandBody {
 }
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "camelCase")]
 pub enum MinimumAvailability {
   #[default]
   Announced,
