@@ -339,6 +339,15 @@ mod tests {
   }
 
   #[test]
+  fn test_horizontally_scrollable_text_len() {
+    let test_text = "우리 생애 최고의 해 The.Best";
+    let horizontally_scrollable_text = HorizontallyScrollableText::new(test_text.to_owned());
+
+    assert_eq!(horizontally_scrollable_text.len(), 20);
+    assert_str_eq!(horizontally_scrollable_text.text, test_text);
+  }
+
+  #[test]
   fn test_horizontally_scrollable_text_scroll_text_left() {
     let horizontally_scrollable_text = HorizontallyScrollableText::from("Test string");
 

@@ -230,8 +230,12 @@ impl HorizontallyScrollableText {
     }
   }
 
+  pub fn len(&self) -> usize {
+    self.text.chars().count()
+  }
+
   pub fn scroll_left(&self) {
-    if *self.offset.borrow() < self.text.len() {
+    if *self.offset.borrow() < self.len() {
       let new_offset = *self.offset.borrow() + 1;
       *self.offset.borrow_mut() = new_offset;
     }
@@ -245,7 +249,7 @@ impl HorizontallyScrollableText {
   }
 
   pub fn scroll_home(&self) {
-    *self.offset.borrow_mut() = self.text.len();
+    *self.offset.borrow_mut() = self.len();
   }
 
   pub fn reset_offset(&self) {
@@ -253,8 +257,8 @@ impl HorizontallyScrollableText {
   }
 
   pub fn scroll_left_or_reset(&self, width: usize, is_current_selection: bool, can_scroll: bool) {
-    if can_scroll && is_current_selection && self.text.len() >= width {
-      if *self.offset.borrow() < self.text.len() {
+    if can_scroll && is_current_selection && self.len() >= width {
+      if *self.offset.borrow() < self.len() {
         self.scroll_left();
       } else {
         self.reset_offset();
@@ -265,17 +269,15 @@ impl HorizontallyScrollableText {
   }
 
   pub fn pop(&mut self) {
-    if *self.offset.borrow() < self.text.len() {
-      self
-        .text
-        .remove(self.text.len() - *self.offset.borrow() - 1);
+    if *self.offset.borrow() < self.len() {
+      self.text.remove(self.len() - *self.offset.borrow() - 1);
     }
   }
 
   pub fn push(&mut self, character: char) {
     self
       .text
-      .insert(self.text.len() - *self.offset.borrow(), character);
+      .insert(self.len() - *self.offset.borrow(), character);
   }
 }
 
