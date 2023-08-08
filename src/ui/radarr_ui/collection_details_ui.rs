@@ -118,11 +118,7 @@ fn draw_collection_details<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, cont
         Constraint::Percentage(18),
         Constraint::Percentage(30),
       ],
-      help: app
-        .data
-        .radarr_data
-        .main_tabs
-        .get_active_tab_contextual_help(),
+      help: None,
     },
     |movie| {
       let (hours, minutes) = convert_runtime(movie.runtime.as_u64().unwrap());
