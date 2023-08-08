@@ -11,6 +11,7 @@ pub(crate) mod radarr;
 pub enum RadarrEvent {
   HealthCheck,
   GetOverview,
+  GetStatus,
 }
 
 pub struct Network<'a> {

@@ -47,6 +47,7 @@ impl App {
   pub async fn on_tick(&mut self) {
     if self.tick_count % self.tick_until_poll == 0 {
       self.dispatch(RadarrEvent::GetOverview).await;
+      self.dispatch(RadarrEvent::GetStatus).await;
     }
 
     self.tick_count += 1;

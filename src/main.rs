@@ -24,6 +24,7 @@ use crate::ui::ui;
 mod app;
 mod event;
 mod handlers;
+mod logos;
 mod network;
 mod ui;
 mod utils;
