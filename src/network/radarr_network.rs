@@ -863,3 +863,936 @@ fn get_movie_status(has_file: bool, downloads_vec: &[DownloadRecord], movie_id: 
 
   "Downloaded".to_owned()
 }
+
+#[cfg(test)]
+mod test {
+  use std::collections::HashMap;
+  use std::sync::Arc;
+
+  use chrono::{DateTime, Utc};
+  use mockito::{Matcher, Mock, Server};
+  use pretty_assertions::{assert_eq, assert_str_eq};
+  use rstest::rstest;
+  use serde_json::{json, Value};
+  use tokio::sync::Mutex;
+
+  use crate::models::radarr_models::{
+    CollectionMovie, Language, MediaInfo, MovieFile, Quality, QualityHistory, QualityWrapper,
+    Rating, RatingsList,
+  };
+  use crate::models::HorizontallyScrollableText;
+  use crate::App;
+
+  use super::*;
+
+  const MOVIE_JSON: &str = r#"{
+        "id": 1,
+        "title": "Test",
+        "originalLanguage": {
+          "name": "English"
+        },
+        "sizeOnDisk": 1111,
+        "status": "Downloaded",
+        "overview": "Blah blah blah",
+        "path": "/nfs/movies",
+        "studio": "21st Century Alex",
+        "genres": ["cool", "family", "fun"],
+        "year": 2023,
+        "monitored": true,
+        "hasFile": true,
+        "runtime": 120,
+        "qualityProfileId": 2222,
+        "certification": "R",
+        "ratings": {
+          "imdb": {
+            "value": 9.9
+          },
+          "tmdb": {
+            "value": 9.9
+          },
+          "rottenTomatoes": {
+            "value": 9.9
+          }
+        },
+        "movieFile": {
+          "relativePath": "Test.mkv",
+          "path": "/nfs/movies/Test.mkv",
+          "dateAdded": "2022-12-30T07:37:56Z",
+          "mediaInfo": {
+            "audioBitrate": 0,
+            "audioChannels": 7.1,
+            "audioCodec": "AAC",
+            "audioLanguages": "eng",
+            "audioStreamCount": 1,
+            "videoBitDepth": 10,
+            "videoBitrate": 0,
+            "videoCodec": "x265",
+            "videoFps": 23.976,
+            "resolution": "1920x804",
+            "runTime": "2:00:00",
+            "scanType": "Progressive"
+          }
+        },
+        "collection": {
+          "title": "Test Collection",
+          "searchOnAdd": true,
+          "overview": "Collection blah blah blah",
+          "qualityProfileId": 1,
+          "movies": [
+            {
+              "title": "Test",
+              "overview": "Collection blah blah blah",
+              "year": 2023,
+              "runtime": 120,
+              "genres": ["cool", "family", "fun"],
+              "ratings": {
+                "imdb": {
+                  "value": 9.9
+                },
+                "tmdb": {
+                  "value": 9.9
+                },
+                "rottenTomatoes": {
+                  "value": 9.9
+                }
+              }
+            }
+          ]
+        }
+      }"#;
+
+  #[rstest]
+  fn test_resource_movie(
+    #[values(
+      RadarrEvent::AddMovie,
+      RadarrEvent::GetMovies,
+      RadarrEvent::GetMovieDetails,
+      RadarrEvent::DeleteMovie
+    )]
+    event: RadarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/movie");
+  }
+
+  #[rstest]
+  fn test_resource_release(
+    #[values(RadarrEvent::GetReleases, RadarrEvent::DownloadRelease)] event: RadarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/release");
+  }
+
+  #[rstest]
+  fn test_resource_queue(
+    #[values(RadarrEvent::GetDownloads, RadarrEvent::DeleteDownload)] event: RadarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/queue");
+  }
+
+  #[rstest]
+  fn test_resource_command(
+    #[values(
+      RadarrEvent::TriggerAutomaticSearch,
+      RadarrEvent::RefreshAndScan,
+      RadarrEvent::UpdateAllMovies,
+      RadarrEvent::RefreshDownloads,
+      RadarrEvent::RefreshCollections
+    )]
+    event: RadarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/command");
+  }
+
+  #[rstest]
+  fn test_resource(
+    #[values(
+      RadarrEvent::GetCollections,
+      RadarrEvent::SearchNewMovie,
+      RadarrEvent::GetMovieCredits,
+      RadarrEvent::GetMovieHistory,
+      RadarrEvent::GetOverview,
+      RadarrEvent::GetQualityProfiles,
+      RadarrEvent::GetRootFolders,
+      RadarrEvent::GetStatus,
+      RadarrEvent::HealthCheck
+    )]
+    event: RadarrEvent,
+  ) {
+    let expected_resource = match event {
+      RadarrEvent::GetCollections => "/collection",
+      RadarrEvent::SearchNewMovie => "/movie/lookup",
+      RadarrEvent::GetMovieCredits => "/credit",
+      RadarrEvent::GetMovieHistory => "/history/movie",
+      RadarrEvent::GetOverview => "/diskspace",
+      RadarrEvent::GetQualityProfiles => "/qualityprofile",
+      RadarrEvent::GetRootFolders => "/rootfolder",
+      RadarrEvent::GetStatus => "/system/status",
+      RadarrEvent::HealthCheck => "/health",
+      _ => "",
+    };
+
+    assert_str_eq!(event.resource(), expected_resource);
+  }
+
+  #[tokio::test]
+  async fn test_extract_movie_id_filtered_movies() {
+    let id = Number::from(1);
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .filtered_movies
+      .set_items(vec![Movie {
+        id: id.clone(),
+        ..Movie::default()
+      }]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    assert_eq!(network.extract_movie_id().await, 1);
+  }
+
+  #[tokio::test]
+  async fn test_get_healthcheck() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      None,
+      RadarrEvent::HealthCheck.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.get_healthcheck().await;
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_get_diskspace() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([
+        {
+          "freeSpace": 1111,
+          "totalSpace": 2222,
+        },
+        {
+          "freeSpace": 3333,
+          "totalSpace": 4444
+        }
+      ])),
+      RadarrEvent::GetOverview.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.get_diskspace().await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.disk_space_vec,
+      vec![
+        DiskSpace {
+          free_space: Number::from(1111),
+          total_space: Number::from(2222)
+        },
+        DiskSpace {
+          free_space: Number::from(3333),
+          total_space: Number::from(4444)
+        }
+      ]
+    );
+  }
+
+  #[tokio::test]
+  async fn test_get_status() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!({
+        "version": "v1",
+        "startTime": "2023-02-25T20:16:43Z"
+      })),
+      RadarrEvent::GetStatus.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.get_status().await;
+
+    async_server.assert_async().await;
+
+    assert_str_eq!(app_arc.lock().await.data.radarr_data.version, "v1");
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.start_time,
+      DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap())
+        as DateTime<Utc>
+    );
+  }
+
+  #[tokio::test]
+  async fn test_get_movies() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(format!("[ {} ]", MOVIE_JSON).as_str()).unwrap()),
+      RadarrEvent::GetMovies.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.get_movies().await;
+
+    async_server.assert_async().await;
+
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.movies.items,
+      vec![movie()]
+    );
+  }
+
+  #[tokio::test]
+  async fn test_get_releases() {
+    let release_json = json!({
+      "guid": "1234",
+      "protocol": "torrent",
+      "age": 1,
+      "title": "Test Release",
+      "indexer": "kickass torrents",
+      "indexerId": 2,
+      "size": 1234,
+      "rejected": true,
+      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+      "seeders": 2,
+      "leechers": 1,
+      "languages": [ { "name": "English" } ],
+      "quality": { "quality": { "name": "1080" }}
+    });
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(release_json),
+      format!("{}?movieId=1", RadarrEvent::GetReleases.resource()).as_str(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie()]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.get_releases().await;
+
+    async_server.assert_async().await;
+
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.movie_releases.items,
+      vec![release()]
+    );
+  }
+
+  #[tokio::test]
+  async fn test_search_movie() {
+    let add_movie_search_result_json = json!({
+      "tmdbId": 1,
+      "title": "Test",
+      "originalLanguage": { "name": "English" },
+      "status": "released",
+      "overview": "New movie blah blah blah",
+      "genres": ["cool", "family", "fun"],
+      "year": 2023,
+      "runtime": 120,
+      "ratings": {
+        "imdb": {
+          "value": 9.9
+        },
+        "tmdb": {
+          "value": 9.9
+        },
+        "rottenTomatoes": {
+          "value": 9.9
+        }
+      }
+    });
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(add_movie_search_result_json),
+      format!(
+        "{}?term=test%20term",
+        RadarrEvent::SearchNewMovie.resource()
+      )
+      .as_str(),
+    )
+    .await;
+    app_arc.lock().await.data.radarr_data.search = "test term".to_owned();
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.search_movie().await;
+
+    async_server.assert_async().await;
+
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .add_searched_movies
+        .items,
+      vec![add_movie_search_result()]
+    );
+  }
+
+  #[tokio::test]
+  async fn test_trigger_automatic_search() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "MovieSearch",
+        "movieIds": [ 1 ]
+      })),
+      None,
+      RadarrEvent::TriggerAutomaticSearch.resource(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie()]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.trigger_automatic_search().await;
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_refresh_and_scan() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "RefreshMovie",
+        "movieIds": [ 1 ]
+      })),
+      None,
+      RadarrEvent::RefreshAndScan.resource(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie()]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.refresh_and_scan().await;
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_update_all_movies() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "RefreshMovie",
+        "movieIds": []
+      })),
+      None,
+      RadarrEvent::UpdateAllMovies.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.update_all_movies().await;
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_refresh_downloads() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "RefreshMonitoredDownloads"
+      })),
+      None,
+      RadarrEvent::RefreshDownloads.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.refresh_downloads().await;
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_refresh_collections() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "RefreshCollections"
+      })),
+      None,
+      RadarrEvent::RefreshCollections.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.refresh_collections().await;
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_get_movie_details() {
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(MOVIE_JSON).unwrap()),
+      format!("{}/1", RadarrEvent::GetMovieDetails.resource()).as_str(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie()]);
+    app_arc.lock().await.data.radarr_data.quality_profile_map =
+      HashMap::from([(2222, "1080".to_owned())]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.get_movie_details().await;
+
+    async_server.assert_async().await;
+
+    assert_str_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .movie_details
+        .get_text(),
+      formatdoc!(
+        "Title: Test
+          Year: 2023
+          Runtime: 2h 0m
+          Collection: Test Collection
+          Status: Downloaded
+          Description: Blah blah blah
+          TMDB: 99%
+          IMDB: 9.9
+          Rotten Tomatoes: 
+          Quality Profile: 1080
+          Size: 0.00 GB
+          Path: /nfs/movies
+          Studio: 21st Century Alex
+          Genres: cool, family, fun"
+      )
+    );
+    assert_str_eq!(
+      app_arc.lock().await.data.radarr_data.file_details,
+      formatdoc!(
+        "Relative Path: Test.mkv
+        Absolute Path: /nfs/movies/Test.mkv
+        Size: 0.00 GB
+        Date Added: 2022-12-30 07:37:56 UTC"
+      )
+    );
+    assert_str_eq!(
+      app_arc.lock().await.data.radarr_data.audio_details,
+      formatdoc!(
+        "Bitrate: 0
+        Channels: 7.1
+        Codec: AAC
+        Languages: eng
+        Stream Count: 1"
+      )
+    );
+    assert_str_eq!(
+      app_arc.lock().await.data.radarr_data.video_details,
+      formatdoc!(
+        "Bit Depth: 10
+        Bitrate: 0
+        Codec: x265
+        FPS: 23.976
+        Resolution: 1920x804
+        Scan Type: Progressive
+        Runtime: 2:00:00"
+      )
+    );
+  }
+
+  #[tokio::test]
+  async fn test_get_movie_history() {
+    let movie_history_item_json = json!({
+      "sourceTitle": "Test",
+      "quality": { "quality": { "name": "1080" }},
+      "languages": [ { "name": "English" } ],
+      "date": "2022-12-30T07:37:56Z",
+      "eventType": "grabbed"
+    });
+    let (async_server, app_arc) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(movie_history_item_json),
+      format!("{}?movieId=1", RadarrEvent::GetMovieHistory.resource()).as_str(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie()]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network.get_movie_history().await;
+
+    async_server.assert_async().await;
+
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.movie_history.items,
+      vec![movie_history_item()]
+    );
+  }
+
+  #[tokio::test]
+  async fn test_extract_movie_id() {
+    let id = Number::from(1);
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![Movie {
+        id: id.clone(),
+        ..Movie::default()
+      }]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    assert_eq!(network.extract_movie_id().await, 1);
+  }
+
+  #[tokio::test]
+  async fn test_append_movie_id_param() {
+    let id = Number::from(1);
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![Movie {
+        id: id.clone(),
+        ..Movie::default()
+      }]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    assert_str_eq!(
+      network.append_movie_id_param("/test").await,
+      "/test?movieId=1"
+    );
+  }
+
+  #[tokio::test]
+  async fn test_radarr_request_props_from_default_radarr_config() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    let request_props = network
+      .radarr_request_props_from("/test", RequestMethod::Get, None::<()>)
+      .await;
+
+    assert_str_eq!(request_props.uri, "http://localhost:7878/api/v3/test");
+    assert_eq!(request_props.method, RequestMethod::Get);
+    assert_eq!(request_props.body, None);
+    assert!(request_props.api_token.is_empty());
+
+    app_arc.lock().await.config.radarr = RadarrConfig {
+      host: "192.168.0.123".to_owned(),
+      port: Some(8080),
+      api_token: "testToken1234".to_owned(),
+    };
+  }
+
+  #[tokio::test]
+  async fn test_radarr_request_props_from_custom_radarr_config() {
+    let api_token = "testToken1234".to_owned();
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc.lock().await.config.radarr = RadarrConfig {
+      host: "192.168.0.123".to_owned(),
+      port: Some(8080),
+      api_token: api_token.clone(),
+    };
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    let request_props = network
+      .radarr_request_props_from("/test", RequestMethod::Get, None::<()>)
+      .await;
+
+    assert_str_eq!(request_props.uri, "http://192.168.0.123:8080/api/v3/test");
+    assert_eq!(request_props.method, RequestMethod::Get);
+    assert_eq!(request_props.body, None);
+    assert_str_eq!(request_props.api_token, api_token);
+  }
+
+  #[test]
+  fn test_get_movie_status_downloaded() {
+    assert_str_eq!(get_movie_status(true, &[], Number::from(0)), "Downloaded");
+  }
+
+  #[test]
+  fn test_get_movie_status_missing() {
+    let download_record = DownloadRecord {
+      id: 1.into(),
+      ..DownloadRecord::default()
+    };
+
+    assert_str_eq!(
+      get_movie_status(false, &[download_record.clone()], 0.into()),
+      "Missing"
+    );
+
+    assert_str_eq!(
+      get_movie_status(false, &[download_record], 1.into()),
+      "Missing"
+    );
+  }
+
+  #[test]
+  fn test_get_movie_status_downloading() {
+    assert_str_eq!(
+      get_movie_status(
+        false,
+        &[DownloadRecord {
+          id: 1.into(),
+          status: "downloading".to_owned(),
+          ..DownloadRecord::default()
+        }],
+        1.into()
+      ),
+      "Downloading"
+    );
+  }
+
+  async fn mock_radarr_api(
+    method: RequestMethod,
+    request_body: Option<Value>,
+    response_body: Option<Value>,
+    resource: &str,
+  ) -> (Mock, Arc<Mutex<App>>) {
+    let mut server = Server::new_async().await;
+    let mut async_server = server
+      .mock(
+        &method.to_string().to_uppercase(),
+        format!("/api/v3{}", resource).as_str(),
+      )
+      .match_header("X-Api-Key", "test1234")
+      .with_status(200);
+
+    if let Some(body) = request_body {
+      async_server = async_server.match_body(Matcher::Json(body));
+    }
+
+    if let Some(body) = response_body {
+      async_server = async_server.with_body(body.to_string());
+    }
+
+    async_server = async_server.create_async().await;
+
+    let host = server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned();
+    let port = Some(
+      server.host_with_port().split(':').collect::<Vec<&str>>()[1]
+        .parse()
+        .unwrap(),
+    );
+    let mut app = App::default();
+    let radarr_config = RadarrConfig {
+      host,
+      port,
+      api_token: "test1234".to_owned(),
+    };
+    app.config.radarr = radarr_config;
+    let app_arc = Arc::new(Mutex::new(app));
+
+    (async_server, app_arc)
+  }
+
+  fn language() -> Language {
+    Language {
+      name: "English".to_owned(),
+    }
+  }
+
+  fn genres() -> Vec<String> {
+    vec!["cool".to_owned(), "family".to_owned(), "fun".to_owned()]
+  }
+
+  fn rating() -> Rating {
+    Rating {
+      value: Number::from_f64(9.9).unwrap(),
+    }
+  }
+
+  fn ratings_list() -> RatingsList {
+    RatingsList {
+      imdb: Some(rating()),
+      tmdb: Some(rating()),
+      rotten_tomatoes: Some(rating()),
+    }
+  }
+
+  fn media_info() -> MediaInfo {
+    MediaInfo {
+      audio_bitrate: Number::from(0),
+      audio_channels: Number::from_f64(7.1).unwrap(),
+      audio_codec: Some("AAC".to_owned()),
+      audio_languages: Some("eng".to_owned()),
+      audio_stream_count: Number::from(1),
+      video_bit_depth: Number::from(10),
+      video_bitrate: Number::from(0),
+      video_codec: "x265".to_owned(),
+      video_fps: Number::from_f64(23.976).unwrap(),
+      resolution: "1920x804".to_owned(),
+      run_time: "2:00:00".to_owned(),
+      scan_type: "Progressive".to_owned(),
+    }
+  }
+
+  fn movie_file() -> MovieFile {
+    MovieFile {
+      relative_path: "Test.mkv".to_owned(),
+      path: "/nfs/movies/Test.mkv".to_owned(),
+      date_added: DateTime::from(DateTime::parse_from_rfc3339("2022-12-30T07:37:56Z").unwrap()),
+      media_info: media_info(),
+    }
+  }
+
+  fn collection_movie() -> CollectionMovie {
+    CollectionMovie {
+      title: "Test".to_owned(),
+      overview: "Collection blah blah blah".to_owned(),
+      year: Number::from(2023),
+      runtime: Number::from(120),
+      genres: genres(),
+      ratings: ratings_list(),
+    }
+  }
+
+  fn collection() -> Collection {
+    Collection {
+      title: "Test Collection".to_owned(),
+      root_folder_path: None,
+      search_on_add: true,
+      overview: Some("Collection blah blah blah".to_owned()),
+      quality_profile_id: Number::from(1),
+      movies: Some(vec![collection_movie()]),
+    }
+  }
+
+  fn movie() -> Movie {
+    Movie {
+      id: Number::from(1),
+      title: "Test".to_owned(),
+      original_language: language(),
+      size_on_disk: Number::from(1111),
+      status: "Downloaded".to_owned(),
+      overview: "Blah blah blah".to_owned(),
+      path: "/nfs/movies".to_owned(),
+      studio: "21st Century Alex".to_owned(),
+      genres: genres(),
+      year: Number::from(2023),
+      monitored: true,
+      has_file: true,
+      runtime: Number::from(120),
+      quality_profile_id: Number::from(2222),
+      certification: Some("R".to_owned()),
+      ratings: ratings_list(),
+      movie_file: Some(movie_file()),
+      collection: Some(collection()),
+    }
+  }
+
+  fn rejections() -> Vec<String> {
+    vec![
+      "Unknown quality profile".to_owned(),
+      "Release is already mapped".to_owned(),
+    ]
+  }
+
+  fn quality() -> Quality {
+    Quality {
+      name: "1080".to_owned(),
+    }
+  }
+
+  fn quality_wrapper() -> QualityWrapper {
+    QualityWrapper { quality: quality() }
+  }
+
+  fn release() -> Release {
+    Release {
+      guid: "1234".to_owned(),
+      protocol: "torrent".to_owned(),
+      age: Number::from(1),
+      title: HorizontallyScrollableText::from("Test Release".to_owned()),
+      indexer: "kickass torrents".to_owned(),
+      indexer_id: Number::from(2),
+      size: Number::from(1234),
+      rejected: true,
+      rejections: Some(rejections()),
+      seeders: Some(Number::from(2)),
+      leechers: Some(Number::from(1)),
+      languages: Some(vec![language()]),
+      quality: quality_wrapper(),
+    }
+  }
+
+  fn add_movie_search_result() -> AddMovieSearchResult {
+    AddMovieSearchResult {
+      tmdb_id: Number::from(1),
+      title: HorizontallyScrollableText::from("Test".to_owned()),
+      original_language: language(),
+      status: "released".to_owned(),
+      overview: "New movie blah blah blah".to_owned(),
+      genres: genres(),
+      year: Number::from(2023),
+      runtime: Number::from(120),
+      ratings: ratings_list(),
+    }
+  }
+
+  fn quality_history() -> QualityHistory {
+    QualityHistory { quality: quality() }
+  }
+
+  fn movie_history_item() -> MovieHistoryItem {
+    MovieHistoryItem {
+      source_title: HorizontallyScrollableText::from("Test".to_owned()),
+      quality: quality_history(),
+      languages: vec![language()],
+      date: DateTime::from(DateTime::parse_from_rfc3339("2022-12-30T07:37:56Z").unwrap()),
+      event_type: "grabbed".to_owned(),
+    }
+  }
+}

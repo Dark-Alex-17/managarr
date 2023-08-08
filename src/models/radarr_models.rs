@@ -8,7 +8,7 @@ use strum_macros::EnumIter;
 
 use crate::models::HorizontallyScrollableText;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DiskSpace {
   pub free_space: Number,

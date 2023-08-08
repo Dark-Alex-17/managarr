@@ -174,11 +174,11 @@ impl Default for RadarrConfig {
 #[cfg(test)]
 mod tests {
   use anyhow::anyhow;
-  use pretty_assertions::assert_eq;
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use tokio::sync::mpsc;
 
   use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
-  use crate::app::{App, Data, DEFAULT_ROUTE};
+  use crate::app::{App, Data, RadarrConfig, DEFAULT_ROUTE};
   use crate::models::HorizontallyScrollableText;
   use crate::network::radarr_network::RadarrEvent;
   use crate::network::NetworkEvent;
@@ -332,5 +332,14 @@ mod tests {
 
     app.on_tick(false).await;
     assert!(!app.should_refresh);
+  }
+
+  #[test]
+  fn test_radarr_config_default() {
+    let radarr_config = RadarrConfig::default();
+
+    assert_str_eq!(radarr_config.host, "localhost");
+    assert_eq!(radarr_config.port, Some(7878));
+    assert!(radarr_config.api_token.is_empty());
   }
 }
