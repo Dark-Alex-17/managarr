@@ -16,7 +16,7 @@ use crate::models::ScrollableText;
 use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
 use crate::utils::{convert_runtime, convert_to_gb};
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum RadarrEvent {
   AddMovie,
   DeleteDownload,

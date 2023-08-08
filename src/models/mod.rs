@@ -8,7 +8,7 @@ use crate::app::radarr::ActiveRadarrBlock;
 
 pub mod radarr_models;
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Route {
   Radarr(ActiveRadarrBlock),
   Sonarr,

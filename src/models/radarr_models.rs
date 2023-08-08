@@ -292,7 +292,7 @@ pub struct CommandBody {
   pub name: String,
 }
 
-#[derive(Default, PartialEq, Eq, Clone, Debug, EnumIter)]
+#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter)]
 pub enum MinimumAvailability {
   #[default]
   Announced,
@@ -314,7 +314,7 @@ impl Display for MinimumAvailability {
 }
 
 impl MinimumAvailability {
-  pub fn to_display_str(&self) -> &str {
+  pub fn to_display_str<'a>(self) -> &'a str {
     match self {
       MinimumAvailability::Tba => "TBA",
       MinimumAvailability::Announced => "Announced",
@@ -324,7 +324,7 @@ impl MinimumAvailability {
   }
 }
 
-#[derive(Default, PartialEq, Eq, Clone, Debug, EnumIter)]
+#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter)]
 pub enum Monitor {
   #[default]
   MovieOnly,
@@ -344,7 +344,7 @@ impl Display for Monitor {
 }
 
 impl Monitor {
-  pub fn to_display_str(&self) -> &str {
+  pub fn to_display_str<'a>(self) -> &'a str {
     match self {
       Monitor::MovieOnly => "Movie only",
       Monitor::MovieAndCollection => "Movie and Collection",

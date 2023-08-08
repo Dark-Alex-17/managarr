@@ -48,7 +48,7 @@ impl<'a> Network<'a> {
     T: Serialize + Default + Debug,
     R: DeserializeOwned,
   {
-    let method = request_props.method.clone();
+    let method = request_props.method;
     match self.call_api(request_props).await.send().await {
       Ok(response) => {
         if response.status().is_success() {
@@ -120,7 +120,7 @@ impl<'a> Network<'a> {
   }
 }
 
-#[derive(Clone, Debug, Display, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Display, PartialEq, Eq)]
 pub enum RequestMethod {
   Get,
   Post,
@@ -303,7 +303,7 @@ mod tests {
     #[values(RequestMethod::Get, RequestMethod::Post, RequestMethod::Delete)]
     request_method: RequestMethod,
   ) {
-    let (async_server, app_arc, url) = mock_api(request_method.clone(), 404, true).await;
+    let (async_server, app_arc, url) = mock_api(request_method, 404, true).await;
     let network = Network::new(reqwest::Client::new(), &app_arc);
 
     network

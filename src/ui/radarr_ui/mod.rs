@@ -36,7 +36,7 @@ mod movie_details_ui;
 pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let (content_rect, _) = draw_tabs(f, area, "Movies", &app.data.radarr_data.main_tabs);
 
-  if let Route::Radarr(active_radarr_block) = app.get_current_route().clone() {
+  if let Route::Radarr(active_radarr_block) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::Movies => draw_library(f, app, content_rect),
       ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::FilterMovies => {

@@ -205,25 +205,13 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
           _ if *self.key == DEFAULT_KEYBINDINGS.left.key => {
             self.app.data.radarr_data.main_tabs.previous();
             self.app.pop_and_push_navigation_stack(
-              self
-                .app
-                .data
-                .radarr_data
-                .main_tabs
-                .get_active_route()
-                .clone(),
+              *self.app.data.radarr_data.main_tabs.get_active_route(),
             );
           }
           _ if *self.key == DEFAULT_KEYBINDINGS.right.key => {
             self.app.data.radarr_data.main_tabs.next();
             self.app.pop_and_push_navigation_stack(
-              self
-                .app
-                .data
-                .radarr_data
-                .main_tabs
-                .get_active_route()
-                .clone(),
+              *self.app.data.radarr_data.main_tabs.get_active_route(),
             );
           }
           _ => (),
@@ -673,7 +661,7 @@ mod tests {
 
       assert_eq!(
         app.data.radarr_data.main_tabs.get_active_route(),
-        &expected_radarr_block.clone().into()
+        &expected_radarr_block.into()
       );
       assert_eq!(app.get_current_route(), &expected_radarr_block.into());
     }
@@ -699,7 +687,7 @@ mod tests {
 
       assert_eq!(
         app.data.radarr_data.main_tabs.get_active_route(),
-        &expected_radarr_block.clone().into()
+        &expected_radarr_block.into()
       );
       assert_eq!(app.get_current_route(), &expected_radarr_block.into());
     }
@@ -869,8 +857,8 @@ mod tests {
     ) {
       let mut app = App::default();
       app.data.radarr_data.prompt_confirm = true;
-      app.push_navigation_stack(base_route.clone().into());
-      app.push_navigation_stack(prompt_block.clone().into());
+      app.push_navigation_stack(base_route.into());
+      app.push_navigation_stack(prompt_block.into());
 
       RadarrHandler::with(&SUBMIT_KEY, &mut app, &prompt_block).handle();
 
@@ -899,8 +887,8 @@ mod tests {
       #[case] prompt_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
-      app.push_navigation_stack(base_route.clone().into());
-      app.push_navigation_stack(prompt_block.clone().into());
+      app.push_navigation_stack(base_route.into());
+      app.push_navigation_stack(prompt_block.into());
 
       RadarrHandler::with(&SUBMIT_KEY, &mut app, &prompt_block).handle();
 
@@ -932,8 +920,8 @@ mod tests {
     ) {
       let mut app = App::default();
       app.should_ignore_quit_key = true;
-      app.push_navigation_stack(base_block.clone().into());
-      app.push_navigation_stack(search_block.clone().into());
+      app.push_navigation_stack(base_block.into());
+      app.push_navigation_stack(search_block.into());
       app.data.radarr_data = create_test_radarr_data();
 
       RadarrHandler::with(&ESC_KEY, &mut app, &search_block).handle();
@@ -960,8 +948,8 @@ mod tests {
       #[case] prompt_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
-      app.push_navigation_stack(base_block.clone().into());
-      app.push_navigation_stack(prompt_block.clone().into());
+      app.push_navigation_stack(base_block.into());
+      app.push_navigation_stack(prompt_block.into());
       app.data.radarr_data.prompt_confirm = true;
 
       RadarrHandler::with(&ESC_KEY, &mut app, &prompt_block).handle();

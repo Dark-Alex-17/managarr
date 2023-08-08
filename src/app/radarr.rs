@@ -174,7 +174,7 @@ impl Default for RadarrData {
   }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum ActiveRadarrBlock {
   AddMovieSearchInput,
   AddMovieSearchResults,
@@ -327,9 +327,7 @@ impl App {
     if self.data.radarr_data.prompt_confirm {
       self.data.radarr_data.prompt_confirm = false;
       if let Some(radarr_event) = &self.data.radarr_data.prompt_confirm_action {
-        self
-          .dispatch_network_event(radarr_event.clone().into())
-          .await;
+        self.dispatch_network_event((*radarr_event).into()).await;
         self.should_refresh = true;
         self.data.radarr_data.prompt_confirm_action = None;
       }

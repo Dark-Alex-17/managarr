@@ -349,7 +349,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       .movie_releases
       .current_selection_clone()
   };
-  let current_route = app.get_current_route().clone();
+  let current_route = *app.get_current_route();
 
   draw_table(
     f,

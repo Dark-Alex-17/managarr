@@ -74,7 +74,7 @@ impl App {
     if self.tick_count % self.tick_until_poll == 0 || self.is_routing || self.should_refresh {
       if let Route::Radarr(active_radarr_block) = self.get_current_route() {
         self
-          .radarr_on_tick(active_radarr_block.clone(), is_first_render)
+          .radarr_on_tick(*active_radarr_block, is_first_render)
           .await;
       }
 

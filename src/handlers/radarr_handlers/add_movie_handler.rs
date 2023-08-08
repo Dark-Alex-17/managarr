@@ -517,7 +517,7 @@ mod tests {
     ) {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
-      app.data.radarr_data.selected_block = selected_block.clone();
+      app.data.radarr_data.selected_block = selected_block;
 
       AddMovieHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::AddMoviePrompt).handle();
 
@@ -536,7 +536,7 @@ mod tests {
     ) {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
-      app.push_navigation_stack(active_radarr_block.clone().into());
+      app.push_navigation_stack(active_radarr_block.into());
 
       AddMovieHandler::with(&SUBMIT_KEY, &mut app, &active_radarr_block).handle();
 

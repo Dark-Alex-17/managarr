@@ -43,7 +43,7 @@ pub trait KeyEventHandler<'a, T: Into<Route>> {
 }
 
 pub fn handle_events(key: Key, app: &mut App) {
-  if let Route::Radarr(active_radarr_block) = app.get_current_route().clone() {
+  if let Route::Radarr(active_radarr_block) = *app.get_current_route() {
     RadarrHandler::with(&key, app, &active_radarr_block).handle()
   }
 }
@@ -57,7 +57,7 @@ fn handle_clear_errors(app: &mut App) {
 fn handle_prompt_toggle(app: &mut App, key: &Key) {
   match key {
     _ if *key == DEFAULT_KEYBINDINGS.left.key || *key == DEFAULT_KEYBINDINGS.right.key => {
-      if let Route::Radarr(_) = app.get_current_route().clone() {
+      if let Route::Radarr(_) = *app.get_current_route() {
         app.data.radarr_data.prompt_confirm = !app.data.radarr_data.prompt_confirm;
       }
     }

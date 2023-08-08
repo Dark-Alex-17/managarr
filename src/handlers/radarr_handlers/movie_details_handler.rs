@@ -88,25 +88,13 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
         _ if *self.key == DEFAULT_KEYBINDINGS.left.key => {
           self.app.data.radarr_data.movie_info_tabs.previous();
           self.app.pop_and_push_navigation_stack(
-            self
-              .app
-              .data
-              .radarr_data
-              .movie_info_tabs
-              .get_active_route()
-              .clone(),
+            *self.app.data.radarr_data.movie_info_tabs.get_active_route(),
           );
         }
         _ if *self.key == DEFAULT_KEYBINDINGS.right.key => {
           self.app.data.radarr_data.movie_info_tabs.next();
           self.app.pop_and_push_navigation_stack(
-            self
-              .app
-              .data
-              .radarr_data
-              .movie_info_tabs
-              .get_active_route()
-              .clone(),
+            *self.app.data.radarr_data.movie_info_tabs.get_active_route(),
           );
         }
         _ => (),
@@ -393,14 +381,14 @@ mod tests {
       #[case] right_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
-      app.push_navigation_stack(right_block.clone().into());
+      app.push_navigation_stack(right_block.into());
       app.data.radarr_data.movie_info_tabs.index = app
         .data
         .radarr_data
         .movie_info_tabs
         .tabs
         .iter()
-        .position(|tab_route| tab_route.route == right_block.clone().into())
+        .position(|tab_route| tab_route.route == right_block.into())
         .unwrap_or_default();
 
       MovieDetailsHandler::with(&DEFAULT_KEYBINDINGS.left.key, &mut app, &right_block).handle();
@@ -409,7 +397,7 @@ mod tests {
         app.get_current_route(),
         app.data.radarr_data.movie_info_tabs.get_active_route()
       );
-      assert_eq!(app.get_current_route(), &left_block.clone().into());
+      assert_eq!(app.get_current_route(), &left_block.into());
 
       MovieDetailsHandler::with(&DEFAULT_KEYBINDINGS.right.key, &mut app, &left_block).handle();
 
@@ -461,7 +449,7 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
-      app.push_navigation_stack(prompt_block.clone().into());
+      app.push_navigation_stack(prompt_block.into());
 
       MovieDetailsHandler::with(&SUBMIT_KEY, &mut app, &prompt_block).handle();
 
@@ -487,7 +475,7 @@ mod tests {
     ) {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
-      app.push_navigation_stack(prompt_block.clone().into());
+      app.push_navigation_stack(prompt_block.into());
 
       MovieDetailsHandler::with(&SUBMIT_KEY, &mut app, &prompt_block).handle();
 
@@ -526,7 +514,7 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data = create_test_radarr_data();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
-      app.push_navigation_stack(active_radarr_block.clone().into());
+      app.push_navigation_stack(active_radarr_block.into());
 
       MovieDetailsHandler::with(&ESC_KEY, &mut app, &active_radarr_block).handle();
 
@@ -546,7 +534,7 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
-      app.push_navigation_stack(prompt_block.clone().into());
+      app.push_navigation_stack(prompt_block.into());
 
       MovieDetailsHandler::with(&ESC_KEY, &mut app, &prompt_block).handle();
 

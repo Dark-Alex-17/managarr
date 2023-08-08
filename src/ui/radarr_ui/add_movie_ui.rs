@@ -24,7 +24,7 @@ pub(super) fn draw_add_movie_search_popup<B: Backend>(
   app: &mut App,
   area: Rect,
 ) {
-  if let Route::Radarr(active_radarr_block) = app.get_current_route().clone() {
+  if let Route::Radarr(active_radarr_block) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSearchInput | ActiveRadarrBlock::AddMovieSearchResults => {
         draw_add_movie_search(f, app, area);
@@ -66,7 +66,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
     .style(style_default())
     .block(title_block_centered("Add Movie"));
 
-  if let Route::Radarr(active_radarr_block) = app.get_current_route().clone() {
+  if let Route::Radarr(active_radarr_block) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSearchInput => {
         show_cursor(f, chunks[0], block_content);
@@ -169,7 +169,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
 }
 
 fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, prompt_area: Rect) {
-  if let Route::Radarr(active_radarr_block) = app.get_current_route().clone() {
+  if let Route::Radarr(active_radarr_block) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSelectMonitor => {
         draw_drop_down_popup(
