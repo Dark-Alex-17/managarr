@@ -124,7 +124,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for CollectionDetailsHandler<'a>
           .into(),
       );
       self.app.data.radarr_data.populate_edit_collection_fields();
-      self.app.data.radarr_data.selected_block = ActiveRadarrBlock::AddMovieSelectRootFolder;
+      self.app.data.radarr_data.selected_block = ActiveRadarrBlock::EditCollectionToggleMonitored;
     }
   }
 }
