@@ -109,6 +109,18 @@ mod test_utils {
         },
       ]
     };
+    ($name:ident, $title_ident:ident, $field:ident) => {
+      vec![
+        $name {
+          $field: $title_ident::from("Test 1".to_owned()),
+          ..$name::default()
+        },
+        $name {
+          $field: $title_ident::from("Test 2".to_owned()),
+          ..$name::default()
+        },
+      ]
+    };
   }
 
   #[macro_export]
@@ -141,6 +153,22 @@ mod test_utils {
         },
         $name {
           title: $title_ident::from("Test 3".to_owned()),
+          ..$name::default()
+        },
+      ]
+    };
+    ($name:ident, $title_ident:ident, $field:ident) => {
+      vec![
+        $name {
+          $field: $title_ident::from("Test 1".to_owned()),
+          ..$name::default()
+        },
+        $name {
+          $field: $title_ident::from("Test 2".to_owned()),
+          ..$name::default()
+        },
+        $name {
+          $field: $title_ident::from("Test 3".to_owned()),
           ..$name::default()
         },
       ]

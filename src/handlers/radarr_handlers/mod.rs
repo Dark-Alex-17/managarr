@@ -914,8 +914,8 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::app::radarr::RadarrData;
-    use crate::models::radarr_models::AddMovieSearchResult;
+    use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
+    use crate::assert_search_reset;
 
     use super::*;
 
@@ -934,33 +934,13 @@ mod tests {
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(base_block.clone().into());
       app.push_navigation_stack(search_block.clone().into());
-      let mut radarr_data = RadarrData {
-        is_searching: true,
-        search: "test search".to_owned(),
-        filter: "test filter".to_owned(),
-        ..RadarrData::default()
-      };
-      radarr_data
-        .filtered_movies
-        .set_items(vec![Movie::default()]);
-      radarr_data
-        .filtered_collections
-        .set_items(vec![Collection::default()]);
-      radarr_data
-        .add_searched_movies
-        .set_items(vec![AddMovieSearchResult::default()]);
-      app.data.radarr_data = radarr_data;
+      app.data.radarr_data = create_test_radarr_data();
 
       RadarrHandler::with(&ESC_KEY, &mut app, &search_block).handle();
 
       assert_eq!(app.get_current_route(), &base_block.into());
       assert!(!app.should_ignore_quit_key);
-      assert!(!app.data.radarr_data.is_searching);
-      assert!(app.data.radarr_data.search.is_empty());
-      assert!(app.data.radarr_data.filter.is_empty());
-      assert!(app.data.radarr_data.filtered_movies.items.is_empty());
-      assert!(app.data.radarr_data.filtered_collections.items.is_empty());
-      assert!(app.data.radarr_data.add_searched_movies.items.is_empty());
+      assert_search_reset!(app.data.radarr_data);
     }
 
     #[rstest]
@@ -996,22 +976,7 @@ mod tests {
       app.error = "test error".to_owned().into();
       app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
       app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
-      let mut radarr_data = RadarrData {
-        is_searching: true,
-        search: "test search".to_owned(),
-        filter: "test filter".to_owned(),
-        ..RadarrData::default()
-      };
-      radarr_data
-        .filtered_movies
-        .set_items(vec![Movie::default()]);
-      radarr_data
-        .filtered_collections
-        .set_items(vec![Collection::default()]);
-      radarr_data
-        .add_searched_movies
-        .set_items(vec![AddMovieSearchResult::default()]);
-      app.data.radarr_data = radarr_data;
+      app.data.radarr_data = create_test_radarr_data();
 
       RadarrHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::Downloads).handle();
 
@@ -1020,12 +985,7 @@ mod tests {
         &ActiveRadarrBlock::Downloads.into()
       );
       assert!(app.error.text.is_empty());
-      assert!(!app.data.radarr_data.is_searching);
-      assert!(app.data.radarr_data.search.is_empty());
-      assert!(app.data.radarr_data.filter.is_empty());
-      assert!(app.data.radarr_data.filtered_movies.items.is_empty());
-      assert!(app.data.radarr_data.filtered_collections.items.is_empty());
-      assert!(app.data.radarr_data.add_searched_movies.items.is_empty());
+      assert_search_reset!(app.data.radarr_data);
     }
   }
 
@@ -1331,5 +1291,23 @@ mod tests {
     active_radarr_block: ActiveRadarrBlock,
   ) {
     test_handler_delegation!(ActiveRadarrBlock::Collections, active_radarr_block);
+  }
+
+  #[rstest]
+  fn test_delegate_movie_details_blocks_to_movie_details_handler(
+    #[values(
+      ActiveRadarrBlock::MovieDetails,
+      ActiveRadarrBlock::MovieHistory,
+      ActiveRadarrBlock::FileInfo,
+      ActiveRadarrBlock::Cast,
+      ActiveRadarrBlock::Crew,
+      ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
+      ActiveRadarrBlock::RefreshAndScanPrompt,
+      ActiveRadarrBlock::ManualSearch,
+      ActiveRadarrBlock::ManualSearchConfirmPrompt
+    )]
+    active_radarr_block: ActiveRadarrBlock,
+  ) {
+    test_handler_delegation!(ActiveRadarrBlock::Movies, active_radarr_block);
   }
 }

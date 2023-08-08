@@ -551,9 +551,10 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::app::radarr::RadarrData;
-    use crate::models::radarr_models::{Collection, Movie};
-    use crate::simple_stateful_iterable_vec;
+    use crate::app::radarr::radarr_test_utils::create_test_radarr_data;
+    use crate::{
+      assert_add_movie_selections_reset, assert_search_reset, simple_stateful_iterable_vec,
+    };
 
     use super::*;
 
@@ -561,23 +562,8 @@ mod tests {
 
     #[test]
     fn test_add_movie_search_input_esc() {
-      let mut radarr_data = RadarrData {
-        is_searching: true,
-        search: "test search".to_owned(),
-        filter: "test filter".to_owned(),
-        ..RadarrData::default()
-      };
-      radarr_data
-        .filtered_movies
-        .set_items(vec![Movie::default()]);
-      radarr_data
-        .filtered_collections
-        .set_items(vec![Collection::default()]);
-      radarr_data
-        .add_searched_movies
-        .set_items(vec![AddMovieSearchResult::default()]);
       let mut app = App::default();
-      app.data.radarr_data = radarr_data;
+      app.data.radarr_data = create_test_radarr_data();
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
 
@@ -585,12 +571,7 @@ mod tests {
 
       assert!(!app.should_ignore_quit_key);
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
-      assert!(!app.data.radarr_data.is_searching);
-      assert!(app.data.radarr_data.search.is_empty());
-      assert!(app.data.radarr_data.filter.is_empty());
-      assert!(app.data.radarr_data.filtered_movies.items.is_empty());
-      assert!(app.data.radarr_data.filtered_collections.items.is_empty());
-      assert!(app.data.radarr_data.add_searched_movies.items.is_empty());
+      assert_search_reset!(app.data.radarr_data);
     }
 
     #[test]
@@ -624,19 +605,8 @@ mod tests {
 
     #[test]
     fn test_add_movie_prompt_esc() {
-      let mut radarr_data = RadarrData::default();
-      radarr_data
-        .add_movie_monitor_list
-        .set_items(vec![Monitor::default()]);
-      radarr_data
-        .add_movie_minimum_availability_list
-        .set_items(vec![MinimumAvailability::default()]);
-      radarr_data
-        .add_movie_quality_profile_list
-        .set_items(vec![String::default()]);
-      radarr_data.prompt_confirm = true;
       let mut app = App::default();
-      app.data.radarr_data = radarr_data;
+      app.data.radarr_data = create_test_radarr_data();
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
 
@@ -647,19 +617,7 @@ mod tests {
         app.get_current_route(),
         &ActiveRadarrBlock::AddMovieSearchResults.into()
       );
-      assert!(app.data.radarr_data.add_movie_monitor_list.items.is_empty());
-      assert!(app
-        .data
-        .radarr_data
-        .add_movie_minimum_availability_list
-        .items
-        .is_empty());
-      assert!(app
-        .data
-        .radarr_data
-        .add_movie_quality_profile_list
-        .items
-        .is_empty());
+      assert_add_movie_selections_reset!(app.data.radarr_data);
     }
 
     #[rstest]
