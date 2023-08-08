@@ -208,13 +208,13 @@ impl<'a> Network<'a> {
   async fn search_movie(&self) {
     info!("Searching for specific Radarr movie");
 
-    let search_string = &self.app.lock().await.data.radarr_data.search.text.clone();
+    let search_string = self.app.lock().await.data.radarr_data.search.text.clone();
     let request_props = self
       .radarr_request_props_from(
         format!(
           "{}?term={}",
           RadarrEvent::SearchNewMovie.resource(),
-          encode(search_string)
+          encode(&search_string)
         )
         .as_str(),
         RequestMethod::Get,
@@ -910,7 +910,7 @@ impl<'a> Network<'a> {
 
   async fn extract_and_add_tag_ids_vec(&self) -> Vec<u64> {
     let tags_map = self.app.lock().await.data.radarr_data.tags_map.clone();
-    let edit_tags = &self
+    let edit_tags = self
       .app
       .lock()
       .await

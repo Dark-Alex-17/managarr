@@ -290,6 +290,10 @@ mod tests {
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetTags.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
       RadarrEvent::GetRootFolders.into()
     );
     assert_eq!(
