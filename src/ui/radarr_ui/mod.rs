@@ -15,7 +15,7 @@ use crate::app::radarr::{
 };
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
-use crate::models::radarr_models::{Collection, DiskSpace, DownloadRecord, Movie};
+use crate::models::radarr_models::{Collection, DiskSpace, DownloadRecord, Movie, RootFolder};
 use crate::models::{HorizontallyScrollableText, Route};
 use crate::ui::radarr_ui::add_movie_ui::draw_add_movie_search_popup;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details_popup;
@@ -71,6 +71,7 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
         11,
       ),
       ActiveRadarrBlock::Downloads => draw_downloads(f, app, content_rect),
+      ActiveRadarrBlock::RootFolders => draw_root_folders(f, app, content_rect),
       ActiveRadarrBlock::Collections => draw_collections(f, app, content_rect),
       _ if MOVIE_DETAILS_BLOCKS.contains(&active_radarr_block) => {
         draw_large_popup_over(f, app, content_rect, draw_library, draw_movie_info_popup)
@@ -713,6 +714,52 @@ fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect)
         ),
         Cell::from(search_on_add),
         Cell::from(monitored),
+      ])
+      .style(style_primary())
+    },
+    app.is_loading,
+  );
+}
+
+fn draw_root_folders<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+  draw_table(
+    f,
+    area,
+    layout_block_top_border(),
+    TableProps {
+      content: &mut app.data.radarr_data.root_folders,
+      table_headers: vec!["Path", "Free Space", "Unmapped Folders"],
+      constraints: vec![
+        Constraint::Percentage(60),
+        Constraint::Percentage(20),
+        Constraint::Percentage(20),
+      ],
+      help: app
+        .data
+        .radarr_data
+        .main_tabs
+        .get_active_tab_contextual_help(),
+    },
+    |root_folders| {
+      let RootFolder {
+        path,
+        free_space,
+        unmapped_folders,
+        ..
+      } = root_folders;
+
+      let space: f64 = convert_to_gb(free_space.as_u64().unwrap());
+
+      Row::new(vec![
+        Cell::from(path.to_owned()),
+        Cell::from(format!("{:.2} GB", space)),
+        Cell::from(
+          unmapped_folders
+            .as_ref()
+            .unwrap_or(&Vec::new())
+            .len()
+            .to_string(),
+        ),
       ])
       .style(style_primary())
     },

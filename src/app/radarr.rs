@@ -13,7 +13,7 @@ use crate::models::{
 use crate::network::radarr_network::RadarrEvent;
 
 pub struct RadarrData {
-  pub root_folders: Vec<RootFolder>,
+  pub root_folders: StatefulTable<RootFolder>,
   pub disk_space_vec: Vec<DiskSpace>,
   pub version: String,
   pub start_time: DateTime<Utc>,
@@ -217,7 +217,7 @@ impl RadarrData {
 impl Default for RadarrData {
   fn default() -> RadarrData {
     RadarrData {
-      root_folders: Vec::new(),
+      root_folders: StatefulTable::default(),
       disk_space_vec: Vec::new(),
       version: String::default(),
       start_time: DateTime::default(),
@@ -259,7 +259,7 @@ impl Default for RadarrData {
           title: "Library".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
           help: String::default(),
-          contextual_help: Some("<a> add | <e> edit | <s> search | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter | <del> delete"
+          contextual_help: Some("<a> add | <e> edit | <del> delete | <s> search | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"
             .to_owned()),
         },
         TabRoute {
@@ -274,6 +274,12 @@ impl Default for RadarrData {
           help: String::default(),
           contextual_help: Some("<s> search | <e> edit | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter"
             .to_owned()),
+        },
+        TabRoute {
+          title: "Root Folders".to_owned(),
+          route: ActiveRadarrBlock::RootFolders.into(),
+          help: String::default(),
+          contextual_help: Some("<a> add | <del> delete | <r> refresh".to_owned()),
         },
       ]),
       movie_info_tabs: TabState::new(vec![
@@ -361,6 +367,7 @@ pub enum ActiveRadarrBlock {
   MovieDetails,
   MovieHistory,
   Movies,
+  RootFolders,
   UpdateAndScanPrompt,
   UpdateAllCollectionsPrompt,
   UpdateAllMoviesPrompt,
@@ -559,6 +566,11 @@ impl App {
       ActiveRadarrBlock::Downloads => {
         self
           .dispatch_network_event(RadarrEvent::GetDownloads.into())
+          .await;
+      }
+      ActiveRadarrBlock::RootFolders => {
+        self
+          .dispatch_network_event(RadarrEvent::GetRootFolders.into())
           .await;
       }
       ActiveRadarrBlock::Movies => {
@@ -1046,7 +1058,7 @@ mod tests {
     fn test_radarr_data_defaults() {
       let radarr_data = RadarrData::default();
 
-      assert_eq!(radarr_data.root_folders, Vec::new());
+      assert!(radarr_data.root_folders.items.is_empty());
       assert_eq!(radarr_data.disk_space_vec, Vec::new());
       assert!(radarr_data.version.is_empty());
       assert_eq!(radarr_data.start_time, <DateTime<Utc>>::default());
@@ -1087,7 +1099,7 @@ mod tests {
       assert!(!radarr_data.is_filtering);
       assert!(!radarr_data.prompt_confirm);
 
-      assert_eq!(radarr_data.main_tabs.tabs.len(), 3);
+      assert_eq!(radarr_data.main_tabs.tabs.len(), 4);
 
       assert_str_eq!(radarr_data.main_tabs.tabs[0].title, "Library");
       assert_eq!(
@@ -1096,7 +1108,7 @@ mod tests {
       );
       assert!(radarr_data.main_tabs.tabs[0].help.is_empty());
       assert_eq!(radarr_data.main_tabs.tabs[0].contextual_help,
-                 Some("<a> add | <e> edit | <s> search | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter | <del> delete".to_owned()));
+                 Some("<a> add | <e> edit | <del> delete | <s> search | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter".to_owned()));
 
       assert_str_eq!(radarr_data.main_tabs.tabs[1].title, "Downloads");
       assert_eq!(
@@ -1117,6 +1129,17 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[2].help.is_empty());
       assert_eq!(radarr_data.main_tabs.tabs[2].contextual_help,
                  Some("<s> search | <e> edit | <f> filter | <r> refresh | <u> update all | <enter> details | <esc> cancel filter".to_owned()));
+
+      assert_str_eq!(radarr_data.main_tabs.tabs[3].title, "Root Folders");
+      assert_eq!(
+        radarr_data.main_tabs.tabs[3].route,
+        ActiveRadarrBlock::RootFolders.into()
+      );
+      assert!(radarr_data.main_tabs.tabs[3].help.is_empty());
+      assert_eq!(
+        radarr_data.main_tabs.tabs[3].contextual_help,
+        Some("<a> add | <del> delete | <r> refresh".to_owned())
+      );
 
       assert_eq!(radarr_data.movie_info_tabs.tabs.len(), 6);
 
@@ -1501,6 +1524,23 @@ mod tests {
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetDownloads.into()
+      );
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert_eq!(app.tick_count, 0);
+    }
+
+    #[tokio::test]
+    async fn test_dispatch_by_root_folders_block() {
+      let (mut app, mut sync_network_rx) = construct_app_unit();
+
+      app
+        .dispatch_by_radarr_block(&ActiveRadarrBlock::RootFolders)
+        .await;
+
+      assert!(app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetRootFolders.into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);

@@ -639,7 +639,7 @@ impl<'a> Network<'a> {
 
     self
       .handle_request::<(), Vec<RootFolder>>(request_props, |root_folders, mut app| {
-        app.data.radarr_data.root_folders = root_folders;
+        app.data.radarr_data.root_folders.set_items(root_folders);
       })
       .await;
   }
@@ -732,7 +732,7 @@ impl<'a> Network<'a> {
       let quality_profile_id = self.extract_quality_profile_id().await;
       let tag_ids_vec = self.extract_and_add_tag_ids_vec().await;
       let app = self.app.lock().await;
-      let root_folders = app.data.radarr_data.root_folders.to_vec();
+      let root_folders = app.data.radarr_data.root_folders.items.to_vec();
       let (tmdb_id, title) = if let Route::Radarr(active_radarr_block, _) = app.get_current_route()
       {
         if *active_radarr_block == ActiveRadarrBlock::CollectionDetails {
@@ -2059,6 +2059,7 @@ mod test {
   #[tokio::test]
   async fn test_handle_get_root_folders_event() {
     let root_folder_json = json!([{
+      "id": 1,
       "path": "/nfs",
       "accessible": true,
       "freeSpace": 219902325555200u64,
@@ -2078,7 +2079,7 @@ mod test {
 
     async_server.assert_async().await;
     assert_eq!(
-      app_arc.lock().await.data.radarr_data.root_folders,
+      app_arc.lock().await.data.radarr_data.root_folders.items,
       vec![root_folder()]
     );
   }
@@ -2202,18 +2203,22 @@ mod test {
 
     {
       let mut app = app_arc.lock().await;
-      app.data.radarr_data.root_folders = vec![
+      app.data.radarr_data.root_folders.set_items(vec![
         RootFolder {
+          id: Number::from(1),
           path: "/nfs".to_owned(),
           accessible: true,
           free_space: Number::from(219902325555200u64),
+          unmapped_folders: None,
         },
         RootFolder {
+          id: Number::from(2),
           path: "/nfs2".to_owned(),
           accessible: true,
           free_space: Number::from(21990232555520u64),
+          unmapped_folders: None,
         },
-      ];
+      ]);
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
       app.data.radarr_data.tags_map =
@@ -2926,9 +2931,11 @@ mod test {
 
   fn root_folder() -> RootFolder {
     RootFolder {
+      id: Number::from(1),
       path: "/nfs".to_owned(),
       accessible: true,
       free_space: Number::from(219902325555200u64),
+      unmapped_folders: None,
     }
   }
 

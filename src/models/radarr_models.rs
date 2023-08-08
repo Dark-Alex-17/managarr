@@ -22,12 +22,23 @@ pub struct SystemStatus {
   pub start_time: DateTime<Utc>,
 }
 
-#[derive(Deserialize, Debug, Clone, Eq, PartialEq)]
+#[derive(Derivative, Deserialize, Debug, Clone, Eq, PartialEq)]
+#[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct RootFolder {
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub id: Number,
   pub path: String,
   pub accessible: bool,
+  #[derivative(Default(value = "Number::from(0)"))]
   pub free_space: Number,
+  pub unmapped_folders: Option<Vec<UnmappedFolder>>,
+}
+
+#[derive(Deserialize, Default, Debug, Clone, Eq, PartialEq)]
+pub struct UnmappedFolder {
+  pub name: String,
+  pub path: String,
 }
 
 #[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]

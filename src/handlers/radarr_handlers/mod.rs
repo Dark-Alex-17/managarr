@@ -94,6 +94,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         }
       }
       ActiveRadarrBlock::Downloads => self.app.data.radarr_data.downloads.scroll_up(),
+      ActiveRadarrBlock::RootFolders => self.app.data.radarr_data.root_folders.scroll_up(),
       _ => (),
     }
   }
@@ -122,6 +123,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         }
       }
       ActiveRadarrBlock::Downloads => self.app.data.radarr_data.downloads.scroll_down(),
+      ActiveRadarrBlock::RootFolders => self.app.data.radarr_data.root_folders.scroll_down(),
       _ => (),
     }
   }
@@ -155,6 +157,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         }
       }
       ActiveRadarrBlock::Downloads => self.app.data.radarr_data.downloads.scroll_to_top(),
+      ActiveRadarrBlock::RootFolders => self.app.data.radarr_data.root_folders.scroll_to_top(),
       ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => {
         self.app.data.radarr_data.search.scroll_home()
       }
@@ -194,6 +197,7 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         }
       }
       ActiveRadarrBlock::Downloads => self.app.data.radarr_data.downloads.scroll_to_bottom(),
+      ActiveRadarrBlock::RootFolders => self.app.data.radarr_data.root_folders.scroll_to_bottom(),
       ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchCollection => {
         self.app.data.radarr_data.search.reset_offset()
       }
@@ -218,23 +222,24 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
 
   fn handle_left_right_action(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::Movies | ActiveRadarrBlock::Downloads | ActiveRadarrBlock::Collections => {
-        match self.key {
-          _ if *self.key == DEFAULT_KEYBINDINGS.left.key => {
-            self.app.data.radarr_data.main_tabs.previous();
-            self.app.pop_and_push_navigation_stack(
-              *self.app.data.radarr_data.main_tabs.get_active_route(),
-            );
-          }
-          _ if *self.key == DEFAULT_KEYBINDINGS.right.key => {
-            self.app.data.radarr_data.main_tabs.next();
-            self.app.pop_and_push_navigation_stack(
-              *self.app.data.radarr_data.main_tabs.get_active_route(),
-            );
-          }
-          _ => (),
+      ActiveRadarrBlock::Movies
+      | ActiveRadarrBlock::Downloads
+      | ActiveRadarrBlock::Collections
+      | ActiveRadarrBlock::RootFolders => match self.key {
+        _ if *self.key == DEFAULT_KEYBINDINGS.left.key => {
+          self.app.data.radarr_data.main_tabs.previous();
+          self
+            .app
+            .pop_and_push_navigation_stack(*self.app.data.radarr_data.main_tabs.get_active_route());
         }
-      }
+        _ if *self.key == DEFAULT_KEYBINDINGS.right.key => {
+          self.app.data.radarr_data.main_tabs.next();
+          self
+            .app
+            .pop_and_push_navigation_stack(*self.app.data.radarr_data.main_tabs.get_active_route());
+        }
+        _ => (),
+      },
       ActiveRadarrBlock::DeleteMoviePrompt
       | ActiveRadarrBlock::DeleteDownloadPrompt
       | ActiveRadarrBlock::UpdateAllMoviesPrompt
@@ -505,6 +510,12 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
         }
         _ => (),
       },
+      ActiveRadarrBlock::RootFolders => match self.key {
+        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+          self.app.should_refresh = true;
+        }
+        _ => (),
+      },
       _ if SEARCH_BLOCKS.contains(self.active_radarr_block) => {
         handle_text_box_keys!(self, key, self.app.data.radarr_data.search)
       }
@@ -714,7 +725,7 @@ mod tests {
   mod test_handle_scroll_up_and_down {
     use rstest::rstest;
 
-    use crate::models::radarr_models::DownloadRecord;
+    use crate::models::radarr_models::{DownloadRecord, RootFolder};
     use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
 
     use super::*;
@@ -772,12 +783,22 @@ mod tests {
       None,
       title
     );
+
+    test_iterable_scroll!(
+      test_root_folders_scroll,
+      RadarrHandler,
+      root_folders,
+      simple_stateful_iterable_vec!(RootFolder, String, path),
+      ActiveRadarrBlock::RootFolders,
+      None,
+      path
+    );
   }
 
   mod test_handle_home_end {
     use pretty_assertions::assert_eq;
 
-    use crate::models::radarr_models::DownloadRecord;
+    use crate::models::radarr_models::{DownloadRecord, RootFolder};
     use crate::{
       extended_stateful_iterable_vec, test_iterable_home_and_end, test_text_box_home_end_keys,
     };
@@ -838,6 +859,16 @@ mod tests {
       title
     );
 
+    test_iterable_home_and_end!(
+      test_root_folders_home_end,
+      RadarrHandler,
+      root_folders,
+      extended_stateful_iterable_vec!(RootFolder, String, path),
+      ActiveRadarrBlock::RootFolders,
+      None,
+      path
+    );
+
     #[rstest]
     fn test_search_boxes_home_end_keys(
       #[values(ActiveRadarrBlock::SearchMovie, ActiveRadarrBlock::SearchCollection)]
@@ -896,10 +927,11 @@ mod tests {
     use super::*;
 
     #[rstest]
-    #[case(ActiveRadarrBlock::Movies, 0, ActiveRadarrBlock::Collections)]
+    #[case(ActiveRadarrBlock::Movies, 0, ActiveRadarrBlock::RootFolders)]
     #[case(ActiveRadarrBlock::Downloads, 1, ActiveRadarrBlock::Movies)]
     #[case(ActiveRadarrBlock::Collections, 2, ActiveRadarrBlock::Downloads)]
-    fn test_movies_downloads_collections_left(
+    #[case(ActiveRadarrBlock::RootFolders, 3, ActiveRadarrBlock::Collections)]
+    fn test_radarr_tab_left(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] index: usize,
       #[case] expected_radarr_block: ActiveRadarrBlock,
@@ -925,8 +957,9 @@ mod tests {
     #[rstest]
     #[case(ActiveRadarrBlock::Movies, 0, ActiveRadarrBlock::Downloads)]
     #[case(ActiveRadarrBlock::Downloads, 1, ActiveRadarrBlock::Collections)]
-    #[case(ActiveRadarrBlock::Collections, 2, ActiveRadarrBlock::Movies)]
-    fn test_movie_downloads_collections_right(
+    #[case(ActiveRadarrBlock::Collections, 2, ActiveRadarrBlock::RootFolders)]
+    #[case(ActiveRadarrBlock::RootFolders, 3, ActiveRadarrBlock::Movies)]
+    fn test_radarr_tab_right(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] index: usize,
       #[case] expected_radarr_block: ActiveRadarrBlock,
@@ -1499,7 +1532,8 @@ mod tests {
       #[values(
         ActiveRadarrBlock::Movies,
         ActiveRadarrBlock::Collections,
-        ActiveRadarrBlock::Downloads
+        ActiveRadarrBlock::Downloads,
+        ActiveRadarrBlock::RootFolders
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
