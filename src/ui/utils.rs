@@ -66,6 +66,39 @@ pub fn layout_block_top_border<'a>() -> Block<'a> {
   Block::default().borders(Borders::TOP)
 }
 
+pub fn layout_block_bottom_border<'a>() -> Block<'a> {
+  Block::default().borders(Borders::BOTTOM)
+}
+
+pub fn borderless_block<'a>() -> Block<'a> {
+  Block::default()
+}
+
+pub fn spans_info_with_style<'a>(
+  title: String,
+  content: String,
+  title_style: Style,
+  content_style: Style,
+) -> Spans<'a> {
+  Spans::from(vec![
+    Span::styled(title, title_style),
+    Span::styled(content, content_style),
+  ])
+}
+
+pub fn spans_info_default<'a>(title: String, content: String) -> Spans<'a> {
+  spans_info_with_style(title, content, style_bold(), style_default())
+}
+
+pub fn spans_info_primary<'a>(title: String, content: String) -> Spans<'a> {
+  spans_info_with_style(
+    title,
+    content,
+    style_primary().add_modifier(Modifier::BOLD),
+    style_default(),
+  )
+}
+
 pub fn style_bold() -> Style {
   Style::default().add_modifier(Modifier::BOLD)
 }

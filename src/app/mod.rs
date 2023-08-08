@@ -55,7 +55,7 @@ impl App {
     }
   }
 
-  pub async fn dispatch(&mut self, action: NetworkEvent) {
+  pub async fn dispatch_network_event(&mut self, action: NetworkEvent) {
     if let Some(network_tx) = &self.network_tx {
       if let Err(e) = network_tx.send(action).await {
         self.is_loading = false;

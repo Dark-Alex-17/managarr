@@ -17,6 +17,7 @@ use crate::utils::{convert_runtime, convert_to_gb};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum RadarrEvent {
+  GetCollections,
   GetDownloads,
   GetMovies,
   GetMovieCredits,
@@ -31,6 +32,7 @@ pub enum RadarrEvent {
 impl RadarrEvent {
   const fn resource(self) -> &'static str {
     match self {
+      RadarrEvent::GetCollections => "/collection",
       RadarrEvent::GetDownloads => "/queue",
       RadarrEvent::GetMovies | RadarrEvent::GetMovieDetails => "/movie",
       RadarrEvent::GetMovieCredits => "/credit",
@@ -88,6 +90,69 @@ pub struct Movie {
   pub quality_profile_id: Number,
   pub certification: Option<String>,
   pub ratings: RatingsList,
+  pub movie_file: Option<MovieFile>,
+  pub collection: Option<Collection>,
+}
+
+#[derive(Derivative, Deserialize, Debug, Clone)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionMovie {
+  pub title: String,
+  pub overview: String,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub year: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub runtime: Number,
+  pub genres: Vec<String>,
+  pub ratings: RatingsList,
+}
+
+#[derive(Deserialize, Derivative, Clone, Debug)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct Collection {
+  pub title: String,
+  pub root_folder_path: Option<String>,
+  pub search_on_add: bool,
+  pub overview: Option<String>,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub quality_profile_id: Number,
+  pub movies: Option<Vec<CollectionMovie>>,
+}
+
+#[derive(Deserialize, Derivative, Debug, Clone)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct MovieFile {
+  pub relative_path: String,
+  pub path: String,
+  pub date_added: DateTime<Utc>,
+  pub media_info: MediaInfo,
+}
+
+#[derive(Deserialize, Derivative, Debug, Clone)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct MediaInfo {
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub audio_bitrate: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub audio_channels: Number,
+  pub audio_codec: Option<String>,
+  pub audio_languages: Option<String>,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub audio_stream_count: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub video_bit_depth: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub video_bitrate: Number,
+  pub video_codec: String,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub video_fps: Number,
+  pub resolution: String,
+  pub run_time: String,
+  pub scan_type: String,
 }
 
 #[derive(Default, Deserialize, Debug, Clone)]
@@ -184,6 +249,11 @@ pub struct Credit {
 impl<'a> Network<'a> {
   pub async fn handle_radarr_event(&self, radarr_event: RadarrEvent) {
     match radarr_event {
+      RadarrEvent::GetCollections => {
+        self
+          .get_collections(RadarrEvent::GetCollections.resource())
+          .await
+      }
       RadarrEvent::HealthCheck => {
         self
           .get_healthcheck(RadarrEvent::HealthCheck.resource())
@@ -275,6 +345,8 @@ impl<'a> Network<'a> {
             genres,
             runtime,
             ratings,
+            movie_file,
+            collection,
             ..
           } = movie_response;
           let (hours, minutes) = convert_runtime(runtime.as_u64().unwrap());
@@ -317,11 +389,13 @@ impl<'a> Network<'a> {
           };
 
           let status = get_movie_status(has_file, &app.data.radarr_data.downloads.items, id);
+          let collection = collection.unwrap_or_default();
 
           app.data.radarr_data.movie_details = ScrollableText::with_string(formatdoc!(
             "Title: {}
           Year: {}
           Runtime: {}h {}m
+          Collection: {}
           Status: {}
           Description: {}
           TMDB: {}
@@ -336,6 +410,7 @@ impl<'a> Network<'a> {
             year,
             hours,
             minutes,
+            collection.title,
             status,
             overview,
             tmdb_rating,
@@ -346,7 +421,52 @@ impl<'a> Network<'a> {
             path,
             studio,
             genres.join(", ")
-          ))
+          ));
+
+          if let Some(file) = movie_file {
+            app.data.radarr_data.file_details = formatdoc!(
+              "Relative Path: {}
+              Absolute Path: {}
+              Size: {:.2} GB
+              Date Added: {}",
+              file.relative_path,
+              file.path,
+              size,
+              file.date_added
+            );
+
+            let media_info = file.media_info;
+
+            app.data.radarr_data.audio_details = formatdoc!(
+              "Bitrate: {}
+              Channels: {:.1}
+              Codec: {}
+              Languages: {}
+              Stream Count: {}",
+              media_info.audio_bitrate.as_u64().unwrap(),
+              media_info.audio_channels.as_f64().unwrap(),
+              media_info.audio_codec.unwrap_or_default(),
+              media_info.audio_languages.unwrap_or_default(),
+              media_info.audio_stream_count.as_u64().unwrap()
+            );
+
+            app.data.radarr_data.video_details = formatdoc!(
+              "Bit Depth: {}
+              Bitrate: {}
+              Codec: {}
+              FPS: {}
+              Resolution: {}
+              Scan Type: {}
+              Runtime: {}",
+              media_info.video_bit_depth.as_u64().unwrap(),
+              media_info.video_bitrate.as_u64().unwrap(),
+              media_info.video_codec,
+              media_info.video_fps.as_f64().unwrap(),
+              media_info.resolution,
+              media_info.scan_type,
+              media_info.run_time
+            );
+          }
         },
       )
       .await;
@@ -366,6 +486,14 @@ impl<'a> Network<'a> {
             .set_items(reversed_movie_history_vec)
         },
       )
+      .await;
+  }
+
+  async fn get_collections(&self, resource: &str) {
+    self
+      .handle_get_request::<Vec<Collection>>(resource, |collections_vec, mut app| {
+        app.data.radarr_data.collections.set_items(collections_vec);
+      })
       .await;
   }
 

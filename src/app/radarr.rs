@@ -7,7 +7,8 @@ use strum::EnumIter;
 use crate::app::models::{ScrollableText, StatefulTable, TabRoute, TabState};
 use crate::app::App;
 use crate::network::radarr_network::{
-  Credit, DiskSpace, DownloadRecord, Movie, MovieHistoryItem, RadarrEvent,
+  Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Movie, MovieHistoryItem,
+  RadarrEvent,
 };
 
 pub struct RadarrData {
@@ -18,15 +19,27 @@ pub struct RadarrData {
   pub downloads: StatefulTable<DownloadRecord>,
   pub quality_profile_map: HashMap<u64, String>,
   pub movie_details: ScrollableText,
+  pub file_details: String,
+  pub audio_details: String,
+  pub video_details: String,
   pub movie_history: StatefulTable<MovieHistoryItem>,
   pub movie_cast: StatefulTable<Credit>,
   pub movie_crew: StatefulTable<Credit>,
+  pub collections: StatefulTable<Collection>,
+  pub collection_movies: StatefulTable<CollectionMovie>,
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
 }
 
 impl RadarrData {
+  pub fn reset_movie_collection_table(&mut self) {
+    self.collection_movies = StatefulTable::default();
+  }
+
   pub fn reset_movie_info_tabs(&mut self) {
+    self.file_details = String::default();
+    self.audio_details = String::default();
+    self.video_details = String::default();
     self.movie_details = ScrollableText::default();
     self.movie_history = StatefulTable::default();
     self.movie_cast = StatefulTable::default();
@@ -48,10 +61,15 @@ impl Default for RadarrData {
       movies: StatefulTable::default(),
       downloads: StatefulTable::default(),
       quality_profile_map: HashMap::default(),
+      file_details: String::default(),
+      audio_details: String::default(),
+      video_details: String::default(),
       movie_details: ScrollableText::default(),
       movie_history: StatefulTable::default(),
       movie_cast: StatefulTable::default(),
       movie_crew: StatefulTable::default(),
+      collections: StatefulTable::default(),
+      collection_movies: StatefulTable::default(),
       main_tabs: TabState::new(vec![
         TabRoute {
           title: "Library".to_owned(),
@@ -60,6 +78,10 @@ impl Default for RadarrData {
         TabRoute {
           title: "Downloads".to_owned(),
           route: ActiveRadarrBlock::Downloads.into(),
+        },
+        TabRoute {
+          title: "Collections".to_owned(),
+          route: ActiveRadarrBlock::Collections.into(),
         },
       ]),
       movie_info_tabs: TabState::new(vec![
@@ -70,6 +92,10 @@ impl Default for RadarrData {
         TabRoute {
           title: "History".to_owned(),
           route: ActiveRadarrBlock::MovieHistory.into(),
+        },
+        TabRoute {
+          title: "File".to_owned(),
+          route: ActiveRadarrBlock::FileInfo.into(),
         },
         TabRoute {
           title: "Cast".to_owned(),
@@ -89,9 +115,11 @@ pub enum ActiveRadarrBlock {
   AddMovie,
   Calendar,
   Collections,
+  CollectionDetails,
   Cast,
   Crew,
   Events,
+  FileInfo,
   Logs,
   Movies,
   MovieDetails,
@@ -100,30 +128,57 @@ pub enum ActiveRadarrBlock {
   SearchMovie,
   SortOptions,
   Tasks,
+  ViewMovieOverview,
 }
 
 impl App {
   pub(super) async fn dispatch_by_radarr_block(&mut self, active_radarr_block: &ActiveRadarrBlock) {
     match active_radarr_block {
-      ActiveRadarrBlock::Downloads => self.dispatch(RadarrEvent::GetDownloads.into()).await,
-      ActiveRadarrBlock::Movies => {
-        self.dispatch(RadarrEvent::GetMovies.into()).await;
-        self.dispatch(RadarrEvent::GetDownloads.into()).await;
-      }
-      ActiveRadarrBlock::MovieDetails => {
+      ActiveRadarrBlock::Collections => {
         self.is_loading = true;
-        self.dispatch(RadarrEvent::GetMovieDetails.into()).await;
+        self
+          .dispatch_network_event(RadarrEvent::GetCollections.into())
+          .await
+      }
+      ActiveRadarrBlock::CollectionDetails => {
+        self.is_loading = true;
+        self.populate_movie_collection_table().await;
+        self.is_loading = false;
+      }
+      ActiveRadarrBlock::Downloads => {
+        self.is_loading = true;
+        self
+          .dispatch_network_event(RadarrEvent::GetDownloads.into())
+          .await
+      }
+      ActiveRadarrBlock::Movies => {
+        self
+          .dispatch_network_event(RadarrEvent::GetMovies.into())
+          .await;
+        self
+          .dispatch_network_event(RadarrEvent::GetDownloads.into())
+          .await;
+      }
+      ActiveRadarrBlock::MovieDetails | ActiveRadarrBlock::FileInfo => {
+        self.is_loading = true;
+        self
+          .dispatch_network_event(RadarrEvent::GetMovieDetails.into())
+          .await;
       }
       ActiveRadarrBlock::MovieHistory => {
         self.is_loading = true;
-        self.dispatch(RadarrEvent::GetMovieHistory.into()).await;
+        self
+          .dispatch_network_event(RadarrEvent::GetMovieHistory.into())
+          .await;
       }
       ActiveRadarrBlock::Cast | ActiveRadarrBlock::Crew => {
         if self.data.radarr_data.movie_cast.items.is_empty()
           || self.data.radarr_data.movie_crew.items.is_empty()
         {
           self.is_loading = true;
-          self.dispatch(RadarrEvent::GetMovieCredits.into()).await;
+          self
+            .dispatch_network_event(RadarrEvent::GetMovieCredits.into())
+            .await;
         }
       }
       _ => (),
@@ -138,9 +193,15 @@ impl App {
     is_first_render: bool,
   ) {
     if is_first_render {
-      self.dispatch(RadarrEvent::GetQualityProfiles.into()).await;
-      self.dispatch(RadarrEvent::GetOverview.into()).await;
-      self.dispatch(RadarrEvent::GetStatus.into()).await;
+      self
+        .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
+        .await;
+      self
+        .dispatch_network_event(RadarrEvent::GetOverview.into())
+        .await;
+      self
+        .dispatch_network_event(RadarrEvent::GetStatus.into())
+        .await;
       self.dispatch_by_radarr_block(&active_radarr_block).await;
     }
 
@@ -153,5 +214,17 @@ impl App {
     {
       self.dispatch_by_radarr_block(&active_radarr_block).await;
     }
+  }
+
+  async fn populate_movie_collection_table(&mut self) {
+    self.data.radarr_data.collection_movies.set_items(
+      self
+        .data
+        .radarr_data
+        .collections
+        .current_selection_clone()
+        .movies
+        .unwrap_or_default(),
+    );
   }
 }
