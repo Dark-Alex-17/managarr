@@ -8,7 +8,8 @@ use urlencoding::encode;
 use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, Collection, Credit, CreditType, DiskSpace,
-  DownloadsResponse, Movie, MovieHistoryItem, QualityProfile, RootFolder, SystemStatus,
+  DownloadsResponse, MinimumAvailability, Movie, MovieHistoryItem, QualityProfile, RootFolder,
+  SystemStatus,
 };
 use crate::models::ScrollableText;
 use crate::network::utils::get_movie_status;
@@ -491,53 +492,64 @@ impl<'a> Network<'a> {
 
   async fn add_movie(&self) {
     info!("Adding new movie to Radarr");
-    let root_folders = self.app.lock().await.data.radarr_data.root_folders.to_vec();
-    let current_selection = self
-      .app
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .add_searched_movies
-      .current_selection_clone();
-    let quality_profile_map = self
-      .app
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .quality_profile_map
-      .clone();
+    let body = {
+      let app = self.app.lock().await;
+      let root_folders = app.data.radarr_data.root_folders.to_vec();
+      let current_selection = app
+        .data
+        .radarr_data
+        .add_searched_movies
+        .current_selection_clone();
+      let quality_profile_map = app.data.radarr_data.quality_profile_map.clone();
 
-    let RootFolder { path, .. } = root_folders
-      .iter()
-      .filter(|folder| folder.accessible)
-      .reduce(|a, b| {
-        if a.free_space.as_u64().unwrap() > b.free_space.as_u64().unwrap() {
-          a
-        } else {
-          b
-        }
-      })
-      .unwrap();
-    let AddMovieSearchResult { tmdb_id, title, .. } = current_selection;
-    let quality_profile_id = quality_profile_map
-      .iter()
-      .filter(|(_, value)| value.to_lowercase() == "any")
-      .map(|(key, _)| key)
-      .next()
-      .unwrap();
+      let RootFolder { path, .. } = root_folders
+        .iter()
+        .filter(|folder| folder.accessible)
+        .reduce(|a, b| {
+          if a.free_space.as_u64().unwrap() > b.free_space.as_u64().unwrap() {
+            a
+          } else {
+            b
+          }
+        })
+        .unwrap();
+      let monitor = app
+        .data
+        .radarr_data
+        .add_movie_monitor_list
+        .current_selection()
+        .to_string();
+      let minimum_availability = app
+        .data
+        .radarr_data
+        .add_movie_minimum_availability_list
+        .current_selection()
+        .to_string();
+      let quality_profile = app
+        .data
+        .radarr_data
+        .add_movie_quality_profile_list
+        .current_selection_clone();
+      let AddMovieSearchResult { tmdb_id, title, .. } = current_selection;
+      let quality_profile_id = quality_profile_map
+        .iter()
+        .filter(|(_, value)| **value == quality_profile)
+        .map(|(key, _)| key)
+        .next()
+        .unwrap();
 
-    let body = AddMovieBody {
-      tmdb_id: tmdb_id.as_u64().unwrap(),
-      title: title.to_owned(),
-      root_folder_path: path.to_owned(),
-      minimum_availability: "released".to_owned(),
-      monitored: true,
-      quality_profile_id: *quality_profile_id,
-      add_options: AddOptions {
-        search_for_movie: true,
-      },
+      AddMovieBody {
+        tmdb_id: tmdb_id.as_u64().unwrap(),
+        title,
+        root_folder_path: path.to_owned(),
+        minimum_availability,
+        monitored: true,
+        quality_profile_id: *quality_profile_id,
+        add_options: AddOptions {
+          monitor,
+          search_for_movie: true,
+        },
+      }
     };
 
     debug!("Add movie body: {:?}", body);

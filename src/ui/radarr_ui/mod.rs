@@ -6,14 +6,14 @@ use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Color, Style};
 use tui::text::Text;
-use tui::widgets::{Block, Cell, Paragraph, Row};
+use tui::widgets::{Cell, Paragraph, Row};
 use tui::Frame;
 
 use crate::app::radarr::{ActiveRadarrBlock, RadarrData};
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
-use crate::models::radarr_models::{AddMovieSearchResult, DiskSpace, DownloadRecord, Movie};
-use crate::models::{Route, StatefulTable};
+use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie};
+use crate::models::Route;
 use crate::ui::radarr_ui::add_movie_ui::draw_add_movie_search_popup;
 use crate::ui::radarr_ui::collection_details_ui::draw_collection_details_popup;
 use crate::ui::radarr_ui::movie_details_ui::draw_movie_info;
@@ -64,7 +64,10 @@ pub(super) fn draw_radarr_ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, ar
       }
       ActiveRadarrBlock::AddMovieSearchInput
       | ActiveRadarrBlock::AddMovieSearchResults
-      | ActiveRadarrBlock::AddMoviePrompt => draw_large_popup_over(
+      | ActiveRadarrBlock::AddMoviePrompt
+      | ActiveRadarrBlock::AddMovieSelectMonitor
+      | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+      | ActiveRadarrBlock::AddMovieSelectQualityProfile => draw_large_popup_over(
         f,
         app,
         content_rect,
@@ -168,7 +171,7 @@ fn draw_delete_movie_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, pro
     prompt_area,
     "  Confirm Delete Movie?  ",
     format!(
-      "Do you really want to delete {}?",
+      "Do you really want to delete: {}?",
       app.data.radarr_data.movies.current_selection().title
     )
     .as_str(),

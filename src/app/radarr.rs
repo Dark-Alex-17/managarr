@@ -2,14 +2,13 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use chrono::{DateTime, Utc};
-use strum::EnumIter;
 
 use crate::app::{App, Route};
 use crate::models::radarr_models::{
-  AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Movie,
-  MovieHistoryItem, RootFolder,
+  AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord,
+  MinimumAvailability, Monitor, Movie, MovieHistoryItem, RootFolder,
 };
-use crate::models::{ScrollableText, StatefulTable, TabRoute, TabState};
+use crate::models::{ScrollableText, StatefulList, StatefulTable, TabRoute, TabState};
 use crate::network::radarr_network::RadarrEvent;
 
 pub struct RadarrData {
@@ -20,6 +19,10 @@ pub struct RadarrData {
   pub movies: StatefulTable<Movie>,
   pub filtered_movies: StatefulTable<Movie>,
   pub add_searched_movies: StatefulTable<AddMovieSearchResult>,
+  pub add_movie_monitor_list: StatefulList<Monitor>,
+  pub add_movie_minimum_availability_list: StatefulList<MinimumAvailability>,
+  pub add_movie_quality_profile_list: StatefulList<String>,
+  pub selected_block: ActiveRadarrBlock,
   pub downloads: StatefulTable<DownloadRecord>,
   pub quality_profile_map: HashMap<u64, String>,
   pub movie_details: ScrollableText,
@@ -66,6 +69,12 @@ impl RadarrData {
     self.movie_info_tabs.index = 0;
   }
 
+  pub fn reset_add_movie_selections(&mut self) {
+    self.add_movie_monitor_list = StatefulList::default();
+    self.add_movie_minimum_availability_list = StatefulList::default();
+    self.add_movie_quality_profile_list = StatefulList::default();
+  }
+
   pub fn reset_main_tab_index(&mut self) {
     self.main_tabs.index = 0;
   }
@@ -80,6 +89,10 @@ impl Default for RadarrData {
       start_time: DateTime::default(),
       movies: StatefulTable::default(),
       add_searched_movies: StatefulTable::default(),
+      add_movie_monitor_list: StatefulList::default(),
+      add_movie_minimum_availability_list: StatefulList::default(),
+      add_movie_quality_profile_list: StatefulList::default(),
+      selected_block: ActiveRadarrBlock::AddMovieSelectMonitor,
       filtered_movies: StatefulTable::default(),
       downloads: StatefulTable::default(),
       quality_profile_map: HashMap::default(),
@@ -148,11 +161,15 @@ impl Default for RadarrData {
   }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, EnumIter)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum ActiveRadarrBlock {
   AddMovieSearchInput,
   AddMovieSearchResults,
   AddMoviePrompt,
+  AddMovieSelectMinimumAvailability,
+  AddMovieSelectQualityProfile,
+  AddMovieSelectMonitor,
+  AddMovieConfirmPrompt,
   Calendar,
   Collections,
   CollectionDetails,
@@ -170,6 +187,35 @@ pub enum ActiveRadarrBlock {
   SearchCollection,
   SortOptions,
   ViewMovieOverview,
+}
+
+impl ActiveRadarrBlock {
+  pub fn next_add_prompt_block(&self) -> Self {
+    match self {
+      ActiveRadarrBlock::AddMovieSelectMonitor => {
+        ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+      }
+      ActiveRadarrBlock::AddMovieSelectMinimumAvailability => {
+        ActiveRadarrBlock::AddMovieSelectQualityProfile
+      }
+      ActiveRadarrBlock::AddMovieSelectQualityProfile => ActiveRadarrBlock::AddMovieConfirmPrompt,
+      _ => ActiveRadarrBlock::AddMovieSelectMonitor,
+    }
+  }
+
+  pub fn previous_add_prompt_block(&self) -> Self {
+    match self {
+      ActiveRadarrBlock::AddMovieSelectMonitor => ActiveRadarrBlock::AddMovieConfirmPrompt,
+      ActiveRadarrBlock::AddMovieSelectMinimumAvailability => {
+        ActiveRadarrBlock::AddMovieSelectMonitor
+      }
+      ActiveRadarrBlock::AddMovieSelectQualityProfile => {
+        ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+      }
+      ActiveRadarrBlock::AddMovieConfirmPrompt => ActiveRadarrBlock::AddMovieSelectQualityProfile,
+      _ => ActiveRadarrBlock::AddMovieSelectMonitor,
+    }
+  }
 }
 
 impl From<ActiveRadarrBlock> for Route {

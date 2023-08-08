@@ -1,7 +1,10 @@
+use std::fmt::{Display, Formatter};
+
 use chrono::{DateTime, Utc};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
+use strum::EnumIter;
 
 use crate::models::HorizontallyScrollableText;
 
@@ -223,6 +226,7 @@ pub struct AddMovieBody {
 #[derive(Default, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AddOptions {
+  pub monitor: String,
   pub search_for_movie: bool,
 }
 
@@ -242,4 +246,82 @@ pub struct AddMovieSearchResult {
   #[derivative(Default(value = "Number::from(0)"))]
   pub runtime: Number,
   pub ratings: RatingsList,
+}
+
+#[derive(Default, PartialEq, Eq, Clone, Debug)]
+pub enum MinimumAvailability {
+  Tba,
+  Announced,
+  InCinemas,
+  #[default]
+  Released,
+}
+
+impl Display for MinimumAvailability {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    let minimum_availability = match self {
+      MinimumAvailability::Tba => "tba",
+      MinimumAvailability::Announced => "announced",
+      MinimumAvailability::InCinemas => "inCinemas",
+      MinimumAvailability::Released => "released",
+    };
+    write!(f, "{}", minimum_availability)
+  }
+}
+
+impl MinimumAvailability {
+  pub fn vec() -> Vec<Self> {
+    vec![
+      MinimumAvailability::Tba,
+      MinimumAvailability::Announced,
+      MinimumAvailability::InCinemas,
+      MinimumAvailability::Released,
+    ]
+  }
+
+  pub fn to_display_str(&self) -> &str {
+    match self {
+      MinimumAvailability::Tba => "TBA",
+      MinimumAvailability::Announced => "Announced",
+      MinimumAvailability::InCinemas => "In Cinemas",
+      MinimumAvailability::Released => "Released",
+    }
+  }
+}
+
+#[derive(Default, PartialEq, Eq, Clone, Debug)]
+pub enum Monitor {
+  #[default]
+  MovieOnly,
+  MovieAndCollection,
+  None,
+}
+
+impl Display for Monitor {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    let monitor = match self {
+      Monitor::MovieOnly => "movieOnly",
+      Monitor::MovieAndCollection => "movieAndCollection",
+      Monitor::None => "none",
+    };
+    write!(f, "{}", monitor)
+  }
+}
+
+impl Monitor {
+  pub fn vec() -> Vec<Self> {
+    vec![
+      Monitor::MovieOnly,
+      Monitor::MovieAndCollection,
+      Monitor::None,
+    ]
+  }
+
+  pub fn to_display_str(&self) -> &str {
+    match self {
+      Monitor::MovieOnly => "Movie only",
+      Monitor::MovieAndCollection => "Movie and Collection",
+      Monitor::None => "None",
+    }
+  }
 }

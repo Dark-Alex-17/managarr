@@ -299,3 +299,30 @@ pub fn draw_button<B: Backend>(f: &mut Frame<'_, B>, area: Rect, label: &str, is
 
   f.render_widget(label_paragraph, area);
 }
+
+pub fn draw_drop_down_menu<B: Backend>(
+  f: &mut Frame<'_, B>,
+  area: Rect,
+  description: &str,
+  selection: &str,
+  is_selected: bool,
+) {
+  let horizontal_chunks = horizontal_chunks(
+    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
+    area,
+  );
+
+  let description_paragraph = Paragraph::new(Text::from(format!("\n{}: ", description)))
+    .block(borderless_block())
+    .alignment(Alignment::Right)
+    .style(style_primary());
+
+  f.render_widget(description_paragraph, horizontal_chunks[0]);
+
+  draw_button(
+    f,
+    horizontal_chunks[1],
+    format!("{}     ▼", selection).as_str(),
+    is_selected,
+  );
+}

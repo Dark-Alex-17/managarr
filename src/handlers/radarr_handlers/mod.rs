@@ -34,7 +34,10 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for RadarrHandler<'a> {
       }
       ActiveRadarrBlock::AddMovieSearchInput
       | ActiveRadarrBlock::AddMovieSearchResults
-      | ActiveRadarrBlock::AddMoviePrompt => {
+      | ActiveRadarrBlock::AddMoviePrompt
+      | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+      | ActiveRadarrBlock::AddMovieSelectMonitor
+      | ActiveRadarrBlock::AddMovieSelectQualityProfile => {
         AddMovieHandler::with(self.key, self.app, self.active_radarr_block).handle()
       }
       _ => self.handle_key_event(),

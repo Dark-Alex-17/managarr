@@ -1,16 +1,21 @@
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
+use tui::style::Modifier;
 use tui::text::Text;
-use tui::widgets::{Cell, Paragraph, Row};
+use tui::widgets::{Cell, Paragraph, Row, Wrap};
 use tui::Frame;
 
 use crate::app::radarr::ActiveRadarrBlock;
+use crate::models::radarr_models::Monitor;
 use crate::models::Route;
 use crate::ui::utils::{
-  borderless_block, layout_block, show_cursor, style_default, style_help, style_primary,
-  title_block_centered, vertical_chunks_with_margin,
+  borderless_block, horizontal_chunks, layout_block, show_cursor, style_default, style_help,
+  style_primary, title_block_centered, vertical_chunks_with_margin,
 };
-use crate::ui::{draw_medium_popup_over, draw_prompt_box, draw_table, TableProps};
+use crate::ui::{
+  draw_button, draw_drop_down_menu, draw_medium_popup_over, draw_prompt_box, draw_small_popup_over,
+  draw_table, TableProps,
+};
 use crate::utils::convert_runtime;
 use crate::App;
 
@@ -147,31 +152,129 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: 
   f.render_widget(search_paragraph, chunks[0]);
 }
 
+fn draw_add_movie_confirmation_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  prompt_area: Rect,
+) {
+  if let Route::Radarr(active_radarr_block) = app.get_current_route().clone() {
+    match active_radarr_block {
+      ActiveRadarrBlock::AddMovieSelectMonitor => {
+        // draw_small_popup_over(f, app, prompt_area, draw_add_movie_confirmation_prompt, draw_add_movie_select_monitor);
+      }
+      ActiveRadarrBlock::AddMovieSelectMinimumAvailability => {
+        // draw_small_popup_over(f, app, prompt_area, draw_add_movie_confirmation_prompt, draw_add_movie_select_minimum_availability);
+      }
+      ActiveRadarrBlock::AddMovieSelectQualityProfile => {
+        // draw_small_popup_over(f, app, prompt_area, draw_add_movie_confirmation_prompt, draw_add_movie_select_quality_profile);
+      }
+      ActiveRadarrBlock::AddMoviePrompt => draw_add_movie_confirmation_prompt(f, app, prompt_area),
+      _ => (),
+    }
+  }
+}
+
 fn draw_add_movie_confirmation_prompt<B: Backend>(
   f: &mut Frame<'_, B>,
   app: &mut App,
   prompt_area: Rect,
 ) {
-  draw_prompt_box(
-    f,
+  let title = "  Confirm Add Movie?  ";
+  let prompt = format!(
+    "{}:\n\n{}",
+    app
+      .data
+      .radarr_data
+      .add_searched_movies
+      .current_selection()
+      .title,
+    app
+      .data
+      .radarr_data
+      .add_searched_movies
+      .current_selection()
+      .overview
+  );
+  let yes_no_value = &app.data.radarr_data.prompt_confirm;
+  let selected_block = &app.data.radarr_data.selected_block;
+  let highlight_yes_no = *selected_block == ActiveRadarrBlock::AddMovieConfirmPrompt;
+
+  let selected_monitor = app
+    .data
+    .radarr_data
+    .add_movie_monitor_list
+    .current_selection();
+  let selected_minimum_availability = app
+    .data
+    .radarr_data
+    .add_movie_minimum_availability_list
+    .current_selection();
+  let selected_quality_profile = app
+    .data
+    .radarr_data
+    .add_movie_quality_profile_list
+    .current_selection();
+
+  f.render_widget(title_block_centered(title), prompt_area);
+
+  let chunks = vertical_chunks_with_margin(
+    vec![
+      Constraint::Percentage(40),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Min(5),
+      Constraint::Length(3),
+    ],
     prompt_area,
-    "  Confirm Add Movie?  ",
-    format!(
-      "{}:\n\n{}",
-      app
-        .data
-        .radarr_data
-        .add_searched_movies
-        .current_selection()
-        .title,
-      app
-        .data
-        .radarr_data
-        .add_searched_movies
-        .current_selection()
-        .overview
-    )
-    .as_str(),
-    &app.data.radarr_data.prompt_confirm,
+    1,
+  );
+
+  let prompt_paragraph = Paragraph::new(Text::from(prompt))
+    .block(borderless_block())
+    .style(style_primary().add_modifier(Modifier::BOLD))
+    .wrap(Wrap { trim: false })
+    .alignment(Alignment::Center);
+  f.render_widget(prompt_paragraph, chunks[0]);
+
+  let horizontal_chunks = horizontal_chunks(
+    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
+    chunks[5],
+  );
+
+  draw_drop_down_menu(
+    f,
+    chunks[1],
+    "Monitor",
+    selected_monitor.to_display_str(),
+    *selected_block == ActiveRadarrBlock::AddMovieSelectMonitor,
+  );
+
+  draw_drop_down_menu(
+    f,
+    chunks[2],
+    "Minimum Availability",
+    selected_minimum_availability.to_display_str(),
+    *selected_block == ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+  );
+  draw_drop_down_menu(
+    f,
+    chunks[3],
+    "Quality Profile",
+    selected_quality_profile,
+    *selected_block == ActiveRadarrBlock::AddMovieSelectQualityProfile,
+  );
+
+  draw_button(
+    f,
+    horizontal_chunks[0],
+    "Yes",
+    *yes_no_value && highlight_yes_no,
+  );
+  draw_button(
+    f,
+    horizontal_chunks[1],
+    "No",
+    !*yes_no_value && highlight_yes_no,
   );
 }
