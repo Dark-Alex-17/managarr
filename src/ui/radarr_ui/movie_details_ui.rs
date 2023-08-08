@@ -4,12 +4,12 @@ use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Modifier, Style};
 use tui::text::{Span, Spans, Text};
-use tui::widgets::{Cell, Paragraph, Row, Wrap};
+use tui::widgets::{Cell, ListItem, Paragraph, Row, Wrap};
 use tui::Frame;
 
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::App;
-use crate::models::radarr_models::{Credit, MovieHistoryItem, Release};
+use crate::models::radarr_models::{Credit, MovieHistoryItem, Release, ReleaseField};
 use crate::models::Route;
 use crate::ui::utils::{
   borderless_block, get_width_with_margin, layout_block_bottom_border, layout_block_top_border,
@@ -17,8 +17,8 @@ use crate::ui::utils::{
   style_warning, vertical_chunks,
 };
 use crate::ui::{
-  draw_prompt_box, draw_prompt_box_with_content, draw_prompt_popup_over, draw_small_popup_over,
-  draw_table, draw_tabs, loading, TableProps,
+  draw_drop_down_list, draw_drop_down_popup, draw_prompt_box, draw_prompt_box_with_content,
+  draw_prompt_popup_over, draw_small_popup_over, draw_table, draw_tabs, loading, TableProps,
 };
 use crate::utils::convert_to_gb;
 
@@ -40,6 +40,20 @@ pub(super) fn draw_movie_info_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut 
         content_area,
         draw_movie_info,
         draw_refresh_and_scan_prompt,
+      ),
+      ActiveRadarrBlock::ManualSearchSortPrompt => draw_drop_down_popup(
+        f,
+        app,
+        content_area,
+        draw_movie_info,
+        |f, app, content_area| {
+          draw_drop_down_list(
+            f,
+            content_area,
+            &mut app.data.radarr_data.movie_releases_sort,
+            |sort_option| ListItem::new(sort_option.to_string()),
+          )
+        },
       ),
       ActiveRadarrBlock::ManualSearchConfirmPrompt => draw_small_popup_over(
         f,
@@ -350,6 +364,33 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
       .current_selection_clone()
   };
   let current_route = *app.get_current_route();
+  let mut table_headers_vec = vec![
+    "Source".to_owned(),
+    "Age".to_owned(),
+    "⛔".to_owned(),
+    "Title".to_owned(),
+    "Indexer".to_owned(),
+    "Size".to_owned(),
+    "Peers".to_owned(),
+    "Language".to_owned(),
+    "Quality".to_owned(),
+  ];
+
+  if let Some(ascending) = app.data.radarr_data.sort_ascending {
+    let direction = if ascending { " ▲" } else { " ▼" };
+
+    match app.data.radarr_data.movie_releases_sort.current_selection() {
+      ReleaseField::Source => table_headers_vec[0].push_str(direction),
+      ReleaseField::Age => table_headers_vec[1].push_str(direction),
+      ReleaseField::Rejected => table_headers_vec[2].push_str(direction),
+      ReleaseField::Title => table_headers_vec[3].push_str(direction),
+      ReleaseField::Indexer => table_headers_vec[4].push_str(direction),
+      ReleaseField::Size => table_headers_vec[5].push_str(direction),
+      ReleaseField::Peers => table_headers_vec[6].push_str(direction),
+      ReleaseField::Language => table_headers_vec[7].push_str(direction),
+      ReleaseField::Quality => table_headers_vec[8].push_str(direction),
+    }
+  }
 
   draw_table(
     f,
@@ -358,9 +399,9 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
     TableProps {
       content: &mut app.data.radarr_data.movie_releases,
       constraints: vec![
-        Constraint::Length(8),
+        Constraint::Length(9),
         Constraint::Length(10),
-        Constraint::Length(4),
+        Constraint::Length(5),
         Constraint::Percentage(30),
         Constraint::Percentage(18),
         Constraint::Length(12),
@@ -368,9 +409,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, content_
         Constraint::Percentage(7),
         Constraint::Percentage(10),
       ],
-      table_headers: vec![
-        "Source", "Age", "⛔", "Title", "Indexer", "Size", "Peers", "Language", "Quality",
-      ],
+      table_headers: table_headers_vec.iter().map(|s| &**s).collect(),
       help: app
         .data
         .radarr_data

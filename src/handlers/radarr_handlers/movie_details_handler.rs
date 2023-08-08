@@ -1,8 +1,14 @@
+use std::cmp::Ordering;
+
+use serde_json::Number;
+use strum::IntoEnumIterator;
+
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::radarr::ActiveRadarrBlock;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::models::radarr_models::{Language, Release, ReleaseField};
 use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 
@@ -36,6 +42,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
       ActiveRadarrBlock::Cast => self.app.data.radarr_data.movie_cast.scroll_up(),
       ActiveRadarrBlock::Crew => self.app.data.radarr_data.movie_crew.scroll_up(),
       ActiveRadarrBlock::ManualSearch => self.app.data.radarr_data.movie_releases.scroll_up(),
+      ActiveRadarrBlock::ManualSearchSortPrompt => {
+        self.app.data.radarr_data.movie_releases_sort.scroll_up()
+      }
       _ => (),
     }
   }
@@ -47,6 +56,9 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
       ActiveRadarrBlock::Cast => self.app.data.radarr_data.movie_cast.scroll_down(),
       ActiveRadarrBlock::Crew => self.app.data.radarr_data.movie_crew.scroll_down(),
       ActiveRadarrBlock::ManualSearch => self.app.data.radarr_data.movie_releases.scroll_down(),
+      ActiveRadarrBlock::ManualSearchSortPrompt => {
+        self.app.data.radarr_data.movie_releases_sort.scroll_down()
+      }
       _ => (),
     }
   }
@@ -58,6 +70,12 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
       ActiveRadarrBlock::Cast => self.app.data.radarr_data.movie_cast.scroll_to_top(),
       ActiveRadarrBlock::Crew => self.app.data.radarr_data.movie_crew.scroll_to_top(),
       ActiveRadarrBlock::ManualSearch => self.app.data.radarr_data.movie_releases.scroll_to_top(),
+      ActiveRadarrBlock::ManualSearchSortPrompt => self
+        .app
+        .data
+        .radarr_data
+        .movie_releases_sort
+        .scroll_to_top(),
       _ => (),
     }
   }
@@ -71,6 +89,12 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
       ActiveRadarrBlock::ManualSearch => {
         self.app.data.radarr_data.movie_releases.scroll_to_bottom()
       }
+      ActiveRadarrBlock::ManualSearchSortPrompt => self
+        .app
+        .data
+        .radarr_data
+        .movie_releases_sort
+        .scroll_to_bottom(),
       _ => (),
     }
   }
@@ -135,6 +159,29 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
 
         self.app.pop_navigation_stack();
       }
+      ActiveRadarrBlock::ManualSearchSortPrompt => {
+        let movie_releases = self.app.data.radarr_data.movie_releases.items.clone();
+        let field = self
+          .app
+          .data
+          .radarr_data
+          .movie_releases_sort
+          .current_selection();
+        let sort_ascending = !self.app.data.radarr_data.sort_ascending.unwrap();
+        self.app.data.radarr_data.sort_ascending = Some(sort_ascending);
+
+        self
+          .app
+          .data
+          .radarr_data
+          .movie_releases
+          .set_items(sort_releases_by_selected_field(
+            movie_releases,
+            *field,
+            sort_ascending,
+          ));
+        self.app.pop_navigation_stack();
+      }
       _ => (),
     }
   }
@@ -152,7 +199,8 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
       }
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt
       | ActiveRadarrBlock::RefreshAndScanPrompt
-      | ActiveRadarrBlock::ManualSearchConfirmPrompt => {
+      | ActiveRadarrBlock::ManualSearchConfirmPrompt
+      | ActiveRadarrBlock::ManualSearchSortPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.prompt_confirm = false;
       }
@@ -179,6 +227,20 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
             .app
             .push_navigation_stack(ActiveRadarrBlock::RefreshAndScanPrompt.into());
         }
+        _ if *key == DEFAULT_KEYBINDINGS.sort.key => {
+          self
+            .app
+            .data
+            .radarr_data
+            .movie_releases_sort
+            .set_items(Vec::from_iter(ReleaseField::iter()));
+          let sort_ascending = self.app.data.radarr_data.sort_ascending;
+          self.app.data.radarr_data.sort_ascending =
+            Some(sort_ascending.is_some() && sort_ascending.unwrap());
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::ManualSearchSortPrompt.into());
+        }
         _ => (),
       },
       _ => (),
@@ -186,24 +248,100 @@ impl<'a> KeyEventHandler<'a, ActiveRadarrBlock> for MovieDetailsHandler<'a> {
   }
 }
 
+fn sort_releases_by_selected_field(
+  mut releases: Vec<Release>,
+  field: ReleaseField,
+  sort_ascending: bool,
+) -> Vec<Release> {
+  let cmp_fn: fn(&Release, &Release) -> Ordering = match field {
+    ReleaseField::Source => |release_a, release_b| release_a.protocol.cmp(&release_b.protocol),
+    ReleaseField::Age => |release_a, release_b| release_a.age.as_u64().cmp(&release_b.age.as_u64()),
+    ReleaseField::Rejected => |release_a, release_b| release_a.rejected.cmp(&release_b.rejected),
+    ReleaseField::Title => |release_a, release_b| {
+      release_a
+        .title
+        .stationary_style()
+        .cmp(&release_b.title.stationary_style())
+    },
+    ReleaseField::Indexer => |release_a, release_b| release_a.indexer.cmp(&release_b.indexer),
+    ReleaseField::Size => |release_a, release_b| {
+      release_a
+        .size
+        .as_u64()
+        .as_ref()
+        .unwrap()
+        .cmp(release_b.size.as_u64().as_ref().unwrap())
+    },
+    ReleaseField::Peers => |release_a, release_b| {
+      let default_number = Number::from(i64::MAX);
+      let seeder_a = release_a
+        .seeders
+        .as_ref()
+        .unwrap_or(&default_number)
+        .as_u64()
+        .unwrap();
+      let seeder_b = release_b
+        .seeders
+        .as_ref()
+        .unwrap_or(&default_number)
+        .as_u64()
+        .unwrap();
+
+      seeder_a.cmp(&seeder_b)
+    },
+    ReleaseField::Language => |release_a, release_b| {
+      let default_language_vec = vec![Language {
+        name: "_".to_owned(),
+      }];
+      let language_a = &release_a
+        .languages
+        .as_ref()
+        .unwrap_or(&default_language_vec)[0];
+      let language_b = &release_b
+        .languages
+        .as_ref()
+        .unwrap_or(&default_language_vec)[0];
+
+      language_a.cmp(language_b)
+    },
+    ReleaseField::Quality => |release_a, release_b| release_a.quality.cmp(&release_b.quality),
+  };
+
+  if !sort_ascending {
+    releases.sort_by(|release_a, release_b| cmp_fn(release_a, release_b).reverse());
+  } else {
+    releases.sort_by(cmp_fn);
+  }
+
+  releases
+}
+
 #[cfg(test)]
 mod tests {
   use pretty_assertions::assert_str_eq;
+  use rstest::rstest;
+  use serde_json::Number;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::radarr::ActiveRadarrBlock;
   use crate::app::App;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::movie_details_handler::MovieDetailsHandler;
+  use crate::handlers::radarr_handlers::movie_details_handler::{
+    sort_releases_by_selected_field, MovieDetailsHandler,
+  };
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::{Credit, MovieHistoryItem, Release};
+  use crate::models::radarr_models::{
+    Credit, Language, MovieHistoryItem, Quality, QualityWrapper, Release, ReleaseField,
+  };
   use crate::models::{HorizontallyScrollableText, ScrollableText};
 
   mod test_handle_scroll_up_and_down {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
+    use strum::IntoEnumIterator;
 
-    use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
+    use crate::models::radarr_models::ReleaseField;
+    use crate::{simple_stateful_iterable_vec, test_enum_scroll, test_iterable_scroll};
 
     use super::*;
 
@@ -270,10 +408,23 @@ mod tests {
       title,
       stationary_style
     );
+
+    test_enum_scroll!(
+      test_manual_search_sort_scroll,
+      MovieDetailsHandler,
+      ReleaseField,
+      movie_releases_sort,
+      ActiveRadarrBlock::ManualSearchSortPrompt
+    );
   }
 
   mod test_handle_home_end {
-    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
+    use strum::IntoEnumIterator;
+
+    use crate::models::radarr_models::ReleaseField;
+    use crate::{
+      extended_stateful_iterable_vec, test_enum_home_and_end, test_iterable_home_and_end,
+    };
 
     use super::*;
 
@@ -339,6 +490,14 @@ mod tests {
       ActiveRadarrBlock::ManualSearch,
       title,
       stationary_style
+    );
+
+    test_enum_home_and_end!(
+      test_manual_search_sort_home_end,
+      MovieDetailsHandler,
+      ReleaseField,
+      movie_releases_sort,
+      ActiveRadarrBlock::ManualSearchSortPrompt
     );
   }
 
@@ -413,6 +572,7 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
+    use crate::models::radarr_models::ReleaseField;
     use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
@@ -486,6 +646,36 @@ mod tests {
       );
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
     }
+
+    #[test]
+    fn test_manual_search_sort_prompt_submit() {
+      let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::ManualSearch.into());
+      app.push_navigation_stack(ActiveRadarrBlock::ManualSearchSortPrompt.into());
+      app.data.radarr_data.sort_ascending = Some(true);
+      app
+        .data
+        .radarr_data
+        .movie_releases_sort
+        .set_items(vec![ReleaseField::default()]);
+      app.data.radarr_data.movie_releases.set_items(release_vec());
+
+      let mut expected_vec = release_vec();
+      expected_vec.reverse();
+
+      MovieDetailsHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::ManualSearchSortPrompt,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::ManualSearch.into()
+      );
+      assert_eq!(app.data.radarr_data.movie_releases.items, expected_vec);
+    }
   }
 
   mod test_handle_esc {
@@ -527,7 +717,8 @@ mod tests {
       #[values(
         ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
         ActiveRadarrBlock::RefreshAndScanPrompt,
-        ActiveRadarrBlock::ManualSearchConfirmPrompt
+        ActiveRadarrBlock::ManualSearchConfirmPrompt,
+        ActiveRadarrBlock::ManualSearchSortPrompt
       )]
       prompt_block: ActiveRadarrBlock,
     ) {
@@ -576,6 +767,26 @@ mod tests {
       );
     }
 
+    #[test]
+    fn test_sort_key() {
+      let mut app = App::default();
+
+      MovieDetailsHandler::with(
+        &DEFAULT_KEYBINDINGS.sort.key,
+        &mut app,
+        &ActiveRadarrBlock::ManualSearch,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::ManualSearchSortPrompt.into()
+      );
+      assert!(!app.data.radarr_data.movie_releases_sort.items.is_empty());
+      assert!(app.data.radarr_data.sort_ascending.is_some());
+      assert_eq!(app.data.radarr_data.sort_ascending, Some(false));
+    }
+
     #[rstest]
     fn test_refresh_key(
       #[values(
@@ -602,5 +813,104 @@ mod tests {
         &ActiveRadarrBlock::RefreshAndScanPrompt.into()
       );
     }
+  }
+
+  #[rstest]
+  fn test_sort_releases_by_selected_field(
+    #[values(
+      ReleaseField::Source,
+      ReleaseField::Age,
+      ReleaseField::Title,
+      ReleaseField::Indexer,
+      ReleaseField::Size,
+      ReleaseField::Peers,
+      ReleaseField::Language,
+      ReleaseField::Quality
+    )]
+    field: ReleaseField,
+  ) {
+    let mut expected_vec = release_vec();
+
+    let sorted_releases = sort_releases_by_selected_field(release_vec(), field, true);
+
+    assert_eq!(sorted_releases, expected_vec);
+
+    let sorted_releases = sort_releases_by_selected_field(release_vec(), field, false);
+
+    expected_vec.reverse();
+    assert_eq!(sorted_releases, expected_vec);
+  }
+
+  #[test]
+  fn test_sort_releases_by_selected_field_rejected() {
+    let mut expected_vec = Vec::from(&release_vec()[1..]);
+    expected_vec.push(release_vec()[0].clone());
+
+    let sorted_releases =
+      sort_releases_by_selected_field(release_vec(), ReleaseField::Rejected, true);
+
+    assert_eq!(sorted_releases, expected_vec);
+
+    let sorted_releases =
+      sort_releases_by_selected_field(release_vec(), ReleaseField::Rejected, false);
+
+    assert_eq!(sorted_releases, release_vec());
+  }
+
+  fn release_vec() -> Vec<Release> {
+    let release_a = Release {
+      protocol: "Protocol A".to_owned(),
+      age: Number::from(1),
+      title: HorizontallyScrollableText::from("Title A".to_owned()),
+      indexer: "Indexer A".to_owned(),
+      size: Number::from(1),
+      rejected: true,
+      seeders: Some(Number::from(1)),
+      languages: Some(vec![Language {
+        name: "Language A".to_owned(),
+      }]),
+      quality: QualityWrapper {
+        quality: Quality {
+          name: "Quality A".to_owned(),
+        },
+      },
+      ..Release::default()
+    };
+    let release_b = Release {
+      protocol: "Protocol B".to_owned(),
+      age: Number::from(2),
+      title: HorizontallyScrollableText::from("Title B".to_owned()),
+      indexer: "Indexer B".to_owned(),
+      size: Number::from(2),
+      rejected: false,
+      seeders: Some(Number::from(2)),
+      languages: Some(vec![Language {
+        name: "Language B".to_owned(),
+      }]),
+      quality: QualityWrapper {
+        quality: Quality {
+          name: "Quality B".to_owned(),
+        },
+      },
+      ..Release::default()
+    };
+    let release_c = Release {
+      protocol: "Protocol C".to_owned(),
+      age: Number::from(3),
+      title: HorizontallyScrollableText::from("Title C".to_owned()),
+      indexer: "Indexer C".to_owned(),
+      size: Number::from(3),
+      rejected: false,
+      seeders: None,
+      languages: None,
+      quality: QualityWrapper {
+        quality: Quality {
+          name: "Quality C".to_owned(),
+        },
+      },
+      ..Release::default()
+    };
+
+    vec![release_a, release_b, release_c]
   }
 }

@@ -1,5 +1,8 @@
+#!make
+
 default: run
 
+.PHONY: test test-cov build run lint lint-fix fmt analyze sonar release delete-tag
 test:
 	@cargo test
 

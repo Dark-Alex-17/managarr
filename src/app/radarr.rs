@@ -6,7 +6,7 @@ use chrono::{DateTime, Utc};
 use crate::app::{App, Route};
 use crate::models::radarr_models::{
   AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord,
-  MinimumAvailability, Monitor, Movie, MovieHistoryItem, Release, RootFolder,
+  MinimumAvailability, Monitor, Movie, MovieHistoryItem, Release, ReleaseField, RootFolder,
 };
 use crate::models::{ScrollableText, StatefulList, StatefulTable, TabRoute, TabState};
 use crate::network::radarr_network::RadarrEvent;
@@ -33,6 +33,7 @@ pub struct RadarrData {
   pub movie_cast: StatefulTable<Credit>,
   pub movie_crew: StatefulTable<Credit>,
   pub movie_releases: StatefulTable<Release>,
+  pub movie_releases_sort: StatefulList<ReleaseField>,
   pub collections: StatefulTable<Collection>,
   pub filtered_collections: StatefulTable<Collection>,
   pub collection_movies: StatefulTable<CollectionMovie>,
@@ -41,6 +42,7 @@ pub struct RadarrData {
   pub movie_info_tabs: TabState,
   pub search: String,
   pub filter: String,
+  pub sort_ascending: Option<bool>,
   pub prompt_confirm: bool,
   pub is_searching: bool,
 }
@@ -68,6 +70,8 @@ impl RadarrData {
     self.movie_cast = StatefulTable::default();
     self.movie_crew = StatefulTable::default();
     self.movie_releases = StatefulTable::default();
+    self.movie_releases_sort = StatefulList::default();
+    self.sort_ascending = None;
     self.movie_info_tabs.index = 0;
   }
 
@@ -102,12 +106,14 @@ impl Default for RadarrData {
       movie_cast: StatefulTable::default(),
       movie_crew: StatefulTable::default(),
       movie_releases: StatefulTable::default(),
+      movie_releases_sort: StatefulList::default(),
       collections: StatefulTable::default(),
       filtered_collections: StatefulTable::default(),
       collection_movies: StatefulTable::default(),
       prompt_confirm_action: None,
       search: String::default(),
       filter: String::default(),
+      sort_ascending: None,
       is_searching: false,
       prompt_confirm: false,
       main_tabs: TabState::new(vec![
@@ -166,7 +172,7 @@ impl Default for RadarrData {
         TabRoute {
           title: "Manual Search".to_owned(),
           route: ActiveRadarrBlock::ManualSearch.into(),
-          help: "<r> refresh | <s> auto search | <esc> close".to_owned(),
+          help: "<r> refresh | <o> sort | <s> auto search | <esc> close".to_owned(),
           contextual_help: Some("<enter> details".to_owned())
         }
       ]),
@@ -196,6 +202,7 @@ pub enum ActiveRadarrBlock {
   FilterCollections,
   FilterMovies,
   ManualSearch,
+  ManualSearchSortPrompt,
   ManualSearchConfirmPrompt,
   MovieDetails,
   MovieHistory,
@@ -218,7 +225,7 @@ pub const ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::AddMovieSelectQualityProfile,
   ActiveRadarrBlock::AddMovieAlreadyInLibrary,
 ];
-pub const MOVIE_DETAILS_BLOCKS: [ActiveRadarrBlock; 9] = [
+pub const MOVIE_DETAILS_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::MovieDetails,
   ActiveRadarrBlock::MovieHistory,
   ActiveRadarrBlock::FileInfo,
@@ -227,6 +234,7 @@ pub const MOVIE_DETAILS_BLOCKS: [ActiveRadarrBlock; 9] = [
   ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
   ActiveRadarrBlock::RefreshAndScanPrompt,
   ActiveRadarrBlock::ManualSearch,
+  ActiveRadarrBlock::ManualSearchSortPrompt,
   ActiveRadarrBlock::ManualSearchConfirmPrompt,
 ];
 pub const COLLECTION_DETAILS_BLOCKS: [ActiveRadarrBlock; 2] = [
@@ -424,7 +432,7 @@ pub mod radarr_test_utils {
   use crate::app::radarr::RadarrData;
   use crate::models::radarr_models::{
     AddMovieSearchResult, Collection, CollectionMovie, Credit, MinimumAvailability, Monitor, Movie,
-    MovieHistoryItem, Release,
+    MovieHistoryItem, Release, ReleaseField,
   };
   use crate::models::ScrollableText;
 
@@ -457,6 +465,10 @@ pub mod radarr_test_utils {
     radarr_data
       .add_movie_quality_profile_list
       .set_items(vec![String::default()]);
+    radarr_data
+      .movie_releases_sort
+      .set_items(vec![ReleaseField::default()]);
+    radarr_data.sort_ascending = Some(true);
     radarr_data
       .filtered_movies
       .set_items(vec![Movie::default()]);
@@ -503,6 +515,8 @@ pub mod radarr_test_utils {
       assert!($radarr_data.movie_cast.items.is_empty());
       assert!($radarr_data.movie_crew.items.is_empty());
       assert!($radarr_data.movie_releases.items.is_empty());
+      assert!($radarr_data.movie_releases_sort.items.is_empty());
+      assert!($radarr_data.sort_ascending.is_none());
       assert_eq!($radarr_data.movie_info_tabs.index, 0);
     };
   }

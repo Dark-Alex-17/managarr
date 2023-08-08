@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
-use strum_macros::EnumIter;
+use strum_macros::{Display, EnumIter};
 
 use crate::models::HorizontallyScrollableText;
 
@@ -181,17 +181,17 @@ pub struct MovieHistoryItem {
   pub event_type: String,
 }
 
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Language {
   pub name: String,
 }
 
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Quality {
   pub name: String,
 }
 
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct QualityWrapper {
   pub quality: Quality,
 }
@@ -235,6 +235,20 @@ pub struct Release {
   pub leechers: Option<Number>,
   pub languages: Option<Vec<Language>>,
   pub quality: QualityWrapper,
+}
+
+#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
+pub enum ReleaseField {
+  #[default]
+  Source,
+  Age,
+  Rejected,
+  Title,
+  Indexer,
+  Size,
+  Peers,
+  Language,
+  Quality,
 }
 
 #[derive(Default, Serialize, Debug)]

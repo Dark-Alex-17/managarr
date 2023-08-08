@@ -208,7 +208,7 @@ impl HorizontallyScrollableText {
   }
 
   pub fn scroll_or_reset(&self, width: usize, is_current_selection: bool) {
-    if is_current_selection && self.text.len() > width {
+    if is_current_selection && self.text.len() - 8 > width {
       self.scroll_text();
     } else {
       self.reset_offset();
