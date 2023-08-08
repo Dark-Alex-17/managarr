@@ -5,8 +5,8 @@ use strum::IntoEnumIterator;
 use crate::app::{App, Route};
 use crate::models::radarr_models::{
   AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Indexer,
-  MinimumAvailability, Monitor, Movie, MovieHistoryItem, QueueEvent, Release, ReleaseField,
-  RootFolder, Task,
+  IndexerSettings, MinimumAvailability, Monitor, Movie, MovieHistoryItem, QueueEvent, Release,
+  ReleaseField, RootFolder, Task,
 };
 use crate::models::{
   BlockSelectionState, HorizontallyScrollableText, ScrollableText, StatefulList, StatefulTable,
@@ -37,6 +37,7 @@ pub struct RadarrData<'a> {
   pub selected_block: BlockSelectionState<'a, ActiveRadarrBlock>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub indexers: StatefulTable<Indexer>,
+  pub indexer_settings: Option<IndexerSettings>,
   pub quality_profile_map: BiMap<u64, String>,
   pub tags_map: BiMap<u64, String>,
   pub movie_details: ScrollableText,
@@ -263,6 +264,7 @@ impl<'a> Default for RadarrData<'a> {
       filtered_movies: StatefulTable::default(),
       downloads: StatefulTable::default(),
       indexers: StatefulTable::default(),
+      indexer_settings: None,
       quality_profile_map: BiMap::default(),
       tags_map: BiMap::default(),
       file_details: String::default(),
@@ -324,7 +326,7 @@ impl<'a> Default for RadarrData<'a> {
           title: "Indexers",
           route: ActiveRadarrBlock::Indexers.into(),
           help: "",
-          contextual_help: Some("<r> refresh"),
+          contextual_help: Some("<enter> edit | <s> settings | <del> delete | <r> refresh"),
         },
         TabRoute {
           title: "System",
@@ -377,6 +379,7 @@ impl<'a> Default for RadarrData<'a> {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub enum ActiveRadarrBlock {
+  AddIndexer,
   AddMovieAlreadyInLibrary,
   AddMovieSearchInput,
   AddMovieSearchResults,
@@ -394,11 +397,12 @@ pub enum ActiveRadarrBlock {
   CollectionDetails,
   Cast,
   Crew,
+  DeleteDownloadPrompt,
+  DeleteIndexerPrompt,
   DeleteMoviePrompt,
   DeleteMovieConfirmPrompt,
   DeleteMovieToggleDeleteFile,
   DeleteMovieToggleAddListExclusion,
-  DeleteDownloadPrompt,
   DeleteRootFolderPrompt,
   Downloads,
   EditCollectionPrompt,
@@ -408,6 +412,7 @@ pub enum ActiveRadarrBlock {
   EditCollectionSelectQualityProfile,
   EditCollectionToggleSearchOnAdd,
   EditCollectionToggleMonitored,
+  EditIndexer,
   EditMoviePrompt,
   EditMovieConfirmPrompt,
   EditMoviePathInput,
@@ -419,6 +424,7 @@ pub enum ActiveRadarrBlock {
   FilterCollections,
   FilterMovies,
   Indexers,
+  IndexerSettings,
   ManualSearch,
   ManualSearchSortPrompt,
   ManualSearchConfirmPrompt,
@@ -531,6 +537,13 @@ pub static DELETE_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
   ActiveRadarrBlock::DeleteMovieConfirmPrompt,
 ];
+pub static INDEXER_BLOCKS: [ActiveRadarrBlock; 5] = [
+  ActiveRadarrBlock::Indexers,
+  ActiveRadarrBlock::IndexerSettings,
+  ActiveRadarrBlock::AddIndexer,
+  ActiveRadarrBlock::EditIndexer,
+  ActiveRadarrBlock::DeleteIndexerPrompt,
+];
 pub static SYSTEM_DETAILS_BLOCKS: [ActiveRadarrBlock; 5] = [
   ActiveRadarrBlock::SystemLogs,
   ActiveRadarrBlock::SystemQueuedEvents,
@@ -585,6 +598,11 @@ impl<'a> App<'a> {
       ActiveRadarrBlock::Indexers => {
         self
           .dispatch_network_event(RadarrEvent::GetIndexers.into())
+          .await;
+      }
+      ActiveRadarrBlock::IndexerSettings => {
+        self
+          .dispatch_network_event(RadarrEvent::GetIndexerSettings.into())
           .await;
       }
       ActiveRadarrBlock::System => {

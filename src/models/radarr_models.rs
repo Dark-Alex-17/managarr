@@ -182,7 +182,6 @@ pub struct IndexerField {
   pub value: Option<Value>,
   #[serde(rename(deserialize = "type"))]
   pub field_type: Option<String>,
-  pub advanced: bool,
   pub select_options: Option<Vec<IndexerSelectOption>>,
 }
 
@@ -195,6 +194,27 @@ pub struct IndexerSelectOption {
   pub name: Option<String>,
   #[derivative(Default(value = "Number::from(0)"))]
   pub order: Number,
+}
+
+#[derive(Derivative, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct IndexerSettings {
+  pub allow_hardcoded_subs: bool,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub availability_delay: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub id: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub maximum_size: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub minimum_age: Number,
+  pub prefer_indexer_flags: bool,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub retention: Number,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub rss_sync_interval: Number,
+  pub whitelisted_hardcoded_subs: String,
 }
 
 #[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]

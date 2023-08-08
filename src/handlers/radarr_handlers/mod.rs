@@ -251,6 +251,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
       ActiveRadarrBlock::RootFolders => self
         .app
         .push_navigation_stack(ActiveRadarrBlock::DeleteRootFolderPrompt.into()),
+      ActiveRadarrBlock::Indexers => self
+        .app
+        .push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into()),
       _ => (),
     }
   }
@@ -278,6 +281,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
         _ => (),
       },
       ActiveRadarrBlock::DeleteDownloadPrompt
+      | ActiveRadarrBlock::DeleteIndexerPrompt
       | ActiveRadarrBlock::DeleteRootFolderPrompt
       | ActiveRadarrBlock::UpdateAllMoviesPrompt
       | ActiveRadarrBlock::UpdateAllCollectionsPrompt
@@ -404,6 +408,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
 
         self.app.pop_navigation_stack();
       }
+      ActiveRadarrBlock::DeleteIndexerPrompt => {
+        if self.app.data.radarr_data.prompt_confirm {
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteIndexer);
+        }
+
+        self.app.pop_navigation_stack();
+      }
       ActiveRadarrBlock::UpdateAllMoviesPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAllMovies);
@@ -431,6 +442,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
         self.app.should_ignore_quit_key = false;
         self.app.pop_navigation_stack();
       }
+      ActiveRadarrBlock::Indexers => {
+        self
+          .app
+          .push_navigation_stack(ActiveRadarrBlock::EditIndexer.into());
+      }
       _ => (),
     }
   }
@@ -454,6 +470,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
         self.app.should_ignore_quit_key = false;
       }
       ActiveRadarrBlock::DeleteDownloadPrompt
+      | ActiveRadarrBlock::DeleteIndexerPrompt
       | ActiveRadarrBlock::DeleteRootFolderPrompt
       | ActiveRadarrBlock::UpdateAllMoviesPrompt
       | ActiveRadarrBlock::UpdateAllCollectionsPrompt
@@ -527,8 +544,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
         _ => (),
       },
       ActiveRadarrBlock::Indexers => match self.key {
+        _ if *key == DEFAULT_KEYBINDINGS.add.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::AddIndexer.into());
+        }
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
+        }
+        _ if *key == DEFAULT_KEYBINDINGS.settings.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::IndexerSettings.into());
         }
         _ => (),
       },

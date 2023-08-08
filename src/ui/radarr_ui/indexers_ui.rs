@@ -9,17 +9,24 @@ use crate::app::App;
 use crate::models::radarr_models::Indexer;
 use crate::models::Route;
 use crate::ui::utils::{layout_block_top_border, style_failure, style_primary, style_success};
-use crate::ui::{draw_table, DrawUi, TableProps};
+use crate::ui::{draw_prompt_box, draw_prompt_popup_over, draw_table, DrawUi, TableProps};
 
 pub(super) struct IndexersUi {}
 
 impl DrawUi for IndexersUi {
   fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
-    if matches!(
-      *app.get_current_route(),
-      Route::Radarr(ActiveRadarrBlock::Indexers, _)
-    ) {
-      draw_indexers(f, app, content_rect);
+    if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+      match active_radarr_block {
+        ActiveRadarrBlock::Indexers => draw_indexers(f, app, content_rect),
+        ActiveRadarrBlock::DeleteIndexerPrompt => draw_prompt_popup_over(
+          f,
+          app,
+          content_rect,
+          draw_indexers,
+          draw_delete_indexer_prompt,
+        ),
+        _ => (),
+      }
     }
   }
 }
@@ -93,4 +100,29 @@ fn draw_indexers<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect
     app.is_loading,
     true,
   )
+}
+
+fn draw_delete_indexer_prompt<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App<'_>,
+  prompt_area: Rect,
+) {
+  draw_prompt_box(
+    f,
+    prompt_area,
+    "Delete Indexer",
+    format!(
+      "Do you really want to delete this indexer: {}?",
+      app
+        .data
+        .radarr_data
+        .indexers
+        .current_selection()
+        .name
+        .clone()
+        .unwrap_or_default()
+    )
+    .as_str(),
+    app.data.radarr_data.prompt_confirm,
+  );
 }

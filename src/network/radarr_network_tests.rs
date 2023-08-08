@@ -532,6 +532,44 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_update_indexer_settings_event() {
+    let indexer_settings_json = json!({
+        "minimumAge": 0,
+        "maximumSize": 0,
+        "retention": 0,
+        "rssSyncInterval": 60,
+        "preferIndexerFlags": false,
+        "availabilityDelay": 0,
+        "allowHardcodedSubs": true,
+        "whitelistedHardcodedSubs": "",
+        "id": 1
+    });
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Put,
+      Some(indexer_settings_json),
+      None,
+      RadarrEvent::UpdateIndexerSettings.resource(),
+    )
+    .await;
+
+    app_arc.lock().await.data.radarr_data.indexer_settings = Some(indexer_settings());
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network
+      .handle_radarr_event(RadarrEvent::UpdateIndexerSettings)
+      .await;
+
+    async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .indexer_settings
+      .is_none());
+  }
+
+  #[tokio::test]
   async fn test_handle_update_collections_event() {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
@@ -873,13 +911,11 @@ mod test {
                 "label": "Value Is String",
                 "value": "hello",
                 "type": "textbox",
-                "advanced": false
             },
             {
                 "order": 1,
                 "name": "emptyValueWithSelectOptions",
                 "label": "Empty Value With Select Options",
-                "advanced": true,
                 "type": "select",
                 "selectOptions": [
                     {
@@ -895,7 +931,6 @@ mod test {
                 "label": "Value is an array",
                 "value": [1, 2],
                 "type": "select",
-                "advanced": false,
             },
         ],
         "implementationName": "Torznab",
@@ -919,6 +954,39 @@ mod test {
     assert_eq!(
       app_arc.lock().await.data.radarr_data.indexers.items,
       vec![indexer()]
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_indexer_settings_event() {
+    let indexer_settings_response_json = json!({
+        "minimumAge": 0,
+        "maximumSize": 0,
+        "retention": 0,
+        "rssSyncInterval": 60,
+        "preferIndexerFlags": false,
+        "availabilityDelay": 0,
+        "allowHardcodedSubs": true,
+        "whitelistedHardcodedSubs": "",
+        "id": 1
+    });
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_settings_response_json),
+      RadarrEvent::GetIndexerSettings.resource(),
+    )
+    .await;
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network
+      .handle_radarr_event(RadarrEvent::GetIndexerSettings)
+      .await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.indexer_settings,
+      Some(indexer_settings())
     );
   }
 
@@ -1357,6 +1425,27 @@ mod test {
 
     network
       .handle_radarr_event(RadarrEvent::DeleteDownload)
+      .await;
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_indexer_event() {
+    let resource = format!("{}/1", RadarrEvent::DeleteIndexer.resource());
+    let (async_server, app_arc, _server) =
+      mock_radarr_api(RequestMethod::Delete, None, None, &resource).await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .indexers
+      .set_items(vec![indexer()]);
+    let network = Network::new(reqwest::Client::new(), &app_arc);
+
+    network
+      .handle_radarr_event(RadarrEvent::DeleteIndexer)
       .await;
 
     async_server.assert_async().await;
@@ -2216,7 +2305,6 @@ mod test {
           name: Some("valueIsString".to_owned()),
           label: Some("Value Is String".to_owned()),
           value: Some(json!("hello")),
-          advanced: false,
           field_type: Some("textbox".to_owned()),
           select_options: None,
         },
@@ -2225,7 +2313,6 @@ mod test {
           name: Some("emptyValueWithSelectOptions".to_owned()),
           label: Some("Empty Value With Select Options".to_owned()),
           value: None,
-          advanced: true,
           field_type: Some("select".to_owned()),
           select_options: Some(vec![IndexerSelectOption {
             value: Number::from(-2),
@@ -2238,11 +2325,19 @@ mod test {
           name: Some("valueIsAnArray".to_owned()),
           label: Some("Value is an array".to_owned()),
           value: Some(json!([1, 2])),
-          advanced: false,
           field_type: Some("select".to_owned()),
           select_options: None,
         },
       ]),
+    }
+  }
+
+  fn indexer_settings() -> IndexerSettings {
+    IndexerSettings {
+      rss_sync_interval: Number::from(60),
+      allow_hardcoded_subs: true,
+      id: Number::from(1),
+      ..IndexerSettings::default()
     }
   }
 }

@@ -11,8 +11,8 @@ use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, Collection, CollectionMovie,
   CommandBody, Credit, CreditType, DiskSpace, DownloadRecord, DownloadsResponse, Indexer,
-  LogResponse, Movie, MovieCommandBody, MovieHistoryItem, QualityProfile, QueueEvent, Release,
-  ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task, Update,
+  IndexerSettings, LogResponse, Movie, MovieCommandBody, MovieHistoryItem, QualityProfile,
+  QueueEvent, Release, ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task, Update,
 };
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
 use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
@@ -27,6 +27,7 @@ pub enum RadarrEvent {
   AddMovie,
   AddRootFolder,
   DeleteDownload,
+  DeleteIndexer,
   DeleteMovie,
   DeleteRootFolder,
   DownloadRelease,
@@ -35,6 +36,7 @@ pub enum RadarrEvent {
   GetCollections,
   GetDownloads,
   GetIndexers,
+  GetIndexerSettings,
   GetLogs,
   GetMovieCredits,
   GetMovieDetails,
@@ -57,6 +59,7 @@ pub enum RadarrEvent {
   UpdateAndScan,
   UpdateCollections,
   UpdateDownloads,
+  UpdateIndexerSettings,
 }
 
 impl RadarrEvent {
@@ -64,7 +67,8 @@ impl RadarrEvent {
     match self {
       RadarrEvent::GetCollections | RadarrEvent::EditCollection => "/collection",
       RadarrEvent::GetDownloads | RadarrEvent::DeleteDownload => "/queue",
-      RadarrEvent::GetIndexers => "/indexer",
+      RadarrEvent::GetIndexers | RadarrEvent::DeleteIndexer => "/indexer",
+      RadarrEvent::GetIndexerSettings | RadarrEvent::UpdateIndexerSettings => "/config/indexer",
       RadarrEvent::GetLogs => "/log",
       RadarrEvent::AddMovie
       | RadarrEvent::EditMovie
@@ -107,8 +111,9 @@ impl<'a, 'b> Network<'a, 'b> {
     match radarr_event {
       RadarrEvent::AddMovie => self.add_movie().await,
       RadarrEvent::AddRootFolder => self.add_root_folder().await,
-      RadarrEvent::DeleteMovie => self.delete_movie().await,
       RadarrEvent::DeleteDownload => self.delete_download().await,
+      RadarrEvent::DeleteIndexer => self.delete_indexer().await,
+      RadarrEvent::DeleteMovie => self.delete_movie().await,
       RadarrEvent::DeleteRootFolder => self.delete_root_folder().await,
       RadarrEvent::DownloadRelease => self.download_release().await,
       RadarrEvent::EditCollection => self.edit_collection().await,
@@ -116,6 +121,7 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::GetCollections => self.get_collections().await,
       RadarrEvent::GetDownloads => self.get_downloads().await,
       RadarrEvent::GetIndexers => self.get_indexers().await,
+      RadarrEvent::GetIndexerSettings => self.get_indexer_settings().await,
       RadarrEvent::GetLogs => self.get_logs().await,
       RadarrEvent::GetMovieCredits => self.get_credits().await,
       RadarrEvent::GetMovieDetails => self.get_movie_details().await,
@@ -138,6 +144,7 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::UpdateAndScan => self.update_and_scan().await,
       RadarrEvent::UpdateCollections => self.update_collections().await,
       RadarrEvent::UpdateDownloads => self.update_downloads().await,
+      RadarrEvent::UpdateIndexerSettings => self.update_indexer_settings().await,
     }
   }
 
@@ -283,6 +290,37 @@ impl<'a, 'b> Network<'a, 'b> {
     let request_props = self
       .radarr_request_props_from(
         format!("{}/{}", RadarrEvent::DeleteDownload.resource(), download_id).as_str(),
+        RequestMethod::Delete,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn delete_indexer(&self) {
+    let indexer_id = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .indexers
+      .current_selection()
+      .id
+      .as_u64()
+      .unwrap();
+
+    info!(
+      "Deleting Radarr indexer for indexer with id: {}",
+      indexer_id
+    );
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!("{}/{}", RadarrEvent::DeleteIndexer.resource(), indexer_id).as_str(),
         RequestMethod::Delete,
         None::<()>,
       )
@@ -642,6 +680,24 @@ impl<'a, 'b> Network<'a, 'b> {
         app.data.radarr_data.indexers.set_items(indexers);
       })
       .await
+  }
+
+  async fn get_indexer_settings(&self) {
+    info!("Fetching Radarr indexer settings");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::GetIndexerSettings.resource(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), IndexerSettings>(request_props, |indexer_settings, mut app| {
+        app.data.radarr_data.indexer_settings = Some(indexer_settings);
+      })
+      .await;
   }
 
   async fn get_healthcheck(&self) {
@@ -1300,6 +1356,37 @@ impl<'a, 'b> Network<'a, 'b> {
     self
       .handle_request::<CommandBody, Value>(request_props, |_, _| ())
       .await;
+  }
+
+  async fn update_indexer_settings(&self) {
+    info!("Updating Radarr indexer settings");
+
+    let body = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .indexer_settings
+      .as_ref()
+      .unwrap()
+      .clone();
+
+    debug!("Indexer settings body: {:?}", body);
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::UpdateIndexerSettings.resource(),
+        RequestMethod::Put,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<IndexerSettings, Value>(request_props, |_, _| {})
+      .await;
+
+    self.app.lock().await.data.radarr_data.indexer_settings = None;
   }
 
   async fn radarr_request_props_from<T: Serialize + Debug>(

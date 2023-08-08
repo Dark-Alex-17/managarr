@@ -11,8 +11,8 @@ use tui::Frame;
 
 use crate::app::radarr::{
   ActiveRadarrBlock, RadarrData, ADD_MOVIE_BLOCKS, COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS,
-  EDIT_COLLECTION_BLOCKS, EDIT_MOVIE_BLOCKS, FILTER_BLOCKS, MOVIE_DETAILS_BLOCKS, SEARCH_BLOCKS,
-  SYSTEM_DETAILS_BLOCKS,
+  EDIT_COLLECTION_BLOCKS, EDIT_MOVIE_BLOCKS, FILTER_BLOCKS, INDEXER_BLOCKS, MOVIE_DETAILS_BLOCKS,
+  SEARCH_BLOCKS, SYSTEM_DETAILS_BLOCKS,
 };
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
@@ -74,7 +74,9 @@ impl DrawUi for RadarrUi {
         ActiveRadarrBlock::Downloads
         | ActiveRadarrBlock::DeleteDownloadPrompt
         | ActiveRadarrBlock::UpdateDownloadsPrompt => DownloadsUi::draw(f, app, content_rect),
-        ActiveRadarrBlock::Indexers => IndexersUi::draw(f, app, content_rect),
+        _ if INDEXER_BLOCKS.contains(&active_radarr_block) => {
+          IndexersUi::draw(f, app, content_rect)
+        }
         ActiveRadarrBlock::RootFolders
         | ActiveRadarrBlock::AddRootFolderPrompt
         | ActiveRadarrBlock::DeleteRootFolderPrompt => RootFoldersUi::draw(f, app, content_rect),

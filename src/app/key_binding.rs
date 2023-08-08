@@ -16,6 +16,7 @@ generate_keybindings! {
   right,
   backspace,
   search,
+  settings,
   filter,
   sort,
   edit,
@@ -65,6 +66,10 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   search: KeyBinding {
     key: Key::Char('s'),
     desc: "Search",
+  },
+  settings: KeyBinding {
+    key: Key::Char('s'),
+    desc: "Settings",
   },
   filter: KeyBinding {
     key: Key::Char('f'),

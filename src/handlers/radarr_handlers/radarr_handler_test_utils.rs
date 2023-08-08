@@ -135,4 +135,21 @@ mod utils {
       assert_eq!(app.data.radarr_data.edit_search_on_add, Some(true));
     };
   }
+
+  #[macro_export]
+  macro_rules! assert_delete_prompt {
+    ($block:expr, $expected_block:expr) => {
+      let mut app = App::default();
+
+      RadarrHandler::with(&DELETE_KEY, &mut app, &$block, &None).handle();
+
+      assert_eq!(app.get_current_route(), &$expected_block.into());
+    };
+
+    ($app:expr, $block:expr, $expected_block:expr) => {
+      RadarrHandler::with(&DELETE_KEY, &mut $app, &$block, &None).handle();
+
+      assert_eq!($app.get_current_route(), &$expected_block.into());
+    };
+  }
 }

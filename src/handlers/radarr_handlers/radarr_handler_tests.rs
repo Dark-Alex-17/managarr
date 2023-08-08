@@ -209,6 +209,8 @@ mod tests {
   mod test_handle_delete {
     use pretty_assertions::assert_eq;
 
+    use crate::assert_delete_prompt;
+
     use super::*;
 
     const DELETE_KEY: Key = DEFAULT_KEYBINDINGS.delete.key;
@@ -217,11 +219,10 @@ mod tests {
     fn test_movies_delete() {
       let mut app = App::default();
 
-      RadarrHandler::with(&DELETE_KEY, &mut app, &ActiveRadarrBlock::Movies, &None).handle();
-
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::DeleteMoviePrompt.into()
+      assert_delete_prompt!(
+        app,
+        ActiveRadarrBlock::Movies,
+        ActiveRadarrBlock::DeleteMoviePrompt
       );
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
@@ -229,34 +230,18 @@ mod tests {
       );
     }
 
-    #[test]
-    fn test_downloads_delete() {
-      let mut app = App::default();
-
-      RadarrHandler::with(&DELETE_KEY, &mut app, &ActiveRadarrBlock::Downloads, &None).handle();
-
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::DeleteDownloadPrompt.into()
-      );
-    }
-
-    #[test]
-    fn test_root_folder_delete() {
-      let mut app = App::default();
-
-      RadarrHandler::with(
-        &DELETE_KEY,
-        &mut app,
-        &ActiveRadarrBlock::RootFolders,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::DeleteRootFolderPrompt.into()
-      );
+    #[rstest]
+    #[case(ActiveRadarrBlock::Downloads, ActiveRadarrBlock::DeleteDownloadPrompt)]
+    #[case(
+      ActiveRadarrBlock::RootFolders,
+      ActiveRadarrBlock::DeleteRootFolderPrompt
+    )]
+    #[case(ActiveRadarrBlock::Indexers, ActiveRadarrBlock::DeleteIndexerPrompt)]
+    fn test_delete_prompt(
+      #[case] active_radarr_block: ActiveRadarrBlock,
+      #[case] expected_radarr_block: ActiveRadarrBlock,
+    ) {
+      assert_delete_prompt!(active_radarr_block, expected_radarr_block);
     }
   }
 
@@ -332,6 +317,7 @@ mod tests {
     fn test_left_right_prompt_toggle(
       #[values(
         ActiveRadarrBlock::DeleteDownloadPrompt,
+        ActiveRadarrBlock::DeleteIndexerPrompt,
         ActiveRadarrBlock::DeleteRootFolderPrompt,
         ActiveRadarrBlock::UpdateAllMoviesPrompt,
         ActiveRadarrBlock::UpdateAllCollectionsPrompt,
@@ -386,6 +372,18 @@ mod tests {
     use super::*;
 
     const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
+
+    #[test]
+    fn test_indexer_submit_aka_edit() {
+      let mut app = App::default();
+
+      RadarrHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::Indexers, &None).handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::EditIndexer.into()
+      );
+    }
 
     #[rstest]
     #[case(ActiveRadarrBlock::Movies, ActiveRadarrBlock::MovieDetails)]
@@ -630,6 +628,11 @@ mod tests {
       RadarrEvent::DeleteDownload
     )]
     #[case(
+      ActiveRadarrBlock::Indexers,
+      ActiveRadarrBlock::DeleteIndexerPrompt,
+      RadarrEvent::DeleteIndexer
+    )]
+    #[case(
       ActiveRadarrBlock::RootFolders,
       ActiveRadarrBlock::DeleteRootFolderPrompt,
       RadarrEvent::DeleteRootFolder
@@ -751,6 +754,7 @@ mod tests {
       ActiveRadarrBlock::DeleteRootFolderPrompt
     )]
     #[case(ActiveRadarrBlock::Downloads, ActiveRadarrBlock::DeleteDownloadPrompt)]
+    #[case(ActiveRadarrBlock::Indexers, ActiveRadarrBlock::DeleteIndexerPrompt)]
     #[case(ActiveRadarrBlock::Downloads, ActiveRadarrBlock::UpdateDownloadsPrompt)]
     #[case(
       ActiveRadarrBlock::Collections,
@@ -897,6 +901,24 @@ mod tests {
         &ActiveRadarrBlock::AddMovieSearchInput.into()
       );
       assert!(app.should_ignore_quit_key);
+    }
+
+    #[test]
+    fn test_indexer_add() {
+      let mut app = App::default();
+
+      RadarrHandler::with(
+        &DEFAULT_KEYBINDINGS.add.key,
+        &mut app,
+        &ActiveRadarrBlock::Indexers,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::AddIndexer.into()
+      );
     }
 
     #[test]
@@ -1051,6 +1073,24 @@ mod tests {
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::SystemTasks.into()
+      );
+    }
+
+    #[test]
+    fn test_indexer_settings_key() {
+      let mut app = App::default();
+
+      RadarrHandler::with(
+        &DEFAULT_KEYBINDINGS.settings.key,
+        &mut app,
+        &ActiveRadarrBlock::Indexers,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::IndexerSettings.into()
       );
     }
 

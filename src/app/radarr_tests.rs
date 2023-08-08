@@ -274,6 +274,7 @@ mod tests {
       assert!(radarr_data.filtered_movies.items.is_empty());
       assert!(radarr_data.downloads.items.is_empty());
       assert!(radarr_data.indexers.items.is_empty());
+      assert!(radarr_data.indexer_settings.is_none());
       assert!(radarr_data.quality_profile_map.is_empty());
       assert!(radarr_data.tags_map.is_empty());
       assert!(radarr_data.file_details.is_empty());
@@ -357,7 +358,7 @@ mod tests {
       assert!(radarr_data.main_tabs.tabs[4].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[4].contextual_help,
-        Some("<r> refresh")
+        Some("<enter> edit | <s> settings | <del> delete | <r> refresh")
       );
 
       assert_str_eq!(radarr_data.main_tabs.tabs[5].title, "System");
@@ -708,6 +709,23 @@ mod tests {
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetIndexers.into()
+      );
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert_eq!(app.tick_count, 0);
+    }
+
+    #[tokio::test]
+    async fn test_dispatch_by_indexer_settings_block() {
+      let (mut app, mut sync_network_rx) = construct_app_unit();
+
+      app
+        .dispatch_by_radarr_block(&ActiveRadarrBlock::IndexerSettings)
+        .await;
+
+      assert!(app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetIndexerSettings.into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
