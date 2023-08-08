@@ -43,7 +43,7 @@ impl<'a> Network<'a> {
   pub async fn handle_request<T, R>(
     &self,
     request_props: RequestProps<T>,
-    mut app_update_fn: impl FnMut(R, MutexGuard<App>),
+    mut app_update_fn: impl FnMut(R, MutexGuard<'_, App>),
   ) where
     T: Serialize + Default + Debug,
     R: DeserializeOwned,

@@ -204,7 +204,7 @@ fn draw_movie_details<B: Backend>(f: &mut Frame<'_, B>, app: &App, content_area:
 
           spans_info_default(title, split[1..].join(":"))
         })
-        .collect::<Vec<Spans>>(),
+        .collect::<Vec<Spans<'_>>>(),
     );
     text.patch_style(determine_style_from_download_status(download_status));
 
@@ -508,7 +508,7 @@ fn draw_manual_search_confirm_prompt<B: Backend>(
       .unwrap_or_default()
       .iter()
       .map(|item| Spans::from(vec![Span::styled(format!("• {}", item), style_primary())]))
-      .collect::<Vec<Spans>>();
+      .collect::<Vec<Spans<'_>>>();
     spans_vec.append(&mut rejections_spans);
 
     let content_paragraph = Paragraph::new(spans_vec)

@@ -13,12 +13,12 @@ use tui::Frame;
 use crate::app::App;
 use crate::models::{Route, StatefulList, StatefulTable, TabState};
 use crate::ui::utils::{
-  borderless_block, centered_rect, horizontal_chunks, horizontal_chunks_with_margin, layout_block,
-  layout_block_top_border, layout_button_paragraph, layout_button_paragraph_borderless,
-  layout_paragraph_borderless, logo_block, show_cursor, style_block_highlight, style_default,
-  style_default_bold, style_failure, style_help, style_highlight, style_primary, style_secondary,
-  style_system_function, title_block, title_block_centered, vertical_chunks,
-  vertical_chunks_with_margin,
+  background_block, borderless_block, centered_rect, horizontal_chunks,
+  horizontal_chunks_with_margin, layout_block, layout_block_top_border, layout_button_paragraph,
+  layout_button_paragraph_borderless, layout_paragraph_borderless, logo_block, show_cursor,
+  style_block_highlight, style_default, style_default_bold, style_failure, style_help,
+  style_highlight, style_primary, style_secondary, style_system_function, title_block,
+  title_block_centered, vertical_chunks, vertical_chunks_with_margin,
 };
 
 mod radarr_ui;
@@ -26,7 +26,8 @@ mod utils;
 
 static HIGHLIGHT_SYMBOL: &str = "=> ";
 
-pub fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
+pub fn ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
+  f.render_widget(background_block(), f.size());
   let main_chunks = if !app.error.text.is_empty() {
     let chunks = vertical_chunks_with_margin(
       vec![
@@ -115,6 +116,7 @@ pub fn draw_popup<B: Backend>(
 ) {
   let popup_area = centered_rect(percent_x, percent_y, f.size());
   f.render_widget(Clear, popup_area);
+  f.render_widget(background_block(), popup_area);
   popup_fn(f, app, popup_area);
 }
 
@@ -188,6 +190,31 @@ fn draw_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   }
 }
 
+pub fn draw_error_popup_over<B: Backend>(
+  f: &mut Frame<'_, B>,
+  app: &mut App,
+  area: Rect,
+  message: &str,
+  background_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
+) {
+  background_fn(f, app, area);
+  draw_error_popup(f, message);
+}
+
+pub fn draw_error_popup<B: Backend>(f: &mut Frame<'_, B>, message: &str) {
+  let prompt_area = centered_rect(25, 8, f.size());
+  f.render_widget(Clear, prompt_area);
+  f.render_widget(background_block(), prompt_area);
+
+  let error_message = Paragraph::new(Text::from(message))
+    .block(title_block_centered("Error").style(style_failure()))
+    .style(style_failure().add_modifier(Modifier::BOLD))
+    .wrap(Wrap { trim: false })
+    .alignment(Alignment::Center);
+
+  f.render_widget(error_message, prompt_area);
+}
+
 fn draw_tabs<'a, B: Backend>(
   f: &mut Frame<'_, B>,
   area: Rect,
@@ -234,7 +261,7 @@ pub struct TableProps<'a, T> {
 fn draw_table<'a, B, T, F>(
   f: &mut Frame<'_, B>,
   content_area: Rect,
-  block: Block,
+  block: Block<'_>,
   table_props: TableProps<'a, T>,
   row_mapper: F,
   is_loading: bool,
@@ -302,30 +329,6 @@ pub fn loading<B: Backend>(f: &mut Frame<'_, B>, block: Block<'_>, area: Rect, i
   }
 }
 
-pub fn draw_error_popup_over<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App,
-  area: Rect,
-  message: &str,
-  background_fn: fn(&mut Frame<'_, B>, &mut App, Rect),
-) {
-  background_fn(f, app, area);
-  draw_error_popup(f, message);
-}
-
-pub fn draw_error_popup<B: Backend>(f: &mut Frame<'_, B>, message: &str) {
-  let prompt_area = centered_rect(25, 8, f.size());
-  f.render_widget(Clear, prompt_area);
-
-  let error_message = Paragraph::new(Text::from(message))
-    .block(title_block_centered("Error").style(style_failure()))
-    .style(style_failure().add_modifier(Modifier::BOLD))
-    .wrap(Wrap { trim: false })
-    .alignment(Alignment::Center);
-
-  f.render_widget(error_message, prompt_area);
-}
-
 pub fn draw_prompt_box<B: Backend>(
   f: &mut Frame<'_, B>,
   prompt_area: Rect,
@@ -341,7 +344,7 @@ pub fn draw_prompt_box_with_content<B: Backend>(
   prompt_area: Rect,
   title: &str,
   prompt: &str,
-  content: Option<Paragraph>,
+  content: Option<Paragraph<'_>>,
   yes_no_value: &bool,
 ) {
   f.render_widget(title_block_centered(title), prompt_area);

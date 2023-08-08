@@ -5,6 +5,23 @@ use tui::text::{Span, Spans, Text};
 use tui::widgets::{Block, BorderType, Borders, LineGauge, Paragraph, Wrap};
 use tui::{symbols, Frame};
 
+pub const COLOR_TEAL: Color = Color::Rgb(35, 50, 55);
+// pub const COLOR_CYAN: Color = Color::Rgb(0, 230, 230);
+pub const COLOR_CYAN: Color = Color::Cyan;
+// pub const COLOR_LIGHT_BLUE: Color = Color::Rgb(138, 196, 255);
+pub const COLOR_LIGHT_BLUE: Color = Color::LightBlue;
+// pub const COLOR_YELLOW: Color = Color::Rgb(249, 229, 113);
+pub const COLOR_YELLOW: Color = Color::Yellow;
+// pub const COLOR_GREEN: Color = Color::Rgb(72, 213, 150);
+pub const COLOR_GREEN: Color = Color::Green;
+// pub const COLOR_RED: Color = Color::Rgb(249, 140, 164);
+pub const COLOR_RED: Color = Color::Red;
+// pub const COLOR_ORANGE: Color = Color::Rgb(255, 170, 66);
+// pub const COLOR_WHITE: Color = Color::Rgb(255, 255, 255);
+pub const COLOR_WHITE: Color = Color::White;
+// pub const COLOR_MAGENTA: Color = Color::Rgb(139, 0, 139);
+pub const COLOR_MAGENTA: Color = Color::Magenta;
+
 pub fn horizontal_chunks(constraints: Vec<Constraint>, area: Rect) -> Vec<Rect> {
   layout_with_constraints(constraints)
     .direction(Direction::Horizontal)
@@ -45,6 +62,10 @@ fn layout_with_constraints(constraints: Vec<Constraint>) -> Layout {
   ))
 }
 
+pub fn background_block<'a>() -> Block<'a> {
+  Block::default().style(Style::default().bg(COLOR_TEAL).fg(COLOR_WHITE))
+}
+
 pub fn layout_block<'a>() -> Block<'a> {
   Block::default()
     .borders(Borders::ALL)
@@ -67,7 +88,11 @@ pub fn layout_block_bottom_border<'a>() -> Block<'a> {
   Block::default().borders(Borders::BOTTOM)
 }
 
-pub fn layout_button_paragraph(is_selected: bool, label: &str, alignment: Alignment) -> Paragraph {
+pub fn layout_button_paragraph(
+  is_selected: bool,
+  label: &str,
+  alignment: Alignment,
+) -> Paragraph<'_> {
   Paragraph::new(Text::from(label))
     .block(layout_block())
     .alignment(alignment)
@@ -78,14 +103,14 @@ pub fn layout_button_paragraph_borderless(
   is_selected: bool,
   label: &str,
   alignment: Alignment,
-) -> Paragraph {
+) -> Paragraph<'_> {
   Paragraph::new(Text::from(label))
     .block(borderless_block())
     .alignment(alignment)
     .style(style_block_highlight(is_selected))
 }
 
-pub fn layout_paragraph_borderless(string: &str) -> Paragraph {
+pub fn layout_paragraph_borderless(string: &str) -> Paragraph<'_> {
   Paragraph::new(Text::from(string))
     .block(borderless_block())
     .style(style_primary().add_modifier(Modifier::BOLD))
@@ -131,7 +156,7 @@ pub fn style_highlight() -> Style {
 }
 
 pub fn style_default() -> Style {
-  Style::default().fg(Color::White)
+  Style::default().fg(COLOR_WHITE)
 }
 
 pub fn style_default_bold() -> Style {
@@ -139,35 +164,35 @@ pub fn style_default_bold() -> Style {
 }
 
 pub fn style_primary() -> Style {
-  Style::default().fg(Color::Cyan)
+  Style::default().fg(COLOR_CYAN)
 }
 
 pub fn style_secondary() -> Style {
-  Style::default().fg(Color::Yellow)
+  Style::default().fg(COLOR_YELLOW)
 }
 
 pub fn style_system_function() -> Style {
-  Style::default().fg(Color::Yellow)
+  Style::default().fg(COLOR_YELLOW)
 }
 
 pub fn style_unmonitored() -> Style {
-  Style::default().fg(Color::Rgb(91, 87, 87))
+  Style::default().fg(COLOR_WHITE)
 }
 
 pub fn style_success() -> Style {
-  Style::default().fg(Color::Green)
+  Style::default().fg(COLOR_GREEN)
 }
 
 pub fn style_warning() -> Style {
-  Style::default().fg(Color::Magenta)
+  Style::default().fg(COLOR_MAGENTA)
 }
 
 pub fn style_failure() -> Style {
-  Style::default().fg(Color::Red)
+  Style::default().fg(COLOR_RED)
 }
 
 pub fn style_help() -> Style {
-  Style::default().fg(Color::LightBlue)
+  Style::default().fg(COLOR_LIGHT_BLUE)
 }
 
 pub fn style_block_highlight(is_selected: bool) -> Style {
@@ -223,19 +248,19 @@ pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     .split(popup_layout[1])[1]
 }
 
-pub fn line_gauge_with_title(title: &str, ratio: f64) -> LineGauge {
+pub fn line_gauge_with_title(title: &str, ratio: f64) -> LineGauge<'_> {
   LineGauge::default()
     .block(Block::default().title(title))
-    .gauge_style(Style::default().fg(Color::Cyan))
+    .gauge_style(Style::default().fg(COLOR_CYAN))
     .line_set(symbols::line::THICK)
     .ratio(ratio)
     .label(Spans::from(format!("{:.0}%", ratio * 100.0)))
 }
 
-pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge {
+pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge<'_> {
   LineGauge::default()
     .block(Block::default())
-    .gauge_style(Style::default().fg(Color::Cyan))
+    .gauge_style(Style::default().fg(COLOR_CYAN))
     .line_set(symbols::line::THICK)
     .ratio(ratio)
     .label(Spans::from(format!("{}: {:.0}%", title, ratio * 100.0)))
@@ -264,8 +289,8 @@ mod test {
     layout_with_constraints, logo_block, spans_info_default, spans_info_primary,
     spans_info_with_style, style_block_highlight, style_bold, style_default, style_default_bold,
     style_failure, style_help, style_highlight, style_primary, style_secondary, style_success,
-    style_system_function, style_warning, title_block, title_block_centered, title_style,
-    vertical_chunks, vertical_chunks_with_margin,
+    style_system_function, style_unmonitored, style_warning, title_block, title_block_centered,
+    title_style, vertical_chunks, vertical_chunks_with_margin,
   };
 
   #[test]
@@ -496,6 +521,11 @@ mod test {
       style_highlight(),
       Style::default().add_modifier(Modifier::REVERSED)
     );
+  }
+
+  #[test]
+  fn test_style_unmonitored() {
+    assert_eq!(style_unmonitored(), Style::default().fg(Color::White));
   }
 
   #[test]

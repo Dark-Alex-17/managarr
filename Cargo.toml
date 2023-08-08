@@ -1,6 +1,6 @@
 [package]
 name = "managarr"
-version = "0.1.11"
+version = "0.0.12"
 authors = ["Alex Clarke <alex.j.tusa@gmail.com>"]
 description = "A TUI for managing *arr servers"
 keywords = ["managarr", "tui-rs", "dashboard", "servarr"]
@@ -12,11 +12,13 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.68"
+backtrace = "0.3.67"
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4.0.30", features = ["help", "usage", "error-context", "derive"] }
 confy = { version = "0.5.1", default_features = false, features = ["yaml_conf"] }
 crossterm = "0.26.1"
 derivative = "2.2.0"
+human-panic = "1.1.3"
 indoc = "2.0.0"
 log = "0.4.17"
 log4rs = { version = "1.2.0", features = ["file_appender"] }
