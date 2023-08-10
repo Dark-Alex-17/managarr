@@ -168,7 +168,6 @@ fn draw_edit_indexer_settings_prompt<B: Backend>(
 
     let button_chunks = horizontal_chunks(
       iter::repeat(Constraint::Ratio(1, 4)).take(4).collect(),
-      // vec![Constraint::Percentage(50), Constraint::Percentage(50)],
       chunks[1],
     );
 

@@ -14,7 +14,7 @@ use tui::widgets::{Clear, List, ListItem};
 use tui::Frame;
 
 use crate::app::App;
-use crate::models::{Route, StatefulList, StatefulTable, TabState};
+use crate::models::{HorizontallyScrollableText, Route, StatefulList, StatefulTable, TabState};
 use crate::ui::radarr_ui::RadarrUi;
 use crate::ui::utils::{
   background_block, borderless_block, centered_rect, horizontal_chunks,
@@ -659,8 +659,8 @@ pub fn draw_text_box<B: Backend>(
   should_show_cursor: bool,
   is_selected: bool,
 ) {
-  let (block, style) = if let Some(..) = block_title {
-    (title_block_centered(block_title.unwrap()), style_default())
+  let (block, style) = if let Some(title) = block_title {
+    (title_block_centered(title), style_default())
   } else {
     (
       layout_block(),
@@ -671,10 +671,10 @@ pub fn draw_text_box<B: Backend>(
       },
     )
   };
-  let search_paragraph = Paragraph::new(Text::from(block_content))
+  let paragraph = Paragraph::new(Text::from(block_content))
     .style(style)
     .block(block);
-  f.render_widget(search_paragraph, text_box_area);
+  f.render_widget(paragraph, text_box_area);
 
   if should_show_cursor {
     show_cursor(f, text_box_area, offset, block_content);
@@ -715,4 +715,50 @@ pub fn draw_text_box_with_label<B: Backend>(
     should_show_cursor,
     is_selected,
   );
+}
+
+pub fn draw_input_box_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  input_box_area: Rect,
+  box_title: &str,
+  box_content: &HorizontallyScrollableText,
+) {
+  let chunks = vertical_chunks_with_margin(
+    vec![
+      Constraint::Length(3),
+      Constraint::Length(1),
+      Constraint::Min(0),
+    ],
+    input_box_area,
+    1,
+  );
+
+  draw_text_box(
+    f,
+    chunks[0],
+    Some(box_title),
+    &box_content.text,
+    *box_content.offset.borrow(),
+    true,
+    false,
+  );
+
+  let help = Paragraph::new("<esc> cancel")
+    .style(style_help())
+    .alignment(Alignment::Center)
+    .block(borderless_block());
+  f.render_widget(help, chunks[1]);
+}
+
+pub fn draw_error_message_popup<B: Backend>(
+  f: &mut Frame<'_, B>,
+  error_message_area: Rect,
+  error_msg: &str,
+) {
+  let input = Paragraph::new(error_msg)
+    .style(style_failure())
+    .alignment(Alignment::Center)
+    .block(layout_block());
+
+  f.render_widget(input, error_message_area);
 }

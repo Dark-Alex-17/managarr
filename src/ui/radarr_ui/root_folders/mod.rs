@@ -1,18 +1,16 @@
 use tui::backend::Backend;
-use tui::layout::{Alignment, Constraint, Rect};
-use tui::widgets::{Cell, Paragraph, Row};
+use tui::layout::{Constraint, Rect};
+use tui::widgets::{Cell, Row};
 use tui::Frame;
 
 use crate::app::App;
 use crate::models::radarr_models::RootFolder;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
 use crate::models::Route;
-use crate::ui::utils::{
-  borderless_block, layout_block_top_border, show_cursor, style_default, style_help, style_primary,
-  title_block_centered, vertical_chunks_with_margin,
-};
+use crate::ui::utils::{layout_block_top_border, style_primary};
 use crate::ui::{
-  draw_popup_over, draw_prompt_box, draw_prompt_popup_over, draw_table, DrawUi, TableProps,
+  draw_input_box_popup, draw_popup_over, draw_prompt_box, draw_prompt_popup_over, draw_table,
+  DrawUi, TableProps,
 };
 use crate::utils::convert_to_gb;
 
@@ -109,37 +107,12 @@ fn draw_add_root_folder_prompt_box<B: Backend>(
   app: &mut App<'_>,
   area: Rect,
 ) {
-  let chunks = vertical_chunks_with_margin(
-    vec![
-      Constraint::Length(3),
-      Constraint::Length(1),
-      Constraint::Min(0),
-    ],
+  draw_input_box_popup(
+    f,
     area,
-    1,
+    "Add Root Folder",
+    app.data.radarr_data.edit_root_folder.as_ref().unwrap(),
   );
-  let block_title = "Add Root Folder";
-  let offset = *app
-    .data
-    .radarr_data
-    .edit_root_folder
-    .as_ref()
-    .unwrap()
-    .offset
-    .borrow();
-  let block_content = &app.data.radarr_data.edit_root_folder.as_ref().unwrap().text;
-
-  let input = Paragraph::new(block_content.as_str())
-    .style(style_default())
-    .block(title_block_centered(block_title));
-  let help = Paragraph::new("<esc> cancel")
-    .style(style_help())
-    .alignment(Alignment::Center)
-    .block(borderless_block());
-  show_cursor(f, chunks[0], offset, block_content);
-
-  f.render_widget(input, chunks[0]);
-  f.render_widget(help, chunks[1]);
 }
 
 fn draw_delete_root_folder_prompt<B: Backend>(

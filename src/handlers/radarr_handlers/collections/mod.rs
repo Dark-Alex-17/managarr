@@ -3,16 +3,15 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handlers::collections::collection_details_handler::CollectionDetailsHandler;
 use crate::handlers::radarr_handlers::collections::edit_collection_handler::EditCollectionHandler;
-use crate::handlers::radarr_handlers::{
-  filter_table, handle_change_tab_left_right_keys, search_table,
-};
+use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTIONS_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
 };
 use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::utils::strip_non_search_characters;
+use crate::{filter_table, handle_text_box_keys, handle_text_box_left_right_keys, search_table};
 
 mod collection_details_handler;
 mod edit_collection_handler;
@@ -221,46 +220,26 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
           .items
           .is_empty()
         {
-          let selected_index = search_table(
+          search_table!(
             self.app,
-            &self.app.data.radarr_data.collections.items.clone(),
-            |collection| &collection.title.text,
+            collections,
+            ActiveRadarrBlock::SearchCollectionError
           );
-          self
-            .app
-            .data
-            .radarr_data
-            .collections
-            .select_index(selected_index);
         } else {
-          let selected_index = search_table(
+          search_table!(
             self.app,
-            &self.app.data.radarr_data.filtered_collections.items.clone(),
-            |collection| &collection.title.text,
+            filtered_collections,
+            ActiveRadarrBlock::SearchCollectionError
           );
-          self
-            .app
-            .data
-            .radarr_data
-            .filtered_collections
-            .select_index(selected_index);
         }
       }
       ActiveRadarrBlock::FilterCollections => {
-        let filtered_collections = filter_table(
+        filter_table!(
           self.app,
-          &self.app.data.radarr_data.collections.items.clone(),
-          |collection| &collection.title.text,
+          collections,
+          filtered_collections,
+          ActiveRadarrBlock::FilterCollectionsError
         );
-
-        if !filtered_collections.is_empty() {
-          self
-            .app
-            .data
-            .radarr_data
-            .filtered_collections
-            .set_items(filtered_collections);
-        }
       }
       ActiveRadarrBlock::UpdateAllCollectionsPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
@@ -275,12 +254,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
 
   fn handle_esc(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::FilterCollections => {
+      ActiveRadarrBlock::FilterCollections | ActiveRadarrBlock::FilterCollectionsError => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.reset_filter();
         self.app.should_ignore_quit_key = false;
       }
-      ActiveRadarrBlock::SearchCollection => {
+      ActiveRadarrBlock::SearchCollection | ActiveRadarrBlock::SearchCollectionError => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.reset_search();
         self.app.should_ignore_quit_key = false;
@@ -313,6 +292,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
+          self.app.data.radarr_data.reset_filter();
           self.app.data.radarr_data.filter = Some(HorizontallyScrollableText::default());
           self.app.data.radarr_data.is_filtering = true;
           self.app.should_ignore_quit_key = true;

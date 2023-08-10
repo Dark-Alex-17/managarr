@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
   mod radarr_data_tests {
-
     use chrono::{DateTime, Utc};
     use pretty_assertions::{assert_eq, assert_str_eq};
 
@@ -279,26 +278,30 @@ mod tests {
       ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS, COLLECTIONS_BLOCKS,
       COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS, DELETE_MOVIE_SELECTION_BLOCKS,
       DOWNLOADS_BLOCKS, EDIT_COLLECTION_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
-      EDIT_MOVIE_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, FILTER_BLOCKS, INDEXERS_BLOCKS,
-      INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS,
-      MOVIE_DETAILS_BLOCKS, ROOT_FOLDERS_BLOCKS, SEARCH_BLOCKS, SYSTEM_DETAILS_BLOCKS,
+      EDIT_MOVIE_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
+      INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS, MOVIE_DETAILS_BLOCKS, ROOT_FOLDERS_BLOCKS,
+      SYSTEM_DETAILS_BLOCKS,
     };
 
     #[test]
     fn test_library_blocks_contents() {
-      assert_eq!(LIBRARY_BLOCKS.len(), 4);
+      assert_eq!(LIBRARY_BLOCKS.len(), 6);
       assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::Movies));
       assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::SearchMovie));
+      assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::SearchMovieError));
       assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::FilterMovies));
+      assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::FilterMoviesError));
       assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::UpdateAllMoviesPrompt));
     }
 
     #[test]
     fn test_collections_blocks_contents() {
-      assert_eq!(COLLECTIONS_BLOCKS.len(), 4);
+      assert_eq!(COLLECTIONS_BLOCKS.len(), 6);
       assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::Collections));
       assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::SearchCollection));
+      assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::SearchCollectionError));
       assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::FilterCollections));
+      assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::FilterCollectionsError));
       assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::UpdateAllCollectionsPrompt));
     }
 
@@ -391,20 +394,6 @@ mod tests {
       assert_eq!(COLLECTION_DETAILS_BLOCKS.len(), 2);
       assert!(COLLECTION_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::CollectionDetails));
       assert!(COLLECTION_DETAILS_BLOCKS.contains(&ActiveRadarrBlock::ViewMovieOverview));
-    }
-
-    #[test]
-    fn test_search_blocks_contents() {
-      assert_eq!(SEARCH_BLOCKS.len(), 2);
-      assert!(SEARCH_BLOCKS.contains(&ActiveRadarrBlock::SearchMovie));
-      assert!(SEARCH_BLOCKS.contains(&ActiveRadarrBlock::SearchCollection));
-    }
-
-    #[test]
-    fn test_filter_blocks_contents() {
-      assert_eq!(FILTER_BLOCKS.len(), 2);
-      assert!(FILTER_BLOCKS.contains(&ActiveRadarrBlock::FilterMovies));
-      assert!(FILTER_BLOCKS.contains(&ActiveRadarrBlock::FilterCollections));
     }
 
     #[test]

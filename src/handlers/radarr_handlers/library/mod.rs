@@ -1,20 +1,20 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
+use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::radarr_handlers::library::add_movie_handler::AddMovieHandler;
 use crate::handlers::radarr_handlers::library::delete_movie_handler::DeleteMovieHandler;
 use crate::handlers::radarr_handlers::library::edit_movie_handler::EditMovieHandler;
 use crate::handlers::radarr_handlers::library::movie_details_handler::MovieDetailsHandler;
-use crate::handlers::radarr_handlers::{
-  filter_table, handle_change_tab_left_right_keys, search_table,
-};
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
+
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, DELETE_MOVIE_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, LIBRARY_BLOCKS,
 };
 use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::utils::strip_non_search_characters;
+use crate::{filter_table, handle_text_box_keys, handle_text_box_left_right_keys, search_table};
 
 mod add_movie_handler;
 mod delete_movie_handler;
@@ -200,46 +200,22 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
         .push_navigation_stack(ActiveRadarrBlock::MovieDetails.into()),
       ActiveRadarrBlock::SearchMovie => {
         if self.app.data.radarr_data.filtered_movies.items.is_empty() {
-          let selected_index = search_table(
-            self.app,
-            &self.app.data.radarr_data.movies.items.clone(),
-            |movie| &movie.title.text,
-          );
-          self
-            .app
-            .data
-            .radarr_data
-            .movies
-            .select_index(selected_index);
+          search_table!(self.app, movies, ActiveRadarrBlock::SearchMovieError);
         } else {
-          let selected_index = search_table(
+          search_table!(
             self.app,
-            &self.app.data.radarr_data.filtered_movies.items.clone(),
-            |movie| &movie.title.text,
+            filtered_movies,
+            ActiveRadarrBlock::SearchMovieError
           );
-          self
-            .app
-            .data
-            .radarr_data
-            .filtered_movies
-            .select_index(selected_index);
-        };
+        }
       }
       ActiveRadarrBlock::FilterMovies => {
-        let filtered_movies = filter_table(
+        filter_table!(
           self.app,
-          &self.app.data.radarr_data.movies.items.clone(),
-          |movie| &movie.title.text,
+          movies,
+          filtered_movies,
+          ActiveRadarrBlock::FilterMoviesError
         );
-
-        if !filtered_movies.is_empty() {
-          self
-            .app
-            .data
-            .radarr_data
-            .filtered_movies
-            .set_items(filtered_movies);
-        }
       }
       ActiveRadarrBlock::UpdateAllMoviesPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
@@ -254,12 +230,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
 
   fn handle_esc(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::FilterMovies => {
+      ActiveRadarrBlock::FilterMovies | ActiveRadarrBlock::FilterMoviesError => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.reset_filter();
         self.app.should_ignore_quit_key = false;
       }
-      ActiveRadarrBlock::SearchMovie => {
+      ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchMovieError => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.reset_search();
         self.app.should_ignore_quit_key = false;
@@ -292,6 +268,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
+          self.app.data.radarr_data.reset_filter();
           self.app.data.radarr_data.filter = Some(HorizontallyScrollableText::default());
           self.app.data.radarr_data.is_filtering = true;
           self.app.should_ignore_quit_key = true;

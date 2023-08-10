@@ -11,10 +11,10 @@ use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, COLLEC
 use crate::models::Route;
 use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsUi;
 use crate::ui::radarr_ui::collections::edit_collection_ui::EditCollectionUi;
-use crate::ui::radarr_ui::{draw_filter_box, draw_search_box};
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border, style_primary};
 use crate::ui::{
-  draw_popup_over, draw_prompt_box, draw_prompt_popup_over, draw_table, DrawUi, TableProps,
+  draw_error_message_popup, draw_input_box_popup, draw_popup_over, draw_prompt_box,
+  draw_prompt_popup_over, draw_table, DrawUi, TableProps,
 };
 
 mod collection_details_ui;
@@ -45,18 +45,36 @@ impl DrawUi for CollectionsUi {
         app,
         content_rect,
         draw_collections,
-        draw_search_box,
+        draw_collection_search_box,
         30,
         13,
+      ),
+      ActiveRadarrBlock::SearchCollectionError => draw_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_collections,
+        draw_search_collection_error_box,
+        30,
+        8,
       ),
       ActiveRadarrBlock::FilterCollections => draw_popup_over(
         f,
         app,
         content_rect,
         draw_collections,
-        draw_filter_box,
+        draw_filter_collections_box,
         30,
         13,
+      ),
+      ActiveRadarrBlock::FilterCollectionsError => draw_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_collections,
+        draw_filter_collections_error_box,
+        30,
+        8,
       ),
       ActiveRadarrBlock::UpdateAllCollectionsPrompt => draw_prompt_popup_over(
         f,
@@ -176,4 +194,34 @@ fn draw_update_all_collections_prompt<B: Backend>(
     "Do you want to update all of your collections?",
     app.data.radarr_data.prompt_confirm,
   );
+}
+
+fn draw_collection_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+  draw_input_box_popup(
+    f,
+    area,
+    "Search",
+    app.data.radarr_data.search.as_ref().unwrap(),
+  );
+}
+
+fn draw_filter_collections_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+  draw_input_box_popup(
+    f,
+    area,
+    "Filter",
+    app.data.radarr_data.filter.as_ref().unwrap(),
+  )
+}
+
+fn draw_search_collection_error_box<B: Backend>(f: &mut Frame<'_, B>, _: &mut App<'_>, area: Rect) {
+  draw_error_message_popup(f, area, "Collection not found!");
+}
+
+fn draw_filter_collections_error_box<B: Backend>(
+  f: &mut Frame<'_, B>,
+  _: &mut App<'_>,
+  area: Rect,
+) {
+  draw_error_message_popup(f, area, "No collections found matching the given filter!");
 }

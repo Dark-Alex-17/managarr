@@ -6,18 +6,21 @@ mod tests {
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
-  use crate::handlers::radarr_handlers::{
-    filter_table, handle_change_tab_left_right_keys, search_table, RadarrHandler,
-  };
+  use crate::handlers::radarr_handlers::{handle_change_tab_left_right_keys, RadarrHandler};
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::HorizontallyScrollableText;
-  use crate::{extended_stateful_iterable_vec, test_handler_delegation};
+  use crate::utils::strip_non_search_characters;
+  use crate::{
+    extended_stateful_iterable_vec, filter_table, search_table, test_handler_delegation,
+  };
 
   #[test]
-  fn test_search_table() {
+  fn test_search_table_macro() {
     let mut app = App::default();
+    app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+    app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
     app
       .data
       .radarr_data
@@ -29,13 +32,13 @@ mod tests {
     app.data.radarr_data.search = Some("Test 2".into());
     app.data.radarr_data.is_searching = true;
     app.should_ignore_quit_key = true;
-    app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
 
-    let movies = &app.data.radarr_data.movies.items.clone();
+    search_table!(app, movies, ActiveRadarrBlock::SearchMovieError);
 
-    let index = search_table(&mut app, movies, |movie| &movie.title.text);
-
-    assert_eq!(index, Some(1));
+    assert_str_eq!(
+      app.data.radarr_data.movies.current_selection().title.text,
+      "Test 2"
+    );
     assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     assert!(!app.data.radarr_data.is_searching);
     assert!(!app.should_ignore_quit_key);
@@ -43,8 +46,39 @@ mod tests {
   }
 
   #[test]
-  fn test_search_table_no_search_hits() {
+  fn test_search_table_macro_empty_search() {
     let mut app = App::default();
+    app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+    app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
+    app
+      .data
+      .radarr_data
+      .movies
+      .set_items(extended_stateful_iterable_vec!(
+        Movie,
+        HorizontallyScrollableText
+      ));
+    app.data.radarr_data.search = Some("".into());
+    app.data.radarr_data.is_searching = true;
+    app.should_ignore_quit_key = true;
+
+    search_table!(app, movies, ActiveRadarrBlock::SearchMovieError);
+
+    assert_str_eq!(
+      app.data.radarr_data.movies.current_selection().title.text,
+      "Test 1"
+    );
+    assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
+    assert!(!app.data.radarr_data.is_searching);
+    assert!(!app.should_ignore_quit_key);
+    assert!(app.data.radarr_data.search.is_none());
+  }
+
+  #[test]
+  fn test_search_table_macro_error_on_no_search_hits() {
+    let mut app = App::default();
+    app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+    app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
     app
       .data
       .radarr_data
@@ -56,16 +90,16 @@ mod tests {
     app.data.radarr_data.search = Some("Test 5".into());
     app.data.radarr_data.is_searching = true;
     app.should_ignore_quit_key = true;
-    app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
 
-    let movies = &app.data.radarr_data.movies.items.clone();
+    search_table!(app, movies, ActiveRadarrBlock::SearchMovieError);
 
-    let index = search_table(&mut app, movies, |movie| &movie.title.text);
-
-    assert_eq!(index, None);
+    assert_str_eq!(
+      app.data.radarr_data.movies.current_selection().title.text,
+      "Test 1"
+    );
     assert_eq!(
       app.get_current_route(),
-      &ActiveRadarrBlock::SearchMovie.into()
+      &ActiveRadarrBlock::SearchMovieError.into()
     );
     assert!(!app.data.radarr_data.is_searching);
     assert!(!app.should_ignore_quit_key);
@@ -73,8 +107,10 @@ mod tests {
   }
 
   #[test]
-  fn test_filter_table() {
+  fn test_filter_table_macro() {
     let mut app = App::default();
+    app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+    app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
     app
       .data
       .radarr_data
@@ -86,14 +122,19 @@ mod tests {
     app.data.radarr_data.filter = Some("Test 2".into());
     app.data.radarr_data.is_filtering = true;
     app.should_ignore_quit_key = true;
-    app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
 
-    let movies = &app.data.radarr_data.movies.items.clone();
+    filter_table!(
+      app,
+      movies,
+      filtered_movies,
+      ActiveRadarrBlock::FilterMoviesError
+    );
 
-    let filter_matches = filter_table(&mut app, movies, |movie| &movie.title.text);
-
-    assert_eq!(filter_matches.len(), 1);
-    assert_str_eq!(filter_matches[0].title.text, "Test 2");
+    assert_eq!(app.data.radarr_data.filtered_movies.items.len(), 1);
+    assert_str_eq!(
+      app.data.radarr_data.filtered_movies.items[0].title.text,
+      "Test 2"
+    );
     assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     assert!(!app.data.radarr_data.is_filtering);
     assert!(!app.should_ignore_quit_key);
@@ -101,38 +142,10 @@ mod tests {
   }
 
   #[test]
-  fn test_filter_table_no_filter_matches() {
+  fn test_filter_table_macro_reset_and_pop_on_empty_filter() {
     let mut app = App::default();
-    app
-      .data
-      .radarr_data
-      .movies
-      .set_items(extended_stateful_iterable_vec!(
-        Movie,
-        HorizontallyScrollableText
-      ));
-    app.data.radarr_data.filter = Some("Test 5".into());
-    app.data.radarr_data.is_filtering = true;
-    app.should_ignore_quit_key = true;
+    app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
     app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
-
-    let movies = &app.data.radarr_data.movies.items.clone();
-
-    let filter_matches = filter_table(&mut app, movies, |movie| &movie.title.text);
-
-    assert!(filter_matches.is_empty());
-    assert_eq!(
-      app.get_current_route(),
-      &ActiveRadarrBlock::FilterMovies.into()
-    );
-    assert!(!app.data.radarr_data.is_filtering);
-    assert!(!app.should_ignore_quit_key);
-    assert!(app.data.radarr_data.filter.is_none());
-  }
-
-  #[test]
-  fn test_filter_table_reset_and_pop_navigation_on_empty_filter() {
-    let mut app = App::default();
     app
       .data
       .radarr_data
@@ -144,13 +157,15 @@ mod tests {
     app.data.radarr_data.filter = Some("".into());
     app.data.radarr_data.is_filtering = true;
     app.should_ignore_quit_key = true;
-    app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
 
-    let movies = &app.data.radarr_data.movies.items.clone();
+    filter_table!(
+      app,
+      movies,
+      filtered_movies,
+      ActiveRadarrBlock::FilterMoviesError
+    );
 
-    let filter_matches = filter_table(&mut app, movies, |movie| &movie.title.text);
-
-    assert!(filter_matches.is_empty());
+    assert!(app.data.radarr_data.filtered_movies.items.is_empty());
     assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     assert!(!app.data.radarr_data.is_filtering);
     assert!(!app.should_ignore_quit_key);
@@ -158,8 +173,44 @@ mod tests {
   }
 
   #[test]
-  fn test_filter_table_noop_on_none_filter() {
+  fn test_filter_table_error_on_no_filter_matches() {
     let mut app = App::default();
+    app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+    app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
+    app
+      .data
+      .radarr_data
+      .movies
+      .set_items(extended_stateful_iterable_vec!(
+        Movie,
+        HorizontallyScrollableText
+      ));
+    app.data.radarr_data.filter = Some("Test 5".into());
+    app.data.radarr_data.is_filtering = true;
+    app.should_ignore_quit_key = true;
+
+    filter_table!(
+      app,
+      movies,
+      filtered_movies,
+      ActiveRadarrBlock::FilterMoviesError
+    );
+
+    assert!(app.data.radarr_data.filtered_movies.items.is_empty());
+    assert_eq!(
+      app.get_current_route(),
+      &ActiveRadarrBlock::FilterMoviesError.into()
+    );
+    assert!(!app.data.radarr_data.is_filtering);
+    assert!(!app.should_ignore_quit_key);
+    assert!(app.data.radarr_data.filter.is_none());
+  }
+
+  #[test]
+  fn test_filter_table_macro_error_on_none_filter() {
+    let mut app = App::default();
+    app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+    app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
     app
       .data
       .radarr_data
@@ -170,16 +221,18 @@ mod tests {
       ));
     app.data.radarr_data.is_filtering = true;
     app.should_ignore_quit_key = true;
-    app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
 
-    let movies = &app.data.radarr_data.movies.items.clone();
+    filter_table!(
+      app,
+      movies,
+      filtered_movies,
+      ActiveRadarrBlock::FilterMoviesError
+    );
 
-    let filter_matches = filter_table(&mut app, movies, |movie| &movie.title.text);
-
-    assert!(filter_matches.is_empty());
+    assert!(app.data.radarr_data.filtered_movies.items.is_empty());
     assert_eq!(
       app.get_current_route(),
-      &ActiveRadarrBlock::FilterMovies.into()
+      &ActiveRadarrBlock::FilterMoviesError.into()
     );
     assert!(!app.data.radarr_data.is_filtering);
     assert!(!app.should_ignore_quit_key);
@@ -244,7 +297,9 @@ mod tests {
     #[values(
       ActiveRadarrBlock::Movies,
       ActiveRadarrBlock::SearchMovie,
+      ActiveRadarrBlock::SearchMovieError,
       ActiveRadarrBlock::FilterMovies,
+      ActiveRadarrBlock::FilterMoviesError,
       ActiveRadarrBlock::UpdateAllMoviesPrompt,
       ActiveRadarrBlock::AddMovieSearchInput,
       ActiveRadarrBlock::AddMovieSearchResults,
@@ -285,7 +340,9 @@ mod tests {
     #[values(
       ActiveRadarrBlock::Collections,
       ActiveRadarrBlock::SearchCollection,
+      ActiveRadarrBlock::SearchCollectionError,
       ActiveRadarrBlock::FilterCollections,
+      ActiveRadarrBlock::FilterCollectionsError,
       ActiveRadarrBlock::UpdateAllCollectionsPrompt,
       ActiveRadarrBlock::CollectionDetails,
       ActiveRadarrBlock::ViewMovieOverview,

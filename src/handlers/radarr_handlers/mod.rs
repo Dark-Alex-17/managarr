@@ -7,7 +7,6 @@ use crate::handlers::radarr_handlers::root_folders::RootFoldersHandler;
 use crate::handlers::radarr_handlers::system::SystemHandler;
 use crate::handlers::KeyEventHandler;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-use crate::utils::strip_non_search_characters;
 use crate::{App, Key};
 
 mod collections;
@@ -100,87 +99,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
   fn handle_char_key_event(&mut self) {}
 }
 
-pub fn search_table<T, F>(app: &mut App<'_>, rows: &[T], field_selection_fn: F) -> Option<usize>
-where
-  F: Fn(&T) -> &str,
-{
-  let search_index = if app.data.radarr_data.search.is_some() {
-    let search_string = app
-      .data
-      .radarr_data
-      .search
-      .as_ref()
-      .unwrap()
-      .text
-      .clone()
-      .to_lowercase();
-
-    app.data.radarr_data.search = None;
-
-    rows.iter().position(|item| {
-      strip_non_search_characters(field_selection_fn(item)).contains(&search_string)
-    })
-  } else {
-    None
-  };
-
-  app.data.radarr_data.is_searching = false;
-  app.should_ignore_quit_key = false;
-
-  if search_index.is_some() {
-    app.pop_navigation_stack();
-  }
-
-  search_index
-}
-
-pub fn filter_table<T, F>(app: &mut App<'_>, rows: &[T], field_selection_fn: F) -> Vec<T>
-where
-  F: Fn(&T) -> &str,
-  T: Clone,
-{
-  let empty_filter = app.data.radarr_data.filter.is_some()
-    && app
-      .data
-      .radarr_data
-      .filter
-      .as_ref()
-      .unwrap()
-      .text
-      .is_empty();
-  let filter_matches = if app.data.radarr_data.filter.is_some()
-    && !app
-      .data
-      .radarr_data
-      .filter
-      .as_ref()
-      .unwrap()
-      .text
-      .is_empty()
-  {
-    let filter =
-      strip_non_search_characters(&app.data.radarr_data.filter.as_ref().unwrap().text.clone());
-
-    rows
-      .iter()
-      .filter(|&item| strip_non_search_characters(field_selection_fn(item)).contains(&filter))
-      .cloned()
-      .collect()
-  } else {
-    Vec::new()
-  };
-
-  app.data.radarr_data.filter = None;
-  app.data.radarr_data.is_filtering = false;
-  app.should_ignore_quit_key = false;
-
-  if !filter_matches.is_empty() || empty_filter {
-    app.pop_navigation_stack();
-  }
-
-  filter_matches
-}
-
 pub fn handle_change_tab_left_right_keys(app: &mut App<'_>, key: &Key) {
   let key_ref = key;
   match key_ref {
@@ -194,4 +112,100 @@ pub fn handle_change_tab_left_right_keys(app: &mut App<'_>, key: &Key) {
     }
     _ => (),
   }
+}
+
+#[macro_export]
+macro_rules! search_table {
+  ($app:expr, $data_ref:ident, $error_block:expr) => {
+    let search_index = if $app.data.radarr_data.search.is_some() {
+      let search_string = $app
+        .data
+        .radarr_data
+        .search
+        .as_ref()
+        .unwrap()
+        .text
+        .clone()
+        .to_lowercase();
+
+      $app.data.radarr_data.search = None;
+
+      $app
+        .data
+        .radarr_data
+        .$data_ref
+        .items
+        .iter()
+        .position(|item| strip_non_search_characters(&item.title.text).contains(&search_string))
+    } else {
+      None
+    };
+
+    $app.data.radarr_data.is_searching = false;
+    $app.should_ignore_quit_key = false;
+
+    if search_index.is_some() {
+      $app.pop_navigation_stack();
+      $app.data.radarr_data.$data_ref.select_index(search_index);
+    } else {
+      $app.pop_and_push_navigation_stack($error_block.into());
+    }
+  };
+}
+
+#[macro_export]
+macro_rules! filter_table {
+  ($app:expr, $source_table_ref:ident, $filter_table_ref:ident, $error_block:expr) => {
+    let empty_filter = $app.data.radarr_data.filter.is_some()
+      && $app
+        .data
+        .radarr_data
+        .filter
+        .as_ref()
+        .unwrap()
+        .text
+        .is_empty();
+    let filter_matches = if $app.data.radarr_data.filter.is_some()
+      && !$app
+        .data
+        .radarr_data
+        .filter
+        .as_ref()
+        .unwrap()
+        .text
+        .is_empty()
+    {
+      let filter =
+        strip_non_search_characters(&$app.data.radarr_data.filter.as_ref().unwrap().text.clone());
+
+      $app
+        .data
+        .radarr_data
+        .$source_table_ref
+        .items
+        .iter()
+        .filter(|item| strip_non_search_characters(&item.title.text).contains(&filter))
+        .cloned()
+        .collect()
+    } else {
+      Vec::new()
+    };
+
+    $app.data.radarr_data.filter = None;
+    $app.data.radarr_data.is_filtering = false;
+    $app.should_ignore_quit_key = false;
+
+    if filter_matches.is_empty() && !empty_filter {
+      $app.pop_and_push_navigation_stack($error_block.into());
+    } else if empty_filter {
+      $app.pop_navigation_stack();
+    } else {
+      $app.pop_navigation_stack();
+      $app
+        .data
+        .radarr_data
+        .$filter_table_ref
+        .set_items(filter_matches);
+    }
+  };
 }

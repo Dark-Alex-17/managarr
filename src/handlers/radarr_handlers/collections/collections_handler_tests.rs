@@ -370,6 +370,8 @@ mod tests {
     #[test]
     fn test_search_collections_submit() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app.push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
       app
         .data
         .radarr_data
@@ -398,11 +400,56 @@ mod tests {
           .text,
         "Test 2"
       );
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
+    }
+
+    #[test]
+    fn test_search_collections_submit_error_on_no_search_hits() {
+      let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app.push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(extended_stateful_iterable_vec!(
+          Collection,
+          HorizontallyScrollableText
+        ));
+      app.data.radarr_data.search = Some("Test 5".into());
+
+      CollectionsHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::SearchCollection,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .collections
+          .current_selection()
+          .title
+          .text,
+        "Test 1"
+      );
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::SearchCollectionError.into()
+      );
     }
 
     #[test]
     fn test_search_filtered_collections_submit() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app.push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
       app
         .data
         .radarr_data
@@ -431,11 +478,17 @@ mod tests {
           .text,
         "Test 2"
       );
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
     }
 
     #[test]
     fn test_filter_collections_submit() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app.push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
       app
         .data
         .radarr_data
@@ -464,6 +517,40 @@ mod tests {
           .title
           .text,
         "Test 1"
+      );
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
+    }
+
+    #[test]
+    fn test_filter_collections_submit_error_on_no_filter_matches() {
+      let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app.push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(extended_stateful_iterable_vec!(
+          Collection,
+          HorizontallyScrollableText
+        ));
+      app.data.radarr_data.filter = Some("Test 5".into());
+
+      CollectionsHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::FilterCollections,
+        &None,
+      )
+      .handle();
+
+      assert!(app.data.radarr_data.filtered_collections.items.is_empty());
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::FilterCollectionsError.into()
       );
     }
 
@@ -526,21 +613,21 @@ mod tests {
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
-    #[test]
-    fn test_search_collection_block_esc() {
+    #[rstest]
+    fn test_search_collection_block_esc(
+      #[values(
+        ActiveRadarrBlock::SearchCollection,
+        ActiveRadarrBlock::SearchCollectionError
+      )]
+      active_radarr_block: ActiveRadarrBlock,
+    ) {
       let mut app = App::default();
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
-      app.push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
+      app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data = create_test_radarr_data();
 
-      CollectionsHandler::with(
-        &ESC_KEY,
-        &mut app,
-        &ActiveRadarrBlock::SearchCollection,
-        &None,
-      )
-      .handle();
+      CollectionsHandler::with(&ESC_KEY, &mut app, &active_radarr_block, &None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -550,21 +637,21 @@ mod tests {
       assert_search_reset!(app.data.radarr_data);
     }
 
-    #[test]
-    fn test_filter_collections_block_esc() {
+    #[rstest]
+    fn test_filter_collections_block_esc(
+      #[values(
+        ActiveRadarrBlock::FilterCollections,
+        ActiveRadarrBlock::FilterCollectionsError
+      )]
+      active_radarr_block: ActiveRadarrBlock,
+    ) {
       let mut app = App::default();
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
-      app.push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
+      app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data = create_test_radarr_data();
 
-      CollectionsHandler::with(
-        &ESC_KEY,
-        &mut app,
-        &ActiveRadarrBlock::FilterCollections,
-        &None,
-      )
-      .handle();
+      CollectionsHandler::with(&ESC_KEY, &mut app, &active_radarr_block, &None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -673,6 +760,31 @@ mod tests {
       assert!(app.data.radarr_data.is_filtering);
       assert!(app.should_ignore_quit_key);
       assert!(app.data.radarr_data.filter.is_some());
+    }
+
+    #[test]
+    fn test_filter_collections_key_resets_previous_filter() {
+      let mut app = App::default();
+      app.should_ignore_quit_key = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app.data.radarr_data = create_test_radarr_data();
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::FilterCollections.into()
+      );
+      assert!(app.data.radarr_data.is_filtering);
+      assert!(app.should_ignore_quit_key);
+      assert!(app.data.radarr_data.filter.is_some());
+      assert!(app.data.radarr_data.filtered_collections.items.is_empty());
     }
 
     #[test]

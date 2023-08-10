@@ -7,14 +7,15 @@ use crate::app::App;
 use crate::models::radarr_models::Movie;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, LIBRARY_BLOCKS};
 use crate::models::Route;
+use crate::ui::radarr_ui::determine_row_style;
 use crate::ui::radarr_ui::library::add_movie_ui::AddMovieUi;
 use crate::ui::radarr_ui::library::delete_movie_ui::DeleteMovieUi;
 use crate::ui::radarr_ui::library::edit_movie_ui::EditMovieUi;
 use crate::ui::radarr_ui::library::movie_details_ui::MovieDetailsUi;
-use crate::ui::radarr_ui::{determine_row_style, draw_filter_box, draw_search_box};
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::{
-  draw_popup_over, draw_prompt_box, draw_prompt_popup_over, draw_table, DrawUi, TableProps,
+  draw_error_message_popup, draw_input_box_popup, draw_popup_over, draw_prompt_box,
+  draw_prompt_popup_over, draw_table, DrawUi, TableProps,
 };
 use crate::utils::{convert_runtime, convert_to_gb};
 
@@ -47,12 +48,42 @@ impl DrawUi for LibraryUi {
     let mut library_ui_matchers = |active_radarr_block: ActiveRadarrBlock| match active_radarr_block
     {
       ActiveRadarrBlock::Movies => draw_library(f, app, content_rect),
-      ActiveRadarrBlock::SearchMovie => {
-        draw_popup_over(f, app, content_rect, draw_library, draw_search_box, 30, 13)
-      }
-      ActiveRadarrBlock::FilterMovies => {
-        draw_popup_over(f, app, content_rect, draw_library, draw_filter_box, 30, 13)
-      }
+      ActiveRadarrBlock::SearchMovie => draw_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_library,
+        draw_movie_search_box,
+        30,
+        13,
+      ),
+      ActiveRadarrBlock::SearchMovieError => draw_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_library,
+        draw_search_movie_error_box,
+        30,
+        8,
+      ),
+      ActiveRadarrBlock::FilterMovies => draw_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_library,
+        draw_filter_movies_box,
+        30,
+        13,
+      ),
+      ActiveRadarrBlock::FilterMoviesError => draw_popup_over(
+        f,
+        app,
+        content_rect,
+        draw_library,
+        draw_filter_movies_error_box,
+        30,
+        8,
+      ),
       ActiveRadarrBlock::UpdateAllMoviesPrompt => draw_prompt_popup_over(
         f,
         app,
@@ -193,4 +224,30 @@ fn draw_update_all_movies_prompt<B: Backend>(
     "Do you want to update info and scan your disks for all of your movies?",
     app.data.radarr_data.prompt_confirm,
   );
+}
+
+fn draw_movie_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+  draw_input_box_popup(
+    f,
+    area,
+    "Search",
+    app.data.radarr_data.search.as_ref().unwrap(),
+  );
+}
+
+fn draw_filter_movies_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+  draw_input_box_popup(
+    f,
+    area,
+    "Filter",
+    app.data.radarr_data.filter.as_ref().unwrap(),
+  )
+}
+
+fn draw_search_movie_error_box<B: Backend>(f: &mut Frame<'_, B>, _: &mut App<'_>, area: Rect) {
+  draw_error_message_popup(f, area, "Movie not found!");
+}
+
+fn draw_filter_movies_error_box<B: Backend>(f: &mut Frame<'_, B>, _: &mut App<'_>, area: Rect) {
+  draw_error_message_popup(f, area, "No movies found matching the given filter!");
 }

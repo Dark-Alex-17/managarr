@@ -287,7 +287,9 @@ pub enum ActiveRadarrBlock {
   EditMovieToggleMonitored,
   FileInfo,
   FilterCollections,
+  FilterCollectionsError,
   FilterMovies,
+  FilterMoviesError,
   Indexers,
   IndexerSettingsPrompt,
   IndexerSettingsAvailabilityDelayInput,
@@ -317,21 +319,27 @@ pub enum ActiveRadarrBlock {
   UpdateAllCollectionsPrompt,
   UpdateAllMoviesPrompt,
   UpdateDownloadsPrompt,
-  SearchMovie,
   SearchCollection,
+  SearchCollectionError,
+  SearchMovie,
+  SearchMovieError,
   ViewMovieOverview,
 }
 
-pub static LIBRARY_BLOCKS: [ActiveRadarrBlock; 4] = [
+pub static LIBRARY_BLOCKS: [ActiveRadarrBlock; 6] = [
   ActiveRadarrBlock::Movies,
   ActiveRadarrBlock::SearchMovie,
+  ActiveRadarrBlock::SearchMovieError,
   ActiveRadarrBlock::FilterMovies,
+  ActiveRadarrBlock::FilterMoviesError,
   ActiveRadarrBlock::UpdateAllMoviesPrompt,
 ];
-pub static COLLECTIONS_BLOCKS: [ActiveRadarrBlock; 4] = [
+pub static COLLECTIONS_BLOCKS: [ActiveRadarrBlock; 6] = [
   ActiveRadarrBlock::Collections,
   ActiveRadarrBlock::SearchCollection,
+  ActiveRadarrBlock::SearchCollectionError,
   ActiveRadarrBlock::FilterCollections,
+  ActiveRadarrBlock::FilterCollectionsError,
   ActiveRadarrBlock::UpdateAllCollectionsPrompt,
 ];
 pub static INDEXERS_BLOCKS: [ActiveRadarrBlock; 4] = [
@@ -419,14 +427,6 @@ pub static MOVIE_DETAILS_BLOCKS: [ActiveRadarrBlock; 10] = [
 pub static COLLECTION_DETAILS_BLOCKS: [ActiveRadarrBlock; 2] = [
   ActiveRadarrBlock::CollectionDetails,
   ActiveRadarrBlock::ViewMovieOverview,
-];
-pub static SEARCH_BLOCKS: [ActiveRadarrBlock; 2] = [
-  ActiveRadarrBlock::SearchMovie,
-  ActiveRadarrBlock::SearchCollection,
-];
-pub static FILTER_BLOCKS: [ActiveRadarrBlock; 2] = [
-  ActiveRadarrBlock::FilterMovies,
-  ActiveRadarrBlock::FilterCollections,
 ];
 pub static DELETE_MOVIE_BLOCKS: [ActiveRadarrBlock; 4] = [
   ActiveRadarrBlock::DeleteMoviePrompt,
