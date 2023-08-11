@@ -17,7 +17,7 @@ mod tests {
     use rstest::rstest;
 
     use crate::models::{HorizontallyScrollableText, ScrollableText};
-    use crate::{simple_stateful_iterable_vec, test_iterable_scroll, test_scrollable_text_scroll};
+    use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
 
     use super::*;
 
@@ -51,19 +51,36 @@ mod tests {
       name
     );
 
-    test_scrollable_text_scroll!(
-      test_system_updates_scroll,
-      SystemDetailsHandler,
-      updates,
-      ActiveRadarrBlock::SystemUpdates
-    );
+    #[test]
+    fn test_system_updates_scroll() {
+      let mut app = App::default();
+      app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
+
+      SystemDetailsHandler::with(
+        &DEFAULT_KEYBINDINGS.up.key,
+        &mut app,
+        &ActiveRadarrBlock::SystemUpdates,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(app.data.radarr_data.updates.offset, 0);
+
+      SystemDetailsHandler::with(
+        &DEFAULT_KEYBINDINGS.down.key,
+        &mut app,
+        &ActiveRadarrBlock::SystemUpdates,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(app.data.radarr_data.updates.offset, 1);
+    }
   }
 
   mod test_handle_home_end {
     use crate::models::{HorizontallyScrollableText, ScrollableText};
-    use crate::{
-      extended_stateful_iterable_vec, test_iterable_home_and_end, test_scrollable_text_home_and_end,
-    };
+    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
 
     use super::*;
 
@@ -97,12 +114,31 @@ mod tests {
       name
     );
 
-    test_scrollable_text_home_and_end!(
-      test_system_updates_home_end,
-      SystemDetailsHandler,
-      updates,
-      ActiveRadarrBlock::SystemUpdates
-    );
+    #[test]
+    fn test_system_updates_home_end() {
+      let mut app = App::default();
+      app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
+
+      SystemDetailsHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::SystemUpdates,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(app.data.radarr_data.updates.offset, 1);
+
+      SystemDetailsHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::SystemUpdates,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(app.data.radarr_data.updates.offset, 0);
+    }
   }
 
   mod test_handle_left_right_action {

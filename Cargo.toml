@@ -1,9 +1,9 @@
 [package]
 name = "managarr"
-version = "0.0.27"
+version = "0.0.28"
 authors = ["Alex Clarke <alex.j.tusa@gmail.com>"]
 description = "A TUI for managing *arr servers"
-keywords = ["managarr", "tui-rs", "dashboard", "servarr", "tui", "terminal"]
+keywords = ["managarr", "tui-rs", "dashboard", "servarr", "tui"]
 documentation = "https://github.com/Dark-Alex-17/managarr"
 repository = "https://github.com/Dark-Alex-17/managarr"
 homepage = "https://github.com/Dark-Alex-17/managarr"

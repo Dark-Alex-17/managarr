@@ -15,7 +15,7 @@ use crate::models::radarr_models::{
   QueueEvent, Release, ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task, Update,
 };
 use crate::models::servarr_data::radarr::modals::{
-  AddMovieModal, EditCollectionModal, EditMovieModal,
+  AddMovieModal, EditCollectionModal, EditMovieModal, MovieDetailsModal,
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
@@ -451,7 +451,14 @@ impl<'a, 'b> Network<'a, 'b> {
         title,
         indexer_id,
         ..
-      } = app.data.radarr_data.movie_releases.current_selection();
+      } = app
+        .data
+        .radarr_data
+        .movie_details_modal
+        .as_ref()
+        .unwrap()
+        .movie_releases
+        .current_selection();
 
       (guid.clone(), title.clone(), indexer_id.as_u64().unwrap())
     };
@@ -693,8 +700,10 @@ impl<'a, 'b> Network<'a, 'b> {
           .filter(|credit| credit.credit_type == CreditType::Crew)
           .collect();
 
-        app.data.radarr_data.movie_cast.set_items(cast_vec);
-        app.data.radarr_data.movie_crew.set_items(crew_vec);
+        debug!("Assuming the movie_details_modal is already a Some and was created by the get_movie_details request");
+
+        app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_cast.set_items(cast_vec);
+        app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_crew.set_items(crew_vec);
       })
       .await;
   }
@@ -913,42 +922,45 @@ impl<'a, 'b> Network<'a, 'b> {
         let status = get_movie_status(has_file, &app.data.radarr_data.downloads.items, id);
         let collection = collection.unwrap_or_default();
 
-        app.data.radarr_data.movie_details = ScrollableText::with_string(formatdoc!(
-          "Title: {}
-          Year: {}
-          Runtime: {}h {}m
-          Rating: {}
-          Collection: {}
-          Status: {}
-          Description: {}
-          TMDB: {}
-          IMDB: {}
-          Rotten Tomatoes: {}
-          Quality Profile: {}
-          Size: {:.2} GB
-          Path: {}
-          Studio: {}
-          Genres: {}",
-          title,
-          year,
-          hours,
-          minutes,
-          certification.unwrap_or_default(),
-          collection.title,
-          status,
-          overview,
-          tmdb_rating,
-          imdb_rating,
-          rotten_tomatoes_rating,
-          quality_profile,
-          size,
-          path,
-          studio,
-          genres.join(", ")
-        ));
+        let mut movie_details_modal = MovieDetailsModal {
+          movie_details: ScrollableText::with_string(formatdoc!(
+            "Title: {}
+            Year: {}
+            Runtime: {}h {}m
+            Rating: {}
+            Collection: {}
+            Status: {}
+            Description: {}
+            TMDB: {}
+            IMDB: {}
+            Rotten Tomatoes: {}
+            Quality Profile: {}
+            Size: {:.2} GB
+            Path: {}
+            Studio: {}
+            Genres: {}",
+            title,
+            year,
+            hours,
+            minutes,
+            certification.unwrap_or_default(),
+            collection.title,
+            status,
+            overview,
+            tmdb_rating,
+            imdb_rating,
+            rotten_tomatoes_rating,
+            quality_profile,
+            size,
+            path,
+            studio,
+            genres.join(", ")
+          )),
+          ..MovieDetailsModal::default()
+        };
 
         if let Some(file) = movie_file {
-          app.data.radarr_data.file_details = formatdoc!(
+          movie_details_modal.file_details = formatdoc!(
             "Relative Path: {}
               Absolute Path: {}
               Size: {:.2} GB
@@ -960,7 +972,7 @@ impl<'a, 'b> Network<'a, 'b> {
           );
 
           if let Some(media_info) = file.media_info {
-            app.data.radarr_data.audio_details = formatdoc!(
+            movie_details_modal.audio_details = formatdoc!(
               "Bitrate: {}
               Channels: {:.1}
               Codec: {}
@@ -973,7 +985,7 @@ impl<'a, 'b> Network<'a, 'b> {
               media_info.audio_stream_count.as_u64().unwrap()
             );
 
-            app.data.radarr_data.video_details = formatdoc!(
+            movie_details_modal.video_details = formatdoc!(
               "Bit Depth: {}
               Bitrate: {}
               Codec: {}
@@ -991,6 +1003,8 @@ impl<'a, 'b> Network<'a, 'b> {
             );
           }
         }
+
+        app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
       })
       .await;
   }
@@ -1007,11 +1021,15 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<(), Vec<MovieHistoryItem>>(request_props, |movie_history_vec, mut app| {
+        debug!("Assuming the movie_details_modal is already a Some and was created by the get_movie_details request");
         let mut reversed_movie_history_vec = movie_history_vec.to_vec();
         reversed_movie_history_vec.reverse();
         app
           .data
           .radarr_data
+          .movie_details_modal
+          .as_mut()
+          .unwrap()
           .movie_history
           .set_items(reversed_movie_history_vec)
       })
@@ -1101,7 +1119,8 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<(), Vec<Release>>(request_props, |release_vec, mut app| {
-        app.data.radarr_data.movie_releases.set_items(release_vec)
+        debug!("Assuming the movie_details_modal is already a Some and was created by the get_movie_details request");
+        app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_releases.set_items(release_vec);
       })
       .await;
   }

@@ -14,8 +14,8 @@ use crate::models::Route;
 use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_bottom_border, layout_block_top_border,
-  line_info_default, style_awaiting_import, style_bold, style_default, style_failure,
-  style_primary, style_success, style_warning, vertical_chunks,
+  line_info_default, style_awaiting_import, style_bold, style_failure, style_primary,
+  style_success, style_warning, vertical_chunks,
 };
 use crate::ui::{
   draw_drop_down_popup, draw_large_popup_over, draw_prompt_box, draw_prompt_box_with_content,
@@ -73,7 +73,13 @@ impl DrawUi for MovieDetailsUi {
               draw_selectable_list(
                 f,
                 content_area,
-                &mut app.data.radarr_data.movie_releases_sort,
+                &mut app
+                  .data
+                  .radarr_data
+                  .movie_details_modal
+                  .as_mut()
+                  .unwrap()
+                  .movie_releases_sort,
                 |sort_option| ListItem::new(sort_option.to_string()),
               )
             },
@@ -147,130 +153,123 @@ fn draw_update_and_scan_prompt<B: Backend>(
 }
 
 fn draw_file_info<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, content_area: Rect) {
-  let file_info = app.data.radarr_data.file_details.to_owned();
+  match app.data.radarr_data.movie_details_modal.as_ref() {
+    Some(movie_details_modal)
+      if !movie_details_modal.file_details.is_empty() && !app.is_loading =>
+    {
+      let file_info = movie_details_modal.file_details.to_owned();
+      let audio_details = movie_details_modal.audio_details.to_owned();
+      let video_details = movie_details_modal.video_details.to_owned();
+      let chunks = vertical_chunks(
+        vec![
+          Constraint::Length(2),
+          Constraint::Length(5),
+          Constraint::Length(1),
+          Constraint::Length(6),
+          Constraint::Length(1),
+          Constraint::Length(7),
+        ],
+        content_area,
+      );
+      let mut file_details_title = Text::from("File Details");
+      let mut audio_details_title = Text::from("Audio Details");
+      let mut video_details_title = Text::from("Video Details");
+      file_details_title.patch_style(style_bold());
+      audio_details_title.patch_style(style_bold());
+      video_details_title.patch_style(style_bold());
 
-  if !file_info.is_empty() {
-    let audio_details = app.data.radarr_data.audio_details.to_owned();
-    let video_details = app.data.radarr_data.video_details.to_owned();
-    let chunks = vertical_chunks(
-      vec![
-        Constraint::Length(2),
-        Constraint::Length(5),
-        Constraint::Length(1),
-        Constraint::Length(6),
-        Constraint::Length(1),
-        Constraint::Length(7),
-      ],
-      content_area,
-    );
-    let mut file_details_title = Text::from("File Details");
-    let mut audio_details_title = Text::from("Audio Details");
-    let mut video_details_title = Text::from("Video Details");
-    file_details_title.patch_style(style_bold());
-    audio_details_title.patch_style(style_bold());
-    video_details_title.patch_style(style_bold());
+      let file_details_title_paragraph =
+        Paragraph::new(file_details_title).block(layout_block_top_border());
+      let audio_details_title_paragraph =
+        Paragraph::new(audio_details_title).block(borderless_block());
+      let video_details_title_paragraph =
+        Paragraph::new(video_details_title).block(borderless_block());
 
-    let file_details_title_paragraph =
-      Paragraph::new(file_details_title).block(layout_block_top_border());
-    let audio_details_title_paragraph =
-      Paragraph::new(audio_details_title).block(borderless_block());
-    let video_details_title_paragraph =
-      Paragraph::new(video_details_title).block(borderless_block());
+      let file_details = Text::from(file_info);
+      let audio_details = Text::from(audio_details);
+      let video_details = Text::from(video_details);
 
-    let file_details = Text::from(file_info);
-    let audio_details = Text::from(audio_details);
-    let video_details = Text::from(video_details);
+      let file_details_paragraph = Paragraph::new(file_details)
+        .block(layout_block_bottom_border())
+        .wrap(Wrap { trim: false });
+      let audio_details_paragraph = Paragraph::new(audio_details)
+        .block(layout_block_bottom_border())
+        .wrap(Wrap { trim: false });
+      let video_details_paragraph = Paragraph::new(video_details)
+        .block(borderless_block())
+        .wrap(Wrap { trim: false });
 
-    let file_details_paragraph = Paragraph::new(file_details)
-      .block(layout_block_bottom_border())
-      .wrap(Wrap { trim: false });
-    let audio_details_paragraph = Paragraph::new(audio_details)
-      .block(layout_block_bottom_border())
-      .wrap(Wrap { trim: false });
-    let video_details_paragraph = Paragraph::new(video_details)
-      .block(borderless_block())
-      .wrap(Wrap { trim: false });
-
-    f.render_widget(file_details_title_paragraph, chunks[0]);
-    f.render_widget(file_details_paragraph, chunks[1]);
-    f.render_widget(audio_details_title_paragraph, chunks[2]);
-    f.render_widget(audio_details_paragraph, chunks[3]);
-    f.render_widget(video_details_title_paragraph, chunks[4]);
-    f.render_widget(video_details_paragraph, chunks[5]);
-  } else {
-    loading(f, layout_block_top_border(), content_area, app.is_loading);
+      f.render_widget(file_details_title_paragraph, chunks[0]);
+      f.render_widget(file_details_paragraph, chunks[1]);
+      f.render_widget(audio_details_title_paragraph, chunks[2]);
+      f.render_widget(audio_details_paragraph, chunks[3]);
+      f.render_widget(video_details_title_paragraph, chunks[4]);
+      f.render_widget(video_details_paragraph, chunks[5]);
+    }
+    _ => loading(f, layout_block_top_border(), content_area, app.is_loading),
   }
 }
 
 fn draw_movie_details<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, content_area: Rect) {
-  let movie_details = app.data.radarr_data.movie_details.get_text();
   let block = layout_block_top_border();
 
-  if !movie_details.is_empty() {
-    let download_status = app
-      .data
-      .radarr_data
-      .movie_details
-      .items
-      .iter()
-      .find(|&line| line.starts_with("Status: "))
-      .unwrap()
-      .split(": ")
-      .collect::<Vec<&str>>()[1];
-    let mut text = Text::from(
-      app
-        .data
-        .radarr_data
-        .movie_details
+  match app.data.radarr_data.movie_details_modal.as_ref() {
+    Some(movie_details_modal) if !app.is_loading => {
+      let movie_details = &movie_details_modal.movie_details;
+      let download_status = movie_details
         .items
         .iter()
-        .map(|line| {
-          let split = line.split(':').collect::<Vec<&str>>();
-          let title = format!("{}:", split[0]);
+        .find(|&line| line.starts_with("Status: "))
+        .unwrap()
+        .split(": ")
+        .collect::<Vec<&str>>()[1];
+      let mut text = Text::from(
+        movie_details
+          .items
+          .iter()
+          .map(|line| {
+            let split = line.split(':').collect::<Vec<&str>>();
+            let title = format!("{}:", split[0]);
 
-          line_info_default(title, split[1..].join(":"))
-        })
-        .collect::<Vec<Line<'_>>>(),
-    );
-    text.patch_style(determine_style_from_download_status(download_status));
+            line_info_default(title, split[1..].join(":"))
+          })
+          .collect::<Vec<Line<'_>>>(),
+      );
+      text.patch_style(determine_style_from_download_status(download_status));
 
-    let paragraph = Paragraph::new(text)
-      .block(block)
-      .wrap(Wrap { trim: false })
-      .scroll((app.data.radarr_data.movie_details.offset, 0));
+      let paragraph = Paragraph::new(text)
+        .block(block)
+        .wrap(Wrap { trim: false })
+        .scroll((movie_details.offset, 0));
 
-    f.render_widget(paragraph, content_area);
-  } else {
-    loading(f, block, content_area, app.is_loading);
+      f.render_widget(paragraph, content_area);
+    }
+    _ => loading(
+      f,
+      block,
+      content_area,
+      app.is_loading || app.data.radarr_data.movie_details_modal.is_none(),
+    ),
   }
 }
 
 fn draw_movie_history<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_area: Rect) {
-  let current_selection = if app.data.radarr_data.movie_history.items.is_empty() {
-    MovieHistoryItem::default()
-  } else {
-    app
-      .data
-      .radarr_data
-      .movie_history
-      .current_selection()
-      .clone()
-  };
-  let block = layout_block_top_border();
+  if let Some(movie_details_modal) = app.data.radarr_data.movie_details_modal.as_mut() {
+    let current_selection = if movie_details_modal.movie_history.items.is_empty() {
+      MovieHistoryItem::default()
+    } else {
+      movie_details_modal
+        .movie_history
+        .current_selection()
+        .clone()
+    };
 
-  if app.data.radarr_data.movie_history.items.is_empty() && !app.is_loading {
-    let no_history_paragraph = Paragraph::new(Text::from("No history"))
-      .style(style_default())
-      .block(block);
-
-    f.render_widget(no_history_paragraph, content_area);
-  } else {
     draw_table(
       f,
       content_area,
-      block,
+      layout_block_top_border(),
       TableProps {
-        content: &mut app.data.radarr_data.movie_history,
+        content: &mut movie_details_modal.movie_history,
         table_headers: vec!["Source Title", "Event Type", "Languages", "Quality", "Date"],
         constraints: vec![
           Constraint::Percentage(34),
@@ -327,7 +326,13 @@ fn draw_movie_cast<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_
     content_area,
     layout_block_top_border(),
     TableProps {
-      content: &mut app.data.radarr_data.movie_cast,
+      content: &mut app
+        .data
+        .radarr_data
+        .movie_details_modal
+        .as_mut()
+        .unwrap()
+        .movie_cast,
       constraints: iter::repeat(Constraint::Ratio(1, 2)).take(2).collect(),
       table_headers: vec!["Cast Member", "Character"],
       help: app
@@ -360,7 +365,13 @@ fn draw_movie_crew<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_
     content_area,
     layout_block_top_border(),
     TableProps {
-      content: &mut app.data.radarr_data.movie_crew,
+      content: &mut app
+        .data
+        .radarr_data
+        .movie_details_modal
+        .as_mut()
+        .unwrap()
+        .movie_crew,
       constraints: iter::repeat(Constraint::Ratio(1, 3)).take(3).collect(),
       table_headers: vec!["Crew Member", "Job", "Department"],
       help: app
@@ -390,16 +401,18 @@ fn draw_movie_crew<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_
 }
 
 fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_area: Rect) {
-  let current_selection = if app.data.radarr_data.movie_releases.items.is_empty() {
-    Release::default()
-  } else {
-    app
-      .data
-      .radarr_data
-      .movie_releases
-      .current_selection()
-      .clone()
-  };
+  let (current_selection, is_empty, sort_ascending) =
+    match app.data.radarr_data.movie_details_modal.as_ref() {
+      Some(movie_details_modal) if !movie_details_modal.movie_releases.items.is_empty() => (
+        movie_details_modal
+          .movie_releases
+          .current_selection()
+          .clone(),
+        movie_details_modal.movie_releases.items.is_empty(),
+        movie_details_modal.sort_ascending,
+      ),
+      _ => (Release::default(), true, None),
+    };
   let current_route = *app.get_current_route();
   let mut table_headers_vec = vec![
     "Source".to_owned(),
@@ -413,10 +426,18 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, cont
     "Quality".to_owned(),
   ];
 
-  if let Some(ascending) = app.data.radarr_data.sort_ascending {
+  if let Some(ascending) = sort_ascending {
     let direction = if ascending { " ▲" } else { " ▼" };
 
-    match app.data.radarr_data.movie_releases_sort.current_selection() {
+    match app
+      .data
+      .radarr_data
+      .movie_details_modal
+      .as_ref()
+      .unwrap()
+      .movie_releases_sort
+      .current_selection()
+    {
       ReleaseField::Source => table_headers_vec[0].push_str(direction),
       ReleaseField::Age => table_headers_vec[1].push_str(direction),
       ReleaseField::Rejected => table_headers_vec[2].push_str(direction),
@@ -434,7 +455,13 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, cont
     content_area,
     layout_block_top_border(),
     TableProps {
-      content: &mut app.data.radarr_data.movie_releases,
+      content: &mut app
+        .data
+        .radarr_data
+        .movie_details_modal
+        .as_mut()
+        .unwrap()
+        .movie_releases,
       constraints: vec![
         Constraint::Length(9),
         Constraint::Length(10),
@@ -507,7 +534,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, cont
       ])
       .style(style_primary())
     },
-    app.is_loading,
+    app.is_loading || is_empty,
     true,
   );
 }
@@ -517,7 +544,14 @@ fn draw_manual_search_confirm_prompt<B: Backend>(
   app: &mut App<'_>,
   prompt_area: Rect,
 ) {
-  let current_selection = app.data.radarr_data.movie_releases.current_selection();
+  let current_selection = app
+    .data
+    .radarr_data
+    .movie_details_modal
+    .as_ref()
+    .unwrap()
+    .movie_releases
+    .current_selection();
   let title = if current_selection.rejected {
     "Download Rejected Release"
   } else {

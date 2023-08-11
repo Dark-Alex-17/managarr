@@ -87,15 +87,6 @@ mod tests {
       assert!(radarr_data.indexer_settings.is_none());
       assert!(radarr_data.quality_profile_map.is_empty());
       assert!(radarr_data.tags_map.is_empty());
-      assert!(radarr_data.file_details.is_empty());
-      assert!(radarr_data.audio_details.is_empty());
-      assert!(radarr_data.video_details.is_empty());
-      assert!(radarr_data.movie_details.get_text().is_empty());
-      assert!(radarr_data.movie_history.items.is_empty());
-      assert!(radarr_data.movie_cast.items.is_empty());
-      assert!(radarr_data.movie_crew.items.is_empty());
-      assert!(radarr_data.movie_releases.items.is_empty());
-      assert!(radarr_data.movie_releases_sort.items.is_empty());
       assert!(radarr_data.collections.items.is_empty());
       assert!(radarr_data.filtered_collections.items.is_empty());
       assert!(radarr_data.collection_movies.items.is_empty());
@@ -111,7 +102,7 @@ mod tests {
       assert!(radarr_data.edit_movie_modal.is_none());
       assert!(radarr_data.edit_collection_modal.is_none());
       assert!(radarr_data.edit_root_folder.is_none());
-      assert!(radarr_data.sort_ascending.is_none());
+      assert!(radarr_data.movie_details_modal.is_none());
       assert!(!radarr_data.is_searching);
       assert!(!radarr_data.is_filtering);
       assert!(!radarr_data.prompt_confirm);

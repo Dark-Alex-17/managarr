@@ -7,7 +7,8 @@ mod tests {
     use crate::app::radarr::ActiveRadarrBlock;
     use crate::app::App;
     use crate::models::radarr_models::{Collection, CollectionMovie, Credit, Release};
-    use crate::models::StatefulTable;
+    use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
+
     use crate::network::radarr_network::RadarrEvent;
     use crate::network::NetworkEvent;
 
@@ -275,9 +276,7 @@ mod tests {
       let (mut app, mut sync_network_rx) = construct_app_unit();
 
       for active_radarr_block in &[ActiveRadarrBlock::Cast, ActiveRadarrBlock::Crew] {
-        app.data.radarr_data.movie_cast = StatefulTable::default();
-        app.data.radarr_data.movie_crew = StatefulTable::default();
-
+        app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
         app.dispatch_by_radarr_block(active_radarr_block).await;
 
         assert!(app.is_loading);
@@ -295,11 +294,11 @@ mod tests {
       let (mut app, mut sync_network_rx) = construct_app_unit();
 
       for active_radarr_block in &[ActiveRadarrBlock::Cast, ActiveRadarrBlock::Crew] {
-        app
-          .data
-          .radarr_data
+        let mut movie_details_modal = MovieDetailsModal::default();
+        movie_details_modal
           .movie_cast
           .set_items(vec![Credit::default()]);
+        app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
 
         app.dispatch_by_radarr_block(active_radarr_block).await;
 
@@ -318,11 +317,11 @@ mod tests {
       let (mut app, mut sync_network_rx) = construct_app_unit();
 
       for active_radarr_block in &[ActiveRadarrBlock::Cast, ActiveRadarrBlock::Crew] {
-        app
-          .data
-          .radarr_data
+        let mut movie_details_modal = MovieDetailsModal::default();
+        movie_details_modal
           .movie_crew
           .set_items(vec![Credit::default()]);
+        app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
 
         app.dispatch_by_radarr_block(active_radarr_block).await;
 
@@ -341,16 +340,14 @@ mod tests {
       let mut app = App::default();
 
       for active_radarr_block in &[ActiveRadarrBlock::Cast, ActiveRadarrBlock::Crew] {
-        app
-          .data
-          .radarr_data
+        let mut movie_details_modal = MovieDetailsModal::default();
+        movie_details_modal
           .movie_cast
           .set_items(vec![Credit::default()]);
-        app
-          .data
-          .radarr_data
+        movie_details_modal
           .movie_crew
           .set_items(vec![Credit::default()]);
+        app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
 
         app.dispatch_by_radarr_block(active_radarr_block).await;
 
@@ -363,6 +360,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_manual_search_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
 
       app
         .dispatch_by_radarr_block(&ActiveRadarrBlock::ManualSearch)
@@ -380,11 +378,11 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_manual_search_block_movie_releases_non_empty() {
       let mut app = App::default();
-      app
-        .data
-        .radarr_data
+      let mut movie_details_modal = MovieDetailsModal::default();
+      movie_details_modal
         .movie_releases
         .set_items(vec![Release::default()]);
+      app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
 
       app
         .dispatch_by_radarr_block(&ActiveRadarrBlock::ManualSearch)

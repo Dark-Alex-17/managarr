@@ -81,21 +81,26 @@ impl<'a> App<'a> {
           .await;
       }
       ActiveRadarrBlock::Cast | ActiveRadarrBlock::Crew => {
-        if self.data.radarr_data.movie_cast.items.is_empty()
-          || self.data.radarr_data.movie_crew.items.is_empty()
-        {
-          self
-            .dispatch_network_event(RadarrEvent::GetMovieCredits.into())
-            .await;
+        match self.data.radarr_data.movie_details_modal.as_ref() {
+          Some(movie_details_modal)
+            if movie_details_modal.movie_cast.items.is_empty()
+              || movie_details_modal.movie_crew.items.is_empty() =>
+          {
+            self
+              .dispatch_network_event(RadarrEvent::GetMovieCredits.into())
+              .await;
+          }
+          _ => (),
         }
       }
-      ActiveRadarrBlock::ManualSearch => {
-        if self.data.radarr_data.movie_releases.items.is_empty() {
+      ActiveRadarrBlock::ManualSearch => match self.data.radarr_data.movie_details_modal.as_ref() {
+        Some(movie_details_modal) if movie_details_modal.movie_releases.items.is_empty() => {
           self
             .dispatch_network_event(RadarrEvent::GetReleases.into())
             .await;
         }
-      }
+        _ => (),
+      },
       _ => (),
     }
 

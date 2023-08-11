@@ -6,11 +6,11 @@ use crate::app::radarr::radarr_context_clues::{
   SYSTEM_CONTEXT_CLUES,
 };
 use crate::models::radarr_models::{
-  AddMovieSearchResult, Collection, CollectionMovie, Credit, DiskSpace, DownloadRecord, Indexer,
-  IndexerSettings, Movie, MovieHistoryItem, QueueEvent, Release, ReleaseField, RootFolder, Task,
+  AddMovieSearchResult, Collection, CollectionMovie, DiskSpace, DownloadRecord, Indexer,
+  IndexerSettings, Movie, QueueEvent, RootFolder, Task,
 };
 use crate::models::servarr_data::radarr::modals::{
-  AddMovieModal, EditCollectionModal, EditMovieModal,
+  AddMovieModal, EditCollectionModal, EditMovieModal, MovieDetailsModal,
 };
 use crate::models::{
   BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, StatefulList,
@@ -43,15 +43,6 @@ pub struct RadarrData<'a> {
   pub indexer_settings: Option<IndexerSettings>,
   pub quality_profile_map: BiMap<u64, String>,
   pub tags_map: BiMap<u64, String>,
-  pub movie_details: ScrollableText,
-  pub file_details: String,
-  pub audio_details: String,
-  pub video_details: String,
-  pub movie_history: StatefulTable<MovieHistoryItem>,
-  pub movie_cast: StatefulTable<Credit>,
-  pub movie_crew: StatefulTable<Credit>,
-  pub movie_releases: StatefulTable<Release>,
-  pub movie_releases_sort: StatefulList<ReleaseField>,
   pub collections: StatefulTable<Collection>,
   pub filtered_collections: StatefulTable<Collection>,
   pub collection_movies: StatefulTable<CollectionMovie>,
@@ -69,7 +60,7 @@ pub struct RadarrData<'a> {
   pub edit_movie_modal: Option<EditMovieModal>,
   pub edit_collection_modal: Option<EditCollectionModal>,
   pub edit_root_folder: Option<HorizontallyScrollableText>,
-  pub sort_ascending: Option<bool>,
+  pub movie_details_modal: Option<MovieDetailsModal>,
   pub prompt_confirm: bool,
   pub delete_movie_files: bool,
   pub add_list_exclusion: bool,
@@ -100,16 +91,7 @@ impl<'a> RadarrData<'a> {
   }
 
   pub fn reset_movie_info_tabs(&mut self) {
-    self.file_details = String::default();
-    self.audio_details = String::default();
-    self.video_details = String::default();
-    self.movie_details = ScrollableText::default();
-    self.movie_history = StatefulTable::default();
-    self.movie_cast = StatefulTable::default();
-    self.movie_crew = StatefulTable::default();
-    self.movie_releases = StatefulTable::default();
-    self.movie_releases_sort = StatefulList::default();
-    self.sort_ascending = None;
+    self.movie_details_modal = None;
     self.movie_info_tabs.index = 0;
   }
 }
@@ -130,15 +112,6 @@ impl<'a> Default for RadarrData<'a> {
       indexer_settings: None,
       quality_profile_map: BiMap::default(),
       tags_map: BiMap::default(),
-      file_details: String::default(),
-      audio_details: String::default(),
-      video_details: String::default(),
-      movie_details: ScrollableText::default(),
-      movie_history: StatefulTable::default(),
-      movie_cast: StatefulTable::default(),
-      movie_crew: StatefulTable::default(),
-      movie_releases: StatefulTable::default(),
-      movie_releases_sort: StatefulList::default(),
       collections: StatefulTable::default(),
       filtered_collections: StatefulTable::default(),
       collection_movies: StatefulTable::default(),
@@ -154,7 +127,7 @@ impl<'a> Default for RadarrData<'a> {
       edit_movie_modal: None,
       edit_collection_modal: None,
       edit_root_folder: None,
-      sort_ascending: None,
+      movie_details_modal: None,
       is_searching: false,
       is_filtering: false,
       prompt_confirm: false,

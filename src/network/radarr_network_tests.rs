@@ -312,13 +312,23 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
+    app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::GetReleases).await;
 
     async_server.assert_async().await;
     assert_eq!(
-      app_arc.lock().await.data.radarr_data.movie_releases.items,
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .movie_details_modal
+        .as_ref()
+        .unwrap()
+        .movie_releases
+        .items,
       vec![release()]
     );
   }
@@ -666,14 +676,18 @@ mod test {
       .await;
 
     async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movie_details_modal
+      .is_some());
+
+    let app = app_arc.lock().await;
+    let movie_details_modal = app.data.radarr_data.movie_details_modal.as_ref().unwrap();
     assert_str_eq!(
-      app_arc
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .movie_details
-        .get_text(),
+      movie_details_modal.movie_details.get_text(),
       formatdoc!(
         "Title: Test
           Year: 2023
@@ -693,7 +707,7 @@ mod test {
       )
     );
     assert_str_eq!(
-      app_arc.lock().await.data.radarr_data.file_details,
+      movie_details_modal.file_details,
       formatdoc!(
         "Relative Path: Test.mkv
         Absolute Path: /nfs/movies/Test.mkv
@@ -702,7 +716,7 @@ mod test {
       )
     );
     assert_str_eq!(
-      app_arc.lock().await.data.radarr_data.audio_details,
+      movie_details_modal.audio_details,
       formatdoc!(
         "Bitrate: 0
         Channels: 7.1
@@ -712,7 +726,7 @@ mod test {
       )
     );
     assert_str_eq!(
-      app_arc.lock().await.data.radarr_data.video_details,
+      movie_details_modal.video_details,
       formatdoc!(
         "Bit Depth: 10
         Bitrate: 0
@@ -773,14 +787,18 @@ mod test {
       .await;
 
     async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movie_details_modal
+      .is_some());
+
+    let app = app_arc.lock().await;
+    let movie_details_modal = app.data.radarr_data.movie_details_modal.as_ref().unwrap();
     assert_str_eq!(
-      app_arc
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .movie_details
-        .get_text(),
+      movie_details_modal.movie_details.get_text(),
       formatdoc!(
         "Title: Test
           Year: 2023
@@ -799,27 +817,9 @@ mod test {
           Genres: cool, family, fun"
       )
     );
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .file_details
-      .is_empty());
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .audio_details
-      .is_empty());
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .video_details
-      .is_empty());
+    assert!(movie_details_modal.file_details.is_empty());
+    assert!(movie_details_modal.audio_details.is_empty());
+    assert!(movie_details_modal.video_details.is_empty());
   }
 
   #[tokio::test]
@@ -846,6 +846,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
+    app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
@@ -854,7 +855,16 @@ mod test {
 
     async_server.assert_async().await;
     assert_eq!(
-      app_arc.lock().await.data.radarr_data.movie_history.items,
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .movie_details_modal
+        .as_ref()
+        .unwrap()
+        .movie_history
+        .items,
       vec![movie_history_item()]
     );
   }
@@ -1420,21 +1430,19 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
+    app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
       .handle_radarr_event(RadarrEvent::GetMovieCredits)
       .await;
 
+    let app = app_arc.lock().await;
+    let movie_details_modal = app.data.radarr_data.movie_details_modal.as_ref().unwrap();
+
     async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.movie_cast.items,
-      vec![cast_credit()]
-    );
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.movie_crew.items,
-      vec![crew_credit()]
-    );
+    assert_eq!(movie_details_modal.movie_cast.items, vec![cast_credit()]);
+    assert_eq!(movie_details_modal.movie_crew.items, vec![crew_credit()]);
   }
 
   #[tokio::test]
@@ -1701,7 +1709,6 @@ mod test {
 
     let app = app_arc.lock().await;
     assert!(app.data.radarr_data.edit_movie_modal.is_none());
-    assert!(app.data.radarr_data.movie_details.items.is_empty());
   }
 
   #[tokio::test]
@@ -1796,7 +1803,6 @@ mod test {
 
     let app = app_arc.lock().await;
     assert!(app.data.radarr_data.edit_collection_modal.is_none());
-    assert!(app.data.radarr_data.movie_details.items.is_empty());
   }
 
   #[tokio::test]
@@ -1812,13 +1818,11 @@ mod test {
       RadarrEvent::DownloadRelease.resource(),
     )
     .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
+    let mut movie_details_modal = MovieDetailsModal::default();
+    movie_details_modal
       .movie_releases
       .set_items(vec![release()]);
+    app_arc.lock().await.data.radarr_data.movie_details_modal = Some(movie_details_modal);
     app_arc
       .lock()
       .await
