@@ -804,7 +804,7 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Fetching Radarr logs");
 
     let resource = format!(
-      "{}?pageSize=100&sortDirection=descending&sortKey=time",
+      "{}?pageSize=500&sortDirection=descending&sortKey=time",
       RadarrEvent::GetLogs.resource()
     );
     let request_props = self

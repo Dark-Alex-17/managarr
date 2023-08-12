@@ -1098,7 +1098,7 @@ mod test {
   #[tokio::test]
   async fn test_handle_get_logs_event() {
     let resource = format!(
-      "{}?pageSize=100&sortDirection=descending&sortKey=time",
+      "{}?pageSize=500&sortDirection=descending&sortKey=time",
       RadarrEvent::GetLogs.resource()
     );
     let expected_logs = vec![
@@ -1112,7 +1112,7 @@ mod test {
       None,
       Some(json!({
         "page": 1,
-        "pageSize": 100,
+        "pageSize": 500,
         "sortKey": "time",
         "sortDirection": "descending",
         "totalRecords": 2,
