@@ -8,7 +8,7 @@ use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTIONS_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
 };
-use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
+use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable, StatefulTable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::utils::strip_non_search_characters;
 use crate::{filter_table, handle_text_box_keys, handle_text_box_left_right_keys, search_table};
@@ -68,15 +68,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
 
   fn handle_scroll_up(&mut self) {
     if self.active_radarr_block == &ActiveRadarrBlock::Collections {
-      if !self
-        .app
-        .data
-        .radarr_data
-        .filtered_collections
-        .items
-        .is_empty()
-      {
-        self.app.data.radarr_data.filtered_collections.scroll_up();
+      if let Some(filtered_collections) = self.app.data.radarr_data.filtered_collections.as_mut() {
+        filtered_collections.scroll_up();
       } else {
         self.app.data.radarr_data.collections.scroll_up()
       }
@@ -85,15 +78,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
 
   fn handle_scroll_down(&mut self) {
     if self.active_radarr_block == &ActiveRadarrBlock::Collections {
-      if !self
-        .app
-        .data
-        .radarr_data
-        .filtered_collections
-        .items
-        .is_empty()
-      {
-        self.app.data.radarr_data.filtered_collections.scroll_down();
+      if let Some(filtered_collections) = self.app.data.radarr_data.filtered_collections.as_mut() {
+        filtered_collections.scroll_down();
       } else {
         self.app.data.radarr_data.collections.scroll_down()
       }
@@ -103,20 +89,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
   fn handle_home(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::Collections => {
-        if !self
-          .app
-          .data
-          .radarr_data
-          .filtered_collections
-          .items
-          .is_empty()
+        if let Some(filtered_collections) = self.app.data.radarr_data.filtered_collections.as_mut()
         {
-          self
-            .app
-            .data
-            .radarr_data
-            .filtered_collections
-            .scroll_to_top();
+          filtered_collections.scroll_to_top();
         } else {
           self.app.data.radarr_data.collections.scroll_to_top()
         }
@@ -144,20 +119,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
   fn handle_end(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::Collections => {
-        if !self
-          .app
-          .data
-          .radarr_data
-          .filtered_collections
-          .items
-          .is_empty()
+        if let Some(filtered_collections) = self.app.data.radarr_data.filtered_collections.as_mut()
         {
-          self
-            .app
-            .data
-            .radarr_data
-            .filtered_collections
-            .scroll_to_bottom();
+          filtered_collections.scroll_to_bottom();
         } else {
           self.app.data.radarr_data.collections.scroll_to_bottom()
         }
@@ -212,23 +176,17 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
         .app
         .push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into()),
       ActiveRadarrBlock::SearchCollection => {
-        if self
-          .app
-          .data
-          .radarr_data
-          .filtered_collections
-          .items
-          .is_empty()
-        {
+        if self.app.data.radarr_data.filtered_collections.is_some() {
           search_table!(
             self.app,
-            collections,
-            ActiveRadarrBlock::SearchCollectionError
+            filtered_collections,
+            ActiveRadarrBlock::SearchCollectionError,
+            true
           );
         } else {
           search_table!(
             self.app,
-            filtered_collections,
+            collections,
             ActiveRadarrBlock::SearchCollectionError
           );
         }

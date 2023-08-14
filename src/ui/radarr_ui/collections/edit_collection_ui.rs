@@ -97,20 +97,10 @@ fn draw_edit_collection_confirmation_prompt<B: Backend>(
   prompt_area: Rect,
 ) {
   let (collection_title, collection_overview) =
-    if app.data.radarr_data.filtered_collections.items.is_empty() {
+    if let Some(filtered_collections) = app.data.radarr_data.filtered_collections.as_ref() {
       (
-        app
-          .data
-          .radarr_data
-          .collections
-          .current_selection()
-          .title
-          .text
-          .clone(),
-        app
-          .data
-          .radarr_data
-          .collections
+        filtered_collections.current_selection().title.text.clone(),
+        filtered_collections
           .current_selection()
           .overview
           .clone()
@@ -121,7 +111,7 @@ fn draw_edit_collection_confirmation_prompt<B: Backend>(
         app
           .data
           .radarr_data
-          .filtered_collections
+          .collections
           .current_selection()
           .title
           .text
@@ -129,7 +119,7 @@ fn draw_edit_collection_confirmation_prompt<B: Backend>(
         app
           .data
           .radarr_data
-          .filtered_collections
+          .collections
           .current_selection()
           .overview
           .clone()

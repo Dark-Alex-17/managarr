@@ -100,25 +100,18 @@ impl DrawUi for CollectionsUi {
 }
 
 pub(super) fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
-  let current_selection = if !app.data.radarr_data.filtered_collections.items.is_empty() {
-    app
-      .data
-      .radarr_data
-      .filtered_collections
-      .current_selection()
-      .clone()
-  } else if !app.data.radarr_data.collections.items.is_empty() {
-    app.data.radarr_data.collections.current_selection().clone()
-  } else {
-    Collection::default()
-  };
+  let current_selection =
+    if let Some(filtered_collections) = app.data.radarr_data.filtered_collections.as_ref() {
+      filtered_collections.current_selection().clone()
+    } else if !app.data.radarr_data.collections.items.is_empty() {
+      app.data.radarr_data.collections.current_selection().clone()
+    } else {
+      Collection::default()
+    };
   let quality_profile_map = &app.data.radarr_data.quality_profile_map;
-  let content = if !app.data.radarr_data.filtered_collections.items.is_empty()
-    && !app.data.radarr_data.is_filtering
-  {
-    &mut app.data.radarr_data.filtered_collections
-  } else {
-    &mut app.data.radarr_data.collections
+  let content = match app.data.radarr_data.filtered_collections.as_mut() {
+    Some(filtered_collections) if !app.data.radarr_data.is_filtering => Some(filtered_collections),
+    _ => Some(&mut app.data.radarr_data.collections),
   };
   draw_table(
     f,
@@ -126,6 +119,7 @@ pub(super) fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'
     layout_block_top_border(),
     TableProps {
       content,
+      wrapped_content: None,
       table_headers: vec![
         "Collection",
         "Number of Movies",

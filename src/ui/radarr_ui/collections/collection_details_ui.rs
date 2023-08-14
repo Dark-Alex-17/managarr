@@ -80,15 +80,12 @@ pub fn draw_collection_details<B: Backend>(
     content_area,
     1,
   );
-  let collection_selection = if !app.data.radarr_data.filtered_collections.items.is_empty() {
-    app
-      .data
-      .radarr_data
-      .filtered_collections
-      .current_selection()
-  } else {
-    app.data.radarr_data.collections.current_selection()
-  };
+  let collection_selection =
+    if let Some(filtered_collections) = app.data.radarr_data.filtered_collections.as_ref() {
+      filtered_collections.current_selection()
+    } else {
+      app.data.radarr_data.collections.current_selection()
+    };
   let quality_profile = app
     .data
     .radarr_data
@@ -161,7 +158,8 @@ pub fn draw_collection_details<B: Backend>(
     chunks[1],
     layout_block_top_border_with_title(title_style("Movies")),
     TableProps {
-      content: &mut app.data.radarr_data.collection_movies,
+      content: Some(&mut app.data.radarr_data.collection_movies),
+      wrapped_content: None,
       table_headers: vec![
         "✔",
         "Title",

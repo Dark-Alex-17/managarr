@@ -108,27 +108,20 @@ impl DrawUi for LibraryUi {
 }
 
 pub(super) fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
-  let current_selection = if !app.data.radarr_data.filtered_movies.items.is_empty() {
-    app
-      .data
-      .radarr_data
-      .filtered_movies
-      .current_selection()
-      .clone()
-  } else if !app.data.radarr_data.movies.items.is_empty() {
-    app.data.radarr_data.movies.current_selection().clone()
-  } else {
-    Movie::default()
-  };
+  let current_selection =
+    if let Some(filtered_movies) = app.data.radarr_data.filtered_movies.as_ref() {
+      filtered_movies.current_selection().clone()
+    } else if !app.data.radarr_data.movies.items.is_empty() {
+      app.data.radarr_data.movies.current_selection().clone()
+    } else {
+      Movie::default()
+    };
   let quality_profile_map = &app.data.radarr_data.quality_profile_map;
   let tags_map = &app.data.radarr_data.tags_map;
   let downloads_vec = &app.data.radarr_data.downloads.items;
-  let content = if !app.data.radarr_data.filtered_movies.items.is_empty()
-    && !app.data.radarr_data.is_filtering
-  {
-    &mut app.data.radarr_data.filtered_movies
-  } else {
-    &mut app.data.radarr_data.movies
+  let content = match app.data.radarr_data.filtered_movies.as_mut() {
+    Some(filtered_movies) if !app.data.radarr_data.is_filtering => Some(filtered_movies),
+    _ => Some(&mut app.data.radarr_data.movies),
   };
 
   draw_table(
@@ -137,6 +130,7 @@ pub(super) fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, 
     layout_block_top_border(),
     TableProps {
       content,
+      wrapped_content: None,
       table_headers: vec![
         "Title",
         "Year",

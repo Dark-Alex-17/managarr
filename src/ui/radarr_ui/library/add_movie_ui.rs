@@ -104,16 +104,13 @@ impl DrawUi for AddMovieUi {
 }
 
 fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
-  let current_selection = if app.data.radarr_data.add_searched_movies.items.is_empty() {
-    AddMovieSearchResult::default()
-  } else {
-    app
-      .data
-      .radarr_data
-      .add_searched_movies
-      .current_selection()
-      .clone()
-  };
+  let is_loading = app.is_loading || app.data.radarr_data.add_searched_movies.is_none();
+  let current_selection =
+    if let Some(add_searched_movies) = app.data.radarr_data.add_searched_movies.as_ref() {
+      add_searched_movies.current_selection().clone()
+    } else {
+      AddMovieSearchResult::default()
+    };
 
   let chunks = vertical_chunks_with_margin(
     vec![
@@ -181,7 +178,8 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, ar
           chunks[1],
           layout_block(),
           TableProps {
-            content: &mut app.data.radarr_data.add_searched_movies,
+            content: None,
+            wrapped_content: Some(app.data.radarr_data.add_searched_movies.as_mut()),
             table_headers: vec![
               "✔",
               "Title",
@@ -260,7 +258,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, ar
             ])
             .style(style_primary())
           },
-          app.is_loading,
+          is_loading,
           true,
         );
       }
@@ -354,6 +352,8 @@ fn draw_confirmation_prompt<B: Backend>(
         .data
         .radarr_data
         .add_searched_movies
+        .as_ref()
+        .unwrap()
         .current_selection()
         .title
         .text,
@@ -361,6 +361,8 @@ fn draw_confirmation_prompt<B: Backend>(
         .data
         .radarr_data
         .add_searched_movies
+        .as_ref()
+        .unwrap()
         .current_selection()
         .overview
         .clone(),

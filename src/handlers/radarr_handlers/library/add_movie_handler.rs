@@ -3,7 +3,7 @@ use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS,
 };
-use crate::models::{BlockSelectionState, Scrollable, StatefulTable};
+use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
 
@@ -43,9 +43,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
 
   fn handle_scroll_up(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::AddMovieSearchResults => {
-        self.app.data.radarr_data.add_searched_movies.scroll_up()
-      }
+      ActiveRadarrBlock::AddMovieSearchResults => self
+        .app
+        .data
+        .radarr_data
+        .add_searched_movies
+        .as_mut()
+        .unwrap()
+        .scroll_up(),
       ActiveRadarrBlock::AddMovieSelectMonitor => self
         .app
         .data
@@ -89,9 +94,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
 
   fn handle_scroll_down(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::AddMovieSearchResults => {
-        self.app.data.radarr_data.add_searched_movies.scroll_down()
-      }
+      ActiveRadarrBlock::AddMovieSearchResults => self
+        .app
+        .data
+        .radarr_data
+        .add_searched_movies
+        .as_mut()
+        .unwrap()
+        .scroll_down(),
       ActiveRadarrBlock::AddMovieSelectMonitor => self
         .app
         .data
@@ -140,6 +150,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         .data
         .radarr_data
         .add_searched_movies
+        .as_mut()
+        .unwrap()
         .scroll_to_top(),
       ActiveRadarrBlock::AddMovieSelectMonitor => self
         .app
@@ -205,6 +217,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         .data
         .radarr_data
         .add_searched_movies
+        .as_mut()
+        .unwrap()
         .scroll_to_bottom(),
       ActiveRadarrBlock::AddMovieSelectMonitor => self
         .app
@@ -312,19 +326,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         self.app.should_ignore_quit_key = false;
       }
       _ if *self.active_radarr_block == ActiveRadarrBlock::AddMovieSearchResults
-        && !self
-          .app
-          .data
-          .radarr_data
-          .add_searched_movies
-          .items
-          .is_empty() =>
+        && self.app.data.radarr_data.add_searched_movies.is_some() =>
       {
         let tmdb_id = self
           .app
           .data
           .radarr_data
           .add_searched_movies
+          .as_ref()
+          .unwrap()
           .current_selection()
           .tmdb_id
           .clone();
@@ -403,7 +413,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
       }
       ActiveRadarrBlock::AddMovieSearchResults | ActiveRadarrBlock::AddMovieEmptySearchResults => {
         self.app.pop_navigation_stack();
-        self.app.data.radarr_data.add_searched_movies = StatefulTable::default();
+        self.app.data.radarr_data.add_searched_movies = None;
         self.app.should_ignore_quit_key = true;
       }
       ActiveRadarrBlock::AddMoviePrompt => {

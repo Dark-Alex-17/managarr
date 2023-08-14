@@ -43,10 +43,10 @@ impl From<&RadarrData<'_>> for EditMovieModal {
       minimum_availability,
       quality_profile_id,
       ..
-    } = if radarr_data.filtered_movies.items.is_empty() {
-      radarr_data.movies.current_selection()
+    } = if let Some(filtered_movies) = radarr_data.filtered_movies.as_ref() {
+      filtered_movies.current_selection()
     } else {
-      radarr_data.filtered_movies.current_selection()
+      radarr_data.movies.current_selection()
     };
 
     edit_movie_modal
@@ -159,10 +159,10 @@ impl From<&RadarrData<'_>> for EditCollectionModal {
       minimum_availability,
       quality_profile_id,
       ..
-    } = if radarr_data.filtered_collections.items.is_empty() {
-      radarr_data.collections.current_selection()
+    } = if let Some(filtered_collections) = radarr_data.filtered_collections.as_ref() {
+      filtered_collections.current_selection()
     } else {
-      radarr_data.filtered_collections.current_selection()
+      radarr_data.collections.current_selection()
     };
 
     edit_collection_modal.path = root_folder_path.clone().unwrap_or_default().into();

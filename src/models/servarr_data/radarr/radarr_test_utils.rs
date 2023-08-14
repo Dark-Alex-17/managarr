@@ -6,7 +6,7 @@ pub mod utils {
   };
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_data::radarr::radarr_data::RadarrData;
-  use crate::models::{HorizontallyScrollableText, ScrollableText};
+  use crate::models::{HorizontallyScrollableText, ScrollableText, StatefulTable};
 
   pub fn create_test_radarr_data<'a>() -> RadarrData<'a> {
     let mut movie_details_modal = MovieDetailsModal {
@@ -39,17 +39,26 @@ pub mod utils {
       filter: Some("test filter".into()),
       edit_root_folder: Some("test path".into()),
       movie_details_modal: Some(movie_details_modal),
+      filtered_movies: Some(StatefulTable::default()),
+      filtered_collections: Some(StatefulTable::default()),
+      add_searched_movies: Some(StatefulTable::default()),
       ..RadarrData::default()
     };
     radarr_data.movie_info_tabs.index = 1;
     radarr_data
       .filtered_movies
+      .as_mut()
+      .unwrap()
       .set_items(vec![Movie::default()]);
     radarr_data
       .filtered_collections
+      .as_mut()
+      .unwrap()
       .set_items(vec![Collection::default()]);
     radarr_data
       .add_searched_movies
+      .as_mut()
+      .unwrap()
       .set_items(vec![AddMovieSearchResult::default()]);
     radarr_data
       .collection_movies
@@ -67,9 +76,9 @@ pub mod utils {
       assert!(!$radarr_data.is_searching);
       assert!($radarr_data.search.is_none());
       assert!($radarr_data.filter.is_none());
-      assert!($radarr_data.filtered_movies.items.is_empty());
-      assert!($radarr_data.filtered_collections.items.is_empty());
-      assert!($radarr_data.add_searched_movies.items.is_empty());
+      assert!($radarr_data.filtered_movies.is_none());
+      assert!($radarr_data.filtered_collections.is_none());
+      assert!($radarr_data.add_searched_movies.is_none());
     };
   }
 
@@ -78,8 +87,8 @@ pub mod utils {
     ($radarr_data:expr) => {
       assert!(!$radarr_data.is_filtering);
       assert!($radarr_data.filter.is_none());
-      assert!($radarr_data.filtered_movies.items.is_empty());
-      assert!($radarr_data.filtered_collections.items.is_empty());
+      assert!($radarr_data.filtered_movies.is_none());
+      assert!($radarr_data.filtered_collections.is_none());
     };
   }
 

@@ -234,7 +234,6 @@ mod tests {
       RadarrData, EDIT_COLLECTION_SELECTION_BLOCKS,
     };
 
-    use crate::models::StatefulTable;
     use crate::test_edit_collection_key;
 
     use super::*;

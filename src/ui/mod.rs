@@ -291,7 +291,8 @@ fn draw_tabs<'a, B: Backend>(
 }
 
 pub struct TableProps<'a, T> {
-  pub content: &'a mut StatefulTable<T>,
+  pub content: Option<&'a mut StatefulTable<T>>,
+  pub wrapped_content: Option<Option<&'a mut StatefulTable<T>>>,
   pub table_headers: Vec<&'a str>,
   pub constraints: Vec<Constraint>,
   pub help: Option<String>,
@@ -319,6 +320,7 @@ fn draw_table<'a, B, T, F>(
 {
   let TableProps {
     content,
+    wrapped_content,
     table_headers,
     constraints,
     help,
@@ -326,27 +328,63 @@ fn draw_table<'a, B, T, F>(
 
   let content_area = draw_help_and_get_content_rect(f, content_area, help);
 
-  if !content.items.is_empty() {
-    let rows = content.items.iter().map(row_mapper);
-
-    let headers = Row::new(table_headers)
-      .style(style_default_bold())
-      .bottom_margin(0);
-
-    let mut table = Table::new(rows).header(headers).block(block);
-
-    if highlight {
-      table = table
-        .highlight_style(style_highlight())
-        .highlight_symbol(HIGHLIGHT_SYMBOL);
-    }
-
-    table = table.widths(&constraints);
-
-    f.render_stateful_widget(table, content_area, &mut content.state);
+  if wrapped_content.is_some() && wrapped_content.as_ref().unwrap().is_some() {
+    draw_table_contents(
+      f,
+      block,
+      row_mapper,
+      highlight,
+      wrapped_content.unwrap().as_mut().unwrap(),
+      table_headers,
+      &constraints,
+      content_area,
+    );
+  } else if content.is_some() && !content.as_ref().unwrap().items.is_empty() {
+    draw_table_contents(
+      f,
+      block,
+      row_mapper,
+      highlight,
+      content.unwrap(),
+      table_headers,
+      &constraints,
+      content_area,
+    );
   } else {
     loading(f, block, content_area, is_loading);
   }
+}
+
+fn draw_table_contents<'a, B, T, F>(
+  f: &mut Frame<'_, B>,
+  block: Block<'_>,
+  row_mapper: F,
+  highlight: bool,
+  content: &mut StatefulTable<T>,
+  table_headers: Vec<&str>,
+  constraints: &Vec<Constraint>,
+  content_area: Rect,
+) where
+  B: Backend,
+  F: Fn(&T) -> Row<'a>,
+{
+  let rows = content.items.iter().map(row_mapper);
+
+  let headers = Row::new(table_headers)
+    .style(style_default_bold())
+    .bottom_margin(0);
+
+  let mut table = Table::new(rows).header(headers).block(block);
+
+  if highlight {
+    table = table
+      .highlight_style(style_highlight())
+      .highlight_symbol(HIGHLIGHT_SYMBOL);
+  }
+
+  table = table.widths(&constraints);
+
+  f.render_stateful_widget(table, content_area, &mut content.state);
 }
 
 pub fn loading<B: Backend>(f: &mut Frame<'_, B>, block: Block<'_>, area: Rect, is_loading: bool) {

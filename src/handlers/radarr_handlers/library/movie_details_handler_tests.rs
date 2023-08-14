@@ -914,7 +914,7 @@ mod tests {
     use crate::models::servarr_data::radarr::radarr_data::{
       RadarrData, EDIT_MOVIE_SELECTION_BLOCKS,
     };
-    use crate::models::StatefulTable;
+
     use crate::test_edit_movie_key;
 
     use super::*;

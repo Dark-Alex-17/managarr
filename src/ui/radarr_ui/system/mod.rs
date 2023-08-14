@@ -106,7 +106,8 @@ fn draw_tasks<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
     area,
     title_block("Tasks"),
     TableProps {
-      content: &mut app.data.radarr_data.tasks,
+      content: Some(&mut app.data.radarr_data.tasks),
+      wrapped_content: None,
       table_headers: TASK_TABLE_HEADERS.to_vec(),
       constraints: TASK_TABLE_CONSTRAINTS.to_vec(),
       help: None,
@@ -134,7 +135,8 @@ pub(super) fn draw_queued_events<B: Backend>(f: &mut Frame<'_, B>, app: &mut App
     area,
     title_block("Queued Events"),
     TableProps {
-      content: &mut app.data.radarr_data.queued_events,
+      content: Some(&mut app.data.radarr_data.queued_events),
+      wrapped_content: None,
       table_headers: vec!["Trigger", "Status", "Name", "Queued", "Started", "Duration"],
       constraints: vec![
         Constraint::Percentage(13),

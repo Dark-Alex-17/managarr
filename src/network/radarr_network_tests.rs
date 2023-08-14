@@ -17,7 +17,7 @@ mod test {
     Monitor, MovieFile, Quality, QualityWrapper, Rating, RatingsList,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-  use crate::models::HorizontallyScrollableText;
+  use crate::models::{HorizontallyScrollableText, StatefulTable};
   use crate::App;
 
   use super::super::*;
@@ -375,6 +375,13 @@ mod test {
       .await;
 
     async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .add_searched_movies
+      .is_some());
     assert_eq!(
       app_arc
         .lock()
@@ -382,6 +389,8 @@ mod test {
         .data
         .radarr_data
         .add_searched_movies
+        .as_ref()
+        .unwrap()
         .items,
       vec![add_movie_search_result()]
     );
@@ -437,8 +446,7 @@ mod test {
       .data
       .radarr_data
       .add_searched_movies
-      .items
-      .is_empty());
+      .is_none());
     assert_eq!(
       app_arc.lock().await.get_current_route(),
       &ActiveRadarrBlock::AddMovieEmptySearchResults.into()
@@ -487,8 +495,7 @@ mod test {
       .data
       .radarr_data
       .add_searched_movies
-      .items
-      .is_empty());
+      .is_none());
     assert_eq!(
       app_arc.lock().await.get_current_route(),
       &ActiveRadarrBlock::Movies.into()
@@ -1599,11 +1606,9 @@ mod test {
           .set_items(vec![collection_movie()]);
         app.push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into());
       } else {
-        app
-          .data
-          .radarr_data
-          .add_searched_movies
-          .set_items(vec![add_movie_search_result()]);
+        let mut add_searched_movies = StatefulTable::default();
+        add_searched_movies.set_items(vec![add_movie_search_result()]);
+        app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
       }
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
@@ -1618,6 +1623,103 @@ mod test {
       .radarr_data
       .add_movie_modal
       .is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_movie_event_reuse_existing_table_if_search_already_performed() {
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "tmdbId": 5678,
+        "title": "Test",
+        "rootFolderPath": "/nfs2",
+        "minimumAvailability": "announced",
+        "monitored": true,
+        "qualityProfileId": 2222,
+        "tags": [1, 2],
+        "addOptions": {
+          "monitor": "movieOnly",
+          "searchForMovie": true
+        }
+      })),
+      None,
+      RadarrEvent::AddMovie.resource(),
+    )
+    .await;
+
+    {
+      let mut app = app_arc.lock().await;
+      let mut add_movie_modal = AddMovieModal {
+        tags: "usenet, testing".into(),
+        ..AddMovieModal::default()
+      };
+      add_movie_modal.root_folder_list.set_items(vec![
+        RootFolder {
+          id: Number::from(1),
+          path: "/nfs".to_owned(),
+          accessible: true,
+          free_space: Number::from(219902325555200u64),
+          unmapped_folders: None,
+        },
+        RootFolder {
+          id: Number::from(2),
+          path: "/nfs2".to_owned(),
+          accessible: true,
+          free_space: Number::from(21990232555520u64),
+          unmapped_folders: None,
+        },
+      ]);
+      add_movie_modal.root_folder_list.state.select(Some(1));
+      add_movie_modal
+        .quality_profile_list
+        .set_items(vec!["HD - 1080p".to_owned()]);
+      add_movie_modal
+        .monitor_list
+        .set_items(Vec::from_iter(Monitor::iter()));
+      add_movie_modal
+        .minimum_availability_list
+        .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      app.data.radarr_data.add_movie_modal = Some(add_movie_modal);
+      app.data.radarr_data.quality_profile_map =
+        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
+      app.data.radarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+      let secondary_search_result = AddMovieSearchResult {
+        tmdb_id: Number::from(5678),
+        ..add_movie_search_result()
+      };
+      let mut add_searched_movies = StatefulTable::default();
+      add_searched_movies.set_items(vec![add_movie_search_result(), secondary_search_result]);
+      add_searched_movies.scroll_to_bottom();
+      app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network.handle_radarr_event(RadarrEvent::AddMovie).await;
+
+    async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .add_movie_modal
+      .is_none());
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .add_searched_movies
+        .as_ref()
+        .unwrap()
+        .current_selection()
+        .tmdb_id
+        .as_u64()
+        .unwrap(),
+      5678
+    );
   }
 
   #[tokio::test]
@@ -1916,17 +2018,13 @@ mod test {
   #[tokio::test]
   async fn test_extract_movie_id_filtered_movies() {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .filtered_movies
-      .set_items(vec![Movie {
-        id: Number::from(1),
-        tmdb_id: Number::from(2),
-        ..Movie::default()
-      }]);
+    let mut filtered_movies = StatefulTable::default();
+    filtered_movies.set_items(vec![Movie {
+      id: Number::from(1),
+      tmdb_id: Number::from(2),
+      ..Movie::default()
+    }]);
+    app_arc.lock().await.data.radarr_data.filtered_movies = Some(filtered_movies);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     assert_eq!(network.extract_movie_id().await, (1, 2));
@@ -1953,16 +2051,12 @@ mod test {
   #[tokio::test]
   async fn test_extract_collection_id_filtered_collection() {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .filtered_collections
-      .set_items(vec![Collection {
-        id: Number::from(1),
-        ..Collection::default()
-      }]);
+    let mut filtered_collections = StatefulTable::default();
+    filtered_collections.set_items(vec![Collection {
+      id: Number::from(1),
+      ..Collection::default()
+    }]);
+    app_arc.lock().await.data.radarr_data.filtered_collections = Some(filtered_collections);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     assert_eq!(network.extract_collection_id().await, 1);

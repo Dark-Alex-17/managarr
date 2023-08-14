@@ -19,6 +19,7 @@ mod tests {
   mod test_handle_scroll_up_and_down {
     use rstest::rstest;
 
+    use crate::models::StatefulTable;
     use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
 
     use super::*;
@@ -34,21 +35,54 @@ mod tests {
       to_string
     );
 
-    test_iterable_scroll!(
-      test_filtered_collections_scroll,
-      CollectionsHandler,
-      filtered_collections,
-      simple_stateful_iterable_vec!(Collection, HorizontallyScrollableText),
-      ActiveRadarrBlock::Collections,
-      None,
-      title,
-      to_string
-    );
+    #[rstest]
+    fn test_filtered_collections_scroll(
+      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
+    ) {
+      let mut app = App::default();
+      let mut filtered_collections = StatefulTable::default();
+      filtered_collections.set_items(simple_stateful_iterable_vec!(
+        Collection,
+        HorizontallyScrollableText
+      ));
+      app.data.radarr_data.filtered_collections = Some(filtered_collections);
+
+      CollectionsHandler::with(&key, &mut app, &ActiveRadarrBlock::Collections, &None).handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_collections
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 2"
+      );
+
+      CollectionsHandler::with(&key, &mut app, &ActiveRadarrBlock::Collections, &None).handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_collections
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 1"
+      );
+    }
   }
 
   mod test_handle_home_end {
     use pretty_assertions::assert_eq;
 
+    use crate::models::StatefulTable;
     use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
 
     use super::*;
@@ -64,16 +98,58 @@ mod tests {
       to_string
     );
 
-    test_iterable_home_and_end!(
-      test_filtered_collections_home_end,
-      CollectionsHandler,
-      filtered_collections,
-      extended_stateful_iterable_vec!(Collection, HorizontallyScrollableText),
-      ActiveRadarrBlock::Collections,
-      None,
-      title,
-      to_string
-    );
+    #[test]
+    fn test_filtered_collections_home_end() {
+      let mut app = App::default();
+      let mut filtered_collections = StatefulTable::default();
+      filtered_collections.set_items(extended_stateful_iterable_vec!(
+        Collection,
+        HorizontallyScrollableText
+      ));
+      app.data.radarr_data.filtered_collections = Some(filtered_collections);
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_collections
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 3"
+      );
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_collections
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 1"
+      );
+    }
 
     #[test]
     fn test_collection_search_box_home_end_keys() {
@@ -341,6 +417,7 @@ mod tests {
   }
 
   mod test_handle_submit {
+    use crate::models::StatefulTable;
     use pretty_assertions::assert_eq;
 
     use crate::network::radarr_network::RadarrEvent;
@@ -450,14 +527,12 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
-      app
-        .data
-        .radarr_data
-        .filtered_collections
-        .set_items(extended_stateful_iterable_vec!(
-          Collection,
-          HorizontallyScrollableText
-        ));
+      let mut filtered_collections = StatefulTable::default();
+      filtered_collections.set_items(extended_stateful_iterable_vec!(
+        Collection,
+        HorizontallyScrollableText
+      ));
+      app.data.radarr_data.filtered_collections = Some(filtered_collections);
       app.data.radarr_data.search = Some("Test 2".into());
 
       CollectionsHandler::with(
@@ -473,6 +548,8 @@ mod tests {
           .data
           .radarr_data
           .filtered_collections
+          .as_ref()
+          .unwrap()
           .current_selection()
           .title
           .text,
@@ -507,12 +584,25 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.data.radarr_data.filtered_collections.items.len(), 3);
+      assert!(app.data.radarr_data.filtered_collections.is_some());
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_collections
+          .as_ref()
+          .unwrap()
+          .items
+          .len(),
+        3
+      );
       assert_str_eq!(
         app
           .data
           .radarr_data
           .filtered_collections
+          .as_ref()
+          .unwrap()
           .current_selection()
           .title
           .text,
@@ -547,7 +637,7 @@ mod tests {
       )
       .handle();
 
-      assert!(app.data.radarr_data.filtered_collections.items.is_empty());
+      assert!(app.data.radarr_data.filtered_collections.is_none());
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::FilterCollectionsError.into()
@@ -715,7 +805,6 @@ mod tests {
       RadarrData, EDIT_COLLECTION_SELECTION_BLOCKS,
     };
 
-    use crate::models::StatefulTable;
     use crate::{assert_refresh_key, test_edit_collection_key};
 
     use super::*;
@@ -784,7 +873,7 @@ mod tests {
       assert!(app.data.radarr_data.is_filtering);
       assert!(app.should_ignore_quit_key);
       assert!(app.data.radarr_data.filter.is_some());
-      assert!(app.data.radarr_data.filtered_collections.items.is_empty());
+      assert!(app.data.radarr_data.filtered_collections.is_none());
     }
 
     #[test]

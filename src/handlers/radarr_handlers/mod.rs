@@ -117,16 +117,8 @@ pub fn handle_change_tab_left_right_keys(app: &mut App<'_>, key: &Key) {
 #[macro_export]
 macro_rules! search_table {
   ($app:expr, $data_ref:ident, $error_block:expr) => {
-    let search_index = if $app.data.radarr_data.search.is_some() {
-      let search_string = $app
-        .data
-        .radarr_data
-        .search
-        .as_ref()
-        .unwrap()
-        .text
-        .clone()
-        .to_lowercase();
+    let search_index = if let Some(search_str) = $app.data.radarr_data.search.as_ref() {
+      let search_string = search_str.text.clone().to_lowercase();
 
       $app.data.radarr_data.search = None;
 
@@ -151,44 +143,65 @@ macro_rules! search_table {
       $app.pop_and_push_navigation_stack($error_block.into());
     }
   };
+  ($app:expr, $data_ref:ident, $error_block:expr, $option:ident) => {
+    let search_index = if let Some(search_str) = $app.data.radarr_data.search.as_ref() {
+      let search_string = search_str.text.clone().to_lowercase();
+
+      $app.data.radarr_data.search = None;
+
+      $app
+        .data
+        .radarr_data
+        .$data_ref
+        .as_ref()
+        .unwrap()
+        .items
+        .iter()
+        .position(|item| strip_non_search_characters(&item.title.text).contains(&search_string))
+    } else {
+      None
+    };
+
+    $app.data.radarr_data.is_searching = false;
+    $app.should_ignore_quit_key = false;
+
+    if search_index.is_some() {
+      $app.pop_navigation_stack();
+      $app
+        .data
+        .radarr_data
+        .$data_ref
+        .as_mut()
+        .unwrap()
+        .select_index(search_index);
+    } else {
+      $app.pop_and_push_navigation_stack($error_block.into());
+    }
+  };
 }
 
 #[macro_export]
 macro_rules! filter_table {
   ($app:expr, $source_table_ref:ident, $filter_table_ref:ident, $error_block:expr) => {
-    let empty_filter = $app.data.radarr_data.filter.is_some()
-      && $app
-        .data
-        .radarr_data
-        .filter
-        .as_ref()
-        .unwrap()
-        .text
-        .is_empty();
-    let filter_matches = if $app.data.radarr_data.filter.is_some()
-      && !$app
-        .data
-        .radarr_data
-        .filter
-        .as_ref()
-        .unwrap()
-        .text
-        .is_empty()
-    {
-      let filter =
-        strip_non_search_characters(&$app.data.radarr_data.filter.as_ref().unwrap().text.clone());
+    let empty_filter = match $app.data.radarr_data.filter.as_ref() {
+      Some(filter) if filter.text.is_empty() => true,
+      _ => false,
+    };
+    let filter_matches = match $app.data.radarr_data.filter.as_ref() {
+      Some(filter) if !filter.text.is_empty() => {
+        let scrubbed_filter = strip_non_search_characters(&filter.text.clone());
 
-      $app
-        .data
-        .radarr_data
-        .$source_table_ref
-        .items
-        .iter()
-        .filter(|item| strip_non_search_characters(&item.title.text).contains(&filter))
-        .cloned()
-        .collect()
-    } else {
-      Vec::new()
+        $app
+          .data
+          .radarr_data
+          .$source_table_ref
+          .items
+          .iter()
+          .filter(|item| strip_non_search_characters(&item.title.text).contains(&scrubbed_filter))
+          .cloned()
+          .collect()
+      }
+      _ => Vec::new(),
     };
 
     $app.data.radarr_data.filter = None;
@@ -201,11 +214,9 @@ macro_rules! filter_table {
       $app.pop_navigation_stack();
     } else {
       $app.pop_navigation_stack();
-      $app
-        .data
-        .radarr_data
-        .$filter_table_ref
-        .set_items(filter_matches);
+      let mut filter_table = StatefulTable::default();
+      filter_table.set_items(filter_matches);
+      $app.data.radarr_data.$filter_table_ref = Some(filter_table);
     }
   };
 }

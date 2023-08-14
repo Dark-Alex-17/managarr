@@ -21,21 +21,65 @@ mod tests {
 
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
-    use crate::models::BlockSelectionState;
-    use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
+    use crate::models::{BlockSelectionState, StatefulTable};
+    use crate::simple_stateful_iterable_vec;
 
     use super::*;
 
-    test_iterable_scroll!(
-      test_add_movie_search_results_scroll,
-      AddMovieHandler,
-      add_searched_movies,
-      simple_stateful_iterable_vec!(AddMovieSearchResult, HorizontallyScrollableText),
-      ActiveRadarrBlock::AddMovieSearchResults,
-      None,
-      title,
-      to_string
-    );
+    #[rstest]
+    fn test_add_movie_search_results_scroll(
+      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
+    ) {
+      let mut app = App::default();
+      let mut add_searched_movies = StatefulTable::default();
+      add_searched_movies.set_items(simple_stateful_iterable_vec!(
+        AddMovieSearchResult,
+        HorizontallyScrollableText
+      ));
+      app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
+
+      AddMovieHandler::with(
+        &key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSearchResults,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_searched_movies
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 2"
+      );
+
+      AddMovieHandler::with(
+        &key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSearchResults,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_searched_movies
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 1"
+      );
+    }
 
     #[rstest]
     fn test_add_movie_select_monitor_scroll(
@@ -302,21 +346,64 @@ mod tests {
   mod test_handle_home_end {
     use strum::IntoEnumIterator;
 
+    use crate::extended_stateful_iterable_vec;
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
-    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
+    use crate::models::StatefulTable;
 
     use super::*;
 
-    test_iterable_home_and_end!(
-      test_add_movie_search_results_home_end,
-      AddMovieHandler,
-      add_searched_movies,
-      extended_stateful_iterable_vec!(AddMovieSearchResult, HorizontallyScrollableText),
-      ActiveRadarrBlock::AddMovieSearchResults,
-      None,
-      title,
-      to_string
-    );
+    #[test]
+    fn test_add_movie_search_results_home_end() {
+      let mut app = App::default();
+      let mut add_searched_movies = StatefulTable::default();
+      add_searched_movies.set_items(extended_stateful_iterable_vec!(
+        AddMovieSearchResult,
+        HorizontallyScrollableText
+      ));
+      app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSearchResults,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_searched_movies
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 3"
+      );
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMovieSearchResults,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .add_searched_movies
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 1"
+      );
+    }
 
     #[test]
     fn test_add_movie_select_monitor_home_end() {
@@ -765,7 +852,7 @@ mod tests {
     use crate::models::radarr_models::Movie;
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
-    use crate::models::BlockSelectionState;
+    use crate::models::{BlockSelectionState, StatefulTable};
     use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
@@ -818,11 +905,9 @@ mod tests {
     #[test]
     fn test_add_movie_search_results_submit() {
       let mut app = App::default();
-      app
-        .data
-        .radarr_data
-        .add_searched_movies
-        .set_items(vec![AddMovieSearchResult::default()]);
+      let mut add_searched_movies = StatefulTable::default();
+      add_searched_movies.set_items(vec![AddMovieSearchResult::default()]);
+      app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(1, "B - Test 2".to_owned()), (0, "A - Test 1".to_owned())]);
 
@@ -904,11 +989,9 @@ mod tests {
     #[test]
     fn test_add_movie_search_results_submit_movie_already_in_library() {
       let mut app = App::default();
-      app
-        .data
-        .radarr_data
-        .add_searched_movies
-        .set_items(vec![AddMovieSearchResult::default()]);
+      let mut add_searched_movies = StatefulTable::default();
+      add_searched_movies.set_items(vec![AddMovieSearchResult::default()]);
+      app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
       app
         .data
         .radarr_data
@@ -1063,6 +1146,7 @@ mod tests {
 
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
+    use crate::models::StatefulTable;
     use crate::{assert_search_reset, simple_stateful_iterable_vec};
 
     use super::*;
@@ -1123,14 +1207,12 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
       app.push_navigation_stack(active_radarr_block.into());
-      app
-        .data
-        .radarr_data
-        .add_searched_movies
-        .set_items(simple_stateful_iterable_vec!(
-          AddMovieSearchResult,
-          HorizontallyScrollableText
-        ));
+      let mut add_searched_movies = StatefulTable::default();
+      add_searched_movies.set_items(simple_stateful_iterable_vec!(
+        AddMovieSearchResult,
+        HorizontallyScrollableText
+      ));
+      app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
 
       AddMovieHandler::with(&ESC_KEY, &mut app, &active_radarr_block, &None).handle();
 
@@ -1138,7 +1220,7 @@ mod tests {
         app.get_current_route(),
         &ActiveRadarrBlock::AddMovieSearchInput.into()
       );
-      assert!(app.data.radarr_data.add_searched_movies.items.is_empty());
+      assert!(app.data.radarr_data.add_searched_movies.is_none());
       assert!(app.should_ignore_quit_key);
     }
 

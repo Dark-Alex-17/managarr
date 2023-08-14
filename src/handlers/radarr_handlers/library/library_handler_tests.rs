@@ -18,6 +18,7 @@ mod tests {
   use crate::test_handler_delegation;
 
   mod test_handle_scroll_up_and_down {
+    use crate::models::StatefulTable;
     use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
 
     use super::*;
@@ -33,21 +34,54 @@ mod tests {
       to_string
     );
 
-    test_iterable_scroll!(
-      test_filtered_movies_scroll,
-      LibraryHandler,
-      filtered_movies,
-      simple_stateful_iterable_vec!(Movie, HorizontallyScrollableText),
-      ActiveRadarrBlock::Movies,
-      None,
-      title,
-      to_string
-    );
+    #[rstest]
+    fn test_filtered_movies_scroll(
+      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
+    ) {
+      let mut app = App::default();
+      let mut filtered_movies = StatefulTable::default();
+      filtered_movies.set_items(simple_stateful_iterable_vec!(
+        Movie,
+        HorizontallyScrollableText
+      ));
+      app.data.radarr_data.filtered_movies = Some(filtered_movies);
+
+      LibraryHandler::with(&key, &mut app, &ActiveRadarrBlock::Movies, &None).handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_movies
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 2"
+      );
+
+      LibraryHandler::with(&key, &mut app, &ActiveRadarrBlock::Movies, &None).handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_movies
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 1"
+      );
+    }
   }
 
   mod test_handle_home_end {
     use pretty_assertions::assert_eq;
 
+    use crate::models::StatefulTable;
     use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
 
     use super::*;
@@ -63,16 +97,58 @@ mod tests {
       to_string
     );
 
-    test_iterable_home_and_end!(
-      test_filtered_movies_home_end,
-      LibraryHandler,
-      filtered_movies,
-      extended_stateful_iterable_vec!(Movie, HorizontallyScrollableText),
-      ActiveRadarrBlock::Movies,
-      None,
-      title,
-      to_string
-    );
+    #[test]
+    fn test_filtered_movies_home_end() {
+      let mut app = App::default();
+      let mut filtered_movies = StatefulTable::default();
+      filtered_movies.set_items(extended_stateful_iterable_vec!(
+        Movie,
+        HorizontallyScrollableText
+      ));
+      app.data.radarr_data.filtered_movies = Some(filtered_movies);
+
+      LibraryHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::Movies,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_movies
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 3"
+      );
+
+      LibraryHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::Movies,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_movies
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 1"
+      );
+    }
 
     #[test]
     fn test_movie_search_box_home_end_keys() {
@@ -367,6 +443,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::extended_stateful_iterable_vec;
+    use crate::models::StatefulTable;
     use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
@@ -453,14 +530,12 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
-      app
-        .data
-        .radarr_data
-        .filtered_movies
-        .set_items(extended_stateful_iterable_vec!(
-          Movie,
-          HorizontallyScrollableText
-        ));
+      let mut filtered_movies = StatefulTable::default();
+      filtered_movies.set_items(extended_stateful_iterable_vec!(
+        Movie,
+        HorizontallyScrollableText
+      ));
+      app.data.radarr_data.filtered_movies = Some(filtered_movies);
       app.data.radarr_data.search = Some("Test 2".into());
 
       LibraryHandler::with(
@@ -476,6 +551,8 @@ mod tests {
           .data
           .radarr_data
           .filtered_movies
+          .as_ref()
+          .unwrap()
           .current_selection()
           .title
           .text,
@@ -507,12 +584,25 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.data.radarr_data.filtered_movies.items.len(), 3);
+      assert!(app.data.radarr_data.filtered_movies.is_some());
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .filtered_movies
+          .as_ref()
+          .unwrap()
+          .items
+          .len(),
+        3
+      );
       assert_str_eq!(
         app
           .data
           .radarr_data
           .filtered_movies
+          .as_ref()
+          .unwrap()
           .current_selection()
           .title
           .text,
@@ -544,7 +634,7 @@ mod tests {
       )
       .handle();
 
-      assert!(app.data.radarr_data.filtered_movies.items.is_empty());
+      assert!(app.data.radarr_data.filtered_movies.is_none());
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::FilterMoviesError.into()
@@ -688,7 +778,6 @@ mod tests {
       RadarrData, EDIT_MOVIE_SELECTION_BLOCKS,
     };
 
-    use crate::models::StatefulTable;
     use crate::{assert_refresh_key, test_edit_movie_key};
 
     use super::*;
@@ -757,7 +846,7 @@ mod tests {
       assert!(app.data.radarr_data.is_filtering);
       assert!(app.should_ignore_quit_key);
       assert!(app.data.radarr_data.filter.is_some());
-      assert!(app.data.radarr_data.filtered_movies.items.is_empty());
+      assert!(app.data.radarr_data.filtered_movies.is_none());
     }
 
     #[test]

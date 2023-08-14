@@ -61,7 +61,8 @@ fn draw_root_folders<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: 
     area,
     layout_block_top_border(),
     TableProps {
-      content: &mut app.data.radarr_data.root_folders,
+      content: Some(&mut app.data.radarr_data.root_folders),
+      wrapped_content: None,
       table_headers: vec!["Path", "Free Space", "Unmapped Folders"],
       constraints: vec![
         Constraint::Percentage(60),

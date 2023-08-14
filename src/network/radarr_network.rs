@@ -18,7 +18,7 @@ use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditMovieModal, MovieDetailsModal,
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
+use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText, StatefulTable};
 use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
 use crate::utils::{convert_runtime, convert_to_gb};
 
@@ -191,6 +191,8 @@ impl<'a, 'b> Network<'a, 'b> {
             .data
             .radarr_data
             .add_searched_movies
+            .as_ref()
+            .unwrap()
             .current_selection()
             .clone();
           (tmdb_id, title.text)
@@ -200,6 +202,8 @@ impl<'a, 'b> Network<'a, 'b> {
           .data
           .radarr_data
           .add_searched_movies
+          .as_ref()
+          .unwrap()
           .current_selection()
           .clone();
         (tmdb_id, title.text)
@@ -688,24 +692,24 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-      .handle_request::<(), Vec<Credit>>(request_props, |credit_vec, mut app| {
-        let cast_vec: Vec<Credit> = credit_vec
-          .iter()
-          .cloned()
-          .filter(|credit| credit.credit_type == CreditType::Cast)
-          .collect();
-        let crew_vec: Vec<Credit> = credit_vec
-          .iter()
-          .cloned()
-          .filter(|credit| credit.credit_type == CreditType::Crew)
-          .collect();
+			.handle_request::<(), Vec<Credit>>(request_props, |credit_vec, mut app| {
+				let cast_vec: Vec<Credit> = credit_vec
+					.iter()
+					.cloned()
+					.filter(|credit| credit.credit_type == CreditType::Cast)
+					.collect();
+				let crew_vec: Vec<Credit> = credit_vec
+					.iter()
+					.cloned()
+					.filter(|credit| credit.credit_type == CreditType::Crew)
+					.collect();
 
-        debug!("Assuming the movie_details_modal is already a Some and was created by the get_movie_details request");
+				debug!("Assuming the movie_details_modal is already a Some and was created by the get_movie_details request");
 
-        app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_cast.set_items(cast_vec);
-        app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_crew.set_items(crew_vec);
-      })
-      .await;
+				app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_cast.set_items(cast_vec);
+				app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_crew.set_items(crew_vec);
+			})
+			.await;
   }
 
   async fn get_diskspace(&mut self) {
@@ -1020,20 +1024,20 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-      .handle_request::<(), Vec<MovieHistoryItem>>(request_props, |movie_history_vec, mut app| {
-        debug!("Assuming the movie_details_modal is already a Some and was created by the get_movie_details request");
-        let mut reversed_movie_history_vec = movie_history_vec.to_vec();
-        reversed_movie_history_vec.reverse();
-        app
-          .data
-          .radarr_data
-          .movie_details_modal
-          .as_mut()
-          .unwrap()
-          .movie_history
-          .set_items(reversed_movie_history_vec)
-      })
-      .await;
+			.handle_request::<(), Vec<MovieHistoryItem>>(request_props, |movie_history_vec, mut app| {
+				debug!("Assuming the movie_details_modal is already a Some and was created by the get_movie_details request");
+				let mut reversed_movie_history_vec = movie_history_vec.to_vec();
+				reversed_movie_history_vec.reverse();
+				app
+					.data
+					.radarr_data
+					.movie_details_modal
+					.as_mut()
+					.unwrap()
+					.movie_history
+					.set_items(reversed_movie_history_vec)
+			})
+			.await;
   }
 
   async fn get_movies(&mut self) {
@@ -1118,11 +1122,11 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-      .handle_request::<(), Vec<Release>>(request_props, |release_vec, mut app| {
-        debug!("Assuming the movie_details_modal is already a Some and was created by the get_movie_details request");
-        app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_releases.set_items(release_vec);
-      })
-      .await;
+			.handle_request::<(), Vec<Release>>(request_props, |release_vec, mut app| {
+				debug!("Assuming the movie_details_modal is already a Some and was created by the get_movie_details request");
+				app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_releases.set_items(release_vec);
+			})
+			.await;
   }
 
   async fn get_root_folders(&mut self) {
@@ -1325,12 +1329,14 @@ impl<'a, 'b> Network<'a, 'b> {
               app.pop_and_push_navigation_stack(
                 ActiveRadarrBlock::AddMovieEmptySearchResults.into(),
               );
+            } else if let Some(add_searched_movies) =
+              app.data.radarr_data.add_searched_movies.as_mut()
+            {
+              add_searched_movies.set_items(movie_vec);
             } else {
-              app
-                .data
-                .radarr_data
-                .add_searched_movies
-                .set_items(movie_vec);
+              let mut add_searched_movies = StatefulTable::default();
+              add_searched_movies.set_items(movie_vec);
+              app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
             }
           })
           .await;
@@ -1568,12 +1574,14 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn extract_movie_id(&mut self) -> (u64, u64) {
     let app = self.app.lock().await;
-    if !app.data.radarr_data.filtered_movies.items.is_empty() {
+    if app.data.radarr_data.filtered_movies.is_some() {
       (
         app
           .data
           .radarr_data
           .filtered_movies
+          .as_ref()
+          .unwrap()
           .current_selection()
           .id
           .as_u64()
@@ -1582,6 +1590,8 @@ impl<'a, 'b> Network<'a, 'b> {
           .data
           .radarr_data
           .filtered_movies
+          .as_ref()
+          .unwrap()
           .current_selection()
           .tmdb_id
           .as_u64()
@@ -1610,15 +1620,14 @@ impl<'a, 'b> Network<'a, 'b> {
   }
 
   async fn extract_collection_id(&mut self) -> u64 {
-    if !self
+    if self
       .app
       .lock()
       .await
       .data
       .radarr_data
       .filtered_collections
-      .items
-      .is_empty()
+      .is_some()
     {
       self
         .app
@@ -1627,6 +1636,8 @@ impl<'a, 'b> Network<'a, 'b> {
         .data
         .radarr_data
         .filtered_collections
+        .as_ref()
+        .unwrap()
         .current_selection()
         .id
         .as_u64()

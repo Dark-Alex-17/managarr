@@ -93,43 +93,31 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
   app: &mut App<'_>,
   prompt_area: Rect,
 ) {
-  let (movie_title, movie_overview) = if app.data.radarr_data.filtered_movies.items.is_empty() {
-    (
-      app
-        .data
-        .radarr_data
-        .movies
-        .current_selection()
-        .title
-        .text
-        .clone(),
-      app
-        .data
-        .radarr_data
-        .movies
-        .current_selection()
-        .overview
-        .clone(),
-    )
-  } else {
-    (
-      app
-        .data
-        .radarr_data
-        .filtered_movies
-        .current_selection()
-        .title
-        .text
-        .clone(),
-      app
-        .data
-        .radarr_data
-        .filtered_movies
-        .current_selection()
-        .overview
-        .clone(),
-    )
-  };
+  let (movie_title, movie_overview) =
+    if let Some(filtered_movies) = app.data.radarr_data.filtered_movies.as_ref() {
+      (
+        filtered_movies.current_selection().title.text.clone(),
+        filtered_movies.current_selection().overview.clone(),
+      )
+    } else {
+      (
+        app
+          .data
+          .radarr_data
+          .movies
+          .current_selection()
+          .title
+          .text
+          .clone(),
+        app
+          .data
+          .radarr_data
+          .movies
+          .current_selection()
+          .overview
+          .clone(),
+      )
+    };
   let title = format!("Edit - {}", movie_title);
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();

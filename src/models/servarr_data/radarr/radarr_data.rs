@@ -35,33 +35,33 @@ pub struct RadarrData<'a> {
   pub version: String,
   pub start_time: DateTime<Utc>,
   pub movies: StatefulTable<Movie>,
-  pub filtered_movies: StatefulTable<Movie>,
-  pub add_searched_movies: StatefulTable<AddMovieSearchResult>,
   pub selected_block: BlockSelectionState<'a, ActiveRadarrBlock>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub indexers: StatefulTable<Indexer>,
-  pub indexer_settings: Option<IndexerSettings>,
   pub quality_profile_map: BiMap<u64, String>,
   pub tags_map: BiMap<u64, String>,
   pub collections: StatefulTable<Collection>,
-  pub filtered_collections: StatefulTable<Collection>,
   pub collection_movies: StatefulTable<CollectionMovie>,
   pub logs: StatefulList<HorizontallyScrollableText>,
   pub log_details: StatefulList<HorizontallyScrollableText>,
   pub tasks: StatefulTable<Task>,
   pub queued_events: StatefulTable<QueueEvent>,
   pub updates: ScrollableText,
-  pub prompt_confirm_action: Option<RadarrEvent>,
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
   pub search: Option<HorizontallyScrollableText>,
   pub filter: Option<HorizontallyScrollableText>,
   pub add_movie_modal: Option<AddMovieModal>,
+  pub add_searched_movies: Option<StatefulTable<AddMovieSearchResult>>,
   pub edit_movie_modal: Option<EditMovieModal>,
   pub edit_collection_modal: Option<EditCollectionModal>,
   pub edit_root_folder: Option<HorizontallyScrollableText>,
+  pub filtered_collections: Option<StatefulTable<Collection>>,
+  pub filtered_movies: Option<StatefulTable<Movie>>,
+  pub indexer_settings: Option<IndexerSettings>,
   pub movie_details_modal: Option<MovieDetailsModal>,
   pub prompt_confirm: bool,
+  pub prompt_confirm_action: Option<RadarrEvent>,
   pub delete_movie_files: bool,
   pub add_list_exclusion: bool,
   pub is_searching: bool,
@@ -78,16 +78,16 @@ impl<'a> RadarrData<'a> {
     self.is_searching = false;
     self.search = None;
     self.filter = None;
-    self.filtered_movies = StatefulTable::default();
-    self.filtered_collections = StatefulTable::default();
-    self.add_searched_movies = StatefulTable::default();
+    self.filtered_movies = None;
+    self.filtered_collections = None;
+    self.add_searched_movies = None;
   }
 
   pub fn reset_filter(&mut self) {
     self.is_filtering = false;
     self.filter = None;
-    self.filtered_movies = StatefulTable::default();
-    self.filtered_collections = StatefulTable::default();
+    self.filtered_movies = None;
+    self.filtered_collections = None;
   }
 
   pub fn reset_movie_info_tabs(&mut self) {
@@ -104,33 +104,33 @@ impl<'a> Default for RadarrData<'a> {
       version: String::default(),
       start_time: DateTime::default(),
       movies: StatefulTable::default(),
-      add_searched_movies: StatefulTable::default(),
       selected_block: BlockSelectionState::default(),
-      filtered_movies: StatefulTable::default(),
       downloads: StatefulTable::default(),
       indexers: StatefulTable::default(),
-      indexer_settings: None,
       quality_profile_map: BiMap::default(),
       tags_map: BiMap::default(),
       collections: StatefulTable::default(),
-      filtered_collections: StatefulTable::default(),
       collection_movies: StatefulTable::default(),
       logs: StatefulList::default(),
       log_details: StatefulList::default(),
       tasks: StatefulTable::default(),
       queued_events: StatefulTable::default(),
       updates: ScrollableText::default(),
-      prompt_confirm_action: None,
       search: None,
       filter: None,
       add_movie_modal: None,
+      add_searched_movies: None,
       edit_movie_modal: None,
       edit_collection_modal: None,
       edit_root_folder: None,
+      filtered_collections: None,
+      filtered_movies: None,
+      indexer_settings: None,
       movie_details_modal: None,
       is_searching: false,
       is_filtering: false,
       prompt_confirm: false,
+      prompt_confirm_action: None,
       delete_movie_files: false,
       add_list_exclusion: false,
       main_tabs: TabState::new(vec![

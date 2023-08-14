@@ -269,7 +269,8 @@ fn draw_movie_history<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, conte
       content_area,
       layout_block_top_border(),
       TableProps {
-        content: &mut movie_details_modal.movie_history,
+        content: Some(&mut movie_details_modal.movie_history),
+        wrapped_content: None,
         table_headers: vec!["Source Title", "Event Type", "Languages", "Quality", "Date"],
         constraints: vec![
           Constraint::Percentage(34),
@@ -326,13 +327,16 @@ fn draw_movie_cast<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_
     content_area,
     layout_block_top_border(),
     TableProps {
-      content: &mut app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_cast,
+      content: Some(
+        &mut app
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_mut()
+          .unwrap()
+          .movie_cast,
+      ),
+      wrapped_content: None,
       constraints: iter::repeat(Constraint::Ratio(1, 2)).take(2).collect(),
       table_headers: vec!["Cast Member", "Character"],
       help: app
@@ -365,13 +369,16 @@ fn draw_movie_crew<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_
     content_area,
     layout_block_top_border(),
     TableProps {
-      content: &mut app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_crew,
+      content: Some(
+        &mut app
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_mut()
+          .unwrap()
+          .movie_crew,
+      ),
+      wrapped_content: None,
       constraints: iter::repeat(Constraint::Ratio(1, 3)).take(3).collect(),
       table_headers: vec!["Crew Member", "Job", "Department"],
       help: app
@@ -455,13 +462,16 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, cont
     content_area,
     layout_block_top_border(),
     TableProps {
-      content: &mut app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_releases,
+      content: Some(
+        &mut app
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_mut()
+          .unwrap()
+          .movie_releases,
+      ),
+      wrapped_content: None,
       constraints: vec![
         Constraint::Length(9),
         Constraint::Length(10),

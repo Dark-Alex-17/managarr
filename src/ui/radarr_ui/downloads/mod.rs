@@ -62,7 +62,8 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rec
     area,
     layout_block_top_border(),
     TableProps {
-      content: &mut app.data.radarr_data.downloads,
+      content: Some(&mut app.data.radarr_data.downloads),
+      wrapped_content: None,
       table_headers: vec![
         "Title",
         "Percent Complete",

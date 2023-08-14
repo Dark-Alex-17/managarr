@@ -109,7 +109,8 @@ fn draw_tasks_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: R
       context_area,
       borderless_block(),
       TableProps {
-        content: &mut app.data.radarr_data.tasks,
+        content: Some(&mut app.data.radarr_data.tasks),
+        wrapped_content: None,
         table_headers: TASK_TABLE_HEADERS.to_vec(),
         constraints: TASK_TABLE_CONSTRAINTS.to_vec(),
         help: None,

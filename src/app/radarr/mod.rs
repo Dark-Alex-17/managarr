@@ -177,25 +177,23 @@ impl<'a> App<'a> {
   }
 
   async fn populate_movie_collection_table(&mut self) {
-    let collection_movies = if !self.data.radarr_data.filtered_collections.items.is_empty() {
-      self
-        .data
-        .radarr_data
-        .filtered_collections
-        .current_selection()
-        .clone()
-        .movies
-        .unwrap_or_default()
-    } else {
-      self
-        .data
-        .radarr_data
-        .collections
-        .current_selection()
-        .clone()
-        .movies
-        .unwrap_or_default()
-    };
+    let collection_movies =
+      if let Some(filtered_collections) = self.data.radarr_data.filtered_collections.as_ref() {
+        filtered_collections
+          .current_selection()
+          .clone()
+          .movies
+          .unwrap_or_default()
+      } else {
+        self
+          .data
+          .radarr_data
+          .collections
+          .current_selection()
+          .clone()
+          .movies
+          .unwrap_or_default()
+      };
     self
       .data
       .radarr_data

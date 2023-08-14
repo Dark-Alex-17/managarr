@@ -21,7 +21,7 @@ mod test {
         (1111, "Any".to_owned()),
       ]),
       tags_map: BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]),
-      filtered_movies: StatefulTable::default(),
+      filtered_movies: None,
       ..create_test_radarr_data()
     };
     let movie = Movie {
@@ -34,7 +34,9 @@ mod test {
     };
 
     if test_filtered_movies {
-      radarr_data.filtered_movies.set_items(vec![movie]);
+      let mut filtered_movies = StatefulTable::default();
+      filtered_movies.set_items(vec![movie]);
+      radarr_data.filtered_movies = Some(filtered_movies);
     } else {
       radarr_data.movies.set_items(vec![movie]);
     }
@@ -111,7 +113,7 @@ mod test {
         (2222, "HD - 1080p".to_owned()),
         (1111, "Any".to_owned()),
       ]),
-      filtered_collections: StatefulTable::default(),
+      filtered_collections: None,
       ..create_test_radarr_data()
     };
     let collection = Collection {
@@ -124,7 +126,9 @@ mod test {
     };
 
     if test_filtered_collections {
-      radarr_data.filtered_collections.set_items(vec![collection]);
+      let mut filtered_collections = StatefulTable::default();
+      filtered_collections.set_items(vec![collection]);
+      radarr_data.filtered_collections = Some(filtered_collections);
     } else {
       radarr_data.collections.set_items(vec![collection]);
     }

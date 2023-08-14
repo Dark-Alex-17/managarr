@@ -10,7 +10,7 @@ mod tests {
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-  use crate::models::HorizontallyScrollableText;
+  use crate::models::{HorizontallyScrollableText, StatefulTable};
   use crate::utils::strip_non_search_characters;
   use crate::{
     extended_stateful_iterable_vec, filter_table, search_table, test_handler_delegation,
@@ -130,9 +130,22 @@ mod tests {
       ActiveRadarrBlock::FilterMoviesError
     );
 
-    assert_eq!(app.data.radarr_data.filtered_movies.items.len(), 1);
+    assert!(app.data.radarr_data.filtered_movies.is_some());
+    assert_eq!(
+      app
+        .data
+        .radarr_data
+        .filtered_movies
+        .as_ref()
+        .unwrap()
+        .items
+        .len(),
+      1
+    );
     assert_str_eq!(
-      app.data.radarr_data.filtered_movies.items[0].title.text,
+      app.data.radarr_data.filtered_movies.as_ref().unwrap().items[0]
+        .title
+        .text,
       "Test 2"
     );
     assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
@@ -165,7 +178,7 @@ mod tests {
       ActiveRadarrBlock::FilterMoviesError
     );
 
-    assert!(app.data.radarr_data.filtered_movies.items.is_empty());
+    assert!(app.data.radarr_data.filtered_movies.is_none());
     assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     assert!(!app.data.radarr_data.is_filtering);
     assert!(!app.should_ignore_quit_key);
@@ -196,7 +209,7 @@ mod tests {
       ActiveRadarrBlock::FilterMoviesError
     );
 
-    assert!(app.data.radarr_data.filtered_movies.items.is_empty());
+    assert!(app.data.radarr_data.filtered_movies.is_none());
     assert_eq!(
       app.get_current_route(),
       &ActiveRadarrBlock::FilterMoviesError.into()
@@ -229,7 +242,7 @@ mod tests {
       ActiveRadarrBlock::FilterMoviesError
     );
 
-    assert!(app.data.radarr_data.filtered_movies.items.is_empty());
+    assert!(app.data.radarr_data.filtered_movies.is_none());
     assert_eq!(
       app.get_current_route(),
       &ActiveRadarrBlock::FilterMoviesError.into()

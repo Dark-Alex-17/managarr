@@ -477,7 +477,7 @@ fn sort_releases_by_selected_field(
         .cmp(release_b.size.as_u64().as_ref().unwrap())
     },
     ReleaseField::Peers => |release_a, release_b| {
-      let default_number = Number::from(i64::max_value());
+      let default_number = Number::from(i64::MAX);
       let seeder_a = release_a
         .seeders
         .as_ref()

@@ -59,7 +59,8 @@ fn draw_indexers<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect
     area,
     layout_block_top_border(),
     TableProps {
-      content: &mut app.data.radarr_data.indexers,
+      content: Some(&mut app.data.radarr_data.indexers),
+      wrapped_content: None,
       table_headers: vec![
         "Indexer",
         "RSS",
