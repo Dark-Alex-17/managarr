@@ -328,6 +328,7 @@ fn draw_table<'a, B, T, F>(
 
   let content_area = draw_help_and_get_content_rect(f, content_area, help);
 
+  #[allow(clippy::unnecessary_unwrap)]
   if wrapped_content.is_some() && wrapped_content.as_ref().unwrap().is_some() {
     draw_table_contents(
       f,
@@ -336,7 +337,7 @@ fn draw_table<'a, B, T, F>(
       highlight,
       wrapped_content.unwrap().as_mut().unwrap(),
       table_headers,
-      &constraints,
+      constraints,
       content_area,
     );
   } else if content.is_some() && !content.as_ref().unwrap().items.is_empty() {
@@ -347,7 +348,7 @@ fn draw_table<'a, B, T, F>(
       highlight,
       content.unwrap(),
       table_headers,
-      &constraints,
+      constraints,
       content_area,
     );
   } else {
@@ -355,6 +356,7 @@ fn draw_table<'a, B, T, F>(
   }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn draw_table_contents<'a, B, T, F>(
   f: &mut Frame<'_, B>,
   block: Block<'_>,
@@ -362,7 +364,7 @@ fn draw_table_contents<'a, B, T, F>(
   highlight: bool,
   content: &mut StatefulTable<T>,
   table_headers: Vec<&str>,
-  constraints: &Vec<Constraint>,
+  constraints: Vec<Constraint>,
   content_area: Rect,
 ) where
   B: Backend,
