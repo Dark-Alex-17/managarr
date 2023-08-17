@@ -535,6 +535,7 @@ mod tests {
       let (mut app, mut sync_network_rx) = construct_app_unit();
       app.is_routing = true;
       app.is_loading = true;
+      app.should_refresh = false;
 
       app
         .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
@@ -581,6 +582,27 @@ mod tests {
       assert!(app.is_loading);
       assert!(app.should_refresh);
       assert!(!app.data.radarr_data.prompt_confirm);
+    }
+
+    #[tokio::test]
+    async fn test_radarr_on_tick_should_refresh_does_not_cancel_prompt_requests() {
+      let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.is_loading = true;
+      app.is_routing = true;
+      app.should_refresh = true;
+
+      app
+        .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
+        .await;
+
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetDownloads.into()
+      );
+      assert!(app.is_loading);
+      assert!(app.should_refresh);
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert!(!app.cancellation_token.is_cancelled());
     }
 
     #[tokio::test]

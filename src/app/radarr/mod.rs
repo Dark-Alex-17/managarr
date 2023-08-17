@@ -148,7 +148,7 @@ impl<'a> App<'a> {
     }
 
     if self.is_routing {
-      if self.is_loading {
+      if self.is_loading && !self.should_refresh {
         self.cancellation_token.cancel();
       }
 
