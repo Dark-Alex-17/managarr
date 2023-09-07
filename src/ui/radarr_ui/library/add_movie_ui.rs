@@ -29,7 +29,7 @@ use crate::App;
 #[path = "add_movie_ui_tests.rs"]
 mod add_movie_ui_tests;
 
-pub(super) struct AddMovieUi {}
+pub(super) struct AddMovieUi;
 
 impl DrawUi for AddMovieUi {
   fn accepts(route: Route) -> bool {
@@ -201,7 +201,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, ar
             help: None,
           },
           |movie| {
-            let (hours, minutes) = convert_runtime(movie.runtime.as_u64().unwrap());
+            let (hours, minutes) = convert_runtime(movie.runtime);
             let imdb_rating = movie
               .ratings
               .imdb
@@ -221,12 +221,12 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, ar
             let imdb_rating = if imdb_rating == 0.0 {
               String::new()
             } else {
-              format!("{:.1}", imdb_rating)
+              format!("{imdb_rating:.1}")
             };
             let rotten_tomatoes_rating = if rotten_tomatoes_rating == 0 {
               String::new()
             } else {
-              format!("{}%", rotten_tomatoes_rating)
+              format!("{rotten_tomatoes_rating}%")
             };
             let in_library = if app
               .data
@@ -250,8 +250,8 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, ar
             Row::new(vec![
               Cell::from(in_library),
               Cell::from(movie.title.to_string()),
-              Cell::from(movie.year.as_u64().unwrap().to_string()),
-              Cell::from(format!("{}h {}m", hours, minutes)),
+              Cell::from(movie.year.to_string()),
+              Cell::from(format!("{hours}h {minutes}m")),
               Cell::from(imdb_rating),
               Cell::from(rotten_tomatoes_rating),
               Cell::from(movie.genres.join(", ")),
@@ -368,7 +368,7 @@ fn draw_confirmation_prompt<B: Backend>(
         .clone(),
     )
   };
-  let title = format!("Add Movie - {}", movie_title);
+  let title = format!("Add Movie - {movie_title}");
   let prompt = movie_overview;
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();

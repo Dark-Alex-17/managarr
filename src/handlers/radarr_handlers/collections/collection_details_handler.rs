@@ -83,8 +83,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
         .radarr_data
         .collection_movies
         .current_selection()
-        .tmdb_id
-        .clone();
+        .tmdb_id;
 
       if self
         .app

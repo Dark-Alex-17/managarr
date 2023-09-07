@@ -58,7 +58,7 @@ impl From<&RadarrData<'_>> for EditMovieModal {
       .map(|tag_id| {
         radarr_data
           .tags_map
-          .get_by_left(&tag_id.as_u64().unwrap())
+          .get_by_left(&tag_id.as_i64().unwrap())
           .unwrap()
           .clone()
       })
@@ -89,7 +89,7 @@ impl From<&RadarrData<'_>> for EditMovieModal {
       .set_items(quality_profile_names);
     let quality_profile_name = radarr_data
       .quality_profile_map
-      .get_by_left(&quality_profile_id.as_u64().unwrap())
+      .get_by_left(quality_profile_id)
       .unwrap();
     let quality_profile_index = edit_movie_modal
       .quality_profile_list
@@ -193,7 +193,7 @@ impl From<&RadarrData<'_>> for EditCollectionModal {
 
     let quality_profile_name = radarr_data
       .quality_profile_map
-      .get_by_left(&quality_profile_id.as_u64().unwrap())
+      .get_by_left(quality_profile_id)
       .unwrap();
     let quality_profile_index = edit_collection_modal
       .quality_profile_list

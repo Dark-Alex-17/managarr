@@ -51,7 +51,7 @@ pub(super) const TASK_TABLE_CONSTRAINTS: [Constraint; 5] = [
   Constraint::Percentage(22),
 ];
 
-pub(super) struct SystemUi {}
+pub(super) struct SystemUi;
 
 impl DrawUi for SystemUi {
   fn accepts(route: Route) -> bool {
@@ -151,7 +151,7 @@ pub(super) fn draw_queued_events<B: Backend>(f: &mut Frame<'_, B>, app: &mut App
     |event| {
       let queued = convert_to_minutes_hours_days(Utc::now().sub(event.queued).num_minutes());
       let queued_string = if queued != "now" {
-        format!("{} ago", queued)
+        format!("{queued} ago")
       } else {
         queued
       };
@@ -160,7 +160,7 @@ pub(super) fn draw_queued_events<B: Backend>(f: &mut Frame<'_, B>, app: &mut App
           convert_to_minutes_hours_days(Utc::now().sub(event.started.unwrap()).num_minutes());
 
         if started != "now" {
-          format!("{} ago", started)
+          format!("{started} ago")
         } else {
           started
         }
@@ -237,14 +237,14 @@ pub(super) struct TaskProps {
 }
 
 pub(super) fn extract_task_props(task: &Task) -> TaskProps {
-  let interval = convert_to_minutes_hours_days(*task.interval.as_i64().as_ref().unwrap());
+  let interval = convert_to_minutes_hours_days(task.interval);
   let last_duration = &task.last_duration[..8];
   let next_execution =
     convert_to_minutes_hours_days((task.next_execution - Utc::now()).num_minutes());
   let last_execution =
     convert_to_minutes_hours_days((Utc::now() - task.last_execution).num_minutes());
   let last_execution_string = if last_execution != "now" {
-    format!("{} ago", last_execution)
+    format!("{last_execution} ago")
   } else {
     last_execution
   };

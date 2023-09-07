@@ -28,7 +28,7 @@ mod movie_details_ui;
 #[path = "library_ui_tests.rs"]
 mod library_ui_tests;
 
-pub(super) struct LibraryUi {}
+pub(super) struct LibraryUi;
 
 impl DrawUi for LibraryUi {
   fn accepts(route: Route) -> bool {
@@ -168,11 +168,11 @@ pub(super) fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, 
         app.tick_count % app.ticks_until_scroll == 0,
       );
       let monitored = if movie.monitored { "🏷" } else { "" };
-      let (hours, minutes) = convert_runtime(movie.runtime.as_u64().unwrap());
-      let file_size: f64 = convert_to_gb(movie.size_on_disk.as_u64().unwrap());
-      let certification = movie.certification.clone().unwrap_or_else(|| "".to_owned());
+      let (hours, minutes) = convert_runtime(movie.runtime);
+      let file_size: f64 = convert_to_gb(movie.size_on_disk);
+      let certification = movie.certification.clone().unwrap_or_default();
       let quality_profile = quality_profile_map
-        .get_by_left(&movie.quality_profile_id.as_u64().unwrap())
+        .get_by_left(&movie.quality_profile_id)
         .unwrap()
         .to_owned();
       let tags = movie
@@ -180,7 +180,7 @@ pub(super) fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, 
         .iter()
         .map(|tag_id| {
           tags_map
-            .get_by_left(&tag_id.as_u64().unwrap())
+            .get_by_left(&tag_id.as_i64().unwrap())
             .unwrap()
             .clone()
         })
@@ -191,10 +191,10 @@ pub(super) fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, 
         Cell::from(movie.title.to_string()),
         Cell::from(movie.year.to_string()),
         Cell::from(movie.studio.to_string()),
-        Cell::from(format!("{}h {}m", hours, minutes)),
+        Cell::from(format!("{hours}h {minutes}m")),
         Cell::from(certification),
         Cell::from(movie.original_language.name.to_owned()),
-        Cell::from(format!("{:.2} GB", file_size)),
+        Cell::from(format!("{file_size:.2} GB")),
         Cell::from(quality_profile),
         Cell::from(monitored.to_owned()),
         Cell::from(tags),

@@ -2,7 +2,8 @@ use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-use serde::Deserialize;
+use serde::{de, Deserialize, Deserializer};
+use serde_json::Number;
 use tui::widgets::{ListState, TableState};
 
 pub mod radarr_models;
@@ -408,4 +409,14 @@ where
   pub fn set_index(&mut self, index: usize) {
     self.index = index;
   }
+}
+
+pub fn from_i64<'de, D>(deserializer: D) -> Result<i64, D::Error>
+where
+  D: Deserializer<'de>,
+{
+  let num: Number = Deserialize::deserialize(deserializer)?;
+  num.as_i64().ok_or(de::Error::custom(format!(
+    "Unable to convert Number to i64: {num:?}"
+  )))
 }

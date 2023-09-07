@@ -21,7 +21,7 @@ use crate::ui::{
 #[path = "indexer_settings_ui_tests.rs"]
 mod indexer_settings_ui_tests;
 
-pub(super) struct IndexerSettingsUi {}
+pub(super) struct IndexerSettingsUi;
 
 impl DrawUi for IndexerSettingsUi {
   fn accepts(route: Route) -> bool {

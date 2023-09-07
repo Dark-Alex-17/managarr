@@ -225,7 +225,7 @@ mod tests {
   mod test_handle_key_char {
     use bimap::BiMap;
     use pretty_assertions::{assert_eq, assert_str_eq};
-    use serde_json::Number;
+
     use strum::IntoEnumIterator;
 
     use crate::models::radarr_models::{Collection, MinimumAvailability};

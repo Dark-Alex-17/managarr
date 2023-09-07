@@ -24,7 +24,7 @@ use crate::ui::{
 #[path = "system_details_ui_tests.rs"]
 mod system_details_ui_tests;
 
-pub(super) struct SystemDetailsUi {}
+pub(super) struct SystemDetailsUi;
 
 impl DrawUi for SystemDetailsUi {
   fn accepts(route: Route) -> bool {

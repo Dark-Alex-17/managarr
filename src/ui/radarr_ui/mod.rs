@@ -41,7 +41,7 @@ mod system;
 #[path = "radarr_ui_tests.rs"]
 mod radarr_ui_tests;
 
-pub(super) struct RadarrUi {}
+pub(super) struct RadarrUi;
 
 impl DrawUi for RadarrUi {
   fn accepts(route: Route) -> bool {
@@ -119,11 +119,7 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area: Rec
     let seconds = (hour_difference - Duration::minutes(minutes)).num_seconds();
 
     let uptime_paragraph = Paragraph::new(Text::from(format!(
-      "Uptime: {}d {:0width$}:{:0width$}:{:0width$}",
-      days,
-      hours,
-      minutes,
-      seconds,
+      "Uptime: {days}d {hours:0width$}:{minutes:0width$}:{seconds:0width$}",
       width = 2
     )))
     .block(borderless_block())
@@ -144,10 +140,10 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area: Rec
         total_space,
       } = &disk_space_vec[i];
       let title = format!("Disk {}", i + 1);
-      let ratio = if total_space.as_u64().unwrap() == 0 {
+      let ratio = if *total_space == 0 {
         0f64
       } else {
-        1f64 - (free_space.as_u64().unwrap() as f64 / total_space.as_u64().unwrap() as f64)
+        1f64 - (*free_space as f64 / *total_space as f64)
       };
 
       let space_gauge = line_gauge_with_label(title.as_str(), ratio);
@@ -161,8 +157,8 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area: Rec
       let RootFolder {
         path, free_space, ..
       } = &root_folders.items[i];
-      let space: f64 = convert_to_gb(free_space.as_u64().unwrap());
-      let root_folder_space = Paragraph::new(format!("{}: {:.2} GB free", path.to_owned(), space))
+      let space: f64 = convert_to_gb(*free_space);
+      let root_folder_space = Paragraph::new(format!("{path}: {space:.2} GB free"))
         .block(borderless_block())
         .style(style_default());
 
@@ -193,7 +189,7 @@ fn draw_downloads_context<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area:
         size,
         ..
       } = &downloads_vec[i];
-      let percent = 1f64 - (sizeleft.as_f64().unwrap() / size.as_f64().unwrap());
+      let percent = 1f64 - (*sizeleft as f64 / *size as f64);
       let download_gauge = line_gauge_with_title(title, percent);
 
       f.render_widget(download_gauge, chunks[i]);

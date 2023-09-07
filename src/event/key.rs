@@ -28,8 +28,8 @@ pub enum Key {
 impl Display for Key {
   fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
     match *self {
-      Key::Char(c) => write!(f, "<{}>", c),
-      Key::Ctrl(c) => write!(f, "<ctrl-{}>", c),
+      Key::Char(c) => write!(f, "<{c}>"),
+      Key::Ctrl(c) => write!(f, "<ctrl-{c}>"),
       Key::Up => write!(f, "<↑>"),
       Key::Down => write!(f, "<↓>"),
       Key::Left => write!(f, "<←>"),
@@ -41,7 +41,7 @@ impl Display for Key {
       Key::End => write!(f, "<end>"),
       Key::Tab => write!(f, "<tab>"),
       Key::Delete => write!(f, "<del>"),
-      _ => write!(f, "<{:?}>", self),
+      _ => write!(f, "<{self:?}>"),
     }
   }
 }

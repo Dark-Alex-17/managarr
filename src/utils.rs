@@ -27,11 +27,11 @@ pub fn init_logging_config() -> log4rs::Config {
     .unwrap()
 }
 
-pub fn convert_to_gb(bytes: u64) -> f64 {
+pub fn convert_to_gb(bytes: i64) -> f64 {
   bytes as f64 / 1024f64.powi(3)
 }
 
-pub fn convert_runtime(runtime: u64) -> (u64, u64) {
+pub fn convert_runtime(runtime: i64) -> (i64, i64) {
   let hours = runtime / 60;
   let minutes = runtime % 60;
 

@@ -9,7 +9,7 @@ pub(in crate::app) type ContextClue = (KeyBinding, &'static str);
 pub fn build_context_clue_string(context_clues: &[(KeyBinding, &str)]) -> String {
   context_clues
     .iter()
-    .map(|(key_binding, desc)| format!("{} {}", key_binding.key, desc))
+    .map(|(key_binding, desc)| format!("{} {desc}", key_binding.key))
     .collect::<Vec<String>>()
     .join(" | ")
 }

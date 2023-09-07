@@ -18,7 +18,7 @@ run:
 	@CARGO_INCREMENTAL=1 cargo fmt && make lint && cargo run
 
 lint:
-	@find . | grep '\.\/src\/.*\.rs$$' | xargs touch && cargo clippy --all-targets --workspace
+`	@find . | grep '\.\/src\/.*\.rs$$' | xargs touch && CARGO_INCREMENTAL=0 cargo clippy --all-targets --workspace
 
 lint-fix:
 	@cargo fix

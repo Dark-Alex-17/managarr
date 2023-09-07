@@ -28,7 +28,7 @@ use crate::utils::convert_to_gb;
 #[path = "movie_details_ui_tests.rs"]
 mod movie_details_ui_tests;
 
-pub(super) struct MovieDetailsUi {}
+pub(super) struct MovieDetailsUi;
 
 impl DrawUi for MovieDetailsUi {
   fn accepts(route: Route) -> bool {
@@ -504,21 +504,21 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, cont
         quality,
         ..
       } = release;
-      let age = format!("{} days", age.as_u64().unwrap_or(0));
+      let age = format!("{age} days");
       title.scroll_left_or_reset(
         get_width_from_percentage(content_area, 30),
         current_selection == *release
           && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
         app.tick_count % app.ticks_until_scroll == 0,
       );
-      let size = convert_to_gb(size.as_u64().unwrap());
+      let size = convert_to_gb(*size);
       let rejected_str = if *rejected { "⛔" } else { "" };
       let peers = if seeders.is_none() || leechers.is_none() {
         Text::default()
       } else {
         let seeders = seeders.clone().unwrap().as_u64().unwrap();
         let leechers = leechers.clone().unwrap().as_u64().unwrap();
-        let mut text = Text::from(format!("{} / {}", seeders, leechers));
+        let mut text = Text::from(format!("{seeders} / {leechers}"));
         text.patch_style(determine_peer_style(seeders, leechers));
 
         text
@@ -537,7 +537,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, cont
         Cell::from(rejected_str),
         Cell::from(title.to_string()),
         Cell::from(indexer.clone()),
-        Cell::from(format!("{:.1} GB", size)),
+        Cell::from(format!("{size:.1} GB")),
         Cell::from(peers),
         Cell::from(language),
         Cell::from(quality),
@@ -589,7 +589,7 @@ fn draw_manual_search_confirm_prompt<B: Backend>(
       .clone()
       .unwrap_or_default()
       .iter()
-      .map(|item| Line::from(vec![Span::styled(format!("• {}", item), style_primary())]))
+      .map(|item| Line::from(vec![Span::styled(format!("• {item}"), style_primary())]))
       .collect::<Vec<Line<'_>>>();
     lines_vec.append(&mut rejections_spans);
 

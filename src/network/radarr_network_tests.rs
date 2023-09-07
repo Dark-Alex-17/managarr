@@ -7,7 +7,7 @@ mod test {
   use mockito::{Matcher, Mock, Server, ServerGuard};
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
-  use serde_json::{json, Value};
+  use serde_json::{json, Number, Value};
   use strum::IntoEnumIterator;
   use tokio::sync::Mutex;
   use tokio_util::sync::CancellationToken;
@@ -229,12 +229,12 @@ mod test {
       app_arc.lock().await.data.radarr_data.disk_space_vec,
       vec![
         DiskSpace {
-          free_space: Number::from(1111),
-          total_space: Number::from(2222),
+          free_space: 1111,
+          total_space: 2222,
         },
         DiskSpace {
-          free_space: Number::from(3333),
-          total_space: Number::from(4444),
+          free_space: 3333,
+          total_space: 4444,
         },
       ]
     );
@@ -270,7 +270,7 @@ mod test {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
-      Some(serde_json::from_str(format!("[ {} ]", MOVIE_JSON).as_str()).unwrap()),
+      Some(serde_json::from_str(format!("[ {MOVIE_JSON} ]").as_str()).unwrap()),
       RadarrEvent::GetMovies.resource(),
     )
     .await;
@@ -463,7 +463,7 @@ mod test {
     let mut async_server = server
       .mock(
         &RequestMethod::Get.to_string().to_uppercase(),
-        format!("/api/v3{}", resource).as_str(),
+        format!("/api/v3{resource}").as_str(),
       )
       .match_header("X-Api-Key", "test1234");
     async_server = async_server.expect_at_most(0).create_async().await;
@@ -1186,7 +1186,7 @@ mod test {
     async_server.assert_async().await;
     assert_eq!(
       app_arc.lock().await.data.radarr_data.quality_profile_map,
-      BiMap::from_iter([(2222u64, "HD - 1080p".to_owned())])
+      BiMap::from_iter([(2222i64, "HD - 1080p".to_owned())])
     );
   }
 
@@ -1210,7 +1210,7 @@ mod test {
     async_server.assert_async().await;
     assert_eq!(
       app_arc.lock().await.data.radarr_data.tags_map,
-      BiMap::from_iter([(2222u64, "usenet".to_owned())])
+      BiMap::from_iter([(2222i64, "usenet".to_owned())])
     );
   }
 
@@ -1237,7 +1237,7 @@ mod test {
       Task {
         name: "Application Check Update".to_owned(),
         task_name: "ApplicationCheckUpdate".to_owned(),
-        interval: Number::from(360),
+        interval: 360,
         last_execution: timestamp,
         next_execution: timestamp,
         last_duration: "00:00:00.5111547".to_owned(),
@@ -1245,7 +1245,7 @@ mod test {
       Task {
         name: "Backup".to_owned(),
         task_name: "Backup".to_owned(),
-        interval: Number::from(10080),
+        interval: 10080,
         last_execution: timestamp,
         next_execution: timestamp,
         last_duration: "00:00:00.5111547".to_owned(),
@@ -1317,7 +1317,7 @@ mod test {
     The latest version of Radarr is already installed
 
     4.3.2.1 - 2023-04-15 02:02:53 UTC (Currently Installed)
-    {}
+    {line_break}
     New:
       * Cool new thing
     Fixed:
@@ -1325,20 +1325,17 @@ mod test {
     
     
     3.2.1.0 - 2023-04-15 02:02:53 UTC (Previously Installed)
-    {}
+    {line_break}
     New:
       * Cool new thing (old)
       * Other cool new thing (old)
     
     
     2.1.0 - 2023-04-15 02:02:53 UTC 
-    {}
+    {line_break}
     Fixed:
       * Killed bug 1
-      * Fixed bug 2",
-      line_break.clone(),
-      line_break.clone(),
-      line_break
+      * Fixed bug 2"
     ));
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
@@ -1569,17 +1566,17 @@ mod test {
       };
       add_movie_modal.root_folder_list.set_items(vec![
         RootFolder {
-          id: Number::from(1),
+          id: 1,
           path: "/nfs".to_owned(),
           accessible: true,
-          free_space: Number::from(219902325555200u64),
+          free_space: 219902325555200,
           unmapped_folders: None,
         },
         RootFolder {
-          id: Number::from(2),
+          id: 2,
           path: "/nfs2".to_owned(),
           accessible: true,
-          free_space: Number::from(21990232555520u64),
+          free_space: 21990232555520,
           unmapped_folders: None,
         },
       ]);
@@ -1655,17 +1652,17 @@ mod test {
       };
       add_movie_modal.root_folder_list.set_items(vec![
         RootFolder {
-          id: Number::from(1),
+          id: 1,
           path: "/nfs".to_owned(),
           accessible: true,
-          free_space: Number::from(219902325555200u64),
+          free_space: 219902325555200,
           unmapped_folders: None,
         },
         RootFolder {
-          id: Number::from(2),
+          id: 2,
           path: "/nfs2".to_owned(),
           accessible: true,
-          free_space: Number::from(21990232555520u64),
+          free_space: 21990232555520,
           unmapped_folders: None,
         },
       ]);
@@ -1685,7 +1682,7 @@ mod test {
       app.data.radarr_data.tags_map =
         BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
       let secondary_search_result = AddMovieSearchResult {
-        tmdb_id: Number::from(5678),
+        tmdb_id: 5678,
         ..add_movie_search_result()
       };
       let mut add_searched_movies = StatefulTable::default();
@@ -1715,9 +1712,7 @@ mod test {
         .as_ref()
         .unwrap()
         .current_selection()
-        .tmdb_id
-        .as_u64()
-        .unwrap(),
+        .tmdb_id,
       5678
     );
   }
@@ -2006,8 +2001,8 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![Movie {
-        id: Number::from(1),
-        tmdb_id: Number::from(2),
+        id: 1,
+        tmdb_id: 2,
         ..Movie::default()
       }]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
@@ -2020,8 +2015,8 @@ mod test {
     let app_arc = Arc::new(Mutex::new(App::default()));
     let mut filtered_movies = StatefulTable::default();
     filtered_movies.set_items(vec![Movie {
-      id: Number::from(1),
-      tmdb_id: Number::from(2),
+      id: 1,
+      tmdb_id: 2,
       ..Movie::default()
     }]);
     app_arc.lock().await.data.radarr_data.filtered_movies = Some(filtered_movies);
@@ -2040,7 +2035,7 @@ mod test {
       .radarr_data
       .collections
       .set_items(vec![Collection {
-        id: Number::from(1),
+        id: 1,
         ..Collection::default()
       }]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
@@ -2053,7 +2048,7 @@ mod test {
     let app_arc = Arc::new(Mutex::new(App::default()));
     let mut filtered_collections = StatefulTable::default();
     filtered_collections.set_items(vec![Collection {
-      id: Number::from(1),
+      id: 1,
       ..Collection::default()
     }]);
     app_arc.lock().await.data.radarr_data.filtered_collections = Some(filtered_collections);
@@ -2072,7 +2067,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![Movie {
-        id: Number::from(1),
+        id: 1,
         ..Movie::default()
       }]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
@@ -2127,25 +2122,22 @@ mod test {
 
   #[test]
   fn test_get_movie_status_downloaded() {
-    assert_str_eq!(get_movie_status(true, &[], Number::from(0)), "Downloaded");
+    assert_str_eq!(get_movie_status(true, &[], 0), "Downloaded");
   }
 
   #[test]
   fn test_get_movie_status_missing() {
     let download_record = DownloadRecord {
-      movie_id: 1.into(),
+      movie_id: 1,
       ..DownloadRecord::default()
     };
 
     assert_str_eq!(
-      get_movie_status(false, &[download_record.clone()], 0.into()),
+      get_movie_status(false, &[download_record.clone()], 0),
       "Missing"
     );
 
-    assert_str_eq!(
-      get_movie_status(false, &[download_record], 1.into()),
-      "Missing"
-    );
+    assert_str_eq!(get_movie_status(false, &[download_record], 1), "Missing");
   }
 
   #[test]
@@ -2154,11 +2146,11 @@ mod test {
       get_movie_status(
         false,
         &[DownloadRecord {
-          movie_id: 1.into(),
+          movie_id: 1,
           status: "downloading".to_owned(),
           ..DownloadRecord::default()
         }],
-        1.into()
+        1
       ),
       "Downloading"
     );
@@ -2170,11 +2162,11 @@ mod test {
       get_movie_status(
         false,
         &[DownloadRecord {
-          movie_id: 1.into(),
+          movie_id: 1,
           status: "completed".to_owned(),
           ..DownloadRecord::default()
         }],
-        1.into()
+        1
       ),
       "Awaiting Import"
     );
@@ -2190,7 +2182,7 @@ mod test {
     let mut async_server = server
       .mock(
         &method.to_string().to_uppercase(),
-        format!("/api/v3{}", resource).as_str(),
+        format!("/api/v3{resource}").as_str(),
       )
       .match_header("X-Api-Key", "test1234");
 
@@ -2248,13 +2240,13 @@ mod test {
 
   fn media_info() -> MediaInfo {
     MediaInfo {
-      audio_bitrate: Number::from(0),
+      audio_bitrate: 0,
       audio_channels: Number::from_f64(7.1).unwrap(),
       audio_codec: Some("AAC".to_owned()),
       audio_languages: Some("eng".to_owned()),
-      audio_stream_count: Number::from(1),
-      video_bit_depth: Number::from(10),
-      video_bitrate: Number::from(0),
+      audio_stream_count: 1,
+      video_bit_depth: 10,
+      video_bitrate: 0,
       video_codec: "x265".to_owned(),
       video_fps: Number::from_f64(23.976).unwrap(),
       resolution: "1920x804".to_owned(),
@@ -2276,9 +2268,9 @@ mod test {
     CollectionMovie {
       title: "Test".to_owned().into(),
       overview: "Collection blah blah blah".to_owned(),
-      year: Number::from(2023),
-      runtime: Number::from(120),
-      tmdb_id: Number::from(1234),
+      year: 2023,
+      runtime: 120,
+      tmdb_id: 1234,
       genres: genres(),
       ratings: ratings_list(),
     }
@@ -2286,35 +2278,35 @@ mod test {
 
   fn collection() -> Collection {
     Collection {
-      id: Number::from(123),
+      id: 123,
       title: "Test Collection".to_owned().into(),
       root_folder_path: Some("/nfs/movies".to_owned()),
       search_on_add: true,
       monitored: true,
       minimum_availability: MinimumAvailability::Released,
       overview: Some("Collection blah blah blah".to_owned()),
-      quality_profile_id: Number::from(2222),
+      quality_profile_id: 2222,
       movies: Some(vec![collection_movie()]),
     }
   }
 
   fn movie() -> Movie {
     Movie {
-      id: Number::from(1),
+      id: 1,
       title: "Test".to_owned().into(),
       original_language: language(),
-      size_on_disk: Number::from(3543348019u64),
+      size_on_disk: 3543348019,
       status: "Downloaded".to_owned(),
       overview: "Blah blah blah".to_owned(),
       path: "/nfs/movies".to_owned(),
       studio: "21st Century Alex".to_owned(),
       genres: genres(),
-      year: Number::from(2023),
+      year: 2023,
       monitored: true,
       has_file: true,
-      runtime: Number::from(120),
-      tmdb_id: Number::from(1234),
-      quality_profile_id: Number::from(2222),
+      runtime: 120,
+      tmdb_id: 1234,
+      quality_profile_id: 2222,
       minimum_availability: MinimumAvailability::Announced,
       certification: Some("R".to_owned()),
       tags: vec![Number::from(1)],
@@ -2345,11 +2337,11 @@ mod test {
     Release {
       guid: "1234".to_owned(),
       protocol: "torrent".to_owned(),
-      age: Number::from(1),
+      age: 1,
       title: HorizontallyScrollableText::from("Test Release"),
       indexer: "kickass torrents".to_owned(),
-      indexer_id: Number::from(2),
-      size: Number::from(1234),
+      indexer_id: 2,
+      size: 1234,
       rejected: true,
       rejections: Some(rejections()),
       seeders: Some(Number::from(2)),
@@ -2361,14 +2353,14 @@ mod test {
 
   fn add_movie_search_result() -> AddMovieSearchResult {
     AddMovieSearchResult {
-      tmdb_id: Number::from(1234),
+      tmdb_id: 1234,
       title: HorizontallyScrollableText::from("Test"),
       original_language: language(),
       status: "released".to_owned(),
       overview: "New movie blah blah blah".to_owned(),
       genres: genres(),
-      year: Number::from(2023),
-      runtime: Number::from(120),
+      year: 2023,
+      runtime: 120,
       ratings: ratings_list(),
     }
   }
@@ -2387,10 +2379,10 @@ mod test {
     DownloadRecord {
       title: "Test Download Title".to_owned(),
       status: "downloading".to_owned(),
-      id: Number::from(1),
-      movie_id: Number::from(1),
-      size: Number::from(3543348019u64),
-      sizeleft: Number::from(1771674009u64),
+      id: 1,
+      movie_id: 1,
+      size: 3543348019,
+      sizeleft: 1771674009,
       output_path: Some(HorizontallyScrollableText::from("/nfs/movies/Test")),
       indexer: "kickass torrents".to_owned(),
       download_client: "transmission".to_owned(),
@@ -2405,10 +2397,10 @@ mod test {
 
   fn root_folder() -> RootFolder {
     RootFolder {
-      id: Number::from(1),
+      id: 1,
       path: "/nfs".to_owned(),
       accessible: true,
-      free_space: Number::from(219902325555200u64),
+      free_space: 219902325555200,
       unmapped_folders: None,
     }
   }
@@ -2441,17 +2433,17 @@ mod test {
       supports_rss: true,
       supports_search: true,
       protocol: "torrent".to_owned(),
-      priority: Number::from(25),
-      download_client_id: Number::from(0),
+      priority: 25,
+      download_client_id: 0,
       name: Some("Test Indexer".to_owned()),
       implementation_name: Some("Torznab".to_owned()),
       implementation: Some("Torznab".to_owned()),
       config_contract: Some("TorznabSettings".to_owned()),
       tags: Some(vec!["test_tag".to_owned()]),
-      id: Number::from(1),
+      id: 1,
       fields: Some(vec![
         IndexerField {
-          order: Number::from(0),
+          order: 0,
           name: Some("valueIsString".to_owned()),
           label: Some("Value Is String".to_owned()),
           value: Some(json!("hello")),
@@ -2459,19 +2451,19 @@ mod test {
           select_options: None,
         },
         IndexerField {
-          order: Number::from(1),
+          order: 1,
           name: Some("emptyValueWithSelectOptions".to_owned()),
           label: Some("Empty Value With Select Options".to_owned()),
           value: None,
           field_type: Some("select".to_owned()),
           select_options: Some(vec![IndexerSelectOption {
-            value: Number::from(-2),
+            value: -2,
             name: Some("Original".to_owned()),
-            order: Number::from(0),
+            order: 0,
           }]),
         },
         IndexerField {
-          order: Number::from(2),
+          order: 2,
           name: Some("valueIsAnArray".to_owned()),
           label: Some("Value is an array".to_owned()),
           value: Some(json!([1, 2])),
@@ -2484,9 +2476,9 @@ mod test {
 
   fn indexer_settings() -> IndexerSettings {
     IndexerSettings {
-      rss_sync_interval: Number::from(60),
+      rss_sync_interval: 60,
       allow_hardcoded_subs: true,
-      id: Number::from(1),
+      id: 1,
       ..IndexerSettings::default()
     }
   }

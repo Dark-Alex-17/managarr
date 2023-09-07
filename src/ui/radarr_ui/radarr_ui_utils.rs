@@ -22,23 +22,23 @@ pub(super) fn convert_to_minutes_hours_days(time: i64) -> String {
     if time == 0 {
       "now".to_owned()
     } else if time == 1 {
-      format!("{} minute", time)
+      format!("{time} minute")
     } else {
-      format!("{} minutes", time)
+      format!("{time} minutes")
     }
   } else if time / 60 < 24 {
     let hours = time / 60;
     if hours == 1 {
-      format!("{} hour", hours)
+      format!("{hours} hour")
     } else {
-      format!("{} hours", hours)
+      format!("{hours} hours")
     }
   } else {
     let days = time / (60 * 24);
     if days == 1 {
-      format!("{} day", days)
+      format!("{days} day")
     } else {
-      format!("{} days", days)
+      format!("{days} days")
     }
   }
 }

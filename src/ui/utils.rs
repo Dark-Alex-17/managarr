@@ -206,7 +206,7 @@ pub fn style_block_highlight(is_selected: bool) -> Style {
 }
 
 pub fn title_style(title: &str) -> Span<'_> {
-  Span::styled(format!("  {}  ", title), style_bold())
+  Span::styled(format!("  {title}  "), style_bold())
 }
 
 pub fn title_block(title: &str) -> Block<'_> {
@@ -265,7 +265,7 @@ pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge<'_> {
     .gauge_style(Style::default().fg(COLOR_CYAN))
     .line_set(symbols::line::THICK)
     .ratio(ratio)
-    .label(Line::from(format!("{}: {:.0}%", title, ratio * 100.0)))
+    .label(Line::from(format!("{title}: {:.0}%", ratio * 100.0)))
 }
 
 pub fn show_cursor<B: Backend>(f: &mut Frame<'_, B>, area: Rect, offset: usize, string: &str) {

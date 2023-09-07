@@ -23,7 +23,7 @@ mod collection_details_ui;
 mod collections_ui_tests;
 mod edit_collection_ui;
 
-pub(super) struct CollectionsUi {}
+pub(super) struct CollectionsUi;
 
 impl DrawUi for CollectionsUi {
   fn accepts(route: Route) -> bool {
@@ -162,7 +162,7 @@ pub(super) fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'
         Cell::from(collection.root_folder_path.clone().unwrap_or_default()),
         Cell::from(
           quality_profile_map
-            .get_by_left(&collection.quality_profile_id.as_u64().unwrap())
+            .get_by_left(&collection.quality_profile_id)
             .unwrap()
             .to_owned(),
         ),

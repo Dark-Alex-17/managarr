@@ -17,7 +17,7 @@ mod utils {
       radarr_data.movies.set_items(vec![Movie {
         path: "/nfs/movies/Test".to_owned().into(),
         monitored: true,
-        quality_profile_id: Number::from(2222),
+        quality_profile_id: 2222,
         minimum_availability: MinimumAvailability::Released,
         tags: vec![Number::from(1)],
         ..Movie::default()
@@ -133,7 +133,7 @@ mod utils {
         root_folder_path: "/nfs/movies/Test".to_owned().into(),
         monitored: true,
         search_on_add: true,
-        quality_profile_id: Number::from(2222),
+        quality_profile_id: 2222,
         minimum_availability: MinimumAvailability::Released,
         ..Collection::default()
       }]);

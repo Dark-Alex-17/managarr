@@ -12,7 +12,7 @@ use crate::ui::{draw_prompt_box_with_checkboxes, draw_prompt_popup_over, DrawUi}
 #[path = "delete_movie_ui_tests.rs"]
 mod delete_movie_ui_tests;
 
-pub(super) struct DeleteMovieUi {}
+pub(super) struct DeleteMovieUi;
 
 impl DrawUi for DeleteMovieUi {
   fn accepts(route: Route) -> bool {

@@ -132,8 +132,7 @@ fn panic_hook(info: &PanicInfo<'_>) {
     io::stdout(),
     LeaveAlternateScreen,
     Print(format!(
-      "thread '<unnamed>' panicked at '{}', {}\n\r{}",
-      msg, location, stacktrace
+      "thread '<unnamed>' panicked at '{msg}', {location}\n\r{stacktrace}"
     )),
   )
   .unwrap();

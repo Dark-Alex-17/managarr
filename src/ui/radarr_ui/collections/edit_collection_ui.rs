@@ -24,7 +24,7 @@ use crate::ui::{
 #[path = "edit_collection_ui_tests.rs"]
 mod edit_collection_ui_tests;
 
-pub(super) struct EditCollectionUi {}
+pub(super) struct EditCollectionUi;
 
 impl DrawUi for EditCollectionUi {
   fn accepts(route: Route) -> bool {
@@ -126,7 +126,7 @@ fn draw_edit_collection_confirmation_prompt<B: Backend>(
           .unwrap_or_default(),
       )
     };
-  let title = format!("Edit - {}", collection_title);
+  let title = format!("Edit - {collection_title}");
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();
   let highlight_yes_no = selected_block == &ActiveRadarrBlock::EditCollectionConfirmPrompt;

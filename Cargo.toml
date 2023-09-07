@@ -17,7 +17,7 @@ backtrace = "0.3.67"
 bimap = "0.6.3"
 chrono = { version = "0.4", features = ["serde"] }
 confy = { version = "0.5.1", default_features = false, features = ["yaml_conf"] }
-crossterm = "0.26.1"
+crossterm = "0.27.0"
 derivative = "2.2.0"
 human-panic = "1.1.3"
 indoc = "2.0.0"
@@ -32,14 +32,14 @@ strum = {version = "0.25.0", features = ["derive"] }
 strum_macros = "0.25.0"
 tokio = { version = "1.29.0", features = ["full"] }
 tokio-util = "0.7.8"
-tui = { version = "0.22.0", package = "ratatui", features = ["all-widgets"] }
+tui = { version = "0.23.0", package = "ratatui", features = ["all-widgets"] }
 urlencoding = "2.1.2"
 
 [dev-dependencies]
 cargo-husky = { version = "1.5.0", default_features = false, features = ["user-hooks"] }
 mockito = "1.0.0"
 pretty_assertions = "1.3.0"
-rstest = "0.17.0"
+rstest = "0.18.2"
 
 [[bin]]
 bench = false

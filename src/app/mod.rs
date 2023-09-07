@@ -54,13 +54,13 @@ impl<'a> App<'a> {
   }
 
   pub async fn dispatch_network_event(&mut self, action: NetworkEvent) {
-    debug!("Dispatching network event: {:?}", action);
+    debug!("Dispatching network event: {action:?}");
 
     self.is_loading = true;
     if let Some(network_tx) = &self.network_tx {
       if let Err(e) = network_tx.send(action).await {
         self.is_loading = false;
-        error!("Failed to send event. {:?}", e);
+        error!("Failed to send event. {e:?}");
         self.handle_error(anyhow!(e));
       }
     }

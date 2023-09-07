@@ -545,7 +545,7 @@ pub fn draw_checkbox_with_label<B: Backend>(
     area,
   );
 
-  let label_paragraph = Paragraph::new(Text::from(format!("\n{}: ", label)))
+  let label_paragraph = Paragraph::new(Text::from(format!("\n{label}: ")))
     .block(borderless_block())
     .alignment(Alignment::Right)
     .style(style_primary());
@@ -605,7 +605,7 @@ pub fn draw_drop_down_menu_button<B: Backend>(
     area,
   );
 
-  let description_paragraph = Paragraph::new(Text::from(format!("\n{}: ", description)))
+  let description_paragraph = Paragraph::new(Text::from(format!("\n{description}: ")))
     .block(borderless_block())
     .alignment(Alignment::Right)
     .style(style_primary());
@@ -676,7 +676,7 @@ fn draw_help_and_get_content_rect<B: Backend>(
     let chunks =
       vertical_chunks_with_margin(vec![Constraint::Min(0), Constraint::Length(2)], area, 1);
 
-    let mut help_test = Text::from(format!(" {}", help_string));
+    let mut help_test = Text::from(format!(" {help_string}"));
     help_test.patch_style(style_help());
     let help_paragraph = Paragraph::new(help_test)
       .block(layout_block_top_border())
@@ -739,7 +739,7 @@ pub fn draw_text_box_with_label<B: Backend>(
     area,
   );
 
-  let label_paragraph = Paragraph::new(Text::from(format!("\n{}: ", label)))
+  let label_paragraph = Paragraph::new(Text::from(format!("\n{label}: ")))
     .block(borderless_block())
     .alignment(Alignment::Right)
     .style(style_primary());

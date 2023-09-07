@@ -18,7 +18,7 @@ use crate::utils::convert_to_gb;
 #[path = "root_folders_ui_tests.rs"]
 mod root_folders_ui_tests;
 
-pub(super) struct RootFoldersUi {}
+pub(super) struct RootFoldersUi;
 
 impl DrawUi for RootFoldersUi {
   fn accepts(route: Route) -> bool {
@@ -83,11 +83,11 @@ fn draw_root_folders<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: 
         ..
       } = root_folders;
 
-      let space: f64 = convert_to_gb(free_space.as_u64().unwrap());
+      let space: f64 = convert_to_gb(*free_space);
 
       Row::new(vec![
         Cell::from(path.to_owned()),
-        Cell::from(format!("{:.2} GB", space)),
+        Cell::from(format!("{space:.2} GB")),
         Cell::from(
           unmapped_folders
             .as_ref()

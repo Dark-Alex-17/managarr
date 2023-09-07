@@ -1112,10 +1112,10 @@ mod tests {
   fn release_vec() -> Vec<Release> {
     let release_a = Release {
       protocol: "Protocol A".to_owned(),
-      age: Number::from(1),
+      age: 1,
       title: HorizontallyScrollableText::from("Title A"),
       indexer: "Indexer A".to_owned(),
-      size: Number::from(1),
+      size: 1,
       rejected: true,
       seeders: Some(Number::from(1)),
       languages: Some(vec![Language {
@@ -1130,10 +1130,10 @@ mod tests {
     };
     let release_b = Release {
       protocol: "Protocol B".to_owned(),
-      age: Number::from(2),
+      age: 2,
       title: HorizontallyScrollableText::from("Title B"),
       indexer: "Indexer B".to_owned(),
-      size: Number::from(2),
+      size: 2,
       rejected: false,
       seeders: Some(Number::from(2)),
       languages: Some(vec![Language {
@@ -1148,10 +1148,10 @@ mod tests {
     };
     let release_c = Release {
       protocol: "Protocol C".to_owned(),
-      age: Number::from(3),
+      age: 3,
       title: HorizontallyScrollableText::from("Title C"),
       indexer: "Indexer C".to_owned(),
-      size: Number::from(3),
+      size: 3,
       rejected: false,
       seeders: None,
       languages: None,

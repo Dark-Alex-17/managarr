@@ -25,7 +25,7 @@ use crate::ui::{
 #[path = "edit_movie_ui_tests.rs"]
 mod edit_movie_ui_tests;
 
-pub(super) struct EditMovieUi {}
+pub(super) struct EditMovieUi;
 
 impl DrawUi for EditMovieUi {
   fn accepts(route: Route) -> bool {
@@ -118,7 +118,7 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
           .clone(),
       )
     };
-  let title = format!("Edit - {}", movie_title);
+  let title = format!("Edit - {movie_title}");
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();
   let highlight_yes_no = selected_block == &ActiveRadarrBlock::EditMovieConfirmPrompt;

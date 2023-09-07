@@ -21,7 +21,7 @@ mod tests {
   #[case(Key::Char('q'), "q")]
   #[case(Key::Ctrl('q'), "ctrl-q")]
   fn test_key_formatter(#[case] key: Key, #[case] expected_str: &str) {
-    assert_str_eq!(format!("{}", key), format!("<{}>", expected_str));
+    assert_str_eq!(format!("{key}"), format!("<{expected_str}>"));
   }
 
   #[test]

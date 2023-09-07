@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use indoc::formatdoc;
 use log::{debug, info, warn};
 use serde::Serialize;
-use serde_json::{json, Number, Value};
+use serde_json::{json, Value};
 use urlencoding::encode;
 
 use crate::app::RadarrConfig;
@@ -226,7 +226,7 @@ impl<'a, 'b> Network<'a, 'b> {
       app.data.radarr_data.add_movie_modal = None;
 
       AddMovieBody {
-        tmdb_id: tmdb_id.as_u64().unwrap(),
+        tmdb_id,
         title,
         root_folder_path: path,
         minimum_availability,
@@ -240,7 +240,7 @@ impl<'a, 'b> Network<'a, 'b> {
       }
     };
 
-    debug!("Add movie body: {:?}", body);
+    debug!("Add movie body: {body:?}");
 
     let request_props = self
       .radarr_request_props_from(
@@ -273,7 +273,7 @@ impl<'a, 'b> Network<'a, 'b> {
       AddRootFolderBody { path }
     };
 
-    debug!("Add root folder body: {:?}", body);
+    debug!("Add root folder body: {body:?}");
 
     let request_props = self
       .radarr_request_props_from(
@@ -301,11 +301,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<Value, Tag>(request_props, |tag, mut app| {
-        app
-          .data
-          .radarr_data
-          .tags_map
-          .insert(tag.id.as_u64().unwrap(), tag.label);
+        app.data.radarr_data.tags_map.insert(tag.id, tag.label);
       })
       .await;
   }
@@ -319,18 +315,13 @@ impl<'a, 'b> Network<'a, 'b> {
       .radarr_data
       .downloads
       .current_selection()
-      .id
-      .as_u64()
-      .unwrap();
+      .id;
 
-    info!(
-      "Deleting Radarr download for download with id: {}",
-      download_id
-    );
+    info!("Deleting Radarr download for download with id: {download_id}");
 
     let request_props = self
       .radarr_request_props_from(
-        format!("{}/{}", RadarrEvent::DeleteDownload.resource(), download_id).as_str(),
+        format!("{}/{download_id}", RadarrEvent::DeleteDownload.resource()).as_str(),
         RequestMethod::Delete,
         None::<()>,
       )
@@ -350,18 +341,13 @@ impl<'a, 'b> Network<'a, 'b> {
       .radarr_data
       .indexers
       .current_selection()
-      .id
-      .as_u64()
-      .unwrap();
+      .id;
 
-    info!(
-      "Deleting Radarr indexer for indexer with id: {}",
-      indexer_id
-    );
+    info!("Deleting Radarr indexer for indexer with id: {indexer_id}");
 
     let request_props = self
       .radarr_request_props_from(
-        format!("{}/{}", RadarrEvent::DeleteIndexer.resource(), indexer_id).as_str(),
+        format!("{}/{indexer_id}", RadarrEvent::DeleteIndexer.resource()).as_str(),
         RequestMethod::Delete,
         None::<()>,
       )
@@ -377,19 +363,13 @@ impl<'a, 'b> Network<'a, 'b> {
     let delete_files = self.app.lock().await.data.radarr_data.delete_movie_files;
     let add_import_exclusion = self.app.lock().await.data.radarr_data.add_list_exclusion;
 
-    info!(
-      "Deleting Radarr movie with tmdb_id {} and Radarr id: {} with deleteFiles={} and addImportExclusion={}",
-      tmdb_id, movie_id, delete_files, add_import_exclusion
-    );
+    info!("Deleting Radarr movie with tmdb_id {tmdb_id} and Radarr id: {movie_id} with deleteFiles={delete_files} and addImportExclusion={add_import_exclusion}");
 
     let request_props = self
       .radarr_request_props_from(
         format!(
-          "{}/{}?deleteFiles={}&addImportExclusion={}",
-          RadarrEvent::DeleteMovie.resource(),
-          movie_id,
-          delete_files,
-          add_import_exclusion
+          "{}/{movie_id}?deleteFiles={delete_files}&addImportExclusion={add_import_exclusion}",
+          RadarrEvent::DeleteMovie.resource()
         )
         .as_str(),
         RequestMethod::Delete,
@@ -419,21 +399,15 @@ impl<'a, 'b> Network<'a, 'b> {
       .radarr_data
       .root_folders
       .current_selection()
-      .id
-      .as_u64()
-      .unwrap();
+      .id;
 
-    info!(
-      "Deleting Radarr root folder for folder with id: {}",
-      root_folder_id
-    );
+    info!("Deleting Radarr root folder for folder with id: {root_folder_id}");
 
     let request_props = self
       .radarr_request_props_from(
         format!(
-          "{}/{}",
-          RadarrEvent::DeleteRootFolder.resource(),
-          root_folder_id
+          "{}/{root_folder_id}",
+          RadarrEvent::DeleteRootFolder.resource()
         )
         .as_str(),
         RequestMethod::Delete,
@@ -464,10 +438,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .movie_releases
         .current_selection();
 
-      (guid.clone(), title.clone(), indexer_id.as_u64().unwrap())
+      (guid.clone(), title.clone(), *indexer_id)
     };
 
-    info!("Downloading release: {}", title);
+    info!("Downloading release: {title}");
 
     let download_release_body = ReleaseDownloadBody {
       guid,
@@ -495,12 +469,7 @@ impl<'a, 'b> Network<'a, 'b> {
     let collection_id = self.extract_collection_id().await;
     let request_props = self
       .radarr_request_props_from(
-        format!(
-          "{}/{}",
-          RadarrEvent::GetCollections.resource(),
-          collection_id
-        )
-        .as_str(),
+        format!("{}/{collection_id}", RadarrEvent::GetCollections.resource()).as_str(),
         RequestMethod::Get,
         None::<()>,
       )
@@ -557,16 +526,11 @@ impl<'a, 'b> Network<'a, 'b> {
       detailed_collection_body
     };
 
-    debug!("Edit collection body: {:?}", body);
+    debug!("Edit collection body: {body:?}");
 
     let request_props = self
       .radarr_request_props_from(
-        format!(
-          "{}/{}",
-          RadarrEvent::EditCollection.resource(),
-          collection_id
-        )
-        .as_str(),
+        format!("{}/{collection_id}", RadarrEvent::EditCollection.resource()).as_str(),
         RequestMethod::Put,
         Some(body),
       )
@@ -585,7 +549,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
     let request_props = self
       .radarr_request_props_from(
-        format!("{}/{}", RadarrEvent::GetMovieDetails.resource(), movie_id).as_str(),
+        format!("{}/{movie_id}", RadarrEvent::GetMovieDetails.resource()).as_str(),
         RequestMethod::Get,
         None::<()>,
       )
@@ -648,11 +612,11 @@ impl<'a, 'b> Network<'a, 'b> {
       detailed_movie_body
     };
 
-    debug!("Edit movie body: {:?}", body);
+    debug!("Edit movie body: {body:?}");
 
     let request_props = self
       .radarr_request_props_from(
-        format!("{}/{}", RadarrEvent::EditMovie.resource(), movie_id).as_str(),
+        format!("{}/{movie_id}", RadarrEvent::EditMovie.resource()).as_str(),
         RequestMethod::Put,
         Some(body),
       )
@@ -858,7 +822,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
     let request_props = self
       .radarr_request_props_from(
-        format!("{}/{}", RadarrEvent::GetMovieDetails.resource(), movie_id).as_str(),
+        format!("{}/{movie_id}", RadarrEvent::GetMovieDetails.resource()).as_str(),
         RequestMethod::Get,
         None::<()>,
       )
@@ -884,43 +848,43 @@ impl<'a, 'b> Network<'a, 'b> {
           collection,
           ..
         } = movie_response;
-        let (hours, minutes) = convert_runtime(runtime.as_u64().unwrap());
-        let size = convert_to_gb(size_on_disk.as_u64().unwrap());
+        let (hours, minutes) = convert_runtime(runtime);
+        let size = convert_to_gb(size_on_disk);
         let quality_profile = app
           .data
           .radarr_data
           .quality_profile_map
-          .get_by_left(&quality_profile_id.as_u64().unwrap())
+          .get_by_left(&quality_profile_id)
           .unwrap()
           .to_owned();
         let imdb_rating = if let Some(rating) = ratings.imdb {
           if let Some(value) = rating.value.as_f64() {
             format!("{:.1}", value)
           } else {
-            "".to_owned()
+            String::new()
           }
         } else {
-          "".to_owned()
+          String::new()
         };
 
         let tmdb_rating = if let Some(rating) = ratings.tmdb {
           if let Some(value) = rating.value.as_f64() {
             format!("{}%", (value * 10f64).ceil())
           } else {
-            "".to_owned()
+            String::new()
           }
         } else {
-          "".to_owned()
+          String::new()
         };
 
         let rotten_tomatoes_rating = if let Some(rating) = ratings.rotten_tomatoes {
           if let Some(value) = rating.value.as_u64() {
             format!("{}%", value)
           } else {
-            "".to_owned()
+            String::new()
           }
         } else {
-          "".to_owned()
+          String::new()
         };
 
         let status = get_movie_status(has_file, &app.data.radarr_data.downloads.items, id);
@@ -928,36 +892,23 @@ impl<'a, 'b> Network<'a, 'b> {
 
         let mut movie_details_modal = MovieDetailsModal {
           movie_details: ScrollableText::with_string(formatdoc!(
-            "Title: {}
-            Year: {}
-            Runtime: {}h {}m
+            "Title: {title}
+            Year: {year}
+            Runtime: {hours}h {minutes}m
             Rating: {}
             Collection: {}
-            Status: {}
-            Description: {}
-            TMDB: {}
-            IMDB: {}
-            Rotten Tomatoes: {}
-            Quality Profile: {}
-            Size: {:.2} GB
-            Path: {}
-            Studio: {}
+            Status: {status}
+            Description: {overview}
+            TMDB: {tmdb_rating}
+            IMDB: {imdb_rating}
+            Rotten Tomatoes: {rotten_tomatoes_rating}
+            Quality Profile: {quality_profile}
+            Size: {size:.2} GB
+            Path: {path}
+            Studio: {studio}
             Genres: {}",
-            title,
-            year,
-            hours,
-            minutes,
             certification.unwrap_or_default(),
             collection.title,
-            status,
-            overview,
-            tmdb_rating,
-            imdb_rating,
-            rotten_tomatoes_rating,
-            quality_profile,
-            size,
-            path,
-            studio,
             genres.join(", ")
           )),
           ..MovieDetailsModal::default()
@@ -967,11 +918,10 @@ impl<'a, 'b> Network<'a, 'b> {
           movie_details_modal.file_details = formatdoc!(
             "Relative Path: {}
               Absolute Path: {}
-              Size: {:.2} GB
+              Size: {size:.2} GB
               Date Added: {}",
             file.relative_path,
             file.path,
-            size,
             file.date_added
           );
 
@@ -982,11 +932,11 @@ impl<'a, 'b> Network<'a, 'b> {
               Codec: {}
               Languages: {}
               Stream Count: {}",
-              media_info.audio_bitrate.as_u64().unwrap(),
+              media_info.audio_bitrate,
               media_info.audio_channels.as_f64().unwrap(),
               media_info.audio_codec.unwrap_or_default(),
               media_info.audio_languages.unwrap_or_default(),
-              media_info.audio_stream_count.as_u64().unwrap()
+              media_info.audio_stream_count
             );
 
             movie_details_modal.video_details = formatdoc!(
@@ -997,8 +947,8 @@ impl<'a, 'b> Network<'a, 'b> {
               Resolution: {}
               Scan Type: {}
               Runtime: {}",
-              media_info.video_bit_depth.as_u64().unwrap(),
-              media_info.video_bitrate.as_u64().unwrap(),
+              media_info.video_bit_depth,
+              media_info.video_bitrate,
               media_info.video_codec,
               media_info.video_fps.as_f64().unwrap(),
               media_info.resolution,
@@ -1073,7 +1023,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .handle_request::<(), Vec<QualityProfile>>(request_props, |quality_profiles, mut app| {
         app.data.radarr_data.quality_profile_map = quality_profiles
           .into_iter()
-          .map(|profile| (profile.id.as_u64().unwrap(), profile.name))
+          .map(|profile| (profile.id, profile.name))
           .collect();
       })
       .await;
@@ -1103,19 +1053,11 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn get_releases(&mut self) {
     let (movie_id, tmdb_id) = self.extract_movie_id().await;
-    info!(
-      "Fetching releases for movie with TMDB id {} and with Radarr id: {}",
-      tmdb_id, movie_id
-    );
+    info!("Fetching releases for movie with TMDB id {tmdb_id} and with Radarr id: {movie_id}");
 
     let request_props = self
       .radarr_request_props_from(
-        format!(
-          "{}?movieId={}",
-          RadarrEvent::GetReleases.resource(),
-          movie_id
-        )
-        .as_str(),
+        format!("{}?movieId={movie_id}", RadarrEvent::GetReleases.resource()).as_str(),
         RequestMethod::Get,
         None::<()>,
       )
@@ -1181,7 +1123,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .handle_request::<(), Vec<Tag>>(request_props, |tags_vec, mut app| {
         app.data.radarr_data.tags_map = tags_vec
           .into_iter()
-          .map(|tag| (tag.id.as_u64().unwrap(), tag.label))
+          .map(|tag| (tag.id, tag.label))
           .collect();
       })
       .await;
@@ -1241,56 +1183,46 @@ impl<'a, 'b> Network<'a, 'b> {
             let vec_to_bullet_points = |vec: Vec<String>| {
               vec
                 .iter()
-                .map(|change| format!("  * {}", change))
+                .map(|change| format!("  * {change}"))
                 .collect::<Vec<String>>()
                 .join("\n")
             };
 
             let mut update_info = formatdoc!(
-              "{} - {} {}
+              "{} - {} {install_status}
               {}",
               update.version,
               update.release_date,
-              install_status,
               "-".repeat(200)
             );
 
             if let Some(new_changes) = update.changes.new {
               let changes = vec_to_bullet_points(new_changes);
               update_info = formatdoc!(
-                "{}
+                "{update_info}
               New:
-              {}",
-                update_info,
-                changes
+              {changes}"
               )
             }
 
             if let Some(fixes) = update.changes.fixed {
               let fixes = vec_to_bullet_points(fixes);
               update_info = formatdoc!(
-                "{}
+                "{update_info}
               Fixed:
-              {}",
-                update_info,
-                fixes
+              {fixes}"
               );
             }
 
             update_info
           })
-          .reduce(|version_1, version_2| format!("{}\n\n\n{}", version_1, version_2))
+          .reduce(|version_1, version_2| format!("{version_1}\n\n\n{version_2}"))
           .unwrap();
 
         app.data.radarr_data.updates = ScrollableText::with_string(formatdoc!(
-          "{}
+          "The latest version of Radarr is {latest_installed} installed
           
-          {}",
-          format!(
-            "The latest version of Radarr is {} installed",
-            latest_installed
-          ),
-          updates
+          {updates}"
         ));
       })
       .await;
@@ -1343,10 +1275,9 @@ impl<'a, 'b> Network<'a, 'b> {
       }
       Err(e) => {
         warn!(
-          "Encountered a race condition: {}\n \
+          "Encountered a race condition: {e}\n \
           This is most likely caused by the user trying to navigate between modals rapidly. \
-          Ignoring search request.",
-          e
+          Ignoring search request."
         );
       }
     }
@@ -1364,7 +1295,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .task_name
       .clone();
 
-    info!("Starting Radarr task: {}", task_name);
+    info!("Starting Radarr task: {task_name}");
 
     let body = CommandBody { name: task_name };
 
@@ -1383,10 +1314,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn trigger_automatic_search(&mut self) {
     let (movie_id, tmdb_id) = self.extract_movie_id().await;
-    info!(
-      "Searching indexers for movie with TMDB id {} and with Radarr id: {}",
-      tmdb_id, movie_id
-    );
+    info!("Searching indexers for movie with TMDB id {tmdb_id} and with Radarr id: {movie_id}");
     let body = MovieCommandBody {
       name: "MoviesSearch".to_owned(),
       movie_ids: vec![movie_id],
@@ -1427,10 +1355,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn update_and_scan(&mut self) {
     let (movie_id, tmdb_id) = self.extract_movie_id().await;
-    info!(
-      "Updating and scanning movie with TMDB id {} and with Radarr id: {}",
-      tmdb_id, movie_id
-    );
+    info!("Updating and scanning movie with TMDB id {tmdb_id} and with Radarr id: {movie_id}");
     let body = MovieCommandBody {
       name: "RefreshMovie".to_owned(),
       movie_ids: vec![movie_id],
@@ -1501,7 +1426,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .unwrap()
       .clone();
 
-    debug!("Indexer settings body: {:?}", body);
+    debug!("Indexer settings body: {body:?}");
 
     let request_props = self
       .radarr_request_props_from(
@@ -1530,12 +1455,7 @@ impl<'a, 'b> Network<'a, 'b> {
       port,
       api_token,
     } = &app.config.radarr;
-    let uri = format!(
-      "http://{}:{}/api/v3{}",
-      host,
-      port.unwrap_or(7878),
-      resource
-    );
+    let uri = format!("http://{host}:{}/api/v3{resource}", port.unwrap_or(7878));
 
     RequestProps {
       uri,
@@ -1545,7 +1465,7 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn extract_and_add_tag_ids_vec(&mut self, edit_tags: String) -> Vec<u64> {
+  async fn extract_and_add_tag_ids_vec(&mut self, edit_tags: String) -> Vec<i64> {
     let tags_map = self.app.lock().await.data.radarr_data.tags_map.clone();
     let tags = edit_tags.clone();
     let missing_tags_vec = edit_tags
@@ -1572,7 +1492,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .collect()
   }
 
-  async fn extract_movie_id(&mut self) -> (u64, u64) {
+  async fn extract_movie_id(&mut self) -> (i64, i64) {
     let app = self.app.lock().await;
     if app.data.radarr_data.filtered_movies.is_some() {
       (
@@ -1583,9 +1503,7 @@ impl<'a, 'b> Network<'a, 'b> {
           .as_ref()
           .unwrap()
           .current_selection()
-          .id
-          .as_u64()
-          .unwrap(),
+          .id,
         app
           .data
           .radarr_data
@@ -1593,33 +1511,17 @@ impl<'a, 'b> Network<'a, 'b> {
           .as_ref()
           .unwrap()
           .current_selection()
-          .tmdb_id
-          .as_u64()
-          .unwrap(),
+          .tmdb_id,
       )
     } else {
       (
-        app
-          .data
-          .radarr_data
-          .movies
-          .current_selection()
-          .id
-          .as_u64()
-          .unwrap(),
-        app
-          .data
-          .radarr_data
-          .movies
-          .current_selection()
-          .tmdb_id
-          .as_u64()
-          .unwrap(),
+        app.data.radarr_data.movies.current_selection().id,
+        app.data.radarr_data.movies.current_selection().tmdb_id,
       )
     }
   }
 
-  async fn extract_collection_id(&mut self) -> u64 {
+  async fn extract_collection_id(&mut self) -> i64 {
     if self
       .app
       .lock()
@@ -1640,8 +1542,6 @@ impl<'a, 'b> Network<'a, 'b> {
         .unwrap()
         .current_selection()
         .id
-        .as_u64()
-        .unwrap()
     } else {
       self
         .app
@@ -1652,22 +1552,20 @@ impl<'a, 'b> Network<'a, 'b> {
         .collections
         .current_selection()
         .id
-        .as_u64()
-        .unwrap()
     }
   }
 
   async fn append_movie_id_param(&mut self, resource: &str) -> String {
     let (movie_id, _) = self.extract_movie_id().await;
-    format!("{}?movieId={}", resource, movie_id)
+    format!("{resource}?movieId={movie_id}")
   }
 }
 
-fn get_movie_status(has_file: bool, downloads_vec: &[DownloadRecord], movie_id: Number) -> String {
+fn get_movie_status(has_file: bool, downloads_vec: &[DownloadRecord], movie_id: i64) -> String {
   if !has_file {
     if let Some(download) = downloads_vec
       .iter()
-      .find(|&download| download.movie_id.as_u64().unwrap() == movie_id.as_u64().unwrap())
+      .find(|&download| download.movie_id == movie_id)
     {
       if download.status == "downloading" {
         return "Downloading".to_owned();

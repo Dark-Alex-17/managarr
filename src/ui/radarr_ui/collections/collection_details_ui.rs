@@ -25,7 +25,7 @@ use crate::utils::convert_runtime;
 #[path = "collection_details_ui_tests.rs"]
 mod collection_details_ui_tests;
 
-pub(super) struct CollectionDetailsUi {}
+pub(super) struct CollectionDetailsUi;
 
 impl DrawUi for CollectionDetailsUi {
   fn accepts(route: Route) -> bool {
@@ -90,7 +90,7 @@ pub fn draw_collection_details<B: Backend>(
     .data
     .radarr_data
     .quality_profile_map
-    .get_by_left(&collection_selection.quality_profile_id.as_u64().unwrap())
+    .get_by_left(&collection_selection.quality_profile_id)
     .unwrap()
     .to_owned();
   let current_selection = if app.data.radarr_data.collection_movies.items.is_empty() {
@@ -198,7 +198,7 @@ pub fn draw_collection_details<B: Backend>(
         current_selection == *movie,
         app.tick_count % app.ticks_until_scroll == 0,
       );
-      let (hours, minutes) = convert_runtime(movie.runtime.as_u64().unwrap());
+      let (hours, minutes) = convert_runtime(movie.runtime);
       let imdb_rating = movie
         .ratings
         .imdb
@@ -218,19 +218,19 @@ pub fn draw_collection_details<B: Backend>(
       let imdb_rating = if imdb_rating == 0.0 {
         String::new()
       } else {
-        format!("{:.1}", imdb_rating)
+        format!("{imdb_rating:.1}")
       };
       let rotten_tomatoes_rating = if rotten_tomatoes_rating == 0 {
         String::new()
       } else {
-        format!("{}%", rotten_tomatoes_rating)
+        format!("{rotten_tomatoes_rating}%")
       };
 
       Row::new(vec![
         Cell::from(in_library),
         Cell::from(movie.title.to_string()),
-        Cell::from(movie.year.as_u64().unwrap().to_string()),
-        Cell::from(format!("{}h {}m", hours, minutes)),
+        Cell::from(movie.year.to_string()),
+        Cell::from(format!("{hours}h {minutes}m")),
         Cell::from(imdb_rating),
         Cell::from(rotten_tomatoes_rating),
         Cell::from(movie.genres.join(", ")),

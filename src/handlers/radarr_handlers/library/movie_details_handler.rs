@@ -464,18 +464,11 @@ fn sort_releases_by_selected_field(
 ) -> Vec<Release> {
   let cmp_fn: fn(&Release, &Release) -> Ordering = match field {
     ReleaseField::Source => |release_a, release_b| release_a.protocol.cmp(&release_b.protocol),
-    ReleaseField::Age => |release_a, release_b| release_a.age.as_u64().cmp(&release_b.age.as_u64()),
+    ReleaseField::Age => |release_a, release_b| release_a.age.cmp(&release_b.age),
     ReleaseField::Rejected => |release_a, release_b| release_a.rejected.cmp(&release_b.rejected),
     ReleaseField::Title => |release_a, release_b| release_a.title.text.cmp(&release_b.title.text),
     ReleaseField::Indexer => |release_a, release_b| release_a.indexer.cmp(&release_b.indexer),
-    ReleaseField::Size => |release_a, release_b| {
-      release_a
-        .size
-        .as_u64()
-        .as_ref()
-        .unwrap()
-        .cmp(release_b.size.as_u64().as_ref().unwrap())
-    },
+    ReleaseField::Size => |release_a, release_b| release_a.size.cmp(&release_b.size),
     ReleaseField::Peers => |release_a, release_b| {
       let default_number = Number::from(i64::MAX);
       let seeder_a = release_a

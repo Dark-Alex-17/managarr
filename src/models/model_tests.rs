@@ -3,7 +3,12 @@ mod tests {
   use std::cell::RefCell;
 
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use serde::de::value::Error as ValueError;
+  use serde::de::value::F64Deserializer;
+  use serde::de::value::I64Deserializer;
+  use serde::de::IntoDeserializer;
 
+  use crate::models::from_i64;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::{
     BlockSelectionState, HorizontallyScrollableText, Scrollable, ScrollableText, StatefulList,
@@ -713,6 +718,23 @@ mod tests {
     block_selection_state.previous();
 
     assert_eq!(block_selection_state.get_active_block(), &blocks[0]);
+  }
+
+  #[test]
+  fn test_from_i64() {
+    let deserializer: I64Deserializer<ValueError> = 1i64.into_deserializer();
+
+    assert_eq!(from_i64(deserializer), Ok(1));
+  }
+
+  #[test]
+  fn test_from_i64_error() {
+    let deserializer: F64Deserializer<ValueError> = 1f64.into_deserializer();
+
+    assert_eq!(
+      from_i64(deserializer).unwrap_err().to_string(),
+      "Unable to convert Number to i64: Number(1.0)"
+    );
   }
 
   fn create_test_tab_routes() -> Vec<TabRoute> {

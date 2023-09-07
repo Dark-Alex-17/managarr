@@ -15,31 +15,30 @@ mod radarr_models_tests;
 #[derive(Default, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AddMovieBody {
-  pub tmdb_id: u64,
+  pub tmdb_id: i64,
   pub title: String,
   pub root_folder_path: String,
-  pub quality_profile_id: u64,
+  pub quality_profile_id: i64,
   pub minimum_availability: String,
   pub monitored: bool,
-  pub tags: Vec<u64>,
+  pub tags: Vec<i64>,
   pub add_options: AddOptions,
 }
 
-#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[derivative(Default)]
+#[derive(Derivative, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AddMovieSearchResult {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub tmdb_id: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub tmdb_id: i64,
   pub title: HorizontallyScrollableText,
   pub original_language: Language,
   pub status: String,
   pub overview: String,
   pub genres: Vec<String>,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub year: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub runtime: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub year: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub runtime: i64,
   pub ratings: RatingsList,
 }
 
@@ -55,12 +54,11 @@ pub struct AddRootFolderBody {
   pub path: String,
 }
 
-#[derive(Deserialize, Derivative, Clone, Debug, PartialEq, Eq)]
-#[derivative(Default)]
+#[derive(Deserialize, Derivative, Default, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Collection {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
   #[serde(default)]
   pub title: HorizontallyScrollableText,
   pub root_folder_path: Option<String>,
@@ -68,28 +66,27 @@ pub struct Collection {
   pub monitored: bool,
   pub overview: Option<String>,
   pub minimum_availability: MinimumAvailability,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub quality_profile_id: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub quality_profile_id: i64,
   pub movies: Option<Vec<CollectionMovie>>,
 }
 
-#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[derivative(Default)]
+#[derive(Derivative, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionMovie {
   pub title: HorizontallyScrollableText,
   pub overview: String,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub year: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub runtime: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub tmdb_id: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub year: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub runtime: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub tmdb_id: i64,
   pub genres: Vec<String>,
   pub ratings: RatingsList,
 }
 
-#[derive(Default, Derivative, Serialize, Debug)]
+#[derive(Default, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CommandBody {
   pub name: String,
@@ -117,42 +114,41 @@ pub enum CreditType {
 #[derive(Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DiskSpace {
-  pub free_space: Number,
-  pub total_space: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub free_space: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub total_space: i64,
 }
 
-#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[derivative(Default)]
+#[derive(Derivative, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {
   pub title: String,
   pub status: String,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub movie_id: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub size: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub sizeleft: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub movie_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub size: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub sizeleft: i64,
   pub output_path: Option<HorizontallyScrollableText>,
   pub indexer: String,
   pub download_client: String,
 }
 
-#[derive(Derivative, Deserialize, Debug)]
-#[derivative(Default)]
+#[derive(Default, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DownloadsResponse {
   pub records: Vec<DownloadRecord>,
 }
 
-#[derive(Derivative, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
-#[derivative(Default)]
+#[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Indexer {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
   pub name: Option<String>,
   pub implementation: Option<String>,
   pub implementation_name: Option<String>,
@@ -164,19 +160,18 @@ pub struct Indexer {
   pub enable_automatic_search: bool,
   pub enable_interactive_search: bool,
   pub protocol: String,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub priority: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub download_client_id: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub priority: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub download_client_id: i64,
   pub tags: Option<Vec<String>>,
 }
 
-#[derive(Derivative, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
-#[derivative(Default)]
+#[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexerField {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub order: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub order: i64,
   pub name: Option<String>,
   pub label: Option<String>,
   pub value: Option<Value>,
@@ -185,35 +180,33 @@ pub struct IndexerField {
   pub select_options: Option<Vec<IndexerSelectOption>>,
 }
 
-#[derive(Derivative, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
-#[derivative(Default)]
+#[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexerSelectOption {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub value: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub value: i64,
   pub name: Option<String>,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub order: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub order: i64,
 }
 
-#[derive(Derivative, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
-#[derivative(Default)]
+#[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexerSettings {
   pub allow_hardcoded_subs: bool,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub availability_delay: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub maximum_size: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub minimum_age: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub availability_delay: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub maximum_size: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub minimum_age: i64,
   pub prefer_indexer_flags: bool,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub retention: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub rss_sync_interval: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub retention: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub rss_sync_interval: i64,
   pub whitelisted_hardcoded_subs: String,
 }
 
@@ -243,18 +236,18 @@ pub struct LogResponse {
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaInfo {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub audio_bitrate: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub audio_bitrate: i64,
   #[derivative(Default(value = "Number::from(0)"))]
   pub audio_channels: Number,
   pub audio_codec: Option<String>,
   pub audio_languages: Option<String>,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub audio_stream_count: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub video_bit_depth: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub video_bitrate: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub audio_stream_count: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub video_bit_depth: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub video_bitrate: i64,
   pub video_codec: String,
   #[derivative(Default(value = "Number::from(0)"))]
   pub video_fps: Number,
@@ -281,7 +274,7 @@ impl Display for MinimumAvailability {
       MinimumAvailability::InCinemas => "inCinemas",
       MinimumAvailability::Released => "released",
     };
-    write!(f, "{}", minimum_availability)
+    write!(f, "{minimum_availability}")
   }
 }
 
@@ -311,7 +304,7 @@ impl Display for Monitor {
       Monitor::MovieAndCollection => "movieAndCollection",
       Monitor::None => "none",
     };
-    write!(f, "{}", monitor)
+    write!(f, "{monitor}")
   }
 }
 
@@ -329,27 +322,27 @@ impl Monitor {
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Movie {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
   pub title: HorizontallyScrollableText,
   pub original_language: Language,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub size_on_disk: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub size_on_disk: i64,
   pub status: String,
   pub overview: String,
   pub path: String,
   pub studio: String,
   pub genres: Vec<String>,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub year: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub year: i64,
   pub monitored: bool,
   pub has_file: bool,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub runtime: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub tmdb_id: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub quality_profile_id: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub runtime: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub tmdb_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub quality_profile_id: i64,
   pub minimum_availability: MinimumAvailability,
   pub certification: Option<String>,
   pub tags: Vec<Number>,
@@ -358,11 +351,11 @@ pub struct Movie {
   pub collection: Option<Collection>,
 }
 
-#[derive(Default, Derivative, Serialize, Debug)]
+#[derive(Default, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct MovieCommandBody {
   pub name: String,
-  pub movie_ids: Vec<u64>,
+  pub movie_ids: Vec<i64>,
 }
 
 #[derive(Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
@@ -390,11 +383,10 @@ pub struct Quality {
   pub name: String,
 }
 
-#[derive(Derivative, Deserialize, Debug)]
-#[derivative(Default)]
+#[derive(Default, Deserialize, Debug)]
 pub struct QualityProfile {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
   pub name: String,
 }
 
@@ -431,20 +423,20 @@ pub struct RatingsList {
   pub rotten_tomatoes: Option<Rating>,
 }
 
-#[derive(Deserialize, Derivative, Clone, Debug, PartialEq, Eq)]
-#[derivative(Default)]
+#[derive(Deserialize, Default, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+#[serde(default)]
 pub struct Release {
   pub guid: String,
   pub protocol: String,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub age: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub age: i64,
   pub title: HorizontallyScrollableText,
   pub indexer: String,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub indexer_id: Number,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub size: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub indexer_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub size: i64,
   pub rejected: bool,
   pub rejections: Option<Vec<String>>,
   pub seeders: Option<Number>,
@@ -457,8 +449,8 @@ pub struct Release {
 #[serde(rename_all = "camelCase")]
 pub struct ReleaseDownloadBody {
   pub guid: String,
-  pub indexer_id: u64,
-  pub movie_id: u64,
+  pub indexer_id: i64,
+  pub movie_id: i64,
 }
 
 #[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
@@ -475,16 +467,15 @@ pub enum ReleaseField {
   Quality,
 }
 
-#[derive(Derivative, Deserialize, Debug, Clone, Eq, PartialEq)]
-#[derivative(Default)]
+#[derive(Default, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct RootFolder {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
   pub path: String,
   pub accessible: bool,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub free_space: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub free_space: i64,
   pub unmapped_folders: Option<Vec<UnmappedFolder>>,
 }
 
@@ -495,22 +486,20 @@ pub struct SystemStatus {
   pub start_time: DateTime<Utc>,
 }
 
-#[derive(Derivative, Deserialize, Debug)]
-#[derivative(Default)]
+#[derive(Default, Deserialize, Debug)]
 pub struct Tag {
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub id: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
   pub label: String,
 }
 
-#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[derivative(Default)]
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Task {
   pub name: String,
   pub task_name: String,
-  #[derivative(Default(value = "Number::from(0)"))]
-  pub interval: Number,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub interval: i64,
   pub last_execution: DateTime<Utc>,
   pub last_duration: String,
   pub next_execution: DateTime<Utc>,

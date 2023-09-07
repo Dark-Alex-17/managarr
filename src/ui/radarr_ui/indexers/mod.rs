@@ -18,7 +18,7 @@ mod indexer_settings_ui;
 #[path = "indexers_ui_tests.rs"]
 mod indexers_ui_tests;
 
-pub(super) struct IndexersUi {}
+pub(super) struct IndexersUi;
 
 impl DrawUi for IndexersUi {
   fn accepts(route: Route) -> bool {
@@ -116,7 +116,7 @@ fn draw_indexers<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect
         Cell::from(rss),
         Cell::from(automatic_search),
         Cell::from(interactive_search),
-        Cell::from(priority.as_u64().unwrap().to_string()),
+        Cell::from(priority.to_string()),
       ])
       .style(style_primary())
     },

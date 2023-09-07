@@ -336,8 +336,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
           .as_ref()
           .unwrap()
           .current_selection()
-          .tmdb_id
-          .clone();
+          .tmdb_id;
 
         if self
           .app

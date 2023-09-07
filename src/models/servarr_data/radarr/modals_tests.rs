@@ -27,7 +27,7 @@ mod test {
     let movie = Movie {
       path: "/nfs/movies/Test".to_owned(),
       monitored: true,
-      quality_profile_id: Number::from(2222),
+      quality_profile_id: 2222,
       minimum_availability: MinimumAvailability::Released,
       tags: vec![Number::from(1), Number::from(2)],
       ..Movie::default()
@@ -69,10 +69,10 @@ mod test {
   #[test]
   fn test_add_movie_modal_from_radarr_data() {
     let root_folder = RootFolder {
-      id: Number::from(1),
+      id: 1,
       path: "/nfs".to_owned(),
       accessible: true,
-      free_space: Number::from(219902325555200u64),
+      free_space: 219902325555200,
       unmapped_folders: None,
     };
     let mut radarr_data = RadarrData {
@@ -120,7 +120,7 @@ mod test {
       root_folder_path: Some("/nfs/movies/Test".to_owned()),
       monitored: true,
       search_on_add: true,
-      quality_profile_id: Number::from(2222),
+      quality_profile_id: 2222,
       minimum_availability: MinimumAvailability::Released,
       ..Collection::default()
     };

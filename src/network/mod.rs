@@ -63,7 +63,7 @@ impl<'a, 'b> Network<'a, 'b> {
     let request_uri = request_props.uri.clone();
     select! {
     _ = self.cancellation_token.cancelled() => {
-        warn!("Received Cancel request. Cancelling request to: {}", request_uri);
+        warn!("Received Cancel request. Cancelling request to: {request_uri}");
         let mut app = self.app.lock().await;
         self.cancellation_token = app.reset_cancellation_token();
         app.is_loading = false;
@@ -80,12 +80,12 @@ impl<'a, 'b> Network<'a, 'b> {
                       app_update_fn(value, app);
                     }
                     Err(e) => {
-                      error!("Failed to parse response! {:?}", e);
+                      error!("Failed to parse response! {e:?}");
                       self
                         .app
                         .lock()
                         .await
-                        .handle_error(anyhow!("Failed to parse response! {:?}", e));
+                        .handle_error(anyhow!("Failed to parse response! {e:?}"));
                     }
                   }
                 }
@@ -99,24 +99,17 @@ impl<'a, 'b> Network<'a, 'b> {
                 .replace_all(&response_body.replace('\n', " "), " ")
                 .to_string();
 
-              error!(
-                "Request failed. Received {} response code with body: {}",
-                status, response_body
-              );
-              self.app.lock().await.handle_error(anyhow!(
-                "Request failed. Received {} response code with body: {}",
-                status,
-                error_body
-              ));
+              error!("Request failed. Received {status} response code with body: {response_body}");
+              self.app.lock().await.handle_error(anyhow!("Request failed. Received {status} response code with body: {error_body}"));
             }
           }
           Err(e) => {
-            error!("Failed to send request. {:?}", e);
+            error!("Failed to send request. {e:?}");
             self
               .app
               .lock()
               .await
-              .handle_error(anyhow!("Failed to send request. {} ", e));
+              .handle_error(anyhow!("Failed to send request. {e} "));
           }
         }
       }
@@ -133,11 +126,8 @@ impl<'a, 'b> Network<'a, 'b> {
       body,
       api_token,
     } = request_props;
-    debug!("Creating RequestBuilder for resource: {:?}", uri);
-    debug!(
-      "Sending {:?} request to {} with body {:?}",
-      method, uri, body
-    );
+    debug!("Creating RequestBuilder for resource: {uri:?}");
+    debug!("Sending {method:?} request to {uri} with body {body:?}");
 
     match method {
       RequestMethod::Get => self.client.get(uri).header("X-Api-Key", api_token),

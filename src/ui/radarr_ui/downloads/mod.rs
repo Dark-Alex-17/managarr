@@ -15,7 +15,7 @@ use crate::utils::convert_to_gb;
 #[path = "downloads_ui_tests.rs"]
 mod downloads_ui_tests;
 
-pub(super) struct DownloadsUi {}
+pub(super) struct DownloadsUi;
 
 impl DrawUi for DownloadsUi {
   fn accepts(route: Route) -> bool {
@@ -105,13 +105,13 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rec
         );
       }
 
-      let percent = 1f64 - (sizeleft.as_f64().unwrap() / size.as_f64().unwrap());
-      let file_size: f64 = convert_to_gb(size.as_u64().unwrap());
+      let percent = 1f64 - (*sizeleft as f64 / *size as f64);
+      let file_size: f64 = convert_to_gb(*size);
 
       Row::new(vec![
         Cell::from(title.to_owned()),
         Cell::from(format!("{:.0}%", percent * 100.0)),
-        Cell::from(format!("{:.2} GB", file_size)),
+        Cell::from(format!("{file_size:.2} GB")),
         Cell::from(
           output_path
             .as_ref()
