@@ -424,11 +424,12 @@ pub static INDEXER_SETTINGS_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags,
   ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
 ];
-pub static INDEXER_SETTINGS_SELECTION_BLOCKS: [ActiveRadarrBlock; 9] = [
+pub static INDEXER_SETTINGS_SELECTION_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
   ActiveRadarrBlock::IndexerSettingsRetentionInput,
   ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
   ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags,
+  ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
   ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
   ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
   ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,

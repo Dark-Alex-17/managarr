@@ -7,6 +7,7 @@ mod tests {
   use serde::de::value::F64Deserializer;
   use serde::de::value::I64Deserializer;
   use serde::de::IntoDeserializer;
+  use serde_json::to_string;
 
   use crate::models::from_i64;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
@@ -731,10 +732,19 @@ mod tests {
   fn test_from_i64_error() {
     let deserializer: F64Deserializer<ValueError> = 1f64.into_deserializer();
 
-    assert_eq!(
+    assert_str_eq!(
       from_i64(deserializer).unwrap_err().to_string(),
       "Unable to convert Number to i64: Number(1.0)"
     );
+  }
+
+  #[test]
+  fn test_horizontally_scrollable_serialize() {
+    let text = HorizontallyScrollableText::from("Test");
+
+    let serialized = to_string(&text).expect("Serialization failed!");
+
+    assert_str_eq!(serialized, r#""Test""#);
   }
 
   fn create_test_tab_routes() -> Vec<TabRoute> {

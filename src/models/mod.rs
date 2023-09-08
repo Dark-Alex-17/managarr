@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-use serde::{de, Deserialize, Deserializer};
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Number;
 use tui::widgets::{ListState, TableState};
 
@@ -220,6 +220,15 @@ impl Display for HorizontallyScrollableText {
           .collect::<String>()
       )
     }
+  }
+}
+
+impl Serialize for HorizontallyScrollableText {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: Serializer,
+  {
+    serializer.serialize_str(&self.text)
   }
 }
 

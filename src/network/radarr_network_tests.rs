@@ -1059,6 +1059,40 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_get_indexer_settings_event_no_op_if_already_present() {
+    let indexer_settings_response_json = json!({
+        "minimumAge": 0,
+        "maximumSize": 0,
+        "retention": 0,
+        "rssSyncInterval": 60,
+        "preferIndexerFlags": false,
+        "availabilityDelay": 0,
+        "allowHardcodedSubs": true,
+        "whitelistedHardcodedSubs": "",
+        "id": 1
+    });
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_settings_response_json),
+      RadarrEvent::GetIndexerSettings.resource(),
+    )
+    .await;
+    app_arc.lock().await.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network
+      .handle_radarr_event(RadarrEvent::GetIndexerSettings)
+      .await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.indexer_settings,
+      Some(IndexerSettings::default())
+    );
+  }
+
+  #[tokio::test]
   async fn test_handle_get_queued_events_event() {
     let queued_events_json = json!([{
         "name": "RefreshMonitoredDownloads",

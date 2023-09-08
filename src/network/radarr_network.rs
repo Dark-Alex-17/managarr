@@ -747,7 +747,11 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<(), IndexerSettings>(request_props, |indexer_settings, mut app| {
-        app.data.radarr_data.indexer_settings = Some(indexer_settings);
+        if app.data.radarr_data.indexer_settings.is_none() {
+          app.data.radarr_data.indexer_settings = Some(indexer_settings);
+        } else {
+          debug!("Indexer Settings are being modified. Ignoring update...");
+        }
       })
       .await;
   }

@@ -39,8 +39,8 @@ impl DrawUi for IndexerSettingsUi {
       content_rect,
       draw_indexers,
       draw_edit_indexer_settings_prompt,
-      60,
-      40,
+      70,
+      45,
     );
   }
 }
@@ -97,7 +97,7 @@ fn draw_edit_indexer_settings_prompt<B: Backend>(
       draw_text_box_with_label(
         f,
         left_chunks[0],
-        "Minimum Age",
+        "Minimum Age (minutes) ▴▾",
         &indexer_settings.minimum_age.to_string(),
         0,
         selected_block == &ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
@@ -106,7 +106,7 @@ fn draw_edit_indexer_settings_prompt<B: Backend>(
       draw_text_box_with_label(
         f,
         left_chunks[1],
-        "Retention",
+        "Retention (days) ▴▾",
         &indexer_settings.retention.to_string(),
         0,
         selected_block == &ActiveRadarrBlock::IndexerSettingsRetentionInput,
@@ -115,7 +115,7 @@ fn draw_edit_indexer_settings_prompt<B: Backend>(
       draw_text_box_with_label(
         f,
         left_chunks[2],
-        "Maximum Size",
+        "Maximum Size (MB) ▴▾",
         &indexer_settings.maximum_size.to_string(),
         0,
         selected_block == &ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
@@ -124,7 +124,7 @@ fn draw_edit_indexer_settings_prompt<B: Backend>(
       draw_text_box_with_label(
         f,
         right_chunks[0],
-        "Availability Delay",
+        "Availability Delay (days) ▴▾",
         &indexer_settings.availability_delay.to_string(),
         0,
         selected_block == &ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
@@ -133,7 +133,7 @@ fn draw_edit_indexer_settings_prompt<B: Backend>(
       draw_text_box_with_label(
         f,
         right_chunks[1],
-        "RSS Sync Interval",
+        "RSS Sync Interval (minutes) ▴▾",
         &indexer_settings.rss_sync_interval.to_string(),
         0,
         selected_block == &ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
@@ -143,8 +143,8 @@ fn draw_edit_indexer_settings_prompt<B: Backend>(
         f,
         right_chunks[2],
         "Whitelisted Subtitle Tags",
-        &indexer_settings.whitelisted_hardcoded_subs.to_string(),
-        0,
+        &indexer_settings.whitelisted_hardcoded_subs.text,
+        *indexer_settings.whitelisted_hardcoded_subs.offset.borrow(),
         selected_block == &ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
         active_radarr_block == ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
       );

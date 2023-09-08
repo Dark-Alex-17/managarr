@@ -97,7 +97,7 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rec
         ..
       } = download_record;
 
-      if matches!(output_path, Some(_)) {
+      if output_path.is_some() {
         output_path.as_ref().unwrap().scroll_left_or_reset(
           get_width_from_percentage(area, 18),
           current_selection == *download_record,

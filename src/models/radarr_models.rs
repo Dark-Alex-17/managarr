@@ -207,7 +207,8 @@ pub struct IndexerSettings {
   pub retention: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub rss_sync_interval: i64,
-  pub whitelisted_hardcoded_subs: String,
+  #[serde(default)]
+  pub whitelisted_hardcoded_subs: HorizontallyScrollableText,
 }
 
 #[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]

@@ -562,6 +562,10 @@ mod tests {
       );
       assert_eq!(
         indexer_settings_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::IndexerSettingsConfirmPrompt
+      );
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
         &ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput
       );
       assert_eq!(

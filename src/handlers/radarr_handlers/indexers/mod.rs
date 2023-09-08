@@ -99,8 +99,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
   fn handle_submit(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::DeleteIndexerPrompt => {
-        if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteIndexer);
+        let radarr_data = &mut self.app.data.radarr_data;
+        if radarr_data.prompt_confirm {
+          radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteIndexer);
         }
 
         self.app.pop_navigation_stack();
