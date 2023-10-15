@@ -161,11 +161,6 @@ mod tests {
 
     let (key_binding, description) = indexers_context_clues_iter.next().unwrap();
 
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.restrictions);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.restrictions.desc);
-
-    let (key_binding, description) = indexers_context_clues_iter.next().unwrap();
-
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.delete);
     assert_str_eq!(*description, DEFAULT_KEYBINDINGS.delete.desc);
 

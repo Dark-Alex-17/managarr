@@ -9,7 +9,7 @@ repository = "https://github.com/Dark-Alex-17/managarr"
 homepage = "https://github.com/Dark-Alex-17/managarr"
 readme = "README.md"
 edition = "2021"
-rust-version = "1.69.0"
+rust-version = "1.72.0"
 
 [dependencies]
 anyhow = "1.0.68"
