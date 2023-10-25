@@ -2,7 +2,7 @@
 name = "managarr"
 version = "0.0.29"
 authors = ["Alex Clarke <alex.j.tusa@gmail.com>"]
-description = "A TUI for managing *arr servers"
+description = "A TUI to manage your Servarrs"
 keywords = ["managarr", "tui-rs", "dashboard", "servarr", "tui"]
 documentation = "https://github.com/Dark-Alex-17/managarr"
 repository = "https://github.com/Dark-Alex-17/managarr"
@@ -36,10 +36,14 @@ tui = { version = "0.23.0", package = "ratatui", features = ["all-widgets"] }
 urlencoding = "2.1.2"
 
 [dev-dependencies]
-cargo-husky = { version = "1.5.0", default_features = false, features = ["user-hooks"] }
 mockito = "1.0.0"
 pretty_assertions = "1.3.0"
 rstest = "0.18.2"
+
+[dev-dependencies.cargo-husky]
+version = "1.5.0"
+default-features = false
+features = ["prepush-hook", "precommit-hook", "run-cargo-test", "run-cargo-clippy"]
 
 [[bin]]
 bench = false

@@ -30,18 +30,6 @@ fmt:
 analyze:
 	@cargo geiger
 
-## Analyze the project with SonarQube - `cargo install cargo-sonar`
-# sonar-scanner must be installed and the LastPass CLI must be installed
-sonar:
-	@cargo clippy --message-format json > /tmp/clippy-report.json &&\
-	cargo sonar --issues clippy --clippy-path /tmp/clippy-report.json --issues-path /tmp/sonar-issues.json &&\
-	sonar-scanner\
-	  -Dsonar.projectKey=Managarr\
-	  -Dsonar.sources=.\
-	  -Dsonar.externalIssuesReportPaths=/tmp/sonar-issues.json\
-	  -Dsonar.host.url="$$(lpass show --url $$(basename $$(pwd)))"\
-	  -Dsonar.login="$$(lpass show --password $$(basename $$(pwd)))"
-
 release:
 	@git tag -a ${V} -m "Release ${V}" && git push origin ${V}
 

@@ -1,9 +1,29 @@
 # managarr - A TUI to manage your Servarrs
 Managarr is a TUI to help you manage your HTPC (Home Theater PC). Built with love in Rust!
 
-[![radarr_demo](https://asciinema.org/a/578193.svg)](https://asciinema.org/a/578193)
+![library](screenshots/library.png)
+![manual_search](screenshots/manual_search.png)
+![logs](screenshots/logs.png)
+![new_movie_search](screenshots/new_movie_search.png)
+![add_new_movie](screenshots/add_new_movie.png)
 
-![wekan_logo](logos/wekan.png) [Wekan Board](https://wekan.alextusa.com/b/NPSm8BkivuAKy2HXf/managarr)
+## NOTE: Managarr is not yet stable (Pre-Alpha)
+I'm regularly making changes to get Managarr to an alpha release. As such, I'm regularly refactoring the code to be cleaner
+and more easily extensible. This makes contributing difficult and until I get Managarr across the alpha-release finish line,
+contributions will likely be difficult. Thus, stability is not guaranteed (yet!).
+
+This means that while all tests will pass, there may be certain menus or keymappings that are no-ops, or produce empty 
+screens, or things of this sort.
+
+Part of the alpha release plan is to add contribution guidelines, licensing, CI/CD, release pipelines, etc. so that
+all future maintenance and additions can be handled easily. So unfortunately, until that happens, Managarr may contain
+breaking changes and be slow to react to any PR's.
+
+Progress for the alpha release can be followed on my [Wekan Board](https://wekan.alexjclarke.com/b/dCCsQaJLu8WHZr2th/managarr)
+with all items tagged `Alpha`.
+
+Thanks for your patience as I work to get this into a place ready for contributions and to make developer experiences as
+pleasant as possible!
 
 ## What Servarrs are supported?
 
@@ -16,9 +36,57 @@ Managarr is a TUI to help you manage your HTPC (Home Theater PC). Built with lov
 - ![bazarr_logo](logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
 - ![tautulli_logo](logos/tautulli.png) [Tautulli](https://tautulli.com/)
 
-# Configuration 
-Managarr assumes reasonable defaults to connect to each service (i.e. Radarr is on localhost:7878), 
-but all servers will require you to input the API token. 
+## Features
+
+### Radarr
+
+- [x] View your library, downloads, collections
+- [x] View details of a specific movie including description, history, downloaded file info, or the credits
+- [x] View details of any collection and the movies in them
+- [x] Search your library or collections
+- [x] Add or delete movies and downloads
+- [x] Trigger automatic searches for movies
+- [x] Trigger refresh and disk scan for movies, downloads, and collections
+- [x] Manually search for movies
+- [x] Edit your movies and collections
+- [x] Manage your tags
+- [x] Manage your root folders
+- [ ] Manage your quality profiles
+- [ ] Manage your quality definitions
+- [ ] Manage your indexers
+- [x] View and browse logs, tasks, events queues, and updates
+- [x] Manually trigger scheduled tasks
+
+### Sonarr
+- [ ] Support for Sonarr
+
+### Readarr
+
+- [ ] Support for Readarr
+
+### Lidarr
+
+- [ ] Support for Lidarr
+
+### Whisparr
+
+- [ ] Support for Whisparr
+
+### Bazarr
+
+- [ ] Support for Bazarr
+
+### Prowlarr
+
+- [ ] Support for Prowlarr
+
+### Tautulli
+
+- [ ] Support for Tautulli
+
+# Configuration
+Managarr assumes reasonable defaults to connect to each service (i.e. Radarr is on localhost:7878),
+but all servers will require you to input the API token.
 
 The configuration file is located somewhere different for each OS
 
@@ -72,54 +140,6 @@ tautulli:
   port: 8181
   api_token: someApiToken1234567890
 ```
-
-## Features
-
-### Radarr
-
-- [x] View your library, downloads, collections
-- [x] View details of a specific movie including description, history, downloaded file info, or the credits
-- [x] View details of any collection and the movies in them
-- [x] Search your library or collections
-- [x] Add or delete movies and downloads
-- [x] Trigger automatic searches for movies
-- [x] Trigger refresh and disk scan for movies, downloads, and collections
-- [x] Manually search for movies
-- [x] Edit your movies and collections
-- [x] Manage your tags
-- [x] Manage your root folders
-- [ ] Manage your quality profiles
-- [ ] Manage your quality definitions
-- [ ] Manage your indexers
-- [x] View and browse logs, tasks, events queues, and updates
-- [x] Manually trigger scheduled tasks
-
-### Sonarr
-- [ ] Support for Sonarr
-
-### Readarr
-
-- [ ] Support for Readarr
-
-### Lidarr
-
-- [ ] Support for Lidarr
-
-### Whisparr
-
-- [ ] Support for Whisparr
-
-### Bazarr
-
-- [ ] Support for Bazarr
-
-### Prowlarr
-
-- [ ] Support for Prowlarr
-
-### Tautulli
-
-- [ ] Support for Tautulli
 
 ## Dependencies
 * [ratatui](https://github.com/tui-rs-revival/ratatui)
