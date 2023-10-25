@@ -2,10 +2,6 @@
 Managarr is a TUI to help you manage your HTPC (Home Theater PC). Built with love in Rust!
 
 ![library](screenshots/library.png)
-![manual_search](screenshots/manual_search.png)
-![logs](screenshots/logs.png)
-![new_movie_search](screenshots/new_movie_search.png)
-![add_new_movie](screenshots/add_new_movie.png)
 
 ## NOTE: Managarr is not yet stable (Pre-Alpha)
 I'm regularly making changes to get Managarr to an alpha release. As such, I'm regularly refactoring the code to be cleaner
@@ -140,6 +136,14 @@ tautulli:
   port: 8181
   api_token: someApiToken1234567890
 ```
+
+## Screenshots
+
+![library](screenshots/library.png)
+![manual_search](screenshots/manual_search.png)
+![logs](screenshots/logs.png)
+![new_movie_search](screenshots/new_movie_search.png)
+![add_new_movie](screenshots/add_new_movie.png)
 
 ## Dependencies
 * [ratatui](https://github.com/tui-rs-revival/ratatui)
