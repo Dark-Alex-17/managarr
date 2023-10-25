@@ -11,7 +11,7 @@ contributions will likely be difficult. Thus, stability is not guaranteed (yet!)
 This means that while all tests will pass, there may be certain menus or keymappings that are no-ops, or produce empty 
 screens, or things of this sort.
 
-Part of the alpha release plan is to add contribution guidelines, licensing, CI/CD, release pipelines, etc. so that
+Part of the alpha release plan is to add contribution guidelines, CI/CD, release pipelines, etc. so that
 all future maintenance and additions can be handled easily. So unfortunately, until that happens, Managarr may contain
 breaking changes and be slow to react to any PR's.
 
