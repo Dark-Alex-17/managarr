@@ -15,7 +15,7 @@ Part of the alpha release plan is to add contribution guidelines, CI/CD, release
 all future maintenance and additions can be handled easily. So unfortunately, until that happens, Managarr may contain
 breaking changes and be slow to react to any PR's.
 
-Progress for the alpha release can be followed on my [Wekan Board](https://wekan.alexjclarke.com/b/dCCsQaJLu8WHZr2th/managarr)
+Progress for the alpha release can be followed on my [Wekan Board](https://wekan.alexjclarke.com/b/dHoGjBb44MHM9HSv4/managarr)
 with all items tagged `Alpha`.
 
 Thanks for your patience as I work to get this into a place ready for contributions and to make developer experiences as
