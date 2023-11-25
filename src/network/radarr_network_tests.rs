@@ -877,6 +877,52 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_get_movie_history_event_empty_movie_details_modal() {
+    let movie_history_item_json = json!([{
+      "sourceTitle": "Test",
+      "quality": { "quality": { "name": "HD - 1080p" }},
+      "languages": [ { "name": "English" } ],
+      "date": "2022-12-30T07:37:56Z",
+      "eventType": "grabbed"
+    }]);
+    let resource = format!("{}?movieId=1", RadarrEvent::GetMovieHistory.resource());
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(movie_history_item_json),
+      &resource,
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network
+      .handle_radarr_event(RadarrEvent::GetMovieHistory)
+      .await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .movie_details_modal
+        .as_ref()
+        .unwrap()
+        .movie_history
+        .items,
+      vec![movie_history_item()]
+    );
+  }
+
+  #[tokio::test]
   async fn test_handle_get_collections_event() {
     let collection_json = json!([{
       "id": 123,

@@ -978,20 +978,24 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-			.handle_request::<(), Vec<MovieHistoryItem>>(request_props, |movie_history_vec, mut app| {
-				debug!("Assuming the movie_details_modal is already a Some and was created by the get_movie_details request");
-				let mut reversed_movie_history_vec = movie_history_vec.to_vec();
-				reversed_movie_history_vec.reverse();
-				app
-					.data
-					.radarr_data
-					.movie_details_modal
-					.as_mut()
-					.unwrap()
-					.movie_history
-					.set_items(reversed_movie_history_vec)
-			})
-			.await;
+      .handle_request::<(), Vec<MovieHistoryItem>>(request_props, |movie_history_vec, mut app| {
+        let mut reversed_movie_history_vec = movie_history_vec.to_vec();
+        reversed_movie_history_vec.reverse();
+
+        if app.data.radarr_data.movie_details_modal.is_none() {
+          app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default())
+        }
+
+        app
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_mut()
+          .unwrap()
+          .movie_history
+          .set_items(reversed_movie_history_vec)
+      })
+      .await;
   }
 
   async fn get_movies(&mut self) {
