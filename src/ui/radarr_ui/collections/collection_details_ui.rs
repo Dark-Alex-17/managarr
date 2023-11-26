@@ -1,8 +1,7 @@
-use tui::backend::Backend;
-use tui::layout::{Alignment, Constraint, Rect};
-use tui::text::Text;
-use tui::widgets::{Cell, Paragraph, Row, Wrap};
-use tui::Frame;
+use ratatui::layout::{Alignment, Constraint, Rect};
+use ratatui::text::Text;
+use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
+use ratatui::Frame;
 
 use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
 use crate::app::radarr::radarr_context_clues::COLLECTION_DETAILS_CONTEXT_CLUES;
@@ -36,10 +35,10 @@ impl DrawUi for CollectionDetailsUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
       let draw_collection_details_popup =
-        |f: &mut Frame<'_, B>, app: &mut App<'_>, popup_area: Rect| match context_option
+        |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| match context_option
           .unwrap_or(active_radarr_block)
         {
           ActiveRadarrBlock::ViewMovieOverview => {
@@ -66,11 +65,7 @@ impl DrawUi for CollectionDetailsUi {
   }
 }
 
-pub fn draw_collection_details<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  content_area: Rect,
-) {
+pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
   let chunks = vertical_chunks_with_margin(
     vec![
       Constraint::Percentage(25),
@@ -242,7 +237,7 @@ pub fn draw_collection_details<B: Backend>(
   );
 }
 
-fn draw_movie_overview<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_area: Rect) {
+fn draw_movie_overview(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
   let title_block = title_block("Overview");
   f.render_widget(title_block, content_area);
 

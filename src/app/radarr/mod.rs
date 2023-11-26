@@ -49,6 +49,11 @@ impl<'a> App<'a> {
           .dispatch_network_event(RadarrEvent::GetIndexerSettings.into())
           .await;
       }
+      ActiveRadarrBlock::TestAllIndexers => {
+        self
+          .dispatch_network_event(RadarrEvent::TestAllIndexers.into())
+          .await;
+      }
       ActiveRadarrBlock::System => {
         self
           .dispatch_network_event(RadarrEvent::GetTasks.into())

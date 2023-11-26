@@ -1,12 +1,11 @@
 use std::iter;
 
 use chrono::{Duration, Utc};
-use tui::backend::Backend;
-use tui::layout::{Alignment, Constraint, Rect};
-use tui::style::{Color, Style};
-use tui::text::Text;
-use tui::widgets::Paragraph;
-use tui::Frame;
+use ratatui::layout::{Alignment, Constraint, Rect};
+use ratatui::style::{Color, Style};
+use ratatui::text::Text;
+use ratatui::widgets::Paragraph;
+use ratatui::Frame;
 
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
@@ -48,7 +47,7 @@ impl DrawUi for RadarrUi {
     matches!(route, Route::Radarr(_, _))
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let (content_rect, _) = draw_tabs(f, area, "Movies", &app.data.radarr_data.main_tabs);
     let route = *app.get_current_route();
 
@@ -63,7 +62,7 @@ impl DrawUi for RadarrUi {
     }
   }
 
-  fn draw_context_row<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area: Rect) {
+  fn draw_context_row(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
     let chunks = horizontal_chunks(vec![Constraint::Min(0), Constraint::Length(20)], area);
 
     let context_chunks = horizontal_chunks(
@@ -77,7 +76,7 @@ impl DrawUi for RadarrUi {
   }
 }
 
-fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area: Rect) {
+fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   let block = title_block("Stats");
 
   if !app.data.radarr_data.version.is_empty() {
@@ -169,7 +168,7 @@ fn draw_stats_context<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area: Rec
   }
 }
 
-fn draw_downloads_context<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, area: Rect) {
+fn draw_downloads_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   let block = title_block("Downloads");
   let downloads_vec = &app.data.radarr_data.downloads.items;
 
@@ -224,7 +223,7 @@ fn determine_row_style(downloads_vec: &[DownloadRecord], movie: &Movie) -> Style
   }
 }
 
-fn draw_radarr_logo<B: Backend>(f: &mut Frame<'_, B>, area: Rect) {
+fn draw_radarr_logo(f: &mut Frame<'_>, area: Rect) {
   let mut logo_text = Text::from(RADARR_LOGO);
   logo_text.patch_style(Style::default().fg(Color::LightYellow));
   let logo = Paragraph::new(logo_text)

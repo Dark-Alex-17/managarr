@@ -10,7 +10,7 @@ use crate::models::radarr_models::{
   IndexerSettings, Movie, QueueEvent, RootFolder, Task,
 };
 use crate::models::servarr_data::radarr::modals::{
-  AddMovieModal, EditCollectionModal, EditMovieModal, MovieDetailsModal,
+  AddMovieModal, EditCollectionModal, EditMovieModal, IndexerTestResultModalItem, MovieDetailsModal,
 };
 use crate::models::{
   BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, StatefulList,
@@ -59,6 +59,7 @@ pub struct RadarrData<'a> {
   pub filtered_collections: Option<StatefulTable<Collection>>,
   pub filtered_movies: Option<StatefulTable<Movie>>,
   pub indexer_settings: Option<IndexerSettings>,
+  pub indexer_test_all_results: Option<StatefulTable<IndexerTestResultModalItem>>,
   pub movie_details_modal: Option<MovieDetailsModal>,
   pub prompt_confirm: bool,
   pub prompt_confirm_action: Option<RadarrEvent>,
@@ -126,6 +127,7 @@ impl<'a> Default for RadarrData<'a> {
       filtered_collections: None,
       filtered_movies: None,
       indexer_settings: None,
+      indexer_test_all_results: None,
       movie_details_modal: None,
       is_searching: false,
       is_filtering: false,
@@ -288,6 +290,7 @@ pub enum ActiveRadarrBlock {
   SystemTasks,
   SystemTaskStartConfirmPrompt,
   SystemUpdates,
+  TestAllIndexers,
   UpdateAndScanPrompt,
   UpdateAllCollectionsPrompt,
   UpdateAllMoviesPrompt,
@@ -315,11 +318,12 @@ pub static COLLECTIONS_BLOCKS: [ActiveRadarrBlock; 6] = [
   ActiveRadarrBlock::FilterCollectionsError,
   ActiveRadarrBlock::UpdateAllCollectionsPrompt,
 ];
-pub static INDEXERS_BLOCKS: [ActiveRadarrBlock; 4] = [
+pub static INDEXERS_BLOCKS: [ActiveRadarrBlock; 5] = [
   ActiveRadarrBlock::AddIndexer,
   ActiveRadarrBlock::EditIndexer,
   ActiveRadarrBlock::DeleteIndexerPrompt,
   ActiveRadarrBlock::Indexers,
+  ActiveRadarrBlock::TestAllIndexers,
 ];
 pub static ROOT_FOLDERS_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::RootFolders,

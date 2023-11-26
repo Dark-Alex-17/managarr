@@ -74,6 +74,7 @@ mod tests {
             value: "Test".to_owned(),
           }),
           api_token: "test1234".to_owned(),
+          ignore_status_code: false,
         },
         |_, _| (),
       )
@@ -97,6 +98,7 @@ mod tests {
           method: request_method,
           body: None,
           api_token: "test1234".to_owned(),
+          ignore_status_code: false,
         },
         |response, mut app| app.error = HorizontallyScrollableText::from(response.value),
       )
@@ -104,6 +106,32 @@ mod tests {
 
     async_server.assert_async().await;
     assert_str_eq!(app_arc.lock().await.error.text, "Test");
+  }
+
+  #[rstest]
+  #[tokio::test]
+  async fn test_handle_request_with_response_body_ignore_error_code(
+    #[values(RequestMethod::Get, RequestMethod::Post)] request_method: RequestMethod,
+  ) {
+    let (async_server, app_arc, server) = mock_api(request_method, 400, true).await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut test_result = String::default();
+
+    network
+      .handle_request::<(), Test>(
+        RequestProps {
+          uri: format!("{}/test", server.url()),
+          method: request_method,
+          body: None,
+          api_token: "test1234".to_owned(),
+          ignore_status_code: true,
+        },
+        |response, _app| test_result = response.value,
+      )
+      .await;
+
+    async_server.assert_async().await;
+    assert!(app_arc.lock().await.error.text.is_empty());
   }
 
   #[tokio::test]
@@ -127,6 +155,7 @@ mod tests {
           method: RequestMethod::Get,
           body: None,
           api_token: "test1234".to_owned(),
+          ignore_status_code: false,
         },
         |_, _| (),
       )
@@ -157,6 +186,7 @@ mod tests {
           method: RequestMethod::Get,
           body: None,
           api_token: "test1234".to_owned(),
+          ignore_status_code: false,
         },
         |response, mut app| app.error = HorizontallyScrollableText::from(response.value),
       )
@@ -183,6 +213,7 @@ mod tests {
           method: RequestMethod::Get,
           body: None,
           api_token: "test1234".to_owned(),
+          ignore_status_code: false,
         },
         |response, mut app| app.error = HorizontallyScrollableText::from(response.value),
       )
@@ -217,6 +248,7 @@ mod tests {
           method: request_method,
           body: None,
           api_token: "test1234".to_owned(),
+          ignore_status_code: false,
         },
         |response, mut app| app.error = HorizontallyScrollableText::from(response.value),
       )
@@ -241,6 +273,7 @@ mod tests {
           method: RequestMethod::Post,
           body: None,
           api_token: "test1234".to_owned(),
+          ignore_status_code: false,
         },
         |response, mut app| app.error = HorizontallyScrollableText::from(response.value),
       )
@@ -292,6 +325,7 @@ mod tests {
         method: request_method,
         body,
         api_token: "test1234".to_owned(),
+        ignore_status_code: false,
       })
       .await
       .send()

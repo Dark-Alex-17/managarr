@@ -1,5 +1,5 @@
 use crate::ui::utils::{style_default, style_failure, style_secondary};
-use tui::style::{Color, Modifier, Style};
+use ratatui::style::{Color, Modifier, Style};
 
 #[cfg(test)]
 #[path = "radarr_ui_utils_tests.rs"]

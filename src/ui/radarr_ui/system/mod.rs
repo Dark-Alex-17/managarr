@@ -1,11 +1,10 @@
 use std::ops::Sub;
 
 use chrono::Utc;
-use tui::layout::Alignment;
-use tui::text::{Span, Text};
-use tui::widgets::{Cell, Paragraph, Row};
-use tui::{
-  backend::Backend,
+use ratatui::layout::Alignment;
+use ratatui::text::{Span, Text};
+use ratatui::widgets::{Cell, Paragraph, Row};
+use ratatui::{
   layout::{Constraint, Rect},
   widgets::ListItem,
   Frame,
@@ -62,7 +61,7 @@ impl DrawUi for SystemUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     let route = *app.get_current_route();
 
     match route {
@@ -75,11 +74,7 @@ impl DrawUi for SystemUi {
   }
 }
 
-pub(super) fn draw_system_ui_layout<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  area: Rect,
-) {
+pub(super) fn draw_system_ui_layout(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let vertical_chunks = vertical_chunks(
     vec![
       Constraint::Ratio(1, 2),
@@ -100,7 +95,7 @@ pub(super) fn draw_system_ui_layout<B: Backend>(
   draw_help(f, app, vertical_chunks[2]);
 }
 
-fn draw_tasks<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_tasks(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_table(
     f,
     area,
@@ -129,7 +124,7 @@ fn draw_tasks<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   );
 }
 
-pub(super) fn draw_queued_events<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+pub(super) fn draw_queued_events(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_table(
     f,
     area,
@@ -189,7 +184,7 @@ pub(super) fn draw_queued_events<B: Backend>(f: &mut Frame<'_, B>, app: &mut App
   );
 }
 
-fn draw_logs<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_logs(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_list_box(
     f,
     area,
@@ -210,7 +205,7 @@ fn draw_logs<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   );
 }
 
-fn draw_help<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_help(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let mut help_text = Text::from(format!(
     " {}",
     app

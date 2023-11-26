@@ -2,9 +2,9 @@ use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+use ratatui::widgets::{ListState, TableState};
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Number;
-use tui::widgets::{ListState, TableState};
 
 pub mod radarr_models;
 pub mod servarr_data;

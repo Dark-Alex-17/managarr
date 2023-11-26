@@ -1,6 +1,6 @@
 [package]
 name = "managarr"
-version = "0.0.29"
+version = "0.0.30"
 authors = ["Alex Clarke <alex.j.tusa@gmail.com>"]
 description = "A TUI to manage your Servarrs"
 keywords = ["managarr", "tui-rs", "dashboard", "servarr", "tui"]
@@ -32,7 +32,7 @@ strum = {version = "0.25.0", features = ["derive"] }
 strum_macros = "0.25.0"
 tokio = { version = "1.29.0", features = ["full"] }
 tokio-util = "0.7.8"
-tui = { version = "0.23.0", package = "ratatui", features = ["all-widgets"] }
+ratatui = { version = "0.24.0", features = ["all-widgets"] }
 urlencoding = "2.1.2"
 
 [dev-dependencies]

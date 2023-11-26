@@ -1,7 +1,6 @@
-use tui::backend::Backend;
-use tui::layout::{Constraint, Rect};
-use tui::widgets::{Cell, Row};
-use tui::Frame;
+use ratatui::layout::{Constraint, Rect};
+use ratatui::widgets::{Cell, Row};
+use ratatui::Frame;
 
 pub(super) use collection_details_ui::draw_collection_details;
 
@@ -36,7 +35,7 @@ impl DrawUi for CollectionsUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     let route = *app.get_current_route();
     let mut collections_ui_matcher = |active_radarr_block| match active_radarr_block {
       ActiveRadarrBlock::Collections => draw_collections(f, app, content_rect),
@@ -99,7 +98,7 @@ impl DrawUi for CollectionsUi {
   }
 }
 
-pub(super) fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let current_selection =
     if let Some(filtered_collections) = app.data.radarr_data.filtered_collections.as_ref() {
       filtered_collections.current_selection().clone()
@@ -176,11 +175,7 @@ pub(super) fn draw_collections<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'
   );
 }
 
-fn draw_update_all_collections_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
+fn draw_update_all_collections_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   draw_prompt_box(
     f,
     prompt_area,
@@ -190,7 +185,7 @@ fn draw_update_all_collections_prompt<B: Backend>(
   );
 }
 
-fn draw_collection_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_collection_search_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_input_box_popup(
     f,
     area,
@@ -199,7 +194,7 @@ fn draw_collection_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_
   );
 }
 
-fn draw_filter_collections_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_filter_collections_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_input_box_popup(
     f,
     area,
@@ -208,14 +203,10 @@ fn draw_filter_collections_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'
   )
 }
 
-fn draw_search_collection_error_box<B: Backend>(f: &mut Frame<'_, B>, _: &mut App<'_>, area: Rect) {
+fn draw_search_collection_error_box(f: &mut Frame<'_>, _: &mut App<'_>, area: Rect) {
   draw_error_message_popup(f, area, "Collection not found!");
 }
 
-fn draw_filter_collections_error_box<B: Backend>(
-  f: &mut Frame<'_, B>,
-  _: &mut App<'_>,
-  area: Rect,
-) {
+fn draw_filter_collections_error_box(f: &mut Frame<'_>, _: &mut App<'_>, area: Rect) {
   draw_error_message_popup(f, area, "No collections found matching the given filter!");
 }

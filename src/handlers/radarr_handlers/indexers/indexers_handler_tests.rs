@@ -7,7 +7,7 @@ mod tests {
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::indexers::IndexersHandler;
+  use crate::handlers::radarr_handlers::indexers::{IndexersHandler, TestAllIndexersHandler};
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
@@ -302,6 +302,24 @@ mod tests {
         &INDEXER_SETTINGS_SELECTION_BLOCKS
       );
     }
+
+    #[test]
+    fn test_test_key() {
+      let mut app = App::default();
+
+      IndexersHandler::with(
+        &DEFAULT_KEYBINDINGS.test.key,
+        &mut app,
+        &ActiveRadarrBlock::Indexers,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::TestAllIndexers.into()
+      );
+    }
   }
 
   #[rstest]
@@ -324,6 +342,15 @@ mod tests {
       IndexersHandler,
       ActiveRadarrBlock::Indexers,
       active_radarr_block
+    );
+  }
+
+  #[test]
+  fn test_delegates_test_all_indexers_block_to_test_all_indexers_handler() {
+    test_handler_delegation!(
+      TestAllIndexersHandler,
+      ActiveRadarrBlock::Indexers,
+      ActiveRadarrBlock::TestAllIndexers
     );
   }
 

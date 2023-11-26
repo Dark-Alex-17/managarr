@@ -1,10 +1,9 @@
+use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
+use ratatui::style::{Color, Modifier, Style};
+use ratatui::text::{Line, Span, Text};
+use ratatui::widgets::{Block, BorderType, Borders, LineGauge, Paragraph, Wrap};
+use ratatui::{symbols, Frame};
 use std::rc::Rc;
-use tui::backend::Backend;
-use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
-use tui::style::{Color, Modifier, Style};
-use tui::text::{Line, Span, Text};
-use tui::widgets::{Block, BorderType, Borders, LineGauge, Paragraph, Wrap};
-use tui::{symbols, Frame};
 
 pub const COLOR_TEAL: Color = Color::Rgb(35, 50, 55);
 pub const COLOR_CYAN: Color = Color::Cyan;
@@ -268,7 +267,7 @@ pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge<'_> {
     .label(Line::from(format!("{title}: {:.0}%", ratio * 100.0)))
 }
 
-pub fn show_cursor<B: Backend>(f: &mut Frame<'_, B>, area: Rect, offset: usize, string: &str) {
+pub fn show_cursor(f: &mut Frame<'_>, area: Rect, offset: usize, string: &str) {
   f.set_cursor(area.x + (string.len() - offset) as u16 + 1, area.y + 1);
 }
 

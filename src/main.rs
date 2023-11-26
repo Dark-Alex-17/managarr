@@ -9,11 +9,11 @@ use crossterm::execute;
 use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
+use ratatui::backend::CrosstermBackend;
+use ratatui::Terminal;
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::{mpsc, Mutex};
 use tokio_util::sync::CancellationToken;
-use tui::backend::CrosstermBackend;
-use tui::Terminal;
 
 use crate::app::App;
 use crate::event::input_event::{Events, InputEvent};

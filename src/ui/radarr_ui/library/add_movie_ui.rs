@@ -1,8 +1,7 @@
-use tui::backend::Backend;
-use tui::layout::{Alignment, Constraint, Rect};
-use tui::text::Text;
-use tui::widgets::{Cell, ListItem, Paragraph, Row};
-use tui::Frame;
+use ratatui::layout::{Alignment, Constraint, Rect};
+use ratatui::text::Text;
+use ratatui::widgets::{Cell, ListItem, Paragraph, Row};
+use ratatui::Frame;
 
 use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
 use crate::app::radarr::radarr_context_clues::ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES;
@@ -40,10 +39,10 @@ impl DrawUi for AddMovieUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
       let draw_add_movie_search_popup =
-        |f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect| match active_radarr_block {
+        |f: &mut Frame<'_>, app: &mut App<'_>, area: Rect| match active_radarr_block {
           ActiveRadarrBlock::AddMovieSearchInput
           | ActiveRadarrBlock::AddMovieSearchResults
           | ActiveRadarrBlock::AddMovieEmptySearchResults => {
@@ -103,7 +102,7 @@ impl DrawUi for AddMovieUi {
   }
 }
 
-fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let is_loading = app.is_loading || app.data.radarr_data.add_searched_movies.is_none();
   let current_selection =
     if let Some(add_searched_movies) = app.data.radarr_data.add_searched_movies.as_ref() {
@@ -277,7 +276,7 @@ fn draw_add_movie_search<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, ar
   );
 }
 
-fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_confirmation_popup(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSelectMonitor => {
@@ -324,11 +323,7 @@ fn draw_confirmation_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, 
   }
 }
 
-fn draw_confirmation_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
+fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   let (movie_title, movie_overview) = if let Route::Radarr(_, Some(_)) = app.get_current_route() {
     (
       &app
@@ -469,11 +464,7 @@ fn draw_confirmation_prompt<B: Backend>(
   );
 }
 
-fn draw_add_movie_select_monitor_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  popup_area: Rect,
-) {
+fn draw_add_movie_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect) {
   draw_selectable_list(
     f,
     popup_area,
@@ -488,8 +479,8 @@ fn draw_add_movie_select_monitor_popup<B: Backend>(
   );
 }
 
-fn draw_add_movie_select_minimum_availability_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
+fn draw_add_movie_select_minimum_availability_popup(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   popup_area: Rect,
 ) {
@@ -507,8 +498,8 @@ fn draw_add_movie_select_minimum_availability_popup<B: Backend>(
   );
 }
 
-fn draw_add_movie_select_quality_profile_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
+fn draw_add_movie_select_quality_profile_popup(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   popup_area: Rect,
 ) {
@@ -526,11 +517,7 @@ fn draw_add_movie_select_quality_profile_popup<B: Backend>(
   );
 }
 
-fn draw_add_movie_select_root_folder_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  popup_area: Rect,
-) {
+fn draw_add_movie_select_root_folder_popup(f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect) {
   draw_selectable_list(
     f,
     popup_area,

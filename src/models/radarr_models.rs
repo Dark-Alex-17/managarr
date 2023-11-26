@@ -211,6 +211,23 @@ pub struct IndexerSettings {
   pub whitelisted_hardcoded_subs: HorizontallyScrollableText,
 }
 
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct IndexerTestResult {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  pub is_valid: bool,
+  pub validation_failures: Vec<IndexerValidationFailure>,
+}
+
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct IndexerValidationFailure {
+  pub property_name: String,
+  pub error_message: String,
+  pub severity: String,
+}
+
 #[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Language {
   pub name: String,

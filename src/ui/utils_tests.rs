@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod test {
   use pretty_assertions::assert_eq;
-  use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
-  use tui::style::{Color, Modifier, Style};
-  use tui::text::{Line, Span};
-  use tui::widgets::{Block, BorderType, Borders};
+  use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
+  use ratatui::style::{Color, Modifier, Style};
+  use ratatui::text::{Line, Span};
+  use ratatui::widgets::{Block, BorderType, Borders};
 
   use crate::ui::utils::{
     borderless_block, centered_rect, get_width_from_percentage, horizontal_chunks,

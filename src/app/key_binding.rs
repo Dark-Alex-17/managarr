@@ -22,6 +22,7 @@ generate_keybindings! {
   edit,
   logs,
   tasks,
+  test,
   refresh,
   update,
   events,
@@ -96,6 +97,10 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   tasks: KeyBinding {
     key: Key::Char('t'),
     desc: "tasks",
+  },
+  test: KeyBinding {
+    key: Key::Char('t'),
+    desc: "test",
   },
   refresh: KeyBinding {
     key: Key::Ctrl('r'),

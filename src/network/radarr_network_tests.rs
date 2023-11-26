@@ -110,6 +110,7 @@ mod test {
   fn test_resource_movie(
     #[values(
       RadarrEvent::AddMovie,
+      RadarrEvent::EditMovie,
       RadarrEvent::GetMovies,
       RadarrEvent::GetMovieDetails,
       RadarrEvent::DeleteMovie
@@ -117,6 +118,40 @@ mod test {
     event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/movie");
+  }
+
+  #[rstest]
+  fn test_resource_collection(
+    #[values(RadarrEvent::GetCollections, RadarrEvent::EditCollection)] event: RadarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/collection");
+  }
+
+  #[rstest]
+  fn test_resource_indexer(
+    #[values(RadarrEvent::GetIndexers, RadarrEvent::DeleteIndexer)] event: RadarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/indexer");
+  }
+
+  #[rstest]
+  fn test_resource_indexer_settings(
+    #[values(RadarrEvent::GetIndexerSettings, RadarrEvent::UpdateIndexerSettings)]
+    event: RadarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/config/indexer");
+  }
+
+  #[rstest]
+  fn test_resource_root_folder(
+    #[values(
+      RadarrEvent::AddRootFolder,
+      RadarrEvent::GetRootFolders,
+      RadarrEvent::DeleteRootFolder
+    )]
+    event: RadarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/rootfolder");
   }
 
   #[rstest]
@@ -136,6 +171,8 @@ mod test {
   #[rstest]
   fn test_resource_command(
     #[values(
+      RadarrEvent::StartTask,
+      RadarrEvent::GetQueuedEvents,
       RadarrEvent::TriggerAutomaticSearch,
       RadarrEvent::UpdateAndScan,
       RadarrEvent::UpdateAllMovies,
@@ -148,34 +185,20 @@ mod test {
   }
 
   #[rstest]
-  fn test_resource(
-    #[values(
-      RadarrEvent::GetCollections,
-      RadarrEvent::SearchNewMovie,
-      RadarrEvent::GetMovieCredits,
-      RadarrEvent::GetMovieHistory,
-      RadarrEvent::GetOverview,
-      RadarrEvent::GetQualityProfiles,
-      RadarrEvent::GetRootFolders,
-      RadarrEvent::GetStatus,
-      RadarrEvent::HealthCheck
-    )]
-    event: RadarrEvent,
-  ) {
-    let expected_resource = match event {
-      RadarrEvent::GetCollections => "/collection",
-      RadarrEvent::SearchNewMovie => "/movie/lookup",
-      RadarrEvent::GetMovieCredits => "/credit",
-      RadarrEvent::GetMovieHistory => "/history/movie",
-      RadarrEvent::GetOverview => "/diskspace",
-      RadarrEvent::GetQualityProfiles => "/qualityprofile",
-      RadarrEvent::GetRootFolders => "/rootfolder",
-      RadarrEvent::GetStatus => "/system/status",
-      RadarrEvent::HealthCheck => "/health",
-      _ => "",
-    };
-
-    assert_str_eq!(event.resource(), expected_resource);
+  #[case(RadarrEvent::GetLogs, "/log")]
+  #[case(RadarrEvent::SearchNewMovie, "/movie/lookup")]
+  #[case(RadarrEvent::GetMovieCredits, "/credit")]
+  #[case(RadarrEvent::GetMovieHistory, "/history/movie")]
+  #[case(RadarrEvent::GetOverview, "/diskspace")]
+  #[case(RadarrEvent::GetQualityProfiles, "/qualityprofile")]
+  #[case(RadarrEvent::GetStatus, "/system/status")]
+  #[case(RadarrEvent::GetTags, "/tag")]
+  #[case(RadarrEvent::GetTasks, "/system/task")]
+  #[case(RadarrEvent::GetUpdates, "/update")]
+  #[case(RadarrEvent::TestAllIndexers, "/indexer/testall")]
+  #[case(RadarrEvent::HealthCheck, "/health")]
+  fn test_resource(#[case] event: RadarrEvent, #[case] expected_uri: String) {
+    assert_str_eq!(event.resource(), expected_uri);
   }
 
   #[test]
@@ -190,6 +213,7 @@ mod test {
   async fn test_handle_get_healthcheck_event() {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
+      None,
       None,
       None,
       RadarrEvent::HealthCheck.resource(),
@@ -217,6 +241,7 @@ mod test {
           "totalSpace": 4444
         }
       ])),
+      None,
       RadarrEvent::GetOverview.resource(),
     )
     .await;
@@ -249,6 +274,7 @@ mod test {
         "version": "v1",
         "startTime": "2023-02-25T20:16:43Z"
       })),
+      None,
       RadarrEvent::GetStatus.resource(),
     )
     .await;
@@ -271,6 +297,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(serde_json::from_str(format!("[ {MOVIE_JSON} ]").as_str()).unwrap()),
+      None,
       RadarrEvent::GetMovies.resource(),
     )
     .await;
@@ -303,8 +330,14 @@ mod test {
       "quality": { "quality": { "name": "HD - 1080p" }}
     }]);
     let resource = format!("{}?movieId=1", RadarrEvent::GetReleases.resource());
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Get, None, Some(release_json), &resource).await;
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(release_json),
+      None,
+      &resource,
+    )
+    .await;
     app_arc
       .lock()
       .await
@@ -364,6 +397,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(add_movie_search_result_json),
+      None,
       &resource,
     )
     .await;
@@ -404,6 +438,7 @@ mod test {
         "name": "TestTask"
       })),
       None,
+      None,
       RadarrEvent::StartTask.resource(),
     )
     .await;
@@ -431,7 +466,7 @@ mod test {
       RadarrEvent::SearchNewMovie.resource()
     );
     let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Get, None, Some(json!([])), &resource).await;
+      mock_radarr_api(RequestMethod::Get, None, Some(json!([])), None, &resource).await;
     app_arc.lock().await.data.radarr_data.search = Some("test term".into());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
@@ -503,6 +538,97 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_test_all_indexers_event() {
+    let indexers = vec![
+      Indexer {
+        id: 1,
+        name: Some("Test 1".to_owned()),
+        ..Indexer::default()
+      },
+      Indexer {
+        id: 2,
+        name: Some("Test 2".to_owned()),
+        ..Indexer::default()
+      },
+    ];
+    let indexer_test_results_modal_items = vec![
+			IndexerTestResultModalItem {
+				name: "Test 1".to_owned(),
+				is_valid: true,
+				validation_failures: HorizontallyScrollableText::default(),
+			},
+			IndexerTestResultModalItem {
+				name: "Test 2".to_owned(),
+				is_valid: false,
+				validation_failures: "Failure for field 'test field 1': test error message, Failure for field 'test field 2': test error message 2".into(),
+			},
+		];
+    let response_json = json!([
+    {
+      "id": 1,
+      "isValid": true,
+      "validationFailures": []
+    },
+    {
+      "id": 2,
+      "isValid": false,
+      "validationFailures": [
+          {
+              "propertyName": "test field 1",
+              "errorMessage": "test error message",
+              "severity": "error"
+          },
+          {
+              "propertyName": "test field 2",
+              "errorMessage": "test error message 2",
+              "severity": "error"
+          },
+      ]
+    }]);
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Post,
+      None,
+      Some(response_json),
+      Some(400),
+      RadarrEvent::TestAllIndexers.resource(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .indexers
+      .set_items(indexers);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network
+      .handle_radarr_event(RadarrEvent::TestAllIndexers)
+      .await;
+
+    async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .indexer_test_all_results
+      .is_some());
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .indexer_test_all_results
+        .as_ref()
+        .unwrap()
+        .items,
+      indexer_test_results_modal_items
+    );
+  }
+
+  #[tokio::test]
   async fn test_handle_trigger_automatic_search_event() {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
@@ -510,6 +636,7 @@ mod test {
         "name": "MoviesSearch",
         "movieIds": [ 1 ]
       })),
+      None,
       None,
       RadarrEvent::TriggerAutomaticSearch.resource(),
     )
@@ -539,6 +666,7 @@ mod test {
         "movieIds": [ 1 ]
       })),
       None,
+      None,
       RadarrEvent::UpdateAndScan.resource(),
     )
     .await;
@@ -567,6 +695,7 @@ mod test {
         "movieIds": []
       })),
       None,
+      None,
       RadarrEvent::UpdateAllMovies.resource(),
     )
     .await;
@@ -586,6 +715,7 @@ mod test {
       Some(json!({
         "name": "RefreshMonitoredDownloads"
       })),
+      None,
       None,
       RadarrEvent::UpdateDownloads.resource(),
     )
@@ -616,6 +746,7 @@ mod test {
       RequestMethod::Put,
       Some(indexer_settings_json),
       None,
+      None,
       RadarrEvent::UpdateIndexerSettings.resource(),
     )
     .await;
@@ -645,6 +776,7 @@ mod test {
         "name": "RefreshCollections"
       })),
       None,
+      None,
       RadarrEvent::UpdateCollections.resource(),
     )
     .await;
@@ -664,6 +796,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
+      None,
       &resource,
     )
     .await;
@@ -775,6 +908,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(movie_json_with_missing_fields),
+      None,
       &resource,
     )
     .await;
@@ -843,6 +977,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(movie_history_item_json),
+      None,
       &resource,
     )
     .await;
@@ -890,6 +1025,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(movie_history_item_json),
+      None,
       &resource,
     )
     .await;
@@ -957,6 +1093,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(collection_json),
+      None,
       RadarrEvent::GetCollections.resource(),
     )
     .await;
@@ -992,6 +1129,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(downloads_response_json),
+      None,
       RadarrEvent::GetDownloads.resource(),
     )
     .await;
@@ -1057,6 +1195,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(indexers_response_json),
+      None,
       RadarrEvent::GetIndexers.resource(),
     )
     .await;
@@ -1088,6 +1227,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(indexer_settings_response_json),
+      None,
       RadarrEvent::GetIndexerSettings.resource(),
     )
     .await;
@@ -1121,6 +1261,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(indexer_settings_response_json),
+      None,
       RadarrEvent::GetIndexerSettings.resource(),
     )
     .await;
@@ -1166,6 +1307,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(queued_events_json),
+      None,
       RadarrEvent::GetQueuedEvents.resource(),
     )
     .await;
@@ -1221,6 +1363,7 @@ mod test {
             }
           ]
       })),
+      None,
       &resource,
     )
     .await;
@@ -1254,6 +1397,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(quality_profile_json),
+      None,
       RadarrEvent::GetQualityProfiles.resource(),
     )
     .await;
@@ -1280,6 +1424,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(tags_json),
+      None,
       RadarrEvent::GetTags.resource(),
     )
     .await;
@@ -1335,6 +1480,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(tasks_json),
+      None,
       RadarrEvent::GetTasks.resource(),
     )
     .await;
@@ -1421,6 +1567,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(tasks_json),
+      None,
       RadarrEvent::GetUpdates.resource(),
     )
     .await;
@@ -1441,6 +1588,7 @@ mod test {
       RequestMethod::Post,
       Some(json!({ "label": "testing" })),
       Some(json!({ "id": 3, "label": "testing" })),
+      None,
       RadarrEvent::GetTags.resource(),
     )
     .await;
@@ -1473,6 +1621,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(root_folder_json),
+      None,
       RadarrEvent::GetRootFolders.resource(),
     )
     .await;
@@ -1505,8 +1654,14 @@ mod test {
         }
     ]);
     let resource = format!("{}?movieId=1", RadarrEvent::GetMovieCredits.resource());
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Get, None, Some(credits_json), &resource).await;
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(credits_json),
+      None,
+      &resource,
+    )
+    .await;
     app_arc
       .lock()
       .await
@@ -1536,7 +1691,7 @@ mod test {
       RadarrEvent::DeleteMovie.resource()
     );
     let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, &resource).await;
+      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
     {
       let mut app = app_arc.lock().await;
       app.data.radarr_data.movies.set_items(vec![movie()]);
@@ -1556,7 +1711,7 @@ mod test {
   async fn test_handle_delete_download_event() {
     let resource = format!("{}/1", RadarrEvent::DeleteDownload.resource());
     let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, &resource).await;
+      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
     app_arc
       .lock()
       .await
@@ -1577,7 +1732,7 @@ mod test {
   async fn test_handle_delete_indexer_event() {
     let resource = format!("{}/1", RadarrEvent::DeleteIndexer.resource());
     let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, &resource).await;
+      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
     app_arc
       .lock()
       .await
@@ -1598,7 +1753,7 @@ mod test {
   async fn test_handle_delete_root_folder_event() {
     let resource = format!("{}/1", RadarrEvent::DeleteRootFolder.resource());
     let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, &resource).await;
+      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
     app_arc
       .lock()
       .await
@@ -1633,6 +1788,7 @@ mod test {
           "searchForMovie": true
         }
       })),
+      None,
       None,
       RadarrEvent::AddMovie.resource(),
     )
@@ -1720,6 +1876,7 @@ mod test {
         }
       })),
       None,
+      None,
       RadarrEvent::AddMovie.resource(),
     )
     .await;
@@ -1805,6 +1962,7 @@ mod test {
         "path": "/nfs/test"
       })),
       None,
+      None,
       RadarrEvent::AddRootFolder.resource(),
     )
     .await;
@@ -1840,6 +1998,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
+      None,
       &resource,
     )
     .await;
@@ -1933,6 +2092,7 @@ mod test {
       RequestMethod::Get,
       None,
       Some(detailed_collection_body),
+      None,
       &resource,
     )
     .await;
@@ -1992,6 +2152,7 @@ mod test {
         "movieId": 1
       })),
       None,
+      None,
       RadarrEvent::DownloadRelease.resource(),
     )
     .await;
@@ -2042,6 +2203,7 @@ mod test {
       RequestMethod::Post,
       Some(json!({ "label": "testing" })),
       Some(json!({ "id": 3, "label": "testing" })),
+      None,
       RadarrEvent::GetTags.resource(),
     )
     .await;
@@ -2256,15 +2418,22 @@ mod test {
     method: RequestMethod,
     request_body: Option<Value>,
     response_body: Option<Value>,
+    response_status: Option<usize>,
     resource: &str,
   ) -> (Mock, Arc<Mutex<App<'_>>>, ServerGuard) {
+    let status = if let Some(status) = response_status {
+      status
+    } else {
+      200
+    };
     let mut server = Server::new_async().await;
     let mut async_server = server
       .mock(
         &method.to_string().to_uppercase(),
         format!("/api/v3{resource}").as_str(),
       )
-      .match_header("X-Api-Key", "test1234");
+      .match_header("X-Api-Key", "test1234")
+      .with_status(status);
 
     if let Some(body) = request_body {
       async_server = async_server.match_body(Matcher::Json(body));

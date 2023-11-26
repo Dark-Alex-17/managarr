@@ -1,11 +1,10 @@
 use std::iter;
 
-use tui::backend::Backend;
-use tui::layout::{Alignment, Constraint, Rect};
-use tui::style::{Modifier, Style};
-use tui::text::{Line, Span, Text};
-use tui::widgets::{Cell, ListItem, Paragraph, Row, Wrap};
-use tui::Frame;
+use ratatui::layout::{Alignment, Constraint, Rect};
+use ratatui::style::{Modifier, Style};
+use ratatui::text::{Line, Span, Text};
+use ratatui::widgets::{Cell, ListItem, Paragraph, Row, Wrap};
+use ratatui::Frame;
 
 use crate::app::App;
 use crate::models::radarr_models::{Credit, MovieHistoryItem, Release, ReleaseField};
@@ -39,9 +38,9 @@ impl DrawUi for MovieDetailsUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
-      let draw_movie_info_popup = |f: &mut Frame<'_, B>, app: &mut App<'_>, popup_area: Rect| {
+      let draw_movie_info_popup = |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| {
         let (content_area, _) = draw_tabs(
           f,
           popup_area,
@@ -100,7 +99,7 @@ impl DrawUi for MovieDetailsUi {
   }
 }
 
-fn draw_movie_info<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_movie_info(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if let Route::Radarr(active_radarr_block, _) =
     app.data.radarr_data.movie_info_tabs.get_active_route()
   {
@@ -116,11 +115,7 @@ fn draw_movie_info<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Re
   }
 }
 
-fn draw_search_movie_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
+fn draw_search_movie_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   draw_prompt_box(
     f,
     prompt_area,
@@ -134,11 +129,7 @@ fn draw_search_movie_prompt<B: Backend>(
   );
 }
 
-fn draw_update_and_scan_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
+fn draw_update_and_scan_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   draw_prompt_box(
     f,
     prompt_area,
@@ -152,7 +143,7 @@ fn draw_update_and_scan_prompt<B: Backend>(
   );
 }
 
-fn draw_file_info<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, content_area: Rect) {
+fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, content_area: Rect) {
   match app.data.radarr_data.movie_details_modal.as_ref() {
     Some(movie_details_modal)
       if !movie_details_modal.file_details.is_empty() && !app.is_loading =>
@@ -210,7 +201,7 @@ fn draw_file_info<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, content_area:
   }
 }
 
-fn draw_movie_details<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, content_area: Rect) {
+fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, content_area: Rect) {
   let block = layout_block_top_border();
 
   match app.data.radarr_data.movie_details_modal.as_ref() {
@@ -253,7 +244,7 @@ fn draw_movie_details<B: Backend>(f: &mut Frame<'_, B>, app: &App<'_>, content_a
   }
 }
 
-fn draw_movie_history<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_area: Rect) {
+fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
   if let Some(movie_details_modal) = app.data.radarr_data.movie_details_modal.as_mut() {
     let current_selection = if movie_details_modal.movie_history.items.is_empty() {
       MovieHistoryItem::default()
@@ -321,7 +312,7 @@ fn draw_movie_history<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, conte
   }
 }
 
-fn draw_movie_cast<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_area: Rect) {
+fn draw_movie_cast(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
   draw_table(
     f,
     content_area,
@@ -363,7 +354,7 @@ fn draw_movie_cast<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_
   );
 }
 
-fn draw_movie_crew<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_area: Rect) {
+fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
   draw_table(
     f,
     content_area,
@@ -407,7 +398,7 @@ fn draw_movie_crew<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_
   );
 }
 
-fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_area: Rect) {
+fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
   let (current_selection, is_empty, sort_ascending) =
     match app.data.radarr_data.movie_details_modal.as_ref() {
       Some(movie_details_modal) if !movie_details_modal.movie_releases.items.is_empty() => (
@@ -549,11 +540,7 @@ fn draw_movie_releases<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, cont
   );
 }
 
-fn draw_manual_search_confirm_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
+fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   let current_selection = app
     .data
     .radarr_data

@@ -11,11 +11,12 @@ use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, Collection, CollectionMovie,
   CommandBody, Credit, CreditType, DiskSpace, DownloadRecord, DownloadsResponse, Indexer,
-  IndexerSettings, LogResponse, Movie, MovieCommandBody, MovieHistoryItem, QualityProfile,
-  QueueEvent, Release, ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task, Update,
+  IndexerSettings, IndexerTestResult, LogResponse, Movie, MovieCommandBody, MovieHistoryItem,
+  QualityProfile, QueueEvent, Release, ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task,
+  Update,
 };
 use crate::models::servarr_data::radarr::modals::{
-  AddMovieModal, EditCollectionModal, EditMovieModal, MovieDetailsModal,
+  AddMovieModal, EditCollectionModal, EditMovieModal, IndexerTestResultModalItem, MovieDetailsModal,
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText, StatefulTable};
@@ -58,6 +59,7 @@ pub enum RadarrEvent {
   HealthCheck,
   SearchNewMovie,
   StartTask,
+  TestAllIndexers,
   TriggerAutomaticSearch,
   UpdateAllMovies,
   UpdateAndScan,
@@ -92,6 +94,7 @@ impl RadarrEvent {
       RadarrEvent::GetTags => "/tag",
       RadarrEvent::GetTasks => "/system/task",
       RadarrEvent::GetUpdates => "/update",
+      RadarrEvent::TestAllIndexers => "/indexer/testall",
       RadarrEvent::StartTask
       | RadarrEvent::GetQueuedEvents
       | RadarrEvent::TriggerAutomaticSearch
@@ -143,6 +146,7 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::HealthCheck => self.get_healthcheck().await,
       RadarrEvent::SearchNewMovie => self.search_movie().await,
       RadarrEvent::StartTask => self.start_task().await,
+      RadarrEvent::TestAllIndexers => self.test_all_indexers().await,
       RadarrEvent::TriggerAutomaticSearch => self.trigger_automatic_search().await,
       RadarrEvent::UpdateAllMovies => self.update_all_movies().await,
       RadarrEvent::UpdateAndScan => self.update_and_scan().await,
@@ -1320,6 +1324,56 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
+  async fn test_all_indexers(&mut self) {
+    info!("Testing all indexers");
+
+    let mut request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::TestAllIndexers.resource(),
+        RequestMethod::Post,
+        None,
+      )
+      .await;
+    request_props.ignore_status_code = true;
+
+    self
+      .handle_request::<(), Vec<IndexerTestResult>>(request_props, |test_results, mut app| {
+        let mut test_all_indexer_results = StatefulTable::default();
+        let indexers = app.data.radarr_data.indexers.items.clone();
+        let modal_test_results = test_results
+          .iter()
+          .map(|result| {
+            let name = indexers
+              .iter()
+              .filter(|&indexer| indexer.id == result.id)
+              .map(|indexer| indexer.name.clone())
+              .nth(0)
+              .unwrap_or_default();
+            let validation_failures = result
+              .validation_failures
+              .iter()
+              .map(|failure| {
+                format!(
+                  "Failure for field '{}': {}",
+                  failure.property_name, failure.error_message
+                )
+              })
+              .collect::<Vec<String>>()
+              .join(", ");
+
+            IndexerTestResultModalItem {
+              name: name.unwrap_or_default(),
+              is_valid: result.is_valid,
+              validation_failures: validation_failures.into(),
+            }
+          })
+          .collect();
+        test_all_indexer_results.set_items(modal_test_results);
+        app.data.radarr_data.indexer_test_all_results = Some(test_all_indexer_results);
+      })
+      .await;
+  }
+
   async fn trigger_automatic_search(&mut self) {
     let (movie_id, tmdb_id) = self.extract_movie_id().await;
     info!("Searching indexers for movie with TMDB id {tmdb_id} and with Radarr id: {movie_id}");
@@ -1470,6 +1524,7 @@ impl<'a, 'b> Network<'a, 'b> {
       method,
       body,
       api_token: api_token.to_owned(),
+      ignore_status_code: false,
     }
   }
 

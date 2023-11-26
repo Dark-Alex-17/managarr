@@ -50,7 +50,7 @@ pub static ROOT_FOLDERS_CONTEXT_CLUES: [ContextClue; 3] = [
   ),
 ];
 
-pub static INDEXERS_CONTEXT_CLUES: [ContextClue; 5] = [
+pub static INDEXERS_CONTEXT_CLUES: [ContextClue; 6] = [
   (DEFAULT_KEYBINDINGS.add, DEFAULT_KEYBINDINGS.add.desc),
   (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
   (
@@ -58,6 +58,7 @@ pub static INDEXERS_CONTEXT_CLUES: [ContextClue; 5] = [
     DEFAULT_KEYBINDINGS.settings.desc,
   ),
   (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
+  (DEFAULT_KEYBINDINGS.test, "test all indexers"),
   (
     DEFAULT_KEYBINDINGS.refresh,
     DEFAULT_KEYBINDINGS.refresh.desc,

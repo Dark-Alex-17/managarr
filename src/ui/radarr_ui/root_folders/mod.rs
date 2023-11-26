@@ -1,7 +1,6 @@
-use tui::backend::Backend;
-use tui::layout::{Constraint, Rect};
-use tui::widgets::{Cell, Row};
-use tui::Frame;
+use ratatui::layout::{Constraint, Rect};
+use ratatui::widgets::{Cell, Row};
+use ratatui::Frame;
 
 use crate::app::App;
 use crate::models::radarr_models::RootFolder;
@@ -29,7 +28,7 @@ impl DrawUi for RootFoldersUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
       match active_radarr_block {
         ActiveRadarrBlock::RootFolders => draw_root_folders(f, app, content_rect),
@@ -55,7 +54,7 @@ impl DrawUi for RootFoldersUi {
   }
 }
 
-fn draw_root_folders<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_root_folders(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_table(
     f,
     area,
@@ -103,11 +102,7 @@ fn draw_root_folders<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: 
   );
 }
 
-fn draw_add_root_folder_prompt_box<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  area: Rect,
-) {
+fn draw_add_root_folder_prompt_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_input_box_popup(
     f,
     area,
@@ -116,11 +111,7 @@ fn draw_add_root_folder_prompt_box<B: Backend>(
   );
 }
 
-fn draw_delete_root_folder_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
+fn draw_delete_root_folder_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   draw_prompt_box(
     f,
     prompt_area,

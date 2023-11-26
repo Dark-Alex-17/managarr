@@ -208,3 +208,10 @@ impl From<&RadarrData<'_>> for EditCollectionModal {
     edit_collection_modal
   }
 }
+
+#[derive(Default, Clone, Eq, PartialEq, Debug)]
+pub struct IndexerTestResultModalItem {
+  pub name: String,
+  pub is_valid: bool,
+  pub validation_failures: HorizontallyScrollableText,
+}

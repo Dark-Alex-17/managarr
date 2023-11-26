@@ -1,7 +1,6 @@
+use ratatui::layout::{Constraint, Rect};
+use ratatui::Frame;
 use std::iter;
-use tui::backend::Backend;
-use tui::layout::{Constraint, Rect};
-use tui::Frame;
 
 use crate::app::App;
 use crate::models::servarr_data::radarr::radarr_data::{
@@ -32,7 +31,7 @@ impl DrawUi for IndexerSettingsUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     draw_popup_over(
       f,
       app,
@@ -45,11 +44,7 @@ impl DrawUi for IndexerSettingsUi {
   }
 }
 
-fn draw_edit_indexer_settings_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
+fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   let block = title_block_centered("Configure All Indexer Settings");
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();

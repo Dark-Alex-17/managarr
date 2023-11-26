@@ -1,8 +1,7 @@
-use tui::backend::Backend;
-use tui::layout::Rect;
-use tui::text::{Span, Text};
-use tui::widgets::{Cell, ListItem, Paragraph, Row};
-use tui::Frame;
+use ratatui::layout::Rect;
+use ratatui::text::{Span, Text};
+use ratatui::widgets::{Cell, ListItem, Paragraph, Row};
+use ratatui::Frame;
 
 use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
 use crate::app::radarr::radarr_context_clues::SYSTEM_TASKS_CONTEXT_CLUES;
@@ -35,7 +34,7 @@ impl DrawUi for SystemDetailsUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
       match active_radarr_block {
         ActiveRadarrBlock::SystemLogs => {
@@ -70,7 +69,7 @@ impl DrawUi for SystemDetailsUi {
   }
 }
 
-fn draw_logs_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_list_box(
     f,
     area,
@@ -94,8 +93,8 @@ fn draw_logs_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Re
   );
 }
 
-fn draw_tasks_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
-  let tasks_popup_table = |f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect| {
+fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  let tasks_popup_table = |f: &mut Frame<'_>, app: &mut App<'_>, area: Rect| {
     f.render_widget(title_block("Tasks"), area);
 
     let context_area = draw_help_and_get_content_rect(
@@ -142,7 +141,7 @@ fn draw_tasks_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: R
   }
 }
 
-fn draw_start_task_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_start_task_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   draw_prompt_box(
     f,
     prompt_area,
@@ -156,7 +155,7 @@ fn draw_start_task_prompt<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, p
   );
 }
 
-fn draw_updates_popup<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_updates_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   f.render_widget(title_block("Updates"), area);
 
   let content_rect = draw_help_and_get_content_rect(

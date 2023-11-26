@@ -1,7 +1,6 @@
-use tui::backend::Backend;
-use tui::layout::{Constraint, Rect};
-use tui::widgets::ListItem;
-use tui::Frame;
+use ratatui::layout::{Constraint, Rect};
+use ratatui::widgets::ListItem;
+use ratatui::Frame;
 
 use crate::app::App;
 use crate::models::servarr_data::radarr::modals::EditCollectionModal;
@@ -35,10 +34,10 @@ impl DrawUi for EditCollectionUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
       let draw_edit_collection_prompt =
-        |f: &mut Frame<'_, B>, app: &mut App<'_>, prompt_area: Rect| match active_radarr_block {
+        |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| match active_radarr_block {
           ActiveRadarrBlock::EditCollectionSelectMinimumAvailability => {
             draw_drop_down_popup(
               f,
@@ -76,7 +75,7 @@ impl DrawUi for EditCollectionUi {
             draw_edit_collection_prompt,
           ),
           _ if COLLECTION_DETAILS_BLOCKS.contains(&context) => {
-            draw_large_popup_over_background_fn_with_ui::<B, CollectionDetailsUi>(
+            draw_large_popup_over_background_fn_with_ui::<CollectionDetailsUi>(
               f,
               app,
               content_rect,
@@ -91,8 +90,8 @@ impl DrawUi for EditCollectionUi {
   }
 }
 
-fn draw_edit_collection_confirmation_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
+fn draw_edit_collection_confirmation_prompt(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   prompt_area: Rect,
 ) {
@@ -223,8 +222,8 @@ fn draw_edit_collection_confirmation_prompt<B: Backend>(
   );
 }
 
-fn draw_edit_collection_select_minimum_availability_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
+fn draw_edit_collection_select_minimum_availability_popup(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   popup_area: Rect,
 ) {
@@ -242,8 +241,8 @@ fn draw_edit_collection_select_minimum_availability_popup<B: Backend>(
   );
 }
 
-fn draw_edit_collection_select_quality_profile_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
+fn draw_edit_collection_select_quality_profile_popup(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   popup_area: Rect,
 ) {

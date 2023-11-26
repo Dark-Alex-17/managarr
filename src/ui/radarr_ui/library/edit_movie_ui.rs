@@ -1,7 +1,6 @@
-use tui::backend::Backend;
-use tui::layout::{Constraint, Rect};
-use tui::widgets::ListItem;
-use tui::Frame;
+use ratatui::layout::{Constraint, Rect};
+use ratatui::widgets::ListItem;
+use ratatui::Frame;
 
 use crate::app::App;
 use crate::models::servarr_data::radarr::modals::EditMovieModal;
@@ -36,10 +35,10 @@ impl DrawUi for EditMovieUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
       let draw_edit_movie_prompt =
-        |f: &mut Frame<'_, B>, app: &mut App<'_>, prompt_area: Rect| match active_radarr_block {
+        |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| match active_radarr_block {
           ActiveRadarrBlock::EditMovieSelectMinimumAvailability => {
             draw_drop_down_popup(
               f,
@@ -73,7 +72,7 @@ impl DrawUi for EditMovieUi {
             draw_medium_popup_over(f, app, content_rect, draw_library, draw_edit_movie_prompt);
           }
           _ if MOVIE_DETAILS_BLOCKS.contains(&context) => {
-            draw_large_popup_over_background_fn_with_ui::<B, MovieDetailsUi>(
+            draw_large_popup_over_background_fn_with_ui::<MovieDetailsUi>(
               f,
               app,
               content_rect,
@@ -88,11 +87,7 @@ impl DrawUi for EditMovieUi {
   }
 }
 
-fn draw_edit_movie_confirmation_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
+fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   let (movie_title, movie_overview) =
     if let Some(filtered_movies) = app.data.radarr_data.filtered_movies.as_ref() {
       (
@@ -216,8 +211,8 @@ fn draw_edit_movie_confirmation_prompt<B: Backend>(
   );
 }
 
-fn draw_edit_movie_select_minimum_availability_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
+fn draw_edit_movie_select_minimum_availability_popup(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   popup_area: Rect,
 ) {
@@ -235,8 +230,8 @@ fn draw_edit_movie_select_minimum_availability_popup<B: Backend>(
   );
 }
 
-fn draw_edit_movie_select_quality_profile_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
+fn draw_edit_movie_select_quality_profile_popup(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   popup_area: Rect,
 ) {

@@ -1,6 +1,5 @@
-use tui::backend::Backend;
-use tui::layout::Rect;
-use tui::Frame;
+use ratatui::layout::Rect;
+use ratatui::Frame;
 
 use crate::app::App;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
@@ -23,39 +22,38 @@ impl DrawUi for DeleteMovieUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     if matches!(
       *app.get_current_route(),
       Route::Radarr(ActiveRadarrBlock::DeleteMoviePrompt, _)
     ) {
-      let draw_delete_movie_prompt =
-        |f: &mut Frame<'_, B>, app: &mut App<'_>, prompt_area: Rect| {
-          let selected_block = app.data.radarr_data.selected_block.get_active_block();
-          draw_prompt_box_with_checkboxes(
-            f,
-            prompt_area,
-            "Delete Movie",
-            format!(
-              "Do you really want to delete: \n{}?",
-              app.data.radarr_data.movies.current_selection().title.text
-            )
-            .as_str(),
-            vec![
-              (
-                "Delete Movie Files",
-                app.data.radarr_data.delete_movie_files,
-                selected_block == &ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
-              ),
-              (
-                "Add List Exclusion",
-                app.data.radarr_data.add_list_exclusion,
-                selected_block == &ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
-              ),
-            ],
-            selected_block == &ActiveRadarrBlock::DeleteMovieConfirmPrompt,
-            app.data.radarr_data.prompt_confirm,
+      let draw_delete_movie_prompt = |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| {
+        let selected_block = app.data.radarr_data.selected_block.get_active_block();
+        draw_prompt_box_with_checkboxes(
+          f,
+          prompt_area,
+          "Delete Movie",
+          format!(
+            "Do you really want to delete: \n{}?",
+            app.data.radarr_data.movies.current_selection().title.text
           )
-        };
+          .as_str(),
+          vec![
+            (
+              "Delete Movie Files",
+              app.data.radarr_data.delete_movie_files,
+              selected_block == &ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
+            ),
+            (
+              "Add List Exclusion",
+              app.data.radarr_data.add_list_exclusion,
+              selected_block == &ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
+            ),
+          ],
+          selected_block == &ActiveRadarrBlock::DeleteMovieConfirmPrompt,
+          app.data.radarr_data.prompt_confirm,
+        )
+      };
 
       draw_prompt_popup_over(f, app, content_rect, draw_library, draw_delete_movie_prompt);
     }

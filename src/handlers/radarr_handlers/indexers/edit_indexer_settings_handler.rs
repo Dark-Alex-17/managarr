@@ -9,7 +9,7 @@ use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
 
 #[cfg(test)]
-#[path = "./edit_indexer_settings_handler_tests.rs"]
+#[path = "edit_indexer_settings_handler_tests.rs"]
 mod edit_indexer_settings_handler_tests;
 
 pub(super) struct IndexerSettingsHandler<'a, 'b> {

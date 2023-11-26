@@ -1,7 +1,6 @@
-use tui::backend::Backend;
-use tui::layout::{Constraint, Rect};
-use tui::widgets::{Cell, Row};
-use tui::Frame;
+use ratatui::layout::{Constraint, Rect};
+use ratatui::widgets::{Cell, Row};
+use ratatui::Frame;
 
 use crate::app::App;
 use crate::models::radarr_models::Movie;
@@ -43,7 +42,7 @@ impl DrawUi for LibraryUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     let route = *app.get_current_route();
     let mut library_ui_matchers = |active_radarr_block: ActiveRadarrBlock| match active_radarr_block
     {
@@ -107,7 +106,7 @@ impl DrawUi for LibraryUi {
   }
 }
 
-pub(super) fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+pub(super) fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let current_selection =
     if let Some(filtered_movies) = app.data.radarr_data.filtered_movies.as_ref() {
       filtered_movies.current_selection().clone()
@@ -206,11 +205,7 @@ pub(super) fn draw_library<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, 
   );
 }
 
-fn draw_update_all_movies_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
+fn draw_update_all_movies_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   draw_prompt_box(
     f,
     prompt_area,
@@ -220,7 +215,7 @@ fn draw_update_all_movies_prompt<B: Backend>(
   );
 }
 
-fn draw_movie_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_movie_search_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_input_box_popup(
     f,
     area,
@@ -229,7 +224,7 @@ fn draw_movie_search_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, ar
   );
 }
 
-fn draw_filter_movies_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_filter_movies_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_input_box_popup(
     f,
     area,
@@ -238,10 +233,10 @@ fn draw_filter_movies_box<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, a
   )
 }
 
-fn draw_search_movie_error_box<B: Backend>(f: &mut Frame<'_, B>, _: &mut App<'_>, area: Rect) {
+fn draw_search_movie_error_box(f: &mut Frame<'_>, _: &mut App<'_>, area: Rect) {
   draw_error_message_popup(f, area, "Movie not found!");
 }
 
-fn draw_filter_movies_error_box<B: Backend>(f: &mut Frame<'_, B>, _: &mut App<'_>, area: Rect) {
+fn draw_filter_movies_error_box(f: &mut Frame<'_>, _: &mut App<'_>, area: Rect) {
   draw_error_message_popup(f, area, "No movies found matching the given filter!");
 }

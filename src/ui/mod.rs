@@ -1,17 +1,16 @@
 use std::iter;
 use std::rc::Rc;
 
-use tui::backend::Backend;
-use tui::layout::{Alignment, Constraint, Rect};
-use tui::style::Modifier;
-use tui::text::{Line, Span, Text};
-use tui::widgets::Paragraph;
-use tui::widgets::Row;
-use tui::widgets::Table;
-use tui::widgets::Tabs;
-use tui::widgets::{Block, Wrap};
-use tui::widgets::{Clear, List, ListItem};
-use tui::Frame;
+use ratatui::layout::{Alignment, Constraint, Rect};
+use ratatui::style::Modifier;
+use ratatui::text::{Line, Span, Text};
+use ratatui::widgets::Paragraph;
+use ratatui::widgets::Row;
+use ratatui::widgets::Table;
+use ratatui::widgets::Tabs;
+use ratatui::widgets::{Block, Wrap};
+use ratatui::widgets::{Clear, List, ListItem};
+use ratatui::Frame;
 
 use crate::app::App;
 use crate::models::{HorizontallyScrollableText, Route, StatefulList, StatefulTable, TabState};
@@ -32,11 +31,11 @@ static HIGHLIGHT_SYMBOL: &str = "=> ";
 
 pub trait DrawUi {
   fn accepts(route: Route) -> bool;
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect);
-  fn draw_context_row<B: Backend>(_f: &mut Frame<'_, B>, _app: &App<'_>, _area: Rect) {}
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect);
+  fn draw_context_row(_f: &mut Frame<'_>, _app: &App<'_>, _area: Rect) {}
 }
 
-pub fn ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>) {
+pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
   f.render_widget(background_block(), f.size());
   let main_chunks = if !app.error.text.is_empty() {
     let chunks = vertical_chunks_with_margin(
@@ -73,7 +72,7 @@ pub fn ui<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>) {
   }
 }
 
-fn draw_header_row<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_header_row(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let chunks =
     horizontal_chunks_with_margin(vec![Constraint::Length(75), Constraint::Min(0)], area, 1);
   let help_text = Text::from(app.server_tabs.get_active_tab_help());
@@ -97,7 +96,7 @@ fn draw_header_row<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Re
   f.render_widget(help, chunks[1]);
 }
 
-fn draw_error<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_error(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let block =
     title_block("Error | <esc> to close").style(style_failure().add_modifier(Modifier::BOLD));
 
@@ -118,10 +117,10 @@ fn draw_error<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
   f.render_widget(paragraph, area);
 }
 
-pub fn draw_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_popup(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
-  popup_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
   percent_x: u16,
   percent_y: u16,
 ) {
@@ -131,8 +130,8 @@ pub fn draw_popup<B: Backend>(
   popup_fn(f, app, popup_area);
 }
 
-pub fn draw_popup_ui<B: Backend, T: DrawUi>(
-  f: &mut Frame<'_, B>,
+pub fn draw_popup_ui<T: DrawUi>(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   percent_x: u16,
   percent_y: u16,
@@ -143,12 +142,12 @@ pub fn draw_popup_ui<B: Backend, T: DrawUi>(
   T::draw(f, app, popup_area);
 }
 
-pub fn draw_popup_over<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_popup_over(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
-  popup_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
+  popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
   percent_x: u16,
   percent_y: u16,
 ) {
@@ -157,90 +156,90 @@ pub fn draw_popup_over<B: Backend>(
   draw_popup(f, app, popup_fn, percent_x, percent_y);
 }
 
-pub fn draw_popup_over_ui<B: Backend, T: DrawUi>(
-  f: &mut Frame<'_, B>,
+pub fn draw_popup_over_ui<T: DrawUi>(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
   percent_x: u16,
   percent_y: u16,
 ) {
   background_fn(f, app, area);
 
-  draw_popup_ui::<B, T>(f, app, percent_x, percent_y);
+  draw_popup_ui::<T>(f, app, percent_x, percent_y);
 }
 
-pub fn draw_prompt_popup_over<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_prompt_popup_over(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
-  popup_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
+  popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, popup_fn, 35, 35);
 }
 
-pub fn draw_small_popup_over<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_small_popup_over(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
-  popup_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
+  popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, popup_fn, 40, 40);
 }
 
-pub fn draw_medium_popup_over<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_medium_popup_over(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
-  popup_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
+  popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, popup_fn, 60, 60);
 }
 
-pub fn draw_large_popup_over<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_large_popup_over(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
-  popup_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
+  popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, popup_fn, 75, 75);
 }
 
-pub fn draw_large_popup_over_background_fn_with_ui<B: Backend, T: DrawUi>(
-  f: &mut Frame<'_, B>,
+pub fn draw_large_popup_over_background_fn_with_ui<T: DrawUi>(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
 ) {
-  draw_popup_over_ui::<B, T>(f, app, area, background_fn, 75, 75);
+  draw_popup_over_ui::<T>(f, app, area, background_fn, 75, 75);
 }
 
-pub fn draw_drop_down_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_drop_down_popup(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   area: Rect,
-  background_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
-  drop_down_fn: impl Fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
+  drop_down_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
 ) {
   draw_popup_over(f, app, area, background_fn, drop_down_fn, 20, 30);
 }
 
-pub fn draw_error_popup_over<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_error_popup_over(
+  f: &mut Frame<'_>,
   app: &mut App<'_>,
   area: Rect,
   message: &str,
-  background_fn: fn(&mut Frame<'_, B>, &mut App<'_>, Rect),
+  background_fn: fn(&mut Frame<'_>, &mut App<'_>, Rect),
 ) {
   background_fn(f, app, area);
   draw_error_popup(f, message);
 }
 
-pub fn draw_error_popup<B: Backend>(f: &mut Frame<'_, B>, message: &str) {
+pub fn draw_error_popup(f: &mut Frame<'_>, message: &str) {
   let prompt_area = centered_rect(25, 8, f.size());
   f.render_widget(Clear, prompt_area);
   f.render_widget(background_block(), prompt_area);
@@ -254,8 +253,8 @@ pub fn draw_error_popup<B: Backend>(f: &mut Frame<'_, B>, message: &str) {
   f.render_widget(error_message, prompt_area);
 }
 
-fn draw_tabs<'a, B: Backend>(
-  f: &mut Frame<'_, B>,
+fn draw_tabs<'a>(
+  f: &mut Frame<'_>,
   area: Rect,
   title: &str,
   tab_state: &TabState,
@@ -306,8 +305,8 @@ pub struct ListProps<'a, T> {
   pub help: Option<String>,
 }
 
-fn draw_table<'a, B, T, F>(
-  f: &mut Frame<'_, B>,
+fn draw_table<'a, T, F>(
+  f: &mut Frame<'_>,
   content_area: Rect,
   block: Block<'_>,
   table_props: TableProps<'a, T>,
@@ -315,7 +314,6 @@ fn draw_table<'a, B, T, F>(
   is_loading: bool,
   highlight: bool,
 ) where
-  B: Backend,
   F: Fn(&T) -> Row<'a>,
 {
   let TableProps {
@@ -357,8 +355,8 @@ fn draw_table<'a, B, T, F>(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn draw_table_contents<'a, B, T, F>(
-  f: &mut Frame<'_, B>,
+fn draw_table_contents<'a, T, F>(
+  f: &mut Frame<'_>,
   block: Block<'_>,
   row_mapper: F,
   highlight: bool,
@@ -367,7 +365,6 @@ fn draw_table_contents<'a, B, T, F>(
   constraints: Vec<Constraint>,
   content_area: Rect,
 ) where
-  B: Backend,
   F: Fn(&T) -> Row<'a>,
 {
   let rows = content.items.iter().map(row_mapper);
@@ -389,7 +386,7 @@ fn draw_table_contents<'a, B, T, F>(
   f.render_stateful_widget(table, content_area, &mut content.state);
 }
 
-pub fn loading<B: Backend>(f: &mut Frame<'_, B>, block: Block<'_>, area: Rect, is_loading: bool) {
+pub fn loading(f: &mut Frame<'_>, block: Block<'_>, area: Rect, is_loading: bool) {
   if is_loading {
     let text = "\n\n Loading ...\n\n".to_owned();
     let mut text = Text::from(text);
@@ -404,8 +401,8 @@ pub fn loading<B: Backend>(f: &mut Frame<'_, B>, block: Block<'_>, area: Rect, i
   }
 }
 
-pub fn draw_prompt_box<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_prompt_box(
+  f: &mut Frame<'_>,
   prompt_area: Rect,
   title: &str,
   prompt: &str,
@@ -414,8 +411,8 @@ pub fn draw_prompt_box<B: Backend>(
   draw_prompt_box_with_content(f, prompt_area, title, prompt, None, yes_no_value);
 }
 
-pub fn draw_prompt_box_with_content<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_prompt_box_with_content(
+  f: &mut Frame<'_>,
   prompt_area: Rect,
   title: &str,
   prompt: &str,
@@ -463,8 +460,8 @@ pub fn draw_prompt_box_with_content<B: Backend>(
   draw_button(f, horizontal_chunks[1], "No", !yes_no_value);
 }
 
-pub fn draw_prompt_box_with_checkboxes<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_prompt_box_with_checkboxes(
+  f: &mut Frame<'_>,
   prompt_area: Rect,
   title: &str,
   prompt: &str,
@@ -513,12 +510,7 @@ pub fn draw_prompt_box_with_checkboxes<B: Backend>(
   );
 }
 
-pub fn draw_checkbox<B: Backend>(
-  f: &mut Frame<'_, B>,
-  area: Rect,
-  is_checked: bool,
-  is_selected: bool,
-) {
+pub fn draw_checkbox(f: &mut Frame<'_>, area: Rect, is_checked: bool, is_selected: bool) {
   let check = if is_checked { "✔" } else { "" };
   let label_paragraph = Paragraph::new(Text::from(check))
     .block(layout_block())
@@ -529,8 +521,8 @@ pub fn draw_checkbox<B: Backend>(
   f.render_widget(label_paragraph, checkbox_area);
 }
 
-pub fn draw_checkbox_with_label<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_checkbox_with_label(
+  f: &mut Frame<'_>,
   area: Rect,
   label: &str,
   is_checked: bool,
@@ -555,14 +547,14 @@ pub fn draw_checkbox_with_label<B: Backend>(
   draw_checkbox(f, horizontal_chunks[1], is_checked, is_selected);
 }
 
-pub fn draw_button<B: Backend>(f: &mut Frame<'_, B>, area: Rect, label: &str, is_selected: bool) {
+pub fn draw_button(f: &mut Frame<'_>, area: Rect, label: &str, is_selected: bool) {
   let label_paragraph = layout_button_paragraph(is_selected, label, Alignment::Center);
 
   f.render_widget(label_paragraph, area);
 }
 
-pub fn draw_button_with_icon<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_button_with_icon(
+  f: &mut Frame<'_>,
   area: Rect,
   label: &str,
   icon: &str,
@@ -589,8 +581,8 @@ pub fn draw_button_with_icon<B: Backend>(
   f.render_widget(icon_paragraph, horizontal_chunks[1]);
 }
 
-pub fn draw_drop_down_menu_button<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_drop_down_menu_button(
+  f: &mut Frame<'_>,
   area: Rect,
   description: &str,
   selection: &str,
@@ -615,8 +607,8 @@ pub fn draw_drop_down_menu_button<B: Backend>(
   draw_button_with_icon(f, horizontal_chunks[1], selection, "▼", is_selected);
 }
 
-pub fn draw_selectable_list<'a, B: Backend, T>(
-  f: &mut Frame<'_, B>,
+pub fn draw_selectable_list<'a, T>(
+  f: &mut Frame<'_>,
   area: Rect,
   content: &'a mut StatefulList<T>,
   item_mapper: impl Fn(&T) -> ListItem<'a>,
@@ -629,8 +621,8 @@ pub fn draw_selectable_list<'a, B: Backend, T>(
   f.render_stateful_widget(list, area, &mut content.state);
 }
 
-pub fn draw_list_box<'a, B: Backend, T>(
-  f: &mut Frame<'_, B>,
+pub fn draw_list_box<'a, T>(
+  f: &mut Frame<'_>,
   area: Rect,
   item_mapper: impl Fn(&T) -> ListItem<'a>,
   list_props: ListProps<'a, T>,
@@ -667,11 +659,7 @@ pub fn draw_list_box<'a, B: Backend, T>(
   }
 }
 
-fn draw_help_and_get_content_rect<B: Backend>(
-  f: &mut Frame<'_, B>,
-  area: Rect,
-  help: Option<String>,
-) -> Rect {
+fn draw_help_and_get_content_rect(f: &mut Frame<'_>, area: Rect, help: Option<String>) -> Rect {
   if let Some(help_string) = help {
     let chunks =
       vertical_chunks_with_margin(vec![Constraint::Min(0), Constraint::Length(2)], area, 1);
@@ -690,8 +678,8 @@ fn draw_help_and_get_content_rect<B: Backend>(
   }
 }
 
-pub fn draw_text_box<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_text_box(
+  f: &mut Frame<'_>,
   text_box_area: Rect,
   block_title: Option<&str>,
   block_content: &str,
@@ -721,8 +709,8 @@ pub fn draw_text_box<B: Backend>(
   }
 }
 
-pub fn draw_text_box_with_label<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_text_box_with_label(
+  f: &mut Frame<'_>,
   area: Rect,
   label: &str,
   text: &str,
@@ -757,8 +745,8 @@ pub fn draw_text_box_with_label<B: Backend>(
   );
 }
 
-pub fn draw_input_box_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn draw_input_box_popup(
+  f: &mut Frame<'_>,
   input_box_area: Rect,
   box_title: &str,
   box_content: &HorizontallyScrollableText,
@@ -790,11 +778,7 @@ pub fn draw_input_box_popup<B: Backend>(
   f.render_widget(help, chunks[1]);
 }
 
-pub fn draw_error_message_popup<B: Backend>(
-  f: &mut Frame<'_, B>,
-  error_message_area: Rect,
-  error_msg: &str,
-) {
+pub fn draw_error_message_popup(f: &mut Frame<'_>, error_message_area: Rect, error_msg: &str) {
   let input = Paragraph::new(error_msg)
     .style(style_failure())
     .alignment(Alignment::Center)

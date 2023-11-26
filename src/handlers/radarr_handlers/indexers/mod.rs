@@ -3,6 +3,7 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::radarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
+use crate::handlers::radarr_handlers::indexers::test_all_indexers_handler::TestAllIndexersHandler;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, INDEXERS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS,
@@ -11,6 +12,7 @@ use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 
 mod edit_indexer_settings_handler;
+mod test_all_indexers_handler;
 
 #[cfg(test)]
 #[path = "indexers_handler_tests.rs"]
@@ -28,6 +30,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
     match self.active_radarr_block {
       _ if IndexerSettingsHandler::accepts(self.active_radarr_block) => {
         IndexerSettingsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+          .handle()
+      }
+      _ if TestAllIndexersHandler::accepts(self.active_radarr_block) => {
+        TestAllIndexersHandler::with(self.key, self.app, self.active_radarr_block, self.context)
           .handle()
       }
       _ => self.handle_key_event(),
@@ -136,6 +142,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
         }
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
+        }
+        _ if *key == DEFAULT_KEYBINDINGS.test.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::TestAllIndexers.into());
         }
         _ if *key == DEFAULT_KEYBINDINGS.settings.key => {
           self

@@ -59,6 +59,7 @@ impl<'a, 'b> Network<'a, 'b> {
     B: Serialize + Default + Debug,
     R: DeserializeOwned,
   {
+    let ignore_status_code = request_props.ignore_status_code;
     let method = request_props.method;
     let request_uri = request_props.uri.clone();
     select! {
@@ -71,7 +72,7 @@ impl<'a, 'b> Network<'a, 'b> {
     resp = self.call_api(request_props).await.send() => {
          match resp {
           Ok(response) => {
-            if response.status().is_success() {
+            if response.status().is_success() || ignore_status_code {
               match method {
                 RequestMethod::Get | RequestMethod::Post => {
                   match utils::parse_response::<R>(response).await {
@@ -125,6 +126,7 @@ impl<'a, 'b> Network<'a, 'b> {
       method,
       body,
       api_token,
+      ..
     } = request_props;
     debug!("Creating RequestBuilder for resource: {uri:?}");
     debug!("Sending {method:?} request to {uri} with body {body:?}");
@@ -160,4 +162,5 @@ pub struct RequestProps<T: Serialize + Debug> {
   pub method: RequestMethod,
   pub body: Option<T>,
   pub api_token: String,
+  pub ignore_status_code: bool,
 }

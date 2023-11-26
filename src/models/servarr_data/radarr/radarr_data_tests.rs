@@ -101,6 +101,7 @@ mod tests {
       assert!(radarr_data.filtered_collections.is_none());
       assert!(radarr_data.filtered_movies.is_none());
       assert!(radarr_data.indexer_settings.is_none());
+      assert!(radarr_data.indexer_test_all_results.is_none());
       assert!(radarr_data.movie_details_modal.is_none());
       assert!(!radarr_data.is_searching);
       assert!(!radarr_data.is_filtering);
@@ -298,11 +299,12 @@ mod tests {
 
     #[test]
     fn test_indexers_blocks_contents() {
-      assert_eq!(INDEXERS_BLOCKS.len(), 4);
+      assert_eq!(INDEXERS_BLOCKS.len(), 5);
       assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::AddIndexer));
       assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::EditIndexer));
       assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::DeleteIndexerPrompt));
       assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::Indexers));
+      assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::TestAllIndexers));
     }
 
     #[test]

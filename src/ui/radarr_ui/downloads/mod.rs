@@ -1,7 +1,6 @@
-use tui::backend::Backend;
-use tui::layout::{Constraint, Rect};
-use tui::widgets::{Cell, Row};
-use tui::Frame;
+use ratatui::layout::{Constraint, Rect};
+use ratatui::widgets::{Cell, Row};
+use ratatui::Frame;
 
 use crate::app::App;
 use crate::models::radarr_models::DownloadRecord;
@@ -26,7 +25,7 @@ impl DrawUi for DownloadsUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
       match active_radarr_block {
         ActiveRadarrBlock::Downloads => draw_downloads(f, app, content_rect),
@@ -50,7 +49,7 @@ impl DrawUi for DownloadsUi {
   }
 }
 
-fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_downloads(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let current_selection = if app.data.radarr_data.downloads.items.is_empty() {
     DownloadRecord::default()
   } else {
@@ -128,11 +127,7 @@ fn draw_downloads<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rec
   );
 }
 
-fn draw_delete_download_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
+fn draw_delete_download_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   draw_prompt_box(
     f,
     prompt_area,
@@ -146,11 +141,7 @@ fn draw_delete_download_prompt<B: Backend>(
   );
 }
 
-fn draw_update_downloads_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
+fn draw_update_downloads_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   draw_prompt_box(
     f,
     prompt_area,

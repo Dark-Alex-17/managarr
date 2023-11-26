@@ -1,14 +1,14 @@
-use tui::backend::Backend;
-use tui::layout::{Constraint, Rect};
-use tui::text::Text;
-use tui::widgets::{Cell, Row};
-use tui::Frame;
+use ratatui::layout::{Constraint, Rect};
+use ratatui::text::Text;
+use ratatui::widgets::{Cell, Row};
+use ratatui::Frame;
 
 use crate::app::App;
 use crate::models::radarr_models::Indexer;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, INDEXERS_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
+use crate::ui::radarr_ui::indexers::test_all_indexers_ui::TestAllIndexersUi;
 use crate::ui::utils::{layout_block_top_border, style_failure, style_primary, style_success};
 use crate::ui::{draw_prompt_box, draw_prompt_popup_over, draw_table, DrawUi, TableProps};
 
@@ -17,6 +17,7 @@ mod indexer_settings_ui;
 #[cfg(test)]
 #[path = "indexers_ui_tests.rs"]
 mod indexers_ui_tests;
+mod test_all_indexers_ui;
 
 pub(super) struct IndexersUi;
 
@@ -29,7 +30,7 @@ impl DrawUi for IndexersUi {
     false
   }
 
-  fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
     let route = *app.get_current_route();
     let mut indexers_matchers = |active_radarr_block| match active_radarr_block {
       ActiveRadarrBlock::Indexers => draw_indexers(f, app, content_rect),
@@ -45,6 +46,7 @@ impl DrawUi for IndexersUi {
 
     match route {
       _ if IndexerSettingsUi::accepts(route) => IndexerSettingsUi::draw(f, app, content_rect),
+      _ if TestAllIndexersUi::accepts(route) => TestAllIndexersUi::draw(f, app, content_rect),
       Route::Radarr(active_radarr_block, _) if INDEXERS_BLOCKS.contains(&active_radarr_block) => {
         indexers_matchers(active_radarr_block)
       }
@@ -53,7 +55,7 @@ impl DrawUi for IndexersUi {
   }
 }
 
-fn draw_indexers<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect) {
+fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_table(
     f,
     area,
@@ -125,11 +127,7 @@ fn draw_indexers<B: Backend>(f: &mut Frame<'_, B>, app: &mut App<'_>, area: Rect
   )
 }
 
-fn draw_delete_indexer_prompt<B: Backend>(
-  f: &mut Frame<'_, B>,
-  app: &mut App<'_>,
-  prompt_area: Rect,
-) {
+fn draw_delete_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
   draw_prompt_box(
     f,
     prompt_area,
