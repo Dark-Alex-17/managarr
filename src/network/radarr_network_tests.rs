@@ -367,6 +367,59 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_get_releases_event_empty_movie_details_modal() {
+    let release_json = json!([{
+      "guid": "1234",
+      "protocol": "torrent",
+      "age": 1,
+      "title": "Test Release",
+      "indexer": "kickass torrents",
+      "indexerId": 2,
+      "size": 1234,
+      "rejected": true,
+      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+      "seeders": 2,
+      "leechers": 1,
+      "languages": [ { "name": "English" } ],
+      "quality": { "quality": { "name": "HD - 1080p" }}
+    }]);
+    let resource = format!("{}?movieId=1", RadarrEvent::GetReleases.resource());
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(release_json),
+      None,
+      &resource,
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network.handle_radarr_event(RadarrEvent::GetReleases).await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .movie_details_modal
+        .as_ref()
+        .unwrap()
+        .movie_releases
+        .items,
+      vec![release()]
+    );
+  }
+
+  #[tokio::test]
   async fn test_handle_search_new_movie_event() {
     let add_movie_search_result_json = json!([{
       "tmdbId": 1234,
@@ -1670,6 +1723,51 @@ mod test {
       .movies
       .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network
+      .handle_radarr_event(RadarrEvent::GetMovieCredits)
+      .await;
+
+    let app = app_arc.lock().await;
+    let movie_details_modal = app.data.radarr_data.movie_details_modal.as_ref().unwrap();
+
+    async_server.assert_async().await;
+    assert_eq!(movie_details_modal.movie_cast.items, vec![cast_credit()]);
+    assert_eq!(movie_details_modal.movie_crew.items, vec![crew_credit()]);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_movie_credits_event_empty_movie_details_modal() {
+    let credits_json = json!([
+        {
+          "personName": "Madison Clarke",
+          "character": "Johnny Blaze",
+          "type": "cast",
+        },
+        {
+          "personName": "Alex Clarke",
+          "department": "Music",
+          "job": "Composition",
+          "type": "crew",
+        }
+    ]);
+    let resource = format!("{}?movieId=1", RadarrEvent::GetMovieCredits.resource());
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(credits_json),
+      None,
+      &resource,
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network

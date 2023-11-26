@@ -660,24 +660,40 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-			.handle_request::<(), Vec<Credit>>(request_props, |credit_vec, mut app| {
-				let cast_vec: Vec<Credit> = credit_vec
-					.iter()
-					.cloned()
-					.filter(|credit| credit.credit_type == CreditType::Cast)
-					.collect();
-				let crew_vec: Vec<Credit> = credit_vec
-					.iter()
-					.cloned()
-					.filter(|credit| credit.credit_type == CreditType::Crew)
-					.collect();
+      .handle_request::<(), Vec<Credit>>(request_props, |credit_vec, mut app| {
+        let cast_vec: Vec<Credit> = credit_vec
+          .iter()
+          .cloned()
+          .filter(|credit| credit.credit_type == CreditType::Cast)
+          .collect();
+        let crew_vec: Vec<Credit> = credit_vec
+          .iter()
+          .cloned()
+          .filter(|credit| credit.credit_type == CreditType::Crew)
+          .collect();
 
-				debug!("Assuming the movie_details_modal is already a Some and was created by the get_movie_details request");
+        if app.data.radarr_data.movie_details_modal.is_none() {
+          app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
+        }
 
-				app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_cast.set_items(cast_vec);
-				app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_crew.set_items(crew_vec);
-			})
-			.await;
+        app
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_mut()
+          .unwrap()
+          .movie_cast
+          .set_items(cast_vec);
+        app
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_mut()
+          .unwrap()
+          .movie_crew
+          .set_items(crew_vec);
+      })
+      .await;
   }
 
   async fn get_diskspace(&mut self) {
@@ -1076,11 +1092,21 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-			.handle_request::<(), Vec<Release>>(request_props, |release_vec, mut app| {
-				debug!("Assuming the movie_details_modal is already a Some and was created by the get_movie_details request");
-				app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_releases.set_items(release_vec);
-			})
-			.await;
+      .handle_request::<(), Vec<Release>>(request_props, |release_vec, mut app| {
+        if app.data.radarr_data.movie_details_modal.is_none() {
+          app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
+        }
+
+        app
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_mut()
+          .unwrap()
+          .movie_releases
+          .set_items(release_vec);
+      })
+      .await;
   }
 
   async fn get_root_folders(&mut self) {
