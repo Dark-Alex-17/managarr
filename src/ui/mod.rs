@@ -373,15 +373,13 @@ fn draw_table_contents<'a, T, F>(
     .style(style_default_bold())
     .bottom_margin(0);
 
-  let mut table = Table::new(rows).header(headers).block(block);
+  let mut table = Table::new(rows, &constraints).header(headers).block(block);
 
   if highlight {
     table = table
       .highlight_style(style_highlight())
       .highlight_symbol(HIGHLIGHT_SYMBOL);
   }
-
-  table = table.widths(&constraints);
 
   f.render_stateful_widget(table, content_area, &mut content.state);
 }
