@@ -10,7 +10,8 @@ use crate::models::radarr_models::{
   IndexerSettings, Movie, QueueEvent, RootFolder, Task,
 };
 use crate::models::servarr_data::radarr::modals::{
-  AddMovieModal, EditCollectionModal, EditMovieModal, IndexerTestResultModalItem, MovieDetailsModal,
+  AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
+  MovieDetailsModal,
 };
 use crate::models::{
   BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, StatefulList,
@@ -55,6 +56,7 @@ pub struct RadarrData<'a> {
   pub add_searched_movies: Option<StatefulTable<AddMovieSearchResult>>,
   pub edit_movie_modal: Option<EditMovieModal>,
   pub edit_collection_modal: Option<EditCollectionModal>,
+  pub edit_indexer_modal: Option<EditIndexerModal>,
   pub edit_root_folder: Option<HorizontallyScrollableText>,
   pub filtered_collections: Option<StatefulTable<Collection>>,
   pub filtered_movies: Option<StatefulTable<Movie>>,
@@ -123,6 +125,7 @@ impl<'a> Default for RadarrData<'a> {
       add_searched_movies: None,
       edit_movie_modal: None,
       edit_collection_modal: None,
+      edit_indexer_modal: None,
       edit_root_folder: None,
       filtered_collections: None,
       filtered_movies: None,
@@ -252,7 +255,16 @@ pub enum ActiveRadarrBlock {
   EditCollectionSelectQualityProfile,
   EditCollectionToggleSearchOnAdd,
   EditCollectionToggleMonitored,
-  EditIndexer,
+  EditIndexerPrompt,
+  EditIndexerConfirmPrompt,
+  EditIndexerApiKeyInput,
+  EditIndexerNameInput,
+  EditIndexerSeedRatioInput,
+  EditIndexerToggleEnableRss,
+  EditIndexerToggleEnableAutomaticSearch,
+  EditIndexerToggleEnableInteractiveSearch,
+  EditIndexerUrlInput,
+  EditIndexerTagsInput,
   EditMoviePrompt,
   EditMovieConfirmPrompt,
   EditMoviePathInput,
@@ -318,12 +330,10 @@ pub static COLLECTIONS_BLOCKS: [ActiveRadarrBlock; 6] = [
   ActiveRadarrBlock::FilterCollectionsError,
   ActiveRadarrBlock::UpdateAllCollectionsPrompt,
 ];
-pub static INDEXERS_BLOCKS: [ActiveRadarrBlock; 5] = [
+pub static INDEXERS_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::AddIndexer,
-  ActiveRadarrBlock::EditIndexer,
   ActiveRadarrBlock::DeleteIndexerPrompt,
   ActiveRadarrBlock::Indexers,
-  ActiveRadarrBlock::TestAllIndexers,
 ];
 pub static ROOT_FOLDERS_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::RootFolders,
@@ -415,6 +425,42 @@ pub static DELETE_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
   ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
   ActiveRadarrBlock::DeleteMovieConfirmPrompt,
+];
+pub static EDIT_INDEXER_BLOCKS: [ActiveRadarrBlock; 10] = [
+  ActiveRadarrBlock::EditIndexerPrompt,
+  ActiveRadarrBlock::EditIndexerConfirmPrompt,
+  ActiveRadarrBlock::EditIndexerApiKeyInput,
+  ActiveRadarrBlock::EditIndexerNameInput,
+  ActiveRadarrBlock::EditIndexerSeedRatioInput,
+  ActiveRadarrBlock::EditIndexerToggleEnableRss,
+  ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
+  ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+  ActiveRadarrBlock::EditIndexerUrlInput,
+  ActiveRadarrBlock::EditIndexerTagsInput,
+];
+pub static EDIT_INDEXER_TORRENT_SELECTION_BLOCKS: [ActiveRadarrBlock; 10] = [
+  ActiveRadarrBlock::EditIndexerNameInput,
+  ActiveRadarrBlock::EditIndexerToggleEnableRss,
+  ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
+  ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+  ActiveRadarrBlock::EditIndexerConfirmPrompt,
+  ActiveRadarrBlock::EditIndexerUrlInput,
+  ActiveRadarrBlock::EditIndexerApiKeyInput,
+  ActiveRadarrBlock::EditIndexerSeedRatioInput,
+  ActiveRadarrBlock::EditIndexerTagsInput,
+  ActiveRadarrBlock::EditIndexerConfirmPrompt,
+];
+pub static EDIT_INDEXER_NZB_SELECTION_BLOCKS: [ActiveRadarrBlock; 10] = [
+  ActiveRadarrBlock::EditIndexerNameInput,
+  ActiveRadarrBlock::EditIndexerToggleEnableRss,
+  ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
+  ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+  ActiveRadarrBlock::EditIndexerConfirmPrompt,
+  ActiveRadarrBlock::EditIndexerUrlInput,
+  ActiveRadarrBlock::EditIndexerApiKeyInput,
+  ActiveRadarrBlock::EditIndexerTagsInput,
+  ActiveRadarrBlock::EditIndexerConfirmPrompt,
+  ActiveRadarrBlock::EditIndexerConfirmPrompt,
 ];
 pub static INDEXER_SETTINGS_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::IndexerSettingsPrompt,

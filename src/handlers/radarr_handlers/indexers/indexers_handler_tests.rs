@@ -7,10 +7,10 @@ mod tests {
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::indexers::{IndexersHandler, TestAllIndexersHandler};
+  use crate::handlers::radarr_handlers::indexers::IndexersHandler;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::radarr::radarr_data::{
-    ActiveRadarrBlock, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
+    ActiveRadarrBlock, EDIT_INDEXER_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
   };
   use crate::test_handler_delegation;
 
@@ -147,7 +147,14 @@ mod tests {
   }
 
   mod test_handle_submit {
+    use crate::models::radarr_models::{Indexer, IndexerField};
+    use crate::models::servarr_data::radarr::modals::EditIndexerModal;
+    use crate::models::servarr_data::radarr::radarr_data::{
+      RadarrData, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
+    };
+    use bimap::BiMap;
     use pretty_assertions::assert_eq;
+    use serde_json::{Number, Value};
 
     use crate::network::radarr_network::RadarrEvent;
 
@@ -155,16 +162,85 @@ mod tests {
 
     const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
 
-    #[test]
-    fn test_indexer_submit_aka_edit() {
+    #[rstest]
+    fn test_edit_indexer_submit(#[values(true, false)] torrent_protocol: bool) {
       let mut app = App::default();
+      let protocol = if torrent_protocol {
+        "torrent".to_owned()
+      } else {
+        "usenet".to_owned()
+      };
+      let mut expected_edit_indexer_modal = EditIndexerModal {
+        name: "Test".into(),
+        enable_rss: Some(true),
+        enable_automatic_search: Some(true),
+        enable_interactive_search: Some(true),
+        url: "https://test.com".into(),
+        api_key: "1234".into(),
+        tags: "usenet, test".into(),
+        ..EditIndexerModal::default()
+      };
+      let mut radarr_data = RadarrData {
+        tags_map: BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]),
+        ..RadarrData::default()
+      };
+      let mut fields = vec![
+        IndexerField {
+          name: Some("baseUrl".to_owned()),
+          value: Some(Value::String("https://test.com".to_owned())),
+        },
+        IndexerField {
+          name: Some("apiKey".to_owned()),
+          value: Some(Value::String("1234".to_owned())),
+        },
+      ];
+
+      if torrent_protocol {
+        fields.push(IndexerField {
+          name: Some("seedCriteria.seedRatio".to_owned()),
+          value: Some(Value::from(1.2f64)),
+        });
+        expected_edit_indexer_modal.seed_ratio = "1.2".into();
+      }
+
+      let indexer = Indexer {
+        name: Some("Test".to_owned()),
+        enable_rss: true,
+        enable_automatic_search: true,
+        enable_interactive_search: true,
+        protocol,
+        tags: vec![Number::from(1), Number::from(2)],
+        fields: Some(fields),
+        ..Indexer::default()
+      };
+      radarr_data.indexers.set_items(vec![indexer]);
+      app.data.radarr_data = radarr_data;
 
       IndexersHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::Indexers, &None).handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexer.into()
+        &ActiveRadarrBlock::EditIndexerPrompt.into()
       );
+      assert_eq!(
+        app.data.radarr_data.edit_indexer_modal,
+        Some((&app.data.radarr_data).into())
+      );
+      assert_eq!(
+        app.data.radarr_data.edit_indexer_modal,
+        Some(expected_edit_indexer_modal)
+      );
+      if torrent_protocol {
+        assert_eq!(
+          app.data.radarr_data.selected_block.blocks,
+          &EDIT_INDEXER_TORRENT_SELECTION_BLOCKS
+        );
+      } else {
+        assert_eq!(
+          app.data.radarr_data.selected_block.blocks,
+          &EDIT_INDEXER_NZB_SELECTION_BLOCKS
+        );
+      }
     }
 
     #[test]
@@ -323,6 +399,29 @@ mod tests {
   }
 
   #[rstest]
+  fn test_delegates_edit_indexer_blocks_to_edit_indexer_handler(
+    #[values(
+      ActiveRadarrBlock::EditIndexerPrompt,
+      ActiveRadarrBlock::EditIndexerConfirmPrompt,
+      ActiveRadarrBlock::EditIndexerApiKeyInput,
+      ActiveRadarrBlock::EditIndexerNameInput,
+      ActiveRadarrBlock::EditIndexerSeedRatioInput,
+      ActiveRadarrBlock::EditIndexerToggleEnableRss,
+      ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
+      ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+      ActiveRadarrBlock::EditIndexerUrlInput,
+      ActiveRadarrBlock::EditIndexerTagsInput
+    )]
+    active_radarr_block: ActiveRadarrBlock,
+  ) {
+    test_handler_delegation!(
+      IndexersHandler,
+      ActiveRadarrBlock::Indexers,
+      active_radarr_block
+    );
+  }
+
+  #[rstest]
   fn test_delegates_indexer_settings_blocks_to_indexer_settings_handler(
     #[values(
       ActiveRadarrBlock::IndexerSettingsPrompt,
@@ -348,7 +447,7 @@ mod tests {
   #[test]
   fn test_delegates_test_all_indexers_block_to_test_all_indexers_handler() {
     test_handler_delegation!(
-      TestAllIndexersHandler,
+      IndexersHandler,
       ActiveRadarrBlock::Indexers,
       ActiveRadarrBlock::TestAllIndexers
     );
@@ -359,6 +458,8 @@ mod tests {
     let mut indexers_blocks = Vec::new();
     indexers_blocks.extend(INDEXERS_BLOCKS);
     indexers_blocks.extend(INDEXER_SETTINGS_BLOCKS);
+    indexers_blocks.extend(EDIT_INDEXER_BLOCKS);
+    indexers_blocks.push(ActiveRadarrBlock::TestAllIndexers);
 
     ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
       if indexers_blocks.contains(&active_radarr_block) {

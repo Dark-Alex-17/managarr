@@ -13,8 +13,8 @@ mod test {
   use tokio_util::sync::CancellationToken;
 
   use crate::models::radarr_models::{
-    CollectionMovie, IndexerField, IndexerSelectOption, Language, MediaInfo, MinimumAvailability,
-    Monitor, MovieFile, Quality, QualityWrapper, Rating, RatingsList,
+    CollectionMovie, IndexerField, Language, MediaInfo, MinimumAvailability, Monitor, MovieFile,
+    Quality, QualityWrapper, Rating, RatingsList,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::{HorizontallyScrollableText, StatefulTable};
@@ -136,7 +136,7 @@ mod test {
 
   #[rstest]
   fn test_resource_indexer_settings(
-    #[values(RadarrEvent::GetIndexerSettings, RadarrEvent::UpdateIndexerSettings)]
+    #[values(RadarrEvent::GetIndexerSettings, RadarrEvent::EditAllIndexerSettings)]
     event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/config/indexer");
@@ -783,45 +783,6 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_update_indexer_settings_event() {
-    let indexer_settings_json = json!({
-        "minimumAge": 0,
-        "maximumSize": 0,
-        "retention": 0,
-        "rssSyncInterval": 60,
-        "preferIndexerFlags": false,
-        "availabilityDelay": 0,
-        "allowHardcodedSubs": true,
-        "whitelistedHardcodedSubs": "",
-        "id": 1
-    });
-    let (async_server, app_arc, _server) = mock_radarr_api(
-      RequestMethod::Put,
-      Some(indexer_settings_json),
-      None,
-      None,
-      RadarrEvent::UpdateIndexerSettings.resource(),
-    )
-    .await;
-
-    app_arc.lock().await.data.radarr_data.indexer_settings = Some(indexer_settings());
-    let mut network = Network::new(&app_arc, CancellationToken::new());
-
-    network
-      .handle_radarr_event(RadarrEvent::UpdateIndexerSettings)
-      .await;
-
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .indexer_settings
-      .is_none());
-  }
-
-  #[tokio::test]
   async fn test_handle_update_collections_event() {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
@@ -1211,37 +1172,22 @@ mod test {
         "name": "Test Indexer",
         "fields": [
             {
-                "order": 0,
-                "name": "valueIsString",
-                "label": "Value Is String",
-                "value": "hello",
-                "type": "textbox",
+                "name": "baseUrl",
+                "value": "https://test.com",
             },
             {
-                "order": 1,
-                "name": "emptyValueWithSelectOptions",
-                "label": "Empty Value With Select Options",
-                "type": "select",
-                "selectOptions": [
-                    {
-                        "value": -2,
-                        "name": "Original",
-                        "order": 0,
-                    }
-                ]
+                "name": "apiKey",
+                "value": "",
             },
             {
-                "order": 2,
-                "name": "valueIsAnArray",
-                "label": "Value is an array",
-                "value": [1, 2],
-                "type": "select",
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
             },
         ],
         "implementationName": "Torznab",
         "implementation": "Torznab",
         "configContract": "TorznabSettings",
-        "tags": ["test_tag"],
+        "tags": [1],
         "id": 1
     }]);
     let (async_server, app_arc, _server) = mock_radarr_api(
@@ -2083,66 +2029,42 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_movie_event() {
-    let mut expected_body: Value = serde_json::from_str(MOVIE_JSON).unwrap();
-    *expected_body.get_mut("monitored").unwrap() = json!(false);
-    *expected_body.get_mut("minimumAvailability").unwrap() = json!("announced");
-    *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
-    *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
-    *expected_body.get_mut("tags").unwrap() = json!([1, 2]);
-
-    let resource = format!("{}/1", RadarrEvent::GetMovieDetails.resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
-      RequestMethod::Get,
+  async fn test_handle_edit_all_indexer_settings_event() {
+    let indexer_settings_json = json!({
+        "minimumAge": 0,
+        "maximumSize": 0,
+        "retention": 0,
+        "rssSyncInterval": 60,
+        "preferIndexerFlags": false,
+        "availabilityDelay": 0,
+        "allowHardcodedSubs": true,
+        "whitelistedHardcodedSubs": "",
+        "id": 1
+    });
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Put,
+      Some(indexer_settings_json),
       None,
-      Some(serde_json::from_str(MOVIE_JSON).unwrap()),
       None,
-      &resource,
+      RadarrEvent::EditAllIndexerSettings.resource(),
     )
     .await;
-    let async_edit_server = server
-      .mock(
-        "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditMovie.resource()).as_str(),
-      )
-      .with_status(202)
-      .match_header("X-Api-Key", "test1234")
-      .match_body(Matcher::Json(expected_body))
-      .create_async()
-      .await;
-    {
-      let mut app = app_arc.lock().await;
-      app.data.radarr_data.tags_map =
-        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-      let mut edit_movie = EditMovieModal {
-        tags: "usenet, testing".to_owned().into(),
-        path: "/nfs/Test Path".to_owned().into(),
-        monitored: Some(false),
-        ..EditMovieModal::default()
-      };
-      edit_movie
-        .quality_profile_list
-        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
-      edit_movie
-        .minimum_availability_list
-        .set_items(Vec::from_iter(MinimumAvailability::iter()));
-      app.data.radarr_data.edit_movie_modal = Some(edit_movie);
-      app.data.radarr_data.movies.set_items(vec![Movie {
-        monitored: false,
-        ..movie()
-      }]);
-      app.data.radarr_data.quality_profile_map =
-        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
-    }
+
+    app_arc.lock().await.data.radarr_data.indexer_settings = Some(indexer_settings());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::EditMovie).await;
+    network
+      .handle_radarr_event(RadarrEvent::EditAllIndexerSettings)
+      .await;
 
-    async_details_server.assert_async().await;
-    async_edit_server.assert_async().await;
-
-    let app = app_arc.lock().await;
-    assert!(app.data.radarr_data.edit_movie_modal.is_none());
+    async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .indexer_settings
+      .is_none());
   }
 
   #[tokio::test]
@@ -2238,6 +2160,369 @@ mod test {
 
     let app = app_arc.lock().await;
     assert!(app.data.radarr_data.edit_collection_modal.is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_indexer_event() {
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let expected_indexer_edit_body_json = json!({
+        "enableRss": false,
+        "enableAutomaticSearch": false,
+        "enableInteractiveSearch": false,
+        "name": "Test Update",
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://localhost:9696/1/",
+            },
+            {
+                "name": "apiKey",
+                "value": "test1234",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.3",
+            },
+        ],
+        "tags": [1, 2],
+        "id": 1
+    });
+
+    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json),
+      None,
+      &resource,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", RadarrEvent::EditIndexer.resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_indexer_edit_body_json))
+      .create_async()
+      .await;
+    {
+      let mut app = app_arc.lock().await;
+      app.data.radarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+      let edit_indexer_modal = EditIndexerModal {
+        name: "Test Update".into(),
+        enable_rss: Some(false),
+        enable_automatic_search: Some(false),
+        enable_interactive_search: Some(false),
+        url: "https://localhost:9696/1/".into(),
+        api_key: "test1234".into(),
+        seed_ratio: "1.3".into(),
+        tags: "usenet, testing".into(),
+      };
+      app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
+      app.data.radarr_data.indexers.set_items(vec![indexer()]);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network.handle_radarr_event(RadarrEvent::EditIndexer).await;
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+
+    let app = app_arc.lock().await;
+    assert!(app.data.radarr_data.edit_indexer_modal.is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_indexer_event_does_not_add_seed_ratio_when_seed_ratio_field_is_none_in_details(
+  ) {
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let expected_indexer_edit_body_json = json!({
+        "enableRss": false,
+        "enableAutomaticSearch": false,
+        "enableInteractiveSearch": false,
+        "name": "Test Update",
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://localhost:9696/1/",
+            },
+            {
+                "name": "apiKey",
+                "value": "test1234",
+            },
+        ],
+        "tags": [1, 2],
+        "id": 1
+    });
+
+    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json),
+      None,
+      &resource,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", RadarrEvent::EditIndexer.resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_indexer_edit_body_json))
+      .create_async()
+      .await;
+    {
+      let mut app = app_arc.lock().await;
+      app.data.radarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+      let edit_indexer_modal = EditIndexerModal {
+        name: "Test Update".into(),
+        enable_rss: Some(false),
+        enable_automatic_search: Some(false),
+        enable_interactive_search: Some(false),
+        url: "https://localhost:9696/1/".into(),
+        api_key: "test1234".into(),
+        seed_ratio: "1.3".into(),
+        tags: "usenet, testing".into(),
+      };
+      app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
+      let mut indexer = indexer();
+      indexer.fields = Some(
+        indexer
+          .fields
+          .unwrap()
+          .into_iter()
+          .filter(|field| field.name != Some("seedCriteria.seedRatio".to_string()))
+          .collect(),
+      );
+      app.data.radarr_data.indexers.set_items(vec![indexer]);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network.handle_radarr_event(RadarrEvent::EditIndexer).await;
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+
+    let app = app_arc.lock().await;
+    assert!(app.data.radarr_data.edit_indexer_modal.is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_indexer_event_populates_the_seed_ratio_value_when_seed_ratio_field_is_present_in_details(
+  ) {
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let expected_indexer_edit_body_json = json!({
+        "enableRss": false,
+        "enableAutomaticSearch": false,
+        "enableInteractiveSearch": false,
+        "name": "Test Update",
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://localhost:9696/1/",
+            },
+            {
+                "name": "apiKey",
+                "value": "test1234",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.3",
+            },
+        ],
+        "tags": [1, 2],
+        "id": 1
+    });
+
+    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json),
+      None,
+      &resource,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", RadarrEvent::EditIndexer.resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_indexer_edit_body_json))
+      .create_async()
+      .await;
+    {
+      let mut app = app_arc.lock().await;
+      app.data.radarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+      let edit_indexer_modal = EditIndexerModal {
+        name: "Test Update".into(),
+        enable_rss: Some(false),
+        enable_automatic_search: Some(false),
+        enable_interactive_search: Some(false),
+        url: "https://localhost:9696/1/".into(),
+        api_key: "test1234".into(),
+        seed_ratio: "1.3".into(),
+        tags: "usenet, testing".into(),
+      };
+      app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
+      let mut indexer = indexer();
+      indexer.fields = Some(
+        indexer
+          .fields
+          .unwrap()
+          .into_iter()
+          .map(|mut field| {
+            if field.name == Some("seedCriteria.seedRatio".to_string()) {
+              field.value = None;
+              field
+            } else {
+              field
+            }
+          })
+          .collect(),
+      );
+      app.data.radarr_data.indexers.set_items(vec![indexer]);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network.handle_radarr_event(RadarrEvent::EditIndexer).await;
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+
+    let app = app_arc.lock().await;
+    assert!(app.data.radarr_data.edit_indexer_modal.is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_movie_event() {
+    let mut expected_body: Value = serde_json::from_str(MOVIE_JSON).unwrap();
+    *expected_body.get_mut("monitored").unwrap() = json!(false);
+    *expected_body.get_mut("minimumAvailability").unwrap() = json!("announced");
+    *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
+    *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
+    *expected_body.get_mut("tags").unwrap() = json!([1, 2]);
+
+    let resource = format!("{}/1", RadarrEvent::GetMovieDetails.resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(MOVIE_JSON).unwrap()),
+      None,
+      &resource,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", RadarrEvent::EditMovie.resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    {
+      let mut app = app_arc.lock().await;
+      app.data.radarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+      let mut edit_movie = EditMovieModal {
+        tags: "usenet, testing".to_owned().into(),
+        path: "/nfs/Test Path".to_owned().into(),
+        monitored: Some(false),
+        ..EditMovieModal::default()
+      };
+      edit_movie
+        .quality_profile_list
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      edit_movie
+        .minimum_availability_list
+        .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      app.data.radarr_data.edit_movie_modal = Some(edit_movie);
+      app.data.radarr_data.movies.set_items(vec![Movie {
+        monitored: false,
+        ..movie()
+      }]);
+      app.data.radarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network.handle_radarr_event(RadarrEvent::EditMovie).await;
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+
+    let app = app_arc.lock().await;
+    assert!(app.data.radarr_data.edit_movie_modal.is_none());
   }
 
   #[tokio::test]
@@ -2786,36 +3071,20 @@ mod test {
       implementation_name: Some("Torznab".to_owned()),
       implementation: Some("Torznab".to_owned()),
       config_contract: Some("TorznabSettings".to_owned()),
-      tags: Some(vec!["test_tag".to_owned()]),
+      tags: vec![Number::from(1)],
       id: 1,
       fields: Some(vec![
         IndexerField {
-          order: 0,
-          name: Some("valueIsString".to_owned()),
-          label: Some("Value Is String".to_owned()),
-          value: Some(json!("hello")),
-          field_type: Some("textbox".to_owned()),
-          select_options: None,
+          name: Some("baseUrl".to_owned()),
+          value: Some(json!("https://test.com")),
         },
         IndexerField {
-          order: 1,
-          name: Some("emptyValueWithSelectOptions".to_owned()),
-          label: Some("Empty Value With Select Options".to_owned()),
-          value: None,
-          field_type: Some("select".to_owned()),
-          select_options: Some(vec![IndexerSelectOption {
-            value: -2,
-            name: Some("Original".to_owned()),
-            order: 0,
-          }]),
+          name: Some("apiKey".to_owned()),
+          value: Some(json!("")),
         },
         IndexerField {
-          order: 2,
-          name: Some("valueIsAnArray".to_owned()),
-          label: Some("Value is an array".to_owned()),
-          value: Some(json!([1, 2])),
-          field_type: Some("select".to_owned()),
-          select_options: None,
+          name: Some("seedCriteria.seedRatio".to_owned()),
+          value: Some(json!("1.2")),
         },
       ]),
     }

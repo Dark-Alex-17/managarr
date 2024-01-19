@@ -1,7 +1,4 @@
-pub use self::{
-  input_event::{Events, InputEvent},
-  key::Key,
-};
+pub use self::key::Key;
 
 pub mod input_event;
 mod key;

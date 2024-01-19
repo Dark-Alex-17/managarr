@@ -19,7 +19,8 @@ use crate::ui::utils::{
 use crate::ui::{
   draw_button, draw_drop_down_menu_button, draw_drop_down_popup, draw_error_popup,
   draw_error_popup_over, draw_large_popup_over, draw_medium_popup_over, draw_selectable_list,
-  draw_table, draw_text_box, draw_text_box_with_label, DrawUi, TableProps,
+  draw_table, draw_text_box, draw_text_box_with_label, DrawUi, LabeledTextBoxProps, TableProps,
+  TextBoxProps,
 };
 use crate::utils::convert_runtime;
 use crate::App;
@@ -135,12 +136,15 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       ActiveRadarrBlock::AddMovieSearchInput => {
         draw_text_box(
           f,
-          chunks[0],
-          Some("Add Movie"),
-          block_content,
-          offset,
-          true,
-          false,
+          TextBoxProps {
+            text_box_area: chunks[0],
+            block_title: Some("Add Movie"),
+            block_content,
+            offset,
+            should_show_cursor: true,
+            is_selected: false,
+            cursor_after_string: true,
+          },
         );
         f.render_widget(layout_block(), chunks[1]);
 
@@ -267,12 +271,15 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
   draw_text_box(
     f,
-    chunks[0],
-    Some("Add Movie"),
-    block_content,
-    offset,
-    false,
-    false,
+    TextBoxProps {
+      text_box_area: chunks[0],
+      block_title: Some("Add Movie"),
+      block_content,
+      offset,
+      should_show_cursor: false,
+      is_selected: false,
+      cursor_after_string: true,
+    },
   );
 }
 
@@ -441,12 +448,15 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     draw_text_box_with_label(
       f,
-      chunks[5],
-      "Tags",
-      &tags.text,
-      *tags.offset.borrow(),
-      selected_block == &ActiveRadarrBlock::AddMovieTagsInput,
-      active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput,
+      LabeledTextBoxProps {
+        area: chunks[5],
+        label: "Tags",
+        text: &tags.text,
+        offset: *tags.offset.borrow(),
+        is_selected: selected_block == &ActiveRadarrBlock::AddMovieTagsInput,
+        should_show_cursor: active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput,
+        cursor_after_string: true,
+      },
     );
   }
 

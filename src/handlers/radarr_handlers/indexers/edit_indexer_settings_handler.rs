@@ -46,7 +46,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
     let indexer_settings = self.app.data.radarr_data.indexer_settings.as_mut().unwrap();
     match self.active_radarr_block {
       ActiveRadarrBlock::IndexerSettingsPrompt => {
-        self.app.data.radarr_data.selected_block.previous()
+        self.app.data.radarr_data.selected_block.previous();
       }
       ActiveRadarrBlock::IndexerSettingsMinimumAgeInput => {
         indexer_settings.minimum_age += 1;
@@ -166,7 +166,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
           ActiveRadarrBlock::IndexerSettingsConfirmPrompt => {
             let radarr_data = &mut self.app.data.radarr_data;
             if radarr_data.prompt_confirm {
-              radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateIndexerSettings);
+              radarr_data.prompt_confirm_action = Some(RadarrEvent::EditAllIndexerSettings);
               self.app.should_refresh = true;
             } else {
               radarr_data.indexer_settings = None;

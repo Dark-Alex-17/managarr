@@ -13,7 +13,8 @@ use crate::ui::utils::{
   vertical_chunks_with_margin,
 };
 use crate::ui::{
-  draw_button, draw_checkbox_with_label, draw_popup_over, draw_text_box_with_label, loading, DrawUi,
+  draw_button, draw_checkbox_with_label, draw_popup_over, draw_text_box_with_label, loading,
+  DrawUi, LabeledTextBoxProps,
 };
 
 #[cfg(test)]
@@ -91,57 +92,82 @@ fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, promp
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
       draw_text_box_with_label(
         f,
-        left_chunks[0],
-        "Minimum Age (minutes) ▴▾",
-        &indexer_settings.minimum_age.to_string(),
-        0,
-        selected_block == &ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
-        active_radarr_block == ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
+        LabeledTextBoxProps {
+          area: left_chunks[0],
+          label: "Minimum Age (minutes) ▴▾",
+          text: &indexer_settings.minimum_age.to_string(),
+          offset: 0,
+          is_selected: selected_block == &ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
+          should_show_cursor: active_radarr_block
+            == ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
+          cursor_after_string: false,
+        },
       );
       draw_text_box_with_label(
         f,
-        left_chunks[1],
-        "Retention (days) ▴▾",
-        &indexer_settings.retention.to_string(),
-        0,
-        selected_block == &ActiveRadarrBlock::IndexerSettingsRetentionInput,
-        active_radarr_block == ActiveRadarrBlock::IndexerSettingsRetentionInput,
+        LabeledTextBoxProps {
+          area: left_chunks[1],
+          label: "Retention (days) ▴▾",
+          text: &indexer_settings.retention.to_string(),
+          offset: 0,
+          is_selected: selected_block == &ActiveRadarrBlock::IndexerSettingsRetentionInput,
+          should_show_cursor: active_radarr_block
+            == ActiveRadarrBlock::IndexerSettingsRetentionInput,
+          cursor_after_string: false,
+        },
       );
       draw_text_box_with_label(
         f,
-        left_chunks[2],
-        "Maximum Size (MB) ▴▾",
-        &indexer_settings.maximum_size.to_string(),
-        0,
-        selected_block == &ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
-        active_radarr_block == ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
+        LabeledTextBoxProps {
+          area: left_chunks[2],
+          label: "Maximum Size (MB) ▴▾",
+          text: &indexer_settings.maximum_size.to_string(),
+          offset: 0,
+          is_selected: selected_block == &ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
+          should_show_cursor: active_radarr_block
+            == ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
+          cursor_after_string: false,
+        },
       );
       draw_text_box_with_label(
         f,
-        right_chunks[0],
-        "Availability Delay (days) ▴▾",
-        &indexer_settings.availability_delay.to_string(),
-        0,
-        selected_block == &ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
-        active_radarr_block == ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
+        LabeledTextBoxProps {
+          area: right_chunks[0],
+          label: "Availability Delay (days) ▴▾",
+          text: &indexer_settings.availability_delay.to_string(),
+          offset: 0,
+          is_selected: selected_block == &ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
+          should_show_cursor: active_radarr_block
+            == ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
+          cursor_after_string: false,
+        },
       );
       draw_text_box_with_label(
         f,
-        right_chunks[1],
-        "RSS Sync Interval (minutes) ▴▾",
-        &indexer_settings.rss_sync_interval.to_string(),
-        0,
-        selected_block == &ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
-        active_radarr_block == ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
+        LabeledTextBoxProps {
+          area: right_chunks[1],
+          label: "RSS Sync Interval (minutes) ▴▾",
+          text: &indexer_settings.rss_sync_interval.to_string(),
+          offset: 0,
+          is_selected: selected_block == &ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
+          should_show_cursor: active_radarr_block
+            == ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
+          cursor_after_string: false,
+        },
       );
       draw_text_box_with_label(
         f,
-        right_chunks[2],
-        "Whitelisted Subtitle Tags",
-        &indexer_settings.whitelisted_hardcoded_subs.text,
-        *indexer_settings.whitelisted_hardcoded_subs.offset.borrow(),
-        selected_block == &ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
-        active_radarr_block == ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
+        LabeledTextBoxProps {
+          area: right_chunks[2],
+          label: "Whitelisted Subtitle Tags",
+          text: &indexer_settings.whitelisted_hardcoded_subs.text,
+          offset: *indexer_settings.whitelisted_hardcoded_subs.offset.borrow(),
+          is_selected: selected_block
+            == &ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
+          should_show_cursor: active_radarr_block
+            == ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
+          cursor_after_string: true,
+        },
       );
     }
 

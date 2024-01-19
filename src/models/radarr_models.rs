@@ -164,30 +164,13 @@ pub struct Indexer {
   pub priority: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub download_client_id: i64,
-  pub tags: Option<Vec<String>>,
+  pub tags: Vec<Number>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
 pub struct IndexerField {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub order: i64,
   pub name: Option<String>,
-  pub label: Option<String>,
   pub value: Option<Value>,
-  #[serde(rename(deserialize = "type"))]
-  pub field_type: Option<String>,
-  pub select_options: Option<Vec<IndexerSelectOption>>,
-}
-
-#[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct IndexerSelectOption {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub value: i64,
-  pub name: Option<String>,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub order: i64,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]

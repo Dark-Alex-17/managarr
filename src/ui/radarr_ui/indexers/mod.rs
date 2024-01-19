@@ -7,24 +7,29 @@ use crate::app::App;
 use crate::models::radarr_models::Indexer;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, INDEXERS_BLOCKS};
 use crate::models::Route;
+use crate::ui::radarr_ui::indexers::edit_indexer_ui::EditIndexerUi;
 use crate::ui::radarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
 use crate::ui::radarr_ui::indexers::test_all_indexers_ui::TestAllIndexersUi;
 use crate::ui::utils::{layout_block_top_border, style_failure, style_primary, style_success};
 use crate::ui::{draw_prompt_box, draw_prompt_popup_over, draw_table, DrawUi, TableProps};
 
+mod edit_indexer_ui;
 mod indexer_settings_ui;
+mod test_all_indexers_ui;
 
 #[cfg(test)]
 #[path = "indexers_ui_tests.rs"]
 mod indexers_ui_tests;
-mod test_all_indexers_ui;
 
 pub(super) struct IndexersUi;
 
 impl DrawUi for IndexersUi {
   fn accepts(route: Route) -> bool {
     if let Route::Radarr(active_radarr_block, _) = route {
-      return IndexerSettingsUi::accepts(route) || INDEXERS_BLOCKS.contains(&active_radarr_block);
+      return EditIndexerUi::accepts(route)
+        || IndexerSettingsUi::accepts(route)
+        || TestAllIndexersUi::accepts(route)
+        || INDEXERS_BLOCKS.contains(&active_radarr_block);
     }
 
     false
@@ -45,6 +50,7 @@ impl DrawUi for IndexersUi {
     };
 
     match route {
+      _ if EditIndexerUi::accepts(route) => EditIndexerUi::draw(f, app, content_rect),
       _ if IndexerSettingsUi::accepts(route) => IndexerSettingsUi::draw(f, app, content_rect),
       _ if TestAllIndexersUi::accepts(route) => TestAllIndexersUi::draw(f, app, content_rect),
       Route::Radarr(active_radarr_block, _) if INDEXERS_BLOCKS.contains(&active_radarr_block) => {
@@ -69,13 +75,15 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         "Automatic Search",
         "Interactive Search",
         "Priority",
+        "Tags",
       ],
       constraints: vec![
-        Constraint::Ratio(1, 5),
-        Constraint::Ratio(1, 5),
-        Constraint::Ratio(1, 5),
-        Constraint::Ratio(1, 5),
-        Constraint::Ratio(1, 5),
+        Constraint::Percentage(25),
+        Constraint::Percentage(13),
+        Constraint::Percentage(13),
+        Constraint::Percentage(13),
+        Constraint::Percentage(13),
+        Constraint::Percentage(23),
       ],
       help: app
         .data
@@ -90,6 +98,7 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         enable_automatic_search,
         enable_interactive_search,
         priority,
+        tags,
         ..
       } = indexer;
       let bool_to_text = |flag: bool| {
@@ -112,6 +121,19 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         bool_to_text(*enable_interactive_search);
       let mut interactive_search = Text::from(interactive_search_text);
       interactive_search.patch_style(interactive_search_style);
+      let tags: String = tags
+        .iter()
+        .map(|tag_id| {
+          app
+            .data
+            .radarr_data
+            .tags_map
+            .get_by_left(&tag_id.as_i64().unwrap())
+            .unwrap()
+            .clone()
+        })
+        .collect::<Vec<String>>()
+        .join(", ");
 
       Row::new(vec![
         Cell::from(name.clone().unwrap_or_default()),
@@ -119,6 +141,7 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Cell::from(automatic_search),
         Cell::from(interactive_search),
         Cell::from(priority.to_string()),
+        Cell::from(tags),
       ])
       .style(style_primary())
     },

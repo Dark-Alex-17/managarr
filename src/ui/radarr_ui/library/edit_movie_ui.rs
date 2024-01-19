@@ -17,7 +17,7 @@ use crate::ui::utils::{
 use crate::ui::{
   draw_button, draw_checkbox_with_label, draw_drop_down_menu_button, draw_drop_down_popup,
   draw_large_popup_over_background_fn_with_ui, draw_medium_popup_over, draw_popup,
-  draw_selectable_list, draw_text_box_with_label, DrawUi,
+  draw_selectable_list, draw_text_box_with_label, DrawUi, LabeledTextBoxProps,
 };
 
 #[cfg(test)]
@@ -179,21 +179,27 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, pro
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     draw_text_box_with_label(
       f,
-      chunks[4],
-      "Path",
-      &path.text,
-      *path.offset.borrow(),
-      selected_block == &ActiveRadarrBlock::EditMoviePathInput,
-      active_radarr_block == ActiveRadarrBlock::EditMoviePathInput,
+      LabeledTextBoxProps {
+        area: chunks[4],
+        label: "Path",
+        text: &path.text,
+        offset: *path.offset.borrow(),
+        is_selected: selected_block == &ActiveRadarrBlock::EditMoviePathInput,
+        should_show_cursor: active_radarr_block == ActiveRadarrBlock::EditMoviePathInput,
+        cursor_after_string: true,
+      },
     );
     draw_text_box_with_label(
       f,
-      chunks[5],
-      "Tags",
-      &tags.text,
-      *tags.offset.borrow(),
-      selected_block == &ActiveRadarrBlock::EditMovieTagsInput,
-      active_radarr_block == ActiveRadarrBlock::EditMovieTagsInput,
+      LabeledTextBoxProps {
+        area: chunks[5],
+        label: "Tags",
+        text: &tags.text,
+        offset: *tags.offset.borrow(),
+        is_selected: selected_block == &ActiveRadarrBlock::EditMovieTagsInput,
+        should_show_cursor: active_radarr_block == ActiveRadarrBlock::EditMovieTagsInput,
+        cursor_after_string: true,
+      },
     );
   }
 

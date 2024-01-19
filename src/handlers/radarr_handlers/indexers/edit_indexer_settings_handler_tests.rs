@@ -456,7 +456,7 @@ mod tests {
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::UpdateIndexerSettings)
+        Some(RadarrEvent::EditAllIndexerSettings)
       );
       assert!(app.data.radarr_data.indexer_settings.is_some());
       assert!(app.should_refresh);

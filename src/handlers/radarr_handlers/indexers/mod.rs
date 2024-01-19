@@ -2,15 +2,18 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
+use crate::handlers::radarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
 use crate::handlers::radarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
 use crate::handlers::radarr_handlers::indexers::test_all_indexers_handler::TestAllIndexersHandler;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::radarr::radarr_data::{
-  ActiveRadarrBlock, INDEXERS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS,
+  ActiveRadarrBlock, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
+  INDEXERS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS,
 };
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 
+mod edit_indexer_handler;
 mod edit_indexer_settings_handler;
 mod test_all_indexers_handler;
 
@@ -28,6 +31,10 @@ pub(super) struct IndexersHandler<'a, 'b> {
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 'b> {
   fn handle(&mut self) {
     match self.active_radarr_block {
+      _ if EditIndexerHandler::accepts(self.active_radarr_block) => {
+        EditIndexerHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+          .handle()
+      }
       _ if IndexerSettingsHandler::accepts(self.active_radarr_block) => {
         IndexerSettingsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
           .handle()
@@ -41,7 +48,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
   }
 
   fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    IndexerSettingsHandler::accepts(active_block) || INDEXERS_BLOCKS.contains(active_block)
+    EditIndexerHandler::accepts(active_block)
+      || IndexerSettingsHandler::accepts(active_block)
+      || TestAllIndexersHandler::accepts(active_block)
+      || INDEXERS_BLOCKS.contains(active_block)
   }
 
   fn with(
@@ -115,7 +125,22 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
       ActiveRadarrBlock::Indexers => {
         self
           .app
-          .push_navigation_stack(ActiveRadarrBlock::EditIndexer.into());
+          .push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
+        self.app.data.radarr_data.edit_indexer_modal = Some((&self.app.data.radarr_data).into());
+        let protocol = &self
+          .app
+          .data
+          .radarr_data
+          .indexers
+          .current_selection()
+          .protocol;
+        if protocol == "torrent" {
+          self.app.data.radarr_data.selected_block =
+            BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+        } else {
+          self.app.data.radarr_data.selected_block =
+            BlockSelectionState::new(&EDIT_INDEXER_NZB_SELECTION_BLOCKS);
+        }
       }
       _ => (),
     }

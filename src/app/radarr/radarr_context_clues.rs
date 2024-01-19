@@ -52,7 +52,7 @@ pub static ROOT_FOLDERS_CONTEXT_CLUES: [ContextClue; 3] = [
 
 pub static INDEXERS_CONTEXT_CLUES: [ContextClue; 6] = [
   (DEFAULT_KEYBINDINGS.add, DEFAULT_KEYBINDINGS.add.desc),
-  (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
+  (DEFAULT_KEYBINDINGS.submit, "edit indexer"),
   (
     DEFAULT_KEYBINDINGS.settings,
     DEFAULT_KEYBINDINGS.settings.desc,

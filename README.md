@@ -5,8 +5,8 @@ Managarr is a TUI to help you manage your HTPC (Home Theater PC). Built with lov
 
 ## NOTE: Managarr is not yet stable (Pre-Alpha)
 I'm regularly making changes to get Managarr to an alpha release. As such, I'm regularly refactoring the code to be cleaner
-and more easily extensible. This makes contributing difficult and until I get Managarr across the alpha-release finish line,
-contributions will likely be difficult. Thus, stability is not guaranteed (yet!).
+and more easily extensible. Until I get Managarr across the alpha-release finish line, this regular refactoring will make
+contributions difficult. Thus, stability is not guaranteed (yet!).
 
 This means that while all tests will pass, there may be certain menus or keymappings that are no-ops, or produce empty 
 screens, or things of this sort.
@@ -40,16 +40,15 @@ pleasant as possible!
 - [x] View details of a specific movie including description, history, downloaded file info, or the credits
 - [x] View details of any collection and the movies in them
 - [x] Search your library or collections
-- [x] Add or delete movies and downloads
+- [x] Add or delete movies, downloads, and indexers
 - [x] Trigger automatic searches for movies
 - [x] Trigger refresh and disk scan for movies, downloads, and collections
 - [x] Manually search for movies
-- [x] Edit your movies and collections
+- [x] Edit your movies, collections, and indexers
 - [x] Manage your tags
 - [x] Manage your root folders
 - [ ] Manage your quality profiles
 - [ ] Manage your quality definitions
-- [ ] Manage your indexers
 - [x] View and browse logs, tasks, events queues, and updates
 - [x] Manually trigger scheduled tasks
 

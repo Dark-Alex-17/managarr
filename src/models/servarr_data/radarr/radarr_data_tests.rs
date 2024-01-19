@@ -98,6 +98,7 @@ mod tests {
       assert!(radarr_data.edit_movie_modal.is_none());
       assert!(radarr_data.edit_collection_modal.is_none());
       assert!(radarr_data.edit_root_folder.is_none());
+      assert!(radarr_data.edit_indexer_modal.is_none());
       assert!(radarr_data.filtered_collections.is_none());
       assert!(radarr_data.filtered_movies.is_none());
       assert!(radarr_data.indexer_settings.is_none());
@@ -270,9 +271,10 @@ mod tests {
       ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS, COLLECTIONS_BLOCKS,
       COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS, DELETE_MOVIE_SELECTION_BLOCKS,
       DOWNLOADS_BLOCKS, EDIT_COLLECTION_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
-      EDIT_MOVIE_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
-      INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS, MOVIE_DETAILS_BLOCKS, ROOT_FOLDERS_BLOCKS,
-      SYSTEM_DETAILS_BLOCKS,
+      EDIT_INDEXER_BLOCKS, EDIT_INDEXER_NZB_SELECTION_BLOCKS,
+      EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, EDIT_MOVIE_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS,
+      INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS,
+      MOVIE_DETAILS_BLOCKS, ROOT_FOLDERS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
     };
 
     #[test]
@@ -299,12 +301,10 @@ mod tests {
 
     #[test]
     fn test_indexers_blocks_contents() {
-      assert_eq!(INDEXERS_BLOCKS.len(), 5);
+      assert_eq!(INDEXERS_BLOCKS.len(), 3);
       assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::AddIndexer));
-      assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::EditIndexer));
       assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::DeleteIndexerPrompt));
       assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::Indexers));
-      assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::TestAllIndexers));
     }
 
     #[test]
@@ -396,6 +396,25 @@ mod tests {
       assert!(DELETE_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::DeleteMovieConfirmPrompt));
       assert!(DELETE_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::DeleteMovieToggleDeleteFile));
       assert!(DELETE_MOVIE_BLOCKS.contains(&ActiveRadarrBlock::DeleteMovieToggleAddListExclusion));
+    }
+
+    #[test]
+    fn test_edit_indexer_blocks_contents() {
+      assert_eq!(EDIT_INDEXER_BLOCKS.len(), 10);
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerPrompt));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerConfirmPrompt));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerApiKeyInput));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerNameInput));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerSeedRatioInput));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerToggleEnableRss));
+      assert!(
+        EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch)
+      );
+      assert!(
+        EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch)
+      );
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerUrlInput));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerTagsInput));
     }
 
     #[test]
@@ -540,6 +559,101 @@ mod tests {
         &ActiveRadarrBlock::DeleteMovieConfirmPrompt
       );
       assert_eq!(delete_movie_block_iter.next(), None);
+    }
+
+    #[test]
+    fn test_edit_indexer_torrent_selection_blocks_ordering() {
+      let mut edit_indexer_torrent_selection_block_iter =
+        EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.iter();
+
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerNameInput
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerToggleEnableRss
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerConfirmPrompt
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerUrlInput
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerApiKeyInput
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerSeedRatioInput
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerTagsInput
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerConfirmPrompt
+      );
+      assert_eq!(edit_indexer_torrent_selection_block_iter.next(), None);
+    }
+
+    #[test]
+    fn test_edit_indexer_nzb_selection_blocks_ordering() {
+      let mut edit_indexer_nzb_selection_block_iter = EDIT_INDEXER_NZB_SELECTION_BLOCKS.iter();
+
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerNameInput
+      );
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerToggleEnableRss
+      );
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch
+      );
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch
+      );
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerConfirmPrompt
+      );
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerUrlInput
+      );
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerApiKeyInput
+      );
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerTagsInput
+      );
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerConfirmPrompt
+      );
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &ActiveRadarrBlock::EditIndexerConfirmPrompt
+      );
+      assert_eq!(edit_indexer_nzb_selection_block_iter.next(), None);
     }
 
     #[test]

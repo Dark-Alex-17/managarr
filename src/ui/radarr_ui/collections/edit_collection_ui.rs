@@ -16,7 +16,7 @@ use crate::ui::utils::{
 use crate::ui::{
   draw_button, draw_checkbox_with_label, draw_drop_down_menu_button, draw_drop_down_popup,
   draw_large_popup_over_background_fn_with_ui, draw_medium_popup_over, draw_popup,
-  draw_selectable_list, draw_text_box_with_label, DrawUi,
+  draw_selectable_list, draw_text_box_with_label, DrawUi, LabeledTextBoxProps,
 };
 
 #[cfg(test)]
@@ -191,12 +191,16 @@ fn draw_edit_collection_confirmation_prompt(
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     draw_text_box_with_label(
       f,
-      chunks[4],
-      "Root Folder",
-      &path.text,
-      *path.offset.borrow(),
-      selected_block == &ActiveRadarrBlock::EditCollectionRootFolderPathInput,
-      active_radarr_block == ActiveRadarrBlock::EditCollectionRootFolderPathInput,
+      LabeledTextBoxProps {
+        area: chunks[4],
+        label: "Root Folder",
+        text: &path.text,
+        offset: *path.offset.borrow(),
+        is_selected: selected_block == &ActiveRadarrBlock::EditCollectionRootFolderPathInput,
+        should_show_cursor: active_radarr_block
+          == ActiveRadarrBlock::EditCollectionRootFolderPathInput,
+        cursor_after_string: true,
+      },
     );
   }
 

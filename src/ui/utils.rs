@@ -267,8 +267,18 @@ pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge<'_> {
     .label(Line::from(format!("{title}: {:.0}%", ratio * 100.0)))
 }
 
-pub fn show_cursor(f: &mut Frame<'_>, area: Rect, offset: usize, string: &str) {
-  f.set_cursor(area.x + (string.len() - offset) as u16 + 1, area.y + 1);
+pub fn show_cursor(
+  f: &mut Frame<'_>,
+  area: Rect,
+  offset: usize,
+  string: &str,
+  cursor_after_string: bool,
+) {
+  if cursor_after_string {
+    f.set_cursor(area.x + (string.len() - offset) as u16 + 1, area.y + 1);
+  } else {
+    f.set_cursor(area.x + 1u16, area.y + 1);
+  }
 }
 
 pub fn get_width_from_percentage(area: Rect, percentage: u16) -> usize {

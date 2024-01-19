@@ -151,8 +151,8 @@ mod tests {
 
     let (key_binding, description) = indexers_context_clues_iter.next().unwrap();
 
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.edit);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.edit.desc);
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
+    assert_str_eq!(*description, "edit indexer");
 
     let (key_binding, description) = indexers_context_clues_iter.next().unwrap();
 

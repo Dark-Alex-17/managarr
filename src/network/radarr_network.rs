@@ -16,7 +16,8 @@ use crate::models::radarr_models::{
   Update,
 };
 use crate::models::servarr_data::radarr::modals::{
-  AddMovieModal, EditCollectionModal, EditMovieModal, IndexerTestResultModalItem, MovieDetailsModal,
+  AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
+  MovieDetailsModal,
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText, StatefulTable};
@@ -36,7 +37,9 @@ pub enum RadarrEvent {
   DeleteMovie,
   DeleteRootFolder,
   DownloadRelease,
+  EditAllIndexerSettings,
   EditCollection,
+  EditIndexer,
   EditMovie,
   GetCollections,
   GetDownloads,
@@ -65,7 +68,6 @@ pub enum RadarrEvent {
   UpdateAndScan,
   UpdateCollections,
   UpdateDownloads,
-  UpdateIndexerSettings,
 }
 
 impl RadarrEvent {
@@ -73,8 +75,10 @@ impl RadarrEvent {
     match self {
       RadarrEvent::GetCollections | RadarrEvent::EditCollection => "/collection",
       RadarrEvent::GetDownloads | RadarrEvent::DeleteDownload => "/queue",
-      RadarrEvent::GetIndexers | RadarrEvent::DeleteIndexer => "/indexer",
-      RadarrEvent::GetIndexerSettings | RadarrEvent::UpdateIndexerSettings => "/config/indexer",
+      RadarrEvent::GetIndexers | RadarrEvent::EditIndexer | RadarrEvent::DeleteIndexer => {
+        "/indexer"
+      }
+      RadarrEvent::GetIndexerSettings | RadarrEvent::EditAllIndexerSettings => "/config/indexer",
       RadarrEvent::GetLogs => "/log",
       RadarrEvent::AddMovie
       | RadarrEvent::EditMovie
@@ -123,7 +127,9 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::DeleteMovie => self.delete_movie().await,
       RadarrEvent::DeleteRootFolder => self.delete_root_folder().await,
       RadarrEvent::DownloadRelease => self.download_release().await,
+      RadarrEvent::EditAllIndexerSettings => self.edit_all_indexer_settings().await,
       RadarrEvent::EditCollection => self.edit_collection().await,
+      RadarrEvent::EditIndexer => self.edit_indexer().await,
       RadarrEvent::EditMovie => self.edit_movie().await,
       RadarrEvent::GetCollections => self.get_collections().await,
       RadarrEvent::GetDownloads => self.get_downloads().await,
@@ -152,7 +158,6 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::UpdateAndScan => self.update_and_scan().await,
       RadarrEvent::UpdateCollections => self.update_collections().await,
       RadarrEvent::UpdateDownloads => self.update_downloads().await,
-      RadarrEvent::UpdateIndexerSettings => self.update_indexer_settings().await,
     }
   }
 
@@ -466,6 +471,37 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
   }
 
+  async fn edit_all_indexer_settings(&mut self) {
+    info!("Updating Radarr indexer settings");
+
+    let body = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .indexer_settings
+      .as_ref()
+      .unwrap()
+      .clone();
+
+    debug!("Indexer settings body: {body:?}");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::EditAllIndexerSettings.resource(),
+        RequestMethod::Put,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<IndexerSettings, Value>(request_props, |_, _| {})
+      .await;
+
+    self.app.lock().await.data.radarr_data.indexer_settings = None;
+  }
+
   async fn edit_collection(&mut self) {
     info!("Editing Radarr collection");
 
@@ -535,6 +571,129 @@ impl<'a, 'b> Network<'a, 'b> {
     let request_props = self
       .radarr_request_props_from(
         format!("{}/{collection_id}", RadarrEvent::EditCollection.resource()).as_str(),
+        RequestMethod::Put,
+        Some(body),
+      )
+      .await;
+
+    self
+      .handle_request::<Value, ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn edit_indexer(&mut self) {
+    let id = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .indexers
+      .current_selection()
+      .id;
+    info!("Updating Radarr indexer with ID: {id}");
+
+    info!("Fetching indexer details for indexer with ID: {id}");
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!("{}/{id}", RadarrEvent::GetIndexers.resource()).as_str(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    let mut response = String::new();
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_indexer_body, _| {
+        response = detailed_indexer_body.to_string()
+      })
+      .await;
+
+    info!("Constructing edit indexer body");
+
+    let body = {
+      let tags = self
+        .app
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .edit_indexer_modal
+        .as_ref()
+        .unwrap()
+        .tags
+        .text
+        .clone();
+      let tag_ids_vec = self.extract_and_add_tag_ids_vec(tags).await;
+      let mut app = self.app.lock().await;
+      let mut detailed_indexer_body: Value = serde_json::from_str(&response).unwrap();
+
+      let EditIndexerModal {
+        name,
+        enable_rss,
+        enable_automatic_search,
+        enable_interactive_search,
+        url,
+        api_key,
+        seed_ratio,
+        ..
+      } = app.data.radarr_data.edit_indexer_modal.as_ref().unwrap();
+
+      *detailed_indexer_body.get_mut("name").unwrap() = json!(name.text.clone());
+      *detailed_indexer_body.get_mut("enableRss").unwrap() = json!(enable_rss.unwrap_or_default());
+      *detailed_indexer_body
+        .get_mut("enableAutomaticSearch")
+        .unwrap() = json!(enable_automatic_search.unwrap_or_default());
+      *detailed_indexer_body
+        .get_mut("enableInteractiveSearch")
+        .unwrap() = json!(enable_interactive_search.unwrap_or_default());
+      *detailed_indexer_body
+        .get_mut("fields")
+        .unwrap()
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|field| field["name"] == "baseUrl")
+        .unwrap()
+        .get_mut("value")
+        .unwrap() = json!(url.text.clone());
+      *detailed_indexer_body
+        .get_mut("fields")
+        .unwrap()
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|field| field["name"] == "apiKey")
+        .unwrap()
+        .get_mut("value")
+        .unwrap() = json!(api_key.text.clone());
+      *detailed_indexer_body.get_mut("tags").unwrap() = json!(tag_ids_vec);
+      let seed_ratio_field_option = detailed_indexer_body
+        .get_mut("fields")
+        .unwrap()
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|field| field["name"] == "seedCriteria.seedRatio");
+      if let Some(seed_ratio_field) = seed_ratio_field_option {
+        seed_ratio_field
+          .as_object_mut()
+          .unwrap()
+          .insert("value".to_string(), json!(seed_ratio.text.clone()));
+      }
+
+      app.data.radarr_data.edit_indexer_modal = None;
+
+      detailed_indexer_body
+    };
+
+    debug!("Edit indexer body: {body:?}");
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!("{}/{id}", RadarrEvent::EditIndexer.resource()).as_str(),
         RequestMethod::Put,
         Some(body),
       )
@@ -663,13 +822,13 @@ impl<'a, 'b> Network<'a, 'b> {
       .handle_request::<(), Vec<Credit>>(request_props, |credit_vec, mut app| {
         let cast_vec: Vec<Credit> = credit_vec
           .iter()
+          .filter(|&credit| credit.credit_type == CreditType::Cast)
           .cloned()
-          .filter(|credit| credit.credit_type == CreditType::Cast)
           .collect();
         let crew_vec: Vec<Credit> = credit_vec
           .iter()
+          .filter(|&credit| credit.credit_type == CreditType::Crew)
           .cloned()
-          .filter(|credit| credit.credit_type == CreditType::Crew)
           .collect();
 
         if app.data.radarr_data.movie_details_modal.is_none() {
@@ -1498,37 +1657,6 @@ impl<'a, 'b> Network<'a, 'b> {
     self
       .handle_request::<CommandBody, Value>(request_props, |_, _| ())
       .await;
-  }
-
-  async fn update_indexer_settings(&mut self) {
-    info!("Updating Radarr indexer settings");
-
-    let body = self
-      .app
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .indexer_settings
-      .as_ref()
-      .unwrap()
-      .clone();
-
-    debug!("Indexer settings body: {body:?}");
-
-    let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::UpdateIndexerSettings.resource(),
-        RequestMethod::Put,
-        Some(body),
-      )
-      .await;
-
-    self
-      .handle_request::<IndexerSettings, Value>(request_props, |_, _| {})
-      .await;
-
-    self.app.lock().await.data.radarr_data.indexer_settings = None;
   }
 
   async fn radarr_request_props_from<T: Serialize + Debug>(

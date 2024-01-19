@@ -676,15 +676,26 @@ fn draw_help_and_get_content_rect(f: &mut Frame<'_>, area: Rect, help: Option<St
   }
 }
 
-pub fn draw_text_box(
-  f: &mut Frame<'_>,
-  text_box_area: Rect,
-  block_title: Option<&str>,
-  block_content: &str,
-  offset: usize,
-  should_show_cursor: bool,
-  is_selected: bool,
-) {
+pub struct TextBoxProps<'a> {
+  pub text_box_area: Rect,
+  pub block_title: Option<&'a str>,
+  pub block_content: &'a str,
+  pub offset: usize,
+  pub should_show_cursor: bool,
+  pub is_selected: bool,
+  pub cursor_after_string: bool,
+}
+
+pub fn draw_text_box(f: &mut Frame<'_>, text_box_props: TextBoxProps<'_>) {
+  let TextBoxProps {
+    text_box_area,
+    block_title,
+    block_content,
+    offset,
+    should_show_cursor,
+    is_selected,
+    cursor_after_string,
+  } = text_box_props;
   let (block, style) = if let Some(title) = block_title {
     (title_block_centered(title), style_default())
   } else {
@@ -703,19 +714,33 @@ pub fn draw_text_box(
   f.render_widget(paragraph, text_box_area);
 
   if should_show_cursor {
-    show_cursor(f, text_box_area, offset, block_content);
+    show_cursor(f, text_box_area, offset, block_content, cursor_after_string);
   }
+}
+
+pub struct LabeledTextBoxProps<'a> {
+  pub area: Rect,
+  pub label: &'a str,
+  pub text: &'a str,
+  pub offset: usize,
+  pub is_selected: bool,
+  pub should_show_cursor: bool,
+  pub cursor_after_string: bool,
 }
 
 pub fn draw_text_box_with_label(
   f: &mut Frame<'_>,
-  area: Rect,
-  label: &str,
-  text: &str,
-  offset: usize,
-  is_selected: bool,
-  should_show_cursor: bool,
+  labeled_text_box_props: LabeledTextBoxProps<'_>,
 ) {
+  let LabeledTextBoxProps {
+    area,
+    label,
+    text,
+    offset,
+    is_selected,
+    should_show_cursor,
+    cursor_after_string,
+  } = labeled_text_box_props;
   let horizontal_chunks = horizontal_chunks(
     vec![
       Constraint::Percentage(48),
@@ -734,12 +759,15 @@ pub fn draw_text_box_with_label(
 
   draw_text_box(
     f,
-    horizontal_chunks[1],
-    None,
-    text,
-    offset,
-    should_show_cursor,
-    is_selected,
+    TextBoxProps {
+      text_box_area: horizontal_chunks[1],
+      block_title: None,
+      block_content: text,
+      offset,
+      should_show_cursor,
+      is_selected,
+      cursor_after_string,
+    },
   );
 }
 
@@ -761,12 +789,15 @@ pub fn draw_input_box_popup(
 
   draw_text_box(
     f,
-    chunks[0],
-    Some(box_title),
-    &box_content.text,
-    *box_content.offset.borrow(),
-    true,
-    false,
+    TextBoxProps {
+      text_box_area: chunks[0],
+      block_title: Some(box_title),
+      block_content: &box_content.text,
+      offset: *box_content.offset.borrow(),
+      should_show_cursor: true,
+      is_selected: false,
+      cursor_after_string: true,
+    },
   );
 
   let help = Paragraph::new("<esc> cancel")
