@@ -1,56 +1,15 @@
 use crate::ui::styles::ManagarrStyle;
-use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
+use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Color, Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, BorderType, Borders, LineGauge, Paragraph, Wrap};
 use ratatui::{symbols, Frame};
-use std::rc::Rc;
 
 pub const COLOR_TEAL: Color = Color::Rgb(35, 50, 55);
 
 #[cfg(test)]
 #[path = "utils_tests.rs"]
 mod utils_tests;
-
-pub fn horizontal_chunks(constraints: Vec<Constraint>, area: Rect) -> Rc<[Rect]> {
-  layout_with_constraints(constraints)
-    .direction(Direction::Horizontal)
-    .split(area)
-}
-
-pub fn horizontal_chunks_with_margin(
-  constraints: Vec<Constraint>,
-  area: Rect,
-  margin: u16,
-) -> Rc<[Rect]> {
-  layout_with_constraints(constraints)
-    .direction(Direction::Horizontal)
-    .margin(margin)
-    .split(area)
-}
-
-pub fn vertical_chunks(constraints: Vec<Constraint>, area: Rect) -> Rc<[Rect]> {
-  layout_with_constraints(constraints)
-    .direction(Direction::Vertical)
-    .split(area)
-}
-
-pub fn vertical_chunks_with_margin(
-  constraints: Vec<Constraint>,
-  area: Rect,
-  margin: u16,
-) -> Rc<[Rect]> {
-  layout_with_constraints(constraints)
-    .direction(Direction::Vertical)
-    .margin(margin)
-    .split(area)
-}
-
-fn layout_with_constraints(constraints: Vec<Constraint>) -> Layout {
-  Layout::default().constraints(<Vec<Constraint> as AsRef<[Constraint]>>::as_ref(
-    &constraints,
-  ))
-}
 
 pub fn background_block<'a>() -> Block<'a> {
   Block::new().white().bg(COLOR_TEAL)
@@ -140,27 +99,22 @@ pub fn logo_block<'a>() -> Block<'a> {
   ))
 }
 
-pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
-  let popup_layout = vertical_chunks(
-    vec![
-      Constraint::Percentage((100 - percent_y) / 2),
-      Constraint::Percentage(percent_y),
-      Constraint::Percentage((100 - percent_y) / 2),
-    ],
-    r,
-  );
+pub fn centered_rect(percent_x: u16, percent_y: u16, area: Rect) -> Rect {
+  let [_, vertical_area, _] = Layout::vertical([
+    Constraint::Percentage((100 - percent_y) / 2),
+    Constraint::Percentage(percent_y),
+    Constraint::Percentage((100 - percent_y) / 2),
+  ])
+  .areas(area);
 
-  Layout::default()
-    .direction(Direction::Horizontal)
-    .constraints(
-      [
-        Constraint::Percentage((100 - percent_x) / 2),
-        Constraint::Percentage(percent_x),
-        Constraint::Percentage((100 - percent_x) / 2),
-      ]
-      .as_ref(),
-    )
-    .split(popup_layout[1])[1]
+  let [_, horizontal_layout, _] = Layout::horizontal([
+    Constraint::Percentage((100 - percent_x) / 2),
+    Constraint::Percentage(percent_x),
+    Constraint::Percentage((100 - percent_x) / 2),
+  ])
+  .areas(vertical_area);
+
+  horizontal_layout
 }
 
 pub fn line_gauge_with_title(title: &str, ratio: f64) -> LineGauge<'_> {

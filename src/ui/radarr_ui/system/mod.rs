@@ -1,7 +1,7 @@
 use std::ops::Sub;
 
 use chrono::Utc;
-use ratatui::layout::Alignment;
+use ratatui::layout::{Alignment, Layout};
 use ratatui::text::{Span, Text};
 use ratatui::widgets::{Cell, Paragraph, Row};
 use ratatui::{
@@ -20,11 +20,7 @@ use crate::ui::utils::layout_block_top_border;
 use crate::ui::{draw_table, ListProps, TableProps};
 use crate::{
   models::Route,
-  ui::{
-    draw_list_box,
-    utils::{horizontal_chunks, title_block, vertical_chunks},
-    DrawUi,
-  },
+  ui::{draw_list_box, utils::title_block, DrawUi},
 };
 
 mod system_details_ui;
@@ -60,13 +56,13 @@ impl DrawUi for SystemUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = *app.get_current_route();
 
     match route {
-      _ if SystemDetailsUi::accepts(route) => SystemDetailsUi::draw(f, app, content_rect),
+      _ if SystemDetailsUi::accepts(route) => SystemDetailsUi::draw(f, app, area),
       _ if matches!(route, Route::Radarr(ActiveRadarrBlock::System, _)) => {
-        draw_system_ui_layout(f, app, content_rect)
+        draw_system_ui_layout(f, app, area)
       }
       _ => (),
     }
@@ -74,24 +70,20 @@ impl DrawUi for SystemUi {
 }
 
 pub(super) fn draw_system_ui_layout(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let vertical_chunks = vertical_chunks(
-    vec![
-      Constraint::Ratio(1, 2),
-      Constraint::Ratio(1, 2),
-      Constraint::Min(2),
-    ],
-    area,
-  );
+  let [activities_area, logs_area, help_area] = Layout::vertical([
+    Constraint::Ratio(1, 2),
+    Constraint::Ratio(1, 2),
+    Constraint::Min(2),
+  ])
+  .areas(area);
 
-  let horizontal_chunks = horizontal_chunks(
-    vec![Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)],
-    vertical_chunks[0],
-  );
+  let [tasks_area, events_area] =
+    Layout::horizontal([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)]).areas(activities_area);
 
-  draw_tasks(f, app, horizontal_chunks[0]);
-  draw_queued_events(f, app, horizontal_chunks[1]);
-  draw_logs(f, app, vertical_chunks[1]);
-  draw_help(f, app, vertical_chunks[2]);
+  draw_tasks(f, app, tasks_area);
+  draw_queued_events(f, app, events_area);
+  draw_logs(f, app, logs_area);
+  draw_help(f, app, help_area);
 }
 
 fn draw_tasks(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

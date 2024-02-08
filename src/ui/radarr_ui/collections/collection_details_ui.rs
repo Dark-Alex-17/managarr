@@ -1,4 +1,4 @@
-use ratatui::layout::{Alignment, Constraint, Rect};
+use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
 use ratatui::style::Stylize;
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
@@ -16,7 +16,7 @@ use crate::ui::radarr_ui::collections::draw_collections;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_top_border_with_title, title_block,
-  title_style, vertical_chunks_with_margin,
+  title_style,
 };
 use crate::ui::{draw_large_popup_over, draw_small_popup_over, draw_table, DrawUi, TableProps};
 use crate::utils::convert_runtime;
@@ -36,7 +36,7 @@ impl DrawUi for CollectionDetailsUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
       let draw_collection_details_popup =
         |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| match context_option
@@ -58,7 +58,7 @@ impl DrawUi for CollectionDetailsUi {
       draw_large_popup_over(
         f,
         app,
-        content_rect,
+        area,
         draw_collections,
         draw_collection_details_popup,
       );
@@ -66,16 +66,14 @@ impl DrawUi for CollectionDetailsUi {
   }
 }
 
-pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
-  let chunks = vertical_chunks_with_margin(
-    vec![
-      Constraint::Percentage(25),
-      Constraint::Percentage(70),
-      Constraint::Percentage(5),
-    ],
-    content_area,
-    1,
-  );
+pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  let [description_area, table_area, help_footer_area] = Layout::vertical([
+    Constraint::Percentage(25),
+    Constraint::Percentage(70),
+    Constraint::Percentage(5),
+  ])
+  .margin(1)
+  .areas(area);
   let collection_selection =
     if let Some(filtered_collections) = app.data.radarr_data.filtered_collections.as_ref() {
       filtered_collections.current_selection()
@@ -157,14 +155,14 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, content_are
     .block(borderless_block())
     .alignment(Alignment::Center);
 
-  f.render_widget(title_block(&collection_selection.title.text), content_area);
+  f.render_widget(title_block(&collection_selection.title.text), area);
 
-  f.render_widget(description_paragraph, chunks[0]);
-  f.render_widget(help_paragraph, chunks[2]);
+  f.render_widget(description_paragraph, description_area);
+  f.render_widget(help_paragraph, help_footer_area);
 
   draw_table(
     f,
-    chunks[1],
+    table_area,
     layout_block_top_border_with_title(title_style("Movies")),
     TableProps {
       content: Some(&mut app.data.radarr_data.collection_movies),
@@ -203,7 +201,7 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, content_are
         ""
       };
       movie.title.scroll_left_or_reset(
-        get_width_from_percentage(chunks[1], 20),
+        get_width_from_percentage(table_area, 20),
         current_selection == *movie,
         app.tick_count % app.ticks_until_scroll == 0,
       );
@@ -251,15 +249,15 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, content_are
   );
 }
 
-fn draw_movie_overview(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
+fn draw_movie_overview(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let title_block = title_block("Overview");
-  f.render_widget(title_block, content_area);
+  f.render_widget(title_block, area);
 
-  let chunks = vertical_chunks_with_margin(
-    vec![Constraint::Percentage(95), Constraint::Percentage(5)],
-    content_area,
-    1,
-  );
+  let [paragraph_area, help_area] =
+    Layout::vertical([Constraint::Percentage(95), Constraint::Length(1)])
+      .flex(Flex::SpaceBetween)
+      .margin(1)
+      .areas(area);
   let overview = Text::from(
     app
       .data
@@ -279,6 +277,6 @@ fn draw_movie_overview(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect)
     .block(borderless_block())
     .alignment(Alignment::Center);
 
-  f.render_widget(paragraph, chunks[0]);
-  f.render_widget(help_paragraph, chunks[1]);
+  f.render_widget(paragraph, paragraph_area);
+  f.render_widget(help_paragraph, help_area);
 }

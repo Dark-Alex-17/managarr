@@ -1,6 +1,6 @@
 use std::iter;
 
-use ratatui::layout::{Alignment, Constraint, Rect};
+use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Cell, ListItem, Paragraph, Row, Wrap};
@@ -14,7 +14,6 @@ use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_bottom_border, layout_block_top_border,
-  vertical_chunks,
 };
 use crate::ui::{
   draw_drop_down_popup, draw_large_popup_over, draw_prompt_box, draw_prompt_box_with_content,
@@ -38,10 +37,10 @@ impl DrawUi for MovieDetailsUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
       let draw_movie_info_popup = |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| {
-        let (content_area, _) = draw_tabs(
+        let content_area = draw_tabs(
           f,
           popup_area,
           "Movie Info",
@@ -94,7 +93,7 @@ impl DrawUi for MovieDetailsUi {
         }
       };
 
-      draw_large_popup_over(f, app, content_rect, draw_library, draw_movie_info_popup);
+      draw_large_popup_over(f, app, area, draw_library, draw_movie_info_popup);
     }
   }
 }
@@ -115,10 +114,10 @@ fn draw_movie_info(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   }
 }
 
-fn draw_search_movie_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_search_movie_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_prompt_box(
     f,
-    prompt_area,
+    area,
     "Automatic Movie Search",
     format!(
       "Do you want to trigger an automatic search of your indexers for the movie: {}?",
@@ -129,10 +128,10 @@ fn draw_search_movie_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
   );
 }
 
-fn draw_update_and_scan_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_update_and_scan_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_prompt_box(
     f,
-    prompt_area,
+    area,
     "Update and Scan",
     format!(
       "Do you want to trigger an update and disk scan for the movie: {}?",
@@ -143,7 +142,7 @@ fn draw_update_and_scan_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area
   );
 }
 
-fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, content_area: Rect) {
+fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   match app.data.radarr_data.movie_details_modal.as_ref() {
     Some(movie_details_modal)
       if !movie_details_modal.file_details.is_empty() && !app.is_loading =>
@@ -151,17 +150,16 @@ fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, content_area: Rect) {
       let file_info = movie_details_modal.file_details.to_owned();
       let audio_details = movie_details_modal.audio_details.to_owned();
       let video_details = movie_details_modal.video_details.to_owned();
-      let chunks = vertical_chunks(
-        vec![
+      let [file_details_title_area, file_details_area, audio_details_title_area, audio_details_area, video_details_title_area, video_details_area] =
+        Layout::vertical([
           Constraint::Length(2),
           Constraint::Length(5),
           Constraint::Length(1),
           Constraint::Length(6),
           Constraint::Length(1),
           Constraint::Length(7),
-        ],
-        content_area,
-      );
+        ])
+        .areas(area);
 
       let file_details_title_paragraph =
         Paragraph::new("File Details".bold()).block(layout_block_top_border());
@@ -184,18 +182,18 @@ fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, content_area: Rect) {
         .block(borderless_block())
         .wrap(Wrap { trim: false });
 
-      f.render_widget(file_details_title_paragraph, chunks[0]);
-      f.render_widget(file_details_paragraph, chunks[1]);
-      f.render_widget(audio_details_title_paragraph, chunks[2]);
-      f.render_widget(audio_details_paragraph, chunks[3]);
-      f.render_widget(video_details_title_paragraph, chunks[4]);
-      f.render_widget(video_details_paragraph, chunks[5]);
+      f.render_widget(file_details_title_paragraph, file_details_title_area);
+      f.render_widget(file_details_paragraph, file_details_area);
+      f.render_widget(audio_details_title_paragraph, audio_details_title_area);
+      f.render_widget(audio_details_paragraph, audio_details_area);
+      f.render_widget(video_details_title_paragraph, video_details_title_area);
+      f.render_widget(video_details_paragraph, video_details_area);
     }
-    _ => loading(f, layout_block_top_border(), content_area, app.is_loading),
+    _ => loading(f, layout_block_top_border(), area, app.is_loading),
   }
 }
 
-fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, content_area: Rect) {
+fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   let block = layout_block_top_border();
 
   match app.data.radarr_data.movie_details_modal.as_ref() {
@@ -230,18 +228,18 @@ fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, content_area: Rect) {
         .wrap(Wrap { trim: false })
         .scroll((movie_details.offset, 0));
 
-      f.render_widget(paragraph, content_area);
+      f.render_widget(paragraph, area);
     }
     _ => loading(
       f,
       block,
-      content_area,
+      area,
       app.is_loading || app.data.radarr_data.movie_details_modal.is_none(),
     ),
   }
 }
 
-fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
+fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if let Some(movie_details_modal) = app.data.radarr_data.movie_details_modal.as_mut() {
     let current_selection = if movie_details_modal.movie_history.items.is_empty() {
       MovieHistoryItem::default()
@@ -254,7 +252,7 @@ fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) 
 
     draw_table(
       f,
-      content_area,
+      area,
       layout_block_top_border(),
       TableProps {
         content: Some(&mut movie_details_modal.movie_history),
@@ -283,7 +281,7 @@ fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) 
         } = movie_history_item;
 
         movie_history_item.source_title.scroll_left_or_reset(
-          get_width_from_percentage(content_area, 34),
+          get_width_from_percentage(area, 34),
           current_selection == *movie_history_item,
           app.tick_count % app.ticks_until_scroll == 0,
         );
@@ -309,10 +307,10 @@ fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) 
   }
 }
 
-fn draw_movie_cast(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
+fn draw_movie_cast(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_table(
     f,
-    content_area,
+    area,
     layout_block_top_border(),
     TableProps {
       content: Some(
@@ -351,10 +349,10 @@ fn draw_movie_cast(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
   );
 }
 
-fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
+fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_table(
     f,
-    content_area,
+    area,
     layout_block_top_border(),
     TableProps {
       content: Some(
@@ -395,7 +393,7 @@ fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
   );
 }
 
-fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
+fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let (current_selection, is_empty, sort_ascending) =
     match app.data.radarr_data.movie_details_modal.as_ref() {
       Some(movie_details_modal) if !movie_details_modal.movie_releases.items.is_empty() => (
@@ -447,7 +445,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect)
 
   draw_table(
     f,
-    content_area,
+    area,
     layout_block_top_border(),
     TableProps {
       content: Some(
@@ -494,7 +492,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect)
       } = release;
       let age = format!("{age} days");
       title.scroll_left_or_reset(
-        get_width_from_percentage(content_area, 30),
+        get_width_from_percentage(area, 30),
         current_selection == *release
           && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
         app.tick_count % app.ticks_until_scroll == 0,
@@ -539,7 +537,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect)
   );
 }
 
-fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let current_selection = app
     .data
     .radarr_data
@@ -583,20 +581,14 @@ fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>, promp
 
     draw_prompt_box_with_content(
       f,
-      prompt_area,
+      area,
       title,
       &prompt,
       Some(content_paragraph),
       app.data.radarr_data.prompt_confirm,
     );
   } else {
-    draw_prompt_box(
-      f,
-      prompt_area,
-      title,
-      &prompt,
-      app.data.radarr_data.prompt_confirm,
-    );
+    draw_prompt_box(f, area, title, &prompt, app.data.radarr_data.prompt_confirm);
   }
 }
 

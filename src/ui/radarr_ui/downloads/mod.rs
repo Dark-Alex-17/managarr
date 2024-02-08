@@ -6,9 +6,9 @@ use crate::app::App;
 use crate::models::radarr_models::DownloadRecord;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
 use crate::models::{HorizontallyScrollableText, Route};
+use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::{draw_prompt_box, draw_prompt_popup_over, draw_table, DrawUi, TableProps};
-use crate::ui::styles::ManagarrStyle;
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -26,24 +26,16 @@ impl DrawUi for DownloadsUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
       match active_radarr_block {
-        ActiveRadarrBlock::Downloads => draw_downloads(f, app, content_rect),
-        ActiveRadarrBlock::DeleteDownloadPrompt => draw_prompt_popup_over(
-          f,
-          app,
-          content_rect,
-          draw_downloads,
-          draw_delete_download_prompt,
-        ),
-        ActiveRadarrBlock::UpdateDownloadsPrompt => draw_prompt_popup_over(
-          f,
-          app,
-          content_rect,
-          draw_downloads,
-          draw_update_downloads_prompt,
-        ),
+        ActiveRadarrBlock::Downloads => draw_downloads(f, app, area),
+        ActiveRadarrBlock::DeleteDownloadPrompt => {
+          draw_prompt_popup_over(f, app, area, draw_downloads, draw_delete_download_prompt)
+        }
+        ActiveRadarrBlock::UpdateDownloadsPrompt => {
+          draw_prompt_popup_over(f, app, area, draw_downloads, draw_update_downloads_prompt)
+        }
         _ => (),
       }
     }
@@ -120,17 +112,18 @@ fn draw_downloads(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         ),
         Cell::from(indexer.to_owned()),
         Cell::from(download_client.to_owned()),
-      ]).primary()
+      ])
+      .primary()
     },
     app.is_loading,
     true,
   );
 }
 
-fn draw_delete_download_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_delete_download_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_prompt_box(
     f,
-    prompt_area,
+    area,
     "Cancel Download",
     format!(
       "Do you really want to delete this download: \n{}?",
@@ -141,10 +134,10 @@ fn draw_delete_download_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area
   );
 }
 
-fn draw_update_downloads_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_update_downloads_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_prompt_box(
     f,
-    prompt_area,
+    area,
     "Update Downloads",
     "Do you want to update your downloads?",
     app.data.radarr_data.prompt_confirm,

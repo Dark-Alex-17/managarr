@@ -10,12 +10,12 @@ use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, COLLEC
 use crate::models::Route;
 use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsUi;
 use crate::ui::radarr_ui::collections::edit_collection_ui::EditCollectionUi;
+use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::{
   draw_error_message_popup, draw_input_box_popup, draw_popup_over, draw_prompt_box,
   draw_prompt_popup_over, draw_table, DrawUi, TableProps,
 };
-use crate::ui::styles::ManagarrStyle;
 
 mod collection_details_ui;
 #[cfg(test)]
@@ -36,14 +36,14 @@ impl DrawUi for CollectionsUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = *app.get_current_route();
     let mut collections_ui_matcher = |active_radarr_block| match active_radarr_block {
-      ActiveRadarrBlock::Collections => draw_collections(f, app, content_rect),
+      ActiveRadarrBlock::Collections => draw_collections(f, app, area),
       ActiveRadarrBlock::SearchCollection => draw_popup_over(
         f,
         app,
-        content_rect,
+        area,
         draw_collections,
         draw_collection_search_box,
         30,
@@ -52,7 +52,7 @@ impl DrawUi for CollectionsUi {
       ActiveRadarrBlock::SearchCollectionError => draw_popup_over(
         f,
         app,
-        content_rect,
+        area,
         draw_collections,
         draw_search_collection_error_box,
         30,
@@ -61,7 +61,7 @@ impl DrawUi for CollectionsUi {
       ActiveRadarrBlock::FilterCollections => draw_popup_over(
         f,
         app,
-        content_rect,
+        area,
         draw_collections,
         draw_filter_collections_box,
         30,
@@ -70,7 +70,7 @@ impl DrawUi for CollectionsUi {
       ActiveRadarrBlock::FilterCollectionsError => draw_popup_over(
         f,
         app,
-        content_rect,
+        area,
         draw_collections,
         draw_filter_collections_error_box,
         30,
@@ -79,7 +79,7 @@ impl DrawUi for CollectionsUi {
       ActiveRadarrBlock::UpdateAllCollectionsPrompt => draw_prompt_popup_over(
         f,
         app,
-        content_rect,
+        area,
         draw_collections,
         draw_update_all_collections_prompt,
       ),
@@ -87,8 +87,8 @@ impl DrawUi for CollectionsUi {
     };
 
     match route {
-      _ if CollectionDetailsUi::accepts(route) => CollectionDetailsUi::draw(f, app, content_rect),
-      _ if EditCollectionUi::accepts(route) => EditCollectionUi::draw(f, app, content_rect),
+      _ if CollectionDetailsUi::accepts(route) => CollectionDetailsUi::draw(f, app, area),
+      _ if EditCollectionUi::accepts(route) => EditCollectionUi::draw(f, app, area),
       Route::Radarr(active_radarr_block, _)
         if COLLECTIONS_BLOCKS.contains(&active_radarr_block) =>
       {
@@ -168,17 +168,18 @@ pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
         ),
         Cell::from(search_on_add),
         Cell::from(monitored),
-      ]).primary()
+      ])
+      .primary()
     },
     app.is_loading,
     true,
   );
 }
 
-fn draw_update_all_collections_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_update_all_collections_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_prompt_box(
     f,
-    prompt_area,
+    area,
     "Update All Collections",
     "Do you want to update all of your collections?",
     app.data.radarr_data.prompt_confirm,

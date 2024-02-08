@@ -1,4 +1,5 @@
 use ratatui::layout::{Constraint, Rect};
+use ratatui::prelude::Layout;
 use ratatui::widgets::ListItem;
 use ratatui::Frame;
 
@@ -11,9 +12,7 @@ use crate::models::Route;
 use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::radarr_ui::library::movie_details_ui::MovieDetailsUi;
 
-use crate::ui::utils::{
-  horizontal_chunks, layout_paragraph_borderless, title_block_centered, vertical_chunks_with_margin,
-};
+use crate::ui::utils::{layout_paragraph_borderless, title_block_centered};
 use crate::ui::{
   draw_button, draw_checkbox_with_label, draw_drop_down_menu_button, draw_drop_down_popup,
   draw_large_popup_over_background_fn_with_ui, draw_medium_popup_over, draw_popup,
@@ -35,7 +34,7 @@ impl DrawUi for EditMovieUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
       let draw_edit_movie_prompt =
         |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| match active_radarr_block {
@@ -69,13 +68,13 @@ impl DrawUi for EditMovieUi {
       if let Some(context) = context_option {
         match context {
           ActiveRadarrBlock::Movies => {
-            draw_medium_popup_over(f, app, content_rect, draw_library, draw_edit_movie_prompt);
+            draw_medium_popup_over(f, app, area, draw_library, draw_edit_movie_prompt);
           }
           _ if MOVIE_DETAILS_BLOCKS.contains(&context) => {
             draw_large_popup_over_background_fn_with_ui::<MovieDetailsUi>(
               f,
               app,
-              content_rect,
+              area,
               draw_library,
             );
             draw_popup(f, app, draw_edit_movie_prompt, 60, 60);
@@ -87,7 +86,7 @@ impl DrawUi for EditMovieUi {
   }
 }
 
-fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let (movie_title, movie_overview) =
     if let Some(filtered_movies) = app.data.radarr_data.filtered_movies.as_ref() {
       (
@@ -128,34 +127,32 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, pro
   let selected_minimum_availability = minimum_availability_list.current_selection();
   let selected_quality_profile = quality_profile_list.current_selection();
 
-  f.render_widget(title_block_centered(&title), prompt_area);
+  f.render_widget(title_block_centered(&title), area);
 
-  let chunks = vertical_chunks_with_margin(
-    vec![
+  let [paragraph_area, monitored_area, min_availability_area, quality_profile_area, path_area, tags_area, _, buttons_area] =
+    Layout::vertical([
       Constraint::Length(6),
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
-      Constraint::Min(0),
+      Constraint::Fill(0),
       Constraint::Length(3),
-    ],
-    prompt_area,
-    1,
-  );
+    ])
+    .margin(1)
+    .areas(area);
 
   let prompt_paragraph = layout_paragraph_borderless(&movie_overview);
-  f.render_widget(prompt_paragraph, chunks[0]);
+  f.render_widget(prompt_paragraph, paragraph_area);
 
-  let horizontal_chunks = horizontal_chunks(
-    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
-    chunks[7],
-  );
+  let [save_area, cancel_area] =
+    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+      .areas(buttons_area);
 
   draw_checkbox_with_label(
     f,
-    chunks[1],
+    monitored_area,
     "Monitored",
     monitored.unwrap_or_default(),
     selected_block == &ActiveRadarrBlock::EditMovieToggleMonitored,
@@ -163,14 +160,14 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, pro
 
   draw_drop_down_menu_button(
     f,
-    chunks[2],
+    min_availability_area,
     "Minimum Availability",
     selected_minimum_availability.to_display_str(),
     selected_block == &ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
   );
   draw_drop_down_menu_button(
     f,
-    chunks[3],
+    quality_profile_area,
     "Quality Profile",
     selected_quality_profile,
     selected_block == &ActiveRadarrBlock::EditMovieSelectQualityProfile,
@@ -180,7 +177,7 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, pro
     draw_text_box_with_label(
       f,
       LabeledTextBoxProps {
-        area: chunks[4],
+        area: path_area,
         label: "Path",
         text: &path.text,
         offset: *path.offset.borrow(),
@@ -192,7 +189,7 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, pro
     draw_text_box_with_label(
       f,
       LabeledTextBoxProps {
-        area: chunks[5],
+        area: tags_area,
         label: "Tags",
         text: &tags.text,
         offset: *tags.offset.borrow(),
@@ -203,28 +200,18 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, pro
     );
   }
 
-  draw_button(
-    f,
-    horizontal_chunks[0],
-    "Save",
-    yes_no_value && highlight_yes_no,
-  );
-  draw_button(
-    f,
-    horizontal_chunks[1],
-    "Cancel",
-    !yes_no_value && highlight_yes_no,
-  );
+  draw_button(f, save_area, "Save", yes_no_value && highlight_yes_no);
+  draw_button(f, cancel_area, "Cancel", !yes_no_value && highlight_yes_no);
 }
 
 fn draw_edit_movie_select_minimum_availability_popup(
   f: &mut Frame<'_>,
   app: &mut App<'_>,
-  popup_area: Rect,
+  area: Rect,
 ) {
   draw_selectable_list(
     f,
-    popup_area,
+    area,
     &mut app
       .data
       .radarr_data
@@ -236,14 +223,10 @@ fn draw_edit_movie_select_minimum_availability_popup(
   );
 }
 
-fn draw_edit_movie_select_quality_profile_popup(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  popup_area: Rect,
-) {
+fn draw_edit_movie_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_selectable_list(
     f,
-    popup_area,
+    area,
     &mut app
       .data
       .radarr_data

@@ -36,24 +36,20 @@ impl DrawUi for IndexersUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = *app.get_current_route();
     let mut indexers_matchers = |active_radarr_block| match active_radarr_block {
-      ActiveRadarrBlock::Indexers => draw_indexers(f, app, content_rect),
-      ActiveRadarrBlock::DeleteIndexerPrompt => draw_prompt_popup_over(
-        f,
-        app,
-        content_rect,
-        draw_indexers,
-        draw_delete_indexer_prompt,
-      ),
+      ActiveRadarrBlock::Indexers => draw_indexers(f, app, area),
+      ActiveRadarrBlock::DeleteIndexerPrompt => {
+        draw_prompt_popup_over(f, app, area, draw_indexers, draw_delete_indexer_prompt)
+      }
       _ => (),
     };
 
     match route {
-      _ if EditIndexerUi::accepts(route) => EditIndexerUi::draw(f, app, content_rect),
-      _ if IndexerSettingsUi::accepts(route) => IndexerSettingsUi::draw(f, app, content_rect),
-      _ if TestAllIndexersUi::accepts(route) => TestAllIndexersUi::draw(f, app, content_rect),
+      _ if EditIndexerUi::accepts(route) => EditIndexerUi::draw(f, app, area),
+      _ if IndexerSettingsUi::accepts(route) => IndexerSettingsUi::draw(f, app, area),
+      _ if TestAllIndexersUi::accepts(route) => TestAllIndexersUi::draw(f, app, area),
       Route::Radarr(active_radarr_block, _) if INDEXERS_BLOCKS.contains(&active_radarr_block) => {
         indexers_matchers(active_radarr_block)
       }
@@ -142,10 +138,10 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   )
 }
 
-fn draw_delete_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_delete_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_prompt_box(
     f,
-    prompt_area,
+    area,
     "Delete Indexer",
     format!(
       "Do you really want to delete this indexer: \n{}?",

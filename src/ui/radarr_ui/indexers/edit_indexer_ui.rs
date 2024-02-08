@@ -2,17 +2,13 @@ use crate::app::App;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::indexers::draw_indexers;
-use crate::ui::utils::{
-  horizontal_chunks, horizontal_chunks_with_margin, title_block_centered, vertical_chunks,
-  vertical_chunks_with_margin,
-};
+use crate::ui::utils::title_block_centered;
 use crate::ui::{
   draw_button, draw_checkbox_with_label, draw_popup_over, draw_text_box_with_label, loading,
   DrawUi, LabeledTextBoxProps,
 };
-use ratatui::layout::{Constraint, Layout, Rect};
+use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::Frame;
-use std::iter;
 
 #[cfg(test)]
 #[path = "edit_indexer_ui_tests.rs"]
@@ -29,11 +25,11 @@ impl DrawUi for EditIndexerUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     draw_popup_over(
       f,
       app,
-      content_rect,
+      area,
       draw_indexers,
       draw_edit_indexer_prompt,
       70,
@@ -42,7 +38,7 @@ impl DrawUi for EditIndexerUi {
   }
 }
 
-fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let block = title_block_centered("Edit Indexer");
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();
@@ -52,38 +48,34 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
 
   if edit_indexer_modal_option.is_some() {
     let edit_indexer_modal = edit_indexer_modal_option.as_ref().unwrap();
-    f.render_widget(block, prompt_area);
+    f.render_widget(block, area);
 
-    let chunks = vertical_chunks_with_margin(
-      vec![Constraint::Min(0), Constraint::Length(3)],
-      prompt_area,
-      1,
-    );
+    let [settings_area, buttons_area] =
+      Layout::vertical([Constraint::Fill(0), Constraint::Length(3)])
+        .margin(1)
+        .areas(area);
 
-    let split_chunks = horizontal_chunks_with_margin(
-      vec![Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)],
-      chunks[0],
-      1,
-    );
+    let [left_side_area, right_side_area] =
+      Layout::horizontal([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)])
+        .margin(1)
+        .areas(settings_area);
 
     let [name, rss, auto_search, interactive_search, _] = Layout::vertical([
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
-      Constraint::Min(0),
+      Constraint::Fill(0),
     ])
-    .areas(split_chunks[0]);
-    let right_chunks = vertical_chunks(
-      vec![
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Min(0),
-      ],
-      split_chunks[1],
-    );
+    .areas(left_side_area);
+    let [url_area, api_key_area, seed_ratio_area, tags_area, _] = Layout::vertical([
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Fill(0),
+    ])
+    .areas(right_side_area);
 
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
       draw_text_box_with_label(
@@ -101,7 +93,7 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
       draw_text_box_with_label(
         f,
         LabeledTextBoxProps {
-          area: right_chunks[0],
+          area: url_area,
           label: "URL",
           text: &edit_indexer_modal.url.text,
           offset: *edit_indexer_modal.url.offset.borrow(),
@@ -113,7 +105,7 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
       draw_text_box_with_label(
         f,
         LabeledTextBoxProps {
-          area: right_chunks[1],
+          area: api_key_area,
           label: "API Key",
           text: &edit_indexer_modal.api_key.text,
           offset: *edit_indexer_modal.api_key.offset.borrow(),
@@ -126,7 +118,7 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
         draw_text_box_with_label(
           f,
           LabeledTextBoxProps {
-            area: right_chunks[2],
+            area: seed_ratio_area,
             label: "Seed Ratio",
             text: &edit_indexer_modal.seed_ratio.text,
             offset: *edit_indexer_modal.seed_ratio.offset.borrow(),
@@ -138,7 +130,7 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
         draw_text_box_with_label(
           f,
           LabeledTextBoxProps {
-            area: right_chunks[3],
+            area: tags_area,
             label: "Tags",
             text: &edit_indexer_modal.tags.text,
             offset: *edit_indexer_modal.tags.offset.borrow(),
@@ -151,7 +143,7 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
         draw_text_box_with_label(
           f,
           LabeledTextBoxProps {
-            area: right_chunks[2],
+            area: seed_ratio_area,
             label: "Tags",
             text: &edit_indexer_modal.tags.text,
             offset: *edit_indexer_modal.tags.offset.borrow(),
@@ -188,25 +180,15 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
         selected_block == &ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
       );
 
-      let button_chunks = horizontal_chunks(
-        iter::repeat(Constraint::Ratio(1, 4)).take(4).collect(),
-        chunks[1],
-      );
+      let [save_area, cancel_area] =
+        Layout::horizontal([Constraint::Percentage(25), Constraint::Percentage(25)])
+          .flex(Flex::Center)
+          .areas(buttons_area);
 
-      draw_button(
-        f,
-        button_chunks[1],
-        "Save",
-        yes_no_value && highlight_yes_no,
-      );
-      draw_button(
-        f,
-        button_chunks[2],
-        "Cancel",
-        !yes_no_value && highlight_yes_no,
-      );
+      draw_button(f, save_area, "Save", yes_no_value && highlight_yes_no);
+      draw_button(f, cancel_area, "Cancel", !yes_no_value && highlight_yes_no);
     }
   } else {
-    loading(f, block, prompt_area, app.is_loading);
+    loading(f, block, area, app.is_loading);
   }
 }

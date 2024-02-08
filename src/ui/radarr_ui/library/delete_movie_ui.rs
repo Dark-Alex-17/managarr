@@ -22,7 +22,7 @@ impl DrawUi for DeleteMovieUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     if matches!(
       *app.get_current_route(),
       Route::Radarr(ActiveRadarrBlock::DeleteMoviePrompt, _)
@@ -55,7 +55,7 @@ impl DrawUi for DeleteMovieUi {
         )
       };
 
-      draw_prompt_popup_over(f, app, content_rect, draw_library, draw_delete_movie_prompt);
+      draw_prompt_popup_over(f, app, area, draw_library, draw_delete_movie_prompt);
     }
   }
 }

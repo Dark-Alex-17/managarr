@@ -6,12 +6,12 @@ use crate::app::App;
 use crate::models::radarr_models::RootFolder;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
 use crate::models::Route;
-use crate::ui::utils::{layout_block_top_border};
+use crate::ui::styles::ManagarrStyle;
+use crate::ui::utils::layout_block_top_border;
 use crate::ui::{
   draw_input_box_popup, draw_popup_over, draw_prompt_box, draw_prompt_popup_over, draw_table,
   DrawUi, TableProps,
 };
-use crate::ui::styles::ManagarrStyle;
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -29,14 +29,14 @@ impl DrawUi for RootFoldersUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
       match active_radarr_block {
-        ActiveRadarrBlock::RootFolders => draw_root_folders(f, app, content_rect),
+        ActiveRadarrBlock::RootFolders => draw_root_folders(f, app, area),
         ActiveRadarrBlock::AddRootFolderPrompt => draw_popup_over(
           f,
           app,
-          content_rect,
+          area,
           draw_root_folders,
           draw_add_root_folder_prompt_box,
           30,
@@ -45,7 +45,7 @@ impl DrawUi for RootFoldersUi {
         ActiveRadarrBlock::DeleteRootFolderPrompt => draw_prompt_popup_over(
           f,
           app,
-          content_rect,
+          area,
           draw_root_folders,
           draw_delete_root_folder_prompt,
         ),
@@ -95,7 +95,8 @@ fn draw_root_folders(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
             .len()
             .to_string(),
         ),
-      ]).primary()
+      ])
+      .primary()
     },
     app.is_loading,
     true,
@@ -111,10 +112,10 @@ fn draw_add_root_folder_prompt_box(f: &mut Frame<'_>, app: &mut App<'_>, area: R
   );
 }
 
-fn draw_delete_root_folder_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_delete_root_folder_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_prompt_box(
     f,
-    prompt_area,
+    area,
     "Delete Root Folder",
     format!(
       "Do you really want to delete this root folder: \n{}?",

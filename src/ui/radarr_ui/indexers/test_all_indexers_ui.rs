@@ -7,7 +7,7 @@ use crate::ui::radarr_ui::indexers::draw_indexers;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, get_width_from_percentage, title_block};
 use crate::ui::{
-  draw_help_and_get_content_rect, draw_large_popup_over, draw_table, DrawUi, TableProps,
+  draw_help_footer_and_get_content_area, draw_large_popup_over, draw_table, DrawUi, TableProps,
 };
 use ratatui::layout::{Constraint, Rect};
 use ratatui::widgets::{Cell, Row};
@@ -28,11 +28,11 @@ impl DrawUi for TestAllIndexersUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     draw_large_popup_over(
       f,
       app,
-      content_rect,
+      area,
       draw_indexers,
       draw_test_all_indexers_test_results,
     );
@@ -51,7 +51,7 @@ fn draw_test_all_indexers_test_results(f: &mut Frame<'_>, app: &mut App<'_>, are
     "<↑↓> scroll | {}",
     build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES)
   ));
-  let content_area = draw_help_and_get_content_rect(f, area, help);
+  let content_area = draw_help_footer_and_get_content_area(f, area, help);
 
   draw_table(
     f,

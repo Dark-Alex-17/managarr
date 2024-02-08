@@ -1,112 +1,17 @@
 #[cfg(test)]
 mod test {
   use pretty_assertions::assert_eq;
-  use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
+  use ratatui::layout::{Alignment, Rect};
   use ratatui::style::{Color, Modifier, Style};
   use ratatui::text::Span;
   use ratatui::widgets::{Block, BorderType, Borders};
 
   use crate::ui::utils::{
-    borderless_block, centered_rect, get_width_from_percentage, horizontal_chunks,
-    horizontal_chunks_with_margin, layout_block, layout_block_bottom_border,
-    layout_block_top_border, layout_block_top_border_with_title, layout_block_with_title,
-    layout_with_constraints, logo_block, style_block_highlight, title_block, title_block_centered,
-    title_style, vertical_chunks, vertical_chunks_with_margin,
+    borderless_block, centered_rect, get_width_from_percentage, layout_block,
+    layout_block_bottom_border, layout_block_top_border, layout_block_top_border_with_title,
+    layout_block_with_title, logo_block, style_block_highlight, title_block, title_block_centered,
+    title_style,
   };
-
-  #[test]
-  fn test_horizontal_chunks() {
-    let constraints = [
-      Constraint::Percentage(10),
-      Constraint::Max(20),
-      Constraint::Min(10),
-      Constraint::Length(30),
-      Constraint::Ratio(3, 4),
-    ];
-    let area = rect();
-    let expected_layout = Layout::default()
-      .constraints(constraints)
-      .direction(Direction::Horizontal)
-      .split(area);
-
-    assert_eq!(horizontal_chunks(constraints.into(), area), expected_layout);
-  }
-
-  #[test]
-  fn test_horizontal_chunks_with_margin() {
-    let constraints = [
-      Constraint::Percentage(10),
-      Constraint::Max(20),
-      Constraint::Min(10),
-      Constraint::Length(30),
-      Constraint::Ratio(3, 4),
-    ];
-    let area = rect();
-    let expected_layout = Layout::default()
-      .constraints(constraints)
-      .direction(Direction::Horizontal)
-      .margin(1)
-      .split(area);
-
-    assert_eq!(
-      horizontal_chunks_with_margin(constraints.into(), area, 1),
-      expected_layout
-    );
-  }
-
-  #[test]
-  fn test_vertical_chunks() {
-    let constraints = [
-      Constraint::Percentage(10),
-      Constraint::Max(20),
-      Constraint::Min(10),
-      Constraint::Length(30),
-      Constraint::Ratio(3, 4),
-    ];
-    let area = rect();
-    let expected_layout = Layout::default()
-      .constraints(constraints)
-      .direction(Direction::Vertical)
-      .split(area);
-
-    assert_eq!(vertical_chunks(constraints.into(), area), expected_layout);
-  }
-
-  #[test]
-  fn test_vertical_chunks_with_margin() {
-    let constraints = [
-      Constraint::Percentage(10),
-      Constraint::Max(20),
-      Constraint::Min(10),
-      Constraint::Length(30),
-      Constraint::Ratio(3, 4),
-    ];
-    let area = rect();
-    let expected_layout = Layout::default()
-      .constraints(constraints)
-      .direction(Direction::Vertical)
-      .margin(1)
-      .split(area);
-
-    assert_eq!(
-      vertical_chunks_with_margin(constraints.into(), area, 1),
-      expected_layout
-    );
-  }
-
-  #[test]
-  fn test_layout_with_constraints() {
-    let constraints = [
-      Constraint::Percentage(10),
-      Constraint::Max(20),
-      Constraint::Min(10),
-      Constraint::Length(30),
-      Constraint::Ratio(3, 4),
-    ];
-    let expected_layout = Layout::default().constraints(constraints);
-
-    assert_eq!(layout_with_constraints(constraints.into()), expected_layout);
-  }
 
   #[test]
   fn test_layout_block() {

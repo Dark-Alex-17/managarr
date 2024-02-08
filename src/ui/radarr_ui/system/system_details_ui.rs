@@ -16,8 +16,9 @@ use crate::ui::radarr_ui::system::{
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, title_block};
 use crate::ui::{
-  draw_help_and_get_content_rect, draw_large_popup_over, draw_list_box, draw_medium_popup_over,
-  draw_prompt_box, draw_prompt_popup_over, draw_table, loading, DrawUi, ListProps, TableProps,
+  draw_help_footer_and_get_content_area, draw_large_popup_over, draw_list_box,
+  draw_medium_popup_over, draw_prompt_box, draw_prompt_popup_over, draw_table, loading, DrawUi,
+  ListProps, TableProps,
 };
 
 #[cfg(test)]
@@ -35,35 +36,21 @@ impl DrawUi for SystemDetailsUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
       match active_radarr_block {
         ActiveRadarrBlock::SystemLogs => {
-          draw_large_popup_over(f, app, content_rect, draw_system_ui_layout, draw_logs_popup)
+          draw_large_popup_over(f, app, area, draw_system_ui_layout, draw_logs_popup)
         }
         ActiveRadarrBlock::SystemTasks | ActiveRadarrBlock::SystemTaskStartConfirmPrompt => {
-          draw_large_popup_over(
-            f,
-            app,
-            content_rect,
-            draw_system_ui_layout,
-            draw_tasks_popup,
-          )
+          draw_large_popup_over(f, app, area, draw_system_ui_layout, draw_tasks_popup)
         }
-        ActiveRadarrBlock::SystemQueuedEvents => draw_medium_popup_over(
-          f,
-          app,
-          content_rect,
-          draw_system_ui_layout,
-          draw_queued_events,
-        ),
-        ActiveRadarrBlock::SystemUpdates => draw_large_popup_over(
-          f,
-          app,
-          content_rect,
-          draw_system_ui_layout,
-          draw_updates_popup,
-        ),
+        ActiveRadarrBlock::SystemQueuedEvents => {
+          draw_medium_popup_over(f, app, area, draw_system_ui_layout, draw_queued_events)
+        }
+        ActiveRadarrBlock::SystemUpdates => {
+          draw_large_popup_over(f, app, area, draw_system_ui_layout, draw_updates_popup)
+        }
         _ => (),
       }
     }
@@ -97,7 +84,7 @@ fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let tasks_popup_table = |f: &mut Frame<'_>, app: &mut App<'_>, area: Rect| {
     f.render_widget(title_block("Tasks"), area);
 
-    let context_area = draw_help_and_get_content_rect(
+    let context_area = draw_help_footer_and_get_content_area(
       f,
       area,
       Some(build_context_clue_string(&SYSTEM_TASKS_CONTEXT_CLUES)),
@@ -141,10 +128,10 @@ fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   }
 }
 
-fn draw_start_task_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_start_task_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_prompt_box(
     f,
-    prompt_area,
+    area,
     "Start Task",
     format!(
       "Do you want to manually start this task: {}?",
@@ -158,7 +145,7 @@ fn draw_start_task_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rec
 fn draw_updates_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   f.render_widget(title_block("Updates"), area);
 
-  let content_rect = draw_help_and_get_content_rect(
+  let content_area = draw_help_footer_and_get_content_area(
     f,
     area,
     Some(format!(
@@ -174,8 +161,8 @@ fn draw_updates_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .block(block)
       .scroll((app.data.radarr_data.updates.offset, 0));
 
-    f.render_widget(updates_paragraph, content_rect);
+    f.render_widget(updates_paragraph, content_area);
   } else {
-    loading(f, block, content_rect, app.is_loading);
+    loading(f, block, content_area, app.is_loading);
   }
 }

@@ -1,7 +1,6 @@
 use std::iter;
-use std::rc::Rc;
 
-use ratatui::layout::{Alignment, Constraint, Layout, Rect};
+use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
 use ratatui::style::{Modifier, Style, Stylize};
 use ratatui::text::{Line, Text};
 use ratatui::widgets::Paragraph;
@@ -17,10 +16,9 @@ use crate::models::{HorizontallyScrollableText, Route, StatefulList, StatefulTab
 use crate::ui::radarr_ui::RadarrUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
-  background_block, borderless_block, centered_rect, horizontal_chunks,
-  horizontal_chunks_with_margin, layout_block, layout_block_top_border, layout_button_paragraph,
-  layout_button_paragraph_borderless, layout_paragraph_borderless, logo_block, show_cursor,
-  style_block_highlight, title_block, title_block_centered, vertical_chunks_with_margin,
+  background_block, borderless_block, centered_rect, layout_block, layout_block_top_border,
+  layout_button_paragraph, layout_button_paragraph_borderless, layout_paragraph_borderless,
+  logo_block, show_cursor, style_block_highlight, title_block, title_block_centered,
 };
 
 mod radarr_ui;
@@ -31,46 +29,48 @@ static HIGHLIGHT_SYMBOL: &str = "=> ";
 
 pub trait DrawUi {
   fn accepts(route: Route) -> bool;
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect);
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect);
   fn draw_context_row(_f: &mut Frame<'_>, _app: &App<'_>, _area: Rect) {}
 }
 
 pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
   f.render_widget(background_block(), f.size());
-  let [header, context, table] = if !app.error.text.is_empty() {
-    let [header, error, context, table] = Layout::vertical([
+  let [header_area, context_area, table_area] = if !app.error.text.is_empty() {
+    let [header_area, error_area, context_area, table_area] = Layout::vertical([
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(10),
-      Constraint::Fill(1),
+      Constraint::Fill(0),
     ])
-    .margin(1)
     .areas(f.size());
 
-    draw_error(f, app, error);
+    draw_error(f, app, error_area);
 
-    [header, context, table]
+    [header_area, context_area, table_area]
   } else {
     Layout::vertical([
       Constraint::Length(3),
       Constraint::Length(10),
-      Constraint::Fill(1),
+      Constraint::Fill(0),
     ])
-    .margin(1)
     .areas(f.size())
   };
 
-  draw_header_row(f, app, header);
+  draw_header_row(f, app, header_area);
 
   if RadarrUi::accepts(*app.get_current_route()) {
-    RadarrUi::draw_context_row(f, app, context);
-    RadarrUi::draw(f, app, table);
+    RadarrUi::draw_context_row(f, app, context_area);
+    RadarrUi::draw(f, app, table_area);
   }
 }
 
 fn draw_header_row(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let chunks =
-    horizontal_chunks_with_margin(vec![Constraint::Length(75), Constraint::Min(0)], area, 1);
+  f.render_widget(logo_block(), area);
+
+  let [tabs_area, help_area] = Layout::horizontal([Constraint::Min(25), Constraint::Min(25)])
+    .flex(Flex::SpaceBetween)
+    .margin(1)
+    .areas(area);
   let help_text = Text::from(app.server_tabs.get_active_tab_help().help());
 
   let titles = app
@@ -79,15 +79,15 @@ fn draw_header_row(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .iter()
     .map(|tab| Line::from(tab.title.bold()));
   let tabs = Tabs::new(titles)
-    .block(logo_block())
+    .block(borderless_block())
     .highlight_style(Style::new().secondary())
     .select(app.server_tabs.index);
   let help = Paragraph::new(help_text)
     .block(borderless_block())
     .alignment(Alignment::Right);
 
-  f.render_widget(tabs, area);
-  f.render_widget(help, chunks[1]);
+  f.render_widget(tabs, tabs_area);
+  f.render_widget(help, help_area);
 }
 
 fn draw_error(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
@@ -244,37 +244,32 @@ pub fn draw_error_popup(f: &mut Frame<'_>, message: &str) {
   f.render_widget(error_message, prompt_area);
 }
 
-fn draw_tabs<'a>(
-  f: &mut Frame<'_>,
-  area: Rect,
-  title: &str,
-  tab_state: &TabState,
-) -> (Rect, Block<'a>) {
-  let chunks =
-    vertical_chunks_with_margin(vec![Constraint::Length(2), Constraint::Min(0)], area, 1);
-  let horizontal_chunks = horizontal_chunks_with_margin(
-    vec![Constraint::Percentage(10), Constraint::Fill(1)],
-    area,
-    1,
-  );
-  let block = title_block(title);
+fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -> Rect {
+  f.render_widget(title_block(title), area);
+
+  let [header_area, content_area] = Layout::vertical([Constraint::Length(1), Constraint::Fill(0)])
+    .margin(1)
+    .areas(area);
+  let [tabs_area, help_area] = Layout::horizontal([Constraint::Min(25), Constraint::Min(25)])
+    .flex(Flex::SpaceBetween)
+    .areas(header_area);
 
   let titles = tab_state
     .tabs
     .iter()
     .map(|tab_route| Line::from(tab_route.title.bold()));
   let tabs = Tabs::new(titles)
-    .block(block)
+    .block(borderless_block())
     .highlight_style(Style::new().secondary())
     .select(tab_state.index);
   let help = Paragraph::new(Text::from(tab_state.get_active_tab_help().help()))
     .block(borderless_block())
     .alignment(Alignment::Right);
 
-  f.render_widget(tabs, area);
-  f.render_widget(help, horizontal_chunks[1]);
+  f.render_widget(tabs, tabs_area);
+  f.render_widget(help, help_area);
 
-  (chunks[1], layout_block_top_border())
+  content_area
 }
 
 pub struct TableProps<'a, T> {
@@ -295,7 +290,7 @@ pub struct ListProps<'a, T> {
 
 fn draw_table<'a, T, F>(
   f: &mut Frame<'_>,
-  content_area: Rect,
+  area: Rect,
   block: Block<'_>,
   table_props: TableProps<'a, T>,
   row_mapper: F,
@@ -312,7 +307,7 @@ fn draw_table<'a, T, F>(
     help,
   } = table_props;
 
-  let content_area = draw_help_and_get_content_rect(f, content_area, help);
+  let content_area = draw_help_footer_and_get_content_area(f, area, help);
 
   #[allow(clippy::unnecessary_unwrap)]
   if wrapped_content.is_some() && wrapped_content.as_ref().unwrap().is_some() {
@@ -351,7 +346,7 @@ fn draw_table_contents<'a, T, F>(
   content: &mut StatefulTable<T>,
   table_headers: Vec<&str>,
   constraints: Vec<Constraint>,
-  content_area: Rect,
+  area: Rect,
 ) where
   F: Fn(&T) -> Row<'a>,
 {
@@ -367,7 +362,7 @@ fn draw_table_contents<'a, T, F>(
       .highlight_symbol(HIGHLIGHT_SYMBOL);
   }
 
-  f.render_stateful_widget(table, content_area, &mut content.state);
+  f.render_stateful_widget(table, area, &mut content.state);
 }
 
 pub fn loading(f: &mut Frame<'_>, block: Block<'_>, area: Rect, is_loading: bool) {
@@ -383,76 +378,73 @@ pub fn loading(f: &mut Frame<'_>, block: Block<'_>, area: Rect, is_loading: bool
 
 pub fn draw_prompt_box(
   f: &mut Frame<'_>,
-  prompt_area: Rect,
+  area: Rect,
   title: &str,
   prompt: &str,
   yes_no_value: bool,
 ) {
-  draw_prompt_box_with_content(f, prompt_area, title, prompt, None, yes_no_value);
+  draw_prompt_box_with_content(f, area, title, prompt, None, yes_no_value);
 }
 
 pub fn draw_prompt_box_with_content(
   f: &mut Frame<'_>,
-  prompt_area: Rect,
+  area: Rect,
   title: &str,
   prompt: &str,
   content: Option<Paragraph<'_>>,
   yes_no_value: bool,
 ) {
-  f.render_widget(title_block_centered(title), prompt_area);
+  f.render_widget(title_block_centered(title), area);
 
-  let chunks = if let Some(content_paragraph) = content {
-    let vertical_chunks = vertical_chunks_with_margin(
-      vec![
-        Constraint::Length(4),
-        Constraint::Length(7),
-        Constraint::Min(0),
-        Constraint::Length(3),
-      ],
-      prompt_area,
-      1,
-    );
+  let [prompt_area, buttons_area] = if let Some(content_paragraph) = content {
+    let [prompt_area, content_area, _, buttons_area] = Layout::vertical([
+      Constraint::Length(4),
+      Constraint::Length(7),
+      Constraint::Fill(0),
+      Constraint::Length(3),
+    ])
+    .margin(1)
+    .areas(area);
 
-    f.render_widget(content_paragraph, vertical_chunks[1]);
+    f.render_widget(content_paragraph, content_area);
 
-    Rc::new([vertical_chunks[0], vertical_chunks[2], vertical_chunks[3]])
+    [prompt_area, buttons_area]
   } else {
-    vertical_chunks_with_margin(
-      vec![
-        Constraint::Percentage(72),
-        Constraint::Min(0),
-        Constraint::Length(3),
-      ],
-      prompt_area,
-      1,
-    )
+    let [prompt_area, _, buttons_area] = Layout::vertical([
+      Constraint::Percentage(72),
+      Constraint::Fill(0),
+      Constraint::Length(3),
+    ])
+    .margin(1)
+    .areas(area);
+
+    [prompt_area, buttons_area]
   };
 
   let prompt_paragraph = layout_paragraph_borderless(prompt);
-  f.render_widget(prompt_paragraph, chunks[0]);
+  f.render_widget(prompt_paragraph, prompt_area);
 
-  let horizontal_chunks = horizontal_chunks(
-    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
-    chunks[2],
-  );
+  let [yes_area, no_area] =
+    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+      .areas(buttons_area);
 
-  draw_button(f, horizontal_chunks[0], "Yes", yes_no_value);
-  draw_button(f, horizontal_chunks[1], "No", !yes_no_value);
+  draw_button(f, yes_area, "Yes", yes_no_value);
+  draw_button(f, no_area, "No", !yes_no_value);
 }
 
 pub fn draw_prompt_box_with_checkboxes(
   f: &mut Frame<'_>,
-  prompt_area: Rect,
+  area: Rect,
   title: &str,
   prompt: &str,
   checkboxes: Vec<(&str, bool, bool)>,
   highlight_yes_no: bool,
   yes_no_value: bool,
 ) {
-  f.render_widget(title_block_centered(title), prompt_area);
+  f.render_widget(title_block_centered(title), area);
   let mut constraints = vec![
     Constraint::Length(4),
-    Constraint::Min(0),
+    Constraint::Fill(0),
     Constraint::Length(3),
   ];
 
@@ -461,7 +453,7 @@ pub fn draw_prompt_box_with_checkboxes(
     iter::repeat(Constraint::Length(3)).take(checkboxes.len()),
   );
 
-  let chunks = vertical_chunks_with_margin(constraints, prompt_area, 1);
+  let chunks = Layout::vertical(constraints).margin(1).split(area);
 
   let prompt_paragraph = layout_paragraph_borderless(prompt);
   f.render_widget(prompt_paragraph, chunks[0]);
@@ -471,23 +463,12 @@ pub fn draw_prompt_box_with_checkboxes(
     draw_checkbox_with_label(f, chunks[i + 1], label, is_checked, is_selected);
   }
 
-  let horizontal_chunks = horizontal_chunks(
-    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
-    chunks[checkboxes.len() + 2],
-  );
+  let [yes_area, no_area] =
+    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+      .areas(chunks[checkboxes.len() + 2]);
 
-  draw_button(
-    f,
-    horizontal_chunks[0],
-    "Yes",
-    highlight_yes_no && yes_no_value,
-  );
-  draw_button(
-    f,
-    horizontal_chunks[1],
-    "No",
-    highlight_yes_no && !yes_no_value,
-  );
+  draw_button(f, yes_area, "Yes", highlight_yes_no && yes_no_value);
+  draw_button(f, no_area, "No", highlight_yes_no && !yes_no_value);
 }
 
 pub fn draw_checkbox(f: &mut Frame<'_>, area: Rect, is_checked: bool, is_selected: bool) {
@@ -508,23 +489,17 @@ pub fn draw_checkbox_with_label(
   is_checked: bool,
   is_selected: bool,
 ) {
-  let horizontal_chunks = horizontal_chunks(
-    vec![
-      Constraint::Percentage(48),
-      Constraint::Percentage(48),
-      Constraint::Percentage(4),
-    ],
-    area,
-  );
+  let [label_area, checkbox_area] =
+    Layout::horizontal([Constraint::Percentage(48), Constraint::Percentage(48)]).areas(area);
 
   let label_paragraph = Paragraph::new(Text::from(format!("\n{label}: ")))
     .block(borderless_block())
     .alignment(Alignment::Right)
     .primary();
 
-  f.render_widget(label_paragraph, horizontal_chunks[0]);
+  f.render_widget(label_paragraph, label_area);
 
-  draw_checkbox(f, horizontal_chunks[1], is_checked, is_selected);
+  draw_checkbox(f, checkbox_area, is_checked, is_selected);
 }
 
 pub fn draw_button(f: &mut Frame<'_>, area: Rect, label: &str, is_selected: bool) {
@@ -543,22 +518,18 @@ pub fn draw_button_with_icon(
   let label_paragraph = layout_button_paragraph_borderless(is_selected, label, Alignment::Left);
   let icon_paragraph = layout_button_paragraph_borderless(is_selected, icon, Alignment::Right);
 
-  let horizontal_chunks = horizontal_chunks_with_margin(
-    vec![
-      Constraint::Percentage(50),
-      Constraint::Percentage(49),
-      Constraint::Percentage(1),
-    ],
-    area,
-    1,
-  );
+  let [label_area, icon_area] =
+    Layout::horizontal([Constraint::Percentage(25), Constraint::Percentage(25)])
+      .flex(Flex::SpaceBetween)
+      .margin(1)
+      .areas(area);
 
   f.render_widget(
     layout_block().style(style_block_highlight(is_selected)),
     area,
   );
-  f.render_widget(label_paragraph, horizontal_chunks[0]);
-  f.render_widget(icon_paragraph, horizontal_chunks[1]);
+  f.render_widget(label_paragraph, label_area);
+  f.render_widget(icon_paragraph, icon_area);
 }
 
 pub fn draw_drop_down_menu_button(
@@ -568,23 +539,17 @@ pub fn draw_drop_down_menu_button(
   selection: &str,
   is_selected: bool,
 ) {
-  let horizontal_chunks = horizontal_chunks(
-    vec![
-      Constraint::Percentage(48),
-      Constraint::Percentage(48),
-      Constraint::Percentage(4),
-    ],
-    area,
-  );
+  let [label_area, button_area] =
+    Layout::horizontal([Constraint::Percentage(48), Constraint::Percentage(48)]).areas(area);
 
   let description_paragraph = Paragraph::new(Text::from(format!("\n{description}: ")))
     .block(borderless_block())
     .alignment(Alignment::Right)
     .primary();
 
-  f.render_widget(description_paragraph, horizontal_chunks[0]);
+  f.render_widget(description_paragraph, label_area);
 
-  draw_button_with_icon(f, horizontal_chunks[1], selection, "▼", is_selected);
+  draw_button_with_icon(f, button_area, selection, "▼ ", is_selected);
 }
 
 pub fn draw_selectable_list<'a, T>(
@@ -618,7 +583,7 @@ pub fn draw_list_box<'a, T>(
   let (content_area, block) = if is_popup {
     f.render_widget(title_block(title), area);
     (
-      draw_help_and_get_content_rect(f, area, help),
+      draw_help_footer_and_get_content_area(f, area, help),
       borderless_block(),
     )
   } else {
@@ -639,18 +604,22 @@ pub fn draw_list_box<'a, T>(
   }
 }
 
-fn draw_help_and_get_content_rect(f: &mut Frame<'_>, area: Rect, help: Option<String>) -> Rect {
+fn draw_help_footer_and_get_content_area(
+  f: &mut Frame<'_>,
+  area: Rect,
+  help: Option<String>,
+) -> Rect {
   if let Some(help_string) = help {
-    let chunks =
-      vertical_chunks_with_margin(vec![Constraint::Min(0), Constraint::Length(2)], area, 1);
+    let [content_area, help_footer_area] =
+      Layout::vertical([Constraint::Fill(0), Constraint::Length(2)]).areas(area);
 
     let help_paragraph = Paragraph::new(Text::from(format!(" {help_string}").help()))
       .block(layout_block_top_border())
       .alignment(Alignment::Left);
 
-    f.render_widget(help_paragraph, chunks[1]);
+    f.render_widget(help_paragraph, help_footer_area);
 
-    chunks[0]
+    content_area
   } else {
     area
   }
@@ -721,26 +690,20 @@ pub fn draw_text_box_with_label(
     should_show_cursor,
     cursor_after_string,
   } = labeled_text_box_props;
-  let horizontal_chunks = horizontal_chunks(
-    vec![
-      Constraint::Percentage(48),
-      Constraint::Percentage(48),
-      Constraint::Percentage(4),
-    ],
-    area,
-  );
+  let [label_area, text_box_area] =
+    Layout::horizontal([Constraint::Percentage(48), Constraint::Percentage(48)]).areas(area);
 
   let label_paragraph = Paragraph::new(Text::from(format!("\n{label}: ")))
     .block(borderless_block())
     .alignment(Alignment::Right)
     .primary();
 
-  f.render_widget(label_paragraph, horizontal_chunks[0]);
+  f.render_widget(label_paragraph, label_area);
 
   draw_text_box(
     f,
     TextBoxProps {
-      text_box_area: horizontal_chunks[1],
+      text_box_area,
       block_title: None,
       block_content: text,
       offset,
@@ -753,24 +716,18 @@ pub fn draw_text_box_with_label(
 
 pub fn draw_input_box_popup(
   f: &mut Frame<'_>,
-  input_box_area: Rect,
+  area: Rect,
   box_title: &str,
   box_content: &HorizontallyScrollableText,
 ) {
-  let chunks = vertical_chunks_with_margin(
-    vec![
-      Constraint::Length(3),
-      Constraint::Length(1),
-      Constraint::Min(0),
-    ],
-    input_box_area,
-    1,
-  );
+  let [text_box_area, help_area] = Layout::vertical([Constraint::Length(3), Constraint::Length(1)])
+    .margin(1)
+    .areas(area);
 
   draw_text_box(
     f,
     TextBoxProps {
-      text_box_area: chunks[0],
+      text_box_area,
       block_title: Some(box_title),
       block_content: &box_content.text,
       offset: *box_content.offset.borrow(),
@@ -784,14 +741,14 @@ pub fn draw_input_box_popup(
     .help()
     .alignment(Alignment::Center)
     .block(borderless_block());
-  f.render_widget(help, chunks[1]);
+  f.render_widget(help, help_area);
 }
 
-pub fn draw_error_message_popup(f: &mut Frame<'_>, error_message_area: Rect, error_msg: &str) {
+pub fn draw_error_message_popup(f: &mut Frame<'_>, area: Rect, error_msg: &str) {
   let input = Paragraph::new(error_msg)
     .failure()
     .alignment(Alignment::Center)
     .block(layout_block());
 
-  f.render_widget(input, error_message_area);
+  f.render_widget(input, area);
 }

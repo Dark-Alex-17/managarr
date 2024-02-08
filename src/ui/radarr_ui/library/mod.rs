@@ -42,62 +42,46 @@ impl DrawUi for LibraryUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = *app.get_current_route();
     let mut library_ui_matchers = |active_radarr_block: ActiveRadarrBlock| match active_radarr_block
     {
-      ActiveRadarrBlock::Movies => draw_library(f, app, content_rect),
-      ActiveRadarrBlock::SearchMovie => draw_popup_over(
-        f,
-        app,
-        content_rect,
-        draw_library,
-        draw_movie_search_box,
-        30,
-        13,
-      ),
+      ActiveRadarrBlock::Movies => draw_library(f, app, area),
+      ActiveRadarrBlock::SearchMovie => {
+        draw_popup_over(f, app, area, draw_library, draw_movie_search_box, 30, 13)
+      }
       ActiveRadarrBlock::SearchMovieError => draw_popup_over(
         f,
         app,
-        content_rect,
+        area,
         draw_library,
         draw_search_movie_error_box,
         30,
         8,
       ),
-      ActiveRadarrBlock::FilterMovies => draw_popup_over(
-        f,
-        app,
-        content_rect,
-        draw_library,
-        draw_filter_movies_box,
-        30,
-        13,
-      ),
+      ActiveRadarrBlock::FilterMovies => {
+        draw_popup_over(f, app, area, draw_library, draw_filter_movies_box, 30, 13)
+      }
       ActiveRadarrBlock::FilterMoviesError => draw_popup_over(
         f,
         app,
-        content_rect,
+        area,
         draw_library,
         draw_filter_movies_error_box,
         30,
         8,
       ),
-      ActiveRadarrBlock::UpdateAllMoviesPrompt => draw_prompt_popup_over(
-        f,
-        app,
-        content_rect,
-        draw_library,
-        draw_update_all_movies_prompt,
-      ),
+      ActiveRadarrBlock::UpdateAllMoviesPrompt => {
+        draw_prompt_popup_over(f, app, area, draw_library, draw_update_all_movies_prompt)
+      }
       _ => (),
     };
 
     match route {
-      _ if MovieDetailsUi::accepts(route) => MovieDetailsUi::draw(f, app, content_rect),
-      _ if AddMovieUi::accepts(route) => AddMovieUi::draw(f, app, content_rect),
-      _ if EditMovieUi::accepts(route) => EditMovieUi::draw(f, app, content_rect),
-      _ if DeleteMovieUi::accepts(route) => DeleteMovieUi::draw(f, app, content_rect),
+      _ if MovieDetailsUi::accepts(route) => MovieDetailsUi::draw(f, app, area),
+      _ if AddMovieUi::accepts(route) => AddMovieUi::draw(f, app, area),
+      _ if EditMovieUi::accepts(route) => EditMovieUi::draw(f, app, area),
+      _ if DeleteMovieUi::accepts(route) => DeleteMovieUi::draw(f, app, area),
       Route::Radarr(active_radarr_block, _) if LIBRARY_BLOCKS.contains(&active_radarr_block) => {
         library_ui_matchers(active_radarr_block)
       }
@@ -208,10 +192,10 @@ pub(super) fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   );
 }
 
-fn draw_update_all_movies_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_update_all_movies_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_prompt_box(
     f,
-    prompt_area,
+    area,
     "Update All Movies",
     "Do you want to update info and scan your disks for all of your movies?",
     app.data.radarr_data.prompt_confirm,

@@ -1,4 +1,4 @@
-use ratatui::layout::{Alignment, Constraint, Rect};
+use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::text::Text;
 use ratatui::widgets::{Cell, ListItem, Paragraph, Row};
 use ratatui::Frame;
@@ -13,8 +13,8 @@ use crate::ui::radarr_ui::collections::{draw_collection_details, draw_collection
 use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
-  borderless_block, get_width_from_percentage, horizontal_chunks, layout_block,
-  layout_paragraph_borderless, title_block_centered, vertical_chunks_with_margin,
+  borderless_block, get_width_from_percentage, layout_block, layout_paragraph_borderless,
+  title_block_centered,
 };
 use crate::ui::{
   draw_button, draw_drop_down_menu_button, draw_drop_down_popup, draw_error_popup,
@@ -40,7 +40,7 @@ impl DrawUi for AddMovieUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, content_rect: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
       let draw_add_movie_search_popup =
         |f: &mut Frame<'_>, app: &mut App<'_>, area: Rect| match active_radarr_block {
@@ -80,21 +80,9 @@ impl DrawUi for AddMovieUi {
       match active_radarr_block {
         _ if ADD_MOVIE_BLOCKS.contains(&active_radarr_block) => {
           if context_option.is_some() {
-            draw_large_popup_over(
-              f,
-              app,
-              content_rect,
-              draw_collections,
-              draw_add_movie_search_popup,
-            )
+            draw_large_popup_over(f, app, area, draw_collections, draw_add_movie_search_popup)
           } else {
-            draw_large_popup_over(
-              f,
-              app,
-              content_rect,
-              draw_library,
-              draw_add_movie_search_popup,
-            )
+            draw_large_popup_over(f, app, area, draw_library, draw_add_movie_search_popup)
           }
         }
         _ => (),
@@ -112,15 +100,13 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       AddMovieSearchResult::default()
     };
 
-  let chunks = vertical_chunks_with_margin(
-    vec![
-      Constraint::Length(3),
-      Constraint::Min(0),
-      Constraint::Length(3),
-    ],
-    area,
-    1,
-  );
+  let [search_box_area, results_area, help_area] = Layout::vertical([
+    Constraint::Length(3),
+    Constraint::Fill(0),
+    Constraint::Length(3),
+  ])
+  .margin(1)
+  .areas(area);
   let block_content = &app.data.radarr_data.search.as_ref().unwrap().text;
   let offset = *app
     .data
@@ -137,7 +123,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         draw_text_box(
           f,
           TextBoxProps {
-            text_box_area: chunks[0],
+            text_box_area: search_box_area,
             block_title: Some("Add Movie"),
             block_content,
             offset,
@@ -146,16 +132,16 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
             cursor_after_string: true,
           },
         );
-        f.render_widget(layout_block(), chunks[1]);
+        f.render_widget(layout_block(), results_area);
 
         let help_text = Text::from(build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES).help());
         let help_paragraph = Paragraph::new(help_text)
           .block(borderless_block())
           .alignment(Alignment::Center);
-        f.render_widget(help_paragraph, chunks[2]);
+        f.render_widget(help_paragraph, help_area);
       }
       ActiveRadarrBlock::AddMovieEmptySearchResults => {
-        f.render_widget(layout_block(), chunks[1]);
+        f.render_widget(layout_block(), results_area);
         draw_error_popup(f, "No movies found matching your query!");
       }
       ActiveRadarrBlock::AddMovieSearchResults
@@ -171,11 +157,11 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         let help_paragraph = Paragraph::new(help_text)
           .block(borderless_block())
           .alignment(Alignment::Center);
-        f.render_widget(help_paragraph, chunks[2]);
+        f.render_widget(help_paragraph, help_area);
 
         draw_table(
           f,
-          chunks[1],
+          results_area,
           layout_block(),
           TableProps {
             content: None,
@@ -269,7 +255,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_text_box(
     f,
     TextBoxProps {
-      text_box_area: chunks[0],
+      text_box_area: search_box_area,
       block_title: Some("Add Movie"),
       block_content,
       offset,
@@ -280,14 +266,14 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   );
 }
 
-fn draw_confirmation_popup(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_confirmation_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSelectMonitor => {
         draw_drop_down_popup(
           f,
           app,
-          prompt_area,
+          area,
           draw_confirmation_prompt,
           draw_add_movie_select_monitor_popup,
         );
@@ -296,7 +282,7 @@ fn draw_confirmation_popup(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Re
         draw_drop_down_popup(
           f,
           app,
-          prompt_area,
+          area,
           draw_confirmation_prompt,
           draw_add_movie_select_minimum_availability_popup,
         );
@@ -305,7 +291,7 @@ fn draw_confirmation_popup(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Re
         draw_drop_down_popup(
           f,
           app,
-          prompt_area,
+          area,
           draw_confirmation_prompt,
           draw_add_movie_select_quality_profile_popup,
         );
@@ -314,20 +300,20 @@ fn draw_confirmation_popup(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Re
         draw_drop_down_popup(
           f,
           app,
-          prompt_area,
+          area,
           draw_confirmation_prompt,
           draw_add_movie_select_root_folder_popup,
         );
       }
       ActiveRadarrBlock::AddMoviePrompt | ActiveRadarrBlock::AddMovieTagsInput => {
-        draw_confirmation_prompt(f, app, prompt_area)
+        draw_confirmation_prompt(f, app, area)
       }
       _ => (),
     }
   }
 }
 
-fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect) {
+fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let (movie_title, movie_overview) = if let Route::Radarr(_, Some(_)) = app.get_current_route() {
     (
       &app
@@ -386,34 +372,32 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
   let selected_quality_profile = quality_profile_list.current_selection();
   let selected_root_folder = root_folder_list.current_selection();
 
-  f.render_widget(title_block_centered(&title), prompt_area);
+  f.render_widget(title_block_centered(&title), area);
 
-  let chunks = vertical_chunks_with_margin(
-    vec![
+  let [paragraph_area, root_folder_area, monitor_area, min_availability_area, quality_profile_area, tags_area, _, buttons_area] =
+    Layout::vertical([
       Constraint::Length(6),
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
-      Constraint::Min(0),
+      Constraint::Fill(0),
       Constraint::Length(3),
-    ],
-    prompt_area,
-    1,
-  );
+    ])
+    .margin(1)
+    .areas(area);
 
   let prompt_paragraph = layout_paragraph_borderless(&prompt);
-  f.render_widget(prompt_paragraph, chunks[0]);
+  f.render_widget(prompt_paragraph, paragraph_area);
 
-  let horizontal_chunks = horizontal_chunks(
-    vec![Constraint::Percentage(50), Constraint::Percentage(50)],
-    chunks[7],
-  );
+  let [add_area, cancel_area] =
+    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+      .areas(buttons_area);
 
   draw_drop_down_menu_button(
     f,
-    chunks[1],
+    root_folder_area,
     "Root Folder",
     &selected_root_folder.path,
     selected_block == &ActiveRadarrBlock::AddMovieSelectRootFolder,
@@ -421,7 +405,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
 
   draw_drop_down_menu_button(
     f,
-    chunks[2],
+    monitor_area,
     "Monitor",
     selected_monitor.to_display_str(),
     selected_block == &ActiveRadarrBlock::AddMovieSelectMonitor,
@@ -429,14 +413,14 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
 
   draw_drop_down_menu_button(
     f,
-    chunks[3],
+    min_availability_area,
     "Minimum Availability",
     selected_minimum_availability.to_display_str(),
     selected_block == &ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
   );
   draw_drop_down_menu_button(
     f,
-    chunks[4],
+    quality_profile_area,
     "Quality Profile",
     selected_quality_profile,
     selected_block == &ActiveRadarrBlock::AddMovieSelectQualityProfile,
@@ -446,7 +430,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
     draw_text_box_with_label(
       f,
       LabeledTextBoxProps {
-        area: chunks[5],
+        area: tags_area,
         label: "Tags",
         text: &tags.text,
         offset: *tags.offset.borrow(),
@@ -457,24 +441,14 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
     );
   }
 
-  draw_button(
-    f,
-    horizontal_chunks[0],
-    "Add",
-    yes_no_value && highlight_yes_no,
-  );
-  draw_button(
-    f,
-    horizontal_chunks[1],
-    "Cancel",
-    !yes_no_value && highlight_yes_no,
-  );
+  draw_button(f, add_area, "Add", yes_no_value && highlight_yes_no);
+  draw_button(f, cancel_area, "Cancel", !yes_no_value && highlight_yes_no);
 }
 
-fn draw_add_movie_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect) {
+fn draw_add_movie_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_selectable_list(
     f,
-    popup_area,
+    area,
     &mut app
       .data
       .radarr_data
@@ -489,11 +463,11 @@ fn draw_add_movie_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>, pop
 fn draw_add_movie_select_minimum_availability_popup(
   f: &mut Frame<'_>,
   app: &mut App<'_>,
-  popup_area: Rect,
+  area: Rect,
 ) {
   draw_selectable_list(
     f,
-    popup_area,
+    area,
     &mut app
       .data
       .radarr_data
@@ -505,14 +479,10 @@ fn draw_add_movie_select_minimum_availability_popup(
   );
 }
 
-fn draw_add_movie_select_quality_profile_popup(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  popup_area: Rect,
-) {
+fn draw_add_movie_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_selectable_list(
     f,
-    popup_area,
+    area,
     &mut app
       .data
       .radarr_data
@@ -524,10 +494,10 @@ fn draw_add_movie_select_quality_profile_popup(
   );
 }
 
-fn draw_add_movie_select_root_folder_popup(f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect) {
+fn draw_add_movie_select_root_folder_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_selectable_list(
     f,
-    popup_area,
+    area,
     &mut app
       .data
       .radarr_data
