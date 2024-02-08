@@ -10,11 +10,12 @@ use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, COLLEC
 use crate::models::Route;
 use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsUi;
 use crate::ui::radarr_ui::collections::edit_collection_ui::EditCollectionUi;
-use crate::ui::utils::{get_width_from_percentage, layout_block_top_border, style_primary};
+use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::{
   draw_error_message_popup, draw_input_box_popup, draw_popup_over, draw_prompt_box,
   draw_prompt_popup_over, draw_table, DrawUi, TableProps,
 };
+use crate::ui::styles::ManagarrStyle;
 
 mod collection_details_ui;
 #[cfg(test)]
@@ -167,8 +168,7 @@ pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
         ),
         Cell::from(search_on_add),
         Cell::from(monitored),
-      ])
-      .style(style_primary())
+      ]).primary()
     },
     app.is_loading,
     true,

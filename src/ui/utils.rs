@@ -1,19 +1,12 @@
+use crate::ui::styles::ManagarrStyle;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
-use ratatui::style::{Color, Modifier, Style};
+use ratatui::style::{Color, Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, BorderType, Borders, LineGauge, Paragraph, Wrap};
 use ratatui::{symbols, Frame};
 use std::rc::Rc;
 
 pub const COLOR_TEAL: Color = Color::Rgb(35, 50, 55);
-pub const COLOR_CYAN: Color = Color::Cyan;
-pub const COLOR_LIGHT_BLUE: Color = Color::LightBlue;
-pub const COLOR_YELLOW: Color = Color::Yellow;
-pub const COLOR_GREEN: Color = Color::Green;
-pub const COLOR_RED: Color = Color::Red;
-pub const COLOR_ORANGE: Color = Color::Rgb(255, 170, 66);
-pub const COLOR_WHITE: Color = Color::White;
-pub const COLOR_MAGENTA: Color = Color::Magenta;
 
 #[cfg(test)]
 #[path = "utils_tests.rs"]
@@ -60,11 +53,11 @@ fn layout_with_constraints(constraints: Vec<Constraint>) -> Layout {
 }
 
 pub fn background_block<'a>() -> Block<'a> {
-  Block::default().style(Style::default().bg(COLOR_TEAL).fg(COLOR_WHITE))
+  Block::new().white().bg(COLOR_TEAL)
 }
 
 pub fn layout_block<'a>() -> Block<'a> {
-  Block::default()
+  Block::new()
     .borders(Borders::ALL)
     .border_type(BorderType::Rounded)
 }
@@ -78,11 +71,11 @@ pub fn layout_block_top_border_with_title(title_span: Span<'_>) -> Block<'_> {
 }
 
 pub fn layout_block_top_border<'a>() -> Block<'a> {
-  Block::default().borders(Borders::TOP)
+  Block::new().borders(Borders::TOP)
 }
 
 pub fn layout_block_bottom_border<'a>() -> Block<'a> {
-  Block::default().borders(Borders::BOTTOM)
+  Block::new().borders(Borders::BOTTOM)
 }
 
 pub fn layout_button_paragraph(
@@ -110,102 +103,26 @@ pub fn layout_button_paragraph_borderless(
 pub fn layout_paragraph_borderless(string: &str) -> Paragraph<'_> {
   Paragraph::new(Text::from(string))
     .block(borderless_block())
-    .style(style_primary().add_modifier(Modifier::BOLD))
+    .primary()
+    .bold()
     .wrap(Wrap { trim: false })
     .alignment(Alignment::Center)
 }
 
 pub fn borderless_block<'a>() -> Block<'a> {
-  Block::default()
-}
-
-pub fn line_info_with_style<'a>(
-  title: String,
-  content: String,
-  title_style: Style,
-  content_style: Style,
-) -> Line<'a> {
-  Line::from(vec![
-    Span::styled(title, title_style),
-    Span::styled(content, content_style),
-  ])
-}
-
-pub fn line_info_default<'a>(title: String, content: String) -> Line<'a> {
-  line_info_with_style(title, content, style_bold(), style_default())
-}
-
-pub fn line_info_primary<'a>(title: String, content: String) -> Line<'a> {
-  line_info_with_style(
-    title,
-    content,
-    style_primary().add_modifier(Modifier::BOLD),
-    style_default(),
-  )
-}
-
-pub fn style_bold() -> Style {
-  Style::default().add_modifier(Modifier::BOLD)
-}
-
-pub fn style_highlight() -> Style {
-  Style::default().add_modifier(Modifier::REVERSED)
-}
-
-pub fn style_default() -> Style {
-  Style::default().fg(COLOR_WHITE)
-}
-
-pub fn style_default_bold() -> Style {
-  style_default().add_modifier(Modifier::BOLD)
-}
-
-pub fn style_primary() -> Style {
-  Style::default().fg(COLOR_CYAN)
-}
-
-pub fn style_secondary() -> Style {
-  Style::default().fg(COLOR_YELLOW)
-}
-
-pub fn style_system_function() -> Style {
-  Style::default().fg(COLOR_YELLOW)
-}
-
-pub fn style_unmonitored() -> Style {
-  Style::default().fg(COLOR_WHITE)
-}
-
-pub fn style_success() -> Style {
-  Style::default().fg(COLOR_GREEN)
-}
-
-pub fn style_warning() -> Style {
-  Style::default().fg(COLOR_MAGENTA)
-}
-
-pub fn style_failure() -> Style {
-  Style::default().fg(COLOR_RED)
-}
-
-pub fn style_awaiting_import() -> Style {
-  Style::default().fg(COLOR_ORANGE)
-}
-
-pub fn style_help() -> Style {
-  Style::default().fg(COLOR_LIGHT_BLUE)
+  Block::new()
 }
 
 pub fn style_block_highlight(is_selected: bool) -> Style {
   if is_selected {
-    style_system_function().add_modifier(Modifier::BOLD)
+    Style::new().system_function().bold()
   } else {
-    style_default_bold()
+    Style::new().default().bold()
   }
 }
 
 pub fn title_style(title: &str) -> Span<'_> {
-  Span::styled(format!("  {title}  "), style_bold())
+  format!("  {title}  ").bold()
 }
 
 pub fn title_block(title: &str) -> Block<'_> {
@@ -219,10 +136,7 @@ pub fn title_block_centered(title: &str) -> Block<'_> {
 pub fn logo_block<'a>() -> Block<'a> {
   layout_block().title(Span::styled(
     " Managarr - A Servarr management TUI ",
-    Style::default()
-      .fg(Color::Magenta)
-      .add_modifier(Modifier::BOLD)
-      .add_modifier(Modifier::ITALIC),
+    Style::new().magenta().bold().italic(),
   ))
 }
 
@@ -250,18 +164,18 @@ pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
 }
 
 pub fn line_gauge_with_title(title: &str, ratio: f64) -> LineGauge<'_> {
-  LineGauge::default()
-    .block(Block::default().title(title))
-    .gauge_style(Style::default().fg(COLOR_CYAN))
+  LineGauge::new()
+    .block(Block::new().title(title))
+    .gauge_style(Style::new().cyan())
     .line_set(symbols::line::THICK)
     .ratio(ratio)
     .label(Line::from(format!("{:.0}%", ratio * 100.0)))
 }
 
 pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge<'_> {
-  LineGauge::default()
-    .block(Block::default())
-    .gauge_style(Style::default().fg(COLOR_CYAN))
+  LineGauge::new()
+    .block(Block::new())
+    .gauge_style(Style::new().cyan())
     .line_set(symbols::line::THICK)
     .ratio(ratio)
     .label(Line::from(format!("{title}: {:.0}%", ratio * 100.0)))

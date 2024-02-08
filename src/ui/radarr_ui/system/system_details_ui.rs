@@ -8,12 +8,13 @@ use crate::app::radarr::radarr_context_clues::SYSTEM_TASKS_CONTEXT_CLUES;
 use crate::app::App;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::Route;
-use crate::ui::radarr_ui::radarr_ui_utils::determine_log_style_by_level;
+use crate::ui::radarr_ui::radarr_ui_utils::style_log_list_item;
 use crate::ui::radarr_ui::system::{
   draw_queued_events, draw_system_ui_layout, extract_task_props, TASK_TABLE_CONSTRAINTS,
   TASK_TABLE_HEADERS,
 };
-use crate::ui::utils::{borderless_block, style_primary, title_block};
+use crate::ui::styles::ManagarrStyle;
+use crate::ui::utils::{borderless_block, title_block};
 use crate::ui::{
   draw_help_and_get_content_rect, draw_large_popup_over, draw_list_box, draw_medium_popup_over,
   draw_prompt_box, draw_prompt_popup_over, draw_table, loading, DrawUi, ListProps, TableProps,
@@ -75,10 +76,9 @@ fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     area,
     |log| {
       let log_line = log.to_string();
-      let level = log.text.split('|').collect::<Vec<&str>>()[1];
-      let style = determine_log_style_by_level(level);
+      let level = log.text.split('|').collect::<Vec<&str>>()[1].to_string();
 
-      ListItem::new(Text::from(Span::raw(log_line))).style(style)
+      style_log_list_item(ListItem::new(Text::from(Span::raw(log_line))), level)
     },
     ListProps {
       content: &mut app.data.radarr_data.log_details,
@@ -124,7 +124,7 @@ fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Cell::from(task_props.last_duration),
           Cell::from(task_props.next_execution),
         ])
-        .style(style_primary())
+        .primary()
       },
       app.is_loading,
       true,

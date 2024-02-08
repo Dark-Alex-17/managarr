@@ -10,7 +10,8 @@ use crate::models::Route;
 use crate::ui::radarr_ui::indexers::edit_indexer_ui::EditIndexerUi;
 use crate::ui::radarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
 use crate::ui::radarr_ui::indexers::test_all_indexers_ui::TestAllIndexersUi;
-use crate::ui::utils::{layout_block_top_border, style_failure, style_primary, style_success};
+use crate::ui::styles::ManagarrStyle;
+use crate::ui::utils::layout_block_top_border;
 use crate::ui::{draw_prompt_box, draw_prompt_popup_over, draw_table, DrawUi, TableProps};
 
 mod edit_indexer_ui;
@@ -103,24 +104,15 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       } = indexer;
       let bool_to_text = |flag: bool| {
         if flag {
-          return ("Enabled", style_success());
+          return Text::from("Enabled").success();
         }
 
-        ("Disabled", style_failure())
+        Text::from("Disabled").failure()
       };
 
-      let (rss_text, rss_style) = bool_to_text(*enable_rss);
-      let mut rss = Text::from(rss_text);
-      rss.patch_style(rss_style);
-
-      let (auto_search_text, auto_search_style) = bool_to_text(*enable_automatic_search);
-      let mut automatic_search = Text::from(auto_search_text);
-      automatic_search.patch_style(auto_search_style);
-
-      let (interactive_search_text, interactive_search_style) =
-        bool_to_text(*enable_interactive_search);
-      let mut interactive_search = Text::from(interactive_search_text);
-      interactive_search.patch_style(interactive_search_style);
+      let rss = bool_to_text(*enable_rss);
+      let automatic_search = bool_to_text(*enable_automatic_search);
+      let interactive_search = bool_to_text(*enable_interactive_search);
       let tags: String = tags
         .iter()
         .map(|tag_id| {
@@ -143,7 +135,7 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Cell::from(priority.to_string()),
         Cell::from(tags),
       ])
-      .style(style_primary())
+      .primary()
     },
     app.is_loading,
     true,

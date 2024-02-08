@@ -2,32 +2,50 @@
 mod tests {
   use super::super::*;
   use pretty_assertions::assert_str_eq;
+  use ratatui::prelude::Text;
+  use ratatui::text::Span;
 
   #[test]
   fn test_determine_log_style_by_level() {
+    let list_item = ListItem::new(Text::from(Span::raw("test")));
+
     assert_eq!(
-      determine_log_style_by_level("trace"),
-      Style::default().fg(Color::Gray)
+      style_log_list_item(list_item.clone(), "trace".to_string()),
+      list_item.clone().gray()
     );
     assert_eq!(
-      determine_log_style_by_level("debug"),
-      Style::default().fg(Color::Blue)
+      style_log_list_item(list_item.clone(), "debug".to_string()),
+      list_item.clone().blue()
     );
-    assert_eq!(determine_log_style_by_level("info"), style_default());
-    assert_eq!(determine_log_style_by_level("warn"), style_secondary());
-    assert_eq!(determine_log_style_by_level("error"), style_failure());
     assert_eq!(
-      determine_log_style_by_level("fatal"),
-      style_failure().add_modifier(Modifier::BOLD)
+      style_log_list_item(list_item.clone(), "info".to_string()),
+      list_item.clone().style(Style::new().default())
     );
-    assert_eq!(determine_log_style_by_level(""), style_default());
+    assert_eq!(
+      style_log_list_item(list_item.clone(), "warn".to_string()),
+      list_item.clone().style(Style::new().secondary())
+    );
+    assert_eq!(
+      style_log_list_item(list_item.clone(), "error".to_string()),
+      list_item.clone().style(Style::new().failure())
+    );
+    assert_eq!(
+      style_log_list_item(list_item.clone(), "fatal".to_string()),
+      list_item.clone().style(Style::new().failure().bold())
+    );
+    assert_eq!(
+      style_log_list_item(list_item.clone(), "".to_string()),
+      list_item.style(Style::new().default())
+    );
   }
 
   #[test]
   fn test_determine_log_style_by_level_case_insensitive() {
+    let list_item = ListItem::new(Text::from(Span::raw("test")));
+
     assert_eq!(
-      determine_log_style_by_level("TrAcE"),
-      Style::default().fg(Color::Gray)
+      style_log_list_item(list_item.clone(), "TrAcE".to_string()),
+      list_item.gray()
     );
   }
 

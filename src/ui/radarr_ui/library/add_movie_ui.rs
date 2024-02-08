@@ -11,10 +11,10 @@ use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MO
 use crate::models::Route;
 use crate::ui::radarr_ui::collections::{draw_collection_details, draw_collections};
 use crate::ui::radarr_ui::library::draw_library;
+use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, horizontal_chunks, layout_block,
-  layout_paragraph_borderless, style_help, style_primary, title_block_centered,
-  vertical_chunks_with_margin,
+  layout_paragraph_borderless, title_block_centered, vertical_chunks_with_margin,
 };
 use crate::ui::{
   draw_button, draw_drop_down_menu_button, draw_drop_down_popup, draw_error_popup,
@@ -148,8 +148,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         );
         f.render_widget(layout_block(), chunks[1]);
 
-        let mut help_text = Text::from(build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES));
-        help_text.patch_style(style_help());
+        let help_text = Text::from(build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES).help());
         let help_paragraph = Paragraph::new(help_text)
           .block(borderless_block())
           .alignment(Alignment::Center);
@@ -167,10 +166,8 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       | ActiveRadarrBlock::AddMovieSelectRootFolder
       | ActiveRadarrBlock::AddMovieAlreadyInLibrary
       | ActiveRadarrBlock::AddMovieTagsInput => {
-        let mut help_text = Text::from(build_context_clue_string(
-          &ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES,
-        ));
-        help_text.patch_style(style_help());
+        let help_text =
+          Text::from(build_context_clue_string(&ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES).help());
         let help_paragraph = Paragraph::new(help_text)
           .block(borderless_block())
           .alignment(Alignment::Center);
@@ -259,7 +256,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
               Cell::from(rotten_tomatoes_rating),
               Cell::from(movie.genres.join(", ")),
             ])
-            .style(style_primary())
+            .primary()
           },
           is_loading,
           true,

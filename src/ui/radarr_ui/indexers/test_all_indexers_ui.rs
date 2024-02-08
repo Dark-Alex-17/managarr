@@ -4,9 +4,8 @@ use crate::models::servarr_data::radarr::modals::IndexerTestResultModalItem;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::Route;
 use crate::ui::radarr_ui::indexers::draw_indexers;
-use crate::ui::utils::{
-  borderless_block, get_width_from_percentage, style_failure, style_success, title_block,
-};
+use crate::ui::styles::ManagarrStyle;
+use crate::ui::utils::{borderless_block, get_width_from_percentage, title_block};
 use crate::ui::{
   draw_help_and_get_content_rect, draw_large_popup_over, draw_table, DrawUi, TableProps,
 };
@@ -76,18 +75,17 @@ fn draw_test_all_indexers_test_results(f: &mut Frame<'_>, app: &mut App<'_>, are
         app.tick_count % app.ticks_until_scroll == 0,
       );
       let pass_fail = if result.is_valid { "✔" } else { "❌" };
-      let row_style = if result.is_valid {
-        style_success()
-      } else {
-        style_failure()
-      };
-
-      Row::new(vec![
+      let row = Row::new(vec![
         Cell::from(result.name.to_owned()),
         Cell::from(pass_fail.to_owned()),
         Cell::from(result.validation_failures.to_string()),
-      ])
-      .style(row_style)
+      ]);
+
+      if result.is_valid {
+        row.success()
+      } else {
+        row.failure()
+      }
     },
     app.is_loading,
     true,

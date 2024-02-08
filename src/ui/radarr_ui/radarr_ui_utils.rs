@@ -1,19 +1,21 @@
-use crate::ui::utils::{style_default, style_failure, style_secondary};
-use ratatui::style::{Color, Modifier, Style};
+use ratatui::style::{Style, Stylize};
+use ratatui::widgets::ListItem;
+
+use crate::ui::styles::ManagarrStyle;
 
 #[cfg(test)]
 #[path = "radarr_ui_utils_tests.rs"]
 mod radarr_ui_utils_tests;
 
-pub(super) fn determine_log_style_by_level(level: &str) -> Style {
+pub(super) fn style_log_list_item(list_item: ListItem<'_>, level: String) -> ListItem<'_> {
   match level.to_lowercase().as_str() {
-    "trace" => Style::default().fg(Color::Gray),
-    "debug" => Style::default().fg(Color::Blue),
-    "info" => style_default(),
-    "warn" => style_secondary(),
-    "error" => style_failure(),
-    "fatal" => style_failure().add_modifier(Modifier::BOLD),
-    _ => style_default(),
+    "trace" => list_item.gray(),
+    "debug" => list_item.blue(),
+    "info" => list_item.style(Style::new().default()),
+    "warn" => list_item.style(Style::new().secondary()),
+    "error" => list_item.style(Style::new().failure()),
+    "fatal" => list_item.style(Style::new().failure().bold()),
+    _ => list_item.style(Style::new().default()),
   }
 }
 

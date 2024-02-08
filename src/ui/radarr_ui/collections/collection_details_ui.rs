@@ -1,5 +1,6 @@
 use ratatui::layout::{Alignment, Constraint, Rect};
-use ratatui::text::Text;
+use ratatui::style::Stylize;
+use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use ratatui::Frame;
 
@@ -12,10 +13,10 @@ use crate::models::servarr_data::radarr::radarr_data::{
 };
 use crate::models::Route;
 use crate::ui::radarr_ui::collections::draw_collections;
+use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
-  borderless_block, get_width_from_percentage, layout_block_top_border_with_title,
-  line_info_primary, style_default, style_help, style_primary, title_block, title_style,
-  vertical_chunks_with_margin,
+  borderless_block, get_width_from_percentage, layout_block_top_border_with_title, title_block,
+  title_style, vertical_chunks_with_margin,
 };
 use crate::ui::{draw_large_popup_over, draw_small_popup_over, draw_table, DrawUi, TableProps};
 use crate::utils::convert_runtime;
@@ -98,11 +99,13 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, content_are
       .current_selection()
       .clone()
   };
-  let mut help_text = Text::from(format!(
-    "<↑↓> scroll table | {}",
-    build_context_clue_string(&COLLECTION_DETAILS_CONTEXT_CLUES)
-  ));
-  help_text.patch_style(style_help());
+  let help_text = Text::from(
+    format!(
+      "<↑↓> scroll table | {}",
+      build_context_clue_string(&COLLECTION_DETAILS_CONTEXT_CLUES)
+    )
+    .help(),
+  );
   let monitored = if collection_selection.monitored {
     "Yes"
   } else {
@@ -116,24 +119,35 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, content_are
   let minimum_availability = collection_selection.minimum_availability.to_display_str();
 
   let collection_description = Text::from(vec![
-    line_info_primary(
-      "Overview: ".to_owned(),
-      collection_selection.overview.clone().unwrap_or_default(),
-    ),
-    line_info_primary(
-      "Root Folder Path: ".to_owned(),
+    Line::from(vec![
+      "Overview ".primary().bold(),
+      collection_selection
+        .overview
+        .clone()
+        .unwrap_or_default()
+        .default(),
+    ]),
+    Line::from(vec![
+      "Root Folder Path: ".primary().bold(),
       collection_selection
         .root_folder_path
         .clone()
-        .unwrap_or_default(),
-    ),
-    line_info_primary("Quality Profile: ".to_owned(), quality_profile),
-    line_info_primary(
-      "Minimum Availability: ".to_owned(),
-      minimum_availability.to_owned(),
-    ),
-    line_info_primary("Monitored: ".to_owned(), monitored.to_owned()),
-    line_info_primary("Search on Add: ".to_owned(), search_on_add.to_owned()),
+        .unwrap_or_default()
+        .default(),
+    ]),
+    Line::from(vec![
+      "Quality Profile: ".primary().bold(),
+      quality_profile.default(),
+    ]),
+    Line::from(vec![
+      "Minimum Availability: ".primary().bold(),
+      minimum_availability.default(),
+    ]),
+    Line::from(vec!["Monitored: ".primary().bold(), monitored.default()]),
+    Line::from(vec![
+      "Search on Add: ".primary().bold(),
+      search_on_add.default(),
+    ]),
   ]);
 
   let description_paragraph = Paragraph::new(collection_description)
@@ -230,7 +244,7 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, content_are
         Cell::from(rotten_tomatoes_rating),
         Cell::from(movie.genres.join(", ")),
       ])
-      .style(style_primary())
+      .primary()
     },
     app.is_loading,
     true,
@@ -246,7 +260,7 @@ fn draw_movie_overview(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect)
     content_area,
     1,
   );
-  let mut overview = Text::from(
+  let overview = Text::from(
     app
       .data
       .radarr_data
@@ -254,10 +268,9 @@ fn draw_movie_overview(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect)
       .current_selection()
       .clone()
       .overview,
-  );
-  overview.patch_style(style_default());
-  let mut help_text = Text::from(build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES));
-  help_text.patch_style(style_help());
+  )
+  .default();
+  let help_text = Text::from(build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES).help());
 
   let paragraph = Paragraph::new(overview)
     .block(borderless_block())

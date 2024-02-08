@@ -6,8 +6,9 @@ use crate::app::App;
 use crate::models::radarr_models::DownloadRecord;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
 use crate::models::{HorizontallyScrollableText, Route};
-use crate::ui::utils::{get_width_from_percentage, layout_block_top_border, style_primary};
+use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::{draw_prompt_box, draw_prompt_popup_over, draw_table, DrawUi, TableProps};
+use crate::ui::styles::ManagarrStyle;
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -119,8 +120,7 @@ fn draw_downloads(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         ),
         Cell::from(indexer.to_owned()),
         Cell::from(download_client.to_owned()),
-      ])
-      .style(style_primary())
+      ]).primary()
     },
     app.is_loading,
     true,

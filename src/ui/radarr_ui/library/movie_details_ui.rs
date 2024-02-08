@@ -1,7 +1,7 @@
 use std::iter;
 
 use ratatui::layout::{Alignment, Constraint, Rect};
-use ratatui::style::{Modifier, Style};
+use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Cell, ListItem, Paragraph, Row, Wrap};
 use ratatui::Frame;
@@ -11,10 +11,10 @@ use crate::models::radarr_models::{Credit, MovieHistoryItem, Release, ReleaseFie
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::library::draw_library;
+use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_bottom_border, layout_block_top_border,
-  line_info_default, style_awaiting_import, style_bold, style_failure, style_primary,
-  style_success, style_warning, vertical_chunks,
+  vertical_chunks,
 };
 use crate::ui::{
   draw_drop_down_popup, draw_large_popup_over, draw_prompt_box, draw_prompt_box_with_content,
@@ -162,19 +162,13 @@ fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, content_area: Rect) {
         ],
         content_area,
       );
-      let mut file_details_title = Text::from("File Details");
-      let mut audio_details_title = Text::from("Audio Details");
-      let mut video_details_title = Text::from("Video Details");
-      file_details_title.patch_style(style_bold());
-      audio_details_title.patch_style(style_bold());
-      video_details_title.patch_style(style_bold());
 
       let file_details_title_paragraph =
-        Paragraph::new(file_details_title).block(layout_block_top_border());
+        Paragraph::new("File Details".bold()).block(layout_block_top_border());
       let audio_details_title_paragraph =
-        Paragraph::new(audio_details_title).block(borderless_block());
+        Paragraph::new("Audio Details".bold()).block(borderless_block());
       let video_details_title_paragraph =
-        Paragraph::new(video_details_title).block(borderless_block());
+        Paragraph::new("Video Details".bold()).block(borderless_block());
 
       let file_details = Text::from(file_info);
       let audio_details = Text::from(audio_details);
@@ -214,19 +208,22 @@ fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, content_area: Rect) {
         .unwrap()
         .split(": ")
         .collect::<Vec<&str>>()[1];
-      let mut text = Text::from(
+      let text = Text::from(
         movie_details
           .items
           .iter()
           .map(|line| {
             let split = line.split(':').collect::<Vec<&str>>();
             let title = format!("{}:", split[0]);
+            let style = style_from_download_status(download_status);
 
-            line_info_default(title, split[1..].join(":"))
+            Line::from(vec![
+              title.bold().style(style),
+              Span::styled(split[1..].join(":"), style),
+            ])
           })
           .collect::<Vec<Line<'_>>>(),
       );
-      text.patch_style(determine_style_from_download_status(download_status));
 
       let paragraph = Paragraph::new(text)
         .block(block)
@@ -304,7 +301,7 @@ fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) 
           Cell::from(quality.quality.name.to_owned()),
           Cell::from(date.to_string()),
         ])
-        .style(style_success())
+        .success()
       },
       app.is_loading,
       true,
@@ -347,7 +344,7 @@ fn draw_movie_cast(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
         Cell::from(person_name.to_owned()),
         Cell::from(character.clone().unwrap_or_default()),
       ])
-      .style(style_success())
+      .success()
     },
     app.is_loading,
     true,
@@ -391,7 +388,7 @@ fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect) {
         Cell::from(job.clone().unwrap_or_default()),
         Cell::from(department.clone().unwrap_or_default()),
       ])
-      .style(style_success())
+      .success()
     },
     app.is_loading,
     true,
@@ -505,14 +502,16 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect)
       let size = convert_to_gb(*size);
       let rejected_str = if *rejected { "⛔" } else { "" };
       let peers = if seeders.is_none() || leechers.is_none() {
-        Text::default()
+        Text::from("")
       } else {
         let seeders = seeders.clone().unwrap().as_u64().unwrap();
         let leechers = leechers.clone().unwrap().as_u64().unwrap();
-        let mut text = Text::from(format!("{seeders} / {leechers}"));
-        text.patch_style(determine_peer_style(seeders, leechers));
 
-        text
+        decorate_peer_style(
+          seeders,
+          leechers,
+          Text::from(format!("{seeders} / {leechers}")),
+        )
       };
 
       let language = if languages.is_some() {
@@ -533,7 +532,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, content_area: Rect)
         Cell::from(language),
         Cell::from(quality),
       ])
-      .style(style_primary())
+      .primary()
     },
     app.is_loading || is_empty,
     true,
@@ -567,16 +566,13 @@ fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>, promp
   };
 
   if current_selection.rejected {
-    let mut lines_vec = vec![Line::from(vec![Span::styled(
-      "Rejection reasons: ",
-      style_primary().add_modifier(Modifier::BOLD),
-    )])];
+    let mut lines_vec = vec![Line::from("Rejection reasons: ".primary().bold())];
     let mut rejections_spans = current_selection
       .rejections
       .clone()
       .unwrap_or_default()
       .iter()
-      .map(|item| Line::from(vec![Span::styled(format!("• {item}"), style_primary())]))
+      .map(|item| Line::from(format!("• {item}").primary().bold()))
       .collect::<Vec<Line<'_>>>();
     lines_vec.append(&mut rejections_spans);
 
@@ -604,22 +600,22 @@ fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>, promp
   }
 }
 
-fn determine_style_from_download_status(download_status: &str) -> Style {
+fn style_from_download_status(download_status: &str) -> Style {
   match download_status {
-    "Downloaded" => style_success(),
-    "Awaiting Import" => style_awaiting_import(),
-    "Downloading" => style_warning(),
-    "Missing" => style_failure(),
-    _ => style_success(),
+    "Downloaded" => Style::new().success(),
+    "Awaiting Import" => Style::new().awaiting_import(),
+    "Downloading" => Style::new().warning(),
+    "Missing" => Style::new().failure(),
+    _ => Style::new().success(),
   }
 }
 
-fn determine_peer_style(seeders: u64, leechers: u64) -> Style {
+fn decorate_peer_style(seeders: u64, leechers: u64, text: Text<'_>) -> Text<'_> {
   if seeders == 0 {
-    style_failure()
+    text.failure()
   } else if seeders < leechers {
-    style_warning()
+    text.warning()
   } else {
-    style_success()
+    text.success()
   }
 }

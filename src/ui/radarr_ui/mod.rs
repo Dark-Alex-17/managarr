@@ -1,10 +1,10 @@
 use std::iter;
 
 use chrono::{Duration, Utc};
-use ratatui::layout::{Alignment, Constraint, Rect};
-use ratatui::style::{Color, Style};
+use ratatui::layout::{Alignment, Constraint, Layout, Rect};
+use ratatui::prelude::Stylize;
 use ratatui::text::Text;
-use ratatui::widgets::Paragraph;
+use ratatui::widgets::{Paragraph, Row};
 use ratatui::Frame;
 
 use crate::app::App;
@@ -20,10 +20,10 @@ use crate::ui::radarr_ui::indexers::IndexersUi;
 use crate::ui::radarr_ui::library::LibraryUi;
 use crate::ui::radarr_ui::root_folders::RootFoldersUi;
 use crate::ui::radarr_ui::system::SystemUi;
+use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
-  borderless_block, horizontal_chunks, layout_block, line_gauge_with_label, line_gauge_with_title,
-  style_awaiting_import, style_bold, style_default, style_failure, style_success,
-  style_unmonitored, style_warning, title_block, vertical_chunks_with_margin,
+  borderless_block, layout_block, line_gauge_with_label, line_gauge_with_title, title_block,
+  vertical_chunks_with_margin,
 };
 use crate::ui::DrawUi;
 use crate::utils::convert_to_gb;
@@ -63,16 +63,14 @@ impl DrawUi for RadarrUi {
   }
 
   fn draw_context_row(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
-    let chunks = horizontal_chunks(vec![Constraint::Min(0), Constraint::Length(20)], area);
+    let [main, logo] = Layout::horizontal([Constraint::Min(0), Constraint::Length(20)]).areas(area);
 
-    let context_chunks = horizontal_chunks(
-      vec![Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)],
-      chunks[0],
-    );
+    let [stats, downloads] =
+      Layout::horizontal([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)]).areas(main);
 
-    draw_stats_context(f, app, context_chunks[0]);
-    draw_downloads_context(f, app, context_chunks[1]);
-    draw_radarr_logo(f, chunks[1]);
+    draw_stats_context(f, app, stats);
+    draw_downloads_context(f, app, downloads);
+    draw_radarr_logo(f, logo);
   }
 }
 
@@ -107,7 +105,7 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       app.data.radarr_data.version
     )))
     .block(borderless_block())
-    .style(style_bold());
+    .bold();
 
     let uptime = Utc::now() - start_time.to_owned();
     let days = uptime.num_days();
@@ -122,12 +120,10 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       width = 2
     )))
     .block(borderless_block())
-    .style(style_bold());
+    .bold();
 
-    let storage =
-      Paragraph::new(Text::from("Storage:")).block(borderless_block().style(style_bold()));
-    let folders =
-      Paragraph::new(Text::from("Root Folders:")).block(borderless_block().style(style_bold()));
+    let storage = Paragraph::new(Text::from("Storage:")).block(borderless_block().bold());
+    let folders = Paragraph::new(Text::from("Root Folders:")).block(borderless_block().bold());
 
     f.render_widget(version_paragraph, chunks[0]);
     f.render_widget(uptime_paragraph, chunks[1]);
@@ -159,7 +155,7 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       let space: f64 = convert_to_gb(*free_space);
       let root_folder_space = Paragraph::new(format!("{path}: {space:.2} GB free"))
         .block(borderless_block())
-        .style(style_default());
+        .default();
 
       f.render_widget(root_folder_space, chunks[i + disk_space_vec.len() + 4])
     }
@@ -198,36 +194,40 @@ fn draw_downloads_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   }
 }
 
-fn determine_row_style(downloads_vec: &[DownloadRecord], movie: &Movie) -> Style {
+fn decorate_with_row_style<'a>(
+  downloads_vec: &[DownloadRecord],
+  movie: &Movie,
+  row: Row<'a>,
+) -> Row<'a> {
   if !movie.has_file {
     if let Some(download) = downloads_vec
       .iter()
       .find(|&download| download.movie_id == movie.id)
     {
       if download.status == "downloading" {
-        return style_warning();
+        return row.warning();
       }
 
       if download.status == "completed" {
-        return style_awaiting_import();
+        return row.awaiting_import();
       }
     }
 
-    return style_failure();
+    return row.failure();
   }
 
   if !movie.monitored {
-    style_unmonitored()
+    row.unmonitored()
   } else {
-    style_success()
+    row.success()
   }
 }
 
 fn draw_radarr_logo(f: &mut Frame<'_>, area: Rect) {
-  let mut logo_text = Text::from(RADARR_LOGO);
-  logo_text.patch_style(Style::default().fg(Color::LightYellow));
+  let logo_text = Text::from(RADARR_LOGO);
   let logo = Paragraph::new(logo_text)
-    .block(layout_block())
+    .light_yellow()
+    .block(layout_block().default())
     .alignment(Alignment::Center);
   f.render_widget(logo, area);
 }

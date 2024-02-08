@@ -10,7 +10,7 @@ use crate::ui::{
   draw_button, draw_checkbox_with_label, draw_popup_over, draw_text_box_with_label, loading,
   DrawUi, LabeledTextBoxProps,
 };
-use ratatui::layout::{Constraint, Rect};
+use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::Frame;
 use std::iter;
 
@@ -66,16 +66,14 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
       1,
     );
 
-    let left_chunks = vertical_chunks(
-      vec![
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Min(0),
-      ],
-      split_chunks[0],
-    );
+    let [name, rss, auto_search, interactive_search, _] = Layout::vertical([
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Min(0),
+    ])
+    .areas(split_chunks[0]);
     let right_chunks = vertical_chunks(
       vec![
         Constraint::Length(3),
@@ -91,7 +89,7 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
       draw_text_box_with_label(
         f,
         LabeledTextBoxProps {
-          area: left_chunks[0],
+          area: name,
           label: "Name",
           text: &edit_indexer_modal.name.text,
           offset: *edit_indexer_modal.name.offset.borrow(),
@@ -166,14 +164,14 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
 
       draw_checkbox_with_label(
         f,
-        left_chunks[1],
+        rss,
         "Enable RSS",
         edit_indexer_modal.enable_rss.unwrap_or_default(),
         selected_block == &ActiveRadarrBlock::EditIndexerToggleEnableRss,
       );
       draw_checkbox_with_label(
         f,
-        left_chunks[2],
+        auto_search,
         "Enable Automatic Search",
         edit_indexer_modal
           .enable_automatic_search
@@ -182,7 +180,7 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: R
       );
       draw_checkbox_with_label(
         f,
-        left_chunks[3],
+        interactive_search,
         "Enable Interactive Search",
         edit_indexer_modal
           .enable_interactive_search

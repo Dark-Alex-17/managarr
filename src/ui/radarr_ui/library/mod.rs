@@ -6,7 +6,7 @@ use crate::app::App;
 use crate::models::radarr_models::Movie;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, LIBRARY_BLOCKS};
 use crate::models::Route;
-use crate::ui::radarr_ui::determine_row_style;
+use crate::ui::radarr_ui::decorate_with_row_style;
 use crate::ui::radarr_ui::library::add_movie_ui::AddMovieUi;
 use crate::ui::radarr_ui::library::delete_movie_ui::DeleteMovieUi;
 use crate::ui::radarr_ui::library::edit_movie_ui::EditMovieUi;
@@ -186,19 +186,22 @@ pub(super) fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .collect::<Vec<String>>()
         .join(", ");
 
-      Row::new(vec![
-        Cell::from(movie.title.to_string()),
-        Cell::from(movie.year.to_string()),
-        Cell::from(movie.studio.to_string()),
-        Cell::from(format!("{hours}h {minutes}m")),
-        Cell::from(certification),
-        Cell::from(movie.original_language.name.to_owned()),
-        Cell::from(format!("{file_size:.2} GB")),
-        Cell::from(quality_profile),
-        Cell::from(monitored.to_owned()),
-        Cell::from(tags),
-      ])
-      .style(determine_row_style(downloads_vec, movie))
+      decorate_with_row_style(
+        downloads_vec,
+        movie,
+        Row::new(vec![
+          Cell::from(movie.title.to_string()),
+          Cell::from(movie.year.to_string()),
+          Cell::from(movie.studio.to_string()),
+          Cell::from(format!("{hours}h {minutes}m")),
+          Cell::from(certification),
+          Cell::from(movie.original_language.name.to_owned()),
+          Cell::from(format!("{file_size:.2} GB")),
+          Cell::from(quality_profile),
+          Cell::from(monitored.to_owned()),
+          Cell::from(tags),
+        ]),
+      )
     },
     app.is_loading,
     true,

@@ -13,11 +13,10 @@ use ratatui::{
 use crate::app::App;
 use crate::models::radarr_models::Task;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-use crate::ui::radarr_ui::radarr_ui_utils::{
-  convert_to_minutes_hours_days, determine_log_style_by_level,
-};
+use crate::ui::radarr_ui::radarr_ui_utils::{convert_to_minutes_hours_days, style_log_list_item};
 use crate::ui::radarr_ui::system::system_details_ui::SystemDetailsUi;
-use crate::ui::utils::{layout_block_top_border, style_help, style_primary};
+use crate::ui::styles::ManagarrStyle;
+use crate::ui::utils::layout_block_top_border;
 use crate::ui::{draw_table, ListProps, TableProps};
 use crate::{
   models::Route,
@@ -117,7 +116,7 @@ fn draw_tasks(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Cell::from(task_props.last_duration),
         Cell::from(task_props.next_execution),
       ])
-      .style(style_primary())
+      .primary()
     },
     app.is_loading,
     false,
@@ -177,7 +176,7 @@ pub(super) fn draw_queued_events(f: &mut Frame<'_>, app: &mut App<'_>, area: Rec
         Cell::from(started_string),
         Cell::from(duration.to_owned()),
       ])
-      .style(style_primary())
+      .primary()
     },
     app.is_loading,
     false,
@@ -190,10 +189,9 @@ fn draw_logs(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     area,
     |log| {
       let log_line = log.to_string();
-      let level = log_line.split('|').collect::<Vec<&str>>()[1];
-      let style = determine_log_style_by_level(level);
+      let level = log_line.split('|').collect::<Vec<&str>>()[1].to_string();
 
-      ListItem::new(Text::from(Span::raw(log_line))).style(style)
+      style_log_list_item(ListItem::new(Text::from(Span::raw(log_line))), level)
     },
     ListProps {
       content: &mut app.data.radarr_data.logs,
@@ -206,16 +204,18 @@ fn draw_logs(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_help(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let mut help_text = Text::from(format!(
-    " {}",
-    app
-      .data
-      .radarr_data
-      .main_tabs
-      .get_active_tab_contextual_help()
-      .unwrap()
-  ));
-  help_text.patch_style(style_help());
+  let help_text = Text::from(
+    format!(
+      " {}",
+      app
+        .data
+        .radarr_data
+        .main_tabs
+        .get_active_tab_contextual_help()
+        .unwrap()
+    )
+    .help(),
+  );
   let help_paragraph = Paragraph::new(help_text)
     .block(layout_block_top_border())
     .alignment(Alignment::Left);

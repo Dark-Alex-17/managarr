@@ -3,17 +3,14 @@ mod test {
   use pretty_assertions::assert_eq;
   use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
   use ratatui::style::{Color, Modifier, Style};
-  use ratatui::text::{Line, Span};
+  use ratatui::text::Span;
   use ratatui::widgets::{Block, BorderType, Borders};
 
   use crate::ui::utils::{
     borderless_block, centered_rect, get_width_from_percentage, horizontal_chunks,
     horizontal_chunks_with_margin, layout_block, layout_block_bottom_border,
     layout_block_top_border, layout_block_top_border_with_title, layout_block_with_title,
-    layout_with_constraints, line_info_default, line_info_primary, line_info_with_style,
-    logo_block, style_block_highlight, style_bold, style_default, style_default_bold,
-    style_failure, style_help, style_highlight, style_primary, style_secondary, style_success,
-    style_system_function, style_unmonitored, style_warning, title_block, title_block_centered,
+    layout_with_constraints, logo_block, style_block_highlight, title_block, title_block_centered,
     title_style, vertical_chunks, vertical_chunks_with_margin,
   };
 
@@ -177,132 +174,6 @@ mod test {
   }
 
   #[test]
-  fn test_line_info_with_style() {
-    let first_style = Style::default()
-      .fg(Color::DarkGray)
-      .add_modifier(Modifier::BOLD);
-    let second_style = Style::default()
-      .fg(Color::LightYellow)
-      .add_modifier(Modifier::ITALIC);
-    let expected_lines = Line::from(vec![
-      Span::styled("title".to_owned(), first_style),
-      Span::styled("content".to_owned(), second_style),
-    ]);
-
-    assert_eq!(
-      line_info_with_style(
-        "title".to_owned(),
-        "content".to_owned(),
-        first_style,
-        second_style
-      ),
-      expected_lines
-    );
-  }
-
-  #[test]
-  fn test_line_info_default() {
-    let expected_line = Line::from(vec![
-      Span::styled(
-        "title".to_owned(),
-        Style::default().add_modifier(Modifier::BOLD),
-      ),
-      Span::styled("content".to_owned(), Style::default().fg(Color::White)),
-    ]);
-
-    assert_eq!(
-      line_info_default("title".to_owned(), "content".to_owned()),
-      expected_line
-    );
-  }
-
-  #[test]
-  fn test_line_info_primary() {
-    let expected_line = Line::from(vec![
-      Span::styled(
-        "title".to_owned(),
-        Style::default()
-          .fg(Color::Cyan)
-          .add_modifier(Modifier::BOLD),
-      ),
-      Span::styled("content".to_owned(), Style::default().fg(Color::White)),
-    ]);
-
-    assert_eq!(
-      line_info_primary("title".to_owned(), "content".to_owned()),
-      expected_line
-    );
-  }
-
-  #[test]
-  fn test_style_bold() {
-    assert_eq!(style_bold(), Style::default().add_modifier(Modifier::BOLD));
-  }
-
-  #[test]
-  fn test_style_highlight() {
-    assert_eq!(
-      style_highlight(),
-      Style::default().add_modifier(Modifier::REVERSED)
-    );
-  }
-
-  #[test]
-  fn test_style_unmonitored() {
-    assert_eq!(style_unmonitored(), Style::default().fg(Color::White));
-  }
-
-  #[test]
-  fn test_style_default() {
-    assert_eq!(style_default(), Style::default().fg(Color::White));
-  }
-
-  #[test]
-  fn test_style_default_bold() {
-    assert_eq!(
-      style_default_bold(),
-      Style::default()
-        .fg(Color::White)
-        .add_modifier(Modifier::BOLD)
-    );
-  }
-
-  #[test]
-  fn test_style_primary() {
-    assert_eq!(style_primary(), Style::default().fg(Color::Cyan));
-  }
-
-  #[test]
-  fn test_style_secondary() {
-    assert_eq!(style_secondary(), Style::default().fg(Color::Yellow));
-  }
-
-  #[test]
-  fn test_style_system_function() {
-    assert_eq!(style_system_function(), Style::default().fg(Color::Yellow));
-  }
-
-  #[test]
-  fn test_style_success() {
-    assert_eq!(style_success(), Style::default().fg(Color::Green));
-  }
-
-  #[test]
-  fn test_style_warning() {
-    assert_eq!(style_warning(), Style::default().fg(Color::Magenta));
-  }
-
-  #[test]
-  fn test_style_failure() {
-    assert_eq!(style_failure(), Style::default().fg(Color::Red));
-  }
-
-  #[test]
-  fn test_style_help() {
-    assert_eq!(style_help(), Style::default().fg(Color::LightBlue));
-  }
-
-  #[test]
   fn test_style_button_highlight_selected() {
     let expected_style = Style::default()
       .fg(Color::Yellow)
@@ -390,9 +261,9 @@ mod test {
           x: 0,
           y: 0,
           width: 100,
-          height: 10
+          height: 10,
         },
-        30
+        30,
       ),
       30
     );

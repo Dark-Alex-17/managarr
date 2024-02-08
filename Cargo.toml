@@ -1,6 +1,6 @@
 [package]
 name = "managarr"
-version = "0.0.31"
+version = "0.0.32"
 authors = ["Alex Clarke <alex.j.tusa@gmail.com>"]
 description = "A TUI to manage your Servarrs"
 keywords = ["managarr", "tui-rs", "dashboard", "servarr", "tui"]
@@ -28,11 +28,11 @@ reqwest = { version = "0.11.14", features = ["json"] }
 serde_yaml = "0.9.16"
 serde_json = "1.0.91"
 serde = { version = "1.0", features = ["derive"] }
-strum = {version = "0.25.0", features = ["derive"] }
-strum_macros = "0.25.0"
+strum = {version = "0.26.1", features = ["derive"] }
+strum_macros = "0.26.1"
 tokio = { version = "1.29.0", features = ["full"] }
 tokio-util = "0.7.8"
-ratatui = { version = "0.25.0", features = ["all-widgets"] }
+ratatui = { version = "0.26.0", features = ["all-widgets"] }
 urlencoding = "2.1.2"
 
 [dev-dependencies]

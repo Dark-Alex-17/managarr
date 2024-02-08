@@ -1,9 +1,9 @@
 use std::iter;
 use std::rc::Rc;
 
-use ratatui::layout::{Alignment, Constraint, Rect};
-use ratatui::style::Modifier;
-use ratatui::text::{Line, Span, Text};
+use ratatui::layout::{Alignment, Constraint, Layout, Rect};
+use ratatui::style::{Modifier, Style, Stylize};
+use ratatui::text::{Line, Text};
 use ratatui::widgets::Paragraph;
 use ratatui::widgets::Row;
 use ratatui::widgets::Table;
@@ -15,16 +15,16 @@ use ratatui::Frame;
 use crate::app::App;
 use crate::models::{HorizontallyScrollableText, Route, StatefulList, StatefulTable, TabState};
 use crate::ui::radarr_ui::RadarrUi;
+use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   background_block, borderless_block, centered_rect, horizontal_chunks,
   horizontal_chunks_with_margin, layout_block, layout_block_top_border, layout_button_paragraph,
   layout_button_paragraph_borderless, layout_paragraph_borderless, logo_block, show_cursor,
-  style_block_highlight, style_default, style_default_bold, style_failure, style_help,
-  style_highlight, style_primary, style_secondary, style_system_function, title_block,
-  title_block_centered, vertical_chunks_with_margin,
+  style_block_highlight, title_block, title_block_centered, vertical_chunks_with_margin,
 };
 
 mod radarr_ui;
+mod styles;
 mod utils;
 
 static HIGHLIGHT_SYMBOL: &str = "=> ";
@@ -37,59 +37,53 @@ pub trait DrawUi {
 
 pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
   f.render_widget(background_block(), f.size());
-  let main_chunks = if !app.error.text.is_empty() {
-    let chunks = vertical_chunks_with_margin(
-      vec![
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(10),
-        Constraint::Length(0),
-      ],
-      f.size(),
-      1,
-    );
+  let [header, context, table] = if !app.error.text.is_empty() {
+    let [header, error, context, table] = Layout::vertical([
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(10),
+      Constraint::Fill(1),
+    ])
+    .margin(1)
+    .areas(f.size());
 
-    draw_error(f, app, chunks[1]);
+    draw_error(f, app, error);
 
-    Rc::new([chunks[0], chunks[2], chunks[3]])
+    [header, context, table]
   } else {
-    vertical_chunks_with_margin(
-      vec![
-        Constraint::Length(3),
-        Constraint::Length(10),
-        Constraint::Length(0),
-      ],
-      f.size(),
-      1,
-    )
+    Layout::vertical([
+      Constraint::Length(3),
+      Constraint::Length(10),
+      Constraint::Fill(1),
+    ])
+    .margin(1)
+    .areas(f.size())
   };
 
-  draw_header_row(f, app, main_chunks[0]);
+  draw_header_row(f, app, header);
 
   if RadarrUi::accepts(*app.get_current_route()) {
-    RadarrUi::draw_context_row(f, app, main_chunks[1]);
-    RadarrUi::draw(f, app, main_chunks[2]);
+    RadarrUi::draw_context_row(f, app, context);
+    RadarrUi::draw(f, app, table);
   }
 }
 
 fn draw_header_row(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let chunks =
     horizontal_chunks_with_margin(vec![Constraint::Length(75), Constraint::Min(0)], area, 1);
-  let help_text = Text::from(app.server_tabs.get_active_tab_help());
+  let help_text = Text::from(app.server_tabs.get_active_tab_help().help());
 
   let titles = app
     .server_tabs
     .tabs
     .iter()
-    .map(|tab| Line::from(Span::styled(tab.title, style_default_bold())))
-    .collect();
+    .map(|tab| Line::from(tab.title.bold()));
   let tabs = Tabs::new(titles)
     .block(logo_block())
-    .highlight_style(style_secondary())
+    .highlight_style(Style::new().secondary())
     .select(app.server_tabs.index);
   let help = Paragraph::new(help_text)
     .block(borderless_block())
-    .style(style_help())
     .alignment(Alignment::Right);
 
   f.render_widget(tabs, area);
@@ -97,8 +91,7 @@ fn draw_header_row(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_error(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let block =
-    title_block("Error | <esc> to close").style(style_failure().add_modifier(Modifier::BOLD));
+  let block = title_block("Error | <esc> to close").failure().bold();
 
   app.error.scroll_left_or_reset(
     area.width as usize,
@@ -106,13 +99,10 @@ fn draw_error(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     app.tick_count % app.ticks_until_scroll == 0,
   );
 
-  let mut text = Text::from(app.error.to_string());
-  text.patch_style(style_failure());
-
-  let paragraph = Paragraph::new(text)
+  let paragraph = Paragraph::new(Text::from(app.error.to_string()).failure())
     .block(block)
     .wrap(Wrap { trim: true })
-    .style(style_primary());
+    .primary();
 
   f.render_widget(paragraph, area);
 }
@@ -245,8 +235,9 @@ pub fn draw_error_popup(f: &mut Frame<'_>, message: &str) {
   f.render_widget(background_block(), prompt_area);
 
   let error_message = Paragraph::new(Text::from(message))
-    .block(title_block_centered("Error").style(style_failure()))
-    .style(style_failure().add_modifier(Modifier::BOLD))
+    .block(title_block_centered("Error").failure())
+    .failure()
+    .bold()
     .wrap(Wrap { trim: false })
     .alignment(Alignment::Center);
 
@@ -262,24 +253,21 @@ fn draw_tabs<'a>(
   let chunks =
     vertical_chunks_with_margin(vec![Constraint::Length(2), Constraint::Min(0)], area, 1);
   let horizontal_chunks = horizontal_chunks_with_margin(
-    vec![Constraint::Percentage(10), Constraint::Min(0)],
+    vec![Constraint::Percentage(10), Constraint::Fill(1)],
     area,
     1,
   );
   let block = title_block(title);
-  let mut help_text = Text::from(tab_state.get_active_tab_help());
-  help_text.patch_style(style_help());
 
   let titles = tab_state
     .tabs
     .iter()
-    .map(|tab_route| Line::from(Span::styled(tab_route.title, style_default_bold())))
-    .collect();
+    .map(|tab_route| Line::from(tab_route.title.bold()));
   let tabs = Tabs::new(titles)
     .block(block)
-    .highlight_style(style_secondary())
+    .highlight_style(Style::new().secondary())
     .select(tab_state.index);
-  let help = Paragraph::new(help_text)
+  let help = Paragraph::new(Text::from(tab_state.get_active_tab_help().help()))
     .block(borderless_block())
     .alignment(Alignment::Right);
 
@@ -369,15 +357,13 @@ fn draw_table_contents<'a, T, F>(
 {
   let rows = content.items.iter().map(row_mapper);
 
-  let headers = Row::new(table_headers)
-    .style(style_default_bold())
-    .bottom_margin(0);
+  let headers = Row::new(table_headers).default().bold().bottom_margin(0);
 
   let mut table = Table::new(rows, &constraints).header(headers).block(block);
 
   if highlight {
     table = table
-      .highlight_style(style_highlight())
+      .highlight_style(Style::new().highlight())
       .highlight_symbol(HIGHLIGHT_SYMBOL);
   }
 
@@ -386,12 +372,8 @@ fn draw_table_contents<'a, T, F>(
 
 pub fn loading(f: &mut Frame<'_>, block: Block<'_>, area: Rect, is_loading: bool) {
   if is_loading {
-    let text = "\n\n Loading ...\n\n".to_owned();
-    let mut text = Text::from(text);
-    text.patch_style(style_system_function());
-
-    let paragraph = Paragraph::new(text)
-      .style(style_system_function())
+    let paragraph = Paragraph::new(Text::from("\n\n Loading ...\n\n"))
+      .system_function()
       .block(block);
     f.render_widget(paragraph, area);
   } else {
@@ -538,7 +520,7 @@ pub fn draw_checkbox_with_label(
   let label_paragraph = Paragraph::new(Text::from(format!("\n{label}: ")))
     .block(borderless_block())
     .alignment(Alignment::Right)
-    .style(style_primary());
+    .primary();
 
   f.render_widget(label_paragraph, horizontal_chunks[0]);
 
@@ -598,7 +580,7 @@ pub fn draw_drop_down_menu_button(
   let description_paragraph = Paragraph::new(Text::from(format!("\n{description}: ")))
     .block(borderless_block())
     .alignment(Alignment::Right)
-    .style(style_primary());
+    .primary();
 
   f.render_widget(description_paragraph, horizontal_chunks[0]);
 
@@ -614,7 +596,7 @@ pub fn draw_selectable_list<'a, T>(
   let items: Vec<ListItem<'_>> = content.items.iter().map(item_mapper).collect();
   let list = List::new(items)
     .block(layout_block())
-    .highlight_style(style_highlight());
+    .highlight_style(Style::new().highlight());
 
   f.render_stateful_widget(list, area, &mut content.state);
 }
@@ -648,7 +630,7 @@ pub fn draw_list_box<'a, T>(
     let mut list = List::new(items).block(block);
 
     if is_popup {
-      list = list.highlight_style(style_highlight());
+      list = list.highlight_style(Style::new().highlight());
     }
 
     f.render_stateful_widget(list, content_area, &mut content.state);
@@ -662,9 +644,7 @@ fn draw_help_and_get_content_rect(f: &mut Frame<'_>, area: Rect, help: Option<St
     let chunks =
       vertical_chunks_with_margin(vec![Constraint::Min(0), Constraint::Length(2)], area, 1);
 
-    let mut help_test = Text::from(format!(" {help_string}"));
-    help_test.patch_style(style_help());
-    let help_paragraph = Paragraph::new(help_test)
+    let help_paragraph = Paragraph::new(Text::from(format!(" {help_string}").help()))
       .block(layout_block_top_border())
       .alignment(Alignment::Left);
 
@@ -697,12 +677,12 @@ pub fn draw_text_box(f: &mut Frame<'_>, text_box_props: TextBoxProps<'_>) {
     cursor_after_string,
   } = text_box_props;
   let (block, style) = if let Some(title) = block_title {
-    (title_block_centered(title), style_default())
+    (title_block_centered(title), Style::new().default())
   } else {
     (
       layout_block(),
       if should_show_cursor {
-        style_default()
+        Style::new().default()
       } else {
         style_block_highlight(is_selected)
       },
@@ -753,7 +733,7 @@ pub fn draw_text_box_with_label(
   let label_paragraph = Paragraph::new(Text::from(format!("\n{label}: ")))
     .block(borderless_block())
     .alignment(Alignment::Right)
-    .style(style_primary());
+    .primary();
 
   f.render_widget(label_paragraph, horizontal_chunks[0]);
 
@@ -801,7 +781,7 @@ pub fn draw_input_box_popup(
   );
 
   let help = Paragraph::new("<esc> cancel")
-    .style(style_help())
+    .help()
     .alignment(Alignment::Center)
     .block(borderless_block());
   f.render_widget(help, chunks[1]);
@@ -809,7 +789,7 @@ pub fn draw_input_box_popup(
 
 pub fn draw_error_message_popup(f: &mut Frame<'_>, error_message_area: Rect, error_msg: &str) {
   let input = Paragraph::new(error_msg)
-    .style(style_failure())
+    .failure()
     .alignment(Alignment::Center)
     .block(layout_block());
 

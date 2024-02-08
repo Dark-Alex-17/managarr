@@ -6,11 +6,12 @@ use crate::app::App;
 use crate::models::radarr_models::RootFolder;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
 use crate::models::Route;
-use crate::ui::utils::{layout_block_top_border, style_primary};
+use crate::ui::utils::{layout_block_top_border};
 use crate::ui::{
   draw_input_box_popup, draw_popup_over, draw_prompt_box, draw_prompt_popup_over, draw_table,
   DrawUi, TableProps,
 };
+use crate::ui::styles::ManagarrStyle;
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -94,8 +95,7 @@ fn draw_root_folders(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
             .len()
             .to_string(),
         ),
-      ])
-      .style(style_primary())
+      ]).primary()
     },
     app.is_loading,
     true,
