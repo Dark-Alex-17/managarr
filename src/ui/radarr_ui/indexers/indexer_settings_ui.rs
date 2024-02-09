@@ -6,12 +6,14 @@ use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS,
 };
 use crate::models::Route;
+use crate::render_selectable_input_box;
 use crate::ui::radarr_ui::indexers::draw_indexers;
+use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::title_block_centered;
-use crate::ui::{
-  draw_button, draw_checkbox_with_label, draw_popup_over, draw_text_box_with_label, loading,
-  DrawUi, LabeledTextBoxProps,
-};
+use crate::ui::widgets::button::Button;
+use crate::ui::widgets::checkbox::Checkbox;
+use crate::ui::widgets::input_box::InputBox;
+use crate::ui::{draw_popup_over, loading, DrawUi};
 
 #[cfg(test)]
 #[path = "indexer_settings_ui_tests.rs"]
@@ -50,18 +52,15 @@ fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area:
 
   if indexer_settings_option.is_some() {
     let indexer_settings = indexer_settings_option.as_ref().unwrap();
-    f.render_widget(block, area);
 
     let [settings_area, buttons_area] =
       Layout::vertical([Constraint::Fill(0), Constraint::Length(3)])
         .margin(1)
         .areas(area);
-
     let [left_side_area, right_side_area] =
       Layout::horizontal([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)])
         .margin(1)
         .areas(settings_area);
-
     let [min_age_area, retention_area, max_size_area, prefer_flags_area, _] = Layout::vertical([
       Constraint::Length(3),
       Constraint::Length(3),
@@ -81,110 +80,80 @@ fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area:
       .areas(right_side_area);
 
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
-      draw_text_box_with_label(
-        f,
-        LabeledTextBoxProps {
-          area: min_age_area,
-          label: "Minimum Age (minutes) ▴▾",
-          text: &indexer_settings.minimum_age.to_string(),
-          offset: 0,
-          is_selected: selected_block == &ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
-          should_show_cursor: active_radarr_block
-            == ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
-          cursor_after_string: false,
-        },
-      );
-      draw_text_box_with_label(
-        f,
-        LabeledTextBoxProps {
-          area: retention_area,
-          label: "Retention (days) ▴▾",
-          text: &indexer_settings.retention.to_string(),
-          offset: 0,
-          is_selected: selected_block == &ActiveRadarrBlock::IndexerSettingsRetentionInput,
-          should_show_cursor: active_radarr_block
-            == ActiveRadarrBlock::IndexerSettingsRetentionInput,
-          cursor_after_string: false,
-        },
-      );
-      draw_text_box_with_label(
-        f,
-        LabeledTextBoxProps {
-          area: max_size_area,
-          label: "Maximum Size (MB) ▴▾",
-          text: &indexer_settings.maximum_size.to_string(),
-          offset: 0,
-          is_selected: selected_block == &ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
-          should_show_cursor: active_radarr_block
-            == ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
-          cursor_after_string: false,
-        },
-      );
-      draw_text_box_with_label(
-        f,
-        LabeledTextBoxProps {
-          area: availability_delay_area,
-          label: "Availability Delay (days) ▴▾",
-          text: &indexer_settings.availability_delay.to_string(),
-          offset: 0,
-          is_selected: selected_block == &ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
-          should_show_cursor: active_radarr_block
-            == ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
-          cursor_after_string: false,
-        },
-      );
-      draw_text_box_with_label(
-        f,
-        LabeledTextBoxProps {
-          area: rss_sync_interval_area,
-          label: "RSS Sync Interval (minutes) ▴▾",
-          text: &indexer_settings.rss_sync_interval.to_string(),
-          offset: 0,
-          is_selected: selected_block == &ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
-          should_show_cursor: active_radarr_block
-            == ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
-          cursor_after_string: false,
-        },
-      );
-      draw_text_box_with_label(
-        f,
-        LabeledTextBoxProps {
-          area: whitelisted_sub_tags_area,
-          label: "Whitelisted Subtitle Tags",
-          text: &indexer_settings.whitelisted_hardcoded_subs.text,
-          offset: *indexer_settings.whitelisted_hardcoded_subs.offset.borrow(),
-          is_selected: selected_block
-            == &ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
-          should_show_cursor: active_radarr_block
-            == ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
-          cursor_after_string: true,
-        },
-      );
+      let min_age = indexer_settings.minimum_age.to_string();
+      let retention = indexer_settings.retention.to_string();
+      let max_size = indexer_settings.maximum_size.to_string();
+      let availability_delay = indexer_settings.availability_delay.to_string();
+      let rss_sync_interval = indexer_settings.rss_sync_interval.to_string();
+
+      let min_age_text_box = InputBox::new(&min_age)
+        .cursor_after_string(false)
+        .label("Minimum Age (minutes) ▴▾")
+        .highlighted(selected_block == &ActiveRadarrBlock::IndexerSettingsMinimumAgeInput)
+        .selected(active_radarr_block == ActiveRadarrBlock::IndexerSettingsMinimumAgeInput);
+      let retention_input_box = InputBox::new(&retention)
+        .cursor_after_string(false)
+        .label("Retention (days) ▴▾")
+        .highlighted(selected_block == &ActiveRadarrBlock::IndexerSettingsRetentionInput)
+        .selected(active_radarr_block == ActiveRadarrBlock::IndexerSettingsRetentionInput);
+      let max_size_input_box = InputBox::new(&max_size)
+        .cursor_after_string(false)
+        .label("Maximum Size (MB) ▴▾")
+        .highlighted(selected_block == &ActiveRadarrBlock::IndexerSettingsMaximumSizeInput)
+        .selected(active_radarr_block == ActiveRadarrBlock::IndexerSettingsMaximumSizeInput);
+      let availability_delay_input_box = InputBox::new(&availability_delay)
+        .cursor_after_string(false)
+        .label("Availability Delay (days) ▴▾")
+        .highlighted(selected_block == &ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput)
+        .selected(active_radarr_block == ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput);
+      let rss_sync_interval_input_box = InputBox::new(&rss_sync_interval)
+        .cursor_after_string(false)
+        .label("RSS Sync Interval (minutes) ▴▾")
+        .highlighted(selected_block == &ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput)
+        .selected(active_radarr_block == ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput);
+      let whitelisted_subs_input_box =
+        InputBox::new(&indexer_settings.whitelisted_hardcoded_subs.text)
+          .offset(*indexer_settings.whitelisted_hardcoded_subs.offset.borrow())
+          .label("Whitelisted Subtitle Tags")
+          .highlighted(
+            selected_block == &ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
+          )
+          .selected(
+            active_radarr_block == ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
+          );
+
+      render_selectable_input_box!(min_age_text_box, f, min_age_area);
+      render_selectable_input_box!(retention_input_box, f, retention_area);
+      render_selectable_input_box!(max_size_input_box, f, max_size_area);
+      render_selectable_input_box!(availability_delay_input_box, f, availability_delay_area);
+      render_selectable_input_box!(rss_sync_interval_input_box, f, rss_sync_interval_area);
+      render_selectable_input_box!(whitelisted_subs_input_box, f, whitelisted_sub_tags_area);
     }
 
-    draw_checkbox_with_label(
-      f,
-      prefer_flags_area,
-      "Prefer Indexer Flags",
-      indexer_settings.prefer_indexer_flags,
-      selected_block == &ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags,
-    );
-
-    draw_checkbox_with_label(
-      f,
-      allow_hardcoded_subs_area,
-      "Allow Hardcoded Subs",
-      indexer_settings.allow_hardcoded_subs,
-      selected_block == &ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs,
-    );
+    let prefer_indexer_flags_checkbox = Checkbox::new("Prefer Indexer Flags")
+      .highlighted(selected_block == &ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags)
+      .checked(indexer_settings.prefer_indexer_flags);
+    let allow_hardcoded_subs_checkbox = Checkbox::new("Allow Hardcoded Subs")
+      .highlighted(selected_block == &ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs)
+      .checked(indexer_settings.allow_hardcoded_subs);
 
     let [save_area, cancel_area] =
       Layout::horizontal([Constraint::Percentage(25), Constraint::Percentage(25)])
         .flex(Flex::Center)
         .areas(buttons_area);
 
-    draw_button(f, save_area, "Save", yes_no_value && highlight_yes_no);
-    draw_button(f, cancel_area, "Cancel", !yes_no_value && highlight_yes_no);
+    let save_button = Button::new()
+      .title("Save")
+      .selected(yes_no_value && highlight_yes_no);
+    let cancel_button = Button::new()
+      .title("Cancel")
+      .selected(!yes_no_value && highlight_yes_no);
+
+    f.render_widget(block, area);
+    f.render_widget(prefer_indexer_flags_checkbox, prefer_flags_area);
+    f.render_widget(allow_hardcoded_subs_checkbox, allow_hardcoded_subs_area);
+    f.render_widget(save_button, save_area);
+    f.render_widget(cancel_button, cancel_area);
   } else {
     loading(f, block, area, app.is_loading);
   }

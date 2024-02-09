@@ -1,7 +1,7 @@
 use std::iter;
 
 use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
-use ratatui::style::{Modifier, Style, Stylize};
+use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Text};
 use ratatui::widgets::Paragraph;
 use ratatui::widgets::Row;
@@ -17,13 +17,16 @@ use crate::ui::radarr_ui::RadarrUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   background_block, borderless_block, centered_rect, layout_block, layout_block_top_border,
-  layout_button_paragraph, layout_button_paragraph_borderless, layout_paragraph_borderless,
-  logo_block, show_cursor, style_block_highlight, title_block, title_block_centered,
+  layout_paragraph_borderless, logo_block, title_block, title_block_centered,
 };
+use crate::ui::widgets::button::Button;
+use crate::ui::widgets::checkbox::Checkbox;
+use crate::ui::widgets::input_box::InputBox;
 
 mod radarr_ui;
 mod styles;
 mod utils;
+mod widgets;
 
 static HIGHLIGHT_SYMBOL: &str = "=> ";
 
@@ -428,8 +431,11 @@ pub fn draw_prompt_box_with_content(
     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
       .areas(buttons_area);
 
-  draw_button(f, yes_area, "Yes", yes_no_value);
-  draw_button(f, no_area, "No", !yes_no_value);
+  let yes_button = Button::new().title("Yes").selected(yes_no_value);
+  let no_button = Button::new().title("No").selected(!yes_no_value);
+
+  f.render_widget(yes_button, yes_area);
+  f.render_widget(no_button, no_area);
 }
 
 pub fn draw_prompt_box_with_checkboxes(
@@ -441,115 +447,41 @@ pub fn draw_prompt_box_with_checkboxes(
   highlight_yes_no: bool,
   yes_no_value: bool,
 ) {
-  f.render_widget(title_block_centered(title), area);
   let mut constraints = vec![
     Constraint::Length(4),
     Constraint::Fill(0),
     Constraint::Length(3),
   ];
-
   constraints.splice(
     1..1,
     iter::repeat(Constraint::Length(3)).take(checkboxes.len()),
   );
-
   let chunks = Layout::vertical(constraints).margin(1).split(area);
-
   let prompt_paragraph = layout_paragraph_borderless(prompt);
-  f.render_widget(prompt_paragraph, chunks[0]);
 
   for i in 0..checkboxes.len() {
-    let (label, is_checked, is_selected) = checkboxes[i];
-    draw_checkbox_with_label(f, chunks[i + 1], label, is_checked, is_selected);
+    let (label, is_checked, is_highlighted) = checkboxes[i];
+    let checkbox = Checkbox::new(label)
+      .checked(is_checked)
+      .highlighted(is_highlighted);
+    f.render_widget(checkbox, chunks[i + 1]);
   }
 
   let [yes_area, no_area] =
     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
       .areas(chunks[checkboxes.len() + 2]);
 
-  draw_button(f, yes_area, "Yes", highlight_yes_no && yes_no_value);
-  draw_button(f, no_area, "No", highlight_yes_no && !yes_no_value);
-}
+  let yes_button = Button::new()
+    .title("Yes")
+    .selected(yes_no_value && highlight_yes_no);
+  let no_button = Button::new()
+    .title("No")
+    .selected(!yes_no_value && highlight_yes_no);
 
-pub fn draw_checkbox(f: &mut Frame<'_>, area: Rect, is_checked: bool, is_selected: bool) {
-  let check = if is_checked { "✔" } else { "" };
-  let label_paragraph = Paragraph::new(Text::from(check))
-    .block(layout_block())
-    .alignment(Alignment::Center)
-    .style(style_block_highlight(is_selected).add_modifier(Modifier::BOLD));
-  let checkbox_area = Rect { width: 5, ..area };
-
-  f.render_widget(label_paragraph, checkbox_area);
-}
-
-pub fn draw_checkbox_with_label(
-  f: &mut Frame<'_>,
-  area: Rect,
-  label: &str,
-  is_checked: bool,
-  is_selected: bool,
-) {
-  let [label_area, checkbox_area] =
-    Layout::horizontal([Constraint::Percentage(48), Constraint::Percentage(48)]).areas(area);
-
-  let label_paragraph = Paragraph::new(Text::from(format!("\n{label}: ")))
-    .block(borderless_block())
-    .alignment(Alignment::Right)
-    .primary();
-
-  f.render_widget(label_paragraph, label_area);
-
-  draw_checkbox(f, checkbox_area, is_checked, is_selected);
-}
-
-pub fn draw_button(f: &mut Frame<'_>, area: Rect, label: &str, is_selected: bool) {
-  let label_paragraph = layout_button_paragraph(is_selected, label, Alignment::Center);
-
-  f.render_widget(label_paragraph, area);
-}
-
-pub fn draw_button_with_icon(
-  f: &mut Frame<'_>,
-  area: Rect,
-  label: &str,
-  icon: &str,
-  is_selected: bool,
-) {
-  let label_paragraph = layout_button_paragraph_borderless(is_selected, label, Alignment::Left);
-  let icon_paragraph = layout_button_paragraph_borderless(is_selected, icon, Alignment::Right);
-
-  let [label_area, icon_area] =
-    Layout::horizontal([Constraint::Percentage(25), Constraint::Percentage(25)])
-      .flex(Flex::SpaceBetween)
-      .margin(1)
-      .areas(area);
-
-  f.render_widget(
-    layout_block().style(style_block_highlight(is_selected)),
-    area,
-  );
-  f.render_widget(label_paragraph, label_area);
-  f.render_widget(icon_paragraph, icon_area);
-}
-
-pub fn draw_drop_down_menu_button(
-  f: &mut Frame<'_>,
-  area: Rect,
-  description: &str,
-  selection: &str,
-  is_selected: bool,
-) {
-  let [label_area, button_area] =
-    Layout::horizontal([Constraint::Percentage(48), Constraint::Percentage(48)]).areas(area);
-
-  let description_paragraph = Paragraph::new(Text::from(format!("\n{description}: ")))
-    .block(borderless_block())
-    .alignment(Alignment::Right)
-    .primary();
-
-  f.render_widget(description_paragraph, label_area);
-
-  draw_button_with_icon(f, button_area, selection, "▼ ", is_selected);
+  f.render_widget(title_block_centered(title), area);
+  f.render_widget(prompt_paragraph, chunks[0]);
+  f.render_widget(yes_button, yes_area);
+  f.render_widget(no_button, no_area);
 }
 
 pub fn draw_selectable_list<'a, T>(
@@ -625,95 +557,6 @@ fn draw_help_footer_and_get_content_area(
   }
 }
 
-pub struct TextBoxProps<'a> {
-  pub text_box_area: Rect,
-  pub block_title: Option<&'a str>,
-  pub block_content: &'a str,
-  pub offset: usize,
-  pub should_show_cursor: bool,
-  pub is_selected: bool,
-  pub cursor_after_string: bool,
-}
-
-pub fn draw_text_box(f: &mut Frame<'_>, text_box_props: TextBoxProps<'_>) {
-  let TextBoxProps {
-    text_box_area,
-    block_title,
-    block_content,
-    offset,
-    should_show_cursor,
-    is_selected,
-    cursor_after_string,
-  } = text_box_props;
-  let (block, style) = if let Some(title) = block_title {
-    (title_block_centered(title), Style::new().default())
-  } else {
-    (
-      layout_block(),
-      if should_show_cursor {
-        Style::new().default()
-      } else {
-        style_block_highlight(is_selected)
-      },
-    )
-  };
-  let paragraph = Paragraph::new(Text::from(block_content))
-    .style(style)
-    .block(block);
-  f.render_widget(paragraph, text_box_area);
-
-  if should_show_cursor {
-    show_cursor(f, text_box_area, offset, block_content, cursor_after_string);
-  }
-}
-
-pub struct LabeledTextBoxProps<'a> {
-  pub area: Rect,
-  pub label: &'a str,
-  pub text: &'a str,
-  pub offset: usize,
-  pub is_selected: bool,
-  pub should_show_cursor: bool,
-  pub cursor_after_string: bool,
-}
-
-pub fn draw_text_box_with_label(
-  f: &mut Frame<'_>,
-  labeled_text_box_props: LabeledTextBoxProps<'_>,
-) {
-  let LabeledTextBoxProps {
-    area,
-    label,
-    text,
-    offset,
-    is_selected,
-    should_show_cursor,
-    cursor_after_string,
-  } = labeled_text_box_props;
-  let [label_area, text_box_area] =
-    Layout::horizontal([Constraint::Percentage(48), Constraint::Percentage(48)]).areas(area);
-
-  let label_paragraph = Paragraph::new(Text::from(format!("\n{label}: ")))
-    .block(borderless_block())
-    .alignment(Alignment::Right)
-    .primary();
-
-  f.render_widget(label_paragraph, label_area);
-
-  draw_text_box(
-    f,
-    TextBoxProps {
-      text_box_area,
-      block_title: None,
-      block_content: text,
-      offset,
-      should_show_cursor,
-      is_selected,
-      cursor_after_string,
-    },
-  );
-}
-
 pub fn draw_input_box_popup(
   f: &mut Frame<'_>,
   area: Rect,
@@ -724,18 +567,12 @@ pub fn draw_input_box_popup(
     .margin(1)
     .areas(area);
 
-  draw_text_box(
-    f,
-    TextBoxProps {
-      text_box_area,
-      block_title: Some(box_title),
-      block_content: &box_content.text,
-      offset: *box_content.offset.borrow(),
-      should_show_cursor: true,
-      is_selected: false,
-      cursor_after_string: true,
-    },
-  );
+  let input_box = InputBox::new(&box_content.text)
+    .offset(*box_content.offset.borrow())
+    .block(title_block_centered(box_title));
+
+  input_box.show_cursor(f, text_box_area);
+  f.render_widget(input_box, text_box_area);
 
   let help = Paragraph::new("<esc> cancel")
     .help()

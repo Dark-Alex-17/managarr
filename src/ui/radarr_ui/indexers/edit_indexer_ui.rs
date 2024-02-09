@@ -1,12 +1,14 @@
 use crate::app::App;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
 use crate::models::Route;
+use crate::render_selectable_input_box;
 use crate::ui::radarr_ui::indexers::draw_indexers;
+use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::title_block_centered;
-use crate::ui::{
-  draw_button, draw_checkbox_with_label, draw_popup_over, draw_text_box_with_label, loading,
-  DrawUi, LabeledTextBoxProps,
-};
+use crate::ui::widgets::button::Button;
+use crate::ui::widgets::checkbox::Checkbox;
+use crate::ui::widgets::input_box::InputBox;
+use crate::ui::{draw_popup_over, loading, DrawUi};
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::Frame;
 
@@ -48,19 +50,16 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
   if edit_indexer_modal_option.is_some() {
     let edit_indexer_modal = edit_indexer_modal_option.as_ref().unwrap();
-    f.render_widget(block, area);
 
     let [settings_area, buttons_area] =
       Layout::vertical([Constraint::Fill(0), Constraint::Length(3)])
         .margin(1)
         .areas(area);
-
     let [left_side_area, right_side_area] =
       Layout::horizontal([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)])
         .margin(1)
         .areas(settings_area);
-
-    let [name, rss, auto_search, interactive_search, _] = Layout::vertical([
+    let [name_area, rss_area, auto_search_area, interactive_search_area, _] = Layout::vertical([
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
@@ -78,115 +77,87 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .areas(right_side_area);
 
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
-      draw_text_box_with_label(
-        f,
-        LabeledTextBoxProps {
-          area: name,
-          label: "Name",
-          text: &edit_indexer_modal.name.text,
-          offset: *edit_indexer_modal.name.offset.borrow(),
-          is_selected: selected_block == &ActiveRadarrBlock::EditIndexerNameInput,
-          should_show_cursor: active_radarr_block == ActiveRadarrBlock::EditIndexerNameInput,
-          cursor_after_string: true,
-        },
-      );
-      draw_text_box_with_label(
-        f,
-        LabeledTextBoxProps {
-          area: url_area,
-          label: "URL",
-          text: &edit_indexer_modal.url.text,
-          offset: *edit_indexer_modal.url.offset.borrow(),
-          is_selected: selected_block == &ActiveRadarrBlock::EditIndexerUrlInput,
-          should_show_cursor: active_radarr_block == ActiveRadarrBlock::EditIndexerUrlInput,
-          cursor_after_string: true,
-        },
-      );
-      draw_text_box_with_label(
-        f,
-        LabeledTextBoxProps {
-          area: api_key_area,
-          label: "API Key",
-          text: &edit_indexer_modal.api_key.text,
-          offset: *edit_indexer_modal.api_key.offset.borrow(),
-          is_selected: selected_block == &ActiveRadarrBlock::EditIndexerApiKeyInput,
-          should_show_cursor: active_radarr_block == ActiveRadarrBlock::EditIndexerApiKeyInput,
-          cursor_after_string: true,
-        },
-      );
+      let name_input_box = InputBox::new(&edit_indexer_modal.name.text)
+        .offset(*edit_indexer_modal.name.offset.borrow())
+        .label("Name")
+        .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerNameInput)
+        .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerNameInput);
+      let url_input_box = InputBox::new(&edit_indexer_modal.url.text)
+        .offset(*edit_indexer_modal.url.offset.borrow())
+        .label("URL")
+        .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerUrlInput)
+        .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerUrlInput);
+      let api_key_input_box = InputBox::new(&edit_indexer_modal.api_key.text)
+        .offset(*edit_indexer_modal.api_key.offset.borrow())
+        .label("API Key")
+        .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerApiKeyInput)
+        .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerApiKeyInput);
+      let tags_input_box = InputBox::new(&edit_indexer_modal.tags.text)
+        .offset(*edit_indexer_modal.tags.offset.borrow())
+        .label("Tags")
+        .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerTagsInput)
+        .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerTagsInput);
+
+      render_selectable_input_box!(name_input_box, f, name_area);
+      render_selectable_input_box!(url_input_box, f, url_area);
+      render_selectable_input_box!(api_key_input_box, f, api_key_area);
+
       if protocol == "torrent" {
-        draw_text_box_with_label(
-          f,
-          LabeledTextBoxProps {
-            area: seed_ratio_area,
-            label: "Seed Ratio",
-            text: &edit_indexer_modal.seed_ratio.text,
-            offset: *edit_indexer_modal.seed_ratio.offset.borrow(),
-            is_selected: selected_block == &ActiveRadarrBlock::EditIndexerSeedRatioInput,
-            should_show_cursor: active_radarr_block == ActiveRadarrBlock::EditIndexerSeedRatioInput,
-            cursor_after_string: true,
-          },
-        );
-        draw_text_box_with_label(
-          f,
-          LabeledTextBoxProps {
-            area: tags_area,
-            label: "Tags",
-            text: &edit_indexer_modal.tags.text,
-            offset: *edit_indexer_modal.tags.offset.borrow(),
-            is_selected: selected_block == &ActiveRadarrBlock::EditIndexerTagsInput,
-            should_show_cursor: active_radarr_block == ActiveRadarrBlock::EditIndexerTagsInput,
-            cursor_after_string: true,
-          },
-        );
+        let seed_ratio_input_box = InputBox::new(&edit_indexer_modal.seed_ratio.text)
+          .offset(*edit_indexer_modal.seed_ratio.offset.borrow())
+          .label("Seed Ratio")
+          .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerSeedRatioInput)
+          .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerSeedRatioInput);
+        let tags_input_box = InputBox::new(&edit_indexer_modal.tags.text)
+          .offset(*edit_indexer_modal.tags.offset.borrow())
+          .label("Tags")
+          .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerTagsInput)
+          .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerTagsInput);
+
+        render_selectable_input_box!(seed_ratio_input_box, f, seed_ratio_area);
+        render_selectable_input_box!(tags_input_box, f, tags_area);
       } else {
-        draw_text_box_with_label(
-          f,
-          LabeledTextBoxProps {
-            area: seed_ratio_area,
-            label: "Tags",
-            text: &edit_indexer_modal.tags.text,
-            offset: *edit_indexer_modal.tags.offset.borrow(),
-            is_selected: selected_block == &ActiveRadarrBlock::EditIndexerTagsInput,
-            should_show_cursor: active_radarr_block == ActiveRadarrBlock::EditIndexerTagsInput,
-            cursor_after_string: true,
-          },
-        );
+        render_selectable_input_box!(tags_input_box, f, seed_ratio_area);
       }
 
-      draw_checkbox_with_label(
-        f,
-        rss,
-        "Enable RSS",
-        edit_indexer_modal.enable_rss.unwrap_or_default(),
-        selected_block == &ActiveRadarrBlock::EditIndexerToggleEnableRss,
-      );
-      draw_checkbox_with_label(
-        f,
-        auto_search,
-        "Enable Automatic Search",
-        edit_indexer_modal
-          .enable_automatic_search
-          .unwrap_or_default(),
-        selected_block == &ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
-      );
-      draw_checkbox_with_label(
-        f,
-        interactive_search,
-        "Enable Interactive Search",
-        edit_indexer_modal
-          .enable_interactive_search
-          .unwrap_or_default(),
-        selected_block == &ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
-      );
+      let rss_checkbox = Checkbox::new("Enable RSS")
+        .checked(edit_indexer_modal.enable_rss.unwrap_or_default())
+        .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerToggleEnableRss);
+      let auto_search_checkbox = Checkbox::new("Enable Automatic Search")
+        .checked(
+          edit_indexer_modal
+            .enable_automatic_search
+            .unwrap_or_default(),
+        )
+        .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch);
+      let interactive_search_checkbox = Checkbox::new("Enable Interactive Search")
+        .checked(
+          edit_indexer_modal
+            .enable_interactive_search
+            .unwrap_or_default(),
+        )
+        .highlighted(
+          selected_block == &ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+        );
 
       let [save_area, cancel_area] =
         Layout::horizontal([Constraint::Percentage(25), Constraint::Percentage(25)])
           .flex(Flex::Center)
           .areas(buttons_area);
 
-      draw_button(f, save_area, "Save", yes_no_value && highlight_yes_no);
-      draw_button(f, cancel_area, "Cancel", !yes_no_value && highlight_yes_no);
+      let save_button = Button::new()
+        .title("Save")
+        .selected(yes_no_value && highlight_yes_no);
+      let cancel_button = Button::new()
+        .title("Cancel")
+        .selected(!yes_no_value && highlight_yes_no);
+
+      f.render_widget(block, area);
+      f.render_widget(rss_checkbox, rss_area);
+      f.render_widget(auto_search_checkbox, auto_search_area);
+      f.render_widget(interactive_search_checkbox, interactive_search_area);
+      f.render_widget(save_button, save_area);
+      f.render_widget(cancel_button, cancel_area);
     }
   } else {
     loading(f, block, area, app.is_loading);

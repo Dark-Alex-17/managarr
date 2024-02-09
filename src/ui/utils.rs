@@ -1,9 +1,9 @@
 use crate::ui::styles::ManagarrStyle;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Color, Style, Stylize};
+use ratatui::symbols;
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, BorderType, Borders, LineGauge, Paragraph, Wrap};
-use ratatui::{symbols, Frame};
 
 pub const COLOR_TEAL: Color = Color::Rgb(35, 50, 55);
 
@@ -35,28 +35,6 @@ pub fn layout_block_top_border<'a>() -> Block<'a> {
 
 pub fn layout_block_bottom_border<'a>() -> Block<'a> {
   Block::new().borders(Borders::BOTTOM)
-}
-
-pub fn layout_button_paragraph(
-  is_selected: bool,
-  label: &str,
-  alignment: Alignment,
-) -> Paragraph<'_> {
-  Paragraph::new(Text::from(label))
-    .block(layout_block())
-    .alignment(alignment)
-    .style(style_block_highlight(is_selected))
-}
-
-pub fn layout_button_paragraph_borderless(
-  is_selected: bool,
-  label: &str,
-  alignment: Alignment,
-) -> Paragraph<'_> {
-  Paragraph::new(Text::from(label))
-    .block(borderless_block())
-    .alignment(alignment)
-    .style(style_block_highlight(is_selected))
 }
 
 pub fn layout_paragraph_borderless(string: &str) -> Paragraph<'_> {
@@ -133,20 +111,6 @@ pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge<'_> {
     .line_set(symbols::line::THICK)
     .ratio(ratio)
     .label(Line::from(format!("{title}: {:.0}%", ratio * 100.0)))
-}
-
-pub fn show_cursor(
-  f: &mut Frame<'_>,
-  area: Rect,
-  offset: usize,
-  string: &str,
-  cursor_after_string: bool,
-) {
-  if cursor_after_string {
-    f.set_cursor(area.x + (string.len() - offset) as u16 + 1, area.y + 1);
-  } else {
-    f.set_cursor(area.x + 1u16, area.y + 1);
-  }
 }
 
 pub fn get_width_from_percentage(area: Rect, percentage: u16) -> usize {

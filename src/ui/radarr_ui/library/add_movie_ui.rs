@@ -16,14 +16,14 @@ use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block, layout_paragraph_borderless,
   title_block_centered,
 };
+use crate::ui::widgets::button::Button;
+use crate::ui::widgets::input_box::InputBox;
 use crate::ui::{
-  draw_button, draw_drop_down_menu_button, draw_drop_down_popup, draw_error_popup,
-  draw_error_popup_over, draw_large_popup_over, draw_medium_popup_over, draw_selectable_list,
-  draw_table, draw_text_box, draw_text_box_with_label, DrawUi, LabeledTextBoxProps, TableProps,
-  TextBoxProps,
+  draw_drop_down_popup, draw_error_popup, draw_error_popup_over, draw_large_popup_over,
+  draw_medium_popup_over, draw_selectable_list, draw_table, DrawUi, TableProps,
 };
 use crate::utils::convert_runtime;
-use crate::App;
+use crate::{render_selectable_input_box, App};
 
 #[cfg(test)]
 #[path = "add_movie_ui_tests.rs"]
@@ -120,24 +120,17 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSearchInput => {
-        draw_text_box(
-          f,
-          TextBoxProps {
-            text_box_area: search_box_area,
-            block_title: Some("Add Movie"),
-            block_content,
-            offset,
-            should_show_cursor: true,
-            is_selected: false,
-            cursor_after_string: true,
-          },
-        );
-        f.render_widget(layout_block(), results_area);
-
+        let search_box = InputBox::new(block_content)
+          .offset(offset)
+          .block(title_block_centered("Add Movie"));
         let help_text = Text::from(build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES).help());
         let help_paragraph = Paragraph::new(help_text)
           .block(borderless_block())
           .alignment(Alignment::Center);
+
+        search_box.show_cursor(f, search_box_area);
+        f.render_widget(layout_block(), results_area);
+        f.render_widget(search_box, search_box_area);
         f.render_widget(help_paragraph, help_area);
       }
       ActiveRadarrBlock::AddMovieEmptySearchResults => {
@@ -252,17 +245,11 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     }
   }
 
-  draw_text_box(
-    f,
-    TextBoxProps {
-      text_box_area: search_box_area,
-      block_title: Some("Add Movie"),
-      block_content,
-      offset,
-      should_show_cursor: false,
-      is_selected: false,
-      cursor_after_string: true,
-    },
+  f.render_widget(
+    InputBox::new(block_content)
+      .offset(offset)
+      .block(title_block_centered("Add Movie")),
+    search_box_area,
   );
 }
 
@@ -395,54 +382,50 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
       .areas(buttons_area);
 
-  draw_drop_down_menu_button(
-    f,
-    root_folder_area,
-    "Root Folder",
-    &selected_root_folder.path,
-    selected_block == &ActiveRadarrBlock::AddMovieSelectRootFolder,
-  );
+  let root_folder_drop_down_button = Button::new()
+    .title(&selected_root_folder.path)
+    .label("Root Folder")
+    .icon("▼")
+    .selected(selected_block == &ActiveRadarrBlock::AddMovieSelectRootFolder);
+  let monitor_drop_down_button = Button::new()
+    .title(selected_monitor.to_display_str())
+    .label("Monitor")
+    .icon("▼")
+    .selected(selected_block == &ActiveRadarrBlock::AddMovieSelectMonitor);
+  let min_availability_drop_down_button = Button::new()
+    .title(selected_minimum_availability.to_display_str())
+    .label("Minimum Availability")
+    .icon("▼")
+    .selected(selected_block == &ActiveRadarrBlock::AddMovieSelectMinimumAvailability);
+  let quality_profile_drop_down_button = Button::new()
+    .title(selected_quality_profile)
+    .label("Quality Profile")
+    .icon("▼")
+    .selected(selected_block == &ActiveRadarrBlock::AddMovieSelectQualityProfile);
 
-  draw_drop_down_menu_button(
-    f,
-    monitor_area,
-    "Monitor",
-    selected_monitor.to_display_str(),
-    selected_block == &ActiveRadarrBlock::AddMovieSelectMonitor,
-  );
-
-  draw_drop_down_menu_button(
-    f,
-    min_availability_area,
-    "Minimum Availability",
-    selected_minimum_availability.to_display_str(),
-    selected_block == &ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
-  );
-  draw_drop_down_menu_button(
-    f,
-    quality_profile_area,
-    "Quality Profile",
-    selected_quality_profile,
-    selected_block == &ActiveRadarrBlock::AddMovieSelectQualityProfile,
-  );
+  f.render_widget(root_folder_drop_down_button, root_folder_area);
+  f.render_widget(monitor_drop_down_button, monitor_area);
+  f.render_widget(min_availability_drop_down_button, min_availability_area);
+  f.render_widget(quality_profile_drop_down_button, quality_profile_area);
 
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
-    draw_text_box_with_label(
-      f,
-      LabeledTextBoxProps {
-        area: tags_area,
-        label: "Tags",
-        text: &tags.text,
-        offset: *tags.offset.borrow(),
-        is_selected: selected_block == &ActiveRadarrBlock::AddMovieTagsInput,
-        should_show_cursor: active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput,
-        cursor_after_string: true,
-      },
-    );
+    let tags_input_box = InputBox::new(&tags.text)
+      .offset(*tags.offset.borrow())
+      .label("Tags")
+      .highlighted(selected_block == &ActiveRadarrBlock::AddMovieTagsInput)
+      .selected(active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput);
+    render_selectable_input_box!(tags_input_box, f, tags_area);
   }
 
-  draw_button(f, add_area, "Add", yes_no_value && highlight_yes_no);
-  draw_button(f, cancel_area, "Cancel", !yes_no_value && highlight_yes_no);
+  let add_button = Button::new()
+    .title("Add")
+    .selected(yes_no_value && highlight_yes_no);
+  let cancel_button = Button::new()
+    .title("Cancel")
+    .selected(!yes_no_value && highlight_yes_no);
+
+  f.render_widget(add_button, add_area);
+  f.render_widget(cancel_button, cancel_area);
 }
 
 fn draw_add_movie_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
