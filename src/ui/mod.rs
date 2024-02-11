@@ -252,7 +252,7 @@ fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -
   let [header_area, content_area] = Layout::vertical([Constraint::Length(1), Constraint::Fill(0)])
     .margin(1)
     .areas(area);
-  let [tabs_area, help_area] = Layout::horizontal([Constraint::Min(25), Constraint::Min(25)])
+  let [tabs_area, help_area] = Layout::horizontal([Constraint::Min(25), Constraint::Min(35)])
     .flex(Flex::SpaceBetween)
     .areas(header_area);
 
