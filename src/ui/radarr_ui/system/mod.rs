@@ -11,13 +11,14 @@ use ratatui::{
 };
 
 use crate::app::App;
-use crate::models::radarr_models::Task;
+use crate::models::radarr_models::{QueueEvent, Task};
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::ui::radarr_ui::radarr_ui_utils::{convert_to_minutes_hours_days, style_log_list_item};
 use crate::ui::radarr_ui::system::system_details_ui::SystemDetailsUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::layout_block_top_border;
-use crate::ui::{draw_table, ListProps, TableProps};
+use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::ListProps;
 use crate::{
   models::Route,
   ui::{draw_list_box, utils::title_block, DrawUi},
@@ -87,92 +88,83 @@ pub(super) fn draw_system_ui_layout(f: &mut Frame<'_>, app: &mut App<'_>, area: 
 }
 
 fn draw_tasks(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_table(
-    f,
-    area,
-    title_block("Tasks"),
-    TableProps {
-      content: Some(&mut app.data.radarr_data.tasks),
-      wrapped_content: None,
-      table_headers: TASK_TABLE_HEADERS.to_vec(),
-      constraints: TASK_TABLE_CONSTRAINTS.to_vec(),
-      help: None,
-    },
-    |task| {
-      let task_props = extract_task_props(task);
+  let tasks_row_mapping = |task: &Task| {
+    let task_props = extract_task_props(task);
 
-      Row::new(vec![
-        Cell::from(task_props.name),
-        Cell::from(task_props.interval),
-        Cell::from(task_props.last_execution),
-        Cell::from(task_props.last_duration),
-        Cell::from(task_props.next_execution),
-      ])
-      .primary()
-    },
-    app.is_loading,
-    false,
-  );
+    Row::new(vec![
+      Cell::from(task_props.name),
+      Cell::from(task_props.interval),
+      Cell::from(task_props.last_execution),
+      Cell::from(task_props.last_duration),
+      Cell::from(task_props.next_execution),
+    ])
+    .primary()
+  };
+  let tasks_table = ManagarrTable::new(Some(&mut app.data.radarr_data.tasks), tasks_row_mapping)
+    .block(title_block("Tasks"))
+    .loading(app.is_loading)
+    .highlight_rows(false)
+    .headers(TASK_TABLE_HEADERS)
+    .constraints(TASK_TABLE_CONSTRAINTS);
+
+  f.render_widget(tasks_table, area);
 }
 
 pub(super) fn draw_queued_events(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_table(
-    f,
-    area,
-    title_block("Queued Events"),
-    TableProps {
-      content: Some(&mut app.data.radarr_data.queued_events),
-      wrapped_content: None,
-      table_headers: vec!["Trigger", "Status", "Name", "Queued", "Started", "Duration"],
-      constraints: vec![
-        Constraint::Percentage(13),
-        Constraint::Percentage(13),
-        Constraint::Percentage(30),
-        Constraint::Percentage(16),
-        Constraint::Percentage(14),
-        Constraint::Percentage(14),
-      ],
-      help: None,
-    },
-    |event| {
-      let queued = convert_to_minutes_hours_days(Utc::now().sub(event.queued).num_minutes());
-      let queued_string = if queued != "now" {
-        format!("{queued} ago")
-      } else {
-        queued
-      };
-      let started_string = if event.started.is_some() {
-        let started =
-          convert_to_minutes_hours_days(Utc::now().sub(event.started.unwrap()).num_minutes());
+  let events_row_mapping = |event: &QueueEvent| {
+    let queued = convert_to_minutes_hours_days(Utc::now().sub(event.queued).num_minutes());
+    let queued_string = if queued != "now" {
+      format!("{queued} ago")
+    } else {
+      queued
+    };
+    let started_string = if event.started.is_some() {
+      let started =
+        convert_to_minutes_hours_days(Utc::now().sub(event.started.unwrap()).num_minutes());
 
-        if started != "now" {
-          format!("{started} ago")
-        } else {
-          started
-        }
+      if started != "now" {
+        format!("{started} ago")
       } else {
-        String::new()
-      };
+        started
+      }
+    } else {
+      String::new()
+    };
 
-      let duration = if event.duration.is_some() {
-        &event.duration.as_ref().unwrap()[..8]
-      } else {
-        ""
-      };
+    let duration = if event.duration.is_some() {
+      &event.duration.as_ref().unwrap()[..8]
+    } else {
+      ""
+    };
 
-      Row::new(vec![
-        Cell::from(event.trigger.clone()),
-        Cell::from(event.status.clone()),
-        Cell::from(event.command_name.clone()),
-        Cell::from(queued_string),
-        Cell::from(started_string),
-        Cell::from(duration.to_owned()),
-      ])
-      .primary()
-    },
-    app.is_loading,
-    false,
-  );
+    Row::new(vec![
+      Cell::from(event.trigger.clone()),
+      Cell::from(event.status.clone()),
+      Cell::from(event.command_name.clone()),
+      Cell::from(queued_string),
+      Cell::from(started_string),
+      Cell::from(duration.to_owned()),
+    ])
+    .primary()
+  };
+  let events_table = ManagarrTable::new(
+    Some(&mut app.data.radarr_data.queued_events),
+    events_row_mapping,
+  )
+  .block(title_block("Queued Events"))
+  .loading(app.is_loading)
+  .highlight_rows(false)
+  .headers(["Trigger", "Status", "Name", "Queued", "Started", "Duration"])
+  .constraints([
+    Constraint::Percentage(13),
+    Constraint::Percentage(13),
+    Constraint::Percentage(30),
+    Constraint::Percentage(16),
+    Constraint::Percentage(14),
+    Constraint::Percentage(14),
+  ]);
+
+  f.render_widget(events_table, area);
 }
 
 fn draw_logs(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

@@ -18,7 +18,8 @@ use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_top_border_with_title, title_block,
   title_style,
 };
-use crate::ui::{draw_large_popup_over, draw_small_popup_over, draw_table, DrawUi, TableProps};
+use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::{draw_large_popup_over, draw_small_popup_over, DrawUi};
 use crate::utils::convert_runtime;
 
 #[cfg(test)]
@@ -67,13 +68,10 @@ impl DrawUi for CollectionDetailsUi {
 }
 
 pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let [description_area, table_area, help_footer_area] = Layout::vertical([
-    Constraint::Percentage(25),
-    Constraint::Percentage(70),
-    Constraint::Percentage(5),
-  ])
-  .margin(1)
-  .areas(area);
+  let [description_area, table_area] =
+    Layout::vertical([Constraint::Percentage(25), Constraint::Fill(0)])
+      .margin(1)
+      .areas(area);
   let collection_selection =
     if let Some(filtered_collections) = app.data.radarr_data.filtered_collections.as_ref() {
       filtered_collections.current_selection()
@@ -97,13 +95,63 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
       .current_selection()
       .clone()
   };
-  let help_text = Text::from(
-    format!(
-      "<↑↓> scroll table | {}",
-      build_context_clue_string(&COLLECTION_DETAILS_CONTEXT_CLUES)
-    )
-    .help(),
-  );
+  let movie_row_mapper = |movie: &CollectionMovie| {
+    let in_library = if app
+      .data
+      .radarr_data
+      .movies
+      .items
+      .iter()
+      .any(|mov| mov.tmdb_id == movie.tmdb_id)
+    {
+      "✔"
+    } else {
+      ""
+    };
+    movie.title.scroll_left_or_reset(
+      get_width_from_percentage(table_area, 20),
+      current_selection == *movie,
+      app.tick_count % app.ticks_until_scroll == 0,
+    );
+    let (hours, minutes) = convert_runtime(movie.runtime);
+    let imdb_rating = movie
+      .ratings
+      .imdb
+      .clone()
+      .unwrap_or_default()
+      .value
+      .as_f64()
+      .unwrap();
+    let rotten_tomatoes_rating = movie
+      .ratings
+      .rotten_tomatoes
+      .clone()
+      .unwrap_or_default()
+      .value
+      .as_u64()
+      .unwrap();
+    let imdb_rating = if imdb_rating == 0.0 {
+      String::new()
+    } else {
+      format!("{imdb_rating:.1}")
+    };
+    let rotten_tomatoes_rating = if rotten_tomatoes_rating == 0 {
+      String::new()
+    } else {
+      format!("{rotten_tomatoes_rating}%")
+    };
+
+    Row::new(vec![
+      Cell::from(in_library),
+      Cell::from(movie.title.to_string()),
+      Cell::from(movie.year.to_string()),
+      Cell::from(format!("{hours}h {minutes}m")),
+      Cell::from(imdb_rating),
+      Cell::from(rotten_tomatoes_rating),
+      Cell::from(movie.genres.join(", ")),
+    ])
+    .primary()
+  };
   let monitored = if collection_selection.monitored {
     "Yes"
   } else {
@@ -115,10 +163,14 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
     "No"
   };
   let minimum_availability = collection_selection.minimum_availability.to_display_str();
+  let help_footer = format!(
+    "<↑↓> scroll table | {}",
+    build_context_clue_string(&COLLECTION_DETAILS_CONTEXT_CLUES)
+  );
 
   let collection_description = Text::from(vec![
     Line::from(vec![
-      "Overview ".primary().bold(),
+      "Overview: ".primary().bold(),
       collection_selection
         .overview
         .clone()
@@ -151,102 +203,36 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
   let description_paragraph = Paragraph::new(collection_description)
     .block(borderless_block())
     .wrap(Wrap { trim: false });
-  let help_paragraph = Paragraph::new(help_text)
-    .block(borderless_block())
-    .alignment(Alignment::Center);
+  let movies_table = ManagarrTable::new(
+    Some(&mut app.data.radarr_data.collection_movies),
+    movie_row_mapper,
+  )
+  .block(layout_block_top_border_with_title(title_style("Movies")))
+  .loading(app.is_loading)
+  .footer_alignment(Alignment::Center)
+  .footer(Some(help_footer))
+  .headers([
+    "✔",
+    "Title",
+    "Year",
+    "Runtime",
+    "IMDB Rating",
+    "Rotten Tomatoes Rating",
+    "Genres",
+  ])
+  .constraints([
+    Constraint::Percentage(2),
+    Constraint::Percentage(20),
+    Constraint::Percentage(8),
+    Constraint::Percentage(10),
+    Constraint::Percentage(10),
+    Constraint::Percentage(18),
+    Constraint::Percentage(28),
+  ]);
 
   f.render_widget(title_block(&collection_selection.title.text), area);
-
   f.render_widget(description_paragraph, description_area);
-  f.render_widget(help_paragraph, help_footer_area);
-
-  draw_table(
-    f,
-    table_area,
-    layout_block_top_border_with_title(title_style("Movies")),
-    TableProps {
-      content: Some(&mut app.data.radarr_data.collection_movies),
-      wrapped_content: None,
-      table_headers: vec![
-        "✔",
-        "Title",
-        "Year",
-        "Runtime",
-        "IMDB Rating",
-        "Rotten Tomatoes Rating",
-        "Genres",
-      ],
-      constraints: vec![
-        Constraint::Percentage(2),
-        Constraint::Percentage(20),
-        Constraint::Percentage(8),
-        Constraint::Percentage(10),
-        Constraint::Percentage(10),
-        Constraint::Percentage(18),
-        Constraint::Percentage(28),
-      ],
-      help: None,
-    },
-    |movie| {
-      let in_library = if app
-        .data
-        .radarr_data
-        .movies
-        .items
-        .iter()
-        .any(|mov| mov.tmdb_id == movie.tmdb_id)
-      {
-        "✔"
-      } else {
-        ""
-      };
-      movie.title.scroll_left_or_reset(
-        get_width_from_percentage(table_area, 20),
-        current_selection == *movie,
-        app.tick_count % app.ticks_until_scroll == 0,
-      );
-      let (hours, minutes) = convert_runtime(movie.runtime);
-      let imdb_rating = movie
-        .ratings
-        .imdb
-        .clone()
-        .unwrap_or_default()
-        .value
-        .as_f64()
-        .unwrap();
-      let rotten_tomatoes_rating = movie
-        .ratings
-        .rotten_tomatoes
-        .clone()
-        .unwrap_or_default()
-        .value
-        .as_u64()
-        .unwrap();
-      let imdb_rating = if imdb_rating == 0.0 {
-        String::new()
-      } else {
-        format!("{imdb_rating:.1}")
-      };
-      let rotten_tomatoes_rating = if rotten_tomatoes_rating == 0 {
-        String::new()
-      } else {
-        format!("{rotten_tomatoes_rating}%")
-      };
-
-      Row::new(vec![
-        Cell::from(in_library),
-        Cell::from(movie.title.to_string()),
-        Cell::from(movie.year.to_string()),
-        Cell::from(format!("{hours}h {minutes}m")),
-        Cell::from(imdb_rating),
-        Cell::from(rotten_tomatoes_rating),
-        Cell::from(movie.genres.join(", ")),
-      ])
-      .primary()
-    },
-    app.is_loading,
-    true,
-  );
+  f.render_widget(movies_table, table_area);
 }
 
 fn draw_movie_overview(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

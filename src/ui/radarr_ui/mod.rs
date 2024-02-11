@@ -13,7 +13,6 @@ use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie, RootFolder}
 use crate::models::servarr_data::radarr::radarr_data::RadarrData;
 use crate::models::Route;
 use crate::ui::draw_tabs;
-use crate::ui::loading;
 use crate::ui::radarr_ui::collections::CollectionsUi;
 use crate::ui::radarr_ui::downloads::DownloadsUi;
 use crate::ui::radarr_ui::indexers::IndexersUi;
@@ -24,6 +23,7 @@ use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, layout_block, line_gauge_with_label, line_gauge_with_title, title_block,
 };
+use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::DrawUi;
 use crate::utils::convert_to_gb;
 
@@ -163,7 +163,7 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       )
     }
   } else {
-    loading(f, block, area, app.is_loading);
+    f.render_widget(LoadingBlock::new(app.is_loading, block), area);
   }
 }
 
@@ -195,7 +195,7 @@ fn draw_downloads_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       f.render_widget(download_gauge, download_item_areas[i]);
     }
   } else {
-    loading(f, block, area, app.is_loading);
+    f.render_widget(LoadingBlock::new(app.is_loading, block), area);
   }
 }
 

@@ -12,9 +12,10 @@ use crate::ui::radarr_ui::library::delete_movie_ui::DeleteMovieUi;
 use crate::ui::radarr_ui::library::edit_movie_ui::EditMovieUi;
 use crate::ui::radarr_ui::library::movie_details_ui::MovieDetailsUi;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
+use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::{
   draw_error_message_popup, draw_input_box_popup, draw_popup_over, draw_prompt_box,
-  draw_prompt_popup_over, draw_table, DrawUi, TableProps,
+  draw_prompt_popup_over, DrawUi,
 };
 use crate::utils::{convert_runtime, convert_to_gb};
 
@@ -106,90 +107,85 @@ pub(super) fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     Some(filtered_movies) if !app.data.radarr_data.is_filtering => Some(filtered_movies),
     _ => Some(&mut app.data.radarr_data.movies),
   };
+  let help_footer = app
+    .data
+    .radarr_data
+    .main_tabs
+    .get_active_tab_contextual_help();
 
-  draw_table(
-    f,
-    area,
-    layout_block_top_border(),
-    TableProps {
-      content,
-      wrapped_content: None,
-      table_headers: vec![
-        "Title",
-        "Year",
-        "Studio",
-        "Runtime",
-        "Rating",
-        "Language",
-        "Size",
-        "Quality Profile",
-        "Monitored",
-        "Tags",
-      ],
-      constraints: vec![
-        Constraint::Percentage(27),
-        Constraint::Percentage(4),
-        Constraint::Percentage(17),
-        Constraint::Percentage(6),
-        Constraint::Percentage(6),
-        Constraint::Percentage(6),
-        Constraint::Percentage(6),
-        Constraint::Percentage(10),
-        Constraint::Percentage(6),
-        Constraint::Percentage(12),
-      ],
-      help: app
-        .data
-        .radarr_data
-        .main_tabs
-        .get_active_tab_contextual_help(),
-    },
-    |movie| {
-      movie.title.scroll_left_or_reset(
-        get_width_from_percentage(area, 27),
-        *movie == current_selection,
-        app.tick_count % app.ticks_until_scroll == 0,
-      );
-      let monitored = if movie.monitored { "🏷" } else { "" };
-      let (hours, minutes) = convert_runtime(movie.runtime);
-      let file_size: f64 = convert_to_gb(movie.size_on_disk);
-      let certification = movie.certification.clone().unwrap_or_default();
-      let quality_profile = quality_profile_map
-        .get_by_left(&movie.quality_profile_id)
-        .unwrap()
-        .to_owned();
-      let tags = movie
-        .tags
-        .iter()
-        .map(|tag_id| {
-          tags_map
-            .get_by_left(&tag_id.as_i64().unwrap())
-            .unwrap()
-            .clone()
-        })
-        .collect::<Vec<String>>()
-        .join(", ");
+  let library_table_row_mapping = |movie: &Movie| {
+    movie.title.scroll_left_or_reset(
+      get_width_from_percentage(area, 27),
+      *movie == current_selection,
+      app.tick_count % app.ticks_until_scroll == 0,
+    );
+    let monitored = if movie.monitored { "🏷" } else { "" };
+    let (hours, minutes) = convert_runtime(movie.runtime);
+    let file_size: f64 = convert_to_gb(movie.size_on_disk);
+    let certification = movie.certification.clone().unwrap_or_default();
+    let quality_profile = quality_profile_map
+      .get_by_left(&movie.quality_profile_id)
+      .unwrap()
+      .to_owned();
+    let tags = movie
+      .tags
+      .iter()
+      .map(|tag_id| {
+        tags_map
+          .get_by_left(&tag_id.as_i64().unwrap())
+          .unwrap()
+          .clone()
+      })
+      .collect::<Vec<String>>()
+      .join(", ");
 
-      decorate_with_row_style(
-        downloads_vec,
-        movie,
-        Row::new(vec![
-          Cell::from(movie.title.to_string()),
-          Cell::from(movie.year.to_string()),
-          Cell::from(movie.studio.to_string()),
-          Cell::from(format!("{hours}h {minutes}m")),
-          Cell::from(certification),
-          Cell::from(movie.original_language.name.to_owned()),
-          Cell::from(format!("{file_size:.2} GB")),
-          Cell::from(quality_profile),
-          Cell::from(monitored.to_owned()),
-          Cell::from(tags),
-        ]),
-      )
-    },
-    app.is_loading,
-    true,
-  );
+    decorate_with_row_style(
+      downloads_vec,
+      movie,
+      Row::new(vec![
+        Cell::from(movie.title.to_string()),
+        Cell::from(movie.year.to_string()),
+        Cell::from(movie.studio.to_string()),
+        Cell::from(format!("{hours}h {minutes}m")),
+        Cell::from(certification),
+        Cell::from(movie.original_language.name.to_owned()),
+        Cell::from(format!("{file_size:.2} GB")),
+        Cell::from(quality_profile),
+        Cell::from(monitored.to_owned()),
+        Cell::from(tags),
+      ]),
+    )
+  };
+  let library_table = ManagarrTable::new(content, library_table_row_mapping)
+    .block(layout_block_top_border())
+    .loading(app.is_loading)
+    .footer(help_footer)
+    .headers([
+      "Title",
+      "Year",
+      "Studio",
+      "Runtime",
+      "Rating",
+      "Language",
+      "Size",
+      "Quality Profile",
+      "Monitored",
+      "Tags",
+    ])
+    .constraints([
+      Constraint::Percentage(27),
+      Constraint::Percentage(4),
+      Constraint::Percentage(17),
+      Constraint::Percentage(6),
+      Constraint::Percentage(6),
+      Constraint::Percentage(6),
+      Constraint::Percentage(6),
+      Constraint::Percentage(10),
+      Constraint::Percentage(6),
+      Constraint::Percentage(12),
+    ]);
+
+  f.render_widget(library_table, area);
 }
 
 fn draw_update_all_movies_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

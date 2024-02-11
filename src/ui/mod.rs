@@ -4,15 +4,13 @@ use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Text};
 use ratatui::widgets::Paragraph;
-use ratatui::widgets::Row;
-use ratatui::widgets::Table;
 use ratatui::widgets::Tabs;
-use ratatui::widgets::{Block, Wrap};
+use ratatui::widgets::Wrap;
 use ratatui::widgets::{Clear, List, ListItem};
 use ratatui::Frame;
 
 use crate::app::App;
-use crate::models::{HorizontallyScrollableText, Route, StatefulList, StatefulTable, TabState};
+use crate::models::{HorizontallyScrollableText, Route, StatefulList, TabState};
 use crate::ui::radarr_ui::RadarrUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
@@ -22,6 +20,7 @@ use crate::ui::utils::{
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
+use crate::ui::widgets::loading_block::LoadingBlock;
 
 mod radarr_ui;
 mod styles;
@@ -275,108 +274,12 @@ fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -
   content_area
 }
 
-pub struct TableProps<'a, T> {
-  pub content: Option<&'a mut StatefulTable<T>>,
-  pub wrapped_content: Option<Option<&'a mut StatefulTable<T>>>,
-  pub table_headers: Vec<&'a str>,
-  pub constraints: Vec<Constraint>,
-  pub help: Option<String>,
-}
-
 pub struct ListProps<'a, T> {
   pub content: &'a mut StatefulList<T>,
   pub title: &'static str,
   pub is_loading: bool,
   pub is_popup: bool,
   pub help: Option<String>,
-}
-
-fn draw_table<'a, T, F>(
-  f: &mut Frame<'_>,
-  area: Rect,
-  block: Block<'_>,
-  table_props: TableProps<'a, T>,
-  row_mapper: F,
-  is_loading: bool,
-  highlight: bool,
-) where
-  F: Fn(&T) -> Row<'a>,
-{
-  let TableProps {
-    content,
-    wrapped_content,
-    table_headers,
-    constraints,
-    help,
-  } = table_props;
-
-  let content_area = draw_help_footer_and_get_content_area(f, area, help);
-
-  #[allow(clippy::unnecessary_unwrap)]
-  if wrapped_content.is_some() && wrapped_content.as_ref().unwrap().is_some() {
-    draw_table_contents(
-      f,
-      block,
-      row_mapper,
-      highlight,
-      wrapped_content.unwrap().as_mut().unwrap(),
-      table_headers,
-      constraints,
-      content_area,
-    );
-  } else if content.is_some() && !content.as_ref().unwrap().items.is_empty() {
-    draw_table_contents(
-      f,
-      block,
-      row_mapper,
-      highlight,
-      content.unwrap(),
-      table_headers,
-      constraints,
-      content_area,
-    );
-  } else {
-    loading(f, block, content_area, is_loading);
-  }
-}
-
-#[allow(clippy::too_many_arguments)]
-fn draw_table_contents<'a, T, F>(
-  f: &mut Frame<'_>,
-  block: Block<'_>,
-  row_mapper: F,
-  highlight: bool,
-  content: &mut StatefulTable<T>,
-  table_headers: Vec<&str>,
-  constraints: Vec<Constraint>,
-  area: Rect,
-) where
-  F: Fn(&T) -> Row<'a>,
-{
-  let rows = content.items.iter().map(row_mapper);
-
-  let headers = Row::new(table_headers).default().bold().bottom_margin(0);
-
-  let mut table = Table::new(rows, &constraints).header(headers).block(block);
-
-  if highlight {
-    table = table
-      .highlight_style(Style::new().highlight())
-      .highlight_symbol(HIGHLIGHT_SYMBOL);
-  }
-
-  f.render_stateful_widget(table, area, &mut content.state);
-}
-
-pub fn loading(f: &mut Frame<'_>, block: Block<'_>, area: Rect, is_loading: bool) {
-  if is_loading {
-    let paragraph = Paragraph::new(Text::from("\n\n Loading ...\n\n"))
-      .system_function()
-      .block(block);
-    f.render_widget(paragraph, area);
-  } else {
-    f.render_widget(block, area)
-  }
 }
 
 pub fn draw_prompt_box(
@@ -532,7 +435,7 @@ pub fn draw_list_box<'a, T>(
 
     f.render_stateful_widget(list, content_area, &mut content.state);
   } else {
-    loading(f, block, content_area, is_loading);
+    f.render_widget(LoadingBlock::new(is_loading, block), content_area);
   }
 }
 
@@ -543,7 +446,9 @@ fn draw_help_footer_and_get_content_area(
 ) -> Rect {
   if let Some(help_string) = help {
     let [content_area, help_footer_area] =
-      Layout::vertical([Constraint::Fill(0), Constraint::Length(2)]).areas(area);
+      Layout::vertical([Constraint::Fill(0), Constraint::Length(2)])
+        .margin(1)
+        .areas(area);
 
     let help_paragraph = Paragraph::new(Text::from(format!(" {help_string}").help()))
       .block(layout_block_top_border())

@@ -12,9 +12,10 @@ use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsU
 use crate::ui::radarr_ui::collections::edit_collection_ui::EditCollectionUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
+use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::{
   draw_error_message_popup, draw_input_box_popup, draw_popup_over, draw_prompt_box,
-  draw_prompt_popup_over, draw_table, DrawUi, TableProps,
+  draw_prompt_popup_over, DrawUi,
 };
 
 mod collection_details_ui;
@@ -113,67 +114,62 @@ pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
     Some(filtered_collections) if !app.data.radarr_data.is_filtering => Some(filtered_collections),
     _ => Some(&mut app.data.radarr_data.collections),
   };
-  draw_table(
-    f,
-    area,
-    layout_block_top_border(),
-    TableProps {
-      content,
-      wrapped_content: None,
-      table_headers: vec![
-        "Collection",
-        "Number of Movies",
-        "Root Folder Path",
-        "Quality Profile",
-        "Search on Add",
-        "Monitored",
-      ],
-      constraints: vec![
-        Constraint::Percentage(25),
-        Constraint::Percentage(15),
-        Constraint::Percentage(15),
-        Constraint::Percentage(15),
-        Constraint::Percentage(15),
-        Constraint::Percentage(15),
-      ],
-      help: app
-        .data
-        .radarr_data
-        .main_tabs
-        .get_active_tab_contextual_help(),
-    },
-    |collection| {
-      let number_of_movies = collection.movies.clone().unwrap_or_default().len();
-      collection.title.scroll_left_or_reset(
-        get_width_from_percentage(area, 25),
-        *collection == current_selection,
-        app.tick_count % app.ticks_until_scroll == 0,
-      );
-      let monitored = if collection.monitored { "🏷" } else { "" };
-      let search_on_add = if collection.search_on_add {
-        "Yes"
-      } else {
-        "No"
-      };
+  let collections_table_footer = app
+    .data
+    .radarr_data
+    .main_tabs
+    .get_active_tab_contextual_help();
+  let collection_row_mapping = |collection: &Collection| {
+    let number_of_movies = collection.movies.clone().unwrap_or_default().len();
+    collection.title.scroll_left_or_reset(
+      get_width_from_percentage(area, 25),
+      *collection == current_selection,
+      app.tick_count % app.ticks_until_scroll == 0,
+    );
+    let monitored = if collection.monitored { "🏷" } else { "" };
+    let search_on_add = if collection.search_on_add {
+      "Yes"
+    } else {
+      "No"
+    };
 
-      Row::new(vec![
-        Cell::from(collection.title.to_string()),
-        Cell::from(number_of_movies.to_string()),
-        Cell::from(collection.root_folder_path.clone().unwrap_or_default()),
-        Cell::from(
-          quality_profile_map
-            .get_by_left(&collection.quality_profile_id)
-            .unwrap()
-            .to_owned(),
-        ),
-        Cell::from(search_on_add),
-        Cell::from(monitored),
-      ])
-      .primary()
-    },
-    app.is_loading,
-    true,
-  );
+    Row::new(vec![
+      Cell::from(collection.title.to_string()),
+      Cell::from(number_of_movies.to_string()),
+      Cell::from(collection.root_folder_path.clone().unwrap_or_default()),
+      Cell::from(
+        quality_profile_map
+          .get_by_left(&collection.quality_profile_id)
+          .unwrap()
+          .to_owned(),
+      ),
+      Cell::from(search_on_add),
+      Cell::from(monitored),
+    ])
+    .primary()
+  };
+  let collections_table = ManagarrTable::new(content, collection_row_mapping)
+    .loading(app.is_loading)
+    .footer(collections_table_footer)
+    .block(layout_block_top_border())
+    .headers([
+      "Collection",
+      "Number of Movies",
+      "Root Folder Path",
+      "Quality Profile",
+      "Search on Add",
+      "Monitored",
+    ])
+    .constraints([
+      Constraint::Percentage(25),
+      Constraint::Percentage(15),
+      Constraint::Percentage(15),
+      Constraint::Percentage(15),
+      Constraint::Percentage(15),
+      Constraint::Percentage(15),
+    ]);
+
+  f.render_widget(collections_table, area);
 }
 
 fn draw_update_all_collections_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

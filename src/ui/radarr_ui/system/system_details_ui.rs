@@ -1,4 +1,4 @@
-use ratatui::layout::Rect;
+use ratatui::layout::{Alignment, Rect};
 use ratatui::text::{Span, Text};
 use ratatui::widgets::{Cell, ListItem, Paragraph, Row};
 use ratatui::Frame;
@@ -6,6 +6,7 @@ use ratatui::Frame;
 use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
 use crate::app::radarr::radarr_context_clues::SYSTEM_TASKS_CONTEXT_CLUES;
 use crate::app::App;
+use crate::models::radarr_models::Task;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::radarr_ui_utils::style_log_list_item;
@@ -15,10 +16,11 @@ use crate::ui::radarr_ui::system::{
 };
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, title_block};
+use crate::ui::widgets::loading_block::LoadingBlock;
+use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::{
   draw_help_footer_and_get_content_area, draw_large_popup_over, draw_list_box,
-  draw_medium_popup_over, draw_prompt_box, draw_prompt_popup_over, draw_table, loading, DrawUi,
-  ListProps, TableProps,
+  draw_medium_popup_over, draw_prompt_box, draw_prompt_popup_over, DrawUi, ListProps,
 };
 
 #[cfg(test)]
@@ -82,40 +84,35 @@ fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
 fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let tasks_popup_table = |f: &mut Frame<'_>, app: &mut App<'_>, area: Rect| {
+    let help_footer = Some(build_context_clue_string(&SYSTEM_TASKS_CONTEXT_CLUES));
+    // let context_area = draw_help_footer_and_get_content_area(
+    //   f,
+    //   area,
+    //   help_footer,
+    // );
+    let tasks_row_mapping = |task: &Task| {
+      let task_props = extract_task_props(task);
+
+      Row::new(vec![
+        Cell::from(task_props.name),
+        Cell::from(task_props.interval),
+        Cell::from(task_props.last_execution),
+        Cell::from(task_props.last_duration),
+        Cell::from(task_props.next_execution),
+      ])
+      .primary()
+    };
+    let tasks_table = ManagarrTable::new(Some(&mut app.data.radarr_data.tasks), tasks_row_mapping)
+      .block(borderless_block())
+      .loading(app.is_loading)
+      .margin(1)
+      .footer(help_footer)
+      .footer_alignment(Alignment::Center)
+      .headers(TASK_TABLE_HEADERS)
+      .constraints(TASK_TABLE_CONSTRAINTS);
+
     f.render_widget(title_block("Tasks"), area);
-
-    let context_area = draw_help_footer_and_get_content_area(
-      f,
-      area,
-      Some(build_context_clue_string(&SYSTEM_TASKS_CONTEXT_CLUES)),
-    );
-
-    draw_table(
-      f,
-      context_area,
-      borderless_block(),
-      TableProps {
-        content: Some(&mut app.data.radarr_data.tasks),
-        wrapped_content: None,
-        table_headers: TASK_TABLE_HEADERS.to_vec(),
-        constraints: TASK_TABLE_CONSTRAINTS.to_vec(),
-        help: None,
-      },
-      |task| {
-        let task_props = extract_task_props(task);
-
-        Row::new(vec![
-          Cell::from(task_props.name),
-          Cell::from(task_props.interval),
-          Cell::from(task_props.last_execution),
-          Cell::from(task_props.last_duration),
-          Cell::from(task_props.next_execution),
-        ])
-        .primary()
-      },
-      app.is_loading,
-      true,
-    )
+    f.render_widget(tasks_table, area);
   };
 
   if matches!(
@@ -163,6 +160,6 @@ fn draw_updates_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
     f.render_widget(updates_paragraph, content_area);
   } else {
-    loading(f, block, content_area, app.is_loading);
+    f.render_widget(LoadingBlock::new(app.is_loading, block), content_area);
   }
 }

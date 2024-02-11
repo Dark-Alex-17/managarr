@@ -12,7 +12,8 @@ use crate::ui::radarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
 use crate::ui::radarr_ui::indexers::test_all_indexers_ui::TestAllIndexersUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::layout_block_top_border;
-use crate::ui::{draw_prompt_box, draw_prompt_popup_over, draw_table, DrawUi, TableProps};
+use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::{draw_prompt_box, draw_prompt_popup_over, DrawUi};
 
 mod edit_indexer_ui;
 mod indexer_settings_ui;
@@ -59,83 +60,81 @@ impl DrawUi for IndexersUi {
 }
 
 fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_table(
-    f,
-    area,
-    layout_block_top_border(),
-    TableProps {
-      content: Some(&mut app.data.radarr_data.indexers),
-      wrapped_content: None,
-      table_headers: vec![
-        "Indexer",
-        "RSS",
-        "Automatic Search",
-        "Interactive Search",
-        "Priority",
-        "Tags",
-      ],
-      constraints: vec![
-        Constraint::Percentage(25),
-        Constraint::Percentage(13),
-        Constraint::Percentage(13),
-        Constraint::Percentage(13),
-        Constraint::Percentage(13),
-        Constraint::Percentage(23),
-      ],
-      help: app
-        .data
-        .radarr_data
-        .main_tabs
-        .get_active_tab_contextual_help(),
-    },
-    |indexer: &'_ Indexer| {
-      let Indexer {
-        name,
-        enable_rss,
-        enable_automatic_search,
-        enable_interactive_search,
-        priority,
-        tags,
-        ..
-      } = indexer;
-      let bool_to_text = |flag: bool| {
-        if flag {
-          return Text::from("Enabled").success();
-        }
+  let indexers_row_mapping = |indexer: &'_ Indexer| {
+    let Indexer {
+      name,
+      enable_rss,
+      enable_automatic_search,
+      enable_interactive_search,
+      priority,
+      tags,
+      ..
+    } = indexer;
+    let bool_to_text = |flag: bool| {
+      if flag {
+        return Text::from("Enabled").success();
+      }
 
-        Text::from("Disabled").failure()
-      };
+      Text::from("Disabled").failure()
+    };
 
-      let rss = bool_to_text(*enable_rss);
-      let automatic_search = bool_to_text(*enable_automatic_search);
-      let interactive_search = bool_to_text(*enable_interactive_search);
-      let tags: String = tags
-        .iter()
-        .map(|tag_id| {
-          app
-            .data
-            .radarr_data
-            .tags_map
-            .get_by_left(&tag_id.as_i64().unwrap())
-            .unwrap()
-            .clone()
-        })
-        .collect::<Vec<String>>()
-        .join(", ");
+    let rss = bool_to_text(*enable_rss);
+    let automatic_search = bool_to_text(*enable_automatic_search);
+    let interactive_search = bool_to_text(*enable_interactive_search);
+    let tags: String = tags
+      .iter()
+      .map(|tag_id| {
+        app
+          .data
+          .radarr_data
+          .tags_map
+          .get_by_left(&tag_id.as_i64().unwrap())
+          .unwrap()
+          .clone()
+      })
+      .collect::<Vec<String>>()
+      .join(", ");
 
-      Row::new(vec![
-        Cell::from(name.clone().unwrap_or_default()),
-        Cell::from(rss),
-        Cell::from(automatic_search),
-        Cell::from(interactive_search),
-        Cell::from(priority.to_string()),
-        Cell::from(tags),
-      ])
-      .primary()
-    },
-    app.is_loading,
-    true,
+    Row::new(vec![
+      Cell::from(name.clone().unwrap_or_default()),
+      Cell::from(rss),
+      Cell::from(automatic_search),
+      Cell::from(interactive_search),
+      Cell::from(priority.to_string()),
+      Cell::from(tags),
+    ])
+    .primary()
+  };
+  let indexers_table_footer = app
+    .data
+    .radarr_data
+    .main_tabs
+    .get_active_tab_contextual_help();
+  let indexers_table = ManagarrTable::new(
+    Some(&mut app.data.radarr_data.indexers),
+    indexers_row_mapping,
   )
+  .block(layout_block_top_border())
+  .footer(indexers_table_footer)
+  .loading(app.is_loading)
+  .headers([
+    "Indexer",
+    "RSS",
+    "Automatic Search",
+    "Interactive Search",
+    "Priority",
+    "Tags",
+  ])
+  .constraints([
+    Constraint::Percentage(25),
+    Constraint::Percentage(13),
+    Constraint::Percentage(13),
+    Constraint::Percentage(13),
+    Constraint::Percentage(13),
+    Constraint::Percentage(23),
+  ]);
+
+  f.render_widget(indexers_table, area);
 }
 
 fn draw_delete_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

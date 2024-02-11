@@ -15,10 +15,11 @@ use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_bottom_border, layout_block_top_border,
 };
+use crate::ui::widgets::loading_block::LoadingBlock;
+use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::{
   draw_drop_down_popup, draw_large_popup_over, draw_prompt_box, draw_prompt_box_with_content,
-  draw_prompt_popup_over, draw_selectable_list, draw_small_popup_over, draw_table, draw_tabs,
-  loading, DrawUi, TableProps,
+  draw_prompt_popup_over, draw_selectable_list, draw_small_popup_over, draw_tabs, DrawUi,
 };
 use crate::utils::convert_to_gb;
 
@@ -189,7 +190,10 @@ fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       f.render_widget(video_details_title_paragraph, video_details_title_area);
       f.render_widget(video_details_paragraph, video_details_area);
     }
-    _ => loading(f, layout_block_top_border(), area, app.is_loading),
+    _ => f.render_widget(
+      LoadingBlock::new(app.is_loading, layout_block_top_border()),
+      area,
+    ),
   }
 }
 
@@ -230,11 +234,12 @@ fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
 
       f.render_widget(paragraph, area);
     }
-    _ => loading(
-      f,
-      block,
+    _ => f.render_widget(
+      LoadingBlock::new(
+        app.is_loading || app.data.radarr_data.movie_details_modal.is_none(),
+        block,
+      ),
       area,
-      app.is_loading || app.data.radarr_data.movie_details_modal.is_none(),
     ),
   }
 }
@@ -249,148 +254,137 @@ fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .current_selection()
         .clone()
     };
+    let history_row_mapping = |movie_history_item: &MovieHistoryItem| {
+      let MovieHistoryItem {
+        source_title,
+        quality,
+        languages,
+        date,
+        event_type,
+      } = movie_history_item;
 
-    draw_table(
-      f,
-      area,
-      layout_block_top_border(),
-      TableProps {
-        content: Some(&mut movie_details_modal.movie_history),
-        wrapped_content: None,
-        table_headers: vec!["Source Title", "Event Type", "Languages", "Quality", "Date"],
-        constraints: vec![
-          Constraint::Percentage(34),
-          Constraint::Percentage(17),
-          Constraint::Percentage(14),
-          Constraint::Percentage(14),
-          Constraint::Percentage(21),
-        ],
-        help: app
-          .data
-          .radarr_data
-          .movie_info_tabs
-          .get_active_tab_contextual_help(),
-      },
-      |movie_history_item| {
-        let MovieHistoryItem {
-          source_title,
-          quality,
-          languages,
-          date,
-          event_type,
-        } = movie_history_item;
+      movie_history_item.source_title.scroll_left_or_reset(
+        get_width_from_percentage(area, 34),
+        current_selection == *movie_history_item,
+        app.tick_count % app.ticks_until_scroll == 0,
+      );
 
-        movie_history_item.source_title.scroll_left_or_reset(
-          get_width_from_percentage(area, 34),
-          current_selection == *movie_history_item,
-          app.tick_count % app.ticks_until_scroll == 0,
-        );
+      Row::new(vec![
+        Cell::from(source_title.to_string()),
+        Cell::from(event_type.to_owned()),
+        Cell::from(
+          languages
+            .iter()
+            .map(|language| language.name.to_owned())
+            .collect::<Vec<String>>()
+            .join(","),
+        ),
+        Cell::from(quality.quality.name.to_owned()),
+        Cell::from(date.to_string()),
+      ])
+      .success()
+    };
+    let help_footer = app
+      .data
+      .radarr_data
+      .movie_info_tabs
+      .get_active_tab_contextual_help();
+    let history_table = ManagarrTable::new(
+      Some(&mut movie_details_modal.movie_history),
+      history_row_mapping,
+    )
+    .block(layout_block_top_border())
+    .loading(app.is_loading)
+    .footer(help_footer)
+    .headers(["Source Title", "Event Type", "Languages", "Quality", "Date"])
+    .constraints([
+      Constraint::Percentage(34),
+      Constraint::Percentage(17),
+      Constraint::Percentage(14),
+      Constraint::Percentage(14),
+      Constraint::Percentage(21),
+    ]);
 
-        Row::new(vec![
-          Cell::from(source_title.to_string()),
-          Cell::from(event_type.to_owned()),
-          Cell::from(
-            languages
-              .iter()
-              .map(|language| language.name.to_owned())
-              .collect::<Vec<String>>()
-              .join(","),
-          ),
-          Cell::from(quality.quality.name.to_owned()),
-          Cell::from(date.to_string()),
-        ])
-        .success()
-      },
-      app.is_loading,
-      true,
-    );
+    f.render_widget(history_table, area);
   }
 }
 
 fn draw_movie_cast(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_table(
-    f,
-    area,
-    layout_block_top_border(),
-    TableProps {
-      content: Some(
-        &mut app
-          .data
-          .radarr_data
-          .movie_details_modal
-          .as_mut()
-          .unwrap()
-          .movie_cast,
-      ),
-      wrapped_content: None,
-      constraints: iter::repeat(Constraint::Ratio(1, 2)).take(2).collect(),
-      table_headers: vec!["Cast Member", "Character"],
-      help: app
-        .data
-        .radarr_data
-        .movie_info_tabs
-        .get_active_tab_contextual_help(),
-    },
-    |cast_member| {
-      let Credit {
-        person_name,
-        character,
-        ..
-      } = cast_member;
+  let cast_row_mapping = |cast_member: &Credit| {
+    let Credit {
+      person_name,
+      character,
+      ..
+    } = cast_member;
 
-      Row::new(vec![
-        Cell::from(person_name.to_owned()),
-        Cell::from(character.clone().unwrap_or_default()),
-      ])
-      .success()
-    },
-    app.is_loading,
-    true,
+    Row::new(vec![
+      Cell::from(person_name.to_owned()),
+      Cell::from(character.clone().unwrap_or_default()),
+    ])
+    .success()
+  };
+  let content = Some(
+    &mut app
+      .data
+      .radarr_data
+      .movie_details_modal
+      .as_mut()
+      .unwrap()
+      .movie_cast,
   );
+  let help_footer = app
+    .data
+    .radarr_data
+    .movie_info_tabs
+    .get_active_tab_contextual_help();
+  let cast_table = ManagarrTable::new(content, cast_row_mapping)
+    .block(layout_block_top_border())
+    .footer(help_footer)
+    .loading(app.is_loading)
+    .headers(["Cast Member", "Character"])
+    .constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)]);
+
+  f.render_widget(cast_table, area);
 }
 
 fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_table(
-    f,
-    area,
-    layout_block_top_border(),
-    TableProps {
-      content: Some(
-        &mut app
-          .data
-          .radarr_data
-          .movie_details_modal
-          .as_mut()
-          .unwrap()
-          .movie_crew,
-      ),
-      wrapped_content: None,
-      constraints: iter::repeat(Constraint::Ratio(1, 3)).take(3).collect(),
-      table_headers: vec!["Crew Member", "Job", "Department"],
-      help: app
-        .data
-        .radarr_data
-        .movie_info_tabs
-        .get_active_tab_contextual_help(),
-    },
-    |crew_member| {
-      let Credit {
-        person_name,
-        job,
-        department,
-        ..
-      } = crew_member;
+  let crew_row_mapping = |crew_member: &Credit| {
+    let Credit {
+      person_name,
+      job,
+      department,
+      ..
+    } = crew_member;
 
-      Row::new(vec![
-        Cell::from(person_name.to_owned()),
-        Cell::from(job.clone().unwrap_or_default()),
-        Cell::from(department.clone().unwrap_or_default()),
-      ])
-      .success()
-    },
-    app.is_loading,
-    true,
+    Row::new(vec![
+      Cell::from(person_name.to_owned()),
+      Cell::from(job.clone().unwrap_or_default()),
+      Cell::from(department.clone().unwrap_or_default()),
+    ])
+    .success()
+  };
+  let content = Some(
+    &mut app
+      .data
+      .radarr_data
+      .movie_details_modal
+      .as_mut()
+      .unwrap()
+      .movie_crew,
   );
+  let help_footer = app
+    .data
+    .radarr_data
+    .movie_info_tabs
+    .get_active_tab_contextual_help();
+  let crew_table = ManagarrTable::new(content, crew_row_mapping)
+    .block(layout_block_top_border())
+    .loading(app.is_loading)
+    .headers(["Crew Member", "Job", "Department"])
+    .constraints(iter::repeat(Constraint::Ratio(1, 3)).take(3))
+    .footer(help_footer);
+
+  f.render_widget(crew_table, area);
 }
 
 fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
@@ -407,6 +401,11 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       _ => (Release::default(), true, None),
     };
   let current_route = *app.get_current_route();
+  let help_footer = app
+    .data
+    .radarr_data
+    .movie_info_tabs
+    .get_active_tab_contextual_help();
   let mut table_headers_vec = vec![
     "Source".to_owned(),
     "Age".to_owned(),
@@ -442,99 +441,89 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       ReleaseField::Quality => table_headers_vec[8].push_str(direction),
     }
   }
+  let content = Some(
+    &mut app
+      .data
+      .radarr_data
+      .movie_details_modal
+      .as_mut()
+      .unwrap()
+      .movie_releases,
+  );
+  let releases_row_mapping = |release: &Release| {
+    let Release {
+      protocol,
+      age,
+      title,
+      indexer,
+      size,
+      rejected,
+      seeders,
+      leechers,
+      languages,
+      quality,
+      ..
+    } = release;
+    let age = format!("{age} days");
+    title.scroll_left_or_reset(
+      get_width_from_percentage(area, 30),
+      current_selection == *release
+        && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
+      app.tick_count % app.ticks_until_scroll == 0,
+    );
+    let size = convert_to_gb(*size);
+    let rejected_str = if *rejected { "⛔" } else { "" };
+    let peers = if seeders.is_none() || leechers.is_none() {
+      Text::from("")
+    } else {
+      let seeders = seeders.clone().unwrap().as_u64().unwrap();
+      let leechers = leechers.clone().unwrap().as_u64().unwrap();
 
-  draw_table(
-    f,
-    area,
-    layout_block_top_border(),
-    TableProps {
-      content: Some(
-        &mut app
-          .data
-          .radarr_data
-          .movie_details_modal
-          .as_mut()
-          .unwrap()
-          .movie_releases,
-      ),
-      wrapped_content: None,
-      constraints: vec![
-        Constraint::Length(9),
-        Constraint::Length(10),
-        Constraint::Length(5),
-        Constraint::Percentage(30),
-        Constraint::Percentage(18),
-        Constraint::Length(12),
-        Constraint::Length(12),
-        Constraint::Percentage(7),
-        Constraint::Percentage(10),
-      ],
-      table_headers: table_headers_vec.iter().map(|s| &**s).collect(),
-      help: app
-        .data
-        .radarr_data
-        .movie_info_tabs
-        .get_active_tab_contextual_help(),
-    },
-    |release| {
-      let Release {
-        protocol,
-        age,
-        title,
-        indexer,
-        size,
-        rejected,
+      decorate_peer_style(
         seeders,
         leechers,
-        languages,
-        quality,
-        ..
-      } = release;
-      let age = format!("{age} days");
-      title.scroll_left_or_reset(
-        get_width_from_percentage(area, 30),
-        current_selection == *release
-          && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
-        app.tick_count % app.ticks_until_scroll == 0,
-      );
-      let size = convert_to_gb(*size);
-      let rejected_str = if *rejected { "⛔" } else { "" };
-      let peers = if seeders.is_none() || leechers.is_none() {
-        Text::from("")
-      } else {
-        let seeders = seeders.clone().unwrap().as_u64().unwrap();
-        let leechers = leechers.clone().unwrap().as_u64().unwrap();
+        Text::from(format!("{seeders} / {leechers}")),
+      )
+    };
 
-        decorate_peer_style(
-          seeders,
-          leechers,
-          Text::from(format!("{seeders} / {leechers}")),
-        )
-      };
+    let language = if languages.is_some() {
+      languages.clone().unwrap()[0].name.clone()
+    } else {
+      String::new()
+    };
+    let quality = quality.quality.name.clone();
 
-      let language = if languages.is_some() {
-        languages.clone().unwrap()[0].name.clone()
-      } else {
-        String::new()
-      };
-      let quality = quality.quality.name.clone();
+    Row::new(vec![
+      Cell::from(protocol.clone()),
+      Cell::from(age),
+      Cell::from(rejected_str),
+      Cell::from(title.to_string()),
+      Cell::from(indexer.clone()),
+      Cell::from(format!("{size:.1} GB")),
+      Cell::from(peers),
+      Cell::from(language),
+      Cell::from(quality),
+    ])
+    .primary()
+  };
+  let releases_table = ManagarrTable::new(content, releases_row_mapping)
+    .block(layout_block_top_border())
+    .loading(app.is_loading || is_empty)
+    .footer(help_footer)
+    .headers(table_headers_vec.iter().map(|s| &**s))
+    .constraints([
+      Constraint::Length(9),
+      Constraint::Length(10),
+      Constraint::Length(5),
+      Constraint::Percentage(30),
+      Constraint::Percentage(18),
+      Constraint::Length(12),
+      Constraint::Length(12),
+      Constraint::Percentage(7),
+      Constraint::Percentage(10),
+    ]);
 
-      Row::new(vec![
-        Cell::from(protocol.clone()),
-        Cell::from(age),
-        Cell::from(rejected_str),
-        Cell::from(title.to_string()),
-        Cell::from(indexer.clone()),
-        Cell::from(format!("{size:.1} GB")),
-        Cell::from(peers),
-        Cell::from(language),
-        Cell::from(quality),
-      ])
-      .primary()
-    },
-    app.is_loading || is_empty,
-    true,
-  );
+  f.render_widget(releases_table, area);
 }
 
 fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

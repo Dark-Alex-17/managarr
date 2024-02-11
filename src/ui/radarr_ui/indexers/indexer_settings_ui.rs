@@ -13,7 +13,8 @@ use crate::ui::utils::title_block_centered;
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
-use crate::ui::{draw_popup_over, loading, DrawUi};
+use crate::ui::widgets::loading_block::LoadingBlock;
+use crate::ui::{draw_popup_over, DrawUi};
 
 #[cfg(test)]
 #[path = "indexer_settings_ui_tests.rs"]
@@ -155,6 +156,6 @@ fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area:
     f.render_widget(save_button, save_area);
     f.render_widget(cancel_button, cancel_area);
   } else {
-    loading(f, block, area, app.is_loading);
+    f.render_widget(LoadingBlock::new(app.is_loading, block), area);
   }
 }

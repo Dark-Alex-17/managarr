@@ -8,9 +8,9 @@ use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_F
 use crate::models::Route;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::layout_block_top_border;
+use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::{
-  draw_input_box_popup, draw_popup_over, draw_prompt_box, draw_prompt_popup_over, draw_table,
-  DrawUi, TableProps,
+  draw_input_box_popup, draw_popup_over, draw_prompt_box, draw_prompt_popup_over, DrawUi,
 };
 use crate::utils::convert_to_gb;
 
@@ -56,51 +56,50 @@ impl DrawUi for RootFoldersUi {
 }
 
 fn draw_root_folders(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_table(
-    f,
-    area,
-    layout_block_top_border(),
-    TableProps {
-      content: Some(&mut app.data.radarr_data.root_folders),
-      wrapped_content: None,
-      table_headers: vec!["Path", "Free Space", "Unmapped Folders"],
-      constraints: vec![
-        Constraint::Percentage(60),
-        Constraint::Percentage(20),
-        Constraint::Percentage(20),
-      ],
-      help: app
-        .data
-        .radarr_data
-        .main_tabs
-        .get_active_tab_contextual_help(),
-    },
-    |root_folders| {
-      let RootFolder {
-        path,
-        free_space,
-        unmapped_folders,
-        ..
-      } = root_folders;
+  let help_footer = app
+    .data
+    .radarr_data
+    .main_tabs
+    .get_active_tab_contextual_help();
+  let root_folders_row_mapping = |root_folders: &RootFolder| {
+    let RootFolder {
+      path,
+      free_space,
+      unmapped_folders,
+      ..
+    } = root_folders;
 
-      let space: f64 = convert_to_gb(*free_space);
+    let space: f64 = convert_to_gb(*free_space);
 
-      Row::new(vec![
-        Cell::from(path.to_owned()),
-        Cell::from(format!("{space:.2} GB")),
-        Cell::from(
-          unmapped_folders
-            .as_ref()
-            .unwrap_or(&Vec::new())
-            .len()
-            .to_string(),
-        ),
-      ])
-      .primary()
-    },
-    app.is_loading,
-    true,
-  );
+    Row::new(vec![
+      Cell::from(path.to_owned()),
+      Cell::from(format!("{space:.2} GB")),
+      Cell::from(
+        unmapped_folders
+          .as_ref()
+          .unwrap_or(&Vec::new())
+          .len()
+          .to_string(),
+      ),
+    ])
+    .primary()
+  };
+
+  let root_folders_table = ManagarrTable::new(
+    Some(&mut app.data.radarr_data.root_folders),
+    root_folders_row_mapping,
+  )
+  .block(layout_block_top_border())
+  .loading(app.is_loading)
+  .footer(help_footer)
+  .headers(["Path", "Free Space", "Unmapped Folders"])
+  .constraints([
+    Constraint::Ratio(3, 5),
+    Constraint::Ratio(1, 5),
+    Constraint::Ratio(1, 5),
+  ]);
+
+  f.render_widget(root_folders_table, area);
 }
 
 fn draw_add_root_folder_prompt_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
