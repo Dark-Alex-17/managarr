@@ -12,10 +12,10 @@ use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsU
 use crate::ui::radarr_ui::collections::edit_collection_ui::EditCollectionUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
+use crate::ui::widgets::error_message::ErrorMessage;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::{
-  draw_error_message_popup, draw_input_box_popup, draw_popup_over, draw_prompt_box,
-  draw_prompt_popup_over, DrawUi,
+  draw_input_box_popup, draw_popup_over, draw_prompt_box, draw_prompt_popup_over, DrawUi,
 };
 
 mod collection_details_ui;
@@ -101,19 +101,13 @@ impl DrawUi for CollectionsUi {
 }
 
 pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let current_selection =
-    if let Some(filtered_collections) = app.data.radarr_data.filtered_collections.as_ref() {
-      filtered_collections.current_selection().clone()
-    } else if !app.data.radarr_data.collections.items.is_empty() {
-      app.data.radarr_data.collections.current_selection().clone()
-    } else {
-      Collection::default()
-    };
-  let quality_profile_map = &app.data.radarr_data.quality_profile_map;
-  let content = match app.data.radarr_data.filtered_collections.as_mut() {
-    Some(filtered_collections) if !app.data.radarr_data.is_filtering => Some(filtered_collections),
-    _ => Some(&mut app.data.radarr_data.collections),
+  let current_selection = if !app.data.radarr_data.collections.items.is_empty() {
+    app.data.radarr_data.collections.current_selection().clone()
+  } else {
+    Collection::default()
   };
+  let quality_profile_map = &app.data.radarr_data.quality_profile_map;
+  let content = Some(&mut app.data.radarr_data.collections);
   let collections_table_footer = app
     .data
     .radarr_data
@@ -187,7 +181,7 @@ fn draw_collection_search_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) 
     f,
     area,
     "Search",
-    app.data.radarr_data.search.as_ref().unwrap(),
+    app.data.radarr_data.collections.search.as_ref().unwrap(),
   );
 }
 
@@ -196,14 +190,17 @@ fn draw_filter_collections_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
     f,
     area,
     "Filter",
-    app.data.radarr_data.filter.as_ref().unwrap(),
+    app.data.radarr_data.collections.filter.as_ref().unwrap(),
   )
 }
 
 fn draw_search_collection_error_box(f: &mut Frame<'_>, _: &mut App<'_>, area: Rect) {
-  draw_error_message_popup(f, area, "Collection not found!");
+  f.render_widget(ErrorMessage::new("Collection not found!"), area);
 }
 
 fn draw_filter_collections_error_box(f: &mut Frame<'_>, _: &mut App<'_>, area: Rect) {
-  draw_error_message_popup(f, area, "No collections found matching the given filter!");
+  f.render_widget(
+    ErrorMessage::new("No collections found matching the given filter!"),
+    area,
+  );
 }

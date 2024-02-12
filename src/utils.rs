@@ -2,7 +2,6 @@ use log::LevelFilter;
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Root};
 use log4rs::encode::pattern::PatternEncoder;
-use regex::Regex;
 
 #[cfg(test)]
 #[path = "utils_tests.rs"]
@@ -36,11 +35,4 @@ pub fn convert_runtime(runtime: i64) -> (i64, i64) {
   let minutes = runtime % 60;
 
   (hours, minutes)
-}
-
-pub fn strip_non_search_characters(input: &str) -> String {
-  Regex::new(r"[^a-zA-Z0-9.,/'\-:\s]")
-    .unwrap()
-    .replace_all(&input.to_lowercase(), "")
-    .to_string()
 }

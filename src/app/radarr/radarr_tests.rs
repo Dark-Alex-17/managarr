@@ -8,7 +8,6 @@ mod tests {
     use crate::app::App;
     use crate::models::radarr_models::{Collection, CollectionMovie, Credit, Release};
     use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
-    use crate::models::StatefulTable;
 
     use crate::network::radarr_network::RadarrEvent;
     use crate::network::NetworkEvent;
@@ -666,12 +665,14 @@ mod tests {
     #[tokio::test]
     async fn test_populate_movie_collection_table_filtered() {
       let mut app = App::default();
-      let mut filtered_collections = StatefulTable::default();
-      filtered_collections.set_items(vec![Collection {
-        movies: Some(vec![CollectionMovie::default()]),
-        ..Collection::default()
-      }]);
-      app.data.radarr_data.filtered_collections = Some(filtered_collections);
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_filtered_items(vec![Collection {
+          movies: Some(vec![CollectionMovie::default()]),
+          ..Collection::default()
+        }]);
 
       app.populate_movie_collection_table().await;
 

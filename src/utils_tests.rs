@@ -2,7 +2,7 @@
 mod tests {
   use pretty_assertions::assert_eq;
 
-  use crate::utils::{convert_runtime, convert_to_gb, strip_non_search_characters};
+  use crate::utils::{convert_runtime, convert_to_gb};
 
   #[test]
   fn test_convert_to_gb() {
@@ -16,13 +16,5 @@ mod tests {
 
     assert_eq!(hours, 2);
     assert_eq!(minutes, 34);
-  }
-
-  #[test]
-  fn test_strip_non_alphanumeric_characters() {
-    assert_eq!(
-      strip_non_search_characters("Te$t S7r!ng::'~-@_`,(.)/*}^&%#+="),
-      "tet s7rng::'-,./".to_owned()
-    )
   }
 }

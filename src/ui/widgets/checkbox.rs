@@ -31,7 +31,7 @@ impl<'a> Checkbox<'a> {
     self
   }
 
-  fn render_checkbox(&self, area: Rect, buf: &mut Buffer) {
+  fn render_checkbox(self, area: Rect, buf: &mut Buffer) {
     let check = if self.is_checked { "✔" } else { "" };
     let [label_area, checkbox_area] =
       Layout::horizontal([Constraint::Percentage(48), Constraint::Percentage(48)]).areas(area);

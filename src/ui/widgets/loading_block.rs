@@ -14,14 +14,14 @@ impl<'a> LoadingBlock<'a> {
     Self { is_loading, block }
   }
 
-  fn render_loading_block(&self, area: Rect, buf: &mut Buffer) {
+  fn render_loading_block(self, area: Rect, buf: &mut Buffer) {
     if self.is_loading {
       Paragraph::new(Text::from("\n\n Loading ...\n\n"))
         .system_function()
-        .block(self.block.clone())
+        .block(self.block)
         .render(area, buf);
     } else {
-      self.block.clone().render(area, buf);
+      self.block.render(area, buf);
     }
   }
 }

@@ -89,36 +89,22 @@ impl DrawUi for EditCollectionUi {
 }
 
 fn draw_edit_collection_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let (collection_title, collection_overview) =
-    if let Some(filtered_collections) = app.data.radarr_data.filtered_collections.as_ref() {
-      (
-        filtered_collections.current_selection().title.text.clone(),
-        filtered_collections
-          .current_selection()
-          .overview
-          .clone()
-          .unwrap_or_default(),
-      )
-    } else {
-      (
-        app
-          .data
-          .radarr_data
-          .collections
-          .current_selection()
-          .title
-          .text
-          .clone(),
-        app
-          .data
-          .radarr_data
-          .collections
-          .current_selection()
-          .overview
-          .clone()
-          .unwrap_or_default(),
-      )
-    };
+  let collection_title = app
+    .data
+    .radarr_data
+    .collections
+    .current_selection()
+    .title
+    .text
+    .clone();
+  let collection_overview = app
+    .data
+    .radarr_data
+    .collections
+    .current_selection()
+    .overview
+    .clone()
+    .unwrap_or_default();
   let title = format!("Edit - {collection_title}");
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();

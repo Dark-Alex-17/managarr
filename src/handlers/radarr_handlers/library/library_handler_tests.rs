@@ -18,7 +18,6 @@ mod tests {
   use crate::test_handler_delegation;
 
   mod test_handle_scroll_up_and_down {
-    use crate::models::StatefulTable;
     use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
 
     use super::*;
@@ -33,55 +32,11 @@ mod tests {
       title,
       to_string
     );
-
-    #[rstest]
-    fn test_filtered_movies_scroll(
-      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
-    ) {
-      let mut app = App::default();
-      let mut filtered_movies = StatefulTable::default();
-      filtered_movies.set_items(simple_stateful_iterable_vec!(
-        Movie,
-        HorizontallyScrollableText
-      ));
-      app.data.radarr_data.filtered_movies = Some(filtered_movies);
-
-      LibraryHandler::with(&key, &mut app, &ActiveRadarrBlock::Movies, &None).handle();
-
-      assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .filtered_movies
-          .as_ref()
-          .unwrap()
-          .current_selection()
-          .title
-          .to_string(),
-        "Test 2"
-      );
-
-      LibraryHandler::with(&key, &mut app, &ActiveRadarrBlock::Movies, &None).handle();
-
-      assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .filtered_movies
-          .as_ref()
-          .unwrap()
-          .current_selection()
-          .title
-          .to_string(),
-        "Test 1"
-      );
-    }
   }
 
   mod test_handle_home_end {
     use pretty_assertions::assert_eq;
 
-    use crate::models::StatefulTable;
     use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
 
     use super::*;
@@ -98,62 +53,9 @@ mod tests {
     );
 
     #[test]
-    fn test_filtered_movies_home_end() {
-      let mut app = App::default();
-      let mut filtered_movies = StatefulTable::default();
-      filtered_movies.set_items(extended_stateful_iterable_vec!(
-        Movie,
-        HorizontallyScrollableText
-      ));
-      app.data.radarr_data.filtered_movies = Some(filtered_movies);
-
-      LibraryHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
-        &mut app,
-        &ActiveRadarrBlock::Movies,
-        &None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .filtered_movies
-          .as_ref()
-          .unwrap()
-          .current_selection()
-          .title
-          .to_string(),
-        "Test 3"
-      );
-
-      LibraryHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
-        &mut app,
-        &ActiveRadarrBlock::Movies,
-        &None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .filtered_movies
-          .as_ref()
-          .unwrap()
-          .current_selection()
-          .title
-          .to_string(),
-        "Test 1"
-      );
-    }
-
-    #[test]
     fn test_movie_search_box_home_end_keys() {
       let mut app = App::default();
-      app.data.radarr_data.search = Some("Test".into());
+      app.data.radarr_data.movies.search = Some("Test".into());
 
       LibraryHandler::with(
         &DEFAULT_KEYBINDINGS.home.key,
@@ -167,6 +69,7 @@ mod tests {
         *app
           .data
           .radarr_data
+          .movies
           .search
           .as_ref()
           .unwrap()
@@ -187,6 +90,7 @@ mod tests {
         *app
           .data
           .radarr_data
+          .movies
           .search
           .as_ref()
           .unwrap()
@@ -199,7 +103,7 @@ mod tests {
     #[test]
     fn test_movie_filter_box_home_end_keys() {
       let mut app = App::default();
-      app.data.radarr_data.filter = Some("Test".into());
+      app.data.radarr_data.movies.filter = Some("Test".into());
 
       LibraryHandler::with(
         &DEFAULT_KEYBINDINGS.home.key,
@@ -213,6 +117,7 @@ mod tests {
         *app
           .data
           .radarr_data
+          .movies
           .filter
           .as_ref()
           .unwrap()
@@ -233,6 +138,7 @@ mod tests {
         *app
           .data
           .radarr_data
+          .movies
           .filter
           .as_ref()
           .unwrap()
@@ -349,7 +255,7 @@ mod tests {
     #[test]
     fn test_movie_search_box_left_right_keys() {
       let mut app = App::default();
-      app.data.radarr_data.search = Some("Test".into());
+      app.data.radarr_data.movies.search = Some("Test".into());
 
       LibraryHandler::with(
         &DEFAULT_KEYBINDINGS.left.key,
@@ -363,6 +269,7 @@ mod tests {
         *app
           .data
           .radarr_data
+          .movies
           .search
           .as_ref()
           .unwrap()
@@ -383,6 +290,7 @@ mod tests {
         *app
           .data
           .radarr_data
+          .movies
           .search
           .as_ref()
           .unwrap()
@@ -395,7 +303,7 @@ mod tests {
     #[test]
     fn test_movie_filter_box_left_right_keys() {
       let mut app = App::default();
-      app.data.radarr_data.filter = Some("Test".into());
+      app.data.radarr_data.movies.filter = Some("Test".into());
 
       LibraryHandler::with(
         &DEFAULT_KEYBINDINGS.left.key,
@@ -409,6 +317,7 @@ mod tests {
         *app
           .data
           .radarr_data
+          .movies
           .filter
           .as_ref()
           .unwrap()
@@ -429,6 +338,7 @@ mod tests {
         *app
           .data
           .radarr_data
+          .movies
           .filter
           .as_ref()
           .unwrap()
@@ -443,7 +353,6 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::extended_stateful_iterable_vec;
-    use crate::models::StatefulTable;
     use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
@@ -475,7 +384,7 @@ mod tests {
           Movie,
           HorizontallyScrollableText
         ));
-      app.data.radarr_data.search = Some("Test 2".into());
+      app.data.radarr_data.movies.search = Some("Test 2".into());
 
       LibraryHandler::with(
         &SUBMIT_KEY,
@@ -505,7 +414,7 @@ mod tests {
           Movie,
           HorizontallyScrollableText
         ));
-      app.data.radarr_data.search = Some("Test 5".into());
+      app.data.radarr_data.movies.search = Some("Test 5".into());
 
       LibraryHandler::with(
         &SUBMIT_KEY,
@@ -530,13 +439,15 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
-      let mut filtered_movies = StatefulTable::default();
-      filtered_movies.set_items(extended_stateful_iterable_vec!(
-        Movie,
-        HorizontallyScrollableText
-      ));
-      app.data.radarr_data.filtered_movies = Some(filtered_movies);
-      app.data.radarr_data.search = Some("Test 2".into());
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_filtered_items(extended_stateful_iterable_vec!(
+          Movie,
+          HorizontallyScrollableText
+        ));
+      app.data.radarr_data.movies.search = Some("Test 2".into());
 
       LibraryHandler::with(
         &SUBMIT_KEY,
@@ -547,15 +458,7 @@ mod tests {
       .handle();
 
       assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .filtered_movies
-          .as_ref()
-          .unwrap()
-          .current_selection()
-          .title
-          .text,
+        app.data.radarr_data.movies.current_selection().title.text,
         "Test 2"
       );
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
@@ -574,7 +477,7 @@ mod tests {
           Movie,
           HorizontallyScrollableText
         ));
-      app.data.radarr_data.filter = Some("Test".into());
+      app.data.radarr_data.movies.filter = Some("Test".into());
 
       LibraryHandler::with(
         &SUBMIT_KEY,
@@ -584,28 +487,21 @@ mod tests {
       )
       .handle();
 
-      assert!(app.data.radarr_data.filtered_movies.is_some());
+      assert!(app.data.radarr_data.movies.filtered_items.is_some());
+      assert!(!app.should_ignore_quit_key);
       assert_eq!(
         app
           .data
           .radarr_data
-          .filtered_movies
+          .movies
+          .filtered_items
           .as_ref()
           .unwrap()
-          .items
           .len(),
         3
       );
       assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .filtered_movies
-          .as_ref()
-          .unwrap()
-          .current_selection()
-          .title
-          .text,
+        app.data.radarr_data.movies.current_selection().title.text,
         "Test 1"
       );
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
@@ -624,7 +520,7 @@ mod tests {
           Movie,
           HorizontallyScrollableText
         ));
-      app.data.radarr_data.filter = Some("Test 5".into());
+      app.data.radarr_data.movies.filter = Some("Test 5".into());
 
       LibraryHandler::with(
         &SUBMIT_KEY,
@@ -634,7 +530,8 @@ mod tests {
       )
       .handle();
 
-      assert!(app.data.radarr_data.filtered_movies.is_none());
+      assert!(!app.should_ignore_quit_key);
+      assert!(app.data.radarr_data.movies.filtered_items.is_none());
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::FilterMoviesError.into()
@@ -686,9 +583,10 @@ mod tests {
 
   mod test_handle_esc {
     use pretty_assertions::assert_eq;
+    use ratatui::widgets::TableState;
 
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
-    use crate::{assert_filter_reset, assert_search_reset};
+    use crate::models::StatefulTable;
 
     use super::*;
 
@@ -704,12 +602,13 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data = create_test_radarr_data();
+      app.data.radarr_data.movies.search = Some("Test".into());
 
       LibraryHandler::with(&ESC_KEY, &mut app, &active_radarr_block, &None).handle();
 
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
       assert!(!app.should_ignore_quit_key);
-      assert_search_reset!(app.data.radarr_data);
+      assert_eq!(app.data.radarr_data.movies.search, None);
     }
 
     #[rstest]
@@ -722,12 +621,20 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data = create_test_radarr_data();
+      app.data.radarr_data.movies = StatefulTable {
+        filter: Some("Test".into()),
+        filtered_items: Some(Vec::new()),
+        filtered_state: Some(TableState::default()),
+        ..StatefulTable::default()
+      };
 
       LibraryHandler::with(&ESC_KEY, &mut app, &active_radarr_block, &None).handle();
 
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
       assert!(!app.should_ignore_quit_key);
-      assert_filter_reset!(app.data.radarr_data);
+      assert_eq!(app.data.radarr_data.movies.filter, None);
+      assert_eq!(app.data.radarr_data.movies.filtered_items, None);
+      assert_eq!(app.data.radarr_data.movies.filtered_state, None);
     }
 
     #[test]
@@ -756,13 +663,22 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.data.radarr_data = create_test_radarr_data();
+      app.data.radarr_data.movies = StatefulTable {
+        search: Some("Test".into()),
+        filter: Some("Test".into()),
+        filtered_items: Some(Vec::new()),
+        filtered_state: Some(TableState::default()),
+        ..StatefulTable::default()
+      };
 
       LibraryHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::Movies, &None).handle();
 
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
       assert!(app.error.text.is_empty());
-      assert_search_reset!(app.data.radarr_data);
-      assert_filter_reset!(app.data.radarr_data);
+      assert_eq!(app.data.radarr_data.movies.search, None);
+      assert_eq!(app.data.radarr_data.movies.filter, None);
+      assert_eq!(app.data.radarr_data.movies.filtered_items, None);
+      assert_eq!(app.data.radarr_data.movies.filtered_state, None);
     }
   }
 
@@ -778,6 +694,7 @@ mod tests {
       RadarrData, EDIT_MOVIE_SELECTION_BLOCKS,
     };
 
+    use crate::models::StatefulTable;
     use crate::{assert_refresh_key, test_edit_movie_key};
 
     use super::*;
@@ -798,14 +715,17 @@ mod tests {
         app.get_current_route(),
         &ActiveRadarrBlock::SearchMovie.into()
       );
-      assert!(app.data.radarr_data.is_searching);
       assert!(app.should_ignore_quit_key);
-      assert!(app.data.radarr_data.search.is_some());
+      assert_eq!(
+        app.data.radarr_data.movies.search,
+        Some(HorizontallyScrollableText::default())
+      );
     }
 
     #[test]
     fn test_filter_movies_key() {
       let mut app = App::default();
+      app.data.radarr_data.movies = StatefulTable::default();
 
       LibraryHandler::with(
         &DEFAULT_KEYBINDINGS.filter.key,
@@ -819,9 +739,8 @@ mod tests {
         app.get_current_route(),
         &ActiveRadarrBlock::FilterMovies.into()
       );
-      assert!(app.data.radarr_data.is_filtering);
       assert!(app.should_ignore_quit_key);
-      assert!(app.data.radarr_data.filter.is_some());
+      assert!(app.data.radarr_data.movies.filter.is_some());
     }
 
     #[test]
@@ -830,6 +749,8 @@ mod tests {
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.data.radarr_data = create_test_radarr_data();
+      app.data.radarr_data.movies = StatefulTable::default();
+      app.data.radarr_data.movies.filter = Some("Test".into());
 
       LibraryHandler::with(
         &DEFAULT_KEYBINDINGS.filter.key,
@@ -843,10 +764,13 @@ mod tests {
         app.get_current_route(),
         &ActiveRadarrBlock::FilterMovies.into()
       );
-      assert!(app.data.radarr_data.is_filtering);
       assert!(app.should_ignore_quit_key);
-      assert!(app.data.radarr_data.filter.is_some());
-      assert!(app.data.radarr_data.filtered_movies.is_none());
+      assert_eq!(
+        app.data.radarr_data.movies.filter,
+        Some(HorizontallyScrollableText::default())
+      );
+      assert!(app.data.radarr_data.movies.filtered_items.is_none());
+      assert!(app.data.radarr_data.movies.filtered_state.is_none());
     }
 
     #[test]
@@ -866,7 +790,7 @@ mod tests {
         &ActiveRadarrBlock::AddMovieSearchInput.into()
       );
       assert!(app.should_ignore_quit_key);
-      assert!(app.data.radarr_data.search.is_some());
+      assert!(app.data.radarr_data.add_movie_search.is_some());
     }
 
     #[test]
@@ -904,7 +828,7 @@ mod tests {
     #[test]
     fn test_search_movies_box_backspace_key() {
       let mut app = App::default();
-      app.data.radarr_data.search = Some("Test".into());
+      app.data.radarr_data.movies.search = Some("Test".into());
 
       LibraryHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -914,13 +838,17 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.search.as_ref().unwrap().text, "Tes");
+      assert_str_eq!(
+        app.data.radarr_data.movies.search.as_ref().unwrap().text,
+        "Tes"
+      );
     }
 
     #[test]
     fn test_filter_movies_box_backspace_key() {
       let mut app = App::default();
-      app.data.radarr_data.filter = Some("Test".into());
+      app.data.radarr_data.movies = StatefulTable::default();
+      app.data.radarr_data.movies.filter = Some("Test".into());
 
       LibraryHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -930,13 +858,16 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.filter.as_ref().unwrap().text, "Tes");
+      assert_str_eq!(
+        app.data.radarr_data.movies.filter.as_ref().unwrap().text,
+        "Tes"
+      );
     }
 
     #[test]
     fn test_search_movies_box_char_key() {
       let mut app = App::default();
-      app.data.radarr_data.search = Some(HorizontallyScrollableText::default());
+      app.data.radarr_data.movies.search = Some(HorizontallyScrollableText::default());
 
       LibraryHandler::with(
         &Key::Char('h'),
@@ -946,13 +877,17 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.search.as_ref().unwrap().text, "h");
+      assert_str_eq!(
+        app.data.radarr_data.movies.search.as_ref().unwrap().text,
+        "h"
+      );
     }
 
     #[test]
     fn test_filter_movies_box_char_key() {
       let mut app = App::default();
-      app.data.radarr_data.filter = Some(HorizontallyScrollableText::default());
+      app.data.radarr_data.movies = StatefulTable::default();
+      app.data.radarr_data.movies.filter = Some(HorizontallyScrollableText::default());
 
       LibraryHandler::with(
         &Key::Char('h'),
@@ -962,7 +897,10 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.filter.as_ref().unwrap().text, "h");
+      assert_str_eq!(
+        app.data.radarr_data.movies.filter.as_ref().unwrap().text,
+        "h"
+      );
     }
   }
 

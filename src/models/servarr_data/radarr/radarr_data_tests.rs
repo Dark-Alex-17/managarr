@@ -16,8 +16,8 @@ mod tests {
     use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
     use crate::models::Route;
 
+    use crate::assert_movie_info_tabs_reset;
     use crate::models::BlockSelectionState;
-    use crate::{assert_filter_reset, assert_movie_info_tabs_reset, assert_search_reset};
 
     #[test]
     fn test_from_tuple_to_route_with_context() {
@@ -41,24 +41,6 @@ mod tests {
 
       assert!(!radarr_data.delete_movie_files);
       assert!(!radarr_data.add_list_exclusion);
-    }
-
-    #[test]
-    fn test_reset_search() {
-      let mut radarr_data = utils::create_test_radarr_data();
-
-      radarr_data.reset_search();
-
-      assert_search_reset!(radarr_data);
-    }
-
-    #[test]
-    fn test_reset_filter() {
-      let mut radarr_data = utils::create_test_radarr_data();
-
-      radarr_data.reset_filter();
-
-      assert_filter_reset!(radarr_data);
     }
 
     #[test]
@@ -91,21 +73,16 @@ mod tests {
       assert!(radarr_data.tasks.items.is_empty());
       assert!(radarr_data.queued_events.items.is_empty());
       assert!(radarr_data.updates.get_text().is_empty());
-      assert!(radarr_data.search.is_none());
-      assert!(radarr_data.filter.is_none());
+      assert!(radarr_data.add_movie_search.is_none());
       assert!(radarr_data.add_movie_modal.is_none());
       assert!(radarr_data.add_searched_movies.is_none());
       assert!(radarr_data.edit_movie_modal.is_none());
       assert!(radarr_data.edit_collection_modal.is_none());
       assert!(radarr_data.edit_root_folder.is_none());
       assert!(radarr_data.edit_indexer_modal.is_none());
-      assert!(radarr_data.filtered_collections.is_none());
-      assert!(radarr_data.filtered_movies.is_none());
       assert!(radarr_data.indexer_settings.is_none());
       assert!(radarr_data.indexer_test_all_results.is_none());
       assert!(radarr_data.movie_details_modal.is_none());
-      assert!(!radarr_data.is_searching);
-      assert!(!radarr_data.is_filtering);
       assert!(radarr_data.prompt_confirm_action.is_none());
       assert!(!radarr_data.prompt_confirm);
       assert!(!radarr_data.delete_movie_files);

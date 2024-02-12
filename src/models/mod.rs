@@ -3,36 +3,12 @@ use std::fmt::{Debug, Display, Formatter};
 
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use ratatui::widgets::{ListState, TableState};
+use regex::Regex;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Number;
 
 pub mod radarr_models;
 pub mod servarr_data;
-
-#[cfg(test)]
-#[path = "model_tests.rs"]
-mod model_tests;
-
-// Allowing dead code for now since we'll eventually be implementing additional Servarr support and we'll need it then
-#[allow(dead_code)]
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Route {
-  Radarr(ActiveRadarrBlock, Option<ActiveRadarrBlock>),
-  Sonarr,
-  Readarr,
-  Lidarr,
-  Whisparr,
-  Bazarr,
-  Prowlarr,
-  Tautulli,
-}
-
-pub trait Scrollable {
-  fn scroll_down(&mut self);
-  fn scroll_up(&mut self);
-  fn scroll_to_top(&mut self);
-  fn scroll_to_bottom(&mut self);
-}
 
 macro_rules! stateful_iterable {
   ($name:ident, $state:ty) => {
@@ -40,10 +16,38 @@ macro_rules! stateful_iterable {
     pub struct $name<T> {
       pub state: $state,
       pub items: Vec<T>,
+      pub filter: Option<HorizontallyScrollableText>,
+      pub search: Option<HorizontallyScrollableText>,
+      pub filtered_items: Option<Vec<T>>,
+      pub filtered_state: Option<$state>,
     }
 
     impl<T> Scrollable for $name<T> {
       fn scroll_down(&mut self) {
+        if let Some(filtered_items) = self.filtered_items.as_ref() {
+          if filtered_items.is_empty() {
+            return;
+          }
+
+          let selected_row = match self.filtered_state.as_ref().unwrap().selected() {
+            Some(i) => {
+              if i >= filtered_items.len() - 1 {
+                0
+              } else {
+                i + 1
+              }
+            }
+            None => 0,
+          };
+
+          self
+            .filtered_state
+            .as_mut()
+            .unwrap()
+            .select(Some(selected_row));
+          return;
+        }
+
         if self.items.is_empty() {
           return;
         }
@@ -63,6 +67,30 @@ macro_rules! stateful_iterable {
       }
 
       fn scroll_up(&mut self) {
+        if let Some(filtered_items) = self.filtered_items.as_ref() {
+          if filtered_items.is_empty() {
+            return;
+          }
+
+          let selected_row = match self.filtered_state.as_ref().unwrap().selected() {
+            Some(i) => {
+              if i == 0 {
+                filtered_items.len() - 1
+              } else {
+                i - 1
+              }
+            }
+            None => 0,
+          };
+
+          self
+            .filtered_state
+            .as_mut()
+            .unwrap()
+            .select(Some(selected_row));
+          return;
+        }
+
         if self.items.is_empty() {
           return;
         }
@@ -82,6 +110,15 @@ macro_rules! stateful_iterable {
       }
 
       fn scroll_to_top(&mut self) {
+        if let Some(filtered_items) = self.filtered_items.as_ref() {
+          if filtered_items.is_empty() {
+            return;
+          }
+
+          self.filtered_state.as_mut().unwrap().select(Some(0));
+          return;
+        }
+
         if self.items.is_empty() {
           return;
         }
@@ -90,6 +127,19 @@ macro_rules! stateful_iterable {
       }
 
       fn scroll_to_bottom(&mut self) {
+        if let Some(filtered_items) = self.filtered_items.as_ref() {
+          if filtered_items.is_empty() {
+            return;
+          }
+
+          self
+            .filtered_state
+            .as_mut()
+            .unwrap()
+            .select(Some(filtered_items.len() - 1));
+          return;
+        }
+
         if self.items.is_empty() {
           return;
         }
@@ -98,6 +148,7 @@ macro_rules! stateful_iterable {
       }
     }
 
+    #[allow(dead_code)]
     impl<T> $name<T>
     where
       T: Clone + PartialEq + Eq + Debug,
@@ -119,24 +170,127 @@ macro_rules! stateful_iterable {
         }
       }
 
+      pub fn set_filtered_items(&mut self, filtered_items: Vec<T>) {
+        self.filtered_items = Some(filtered_items);
+        let mut filtered_state: $state = Default::default();
+        filtered_state.select(Some(0));
+        self.filtered_state = Some(filtered_state);
+      }
+
+      pub fn select_index(&mut self, index: Option<usize>) {
+        if let Some(filtered_state) = &mut self.filtered_state {
+          filtered_state.select(index);
+        } else {
+          self.state.select(index);
+        }
+      }
+
       pub fn current_selection(&self) -> &T {
-        &self.items[self.state.selected().unwrap_or(0)]
+        if let Some(filtered_items) = &self.filtered_items {
+          &filtered_items[self
+            .filtered_state
+            .as_ref()
+            .unwrap()
+            .selected()
+            .unwrap_or(0)]
+        } else {
+          &self.items[self.state.selected().unwrap_or(0)]
+        }
+      }
+
+      pub fn apply_filter(&mut self, filter_field: fn(&T) -> &str) -> bool {
+        let filter_matches = match self.filter {
+          Some(ref filter) if !filter.text.is_empty() => {
+            let scrubbed_filter = strip_non_search_characters(&filter.text.clone());
+
+            self
+              .items
+              .iter()
+              .filter(|item| {
+                strip_non_search_characters(filter_field(&item)).contains(&scrubbed_filter)
+              })
+              .cloned()
+              .collect()
+          }
+          _ => Vec::new(),
+        };
+
+        self.filter = None;
+
+        if filter_matches.is_empty() {
+          return false;
+        }
+
+        self.set_filtered_items(filter_matches);
+        return true;
+      }
+
+      pub fn reset_filter(&mut self) {
+        self.filter = None;
+        self.filtered_items = None;
+        self.filtered_state = None;
+      }
+
+      pub fn apply_search(&mut self, search_field: fn(&T) -> &str) -> bool {
+        let search_index = if let Some(search) = self.search.as_ref() {
+          let search_string = search.text.clone().to_lowercase();
+
+          self
+            .filtered_items
+            .as_ref()
+            .unwrap_or(&self.items)
+            .iter()
+            .position(|item| {
+              strip_non_search_characters(search_field(&item)).contains(&search_string)
+            })
+        } else {
+          None
+        };
+
+        self.search = None;
+
+        if search_index.is_none() {
+          return false;
+        }
+
+        self.select_index(search_index);
+        return true;
+      }
+
+      pub fn reset_search(&mut self) {
+        self.search = None;
       }
     }
   };
 }
 
+#[cfg(test)]
+#[path = "model_tests.rs"]
+mod model_tests;
+
+// Allowing dead code for now since we'll eventually be implementing additional Servarr support, and we'll need it then
+#[allow(dead_code)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Route {
+  Radarr(ActiveRadarrBlock, Option<ActiveRadarrBlock>),
+  Sonarr,
+  Readarr,
+  Lidarr,
+  Whisparr,
+  Bazarr,
+  Prowlarr,
+  Tautulli,
+}
+
+pub trait Scrollable {
+  fn scroll_down(&mut self);
+  fn scroll_up(&mut self);
+  fn scroll_to_top(&mut self);
+  fn scroll_to_bottom(&mut self);
+}
+
 stateful_iterable!(StatefulList, ListState);
 stateful_iterable!(StatefulTable, TableState);
-
-impl<T> StatefulTable<T>
-where
-  T: Clone + PartialEq + Eq + Debug,
-{
-  pub fn select_index(&mut self, index: Option<usize>) {
-    self.state.select(index);
-  }
-}
 
 #[derive(Default)]
 pub struct ScrollableText {
@@ -428,4 +582,11 @@ where
   num.as_i64().ok_or(de::Error::custom(format!(
     "Unable to convert Number to i64: {num:?}"
   )))
+}
+
+pub fn strip_non_search_characters(input: &str) -> String {
+  Regex::new(r"[^a-zA-Z0-9.,/'\-:\s]")
+    .unwrap()
+    .replace_all(&input.to_lowercase(), "")
+    .to_string()
 }

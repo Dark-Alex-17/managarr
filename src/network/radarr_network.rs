@@ -1433,7 +1433,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
       .data
       .radarr_data
-      .search
+      .add_movie_search
       .clone()
       .ok_or(anyhow!("Encountered a race condition"));
 
@@ -1711,65 +1711,22 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn extract_movie_id(&mut self) -> (i64, i64) {
     let app = self.app.lock().await;
-    if app.data.radarr_data.filtered_movies.is_some() {
-      (
-        app
-          .data
-          .radarr_data
-          .filtered_movies
-          .as_ref()
-          .unwrap()
-          .current_selection()
-          .id,
-        app
-          .data
-          .radarr_data
-          .filtered_movies
-          .as_ref()
-          .unwrap()
-          .current_selection()
-          .tmdb_id,
-      )
-    } else {
-      (
-        app.data.radarr_data.movies.current_selection().id,
-        app.data.radarr_data.movies.current_selection().tmdb_id,
-      )
-    }
+    (
+      app.data.radarr_data.movies.current_selection().id,
+      app.data.radarr_data.movies.current_selection().tmdb_id,
+    )
   }
 
   async fn extract_collection_id(&mut self) -> i64 {
-    if self
+    self
       .app
       .lock()
       .await
       .data
       .radarr_data
-      .filtered_collections
-      .is_some()
-    {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .filtered_collections
-        .as_ref()
-        .unwrap()
-        .current_selection()
-        .id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .collections
-        .current_selection()
-        .id
-    }
+      .collections
+      .current_selection()
+      .id
   }
 
   async fn append_movie_id_param(&mut self, resource: &str) -> String {

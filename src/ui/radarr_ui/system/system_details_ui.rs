@@ -85,11 +85,6 @@ fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let tasks_popup_table = |f: &mut Frame<'_>, app: &mut App<'_>, area: Rect| {
     let help_footer = Some(build_context_clue_string(&SYSTEM_TASKS_CONTEXT_CLUES));
-    // let context_area = draw_help_footer_and_get_content_area(
-    //   f,
-    //   area,
-    //   help_footer,
-    // );
     let tasks_row_mapping = |task: &Task| {
       let task_props = extract_task_props(task);
 

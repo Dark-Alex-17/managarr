@@ -632,7 +632,7 @@ mod tests {
     #[test]
     fn test_add_movie_search_input_home_end_keys() {
       let mut app = App::default();
-      app.data.radarr_data.search = Some("Test".into());
+      app.data.radarr_data.add_movie_search = Some("Test".into());
 
       AddMovieHandler::with(
         &DEFAULT_KEYBINDINGS.home.key,
@@ -646,7 +646,7 @@ mod tests {
         *app
           .data
           .radarr_data
-          .search
+          .add_movie_search
           .as_ref()
           .unwrap()
           .offset
@@ -666,7 +666,7 @@ mod tests {
         *app
           .data
           .radarr_data
-          .search
+          .add_movie_search
           .as_ref()
           .unwrap()
           .offset
@@ -749,7 +749,7 @@ mod tests {
     #[test]
     fn test_add_movie_search_input_left_right_keys() {
       let mut app = App::default();
-      app.data.radarr_data.search = Some("Test".into());
+      app.data.radarr_data.add_movie_search = Some("Test".into());
 
       AddMovieHandler::with(
         &DEFAULT_KEYBINDINGS.left.key,
@@ -763,7 +763,7 @@ mod tests {
         *app
           .data
           .radarr_data
-          .search
+          .add_movie_search
           .as_ref()
           .unwrap()
           .offset
@@ -783,7 +783,7 @@ mod tests {
         *app
           .data
           .radarr_data
-          .search
+          .add_movie_search
           .as_ref()
           .unwrap()
           .offset
@@ -863,7 +863,7 @@ mod tests {
     fn test_add_movie_search_input_submit() {
       let mut app = App::default();
       app.should_ignore_quit_key = true;
-      app.data.radarr_data.search = Some("test".into());
+      app.data.radarr_data.add_movie_search = Some("test".into());
 
       AddMovieHandler::with(
         &SUBMIT_KEY,
@@ -883,7 +883,7 @@ mod tests {
     #[test]
     fn test_add_movie_search_input_submit_noop_on_empty_search() {
       let mut app = App::default();
-      app.data.radarr_data.search = Some(HorizontallyScrollableText::default());
+      app.data.radarr_data.add_movie_search = Some(HorizontallyScrollableText::default());
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
       app.should_ignore_quit_key = true;
 
@@ -1147,7 +1147,7 @@ mod tests {
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::StatefulTable;
-    use crate::{assert_search_reset, simple_stateful_iterable_vec};
+    use crate::simple_stateful_iterable_vec;
 
     use super::*;
 
@@ -1170,7 +1170,7 @@ mod tests {
 
       assert!(!app.should_ignore_quit_key);
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
-      assert_search_reset!(app.data.radarr_data);
+      assert_eq!(app.data.radarr_data.add_movie_search, None);
     }
 
     #[test]
@@ -1344,7 +1344,7 @@ mod tests {
     #[test]
     fn test_add_movie_search_input_backspace() {
       let mut app = App::default();
-      app.data.radarr_data.search = Some("Test".into());
+      app.data.radarr_data.add_movie_search = Some("Test".into());
 
       AddMovieHandler::with(
         &DEFAULT_KEYBINDINGS.backspace.key,
@@ -1354,7 +1354,10 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.search.as_ref().unwrap().text, "Tes");
+      assert_str_eq!(
+        app.data.radarr_data.add_movie_search.as_ref().unwrap().text,
+        "Tes"
+      );
     }
 
     #[test]
@@ -1389,7 +1392,7 @@ mod tests {
     #[test]
     fn test_add_movie_search_input_char_key() {
       let mut app = App::default();
-      app.data.radarr_data.search = Some(HorizontallyScrollableText::default());
+      app.data.radarr_data.add_movie_search = Some(HorizontallyScrollableText::default());
 
       AddMovieHandler::with(
         &Key::Char('h'),
@@ -1399,7 +1402,10 @@ mod tests {
       )
       .handle();
 
-      assert_str_eq!(app.data.radarr_data.search.as_ref().unwrap().text, "h");
+      assert_str_eq!(
+        app.data.radarr_data.add_movie_search.as_ref().unwrap().text,
+        "h"
+      );
     }
 
     #[test]

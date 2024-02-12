@@ -193,7 +193,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         .app
         .data
         .radarr_data
-        .search
+        .add_movie_search
         .as_mut()
         .unwrap()
         .scroll_home(),
@@ -260,7 +260,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         .app
         .data
         .radarr_data
-        .search
+        .add_movie_search
         .as_mut()
         .unwrap()
         .reset_offset(),
@@ -286,7 +286,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         handle_text_box_left_right_keys!(
           self,
           self.key,
-          self.app.data.radarr_data.search.as_mut().unwrap()
+          self.app.data.radarr_data.add_movie_search.as_mut().unwrap()
         )
       }
       ActiveRadarrBlock::AddMovieTagsInput => {
@@ -314,7 +314,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
           .app
           .data
           .radarr_data
-          .search
+          .add_movie_search
           .as_mut()
           .unwrap()
           .text
@@ -407,7 +407,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
     match self.active_radarr_block {
       ActiveRadarrBlock::AddMovieSearchInput => {
         self.app.pop_navigation_stack();
-        self.app.data.radarr_data.reset_search();
+        self.app.data.radarr_data.add_movie_search = None;
         self.app.should_ignore_quit_key = false;
       }
       ActiveRadarrBlock::AddMovieSearchResults | ActiveRadarrBlock::AddMovieEmptySearchResults => {
@@ -440,7 +440,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         handle_text_box_keys!(
           self,
           key,
-          self.app.data.radarr_data.search.as_mut().unwrap()
+          self.app.data.radarr_data.add_movie_search.as_mut().unwrap()
         )
       }
       ActiveRadarrBlock::AddMovieTagsInput => {

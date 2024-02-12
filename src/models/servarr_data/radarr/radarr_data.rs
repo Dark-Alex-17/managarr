@@ -50,16 +50,13 @@ pub struct RadarrData<'a> {
   pub updates: ScrollableText,
   pub main_tabs: TabState,
   pub movie_info_tabs: TabState,
-  pub search: Option<HorizontallyScrollableText>,
-  pub filter: Option<HorizontallyScrollableText>,
+  pub add_movie_search: Option<HorizontallyScrollableText>,
   pub add_movie_modal: Option<AddMovieModal>,
   pub add_searched_movies: Option<StatefulTable<AddMovieSearchResult>>,
   pub edit_movie_modal: Option<EditMovieModal>,
   pub edit_collection_modal: Option<EditCollectionModal>,
   pub edit_indexer_modal: Option<EditIndexerModal>,
   pub edit_root_folder: Option<HorizontallyScrollableText>,
-  pub filtered_collections: Option<StatefulTable<Collection>>,
-  pub filtered_movies: Option<StatefulTable<Movie>>,
   pub indexer_settings: Option<IndexerSettings>,
   pub indexer_test_all_results: Option<StatefulTable<IndexerTestResultModalItem>>,
   pub movie_details_modal: Option<MovieDetailsModal>,
@@ -67,30 +64,12 @@ pub struct RadarrData<'a> {
   pub prompt_confirm_action: Option<RadarrEvent>,
   pub delete_movie_files: bool,
   pub add_list_exclusion: bool,
-  pub is_searching: bool,
-  pub is_filtering: bool,
 }
 
 impl<'a> RadarrData<'a> {
   pub fn reset_delete_movie_preferences(&mut self) {
     self.delete_movie_files = false;
     self.add_list_exclusion = false;
-  }
-
-  pub fn reset_search(&mut self) {
-    self.is_searching = false;
-    self.search = None;
-    self.filter = None;
-    self.filtered_movies = None;
-    self.filtered_collections = None;
-    self.add_searched_movies = None;
-  }
-
-  pub fn reset_filter(&mut self) {
-    self.is_filtering = false;
-    self.filter = None;
-    self.filtered_movies = None;
-    self.filtered_collections = None;
   }
 
   pub fn reset_movie_info_tabs(&mut self) {
@@ -119,21 +98,16 @@ impl<'a> Default for RadarrData<'a> {
       tasks: StatefulTable::default(),
       queued_events: StatefulTable::default(),
       updates: ScrollableText::default(),
-      search: None,
-      filter: None,
+      add_movie_search: None,
       add_movie_modal: None,
       add_searched_movies: None,
       edit_movie_modal: None,
       edit_collection_modal: None,
       edit_indexer_modal: None,
       edit_root_folder: None,
-      filtered_collections: None,
-      filtered_movies: None,
       indexer_settings: None,
       indexer_test_all_results: None,
       movie_details_modal: None,
-      is_searching: false,
-      is_filtering: false,
       prompt_confirm: false,
       prompt_confirm_action: None,
       delete_movie_files: false,
@@ -504,17 +478,4 @@ impl From<(ActiveRadarrBlock, Option<ActiveRadarrBlock>)> for Route {
   fn from(value: (ActiveRadarrBlock, Option<ActiveRadarrBlock>)) -> Route {
     Route::Radarr(value.0, value.1)
   }
-}
-
-#[allow(dead_code)] // Returning to this work tomorrow
-pub struct EditIndexerSettings {
-  pub allow_hardcoded_subs: bool,
-  pub availability_delay: HorizontallyScrollableText,
-  pub id: HorizontallyScrollableText,
-  pub maximum_size: HorizontallyScrollableText,
-  pub minimum_age: HorizontallyScrollableText,
-  pub prefer_indexer_flags: bool,
-  pub retention: HorizontallyScrollableText,
-  pub rss_sync_interval: HorizontallyScrollableText,
-  pub whitelisted_hardcoded_subs: HorizontallyScrollableText,
 }

@@ -86,12 +86,12 @@ where
     self
   }
 
-  pub fn highlight_rows(mut self, hightlight_rows: bool) -> Self {
-    self.highlight_rows = hightlight_rows;
+  pub fn highlight_rows(mut self, highlight_rows: bool) -> Self {
+    self.highlight_rows = highlight_rows;
     self
   }
 
-  fn render_table(&mut self, area: Rect, buf: &mut Buffer) {
+  fn render_table(self, area: Rect, buf: &mut Buffer) {
     let table_area = if let Some(ref footer) = self.footer {
       let [content_area, footer_area] =
         Layout::vertical([Constraint::Fill(0), Constraint::Length(2)])
@@ -109,18 +109,26 @@ where
     };
     let loading_block = LoadingBlock::new(self.is_loading, self.block.clone());
 
-    if let Some(ref mut content) = self.content {
-      if !content.items.is_empty() {
-        let rows = content.items.iter().map(&self.row_mapper);
+    if let Some(content) = self.content {
+      let (table_contents, table_state) = if content.filtered_items.is_some() {
+        (
+          content.filtered_items.as_ref().unwrap(),
+          content.filtered_state.as_mut().unwrap(),
+        )
+      } else {
+        (&content.items, &mut content.state)
+      };
+      if !table_contents.is_empty() {
+        let rows = table_contents.iter().map(&self.row_mapper);
 
-        let headers = Row::new(self.table_headers.clone())
+        let headers = Row::new(self.table_headers)
           .default()
           .bold()
           .bottom_margin(0);
 
         let mut table = Table::new(rows, &self.constraints)
           .header(headers)
-          .block(self.block.clone());
+          .block(self.block);
 
         if self.highlight_rows {
           table = table
@@ -128,7 +136,7 @@ where
             .highlight_symbol(HIGHLIGHT_SYMBOL);
         }
 
-        StatefulWidget::render(table, table_area, buf, &mut content.state);
+        StatefulWidget::render(table, table_area, buf, table_state);
       } else {
         loading_block.render(table_area, buf);
       }
@@ -142,7 +150,7 @@ impl<'a, T, F> Widget for ManagarrTable<'a, T, F>
 where
   F: Fn(&T) -> Row<'a>,
 {
-  fn render(mut self, area: Rect, buf: &mut Buffer) {
+  fn render(self, area: Rect, buf: &mut Buffer) {
     self.render_table(area, buf);
   }
 }

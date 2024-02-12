@@ -47,12 +47,12 @@ impl<'a> InputBox<'a> {
     self.label = Some(label);
     self
   }
-  
+
   pub fn offset(mut self, offset: usize) -> InputBox<'a> {
     self.offset = offset;
     self
   }
-  
+
   pub fn cursor_after_string(mut self, cursor_after_string: bool) -> InputBox<'a> {
     self.cursor_after_string = cursor_after_string;
     self
@@ -89,7 +89,7 @@ impl<'a> InputBox<'a> {
     }
   }
 
-  fn render_input_box(&self, area: Rect, buf: &mut Buffer) {
+  fn render_input_box(self, area: Rect, buf: &mut Buffer) {
     let style =
       if matches!(self.is_highlighted, Some(true)) && matches!(self.is_selected, Some(false)) {
         Style::new().system_function().bold()
@@ -99,7 +99,7 @@ impl<'a> InputBox<'a> {
 
     let input_box_paragraph = Paragraph::new(Text::from(self.content))
       .style(style)
-      .block(self.block.clone());
+      .block(self.block);
 
     if let Some(label) = self.label {
       let [label_area, text_box_area] =

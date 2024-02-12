@@ -40,7 +40,7 @@ impl<'a> Button<'a> {
     self
   }
 
-  fn render_button_with_icon(&self, area: Rect, buf: &mut Buffer) {
+  fn render_button_with_icon(self, area: Rect, buf: &mut Buffer) {
     let [title_area, icon_area] = Layout::horizontal([
       Constraint::Length(self.title.len() as u16),
       Constraint::Percentage(25),
@@ -63,7 +63,7 @@ impl<'a> Button<'a> {
     }
   }
 
-  fn render_labeled_button(&self, area: Rect, buf: &mut Buffer) {
+  fn render_labeled_button(self, area: Rect, buf: &mut Buffer) {
     let [label_area, button_area] =
       Layout::horizontal([Constraint::Percentage(48), Constraint::Percentage(48)]).areas(area);
     let label_paragraph = Paragraph::new(Text::from(format!("\n{}: ", self.label.unwrap())))
@@ -79,7 +79,7 @@ impl<'a> Button<'a> {
     }
   }
 
-  fn render_button(&self, area: Rect, buf: &mut Buffer) {
+  fn render_button(self, area: Rect, buf: &mut Buffer) {
     Paragraph::new(Text::from(self.title))
       .block(layout_block())
       .alignment(Alignment::Center)

@@ -220,32 +220,6 @@ pub fn draw_drop_down_popup(
   draw_popup_over(f, app, area, background_fn, drop_down_fn, 20, 30);
 }
 
-pub fn draw_error_popup_over(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  area: Rect,
-  message: &str,
-  background_fn: fn(&mut Frame<'_>, &mut App<'_>, Rect),
-) {
-  background_fn(f, app, area);
-  draw_error_popup(f, message);
-}
-
-pub fn draw_error_popup(f: &mut Frame<'_>, message: &str) {
-  let prompt_area = centered_rect(25, 8, f.size());
-  f.render_widget(Clear, prompt_area);
-  f.render_widget(background_block(), prompt_area);
-
-  let error_message = Paragraph::new(Text::from(message))
-    .block(title_block_centered("Error").failure())
-    .failure()
-    .bold()
-    .wrap(Wrap { trim: false })
-    .alignment(Alignment::Center);
-
-  f.render_widget(error_message, prompt_area);
-}
-
 fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -> Rect {
   f.render_widget(title_block(title), area);
 
@@ -484,13 +458,4 @@ pub fn draw_input_box_popup(
     .alignment(Alignment::Center)
     .block(borderless_block());
   f.render_widget(help, help_area);
-}
-
-pub fn draw_error_message_popup(f: &mut Frame<'_>, area: Rect, error_msg: &str) {
-  let input = Paragraph::new(error_msg)
-    .failure()
-    .alignment(Alignment::Center)
-    .block(layout_block());
-
-  f.render_widget(input, area);
 }

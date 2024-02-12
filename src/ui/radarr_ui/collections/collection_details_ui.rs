@@ -72,12 +72,7 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
     Layout::vertical([Constraint::Percentage(25), Constraint::Fill(0)])
       .margin(1)
       .areas(area);
-  let collection_selection =
-    if let Some(filtered_collections) = app.data.radarr_data.filtered_collections.as_ref() {
-      filtered_collections.current_selection()
-    } else {
-      app.data.radarr_data.collections.current_selection()
-    };
+  let collection_selection = app.data.radarr_data.collections.current_selection();
   let quality_profile = app
     .data
     .radarr_data

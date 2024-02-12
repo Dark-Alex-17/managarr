@@ -11,7 +11,6 @@ mod utils {
           (1111, "Any".to_owned()),
         ]),
         tags_map: BiMap::from_iter([(1, "test".to_owned())]),
-        filtered_movies: None,
         ..create_test_radarr_data()
       };
       radarr_data.movies.set_items(vec![Movie {
@@ -126,7 +125,6 @@ mod utils {
           (2222, "HD - 1080p".to_owned()),
           (1111, "Any".to_owned()),
         ]),
-        filtered_collections: None,
         ..create_test_radarr_data()
       };
       radarr_data.collections.set_items(vec![Collection {

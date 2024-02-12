@@ -454,7 +454,7 @@ mod test {
       &resource,
     )
     .await;
-    app_arc.lock().await.data.radarr_data.search = Some("test term".into());
+    app_arc.lock().await.data.radarr_data.add_movie_search = Some("test term".into());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
@@ -520,7 +520,7 @@ mod test {
     );
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Get, None, Some(json!([])), None, &resource).await;
-    app_arc.lock().await.data.radarr_data.search = Some("test term".into());
+    app_arc.lock().await.data.radarr_data.add_movie_search = Some("test term".into());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
@@ -2639,12 +2639,12 @@ mod test {
   async fn test_extract_movie_id_filtered_movies() {
     let app_arc = Arc::new(Mutex::new(App::default()));
     let mut filtered_movies = StatefulTable::default();
-    filtered_movies.set_items(vec![Movie {
+    filtered_movies.set_filtered_items(vec![Movie {
       id: 1,
       tmdb_id: 2,
       ..Movie::default()
     }]);
-    app_arc.lock().await.data.radarr_data.filtered_movies = Some(filtered_movies);
+    app_arc.lock().await.data.radarr_data.movies = filtered_movies;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     assert_eq!(network.extract_movie_id().await, (1, 2));
@@ -2672,11 +2672,11 @@ mod test {
   async fn test_extract_collection_id_filtered_collection() {
     let app_arc = Arc::new(Mutex::new(App::default()));
     let mut filtered_collections = StatefulTable::default();
-    filtered_collections.set_items(vec![Collection {
+    filtered_collections.set_filtered_items(vec![Collection {
       id: 1,
       ..Collection::default()
     }]);
-    app_arc.lock().await.data.radarr_data.filtered_collections = Some(filtered_collections);
+    app_arc.lock().await.data.radarr_data.collections = filtered_collections;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     assert_eq!(network.extract_collection_id().await, 1);

@@ -17,11 +17,12 @@ use crate::ui::utils::{
   title_block_centered,
 };
 use crate::ui::widgets::button::Button;
+use crate::ui::widgets::error_message::ErrorMessage;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::widgets::popup::Popup;
 use crate::ui::{
-  draw_drop_down_popup, draw_error_popup, draw_error_popup_over, draw_large_popup_over,
-  draw_medium_popup_over, draw_selectable_list, DrawUi,
+  draw_drop_down_popup, draw_large_popup_over, draw_medium_popup_over, draw_selectable_list, DrawUi,
 };
 use crate::utils::convert_runtime;
 use crate::{render_selectable_input_box, App};
@@ -68,13 +69,17 @@ impl DrawUi for AddMovieUi {
               draw_medium_popup_over(f, app, area, draw_add_movie_search, draw_confirmation_popup);
             }
           }
-          ActiveRadarrBlock::AddMovieAlreadyInLibrary => draw_error_popup_over(
-            f,
-            app,
-            area,
-            "This film is already in your library",
-            draw_add_movie_search,
-          ),
+          ActiveRadarrBlock::AddMovieAlreadyInLibrary => {
+            draw_add_movie_search(f, app, area);
+            f.render_widget(
+              Popup::new(
+                ErrorMessage::new("This film is already in your library"),
+                25,
+                8,
+              ),
+              f.size(),
+            );
+          }
           _ => (),
         };
 
@@ -108,11 +113,11 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   ])
   .margin(1)
   .areas(area);
-  let block_content = &app.data.radarr_data.search.as_ref().unwrap().text;
+  let block_content = &app.data.radarr_data.add_movie_search.as_ref().unwrap().text;
   let offset = *app
     .data
     .radarr_data
-    .search
+    .add_movie_search
     .as_ref()
     .unwrap()
     .offset
@@ -197,9 +202,11 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         let help_paragraph = Paragraph::new(help_text)
           .block(borderless_block())
           .alignment(Alignment::Center);
+        let error_message = ErrorMessage::new("No movies found matching your query!");
+        let error_message_popup = Popup::new(error_message, 25, 8);
 
         f.render_widget(layout_block(), results_area);
-        draw_error_popup(f, "No movies found matching your query!");
+        f.render_widget(error_message_popup, f.size());
         f.render_widget(help_paragraph, help_area);
       }
       ActiveRadarrBlock::AddMovieSearchResults
