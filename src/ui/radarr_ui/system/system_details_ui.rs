@@ -18,9 +18,10 @@ use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, title_block};
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::widgets::popup::Popup;
+use crate::ui::widgets::selectable_list::SelectableList;
 use crate::ui::{
-  draw_help_footer_and_get_content_area, draw_large_popup_over, draw_list_box,
-  draw_medium_popup_over, draw_prompt_box, draw_prompt_popup_over, DrawUi, ListProps,
+  draw_large_popup_over, draw_medium_popup_over, draw_prompt_box, draw_prompt_popup_over, DrawUi,
 };
 
 #[cfg(test)]
@@ -42,7 +43,8 @@ impl DrawUi for SystemDetailsUi {
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
       match active_radarr_block {
         ActiveRadarrBlock::SystemLogs => {
-          draw_large_popup_over(f, app, area, draw_system_ui_layout, draw_logs_popup)
+          draw_system_ui_layout(f, app, area);
+          draw_logs_popup(f, app);
         }
         ActiveRadarrBlock::SystemTasks | ActiveRadarrBlock::SystemTaskStartConfirmPrompt => {
           draw_large_popup_over(f, app, area, draw_system_ui_layout, draw_tasks_popup)
@@ -51,7 +53,8 @@ impl DrawUi for SystemDetailsUi {
           draw_medium_popup_over(f, app, area, draw_system_ui_layout, draw_queued_events)
         }
         ActiveRadarrBlock::SystemUpdates => {
-          draw_large_popup_over(f, app, area, draw_system_ui_layout, draw_updates_popup)
+          draw_system_ui_layout(f, app, area);
+          draw_updates_popup(f, app);
         }
         _ => (),
       }
@@ -59,27 +62,35 @@ impl DrawUi for SystemDetailsUi {
   }
 }
 
-fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_list_box(
-    f,
-    area,
-    |log| {
-      let log_line = log.to_string();
-      let level = log.text.split('|').collect::<Vec<&str>>()[1].to_string();
-
-      style_log_list_item(ListItem::new(Text::from(Span::raw(log_line))), level)
-    },
-    ListProps {
-      content: &mut app.data.radarr_data.log_details,
-      title: "Log Details",
-      is_loading: app.is_loading,
-      is_popup: true,
-      help: Some(format!(
-        "<↑↓←→> scroll | {}",
-        build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES)
-      )),
-    },
+fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
+  let block = title_block("Log Details");
+  let help_footer = format!(
+    "<↑↓←→> scroll | {}",
+    build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES)
   );
+
+  if app.data.radarr_data.log_details.items.is_empty() {
+    let loading = LoadingBlock::new(app.is_loading, borderless_block());
+    let popup = Popup::new(loading, 75, 75)
+      .block(block)
+      .footer(&help_footer);
+
+    f.render_widget(popup, f.size());
+    return;
+  }
+
+  let logs_list = SelectableList::new(&mut app.data.radarr_data.log_details, |log| {
+    let log_line = log.to_string();
+    let level = log.text.split('|').collect::<Vec<&str>>()[1].to_string();
+
+    style_log_list_item(ListItem::new(Text::from(Span::raw(log_line))), level)
+  })
+  .block(borderless_block());
+  let popup = Popup::new(logs_list, 75, 75)
+    .block(block)
+    .footer(&help_footer);
+
+  f.render_widget(popup, f.size());
 }
 
 fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
@@ -134,27 +145,29 @@ fn draw_start_task_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   );
 }
 
-fn draw_updates_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  f.render_widget(title_block("Updates"), area);
-
-  let content_area = draw_help_footer_and_get_content_area(
-    f,
-    area,
-    Some(format!(
-      "<↑↓> scroll | {}",
-      build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES)
-    )),
+fn draw_updates_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
+  let help_footer = format!(
+    "<↑↓> scroll | {}",
+    build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES)
   );
   let updates = app.data.radarr_data.updates.get_text();
-  let block = borderless_block();
+  let block = title_block("Updates");
 
   if !updates.is_empty() {
     let updates_paragraph = Paragraph::new(Text::from(updates))
-      .block(block)
+      .block(borderless_block())
       .scroll((app.data.radarr_data.updates.offset, 0));
+    let popup = Popup::new(updates_paragraph, 75, 75)
+      .block(block)
+      .footer(&help_footer);
 
-    f.render_widget(updates_paragraph, content_area);
+    f.render_widget(popup, f.size());
   } else {
-    f.render_widget(LoadingBlock::new(app.is_loading, block), content_area);
+    let loading = LoadingBlock::new(app.is_loading, borderless_block());
+    let popup = Popup::new(loading, 75, 75)
+      .block(block)
+      .footer(&help_footer);
+
+    f.render_widget(popup, f.size());
   }
 }

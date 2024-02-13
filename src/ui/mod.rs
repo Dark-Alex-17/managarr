@@ -3,25 +3,23 @@ use std::iter;
 use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Text};
+use ratatui::widgets::Clear;
 use ratatui::widgets::Paragraph;
 use ratatui::widgets::Tabs;
 use ratatui::widgets::Wrap;
-use ratatui::widgets::{Clear, List, ListItem};
 use ratatui::Frame;
 
 use crate::app::App;
-use crate::models::stateful_list::StatefulList;
 use crate::models::{HorizontallyScrollableText, Route, TabState};
 use crate::ui::radarr_ui::RadarrUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
-  background_block, borderless_block, centered_rect, layout_block_top_border,
-  layout_paragraph_borderless, logo_block, title_block, title_block_centered,
+  background_block, borderless_block, centered_rect, layout_paragraph_borderless, logo_block,
+  title_block, title_block_centered,
 };
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
-use crate::ui::widgets::loading_block::LoadingBlock;
 
 mod radarr_ui;
 mod styles;
@@ -238,14 +236,6 @@ fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -
   content_area
 }
 
-pub struct ListProps<'a, T> {
-  pub content: &'a mut StatefulList<T>,
-  pub title: &'static str,
-  pub is_loading: bool,
-  pub is_popup: bool,
-  pub help: Option<String>,
-}
-
 pub fn draw_prompt_box(
   f: &mut Frame<'_>,
   area: Rect,
@@ -349,67 +339,6 @@ pub fn draw_prompt_box_with_checkboxes(
   f.render_widget(prompt_paragraph, chunks[0]);
   f.render_widget(yes_button, yes_area);
   f.render_widget(no_button, no_area);
-}
-
-pub fn draw_list_box<'a, T>(
-  f: &mut Frame<'_>,
-  area: Rect,
-  item_mapper: impl Fn(&T) -> ListItem<'a>,
-  list_props: ListProps<'a, T>,
-) {
-  let ListProps {
-    content,
-    title,
-    is_loading,
-    is_popup,
-    help,
-  } = list_props;
-
-  let (content_area, block) = if is_popup {
-    f.render_widget(title_block(title), area);
-    (
-      draw_help_footer_and_get_content_area(f, area, help),
-      borderless_block(),
-    )
-  } else {
-    (area, title_block(title))
-  };
-
-  if !content.items.is_empty() {
-    let items: Vec<ListItem<'_>> = content.items.iter().map(item_mapper).collect();
-    let mut list = List::new(items).block(block);
-
-    if is_popup {
-      list = list.highlight_style(Style::new().highlight());
-    }
-
-    f.render_stateful_widget(list, content_area, &mut content.state);
-  } else {
-    f.render_widget(LoadingBlock::new(is_loading, block), content_area);
-  }
-}
-
-fn draw_help_footer_and_get_content_area(
-  f: &mut Frame<'_>,
-  area: Rect,
-  help: Option<String>,
-) -> Rect {
-  if let Some(help_string) = help {
-    let [content_area, help_footer_area] =
-      Layout::vertical([Constraint::Fill(0), Constraint::Length(2)])
-        .margin(1)
-        .areas(area);
-
-    let help_paragraph = Paragraph::new(Text::from(format!(" {help_string}").help()))
-      .block(layout_block_top_border())
-      .alignment(Alignment::Left);
-
-    f.render_widget(help_paragraph, help_footer_area);
-
-    content_area
-  } else {
-    area
-  }
 }
 
 pub fn draw_input_box_popup(

@@ -2,6 +2,7 @@ use std::ops::Sub;
 
 use chrono::Utc;
 use ratatui::layout::{Alignment, Layout};
+use ratatui::style::Style;
 use ratatui::text::{Span, Text};
 use ratatui::widgets::{Cell, Paragraph, Row};
 use ratatui::{
@@ -17,11 +18,12 @@ use crate::ui::radarr_ui::radarr_ui_utils::{convert_to_minutes_hours_days, style
 use crate::ui::radarr_ui::system::system_details_ui::SystemDetailsUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::layout_block_top_border;
+use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::ListProps;
+use crate::ui::widgets::selectable_list::SelectableList;
 use crate::{
   models::Route,
-  ui::{draw_list_box, utils::title_block, DrawUi},
+  ui::{utils::title_block, DrawUi},
 };
 
 mod system_details_ui;
@@ -168,23 +170,23 @@ pub(super) fn draw_queued_events(f: &mut Frame<'_>, app: &mut App<'_>, area: Rec
 }
 
 fn draw_logs(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_list_box(
-    f,
-    area,
-    |log| {
-      let log_line = log.to_string();
-      let level = log_line.split('|').collect::<Vec<&str>>()[1].to_string();
+  let block = title_block("Logs");
 
-      style_log_list_item(ListItem::new(Text::from(Span::raw(log_line))), level)
-    },
-    ListProps {
-      content: &mut app.data.radarr_data.logs,
-      title: "Logs",
-      is_loading: app.is_loading,
-      is_popup: false,
-      help: None,
-    },
-  );
+  if app.data.radarr_data.logs.items.is_empty() {
+    f.render_widget(LoadingBlock::new(app.is_loading, block), area);
+    return;
+  }
+
+  let logs_box = SelectableList::new(&mut app.data.radarr_data.logs, |log| {
+    let log_line = log.to_string();
+    let level = log_line.split('|').collect::<Vec<&str>>()[1].to_string();
+
+    style_log_list_item(ListItem::new(Text::from(Span::raw(log_line))), level)
+  })
+  .block(block)
+  .highlight_style(Style::new().default());
+
+  f.render_widget(logs_box, area);
 }
 
 fn draw_help(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

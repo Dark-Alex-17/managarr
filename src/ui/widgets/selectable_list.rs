@@ -5,7 +5,7 @@ use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::prelude::Widget;
 use ratatui::style::Style;
-use ratatui::widgets::{List, ListItem, StatefulWidget};
+use ratatui::widgets::{Block, List, ListItem, StatefulWidget};
 
 #[cfg(test)]
 #[path = "selectable_list_tests.rs"]
@@ -17,6 +17,8 @@ where
 {
   content: &'a mut StatefulList<T>,
   row_mapper: F,
+  highlight_style: Style,
+  block: Block<'a>,
 }
 
 impl<'a, T, F> SelectableList<'a, T, F>
@@ -27,15 +29,27 @@ where
     Self {
       content,
       row_mapper,
+      highlight_style: Style::new().highlight(),
+      block: layout_block(),
     }
+  }
+
+  pub fn highlight_style(mut self, style: Style) -> Self {
+    self.highlight_style = style;
+    self
+  }
+
+  pub fn block(mut self, block: Block<'a>) -> Self {
+    self.block = block;
+    self
   }
 
   fn render_list(self, area: Rect, buf: &mut Buffer) {
     let items: Vec<ListItem<'_>> = self.content.items.iter().map(&self.row_mapper).collect();
 
     let selectable_list = List::new(items)
-      .block(layout_block())
-      .highlight_style(Style::new().highlight());
+      .block(self.block)
+      .highlight_style(self.highlight_style);
 
     StatefulWidget::render(selectable_list, area, buf, &mut self.content.state);
   }
