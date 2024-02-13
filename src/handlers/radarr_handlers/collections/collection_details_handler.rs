@@ -6,7 +6,8 @@ use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, ADD_MOVIE_SELECTION_BLOCKS, COLLECTION_DETAILS_BLOCKS,
   EDIT_COLLECTION_SELECTION_BLOCKS,
 };
-use crate::models::{BlockSelectionState, Scrollable, StatefulTable};
+use crate::models::stateful_table::StatefulTable;
+use crate::models::{BlockSelectionState, Scrollable};
 
 #[cfg(test)]
 #[path = "collection_details_handler_tests.rs"]

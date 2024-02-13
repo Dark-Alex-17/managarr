@@ -13,7 +13,7 @@ mod tests {
     use rstest::rstest;
 
     use crate::models::servarr_data::radarr::modals::IndexerTestResultModalItem;
-    use crate::models::StatefulTable;
+    use crate::models::stateful_table::StatefulTable;
     use crate::simple_stateful_iterable_vec;
 
     use super::*;
@@ -66,7 +66,7 @@ mod tests {
   mod test_handle_home_end {
     use crate::extended_stateful_iterable_vec;
     use crate::models::servarr_data::radarr::modals::IndexerTestResultModalItem;
-    use crate::models::StatefulTable;
+    use crate::models::stateful_table::StatefulTable;
     use pretty_assertions::assert_str_eq;
 
     use super::*;
@@ -125,9 +125,8 @@ mod tests {
   }
 
   mod test_handle_esc {
+    use crate::models::stateful_table::StatefulTable;
     use pretty_assertions::assert_eq;
-
-    use crate::models::StatefulTable;
 
     use super::*;
 

@@ -3,7 +3,8 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
-use crate::models::{Scrollable, StatefulList};
+use crate::models::stateful_list::StatefulList;
+use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 
 #[cfg(test)]

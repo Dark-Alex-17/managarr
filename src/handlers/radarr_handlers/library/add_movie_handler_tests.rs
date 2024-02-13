@@ -21,7 +21,8 @@ mod tests {
 
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
-    use crate::models::{BlockSelectionState, StatefulTable};
+    use crate::models::stateful_table::StatefulTable;
+    use crate::models::BlockSelectionState;
     use crate::simple_stateful_iterable_vec;
 
     use super::*;
@@ -348,7 +349,7 @@ mod tests {
 
     use crate::extended_stateful_iterable_vec;
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
-    use crate::models::StatefulTable;
+    use crate::models::stateful_table::StatefulTable;
 
     use super::*;
 
@@ -852,7 +853,8 @@ mod tests {
     use crate::models::radarr_models::Movie;
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
-    use crate::models::{BlockSelectionState, StatefulTable};
+    use crate::models::stateful_table::StatefulTable;
+    use crate::models::BlockSelectionState;
     use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
@@ -1146,7 +1148,7 @@ mod tests {
 
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
-    use crate::models::StatefulTable;
+    use crate::models::stateful_table::StatefulTable;
     use crate::simple_stateful_iterable_vec;
 
     use super::*;

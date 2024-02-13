@@ -13,9 +13,10 @@ use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
   MovieDetailsModal,
 };
+use crate::models::stateful_list::StatefulList;
+use crate::models::stateful_table::StatefulTable;
 use crate::models::{
-  BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, StatefulList,
-  StatefulTable, TabRoute, TabState,
+  BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, TabRoute, TabState,
 };
 use crate::network::radarr_network::RadarrEvent;
 use bimap::BiMap;

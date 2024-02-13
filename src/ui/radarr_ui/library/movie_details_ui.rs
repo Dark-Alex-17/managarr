@@ -3,11 +3,11 @@ use std::iter;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
-use ratatui::widgets::{Cell, ListItem, Paragraph, Row, Wrap};
+use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use ratatui::Frame;
 
 use crate::app::App;
-use crate::models::radarr_models::{Credit, MovieHistoryItem, Release, ReleaseField};
+use crate::models::radarr_models::{Credit, MovieHistoryItem, Release};
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::library::draw_library;
@@ -18,8 +18,8 @@ use crate::ui::utils::{
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::{
-  draw_drop_down_popup, draw_large_popup_over, draw_prompt_box, draw_prompt_box_with_content,
-  draw_prompt_popup_over, draw_selectable_list, draw_small_popup_over, draw_tabs, DrawUi,
+  draw_large_popup_over, draw_prompt_box, draw_prompt_box_with_content, draw_prompt_popup_over,
+  draw_small_popup_over, draw_tabs, DrawUi,
 };
 use crate::utils::convert_to_gb;
 
@@ -62,26 +62,6 @@ impl DrawUi for MovieDetailsUi {
             content_area,
             draw_movie_info,
             draw_update_and_scan_prompt,
-          ),
-          ActiveRadarrBlock::ManualSearchSortPrompt => draw_drop_down_popup(
-            f,
-            app,
-            content_area,
-            draw_movie_info,
-            |f, app, content_area| {
-              draw_selectable_list(
-                f,
-                content_area,
-                &mut app
-                  .data
-                  .radarr_data
-                  .movie_details_modal
-                  .as_mut()
-                  .unwrap()
-                  .movie_releases_sort,
-                |sort_option| ListItem::new(sort_option.to_string()),
-              )
-            },
           ),
           ActiveRadarrBlock::ManualSearchConfirmPrompt => draw_small_popup_over(
             f,
@@ -388,142 +368,110 @@ fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let (current_selection, is_empty, sort_ascending) =
-    match app.data.radarr_data.movie_details_modal.as_ref() {
+  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+    let (current_selection, is_empty) = match app.data.radarr_data.movie_details_modal.as_ref() {
       Some(movie_details_modal) if !movie_details_modal.movie_releases.items.is_empty() => (
         movie_details_modal
           .movie_releases
           .current_selection()
           .clone(),
         movie_details_modal.movie_releases.items.is_empty(),
-        movie_details_modal.sort_ascending,
       ),
-      _ => (Release::default(), true, None),
+      _ => (Release::default(), true),
     };
-  let current_route = *app.get_current_route();
-  let help_footer = app
-    .data
-    .radarr_data
-    .movie_info_tabs
-    .get_active_tab_contextual_help();
-  let mut table_headers_vec = vec![
-    "Source".to_owned(),
-    "Age".to_owned(),
-    "⛔".to_owned(),
-    "Title".to_owned(),
-    "Indexer".to_owned(),
-    "Size".to_owned(),
-    "Peers".to_owned(),
-    "Language".to_owned(),
-    "Quality".to_owned(),
-  ];
-
-  if let Some(ascending) = sort_ascending {
-    let direction = if ascending { " ▲" } else { " ▼" };
-
-    match app
+    let current_route = *app.get_current_route();
+    let help_footer = app
       .data
       .radarr_data
-      .movie_details_modal
-      .as_ref()
-      .unwrap()
-      .movie_releases_sort
-      .current_selection()
-    {
-      ReleaseField::Source => table_headers_vec[0].push_str(direction),
-      ReleaseField::Age => table_headers_vec[1].push_str(direction),
-      ReleaseField::Rejected => table_headers_vec[2].push_str(direction),
-      ReleaseField::Title => table_headers_vec[3].push_str(direction),
-      ReleaseField::Indexer => table_headers_vec[4].push_str(direction),
-      ReleaseField::Size => table_headers_vec[5].push_str(direction),
-      ReleaseField::Peers => table_headers_vec[6].push_str(direction),
-      ReleaseField::Language => table_headers_vec[7].push_str(direction),
-      ReleaseField::Quality => table_headers_vec[8].push_str(direction),
-    }
-  }
-  let content = Some(
-    &mut app
-      .data
-      .radarr_data
-      .movie_details_modal
-      .as_mut()
-      .unwrap()
-      .movie_releases,
-  );
-  let releases_row_mapping = |release: &Release| {
-    let Release {
-      protocol,
-      age,
-      title,
-      indexer,
-      size,
-      rejected,
-      seeders,
-      leechers,
-      languages,
-      quality,
-      ..
-    } = release;
-    let age = format!("{age} days");
-    title.scroll_left_or_reset(
-      get_width_from_percentage(area, 30),
-      current_selection == *release
-        && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
-      app.tick_count % app.ticks_until_scroll == 0,
+      .movie_info_tabs
+      .get_active_tab_contextual_help();
+    let content = Some(
+      &mut app
+        .data
+        .radarr_data
+        .movie_details_modal
+        .as_mut()
+        .unwrap()
+        .movie_releases,
     );
-    let size = convert_to_gb(*size);
-    let rejected_str = if *rejected { "⛔" } else { "" };
-    let peers = if seeders.is_none() || leechers.is_none() {
-      Text::from("")
-    } else {
-      let seeders = seeders.clone().unwrap().as_u64().unwrap();
-      let leechers = leechers.clone().unwrap().as_u64().unwrap();
-
-      decorate_peer_style(
+    let releases_row_mapping = |release: &Release| {
+      let Release {
+        protocol,
+        age,
+        title,
+        indexer,
+        size,
+        rejected,
         seeders,
         leechers,
-        Text::from(format!("{seeders} / {leechers}")),
-      )
+        languages,
+        quality,
+        ..
+      } = release;
+      let age = format!("{age} days");
+      title.scroll_left_or_reset(
+        get_width_from_percentage(area, 30),
+        current_selection == *release
+          && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
+        app.tick_count % app.ticks_until_scroll == 0,
+      );
+      let size = convert_to_gb(*size);
+      let rejected_str = if *rejected { "⛔" } else { "" };
+      let peers = if seeders.is_none() || leechers.is_none() {
+        Text::from("")
+      } else {
+        let seeders = seeders.clone().unwrap().as_u64().unwrap();
+        let leechers = leechers.clone().unwrap().as_u64().unwrap();
+
+        decorate_peer_style(
+          seeders,
+          leechers,
+          Text::from(format!("{seeders} / {leechers}")),
+        )
+      };
+
+      let language = if languages.is_some() {
+        languages.clone().unwrap()[0].name.clone()
+      } else {
+        String::new()
+      };
+      let quality = quality.quality.name.clone();
+
+      Row::new(vec![
+        Cell::from(protocol.clone()),
+        Cell::from(age),
+        Cell::from(rejected_str),
+        Cell::from(title.to_string()),
+        Cell::from(indexer.clone()),
+        Cell::from(format!("{size:.1} GB")),
+        Cell::from(peers),
+        Cell::from(language),
+        Cell::from(quality),
+      ])
+      .primary()
     };
+    let releases_table = ManagarrTable::new(content, releases_row_mapping)
+      .block(layout_block_top_border())
+      .loading(app.is_loading || is_empty)
+      .footer(help_footer)
+      .sorting(active_radarr_block == ActiveRadarrBlock::ManualSearchSortPrompt)
+      .headers([
+        "Source", "Age", "⛔", "Title", "Indexer", "Size", "Peers", "Language", "Quality",
+      ])
+      .constraints([
+        Constraint::Length(9),
+        Constraint::Length(10),
+        Constraint::Length(5),
+        Constraint::Percentage(30),
+        Constraint::Percentage(18),
+        Constraint::Length(12),
+        Constraint::Length(12),
+        Constraint::Percentage(7),
+        Constraint::Percentage(10),
+      ]);
 
-    let language = if languages.is_some() {
-      languages.clone().unwrap()[0].name.clone()
-    } else {
-      String::new()
-    };
-    let quality = quality.quality.name.clone();
-
-    Row::new(vec![
-      Cell::from(protocol.clone()),
-      Cell::from(age),
-      Cell::from(rejected_str),
-      Cell::from(title.to_string()),
-      Cell::from(indexer.clone()),
-      Cell::from(format!("{size:.1} GB")),
-      Cell::from(peers),
-      Cell::from(language),
-      Cell::from(quality),
-    ])
-    .primary()
-  };
-  let releases_table = ManagarrTable::new(content, releases_row_mapping)
-    .block(layout_block_top_border())
-    .loading(app.is_loading || is_empty)
-    .footer(help_footer)
-    .headers(table_headers_vec.iter().map(|s| &**s))
-    .constraints([
-      Constraint::Length(9),
-      Constraint::Length(10),
-      Constraint::Length(5),
-      Constraint::Percentage(30),
-      Constraint::Percentage(18),
-      Constraint::Length(12),
-      Constraint::Length(12),
-      Constraint::Percentage(7),
-      Constraint::Percentage(10),
-    ]);
-
-  f.render_widget(releases_table, area);
+    f.render_widget(releases_table, area);
+  }
 }
 
 fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

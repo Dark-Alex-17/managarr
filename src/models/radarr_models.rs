@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
-use strum_macros::{Display, EnumIter};
+use strum_macros::EnumIter;
 
 use crate::models::HorizontallyScrollableText;
 
@@ -452,20 +452,6 @@ pub struct ReleaseDownloadBody {
   pub guid: String,
   pub indexer_id: i64,
   pub movie_id: i64,
-}
-
-#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, Display)]
-pub enum ReleaseField {
-  #[default]
-  Source,
-  Age,
-  Rejected,
-  Title,
-  Indexer,
-  Size,
-  Peers,
-  Language,
-  Quality,
 }
 
 #[derive(Default, Deserialize, Debug, Clone, Eq, PartialEq)]

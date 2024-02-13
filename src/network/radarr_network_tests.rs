@@ -17,7 +17,7 @@ mod test {
     Quality, QualityWrapper, Rating, RatingsList,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-  use crate::models::{HorizontallyScrollableText, StatefulTable};
+  use crate::models::HorizontallyScrollableText;
   use crate::App;
 
   use super::super::*;

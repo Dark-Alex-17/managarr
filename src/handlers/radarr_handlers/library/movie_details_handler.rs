@@ -1,16 +1,14 @@
-use std::cmp::Ordering;
-
 use serde_json::Number;
-use strum::IntoEnumIterator;
 
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
-use crate::models::radarr_models::{Language, Release, ReleaseField};
+use crate::models::radarr_models::{Language, Release};
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, EDIT_MOVIE_SELECTION_BLOCKS, MOVIE_DETAILS_BLOCKS,
 };
+use crate::models::stateful_table::SortOption;
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 
@@ -102,7 +100,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         .movie_details_modal
         .as_mut()
         .unwrap()
-        .movie_releases_sort
+        .movie_releases
+        .sort
+        .as_mut()
+        .unwrap()
         .scroll_up(),
       _ => (),
     }
@@ -162,7 +163,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         .movie_details_modal
         .as_mut()
         .unwrap()
-        .movie_releases_sort
+        .movie_releases
+        .sort
+        .as_mut()
+        .unwrap()
         .scroll_down(),
       _ => (),
     }
@@ -222,7 +226,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         .movie_details_modal
         .as_mut()
         .unwrap()
-        .movie_releases_sort
+        .movie_releases
+        .sort
+        .as_mut()
+        .unwrap()
         .scroll_to_top(),
       _ => (),
     }
@@ -282,7 +289,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         .movie_details_modal
         .as_mut()
         .unwrap()
-        .movie_releases_sort
+        .movie_releases
+        .sort
+        .as_mut()
+        .unwrap()
         .scroll_to_bottom(),
       _ => (),
     }
@@ -349,25 +359,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         self.app.pop_navigation_stack();
       }
       ActiveRadarrBlock::ManualSearchSortPrompt => {
-        let movie_details_modal = self
+        self
           .app
           .data
           .radarr_data
           .movie_details_modal
           .as_mut()
-          .unwrap();
-        let movie_releases = movie_details_modal.movie_releases.items.clone();
-        let field = movie_details_modal.movie_releases_sort.current_selection();
-        let sort_ascending = !movie_details_modal.sort_ascending.unwrap();
-        movie_details_modal.sort_ascending = Some(sort_ascending);
-
-        movie_details_modal
+          .unwrap()
           .movie_releases
-          .set_items(sort_releases_by_selected_field(
-            movie_releases,
-            *field,
-            sort_ascending,
-          ));
+          .apply_sorting();
         self.app.pop_navigation_stack();
       }
       _ => (),
@@ -433,19 +433,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
             .pop_and_push_navigation_stack((*self.active_radarr_block).into());
         }
         _ if *key == DEFAULT_KEYBINDINGS.sort.key => {
-          let movie_details_modal = self
+          self
             .app
             .data
             .radarr_data
             .movie_details_modal
             .as_mut()
-            .unwrap();
-          movie_details_modal
-            .movie_releases_sort
-            .set_items(Vec::from_iter(ReleaseField::iter()));
-          let sort_ascending = movie_details_modal.sort_ascending;
-          movie_details_modal.sort_ascending =
-            Some(sort_ascending.is_some() && sort_ascending.unwrap());
+            .unwrap()
+            .movie_releases
+            .sorting(releases_sorting_options());
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::ManualSearchSortPrompt.into());
@@ -457,58 +453,67 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
   }
 }
 
-fn sort_releases_by_selected_field(
-  mut releases: Vec<Release>,
-  field: ReleaseField,
-  sort_ascending: bool,
-) -> Vec<Release> {
-  let cmp_fn: fn(&Release, &Release) -> Ordering = match field {
-    ReleaseField::Source => |release_a, release_b| release_a.protocol.cmp(&release_b.protocol),
-    ReleaseField::Age => |release_a, release_b| release_a.age.cmp(&release_b.age),
-    ReleaseField::Rejected => |release_a, release_b| release_a.rejected.cmp(&release_b.rejected),
-    ReleaseField::Title => |release_a, release_b| release_a.title.text.cmp(&release_b.title.text),
-    ReleaseField::Indexer => |release_a, release_b| release_a.indexer.cmp(&release_b.indexer),
-    ReleaseField::Size => |release_a, release_b| release_a.size.cmp(&release_b.size),
-    ReleaseField::Peers => |release_a, release_b| {
-      let default_number = Number::from(i64::MAX);
-      let seeder_a = release_a
-        .seeders
-        .as_ref()
-        .unwrap_or(&default_number)
-        .as_u64()
-        .unwrap();
-      let seeder_b = release_b
-        .seeders
-        .as_ref()
-        .unwrap_or(&default_number)
-        .as_u64()
-        .unwrap();
-
-      seeder_a.cmp(&seeder_b)
+fn releases_sorting_options() -> Vec<SortOption<Release>> {
+  vec![
+    SortOption {
+      name: "Source",
+      cmp_fn: Some(|a, b| a.protocol.cmp(&b.protocol)),
     },
-    ReleaseField::Language => |release_a, release_b| {
-      let default_language_vec = vec![Language {
-        name: "_".to_owned(),
-      }];
-      let language_a = &release_a
-        .languages
-        .as_ref()
-        .unwrap_or(&default_language_vec)[0];
-      let language_b = &release_b
-        .languages
-        .as_ref()
-        .unwrap_or(&default_language_vec)[0];
-
-      language_a.cmp(language_b)
+    SortOption {
+      name: "Age",
+      cmp_fn: Some(|a, b| a.age.cmp(&b.age)),
     },
-    ReleaseField::Quality => |release_a, release_b| release_a.quality.cmp(&release_b.quality),
-  };
+    SortOption {
+      name: "Rejected",
+      cmp_fn: Some(|a, b| a.rejected.cmp(&b.rejected)),
+    },
+    SortOption {
+      name: "Title",
+      cmp_fn: Some(|a, b| a.title.text.cmp(&b.title.text)),
+    },
+    SortOption {
+      name: "Indexer",
+      cmp_fn: Some(|a, b| a.indexer.cmp(&b.indexer)),
+    },
+    SortOption {
+      name: "Size",
+      cmp_fn: Some(|a, b| a.size.cmp(&b.size)),
+    },
+    SortOption {
+      name: "Peers",
+      cmp_fn: Some(|a, b| {
+        let default_number = Number::from(i64::MAX);
+        let seeder_a = a
+          .seeders
+          .as_ref()
+          .unwrap_or(&default_number)
+          .as_u64()
+          .unwrap();
+        let seeder_b = b
+          .seeders
+          .as_ref()
+          .unwrap_or(&default_number)
+          .as_u64()
+          .unwrap();
 
-  if !sort_ascending {
-    releases.sort_by(|release_a, release_b| cmp_fn(release_a, release_b).reverse());
-  } else {
-    releases.sort_by(cmp_fn);
-  }
+        seeder_a.cmp(&seeder_b)
+      }),
+    },
+    SortOption {
+      name: "Language",
+      cmp_fn: Some(|a, b| {
+        let default_language_vec = vec![Language {
+          name: "_".to_owned(),
+        }];
+        let language_a = &a.languages.as_ref().unwrap_or(&default_language_vec)[0];
+        let language_b = &b.languages.as_ref().unwrap_or(&default_language_vec)[0];
 
-  releases
+        language_a.cmp(language_b)
+      }),
+    },
+    SortOption {
+      name: "Quality",
+      cmp_fn: Some(|a, b| a.quality.cmp(&b.quality)),
+    },
+  ]
 }

@@ -10,11 +10,12 @@ use ratatui::widgets::{Clear, List, ListItem};
 use ratatui::Frame;
 
 use crate::app::App;
-use crate::models::{HorizontallyScrollableText, Route, StatefulList, TabState};
+use crate::models::stateful_list::StatefulList;
+use crate::models::{HorizontallyScrollableText, Route, TabState};
 use crate::ui::radarr_ui::RadarrUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
-  background_block, borderless_block, centered_rect, layout_block, layout_block_top_border,
+  background_block, borderless_block, centered_rect, layout_block_top_border,
   layout_paragraph_borderless, logo_block, title_block, title_block_centered,
 };
 use crate::ui::widgets::button::Button;
@@ -210,25 +211,14 @@ pub fn draw_large_popup_over_background_fn_with_ui<T: DrawUi>(
   draw_popup_over_ui::<T>(f, app, area, background_fn, 75, 75);
 }
 
-pub fn draw_drop_down_popup(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  area: Rect,
-  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  drop_down_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-) {
-  draw_popup_over(f, app, area, background_fn, drop_down_fn, 20, 30);
-}
-
 fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -> Rect {
   f.render_widget(title_block(title), area);
 
   let [header_area, content_area] = Layout::vertical([Constraint::Length(1), Constraint::Fill(0)])
     .margin(1)
     .areas(area);
-  let [tabs_area, help_area] = Layout::horizontal([Constraint::Min(25), Constraint::Min(35)])
-    .flex(Flex::SpaceBetween)
-    .areas(header_area);
+  let [tabs_area, help_area] =
+    Layout::horizontal([Constraint::Percentage(45), Constraint::Fill(0)]).areas(header_area);
 
   let titles = tab_state
     .tabs
@@ -359,20 +349,6 @@ pub fn draw_prompt_box_with_checkboxes(
   f.render_widget(prompt_paragraph, chunks[0]);
   f.render_widget(yes_button, yes_area);
   f.render_widget(no_button, no_area);
-}
-
-pub fn draw_selectable_list<'a, T>(
-  f: &mut Frame<'_>,
-  area: Rect,
-  content: &'a mut StatefulList<T>,
-  item_mapper: impl Fn(&T) -> ListItem<'a>,
-) {
-  let items: Vec<ListItem<'_>> = content.items.iter().map(item_mapper).collect();
-  let list = List::new(items)
-    .block(layout_block())
-    .highlight_style(Style::new().highlight());
-
-  f.render_stateful_widget(list, area, &mut content.state);
 }
 
 pub fn draw_list_box<'a, T>(

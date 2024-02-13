@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod tests {
+  use std::cmp::Ordering;
+
   use pretty_assertions::assert_str_eq;
-  use rstest::rstest;
   use serde_json::Number;
   use strum::IntoEnumIterator;
 
@@ -9,21 +10,20 @@ mod tests {
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::library::movie_details_handler::{
-    sort_releases_by_selected_field, MovieDetailsHandler,
+    releases_sorting_options, MovieDetailsHandler,
   };
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::{
-    Credit, Language, MovieHistoryItem, Quality, QualityWrapper, Release, ReleaseField,
+    Credit, Language, MovieHistoryItem, Quality, QualityWrapper, Release,
   };
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
+  use crate::models::stateful_table::SortOption;
   use crate::models::{HorizontallyScrollableText, ScrollableText};
 
   mod test_handle_scroll_up_and_down {
-    use pretty_assertions::assert_eq;
+    use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;
-    use strum::IntoEnumIterator;
 
-    use crate::models::radarr_models::ReleaseField;
     use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
     use crate::simple_stateful_iterable_vec;
 
@@ -261,12 +261,10 @@ mod tests {
     fn test_manual_search_sort_scroll(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
-      let release_field_vec = Vec::from_iter(ReleaseField::iter());
+      let release_field_vec = sort_options();
       let mut app = App::default();
       let mut movie_details_modal = MovieDetailsModal::default();
-      movie_details_modal
-        .movie_releases_sort
-        .set_items(release_field_vec.clone());
+      movie_details_modal.movie_releases.sorting(sort_options());
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
 
       if key == Key::Up {
@@ -286,7 +284,10 @@ mod tests {
               .movie_details_modal
               .as_ref()
               .unwrap()
-              .movie_releases_sort
+              .movie_releases
+              .sort
+              .as_ref()
+              .unwrap()
               .current_selection(),
             &release_field_vec[i]
           );
@@ -308,7 +309,10 @@ mod tests {
               .movie_details_modal
               .as_ref()
               .unwrap()
-              .movie_releases_sort
+              .movie_releases
+              .sort
+              .as_ref()
+              .unwrap()
               .current_selection(),
             &release_field_vec[(i + 1) % release_field_vec.len()]
           );
@@ -318,10 +322,7 @@ mod tests {
   }
 
   mod test_handle_home_end {
-    use strum::IntoEnumIterator;
-
     use crate::extended_stateful_iterable_vec;
-    use crate::models::radarr_models::ReleaseField;
     use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 
     use super::*;
@@ -597,12 +598,10 @@ mod tests {
 
     #[test]
     fn test_manual_search_sort_home_end() {
-      let release_field_vec = Vec::from_iter(ReleaseField::iter());
+      let release_field_vec = sort_options();
       let mut app = App::default();
       let mut movie_details_modal = MovieDetailsModal::default();
-      movie_details_modal
-        .movie_releases_sort
-        .set_items(release_field_vec.clone());
+      movie_details_modal.movie_releases.sorting(sort_options());
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
 
       MovieDetailsHandler::with(
@@ -620,7 +619,10 @@ mod tests {
           .movie_details_modal
           .as_ref()
           .unwrap()
-          .movie_releases_sort
+          .movie_releases
+          .sort
+          .as_ref()
+          .unwrap()
           .current_selection(),
         &release_field_vec[release_field_vec.len() - 1]
       );
@@ -640,7 +642,10 @@ mod tests {
           .movie_details_modal
           .as_ref()
           .unwrap()
-          .movie_releases_sort
+          .movie_releases
+          .sort
+          .as_ref()
+          .unwrap()
           .current_selection(),
         &release_field_vec[0]
       );
@@ -720,7 +725,6 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::models::radarr_models::ReleaseField;
     use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
     use crate::network::radarr_network::RadarrEvent;
 
@@ -805,13 +809,9 @@ mod tests {
     #[test]
     fn test_manual_search_sort_prompt_submit() {
       let mut app = App::default();
-      let mut movie_details_modal = MovieDetailsModal {
-        sort_ascending: Some(true),
-        ..MovieDetailsModal::default()
-      };
-      movie_details_modal
-        .movie_releases_sort
-        .set_items(vec![ReleaseField::default()]);
+      let mut movie_details_modal = MovieDetailsModal::default();
+      movie_details_modal.movie_releases.sort_asc = true;
+      movie_details_modal.movie_releases.sorting(sort_options());
       movie_details_modal.movie_releases.set_items(release_vec());
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
       app.push_navigation_stack(ActiveRadarrBlock::ManualSearch.into());
@@ -908,13 +908,13 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
+    use crate::handlers::radarr_handlers::library::movie_details_handler::releases_sorting_options;
     use crate::models::radarr_models::{MinimumAvailability, Movie};
     use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::servarr_data::radarr::radarr_data::{
       RadarrData, EDIT_MOVIE_SELECTION_BLOCKS,
     };
-
     use crate::test_edit_movie_key;
 
     use super::*;
@@ -964,23 +964,6 @@ mod tests {
         app.get_current_route(),
         &ActiveRadarrBlock::ManualSearchSortPrompt.into()
       );
-      assert!(!app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_ref()
-        .unwrap()
-        .movie_releases_sort
-        .items
-        .is_empty());
-      assert!(app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_ref()
-        .unwrap()
-        .sort_ascending
-        .is_some());
       assert_eq!(
         app
           .data
@@ -988,8 +971,22 @@ mod tests {
           .movie_details_modal
           .as_ref()
           .unwrap()
-          .sort_ascending,
-        Some(false)
+          .movie_releases
+          .sort
+          .as_ref()
+          .unwrap()
+          .items,
+        releases_sorting_options()
+      );
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_ref()
+          .unwrap()
+          .movie_releases
+          .sort_asc
       );
     }
 
@@ -1067,46 +1064,155 @@ mod tests {
     }
   }
 
-  #[rstest]
-  fn test_sort_releases_by_selected_field(
-    #[values(
-      ReleaseField::Source,
-      ReleaseField::Age,
-      ReleaseField::Title,
-      ReleaseField::Indexer,
-      ReleaseField::Size,
-      ReleaseField::Peers,
-      ReleaseField::Language,
-      ReleaseField::Quality
-    )]
-    field: ReleaseField,
-  ) {
-    let mut expected_vec = release_vec();
+  #[test]
+  fn test_releases_sorting_options_source() {
+    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| a.protocol.cmp(&b.protocol);
+    let mut expected_releases_vec = release_vec();
+    expected_releases_vec.sort_by(expected_cmp_fn);
 
-    let sorted_releases = sort_releases_by_selected_field(release_vec(), field, true);
+    let sort_option = releases_sorting_options()[0].clone();
+    let mut sorted_releases_vec = release_vec();
+    sorted_releases_vec.sort_by(sort_option.cmp_fn.unwrap());
 
-    assert_eq!(sorted_releases, expected_vec);
-
-    let sorted_releases = sort_releases_by_selected_field(release_vec(), field, false);
-
-    expected_vec.reverse();
-    assert_eq!(sorted_releases, expected_vec);
+    assert_eq!(sorted_releases_vec, expected_releases_vec);
+    assert_str_eq!(sort_option.name, "Source");
   }
 
   #[test]
-  fn test_sort_releases_by_selected_field_rejected() {
-    let mut expected_vec = Vec::from(&release_vec()[1..]);
-    expected_vec.push(release_vec()[0].clone());
+  fn test_releases_sorting_options_age() {
+    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| a.age.cmp(&b.age);
+    let mut expected_releases_vec = release_vec();
+    expected_releases_vec.sort_by(expected_cmp_fn);
 
-    let sorted_releases =
-      sort_releases_by_selected_field(release_vec(), ReleaseField::Rejected, true);
+    let sort_option = releases_sorting_options()[1].clone();
+    let mut sorted_releases_vec = release_vec();
+    sorted_releases_vec.sort_by(sort_option.cmp_fn.unwrap());
 
-    assert_eq!(sorted_releases, expected_vec);
+    assert_eq!(sorted_releases_vec, expected_releases_vec);
+    assert_str_eq!(sort_option.name, "Age");
+  }
 
-    let sorted_releases =
-      sort_releases_by_selected_field(release_vec(), ReleaseField::Rejected, false);
+  #[test]
+  fn test_releases_sorting_options_rejected() {
+    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| a.rejected.cmp(&b.rejected);
+    let mut expected_releases_vec = release_vec();
+    expected_releases_vec.sort_by(expected_cmp_fn);
 
-    assert_eq!(sorted_releases, release_vec());
+    let sort_option = releases_sorting_options()[2].clone();
+    let mut sorted_releases_vec = release_vec();
+    sorted_releases_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_releases_vec, expected_releases_vec);
+    assert_str_eq!(sort_option.name, "Rejected");
+  }
+
+  #[test]
+  fn test_releases_sorting_options_title() {
+    let expected_cmp_fn: fn(&Release, &Release) -> Ordering =
+      |a, b| a.title.text.cmp(&b.title.text);
+    let mut expected_releases_vec = release_vec();
+    expected_releases_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = releases_sorting_options()[3].clone();
+    let mut sorted_releases_vec = release_vec();
+    sorted_releases_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_releases_vec, expected_releases_vec);
+    assert_str_eq!(sort_option.name, "Title");
+  }
+
+  #[test]
+  fn test_releases_sorting_options_indexer() {
+    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| a.indexer.cmp(&b.indexer);
+    let mut expected_releases_vec = release_vec();
+    expected_releases_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = releases_sorting_options()[4].clone();
+    let mut sorted_releases_vec = release_vec();
+    sorted_releases_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_releases_vec, expected_releases_vec);
+    assert_str_eq!(sort_option.name, "Indexer");
+  }
+
+  #[test]
+  fn test_releases_sorting_options_size() {
+    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| a.size.cmp(&b.size);
+    let mut expected_releases_vec = release_vec();
+    expected_releases_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = releases_sorting_options()[5].clone();
+    let mut sorted_releases_vec = release_vec();
+    sorted_releases_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_releases_vec, expected_releases_vec);
+    assert_str_eq!(sort_option.name, "Size");
+  }
+
+  #[test]
+  fn test_releases_sorting_options_peers() {
+    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| {
+      let default_number = Number::from(i64::MAX);
+      let seeder_a = a
+        .seeders
+        .as_ref()
+        .unwrap_or(&default_number)
+        .as_u64()
+        .unwrap();
+      let seeder_b = b
+        .seeders
+        .as_ref()
+        .unwrap_or(&default_number)
+        .as_u64()
+        .unwrap();
+
+      seeder_a.cmp(&seeder_b)
+    };
+    let mut expected_releases_vec = release_vec();
+    expected_releases_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = releases_sorting_options()[6].clone();
+    let mut sorted_releases_vec = release_vec();
+    sorted_releases_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_releases_vec, expected_releases_vec);
+    assert_str_eq!(sort_option.name, "Peers");
+  }
+
+  #[test]
+  fn test_releases_sorting_options_language() {
+    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| {
+      let default_language_vec = vec![Language {
+        name: "_".to_owned(),
+      }];
+      let language_a = &a.languages.as_ref().unwrap_or(&default_language_vec)[0];
+      let language_b = &b.languages.as_ref().unwrap_or(&default_language_vec)[0];
+
+      language_a.cmp(language_b)
+    };
+    let mut expected_releases_vec = release_vec();
+    expected_releases_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = releases_sorting_options()[7].clone();
+    let mut sorted_releases_vec = release_vec();
+    sorted_releases_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_releases_vec, expected_releases_vec);
+    assert_str_eq!(sort_option.name, "Language");
+  }
+
+  #[test]
+  fn test_releases_sorting_options_quality() {
+    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| a.quality.cmp(&b.quality);
+    let mut expected_releases_vec = release_vec();
+    expected_releases_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = releases_sorting_options()[8].clone();
+    let mut sorted_releases_vec = release_vec();
+    sorted_releases_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_releases_vec, expected_releases_vec);
+    assert_str_eq!(sort_option.name, "Quality");
   }
 
   fn release_vec() -> Vec<Release> {
@@ -1164,6 +1270,13 @@ mod tests {
     };
 
     vec![release_a, release_b, release_c]
+  }
+
+  fn sort_options() -> Vec<SortOption<Release>> {
+    vec![SortOption {
+      name: "Test 1",
+      cmp_fn: Some(|a, b| a.age.cmp(&b.age)),
+    }]
   }
 
   #[test]

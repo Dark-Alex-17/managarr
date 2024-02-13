@@ -20,7 +20,8 @@ use crate::models::servarr_data::radarr::modals::{
   MovieDetailsModal,
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText, StatefulTable};
+use crate::models::stateful_table::StatefulTable;
+use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
 use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
 use crate::utils::{convert_runtime, convert_to_gb};
 

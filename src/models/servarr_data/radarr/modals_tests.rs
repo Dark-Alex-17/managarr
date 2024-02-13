@@ -8,7 +8,7 @@ mod test {
   };
   use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
   use crate::models::servarr_data::radarr::radarr_data::RadarrData;
-  use crate::models::StatefulTable;
+  use crate::models::stateful_table::StatefulTable;
   use bimap::BiMap;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;

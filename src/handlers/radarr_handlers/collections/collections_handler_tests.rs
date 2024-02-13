@@ -607,7 +607,7 @@ mod tests {
     use ratatui::widgets::TableState;
 
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
-    use crate::models::StatefulTable;
+    use crate::models::stateful_table::StatefulTable;
 
     use super::*;
 
@@ -733,7 +733,7 @@ mod tests {
       RadarrData, EDIT_COLLECTION_SELECTION_BLOCKS,
     };
 
-    use crate::models::StatefulTable;
+    use crate::models::stateful_table::StatefulTable;
     use crate::{assert_refresh_key, test_edit_collection_key};
 
     use super::*;

@@ -21,9 +21,8 @@ use crate::ui::widgets::error_message::ErrorMessage;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::Popup;
-use crate::ui::{
-  draw_drop_down_popup, draw_large_popup_over, draw_medium_popup_over, draw_selectable_list, DrawUi,
-};
+use crate::ui::widgets::selectable_list::SelectableList;
+use crate::ui::{draw_large_popup_over, draw_medium_popup_over, DrawUi};
 use crate::utils::convert_runtime;
 use crate::{render_selectable_input_box, App};
 
@@ -266,40 +265,20 @@ fn draw_confirmation_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSelectMonitor => {
-        draw_drop_down_popup(
-          f,
-          app,
-          area,
-          draw_confirmation_prompt,
-          draw_add_movie_select_monitor_popup,
-        );
+        draw_confirmation_prompt(f, app, area);
+        draw_add_movie_select_monitor_popup(f, app);
       }
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability => {
-        draw_drop_down_popup(
-          f,
-          app,
-          area,
-          draw_confirmation_prompt,
-          draw_add_movie_select_minimum_availability_popup,
-        );
+        draw_confirmation_prompt(f, app, area);
+        draw_add_movie_select_minimum_availability_popup(f, app);
       }
       ActiveRadarrBlock::AddMovieSelectQualityProfile => {
-        draw_drop_down_popup(
-          f,
-          app,
-          area,
-          draw_confirmation_prompt,
-          draw_add_movie_select_quality_profile_popup,
-        );
+        draw_confirmation_prompt(f, app, area);
+        draw_add_movie_select_quality_profile_popup(f, app);
       }
       ActiveRadarrBlock::AddMovieSelectRootFolder => {
-        draw_drop_down_popup(
-          f,
-          app,
-          area,
-          draw_confirmation_prompt,
-          draw_add_movie_select_root_folder_popup,
-        );
+        draw_confirmation_prompt(f, app, area);
+        draw_add_movie_select_root_folder_popup(f, app);
       }
       ActiveRadarrBlock::AddMoviePrompt | ActiveRadarrBlock::AddMovieTagsInput => {
         draw_confirmation_prompt(f, app, area)
@@ -437,10 +416,8 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   f.render_widget(cancel_button, cancel_area);
 }
 
-fn draw_add_movie_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_selectable_list(
-    f,
-    area,
+fn draw_add_movie_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
+  let monitor_list = SelectableList::new(
     &mut app
       .data
       .radarr_data
@@ -450,16 +427,13 @@ fn draw_add_movie_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>, are
       .monitor_list,
     |monitor| ListItem::new(monitor.to_display_str().to_owned()),
   );
+  let popup = Popup::new(monitor_list, 20, 30);
+
+  f.render_widget(popup, f.size());
 }
 
-fn draw_add_movie_select_minimum_availability_popup(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  area: Rect,
-) {
-  draw_selectable_list(
-    f,
-    area,
+fn draw_add_movie_select_minimum_availability_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
+  let minimum_availability_list = SelectableList::new(
     &mut app
       .data
       .radarr_data
@@ -469,12 +443,13 @@ fn draw_add_movie_select_minimum_availability_popup(
       .minimum_availability_list,
     |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
   );
+  let popup = Popup::new(minimum_availability_list, 20, 30);
+
+  f.render_widget(popup, f.size());
 }
 
-fn draw_add_movie_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_selectable_list(
-    f,
-    area,
+fn draw_add_movie_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
+  let quality_profile_list = SelectableList::new(
     &mut app
       .data
       .radarr_data
@@ -484,12 +459,13 @@ fn draw_add_movie_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App<
       .quality_profile_list,
     |quality_profile| ListItem::new(quality_profile.clone()),
   );
+  let popup = Popup::new(quality_profile_list, 20, 30);
+
+  f.render_widget(popup, f.size());
 }
 
-fn draw_add_movie_select_root_folder_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_selectable_list(
-    f,
-    area,
+fn draw_add_movie_select_root_folder_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
+  let root_folder_list = SelectableList::new(
     &mut app
       .data
       .radarr_data
@@ -499,4 +475,7 @@ fn draw_add_movie_select_root_folder_popup(f: &mut Frame<'_>, app: &mut App<'_>,
       .root_folder_list,
     |root_folder| ListItem::new(root_folder.path.to_owned()),
   );
+  let popup = Popup::new(root_folder_list, 20, 30);
+
+  f.render_widget(popup, f.size());
 }

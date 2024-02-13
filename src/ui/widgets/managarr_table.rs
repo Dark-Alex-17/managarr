@@ -1,19 +1,23 @@
-use crate::models::StatefulTable;
+use crate::models::stateful_table::StatefulTable;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::layout_block_top_border;
 use crate::ui::widgets::loading_block::LoadingBlock;
+use crate::ui::widgets::popup::Popup;
+use crate::ui::widgets::selectable_list::SelectableList;
 use crate::ui::HIGHLIGHT_SYMBOL;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::prelude::{Style, Stylize, Text};
-use ratatui::widgets::{Block, Paragraph, Row, StatefulWidget, Table, Widget};
+use ratatui::widgets::{Block, ListItem, Paragraph, Row, StatefulWidget, Table, Widget};
+use std::fmt::Debug;
 
 pub struct ManagarrTable<'a, T, F>
 where
   F: Fn(&T) -> Row<'a>,
+  T: Clone + PartialEq + Eq + Debug,
 {
   content: Option<&'a mut StatefulTable<T>>,
-  table_headers: Vec<Text<'a>>,
+  table_headers: Vec<String>,
   constraints: Vec<Constraint>,
   row_mapper: F,
   footer: Option<String>,
@@ -22,11 +26,13 @@ where
   margin: u16,
   is_loading: bool,
   highlight_rows: bool,
+  is_sorting: bool,
 }
 
 impl<'a, T, F> ManagarrTable<'a, T, F>
 where
   F: Fn(&T) -> Row<'a>,
+  T: Clone + PartialEq + Eq + Debug,
 {
   pub fn new(content: Option<&'a mut StatefulTable<T>>, row_mapper: F) -> Self {
     Self {
@@ -40,13 +46,14 @@ where
       margin: 0,
       is_loading: false,
       highlight_rows: true,
+      is_sorting: false,
     }
   }
 
   pub fn headers<I>(mut self, headers: I) -> Self
   where
     I: IntoIterator,
-    I::Item: Into<Text<'a>>,
+    I::Item: Into<String>,
   {
     self.table_headers = headers.into_iter().map(Into::into).collect();
     self
@@ -91,7 +98,13 @@ where
     self
   }
 
+  pub fn sorting(mut self, is_sorting: bool) -> Self {
+    self.is_sorting = is_sorting;
+    self
+  }
+
   fn render_table(self, area: Rect, buf: &mut Buffer) {
+    let table_headers = self.parse_headers();
     let table_area = if let Some(ref footer) = self.footer {
       let [content_area, footer_area] =
         Layout::vertical([Constraint::Fill(0), Constraint::Length(2)])
@@ -121,10 +134,7 @@ where
       if !table_contents.is_empty() {
         let rows = table_contents.iter().map(&self.row_mapper);
 
-        let headers = Row::new(self.table_headers)
-          .default()
-          .bold()
-          .bottom_margin(0);
+        let headers = Row::new(table_headers).default().bold().bottom_margin(0);
 
         let mut table = Table::new(rows, &self.constraints)
           .header(headers)
@@ -137,6 +147,13 @@ where
         }
 
         StatefulWidget::render(table, table_area, buf, table_state);
+
+        if content.sort.is_some() && self.is_sorting {
+          let selectable_list = SelectableList::new(content.sort.as_mut().unwrap(), |item| {
+            ListItem::new(Text::from(item.name))
+          });
+          Popup::new(selectable_list, 20, 50).render(table_area, buf);
+        }
       } else {
         loading_block.render(table_area, buf);
       }
@@ -144,11 +161,34 @@ where
       loading_block.render(table_area, buf);
     }
   }
+
+  fn parse_headers(&self) -> Vec<Text<'a>> {
+    if let Some(ref content) = self.content {
+      if let Some(ref sort_list) = content.sort {
+        if !self.is_sorting {
+          let mut new_headers = self.table_headers.clone();
+          let idx = sort_list.state.selected().unwrap_or(0);
+          let direction = if content.sort_asc { " ▲" } else { " ▼" };
+          new_headers[idx].push_str(direction);
+
+          return new_headers.into_iter().map(Text::from).collect();
+        }
+      }
+    }
+
+    self
+      .table_headers
+      .clone()
+      .into_iter()
+      .map(Text::from)
+      .collect()
+  }
 }
 
 impl<'a, T, F> Widget for ManagarrTable<'a, T, F>
 where
   F: Fn(&T) -> Row<'a>,
+  T: Clone + PartialEq + Eq + Debug,
 {
   fn render(self, area: Rect, buf: &mut Buffer) {
     self.render_table(area, buf);

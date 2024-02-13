@@ -1,10 +1,13 @@
+use strum::IntoEnumIterator;
+
 use crate::models::radarr_models::{
   Collection, Credit, Indexer, MinimumAvailability, Monitor, Movie, MovieHistoryItem, Release,
-  ReleaseField, RootFolder,
+  RootFolder,
 };
 use crate::models::servarr_data::radarr::radarr_data::RadarrData;
-use crate::models::{HorizontallyScrollableText, ScrollableText, StatefulList, StatefulTable};
-use strum::IntoEnumIterator;
+use crate::models::stateful_list::StatefulList;
+use crate::models::stateful_table::StatefulTable;
+use crate::models::{HorizontallyScrollableText, ScrollableText};
 
 #[cfg(test)]
 #[path = "modals_tests.rs"]
@@ -20,8 +23,6 @@ pub struct MovieDetailsModal {
   pub movie_cast: StatefulTable<Credit>,
   pub movie_crew: StatefulTable<Credit>,
   pub movie_releases: StatefulTable<Release>,
-  pub movie_releases_sort: StatefulList<ReleaseField>,
-  pub sort_ascending: Option<bool>,
 }
 
 #[derive(Default, Debug, PartialEq, Eq)]
