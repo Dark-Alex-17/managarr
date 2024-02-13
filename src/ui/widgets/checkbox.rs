@@ -6,6 +6,10 @@ use ratatui::prelude::Text;
 use ratatui::style::Stylize;
 use ratatui::widgets::{Paragraph, Widget};
 
+#[cfg(test)]
+#[path = "checkbox_tests.rs"]
+mod checkbox_tests;
+
 pub struct Checkbox<'a> {
   label: &'a str,
   is_checked: bool,

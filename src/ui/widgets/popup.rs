@@ -3,6 +3,10 @@ use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::widgets::{Clear, Widget};
 
+#[cfg(test)]
+#[path = "popup_tests.rs"]
+mod popup_tests;
+
 pub struct Popup<T: Widget> {
   widget: T,
   percent_x: u16,

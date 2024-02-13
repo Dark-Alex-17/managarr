@@ -5,6 +5,10 @@ use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
 use ratatui::prelude::{Style, Styled, Text, Widget};
 use ratatui::widgets::Paragraph;
 
+#[cfg(test)]
+#[path = "button_tests.rs"]
+mod button_tests;
+
 #[derive(Default)]
 pub struct Button<'a> {
   title: &'a str,

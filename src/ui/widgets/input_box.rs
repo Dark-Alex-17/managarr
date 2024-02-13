@@ -8,6 +8,10 @@ use ratatui::Frame;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, layout_block};
 
+#[cfg(test)]
+#[path = "input_box_tests.rs"]
+mod input_box_tests;
+
 pub struct InputBox<'a> {
   content: &'a str,
   offset: usize,

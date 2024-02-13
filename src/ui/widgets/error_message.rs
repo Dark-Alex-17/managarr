@@ -6,6 +6,10 @@ use ratatui::style::Stylize;
 use ratatui::text::Text;
 use ratatui::widgets::{Paragraph, Widget};
 
+#[cfg(test)]
+#[path = "error_message_tests.rs"]
+mod error_message_tests;
+
 pub struct ErrorMessage<'a> {
   text: Text<'a>,
 }

@@ -11,6 +11,10 @@ use ratatui::prelude::{Style, Stylize, Text};
 use ratatui::widgets::{Block, ListItem, Paragraph, Row, StatefulWidget, Table, Widget};
 use std::fmt::Debug;
 
+#[cfg(test)]
+#[path = "managarr_table_tests.rs"]
+mod managarr_table_tests;
+
 pub struct ManagarrTable<'a, T, F>
 where
   F: Fn(&T) -> Row<'a>,

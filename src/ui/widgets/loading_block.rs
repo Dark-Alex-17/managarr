@@ -4,6 +4,10 @@ use ratatui::layout::Rect;
 use ratatui::prelude::Text;
 use ratatui::widgets::{Block, Paragraph, Widget};
 
+#[cfg(test)]
+#[path = "loading_block_tests.rs"]
+mod loading_block_tests;
+
 pub struct LoadingBlock<'a> {
   is_loading: bool,
   block: Block<'a>,

@@ -7,6 +7,10 @@ use ratatui::prelude::Widget;
 use ratatui::style::Style;
 use ratatui::widgets::{List, ListItem, StatefulWidget};
 
+#[cfg(test)]
+#[path = "selectable_list_tests.rs"]
+mod selectable_list_tests;
+
 pub struct SelectableList<'a, T, F>
 where
   F: Fn(&T) -> ListItem<'a>,
@@ -32,7 +36,7 @@ where
     let selectable_list = List::new(items)
       .block(layout_block())
       .highlight_style(Style::new().highlight());
-    
+
     StatefulWidget::render(selectable_list, area, buf, &mut self.content.state);
   }
 }
