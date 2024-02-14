@@ -13,7 +13,8 @@ use crate::ui::radarr_ui::indexers::test_all_indexers_ui::TestAllIndexersUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::layout_block_top_border;
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::{draw_prompt_box, draw_prompt_popup_over, DrawUi};
+use crate::ui::widgets::popup::Size;
+use crate::ui::{draw_popup_over, draw_prompt_box, DrawUi};
 
 mod edit_indexer_ui;
 mod indexer_settings_ui;
@@ -41,9 +42,14 @@ impl DrawUi for IndexersUi {
     let route = *app.get_current_route();
     let mut indexers_matchers = |active_radarr_block| match active_radarr_block {
       ActiveRadarrBlock::Indexers => draw_indexers(f, app, area),
-      ActiveRadarrBlock::DeleteIndexerPrompt => {
-        draw_prompt_popup_over(f, app, area, draw_indexers, draw_delete_indexer_prompt)
-      }
+      ActiveRadarrBlock::DeleteIndexerPrompt => draw_popup_over(
+        f,
+        app,
+        area,
+        draw_indexers,
+        draw_delete_indexer_prompt,
+        Size::Prompt,
+      ),
       _ => (),
     };
 

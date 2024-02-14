@@ -18,11 +18,9 @@ use crate::ui::utils::{layout_paragraph_borderless, title_block_centered};
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
-use crate::ui::widgets::popup::Popup;
+use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{
-  draw_large_popup_over_background_fn_with_ui, draw_medium_popup_over, draw_popup, DrawUi,
-};
+use crate::ui::{draw_popup, draw_popup_over, draw_popup_over_ui, DrawUi};
 
 #[cfg(test)]
 #[path = "edit_movie_ui_tests.rs"]
@@ -63,16 +61,18 @@ impl DrawUi for EditMovieUi {
       if let Some(context) = context_option {
         match context {
           ActiveRadarrBlock::Movies => {
-            draw_medium_popup_over(f, app, area, draw_library, draw_edit_movie_prompt);
-          }
-          _ if MOVIE_DETAILS_BLOCKS.contains(&context) => {
-            draw_large_popup_over_background_fn_with_ui::<MovieDetailsUi>(
+            draw_popup_over(
               f,
               app,
               area,
               draw_library,
+              draw_edit_movie_prompt,
+              Size::Medium,
             );
-            draw_popup(f, app, draw_edit_movie_prompt, 60, 60);
+          }
+          _ if MOVIE_DETAILS_BLOCKS.contains(&context) => {
+            draw_popup_over_ui::<MovieDetailsUi>(f, app, area, draw_library, Size::Large);
+            draw_popup(f, app, draw_edit_movie_prompt, Size::Medium);
           }
           _ => (),
         }
@@ -192,7 +192,7 @@ fn draw_edit_movie_select_minimum_availability_popup(f: &mut Frame<'_>, app: &mu
       .minimum_availability_list,
     |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
   );
-  let popup = Popup::new(minimum_availability_list, 20, 30);
+  let popup = Popup::new(minimum_availability_list).size(Size::Dropdown);
 
   f.render_widget(popup, f.size());
 }
@@ -208,7 +208,7 @@ fn draw_edit_movie_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App
       .quality_profile_list,
     |quality_profile| ListItem::new(quality_profile.clone()),
   );
-  let popup = Popup::new(quality_profile_list, 20, 30);
+  let popup = Popup::new(quality_profile_list).size(Size::Dropdown);
 
   f.render_widget(popup, f.size());
 }

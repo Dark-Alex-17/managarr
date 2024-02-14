@@ -20,9 +20,9 @@ use crate::ui::widgets::button::Button;
 use crate::ui::widgets::error_message::ErrorMessage;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::widgets::popup::Popup;
+use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_large_popup_over, draw_medium_popup_over, DrawUi};
+use crate::ui::{draw_popup_over, DrawUi};
 use crate::utils::convert_runtime;
 use crate::{render_selectable_input_box, App};
 
@@ -57,25 +57,30 @@ impl DrawUi for AddMovieUi {
           | ActiveRadarrBlock::AddMovieSelectRootFolder
           | ActiveRadarrBlock::AddMovieTagsInput => {
             if context_option.is_some() {
-              draw_medium_popup_over(
+              draw_popup_over(
                 f,
                 app,
                 area,
                 draw_collection_details,
                 draw_confirmation_popup,
+                Size::Medium,
               );
             } else {
-              draw_medium_popup_over(f, app, area, draw_add_movie_search, draw_confirmation_popup);
+              draw_popup_over(
+                f,
+                app,
+                area,
+                draw_add_movie_search,
+                draw_confirmation_popup,
+                Size::Medium,
+              );
             }
           }
           ActiveRadarrBlock::AddMovieAlreadyInLibrary => {
             draw_add_movie_search(f, app, area);
             f.render_widget(
-              Popup::new(
-                ErrorMessage::new("This film is already in your library"),
-                25,
-                8,
-              ),
+              Popup::new(ErrorMessage::new("This film is already in your library"))
+                .size(Size::Error),
               f.size(),
             );
           }
@@ -85,9 +90,23 @@ impl DrawUi for AddMovieUi {
       match active_radarr_block {
         _ if ADD_MOVIE_BLOCKS.contains(&active_radarr_block) => {
           if context_option.is_some() {
-            draw_large_popup_over(f, app, area, draw_collections, draw_add_movie_search_popup)
+            draw_popup_over(
+              f,
+              app,
+              area,
+              draw_collections,
+              draw_add_movie_search_popup,
+              Size::Large,
+            )
           } else {
-            draw_large_popup_over(f, app, area, draw_library, draw_add_movie_search_popup)
+            draw_popup_over(
+              f,
+              app,
+              area,
+              draw_library,
+              draw_add_movie_search_popup,
+              Size::Large,
+            )
           }
         }
         _ => (),
@@ -202,7 +221,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .block(borderless_block())
           .alignment(Alignment::Center);
         let error_message = ErrorMessage::new("No movies found matching your query!");
-        let error_message_popup = Popup::new(error_message, 25, 8);
+        let error_message_popup = Popup::new(error_message).size(Size::Error);
 
         f.render_widget(layout_block(), results_area);
         f.render_widget(error_message_popup, f.size());
@@ -427,7 +446,7 @@ fn draw_add_movie_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
       .monitor_list,
     |monitor| ListItem::new(monitor.to_display_str().to_owned()),
   );
-  let popup = Popup::new(monitor_list, 20, 30);
+  let popup = Popup::new(monitor_list).size(Size::Dropdown);
 
   f.render_widget(popup, f.size());
 }
@@ -443,7 +462,7 @@ fn draw_add_movie_select_minimum_availability_popup(f: &mut Frame<'_>, app: &mut
       .minimum_availability_list,
     |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
   );
-  let popup = Popup::new(minimum_availability_list, 20, 30);
+  let popup = Popup::new(minimum_availability_list).size(Size::Dropdown);
 
   f.render_widget(popup, f.size());
 }
@@ -459,7 +478,7 @@ fn draw_add_movie_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App<
       .quality_profile_list,
     |quality_profile| ListItem::new(quality_profile.clone()),
   );
-  let popup = Popup::new(quality_profile_list, 20, 30);
+  let popup = Popup::new(quality_profile_list).size(Size::Dropdown);
 
   f.render_widget(popup, f.size());
 }
@@ -475,7 +494,7 @@ fn draw_add_movie_select_root_folder_popup(f: &mut Frame<'_>, app: &mut App<'_>)
       .root_folder_list,
     |root_folder| ListItem::new(root_folder.path.to_owned()),
   );
-  let popup = Popup::new(root_folder_list, 20, 30);
+  let popup = Popup::new(root_folder_list).size(Size::Dropdown);
 
   f.render_widget(popup, f.size());
 }

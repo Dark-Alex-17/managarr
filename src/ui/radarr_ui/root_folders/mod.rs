@@ -9,9 +9,8 @@ use crate::models::Route;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::layout_block_top_border;
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::{
-  draw_input_box_popup, draw_popup_over, draw_prompt_box, draw_prompt_popup_over, DrawUi,
-};
+use crate::ui::widgets::popup::Size;
+use crate::ui::{draw_input_box_popup, draw_popup_over, draw_prompt_box, DrawUi};
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -39,15 +38,15 @@ impl DrawUi for RootFoldersUi {
           area,
           draw_root_folders,
           draw_add_root_folder_prompt_box,
-          30,
-          13,
+          Size::InputBox,
         ),
-        ActiveRadarrBlock::DeleteRootFolderPrompt => draw_prompt_popup_over(
+        ActiveRadarrBlock::DeleteRootFolderPrompt => draw_popup_over(
           f,
           app,
           area,
           draw_root_folders,
           draw_delete_root_folder_prompt,
+          Size::Prompt,
         ),
         _ => (),
       }

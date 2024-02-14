@@ -7,7 +7,8 @@ use crate::ui::radarr_ui::indexers::draw_indexers;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, get_width_from_percentage, title_block};
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::{draw_large_popup_over, DrawUi};
+use crate::ui::widgets::popup::Size;
+use crate::ui::{draw_popup_over, DrawUi};
 use ratatui::layout::{Alignment, Constraint, Rect};
 use ratatui::widgets::{Cell, Row};
 use ratatui::Frame;
@@ -28,12 +29,13 @@ impl DrawUi for TestAllIndexersUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    draw_large_popup_over(
+    draw_popup_over(
       f,
       app,
       area,
       draw_indexers,
       draw_test_all_indexers_test_results,
+      Size::Large,
     );
   }
 }

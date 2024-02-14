@@ -14,6 +14,7 @@ use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::loading_block::LoadingBlock;
+use crate::ui::widgets::popup::Size;
 use crate::ui::{draw_popup_over, DrawUi};
 
 #[cfg(test)]
@@ -38,8 +39,7 @@ impl DrawUi for IndexerSettingsUi {
       area,
       draw_indexers,
       draw_edit_indexer_settings_prompt,
-      70,
-      45,
+      Size::LargePrompt,
     );
   }
 }

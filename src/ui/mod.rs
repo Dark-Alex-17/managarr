@@ -20,6 +20,7 @@ use crate::ui::utils::{
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
+use crate::ui::widgets::popup::Size;
 
 mod radarr_ui;
 mod styles;
@@ -112,21 +113,17 @@ pub fn draw_popup(
   f: &mut Frame<'_>,
   app: &mut App<'_>,
   popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  percent_x: u16,
-  percent_y: u16,
+  size: Size,
 ) {
+  let (percent_x, percent_y) = size.to_percent();
   let popup_area = centered_rect(percent_x, percent_y, f.size());
   f.render_widget(Clear, popup_area);
   f.render_widget(background_block(), popup_area);
   popup_fn(f, app, popup_area);
 }
 
-pub fn draw_popup_ui<T: DrawUi>(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  percent_x: u16,
-  percent_y: u16,
-) {
+fn draw_popup_ui<T: DrawUi>(f: &mut Frame<'_>, app: &mut App<'_>, size: Size) {
+  let (percent_x, percent_y) = size.to_percent();
   let popup_area = centered_rect(percent_x, percent_y, f.size());
   f.render_widget(Clear, popup_area);
   f.render_widget(background_block(), popup_area);
@@ -139,12 +136,11 @@ pub fn draw_popup_over(
   area: Rect,
   background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
   popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  percent_x: u16,
-  percent_y: u16,
+  size: Size,
 ) {
   background_fn(f, app, area);
 
-  draw_popup(f, app, popup_fn, percent_x, percent_y);
+  draw_popup(f, app, popup_fn, size);
 }
 
 pub fn draw_popup_over_ui<T: DrawUi>(
@@ -152,61 +148,11 @@ pub fn draw_popup_over_ui<T: DrawUi>(
   app: &mut App<'_>,
   area: Rect,
   background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  percent_x: u16,
-  percent_y: u16,
+  size: Size,
 ) {
   background_fn(f, app, area);
 
-  draw_popup_ui::<T>(f, app, percent_x, percent_y);
-}
-
-pub fn draw_prompt_popup_over(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  area: Rect,
-  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-) {
-  draw_popup_over(f, app, area, background_fn, popup_fn, 35, 35);
-}
-
-pub fn draw_small_popup_over(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  area: Rect,
-  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-) {
-  draw_popup_over(f, app, area, background_fn, popup_fn, 40, 40);
-}
-
-pub fn draw_medium_popup_over(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  area: Rect,
-  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-) {
-  draw_popup_over(f, app, area, background_fn, popup_fn, 60, 60);
-}
-
-pub fn draw_large_popup_over(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  area: Rect,
-  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-) {
-  draw_popup_over(f, app, area, background_fn, popup_fn, 75, 75);
-}
-
-pub fn draw_large_popup_over_background_fn_with_ui<T: DrawUi>(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  area: Rect,
-  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-) {
-  draw_popup_over_ui::<T>(f, app, area, background_fn, 75, 75);
+  draw_popup_ui::<T>(f, app, size);
 }
 
 fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -> Rect {

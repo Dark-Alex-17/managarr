@@ -14,9 +14,8 @@ use crate::ui::radarr_ui::library::movie_details_ui::MovieDetailsUi;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::error_message::ErrorMessage;
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::{
-  draw_input_box_popup, draw_popup_over, draw_prompt_box, draw_prompt_popup_over, DrawUi,
-};
+use crate::ui::widgets::popup::{Popup, Size};
+use crate::ui::{draw_input_box_popup, draw_popup_over, draw_prompt_box, DrawUi};
 use crate::utils::{convert_runtime, convert_to_gb};
 
 mod add_movie_ui;
@@ -48,33 +47,43 @@ impl DrawUi for LibraryUi {
     let mut library_ui_matchers = |active_radarr_block: ActiveRadarrBlock| match active_radarr_block
     {
       ActiveRadarrBlock::Movies => draw_library(f, app, area),
-      ActiveRadarrBlock::SearchMovie => {
-        draw_popup_over(f, app, area, draw_library, draw_movie_search_box, 30, 13)
-      }
-      ActiveRadarrBlock::SearchMovieError => draw_popup_over(
+      ActiveRadarrBlock::SearchMovie => draw_popup_over(
         f,
         app,
         area,
         draw_library,
-        draw_search_movie_error_box,
-        30,
-        8,
+        draw_movie_search_box,
+        Size::InputBox,
       ),
-      ActiveRadarrBlock::FilterMovies => {
-        draw_popup_over(f, app, area, draw_library, draw_filter_movies_box, 30, 13)
+      ActiveRadarrBlock::SearchMovieError => {
+        draw_library(f, app, area);
+        let popup = Popup::new(ErrorMessage::new("Movie not found!")).size(Size::Error);
+        f.render_widget(popup, f.size());
       }
-      ActiveRadarrBlock::FilterMoviesError => draw_popup_over(
+      ActiveRadarrBlock::FilterMovies => draw_popup_over(
         f,
         app,
         area,
         draw_library,
-        draw_filter_movies_error_box,
-        30,
-        8,
+        draw_filter_movies_box,
+        Size::InputBox,
       ),
-      ActiveRadarrBlock::UpdateAllMoviesPrompt => {
-        draw_prompt_popup_over(f, app, area, draw_library, draw_update_all_movies_prompt)
+      ActiveRadarrBlock::FilterMoviesError => {
+        draw_library(f, app, area);
+        let popup = Popup::new(ErrorMessage::new(
+          "No movies found matching the given filter!",
+        ))
+        .size(Size::Error);
+        f.render_widget(popup, f.size());
       }
+      ActiveRadarrBlock::UpdateAllMoviesPrompt => draw_popup_over(
+        f,
+        app,
+        area,
+        draw_library,
+        draw_update_all_movies_prompt,
+        Size::Prompt,
+      ),
       _ => (),
     };
 
@@ -208,15 +217,4 @@ fn draw_filter_movies_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     "Filter",
     app.data.radarr_data.movies.filter.as_ref().unwrap(),
   )
-}
-
-fn draw_search_movie_error_box(f: &mut Frame<'_>, _: &mut App<'_>, area: Rect) {
-  f.render_widget(ErrorMessage::new("Movie not found!"), area);
-}
-
-fn draw_filter_movies_error_box(f: &mut Frame<'_>, _: &mut App<'_>, area: Rect) {
-  f.render_widget(
-    ErrorMessage::new("No movies found matching the given filter!"),
-    area,
-  );
 }

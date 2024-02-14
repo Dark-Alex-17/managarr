@@ -9,6 +9,7 @@ use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::loading_block::LoadingBlock;
+use crate::ui::widgets::popup::Size;
 use crate::ui::{draw_popup_over, DrawUi};
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::Frame;
@@ -35,8 +36,7 @@ impl DrawUi for EditIndexerUi {
       area,
       draw_indexers,
       draw_edit_indexer_prompt,
-      70,
-      45,
+      Size::LargePrompt,
     );
   }
 }

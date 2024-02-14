@@ -18,11 +18,9 @@ use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, title_block};
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::widgets::popup::Popup;
+use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{
-  draw_large_popup_over, draw_medium_popup_over, draw_prompt_box, draw_prompt_popup_over, DrawUi,
-};
+use crate::ui::{draw_popup_over, draw_prompt_box, DrawUi};
 
 #[cfg(test)]
 #[path = "system_details_ui_tests.rs"]
@@ -47,11 +45,23 @@ impl DrawUi for SystemDetailsUi {
           draw_logs_popup(f, app);
         }
         ActiveRadarrBlock::SystemTasks | ActiveRadarrBlock::SystemTaskStartConfirmPrompt => {
-          draw_large_popup_over(f, app, area, draw_system_ui_layout, draw_tasks_popup)
+          draw_popup_over(
+            f,
+            app,
+            area,
+            draw_system_ui_layout,
+            draw_tasks_popup,
+            Size::Large,
+          )
         }
-        ActiveRadarrBlock::SystemQueuedEvents => {
-          draw_medium_popup_over(f, app, area, draw_system_ui_layout, draw_queued_events)
-        }
+        ActiveRadarrBlock::SystemQueuedEvents => draw_popup_over(
+          f,
+          app,
+          area,
+          draw_system_ui_layout,
+          draw_queued_events,
+          Size::Medium,
+        ),
         ActiveRadarrBlock::SystemUpdates => {
           draw_system_ui_layout(f, app, area);
           draw_updates_popup(f, app);
@@ -71,7 +81,8 @@ fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
 
   if app.data.radarr_data.log_details.items.is_empty() {
     let loading = LoadingBlock::new(app.is_loading, borderless_block());
-    let popup = Popup::new(loading, 75, 75)
+    let popup = Popup::new(loading)
+      .size(Size::Large)
       .block(block)
       .footer(&help_footer);
 
@@ -86,7 +97,8 @@ fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
     style_log_list_item(ListItem::new(Text::from(Span::raw(log_line))), level)
   })
   .block(borderless_block());
-  let popup = Popup::new(logs_list, 75, 75)
+  let popup = Popup::new(logs_list)
+    .size(Size::Large)
     .block(block)
     .footer(&help_footer);
 
@@ -125,7 +137,14 @@ fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     app.get_current_route(),
     Route::Radarr(ActiveRadarrBlock::SystemTaskStartConfirmPrompt, _)
   ) {
-    draw_prompt_popup_over(f, app, area, tasks_popup_table, draw_start_task_prompt)
+    draw_popup_over(
+      f,
+      app,
+      area,
+      tasks_popup_table,
+      draw_start_task_prompt,
+      Size::Prompt,
+    )
   } else {
     tasks_popup_table(f, app, area);
   }
@@ -157,14 +176,16 @@ fn draw_updates_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
     let updates_paragraph = Paragraph::new(Text::from(updates))
       .block(borderless_block())
       .scroll((app.data.radarr_data.updates.offset, 0));
-    let popup = Popup::new(updates_paragraph, 75, 75)
+    let popup = Popup::new(updates_paragraph)
+      .size(Size::Large)
       .block(block)
       .footer(&help_footer);
 
     f.render_widget(popup, f.size());
   } else {
     let loading = LoadingBlock::new(app.is_loading, borderless_block());
-    let popup = Popup::new(loading, 75, 75)
+    let popup = Popup::new(loading)
+      .size(Size::Large)
       .block(block)
       .footer(&help_footer);
 

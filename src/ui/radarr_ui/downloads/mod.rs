@@ -9,7 +9,8 @@ use crate::models::{HorizontallyScrollableText, Route};
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::{draw_prompt_box, draw_prompt_popup_over, DrawUi};
+use crate::ui::widgets::popup::Size;
+use crate::ui::{draw_popup_over, draw_prompt_box, DrawUi};
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -31,12 +32,22 @@ impl DrawUi for DownloadsUi {
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
       match active_radarr_block {
         ActiveRadarrBlock::Downloads => draw_downloads(f, app, area),
-        ActiveRadarrBlock::DeleteDownloadPrompt => {
-          draw_prompt_popup_over(f, app, area, draw_downloads, draw_delete_download_prompt)
-        }
-        ActiveRadarrBlock::UpdateDownloadsPrompt => {
-          draw_prompt_popup_over(f, app, area, draw_downloads, draw_update_downloads_prompt)
-        }
+        ActiveRadarrBlock::DeleteDownloadPrompt => draw_popup_over(
+          f,
+          app,
+          area,
+          draw_downloads,
+          draw_delete_download_prompt,
+          Size::Prompt,
+        ),
+        ActiveRadarrBlock::UpdateDownloadsPrompt => draw_popup_over(
+          f,
+          app,
+          area,
+          draw_downloads,
+          draw_update_downloads_prompt,
+          Size::Prompt,
+        ),
         _ => (),
       }
     }

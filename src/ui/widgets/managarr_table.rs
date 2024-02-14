@@ -156,7 +156,9 @@ where
           let selectable_list = SelectableList::new(content.sort.as_mut().unwrap(), |item| {
             ListItem::new(Text::from(item.name))
           });
-          Popup::new(selectable_list, 20, 50).render(table_area, buf);
+          Popup::new(selectable_list)
+            .dimensions(20, 50)
+            .render(table_area, buf);
         }
       } else {
         loading_block.render(table_area, buf);

@@ -19,7 +19,8 @@ use crate::ui::utils::{
   title_style,
 };
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::{draw_large_popup_over, draw_small_popup_over, DrawUi};
+use crate::ui::widgets::popup::Size;
+use crate::ui::{draw_popup_over, DrawUi};
 use crate::utils::convert_runtime;
 
 #[cfg(test)]
@@ -44,24 +45,26 @@ impl DrawUi for CollectionDetailsUi {
           .unwrap_or(active_radarr_block)
         {
           ActiveRadarrBlock::ViewMovieOverview => {
-            draw_small_popup_over(
+            draw_popup_over(
               f,
               app,
               popup_area,
               draw_collection_details,
               draw_movie_overview,
+              Size::Small,
             );
           }
           ActiveRadarrBlock::CollectionDetails => draw_collection_details(f, app, popup_area),
           _ => (),
         };
 
-      draw_large_popup_over(
+      draw_popup_over(
         f,
         app,
         area,
         draw_collections,
         draw_collection_details_popup,
+        Size::Large,
       );
     }
   }

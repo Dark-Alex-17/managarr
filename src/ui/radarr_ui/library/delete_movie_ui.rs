@@ -5,7 +5,8 @@ use crate::app::App;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::library::draw_library;
-use crate::ui::{draw_prompt_box_with_checkboxes, draw_prompt_popup_over, DrawUi};
+use crate::ui::widgets::popup::Size;
+use crate::ui::{draw_popup_over, draw_prompt_box_with_checkboxes, DrawUi};
 
 #[cfg(test)]
 #[path = "delete_movie_ui_tests.rs"]
@@ -55,7 +56,14 @@ impl DrawUi for DeleteMovieUi {
         )
       };
 
-      draw_prompt_popup_over(f, app, area, draw_library, draw_delete_movie_prompt);
+      draw_popup_over(
+        f,
+        app,
+        area,
+        draw_library,
+        draw_delete_movie_prompt,
+        Size::Prompt,
+      );
     }
   }
 }

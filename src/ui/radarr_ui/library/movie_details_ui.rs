@@ -17,9 +17,9 @@ use crate::ui::utils::{
 };
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::widgets::popup::Size;
 use crate::ui::{
-  draw_large_popup_over, draw_prompt_box, draw_prompt_box_with_content, draw_prompt_popup_over,
-  draw_small_popup_over, draw_tabs, DrawUi,
+  draw_popup_over, draw_prompt_box, draw_prompt_box_with_content, draw_tabs, DrawUi,
 };
 use crate::utils::convert_to_gb;
 
@@ -49,32 +49,42 @@ impl DrawUi for MovieDetailsUi {
         );
 
         match context_option.unwrap_or(active_radarr_block) {
-          ActiveRadarrBlock::AutomaticallySearchMoviePrompt => draw_prompt_popup_over(
+          ActiveRadarrBlock::AutomaticallySearchMoviePrompt => draw_popup_over(
             f,
             app,
             content_area,
             draw_movie_info,
             draw_search_movie_prompt,
+            Size::Prompt,
           ),
-          ActiveRadarrBlock::UpdateAndScanPrompt => draw_prompt_popup_over(
+          ActiveRadarrBlock::UpdateAndScanPrompt => draw_popup_over(
             f,
             app,
             content_area,
             draw_movie_info,
             draw_update_and_scan_prompt,
+            Size::Prompt,
           ),
-          ActiveRadarrBlock::ManualSearchConfirmPrompt => draw_small_popup_over(
+          ActiveRadarrBlock::ManualSearchConfirmPrompt => draw_popup_over(
             f,
             app,
             content_area,
             draw_movie_info,
             draw_manual_search_confirm_prompt,
+            Size::Small,
           ),
           _ => draw_movie_info(f, app, content_area),
         }
       };
 
-      draw_large_popup_over(f, app, area, draw_library, draw_movie_info_popup);
+      draw_popup_over(
+        f,
+        app,
+        area,
+        draw_library,
+        draw_movie_info_popup,
+        Size::Large,
+      );
     }
   }
 }

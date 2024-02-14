@@ -16,11 +16,9 @@ use crate::ui::utils::{layout_paragraph_borderless, title_block_centered};
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
-use crate::ui::widgets::popup::Popup;
+use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{
-  draw_large_popup_over_background_fn_with_ui, draw_medium_popup_over, draw_popup, DrawUi,
-};
+use crate::ui::{draw_popup, draw_popup_over, draw_popup_over_ui, DrawUi};
 
 #[cfg(test)]
 #[path = "edit_collection_ui_tests.rs"]
@@ -60,17 +58,17 @@ impl DrawUi for EditCollectionUi {
 
       if let Some(context) = context_option {
         match context {
-          ActiveRadarrBlock::Collections => {
-            draw_medium_popup_over(f, app, area, draw_collections, draw_edit_collection_prompt)
-          }
+          ActiveRadarrBlock::Collections => draw_popup_over(
+            f,
+            app,
+            area,
+            draw_collections,
+            draw_edit_collection_prompt,
+            Size::Medium,
+          ),
           _ if COLLECTION_DETAILS_BLOCKS.contains(&context) => {
-            draw_large_popup_over_background_fn_with_ui::<CollectionDetailsUi>(
-              f,
-              app,
-              area,
-              draw_collections,
-            );
-            draw_popup(f, app, draw_edit_collection_prompt, 60, 60);
+            draw_popup_over_ui::<CollectionDetailsUi>(f, app, area, draw_collections, Size::Large);
+            draw_popup(f, app, draw_edit_collection_prompt, Size::Medium);
           }
           _ => (),
         }
@@ -182,15 +180,12 @@ fn draw_edit_collection_select_minimum_availability_popup(f: &mut Frame<'_>, app
       .minimum_availability_list,
     |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
   );
-  let popup = Popup::new(min_availability_list, 20, 30);
+  let popup = Popup::new(min_availability_list).size(Size::Dropdown);
 
   f.render_widget(popup, f.size());
 }
 
-fn draw_edit_collection_select_quality_profile_popup(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-) {
+fn draw_edit_collection_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
   let quality_profile_list = SelectableList::new(
     &mut app
       .data
@@ -201,7 +196,7 @@ fn draw_edit_collection_select_quality_profile_popup(
       .quality_profile_list,
     |quality_profile| ListItem::new(quality_profile.clone()),
   );
-  let popup = Popup::new(quality_profile_list, 20, 30);
+  let popup = Popup::new(quality_profile_list).size(Size::Dropdown);
 
   f.render_widget(popup, f.size());
 }
