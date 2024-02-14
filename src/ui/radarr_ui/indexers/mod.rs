@@ -12,9 +12,10 @@ use crate::ui::radarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
 use crate::ui::radarr_ui::indexers::test_all_indexers_ui::TestAllIndexersUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::layout_block_top_border;
+use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::widgets::popup::Size;
-use crate::ui::{draw_popup_over, draw_prompt_box, DrawUi};
+use crate::ui::widgets::popup::{Popup, Size};
+use crate::ui::DrawUi;
 
 mod edit_indexer_ui;
 mod indexer_settings_ui;
@@ -42,14 +43,26 @@ impl DrawUi for IndexersUi {
     let route = *app.get_current_route();
     let mut indexers_matchers = |active_radarr_block| match active_radarr_block {
       ActiveRadarrBlock::Indexers => draw_indexers(f, app, area),
-      ActiveRadarrBlock::DeleteIndexerPrompt => draw_popup_over(
-        f,
-        app,
-        area,
-        draw_indexers,
-        draw_delete_indexer_prompt,
-        Size::Prompt,
-      ),
+      ActiveRadarrBlock::DeleteIndexerPrompt => {
+        let prompt = format!(
+          "Do you really want to delete this indexer: \n{}?",
+          app
+            .data
+            .radarr_data
+            .indexers
+            .current_selection()
+            .name
+            .clone()
+            .unwrap_or_default()
+        );
+        let confirmation_prompt = ConfirmationPrompt::new()
+          .title("Delete Indexer")
+          .prompt(&prompt)
+          .yes_no_value(app.data.radarr_data.prompt_confirm);
+
+        draw_indexers(f, app, area);
+        f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
+      }
       _ => (),
     };
 
@@ -141,25 +154,4 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   ]);
 
   f.render_widget(indexers_table, area);
-}
-
-fn draw_delete_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_prompt_box(
-    f,
-    area,
-    "Delete Indexer",
-    format!(
-      "Do you really want to delete this indexer: \n{}?",
-      app
-        .data
-        .radarr_data
-        .indexers
-        .current_selection()
-        .name
-        .clone()
-        .unwrap_or_default()
-    )
-    .as_str(),
-    app.data.radarr_data.prompt_confirm,
-  );
 }

@@ -12,10 +12,11 @@ use crate::ui::radarr_ui::library::delete_movie_ui::DeleteMovieUi;
 use crate::ui::radarr_ui::library::edit_movie_ui::EditMovieUi;
 use crate::ui::radarr_ui::library::movie_details_ui::MovieDetailsUi;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
+use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::error_message::ErrorMessage;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{draw_input_box_popup, draw_popup_over, draw_prompt_box, DrawUi};
+use crate::ui::{draw_input_box_popup, draw_popup_over, DrawUi};
 use crate::utils::{convert_runtime, convert_to_gb};
 
 mod add_movie_ui;
@@ -56,8 +57,9 @@ impl DrawUi for LibraryUi {
         Size::InputBox,
       ),
       ActiveRadarrBlock::SearchMovieError => {
-        draw_library(f, app, area);
         let popup = Popup::new(ErrorMessage::new("Movie not found!")).size(Size::Error);
+
+        draw_library(f, app, area);
         f.render_widget(popup, f.size());
       }
       ActiveRadarrBlock::FilterMovies => draw_popup_over(
@@ -69,21 +71,23 @@ impl DrawUi for LibraryUi {
         Size::InputBox,
       ),
       ActiveRadarrBlock::FilterMoviesError => {
-        draw_library(f, app, area);
         let popup = Popup::new(ErrorMessage::new(
           "No movies found matching the given filter!",
         ))
         .size(Size::Error);
+
+        draw_library(f, app, area);
         f.render_widget(popup, f.size());
       }
-      ActiveRadarrBlock::UpdateAllMoviesPrompt => draw_popup_over(
-        f,
-        app,
-        area,
-        draw_library,
-        draw_update_all_movies_prompt,
-        Size::Prompt,
-      ),
+      ActiveRadarrBlock::UpdateAllMoviesPrompt => {
+        let confirmation_prompt = ConfirmationPrompt::new()
+          .title("Update All Movies")
+          .prompt("Do you want to update info and scan your disks for all of your movies?")
+          .yes_no_value(app.data.radarr_data.prompt_confirm);
+
+        draw_library(f, app, area);
+        f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
+      }
       _ => (),
     };
 
@@ -192,16 +196,6 @@ pub(super) fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
     f.render_widget(library_table, area);
   }
-}
-
-fn draw_update_all_movies_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_prompt_box(
-    f,
-    area,
-    "Update All Movies",
-    "Do you want to update info and scan your disks for all of your movies?",
-    app.data.radarr_data.prompt_confirm,
-  );
 }
 
 fn draw_movie_search_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

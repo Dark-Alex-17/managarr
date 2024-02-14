@@ -10,6 +10,7 @@ use ratatui::widgets::{Paragraph, Widget};
 #[path = "checkbox_tests.rs"]
 mod checkbox_tests;
 
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub struct Checkbox<'a> {
   label: &'a str,
   is_checked: bool,

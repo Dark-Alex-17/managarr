@@ -12,10 +12,11 @@ use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsU
 use crate::ui::radarr_ui::collections::edit_collection_ui::EditCollectionUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
+use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::error_message::ErrorMessage;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{draw_input_box_popup, draw_popup_over, draw_prompt_box, DrawUi};
+use crate::ui::{draw_input_box_popup, draw_popup_over, DrawUi};
 
 mod collection_details_ui;
 #[cfg(test)]
@@ -49,8 +50,9 @@ impl DrawUi for CollectionsUi {
         Size::InputBox,
       ),
       ActiveRadarrBlock::SearchCollectionError => {
-        draw_collections(f, app, area);
         let popup = Popup::new(ErrorMessage::new("Collection not found!")).size(Size::Error);
+
+        draw_collections(f, app, area);
         f.render_widget(popup, f.size());
       }
       ActiveRadarrBlock::FilterCollections => draw_popup_over(
@@ -62,21 +64,23 @@ impl DrawUi for CollectionsUi {
         Size::InputBox,
       ),
       ActiveRadarrBlock::FilterCollectionsError => {
-        draw_collections(f, app, area);
         let popup = Popup::new(ErrorMessage::new(
           "No collections found matching the given filter!",
         ))
         .size(Size::Error);
+
+        draw_collections(f, app, area);
         f.render_widget(popup, f.size());
       }
-      ActiveRadarrBlock::UpdateAllCollectionsPrompt => draw_popup_over(
-        f,
-        app,
-        area,
-        draw_collections,
-        draw_update_all_collections_prompt,
-        Size::Prompt,
-      ),
+      ActiveRadarrBlock::UpdateAllCollectionsPrompt => {
+        let confirmation_prompt = ConfirmationPrompt::new()
+          .title("Update All Collections")
+          .prompt("Do you want to update all of your collections?")
+          .yes_no_value(app.data.radarr_data.prompt_confirm);
+
+        draw_collections(f, app, area);
+        f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
+      }
       _ => (),
     };
 
@@ -157,16 +161,6 @@ pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
     ]);
 
   f.render_widget(collections_table, area);
-}
-
-fn draw_update_all_collections_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_prompt_box(
-    f,
-    area,
-    "Update All Collections",
-    "Do you want to update all of your collections?",
-    app.data.radarr_data.prompt_confirm,
-  );
 }
 
 fn draw_collection_search_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

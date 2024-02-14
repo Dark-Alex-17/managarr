@@ -1,5 +1,3 @@
-use std::iter;
-
 use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Text};
@@ -14,11 +12,8 @@ use crate::models::{HorizontallyScrollableText, Route, TabState};
 use crate::ui::radarr_ui::RadarrUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
-  background_block, borderless_block, centered_rect, layout_paragraph_borderless, logo_block,
-  title_block, title_block_centered,
+  background_block, borderless_block, centered_rect, logo_block, title_block, title_block_centered,
 };
-use crate::ui::widgets::button::Button;
-use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::popup::Size;
 
@@ -179,111 +174,6 @@ fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -
   f.render_widget(help, help_area);
 
   content_area
-}
-
-pub fn draw_prompt_box(
-  f: &mut Frame<'_>,
-  area: Rect,
-  title: &str,
-  prompt: &str,
-  yes_no_value: bool,
-) {
-  draw_prompt_box_with_content(f, area, title, prompt, None, yes_no_value);
-}
-
-pub fn draw_prompt_box_with_content(
-  f: &mut Frame<'_>,
-  area: Rect,
-  title: &str,
-  prompt: &str,
-  content: Option<Paragraph<'_>>,
-  yes_no_value: bool,
-) {
-  f.render_widget(title_block_centered(title), area);
-
-  let [prompt_area, buttons_area] = if let Some(content_paragraph) = content {
-    let [prompt_area, content_area, _, buttons_area] = Layout::vertical([
-      Constraint::Length(4),
-      Constraint::Length(7),
-      Constraint::Fill(0),
-      Constraint::Length(3),
-    ])
-    .margin(1)
-    .areas(area);
-
-    f.render_widget(content_paragraph, content_area);
-
-    [prompt_area, buttons_area]
-  } else {
-    let [prompt_area, _, buttons_area] = Layout::vertical([
-      Constraint::Percentage(72),
-      Constraint::Fill(0),
-      Constraint::Length(3),
-    ])
-    .margin(1)
-    .areas(area);
-
-    [prompt_area, buttons_area]
-  };
-
-  let prompt_paragraph = layout_paragraph_borderless(prompt);
-  f.render_widget(prompt_paragraph, prompt_area);
-
-  let [yes_area, no_area] =
-    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
-      .areas(buttons_area);
-
-  let yes_button = Button::new().title("Yes").selected(yes_no_value);
-  let no_button = Button::new().title("No").selected(!yes_no_value);
-
-  f.render_widget(yes_button, yes_area);
-  f.render_widget(no_button, no_area);
-}
-
-pub fn draw_prompt_box_with_checkboxes(
-  f: &mut Frame<'_>,
-  area: Rect,
-  title: &str,
-  prompt: &str,
-  checkboxes: Vec<(&str, bool, bool)>,
-  highlight_yes_no: bool,
-  yes_no_value: bool,
-) {
-  let mut constraints = vec![
-    Constraint::Length(4),
-    Constraint::Fill(0),
-    Constraint::Length(3),
-  ];
-  constraints.splice(
-    1..1,
-    iter::repeat(Constraint::Length(3)).take(checkboxes.len()),
-  );
-  let chunks = Layout::vertical(constraints).margin(1).split(area);
-  let prompt_paragraph = layout_paragraph_borderless(prompt);
-
-  for i in 0..checkboxes.len() {
-    let (label, is_checked, is_highlighted) = checkboxes[i];
-    let checkbox = Checkbox::new(label)
-      .checked(is_checked)
-      .highlighted(is_highlighted);
-    f.render_widget(checkbox, chunks[i + 1]);
-  }
-
-  let [yes_area, no_area] =
-    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
-      .areas(chunks[checkboxes.len() + 2]);
-
-  let yes_button = Button::new()
-    .title("Yes")
-    .selected(yes_no_value && highlight_yes_no);
-  let no_button = Button::new()
-    .title("No")
-    .selected(!yes_no_value && highlight_yes_no);
-
-  f.render_widget(title_block_centered(title), area);
-  f.render_widget(prompt_paragraph, chunks[0]);
-  f.render_widget(yes_button, yes_area);
-  f.render_widget(no_button, no_area);
 }
 
 pub fn draw_input_box_popup(

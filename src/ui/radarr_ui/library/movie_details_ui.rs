@@ -15,12 +15,11 @@ use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_bottom_border, layout_block_top_border,
 };
+use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::widgets::popup::Size;
-use crate::ui::{
-  draw_popup_over, draw_prompt_box, draw_prompt_box_with_content, draw_tabs, DrawUi,
-};
+use crate::ui::widgets::popup::{Popup, Size};
+use crate::ui::{draw_popup_over, draw_tabs, DrawUi};
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -47,33 +46,38 @@ impl DrawUi for MovieDetailsUi {
           "Movie Info",
           &app.data.radarr_data.movie_info_tabs,
         );
+        draw_movie_info(f, app, content_area);
 
         match context_option.unwrap_or(active_radarr_block) {
-          ActiveRadarrBlock::AutomaticallySearchMoviePrompt => draw_popup_over(
-            f,
-            app,
-            content_area,
-            draw_movie_info,
-            draw_search_movie_prompt,
-            Size::Prompt,
-          ),
-          ActiveRadarrBlock::UpdateAndScanPrompt => draw_popup_over(
-            f,
-            app,
-            content_area,
-            draw_movie_info,
-            draw_update_and_scan_prompt,
-            Size::Prompt,
-          ),
-          ActiveRadarrBlock::ManualSearchConfirmPrompt => draw_popup_over(
-            f,
-            app,
-            content_area,
-            draw_movie_info,
-            draw_manual_search_confirm_prompt,
-            Size::Small,
-          ),
-          _ => draw_movie_info(f, app, content_area),
+          ActiveRadarrBlock::AutomaticallySearchMoviePrompt => {
+            let prompt = format!(
+              "Do you want to trigger an automatic search of your indexers for the movie: {}?",
+              app.data.radarr_data.movies.current_selection().title
+            );
+            let confirmation_prompt = ConfirmationPrompt::new()
+              .title("Automatic Movie Search")
+              .prompt(&prompt)
+              .yes_no_value(app.data.radarr_data.prompt_confirm);
+
+            draw_movie_info(f, app, content_area);
+            f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
+          }
+          ActiveRadarrBlock::UpdateAndScanPrompt => {
+            let prompt = format!(
+              "Do you want to trigger an update and disk scan for the movie: {}?",
+              app.data.radarr_data.movies.current_selection().title
+            );
+            let confirmation_prompt = ConfirmationPrompt::new()
+              .title("Update and Scan")
+              .prompt(&prompt)
+              .yes_no_value(app.data.radarr_data.prompt_confirm);
+
+            f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
+          }
+          ActiveRadarrBlock::ManualSearchConfirmPrompt => {
+            draw_manual_search_confirm_prompt(f, app);
+          }
+          _ => (),
         }
       };
 
@@ -103,34 +107,6 @@ fn draw_movie_info(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       _ => (),
     }
   }
-}
-
-fn draw_search_movie_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_prompt_box(
-    f,
-    area,
-    "Automatic Movie Search",
-    format!(
-      "Do you want to trigger an automatic search of your indexers for the movie: {}?",
-      app.data.radarr_data.movies.current_selection().title
-    )
-    .as_str(),
-    app.data.radarr_data.prompt_confirm,
-  );
-}
-
-fn draw_update_and_scan_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_prompt_box(
-    f,
-    area,
-    "Update and Scan",
-    format!(
-      "Do you want to trigger an update and disk scan for the movie: {}?",
-      app.data.radarr_data.movies.current_selection().title
-    )
-    .as_str(),
-    app.data.radarr_data.prompt_confirm,
-  );
 }
 
 fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
@@ -484,7 +460,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   }
 }
 
-fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>) {
   let current_selection = app
     .data
     .radarr_data
@@ -525,17 +501,20 @@ fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area:
       .block(borderless_block())
       .wrap(Wrap { trim: false })
       .alignment(Alignment::Left);
+    let confirmation_prompt = ConfirmationPrompt::new()
+      .title(title)
+      .prompt(&prompt)
+      .content(content_paragraph)
+      .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-    draw_prompt_box_with_content(
-      f,
-      area,
-      title,
-      &prompt,
-      Some(content_paragraph),
-      app.data.radarr_data.prompt_confirm,
-    );
+    f.render_widget(Popup::new(confirmation_prompt).size(Size::Small), f.size());
   } else {
-    draw_prompt_box(f, area, title, &prompt, app.data.radarr_data.prompt_confirm);
+    let confirmation_prompt = ConfirmationPrompt::new()
+      .title(title)
+      .prompt(&prompt)
+      .yes_no_value(app.data.radarr_data.prompt_confirm);
+
+    f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
   }
 }
 

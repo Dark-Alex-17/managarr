@@ -8,9 +8,10 @@ use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DOWNLO
 use crate::models::{HorizontallyScrollableText, Route};
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
+use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::widgets::popup::Size;
-use crate::ui::{draw_popup_over, draw_prompt_box, DrawUi};
+use crate::ui::widgets::popup::{Popup, Size};
+use crate::ui::DrawUi;
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -32,22 +33,28 @@ impl DrawUi for DownloadsUi {
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
       match active_radarr_block {
         ActiveRadarrBlock::Downloads => draw_downloads(f, app, area),
-        ActiveRadarrBlock::DeleteDownloadPrompt => draw_popup_over(
-          f,
-          app,
-          area,
-          draw_downloads,
-          draw_delete_download_prompt,
-          Size::Prompt,
-        ),
-        ActiveRadarrBlock::UpdateDownloadsPrompt => draw_popup_over(
-          f,
-          app,
-          area,
-          draw_downloads,
-          draw_update_downloads_prompt,
-          Size::Prompt,
-        ),
+        ActiveRadarrBlock::DeleteDownloadPrompt => {
+          let prompt = format!(
+            "Do you really want to delete this download: \n{}?",
+            app.data.radarr_data.downloads.current_selection().title
+          );
+          let confirmation_prompt = ConfirmationPrompt::new()
+            .title("Cancel Download")
+            .prompt(&prompt)
+            .yes_no_value(app.data.radarr_data.prompt_confirm);
+
+          draw_downloads(f, app, area);
+          f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
+        }
+        ActiveRadarrBlock::UpdateDownloadsPrompt => {
+          let confirmation_prompt = ConfirmationPrompt::new()
+            .title("Update Downloads")
+            .prompt("Do you want to update your downloads?")
+            .yes_no_value(app.data.radarr_data.prompt_confirm);
+
+          draw_downloads(f, app, area);
+          f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
+        }
         _ => (),
       }
     }
@@ -128,28 +135,4 @@ fn draw_downloads(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   ]);
 
   f.render_widget(downloads_table, area);
-}
-
-fn draw_delete_download_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_prompt_box(
-    f,
-    area,
-    "Cancel Download",
-    format!(
-      "Do you really want to delete this download: \n{}?",
-      app.data.radarr_data.downloads.current_selection().title
-    )
-    .as_str(),
-    app.data.radarr_data.prompt_confirm,
-  );
-}
-
-fn draw_update_downloads_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_prompt_box(
-    f,
-    area,
-    "Update Downloads",
-    "Do you want to update your downloads?",
-    app.data.radarr_data.prompt_confirm,
-  );
 }

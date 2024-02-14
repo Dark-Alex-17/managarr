@@ -8,9 +8,10 @@ use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_F
 use crate::models::Route;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::layout_block_top_border;
+use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::widgets::popup::Size;
-use crate::ui::{draw_input_box_popup, draw_popup_over, draw_prompt_box, DrawUi};
+use crate::ui::widgets::popup::{Popup, Size};
+use crate::ui::{draw_input_box_popup, draw_popup_over, DrawUi};
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -40,14 +41,19 @@ impl DrawUi for RootFoldersUi {
           draw_add_root_folder_prompt_box,
           Size::InputBox,
         ),
-        ActiveRadarrBlock::DeleteRootFolderPrompt => draw_popup_over(
-          f,
-          app,
-          area,
-          draw_root_folders,
-          draw_delete_root_folder_prompt,
-          Size::Prompt,
-        ),
+        ActiveRadarrBlock::DeleteRootFolderPrompt => {
+          let prompt = format!(
+            "Do you really want to delete this root folder: \n{}?",
+            app.data.radarr_data.root_folders.current_selection().path
+          );
+          let confirmation_prompt = ConfirmationPrompt::new()
+            .title("Delete Root Folder")
+            .prompt(&prompt)
+            .yes_no_value(app.data.radarr_data.prompt_confirm);
+
+          draw_root_folders(f, app, area);
+          f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
+        }
         _ => (),
       }
     }
@@ -107,19 +113,5 @@ fn draw_add_root_folder_prompt_box(f: &mut Frame<'_>, app: &mut App<'_>, area: R
     area,
     "Add Root Folder",
     app.data.radarr_data.edit_root_folder.as_ref().unwrap(),
-  );
-}
-
-fn draw_delete_root_folder_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_prompt_box(
-    f,
-    area,
-    "Delete Root Folder",
-    format!(
-      "Do you really want to delete this root folder: \n{}?",
-      app.data.radarr_data.root_folders.current_selection().path
-    )
-    .as_str(),
-    app.data.radarr_data.prompt_confirm,
   );
 }

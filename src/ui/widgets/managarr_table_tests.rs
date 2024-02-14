@@ -42,7 +42,7 @@ mod tests {
 
     let managarr_table =
       ManagarrTable::new(Some(&mut stateful_table), |&s| Row::new(vec![Cell::new(s)]))
-        .headers(headers.clone());
+        .headers(headers);
 
     let row_mapper = managarr_table.row_mapper;
     assert_eq!(managarr_table.table_headers, headers);
@@ -67,7 +67,7 @@ mod tests {
 
     let managarr_table =
       ManagarrTable::new(Some(&mut stateful_table), |&s| Row::new(vec![Cell::new(s)]))
-        .constraints(constraints.clone());
+        .constraints(constraints);
 
     let row_mapper = managarr_table.row_mapper;
     assert_eq!(managarr_table.constraints, constraints);
