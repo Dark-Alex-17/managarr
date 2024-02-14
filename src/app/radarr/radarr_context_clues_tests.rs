@@ -27,6 +27,11 @@ mod tests {
 
     let (key_binding, description) = library_context_clues_iter.next().unwrap();
 
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.sort);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.sort.desc);
+
+    let (key_binding, description) = library_context_clues_iter.next().unwrap();
+
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.delete);
     assert_str_eq!(*description, DEFAULT_KEYBINDINGS.delete.desc);
 
@@ -39,11 +44,6 @@ mod tests {
 
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.filter);
     assert_str_eq!(*description, DEFAULT_KEYBINDINGS.filter.desc);
-
-    let (key_binding, description) = library_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.sort);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.sort.desc);
 
     let (key_binding, description) = library_context_clues_iter.next().unwrap();
 
@@ -96,6 +96,11 @@ mod tests {
 
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.edit);
     assert_str_eq!(*description, DEFAULT_KEYBINDINGS.edit.desc);
+
+    let (key_binding, description) = collections_context_clues.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.sort);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.sort.desc);
 
     let (key_binding, description) = collections_context_clues.next().unwrap();
 

@@ -212,6 +212,7 @@ pub enum ActiveRadarrBlock {
   AddRootFolderPrompt,
   AutomaticallySearchMoviePrompt,
   Collections,
+  CollectionsSortPrompt,
   CollectionDetails,
   Cast,
   Crew,
@@ -299,8 +300,9 @@ pub static LIBRARY_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::FilterMoviesError,
   ActiveRadarrBlock::UpdateAllMoviesPrompt,
 ];
-pub static COLLECTIONS_BLOCKS: [ActiveRadarrBlock; 6] = [
+pub static COLLECTIONS_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::Collections,
+  ActiveRadarrBlock::CollectionsSortPrompt,
   ActiveRadarrBlock::SearchCollection,
   ActiveRadarrBlock::SearchCollectionError,
   ActiveRadarrBlock::FilterCollections,

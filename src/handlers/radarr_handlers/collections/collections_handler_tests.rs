@@ -2,17 +2,22 @@
 mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
+  use std::cmp::Ordering;
+  use std::iter;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::collections::CollectionsHandler;
+  use crate::handlers::radarr_handlers::collections::{
+    collections_sorting_options, CollectionsHandler,
+  };
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::Collection;
+  use crate::models::radarr_models::{Collection, CollectionMovie};
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, COLLECTIONS_BLOCKS, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS,
   };
+  use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
   use crate::{extended_stateful_iterable_vec, test_handler_delegation};
 
@@ -20,6 +25,7 @@ mod tests {
     use rstest::rstest;
 
     use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
@@ -33,6 +39,61 @@ mod tests {
       title,
       to_string
     );
+
+    #[rstest]
+    fn test_collections_sort_scroll(
+      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
+    ) {
+      let collection_field_vec = sort_options();
+      let mut app = App::default();
+      app.data.radarr_data.collections.sorting(sort_options());
+
+      if key == Key::Up {
+        for i in (0..collection_field_vec.len()).rev() {
+          CollectionsHandler::with(
+            &key,
+            &mut app,
+            &ActiveRadarrBlock::CollectionsSortPrompt,
+            &None,
+          )
+          .handle();
+
+          assert_eq!(
+            app
+              .data
+              .radarr_data
+              .collections
+              .sort
+              .as_ref()
+              .unwrap()
+              .current_selection(),
+            &collection_field_vec[i]
+          );
+        }
+      } else {
+        for i in 0..collection_field_vec.len() {
+          CollectionsHandler::with(
+            &key,
+            &mut app,
+            &ActiveRadarrBlock::CollectionsSortPrompt,
+            &None,
+          )
+          .handle();
+
+          assert_eq!(
+            app
+              .data
+              .radarr_data
+              .collections
+              .sort
+              .as_ref()
+              .unwrap()
+              .current_selection(),
+            &collection_field_vec[(i + 1) % collection_field_vec.len()]
+          );
+        }
+      }
+    }
   }
 
   mod test_handle_home_end {
@@ -146,6 +207,53 @@ mod tests {
           .offset
           .borrow(),
         0
+      );
+    }
+
+    #[test]
+    fn test_collections_sort_home_end() {
+      let collection_field_vec = sort_options();
+      let mut app = App::default();
+      app.data.radarr_data.collections.sorting(sort_options());
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::CollectionsSortPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .collections
+          .sort
+          .as_ref()
+          .unwrap()
+          .current_selection(),
+        &collection_field_vec[collection_field_vec.len() - 1]
+      );
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::CollectionsSortPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .collections
+          .sort
+          .as_ref()
+          .unwrap()
+          .current_selection(),
+        &collection_field_vec[0]
       );
     }
   }
@@ -600,6 +708,38 @@ mod tests {
         &ActiveRadarrBlock::Collections.into()
       );
     }
+
+    #[test]
+    fn test_collections_sort_prompt_submit() {
+      let mut app = App::default();
+      app.data.radarr_data.collections.sort_asc = true;
+      app.data.radarr_data.collections.sorting(sort_options());
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(collections_vec());
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app.push_navigation_stack(ActiveRadarrBlock::CollectionsSortPrompt.into());
+
+      let mut expected_vec = collections_vec();
+      expected_vec.sort_by(|a, b| a.id.cmp(&b.id));
+      expected_vec.reverse();
+
+      CollectionsHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::CollectionsSortPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
+      assert_eq!(app.data.radarr_data.collections.items, expected_vec);
+    }
   }
 
   mod test_handle_esc {
@@ -948,6 +1088,36 @@ mod tests {
         "h"
       );
     }
+
+    #[test]
+    fn test_sort_key() {
+      let mut app = App::default();
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.sort.key,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::CollectionsSortPrompt.into()
+      );
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .collections
+          .sort
+          .as_ref()
+          .unwrap()
+          .items,
+        collections_sorting_options()
+      );
+      assert!(!app.data.radarr_data.collections.sort_asc);
+    }
   }
 
   #[rstest]
@@ -980,6 +1150,163 @@ mod tests {
       ActiveRadarrBlock::Collections,
       active_radarr_block
     );
+  }
+
+  #[test]
+  fn test_collections_sorting_options_collection() {
+    let expected_cmp_fn: fn(&Collection, &Collection) -> Ordering = |a, b| {
+      a.title
+        .text
+        .to_lowercase()
+        .cmp(&b.title.text.to_lowercase())
+    };
+    let mut expected_collections_vec = collections_vec();
+    expected_collections_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = collections_sorting_options()[0].clone();
+    let mut sorted_collections_vec = collections_vec();
+    sorted_collections_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_collections_vec, expected_collections_vec);
+    assert_str_eq!(sort_option.name, "Collection");
+  }
+
+  #[test]
+  fn test_collections_sorting_options_number_of_movies() {
+    let expected_cmp_fn: fn(&Collection, &Collection) -> Ordering = |a, b| {
+      let a_movie_count = a.movies.as_ref().unwrap_or(&Vec::new()).len();
+      let b_movie_count = b.movies.as_ref().unwrap_or(&Vec::new()).len();
+
+      a_movie_count.cmp(&b_movie_count)
+    };
+    let mut expected_collections_vec = collections_vec();
+    expected_collections_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = collections_sorting_options()[1].clone();
+    let mut sorted_collections_vec = collections_vec();
+    sorted_collections_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_collections_vec, expected_collections_vec);
+    assert_str_eq!(sort_option.name, "Number of Movies");
+  }
+
+  #[test]
+  fn test_collections_sorting_options_root_folder_path() {
+    let expected_cmp_fn: fn(&Collection, &Collection) -> Ordering = |a, b| {
+      let a_root_folder = a
+        .root_folder_path
+        .as_ref()
+        .unwrap_or(&String::new())
+        .to_owned();
+      let b_root_folder = b
+        .root_folder_path
+        .as_ref()
+        .unwrap_or(&String::new())
+        .to_owned();
+
+      a_root_folder.cmp(&b_root_folder)
+    };
+    let mut expected_collections_vec = collections_vec();
+    expected_collections_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = collections_sorting_options()[2].clone();
+    let mut sorted_collections_vec = collections_vec();
+    sorted_collections_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_collections_vec, expected_collections_vec);
+    assert_str_eq!(sort_option.name, "Root Folder Path");
+  }
+
+  #[test]
+  fn test_collections_sorting_options_quality_profile() {
+    let expected_cmp_fn: fn(&Collection, &Collection) -> Ordering =
+      |a, b| a.quality_profile_id.cmp(&b.quality_profile_id);
+    let mut expected_collections_vec = collections_vec();
+    expected_collections_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = collections_sorting_options()[3].clone();
+    let mut sorted_collections_vec = collections_vec();
+    sorted_collections_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_collections_vec, expected_collections_vec);
+    assert_str_eq!(sort_option.name, "Quality Profile");
+  }
+
+  #[test]
+  fn test_collections_sorting_options_search_on_add() {
+    let expected_cmp_fn: fn(&Collection, &Collection) -> Ordering =
+      |a, b| a.search_on_add.cmp(&b.search_on_add);
+    let mut expected_collections_vec = collections_vec();
+    expected_collections_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = collections_sorting_options()[4].clone();
+    let mut sorted_collections_vec = collections_vec();
+    sorted_collections_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_collections_vec, expected_collections_vec);
+    assert_str_eq!(sort_option.name, "Search on Add");
+  }
+
+  #[test]
+  fn test_collections_sorting_options_monitored() {
+    let expected_cmp_fn: fn(&Collection, &Collection) -> Ordering =
+      |a, b| a.monitored.cmp(&b.monitored);
+    let mut expected_collections_vec = collections_vec();
+    expected_collections_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = collections_sorting_options()[5].clone();
+    let mut sorted_collections_vec = collections_vec();
+    sorted_collections_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_collections_vec, expected_collections_vec);
+    assert_str_eq!(sort_option.name, "Monitored");
+  }
+
+  fn collections_vec() -> Vec<Collection> {
+    vec![
+      Collection {
+        id: 3,
+        title: "test 1".into(),
+        movies: Some(iter::repeat(CollectionMovie::default()).take(3).collect()),
+        root_folder_path: Some("/nfs/movies".into()),
+        quality_profile_id: 1,
+        search_on_add: false,
+        monitored: true,
+        ..Collection::default()
+      },
+      Collection {
+        id: 2,
+        title: "test 2".into(),
+        movies: Some(iter::repeat(CollectionMovie::default()).take(7).collect()),
+        root_folder_path: Some("/htpc/movies".into()),
+        quality_profile_id: 3,
+        search_on_add: true,
+        monitored: true,
+        ..Collection::default()
+      },
+      Collection {
+        id: 1,
+        title: "test 3".into(),
+        movies: Some(iter::repeat(CollectionMovie::default()).take(1).collect()),
+        root_folder_path: Some("/nfs/some/stupidly/long/path/to/test/with".into()),
+        quality_profile_id: 1,
+        search_on_add: false,
+        monitored: false,
+        ..Collection::default()
+      },
+    ]
+  }
+
+  fn sort_options() -> Vec<SortOption<Collection>> {
+    vec![SortOption {
+      name: "Test 1",
+      cmp_fn: Some(|a, b| {
+        b.title
+          .text
+          .to_lowercase()
+          .cmp(&a.title.text.to_lowercase())
+      }),
+    }]
   }
 
   #[test]

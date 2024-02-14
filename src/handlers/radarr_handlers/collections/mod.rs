@@ -5,9 +5,11 @@ use crate::handlers::radarr_handlers::collections::collection_details_handler::C
 use crate::handlers::radarr_handlers::collections::edit_collection_handler::EditCollectionHandler;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
+use crate::models::radarr_models::Collection;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTIONS_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
 };
+use crate::models::stateful_table::SortOption;
 use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
@@ -66,14 +68,34 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
   }
 
   fn handle_scroll_up(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Collections {
-      self.app.data.radarr_data.collections.scroll_up()
+    match self.active_radarr_block {
+      ActiveRadarrBlock::Collections => self.app.data.radarr_data.collections.scroll_up(),
+      ActiveRadarrBlock::CollectionsSortPrompt => self
+        .app
+        .data
+        .radarr_data
+        .collections
+        .sort
+        .as_mut()
+        .unwrap()
+        .scroll_up(),
+      _ => (),
     }
   }
 
   fn handle_scroll_down(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Collections {
-      self.app.data.radarr_data.collections.scroll_down()
+    match self.active_radarr_block {
+      ActiveRadarrBlock::Collections => self.app.data.radarr_data.collections.scroll_down(),
+      ActiveRadarrBlock::CollectionsSortPrompt => self
+        .app
+        .data
+        .radarr_data
+        .collections
+        .sort
+        .as_mut()
+        .unwrap()
+        .scroll_down(),
+      _ => (),
     }
   }
 
@@ -98,6 +120,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
         .as_mut()
         .unwrap()
         .scroll_home(),
+      ActiveRadarrBlock::CollectionsSortPrompt => self
+        .app
+        .data
+        .radarr_data
+        .collections
+        .sort
+        .as_mut()
+        .unwrap()
+        .scroll_to_top(),
       _ => (),
     }
   }
@@ -123,6 +154,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
         .as_mut()
         .unwrap()
         .reset_offset(),
+      ActiveRadarrBlock::CollectionsSortPrompt => self
+        .app
+        .data
+        .radarr_data
+        .collections
+        .sort
+        .as_mut()
+        .unwrap()
+        .scroll_to_bottom(),
       _ => (),
     }
   }
@@ -215,6 +255,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
 
         self.app.pop_navigation_stack();
       }
+      ActiveRadarrBlock::CollectionsSortPrompt => {
+        self
+          .app
+          .data
+          .radarr_data
+          .collections
+          .items
+          .sort_by(|a, b| a.id.cmp(&b.id));
+        self.app.data.radarr_data.collections.apply_sorting();
+
+        self.app.pop_navigation_stack();
+      }
       _ => (),
     }
   }
@@ -285,6 +337,17 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
+        _ if *key == DEFAULT_KEYBINDINGS.sort.key => {
+          self
+            .app
+            .data
+            .radarr_data
+            .collections
+            .sorting(collections_sorting_options());
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::CollectionsSortPrompt.into());
+        }
         _ => (),
       },
       ActiveRadarrBlock::SearchCollection => {
@@ -318,4 +381,56 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
       _ => (),
     }
   }
+}
+
+fn collections_sorting_options() -> Vec<SortOption<Collection>> {
+  vec![
+    SortOption {
+      name: "Collection",
+      cmp_fn: Some(|a, b| {
+        a.title
+          .text
+          .to_lowercase()
+          .cmp(&b.title.text.to_lowercase())
+      }),
+    },
+    SortOption {
+      name: "Number of Movies",
+      cmp_fn: Some(|a, b| {
+        let a_movie_count = a.movies.as_ref().unwrap_or(&Vec::new()).len();
+        let b_movie_count = b.movies.as_ref().unwrap_or(&Vec::new()).len();
+
+        a_movie_count.cmp(&b_movie_count)
+      }),
+    },
+    SortOption {
+      name: "Root Folder Path",
+      cmp_fn: Some(|a, b| {
+        let a_root_folder = a
+          .root_folder_path
+          .as_ref()
+          .unwrap_or(&String::new())
+          .to_owned();
+        let b_root_folder = b
+          .root_folder_path
+          .as_ref()
+          .unwrap_or(&String::new())
+          .to_owned();
+
+        a_root_folder.cmp(&b_root_folder)
+      }),
+    },
+    SortOption {
+      name: "Quality Profile",
+      cmp_fn: Some(|a, b| a.quality_profile_id.cmp(&b.quality_profile_id)),
+    },
+    SortOption {
+      name: "Search on Add",
+      cmp_fn: Some(|a, b| a.search_on_add.cmp(&b.search_on_add)),
+    },
+    SortOption {
+      name: "Monitored",
+      cmp_fn: Some(|a, b| a.monitored.cmp(&b.monitored)),
+    },
+  ]
 }

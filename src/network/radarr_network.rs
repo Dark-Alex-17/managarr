@@ -803,8 +803,15 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-      .handle_request::<(), Vec<Collection>>(request_props, |collections_vec, mut app| {
-        app.data.radarr_data.collections.set_items(collections_vec);
+      .handle_request::<(), Vec<Collection>>(request_props, |mut collections_vec, mut app| {
+        if !matches!(
+          app.get_current_route(),
+          Route::Radarr(ActiveRadarrBlock::CollectionsSortPrompt, _)
+        ) {
+          collections_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          app.data.radarr_data.collections.set_items(collections_vec);
+          app.data.radarr_data.collections.apply_sorting_toggle(false);
+        }
       })
       .await;
   }
@@ -1191,9 +1198,14 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<(), Vec<Movie>>(request_props, |mut movie_vec, mut app| {
-        movie_vec.sort_by(|a, b| a.id.cmp(&b.id));
-        app.data.radarr_data.movies.set_items(movie_vec);
-        app.data.radarr_data.movies.apply_sorting_toggle(false);
+        if !matches!(
+          app.get_current_route(),
+          Route::Radarr(ActiveRadarrBlock::MoviesSortPrompt, _)
+        ) {
+          movie_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          app.data.radarr_data.movies.set_items(movie_vec);
+          app.data.radarr_data.movies.apply_sorting_toggle(false);
+        }
       })
       .await;
   }

@@ -292,23 +292,24 @@ mod test {
     );
   }
 
+  #[rstest]
   #[tokio::test]
-  async fn test_handle_get_movies_event() {
+  async fn test_handle_get_movies_event(#[values(true, false)] use_custom_sorting: bool) {
     let mut movie_1: Value = serde_json::from_str(MOVIE_JSON).unwrap();
     let mut movie_2: Value = serde_json::from_str(MOVIE_JSON).unwrap();
     *movie_1.get_mut("id").unwrap() = json!(1);
     *movie_1.get_mut("title").unwrap() = json!("z test");
     *movie_2.get_mut("id").unwrap() = json!(2);
     *movie_2.get_mut("title").unwrap() = json!("A test");
-    let expected_movies = vec![
-      Movie {
-        id: 2,
-        title: "A test".into(),
-        ..movie()
-      },
+    let mut expected_movies = vec![
       Movie {
         id: 1,
         title: "z test".into(),
+        ..movie()
+      },
+      Movie {
+        id: 2,
+        title: "A test".into(),
         ..movie()
       },
     ];
@@ -321,14 +322,68 @@ mod test {
     )
     .await;
     app_arc.lock().await.data.radarr_data.movies.sort_asc = true;
-    let title_sort_option = SortOption {
-      name: "Title",
-      cmp_fn: Some(|a: &Movie, b: &Movie| {
+    if use_custom_sorting {
+      let cmp_fn = |a: &Movie, b: &Movie| {
         a.title
           .text
           .to_lowercase()
           .cmp(&b.title.text.to_lowercase())
-      }),
+      };
+      expected_movies.sort_by(cmp_fn);
+      let title_sort_option = SortOption {
+        name: "Title",
+        cmp_fn: Some(cmp_fn),
+      };
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .movies
+        .sorting(vec![title_sort_option]);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network.handle_radarr_event(RadarrEvent::GetMovies).await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.movies.items,
+      expected_movies
+    );
+    assert!(app_arc.lock().await.data.radarr_data.movies.sort_asc);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_movies_event_no_op_while_user_is_selecting_sort_options() {
+    let mut movie_1: Value = serde_json::from_str(MOVIE_JSON).unwrap();
+    let mut movie_2: Value = serde_json::from_str(MOVIE_JSON).unwrap();
+    *movie_1.get_mut("id").unwrap() = json!(1);
+    *movie_1.get_mut("title").unwrap() = json!("z test");
+    *movie_2.get_mut("id").unwrap() = json!(2);
+    *movie_2.get_mut("title").unwrap() = json!("A test");
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([movie_1, movie_2])),
+      None,
+      RadarrEvent::GetMovies.resource(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .push_navigation_stack(ActiveRadarrBlock::MoviesSortPrompt.into());
+    app_arc.lock().await.data.radarr_data.movies.sort_asc = true;
+    let cmp_fn = |a: &Movie, b: &Movie| {
+      a.title
+        .text
+        .to_lowercase()
+        .cmp(&b.title.text.to_lowercase())
+    };
+    let title_sort_option = SortOption {
+      name: "Title",
+      cmp_fn: Some(cmp_fn),
     };
     app_arc
       .lock()
@@ -342,10 +397,14 @@ mod test {
     network.handle_radarr_event(RadarrEvent::GetMovies).await;
 
     async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.movies.items,
-      expected_movies
-    );
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .items
+      .is_empty());
     assert!(app_arc.lock().await.data.radarr_data.movies.sort_asc);
   }
 
@@ -1109,11 +1168,157 @@ mod test {
     );
   }
 
+  #[rstest]
   #[tokio::test]
-  async fn test_handle_get_collections_event() {
-    let collection_json = json!([{
+  async fn test_handle_get_collections_event(#[values(true, false)] use_custom_sorting: bool) {
+    let collections_json = json!([{
       "id": 123,
-      "title": "Test Collection",
+      "title": "z Collection",
+      "rootFolderPath": "/nfs/movies",
+      "searchOnAdd": true,
+      "monitored": true,
+      "minimumAvailability": "released",
+      "overview": "Collection blah blah blah",
+      "qualityProfileId": 2222,
+      "movies": [{
+        "title": "Test",
+        "overview": "Collection blah blah blah",
+        "year": 2023,
+        "runtime": 120,
+        "tmdbId": 1234,
+        "genres": ["cool", "family", "fun"],
+        "ratings": {
+          "imdb": {
+            "value": 9.9
+          },
+          "tmdb": {
+            "value": 9.9
+          },
+          "rottenTomatoes": {
+            "value": 9.9
+          }
+        }
+      }],
+    },
+    {
+      "id": 456,
+      "title": "A Collection",
+      "rootFolderPath": "/nfs/movies",
+      "searchOnAdd": true,
+      "monitored": true,
+      "minimumAvailability": "released",
+      "overview": "Collection blah blah blah",
+      "qualityProfileId": 2222,
+      "movies": [{
+        "title": "Test",
+        "overview": "Collection blah blah blah",
+        "year": 2023,
+        "runtime": 120,
+        "tmdbId": 1234,
+        "genres": ["cool", "family", "fun"],
+        "ratings": {
+          "imdb": {
+            "value": 9.9
+          },
+          "tmdb": {
+            "value": 9.9
+          },
+          "rottenTomatoes": {
+            "value": 9.9
+          }
+        }
+      }],
+    }]);
+    let mut expected_collections = vec![
+      Collection {
+        id: 123,
+        title: "z Collection".into(),
+        ..collection()
+      },
+      Collection {
+        id: 456,
+        title: "A Collection".into(),
+        ..collection()
+      },
+    ];
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(collections_json),
+      None,
+      RadarrEvent::GetCollections.resource(),
+    )
+    .await;
+    app_arc.lock().await.data.radarr_data.collections.sort_asc = true;
+    if use_custom_sorting {
+      let cmp_fn = |a: &Collection, b: &Collection| {
+        a.title
+          .text
+          .to_lowercase()
+          .cmp(&b.title.text.to_lowercase())
+      };
+      expected_collections.sort_by(cmp_fn);
+
+      let collection_sort_option = SortOption {
+        name: "Collection",
+        cmp_fn: Some(cmp_fn),
+      };
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .collections
+        .sorting(vec![collection_sort_option]);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network
+      .handle_radarr_event(RadarrEvent::GetCollections)
+      .await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.collections.items,
+      expected_collections
+    );
+    assert!(app_arc.lock().await.data.radarr_data.collections.sort_asc);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_collections_event_no_op_when_user_is_selecting_sort_options() {
+    let collections_json = json!([{
+      "id": 123,
+      "title": "z Collection",
+      "rootFolderPath": "/nfs/movies",
+      "searchOnAdd": true,
+      "monitored": true,
+      "minimumAvailability": "released",
+      "overview": "Collection blah blah blah",
+      "qualityProfileId": 2222,
+      "movies": [{
+        "title": "Test",
+        "overview": "Collection blah blah blah",
+        "year": 2023,
+        "runtime": 120,
+        "tmdbId": 1234,
+        "genres": ["cool", "family", "fun"],
+        "ratings": {
+          "imdb": {
+            "value": 9.9
+          },
+          "tmdb": {
+            "value": 9.9
+          },
+          "rottenTomatoes": {
+            "value": 9.9
+          }
+        }
+      }],
+    },
+    {
+      "id": 456,
+      "title": "A Collection",
       "rootFolderPath": "/nfs/movies",
       "searchOnAdd": true,
       "monitored": true,
@@ -1143,11 +1348,33 @@ mod test {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
-      Some(collection_json),
+      Some(collections_json),
       None,
       RadarrEvent::GetCollections.resource(),
     )
     .await;
+    app_arc.lock().await.data.radarr_data.collections.sort_asc = true;
+    app_arc
+      .lock()
+      .await
+      .push_navigation_stack(ActiveRadarrBlock::CollectionsSortPrompt.into());
+    let cmp_fn = |a: &Collection, b: &Collection| {
+      a.title
+        .text
+        .to_lowercase()
+        .cmp(&b.title.text.to_lowercase())
+    };
+    let collection_sort_option = SortOption {
+      name: "Collection",
+      cmp_fn: Some(cmp_fn),
+    };
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .collections
+      .sorting(vec![collection_sort_option]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network
@@ -1155,10 +1382,15 @@ mod test {
       .await;
 
     async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.collections.items,
-      vec![collection()]
-    );
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .collections
+      .items
+      .is_empty());
+    assert!(app_arc.lock().await.data.radarr_data.collections.sort_asc);
   }
 
   #[tokio::test]

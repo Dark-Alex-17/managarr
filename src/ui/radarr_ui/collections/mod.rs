@@ -40,7 +40,9 @@ impl DrawUi for CollectionsUi {
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = *app.get_current_route();
     let mut collections_ui_matcher = |active_radarr_block| match active_radarr_block {
-      ActiveRadarrBlock::Collections => draw_collections(f, app, area),
+      ActiveRadarrBlock::Collections | ActiveRadarrBlock::CollectionsSortPrompt => {
+        draw_collections(f, app, area)
+      }
       ActiveRadarrBlock::SearchCollection => draw_popup_over(
         f,
         app,
@@ -98,69 +100,78 @@ impl DrawUi for CollectionsUi {
 }
 
 pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let current_selection = if !app.data.radarr_data.collections.items.is_empty() {
-    app.data.radarr_data.collections.current_selection().clone()
-  } else {
-    Collection::default()
-  };
-  let quality_profile_map = &app.data.radarr_data.quality_profile_map;
-  let content = Some(&mut app.data.radarr_data.collections);
-  let collections_table_footer = app
-    .data
-    .radarr_data
-    .main_tabs
-    .get_active_tab_contextual_help();
-  let collection_row_mapping = |collection: &Collection| {
-    let number_of_movies = collection.movies.clone().unwrap_or_default().len();
-    collection.title.scroll_left_or_reset(
-      get_width_from_percentage(area, 25),
-      *collection == current_selection,
-      app.tick_count % app.ticks_until_scroll == 0,
-    );
-    let monitored = if collection.monitored { "🏷" } else { "" };
-    let search_on_add = if collection.search_on_add {
-      "Yes"
+  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+    let current_selection = if !app.data.radarr_data.collections.items.is_empty() {
+      app.data.radarr_data.collections.current_selection().clone()
     } else {
-      "No"
+      Collection::default()
     };
+    let quality_profile_map = &app.data.radarr_data.quality_profile_map;
+    let content = Some(&mut app.data.radarr_data.collections);
+    let collections_table_footer = app
+      .data
+      .radarr_data
+      .main_tabs
+      .get_active_tab_contextual_help();
+    let collection_row_mapping = |collection: &Collection| {
+      let number_of_movies = collection.movies.as_ref().unwrap_or(&Vec::new()).len();
+      collection.title.scroll_left_or_reset(
+        get_width_from_percentage(area, 25),
+        *collection == current_selection,
+        app.tick_count % app.ticks_until_scroll == 0,
+      );
+      let monitored = if collection.monitored { "🏷" } else { "" };
+      let search_on_add = if collection.search_on_add {
+        "Yes"
+      } else {
+        "No"
+      };
 
-    Row::new(vec![
-      Cell::from(collection.title.to_string()),
-      Cell::from(number_of_movies.to_string()),
-      Cell::from(collection.root_folder_path.clone().unwrap_or_default()),
-      Cell::from(
-        quality_profile_map
-          .get_by_left(&collection.quality_profile_id)
-          .unwrap()
-          .to_owned(),
-      ),
-      Cell::from(search_on_add),
-      Cell::from(monitored),
-    ])
-    .primary()
-  };
-  let collections_table = ManagarrTable::new(content, collection_row_mapping)
-    .loading(app.is_loading)
-    .footer(collections_table_footer)
-    .block(layout_block_top_border())
-    .headers([
-      "Collection",
-      "Number of Movies",
-      "Root Folder Path",
-      "Quality Profile",
-      "Search on Add",
-      "Monitored",
-    ])
-    .constraints([
-      Constraint::Percentage(25),
-      Constraint::Percentage(15),
-      Constraint::Percentage(15),
-      Constraint::Percentage(15),
-      Constraint::Percentage(15),
-      Constraint::Percentage(15),
-    ]);
+      Row::new(vec![
+        Cell::from(collection.title.to_string()),
+        Cell::from(number_of_movies.to_string()),
+        Cell::from(
+          collection
+            .root_folder_path
+            .as_ref()
+            .unwrap_or(&String::new())
+            .to_owned(),
+        ),
+        Cell::from(
+          quality_profile_map
+            .get_by_left(&collection.quality_profile_id)
+            .unwrap()
+            .to_owned(),
+        ),
+        Cell::from(search_on_add),
+        Cell::from(monitored),
+      ])
+      .primary()
+    };
+    let collections_table = ManagarrTable::new(content, collection_row_mapping)
+      .loading(app.is_loading)
+      .footer(collections_table_footer)
+      .block(layout_block_top_border())
+      .sorting(active_radarr_block == ActiveRadarrBlock::CollectionsSortPrompt)
+      .headers([
+        "Collection",
+        "Number of Movies",
+        "Root Folder Path",
+        "Quality Profile",
+        "Search on Add",
+        "Monitored",
+      ])
+      .constraints([
+        Constraint::Percentage(25),
+        Constraint::Percentage(15),
+        Constraint::Percentage(15),
+        Constraint::Percentage(15),
+        Constraint::Percentage(15),
+        Constraint::Percentage(15),
+      ]);
 
-  f.render_widget(collections_table, area);
+    f.render_widget(collections_table, area);
+  }
 }
 
 fn draw_collection_search_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

@@ -268,8 +268,9 @@ mod tests {
 
     #[test]
     fn test_collections_blocks_contents() {
-      assert_eq!(COLLECTIONS_BLOCKS.len(), 6);
+      assert_eq!(COLLECTIONS_BLOCKS.len(), 7);
       assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::Collections));
+      assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::CollectionsSortPrompt));
       assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::SearchCollection));
       assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::SearchCollectionError));
       assert!(COLLECTIONS_BLOCKS.contains(&ActiveRadarrBlock::FilterCollections));

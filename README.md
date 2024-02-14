@@ -1,5 +1,5 @@
 # managarr - A TUI to manage your Servarrs
-Managarr is a TUI to help you manage your HTPC (Home Theater PC). Built with love in Rust!
+Managarr is a TUI to help you manage your HTPC (Home Theater PC). Built with 🤎 in Rust!
 
 ![library](screenshots/library.png)
 
