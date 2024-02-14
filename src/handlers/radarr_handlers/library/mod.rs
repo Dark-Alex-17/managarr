@@ -8,9 +8,11 @@ use crate::handlers::radarr_handlers::library::edit_movie_handler::EditMovieHand
 use crate::handlers::radarr_handlers::library::movie_details_handler::MovieDetailsHandler;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 
+use crate::models::radarr_models::Movie;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, DELETE_MOVIE_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, LIBRARY_BLOCKS,
 };
+use crate::models::stateful_table::SortOption;
 use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
@@ -79,14 +81,34 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
   }
 
   fn handle_scroll_up(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Movies {
-      self.app.data.radarr_data.movies.scroll_up()
+    match self.active_radarr_block {
+      ActiveRadarrBlock::Movies => self.app.data.radarr_data.movies.scroll_up(),
+      ActiveRadarrBlock::MoviesSortPrompt => self
+        .app
+        .data
+        .radarr_data
+        .movies
+        .sort
+        .as_mut()
+        .unwrap()
+        .scroll_up(),
+      _ => (),
     }
   }
 
   fn handle_scroll_down(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Movies {
-      self.app.data.radarr_data.movies.scroll_down()
+    match self.active_radarr_block {
+      ActiveRadarrBlock::Movies => self.app.data.radarr_data.movies.scroll_down(),
+      ActiveRadarrBlock::MoviesSortPrompt => self
+        .app
+        .data
+        .radarr_data
+        .movies
+        .sort
+        .as_mut()
+        .unwrap()
+        .scroll_down(),
+      _ => (),
     }
   }
 
@@ -115,6 +137,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
           .unwrap()
           .scroll_home();
       }
+      ActiveRadarrBlock::MoviesSortPrompt => self
+        .app
+        .data
+        .radarr_data
+        .movies
+        .sort
+        .as_mut()
+        .unwrap()
+        .scroll_to_top(),
       _ => (),
     }
   }
@@ -140,6 +171,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
         .as_mut()
         .unwrap()
         .reset_offset(),
+      ActiveRadarrBlock::MoviesSortPrompt => self
+        .app
+        .data
+        .radarr_data
+        .movies
+        .sort
+        .as_mut()
+        .unwrap()
+        .scroll_to_bottom(),
       _ => (),
     }
   }
@@ -226,6 +266,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
 
         self.app.pop_navigation_stack();
       }
+      ActiveRadarrBlock::MoviesSortPrompt => {
+        self.app.data.radarr_data.movies.apply_sorting();
+
+        self.app.pop_navigation_stack();
+      }
       _ => (),
     }
   }
@@ -300,6 +345,17 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
+        _ if *key == DEFAULT_KEYBINDINGS.sort.key => {
+          self
+            .app
+            .data
+            .radarr_data
+            .movies
+            .sorting(movies_sorting_options());
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::MoviesSortPrompt.into());
+        }
         _ => (),
       },
       ActiveRadarrBlock::SearchMovie => {
@@ -319,4 +375,85 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
       _ => (),
     }
   }
+}
+
+fn movies_sorting_options() -> Vec<SortOption<Movie>> {
+  vec![
+    SortOption {
+      name: "Title",
+      cmp_fn: Some(|a, b| {
+        a.title
+          .text
+          .to_lowercase()
+          .cmp(&b.title.text.to_lowercase())
+      }),
+    },
+    SortOption {
+      name: "Year",
+      cmp_fn: Some(|a, b| a.year.cmp(&b.year)),
+    },
+    SortOption {
+      name: "Studio",
+      cmp_fn: Some(|a, b| a.studio.to_lowercase().cmp(&b.studio.to_lowercase())),
+    },
+    SortOption {
+      name: "Runtime",
+      cmp_fn: Some(|a, b| a.runtime.cmp(&b.runtime)),
+    },
+    SortOption {
+      name: "Rating",
+      cmp_fn: Some(|a, b| {
+        a.certification
+          .as_ref()
+          .unwrap_or(&String::new())
+          .to_lowercase()
+          .cmp(
+            &b.certification
+              .as_ref()
+              .unwrap_or(&String::new())
+              .to_lowercase(),
+          )
+      }),
+    },
+    SortOption {
+      name: "Language",
+      cmp_fn: Some(|a, b| {
+        a.original_language
+          .name
+          .to_lowercase()
+          .cmp(&b.original_language.name.to_lowercase())
+      }),
+    },
+    SortOption {
+      name: "Size",
+      cmp_fn: Some(|a, b| a.size_on_disk.cmp(&b.size_on_disk)),
+    },
+    SortOption {
+      name: "Quality",
+      cmp_fn: Some(|a, b| a.quality_profile_id.cmp(&b.quality_profile_id)),
+    },
+    SortOption {
+      name: "Monitored",
+      cmp_fn: Some(|a, b| a.monitored.cmp(&b.monitored)),
+    },
+    SortOption {
+      name: "Tags",
+      cmp_fn: Some(|a, b| {
+        let a_str = a
+          .tags
+          .iter()
+          .map(|tag| tag.as_i64().unwrap().to_string())
+          .collect::<Vec<String>>()
+          .join(",");
+        let b_str = b
+          .tags
+          .iter()
+          .map(|tag| tag.as_i64().unwrap().to_string())
+          .collect::<Vec<String>>()
+          .join(",");
+
+        a_str.cmp(&b_str)
+      }),
+    },
+  ]
 }

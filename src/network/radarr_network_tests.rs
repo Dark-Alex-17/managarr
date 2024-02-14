@@ -301,6 +301,7 @@ mod test {
       RadarrEvent::GetMovies.resource(),
     )
     .await;
+    app_arc.lock().await.data.radarr_data.movies.sort_asc = true;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::GetMovies).await;
@@ -310,6 +311,7 @@ mod test {
       app_arc.lock().await.data.radarr_data.movies.items,
       vec![movie()]
     );
+    assert!(app_arc.lock().await.data.radarr_data.movies.sort_asc);
   }
 
   #[tokio::test]

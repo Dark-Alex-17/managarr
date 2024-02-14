@@ -42,6 +42,11 @@ mod tests {
 
     let (key_binding, description) = library_context_clues_iter.next().unwrap();
 
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.sort);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.sort.desc);
+
+    let (key_binding, description) = library_context_clues_iter.next().unwrap();
+
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.refresh);
     assert_str_eq!(*description, DEFAULT_KEYBINDINGS.refresh.desc);
 

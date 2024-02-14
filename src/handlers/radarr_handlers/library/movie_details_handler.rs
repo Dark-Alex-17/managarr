@@ -469,11 +469,16 @@ fn releases_sorting_options() -> Vec<SortOption<Release>> {
     },
     SortOption {
       name: "Title",
-      cmp_fn: Some(|a, b| a.title.text.cmp(&b.title.text)),
+      cmp_fn: Some(|a, b| {
+        a.title
+          .text
+          .to_lowercase()
+          .cmp(&b.title.text.to_lowercase())
+      }),
     },
     SortOption {
       name: "Indexer",
-      cmp_fn: Some(|a, b| a.indexer.cmp(&b.indexer)),
+      cmp_fn: Some(|a, b| a.indexer.to_lowercase().cmp(&b.indexer.to_lowercase())),
     },
     SortOption {
       name: "Size",

@@ -1,24 +1,27 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::assert_str_eq;
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
+  use std::cmp::Ordering;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::library::LibraryHandler;
+  use crate::handlers::radarr_handlers::library::{movies_sorting_options, LibraryHandler};
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::Movie;
+  use crate::models::radarr_models::{Language, Movie};
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, ADD_MOVIE_BLOCKS, DELETE_MOVIE_BLOCKS, EDIT_MOVIE_BLOCKS, LIBRARY_BLOCKS,
     MOVIE_DETAILS_BLOCKS,
   };
+  use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
   use crate::test_handler_delegation;
 
   mod test_handle_scroll_up_and_down {
     use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
@@ -32,6 +35,51 @@ mod tests {
       title,
       to_string
     );
+
+    #[rstest]
+    fn test_movies_sort_scroll(
+      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
+    ) {
+      let movie_field_vec = sort_options();
+      let mut app = App::default();
+      app.data.radarr_data.movies.sorting(sort_options());
+
+      if key == Key::Up {
+        for i in (0..movie_field_vec.len()).rev() {
+          LibraryHandler::with(&key, &mut app, &ActiveRadarrBlock::MoviesSortPrompt, &None)
+            .handle();
+
+          assert_eq!(
+            app
+              .data
+              .radarr_data
+              .movies
+              .sort
+              .as_ref()
+              .unwrap()
+              .current_selection(),
+            &movie_field_vec[i]
+          );
+        }
+      } else {
+        for i in 0..movie_field_vec.len() {
+          LibraryHandler::with(&key, &mut app, &ActiveRadarrBlock::MoviesSortPrompt, &None)
+            .handle();
+
+          assert_eq!(
+            app
+              .data
+              .radarr_data
+              .movies
+              .sort
+              .as_ref()
+              .unwrap()
+              .current_selection(),
+            &movie_field_vec[(i + 1) % movie_field_vec.len()]
+          );
+        }
+      }
+    }
   }
 
   mod test_handle_home_end {
@@ -145,6 +193,53 @@ mod tests {
           .offset
           .borrow(),
         0
+      );
+    }
+
+    #[test]
+    fn test_movies_sort_home_end() {
+      let movie_field_vec = sort_options();
+      let mut app = App::default();
+      app.data.radarr_data.movies.sorting(sort_options());
+
+      LibraryHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::MoviesSortPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .movies
+          .sort
+          .as_ref()
+          .unwrap()
+          .current_selection(),
+        &movie_field_vec[movie_field_vec.len() - 1]
+      );
+
+      LibraryHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::MoviesSortPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app
+          .data
+          .radarr_data
+          .movies
+          .sort
+          .as_ref()
+          .unwrap()
+          .current_selection(),
+        &movie_field_vec[0]
       );
     }
   }
@@ -579,6 +674,30 @@ mod tests {
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     }
+
+    #[test]
+    fn test_movies_sort_prompt_submit() {
+      let mut app = App::default();
+      app.data.radarr_data.movies.sort_asc = true;
+      app.data.radarr_data.movies.sorting(sort_options());
+      app.data.radarr_data.movies.set_items(movies_vec());
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      app.push_navigation_stack(ActiveRadarrBlock::MoviesSortPrompt.into());
+
+      let mut expected_vec = movies_vec();
+      expected_vec.reverse();
+
+      LibraryHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::MoviesSortPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
+      assert_eq!(app.data.radarr_data.movies.items, expected_vec);
+    }
   }
 
   mod test_handle_esc {
@@ -902,6 +1021,29 @@ mod tests {
         "h"
       );
     }
+
+    #[test]
+    fn test_sort_key() {
+      let mut app = App::default();
+
+      LibraryHandler::with(
+        &DEFAULT_KEYBINDINGS.sort.key,
+        &mut app,
+        &ActiveRadarrBlock::Movies,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::MoviesSortPrompt.into()
+      );
+      assert_eq!(
+        app.data.radarr_data.movies.sort.as_ref().unwrap().items,
+        movies_sorting_options()
+      );
+      assert!(!app.data.radarr_data.movies.sort_asc);
+    }
   }
 
   #[rstest]
@@ -973,6 +1115,247 @@ mod tests {
       ActiveRadarrBlock::Movies,
       ActiveRadarrBlock::DeleteMoviePrompt
     );
+  }
+
+  #[test]
+  fn test_movies_sorting_options_title() {
+    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering = |a, b| {
+      a.title
+        .text
+        .to_lowercase()
+        .cmp(&b.title.text.to_lowercase())
+    };
+    let mut expected_movies_vec = movies_vec();
+    expected_movies_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = movies_sorting_options()[0].clone();
+    let mut sorted_movies_vec = movies_vec();
+    sorted_movies_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_movies_vec, expected_movies_vec);
+    assert_str_eq!(sort_option.name, "Title");
+  }
+
+  #[test]
+  fn test_movies_sorting_options_year() {
+    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering = |a, b| a.year.cmp(&b.year);
+    let mut expected_movies_vec = movies_vec();
+    expected_movies_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = movies_sorting_options()[1].clone();
+    let mut sorted_movies_vec = movies_vec();
+    sorted_movies_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_movies_vec, expected_movies_vec);
+    assert_str_eq!(sort_option.name, "Year");
+  }
+
+  #[test]
+  fn test_movies_sorting_options_studio() {
+    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering =
+      |a, b| a.studio.to_lowercase().cmp(&b.studio.to_lowercase());
+    let mut expected_movies_vec = movies_vec();
+    expected_movies_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = movies_sorting_options()[2].clone();
+    let mut sorted_movies_vec = movies_vec();
+    sorted_movies_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_movies_vec, expected_movies_vec);
+    assert_str_eq!(sort_option.name, "Studio");
+  }
+
+  #[test]
+  fn test_movies_sorting_options_runtime() {
+    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering = |a, b| a.runtime.cmp(&b.runtime);
+    let mut expected_movies_vec = movies_vec();
+    expected_movies_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = movies_sorting_options()[3].clone();
+    let mut sorted_movies_vec = movies_vec();
+    sorted_movies_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_movies_vec, expected_movies_vec);
+    assert_str_eq!(sort_option.name, "Runtime");
+  }
+
+  #[test]
+  fn test_movies_sorting_options_rating() {
+    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering = |a, b| {
+      a.certification
+        .as_ref()
+        .unwrap_or(&String::new())
+        .to_lowercase()
+        .cmp(
+          &b.certification
+            .as_ref()
+            .unwrap_or(&String::new())
+            .to_lowercase(),
+        )
+    };
+    let mut expected_movies_vec = movies_vec();
+    expected_movies_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = movies_sorting_options()[4].clone();
+    let mut sorted_movies_vec = movies_vec();
+    sorted_movies_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_movies_vec, expected_movies_vec);
+    assert_str_eq!(sort_option.name, "Rating");
+  }
+
+  #[test]
+  fn test_movies_sorting_options_language() {
+    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering = |a, b| {
+      a.original_language
+        .name
+        .to_lowercase()
+        .cmp(&b.original_language.name.to_lowercase())
+    };
+    let mut expected_movies_vec = movies_vec();
+    expected_movies_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = movies_sorting_options()[5].clone();
+    let mut sorted_movies_vec = movies_vec();
+    sorted_movies_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_movies_vec, expected_movies_vec);
+    assert_str_eq!(sort_option.name, "Language");
+  }
+
+  #[test]
+  fn test_movies_sorting_options_size() {
+    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering =
+      |a, b| a.size_on_disk.cmp(&b.size_on_disk);
+    let mut expected_movies_vec = movies_vec();
+    expected_movies_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = movies_sorting_options()[6].clone();
+    let mut sorted_movies_vec = movies_vec();
+    sorted_movies_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_movies_vec, expected_movies_vec);
+    assert_str_eq!(sort_option.name, "Size");
+  }
+
+  #[test]
+  fn test_movies_sorting_options_quality() {
+    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering =
+      |a, b| a.quality_profile_id.cmp(&b.quality_profile_id);
+    let mut expected_movies_vec = movies_vec();
+    expected_movies_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = movies_sorting_options()[7].clone();
+    let mut sorted_movies_vec = movies_vec();
+    sorted_movies_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_movies_vec, expected_movies_vec);
+    assert_str_eq!(sort_option.name, "Quality");
+  }
+
+  #[test]
+  fn test_movies_sorting_options_monitored() {
+    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering = |a, b| a.monitored.cmp(&b.monitored);
+    let mut expected_movies_vec = movies_vec();
+    expected_movies_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = movies_sorting_options()[8].clone();
+    let mut sorted_movies_vec = movies_vec();
+    sorted_movies_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_movies_vec, expected_movies_vec);
+    assert_str_eq!(sort_option.name, "Monitored");
+  }
+
+  #[test]
+  fn test_movies_sorting_options_tags() {
+    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering = |a, b| {
+      let a_str = a
+        .tags
+        .iter()
+        .map(|tag| tag.as_i64().unwrap().to_string())
+        .collect::<Vec<String>>()
+        .join(",");
+      let b_str = b
+        .tags
+        .iter()
+        .map(|tag| tag.as_i64().unwrap().to_string())
+        .collect::<Vec<String>>()
+        .join(",");
+
+      a_str.cmp(&b_str)
+    };
+    let mut expected_movies_vec = movies_vec();
+    expected_movies_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = movies_sorting_options()[9].clone();
+    let mut sorted_movies_vec = movies_vec();
+    sorted_movies_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_movies_vec, expected_movies_vec);
+    assert_str_eq!(sort_option.name, "Tags");
+  }
+
+  fn movies_vec() -> Vec<Movie> {
+    vec![
+      Movie {
+        title: "test 1".into(),
+        original_language: Language {
+          name: "English".to_owned(),
+        },
+        size_on_disk: 1024,
+        studio: "Studio 1".to_owned(),
+        year: 2024,
+        monitored: false,
+        runtime: 12.into(),
+        quality_profile_id: 1,
+        certification: Some("PG-13".to_owned()),
+        tags: vec![1.into(), 2.into()],
+        ..Movie::default()
+      },
+      Movie {
+        title: "test 2".into(),
+        original_language: Language {
+          name: "Chinese".to_owned(),
+        },
+        size_on_disk: 2048,
+        studio: "Studio 2".to_owned(),
+        year: 1998,
+        monitored: false,
+        runtime: 60.into(),
+        quality_profile_id: 2,
+        certification: Some("R".to_owned()),
+        tags: vec![1.into(), 3.into()],
+        ..Movie::default()
+      },
+      Movie {
+        title: "test 3".into(),
+        original_language: Language {
+          name: "Japanese".to_owned(),
+        },
+        size_on_disk: 512,
+        studio: "studio 3".to_owned(),
+        year: 1954,
+        monitored: true,
+        runtime: 120.into(),
+        quality_profile_id: 3,
+        certification: Some("G".to_owned()),
+        tags: vec![2.into(), 3.into()],
+        ..Movie::default()
+      },
+    ]
+  }
+
+  fn sort_options() -> Vec<SortOption<Movie>> {
+    vec![SortOption {
+      name: "Test 1",
+      cmp_fn: Some(|a, b| {
+        a.title
+          .text
+          .to_lowercase()
+          .cmp(&b.title.text.to_lowercase())
+      }),
+    }]
   }
 
   #[test]

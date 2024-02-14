@@ -1191,7 +1191,8 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<(), Vec<Movie>>(request_props, |movie_vec, mut app| {
-        app.data.radarr_data.movies.set_items(movie_vec)
+        app.data.radarr_data.movies.set_items(movie_vec);
+        app.data.radarr_data.movies.apply_sorting_toggle(false);
       })
       .await;
   }

@@ -256,8 +256,9 @@ mod tests {
 
     #[test]
     fn test_library_blocks_contents() {
-      assert_eq!(LIBRARY_BLOCKS.len(), 6);
+      assert_eq!(LIBRARY_BLOCKS.len(), 7);
       assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::Movies));
+      assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::MoviesSortPrompt));
       assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::SearchMovie));
       assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::SearchMovieError));
       assert!(LIBRARY_BLOCKS.contains(&ActiveRadarrBlock::FilterMovies));

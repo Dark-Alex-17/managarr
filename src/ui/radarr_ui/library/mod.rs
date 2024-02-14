@@ -46,7 +46,7 @@ impl DrawUi for LibraryUi {
     let route = *app.get_current_route();
     let mut library_ui_matchers = |active_radarr_block: ActiveRadarrBlock| match active_radarr_block
     {
-      ActiveRadarrBlock::Movies => draw_library(f, app, area),
+      ActiveRadarrBlock::Movies | ActiveRadarrBlock::MoviesSortPrompt => draw_library(f, app, area),
       ActiveRadarrBlock::SearchMovie => draw_popup_over(
         f,
         app,
@@ -101,94 +101,97 @@ impl DrawUi for LibraryUi {
 }
 
 pub(super) fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let current_selection = if !app.data.radarr_data.movies.items.is_empty() {
-    app.data.radarr_data.movies.current_selection().clone()
-  } else {
-    Movie::default()
-  };
-  let quality_profile_map = &app.data.radarr_data.quality_profile_map;
-  let tags_map = &app.data.radarr_data.tags_map;
-  let downloads_vec = &app.data.radarr_data.downloads.items;
-  let content = Some(&mut app.data.radarr_data.movies);
-  let help_footer = app
-    .data
-    .radarr_data
-    .main_tabs
-    .get_active_tab_contextual_help();
+  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+    let current_selection = if !app.data.radarr_data.movies.items.is_empty() {
+      app.data.radarr_data.movies.current_selection().clone()
+    } else {
+      Movie::default()
+    };
+    let quality_profile_map = &app.data.radarr_data.quality_profile_map;
+    let tags_map = &app.data.radarr_data.tags_map;
+    let downloads_vec = &app.data.radarr_data.downloads.items;
+    let content = Some(&mut app.data.radarr_data.movies);
+    let help_footer = app
+      .data
+      .radarr_data
+      .main_tabs
+      .get_active_tab_contextual_help();
 
-  let library_table_row_mapping = |movie: &Movie| {
-    movie.title.scroll_left_or_reset(
-      get_width_from_percentage(area, 27),
-      *movie == current_selection,
-      app.tick_count % app.ticks_until_scroll == 0,
-    );
-    let monitored = if movie.monitored { "🏷" } else { "" };
-    let (hours, minutes) = convert_runtime(movie.runtime);
-    let file_size: f64 = convert_to_gb(movie.size_on_disk);
-    let certification = movie.certification.clone().unwrap_or_default();
-    let quality_profile = quality_profile_map
-      .get_by_left(&movie.quality_profile_id)
-      .unwrap()
-      .to_owned();
-    let tags = movie
-      .tags
-      .iter()
-      .map(|tag_id| {
-        tags_map
-          .get_by_left(&tag_id.as_i64().unwrap())
-          .unwrap()
-          .clone()
-      })
-      .collect::<Vec<String>>()
-      .join(", ");
+    let library_table_row_mapping = |movie: &Movie| {
+      movie.title.scroll_left_or_reset(
+        get_width_from_percentage(area, 27),
+        *movie == current_selection,
+        app.tick_count % app.ticks_until_scroll == 0,
+      );
+      let monitored = if movie.monitored { "🏷" } else { "" };
+      let (hours, minutes) = convert_runtime(movie.runtime);
+      let file_size: f64 = convert_to_gb(movie.size_on_disk);
+      let certification = movie.certification.clone().unwrap_or_default();
+      let quality_profile = quality_profile_map
+        .get_by_left(&movie.quality_profile_id)
+        .unwrap()
+        .to_owned();
+      let tags = movie
+        .tags
+        .iter()
+        .map(|tag_id| {
+          tags_map
+            .get_by_left(&tag_id.as_i64().unwrap())
+            .unwrap()
+            .clone()
+        })
+        .collect::<Vec<String>>()
+        .join(", ");
 
-    decorate_with_row_style(
-      downloads_vec,
-      movie,
-      Row::new(vec![
-        Cell::from(movie.title.to_string()),
-        Cell::from(movie.year.to_string()),
-        Cell::from(movie.studio.to_string()),
-        Cell::from(format!("{hours}h {minutes}m")),
-        Cell::from(certification),
-        Cell::from(movie.original_language.name.to_owned()),
-        Cell::from(format!("{file_size:.2} GB")),
-        Cell::from(quality_profile),
-        Cell::from(monitored.to_owned()),
-        Cell::from(tags),
-      ]),
-    )
-  };
-  let library_table = ManagarrTable::new(content, library_table_row_mapping)
-    .block(layout_block_top_border())
-    .loading(app.is_loading)
-    .footer(help_footer)
-    .headers([
-      "Title",
-      "Year",
-      "Studio",
-      "Runtime",
-      "Rating",
-      "Language",
-      "Size",
-      "Quality Profile",
-      "Monitored",
-      "Tags",
-    ])
-    .constraints([
-      Constraint::Percentage(27),
-      Constraint::Percentage(4),
-      Constraint::Percentage(17),
-      Constraint::Percentage(6),
-      Constraint::Percentage(6),
-      Constraint::Percentage(6),
-      Constraint::Percentage(6),
-      Constraint::Percentage(10),
-      Constraint::Percentage(6),
-      Constraint::Percentage(12),
-    ]);
+      decorate_with_row_style(
+        downloads_vec,
+        movie,
+        Row::new(vec![
+          Cell::from(movie.title.to_string()),
+          Cell::from(movie.year.to_string()),
+          Cell::from(movie.studio.to_string()),
+          Cell::from(format!("{hours}h {minutes}m")),
+          Cell::from(certification),
+          Cell::from(movie.original_language.name.to_owned()),
+          Cell::from(format!("{file_size:.2} GB")),
+          Cell::from(quality_profile),
+          Cell::from(monitored.to_owned()),
+          Cell::from(tags),
+        ]),
+      )
+    };
+    let library_table = ManagarrTable::new(content, library_table_row_mapping)
+      .block(layout_block_top_border())
+      .loading(app.is_loading)
+      .footer(help_footer)
+      .sorting(active_radarr_block == ActiveRadarrBlock::MoviesSortPrompt)
+      .headers([
+        "Title",
+        "Year",
+        "Studio",
+        "Runtime",
+        "Rating",
+        "Language",
+        "Size",
+        "Quality Profile",
+        "Monitored",
+        "Tags",
+      ])
+      .constraints([
+        Constraint::Percentage(27),
+        Constraint::Percentage(4),
+        Constraint::Percentage(17),
+        Constraint::Percentage(6),
+        Constraint::Percentage(6),
+        Constraint::Percentage(6),
+        Constraint::Percentage(6),
+        Constraint::Percentage(10),
+        Constraint::Percentage(6),
+        Constraint::Percentage(12),
+      ]);
 
-  f.render_widget(library_table, area);
+    f.render_widget(library_table, area);
+  }
 }
 
 fn draw_update_all_movies_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

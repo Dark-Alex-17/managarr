@@ -270,6 +270,7 @@ pub enum ActiveRadarrBlock {
   MovieHistory,
   #[default]
   Movies,
+  MoviesSortPrompt,
   RootFolders,
   System,
   SystemLogs,
@@ -289,8 +290,9 @@ pub enum ActiveRadarrBlock {
   ViewMovieOverview,
 }
 
-pub static LIBRARY_BLOCKS: [ActiveRadarrBlock; 6] = [
+pub static LIBRARY_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::Movies,
+  ActiveRadarrBlock::MoviesSortPrompt,
   ActiveRadarrBlock::SearchMovie,
   ActiveRadarrBlock::SearchMovieError,
   ActiveRadarrBlock::FilterMovies,

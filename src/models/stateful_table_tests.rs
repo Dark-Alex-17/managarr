@@ -268,18 +268,18 @@ mod tests {
   }
 
   #[test]
-  fn test_stateful_table_apply_sorting_no_op_no_sort_options() {
+  fn test_stateful_table_apply_sorting_toggle_no_op_no_sort_options() {
     let mut stateful_table = create_test_stateful_table();
     let expected_items = stateful_table.items.clone();
 
-    stateful_table.apply_sorting();
+    stateful_table.apply_sorting_toggle(true);
 
     assert_eq!(stateful_table.items, expected_items);
     assert!(!stateful_table.sort_asc);
   }
 
   #[test]
-  fn test_stateful_table_apply_sorting_no_op_no_cmp_fn() {
+  fn test_stateful_table_apply_sorting_toggle_no_op_no_cmp_fn() {
     let mut stateful_table = create_test_stateful_table();
     stateful_table.sorting(vec![SortOption {
       name: "Test 1",
@@ -287,14 +287,14 @@ mod tests {
     }]);
     let expected_items = stateful_table.items.clone();
 
-    stateful_table.apply_sorting();
+    stateful_table.apply_sorting_toggle(true);
 
     assert_eq!(stateful_table.items, expected_items);
     assert!(stateful_table.sort_asc);
   }
 
   #[test]
-  fn test_filtered_stateful_table_apply_sorting_no_op_no_cmp_fn() {
+  fn test_filtered_stateful_table_apply_sorting_toggle_no_op_no_cmp_fn() {
     let mut filtered_stateful_table = create_test_filtered_stateful_table();
     filtered_stateful_table.sorting(vec![SortOption {
       name: "Test 1",
@@ -306,7 +306,7 @@ mod tests {
       .unwrap()
       .clone();
 
-    filtered_stateful_table.apply_sorting();
+    filtered_stateful_table.apply_sorting_toggle(true);
 
     assert_eq!(
       *filtered_stateful_table.filtered_items.as_ref().unwrap(),
@@ -316,7 +316,7 @@ mod tests {
   }
 
   #[test]
-  fn test_stateful_table_apply_sorting() {
+  fn test_stateful_table_apply_sorting_toggles_direction() {
     let mut stateful_table = create_test_stateful_table();
     stateful_table.sorting(vec![SortOption {
       name: "Test 1",
@@ -325,12 +325,12 @@ mod tests {
     let mut expected_items = stateful_table.items.clone();
     expected_items.sort();
 
-    stateful_table.apply_sorting();
+    stateful_table.apply_sorting_toggle(true);
 
     assert_eq!(stateful_table.items, expected_items);
     assert!(stateful_table.sort_asc);
 
-    stateful_table.apply_sorting();
+    stateful_table.apply_sorting_toggle(true);
 
     expected_items.reverse();
     assert_eq!(stateful_table.items, expected_items);
@@ -338,7 +338,46 @@ mod tests {
   }
 
   #[test]
-  fn test_filtered_stateful_table_apply_sorting() {
+  fn test_stateful_table_apply_sorting_toggle() {
+    let mut stateful_table = create_test_stateful_table();
+    stateful_table.sorting(vec![SortOption {
+      name: "Test 1",
+      cmp_fn: Some(|a, b| a.cmp(b)),
+    }]);
+    let mut expected_items = stateful_table.items.clone();
+    expected_items.sort();
+
+    stateful_table.apply_sorting_toggle(true);
+
+    assert_eq!(stateful_table.items, expected_items);
+    assert!(stateful_table.sort_asc);
+
+    stateful_table.apply_sorting_toggle(true);
+
+    expected_items.reverse();
+    assert_eq!(stateful_table.items, expected_items);
+    assert!(!stateful_table.sort_asc);
+  }
+
+  #[test]
+  fn test_stateful_table_apply_sorting_toggle_false_doesnt_toggle_direction() {
+    let mut stateful_table = create_test_stateful_table();
+    stateful_table.sorting(vec![SortOption {
+      name: "Test 1",
+      cmp_fn: Some(|a, b| a.cmp(b)),
+    }]);
+    let mut expected_items = stateful_table.items.clone();
+    expected_items.sort();
+    expected_items.reverse();
+
+    stateful_table.apply_sorting_toggle(false);
+
+    assert_eq!(stateful_table.items, expected_items);
+    assert!(!stateful_table.sort_asc);
+  }
+
+  #[test]
+  fn test_filtered_stateful_table_apply_sorting_toggle() {
     let mut filtered_stateful_table = create_test_filtered_stateful_table();
     filtered_stateful_table.sorting(vec![SortOption {
       name: "Test 1",
@@ -351,7 +390,7 @@ mod tests {
       .clone();
     expected_items.sort();
 
-    filtered_stateful_table.apply_sorting();
+    filtered_stateful_table.apply_sorting_toggle(true);
 
     assert_eq!(
       *filtered_stateful_table.filtered_items.as_ref().unwrap(),
@@ -359,7 +398,7 @@ mod tests {
     );
     assert!(filtered_stateful_table.sort_asc);
 
-    filtered_stateful_table.apply_sorting();
+    filtered_stateful_table.apply_sorting_toggle(true);
 
     expected_items.reverse();
     assert_eq!(

@@ -1108,8 +1108,12 @@ mod tests {
 
   #[test]
   fn test_releases_sorting_options_title() {
-    let expected_cmp_fn: fn(&Release, &Release) -> Ordering =
-      |a, b| a.title.text.cmp(&b.title.text);
+    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| {
+      a.title
+        .text
+        .to_lowercase()
+        .cmp(&b.title.text.to_lowercase())
+    };
     let mut expected_releases_vec = release_vec();
     expected_releases_vec.sort_by(expected_cmp_fn);
 
@@ -1123,7 +1127,8 @@ mod tests {
 
   #[test]
   fn test_releases_sorting_options_indexer() {
-    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| a.indexer.cmp(&b.indexer);
+    let expected_cmp_fn: fn(&Release, &Release) -> Ordering =
+      |a, b| a.indexer.to_lowercase().cmp(&b.indexer.to_lowercase());
     let mut expected_releases_vec = release_vec();
     expected_releases_vec.sort_by(expected_cmp_fn);
 
@@ -1237,8 +1242,8 @@ mod tests {
     let release_b = Release {
       protocol: "Protocol B".to_owned(),
       age: 2,
-      title: HorizontallyScrollableText::from("Title B"),
-      indexer: "Indexer B".to_owned(),
+      title: HorizontallyScrollableText::from("title B"),
+      indexer: "indexer B".to_owned(),
       size: 2,
       rejected: false,
       seeders: Some(Number::from(2)),

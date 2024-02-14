@@ -218,8 +218,14 @@ where
   }
 
   pub fn apply_sorting(&mut self) {
+    self.apply_sorting_toggle(true);
+  }
+
+  pub fn apply_sorting_toggle(&mut self, toggle_dir: bool) {
     if let Some(sort_options) = &mut self.sort {
-      self.sort_asc = !self.sort_asc;
+      if toggle_dir {
+        self.sort_asc = !self.sort_asc;
+      }
       let selected_sort_option = sort_options.current_selection();
       let mut items = self.filtered_items.as_ref().unwrap_or(&self.items).clone();
       if let Some(cmp_fn) = selected_sort_option.cmp_fn {
