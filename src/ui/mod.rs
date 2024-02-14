@@ -101,10 +101,9 @@ fn draw_error(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     app.tick_count % app.ticks_until_scroll == 0,
   );
 
-  let paragraph = Paragraph::new(Text::from(app.error.to_string()).failure())
+  let paragraph = Paragraph::new(Text::from(app.error.to_string().failure()))
     .block(block)
-    .wrap(Wrap { trim: true })
-    .primary();
+    .wrap(Wrap { trim: true });
 
   f.render_widget(paragraph, area);
 }
