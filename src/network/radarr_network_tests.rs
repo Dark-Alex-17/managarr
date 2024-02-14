@@ -17,6 +17,7 @@ mod test {
     Quality, QualityWrapper, Rating, RatingsList,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+  use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
   use crate::App;
 
@@ -293,15 +294,49 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_get_movies_event() {
+    let mut movie_1: Value = serde_json::from_str(MOVIE_JSON).unwrap();
+    let mut movie_2: Value = serde_json::from_str(MOVIE_JSON).unwrap();
+    *movie_1.get_mut("id").unwrap() = json!(1);
+    *movie_1.get_mut("title").unwrap() = json!("z test");
+    *movie_2.get_mut("id").unwrap() = json!(2);
+    *movie_2.get_mut("title").unwrap() = json!("A test");
+    let expected_movies = vec![
+      Movie {
+        id: 2,
+        title: "A test".into(),
+        ..movie()
+      },
+      Movie {
+        id: 1,
+        title: "z test".into(),
+        ..movie()
+      },
+    ];
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
-      Some(serde_json::from_str(format!("[ {MOVIE_JSON} ]").as_str()).unwrap()),
+      Some(json!([movie_1, movie_2])),
       None,
       RadarrEvent::GetMovies.resource(),
     )
     .await;
     app_arc.lock().await.data.radarr_data.movies.sort_asc = true;
+    let title_sort_option = SortOption {
+      name: "Title",
+      cmp_fn: Some(|a: &Movie, b: &Movie| {
+        a.title
+          .text
+          .to_lowercase()
+          .cmp(&b.title.text.to_lowercase())
+      }),
+    };
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .sorting(vec![title_sort_option]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     network.handle_radarr_event(RadarrEvent::GetMovies).await;
@@ -309,7 +344,7 @@ mod test {
     async_server.assert_async().await;
     assert_eq!(
       app_arc.lock().await.data.radarr_data.movies.items,
-      vec![movie()]
+      expected_movies
     );
     assert!(app_arc.lock().await.data.radarr_data.movies.sort_asc);
   }

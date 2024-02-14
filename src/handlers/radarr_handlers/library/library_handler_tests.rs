@@ -685,6 +685,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::MoviesSortPrompt.into());
 
       let mut expected_vec = movies_vec();
+      expected_vec.sort_by(|a, b| a.id.cmp(&b.id));
       expected_vec.reverse();
 
       LibraryHandler::with(
@@ -1299,6 +1300,7 @@ mod tests {
   fn movies_vec() -> Vec<Movie> {
     vec![
       Movie {
+        id: 3,
         title: "test 1".into(),
         original_language: Language {
           name: "English".to_owned(),
@@ -1314,6 +1316,7 @@ mod tests {
         ..Movie::default()
       },
       Movie {
+        id: 2,
         title: "test 2".into(),
         original_language: Language {
           name: "Chinese".to_owned(),
@@ -1329,6 +1332,7 @@ mod tests {
         ..Movie::default()
       },
       Movie {
+        id: 1,
         title: "test 3".into(),
         original_language: Language {
           name: "Japanese".to_owned(),
@@ -1350,10 +1354,10 @@ mod tests {
     vec![SortOption {
       name: "Test 1",
       cmp_fn: Some(|a, b| {
-        a.title
+        b.title
           .text
           .to_lowercase()
-          .cmp(&b.title.text.to_lowercase())
+          .cmp(&a.title.text.to_lowercase())
       }),
     }]
   }

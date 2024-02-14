@@ -267,6 +267,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
         self.app.pop_navigation_stack();
       }
       ActiveRadarrBlock::MoviesSortPrompt => {
+        self
+          .app
+          .data
+          .radarr_data
+          .movies
+          .items
+          .sort_by(|a, b| a.id.cmp(&b.id));
         self.app.data.radarr_data.movies.apply_sorting();
 
         self.app.pop_navigation_stack();
