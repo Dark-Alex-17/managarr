@@ -13,8 +13,8 @@ use crate::ui::radarr_ui::library::edit_movie_ui::EditMovieUi;
 use crate::ui::radarr_ui::library::movie_details_ui::MovieDetailsUi;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
-use crate::ui::widgets::error_message::ErrorMessage;
 use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{draw_input_box_popup, draw_popup_over, DrawUi};
 use crate::utils::{convert_runtime, convert_to_gb};
@@ -57,7 +57,7 @@ impl DrawUi for LibraryUi {
         Size::InputBox,
       ),
       ActiveRadarrBlock::SearchMovieError => {
-        let popup = Popup::new(ErrorMessage::new("Movie not found!")).size(Size::Error);
+        let popup = Popup::new(Message::new("Movie not found!")).size(Size::Message);
 
         draw_library(f, app, area);
         f.render_widget(popup, f.size());
@@ -71,10 +71,8 @@ impl DrawUi for LibraryUi {
         Size::InputBox,
       ),
       ActiveRadarrBlock::FilterMoviesError => {
-        let popup = Popup::new(ErrorMessage::new(
-          "No movies found matching the given filter!",
-        ))
-        .size(Size::Error);
+        let popup = Popup::new(Message::new("No movies found matching the given filter!"))
+          .size(Size::Message);
 
         draw_library(f, app, area);
         f.render_widget(popup, f.size());

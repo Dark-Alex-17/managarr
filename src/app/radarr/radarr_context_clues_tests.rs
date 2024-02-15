@@ -177,6 +177,11 @@ mod tests {
     let (key_binding, description) = indexers_context_clues_iter.next().unwrap();
 
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.test);
+    assert_str_eq!(*description, "test indexer");
+
+    let (key_binding, description) = indexers_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.test_all);
     assert_str_eq!(*description, "test all indexers");
 
     let (key_binding, description) = indexers_context_clues_iter.next().unwrap();

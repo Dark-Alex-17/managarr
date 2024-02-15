@@ -13,8 +13,8 @@ use crate::ui::radarr_ui::collections::edit_collection_ui::EditCollectionUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
-use crate::ui::widgets::error_message::ErrorMessage;
 use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{draw_input_box_popup, draw_popup_over, DrawUi};
 
@@ -52,7 +52,7 @@ impl DrawUi for CollectionsUi {
         Size::InputBox,
       ),
       ActiveRadarrBlock::SearchCollectionError => {
-        let popup = Popup::new(ErrorMessage::new("Collection not found!")).size(Size::Error);
+        let popup = Popup::new(Message::new("Collection not found!")).size(Size::Message);
 
         draw_collections(f, app, area);
         f.render_widget(popup, f.size());
@@ -66,10 +66,10 @@ impl DrawUi for CollectionsUi {
         Size::InputBox,
       ),
       ActiveRadarrBlock::FilterCollectionsError => {
-        let popup = Popup::new(ErrorMessage::new(
+        let popup = Popup::new(Message::new(
           "No collections found matching the given filter!",
         ))
-        .size(Size::Error);
+        .size(Size::Message);
 
         draw_collections(f, app, area);
         f.render_widget(popup, f.size());

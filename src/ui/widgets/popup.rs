@@ -12,7 +12,8 @@ mod popup_tests;
 pub enum Size {
   Prompt,
   LargePrompt,
-  Error,
+  Message,
+  LargeMessage,
   InputBox,
   Dropdown,
   Small,
@@ -25,7 +26,8 @@ impl Size {
     match self {
       Size::Prompt => (35, 35),
       Size::LargePrompt => (70, 45),
-      Size::Error => (25, 8),
+      Size::Message => (25, 8),
+      Size::LargeMessage => (25, 25),
       Size::InputBox => (30, 13),
       Size::Dropdown => (20, 30),
       Size::Small => (40, 40),

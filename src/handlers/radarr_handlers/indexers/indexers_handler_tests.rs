@@ -313,6 +313,19 @@ mod tests {
     }
 
     #[test]
+    fn test_test_indexer_esc() {
+      let mut app = App::default();
+      app.data.radarr_data.indexer_test_error = Some("test result".to_owned());
+      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveRadarrBlock::TestIndexer.into());
+
+      IndexersHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::TestIndexer, &None).handle();
+
+      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.data.radarr_data.indexer_test_error, None);
+    }
+
+    #[test]
     fn test_default_esc() {
       let mut app = App::default();
       app.error = "test error".to_owned().into();
@@ -385,6 +398,24 @@ mod tests {
 
       IndexersHandler::with(
         &DEFAULT_KEYBINDINGS.test.key,
+        &mut app,
+        &ActiveRadarrBlock::Indexers,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::TestIndexer.into()
+      );
+    }
+
+    #[test]
+    fn test_test_all_key() {
+      let mut app = App::default();
+
+      IndexersHandler::with(
+        &DEFAULT_KEYBINDINGS.test_all.key,
         &mut app,
         &ActiveRadarrBlock::Indexers,
         &None,

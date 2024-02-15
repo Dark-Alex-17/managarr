@@ -152,6 +152,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.prompt_confirm = false;
       }
+      ActiveRadarrBlock::TestIndexer => {
+        self.app.pop_navigation_stack();
+        self.app.data.radarr_data.indexer_test_error = None;
+      }
       _ => handle_clear_errors(self.app),
     }
   }
@@ -169,6 +173,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
           self.app.should_refresh = true;
         }
         _ if *key == DEFAULT_KEYBINDINGS.test.key => {
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::TestIndexer.into());
+        }
+        _ if *key == DEFAULT_KEYBINDINGS.test_all.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::TestAllIndexers.into());

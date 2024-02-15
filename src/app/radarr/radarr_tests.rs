@@ -162,6 +162,22 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_dispatch_by_test_indexer_block() {
+      let (mut app, mut sync_network_rx) = construct_app_unit();
+
+      app
+        .dispatch_by_radarr_block(&ActiveRadarrBlock::TestIndexer)
+        .await;
+
+      assert!(app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::TestIndexer.into()
+      );
+      assert_eq!(app.tick_count, 0);
+    }
+
+    #[tokio::test]
     async fn test_dispatch_by_test_all_indexers_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
 

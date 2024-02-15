@@ -59,6 +59,7 @@ pub struct RadarrData<'a> {
   pub edit_indexer_modal: Option<EditIndexerModal>,
   pub edit_root_folder: Option<HorizontallyScrollableText>,
   pub indexer_settings: Option<IndexerSettings>,
+  pub indexer_test_error: Option<String>,
   pub indexer_test_all_results: Option<StatefulTable<IndexerTestResultModalItem>>,
   pub movie_details_modal: Option<MovieDetailsModal>,
   pub prompt_confirm: bool,
@@ -107,6 +108,7 @@ impl<'a> Default for RadarrData<'a> {
       edit_indexer_modal: None,
       edit_root_folder: None,
       indexer_settings: None,
+      indexer_test_error: None,
       indexer_test_all_results: None,
       movie_details_modal: None,
       prompt_confirm: false,
@@ -279,6 +281,7 @@ pub enum ActiveRadarrBlock {
   SystemTasks,
   SystemTaskStartConfirmPrompt,
   SystemUpdates,
+  TestIndexer,
   TestAllIndexers,
   UpdateAndScanPrompt,
   UpdateAllCollectionsPrompt,
@@ -309,10 +312,11 @@ pub static COLLECTIONS_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::FilterCollectionsError,
   ActiveRadarrBlock::UpdateAllCollectionsPrompt,
 ];
-pub static INDEXERS_BLOCKS: [ActiveRadarrBlock; 3] = [
+pub static INDEXERS_BLOCKS: [ActiveRadarrBlock; 4] = [
   ActiveRadarrBlock::AddIndexer,
   ActiveRadarrBlock::DeleteIndexerPrompt,
   ActiveRadarrBlock::Indexers,
+  ActiveRadarrBlock::TestIndexer,
 ];
 pub static ROOT_FOLDERS_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::RootFolders,

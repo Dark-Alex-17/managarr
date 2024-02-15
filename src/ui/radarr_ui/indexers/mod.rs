@@ -1,4 +1,5 @@
 use ratatui::layout::{Constraint, Rect};
+use ratatui::style::{Style, Stylize};
 use ratatui::text::Text;
 use ratatui::widgets::{Cell, Row};
 use ratatui::Frame;
@@ -11,9 +12,11 @@ use crate::ui::radarr_ui::indexers::edit_indexer_ui::EditIndexerUi;
 use crate::ui::radarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
 use crate::ui::radarr_ui::indexers::test_all_indexers_ui::TestAllIndexersUi;
 use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::layout_block_top_border;
+use crate::ui::utils::{layout_block_top_border, title_block};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
+use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::DrawUi;
 
@@ -43,6 +46,28 @@ impl DrawUi for IndexersUi {
     let route = *app.get_current_route();
     let mut indexers_matchers = |active_radarr_block| match active_radarr_block {
       ActiveRadarrBlock::Indexers => draw_indexers(f, app, area),
+      ActiveRadarrBlock::TestIndexer => {
+        draw_indexers(f, app, area);
+        if app.is_loading {
+          let loading_popup = Popup::new(LoadingBlock::new(
+            app.is_loading,
+            title_block("Testing Indexer"),
+          ))
+          .size(Size::LargeMessage);
+          f.render_widget(loading_popup, f.size());
+        } else {
+          let popup = if let Some(result) = app.data.radarr_data.indexer_test_error.as_ref() {
+            Popup::new(Message::new(result.clone())).size(Size::LargeMessage)
+          } else {
+            let message = Message::new("Indexer test succeeded!")
+              .title("Success")
+              .style(Style::new().success().bold());
+            Popup::new(message).size(Size::Message)
+          };
+
+          f.render_widget(popup, f.size());
+        }
+      }
       ActiveRadarrBlock::DeleteIndexerPrompt => {
         let prompt = format!(
           "Do you really want to delete this indexer: \n{}?",

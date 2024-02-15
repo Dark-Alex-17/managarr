@@ -17,9 +17,9 @@ use crate::ui::utils::{
   title_block_centered,
 };
 use crate::ui::widgets::button::Button;
-use crate::ui::widgets::error_message::ErrorMessage;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
 use crate::ui::{draw_popup_over, DrawUi};
@@ -79,8 +79,7 @@ impl DrawUi for AddMovieUi {
           ActiveRadarrBlock::AddMovieAlreadyInLibrary => {
             draw_add_movie_search(f, app, area);
             f.render_widget(
-              Popup::new(ErrorMessage::new("This film is already in your library"))
-                .size(Size::Error),
+              Popup::new(Message::new("This film is already in your library")).size(Size::Message),
               f.size(),
             );
           }
@@ -220,8 +219,8 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         let help_paragraph = Paragraph::new(help_text)
           .block(borderless_block())
           .alignment(Alignment::Center);
-        let error_message = ErrorMessage::new("No movies found matching your query!");
-        let error_message_popup = Popup::new(error_message).size(Size::Error);
+        let error_message = Message::new("No movies found matching your query!");
+        let error_message_popup = Popup::new(error_message).size(Size::Message);
 
         f.render_widget(layout_block(), results_area);
         f.render_widget(error_message_popup, f.size());

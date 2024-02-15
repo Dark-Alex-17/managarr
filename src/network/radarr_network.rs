@@ -63,6 +63,7 @@ pub enum RadarrEvent {
   HealthCheck,
   SearchNewMovie,
   StartTask,
+  TestIndexer,
   TestAllIndexers,
   TriggerAutomaticSearch,
   UpdateAllMovies,
@@ -99,6 +100,7 @@ impl RadarrEvent {
       RadarrEvent::GetTags => "/tag",
       RadarrEvent::GetTasks => "/system/task",
       RadarrEvent::GetUpdates => "/update",
+      RadarrEvent::TestIndexer => "/indexer/test",
       RadarrEvent::TestAllIndexers => "/indexer/testall",
       RadarrEvent::StartTask
       | RadarrEvent::GetQueuedEvents
@@ -153,6 +155,7 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::HealthCheck => self.get_healthcheck().await,
       RadarrEvent::SearchNewMovie => self.search_movie().await,
       RadarrEvent::StartTask => self.start_task().await,
+      RadarrEvent::TestIndexer => self.test_indexer().await,
       RadarrEvent::TestAllIndexers => self.test_all_indexers().await,
       RadarrEvent::TriggerAutomaticSearch => self.trigger_automatic_search().await,
       RadarrEvent::UpdateAllMovies => self.update_all_movies().await,
@@ -1521,6 +1524,61 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<CommandBody, Value>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn test_indexer(&mut self) {
+    let id = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .indexers
+      .current_selection()
+      .id;
+    info!("Testing Radarr indexer with ID: {id}");
+
+    info!("Fetching indexer details for indexer with ID: {id}");
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!("{}/{id}", RadarrEvent::GetIndexers.resource()).as_str(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    let mut test_body: Value = Value::default();
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_indexer_body, _| {
+        test_body = detailed_indexer_body;
+      })
+      .await;
+
+    info!("Testing indexer");
+
+    let mut request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::TestIndexer.resource(),
+        RequestMethod::Post,
+        Some(test_body),
+      )
+      .await;
+    request_props.ignore_status_code = true;
+
+    self
+      .handle_request::<Value, Value>(request_props, |test_results, mut app| {
+        if test_results.as_object().is_none() {
+          app.data.radarr_data.indexer_test_error = Some(
+            test_results.as_array().unwrap()[0]
+              .get("errorMessage")
+              .unwrap()
+              .to_string(),
+          );
+        };
+      })
       .await;
   }
 

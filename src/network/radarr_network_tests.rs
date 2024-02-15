@@ -196,6 +196,7 @@ mod test {
   #[case(RadarrEvent::GetTags, "/tag")]
   #[case(RadarrEvent::GetTasks, "/system/task")]
   #[case(RadarrEvent::GetUpdates, "/update")]
+  #[case(RadarrEvent::TestIndexer, "/indexer/test")]
   #[case(RadarrEvent::TestAllIndexers, "/indexer/testall")]
   #[case(RadarrEvent::HealthCheck, "/health")]
   fn test_resource(#[case] event: RadarrEvent, #[case] expected_uri: String) {
@@ -683,6 +684,139 @@ mod test {
     assert_eq!(
       app_arc.lock().await.get_current_route(),
       &ActiveRadarrBlock::Movies.into()
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_test_indexer_event_error() {
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let response_json = json!([
+    {
+        "isWarning": false,
+        "propertyName": "",
+        "errorMessage": "test failure",
+        "severity": "error"
+    }]);
+    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json.clone()),
+      None,
+      &resource,
+    )
+    .await;
+    let async_test_server = server
+      .mock(
+        "POST",
+        format!("/api/v3{}", RadarrEvent::TestIndexer.resource()).as_str(),
+      )
+      .with_status(400)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(indexer_details_json))
+      .with_body(response_json.to_string())
+      .create_async()
+      .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .indexers
+      .set_items(vec![indexer()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network.handle_radarr_event(RadarrEvent::TestIndexer).await;
+
+    async_details_server.assert_async().await;
+    async_test_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.indexer_test_error,
+      Some("\"test failure\"".to_owned())
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_test_indexer_event_success() {
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json.clone()),
+      None,
+      &resource,
+    )
+    .await;
+    let async_test_server = server
+      .mock(
+        "POST",
+        format!("/api/v3{}", RadarrEvent::TestIndexer.resource()).as_str(),
+      )
+      .with_status(200)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(indexer_details_json))
+      .with_body("{}")
+      .create_async()
+      .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .indexers
+      .set_items(vec![indexer()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network.handle_radarr_event(RadarrEvent::TestIndexer).await;
+
+    async_details_server.assert_async().await;
+    async_test_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.indexer_test_error,
+      None
     );
   }
 
