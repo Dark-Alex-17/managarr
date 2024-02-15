@@ -21,14 +21,6 @@ pub static LIBRARY_CONTEXT_CLUES: [ContextClue; 10] = [
   (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
 ];
 
-pub static DOWNLOADS_CONTEXT_CLUES: [ContextClue; 2] = [
-  (
-    DEFAULT_KEYBINDINGS.refresh,
-    DEFAULT_KEYBINDINGS.refresh.desc,
-  ),
-  (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
-];
-
 pub static COLLECTIONS_CONTEXT_CLUES: [ContextClue; 8] = [
   (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
   (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
@@ -43,6 +35,25 @@ pub static COLLECTIONS_CONTEXT_CLUES: [ContextClue; 8] = [
   (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
 ];
 
+pub static DOWNLOADS_CONTEXT_CLUES: [ContextClue; 2] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
+];
+
+pub static BLOCKLIST_CONTEXT_CLUES: [ContextClue; 5] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
+  (DEFAULT_KEYBINDINGS.submit, "details"),
+  (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
+  (DEFAULT_KEYBINDINGS.clear, "clear blocklist"),
+];
+
 pub static ROOT_FOLDERS_CONTEXT_CLUES: [ContextClue; 3] = [
   (DEFAULT_KEYBINDINGS.add, DEFAULT_KEYBINDINGS.add.desc),
   (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
@@ -52,8 +63,7 @@ pub static ROOT_FOLDERS_CONTEXT_CLUES: [ContextClue; 3] = [
   ),
 ];
 
-pub static INDEXERS_CONTEXT_CLUES: [ContextClue; 7] = [
-  (DEFAULT_KEYBINDINGS.add, DEFAULT_KEYBINDINGS.add.desc),
+pub static INDEXERS_CONTEXT_CLUES: [ContextClue; 6] = [
   (DEFAULT_KEYBINDINGS.submit, "edit indexer"),
   (
     DEFAULT_KEYBINDINGS.settings,

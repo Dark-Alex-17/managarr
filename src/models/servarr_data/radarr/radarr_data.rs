@@ -1,13 +1,13 @@
 use crate::app::context_clues::build_context_clue_string;
 use crate::app::radarr::radarr_context_clues::{
-  COLLECTIONS_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
-  LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
+  BLOCKLIST_CONTEXT_CLUES, COLLECTIONS_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
+  INDEXERS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
   MANUAL_MOVIE_SEARCH_CONTEXT_CLUES, MOVIE_DETAILS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
   SYSTEM_CONTEXT_CLUES,
 };
 use crate::models::radarr_models::{
-  AddMovieSearchResult, Collection, CollectionMovie, DiskSpace, DownloadRecord, Indexer,
-  IndexerSettings, Movie, QueueEvent, RootFolder, Task,
+  AddMovieSearchResult, BlocklistItem, Collection, CollectionMovie, DiskSpace, DownloadRecord,
+  Indexer, IndexerSettings, Movie, QueueEvent, RootFolder, Task,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
@@ -40,6 +40,7 @@ pub struct RadarrData<'a> {
   pub selected_block: BlockSelectionState<'a, ActiveRadarrBlock>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub indexers: StatefulTable<Indexer>,
+  pub blocklist: StatefulTable<BlocklistItem>,
   pub quality_profile_map: BiMap<i64, String>,
   pub tags_map: BiMap<i64, String>,
   pub collections: StatefulTable<Collection>,
@@ -91,6 +92,7 @@ impl<'a> Default for RadarrData<'a> {
       selected_block: BlockSelectionState::default(),
       downloads: StatefulTable::default(),
       indexers: StatefulTable::default(),
+      blocklist: StatefulTable::default(),
       quality_profile_map: BiMap::default(),
       tags_map: BiMap::default(),
       collections: StatefulTable::default(),
@@ -123,16 +125,22 @@ impl<'a> Default for RadarrData<'a> {
           contextual_help: Some(build_context_clue_string(&LIBRARY_CONTEXT_CLUES)),
         },
         TabRoute {
+          title: "Collections",
+          route: ActiveRadarrBlock::Collections.into(),
+          help: String::new(),
+          contextual_help: Some(build_context_clue_string(&COLLECTIONS_CONTEXT_CLUES)),
+        },
+        TabRoute {
           title: "Downloads",
           route: ActiveRadarrBlock::Downloads.into(),
           help: String::new(),
           contextual_help: Some(build_context_clue_string(&DOWNLOADS_CONTEXT_CLUES)),
         },
         TabRoute {
-          title: "Collections",
-          route: ActiveRadarrBlock::Collections.into(),
+          title: "Blocklist",
+          route: ActiveRadarrBlock::Blocklist.into(),
           help: String::new(),
-          contextual_help: Some(build_context_clue_string(&COLLECTIONS_CONTEXT_CLUES)),
+          contextual_help: Some(build_context_clue_string(&BLOCKLIST_CONTEXT_CLUES)),
         },
         TabRoute {
           title: "Root Folders",
@@ -213,11 +221,16 @@ pub enum ActiveRadarrBlock {
   AddMovieEmptySearchResults,
   AddRootFolderPrompt,
   AutomaticallySearchMoviePrompt,
+  Blocklist,
+  BlocklistClearAllItemsPrompt,
+  BlocklistItemDetails,
+  BlocklistSortPrompt,
   Collections,
   CollectionsSortPrompt,
   CollectionDetails,
   Cast,
   Crew,
+  DeleteBlocklistItemPrompt,
   DeleteDownloadPrompt,
   DeleteIndexerPrompt,
   DeleteMoviePrompt,
@@ -322,6 +335,13 @@ pub static ROOT_FOLDERS_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::RootFolders,
   ActiveRadarrBlock::AddRootFolderPrompt,
   ActiveRadarrBlock::DeleteRootFolderPrompt,
+];
+pub static BLOCKLIST_BLOCKS: [ActiveRadarrBlock; 5] = [
+  ActiveRadarrBlock::Blocklist,
+  ActiveRadarrBlock::BlocklistItemDetails,
+  ActiveRadarrBlock::DeleteBlocklistItemPrompt,
+  ActiveRadarrBlock::BlocklistClearAllItemsPrompt,
+  ActiveRadarrBlock::BlocklistSortPrompt,
 ];
 pub static ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::AddMovieSearchInput,

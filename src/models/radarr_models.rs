@@ -54,6 +54,29 @@ pub struct AddRootFolderBody {
   pub path: String,
 }
 
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct BlocklistResponse {
+  pub records: Vec<BlocklistItem>,
+}
+
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct BlocklistItem {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub movie_id: i64,
+  pub source_title: String,
+  pub languages: Vec<Language>,
+  pub quality: QualityWrapper,
+  pub custom_formats: Option<Vec<Language>>,
+  pub date: DateTime<Utc>,
+  pub protocol: String,
+  pub indexer: String,
+  pub message: String,
+  pub movie: Movie,
+}
+
 #[derive(Deserialize, Derivative, Default, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Collection {

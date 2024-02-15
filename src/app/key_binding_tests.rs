@@ -13,6 +13,7 @@ mod test {
   #[case(DEFAULT_KEYBINDINGS.left, Key::Left, "left")]
   #[case(DEFAULT_KEYBINDINGS.right, Key::Right, "right")]
   #[case(DEFAULT_KEYBINDINGS.backspace, Key::Backspace, "backspace")]
+  #[case(DEFAULT_KEYBINDINGS.clear, Key::Char('c'), "clear")]
   #[case(DEFAULT_KEYBINDINGS.search, Key::Char('s'), "search")]
   #[case(DEFAULT_KEYBINDINGS.settings, Key::Char('s'), "settings")]
   #[case(DEFAULT_KEYBINDINGS.filter, Key::Char('f'), "filter")]

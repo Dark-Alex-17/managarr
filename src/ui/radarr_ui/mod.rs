@@ -13,6 +13,7 @@ use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie, RootFolder}
 use crate::models::servarr_data::radarr::radarr_data::RadarrData;
 use crate::models::Route;
 use crate::ui::draw_tabs;
+use crate::ui::radarr_ui::blocklist::BlocklistUi;
 use crate::ui::radarr_ui::collections::CollectionsUi;
 use crate::ui::radarr_ui::downloads::DownloadsUi;
 use crate::ui::radarr_ui::indexers::IndexersUi;
@@ -27,6 +28,7 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::DrawUi;
 use crate::utils::convert_to_gb;
 
+mod blocklist;
 mod collections;
 mod downloads;
 mod indexers;
@@ -57,6 +59,7 @@ impl DrawUi for RadarrUi {
       _ if IndexersUi::accepts(route) => IndexersUi::draw(f, app, content_area),
       _ if RootFoldersUi::accepts(route) => RootFoldersUi::draw(f, app, content_area),
       _ if SystemUi::accepts(route) => SystemUi::draw(f, app, content_area),
+      _ if BlocklistUi::accepts(route) => BlocklistUi::draw(f, app, content_area),
       _ => (),
     }
   }

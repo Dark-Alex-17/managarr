@@ -298,6 +298,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.prompt_confirm = false;
       }
+      ActiveRadarrBlock::MoviesSortPrompt => {
+        self.app.pop_navigation_stack();
+      }
       _ => {
         self.app.data.radarr_data.movies.reset_search();
         self.app.data.radarr_data.movies.reset_filter();

@@ -267,7 +267,7 @@ mod tests {
     #[test]
     fn test_collections_tab_left() {
       let mut app = App::default();
-      app.data.radarr_data.main_tabs.set_index(2);
+      app.data.radarr_data.main_tabs.set_index(1);
 
       CollectionsHandler::with(
         &DEFAULT_KEYBINDINGS.left.key,
@@ -279,18 +279,15 @@ mod tests {
 
       assert_eq!(
         app.data.radarr_data.main_tabs.get_active_route(),
-        &ActiveRadarrBlock::Downloads.into()
+        &ActiveRadarrBlock::Movies.into()
       );
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::Downloads.into()
-      );
+      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     }
 
     #[test]
     fn test_collections_tab_right() {
       let mut app = App::default();
-      app.data.radarr_data.main_tabs.set_index(2);
+      app.data.radarr_data.main_tabs.set_index(1);
 
       CollectionsHandler::with(
         &DEFAULT_KEYBINDINGS.right.key,
@@ -302,11 +299,11 @@ mod tests {
 
       assert_eq!(
         app.data.radarr_data.main_tabs.get_active_route(),
-        &ActiveRadarrBlock::RootFolders.into()
+        &ActiveRadarrBlock::Downloads.into()
       );
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::RootFolders.into()
+        &ActiveRadarrBlock::Downloads.into()
       );
     }
 
@@ -830,6 +827,26 @@ mod tests {
         &ActiveRadarrBlock::Collections.into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
+    }
+
+    #[test]
+    fn test_collections_sort_prompt_block_esc() {
+      let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app.push_navigation_stack(ActiveRadarrBlock::CollectionsSortPrompt.into());
+
+      CollectionsHandler::with(
+        &ESC_KEY,
+        &mut app,
+        &ActiveRadarrBlock::CollectionsSortPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
     }
 
     #[test]

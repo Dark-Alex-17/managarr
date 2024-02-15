@@ -1,6 +1,6 @@
 [package]
 name = "managarr"
-version = "0.0.33"
+version = "0.0.34"
 authors = ["Alex Clarke <alex.j.tusa@gmail.com>"]
 description = "A TUI to manage your Servarrs"
 keywords = ["managarr", "tui-rs", "dashboard", "servarr", "tui"]

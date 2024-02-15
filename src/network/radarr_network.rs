@@ -9,11 +9,11 @@ use urlencoding::encode;
 
 use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
-  AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, Collection, CollectionMovie,
-  CommandBody, Credit, CreditType, DiskSpace, DownloadRecord, DownloadsResponse, Indexer,
-  IndexerSettings, IndexerTestResult, LogResponse, Movie, MovieCommandBody, MovieHistoryItem,
-  QualityProfile, QueueEvent, Release, ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task,
-  Update,
+  AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, BlocklistResponse, Collection,
+  CollectionMovie, CommandBody, Credit, CreditType, DiskSpace, DownloadRecord, DownloadsResponse,
+  Indexer, IndexerSettings, IndexerTestResult, LogResponse, Movie, MovieCommandBody,
+  MovieHistoryItem, QualityProfile, QueueEvent, Release, ReleaseDownloadBody, RootFolder,
+  SystemStatus, Tag, Task, Update,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
@@ -33,6 +33,8 @@ mod radarr_network_tests;
 pub enum RadarrEvent {
   AddMovie,
   AddRootFolder,
+  ClearBlocklist,
+  DeleteBlocklistItem,
   DeleteDownload,
   DeleteIndexer,
   DeleteMovie,
@@ -42,6 +44,7 @@ pub enum RadarrEvent {
   EditCollection,
   EditIndexer,
   EditMovie,
+  GetBlocklist,
   GetCollections,
   GetDownloads,
   GetIndexers,
@@ -75,6 +78,9 @@ pub enum RadarrEvent {
 impl RadarrEvent {
   const fn resource(self) -> &'static str {
     match self {
+      RadarrEvent::ClearBlocklist => "/blocklist/bulk",
+      RadarrEvent::DeleteBlocklistItem => "/blocklist",
+      RadarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       RadarrEvent::GetCollections | RadarrEvent::EditCollection => "/collection",
       RadarrEvent::GetDownloads | RadarrEvent::DeleteDownload => "/queue",
       RadarrEvent::GetIndexers | RadarrEvent::EditIndexer | RadarrEvent::DeleteIndexer => {
@@ -125,6 +131,8 @@ impl<'a, 'b> Network<'a, 'b> {
     match radarr_event {
       RadarrEvent::AddMovie => self.add_movie().await,
       RadarrEvent::AddRootFolder => self.add_root_folder().await,
+      RadarrEvent::ClearBlocklist => self.clear_blocklist().await,
+      RadarrEvent::DeleteBlocklistItem => self.delete_blocklist_item().await,
       RadarrEvent::DeleteDownload => self.delete_download().await,
       RadarrEvent::DeleteIndexer => self.delete_indexer().await,
       RadarrEvent::DeleteMovie => self.delete_movie().await,
@@ -134,6 +142,7 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::EditCollection => self.edit_collection().await,
       RadarrEvent::EditIndexer => self.edit_indexer().await,
       RadarrEvent::EditMovie => self.edit_movie().await,
+      RadarrEvent::GetBlocklist => self.get_blocklist().await,
       RadarrEvent::GetCollections => self.get_collections().await,
       RadarrEvent::GetDownloads => self.get_downloads().await,
       RadarrEvent::GetIndexers => self.get_indexers().await,
@@ -316,6 +325,64 @@ impl<'a, 'b> Network<'a, 'b> {
       .handle_request::<Value, Tag>(request_props, |tag, mut app| {
         app.data.radarr_data.tags_map.insert(tag.id, tag.label);
       })
+      .await;
+  }
+
+  async fn clear_blocklist(&mut self) {
+    info!("Clearing Radarr blocklist");
+
+    let ids = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .blocklist
+      .items
+      .iter()
+      .map(|item| item.id)
+      .collect::<Vec<i64>>();
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::ClearBlocklist.resource(),
+        RequestMethod::Delete,
+        Some(json!({"ids": ids})),
+      )
+      .await;
+
+    self
+      .handle_request::<Value, ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn delete_blocklist_item(&mut self) {
+    let blocklist_item_id = self
+      .app
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .blocklist
+      .current_selection()
+      .id;
+
+    info!("Deleting Radarr blocklist item for item with id: {blocklist_item_id}");
+
+    let request_props = self
+      .radarr_request_props_from(
+        format!(
+          "{}/{blocklist_item_id}",
+          RadarrEvent::DeleteBlocklistItem.resource()
+        )
+        .as_str(),
+        RequestMethod::Delete,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
       .await;
   }
 
@@ -791,6 +858,32 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<Value, ()>(request_props, |_, _| ())
+      .await;
+  }
+
+  async fn get_blocklist(&mut self) {
+    info!("Fetching blocklist");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::GetBlocklist.resource(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), BlocklistResponse>(request_props, |blocklist_resp, mut app| {
+        if !matches!(
+          app.get_current_route(),
+          Route::Radarr(ActiveRadarrBlock::BlocklistSortPrompt, _)
+        ) {
+          let mut blocklist_vec = blocklist_resp.records;
+          blocklist_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          app.data.radarr_data.blocklist.set_items(blocklist_vec);
+          app.data.radarr_data.blocklist.apply_sorting_toggle(false);
+        }
+      })
       .await;
   }
 

@@ -312,11 +312,11 @@ mod tests {
 
       assert_eq!(
         app.data.radarr_data.main_tabs.get_active_route(),
-        &ActiveRadarrBlock::Downloads.into()
+        &ActiveRadarrBlock::Collections.into()
       );
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::Downloads.into()
+        &ActiveRadarrBlock::Collections.into()
       );
     }
 
@@ -774,6 +774,23 @@ mod tests {
 
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
       assert!(!app.data.radarr_data.prompt_confirm);
+    }
+
+    #[test]
+    fn test_movies_sort_prompt_block_esc() {
+      let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      app.push_navigation_stack(ActiveRadarrBlock::MoviesSortPrompt.into());
+
+      LibraryHandler::with(
+        &ESC_KEY,
+        &mut app,
+        &ActiveRadarrBlock::MoviesSortPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     }
 
     #[test]

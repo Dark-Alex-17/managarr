@@ -14,6 +14,7 @@ pub struct Message<'a> {
   text: Text<'a>,
   title: &'a str,
   style: Style,
+  alignment: Alignment,
 }
 
 impl<'a> Message<'a> {
@@ -25,6 +26,7 @@ impl<'a> Message<'a> {
       text: message.into(),
       title: "Error",
       style: Style::new().failure().bold(),
+      alignment: Alignment::Center,
     }
   }
 
@@ -38,10 +40,15 @@ impl<'a> Message<'a> {
     self
   }
 
+  pub fn alignment(mut self, alignment: Alignment) -> Self {
+    self.alignment = alignment;
+    self
+  }
+
   fn render_message(self, area: Rect, buf: &mut Buffer) {
     Paragraph::new(self.text)
       .style(self.style)
-      .alignment(Alignment::Center)
+      .alignment(self.alignment)
       .block(title_block_centered(self.title).style(self.style))
       .wrap(Wrap { trim: true })
       .render(area, buf);

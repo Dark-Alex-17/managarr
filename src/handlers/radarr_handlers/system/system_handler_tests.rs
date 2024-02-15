@@ -22,7 +22,7 @@ mod tests {
     #[test]
     fn test_system_tab_left() {
       let mut app = App::default();
-      app.data.radarr_data.main_tabs.set_index(5);
+      app.data.radarr_data.main_tabs.set_index(6);
 
       SystemHandler::with(
         &DEFAULT_KEYBINDINGS.left.key,
@@ -42,7 +42,7 @@ mod tests {
     #[test]
     fn test_system_tab_right() {
       let mut app = App::default();
-      app.data.radarr_data.main_tabs.set_index(5);
+      app.data.radarr_data.main_tabs.set_index(6);
 
       SystemHandler::with(
         &DEFAULT_KEYBINDINGS.right.key,

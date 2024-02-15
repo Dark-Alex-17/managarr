@@ -6,9 +6,11 @@ mod tests {
 
   #[test]
   fn test_dimensions_to_percent() {
+    assert_eq!(Size::SmallPrompt.to_percent(), (20, 20));
     assert_eq!(Size::Prompt.to_percent(), (35, 35));
     assert_eq!(Size::LargePrompt.to_percent(), (70, 45));
     assert_eq!(Size::Message.to_percent(), (25, 8));
+    assert_eq!(Size::NarrowMessage.to_percent(), (50, 20));
     assert_eq!(Size::LargeMessage.to_percent(), (25, 25));
     assert_eq!(Size::InputBox.to_percent(), (30, 13));
     assert_eq!(Size::Dropdown.to_percent(), (20, 30));

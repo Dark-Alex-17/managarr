@@ -36,7 +36,7 @@ pleasant as possible!
 
 ### Radarr
 
-- [x] View your library, downloads, collections
+- [x] View your library, downloads, collections, and blocklist
 - [x] View details of a specific movie including description, history, downloaded file info, or the credits
 - [x] View details of any collection and the movies in them
 - [x] Search your library or collections
@@ -48,6 +48,7 @@ pleasant as possible!
 - [x] Edit your movies, collections, and indexers
 - [x] Manage your tags
 - [x] Manage your root folders
+- [x] Manage your blocklist
 - [ ] Manage your quality profiles
 - [ ] Manage your quality definitions
 - [x] View and browse logs, tasks, events queues, and updates
@@ -144,6 +145,8 @@ tautulli:
 ![logs](screenshots/logs.png)
 ![new_movie_search](screenshots/new_movie_search.png)
 ![add_new_movie](screenshots/add_new_movie.png)
+![collection_details](screenshots/collection_details.png)
+![indexers](screenshots/indexers.png)
 
 ## Dependencies
 * [ratatui](https://github.com/tui-rs-revival/ratatui)

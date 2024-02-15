@@ -78,7 +78,7 @@ mod tests {
     #[test]
     fn test_indexers_tab_left() {
       let mut app = App::default();
-      app.data.radarr_data.main_tabs.set_index(4);
+      app.data.radarr_data.main_tabs.set_index(5);
 
       IndexersHandler::with(
         &DEFAULT_KEYBINDINGS.left.key,
@@ -101,7 +101,7 @@ mod tests {
     #[test]
     fn test_indexers_tab_right() {
       let mut app = App::default();
-      app.data.radarr_data.main_tabs.set_index(4);
+      app.data.radarr_data.main_tabs.set_index(5);
 
       IndexersHandler::with(
         &DEFAULT_KEYBINDINGS.right.key,

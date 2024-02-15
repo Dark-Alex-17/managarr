@@ -15,6 +15,7 @@ generate_keybindings! {
   left,
   right,
   backspace,
+  clear,
   search,
   settings,
   filter,
@@ -66,6 +67,10 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   backspace: KeyBinding {
     key: Key::Backspace,
     desc: "backspace",
+  },
+  clear: KeyBinding {
+    key: Key::Char('c'),
+    desc: "clear",
   },
   search: KeyBinding {
     key: Key::Char('s'),

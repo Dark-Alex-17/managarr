@@ -10,9 +10,11 @@ use ratatui::widgets::{Block, Clear, Paragraph, Widget};
 mod popup_tests;
 
 pub enum Size {
+  SmallPrompt,
   Prompt,
   LargePrompt,
   Message,
+  NarrowMessage,
   LargeMessage,
   InputBox,
   Dropdown,
@@ -24,9 +26,11 @@ pub enum Size {
 impl Size {
   pub fn to_percent(&self) -> (u16, u16) {
     match self {
+      Size::SmallPrompt => (20, 20),
       Size::Prompt => (35, 35),
       Size::LargePrompt => (70, 45),
       Size::Message => (25, 8),
+      Size::NarrowMessage => (50, 20),
       Size::LargeMessage => (25, 25),
       Size::InputBox => (30, 13),
       Size::Dropdown => (20, 30),

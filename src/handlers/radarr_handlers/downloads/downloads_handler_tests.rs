@@ -74,30 +74,10 @@ mod tests {
     #[test]
     fn test_downloads_tab_left() {
       let mut app = App::default();
-      app.data.radarr_data.main_tabs.set_index(1);
+      app.data.radarr_data.main_tabs.set_index(2);
 
       DownloadsHandler::with(
         &DEFAULT_KEYBINDINGS.left.key,
-        &mut app,
-        &ActiveRadarrBlock::Downloads,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(
-        app.data.radarr_data.main_tabs.get_active_route(),
-        &ActiveRadarrBlock::Movies.into()
-      );
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
-    }
-
-    #[test]
-    fn test_downloads_tab_right() {
-      let mut app = App::default();
-      app.data.radarr_data.main_tabs.set_index(1);
-
-      DownloadsHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         &ActiveRadarrBlock::Downloads,
         &None,
@@ -111,6 +91,29 @@ mod tests {
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::Collections.into()
+      );
+    }
+
+    #[test]
+    fn test_downloads_tab_right() {
+      let mut app = App::default();
+      app.data.radarr_data.main_tabs.set_index(2);
+
+      DownloadsHandler::with(
+        &DEFAULT_KEYBINDINGS.right.key,
+        &mut app,
+        &ActiveRadarrBlock::Downloads,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.data.radarr_data.main_tabs.get_active_route(),
+        &ActiveRadarrBlock::Blocklist.into()
+      );
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Blocklist.into()
       );
     }
 

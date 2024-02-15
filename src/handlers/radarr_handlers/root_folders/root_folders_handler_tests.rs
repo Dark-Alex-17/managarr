@@ -123,7 +123,7 @@ mod tests {
     #[test]
     fn test_root_folders_tab_left() {
       let mut app = App::default();
-      app.data.radarr_data.main_tabs.set_index(3);
+      app.data.radarr_data.main_tabs.set_index(4);
 
       RootFoldersHandler::with(
         &DEFAULT_KEYBINDINGS.left.key,
@@ -135,18 +135,18 @@ mod tests {
 
       assert_eq!(
         app.data.radarr_data.main_tabs.get_active_route(),
-        &ActiveRadarrBlock::Collections.into()
+        &ActiveRadarrBlock::Blocklist.into()
       );
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::Collections.into()
+        &ActiveRadarrBlock::Blocklist.into()
       );
     }
 
     #[test]
     fn test_root_folders_tab_right() {
       let mut app = App::default();
-      app.data.radarr_data.main_tabs.set_index(3);
+      app.data.radarr_data.main_tabs.set_index(4);
 
       RootFoldersHandler::with(
         &DEFAULT_KEYBINDINGS.right.key,

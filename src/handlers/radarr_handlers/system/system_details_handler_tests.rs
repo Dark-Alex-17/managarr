@@ -422,11 +422,6 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.push_navigation_stack(ActiveRadarrBlock::SystemUpdates.into());
-      app
-        .data
-        .radarr_data
-        .queued_events
-        .set_items(vec![QueueEvent::default()]);
 
       SystemDetailsHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::SystemUpdates, &None)
         .handle();

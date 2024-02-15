@@ -143,7 +143,11 @@ impl<'a, 'b> Network<'a, 'b> {
         .put(uri)
         .json(&body.unwrap_or_default())
         .header("X-Api-Key", api_token),
-      RequestMethod::Delete => self.client.delete(uri).header("X-Api-Key", api_token),
+      RequestMethod::Delete => self
+        .client
+        .delete(uri)
+        .json(&body.unwrap_or_default())
+        .header("X-Api-Key", api_token),
     }
   }
 }

@@ -6,8 +6,8 @@ mod tests {
 
     use crate::app::context_clues::build_context_clue_string;
     use crate::app::radarr::radarr_context_clues::{
-      COLLECTIONS_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
-      LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
+      BLOCKLIST_CONTEXT_CLUES, COLLECTIONS_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
+      INDEXERS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
       MANUAL_MOVIE_SEARCH_CONTEXT_CLUES, MOVIE_DETAILS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
       SYSTEM_CONTEXT_CLUES,
     };
@@ -64,6 +64,7 @@ mod tests {
       assert_eq!(radarr_data.selected_block, BlockSelectionState::default());
       assert!(radarr_data.downloads.items.is_empty());
       assert!(radarr_data.indexers.items.is_empty());
+      assert!(radarr_data.blocklist.items.is_empty());
       assert!(radarr_data.quality_profile_map.is_empty());
       assert!(radarr_data.tags_map.is_empty());
       assert!(radarr_data.collections.items.is_empty());
@@ -89,7 +90,7 @@ mod tests {
       assert!(!radarr_data.delete_movie_files);
       assert!(!radarr_data.add_list_exclusion);
 
-      assert_eq!(radarr_data.main_tabs.tabs.len(), 6);
+      assert_eq!(radarr_data.main_tabs.tabs.len(), 7);
 
       assert_str_eq!(radarr_data.main_tabs.tabs[0].title, "Library");
       assert_eq!(
@@ -102,58 +103,69 @@ mod tests {
         Some(build_context_clue_string(&LIBRARY_CONTEXT_CLUES))
       );
 
-      assert_str_eq!(radarr_data.main_tabs.tabs[1].title, "Downloads");
+      assert_str_eq!(radarr_data.main_tabs.tabs[1].title, "Collections");
       assert_eq!(
         radarr_data.main_tabs.tabs[1].route,
-        ActiveRadarrBlock::Downloads.into()
+        ActiveRadarrBlock::Collections.into()
       );
       assert!(radarr_data.main_tabs.tabs[1].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[1].contextual_help,
-        Some(build_context_clue_string(&DOWNLOADS_CONTEXT_CLUES))
+        Some(build_context_clue_string(&COLLECTIONS_CONTEXT_CLUES))
       );
 
-      assert_str_eq!(radarr_data.main_tabs.tabs[2].title, "Collections");
+      assert_str_eq!(radarr_data.main_tabs.tabs[2].title, "Downloads");
       assert_eq!(
         radarr_data.main_tabs.tabs[2].route,
-        ActiveRadarrBlock::Collections.into()
+        ActiveRadarrBlock::Downloads.into()
       );
       assert!(radarr_data.main_tabs.tabs[2].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[2].contextual_help,
-        Some(build_context_clue_string(&COLLECTIONS_CONTEXT_CLUES))
+        Some(build_context_clue_string(&DOWNLOADS_CONTEXT_CLUES))
       );
 
-      assert_str_eq!(radarr_data.main_tabs.tabs[3].title, "Root Folders");
+      assert_str_eq!(radarr_data.main_tabs.tabs[3].title, "Blocklist");
       assert_eq!(
         radarr_data.main_tabs.tabs[3].route,
-        ActiveRadarrBlock::RootFolders.into()
+        ActiveRadarrBlock::Blocklist.into()
       );
       assert!(radarr_data.main_tabs.tabs[3].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[3].contextual_help,
-        Some(build_context_clue_string(&ROOT_FOLDERS_CONTEXT_CLUES))
+        Some(build_context_clue_string(&BLOCKLIST_CONTEXT_CLUES))
       );
 
-      assert_str_eq!(radarr_data.main_tabs.tabs[4].title, "Indexers");
+      assert_str_eq!(radarr_data.main_tabs.tabs[4].title, "Root Folders");
       assert_eq!(
         radarr_data.main_tabs.tabs[4].route,
-        ActiveRadarrBlock::Indexers.into()
+        ActiveRadarrBlock::RootFolders.into()
       );
       assert!(radarr_data.main_tabs.tabs[4].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[4].contextual_help,
-        Some(build_context_clue_string(&INDEXERS_CONTEXT_CLUES))
+        Some(build_context_clue_string(&ROOT_FOLDERS_CONTEXT_CLUES))
       );
 
-      assert_str_eq!(radarr_data.main_tabs.tabs[5].title, "System");
+      assert_str_eq!(radarr_data.main_tabs.tabs[5].title, "Indexers");
       assert_eq!(
         radarr_data.main_tabs.tabs[5].route,
-        ActiveRadarrBlock::System.into()
+        ActiveRadarrBlock::Indexers.into()
       );
       assert!(radarr_data.main_tabs.tabs[5].help.is_empty());
       assert_eq!(
         radarr_data.main_tabs.tabs[5].contextual_help,
+        Some(build_context_clue_string(&INDEXERS_CONTEXT_CLUES))
+      );
+
+      assert_str_eq!(radarr_data.main_tabs.tabs[6].title, "System");
+      assert_eq!(
+        radarr_data.main_tabs.tabs[6].route,
+        ActiveRadarrBlock::System.into()
+      );
+      assert!(radarr_data.main_tabs.tabs[6].help.is_empty());
+      assert_eq!(
+        radarr_data.main_tabs.tabs[6].contextual_help,
         Some(build_context_clue_string(&SYSTEM_CONTEXT_CLUES))
       );
 
@@ -246,10 +258,10 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::models::servarr_data::radarr::radarr_data::{
-      ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS, COLLECTIONS_BLOCKS,
-      COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS, DELETE_MOVIE_SELECTION_BLOCKS,
-      DOWNLOADS_BLOCKS, EDIT_COLLECTION_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
-      EDIT_INDEXER_BLOCKS, EDIT_INDEXER_NZB_SELECTION_BLOCKS,
+      ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS, BLOCKLIST_BLOCKS,
+      COLLECTIONS_BLOCKS, COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS,
+      DELETE_MOVIE_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_COLLECTION_BLOCKS,
+      EDIT_COLLECTION_SELECTION_BLOCKS, EDIT_INDEXER_BLOCKS, EDIT_INDEXER_NZB_SELECTION_BLOCKS,
       EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, EDIT_MOVIE_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS,
       INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS,
       MOVIE_DETAILS_BLOCKS, ROOT_FOLDERS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
@@ -294,6 +306,16 @@ mod tests {
       assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveRadarrBlock::RootFolders));
       assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveRadarrBlock::AddRootFolderPrompt));
       assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveRadarrBlock::DeleteRootFolderPrompt));
+    }
+
+    #[test]
+    fn test_blocklist_blocks_contents() {
+      assert_eq!(BLOCKLIST_BLOCKS.len(), 5);
+      assert!(BLOCKLIST_BLOCKS.contains(&ActiveRadarrBlock::Blocklist));
+      assert!(BLOCKLIST_BLOCKS.contains(&ActiveRadarrBlock::BlocklistItemDetails));
+      assert!(BLOCKLIST_BLOCKS.contains(&ActiveRadarrBlock::DeleteBlocklistItemPrompt));
+      assert!(BLOCKLIST_BLOCKS.contains(&ActiveRadarrBlock::BlocklistClearAllItemsPrompt));
+      assert!(BLOCKLIST_BLOCKS.contains(&ActiveRadarrBlock::BlocklistSortPrompt));
     }
 
     #[test]

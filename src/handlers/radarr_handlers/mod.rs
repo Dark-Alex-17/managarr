@@ -1,4 +1,5 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+use crate::handlers::radarr_handlers::blocklist::BlocklistHandler;
 use crate::handlers::radarr_handlers::collections::CollectionsHandler;
 use crate::handlers::radarr_handlers::downloads::DownloadsHandler;
 use crate::handlers::radarr_handlers::indexers::IndexersHandler;
@@ -9,6 +10,7 @@ use crate::handlers::KeyEventHandler;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::{App, Key};
 
+mod blocklist;
 mod collections;
 mod downloads;
 mod indexers;
@@ -53,6 +55,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
       _ if RootFoldersHandler::accepts(self.active_radarr_block) => {
         RootFoldersHandler::with(self.key, self.app, self.active_radarr_block, self.context)
           .handle()
+      }
+      _ if BlocklistHandler::accepts(self.active_radarr_block) => {
+        BlocklistHandler::with(self.key, self.app, self.active_radarr_block, self.context).handle()
       }
       _ => self.handle_key_event(),
     }

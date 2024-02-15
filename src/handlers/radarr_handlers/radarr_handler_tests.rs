@@ -12,12 +12,13 @@ mod tests {
   use crate::test_handler_delegation;
 
   #[rstest]
-  #[case(0, ActiveRadarrBlock::System, ActiveRadarrBlock::Downloads)]
-  #[case(1, ActiveRadarrBlock::Movies, ActiveRadarrBlock::Collections)]
-  #[case(2, ActiveRadarrBlock::Downloads, ActiveRadarrBlock::RootFolders)]
-  #[case(3, ActiveRadarrBlock::Collections, ActiveRadarrBlock::Indexers)]
-  #[case(4, ActiveRadarrBlock::RootFolders, ActiveRadarrBlock::System)]
-  #[case(5, ActiveRadarrBlock::Indexers, ActiveRadarrBlock::Movies)]
+  #[case(0, ActiveRadarrBlock::System, ActiveRadarrBlock::Collections)]
+  #[case(1, ActiveRadarrBlock::Movies, ActiveRadarrBlock::Downloads)]
+  #[case(2, ActiveRadarrBlock::Collections, ActiveRadarrBlock::Blocklist)]
+  #[case(3, ActiveRadarrBlock::Downloads, ActiveRadarrBlock::RootFolders)]
+  #[case(4, ActiveRadarrBlock::Blocklist, ActiveRadarrBlock::Indexers)]
+  #[case(5, ActiveRadarrBlock::RootFolders, ActiveRadarrBlock::System)]
+  #[case(6, ActiveRadarrBlock::Indexers, ActiveRadarrBlock::Movies)]
   fn test_radarr_handler_change_tab_left_right_keys(
     #[case] index: usize,
     #[case] left_block: ActiveRadarrBlock,
@@ -68,6 +69,7 @@ mod tests {
   fn test_delegates_library_blocks_to_library_handler(
     #[values(
       ActiveRadarrBlock::Movies,
+      ActiveRadarrBlock::MoviesSortPrompt,
       ActiveRadarrBlock::SearchMovie,
       ActiveRadarrBlock::SearchMovieError,
       ActiveRadarrBlock::FilterMovies,
@@ -112,6 +114,7 @@ mod tests {
     #[values(
       ActiveRadarrBlock::Collections,
       ActiveRadarrBlock::SearchCollection,
+      ActiveRadarrBlock::CollectionsSortPrompt,
       ActiveRadarrBlock::SearchCollectionError,
       ActiveRadarrBlock::FilterCollections,
       ActiveRadarrBlock::FilterCollectionsError,
@@ -185,6 +188,24 @@ mod tests {
     test_handler_delegation!(
       RadarrHandler,
       ActiveRadarrBlock::RootFolders,
+      active_radarr_block
+    );
+  }
+
+  #[rstest]
+  fn test_delegates_blocklist_blocks_to_blocklist_handler(
+    #[values(
+      ActiveRadarrBlock::Blocklist,
+      ActiveRadarrBlock::BlocklistItemDetails,
+      ActiveRadarrBlock::DeleteBlocklistItemPrompt,
+      ActiveRadarrBlock::BlocklistClearAllItemsPrompt,
+      ActiveRadarrBlock::BlocklistSortPrompt
+    )]
+    active_radarr_block: ActiveRadarrBlock,
+  ) {
+    test_handler_delegation!(
+      RadarrHandler,
+      ActiveRadarrBlock::Blocklist,
       active_radarr_block
     );
   }

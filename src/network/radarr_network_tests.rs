@@ -13,8 +13,8 @@ mod test {
   use tokio_util::sync::CancellationToken;
 
   use crate::models::radarr_models::{
-    CollectionMovie, IndexerField, Language, MediaInfo, MinimumAvailability, Monitor, MovieFile,
-    Quality, QualityWrapper, Rating, RatingsList,
+    BlocklistItem, CollectionMovie, IndexerField, Language, MediaInfo, MinimumAvailability,
+    Monitor, MovieFile, Quality, QualityWrapper, Rating, RatingsList,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::stateful_table::SortOption;
@@ -186,6 +186,9 @@ mod test {
   }
 
   #[rstest]
+  #[case(RadarrEvent::ClearBlocklist, "/blocklist/bulk")]
+  #[case(RadarrEvent::DeleteBlocklistItem, "/blocklist")]
+  #[case(RadarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(RadarrEvent::GetLogs, "/log")]
   #[case(RadarrEvent::SearchNewMovie, "/movie/lookup")]
   #[case(RadarrEvent::GetMovieCredits, "/credit")]
@@ -1304,6 +1307,271 @@ mod test {
 
   #[rstest]
   #[tokio::test]
+  async fn test_handle_get_blocklist_event(#[values(true, false)] use_custom_sorting: bool) {
+    let blocklist_json = json!({"records": [{
+        "id": 123,
+        "movieId": 1007,
+        "sourceTitle": "z movie",
+        "languages": [{"name": "English"}],
+        "quality": {"quality": {"name": "HD - 1080p"}},
+        "customFormats": [{"name": "English"}],
+        "date": "2024-02-10T07:28:45Z",
+        "protocol": "usenet",
+        "indexer": "DrunkenSlug (Prowlarr)",
+        "message": "test message",
+        "movie": {
+          "id": 1007,
+          "title": "z movie",
+          "tmdbId": 1234,
+          "originalLanguage": {"name": "English"},
+          "sizeOnDisk": 3543348019i64,
+          "status": "Downloaded",
+          "overview": "Blah blah blah",
+          "path": "/nfs/movies",
+          "studio": "21st Century Alex",
+          "genres": ["cool", "family", "fun"],
+          "year": 2023,
+          "monitored": true,
+          "hasFile": true,
+          "runtime": 120,
+          "qualityProfileId": 2222,
+          "minimumAvailability": "announced",
+          "certification": "R",
+          "tags": [1],
+          "ratings": {
+            "imdb": {"value": 9.9},
+            "tmdb": {"value": 9.9},
+            "rottenTomatoes": {"value": 9.9}
+          },
+        },
+      }, {
+        "id": 456,
+        "movieId": 2001,
+        "sourceTitle": "A Movie",
+        "languages": [{"name": "English"}],
+        "quality": {"quality": {"name": "HD - 1080p"}},
+        "customFormats": [{"name": "English"}],
+        "date": "2024-02-10T07:28:45Z",
+        "protocol": "usenet",
+        "indexer": "DrunkenSlug (Prowlarr)",
+        "message": "test message",
+        "movie": {
+          "id": 2001,
+          "title": "A Movie",
+          "tmdbId": 1234,
+          "originalLanguage": {"name": "English"},
+          "sizeOnDisk": 3543348019i64,
+          "status": "Downloaded",
+          "overview": "Blah blah blah",
+          "path": "/nfs/movies",
+          "studio": "21st Century Alex",
+          "genres": ["cool", "family", "fun"],
+          "year": 2023,
+          "monitored": true,
+          "hasFile": true,
+          "runtime": 120,
+          "qualityProfileId": 2222,
+          "minimumAvailability": "announced",
+          "certification": "R",
+          "tags": [1],
+          "ratings": {
+            "imdb": {"value": 9.9},
+            "tmdb": {"value": 9.9},
+            "rottenTomatoes": {"value": 9.9}
+          },
+        },
+    }]});
+    let mut expected_blocklist = vec![
+      BlocklistItem {
+        id: 123,
+        movie_id: 1007,
+        source_title: "z movie".into(),
+        movie: Movie {
+          id: 1007,
+          title: "z movie".into(),
+          movie_file: None,
+          collection: None,
+          ..movie()
+        },
+        ..blocklist_item()
+      },
+      BlocklistItem {
+        id: 456,
+        movie_id: 2001,
+        source_title: "A Movie".into(),
+        movie: Movie {
+          id: 2001,
+          title: "A Movie".into(),
+          movie_file: None,
+          collection: None,
+          ..movie()
+        },
+        ..blocklist_item()
+      },
+    ];
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(blocklist_json),
+      None,
+      RadarrEvent::GetBlocklist.resource(),
+    )
+    .await;
+    app_arc.lock().await.data.radarr_data.blocklist.sort_asc = true;
+    if use_custom_sorting {
+      let cmp_fn = |a: &BlocklistItem, b: &BlocklistItem| {
+        a.source_title
+          .to_lowercase()
+          .cmp(&b.source_title.to_lowercase())
+      };
+      expected_blocklist.sort_by(cmp_fn);
+
+      let blocklist_sort_option = SortOption {
+        name: "Source Title",
+        cmp_fn: Some(cmp_fn),
+      };
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .blocklist
+        .sorting(vec![blocklist_sort_option]);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network.handle_radarr_event(RadarrEvent::GetBlocklist).await;
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc.lock().await.data.radarr_data.blocklist.items,
+      expected_blocklist
+    );
+    assert!(app_arc.lock().await.data.radarr_data.blocklist.sort_asc);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_blocklist_event_no_op_when_user_is_selecting_sort_options() {
+    let blocklist_json = json!({"records": [{
+        "id": 123,
+        "movieId": 1007,
+        "sourceTitle": "z movie",
+        "languages": [{"name": "English"}],
+        "quality": {"quality": {"name": "HD - 1080p"}},
+        "customFormats": [{"name": "English"}],
+        "date": "2024-02-10T07:28:45Z",
+        "protocol": "usenet",
+        "indexer": "DrunkenSlug (Prowlarr)",
+        "message": "test message",
+        "movie": {
+          "id": 1007,
+          "title": "z movie",
+          "tmdbId": 1234,
+          "originalLanguage": {"name": "English"},
+          "sizeOnDisk": 3543348019i64,
+          "status": "Downloaded",
+          "overview": "Blah blah blah",
+          "path": "/nfs/movies",
+          "studio": "21st Century Alex",
+          "genres": ["cool", "family", "fun"],
+          "year": 2023,
+          "monitored": true,
+          "hasFile": true,
+          "runtime": 120,
+          "qualityProfileId": 2222,
+          "minimumAvailability": "announced",
+          "certification": "R",
+          "tags": [1],
+          "ratings": {
+            "imdb": {"value": 9.9},
+            "tmdb": {"value": 9.9},
+            "rottenTomatoes": {"value": 9.9}
+          },
+        },
+      }, {
+        "id": 456,
+        "movieId": 2001,
+        "sourceTitle": "A Movie",
+        "languages": [{"name": "English"}],
+        "quality": {"quality": {"name": "HD - 1080p"}},
+        "customFormats": [{"name": "English"}],
+        "date": "2024-02-10T07:28:45Z",
+        "protocol": "usenet",
+        "indexer": "DrunkenSlug (Prowlarr)",
+        "message": "test message",
+        "movie": {
+          "id": 2001,
+          "title": "A Movie",
+          "tmdbId": 1234,
+          "originalLanguage": {"name": "English"},
+          "sizeOnDisk": 3543348019i64,
+          "status": "Downloaded",
+          "overview": "Blah blah blah",
+          "path": "/nfs/movies",
+          "studio": "21st Century Alex",
+          "genres": ["cool", "family", "fun"],
+          "year": 2023,
+          "monitored": true,
+          "hasFile": true,
+          "runtime": 120,
+          "qualityProfileId": 2222,
+          "minimumAvailability": "announced",
+          "certification": "R",
+          "tags": [1],
+          "ratings": {
+            "imdb": {"value": 9.9},
+            "tmdb": {"value": 9.9},
+            "rottenTomatoes": {"value": 9.9}
+          },
+        },
+    }]});
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(blocklist_json),
+      None,
+      RadarrEvent::GetBlocklist.resource(),
+    )
+    .await;
+    app_arc.lock().await.data.radarr_data.blocklist.sort_asc = true;
+    app_arc
+      .lock()
+      .await
+      .push_navigation_stack(ActiveRadarrBlock::BlocklistSortPrompt.into());
+    let cmp_fn = |a: &BlocklistItem, b: &BlocklistItem| {
+      a.source_title
+        .to_lowercase()
+        .cmp(&b.source_title.to_lowercase())
+    };
+    let blocklist_sort_option = SortOption {
+      name: "Source Title",
+      cmp_fn: Some(cmp_fn),
+    };
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .blocklist
+      .sorting(vec![blocklist_sort_option]);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network.handle_radarr_event(RadarrEvent::GetBlocklist).await;
+
+    async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .blocklist
+      .items
+      .is_empty());
+    assert!(app_arc.lock().await.data.radarr_data.blocklist.sort_asc);
+  }
+
+  #[rstest]
+  #[tokio::test]
   async fn test_handle_get_collections_event(#[values(true, false)] use_custom_sorting: bool) {
     let collections_json = json!([{
       "id": 123,
@@ -2152,6 +2420,68 @@ mod test {
     async_server.assert_async().await;
     assert!(!app_arc.lock().await.data.radarr_data.delete_movie_files);
     assert!(!app_arc.lock().await.data.radarr_data.add_list_exclusion);
+  }
+
+  #[tokio::test]
+  async fn test_handle_clear_blocklist_event() {
+    let blocklist_items = vec![
+      BlocklistItem {
+        id: 1,
+        ..blocklist_item()
+      },
+      BlocklistItem {
+        id: 2,
+        ..blocklist_item()
+      },
+      BlocklistItem {
+        id: 3,
+        ..blocklist_item()
+      },
+    ];
+    let expected_request_json = json!({ "ids": [1, 2, 3]});
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Delete,
+      Some(expected_request_json),
+      None,
+      None,
+      RadarrEvent::ClearBlocklist.resource(),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .blocklist
+      .set_items(blocklist_items);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network
+      .handle_radarr_event(RadarrEvent::ClearBlocklist)
+      .await;
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_blocklist_item_event() {
+    let resource = format!("{}/1", RadarrEvent::DeleteBlocklistItem.resource());
+    let (async_server, app_arc, _server) =
+      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .blocklist
+      .set_items(vec![blocklist_item()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    network
+      .handle_radarr_event(RadarrEvent::DeleteBlocklistItem)
+      .await;
+
+    async_server.assert_async().await;
   }
 
   #[tokio::test]
@@ -3308,6 +3638,22 @@ mod test {
       tmdb_id: 1234,
       genres: genres(),
       ratings: ratings_list(),
+    }
+  }
+
+  fn blocklist_item() -> BlocklistItem {
+    BlocklistItem {
+      id: 1,
+      movie_id: 1,
+      source_title: "z movie".to_owned(),
+      languages: vec![language()],
+      quality: quality_wrapper(),
+      custom_formats: Some(vec![language()]),
+      date: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
+      protocol: "usenet".to_owned(),
+      indexer: "DrunkenSlug (Prowlarr)".to_owned(),
+      message: "test message".to_owned(),
+      movie: movie(),
     }
   }
 
