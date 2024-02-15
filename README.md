@@ -40,7 +40,8 @@ pleasant as possible!
 - [x] View details of a specific movie including description, history, downloaded file info, or the credits
 - [x] View details of any collection and the movies in them
 - [x] Search your library or collections
-- [x] Add or delete movies, downloads, and indexers
+- [x] Add movies to your library
+- [x] Delete movies, downloads, and indexers
 - [x] Trigger automatic searches for movies
 - [x] Trigger refresh and disk scan for movies, downloads, and collections
 - [x] Manually search for movies
