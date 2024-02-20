@@ -5,7 +5,9 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::blocklist::{blocklist_sorting_options, BlocklistHandler};
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::{BlocklistItem, Language, Movie, Quality, QualityWrapper};
+  use crate::models::radarr_models::{
+    BlocklistItem, BlocklistItemMovie, Language, Quality, QualityWrapper,
+  };
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, BLOCKLIST_BLOCKS};
   use crate::models::stateful_table::SortOption;
   use chrono::DateTime;
@@ -627,9 +629,8 @@ mod tests {
           name: "nikki".to_owned(),
         }]),
         date: DateTime::from(DateTime::parse_from_rfc3339("2024-01-10T07:28:45Z").unwrap()),
-        movie: Movie {
+        movie: BlocklistItemMovie {
           title: "test 3".into(),
-          ..Movie::default()
         },
         ..BlocklistItem::default()
       },
@@ -653,9 +654,8 @@ mod tests {
           },
         ]),
         date: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
-        movie: Movie {
+        movie: BlocklistItemMovie {
           title: "test 2".into(),
-          ..Movie::default()
         },
         ..BlocklistItem::default()
       },
@@ -674,9 +674,8 @@ mod tests {
           name: "English".to_owned(),
         }]),
         date: DateTime::from(DateTime::parse_from_rfc3339("2024-03-10T07:28:45Z").unwrap()),
-        movie: Movie {
+        movie: BlocklistItemMovie {
           title: "test 1".into(),
-          ..Movie::default()
         },
         ..BlocklistItem::default()
       },

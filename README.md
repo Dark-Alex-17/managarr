@@ -157,7 +157,7 @@ tautulli:
 * [reqwest](https://github.com/seanmonstar/reqwest)
 
 ## Servarr Requirements
-* [Radarr >= v3](https://radarr.video/docs/api/)
+* [Radarr >= 5.3.6.8612](https://radarr.video/docs/api/)
 * [Sonarr >= v3](https://sonarr.tv/docs/api/)
 * [Readarr v1](https://readarr.com/docs/api/)
 * [Lidarr v1](https://lidarr.audio/docs/api/)

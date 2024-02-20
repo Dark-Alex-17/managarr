@@ -74,7 +74,12 @@ pub struct BlocklistItem {
   pub protocol: String,
   pub indexer: String,
   pub message: String,
-  pub movie: Movie,
+  pub movie: BlocklistItemMovie,
+}
+
+#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct BlocklistItemMovie {
+  pub title: HorizontallyScrollableText,
 }
 
 #[derive(Deserialize, Derivative, Default, Clone, Debug, PartialEq, Eq)]
@@ -342,8 +347,7 @@ impl Monitor {
   }
 }
 
-#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[derivative(Default)]
+#[derive(Derivative, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Movie {
   #[serde(deserialize_with = "super::from_i64")]
@@ -372,7 +376,13 @@ pub struct Movie {
   pub tags: Vec<Number>,
   pub ratings: RatingsList,
   pub movie_file: Option<MovieFile>,
-  pub collection: Option<Collection>,
+  pub collection: Option<MovieCollection>,
+}
+
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct MovieCollection {
+  pub title: Option<String>,
 }
 
 #[derive(Default, Serialize, Debug)]
@@ -382,8 +392,7 @@ pub struct MovieCommandBody {
   pub movie_ids: Vec<i64>,
 }
 
-#[derive(Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
-#[derivative(Default)]
+#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct MovieFile {
   pub relative_path: String,

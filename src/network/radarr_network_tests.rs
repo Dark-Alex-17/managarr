@@ -13,8 +13,9 @@ mod test {
   use tokio_util::sync::CancellationToken;
 
   use crate::models::radarr_models::{
-    BlocklistItem, CollectionMovie, IndexerField, Language, MediaInfo, MinimumAvailability,
-    Monitor, MovieFile, Quality, QualityWrapper, Rating, RatingsList,
+    BlocklistItem, BlocklistItemMovie, CollectionMovie, IndexerField, Language, MediaInfo,
+    MinimumAvailability, Monitor, MovieCollection, MovieFile, Quality, QualityWrapper, Rating,
+    RatingsList,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::stateful_table::SortOption;
@@ -1386,12 +1387,8 @@ mod test {
         id: 123,
         movie_id: 1007,
         source_title: "z movie".into(),
-        movie: Movie {
-          id: 1007,
+        movie: BlocklistItemMovie {
           title: "z movie".into(),
-          movie_file: None,
-          collection: None,
-          ..movie()
         },
         ..blocklist_item()
       },
@@ -1399,12 +1396,8 @@ mod test {
         id: 456,
         movie_id: 2001,
         source_title: "A Movie".into(),
-        movie: Movie {
-          id: 2001,
+        movie: BlocklistItemMovie {
           title: "A Movie".into(),
-          movie_file: None,
-          collection: None,
-          ..movie()
         },
         ..blocklist_item()
       },
@@ -3653,7 +3646,13 @@ mod test {
       protocol: "usenet".to_owned(),
       indexer: "DrunkenSlug (Prowlarr)".to_owned(),
       message: "test message".to_owned(),
-      movie: movie(),
+      movie: blocklist_item_movie(),
+    }
+  }
+
+  fn blocklist_item_movie() -> BlocklistItemMovie {
+    BlocklistItemMovie {
+      title: "Test".into(),
     }
   }
 
@@ -3693,7 +3692,13 @@ mod test {
       tags: vec![Number::from(1)],
       ratings: ratings_list(),
       movie_file: Some(movie_file()),
-      collection: Some(collection()),
+      collection: Some(movie_collection()),
+    }
+  }
+
+  fn movie_collection() -> MovieCollection {
+    MovieCollection {
+      title: Some("Test Collection".to_owned()),
     }
   }
 

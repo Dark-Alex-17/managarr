@@ -1195,7 +1195,11 @@ impl<'a, 'b> Network<'a, 'b> {
             Studio: {studio}
             Genres: {}",
             certification.unwrap_or_default(),
-            collection.title,
+            collection
+              .title
+              .as_ref()
+              .unwrap_or(&String::new())
+              .to_owned(),
             genres.join(", ")
           )),
           ..MovieDetailsModal::default()
