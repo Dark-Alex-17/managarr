@@ -213,7 +213,7 @@ fn decorate_with_row_style<'a>(
       .find(|&download| download.movie_id == movie.id)
     {
       if download.status == "downloading" {
-        return row.warning();
+        return row.downloading();
       }
 
       if download.status == "completed" {
@@ -221,13 +221,21 @@ fn decorate_with_row_style<'a>(
       }
     }
 
-    return row.failure();
+    if !movie.monitored {
+      return row.unmonitored_missing();
+    }
+    
+    if movie.status != "released" {
+      return row.unreleased();
+    }
+
+    return row.missing();
   }
 
   if !movie.monitored {
     row.unmonitored()
   } else {
-    row.success()
+    row.downloaded()
   }
 }
 

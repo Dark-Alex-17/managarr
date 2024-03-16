@@ -15,14 +15,19 @@ where
   fn new() -> T;
   fn awaiting_import(self) -> T;
   fn default(self) -> T;
+  fn downloaded(self) -> T;
+  fn downloading(self) -> T;
   fn failure(self) -> T;
   fn help(self) -> T;
   fn highlight(self) -> T;
+  fn missing(self) -> T;
   fn primary(self) -> T;
   fn secondary(self) -> T;
   fn success(self) -> T;
   fn system_function(self) -> T;
   fn unmonitored(self) -> T;
+  fn unmonitored_missing(self) -> T;
+  fn unreleased(self) -> T;
   fn warning(self) -> T;
 }
 
@@ -43,6 +48,14 @@ where
     self.white()
   }
 
+  fn downloaded(self) -> T {
+    self.green()
+  }
+
+  fn downloading(self) -> T {
+    self.magenta()
+  }
+
   fn failure(self) -> T {
     self.red()
   }
@@ -53,6 +66,10 @@ where
 
   fn highlight(self) -> T {
     self.reversed()
+  }
+
+  fn missing(self) -> T {
+    self.red()
   }
 
   fn primary(self) -> T {
@@ -72,9 +89,17 @@ where
   }
 
   fn unmonitored(self) -> T {
-    self.white()
+    self.gray()
   }
 
+  fn unmonitored_missing(self) -> T {
+    self.yellow()
+  }
+
+  fn unreleased(self) -> T {
+    self.light_cyan()
+  }
+  
   fn warning(self) -> T {
     self.magenta()
   }

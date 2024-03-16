@@ -24,6 +24,16 @@ mod test {
   }
 
   #[test]
+  fn test_style_downloaded() {
+    assert_eq!(Style::new().downloaded(), Style::new().green());
+  }
+
+  #[test]
+  fn test_style_downloading() {
+    assert_eq!(Style::new().downloading(), Style::new().magenta());
+  }
+
+  #[test]
   fn test_style_failure() {
     assert_eq!(Style::new().failure(), Style::new().red());
   }
@@ -39,6 +49,11 @@ mod test {
       Style::new().highlight(),
       Style::new().add_modifier(Modifier::REVERSED)
     );
+  }
+
+  #[test]
+  fn test_style_missing() {
+    assert_eq!(Style::new().missing(), Style::new().red());
   }
 
   #[test]
@@ -63,7 +78,17 @@ mod test {
 
   #[test]
   fn test_style_unmonitored() {
-    assert_eq!(Style::new().unmonitored(), Style::new().white());
+    assert_eq!(Style::new().unmonitored(), Style::new().gray());
+  }
+
+  #[test]
+  fn test_style_unmonitored_missing() {
+    assert_eq!(Style::new().unmonitored_missing(), Style::new().yellow());
+  }
+
+  #[test]
+  fn test_style_unreleased() {
+    assert_eq!(Style::new().unreleased(), Style::new().light_cyan());
   }
 
   #[test]
