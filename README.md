@@ -163,3 +163,6 @@ tautulli:
 * [Prowlarr v1](https://prowlarr.com/docs/api/)
 * [Bazarr v1.1.4](http://localhost:6767/api)
 * [Tautulli >= v2](https://github.com/Tautulli/Tautulli/wiki/Tautulli-API-Reference)
+
+## Creator
+* [Alex Clarke](https://github.com/Dark-Alex-17)
