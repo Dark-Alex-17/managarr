@@ -49,8 +49,6 @@ pleasant as possible!
 - [x] Manage your tags
 - [x] Manage your root folders
 - [x] Manage your blocklist
-- [ ] Manage your quality profiles
-- [ ] Manage your quality definitions
 - [x] View and browse logs, tasks, events queues, and updates
 - [x] Manually trigger scheduled tasks
 
