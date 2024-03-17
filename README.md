@@ -46,7 +46,7 @@ curl https://raw.githubusercontent.com/Dark-Alex-17/managarr-demo/main/managarr-
 ```shell
 docker image rm lscr.io/linuxserver/radarr &&\
   docker image rm lscr.io/linuxserver/prowlarr &&\
-  rm -rf /tmp/managarr-demo
+  rm -rf /tmp/managarr*
 ```
 
 ## Features
