@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
   use ratatui::widgets::{Cell, Row};
   use rstest::rstest;
   use strum::IntoEnumIterator;

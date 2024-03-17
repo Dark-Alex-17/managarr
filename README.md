@@ -32,6 +32,23 @@ pleasant as possible!
 - ![bazarr_logo](logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
 - ![tautulli_logo](logos/tautulli.png) [Tautulli](https://tautulli.com/)
 
+## Try Before You Buy
+To try out Managarr before linking it to your HTPC, you can use the purpose built [managarr-demo](https://github.com/Dark-Alex-17/managarr-demo) repository.
+Simply run the following command to start a demo:
+
+```shell
+curl https://raw.githubusercontent.com/Dark-Alex-17/managarr-demo/main/managarr-demo.sh > /tmp/managarr-demo.sh && bash /tmp/managarr-demo.sh
+```
+
+**Note**: This demo does download a handful of images to your local machine, so be sure to run the cleanup command from the [cleanup section](https://github.com/Dark-Alex-17/managarr-demo#Cleanup) of the
+`managarr-demo` README to free space once you're done trying out Managarr:
+
+```shell
+docker image rm lscr.io/linuxserver/radarr &&\
+  docker image rm lscr.io/linuxserver/prowlarr &&\
+  rm -rf /tmp/managarr-demo
+```
+
 ## Features
 
 ### Radarr
@@ -78,6 +95,16 @@ pleasant as possible!
 ### Tautulli
 
 - [ ] Support for Tautulli
+
+## Installation
+
+### Docker
+Run Managarr as a docker container by mounting your `config.yml` file to `/root/.config/managarr/config.yml`. For example:
+```shell
+docker run --rm -it -v ~/.config/managarr:/root/.config/managarr darkalex17/managarr
+```
+
+You can also clone this repo and run `make docker` to build a docker image locally and run it using the above command.
 
 # Configuration
 Managarr assumes reasonable defaults to connect to each service (i.e. Radarr is on localhost:7878),

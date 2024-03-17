@@ -1,4 +1,7 @@
 #!make
+VERSION  := latest
+IMG_NAME := darkalex17/managarr
+IMAGE    := ${IMG_NAME}:${VERSION}
 
 default: run
 
@@ -13,6 +16,9 @@ test-cov:
 
 build: test
 	@cargo build --release
+
+docker:
+	@DOCKER_BUILDKIT=1 docker build --rm -t ${IMAGE} .
 
 run:
 	@CARGO_INCREMENTAL=1 cargo fmt && make lint && cargo run
@@ -35,3 +41,4 @@ release:
 
 delete-tag:
 	@git tag -d ${V} && git push --delete origin ${V}
+

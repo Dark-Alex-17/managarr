@@ -165,6 +165,8 @@ fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
 
 fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   let block = layout_block_top_border();
+  let is_monitored = app.data.radarr_data.movies.current_selection().monitored;
+  let status = app.data.radarr_data.movies.current_selection().status.clone();
 
   match app.data.radarr_data.movie_details_modal.as_ref() {
     Some(movie_details_modal) if !app.is_loading => {
@@ -183,7 +185,7 @@ fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
           .map(|line| {
             let split = line.split(':').collect::<Vec<&str>>();
             let title = format!("{}:", split[0]);
-            let style = style_from_download_status(download_status);
+            let style = style_from_download_status(download_status, is_monitored, status.clone());
 
             Line::from(vec![
               title.bold().style(style),
@@ -518,13 +520,15 @@ fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>) {
   }
 }
 
-fn style_from_download_status(download_status: &str) -> Style {
+fn style_from_download_status(download_status: &str, is_monitored: bool, status: String) -> Style {
   match download_status {
-    "Downloaded" => Style::new().success(),
+    "Downloaded" => Style::new().downloaded(),
     "Awaiting Import" => Style::new().awaiting_import(),
-    "Downloading" => Style::new().warning(),
-    "Missing" => Style::new().failure(),
-    _ => Style::new().success(),
+    "Downloading" => Style::new().downloading(),
+    _ if !is_monitored && download_status == "Missing" => Style::new().unmonitored_missing(),
+    _ if status != "released" && download_status == "Missing" => Style::new().unreleased(),
+    "Missing" => Style::new().missing(),
+    _ => Style::new().downloaded(),
   }
 }
 
