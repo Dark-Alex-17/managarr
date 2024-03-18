@@ -40,15 +40,6 @@ Simply run the following command to start a demo:
 curl https://raw.githubusercontent.com/Dark-Alex-17/managarr-demo/main/managarr-demo.sh > /tmp/managarr-demo.sh && bash /tmp/managarr-demo.sh
 ```
 
-**Note**: This demo does download a handful of images to your local machine, so be sure to run the cleanup command from the [cleanup section](https://github.com/Dark-Alex-17/managarr-demo#Cleanup) of the
-`managarr-demo` README to free space once you're done trying out Managarr:
-
-```shell
-docker image rm lscr.io/linuxserver/radarr &&\
-  docker image rm lscr.io/linuxserver/prowlarr &&\
-  rm -rf /tmp/managarr*
-```
-
 ## Features
 
 ### Radarr
