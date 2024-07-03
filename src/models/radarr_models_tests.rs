@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::assert_str_eq;
+  use pretty_assertions::{assert_eq, assert_str_eq};
 
-  use crate::models::radarr_models::{MinimumAvailability, Monitor};
+  use crate::models::radarr_models::{DownloadRecord, MinimumAvailability, Monitor};
 
   #[test]
   fn test_minimum_availability_display() {
@@ -41,5 +41,33 @@ mod tests {
       "Movie and Collection"
     );
     assert_str_eq!(Monitor::None.to_display_str(), "None");
+  }
+
+  #[test]
+  fn test_download_record_default_indexer_value() {
+    let json = r#"{ 
+      "title": "test",
+      "status": "test",
+      "id": 0,
+      "movieId": 0,
+      "size": 0,
+      "sizeleft": 0,
+      "downloadClient": "test"
+    }"#;
+    let expected_record = DownloadRecord {
+      title: "test".to_owned(),
+      status: "test".to_owned(),
+      id: 0,
+      movie_id: 0,
+      size: 0,
+      sizeleft: 0,
+      output_path: None,
+      indexer: "".to_owned(),
+      download_client: "test".to_owned(),
+    };
+
+    let result: DownloadRecord = serde_json::from_str(json).unwrap();
+
+    assert_eq!(result, expected_record);
   }
 }

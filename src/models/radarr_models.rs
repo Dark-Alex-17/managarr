@@ -162,6 +162,7 @@ pub struct DownloadRecord {
   #[serde(deserialize_with = "super::from_i64")]
   pub sizeleft: i64,
   pub output_path: Option<HorizontallyScrollableText>,
+  #[serde(default)]
   pub indexer: String,
   pub download_client: String,
 }
