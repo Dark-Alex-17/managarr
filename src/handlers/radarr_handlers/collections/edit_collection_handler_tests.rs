@@ -9,6 +9,7 @@ mod tests {
   use crate::handlers::radarr_handlers::collections::edit_collection_handler::EditCollectionHandler;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::MinimumAvailability;
+  use crate::models::servarr_data::radarr::modals::EditCollectionModal;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, EDIT_COLLECTION_BLOCKS,
   };
@@ -146,6 +147,7 @@ mod tests {
     #[rstest]
     fn test_edit_collection_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
       let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.next();
@@ -169,6 +171,31 @@ mod tests {
           &ActiveRadarrBlock::EditCollectionSelectQualityProfile
         );
       }
+    }
+
+    #[rstest]
+    fn test_edit_collection_prompt_scroll_no_op_when_not_ready(
+      #[values(Key::Up, Key::Down)] key: Key,
+    ) {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.next();
+
+      EditCollectionHandler::with(
+        &key,
+        &mut app,
+        &ActiveRadarrBlock::EditCollectionPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.data.radarr_data.selected_block.get_active_block(),
+        &ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
+      );
     }
   }
 
@@ -479,6 +506,7 @@ mod tests {
     #[test]
     fn test_edit_collection_prompt_prompt_decline_submit() {
       let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
       app.data.radarr_data.selected_block =
@@ -507,6 +535,7 @@ mod tests {
     #[test]
     fn test_edit_collection_confirm_prompt_prompt_confirmation_submit() {
       let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
       app.data.radarr_data.prompt_confirm = true;
@@ -535,6 +564,38 @@ mod tests {
         Some(RadarrEvent::EditCollection)
       );
       assert!(app.should_refresh);
+    }
+
+    #[test]
+    fn test_edit_collection_confirm_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
+      app.data.radarr_data.prompt_confirm = true;
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
+
+      EditCollectionHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::EditCollectionPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::EditCollectionPrompt.into()
+      );
+      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert!(!app.should_refresh);
     }
 
     #[test]
@@ -657,6 +718,7 @@ mod tests {
       #[case] index: usize,
     ) {
       let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
       app.push_navigation_stack(
         (
           ActiveRadarrBlock::EditCollectionPrompt,
@@ -697,6 +759,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
       app.push_navigation_stack(active_radarr_block.into());
 
@@ -733,6 +796,7 @@ mod tests {
     fn test_edit_collection_root_folder_path_input_esc() {
       let mut app = App::default();
       app.data.radarr_data = create_test_radarr_data();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionRootFolderPathInput.into());
@@ -784,8 +848,10 @@ mod tests {
         ActiveRadarrBlock::EditCollectionSelectQualityProfile
       )]
       active_radarr_block: ActiveRadarrBlock,
+      #[values(true, false)] is_ready: bool,
     ) {
       let mut app = App::default();
+      app.is_loading = is_ready;
       app.data.radarr_data = create_test_radarr_data();
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(active_radarr_block.into());
@@ -868,5 +934,51 @@ mod tests {
         assert!(!EditCollectionHandler::accepts(&active_radarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_edit_collection_handler_is_not_ready_when_loading() {
+    let mut app = App::default();
+    app.is_loading = true;
+
+    let handler = EditCollectionHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::EditCollectionPrompt,
+      &None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_edit_collection_handler_is_not_ready_when_edit_collection_modal_is_none() {
+    let mut app = App::default();
+    app.is_loading = false;
+
+    let handler = EditCollectionHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::EditCollectionPrompt,
+      &None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_edit_collection_handler_is_ready_when_edit_collection_modal_is_some() {
+    let mut app = App::default();
+    app.is_loading = false;
+    app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
+
+    let handler = EditCollectionHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::EditCollectionPrompt,
+      &None,
+    );
+
+    assert!(handler.is_ready());
   }
 }

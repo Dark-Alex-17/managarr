@@ -8,6 +8,7 @@ use ratatui::Frame;
 
 use crate::app::App;
 use crate::models::radarr_models::{Credit, MovieHistoryItem, Release};
+use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::library::draw_library;
@@ -165,11 +166,17 @@ fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
 
 fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   let block = layout_block_top_border();
-  let is_monitored = app.data.radarr_data.movies.current_selection().monitored;
-  let status = app.data.radarr_data.movies.current_selection().status.clone();
 
   match app.data.radarr_data.movie_details_modal.as_ref() {
     Some(movie_details_modal) if !app.is_loading => {
+      let is_monitored = app.data.radarr_data.movies.current_selection().monitored;
+      let status = app
+        .data
+        .radarr_data
+        .movies
+        .current_selection()
+        .status
+        .clone();
       let movie_details = &movie_details_modal.movie_details;
       let download_status = movie_details
         .items
@@ -368,6 +375,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       _ => (Release::default(), true),
     };
     let current_route = *app.get_current_route();
+    let mut default_movie_details_modal = MovieDetailsModal::default();
     let help_footer = app
       .data
       .radarr_data
@@ -379,7 +387,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .radarr_data
         .movie_details_modal
         .as_mut()
-        .unwrap()
+        .unwrap_or(&mut default_movie_details_modal)
         .movie_releases,
     );
     let releases_row_mapping = |release: &Release| {

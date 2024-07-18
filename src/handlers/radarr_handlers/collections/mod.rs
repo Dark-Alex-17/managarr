@@ -67,6 +67,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
     self.key
   }
 
+  fn is_ready(&self) -> bool {
+    !self.app.is_loading && !self.app.data.radarr_data.collections.is_empty()
+  }
+
   fn handle_scroll_up(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::Collections => self.app.data.radarr_data.collections.scroll_up(),

@@ -133,17 +133,21 @@ pub(super) fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .get_by_left(&movie.quality_profile_id)
         .unwrap()
         .to_owned();
-      let tags = movie
-        .tags
-        .iter()
-        .map(|tag_id| {
-          tags_map
-            .get_by_left(&tag_id.as_i64().unwrap())
-            .unwrap()
-            .clone()
-        })
-        .collect::<Vec<String>>()
-        .join(", ");
+      let tags = if !movie.tags.is_empty() {
+        movie
+          .tags
+          .iter()
+          .map(|tag_id| {
+            tags_map
+              .get_by_left(&tag_id.as_i64().unwrap())
+              .unwrap()
+              .clone()
+          })
+          .collect::<Vec<String>>()
+          .join(", ")
+      } else {
+        String::new()
+      };
 
       decorate_with_row_style(
         downloads_vec,

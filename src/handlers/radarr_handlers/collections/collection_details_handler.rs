@@ -43,6 +43,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
     self.key
   }
 
+  fn is_ready(&self) -> bool {
+    !self.app.is_loading && !self.app.data.radarr_data.collection_movies.is_empty()
+  }
+
   fn handle_scroll_up(&mut self) {
     if ActiveRadarrBlock::CollectionDetails == *self.active_radarr_block {
       self.app.data.radarr_data.collection_movies.scroll_up()

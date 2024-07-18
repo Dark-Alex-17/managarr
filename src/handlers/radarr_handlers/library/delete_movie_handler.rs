@@ -38,6 +38,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'
     self.key
   }
 
+  fn is_ready(&self) -> bool {
+    !self.app.is_loading
+  }
+
   fn handle_scroll_up(&mut self) {
     if *self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
       self.app.data.radarr_data.selected_block.previous();

@@ -38,6 +38,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for TestAllIndexersHandl
     self.key
   }
 
+  fn is_ready(&self) -> bool {
+    let table_is_ready = if let Some(table) = &self.app.data.radarr_data.indexer_test_all_results {
+      !table.is_empty()
+    } else {
+      false
+    };
+
+    !self.app.is_loading && table_is_ready
+  }
+
   fn handle_scroll_up(&mut self) {
     if self.active_radarr_block == &ActiveRadarrBlock::TestAllIndexers {
       self

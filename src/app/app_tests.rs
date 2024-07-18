@@ -40,7 +40,6 @@ mod tests {
         },
       ]
     );
-    assert_str_eq!(app.title, "Managarr");
     assert_eq!(app.tick_until_poll, 400);
     assert_eq!(app.ticks_until_scroll, 4);
     assert_eq!(app.tick_count, 0);

@@ -40,6 +40,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
     self.key
   }
 
+  fn is_ready(&self) -> bool {
+    !self.app.is_loading && self.app.data.radarr_data.edit_indexer_modal.is_some()
+  }
+
   fn handle_scroll_up(&mut self) {
     if self.active_radarr_block == &ActiveRadarrBlock::EditIndexerPrompt {
       self.app.data.radarr_data.selected_block.previous();

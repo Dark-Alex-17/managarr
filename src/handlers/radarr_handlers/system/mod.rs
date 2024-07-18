@@ -53,6 +53,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemHandler<'a, 'b
     self.key
   }
 
+  fn is_ready(&self) -> bool {
+    !self.app.is_loading
+      && !self.app.data.radarr_data.logs.is_empty()
+      && !self.app.data.radarr_data.queued_events.is_empty()
+      && !self.app.data.radarr_data.tasks.is_empty()
+  }
+
   fn handle_scroll_up(&mut self) {}
 
   fn handle_scroll_down(&mut self) {}

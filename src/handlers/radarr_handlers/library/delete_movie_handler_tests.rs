@@ -40,6 +40,25 @@ mod tests {
         );
       }
     }
+
+    #[rstest]
+    fn test_delete_movie_prompt_scroll_no_op_when_not_ready(
+      #[values(Key::Up, Key::Down)] key: Key,
+    ) {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&DELETE_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.next();
+
+      DeleteMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::DeleteMoviePrompt, &None)
+        .handle();
+
+      assert_eq!(
+        app.data.radarr_data.selected_block.get_active_block(),
+        &ActiveRadarrBlock::DeleteMovieToggleAddListExclusion
+      );
+    }
   }
 
   mod test_handle_left_right_action {
@@ -140,6 +159,35 @@ mod tests {
     }
 
     #[test]
+    fn test_delete_movie_confirm_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
+      app.data.radarr_data.prompt_confirm = true;
+      app.data.radarr_data.delete_movie_files = true;
+      app.data.radarr_data.add_list_exclusion = true;
+
+      DeleteMovieHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::DeleteMoviePrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::DeleteMoviePrompt.into()
+      );
+      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert!(!app.should_refresh);
+      assert!(app.data.radarr_data.prompt_confirm);
+      assert!(app.data.radarr_data.delete_movie_files);
+      assert!(app.data.radarr_data.add_list_exclusion);
+    }
+
+    #[test]
     fn test_delete_movie_toggle_delete_files_submit() {
       let current_route = ActiveRadarrBlock::DeleteMoviePrompt.into();
       let mut app = App::default();
@@ -173,12 +221,14 @@ mod tests {
 
   mod test_handle_esc {
     use super::*;
+    use rstest::rstest;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
-    #[test]
-    fn test_delete_movie_prompt_esc() {
+    #[rstest]
+    fn test_delete_movie_prompt_esc(#[values(true, false)] is_ready: bool) {
       let mut app = App::default();
+      app.is_loading = is_ready;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
       app.data.radarr_data.prompt_confirm = true;
@@ -209,5 +259,35 @@ mod tests {
         assert!(!DeleteMovieHandler::accepts(&active_radarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_delete_movie_handler_not_ready_when_loading() {
+    let mut app = App::default();
+    app.is_loading = true;
+
+    let handler = DeleteMovieHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::DeleteMoviePrompt,
+      &None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_delete_movie_handler_ready_when_not_loading() {
+    let mut app = App::default();
+    app.is_loading = false;
+
+    let handler = DeleteMovieHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::DeleteMoviePrompt,
+      &None,
+    );
+
+    assert!(handler.is_ready());
   }
 }

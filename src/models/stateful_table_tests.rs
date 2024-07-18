@@ -638,6 +638,17 @@ mod tests {
     assert_eq!(stateful_table.search, None);
   }
 
+  #[test]
+  fn test_stateful_table_is_empty() {
+    let mut stateful_table = create_test_stateful_table();
+
+    assert!(!stateful_table.is_empty());
+
+    stateful_table = StatefulTable::default();
+
+    assert!(stateful_table.is_empty());
+  }
+
   fn create_test_stateful_table() -> StatefulTable<&'static str> {
     let mut stateful_table = StatefulTable::default();
     stateful_table.set_items(vec!["Test 1", "Test 2"]);

@@ -85,6 +85,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
     self.key
   }
 
+  fn is_ready(&self) -> bool {
+    true
+  }
+
   fn handle_scroll_up(&mut self) {}
 
   fn handle_scroll_down(&mut self) {}

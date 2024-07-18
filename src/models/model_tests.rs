@@ -42,6 +42,18 @@ mod tests {
   }
 
   #[test]
+  fn test_scrollable_text_is_empty() {
+    let scrollable_text = ScrollableText::default();
+
+    assert!(scrollable_text.is_empty());
+
+    let test_text = "Test \nString";
+    let scrollable_text = ScrollableText::with_string(test_text.to_owned());
+
+    assert!(!scrollable_text.is_empty());
+  }
+
+  #[test]
   fn test_scrollable_text_scroll() {
     let mut scrollable_text = ScrollableText::with_string("Test \nString".to_owned());
 

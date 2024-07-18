@@ -41,6 +41,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
     self.key
   }
 
+  fn is_ready(&self) -> bool {
+    !self.app.is_loading && !self.app.data.radarr_data.downloads.is_empty()
+  }
+
   fn handle_scroll_up(&mut self) {
     if self.active_radarr_block == &ActiveRadarrBlock::Downloads {
       self.app.data.radarr_data.downloads.scroll_up()

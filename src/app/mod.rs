@@ -2,7 +2,6 @@ use anyhow::anyhow;
 use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
-use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
 use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
@@ -26,11 +25,9 @@ pub struct App<'a> {
   cancellation_token: CancellationToken,
   pub server_tabs: TabState,
   pub error: HorizontallyScrollableText,
-  pub title: &'static str,
   pub tick_until_poll: u64,
   pub ticks_until_scroll: u64,
   pub tick_count: u64,
-  pub last_tick: Instant,
   pub is_routing: bool,
   pub is_loading: bool,
   pub should_refresh: bool,
@@ -151,11 +148,9 @@ impl<'a> Default for App<'a> {
           contextual_help: None,
         },
       ]),
-      title: "Managarr",
       tick_until_poll: 400,
       ticks_until_scroll: 4,
       tick_count: 0,
-      last_tick: Instant::now(),
       is_loading: false,
       is_routing: false,
       should_refresh: false,

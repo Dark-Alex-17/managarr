@@ -1,9 +1,11 @@
 #[cfg(test)]
 mod tests {
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
   use crate::handlers::KeyEventHandler;
+  use crate::models::servarr_data::radarr::modals::EditIndexerModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
   use strum::IntoEnumIterator;
 
@@ -40,6 +42,26 @@ mod tests {
           &ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch
         );
       }
+    }
+
+    #[rstest]
+    fn test_edit_indexer_prompt_scroll_no_op_when_not_ready(
+      #[values(Key::Up, Key::Down)] key: Key,
+    ) {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.next();
+
+      EditIndexerHandler::with(&key, &mut app, &ActiveRadarrBlock::EditIndexerPrompt, &None)
+        .handle();
+
+      assert_eq!(
+        app.data.radarr_data.selected_block.get_active_block(),
+        &ActiveRadarrBlock::EditIndexerToggleEnableRss
+      );
     }
   }
 
@@ -803,6 +825,32 @@ mod tests {
       );
     }
 
+    #[test]
+    fn test_edit_indexer_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
+      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.radarr_data.prompt_confirm = true;
+
+      EditIndexerHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::EditIndexerPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::EditIndexerPrompt.into()
+      );
+      assert!(app.data.radarr_data.edit_indexer_modal.is_some());
+      assert!(!app.should_refresh);
+      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+    }
+
     #[rstest]
     #[case(0, ActiveRadarrBlock::EditIndexerNameInput)]
     #[case(5, ActiveRadarrBlock::EditIndexerUrlInput)]
@@ -814,6 +862,7 @@ mod tests {
       #[case] block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
+      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
@@ -1177,9 +1226,10 @@ mod tests {
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
-    #[test]
-    fn test_edit_indexer_prompt_esc() {
+    #[rstest]
+    fn test_edit_indexer_prompt_esc(#[values(true, false)] is_ready: bool) {
       let mut app = App::default();
+      app.is_loading = is_ready;
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
@@ -1517,5 +1567,51 @@ mod tests {
         assert!(!EditIndexerHandler::accepts(&active_radarr_block));
       }
     })
+  }
+
+  #[test]
+  fn test_edit_indexer_handler_is_not_ready_when_loading() {
+    let mut app = App::default();
+    app.is_loading = true;
+
+    let handler = EditIndexerHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::EditIndexerPrompt,
+      &None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_edit_indexer_handler_is_not_ready_when_edit_indexer_modal_is_none() {
+    let mut app = App::default();
+    app.is_loading = false;
+
+    let handler = EditIndexerHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::EditIndexerPrompt,
+      &None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_edit_indexer_handler_is_ready_when_edit_indexer_modal_is_some() {
+    let mut app = App::default();
+    app.is_loading = false;
+    app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+
+    let handler = EditIndexerHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::EditIndexerPrompt,
+      &None,
+    );
+
+    assert!(handler.is_ready());
   }
 }

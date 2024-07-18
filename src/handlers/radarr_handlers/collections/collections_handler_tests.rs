@@ -1,9 +1,10 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::{assert_eq, assert_str_eq};
-  use rstest::rstest;
   use std::cmp::Ordering;
   use std::iter;
+
+  use pretty_assertions::{assert_eq, assert_str_eq};
+  use rstest::rstest;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -22,10 +23,10 @@ mod tests {
   use crate::{extended_stateful_iterable_vec, test_handler_delegation};
 
   mod test_handle_scroll_up_and_down {
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
-    use pretty_assertions::assert_eq;
 
     use super::*;
 
@@ -39,6 +40,51 @@ mod tests {
       title,
       to_string
     );
+
+    #[rstest]
+    fn test_collections_scroll_no_op_when_not_ready(
+      #[values(
+			DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key
+		)]
+      key: Key,
+    ) {
+      let mut app = App::default();
+      app.is_loading = true;
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(simple_stateful_iterable_vec!(
+          Collection,
+          HorizontallyScrollableText
+        ));
+
+      CollectionsHandler::with(&key, &mut app, &ActiveRadarrBlock::Collections, &None).handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .collections
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 1"
+      );
+
+      CollectionsHandler::with(&key, &mut app, &ActiveRadarrBlock::Collections, &None).handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .collections
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 1"
+      );
+    }
 
     #[rstest]
     fn test_collections_sort_scroll(
@@ -115,8 +161,65 @@ mod tests {
     );
 
     #[test]
+    fn test_collections_home_end_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(extended_stateful_iterable_vec!(
+          Collection,
+          HorizontallyScrollableText
+        ));
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.end.key,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .collections
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 1"
+      );
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.home.key,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_str_eq!(
+        app
+          .data
+          .radarr_data
+          .collections
+          .current_selection()
+          .title
+          .to_string(),
+        "Test 1"
+      );
+    }
+
+    #[test]
     fn test_collection_search_box_home_end_keys() {
       let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
       app.data.radarr_data.collections.search = Some("Test".into());
 
       CollectionsHandler::with(
@@ -165,6 +268,11 @@ mod tests {
     #[test]
     fn test_collection_filter_box_home_end_keys() {
       let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
       app.data.radarr_data.collections.filter = Some("Test".into());
 
       CollectionsHandler::with(
@@ -264,9 +372,10 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn test_collections_tab_left() {
+    #[rstest]
+    fn test_collections_tab_left(#[values(true, false)] is_ready: bool) {
       let mut app = App::default();
+      app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(1);
 
       CollectionsHandler::with(
@@ -284,9 +393,10 @@ mod tests {
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     }
 
-    #[test]
-    fn test_collections_tab_right() {
+    #[rstest]
+    fn test_collections_tab_right(#[values(true, false)] is_ready: bool) {
       let mut app = App::default();
+      app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(1);
 
       CollectionsHandler::with(
@@ -443,6 +553,11 @@ mod tests {
     #[test]
     fn test_collections_submit() {
       let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
 
       CollectionsHandler::with(
         &SUBMIT_KEY,
@@ -455,6 +570,31 @@ mod tests {
       assert_eq!(
         app.get_current_route(),
         &ActiveRadarrBlock::CollectionDetails.into()
+      );
+    }
+
+    #[test]
+    fn test_collections_submit_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
+
+      CollectionsHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
       );
     }
 
@@ -661,6 +801,11 @@ mod tests {
     #[test]
     fn test_update_all_collections_prompt_confirm_submit() {
       let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
       app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::UpdateAllCollectionsPrompt.into());
@@ -687,6 +832,11 @@ mod tests {
     #[test]
     fn test_update_all_collections_prompt_decline_submit() {
       let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::UpdateAllCollectionsPrompt.into());
 
@@ -849,9 +999,10 @@ mod tests {
       );
     }
 
-    #[test]
-    fn test_default_esc() {
+    #[rstest]
+    fn test_default_esc(#[values(true, false)] is_ready: bool) {
       let mut app = App::default();
+      app.is_loading = is_ready;
       app.error = "test error".to_owned().into();
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
@@ -881,7 +1032,6 @@ mod tests {
   mod test_handle_key_char {
     use bimap::BiMap;
     use pretty_assertions::{assert_eq, assert_str_eq};
-
     use strum::IntoEnumIterator;
 
     use crate::models::radarr_models::MinimumAvailability;
@@ -889,15 +1039,18 @@ mod tests {
     use crate::models::servarr_data::radarr::radarr_data::{
       RadarrData, EDIT_COLLECTION_SELECTION_BLOCKS,
     };
-
-    use crate::models::stateful_table::StatefulTable;
-    use crate::{assert_refresh_key, test_edit_collection_key};
+    use crate::test_edit_collection_key;
 
     use super::*;
 
     #[test]
     fn test_search_collections_key() {
       let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
 
       CollectionsHandler::with(
         &DEFAULT_KEYBINDINGS.search.key,
@@ -919,8 +1072,40 @@ mod tests {
     }
 
     #[test]
+    fn test_search_collections_key_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.search.key,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
+      assert!(!app.should_ignore_quit_key);
+      assert_eq!(app.data.radarr_data.collections.search, None);
+    }
+
+    #[test]
     fn test_filter_collections_key() {
       let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
 
       CollectionsHandler::with(
         &DEFAULT_KEYBINDINGS.filter.key,
@@ -939,12 +1124,43 @@ mod tests {
     }
 
     #[test]
+    fn test_filter_collections_key_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.filter.key,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
+      assert!(!app.should_ignore_quit_key);
+      assert!(app.data.radarr_data.collections.filter.is_none());
+    }
+
+    #[test]
     fn test_filter_collections_key_resets_previous_filter() {
       let mut app = App::default();
+      app.data.radarr_data = create_test_radarr_data();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
-      app.data.radarr_data = create_test_radarr_data();
-      app.data.radarr_data.collections = StatefulTable::default();
       app.data.radarr_data.collections.filter = Some("Test".into());
 
       CollectionsHandler::with(
@@ -978,8 +1194,44 @@ mod tests {
     }
 
     #[test]
+    fn test_collection_edit_key_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      let mut radarr_data = create_test_radarr_data();
+      radarr_data.collections.set_items(vec![Collection {
+        root_folder_path: "/nfs/movies/Test".to_owned().into(),
+        monitored: true,
+        search_on_add: true,
+        quality_profile_id: 2222,
+        minimum_availability: MinimumAvailability::Released,
+        ..Collection::default()
+      }]);
+      app.data.radarr_data = radarr_data;
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.edit.key,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
+      assert!(app.data.radarr_data.edit_collection_modal.is_none());
+    }
+
+    #[test]
     fn test_update_key() {
       let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
 
       CollectionsHandler::with(
         &DEFAULT_KEYBINDINGS.update.key,
@@ -996,13 +1248,89 @@ mod tests {
     }
 
     #[test]
+    fn test_update_key_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.update.key,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
+    }
+
+    #[test]
     fn test_refresh_collections_key() {
-      assert_refresh_key!(CollectionsHandler, ActiveRadarrBlock::Collections);
+      let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.refresh.key,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
+      assert!(app.should_refresh);
+    }
+
+    #[test]
+    fn test_refresh_collections_key_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.refresh.key,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
+      assert!(!app.should_refresh);
     }
 
     #[test]
     fn test_search_collections_box_backspace_key() {
       let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
       app.data.radarr_data.collections.search = Some("Test".into());
 
       CollectionsHandler::with(
@@ -1029,7 +1357,11 @@ mod tests {
     #[test]
     fn test_filter_collections_box_backspace_key() {
       let mut app = App::default();
-      app.data.radarr_data.collections = StatefulTable::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
       app.data.radarr_data.collections.filter = Some("Test".into());
 
       CollectionsHandler::with(
@@ -1056,6 +1388,11 @@ mod tests {
     #[test]
     fn test_search_collections_box_char_key() {
       let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
       app.data.radarr_data.collections.search = Some(HorizontallyScrollableText::default());
 
       CollectionsHandler::with(
@@ -1082,7 +1419,11 @@ mod tests {
     #[test]
     fn test_filter_collections_box_char_key() {
       let mut app = App::default();
-      app.data.radarr_data.collections = StatefulTable::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
       app.data.radarr_data.collections.filter = Some(HorizontallyScrollableText::default());
 
       CollectionsHandler::with(
@@ -1109,6 +1450,11 @@ mod tests {
     #[test]
     fn test_sort_key() {
       let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
 
       CollectionsHandler::with(
         &DEFAULT_KEYBINDINGS.sort.key,
@@ -1133,6 +1479,33 @@ mod tests {
           .items,
         collections_sorting_options()
       );
+      assert!(!app.data.radarr_data.collections.sort_asc);
+    }
+
+    #[test]
+    fn test_sort_key_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.sort.key,
+        &mut app,
+        &ActiveRadarrBlock::Collections,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
+      assert!(app.data.radarr_data.collections.sort.is_none());
       assert!(!app.data.radarr_data.collections.sort_asc);
     }
   }
@@ -1279,6 +1652,72 @@ mod tests {
     assert_str_eq!(sort_option.name, "Monitored");
   }
 
+  #[test]
+  fn test_collections_handler_accepts() {
+    let mut collections_handler_blocks = Vec::new();
+    collections_handler_blocks.extend(COLLECTIONS_BLOCKS);
+    collections_handler_blocks.extend(COLLECTION_DETAILS_BLOCKS);
+    collections_handler_blocks.extend(EDIT_COLLECTION_BLOCKS);
+
+    ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
+      if collections_handler_blocks.contains(&active_radarr_block) {
+        assert!(CollectionsHandler::accepts(&active_radarr_block));
+      } else {
+        assert!(!CollectionsHandler::accepts(&active_radarr_block));
+      }
+    });
+  }
+
+  #[test]
+  fn test_collections_handler_not_ready_when_loading() {
+    let mut app = App::default();
+    app.is_loading = true;
+
+    let handler = CollectionsHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::Collections,
+      &None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_collections_handler_not_ready_when_collections_is_empty() {
+    let mut app = App::default();
+    app.is_loading = false;
+
+    let handler = CollectionsHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::Collections,
+      &None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_collections_handler_ready_when_not_loading_and_collections_is_not_empty() {
+    let mut app = App::default();
+    app.is_loading = false;
+    app
+      .data
+      .radarr_data
+      .collections
+      .set_items(vec![Collection::default()]);
+
+    let handler = CollectionsHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::Collections,
+      &None,
+    );
+
+    assert!(handler.is_ready());
+  }
+
   fn collections_vec() -> Vec<Collection> {
     vec![
       Collection {
@@ -1324,21 +1763,5 @@ mod tests {
           .cmp(&a.title.text.to_lowercase())
       }),
     }]
-  }
-
-  #[test]
-  fn test_collections_handler_accepts() {
-    let mut collections_handler_blocks = Vec::new();
-    collections_handler_blocks.extend(COLLECTIONS_BLOCKS);
-    collections_handler_blocks.extend(COLLECTION_DETAILS_BLOCKS);
-    collections_handler_blocks.extend(EDIT_COLLECTION_BLOCKS);
-
-    ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
-      if collections_handler_blocks.contains(&active_radarr_block) {
-        assert!(CollectionsHandler::accepts(&active_radarr_block));
-      } else {
-        assert!(!CollectionsHandler::accepts(&active_radarr_block));
-      }
-    });
   }
 }

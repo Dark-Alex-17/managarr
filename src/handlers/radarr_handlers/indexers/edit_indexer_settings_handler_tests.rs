@@ -7,6 +7,7 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
   use crate::handlers::KeyEventHandler;
+  use crate::models::radarr_models::IndexerSettings;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS,
   };
@@ -119,6 +120,31 @@ mod tests {
           &ActiveRadarrBlock::IndexerSettingsMaximumSizeInput
         );
       }
+    }
+
+    #[rstest]
+    fn test_edit_indexer_settings_prompt_scroll_no_op_when_not_ready(
+      #[values(Key::Up, Key::Down)] key: Key,
+    ) {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.next();
+
+      IndexerSettingsHandler::with(
+        &key,
+        &mut app,
+        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.data.radarr_data.selected_block.get_active_block(),
+        &ActiveRadarrBlock::IndexerSettingsRetentionInput
+      );
     }
 
     #[rstest]
@@ -462,6 +488,30 @@ mod tests {
       assert!(app.should_refresh);
     }
 
+    #[test]
+    fn test_edit_indexer_settings_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+      app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
+      app.data.radarr_data.prompt_confirm = true;
+
+      IndexerSettingsHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::IndexerSettingsPrompt.into()
+      );
+      assert!(!app.should_refresh);
+    }
+
     #[rstest]
     #[case(ActiveRadarrBlock::IndexerSettingsMinimumAgeInput, 0)]
     #[case(ActiveRadarrBlock::IndexerSettingsRetentionInput, 1)]
@@ -473,6 +523,7 @@ mod tests {
       #[case] index: usize,
     ) {
       let mut app = App::default();
+      app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
@@ -489,9 +540,36 @@ mod tests {
       assert_eq!(app.get_current_route(), &selected_block.into());
     }
 
+    #[rstest]
+    fn test_edit_indexer_settings_prompt_submit_selected_block_no_op_when_not_ready(
+      #[values(0, 1, 2, 5, 6)] index: usize,
+    ) {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
+      app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.set_index(index);
+
+      IndexerSettingsHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::IndexerSettingsPrompt.into()
+      );
+    }
+
     #[test]
     fn test_edit_indexer_settings_prompt_submit_whitelisted_subtitle_tags_input() {
       let mut app = App::default();
+      app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
@@ -669,6 +747,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
+      app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
       app.push_navigation_stack(active_radarr_block.into());
 
@@ -691,9 +770,10 @@ mod tests {
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
-    #[test]
-    fn test_edit_indexer_settings_prompt_esc() {
+    #[rstest]
+    fn test_edit_indexer_settings_prompt_esc(#[values(true, false)] is_ready: bool) {
       let mut app = App::default();
+      app.is_loading = is_ready;
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
@@ -836,5 +916,51 @@ mod tests {
         assert!(!IndexerSettingsHandler::accepts(&active_radarr_block));
       }
     })
+  }
+
+  #[test]
+  fn test_edit_indexer_settings_handler_not_ready_when_loading() {
+    let mut app = App::default();
+    app.is_loading = true;
+
+    let handler = IndexerSettingsHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::IndexerSettingsPrompt,
+      &None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_edit_indexer_settings_handler_not_ready_when_indexer_settings_is_none() {
+    let mut app = App::default();
+    app.is_loading = false;
+
+    let handler = IndexerSettingsHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::IndexerSettingsPrompt,
+      &None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_edit_indexer_settings_handler_ready_when_not_loading_and_indexer_settings_is_some() {
+    let mut app = App::default();
+    app.is_loading = false;
+    app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
+
+    let handler = IndexerSettingsHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::IndexerSettingsPrompt,
+      &None,
+    );
+
+    assert!(handler.is_ready());
   }
 }

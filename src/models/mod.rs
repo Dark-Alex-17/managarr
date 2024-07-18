@@ -52,6 +52,10 @@ impl ScrollableText {
   pub fn get_text(&self) -> String {
     self.items.join("\n")
   }
+
+  pub fn is_empty(&self) -> bool {
+    self.items.is_empty()
+  }
 }
 
 impl Scrollable for ScrollableText {

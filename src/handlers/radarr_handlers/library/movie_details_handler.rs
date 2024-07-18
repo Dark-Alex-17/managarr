@@ -46,6 +46,21 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
     self.key
   }
 
+  fn is_ready(&self) -> bool {
+    let movie_details_modal_is_ready =
+      if let Some(movie_details_modal) = &self.app.data.radarr_data.movie_details_modal {
+        !movie_details_modal.movie_details.is_empty()
+          || !movie_details_modal.movie_history.is_empty()
+          || !movie_details_modal.movie_cast.is_empty()
+          || !movie_details_modal.movie_crew.is_empty()
+          || !movie_details_modal.movie_releases.is_empty()
+      } else {
+        false
+      };
+
+    !self.app.is_loading && movie_details_modal_is_ready
+  }
+
   fn handle_scroll_up(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::MovieDetails => self

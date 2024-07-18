@@ -42,6 +42,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
     self.key
   }
 
+  fn is_ready(&self) -> bool {
+    !self.app.is_loading && !self.app.data.radarr_data.root_folders.is_empty()
+  }
+
   fn handle_scroll_up(&mut self) {
     if self.active_radarr_block == &ActiveRadarrBlock::RootFolders {
       self.app.data.radarr_data.root_folders.scroll_up()

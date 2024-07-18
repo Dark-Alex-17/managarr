@@ -302,4 +302,8 @@ where
   pub fn reset_search(&mut self) {
     self.search = None;
   }
+
+  pub fn is_empty(&self) -> bool {
+    self.items.is_empty()
+  }
 }

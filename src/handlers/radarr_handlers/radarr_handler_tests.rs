@@ -216,4 +216,19 @@ mod tests {
       assert!(RadarrHandler::accepts(&active_radarr_block));
     })
   }
+
+  #[test]
+  fn test_radarr_handler_is_ready() {
+    let mut app = App::default();
+    app.is_loading = true;
+
+    let handler = RadarrHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::System,
+      &None,
+    );
+
+    assert!(handler.is_ready());
+  }
 }

@@ -41,6 +41,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler
     self.key
   }
 
+  fn is_ready(&self) -> bool {
+    !self.app.is_loading
+      && (!self.app.data.radarr_data.log_details.is_empty()
+        || !self.app.data.radarr_data.updates.is_empty())
+  }
+
   fn handle_scroll_up(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::SystemLogs => self.app.data.radarr_data.log_details.scroll_up(),

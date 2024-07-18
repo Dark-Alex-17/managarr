@@ -9,6 +9,7 @@ mod tests {
   use crate::handlers::radarr_handlers::library::edit_movie_handler::EditMovieHandler;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::MinimumAvailability;
+  use crate::models::servarr_data::radarr::modals::EditMovieModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_MOVIE_BLOCKS};
 
   mod test_handle_scroll_up_and_down {
@@ -144,6 +145,7 @@ mod tests {
     #[rstest]
     fn test_edit_movie_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
       let mut app = App::default();
+      app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.next();
 
@@ -160,6 +162,22 @@ mod tests {
           &ActiveRadarrBlock::EditMovieSelectQualityProfile
         );
       }
+    }
+
+    #[rstest]
+    fn test_edit_movie_prompt_scroll_no_op_when_not_ready(#[values(Key::Up, Key::Down)] key: Key) {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
+      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.next();
+
+      EditMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::EditMoviePrompt, &None).handle();
+
+      assert_eq!(
+        app.data.radarr_data.selected_block.get_active_block(),
+        &ActiveRadarrBlock::EditMovieSelectMinimumAvailability
+      );
     }
   }
 
@@ -596,6 +614,7 @@ mod tests {
     #[test]
     fn test_edit_movie_prompt_prompt_decline_submit() {
       let mut app = App::default();
+      app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
       app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
@@ -646,6 +665,31 @@ mod tests {
       );
       assert!(app.data.radarr_data.edit_movie_modal.is_some());
       assert!(app.should_refresh);
+    }
+
+    #[test]
+    fn test_edit_movie_confirm_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
+      app.data.radarr_data.prompt_confirm = true;
+
+      EditMovieHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::EditMoviePrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::EditMoviePrompt.into()
+      );
+      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert!(!app.should_refresh);
     }
 
     #[test]
@@ -710,6 +754,7 @@ mod tests {
       #[case] index: usize,
     ) {
       let mut app = App::default();
+      app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.push_navigation_stack(
         (
           ActiveRadarrBlock::EditMoviePrompt,
@@ -742,6 +787,43 @@ mod tests {
     }
 
     #[rstest]
+    fn test_edit_movie_prompt_selected_block_submit_no_op_when_not_ready(
+      #[values(1, 2, 3, 4)] index: usize,
+    ) {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
+      app.push_navigation_stack(
+        (
+          ActiveRadarrBlock::EditMoviePrompt,
+          Some(ActiveRadarrBlock::Movies),
+        )
+          .into(),
+      );
+      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.set_index(index);
+
+      EditMovieHandler::with(
+        &SUBMIT_KEY,
+        &mut app,
+        &ActiveRadarrBlock::EditMoviePrompt,
+        &Some(ActiveRadarrBlock::Movies),
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &(
+          ActiveRadarrBlock::EditMoviePrompt,
+          Some(ActiveRadarrBlock::Movies),
+        )
+          .into()
+      );
+      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert!(!app.should_ignore_quit_key);
+    }
+
+    #[rstest]
     fn test_edit_movie_prompt_selecting_preferences_blocks_submit(
       #[values(
         ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
@@ -752,6 +834,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
+      app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
       app.push_navigation_stack(active_radarr_block.into());
 
@@ -838,8 +921,10 @@ mod tests {
         ActiveRadarrBlock::EditMovieSelectQualityProfile
       )]
       active_radarr_block: ActiveRadarrBlock,
+      #[values(true, false)] is_ready: bool,
     ) {
       let mut app = App::default();
+      app.is_loading = is_ready;
       app.data.radarr_data = create_test_radarr_data();
       app.push_navigation_stack(active_radarr_block.into());
 
@@ -973,5 +1058,51 @@ mod tests {
         assert!(!EditMovieHandler::accepts(&active_radarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_edit_movie_handler_is_not_ready_when_loading() {
+    let mut app = App::default();
+    app.is_loading = true;
+
+    let handler = EditMovieHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::EditMoviePrompt,
+      &None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_edit_movie_handler_is_not_ready_when_edit_movie_modal_is_none() {
+    let mut app = App::default();
+    app.is_loading = false;
+
+    let handler = EditMovieHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::EditMoviePrompt,
+      &None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_edit_movie_handler_is_ready_when_edit_movie_modal_is_some() {
+    let mut app = App::default();
+    app.is_loading = false;
+    app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
+
+    let handler = EditMovieHandler::with(
+      &DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      &ActiveRadarrBlock::EditMoviePrompt,
+      &None,
+    );
+
+    assert!(handler.is_ready());
   }
 }

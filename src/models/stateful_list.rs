@@ -92,4 +92,8 @@ where
   pub fn current_selection(&self) -> &T {
     &self.items[self.state.selected().unwrap_or(0)]
   }
+
+  pub fn is_empty(&self) -> bool {
+    self.items.is_empty()
+  }
 }

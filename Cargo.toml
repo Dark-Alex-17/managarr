@@ -1,6 +1,6 @@
 [package]
 name = "managarr"
-version = "0.0.34"
+version = "0.0.35"
 authors = ["Alex Clarke <alex.j.tusa@gmail.com>"]
 description = "A TUI to manage your Servarrs"
 keywords = ["managarr", "tui-rs", "dashboard", "servarr", "tui"]
@@ -16,7 +16,7 @@ anyhow = "1.0.68"
 backtrace = "0.3.67"
 bimap = "0.6.3"
 chrono = { version = "0.4", features = ["serde"] }
-confy = { version = "0.6.0", default_features = false, features = ["yaml_conf"] }
+confy = { version = "0.6.0", default-features = false, features = ["yaml_conf"] }
 crossterm = "0.27.0"
 derivative = "2.2.0"
 human-panic = "1.1.3"

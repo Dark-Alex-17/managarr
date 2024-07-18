@@ -102,6 +102,17 @@ mod tests {
     assert_eq!(stateful_list.state.selected(), Some(0));
   }
 
+  #[test]
+  fn test_stateful_list_is_empty() {
+    let mut stateful_list = create_test_stateful_list();
+
+    assert!(!stateful_list.is_empty());
+
+    stateful_list = StatefulList::default();
+
+    assert!(stateful_list.is_empty());
+  }
+
   fn create_test_stateful_list() -> StatefulList<&'static str> {
     let mut stateful_list = StatefulList::default();
     stateful_list.set_items(vec!["Test 1", "Test 2"]);
