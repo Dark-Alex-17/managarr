@@ -1,5 +1,5 @@
-use ratatui::prelude::{Color, Styled};
-use ratatui::style::Stylize;
+use ratatui::prelude::Color;
+use ratatui::style::{Styled, Stylize};
 
 pub const COLOR_ORANGE: Color = Color::Rgb(255, 170, 66);
 
@@ -99,7 +99,7 @@ where
   fn unreleased(self) -> T {
     self.light_cyan()
   }
-  
+
   fn warning(self) -> T {
     self.magenta()
   }

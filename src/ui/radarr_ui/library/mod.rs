@@ -60,7 +60,7 @@ impl DrawUi for LibraryUi {
         let popup = Popup::new(Message::new("Movie not found!")).size(Size::Message);
 
         draw_library(f, app, area);
-        f.render_widget(popup, f.size());
+        f.render_widget(popup, f.area());
       }
       ActiveRadarrBlock::FilterMovies => draw_popup_over(
         f,
@@ -75,7 +75,7 @@ impl DrawUi for LibraryUi {
           .size(Size::Message);
 
         draw_library(f, app, area);
-        f.render_widget(popup, f.size());
+        f.render_widget(popup, f.area());
       }
       ActiveRadarrBlock::UpdateAllMoviesPrompt => {
         let confirmation_prompt = ConfirmationPrompt::new()
@@ -84,7 +84,7 @@ impl DrawUi for LibraryUi {
           .yes_no_value(app.data.radarr_data.prompt_confirm);
 
         draw_library(f, app, area);
-        f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
+        f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
       }
       _ => (),
     };

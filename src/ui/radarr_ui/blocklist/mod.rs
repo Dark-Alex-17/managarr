@@ -56,7 +56,7 @@ impl DrawUi for BlocklistUi {
             .yes_no_value(app.data.radarr_data.prompt_confirm);
 
           draw_blocklist_table(f, app, area);
-          f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
+          f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
         }
         ActiveRadarrBlock::BlocklistClearAllItemsPrompt => {
           let confirmation_prompt = ConfirmationPrompt::new()
@@ -67,7 +67,7 @@ impl DrawUi for BlocklistUi {
           draw_blocklist_table(f, app, area);
           f.render_widget(
             Popup::new(confirmation_prompt).size(Size::SmallPrompt),
-            f.size(),
+            f.area(),
           );
         }
         _ => (),
@@ -197,5 +197,5 @@ fn draw_blocklist_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
     .style(Style::new().secondary())
     .alignment(Alignment::Left);
 
-  f.render_widget(Popup::new(message).size(Size::NarrowMessage), f.size());
+  f.render_widget(Popup::new(message).size(Size::NarrowMessage), f.area());
 }

@@ -42,22 +42,17 @@ where
         return;
       }
 
-      let selected_row = match self.filtered_state.as_ref().unwrap().selected() {
+      match self.filtered_state.as_ref().unwrap().selected() {
         Some(i) => {
           if i >= filtered_items.len() - 1 {
-            0
+            self.filtered_state.as_mut().unwrap().select_first();
           } else {
-            i + 1
+            self.filtered_state.as_mut().unwrap().select_next();
           }
         }
-        None => 0,
+        None => self.filtered_state.as_mut().unwrap().select_first(),
       };
 
-      self
-        .filtered_state
-        .as_mut()
-        .unwrap()
-        .select(Some(selected_row));
       return;
     }
 
@@ -65,18 +60,16 @@ where
       return;
     }
 
-    let selected_row = match self.state.selected() {
+    match self.state.selected() {
       Some(i) => {
         if i >= self.items.len() - 1 {
-          0
+          self.state.select_first();
         } else {
-          i + 1
+          self.state.select_next();
         }
       }
-      None => 0,
+      None => self.state.select_first(),
     };
-
-    self.state.select(Some(selected_row));
   }
 
   fn scroll_up(&mut self) {
@@ -85,22 +78,21 @@ where
         return;
       }
 
-      let selected_row = match self.filtered_state.as_ref().unwrap().selected() {
+      match self.filtered_state.as_ref().unwrap().selected() {
         Some(i) => {
           if i == 0 {
-            filtered_items.len() - 1
+            self
+              .filtered_state
+              .as_mut()
+              .unwrap()
+              .select(Some(filtered_items.len() - 1));
           } else {
-            i - 1
+            self.filtered_state.as_mut().unwrap().select_previous();
           }
         }
-        None => 0,
+        None => self.filtered_state.as_mut().unwrap().select_first(),
       };
 
-      self
-        .filtered_state
-        .as_mut()
-        .unwrap()
-        .select(Some(selected_row));
       return;
     }
 
@@ -108,18 +100,16 @@ where
       return;
     }
 
-    let selected_row = match self.state.selected() {
+    match self.state.selected() {
       Some(i) => {
         if i == 0 {
-          self.items.len() - 1
+          self.state.select(Some(self.items.len() - 1));
         } else {
-          i - 1
+          self.state.select_previous();
         }
       }
-      None => 0,
+      None => self.state.select_first(),
     };
-
-    self.state.select(Some(selected_row));
   }
 
   fn scroll_to_top(&mut self) {
@@ -128,7 +118,7 @@ where
         return;
       }
 
-      self.filtered_state.as_mut().unwrap().select(Some(0));
+      self.filtered_state.as_mut().unwrap().select_first();
       return;
     }
 
@@ -136,7 +126,7 @@ where
       return;
     }
 
-    self.state.select(Some(0));
+    self.state.select_first();
   }
 
   fn scroll_to_bottom(&mut self) {

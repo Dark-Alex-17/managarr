@@ -2,7 +2,8 @@ use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_block, style_block_highlight};
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
-use ratatui::prelude::{Style, Styled, Text, Widget};
+use ratatui::prelude::{Style, Text, Widget};
+use ratatui::style::Styled;
 use ratatui::widgets::Paragraph;
 
 #[cfg(test)]

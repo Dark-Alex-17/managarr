@@ -54,7 +54,7 @@ impl DrawUi for IndexersUi {
             title_block("Testing Indexer"),
           ))
           .size(Size::LargeMessage);
-          f.render_widget(loading_popup, f.size());
+          f.render_widget(loading_popup, f.area());
         } else {
           let popup = if let Some(result) = app.data.radarr_data.indexer_test_error.as_ref() {
             Popup::new(Message::new(result.clone())).size(Size::LargeMessage)
@@ -65,7 +65,7 @@ impl DrawUi for IndexersUi {
             Popup::new(message).size(Size::Message)
           };
 
-          f.render_widget(popup, f.size());
+          f.render_widget(popup, f.area());
         }
       }
       ActiveRadarrBlock::DeleteIndexerPrompt => {
@@ -86,7 +86,7 @@ impl DrawUi for IndexersUi {
           .yes_no_value(app.data.radarr_data.prompt_confirm);
 
         draw_indexers(f, app, area);
-        f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
+        f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
       }
       _ => (),
     };

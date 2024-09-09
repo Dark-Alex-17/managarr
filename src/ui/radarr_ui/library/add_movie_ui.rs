@@ -80,7 +80,7 @@ impl DrawUi for AddMovieUi {
             draw_add_movie_search(f, app, area);
             f.render_widget(
               Popup::new(Message::new("This film is already in your library")).size(Size::Message),
-              f.size(),
+              f.area(),
             );
           }
           _ => (),
@@ -223,7 +223,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         let error_message_popup = Popup::new(error_message).size(Size::Message);
 
         f.render_widget(layout_block(), results_area);
-        f.render_widget(error_message_popup, f.size());
+        f.render_widget(error_message_popup, f.area());
         f.render_widget(help_paragraph, help_area);
       }
       ActiveRadarrBlock::AddMovieSearchResults
@@ -447,7 +447,7 @@ fn draw_add_movie_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
   );
   let popup = Popup::new(monitor_list).size(Size::Dropdown);
 
-  f.render_widget(popup, f.size());
+  f.render_widget(popup, f.area());
 }
 
 fn draw_add_movie_select_minimum_availability_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
@@ -463,7 +463,7 @@ fn draw_add_movie_select_minimum_availability_popup(f: &mut Frame<'_>, app: &mut
   );
   let popup = Popup::new(minimum_availability_list).size(Size::Dropdown);
 
-  f.render_widget(popup, f.size());
+  f.render_widget(popup, f.area());
 }
 
 fn draw_add_movie_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
@@ -479,7 +479,7 @@ fn draw_add_movie_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App<
   );
   let popup = Popup::new(quality_profile_list).size(Size::Dropdown);
 
-  f.render_widget(popup, f.size());
+  f.render_widget(popup, f.area());
 }
 
 fn draw_add_movie_select_root_folder_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
@@ -495,5 +495,5 @@ fn draw_add_movie_select_root_folder_popup(f: &mut Frame<'_>, app: &mut App<'_>)
   );
   let popup = Popup::new(root_folder_list).size(Size::Dropdown);
 
-  f.render_widget(popup, f.size());
+  f.render_widget(popup, f.area());
 }

@@ -1,5 +1,5 @@
 use ratatui::buffer::Buffer;
-use ratatui::layout::{Alignment, Constraint, Layout, Rect};
+use ratatui::layout::{Alignment, Constraint, Layout, Position, Rect};
 use ratatui::prelude::Text;
 use ratatui::style::{Style, Styled, Stylize};
 use ratatui::widgets::{Block, Paragraph, Widget};
@@ -84,12 +84,15 @@ impl<'a> InputBox<'a> {
     };
 
     if self.cursor_after_string {
-      f.set_cursor(
-        area.x + (self.content.len() - self.offset) as u16 + 1,
-        area.y + 1,
-      );
+      f.set_cursor_position(Position {
+        x: area.x + (self.content.len() - self.offset) as u16 + 1,
+        y: area.y + 1,
+      });
     } else {
-      f.set_cursor(area.x + 1u16, area.y + 1);
+      f.set_cursor_position(Position {
+        x: area.x + 1u16,
+        y: area.y + 1,
+      });
     }
   }
 

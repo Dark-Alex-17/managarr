@@ -87,7 +87,7 @@ fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
       .block(block)
       .footer(&help_footer);
 
-    f.render_widget(popup, f.size());
+    f.render_widget(popup, f.area());
     return;
   }
 
@@ -103,7 +103,7 @@ fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
     .block(block)
     .footer(&help_footer);
 
-  f.render_widget(popup, f.size());
+  f.render_widget(popup, f.area());
 }
 
 fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
@@ -145,7 +145,7 @@ fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .prompt(&prompt)
       .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-    f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
+    f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
   }
 }
 
@@ -166,7 +166,7 @@ fn draw_updates_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
       .block(block)
       .footer(&help_footer);
 
-    f.render_widget(popup, f.size());
+    f.render_widget(popup, f.area());
   } else {
     let loading = LoadingBlock::new(app.is_loading, borderless_block());
     let popup = Popup::new(loading)
@@ -174,6 +174,6 @@ fn draw_updates_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
       .block(block)
       .footer(&help_footer);
 
-    f.render_widget(popup, f.size());
+    f.render_widget(popup, f.area());
   }
 }

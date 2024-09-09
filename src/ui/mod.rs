@@ -31,7 +31,7 @@ pub trait DrawUi {
 }
 
 pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
-  f.render_widget(background_block(), f.size());
+  f.render_widget(background_block(), f.area());
   let [header_area, context_area, table_area] = if !app.error.text.is_empty() {
     let [header_area, error_area, context_area, table_area] = Layout::vertical([
       Constraint::Length(3),
@@ -39,7 +39,7 @@ pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
       Constraint::Length(10),
       Constraint::Fill(0),
     ])
-    .areas(f.size());
+    .areas(f.area());
 
     draw_error(f, app, error_area);
 
@@ -50,7 +50,7 @@ pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
       Constraint::Length(10),
       Constraint::Fill(0),
     ])
-    .areas(f.size())
+    .areas(f.area())
   };
 
   draw_header_row(f, app, header_area);
@@ -110,7 +110,7 @@ pub fn draw_popup(
   size: Size,
 ) {
   let (percent_x, percent_y) = size.to_percent();
-  let popup_area = centered_rect(percent_x, percent_y, f.size());
+  let popup_area = centered_rect(percent_x, percent_y, f.area());
   f.render_widget(Clear, popup_area);
   f.render_widget(background_block(), popup_area);
   popup_fn(f, app, popup_area);
@@ -118,7 +118,7 @@ pub fn draw_popup(
 
 fn draw_popup_ui<T: DrawUi>(f: &mut Frame<'_>, app: &mut App<'_>, size: Size) {
   let (percent_x, percent_y) = size.to_percent();
-  let popup_area = centered_rect(percent_x, percent_y, f.size());
+  let popup_area = centered_rect(percent_x, percent_y, f.area());
   f.render_widget(Clear, popup_area);
   f.render_widget(background_block(), popup_area);
   T::draw(f, app, popup_area);

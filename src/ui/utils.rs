@@ -98,7 +98,7 @@ pub fn centered_rect(percent_x: u16, percent_y: u16, area: Rect) -> Rect {
 pub fn line_gauge_with_title(title: &str, ratio: f64) -> LineGauge<'_> {
   LineGauge::new()
     .block(Block::new().title(title))
-    .gauge_style(Style::new().cyan())
+    .filled_style(Style::new().cyan())
     .line_set(symbols::line::THICK)
     .ratio(ratio)
     .label(Line::from(format!("{:.0}%", ratio * 100.0)))
@@ -107,7 +107,7 @@ pub fn line_gauge_with_title(title: &str, ratio: f64) -> LineGauge<'_> {
 pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge<'_> {
   LineGauge::new()
     .block(Block::new())
-    .gauge_style(Style::new().cyan())
+    .filled_style(Style::new().cyan())
     .line_set(symbols::line::THICK)
     .ratio(ratio)
     .label(Line::from(format!("{title}: {:.0}%", ratio * 100.0)))

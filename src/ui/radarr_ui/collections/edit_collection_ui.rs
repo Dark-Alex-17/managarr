@@ -182,7 +182,7 @@ fn draw_edit_collection_select_minimum_availability_popup(f: &mut Frame<'_>, app
   );
   let popup = Popup::new(min_availability_list).size(Size::Dropdown);
 
-  f.render_widget(popup, f.size());
+  f.render_widget(popup, f.area());
 }
 
 fn draw_edit_collection_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
@@ -198,5 +198,5 @@ fn draw_edit_collection_select_quality_profile_popup(f: &mut Frame<'_>, app: &mu
   );
   let popup = Popup::new(quality_profile_list).size(Size::Dropdown);
 
-  f.render_widget(popup, f.size());
+  f.render_widget(popup, f.area());
 }

@@ -51,7 +51,7 @@ impl DrawUi for DeleteMovieUi {
         .yes_no_value(app.data.radarr_data.prompt_confirm);
 
       draw_library(f, app, area);
-      f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.size());
+      f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
     }
   }
 }
