@@ -1,3 +1,5 @@
+use std::sync::atomic::Ordering;
+
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::widgets::ListItem;
 use ratatui::Frame;
@@ -142,7 +144,7 @@ fn draw_edit_collection_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>
 
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     let root_folder_input_box = InputBox::new(&path.text)
-      .offset(*path.offset.borrow())
+      .offset(path.offset.load(Ordering::SeqCst))
       .label("Root Folder")
       .highlighted(selected_block == &ActiveRadarrBlock::EditCollectionRootFolderPathInput)
       .selected(active_radarr_block == ActiveRadarrBlock::EditCollectionRootFolderPathInput);

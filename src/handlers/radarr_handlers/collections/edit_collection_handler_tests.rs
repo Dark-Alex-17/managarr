@@ -200,6 +200,8 @@ mod tests {
   }
 
   mod test_handle_home_end {
+    use std::sync::atomic::Ordering;
+
     use pretty_assertions::assert_eq;
     use strum::IntoEnumIterator;
 
@@ -337,7 +339,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_collection_modal
@@ -345,7 +347,7 @@ mod tests {
           .unwrap()
           .path
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         4
       );
 
@@ -358,7 +360,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_collection_modal
@@ -366,13 +368,15 @@ mod tests {
           .unwrap()
           .path
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
   }
 
   mod test_handle_left_right_action {
+    use std::sync::atomic::Ordering;
+
     use crate::models::servarr_data::radarr::modals::EditCollectionModal;
     use rstest::rstest;
 
@@ -420,7 +424,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_collection_modal
@@ -428,7 +432,7 @@ mod tests {
           .unwrap()
           .path
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         1
       );
 
@@ -441,7 +445,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_collection_modal
@@ -449,7 +453,7 @@ mod tests {
           .unwrap()
           .path
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -561,7 +565,7 @@ mod tests {
       );
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditCollection)
+        Some(RadarrEvent::EditCollection(None))
       );
       assert!(app.should_refresh);
     }

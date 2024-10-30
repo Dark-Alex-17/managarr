@@ -1,3 +1,5 @@
+use std::sync::atomic::Ordering;
+
 use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Text};
@@ -187,7 +189,7 @@ pub fn draw_input_box_popup(
     .areas(area);
 
   let input_box = InputBox::new(&box_content.text)
-    .offset(*box_content.offset.borrow())
+    .offset(box_content.offset.load(Ordering::SeqCst))
     .block(title_block_centered(box_title));
 
   input_box.show_cursor(f, text_box_area);

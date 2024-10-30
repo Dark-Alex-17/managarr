@@ -104,7 +104,7 @@ mod tests {
       IndexerSettingsHandler::with(
         &key,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
@@ -136,7 +136,7 @@ mod tests {
       IndexerSettingsHandler::with(
         &key,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
@@ -201,6 +201,8 @@ mod tests {
   }
 
   mod test_handle_home_end {
+    use std::sync::atomic::Ordering;
+
     use pretty_assertions::assert_eq;
 
     use crate::models::radarr_models::IndexerSettings;
@@ -224,7 +226,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .indexer_settings
@@ -232,7 +234,7 @@ mod tests {
           .unwrap()
           .whitelisted_hardcoded_subs
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         4
       );
 
@@ -245,7 +247,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .indexer_settings
@@ -253,13 +255,15 @@ mod tests {
           .unwrap()
           .whitelisted_hardcoded_subs
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
   }
 
   mod test_handle_left_right_action {
+    use std::sync::atomic::Ordering;
+
     use crate::models::radarr_models::IndexerSettings;
     use crate::models::servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
@@ -278,7 +282,7 @@ mod tests {
       IndexerSettingsHandler::with(
         &key,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
@@ -288,7 +292,7 @@ mod tests {
       IndexerSettingsHandler::with(
         &key,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
@@ -336,7 +340,7 @@ mod tests {
       IndexerSettingsHandler::with(
         &key,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
@@ -349,7 +353,7 @@ mod tests {
       IndexerSettingsHandler::with(
         &key,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
@@ -377,7 +381,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .indexer_settings
@@ -385,7 +389,7 @@ mod tests {
           .unwrap()
           .whitelisted_hardcoded_subs
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         1
       );
 
@@ -398,7 +402,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .indexer_settings
@@ -406,7 +410,7 @@ mod tests {
           .unwrap()
           .whitelisted_hardcoded_subs
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -432,7 +436,7 @@ mod tests {
     fn test_edit_indexer_settings_prompt_prompt_decline_submit() {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
       app
@@ -445,7 +449,7 @@ mod tests {
       IndexerSettingsHandler::with(
         &SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
@@ -460,7 +464,7 @@ mod tests {
     fn test_edit_indexer_settings_prompt_prompt_confirmation_submit() {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
       app
@@ -474,7 +478,7 @@ mod tests {
       IndexerSettingsHandler::with(
         &SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
@@ -482,7 +486,7 @@ mod tests {
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditAllIndexerSettings)
+        Some(RadarrEvent::EditAllIndexerSettings(None))
       );
       assert!(app.data.radarr_data.indexer_settings.is_some());
       assert!(app.should_refresh);
@@ -493,21 +497,21 @@ mod tests {
       let mut app = App::default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.data.radarr_data.prompt_confirm = true;
 
       IndexerSettingsHandler::with(
         &SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::IndexerSettingsPrompt.into()
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt.into()
       );
       assert!(!app.should_refresh);
     }
@@ -524,7 +528,7 @@ mod tests {
     ) {
       let mut app = App::default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
-      app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.set_index(index);
@@ -532,7 +536,7 @@ mod tests {
       IndexerSettingsHandler::with(
         &SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
@@ -547,7 +551,7 @@ mod tests {
       let mut app = App::default();
       app.is_loading = true;
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
-      app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.set_index(index);
@@ -555,14 +559,14 @@ mod tests {
       IndexerSettingsHandler::with(
         &SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::IndexerSettingsPrompt.into()
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt.into()
       );
     }
 
@@ -570,7 +574,7 @@ mod tests {
     fn test_edit_indexer_settings_prompt_submit_whitelisted_subtitle_tags_input() {
       let mut app = App::default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
-      app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.set_index(7);
@@ -578,7 +582,7 @@ mod tests {
       IndexerSettingsHandler::with(
         &SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
@@ -597,19 +601,19 @@ mod tests {
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.set_index(3);
-      app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
 
       IndexerSettingsHandler::with(
         &SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::IndexerSettingsPrompt.into()
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt.into()
       );
       assert!(
         app
@@ -624,14 +628,14 @@ mod tests {
       IndexerSettingsHandler::with(
         &SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::IndexerSettingsPrompt.into()
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt.into()
       );
       assert!(
         !app
@@ -651,19 +655,19 @@ mod tests {
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.set_index(8);
-      app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
 
       IndexerSettingsHandler::with(
         &SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::IndexerSettingsPrompt.into()
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt.into()
       );
       assert!(
         app
@@ -678,14 +682,14 @@ mod tests {
       IndexerSettingsHandler::with(
         &SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::IndexerSettingsPrompt.into()
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt.into()
       );
       assert!(
         !app
@@ -706,7 +710,7 @@ mod tests {
         whitelisted_hardcoded_subs: "Test tags".into(),
         ..IndexerSettings::default()
       });
-      app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.push_navigation_stack(
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput.into(),
       );
@@ -731,7 +735,7 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::IndexerSettingsPrompt.into()
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt.into()
       );
     }
 
@@ -748,14 +752,14 @@ mod tests {
     ) {
       let mut app = App::default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
-      app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.push_navigation_stack(active_radarr_block.into());
 
       IndexerSettingsHandler::with(&SUBMIT_KEY, &mut app, &active_radarr_block, &None).handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::IndexerSettingsPrompt.into()
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt.into()
       );
     }
   }
@@ -775,13 +779,13 @@ mod tests {
       let mut app = App::default();
       app.is_loading = is_ready;
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
 
       IndexerSettingsHandler::with(
         &ESC_KEY,
         &mut app,
-        &ActiveRadarrBlock::IndexerSettingsPrompt,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
         &None,
       )
       .handle();
@@ -926,7 +930,7 @@ mod tests {
     let handler = IndexerSettingsHandler::with(
       &DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::IndexerSettingsPrompt,
+      &ActiveRadarrBlock::AllIndexerSettingsPrompt,
       &None,
     );
 
@@ -941,7 +945,7 @@ mod tests {
     let handler = IndexerSettingsHandler::with(
       &DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::IndexerSettingsPrompt,
+      &ActiveRadarrBlock::AllIndexerSettingsPrompt,
       &None,
     );
 
@@ -957,7 +961,7 @@ mod tests {
     let handler = IndexerSettingsHandler::with(
       &DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::IndexerSettingsPrompt,
+      &ActiveRadarrBlock::AllIndexerSettingsPrompt,
       &None,
     );
 

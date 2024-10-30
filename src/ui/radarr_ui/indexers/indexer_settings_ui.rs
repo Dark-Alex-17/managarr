@@ -1,3 +1,5 @@
+use std::sync::atomic::Ordering;
+
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::Frame;
 
@@ -114,7 +116,12 @@ fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area:
         .selected(active_radarr_block == ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput);
       let whitelisted_subs_input_box =
         InputBox::new(&indexer_settings.whitelisted_hardcoded_subs.text)
-          .offset(*indexer_settings.whitelisted_hardcoded_subs.offset.borrow())
+          .offset(
+            indexer_settings
+              .whitelisted_hardcoded_subs
+              .offset
+              .load(Ordering::SeqCst),
+          )
           .label("Whitelisted Subtitle Tags")
           .highlighted(
             selected_block == &ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,

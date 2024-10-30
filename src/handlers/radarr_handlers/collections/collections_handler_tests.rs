@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+  use core::sync::atomic::Ordering::SeqCst;
   use std::cmp::Ordering;
   use std::iter;
 
@@ -231,7 +232,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .collections
@@ -239,7 +240,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .offset
-          .borrow(),
+          .load(SeqCst),
         4
       );
 
@@ -252,7 +253,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .collections
@@ -260,7 +261,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .offset
-          .borrow(),
+          .load(SeqCst),
         0
       );
     }
@@ -284,7 +285,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .collections
@@ -292,7 +293,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .offset
-          .borrow(),
+          .load(SeqCst),
         4
       );
 
@@ -305,7 +306,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .collections
@@ -313,7 +314,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .offset
-          .borrow(),
+          .load(SeqCst),
         0
       );
     }
@@ -458,7 +459,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .collections
@@ -466,7 +467,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .offset
-          .borrow(),
+          .load(SeqCst),
         1
       );
 
@@ -479,7 +480,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .collections
@@ -487,7 +488,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .offset
-          .borrow(),
+          .load(SeqCst),
         0
       );
     }
@@ -506,7 +507,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .collections
@@ -514,7 +515,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .offset
-          .borrow(),
+          .load(SeqCst),
         1
       );
 
@@ -527,7 +528,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .collections
@@ -535,7 +536,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .offset
-          .borrow(),
+          .load(SeqCst),
         0
       );
     }

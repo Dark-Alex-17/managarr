@@ -1,18 +1,21 @@
 use std::fmt::{Display, Formatter};
 
 use chrono::{DateTime, Utc};
+use clap::ValueEnum;
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
-use serde_json::{Number, Value};
+use serde_json::{json, Number, Value};
 use strum_macros::EnumIter;
 
-use crate::models::HorizontallyScrollableText;
+use crate::{models::HorizontallyScrollableText, serde_enum_from};
+
+use super::Serdeable;
 
 #[cfg(test)]
 #[path = "radarr_models_tests.rs"]
 mod radarr_models_tests;
 
-#[derive(Default, Serialize, Debug)]
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AddMovieBody {
   pub tmdb_id: i64,
@@ -25,7 +28,7 @@ pub struct AddMovieBody {
   pub add_options: AddOptions,
 }
 
-#[derive(Derivative, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AddMovieSearchResult {
   #[serde(deserialize_with = "super::from_i64")]
@@ -42,7 +45,7 @@ pub struct AddMovieSearchResult {
   pub ratings: RatingsList,
 }
 
-#[derive(Default, Serialize, Debug, PartialEq, Eq)]
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AddOptions {
   pub monitor: String,
@@ -54,12 +57,12 @@ pub struct AddRootFolderBody {
   pub path: String,
 }
 
-#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct BlocklistResponse {
   pub records: Vec<BlocklistItem>,
 }
 
-#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct BlocklistItem {
   #[serde(deserialize_with = "super::from_i64")]
@@ -77,12 +80,12 @@ pub struct BlocklistItem {
   pub movie: BlocklistItemMovie,
 }
 
-#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct BlocklistItemMovie {
   pub title: HorizontallyScrollableText,
 }
 
-#[derive(Deserialize, Derivative, Default, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Derivative, Default, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Collection {
   #[serde(deserialize_with = "super::from_i64")]
@@ -99,7 +102,7 @@ pub struct Collection {
   pub movies: Option<Vec<CollectionMovie>>,
 }
 
-#[derive(Derivative, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionMovie {
   pub title: HorizontallyScrollableText,
@@ -120,7 +123,7 @@ pub struct CommandBody {
   pub name: String,
 }
 
-#[derive(Deserialize, Default, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Credit {
   pub person_name: String,
@@ -131,7 +134,7 @@ pub struct Credit {
   pub credit_type: CreditType,
 }
 
-#[derive(Deserialize, Default, PartialEq, Eq, Clone, Debug)]
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum CreditType {
   #[default]
@@ -139,7 +142,15 @@ pub enum CreditType {
   Crew,
 }
 
-#[derive(Deserialize, Debug, Clone, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub struct DeleteMovieParams {
+  pub id: i64,
+  pub delete_movie_files: bool,
+  pub add_list_exclusion: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DiskSpace {
   #[serde(deserialize_with = "super::from_i64")]
@@ -148,7 +159,7 @@ pub struct DiskSpace {
   pub total_space: i64,
 }
 
-#[derive(Derivative, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {
   pub title: String,
@@ -167,10 +178,49 @@ pub struct DownloadRecord {
   pub download_client: String,
 }
 
-#[derive(Default, Deserialize, Debug)]
+#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct DownloadsResponse {
   pub records: Vec<DownloadRecord>,
+}
+
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct EditCollectionParams {
+  pub collection_id: i64,
+  pub monitored: Option<bool>,
+  pub minimum_availability: Option<MinimumAvailability>,
+  pub quality_profile_id: Option<i64>,
+  pub root_folder_path: Option<String>,
+  pub search_on_add: Option<bool>,
+}
+
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct EditIndexerParams {
+  pub indexer_id: i64,
+  pub name: Option<String>,
+  pub enable_rss: Option<bool>,
+  pub enable_automatic_search: Option<bool>,
+  pub enable_interactive_search: Option<bool>,
+  pub url: Option<String>,
+  pub api_key: Option<String>,
+  pub seed_ratio: Option<String>,
+  pub tags: Option<Vec<i64>>,
+  pub priority: Option<i64>,
+  pub clear_tags: bool,
+}
+
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct EditMovieParams {
+  pub movie_id: i64,
+  pub monitored: Option<bool>,
+  pub minimum_availability: Option<MinimumAvailability>,
+  pub quality_profile_id: Option<i64>,
+  pub root_folder_path: Option<String>,
+  pub tags: Option<Vec<i64>>,
+  pub clear_tags: bool,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
@@ -223,7 +273,7 @@ pub struct IndexerSettings {
   pub whitelisted_hardcoded_subs: HorizontallyScrollableText,
 }
 
-#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexerTestResult {
   #[serde(deserialize_with = "super::from_i64")]
@@ -232,7 +282,7 @@ pub struct IndexerTestResult {
   pub validation_failures: Vec<IndexerValidationFailure>,
 }
 
-#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexerValidationFailure {
   pub property_name: String,
@@ -240,12 +290,12 @@ pub struct IndexerValidationFailure {
   pub severity: String,
 }
 
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Language {
   pub name: String,
 }
 
-#[derive(Default, Deserialize, Clone, Debug, Eq, PartialEq)]
+#[derive(Default, Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Log {
   pub time: DateTime<Utc>,
@@ -257,12 +307,12 @@ pub struct Log {
   pub method: Option<String>,
 }
 
-#[derive(Default, Deserialize, Debug, Eq, PartialEq)]
+#[derive(Default, Clone, Serialize, Deserialize, Debug, Eq, PartialEq)]
 pub struct LogResponse {
   pub records: Vec<Log>,
 }
 
-#[derive(Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaInfo {
@@ -286,7 +336,9 @@ pub struct MediaInfo {
   pub scan_type: String,
 }
 
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter)]
+#[derive(
+  Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, ValueEnum,
+)]
 #[serde(rename_all = "camelCase")]
 pub enum MinimumAvailability {
   #[default]
@@ -319,7 +371,7 @@ impl MinimumAvailability {
   }
 }
 
-#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter)]
+#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, ValueEnum)]
 pub enum Monitor {
   #[default]
   MovieOnly,
@@ -348,7 +400,7 @@ impl Monitor {
   }
 }
 
-#[derive(Derivative, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Movie {
   #[serde(deserialize_with = "super::from_i64")]
@@ -380,7 +432,7 @@ pub struct Movie {
   pub collection: Option<MovieCollection>,
 }
 
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct MovieCollection {
   pub title: Option<String>,
@@ -393,7 +445,7 @@ pub struct MovieCommandBody {
   pub movie_ids: Vec<i64>,
 }
 
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct MovieFile {
   pub relative_path: String,
@@ -402,7 +454,7 @@ pub struct MovieFile {
   pub media_info: Option<MediaInfo>,
 }
 
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct MovieHistoryItem {
   pub source_title: HorizontallyScrollableText,
@@ -412,24 +464,33 @@ pub struct MovieHistoryItem {
   pub event_type: String,
 }
 
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Quality {
   pub name: String,
 }
 
-#[derive(Default, Deserialize, Debug)]
+#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct QualityProfile {
   #[serde(deserialize_with = "super::from_i64")]
   pub id: i64,
   pub name: String,
 }
 
-#[derive(Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
+impl From<(&i64, &String)> for QualityProfile {
+  fn from(value: (&i64, &String)) -> Self {
+    QualityProfile {
+      id: *value.0,
+      name: value.1.clone(),
+    }
+  }
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct QualityWrapper {
   pub quality: Quality,
 }
 
-#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct QueueEvent {
   pub trigger: String,
@@ -442,14 +503,14 @@ pub struct QueueEvent {
   pub duration: Option<String>,
 }
 
-#[derive(Derivative, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Derivative, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 pub struct Rating {
   #[derivative(Default(value = "Number::from(0)"))]
   pub value: Number,
 }
 
-#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RatingsList {
   pub imdb: Option<Rating>,
@@ -457,7 +518,7 @@ pub struct RatingsList {
   pub rotten_tomatoes: Option<Rating>,
 }
 
-#[derive(Deserialize, Default, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct Release {
@@ -479,7 +540,7 @@ pub struct Release {
   pub quality: QualityWrapper,
 }
 
-#[derive(Default, Serialize, Debug)]
+#[derive(Default, Serialize, Debug, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ReleaseDownloadBody {
   pub guid: String,
@@ -487,7 +548,7 @@ pub struct ReleaseDownloadBody {
   pub movie_id: i64,
 }
 
-#[derive(Default, Deserialize, Debug, Clone, Eq, PartialEq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct RootFolder {
   #[serde(deserialize_with = "super::from_i64")]
@@ -499,25 +560,25 @@ pub struct RootFolder {
   pub unmapped_folders: Option<Vec<UnmappedFolder>>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SystemStatus {
   pub version: String,
   pub start_time: DateTime<Utc>,
 }
 
-#[derive(Default, Deserialize, Debug)]
+#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Tag {
   #[serde(deserialize_with = "super::from_i64")]
   pub id: i64,
   pub label: String,
 }
 
-#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Task {
   pub name: String,
-  pub task_name: String,
+  pub task_name: TaskName,
   #[serde(deserialize_with = "super::from_i64")]
   pub interval: i64,
   pub last_execution: DateTime<Utc>,
@@ -525,13 +586,39 @@ pub struct Task {
   pub next_execution: DateTime<Utc>,
 }
 
-#[derive(Deserialize, Default, Debug, Clone, Eq, PartialEq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Copy, ValueEnum)]
+#[serde(rename_all = "PascalCase")]
+pub enum TaskName {
+  #[default]
+  ApplicationCheckUpdate,
+  Backup,
+  CheckHealth,
+  CleanUpRecycleBin,
+  Housekeeping,
+  ImportListSync,
+  MessagingCleanup,
+  RefreshCollections,
+  RefreshMonitoredDownloads,
+  RefreshMovie,
+  RssSync,
+}
+
+impl Display for TaskName {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    let task_name = serde_json::to_string(&self)
+      .expect("Unable to serialize task name")
+      .replace('"', "");
+    write!(f, "{task_name}")
+  }
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, Eq, PartialEq)]
 pub struct UnmappedFolder {
   pub name: String,
   pub path: String,
 }
 
-#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Update {
   pub version: String,
@@ -542,9 +629,78 @@ pub struct Update {
   pub changes: UpdateChanges,
 }
 
-#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateChanges {
   pub new: Option<Vec<String>>,
   pub fixed: Option<Vec<String>>,
 }
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[serde(untagged)]
+#[allow(clippy::large_enum_variant)]
+pub enum RadarrSerdeable {
+  Value(Value),
+  Tag(Tag),
+  BlocklistResponse(BlocklistResponse),
+  Collections(Vec<Collection>),
+  Credits(Vec<Credit>),
+  DiskSpaces(Vec<DiskSpace>),
+  DownloadsResponse(DownloadsResponse),
+  Indexers(Vec<Indexer>),
+  IndexerSettings(IndexerSettings),
+  LogResponse(LogResponse),
+  Movie(Movie),
+  MovieHistoryItems(Vec<MovieHistoryItem>),
+  Movies(Vec<Movie>),
+  QualityProfiles(Vec<QualityProfile>),
+  QueueEvents(Vec<QueueEvent>),
+  Releases(Vec<Release>),
+  RootFolders(Vec<RootFolder>),
+  SystemStatus(SystemStatus),
+  Tags(Vec<Tag>),
+  Tasks(Vec<Task>),
+  Updates(Vec<Update>),
+  AddMovieSearchResults(Vec<AddMovieSearchResult>),
+  IndexerTestResults(Vec<IndexerTestResult>),
+}
+
+impl From<RadarrSerdeable> for Serdeable {
+  fn from(value: RadarrSerdeable) -> Serdeable {
+    Serdeable::Radarr(value)
+  }
+}
+
+impl From<()> for RadarrSerdeable {
+  fn from(_: ()) -> Self {
+    RadarrSerdeable::Value(json!({}))
+  }
+}
+
+serde_enum_from!(
+  RadarrSerdeable {
+    Value(Value),
+    Tag(Tag),
+    BlocklistResponse(BlocklistResponse),
+    Collections(Vec<Collection>),
+    Credits(Vec<Credit>),
+    DiskSpaces(Vec<DiskSpace>),
+    DownloadsResponse(DownloadsResponse),
+    Indexers(Vec<Indexer>),
+    IndexerSettings(IndexerSettings),
+    LogResponse(LogResponse),
+    Movie(Movie),
+    MovieHistoryItems(Vec<MovieHistoryItem>),
+    Movies(Vec<Movie>),
+    QualityProfiles(Vec<QualityProfile>),
+    QueueEvents(Vec<QueueEvent>),
+    Releases(Vec<Release>),
+    RootFolders(Vec<RootFolder>),
+    SystemStatus(SystemStatus),
+    Tags(Vec<Tag>),
+    Tasks(Vec<Task>),
+    Updates(Vec<Update>),
+    AddMovieSearchResults(Vec<AddMovieSearchResult>),
+    IndexerTestResults(Vec<IndexerTestResult>),
+  }
+);

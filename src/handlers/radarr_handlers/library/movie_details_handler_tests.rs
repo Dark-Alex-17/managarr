@@ -1292,12 +1292,15 @@ mod tests {
     #[rstest]
     #[case(
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
-      RadarrEvent::TriggerAutomaticSearch
+      RadarrEvent::TriggerAutomaticSearch(None)
     )]
-    #[case(ActiveRadarrBlock::UpdateAndScanPrompt, RadarrEvent::UpdateAndScan)]
+    #[case(
+      ActiveRadarrBlock::UpdateAndScanPrompt,
+      RadarrEvent::UpdateAndScan(None)
+    )]
     #[case(
       ActiveRadarrBlock::ManualSearchConfirmPrompt,
-      RadarrEvent::DownloadRelease
+      RadarrEvent::DownloadRelease(None)
     )]
     fn test_movie_info_prompt_confirm_submit(
       #[case] prompt_block: ActiveRadarrBlock,

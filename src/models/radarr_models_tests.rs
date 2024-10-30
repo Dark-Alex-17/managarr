@@ -1,8 +1,25 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use serde_json::json;
 
-  use crate::models::radarr_models::{DownloadRecord, MinimumAvailability, Monitor};
+  use crate::models::{
+    radarr_models::{
+      AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, DiskSpace,
+      DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult, Log,
+      LogResponse, MinimumAvailability, Monitor, Movie, MovieHistoryItem, QualityProfile,
+      QueueEvent, RadarrSerdeable, Release, RootFolder, SystemStatus, Tag, Task, TaskName, Update,
+    },
+    Serdeable,
+  };
+
+  #[test]
+  fn test_task_name_display() {
+    assert_str_eq!(
+      TaskName::ApplicationCheckUpdate.to_string(),
+      "ApplicationCheckUpdate"
+    );
+  }
 
   #[test]
   fn test_minimum_availability_display() {
@@ -69,5 +86,324 @@ mod tests {
     let result: DownloadRecord = serde_json::from_str(json).unwrap();
 
     assert_eq!(result, expected_record);
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from() {
+    let radarr_serdeable = RadarrSerdeable::Value(json!({}));
+
+    let serdeable: Serdeable = Serdeable::from(radarr_serdeable.clone());
+
+    assert_eq!(serdeable, Serdeable::Radarr(radarr_serdeable));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_unit() {
+    let radarr_serdeable = RadarrSerdeable::from(());
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::Value(json!({})));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_value() {
+    let value = json!({"test": "test"});
+
+    let radarr_serdeable: RadarrSerdeable = value.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::Value(value));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_tag() {
+    let tag = Tag {
+      id: 1,
+      ..Tag::default()
+    };
+
+    let radarr_serdeable: RadarrSerdeable = tag.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::Tag(tag));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_blocklist_response() {
+    let blocklist_response = BlocklistResponse {
+      records: vec![BlocklistItem {
+        id: 1,
+        ..BlocklistItem::default()
+      }],
+    };
+
+    let radarr_serdeable: RadarrSerdeable = blocklist_response.clone().into();
+
+    assert_eq!(
+      radarr_serdeable,
+      RadarrSerdeable::BlocklistResponse(blocklist_response)
+    );
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_collections() {
+    let collections = vec![Collection {
+      id: 1,
+      ..Collection::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = collections.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::Collections(collections));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_credits() {
+    let credits = vec![Credit {
+      person_name: "me".to_owned(),
+      ..Credit::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = credits.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::Credits(credits));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_disk_spaces() {
+    let disk_spaces = vec![DiskSpace {
+      free_space: 1,
+      total_space: 1,
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = disk_spaces.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::DiskSpaces(disk_spaces));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_downloads_response() {
+    let downloads_response = DownloadsResponse {
+      records: vec![DownloadRecord {
+        id: 1,
+        ..DownloadRecord::default()
+      }],
+    };
+
+    let radarr_serdeable: RadarrSerdeable = downloads_response.clone().into();
+
+    assert_eq!(
+      radarr_serdeable,
+      RadarrSerdeable::DownloadsResponse(downloads_response)
+    );
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_indexers() {
+    let indexers = vec![Indexer {
+      id: 1,
+      ..Indexer::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = indexers.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::Indexers(indexers));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_indexer_settings() {
+    let indexer_settings = IndexerSettings {
+      id: 1,
+      ..IndexerSettings::default()
+    };
+
+    let radarr_serdeable: RadarrSerdeable = indexer_settings.clone().into();
+
+    assert_eq!(
+      radarr_serdeable,
+      RadarrSerdeable::IndexerSettings(indexer_settings)
+    );
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_log_response() {
+    let log_response = LogResponse {
+      records: vec![Log {
+        level: "info".to_owned(),
+        ..Log::default()
+      }],
+    };
+
+    let radarr_serdeable: RadarrSerdeable = log_response.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::LogResponse(log_response));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_movie() {
+    let movie = Movie {
+      id: 1,
+      ..Movie::default()
+    };
+
+    let radarr_serdeable: RadarrSerdeable = movie.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::Movie(movie));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_movie_history_items() {
+    let movie_history_items = vec![MovieHistoryItem {
+      event_type: "test".to_owned(),
+      ..MovieHistoryItem::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = movie_history_items.clone().into();
+
+    assert_eq!(
+      radarr_serdeable,
+      RadarrSerdeable::MovieHistoryItems(movie_history_items)
+    );
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_movies() {
+    let movies = vec![Movie {
+      id: 1,
+      ..Movie::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = movies.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::Movies(movies));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_quality_profiles() {
+    let quality_profiles = vec![QualityProfile {
+      id: 1,
+      ..QualityProfile::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = quality_profiles.clone().into();
+
+    assert_eq!(
+      radarr_serdeable,
+      RadarrSerdeable::QualityProfiles(quality_profiles)
+    );
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_queue_events() {
+    let queue_events = vec![QueueEvent {
+      trigger: "test".to_owned(),
+      ..QueueEvent::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = queue_events.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::QueueEvents(queue_events));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_releases() {
+    let releases = vec![Release {
+      size: 1,
+      ..Release::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = releases.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::Releases(releases));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_root_folders() {
+    let root_folders = vec![RootFolder {
+      id: 1,
+      ..RootFolder::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = root_folders.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::RootFolders(root_folders));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_system_status() {
+    let system_status = SystemStatus {
+      version: "1".to_owned(),
+      ..SystemStatus::default()
+    };
+
+    let radarr_serdeable: RadarrSerdeable = system_status.clone().into();
+
+    assert_eq!(
+      radarr_serdeable,
+      RadarrSerdeable::SystemStatus(system_status)
+    );
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_tags() {
+    let tags = vec![Tag {
+      id: 1,
+      ..Tag::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = tags.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::Tags(tags));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_tasks() {
+    let tasks = vec![Task {
+      name: "test".to_owned(),
+      ..Task::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = tasks.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::Tasks(tasks));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_updates() {
+    let updates = vec![Update {
+      version: "test".to_owned(),
+      ..Update::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = updates.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::Updates(updates));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_add_movie_search_results() {
+    let add_movie_search_results = vec![AddMovieSearchResult {
+      tmdb_id: 1,
+      ..AddMovieSearchResult::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = add_movie_search_results.clone().into();
+
+    assert_eq!(
+      radarr_serdeable,
+      RadarrSerdeable::AddMovieSearchResults(add_movie_search_results)
+    );
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_indexer_test_results() {
+    let indexer_test_results = vec![IndexerTestResult {
+      id: 1,
+      ..IndexerTestResult::default()
+    }];
+
+    let radarr_serdeable: RadarrSerdeable = indexer_test_results.clone().into();
+
+    assert_eq!(
+      radarr_serdeable,
+      RadarrSerdeable::IndexerTestResults(indexer_test_results)
+    );
   }
 }

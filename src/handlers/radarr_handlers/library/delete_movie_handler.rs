@@ -71,7 +71,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'
       match self.app.data.radarr_data.selected_block.get_active_block() {
         ActiveRadarrBlock::DeleteMovieConfirmPrompt => {
           if self.app.data.radarr_data.prompt_confirm {
-            self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteMovie);
+            self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteMovie(None));
             self.app.should_refresh = true;
           } else {
             self.app.data.radarr_data.reset_delete_movie_preferences();

@@ -423,7 +423,7 @@ mod tests {
     #[test]
     fn test_indexer_settings_blocks_contents() {
       assert_eq!(INDEXER_SETTINGS_BLOCKS.len(), 10);
-      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsPrompt));
+      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::AllIndexerSettingsPrompt));
       assert!(
         INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput)
       );

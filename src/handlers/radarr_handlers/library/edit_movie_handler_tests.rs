@@ -182,6 +182,8 @@ mod tests {
   }
 
   mod test_handle_home_end {
+    use std::sync::atomic::Ordering;
+
     use strum::IntoEnumIterator;
 
     use crate::models::servarr_data::radarr::modals::EditMovieModal;
@@ -318,7 +320,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_movie_modal
@@ -326,7 +328,7 @@ mod tests {
           .unwrap()
           .path
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         4
       );
 
@@ -339,7 +341,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_movie_modal
@@ -347,7 +349,7 @@ mod tests {
           .unwrap()
           .path
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -369,7 +371,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_movie_modal
@@ -377,7 +379,7 @@ mod tests {
           .unwrap()
           .tags
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         4
       );
 
@@ -390,7 +392,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_movie_modal
@@ -398,13 +400,15 @@ mod tests {
           .unwrap()
           .tags
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
   }
 
   mod test_handle_left_right_action {
+    use std::sync::atomic::Ordering;
+
     use crate::models::servarr_data::radarr::modals::EditMovieModal;
     use rstest::rstest;
 
@@ -440,7 +444,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_movie_modal
@@ -448,7 +452,7 @@ mod tests {
           .unwrap()
           .path
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         1
       );
 
@@ -461,7 +465,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_movie_modal
@@ -469,7 +473,7 @@ mod tests {
           .unwrap()
           .path
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -491,7 +495,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_movie_modal
@@ -499,7 +503,7 @@ mod tests {
           .unwrap()
           .tags
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         1
       );
 
@@ -512,7 +516,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_movie_modal
@@ -520,7 +524,7 @@ mod tests {
           .unwrap()
           .tags
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -661,7 +665,7 @@ mod tests {
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditMovie)
+        Some(RadarrEvent::EditMovie(None))
       );
       assert!(app.data.radarr_data.edit_movie_modal.is_some());
       assert!(app.should_refresh);

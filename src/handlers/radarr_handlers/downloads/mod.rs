@@ -91,7 +91,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
     match self.active_radarr_block {
       ActiveRadarrBlock::DeleteDownloadPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteDownload);
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteDownload(None));
         }
 
         self.app.pop_navigation_stack();

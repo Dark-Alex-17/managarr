@@ -349,14 +349,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt => {
         if self.app.data.radarr_data.prompt_confirm {
           self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::TriggerAutomaticSearch);
+            Some(RadarrEvent::TriggerAutomaticSearch(None));
         }
 
         self.app.pop_navigation_stack();
       }
       ActiveRadarrBlock::UpdateAndScanPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAndScan);
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAndScan(None));
         }
 
         self.app.pop_navigation_stack();
@@ -368,7 +368,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       }
       ActiveRadarrBlock::ManualSearchConfirmPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DownloadRelease);
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::DownloadRelease(None));
         }
 
         self.app.pop_navigation_stack();

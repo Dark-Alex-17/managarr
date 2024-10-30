@@ -68,7 +68,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_collection_details_block_with_add_movie() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
-      app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddMovie);
+      app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddMovie(None));
 
       app.data.radarr_data.collections.set_items(vec![Collection {
         movies: Some(vec![CollectionMovie::default()]),
@@ -82,7 +82,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::AddMovie.into()
+        RadarrEvent::AddMovie(None).into()
       );
       assert!(!app.data.radarr_data.collection_movies.items.is_empty());
       assert_eq!(app.tick_count, 0);
@@ -162,17 +162,17 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_dispatch_by_indexer_settings_block() {
+    async fn test_dispatch_by_all_indexer_settings_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
 
       app
-        .dispatch_by_radarr_block(&ActiveRadarrBlock::IndexerSettingsPrompt)
+        .dispatch_by_radarr_block(&ActiveRadarrBlock::AllIndexerSettingsPrompt)
         .await;
 
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetIndexerSettings.into()
+        RadarrEvent::GetAllIndexerSettings.into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -189,7 +189,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::TestIndexer.into()
+        RadarrEvent::TestIndexer(None).into()
       );
       assert_eq!(app.tick_count, 0);
     }
@@ -229,7 +229,7 @@ mod tests {
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetLogs.into()
+        RadarrEvent::GetLogs(None).into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -263,7 +263,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::SearchNewMovie.into()
+        RadarrEvent::SearchNewMovie(None).into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -280,7 +280,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetMovieDetails.into()
+        RadarrEvent::GetMovieDetails(None).into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -297,7 +297,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetMovieDetails.into()
+        RadarrEvent::GetMovieDetails(None).into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -314,7 +314,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetMovieHistory.into()
+        RadarrEvent::GetMovieHistory(None).into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -331,7 +331,7 @@ mod tests {
         assert!(app.is_loading);
         assert_eq!(
           sync_network_rx.recv().await.unwrap(),
-          RadarrEvent::GetMovieCredits.into()
+          RadarrEvent::GetMovieCredits(None).into()
         );
         assert!(!app.data.radarr_data.prompt_confirm);
         assert_eq!(app.tick_count, 0);
@@ -354,7 +354,7 @@ mod tests {
         assert!(app.is_loading);
         assert_eq!(
           sync_network_rx.recv().await.unwrap(),
-          RadarrEvent::GetMovieCredits.into()
+          RadarrEvent::GetMovieCredits(None).into()
         );
         assert!(!app.data.radarr_data.prompt_confirm);
         assert_eq!(app.tick_count, 0);
@@ -377,7 +377,7 @@ mod tests {
         assert!(app.is_loading);
         assert_eq!(
           sync_network_rx.recv().await.unwrap(),
-          RadarrEvent::GetMovieCredits.into()
+          RadarrEvent::GetMovieCredits(None).into()
         );
         assert!(!app.data.radarr_data.prompt_confirm);
         assert_eq!(app.tick_count, 0);
@@ -418,7 +418,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetReleases.into()
+        RadarrEvent::GetReleases(None).into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);

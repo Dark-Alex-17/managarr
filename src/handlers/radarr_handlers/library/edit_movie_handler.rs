@@ -222,7 +222,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
         match self.app.data.radarr_data.selected_block.get_active_block() {
           ActiveRadarrBlock::EditMovieConfirmPrompt => {
             if self.app.data.radarr_data.prompt_confirm {
-              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditMovie);
+              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditMovie(None));
               self.app.should_refresh = true;
             }
 

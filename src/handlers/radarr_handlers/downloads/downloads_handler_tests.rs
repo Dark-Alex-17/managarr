@@ -247,7 +247,7 @@ mod tests {
     #[case(
       ActiveRadarrBlock::Downloads,
       ActiveRadarrBlock::DeleteDownloadPrompt,
-      RadarrEvent::DeleteDownload
+      RadarrEvent::DeleteDownload(None)
     )]
     #[case(
       ActiveRadarrBlock::Downloads,

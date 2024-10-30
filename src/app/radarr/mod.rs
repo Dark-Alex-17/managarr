@@ -49,14 +49,14 @@ impl<'a> App<'a> {
           .dispatch_network_event(RadarrEvent::GetIndexers.into())
           .await;
       }
-      ActiveRadarrBlock::IndexerSettingsPrompt => {
+      ActiveRadarrBlock::AllIndexerSettingsPrompt => {
         self
-          .dispatch_network_event(RadarrEvent::GetIndexerSettings.into())
+          .dispatch_network_event(RadarrEvent::GetAllIndexerSettings.into())
           .await;
       }
       ActiveRadarrBlock::TestIndexer => {
         self
-          .dispatch_network_event(RadarrEvent::TestIndexer.into())
+          .dispatch_network_event(RadarrEvent::TestIndexer(None).into())
           .await;
       }
       ActiveRadarrBlock::TestAllIndexers => {
@@ -72,7 +72,7 @@ impl<'a> App<'a> {
           .dispatch_network_event(RadarrEvent::GetQueuedEvents.into())
           .await;
         self
-          .dispatch_network_event(RadarrEvent::GetLogs.into())
+          .dispatch_network_event(RadarrEvent::GetLogs(None).into())
           .await;
       }
       ActiveRadarrBlock::SystemUpdates => {
@@ -82,17 +82,17 @@ impl<'a> App<'a> {
       }
       ActiveRadarrBlock::AddMovieSearchResults => {
         self
-          .dispatch_network_event(RadarrEvent::SearchNewMovie.into())
+          .dispatch_network_event(RadarrEvent::SearchNewMovie(None).into())
           .await;
       }
       ActiveRadarrBlock::MovieDetails | ActiveRadarrBlock::FileInfo => {
         self
-          .dispatch_network_event(RadarrEvent::GetMovieDetails.into())
+          .dispatch_network_event(RadarrEvent::GetMovieDetails(None).into())
           .await;
       }
       ActiveRadarrBlock::MovieHistory => {
         self
-          .dispatch_network_event(RadarrEvent::GetMovieHistory.into())
+          .dispatch_network_event(RadarrEvent::GetMovieHistory(None).into())
           .await;
       }
       ActiveRadarrBlock::Cast | ActiveRadarrBlock::Crew => {
@@ -102,7 +102,7 @@ impl<'a> App<'a> {
               || movie_details_modal.movie_crew.items.is_empty() =>
           {
             self
-              .dispatch_network_event(RadarrEvent::GetMovieCredits.into())
+              .dispatch_network_event(RadarrEvent::GetMovieCredits(None).into())
               .await;
           }
           _ => (),
@@ -111,7 +111,7 @@ impl<'a> App<'a> {
       ActiveRadarrBlock::ManualSearch => match self.data.radarr_data.movie_details_modal.as_ref() {
         Some(movie_details_modal) if movie_details_modal.movie_releases.items.is_empty() => {
           self
-            .dispatch_network_event(RadarrEvent::GetReleases.into())
+            .dispatch_network_event(RadarrEvent::GetReleases(None).into())
             .await;
         }
         _ => (),
@@ -127,7 +127,9 @@ impl<'a> App<'a> {
     if self.data.radarr_data.prompt_confirm {
       self.data.radarr_data.prompt_confirm = false;
       if let Some(radarr_event) = &self.data.radarr_data.prompt_confirm_action {
-        self.dispatch_network_event((*radarr_event).into()).await;
+        self
+          .dispatch_network_event(radarr_event.clone().into())
+          .await;
         self.should_refresh = true;
         self.data.radarr_data.prompt_confirm_action = None;
       }

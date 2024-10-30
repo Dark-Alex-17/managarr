@@ -86,7 +86,7 @@ impl<'a> Default for RadarrData<'a> {
     RadarrData {
       root_folders: StatefulTable::default(),
       disk_space_vec: Vec::new(),
-      version: String::default(),
+      version: String::new(),
       start_time: DateTime::default(),
       movies: StatefulTable::default(),
       selected_block: BlockSelectionState::default(),
@@ -269,7 +269,7 @@ pub enum ActiveRadarrBlock {
   FilterMovies,
   FilterMoviesError,
   Indexers,
-  IndexerSettingsPrompt,
+  AllIndexerSettingsPrompt,
   IndexerSettingsAvailabilityDelayInput,
   IndexerSettingsConfirmPrompt,
   IndexerSettingsMaximumSizeInput,
@@ -466,7 +466,7 @@ pub static EDIT_INDEXER_NZB_SELECTION_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::EditIndexerConfirmPrompt,
 ];
 pub static INDEXER_SETTINGS_BLOCKS: [ActiveRadarrBlock; 10] = [
-  ActiveRadarrBlock::IndexerSettingsPrompt,
+  ActiveRadarrBlock::AllIndexerSettingsPrompt,
   ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
   ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
   ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,

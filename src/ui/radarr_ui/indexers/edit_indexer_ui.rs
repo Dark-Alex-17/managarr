@@ -1,3 +1,5 @@
+use std::sync::atomic::Ordering;
+
 use crate::app::App;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
 use crate::models::Route;
@@ -79,22 +81,22 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
     if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
       let name_input_box = InputBox::new(&edit_indexer_modal.name.text)
-        .offset(*edit_indexer_modal.name.offset.borrow())
+        .offset(edit_indexer_modal.name.offset.load(Ordering::SeqCst))
         .label("Name")
         .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerNameInput)
         .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerNameInput);
       let url_input_box = InputBox::new(&edit_indexer_modal.url.text)
-        .offset(*edit_indexer_modal.url.offset.borrow())
+        .offset(edit_indexer_modal.url.offset.load(Ordering::SeqCst))
         .label("URL")
         .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerUrlInput)
         .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerUrlInput);
       let api_key_input_box = InputBox::new(&edit_indexer_modal.api_key.text)
-        .offset(*edit_indexer_modal.api_key.offset.borrow())
+        .offset(edit_indexer_modal.api_key.offset.load(Ordering::SeqCst))
         .label("API Key")
         .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerApiKeyInput)
         .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerApiKeyInput);
       let tags_input_box = InputBox::new(&edit_indexer_modal.tags.text)
-        .offset(*edit_indexer_modal.tags.offset.borrow())
+        .offset(edit_indexer_modal.tags.offset.load(Ordering::SeqCst))
         .label("Tags")
         .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerTagsInput)
         .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerTagsInput);
@@ -105,12 +107,12 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
       if protocol == "torrent" {
         let seed_ratio_input_box = InputBox::new(&edit_indexer_modal.seed_ratio.text)
-          .offset(*edit_indexer_modal.seed_ratio.offset.borrow())
+          .offset(edit_indexer_modal.seed_ratio.offset.load(Ordering::SeqCst))
           .label("Seed Ratio")
           .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerSeedRatioInput)
           .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerSeedRatioInput);
         let tags_input_box = InputBox::new(&edit_indexer_modal.tags.text)
-          .offset(*edit_indexer_modal.tags.offset.borrow())
+          .offset(edit_indexer_modal.tags.offset.load(Ordering::SeqCst))
           .label("Tags")
           .highlighted(selected_block == &ActiveRadarrBlock::EditIndexerTagsInput)
           .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerTagsInput);

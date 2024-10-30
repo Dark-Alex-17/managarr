@@ -136,7 +136,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler
       }
       ActiveRadarrBlock::SystemTaskStartConfirmPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::StartTask);
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::StartTask(None));
         }
 
         self.app.pop_navigation_stack();

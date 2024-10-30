@@ -115,7 +115,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
     match self.active_radarr_block {
       ActiveRadarrBlock::DeleteRootFolderPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteRootFolder);
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::DeleteRootFolder(None));
         }
 
         self.app.pop_navigation_stack();
@@ -131,7 +132,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
           .text
           .is_empty() =>
       {
-        self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddRootFolder);
+        self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddRootFolder(None));
         self.app.data.radarr_data.prompt_confirm = true;
         self.app.should_ignore_quit_key = false;
         self.app.pop_navigation_stack();

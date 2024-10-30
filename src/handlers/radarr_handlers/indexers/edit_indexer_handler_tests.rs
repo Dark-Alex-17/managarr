@@ -66,6 +66,8 @@ mod tests {
   }
 
   mod test_handle_home_end {
+    use std::sync::atomic::Ordering;
+
     use crate::app::App;
     use crate::models::servarr_data::radarr::modals::EditIndexerModal;
     use pretty_assertions::assert_eq;
@@ -89,7 +91,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -97,7 +99,7 @@ mod tests {
           .unwrap()
           .name
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         4
       );
 
@@ -110,7 +112,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -118,7 +120,7 @@ mod tests {
           .unwrap()
           .name
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -140,7 +142,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -148,7 +150,7 @@ mod tests {
           .unwrap()
           .url
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         4
       );
 
@@ -161,7 +163,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -169,7 +171,7 @@ mod tests {
           .unwrap()
           .url
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -191,7 +193,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -199,7 +201,7 @@ mod tests {
           .unwrap()
           .api_key
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         4
       );
 
@@ -212,7 +214,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -220,7 +222,7 @@ mod tests {
           .unwrap()
           .api_key
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -242,7 +244,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -250,7 +252,7 @@ mod tests {
           .unwrap()
           .seed_ratio
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         4
       );
 
@@ -263,7 +265,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -271,7 +273,7 @@ mod tests {
           .unwrap()
           .seed_ratio
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -293,7 +295,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -301,7 +303,7 @@ mod tests {
           .unwrap()
           .tags
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         4
       );
 
@@ -314,7 +316,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -322,13 +324,15 @@ mod tests {
           .unwrap()
           .tags
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
   }
 
   mod test_handle_left_right_action {
+    use std::sync::atomic::Ordering;
+
     use crate::app::App;
     use crate::models::servarr_data::radarr::modals::EditIndexerModal;
     use crate::models::servarr_data::radarr::radarr_data::{
@@ -511,7 +515,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -519,7 +523,7 @@ mod tests {
           .unwrap()
           .name
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         1
       );
 
@@ -532,7 +536,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -540,7 +544,7 @@ mod tests {
           .unwrap()
           .name
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -562,7 +566,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -570,7 +574,7 @@ mod tests {
           .unwrap()
           .url
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         1
       );
 
@@ -583,7 +587,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -591,7 +595,7 @@ mod tests {
           .unwrap()
           .url
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -613,7 +617,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -621,7 +625,7 @@ mod tests {
           .unwrap()
           .api_key
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         1
       );
 
@@ -634,7 +638,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -642,7 +646,7 @@ mod tests {
           .unwrap()
           .api_key
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -664,7 +668,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -672,7 +676,7 @@ mod tests {
           .unwrap()
           .seed_ratio
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         1
       );
 
@@ -685,7 +689,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -693,7 +697,7 @@ mod tests {
           .unwrap()
           .seed_ratio
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -715,7 +719,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -723,7 +727,7 @@ mod tests {
           .unwrap()
           .tags
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         1
       );
 
@@ -736,7 +740,7 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_indexer_modal
@@ -744,7 +748,7 @@ mod tests {
           .unwrap()
           .tags
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -821,7 +825,7 @@ mod tests {
       assert!(app.should_refresh);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditIndexer)
+        Some(RadarrEvent::EditIndexer(None))
       );
     }
 

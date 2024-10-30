@@ -375,7 +375,7 @@ mod tests {
       assert!(app.data.radarr_data.prompt_confirm);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteIndexer)
+        Some(RadarrEvent::DeleteIndexer(None))
       );
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
     }
@@ -577,7 +577,7 @@ mod tests {
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::IndexerSettingsPrompt.into()
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt.into()
       );
       assert_eq!(
         app.data.radarr_data.selected_block.blocks,
@@ -724,7 +724,7 @@ mod tests {
   #[rstest]
   fn test_delegates_indexer_settings_blocks_to_indexer_settings_handler(
     #[values(
-      ActiveRadarrBlock::IndexerSettingsPrompt,
+      ActiveRadarrBlock::AllIndexerSettingsPrompt,
       ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
       ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
       ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,

@@ -1,11 +1,11 @@
-use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+use radarr_models::RadarrSerdeable;
 use regex::Regex;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Number;
-
 pub mod radarr_models;
 pub mod servarr_data;
 pub mod stateful_list;
@@ -27,6 +27,12 @@ pub enum Route {
   Bazarr,
   Prowlarr,
   Tautulli,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum Serdeable {
+  Radarr(RadarrSerdeable),
 }
 
 pub trait Scrollable {
@@ -88,16 +94,39 @@ impl Scrollable for ScrollableText {
   }
 }
 
-#[derive(Default, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Deserialize, Debug)]
 #[serde(from = "String")]
 pub struct HorizontallyScrollableText {
   pub text: String,
-  pub offset: RefCell<usize>,
+  pub offset: AtomicUsize,
 }
+
+impl Clone for HorizontallyScrollableText {
+  fn clone(&self) -> Self {
+    HorizontallyScrollableText {
+      text: self.text.clone(),
+      offset: AtomicUsize::new(self.offset.load(Ordering::SeqCst)),
+    }
+  }
+}
+
+impl PartialEq for HorizontallyScrollableText {
+  fn eq(&self, other: &Self) -> bool {
+    self.text == other.text
+  }
+}
+
+impl Eq for HorizontallyScrollableText {}
 
 impl From<String> for HorizontallyScrollableText {
   fn from(text: String) -> HorizontallyScrollableText {
     HorizontallyScrollableText::new(text)
+  }
+}
+
+impl From<&String> for HorizontallyScrollableText {
+  fn from(text: &String) -> HorizontallyScrollableText {
+    HorizontallyScrollableText::new(text.clone())
   }
 }
 
@@ -109,14 +138,14 @@ impl From<&str> for HorizontallyScrollableText {
 
 impl Display for HorizontallyScrollableText {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    if *self.offset.borrow() == 0 {
+    if self.offset.load(Ordering::SeqCst) == 0 {
       write!(f, "{}", self.text)
     } else {
       let text_vec = self.text.chars().collect::<Vec<_>>();
       write!(
         f,
         "{}",
-        text_vec[*self.offset.borrow()..]
+        text_vec[self.offset.load(Ordering::SeqCst)..]
           .iter()
           .cloned()
           .collect::<String>()
@@ -138,7 +167,7 @@ impl HorizontallyScrollableText {
   pub fn new(text: String) -> HorizontallyScrollableText {
     HorizontallyScrollableText {
       text,
-      offset: RefCell::new(0),
+      offset: AtomicUsize::new(0),
     }
   }
 
@@ -147,46 +176,44 @@ impl HorizontallyScrollableText {
   }
 
   pub fn scroll_left(&self) {
-    if *self.offset.borrow() < self.len() {
-      let new_offset = *self.offset.borrow() + 1;
-      *self.offset.borrow_mut() = new_offset;
+    if self.offset.load(Ordering::SeqCst) < self.len() {
+      self.offset.fetch_add(1, Ordering::SeqCst);
     }
   }
 
   pub fn scroll_right(&self) {
-    if *self.offset.borrow() > 0 {
-      let new_offset = *self.offset.borrow() - 1;
-      *self.offset.borrow_mut() = new_offset;
+    if self.offset.load(Ordering::SeqCst) > 0 {
+      self.offset.fetch_sub(1, Ordering::SeqCst);
     }
   }
 
   pub fn scroll_home(&self) {
-    *self.offset.borrow_mut() = self.len();
+    self.offset.store(self.len(), Ordering::SeqCst);
   }
 
   pub fn reset_offset(&self) {
-    *self.offset.borrow_mut() = 0;
+    self.offset.store(0, Ordering::SeqCst);
   }
 
   pub fn scroll_left_or_reset(&self, width: usize, is_current_selection: bool, can_scroll: bool) {
     if can_scroll && is_current_selection && self.len() >= width {
-      if *self.offset.borrow() < self.len() {
+      if self.offset.load(Ordering::SeqCst) < self.len() {
         self.scroll_left();
       } else {
         self.reset_offset();
       }
-    } else if *self.offset.borrow() != 0 && !is_current_selection {
+    } else if self.offset.load(Ordering::SeqCst) != 0 && !is_current_selection {
       self.reset_offset();
     }
   }
 
   pub fn pop(&mut self) {
-    if *self.offset.borrow() < self.len() {
+    if self.offset.load(Ordering::SeqCst) < self.len() {
       let (index, _) = self
         .text
         .chars()
         .enumerate()
-        .nth(self.len() - *self.offset.borrow() - 1)
+        .nth(self.len() - self.offset.load(Ordering::SeqCst) - 1)
         .unwrap();
       self.text = self
         .text
@@ -202,7 +229,7 @@ impl HorizontallyScrollableText {
     if self.text.is_empty() {
       self.text.push(character);
     } else {
-      let index = self.len() - *self.offset.borrow();
+      let index = self.len() - self.offset.load(Ordering::SeqCst);
 
       if index == self.len() {
         self.text.push(character);
@@ -337,4 +364,17 @@ pub fn strip_non_search_characters(input: &str) -> String {
     .unwrap()
     .replace_all(&input.to_lowercase(), "")
     .to_string()
+}
+
+#[macro_export]
+macro_rules! serde_enum_from {
+    ($enum_name:ident { $($variant:ident($ty:ty),)* }) => {
+        $(
+            impl From<$ty> for $enum_name {
+                fn from(value: $ty) -> Self {
+                    $enum_name::$variant(value)
+                }
+            }
+        )*
+    }
 }

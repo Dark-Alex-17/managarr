@@ -14,7 +14,7 @@ mod tests {
   use crate::app::{App, AppConfig, RadarrConfig};
   use crate::models::HorizontallyScrollableText;
   use crate::network::radarr_network::RadarrEvent;
-  use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
+  use crate::network::{Network, NetworkEvent, NetworkTrait, RequestMethod, RequestProps};
 
   #[tokio::test]
   async fn test_handle_network_event_radarr_event() {
@@ -22,6 +22,7 @@ mod tests {
     let radarr_server = server
       .mock("GET", "/api/v3/health")
       .with_status(200)
+      .with_body("{}")
       .create_async()
       .await;
     let host = server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned();
@@ -41,7 +42,7 @@ mod tests {
     let app_arc = Arc::new(Mutex::new(app));
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    let _ = network
       .handle_network_event(RadarrEvent::HealthCheck.into())
       .await;
 
@@ -65,7 +66,7 @@ mod tests {
     let app_arc = Arc::new(Mutex::new(App::default()));
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    let _ = network
       .handle_request::<Test, ()>(
         RequestProps {
           uri: format!("{}/test", server.url()),
@@ -91,7 +92,7 @@ mod tests {
     let (async_server, app_arc, server) = mock_api(request_method, 200, true).await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    let resp = network
       .handle_request::<(), Test>(
         RequestProps {
           uri: format!("{}/test", server.url()),
@@ -106,6 +107,13 @@ mod tests {
 
     async_server.assert_async().await;
     assert_str_eq!(app_arc.lock().await.error.text, "Test");
+    assert!(resp.is_ok());
+    assert_eq!(
+      resp.unwrap(),
+      Test {
+        value: "Test".to_owned()
+      }
+    );
   }
 
   #[rstest]
@@ -115,9 +123,9 @@ mod tests {
   ) {
     let (async_server, app_arc, server) = mock_api(request_method, 400, true).await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
-    let mut test_result = String::default();
+    let mut test_result = String::new();
 
-    network
+    let resp = network
       .handle_request::<(), Test>(
         RequestProps {
           uri: format!("{}/test", server.url()),
@@ -132,6 +140,13 @@ mod tests {
 
     async_server.assert_async().await;
     assert!(app_arc.lock().await.error.text.is_empty());
+    assert!(resp.is_ok());
+    assert_eq!(
+      resp.unwrap(),
+      Test {
+        value: "Test".to_owned()
+      }
+    );
   }
 
   #[tokio::test]
@@ -148,7 +163,7 @@ mod tests {
     let mut network = Network::new(&app_arc, cancellation_token);
     network.cancellation_token.cancel();
 
-    network
+    let resp = network
       .handle_request::<(), Test>(
         RequestProps {
           uri: format!("{}/test", server.url()),
@@ -164,6 +179,8 @@ mod tests {
     assert!(!async_server.matched_async().await);
     assert!(app_arc.lock().await.error.text.is_empty());
     assert!(!network.cancellation_token.is_cancelled());
+    assert!(resp.is_ok());
+    assert_eq!(resp.unwrap(), Test::default());
   }
 
   #[tokio::test]
@@ -179,7 +196,7 @@ mod tests {
     let app_arc = Arc::new(Mutex::new(App::default()));
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    let resp = network
       .handle_request::<(), Test>(
         RequestProps {
           uri: format!("{}/test", server.url()),
@@ -199,6 +216,11 @@ mod tests {
       .error
       .text
       .starts_with("Failed to parse response!"));
+    assert!(resp.is_err());
+    assert!(resp
+      .unwrap_err()
+      .to_string()
+      .starts_with("Failed to parse response!"));
   }
 
   #[tokio::test]
@@ -206,10 +228,10 @@ mod tests {
     let app_arc = Arc::new(Mutex::new(App::default()));
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    let resp = network
       .handle_request::<(), Test>(
         RequestProps {
-          uri: String::default(),
+          uri: String::new(),
           method: RequestMethod::Get,
           body: None,
           api_token: "test1234".to_owned(),
@@ -224,6 +246,11 @@ mod tests {
       .await
       .error
       .text
+      .starts_with("Failed to send request."));
+    assert!(resp.is_err());
+    assert!(resp
+      .unwrap_err()
+      .to_string()
       .starts_with("Failed to send request."));
   }
 
@@ -241,7 +268,7 @@ mod tests {
     let (async_server, app_arc, server) = mock_api(request_method, 404, true).await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    let resp = network
       .handle_request::<(), Test>(
         RequestProps {
           uri: format!("{}/test", server.url()),
@@ -259,6 +286,11 @@ mod tests {
       app_arc.lock().await.error.text,
       r#"Request failed. Received 404 Not Found response code with body: { "value": "Test" }"#
     );
+    assert!(resp.is_err());
+    assert_str_eq!(
+      resp.unwrap_err().to_string(),
+      r#"Request failed. Received 404 Not Found response code with body: { "value": "Test" }"#
+    );
   }
 
   #[tokio::test]
@@ -266,7 +298,7 @@ mod tests {
     let (async_server, app_arc, server) = mock_api(RequestMethod::Post, 404, false).await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    let resp = network
       .handle_request::<(), Test>(
         RequestProps {
           uri: format!("{}/test", server.url()),
@@ -282,6 +314,11 @@ mod tests {
     async_server.assert_async().await;
     assert_str_eq!(
       app_arc.lock().await.error.text,
+      r#"Request failed. Received 404 Not Found response code with body: "#
+    );
+    assert!(resp.is_err());
+    assert_str_eq!(
+      resp.unwrap_err().to_string(),
       r#"Request failed. Received 404 Not Found response code with body: "#
     );
   }
@@ -335,7 +372,7 @@ mod tests {
     async_server.assert_async().await;
   }
 
-  #[derive(Serialize, Deserialize, Debug, Default)]
+  #[derive(Clone, Serialize, Deserialize, Debug, Default, PartialEq, Eq)]
   struct Test {
     pub value: String,
   }

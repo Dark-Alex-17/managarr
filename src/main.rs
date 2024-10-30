@@ -1,14 +1,23 @@
 #![warn(rust_2018_idioms)]
 
-use std::panic::PanicInfo;
+use std::panic::PanicHookInfo;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::{io, panic};
+use std::{io, panic, process};
 
+use anyhow::anyhow;
 use anyhow::Result;
+use clap::{
+  command, crate_authors, crate_description, crate_name, crate_version, CommandFactory, Parser,
+};
+use clap_complete::generate;
+use colored::Colorize;
 use crossterm::execute;
 use crossterm::terminal::{
-  disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
+  disable_raw_mode, enable_raw_mode, size, EnterAlternateScreen, LeaveAlternateScreen,
 };
+use log::error;
+use network::NetworkTrait;
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
 use tokio::sync::mpsc::Receiver;
@@ -16,12 +25,14 @@ use tokio::sync::{mpsc, Mutex};
 use tokio_util::sync::CancellationToken;
 
 use crate::app::App;
+use crate::cli::Command;
 use crate::event::input_event::{Events, InputEvent};
 use crate::event::Key;
 use crate::network::{Network, NetworkEvent};
 use crate::ui::ui;
 
 mod app;
+mod cli;
 mod event;
 mod handlers;
 mod logos;
@@ -30,16 +41,49 @@ mod network;
 mod ui;
 mod utils;
 
+static MIN_TERM_WIDTH: u16 = 205;
+static MIN_TERM_HEIGHT: u16 = 40;
+
+#[derive(Debug, Parser)]
+#[command(
+  name = crate_name!(),
+  author = crate_authors!(),
+  version = crate_version!(),
+  about = crate_description!(),
+  help_template = "\
+{before-help}{name} {version}
+{author-with-newline}
+{about-with-newline}
+{usage-heading} {usage}
+
+{all-args}{after-help}
+"
+)]
+struct Cli {
+  #[command(subcommand)]
+  command: Option<Command>,
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
   log4rs::init_config(utils::init_logging_config())?;
   panic::set_hook(Box::new(|info| {
     panic_hook(info);
   }));
-
+  let running = Arc::new(AtomicBool::new(true));
+  let r = running.clone();
+  let args = Cli::parse();
   let config = confy::load("managarr", "config")?;
   let (sync_network_tx, sync_network_rx) = mpsc::channel(500);
   let cancellation_token = CancellationToken::new();
+  let ctrlc_cancellation_token = cancellation_token.clone();
+
+  ctrlc::set_handler(move || {
+    ctrlc_cancellation_token.cancel();
+    r.store(false, Ordering::SeqCst);
+    process::exit(1);
+  })
+  .expect("Error setting Ctrl-C handler");
 
   let app = Arc::new(Mutex::new(App::new(
     sync_network_tx,
@@ -47,11 +91,28 @@ async fn main() -> Result<()> {
     cancellation_token.clone(),
   )));
 
-  let app_nw = Arc::clone(&app);
+  match args.command {
+    Some(command) => match command {
+      Command::Radarr(_) => {
+        let app_nw = Arc::clone(&app);
+        let mut network = Network::new(&app_nw, cancellation_token);
 
-  std::thread::spawn(move || start_networking(sync_network_rx, &app_nw, cancellation_token));
-
-  start_ui(&app).await?;
+        if let Err(e) = cli::handle_command(&app, command, &mut network).await {
+          eprintln!("error: {}", e.to_string().red());
+          process::exit(1);
+        }
+      }
+      Command::Completions { shell } => {
+        let mut cli = Cli::command();
+        generate(shell, &mut cli, "managarr", &mut io::stdout())
+      }
+    },
+    None => {
+      let app_nw = Arc::clone(&app);
+      std::thread::spawn(move || start_networking(sync_network_rx, &app_nw, cancellation_token));
+      start_ui(&app).await?;
+    }
+  }
 
   Ok(())
 }
@@ -65,11 +126,24 @@ async fn start_networking(
   let mut network = Network::new(app, cancellation_token);
 
   while let Some(network_event) = network_rx.recv().await {
-    network.handle_network_event(network_event).await;
+    if let Err(e) = network.handle_network_event(network_event).await {
+      error!("Encountered an error handling network event: {e:?}");
+    }
   }
 }
 
 async fn start_ui(app: &Arc<Mutex<App<'_>>>) -> Result<()> {
+  let (width, height) = size()?;
+  if width < MIN_TERM_WIDTH || height < MIN_TERM_HEIGHT {
+    return Err(anyhow!(
+      "Terminal too small. Minimum size required: {}x{}; current terminal size: {}x{}",
+      MIN_TERM_WIDTH,
+      MIN_TERM_HEIGHT,
+      width,
+      height
+    ));
+  }
+
   let mut stdout = io::stdout();
   enable_raw_mode()?;
 
@@ -111,7 +185,7 @@ async fn start_ui(app: &Arc<Mutex<App<'_>>>) -> Result<()> {
 }
 
 #[cfg(debug_assertions)]
-fn panic_hook(info: &PanicInfo<'_>) {
+fn panic_hook(info: &PanicHookInfo<'_>) {
   use backtrace::Backtrace;
   use crossterm::style::Print;
 
@@ -139,7 +213,7 @@ fn panic_hook(info: &PanicInfo<'_>) {
 }
 
 #[cfg(not(debug_assertions))]
-fn panic_hook(info: &PanicInfo<'_>) {
+fn panic_hook(info: &PanicHookInfo<'_>) {
   use human_panic::{handle_dump, print_msg, Metadata};
 
   let meta = Metadata {

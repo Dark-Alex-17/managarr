@@ -1,3 +1,5 @@
+use std::sync::atomic::Ordering;
+
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::text::Text;
 use ratatui::widgets::{Cell, ListItem, Paragraph, Row};
@@ -131,14 +133,14 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   .margin(1)
   .areas(area);
   let block_content = &app.data.radarr_data.add_movie_search.as_ref().unwrap().text;
-  let offset = *app
+  let offset = app
     .data
     .radarr_data
     .add_movie_search
     .as_ref()
     .unwrap()
     .offset
-    .borrow();
+    .load(Ordering::SeqCst);
   let search_results_row_mapping = |movie: &AddMovieSearchResult| {
     let (hours, minutes) = convert_runtime(movie.runtime);
     let imdb_rating = movie
@@ -416,7 +418,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     let tags_input_box = InputBox::new(&tags.text)
-      .offset(*tags.offset.borrow())
+      .offset(tags.offset.load(Ordering::SeqCst))
       .label("Tags")
       .highlighted(selected_block == &ActiveRadarrBlock::AddMovieTagsInput)
       .selected(active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput);

@@ -1,7 +1,8 @@
 use std::fmt::Debug;
 use std::sync::Arc;
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Result};
+use async_trait::async_trait;
 use log::{debug, error, warn};
 use regex::Regex;
 use reqwest::{Client, RequestBuilder};
@@ -13,7 +14,10 @@ use tokio::sync::{Mutex, MutexGuard};
 use tokio_util::sync::CancellationToken;
 
 use crate::app::App;
+use crate::models::Serdeable;
 use crate::network::radarr_network::RadarrEvent;
+#[cfg(test)]
+use mockall::automock;
 
 pub mod radarr_network;
 mod utils;
@@ -22,15 +26,39 @@ mod utils;
 #[path = "network_tests.rs"]
 mod network_tests;
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum NetworkEvent {
   Radarr(RadarrEvent),
 }
 
+#[cfg_attr(test, automock)]
+#[async_trait]
+pub trait NetworkTrait {
+  async fn handle_network_event(&mut self, network_event: NetworkEvent) -> Result<Serdeable>;
+}
+
+#[derive(Clone)]
 pub struct Network<'a, 'b> {
   client: Client,
   cancellation_token: CancellationToken,
   pub app: &'a Arc<Mutex<App<'b>>>,
+}
+
+#[async_trait]
+impl<'a, 'b> NetworkTrait for Network<'a, 'b> {
+  async fn handle_network_event(&mut self, network_event: NetworkEvent) -> Result<Serdeable> {
+    let resp = match network_event {
+      NetworkEvent::Radarr(radarr_event) => self
+        .handle_radarr_event(radarr_event)
+        .await
+        .map(Serdeable::from),
+    };
+
+    let mut app = self.app.lock().await;
+    app.is_loading = false;
+
+    resp
+  }
 }
 
 impl<'a, 'b> Network<'a, 'b> {
@@ -42,22 +70,14 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  pub async fn handle_network_event(&mut self, network_event: NetworkEvent) {
-    match network_event {
-      NetworkEvent::Radarr(radarr_event) => self.handle_radarr_event(radarr_event).await,
-    }
-
-    let mut app = self.app.lock().await;
-    app.is_loading = false;
-  }
-
-  pub async fn handle_request<B, R>(
+  async fn handle_request<B, R>(
     &mut self,
     request_props: RequestProps<B>,
     mut app_update_fn: impl FnMut(R, MutexGuard<'_, App<'_>>),
-  ) where
+  ) -> Result<R>
+  where
     B: Serialize + Default + Debug,
-    R: DeserializeOwned,
+    R: DeserializeOwned + Default + Clone,
   {
     let ignore_status_code = request_props.ignore_status_code;
     let method = request_props.method;
@@ -68,6 +88,7 @@ impl<'a, 'b> Network<'a, 'b> {
         let mut app = self.app.lock().await;
         self.cancellation_token = app.reset_cancellation_token();
         app.is_loading = false;
+        Ok(R::default())
       }
     resp = self.call_api(request_props).await.send() => {
          match resp {
@@ -78,7 +99,8 @@ impl<'a, 'b> Network<'a, 'b> {
                   match utils::parse_response::<R>(response).await {
                     Ok(value) => {
                       let app = self.app.lock().await;
-                      app_update_fn(value, app);
+                      app_update_fn(value.clone(), app);
+                      Ok(value)
                     }
                     Err(e) => {
                       error!("Failed to parse response! {e:?}");
@@ -87,10 +109,11 @@ impl<'a, 'b> Network<'a, 'b> {
                         .lock()
                         .await
                         .handle_error(anyhow!("Failed to parse response! {e:?}"));
+                        Err(anyhow!("Failed to parse response! {e:?}"))
                     }
                   }
                 }
-                RequestMethod::Delete | RequestMethod::Put => (),
+                RequestMethod::Delete | RequestMethod::Put => Ok(R::default()),
               }
             } else {
               let status = response.status();
@@ -102,6 +125,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
               error!("Request failed. Received {status} response code with body: {response_body}");
               self.app.lock().await.handle_error(anyhow!("Request failed. Received {status} response code with body: {error_body}"));
+              Err(anyhow!("Request failed. Received {status} response code with body: {error_body}"))
             }
           }
           Err(e) => {
@@ -111,6 +135,7 @@ impl<'a, 'b> Network<'a, 'b> {
               .lock()
               .await
               .handle_error(anyhow!("Failed to send request. {e} "));
+              Err(anyhow!("Failed to send request. {e} "))
           }
         }
       }

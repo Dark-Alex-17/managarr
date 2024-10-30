@@ -111,11 +111,11 @@ mod test {
   #[rstest]
   fn test_resource_movie(
     #[values(
-      RadarrEvent::AddMovie,
-      RadarrEvent::EditMovie,
+      RadarrEvent::AddMovie(None),
+      RadarrEvent::EditMovie(None),
       RadarrEvent::GetMovies,
-      RadarrEvent::GetMovieDetails,
-      RadarrEvent::DeleteMovie
+      RadarrEvent::GetMovieDetails(None),
+      RadarrEvent::DeleteMovie(None)
     )]
     event: RadarrEvent,
   ) {
@@ -124,21 +124,24 @@ mod test {
 
   #[rstest]
   fn test_resource_collection(
-    #[values(RadarrEvent::GetCollections, RadarrEvent::EditCollection)] event: RadarrEvent,
+    #[values(RadarrEvent::GetCollections, RadarrEvent::EditCollection(None))] event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/collection");
   }
 
   #[rstest]
   fn test_resource_indexer(
-    #[values(RadarrEvent::GetIndexers, RadarrEvent::DeleteIndexer)] event: RadarrEvent,
+    #[values(RadarrEvent::GetIndexers, RadarrEvent::DeleteIndexer(None))] event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/indexer");
   }
 
   #[rstest]
-  fn test_resource_indexer_settings(
-    #[values(RadarrEvent::GetIndexerSettings, RadarrEvent::EditAllIndexerSettings)]
+  fn test_resource_all_indexer_settings(
+    #[values(
+      RadarrEvent::GetAllIndexerSettings,
+      RadarrEvent::EditAllIndexerSettings(None)
+    )]
     event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/config/indexer");
@@ -147,9 +150,9 @@ mod test {
   #[rstest]
   fn test_resource_root_folder(
     #[values(
-      RadarrEvent::AddRootFolder,
+      RadarrEvent::AddRootFolder(None),
       RadarrEvent::GetRootFolders,
-      RadarrEvent::DeleteRootFolder
+      RadarrEvent::DeleteRootFolder(None)
     )]
     event: RadarrEvent,
   ) {
@@ -158,14 +161,15 @@ mod test {
 
   #[rstest]
   fn test_resource_release(
-    #[values(RadarrEvent::GetReleases, RadarrEvent::DownloadRelease)] event: RadarrEvent,
+    #[values(RadarrEvent::GetReleases(None), RadarrEvent::DownloadRelease(None))]
+    event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/release");
   }
 
   #[rstest]
   fn test_resource_queue(
-    #[values(RadarrEvent::GetDownloads, RadarrEvent::DeleteDownload)] event: RadarrEvent,
+    #[values(RadarrEvent::GetDownloads, RadarrEvent::DeleteDownload(None))] event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/queue");
   }
@@ -173,10 +177,10 @@ mod test {
   #[rstest]
   fn test_resource_command(
     #[values(
-      RadarrEvent::StartTask,
+      RadarrEvent::StartTask(None),
       RadarrEvent::GetQueuedEvents,
-      RadarrEvent::TriggerAutomaticSearch,
-      RadarrEvent::UpdateAndScan,
+      RadarrEvent::TriggerAutomaticSearch(None),
+      RadarrEvent::UpdateAndScan(None),
       RadarrEvent::UpdateAllMovies,
       RadarrEvent::UpdateDownloads,
       RadarrEvent::UpdateCollections
@@ -188,19 +192,19 @@ mod test {
 
   #[rstest]
   #[case(RadarrEvent::ClearBlocklist, "/blocklist/bulk")]
-  #[case(RadarrEvent::DeleteBlocklistItem, "/blocklist")]
+  #[case(RadarrEvent::DeleteBlocklistItem(None), "/blocklist")]
   #[case(RadarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
-  #[case(RadarrEvent::GetLogs, "/log")]
-  #[case(RadarrEvent::SearchNewMovie, "/movie/lookup")]
-  #[case(RadarrEvent::GetMovieCredits, "/credit")]
-  #[case(RadarrEvent::GetMovieHistory, "/history/movie")]
+  #[case(RadarrEvent::GetLogs(Some(500)), "/log")]
+  #[case(RadarrEvent::SearchNewMovie(None), "/movie/lookup")]
+  #[case(RadarrEvent::GetMovieCredits(None), "/credit")]
+  #[case(RadarrEvent::GetMovieHistory(None), "/history/movie")]
   #[case(RadarrEvent::GetOverview, "/diskspace")]
   #[case(RadarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(RadarrEvent::GetStatus, "/system/status")]
   #[case(RadarrEvent::GetTags, "/tag")]
   #[case(RadarrEvent::GetTasks, "/system/task")]
   #[case(RadarrEvent::GetUpdates, "/update")]
-  #[case(RadarrEvent::TestIndexer, "/indexer/test")]
+  #[case(RadarrEvent::TestIndexer(None), "/indexer/test")]
   #[case(RadarrEvent::TestAllIndexers, "/indexer/testall")]
   #[case(RadarrEvent::HealthCheck, "/health")]
   fn test_resource(#[case] event: RadarrEvent, #[case] expected_uri: String) {
@@ -227,7 +231,7 @@ mod test {
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::HealthCheck).await;
+    let _ = network.handle_radarr_event(RadarrEvent::HealthCheck).await;
 
     async_server.assert_async().await;
   }
@@ -252,23 +256,29 @@ mod test {
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
+    let disk_space_vec = vec![
+      DiskSpace {
+        free_space: 1111,
+        total_space: 2222,
+      },
+      DiskSpace {
+        free_space: 3333,
+        total_space: 4444,
+      },
+    ];
 
-    network.handle_radarr_event(RadarrEvent::GetOverview).await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.disk_space_vec,
-      vec![
-        DiskSpace {
-          free_space: 1111,
-          total_space: 2222,
-        },
-        DiskSpace {
-          free_space: 3333,
-          total_space: 4444,
-        },
-      ]
-    );
+    if let RadarrSerdeable::DiskSpaces(disk_space) = network
+      .handle_radarr_event(RadarrEvent::GetOverview)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.disk_space_vec,
+        disk_space_vec
+      );
+      assert_eq!(disk_space, disk_space_vec);
+    }
   }
 
   #[tokio::test]
@@ -285,16 +295,25 @@ mod test {
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
+    let date_time = DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap())
+      as DateTime<Utc>;
 
-    network.handle_radarr_event(RadarrEvent::GetStatus).await;
-
-    async_server.assert_async().await;
-    assert_str_eq!(app_arc.lock().await.data.radarr_data.version, "v1");
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.start_time,
-      DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap())
-        as DateTime<Utc>
-    );
+    if let RadarrSerdeable::SystemStatus(status) = network
+      .handle_radarr_event(RadarrEvent::GetStatus)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_str_eq!(app_arc.lock().await.data.radarr_data.version, "v1");
+      assert_eq!(app_arc.lock().await.data.radarr_data.start_time, date_time);
+      assert_eq!(
+        status,
+        SystemStatus {
+          version: "v1".to_owned(),
+          start_time: date_time
+        }
+      );
+    }
   }
 
   #[rstest]
@@ -306,7 +325,19 @@ mod test {
     *movie_1.get_mut("title").unwrap() = json!("z test");
     *movie_2.get_mut("id").unwrap() = json!(2);
     *movie_2.get_mut("title").unwrap() = json!("A test");
-    let mut expected_movies = vec![
+    let expected_movies = vec![
+      Movie {
+        id: 1,
+        title: "z test".into(),
+        ..movie()
+      },
+      Movie {
+        id: 2,
+        title: "A test".into(),
+        ..movie()
+      },
+    ];
+    let mut expected_sorted_movies = vec![
       Movie {
         id: 1,
         title: "z test".into(),
@@ -334,7 +365,7 @@ mod test {
           .to_lowercase()
           .cmp(&b.title.text.to_lowercase())
       };
-      expected_movies.sort_by(cmp_fn);
+      expected_sorted_movies.sort_by(cmp_fn);
       let title_sort_option = SortOption {
         name: "Title",
         cmp_fn: Some(cmp_fn),
@@ -349,14 +380,19 @@ mod test {
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::GetMovies).await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.movies.items,
-      expected_movies
-    );
-    assert!(app_arc.lock().await.data.radarr_data.movies.sort_asc);
+    if let RadarrSerdeable::Movies(movies) = network
+      .handle_radarr_event(RadarrEvent::GetMovies)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.movies.items,
+        expected_sorted_movies
+      );
+      assert!(app_arc.lock().await.data.radarr_data.movies.sort_asc);
+      assert_eq!(movies, expected_movies);
+    }
   }
 
   #[tokio::test]
@@ -399,7 +435,10 @@ mod test {
       .sorting(vec![title_sort_option]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::GetMovies).await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::GetMovies)
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert!(app_arc
@@ -430,7 +469,7 @@ mod test {
       "languages": [ { "name": "English" } ],
       "quality": { "quality": { "name": "HD - 1080p" }}
     }]);
-    let resource = format!("{}?movieId=1", RadarrEvent::GetReleases.resource());
+    let resource = format!("{}?movieId=1", RadarrEvent::GetReleases(None).resource());
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -449,22 +488,27 @@ mod test {
     app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::GetReleases).await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_ref()
-        .unwrap()
-        .movie_releases
-        .items,
-      vec![release()]
-    );
+    if let RadarrSerdeable::Releases(releases_vec) = network
+      .handle_radarr_event(RadarrEvent::GetReleases(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_ref()
+          .unwrap()
+          .movie_releases
+          .items,
+        vec![release()]
+      );
+      assert_eq!(releases_vec, vec![release()]);
+    }
   }
 
   #[tokio::test]
@@ -484,7 +528,7 @@ mod test {
       "languages": [ { "name": "English" } ],
       "quality": { "quality": { "name": "HD - 1080p" }}
     }]);
-    let resource = format!("{}?movieId=1", RadarrEvent::GetReleases.resource());
+    let resource = format!("{}?movieId=1", RadarrEvent::GetReleases(None).resource());
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -502,7 +546,10 @@ mod test {
       .set_items(vec![movie()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::GetReleases).await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::GetReleases(None))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert_eq!(
@@ -545,7 +592,7 @@ mod test {
     }]);
     let resource = format!(
       "{}?term=test%20term",
-      RadarrEvent::SearchNewMovie.resource()
+      RadarrEvent::SearchNewMovie(None).resource()
     );
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
@@ -558,42 +605,93 @@ mod test {
     app_arc.lock().await.data.radarr_data.add_movie_search = Some("test term".into());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::SearchNewMovie)
-      .await;
-
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
+    if let RadarrSerdeable::AddMovieSearchResults(add_movie_search_results) = network
+      .handle_radarr_event(RadarrEvent::SearchNewMovie(None))
       .await
-      .data
-      .radarr_data
-      .add_searched_movies
-      .is_some());
-    assert_eq!(
-      app_arc
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert!(app_arc
         .lock()
         .await
         .data
         .radarr_data
         .add_searched_movies
-        .as_ref()
-        .unwrap()
-        .items,
-      vec![add_movie_search_result()]
+        .is_some());
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .radarr_data
+          .add_searched_movies
+          .as_ref()
+          .unwrap()
+          .items,
+        vec![add_movie_search_result()]
+      );
+      assert_eq!(add_movie_search_results, vec![add_movie_search_result()]);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_search_new_movie_event_uses_provided_query() {
+    let add_movie_search_result_json = json!([{
+      "tmdbId": 1234,
+      "title": "Test",
+      "originalLanguage": { "name": "English" },
+      "status": "released",
+      "overview": "New movie blah blah blah",
+      "genres": ["cool", "family", "fun"],
+      "year": 2023,
+      "runtime": 120,
+      "ratings": {
+        "imdb": {
+          "value": 9.9
+        },
+        "tmdb": {
+          "value": 9.9
+        },
+        "rottenTomatoes": {
+          "value": 9.9
+        }
+      }
+    }]);
+    let resource = format!(
+      "{}?term=test%20term",
+      RadarrEvent::SearchNewMovie(None).resource()
     );
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(add_movie_search_result_json),
+      None,
+      &resource,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    if let RadarrSerdeable::AddMovieSearchResults(add_movie_search_results) = network
+      .handle_radarr_event(RadarrEvent::SearchNewMovie(Some("test term".into())))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(add_movie_search_results, vec![add_movie_search_result()]);
+    }
   }
 
   #[tokio::test]
   async fn test_handle_start_task_event() {
+    let response = json!({ "test": "test"});
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({
-        "name": "TestTask"
+        "name": "ApplicationCheckUpdate"
       })),
+      Some(response.clone()),
       None,
-      None,
-      RadarrEvent::StartTask.resource(),
+      RadarrEvent::StartTask(None).resource(),
     )
     .await;
     app_arc
@@ -603,30 +701,61 @@ mod test {
       .radarr_data
       .tasks
       .set_items(vec![Task {
-        task_name: "TestTask".to_owned(),
+        task_name: TaskName::default(),
         ..Task::default()
       }]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::StartTask).await;
+    if let RadarrSerdeable::Value(value) = network
+      .handle_radarr_event(RadarrEvent::StartTask(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(value, response);
+    }
+  }
 
-    async_server.assert_async().await;
+  #[tokio::test]
+  async fn test_handle_start_task_event_uses_provided_task_name() {
+    let response = json!({ "test": "test"});
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "ApplicationCheckUpdate"
+      })),
+      Some(response.clone()),
+      None,
+      RadarrEvent::StartTask(None).resource(),
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    if let RadarrSerdeable::Value(value) = network
+      .handle_radarr_event(RadarrEvent::StartTask(Some(TaskName::default())))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(value, response);
+    }
   }
 
   #[tokio::test]
   async fn test_handle_search_new_movie_event_no_results() {
     let resource = format!(
       "{}?term=test%20term",
-      RadarrEvent::SearchNewMovie.resource()
+      RadarrEvent::SearchNewMovie(None).resource()
     );
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Get, None, Some(json!([])), None, &resource).await;
     app_arc.lock().await.data.radarr_data.add_movie_search = Some("test term".into());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::SearchNewMovie)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::SearchNewMovie(None))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert!(app_arc
@@ -646,7 +775,7 @@ mod test {
   async fn test_handle_search_new_movie_event_no_panic_on_race_condition() {
     let resource = format!(
       "{}?term=test%20term",
-      RadarrEvent::SearchNewMovie.resource()
+      RadarrEvent::SearchNewMovie(None).resource()
     );
     let mut server = Server::new_async().await;
     let mut async_server = server
@@ -673,9 +802,10 @@ mod test {
     let app_arc = Arc::new(Mutex::new(app));
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::SearchNewMovie)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::SearchNewMovie(None))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert!(app_arc
@@ -734,11 +864,11 @@ mod test {
     let async_test_server = server
       .mock(
         "POST",
-        format!("/api/v3{}", RadarrEvent::TestIndexer.resource()).as_str(),
+        format!("/api/v3{}", RadarrEvent::TestIndexer(None).resource()).as_str(),
       )
       .with_status(400)
       .match_header("X-Api-Key", "test1234")
-      .match_body(Matcher::Json(indexer_details_json))
+      .match_body(Matcher::Json(indexer_details_json.clone()))
       .with_body(response_json.to_string())
       .create_async()
       .await;
@@ -751,14 +881,19 @@ mod test {
       .set_items(vec![indexer()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::TestIndexer).await;
-
-    async_details_server.assert_async().await;
-    async_test_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.indexer_test_error,
-      Some("\"test failure\"".to_owned())
-    );
+    if let RadarrSerdeable::Value(value) = network
+      .handle_radarr_event(RadarrEvent::TestIndexer(None))
+      .await
+      .unwrap()
+    {
+      async_details_server.assert_async().await;
+      async_test_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.indexer_test_error,
+        Some("\"test failure\"".to_owned())
+      );
+      assert_eq!(value, response_json)
+    }
   }
 
   #[tokio::test]
@@ -797,11 +932,11 @@ mod test {
     let async_test_server = server
       .mock(
         "POST",
-        format!("/api/v3{}", RadarrEvent::TestIndexer.resource()).as_str(),
+        format!("/api/v3{}", RadarrEvent::TestIndexer(None).resource()).as_str(),
       )
       .with_status(200)
       .match_header("X-Api-Key", "test1234")
-      .match_body(Matcher::Json(indexer_details_json))
+      .match_body(Matcher::Json(indexer_details_json.clone()))
       .with_body("{}")
       .create_async()
       .await;
@@ -814,14 +949,76 @@ mod test {
       .set_items(vec![indexer()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::TestIndexer).await;
+    if let RadarrSerdeable::Value(value) = network
+      .handle_radarr_event(RadarrEvent::TestIndexer(None))
+      .await
+      .unwrap()
+    {
+      async_details_server.assert_async().await;
+      async_test_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.indexer_test_error,
+        None
+      );
+      assert_eq!(value, json!({}));
+    }
+  }
 
-    async_details_server.assert_async().await;
-    async_test_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.indexer_test_error,
-      None
-    );
+  #[tokio::test]
+  async fn test_handle_test_indexer_event_success_uses_provided_id() {
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json.clone()),
+      None,
+      &resource,
+    )
+    .await;
+    let async_test_server = server
+      .mock(
+        "POST",
+        format!("/api/v3{}", RadarrEvent::TestIndexer(None).resource()).as_str(),
+      )
+      .with_status(200)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(indexer_details_json.clone()))
+      .with_body("{}")
+      .create_async()
+      .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    if let RadarrSerdeable::Value(value) = network
+      .handle_radarr_event(RadarrEvent::TestIndexer(Some(1)))
+      .await
+      .unwrap()
+    {
+      async_details_server.assert_async().await;
+      async_test_server.assert_async().await;
+      assert_eq!(value, json!({}));
+    }
   }
 
   #[tokio::test]
@@ -872,6 +1069,7 @@ mod test {
           },
       ]
     }]);
+    let response: Vec<IndexerTestResult> = serde_json::from_value(response_json.clone()).unwrap();
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       None,
@@ -889,30 +1087,33 @@ mod test {
       .set_items(indexers);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    if let RadarrSerdeable::IndexerTestResults(results) = network
       .handle_radarr_event(RadarrEvent::TestAllIndexers)
-      .await;
-
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
       .await
-      .data
-      .radarr_data
-      .indexer_test_all_results
-      .is_some());
-    assert_eq!(
-      app_arc
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert!(app_arc
         .lock()
         .await
         .data
         .radarr_data
         .indexer_test_all_results
-        .as_ref()
-        .unwrap()
-        .items,
-      indexer_test_results_modal_items
-    );
+        .is_some());
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .radarr_data
+          .indexer_test_all_results
+          .as_ref()
+          .unwrap()
+          .items,
+        indexer_test_results_modal_items
+      );
+      assert_eq!(results, response);
+    }
   }
 
   #[tokio::test]
@@ -923,9 +1124,9 @@ mod test {
         "name": "MoviesSearch",
         "movieIds": [ 1 ]
       })),
+      Some(json!({})),
       None,
-      None,
-      RadarrEvent::TriggerAutomaticSearch.resource(),
+      RadarrEvent::TriggerAutomaticSearch(None).resource(),
     )
     .await;
     app_arc
@@ -937,9 +1138,33 @@ mod test {
       .set_items(vec![movie()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::TriggerAutomaticSearch)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::TriggerAutomaticSearch(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_trigger_automatic_search_event_uses_provided_id() {
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "MoviesSearch",
+        "movieIds": [ 1 ]
+      })),
+      Some(json!({})),
+      None,
+      RadarrEvent::TriggerAutomaticSearch(None).resource(),
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::TriggerAutomaticSearch(Some(1)))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
   }
@@ -952,9 +1177,9 @@ mod test {
         "name": "RefreshMovie",
         "movieIds": [ 1 ]
       })),
+      Some(json!({})),
       None,
-      None,
-      RadarrEvent::UpdateAndScan.resource(),
+      RadarrEvent::UpdateAndScan(None).resource(),
     )
     .await;
     app_arc
@@ -966,9 +1191,33 @@ mod test {
       .set_items(vec![movie()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::UpdateAndScan)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::UpdateAndScan(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_update_and_scan_event_uses_provied_movie_id() {
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "RefreshMovie",
+        "movieIds": [ 1 ]
+      })),
+      Some(json!({})),
+      None,
+      RadarrEvent::UpdateAndScan(None).resource(),
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::UpdateAndScan(Some(1)))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
   }
@@ -981,16 +1230,17 @@ mod test {
         "name": "RefreshMovie",
         "movieIds": []
       })),
-      None,
+      Some(json!({})),
       None,
       RadarrEvent::UpdateAllMovies.resource(),
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    assert!(network
       .handle_radarr_event(RadarrEvent::UpdateAllMovies)
-      .await;
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
   }
@@ -1002,16 +1252,17 @@ mod test {
       Some(json!({
         "name": "RefreshMonitoredDownloads"
       })),
-      None,
+      Some(json!({})),
       None,
       RadarrEvent::UpdateDownloads.resource(),
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    assert!(network
       .handle_radarr_event(RadarrEvent::UpdateDownloads)
-      .await;
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
   }
@@ -1023,23 +1274,25 @@ mod test {
       Some(json!({
         "name": "RefreshCollections"
       })),
-      None,
+      Some(json!({})),
       None,
       RadarrEvent::UpdateCollections.resource(),
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    assert!(network
       .handle_radarr_event(RadarrEvent::UpdateCollections)
-      .await;
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
   async fn test_handle_get_movie_details_event() {
-    let resource = format!("{}/1", RadarrEvent::GetMovieDetails.resource());
+    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
+    let response: Movie = serde_json::from_str(MOVIE_JSON).unwrap();
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1059,25 +1312,27 @@ mod test {
       BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::GetMovieDetails)
-      .await;
-
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
+    if let RadarrSerdeable::Movie(movie) = network
+      .handle_radarr_event(RadarrEvent::GetMovieDetails(None))
       .await
-      .data
-      .radarr_data
-      .movie_details_modal
-      .is_some());
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert!(app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .movie_details_modal
+        .is_some());
+      assert_eq!(movie, response);
 
-    let app = app_arc.lock().await;
-    let movie_details_modal = app.data.radarr_data.movie_details_modal.as_ref().unwrap();
-    assert_str_eq!(
-      movie_details_modal.movie_details.get_text(),
-      formatdoc!(
-        "Title: Test
+      let app = app_arc.lock().await;
+      let movie_details_modal = app.data.radarr_data.movie_details_modal.as_ref().unwrap();
+      assert_str_eq!(
+        movie_details_modal.movie_details.get_text(),
+        formatdoc!(
+          "Title: Test
           Year: 2023
           Runtime: 2h 0m
           Rating: R
@@ -1092,39 +1347,64 @@ mod test {
           Path: /nfs/movies
           Studio: 21st Century Alex
           Genres: cool, family, fun"
-      )
-    );
-    assert_str_eq!(
-      movie_details_modal.file_details,
-      formatdoc!(
-        "Relative Path: Test.mkv
+        )
+      );
+      assert_str_eq!(
+        movie_details_modal.file_details,
+        formatdoc!(
+          "Relative Path: Test.mkv
         Absolute Path: /nfs/movies/Test.mkv
         Size: 3.30 GB
         Date Added: 2022-12-30 07:37:56 UTC"
-      )
-    );
-    assert_str_eq!(
-      movie_details_modal.audio_details,
-      formatdoc!(
-        "Bitrate: 0
+        )
+      );
+      assert_str_eq!(
+        movie_details_modal.audio_details,
+        formatdoc!(
+          "Bitrate: 0
         Channels: 7.1
         Codec: AAC
         Languages: eng
         Stream Count: 1"
-      )
-    );
-    assert_str_eq!(
-      movie_details_modal.video_details,
-      formatdoc!(
-        "Bit Depth: 10
+        )
+      );
+      assert_str_eq!(
+        movie_details_modal.video_details,
+        formatdoc!(
+          "Bit Depth: 10
         Bitrate: 0
         Codec: x265
         FPS: 23.976
         Resolution: 1920x804
         Scan Type: Progressive
         Runtime: 2:00:00"
-      )
-    );
+        )
+      );
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_movie_details_event_uses_provided_id() {
+    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
+    let response: Movie = serde_json::from_str(MOVIE_JSON).unwrap();
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(MOVIE_JSON).unwrap()),
+      None,
+      &resource,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    if let RadarrSerdeable::Movie(movie) = network
+      .handle_radarr_event(RadarrEvent::GetMovieDetails(Some(1)))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(movie, response);
+    }
   }
 
   #[tokio::test]
@@ -1151,7 +1431,7 @@ mod test {
       "minimumAvailability": "released",
       "ratings": {}
     });
-    let resource = format!("{}/1", RadarrEvent::GetMovieDetails.resource());
+    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1171,9 +1451,10 @@ mod test {
       BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::GetMovieDetails)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::GetMovieDetails(None))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert!(app_arc
@@ -1220,7 +1501,12 @@ mod test {
       "date": "2022-12-30T07:37:56Z",
       "eventType": "grabbed"
     }]);
-    let resource = format!("{}?movieId=1", RadarrEvent::GetMovieHistory.resource());
+    let response: Vec<MovieHistoryItem> =
+      serde_json::from_value(movie_history_item_json.clone()).unwrap();
+    let resource = format!(
+      "{}?movieId=1",
+      RadarrEvent::GetMovieHistory(None).resource()
+    );
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1239,24 +1525,62 @@ mod test {
     app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::GetMovieHistory)
-      .await;
+    if let RadarrSerdeable::MovieHistoryItems(history) = network
+      .handle_radarr_event(RadarrEvent::GetMovieHistory(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_ref()
+          .unwrap()
+          .movie_history
+          .items,
+        vec![movie_history_item()]
+      );
+      assert_eq!(history, response);
+    }
+  }
 
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_ref()
-        .unwrap()
-        .movie_history
-        .items,
-      vec![movie_history_item()]
+  #[tokio::test]
+  async fn test_handle_get_movie_history_event_uses_provided_id() {
+    let movie_history_item_json = json!([{
+      "sourceTitle": "Test",
+      "quality": { "quality": { "name": "HD - 1080p" }},
+      "languages": [ { "name": "English" } ],
+      "date": "2022-12-30T07:37:56Z",
+      "eventType": "grabbed"
+    }]);
+    let response: Vec<MovieHistoryItem> =
+      serde_json::from_value(movie_history_item_json.clone()).unwrap();
+    let resource = format!(
+      "{}?movieId=1",
+      RadarrEvent::GetMovieHistory(None).resource()
     );
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(movie_history_item_json),
+      None,
+      &resource,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    if let RadarrSerdeable::MovieHistoryItems(history) = network
+      .handle_radarr_event(RadarrEvent::GetMovieHistory(Some(1)))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(history, response);
+    }
   }
 
   #[tokio::test]
@@ -1268,7 +1592,10 @@ mod test {
       "date": "2022-12-30T07:37:56Z",
       "eventType": "grabbed"
     }]);
-    let resource = format!("{}?movieId=1", RadarrEvent::GetMovieHistory.resource());
+    let resource = format!(
+      "{}?movieId=1",
+      RadarrEvent::GetMovieHistory(None).resource()
+    );
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1286,9 +1613,10 @@ mod test {
       .set_items(vec![movie()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::GetMovieHistory)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::GetMovieHistory(None))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert_eq!(
@@ -1382,6 +1710,7 @@ mod test {
           },
         },
     }]});
+    let response: BlocklistResponse = serde_json::from_value(blocklist_json.clone()).unwrap();
     let mut expected_blocklist = vec![
       BlocklistItem {
         id: 123,
@@ -1433,14 +1762,19 @@ mod test {
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::GetBlocklist).await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.blocklist.items,
-      expected_blocklist
-    );
-    assert!(app_arc.lock().await.data.radarr_data.blocklist.sort_asc);
+    if let RadarrSerdeable::BlocklistResponse(blocklist) = network
+      .handle_radarr_event(RadarrEvent::GetBlocklist)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.blocklist.items,
+        expected_blocklist
+      );
+      assert!(app_arc.lock().await.data.radarr_data.blocklist.sort_asc);
+      assert_eq!(blocklist, response);
+    }
   }
 
   #[tokio::test]
@@ -1549,7 +1883,10 @@ mod test {
       .sorting(vec![blocklist_sort_option]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::GetBlocklist).await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::GetBlocklist)
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert!(app_arc
@@ -1624,6 +1961,7 @@ mod test {
         }
       }],
     }]);
+    let response: Vec<Collection> = serde_json::from_value(collections_json.clone()).unwrap();
     let mut expected_collections = vec![
       Collection {
         id: 123,
@@ -1668,16 +2006,19 @@ mod test {
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    if let RadarrSerdeable::Collections(collections) = network
       .handle_radarr_event(RadarrEvent::GetCollections)
-      .await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.collections.items,
-      expected_collections
-    );
-    assert!(app_arc.lock().await.data.radarr_data.collections.sort_asc);
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.collections.items,
+        expected_collections
+      );
+      assert!(app_arc.lock().await.data.radarr_data.collections.sort_asc);
+      assert_eq!(collections, response);
+    }
   }
 
   #[tokio::test]
@@ -1772,9 +2113,10 @@ mod test {
       .sorting(vec![collection_sort_option]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    assert!(network
       .handle_radarr_event(RadarrEvent::GetCollections)
-      .await;
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert!(app_arc
@@ -1803,6 +2145,8 @@ mod test {
         "downloadClient": "transmission",
       }]
     });
+    let response: DownloadsResponse =
+      serde_json::from_value(downloads_response_json.clone()).unwrap();
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1813,13 +2157,18 @@ mod test {
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::GetDownloads).await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.downloads.items,
-      downloads_response().records
-    );
+    if let RadarrSerdeable::DownloadsResponse(downloads) = network
+      .handle_radarr_event(RadarrEvent::GetDownloads)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.downloads.items,
+        downloads_response().records
+      );
+      assert_eq!(downloads, response);
+    }
   }
 
   #[tokio::test]
@@ -1854,6 +2203,7 @@ mod test {
         "tags": [1],
         "id": 1
     }]);
+    let response: Vec<Indexer> = serde_json::from_value(indexers_response_json.clone()).unwrap();
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -1864,17 +2214,22 @@ mod test {
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::GetIndexers).await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.indexers.items,
-      vec![indexer()]
-    );
+    if let RadarrSerdeable::Indexers(indexers) = network
+      .handle_radarr_event(RadarrEvent::GetIndexers)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.indexers.items,
+        vec![indexer()]
+      );
+      assert_eq!(indexers, response);
+    }
   }
 
   #[tokio::test]
-  async fn test_handle_get_indexer_settings_event() {
+  async fn test_handle_get_all_indexer_settings_event() {
     let indexer_settings_response_json = json!({
         "minimumAge": 0,
         "maximumSize": 0,
@@ -1886,29 +2241,34 @@ mod test {
         "whitelistedHardcodedSubs": "",
         "id": 1
     });
+    let response: IndexerSettings =
+      serde_json::from_value(indexer_settings_response_json.clone()).unwrap();
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
       Some(indexer_settings_response_json),
       None,
-      RadarrEvent::GetIndexerSettings.resource(),
+      RadarrEvent::GetAllIndexerSettings.resource(),
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::GetIndexerSettings)
-      .await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.indexer_settings,
-      Some(indexer_settings())
-    );
+    if let RadarrSerdeable::IndexerSettings(settings) = network
+      .handle_radarr_event(RadarrEvent::GetAllIndexerSettings)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.indexer_settings,
+        Some(indexer_settings())
+      );
+      assert_eq!(settings, response);
+    }
   }
 
   #[tokio::test]
-  async fn test_handle_get_indexer_settings_event_no_op_if_already_present() {
+  async fn test_handle_get_all_indexer_settings_event_no_op_if_already_present() {
     let indexer_settings_response_json = json!({
         "minimumAge": 0,
         "maximumSize": 0,
@@ -1925,15 +2285,16 @@ mod test {
       None,
       Some(indexer_settings_response_json),
       None,
-      RadarrEvent::GetIndexerSettings.resource(),
+      RadarrEvent::GetAllIndexerSettings.resource(),
     )
     .await;
     app_arc.lock().await.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::GetIndexerSettings)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::GetAllIndexerSettings)
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert_eq!(
@@ -1954,6 +2315,7 @@ mod test {
         "duration": "00:00:00.5111547",
         "trigger": "scheduled",
     }]);
+    let response: Vec<QueueEvent> = serde_json::from_value(queued_events_json.clone()).unwrap();
     let timestamp = DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap());
     let expected_event = QueueEvent {
       name: "RefreshMonitoredDownloads".to_owned(),
@@ -1976,22 +2338,25 @@ mod test {
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    if let RadarrSerdeable::QueueEvents(events) = network
       .handle_radarr_event(RadarrEvent::GetQueuedEvents)
-      .await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.queued_events.items,
-      vec![expected_event]
-    );
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.queued_events.items,
+        vec![expected_event]
+      );
+      assert_eq!(events, response);
+    }
   }
 
   #[tokio::test]
   async fn test_handle_get_logs_event() {
     let resource = format!(
       "{}?pageSize=500&sortDirection=descending&sortKey=time",
-      RadarrEvent::GetLogs.resource()
+      RadarrEvent::GetLogs(None).resource()
     );
     let expected_logs = vec![
       HorizontallyScrollableText::from(
@@ -1999,55 +2364,132 @@ mod test {
       ),
       HorizontallyScrollableText::from("2023-05-20 21:29:16 UTC|INFO|TestLogger|test message"),
     ];
+    let logs_response_json = json!({
+      "page": 1,
+      "pageSize": 500,
+      "sortKey": "time",
+      "sortDirection": "descending",
+      "totalRecords": 2,
+      "records": [
+          {
+              "time": "2023-05-20T21:29:16Z",
+              "level": "info",
+              "logger": "TestLogger",
+              "message": "test message",
+              "id": 1
+          },
+          {
+              "time": "2023-05-20T21:29:16Z",
+              "level": "fatal",
+              "logger": "RadarrError",
+              "exception": "test exception",
+              "exceptionType": "Some.Big.Bad.Exception",
+              "id": 2
+          }
+        ]
+    });
+    let response: LogResponse = serde_json::from_value(logs_response_json.clone()).unwrap();
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
-      Some(json!({
-        "page": 1,
-        "pageSize": 500,
-        "sortKey": "time",
-        "sortDirection": "descending",
-        "totalRecords": 2,
-        "records": [
-            {
-                "time": "2023-05-20T21:29:16Z",
-                "level": "info",
-                "logger": "TestLogger",
-                "message": "test message",
-                "id": 1
-            },
-            {
-                "time": "2023-05-20T21:29:16Z",
-                "level": "fatal",
-                "logger": "RadarrError",
-                "exception": "test exception",
-                "exceptionType": "Some.Big.Bad.Exception",
-                "id": 2
-            }
-          ]
-      })),
+      Some(logs_response_json),
       None,
       &resource,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::GetLogs).await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.logs.items,
-      expected_logs
-    );
-    assert!(app_arc
-      .lock()
+    if let RadarrSerdeable::LogResponse(logs) = network
+      .handle_radarr_event(RadarrEvent::GetLogs(None))
       .await
-      .data
-      .radarr_data
-      .logs
-      .current_selection()
-      .text
-      .contains("INFO"));
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.logs.items,
+        expected_logs
+      );
+      assert!(app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .logs
+        .current_selection()
+        .text
+        .contains("INFO"));
+      assert_eq!(logs, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_logs_event_uses_provided_events() {
+    let resource = format!(
+      "{}?pageSize=1000&sortDirection=descending&sortKey=time",
+      RadarrEvent::GetLogs(Some(1000)).resource()
+    );
+    let expected_logs = vec![
+      HorizontallyScrollableText::from(
+        "2023-05-20 21:29:16 UTC|FATAL|RadarrError|Some.Big.Bad.Exception|test exception",
+      ),
+      HorizontallyScrollableText::from("2023-05-20 21:29:16 UTC|INFO|TestLogger|test message"),
+    ];
+    let logs_response_json = json!({
+      "page": 1,
+      "pageSize": 1000,
+      "sortKey": "time",
+      "sortDirection": "descending",
+      "totalRecords": 2,
+      "records": [
+          {
+              "time": "2023-05-20T21:29:16Z",
+              "level": "info",
+              "logger": "TestLogger",
+              "message": "test message",
+              "id": 1
+          },
+          {
+              "time": "2023-05-20T21:29:16Z",
+              "level": "fatal",
+              "logger": "RadarrError",
+              "exception": "test exception",
+              "exceptionType": "Some.Big.Bad.Exception",
+              "id": 2
+          }
+        ]
+    });
+    let response: LogResponse = serde_json::from_value(logs_response_json.clone()).unwrap();
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(logs_response_json),
+      None,
+      &resource,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    if let RadarrSerdeable::LogResponse(logs) = network
+      .handle_radarr_event(RadarrEvent::GetLogs(Some(1000)))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.logs.items,
+        expected_logs
+      );
+      assert!(app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .logs
+        .current_selection()
+        .text
+        .contains("INFO"));
+      assert_eq!(logs, response);
+    }
   }
 
   #[tokio::test]
@@ -2056,6 +2498,8 @@ mod test {
       "id": 2222,
       "name": "HD - 1080p"
     }]);
+    let response: Vec<QualityProfile> =
+      serde_json::from_value(quality_profile_json.clone()).unwrap();
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -2066,15 +2510,18 @@ mod test {
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    if let RadarrSerdeable::QualityProfiles(quality_profiles) = network
       .handle_radarr_event(RadarrEvent::GetQualityProfiles)
-      .await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.quality_profile_map,
-      BiMap::from_iter([(2222i64, "HD - 1080p".to_owned())])
-    );
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.quality_profile_map,
+        BiMap::from_iter([(2222i64, "HD - 1080p".to_owned())])
+      );
+      assert_eq!(quality_profiles, response);
+    }
   }
 
   #[tokio::test]
@@ -2083,6 +2530,7 @@ mod test {
       "id": 2222,
       "label": "usenet"
     }]);
+    let response: Vec<Tag> = serde_json::from_value(tags_json.clone()).unwrap();
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -2093,13 +2541,18 @@ mod test {
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::GetTags).await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.tags_map,
-      BiMap::from_iter([(2222i64, "usenet".to_owned())])
-    );
+    if let RadarrSerdeable::Tags(tags) = network
+      .handle_radarr_event(RadarrEvent::GetTags)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.tags_map,
+        BiMap::from_iter([(2222i64, "usenet".to_owned())])
+      );
+      assert_eq!(tags, response);
+    }
   }
 
   #[tokio::test]
@@ -2120,11 +2573,12 @@ mod test {
         "nextExecution": "2023-05-20T21:29:16Z",
         "lastDuration": "00:00:00.5111547",
     }]);
+    let response: Vec<Task> = serde_json::from_value(tasks_json.clone()).unwrap();
     let timestamp = DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap());
     let expected_tasks = vec![
       Task {
         name: "Application Check Update".to_owned(),
-        task_name: "ApplicationCheckUpdate".to_owned(),
+        task_name: TaskName::ApplicationCheckUpdate,
         interval: 360,
         last_execution: timestamp,
         next_execution: timestamp,
@@ -2132,7 +2586,7 @@ mod test {
       },
       Task {
         name: "Backup".to_owned(),
-        task_name: "Backup".to_owned(),
+        task_name: TaskName::Backup,
         interval: 10080,
         last_execution: timestamp,
         next_execution: timestamp,
@@ -2149,18 +2603,23 @@ mod test {
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::GetTasks).await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.tasks.items,
-      expected_tasks
-    );
+    if let RadarrSerdeable::Tasks(tasks) = network
+      .handle_radarr_event(RadarrEvent::GetTasks)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.tasks.items,
+        expected_tasks
+      );
+      assert_eq!(tasks, response);
+    }
   }
 
   #[tokio::test]
   async fn test_handle_get_updates_event() {
-    let tasks_json = json!([{
+    let updates_json = json!([{
       "version": "4.3.2.1",
       "releaseDate": "2023-04-15T02:02:53Z",
       "installed": true,
@@ -2200,6 +2659,7 @@ mod test {
         ]
       },
     }]);
+    let response: Vec<Update> = serde_json::from_value(updates_json.clone()).unwrap();
     let line_break = "-".repeat(200);
     let expected_text = ScrollableText::with_string(formatdoc!(
       "
@@ -2229,28 +2689,35 @@ mod test {
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
-      Some(tasks_json),
+      Some(updates_json),
       None,
       RadarrEvent::GetUpdates.resource(),
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::GetUpdates).await;
-
-    async_server.assert_async().await;
-    assert_str_eq!(
-      app_arc.lock().await.data.radarr_data.updates.get_text(),
-      expected_text.get_text()
-    );
+    if let RadarrSerdeable::Updates(updates) = network
+      .handle_radarr_event(RadarrEvent::GetUpdates)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_str_eq!(
+        app_arc.lock().await.data.radarr_data.updates.get_text(),
+        expected_text.get_text()
+      );
+      assert_eq!(updates, response);
+    }
   }
 
   #[tokio::test]
   async fn test_add_tag() {
+    let tag_json = json!({ "id": 3, "label": "testing" });
+    let response: Tag = serde_json::from_value(tag_json.clone()).unwrap();
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Post,
       Some(json!({ "label": "testing" })),
-      Some(json!({ "id": 3, "label": "testing" })),
+      Some(tag_json),
       None,
       RadarrEvent::GetTags.resource(),
     )
@@ -2259,17 +2726,37 @@ mod test {
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.add_tag("testing".to_owned()).await;
+    if let RadarrSerdeable::Tag(tag) = network
+      .handle_radarr_event(RadarrEvent::AddTag("testing".to_owned()))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.tags_map,
+        BiMap::from_iter([
+          (1, "usenet".to_owned()),
+          (2, "test".to_owned()),
+          (3, "testing".to_owned())
+        ])
+      );
+      assert_eq!(tag, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_tag_event() {
+    let resource = format!("{}/1", RadarrEvent::DeleteTag(1).resource());
+    let (async_server, app_arc, _server) =
+      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::DeleteTag(1))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.tags_map,
-      BiMap::from_iter([
-        (1, "usenet".to_owned()),
-        (2, "test".to_owned()),
-        (3, "testing".to_owned())
-      ])
-    );
   }
 
   #[tokio::test]
@@ -2280,6 +2767,7 @@ mod test {
       "accessible": true,
       "freeSpace": 219902325555200u64,
     }]);
+    let response: Vec<RootFolder> = serde_json::from_value(root_folder_json.clone()).unwrap();
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -2290,15 +2778,18 @@ mod test {
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    if let RadarrSerdeable::RootFolders(root_folders) = network
       .handle_radarr_event(RadarrEvent::GetRootFolders)
-      .await;
-
-    async_server.assert_async().await;
-    assert_eq!(
-      app_arc.lock().await.data.radarr_data.root_folders.items,
-      vec![root_folder()]
-    );
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.radarr_data.root_folders.items,
+        vec![root_folder()]
+      );
+      assert_eq!(root_folders, response);
+    }
   }
 
   #[tokio::test]
@@ -2316,7 +2807,11 @@ mod test {
           "type": "crew",
         }
     ]);
-    let resource = format!("{}?movieId=1", RadarrEvent::GetMovieCredits.resource());
+    let response: Vec<Credit> = serde_json::from_value(credits_json.clone()).unwrap();
+    let resource = format!(
+      "{}?movieId=1",
+      RadarrEvent::GetMovieCredits(None).resource()
+    );
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -2335,16 +2830,59 @@ mod test {
     app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::GetMovieCredits)
-      .await;
+    if let RadarrSerdeable::Credits(credits) = network
+      .handle_radarr_event(RadarrEvent::GetMovieCredits(None))
+      .await
+      .unwrap()
+    {
+      let app = app_arc.lock().await;
+      let movie_details_modal = app.data.radarr_data.movie_details_modal.as_ref().unwrap();
 
-    let app = app_arc.lock().await;
-    let movie_details_modal = app.data.radarr_data.movie_details_modal.as_ref().unwrap();
+      async_server.assert_async().await;
+      assert_eq!(movie_details_modal.movie_cast.items, vec![cast_credit()]);
+      assert_eq!(movie_details_modal.movie_crew.items, vec![crew_credit()]);
+      assert_eq!(credits, response);
+    }
+  }
 
-    async_server.assert_async().await;
-    assert_eq!(movie_details_modal.movie_cast.items, vec![cast_credit()]);
-    assert_eq!(movie_details_modal.movie_crew.items, vec![crew_credit()]);
+  #[tokio::test]
+  async fn test_handle_get_movie_credits_event_uses_provided_id() {
+    let credits_json = json!([
+        {
+          "personName": "Madison Clarke",
+          "character": "Johnny Blaze",
+          "type": "cast",
+        },
+        {
+          "personName": "Alex Clarke",
+          "department": "Music",
+          "job": "Composition",
+          "type": "crew",
+        }
+    ]);
+    let response: Vec<Credit> = serde_json::from_value(credits_json.clone()).unwrap();
+    let resource = format!(
+      "{}?movieId=1",
+      RadarrEvent::GetMovieCredits(None).resource()
+    );
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(credits_json),
+      None,
+      &resource,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    if let RadarrSerdeable::Credits(credits) = network
+      .handle_radarr_event(RadarrEvent::GetMovieCredits(Some(1)))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(credits, response);
+    }
   }
 
   #[tokio::test]
@@ -2362,7 +2900,10 @@ mod test {
           "type": "crew",
         }
     ]);
-    let resource = format!("{}?movieId=1", RadarrEvent::GetMovieCredits.resource());
+    let resource = format!(
+      "{}?movieId=1",
+      RadarrEvent::GetMovieCredits(None).resource()
+    );
     let (async_server, app_arc, _server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -2380,9 +2921,10 @@ mod test {
       .set_items(vec![movie()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::GetMovieCredits)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::GetMovieCredits(None))
+      .await
+      .is_ok());
 
     let app = app_arc.lock().await;
     let movie_details_modal = app.data.radarr_data.movie_details_modal.as_ref().unwrap();
@@ -2396,7 +2938,7 @@ mod test {
   async fn test_handle_delete_movie_event() {
     let resource = format!(
       "{}/1?deleteFiles=true&addImportExclusion=true",
-      RadarrEvent::DeleteMovie.resource()
+      RadarrEvent::DeleteMovie(None).resource()
     );
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
@@ -2408,7 +2950,35 @@ mod test {
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::DeleteMovie).await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::DeleteMovie(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+    assert!(!app_arc.lock().await.data.radarr_data.delete_movie_files);
+    assert!(!app_arc.lock().await.data.radarr_data.add_list_exclusion);
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_movie_event_use_provided_params() {
+    let resource = format!(
+      "{}/1?deleteFiles=true&addImportExclusion=true",
+      RadarrEvent::DeleteMovie(None).resource()
+    );
+    let (async_server, app_arc, _server) =
+      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let delete_movie_params = DeleteMovieParams {
+      id: 1,
+      delete_movie_files: true,
+      add_list_exclusion: true,
+    };
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::DeleteMovie(Some(delete_movie_params)))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert!(!app_arc.lock().await.data.radarr_data.delete_movie_files);
@@ -2449,16 +3019,17 @@ mod test {
       .set_items(blocklist_items);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
+    assert!(network
       .handle_radarr_event(RadarrEvent::ClearBlocklist)
-      .await;
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
   async fn test_handle_delete_blocklist_item_event() {
-    let resource = format!("{}/1", RadarrEvent::DeleteBlocklistItem.resource());
+    let resource = format!("{}/1", RadarrEvent::DeleteBlocklistItem(None).resource());
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
     app_arc
@@ -2470,16 +3041,32 @@ mod test {
       .set_items(vec![blocklist_item()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::DeleteBlocklistItem)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::DeleteBlocklistItem(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_blocklist_item_event_uses_provided_id() {
+    let resource = format!("{}/1", RadarrEvent::DeleteBlocklistItem(None).resource());
+    let (async_server, app_arc, _server) =
+      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::DeleteBlocklistItem(Some(1)))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
   async fn test_handle_delete_download_event() {
-    let resource = format!("{}/1", RadarrEvent::DeleteDownload.resource());
+    let resource = format!("{}/1", RadarrEvent::DeleteDownload(None).resource());
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
     app_arc
@@ -2491,16 +3078,32 @@ mod test {
       .set_items(vec![download_record()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::DeleteDownload)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::DeleteDownload(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_download_event_uses_provided_id() {
+    let resource = format!("{}/1", RadarrEvent::DeleteDownload(None).resource());
+    let (async_server, app_arc, _server) =
+      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::DeleteDownload(Some(1)))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
   async fn test_handle_delete_indexer_event() {
-    let resource = format!("{}/1", RadarrEvent::DeleteIndexer.resource());
+    let resource = format!("{}/1", RadarrEvent::DeleteIndexer(None).resource());
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
     app_arc
@@ -2512,16 +3115,32 @@ mod test {
       .set_items(vec![indexer()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::DeleteIndexer)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::DeleteIndexer(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_indexer_event_uses_provided_id() {
+    let resource = format!("{}/1", RadarrEvent::DeleteIndexer(None).resource());
+    let (async_server, app_arc, _server) =
+      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::DeleteIndexer(Some(1)))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
   async fn test_handle_delete_root_folder_event() {
-    let resource = format!("{}/1", RadarrEvent::DeleteRootFolder.resource());
+    let resource = format!("{}/1", RadarrEvent::DeleteRootFolder(None).resource());
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
     app_arc
@@ -2533,9 +3152,25 @@ mod test {
       .set_items(vec![root_folder()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::DeleteRootFolder)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::DeleteRootFolder(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_root_folder_event_uses_provided_id() {
+    let resource = format!("{}/1", RadarrEvent::DeleteRootFolder(None).resource());
+    let (async_server, app_arc, _server) =
+      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::DeleteRootFolder(Some(1)))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
   }
@@ -2558,9 +3193,9 @@ mod test {
           "searchForMovie": true
         }
       })),
+      Some(json!({})),
       None,
-      None,
-      RadarrEvent::AddMovie.resource(),
+      RadarrEvent::AddMovie(None).resource(),
     )
     .await;
 
@@ -2616,7 +3251,63 @@ mod test {
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::AddMovie).await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::AddMovie(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .add_movie_modal
+      .is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_movie_event_uses_provided_body() {
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "tmdbId": 1234,
+        "title": "Test",
+        "rootFolderPath": "/nfs2",
+        "minimumAvailability": "announced",
+        "monitored": true,
+        "qualityProfileId": 2222,
+        "tags": [1, 2],
+        "addOptions": {
+          "monitor": "movieOnly",
+          "searchForMovie": true
+        }
+      })),
+      Some(json!({})),
+      None,
+      RadarrEvent::AddMovie(None).resource(),
+    )
+    .await;
+    let body = AddMovieBody {
+      tmdb_id: 1234,
+      title: "Test".to_owned(),
+      root_folder_path: "/nfs2".to_owned(),
+      minimum_availability: "announced".to_owned(),
+      monitored: true,
+      quality_profile_id: 2222,
+      tags: vec![1, 2],
+      add_options: AddOptions {
+        monitor: "movieOnly".to_owned(),
+        search_for_movie: true,
+      },
+    };
+
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::AddMovie(Some(body)))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert!(app_arc
@@ -2645,9 +3336,9 @@ mod test {
           "searchForMovie": true
         }
       })),
+      Some(json!({})),
       None,
-      None,
-      RadarrEvent::AddMovie.resource(),
+      RadarrEvent::AddMovie(None).resource(),
     )
     .await;
 
@@ -2699,7 +3390,10 @@ mod test {
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::AddMovie).await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::AddMovie(None))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert!(app_arc
@@ -2731,18 +3425,49 @@ mod test {
       Some(json!({
         "path": "/nfs/test"
       })),
+      Some(json!({})),
       None,
-      None,
-      RadarrEvent::AddRootFolder.resource(),
+      RadarrEvent::AddRootFolder(None).resource(),
     )
     .await;
 
     app_arc.lock().await.data.radarr_data.edit_root_folder = Some("/nfs/test".into());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::AddRootFolder)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::AddRootFolder(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .edit_root_folder
+      .is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_root_folder_event_uses_provided_path() {
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "path": "/test/test"
+      })),
+      Some(json!({})),
+      None,
+      RadarrEvent::AddRootFolder(None).resource(),
+    )
+    .await;
+
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::AddRootFolder(Some("/test/test".to_owned())))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert!(app_arc
@@ -2772,16 +3497,17 @@ mod test {
       Some(indexer_settings_json),
       None,
       None,
-      RadarrEvent::EditAllIndexerSettings.resource(),
+      RadarrEvent::EditAllIndexerSettings(None).resource(),
     )
     .await;
 
     app_arc.lock().await.data.radarr_data.indexer_settings = Some(indexer_settings());
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::EditAllIndexerSettings)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditAllIndexerSettings(None))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
     assert!(app_arc
@@ -2791,6 +3517,40 @@ mod test {
       .radarr_data
       .indexer_settings
       .is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_all_indexer_settings_event_uses_provided_settings() {
+    let indexer_settings_json = json!({
+        "minimumAge": 0,
+        "maximumSize": 0,
+        "retention": 0,
+        "rssSyncInterval": 60,
+        "preferIndexerFlags": false,
+        "availabilityDelay": 0,
+        "allowHardcodedSubs": true,
+        "whitelistedHardcodedSubs": "",
+        "id": 1
+    });
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Put,
+      Some(indexer_settings_json),
+      None,
+      None,
+      RadarrEvent::EditAllIndexerSettings(None).resource(),
+    )
+    .await;
+
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditAllIndexerSettings(
+        Some(indexer_settings())
+      ))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
   }
 
   #[tokio::test]
@@ -2845,7 +3605,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/123", RadarrEvent::EditCollection.resource()).as_str(),
+        format!(
+          "/api/v3{}/123",
+          RadarrEvent::EditCollection(None).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -2877,9 +3641,10 @@ mod test {
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::EditCollection)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditCollection(None))
+      .await
+      .is_ok());
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
@@ -2889,12 +3654,174 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_edit_collection_event_uses_provided_parameters() {
+    let detailed_collection_body = json!({
+      "id": 123,
+      "title": "Test Collection",
+      "rootFolderPath": "/nfs/movies",
+      "searchOnAdd": true,
+      "monitored": true,
+      "minimumAvailability": "released",
+      "overview": "Collection blah blah blah",
+      "qualityProfileId": 2222,
+      "movies": [
+        {
+          "title": "Test",
+          "overview": "Collection blah blah blah",
+          "year": 2023,
+          "runtime": 120,
+          "tmdbId": 1234,
+          "genres": ["cool", "family", "fun"],
+          "ratings": {
+            "imdb": {
+              "value": 9.9
+            },
+            "tmdb": {
+              "value": 9.9
+            },
+            "rottenTomatoes": {
+              "value": 9.9
+            }
+          }
+        }
+      ]
+    });
+    let mut expected_body = detailed_collection_body.clone();
+    *expected_body.get_mut("monitored").unwrap() = json!(false);
+    *expected_body.get_mut("minimumAvailability").unwrap() = json!("announced");
+    *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
+    *expected_body.get_mut("rootFolderPath").unwrap() = json!("/nfs/Test Path");
+    *expected_body.get_mut("searchOnAdd").unwrap() = json!(false);
+
+    let resource = format!("{}/123", RadarrEvent::GetCollections.resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(detailed_collection_body),
+      None,
+      &resource,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v3{}/123",
+          RadarrEvent::EditCollection(None).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    let edit_collection_params = EditCollectionParams {
+      collection_id: 123,
+      monitored: Some(false),
+      minimum_availability: Some(MinimumAvailability::Announced),
+      quality_profile_id: Some(1111),
+      root_folder_path: Some("/nfs/Test Path".to_owned()),
+      search_on_add: Some(false),
+    };
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditCollection(Some(edit_collection_params)))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_collection_event_uses_provided_parameters_defaults_to_previous_values_when_none(
+  ) {
+    let detailed_collection_body = json!({
+      "id": 123,
+      "title": "Test Collection",
+      "rootFolderPath": "/nfs/movies",
+      "searchOnAdd": true,
+      "monitored": true,
+      "minimumAvailability": "released",
+      "overview": "Collection blah blah blah",
+      "qualityProfileId": 2222,
+      "movies": [
+        {
+          "title": "Test",
+          "overview": "Collection blah blah blah",
+          "year": 2023,
+          "runtime": 120,
+          "tmdbId": 1234,
+          "genres": ["cool", "family", "fun"],
+          "ratings": {
+            "imdb": {
+              "value": 9.9
+            },
+            "tmdb": {
+              "value": 9.9
+            },
+            "rottenTomatoes": {
+              "value": 9.9
+            }
+          }
+        }
+      ]
+    });
+    let mut expected_body = detailed_collection_body.clone();
+    *expected_body.get_mut("monitored").unwrap() = json!(true);
+    *expected_body.get_mut("minimumAvailability").unwrap() = json!("released");
+    *expected_body.get_mut("qualityProfileId").unwrap() = json!(2222);
+    *expected_body.get_mut("rootFolderPath").unwrap() = json!("/nfs/movies");
+    *expected_body.get_mut("searchOnAdd").unwrap() = json!(true);
+
+    let resource = format!("{}/123", RadarrEvent::GetCollections.resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(detailed_collection_body),
+      None,
+      &resource,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v3{}/123",
+          RadarrEvent::EditCollection(None).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    let edit_collection_params = EditCollectionParams {
+      collection_id: 123,
+      ..EditCollectionParams::default()
+    };
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditCollection(Some(edit_collection_params)))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
   async fn test_handle_edit_indexer_event() {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
         "enableInteractiveSearch": true,
         "name": "Test Indexer",
+        "priority": 1,
         "fields": [
             {
                 "name": "baseUrl",
@@ -2917,6 +3844,7 @@ mod test {
         "enableAutomaticSearch": false,
         "enableInteractiveSearch": false,
         "name": "Test Update",
+        "priority": 1,
         "fields": [
             {
                 "name": "baseUrl",
@@ -2947,7 +3875,7 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditIndexer.resource()).as_str(),
+        format!("/api/v3{}/1", RadarrEvent::EditIndexer(None).resource()).as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -2973,7 +3901,10 @@ mod test {
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::EditIndexer).await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditIndexer(None))
+      .await
+      .is_ok());
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
@@ -2990,6 +3921,7 @@ mod test {
         "enableAutomaticSearch": true,
         "enableInteractiveSearch": true,
         "name": "Test Indexer",
+        "priority": 1,
         "fields": [
             {
                 "name": "baseUrl",
@@ -3008,6 +3940,7 @@ mod test {
         "enableAutomaticSearch": false,
         "enableInteractiveSearch": false,
         "name": "Test Update",
+        "priority": 1,
         "fields": [
             {
                 "name": "baseUrl",
@@ -3034,7 +3967,7 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditIndexer.resource()).as_str(),
+        format!("/api/v3{}/1", RadarrEvent::EditIndexer(None).resource()).as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -3069,7 +4002,10 @@ mod test {
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::EditIndexer).await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditIndexer(None))
+      .await
+      .is_ok());
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
@@ -3086,6 +4022,7 @@ mod test {
         "enableAutomaticSearch": true,
         "enableInteractiveSearch": true,
         "name": "Test Indexer",
+        "priority": 1,
         "fields": [
             {
                 "name": "baseUrl",
@@ -3107,6 +4044,7 @@ mod test {
         "enableAutomaticSearch": false,
         "enableInteractiveSearch": false,
         "name": "Test Update",
+        "priority": 1,
         "fields": [
             {
                 "name": "baseUrl",
@@ -3137,7 +4075,7 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditIndexer.resource()).as_str(),
+        format!("/api/v3{}/1", RadarrEvent::EditIndexer(None).resource()).as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -3179,13 +4117,253 @@ mod test {
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::EditIndexer).await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditIndexer(None))
+      .await
+      .is_ok());
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
 
     let app = app_arc.lock().await;
     assert!(app.data.radarr_data.edit_indexer_modal.is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_indexer_event_uses_provided_parameters() {
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "priority": 1,
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let expected_indexer_edit_body_json = json!({
+        "enableRss": false,
+        "enableAutomaticSearch": false,
+        "enableInteractiveSearch": false,
+        "name": "Test Update",
+        "priority": 25,
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://localhost:9696/1/",
+            },
+            {
+                "name": "apiKey",
+                "value": "test1234",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.3",
+            },
+        ],
+        "tags": [1, 2],
+        "id": 1
+    });
+    let edit_indexer_params = EditIndexerParams {
+      indexer_id: 1,
+      name: Some("Test Update".to_owned()),
+      enable_rss: Some(false),
+      enable_automatic_search: Some(false),
+      enable_interactive_search: Some(false),
+      url: Some("https://localhost:9696/1/".to_owned()),
+      api_key: Some("test1234".to_owned()),
+      seed_ratio: Some("1.3".to_owned()),
+      tags: Some(vec![1, 2]),
+      priority: Some(25),
+      ..EditIndexerParams::default()
+    };
+
+    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json),
+      None,
+      &resource,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", RadarrEvent::EditIndexer(None).resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_indexer_edit_body_json))
+      .create_async()
+      .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditIndexer(Some(edit_indexer_params)))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_indexer_event_uses_provided_parameters_defaults_to_previous_values() {
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "priority": 1,
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let edit_indexer_params = EditIndexerParams {
+      indexer_id: 1,
+      ..EditIndexerParams::default()
+    };
+
+    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json.clone()),
+      None,
+      &resource,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", RadarrEvent::EditIndexer(None).resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(indexer_details_json))
+      .create_async()
+      .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditIndexer(Some(edit_indexer_params)))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_indexer_event_uses_provided_parameters_clears_tags_when_clear_tags_is_true(
+  ) {
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "priority": 1,
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "tags": [1, 2],
+        "id": 1
+    });
+    let expected_edit_indexer_body = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "priority": 1,
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "tags": [],
+        "id": 1
+    });
+    let edit_indexer_params = EditIndexerParams {
+      indexer_id: 1,
+      clear_tags: true,
+      ..EditIndexerParams::default()
+    };
+
+    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json),
+      None,
+      &resource,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", RadarrEvent::EditIndexer(None).resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_edit_indexer_body))
+      .create_async()
+      .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditIndexer(Some(edit_indexer_params)))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
   }
 
   #[tokio::test]
@@ -3197,7 +4375,7 @@ mod test {
     *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
     *expected_body.get_mut("tags").unwrap() = json!([1, 2]);
 
-    let resource = format!("{}/1", RadarrEvent::GetMovieDetails.resource());
+    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
     let (async_details_server, app_arc, mut server) = mock_radarr_api(
       RequestMethod::Get,
       None,
@@ -3209,7 +4387,7 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditMovie.resource()).as_str(),
+        format!("/api/v3{}/1", RadarrEvent::EditMovie(None).resource()).as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -3242,13 +4420,142 @@ mod test {
     }
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network.handle_radarr_event(RadarrEvent::EditMovie).await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditMovie(None))
+      .await
+      .is_ok());
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
 
     let app = app_arc.lock().await;
     assert!(app.data.radarr_data.edit_movie_modal.is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_movie_event_uses_provided_parameters() {
+    let mut expected_body: Value = serde_json::from_str(MOVIE_JSON).unwrap();
+    *expected_body.get_mut("monitored").unwrap() = json!(false);
+    *expected_body.get_mut("minimumAvailability").unwrap() = json!("announced");
+    *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
+    *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
+    *expected_body.get_mut("tags").unwrap() = json!([1, 2]);
+
+    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(MOVIE_JSON).unwrap()),
+      None,
+      &resource,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", RadarrEvent::EditMovie(None).resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    let edit_movie_params = EditMovieParams {
+      movie_id: 1,
+      monitored: Some(false),
+      minimum_availability: Some(MinimumAvailability::Announced),
+      quality_profile_id: Some(1111),
+      root_folder_path: Some("/nfs/Test Path".to_owned()),
+      tags: Some(vec![1, 2]),
+      ..EditMovieParams::default()
+    };
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditMovie(Some(edit_movie_params)))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_movie_event_uses_provided_parameters_defaults_to_previous_values() {
+    let expected_body: Value = serde_json::from_str(MOVIE_JSON).unwrap();
+    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(MOVIE_JSON).unwrap()),
+      None,
+      &resource,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", RadarrEvent::EditMovie(None).resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    let edit_movie_params = EditMovieParams {
+      movie_id: 1,
+      ..EditMovieParams::default()
+    };
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditMovie(Some(edit_movie_params)))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_movie_event_uses_provided_parameters_returns_empty_tags_vec_when_clear_tags_is_true(
+  ) {
+    let mut expected_body: Value = serde_json::from_str(MOVIE_JSON).unwrap();
+    *expected_body.get_mut("tags").unwrap() = json!([]);
+
+    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
+    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(MOVIE_JSON).unwrap()),
+      None,
+      &resource,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", RadarrEvent::EditMovie(None).resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    let edit_movie_params = EditMovieParams {
+      movie_id: 1,
+      clear_tags: true,
+      ..EditMovieParams::default()
+    };
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditMovie(Some(edit_movie_params)))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
   }
 
   #[tokio::test]
@@ -3260,9 +4567,9 @@ mod test {
         "indexerId": 2,
         "movieId": 1
       })),
+      Some(json!({})),
       None,
-      None,
-      RadarrEvent::DownloadRelease.resource(),
+      RadarrEvent::DownloadRelease(None).resource(),
     )
     .await;
     let mut movie_details_modal = MovieDetailsModal::default();
@@ -3279,9 +4586,39 @@ mod test {
       .set_items(vec![movie()]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    network
-      .handle_radarr_event(RadarrEvent::DownloadRelease)
-      .await;
+    assert!(network
+      .handle_radarr_event(RadarrEvent::DownloadRelease(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_download_release_event_uses_provided_params() {
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "guid": "1234",
+        "indexerId": 2,
+        "movieId": 1
+      })),
+      Some(json!({})),
+      None,
+      RadarrEvent::DownloadRelease(None).resource(),
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let params = ReleaseDownloadBody {
+      guid: "1234".to_owned(),
+      indexer_id: 2,
+      movie_id: 1,
+    };
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::DownloadRelease(Some(params)))
+      .await
+      .is_ok());
 
     async_server.assert_async().await;
   }
@@ -3353,12 +4690,11 @@ mod test {
       .movies
       .set_items(vec![Movie {
         id: 1,
-        tmdb_id: 2,
         ..Movie::default()
       }]);
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    assert_eq!(network.extract_movie_id().await, (1, 2));
+    assert_eq!(network.extract_movie_id().await, 1);
   }
 
   #[tokio::test]
@@ -3367,13 +4703,12 @@ mod test {
     let mut filtered_movies = StatefulTable::default();
     filtered_movies.set_filtered_items(vec![Movie {
       id: 1,
-      tmdb_id: 2,
       ..Movie::default()
     }]);
     app_arc.lock().await.data.radarr_data.movies = filtered_movies;
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
-    assert_eq!(network.extract_movie_id().await, (1, 2));
+    assert_eq!(network.extract_movie_id().await, 1);
   }
 
   #[tokio::test]
@@ -3424,8 +4759,29 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new());
 
     assert_str_eq!(
-      network.append_movie_id_param("/test").await,
+      network.append_movie_id_param("/test", None).await,
       "/test?movieId=1"
+    );
+  }
+
+  #[tokio::test]
+  async fn test_append_movie_id_param_uses_provided_id() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![Movie {
+        id: 1,
+        ..Movie::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    assert_str_eq!(
+      network.append_movie_id_param("/test", Some(11)).await,
+      "/test?movieId=11"
     );
   }
 
@@ -3530,11 +4886,7 @@ mod test {
     response_status: Option<usize>,
     resource: &str,
   ) -> (Mock, Arc<Mutex<App<'_>>>, ServerGuard) {
-    let status = if let Some(status) = response_status {
-      status
-    } else {
-      200
-    };
+    let status = response_status.unwrap_or(200);
     let mut server = Server::new_async().await;
     let mut async_server = server
       .mock(

@@ -410,7 +410,7 @@ mod tests {
     #[case(
       ActiveRadarrBlock::Blocklist,
       ActiveRadarrBlock::DeleteBlocklistItemPrompt,
-      RadarrEvent::DeleteBlocklistItem
+      RadarrEvent::DeleteBlocklistItem(None)
     )]
     #[case(
       ActiveRadarrBlock::Blocklist,

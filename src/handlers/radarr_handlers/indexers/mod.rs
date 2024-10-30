@@ -121,7 +121,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
       ActiveRadarrBlock::DeleteIndexerPrompt => {
         let radarr_data = &mut self.app.data.radarr_data;
         if radarr_data.prompt_confirm {
-          radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteIndexer);
+          radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteIndexer(None));
         }
 
         self.app.pop_navigation_stack();
@@ -189,7 +189,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
         _ if *key == DEFAULT_KEYBINDINGS.settings.key => {
           self
             .app
-            .push_navigation_stack(ActiveRadarrBlock::IndexerSettingsPrompt.into());
+            .push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
           self.app.data.radarr_data.selected_block =
             BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
         }

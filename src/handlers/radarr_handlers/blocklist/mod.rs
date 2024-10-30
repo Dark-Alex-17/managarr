@@ -132,7 +132,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
     match self.active_radarr_block {
       ActiveRadarrBlock::DeleteBlocklistItemPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteBlocklistItem);
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::DeleteBlocklistItem(None));
         }
 
         self.app.pop_navigation_stack();

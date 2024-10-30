@@ -87,6 +87,70 @@ curl https://raw.githubusercontent.com/Dark-Alex-17/managarr-demo/main/managarr-
 
 - [ ] Support for Tautulli
 
+### The Managarr CLI
+Managarr can be used in one of two ways: As a TUI, or as a CLI for managing your Servarrs. 
+
+All management features available in the TUI are also available in the CLI.
+
+The CLI can be helpful for automating tasks or for use in scripts. For example, you can use the CLI to trigger a search for a movie, or to add a movie to your library.
+
+To see all available commands, simply run `managarr --help`:
+
+```shell
+$ managarr --help
+managarr 0.0.36
+Alex Clarke <alex.j.tusa@gmail.com>
+
+A TUI and CLI to manage your Servarrs
+
+Usage: managarr [COMMAND]
+
+Commands:
+  radarr       Commands for manging your Radarr instance
+  completions  Generate shell completions for the Managarr CLI
+  help         Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
+```
+
+All subcommands also have detailed help menus to show you how to use them. For example, to see all available commands for Radarr, you would run:
+
+```shell
+$ managarr radarr --help
+Commands for manging your Radarr instance
+
+Usage: managarr radarr <COMMAND>
+
+Commands:
+  add                       Commands to add or create new resources within your Radarr instance
+  delete                    Commands to delete resources from your Radarr instance
+  edit                      Commands to edit resources in your Radarr instance
+  get                       Commands to fetch details of the resources in your Radarr instance
+  list                      Commands to list attributes from your Radarr instance
+  refresh                   Commands to refresh the data in your Radarr instance
+  clear-blocklist           Clear the blocklist
+  download-release          Manually download the given release for the specified movie ID
+  manual-search             Trigger a manual search of releases for the movie with the given ID
+  search-new-movie          Search for a new film to add to Radarr
+  start-task                Start the specified Radarr task
+  test-indexer              Test the indexer with the given ID. Note that a successful test returns an empty JSON body; i.e. '{}'
+  test-all-indexers         Test all indexers
+  trigger-automatic-search  Trigger an automatic search for the movie with the specified ID
+  help                      Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help
+```
+
+**Usage Tip:** The CLI is even more powerful and useful when used in conjunction with the `jq` CLI tool. This allows you to parse the JSON response from the Managarr CLI and use it in your scripts; For example, to extract the `movieId` of the movie "Ad Astra", you would run:
+
+```shell
+$ managarr radarr list movies | jq '.[] | select(.title == "Ad Astra") | .id'
+277
+```
+
 ## Installation
 
 ### Docker

@@ -1,3 +1,5 @@
+use std::sync::atomic::Ordering;
+
 use ratatui::layout::{Constraint, Rect};
 use ratatui::prelude::Layout;
 use ratatui::widgets::ListItem;
@@ -145,12 +147,12 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, are
 
   if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
     let path_input_box = InputBox::new(&path.text)
-      .offset(*path.offset.borrow())
+      .offset(path.offset.load(Ordering::SeqCst))
       .label("Path")
       .highlighted(selected_block == &ActiveRadarrBlock::EditMoviePathInput)
       .selected(active_radarr_block == ActiveRadarrBlock::EditMoviePathInput);
     let tags_input_box = InputBox::new(&tags.text)
-      .offset(*tags.offset.borrow())
+      .offset(tags.offset.load(Ordering::SeqCst))
       .label("Tags")
       .highlighted(selected_block == &ActiveRadarrBlock::EditMovieTagsInput)
       .selected(active_radarr_block == ActiveRadarrBlock::EditMovieTagsInput);

@@ -275,7 +275,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
           ActiveRadarrBlock::EditIndexerConfirmPrompt => {
             let radarr_data = &mut self.app.data.radarr_data;
             if radarr_data.prompt_confirm {
-              radarr_data.prompt_confirm_action = Some(RadarrEvent::EditIndexer);
+              radarr_data.prompt_confirm_action = Some(RadarrEvent::EditIndexer(None));
               self.app.should_refresh = true;
             } else {
               radarr_data.edit_indexer_modal = None;

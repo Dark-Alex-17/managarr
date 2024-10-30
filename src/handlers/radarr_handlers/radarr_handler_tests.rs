@@ -140,7 +140,7 @@ mod tests {
     #[values(
       ActiveRadarrBlock::DeleteIndexerPrompt,
       ActiveRadarrBlock::Indexers,
-      ActiveRadarrBlock::IndexerSettingsPrompt,
+      ActiveRadarrBlock::AllIndexerSettingsPrompt,
       ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
       ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
       ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,

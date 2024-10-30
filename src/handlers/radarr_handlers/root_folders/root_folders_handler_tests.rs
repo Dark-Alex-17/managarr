@@ -59,6 +59,8 @@ mod tests {
   }
 
   mod test_handle_home_end {
+    use std::sync::atomic::Ordering;
+
     use pretty_assertions::assert_eq;
 
     use crate::models::radarr_models::RootFolder;
@@ -132,14 +134,14 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_root_folder
           .as_ref()
           .unwrap()
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         4
       );
 
@@ -152,14 +154,14 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_root_folder
           .as_ref()
           .unwrap()
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -222,6 +224,8 @@ mod tests {
   }
 
   mod test_handle_left_right_action {
+    use std::sync::atomic::Ordering;
+
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -313,14 +317,14 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_root_folder
           .as_ref()
           .unwrap()
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         1
       );
 
@@ -333,14 +337,14 @@ mod tests {
       .handle();
 
       assert_eq!(
-        *app
+        app
           .data
           .radarr_data
           .edit_root_folder
           .as_ref()
           .unwrap()
           .offset
-          .borrow(),
+          .load(Ordering::SeqCst),
         0
       );
     }
@@ -381,7 +385,7 @@ mod tests {
       assert!(!app.should_ignore_quit_key);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::AddRootFolder)
+        Some(RadarrEvent::AddRootFolder(None))
       );
       assert_eq!(
         app.get_current_route(),
@@ -438,7 +442,7 @@ mod tests {
       assert!(app.data.radarr_data.prompt_confirm);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteRootFolder)
+        Some(RadarrEvent::DeleteRootFolder(None))
       );
       assert_eq!(
         app.get_current_route(),

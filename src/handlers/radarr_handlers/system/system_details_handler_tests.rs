@@ -717,7 +717,7 @@ mod tests {
       assert!(app.data.radarr_data.prompt_confirm);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::StartTask)
+        Some(RadarrEvent::StartTask(None))
       );
       assert_eq!(
         app.get_current_route(),

@@ -150,7 +150,7 @@ mod tests {
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteMovie)
+        Some(RadarrEvent::DeleteMovie(None))
       );
       assert!(app.should_refresh);
       assert!(app.data.radarr_data.prompt_confirm);

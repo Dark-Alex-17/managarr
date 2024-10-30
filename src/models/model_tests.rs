@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
-  use std::cell::RefCell;
+  use std::sync::atomic::AtomicUsize;
+  use std::sync::atomic::Ordering;
 
   use pretty_assertions::{assert_eq, assert_str_eq};
   use serde::de::value::Error as ValueError;
@@ -100,7 +101,22 @@ mod tests {
     let test_text = "Test string";
     let horizontally_scrollable_text = HorizontallyScrollableText::from(test_text.to_owned());
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
+    assert_str_eq!(horizontally_scrollable_text.text, test_text);
+  }
+
+  #[test]
+  fn test_horizontally_scrollable_text_from_string_ref() {
+    let test_text = "Test string".to_owned();
+    let horizontally_scrollable_text = HorizontallyScrollableText::from(&test_text);
+
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
     assert_str_eq!(horizontally_scrollable_text.text, test_text);
   }
 
@@ -109,7 +125,10 @@ mod tests {
     let test_text = "Test string";
     let horizontally_scrollable_text = HorizontallyScrollableText::from(test_text);
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
     assert_str_eq!(horizontally_scrollable_text.text, test_text);
   }
 
@@ -122,14 +141,14 @@ mod tests {
 
     let horizontally_scrollable_text = HorizontallyScrollableText {
       text: test_text.to_owned(),
-      offset: RefCell::new(test_text.len() - 1),
+      offset: AtomicUsize::new(test_text.len() - 1),
     };
 
     assert_str_eq!(horizontally_scrollable_text.to_string(), "g");
 
     let horizontally_scrollable_text = HorizontallyScrollableText {
       text: test_text.to_owned(),
-      offset: RefCell::new(test_text.len()),
+      offset: AtomicUsize::new(test_text.len()),
     };
 
     assert!(horizontally_scrollable_text.to_string().is_empty());
@@ -140,7 +159,10 @@ mod tests {
     let test_text = "Test string";
     let horizontally_scrollable_text = HorizontallyScrollableText::new(test_text.to_owned());
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
     assert_str_eq!(horizontally_scrollable_text.text, test_text);
   }
 
@@ -158,18 +180,24 @@ mod tests {
   fn test_horizontally_scrollable_text_scroll_text_left() {
     let horizontally_scrollable_text = HorizontallyScrollableText::from("Test string");
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
 
     for i in 1..horizontally_scrollable_text.text.len() - 1 {
       horizontally_scrollable_text.scroll_left();
 
-      assert_eq!(*horizontally_scrollable_text.offset.borrow(), i);
+      assert_eq!(
+        horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+        i
+      );
     }
 
     horizontally_scrollable_text.scroll_left();
 
     assert_eq!(
-      *horizontally_scrollable_text.offset.borrow(),
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
       horizontally_scrollable_text.text.len() - 1
     );
   }
@@ -180,37 +208,51 @@ mod tests {
 
     horizontally_scrollable_text.scroll_left();
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      1
+    );
     assert_str_eq!(horizontally_scrollable_text.to_string(), "리");
 
     horizontally_scrollable_text.scroll_left();
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 2);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      2
+    );
     assert_str_eq!(horizontally_scrollable_text.to_string(), "");
 
     horizontally_scrollable_text.scroll_left();
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 2);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      2
+    );
     assert!(horizontally_scrollable_text.to_string().is_empty());
   }
 
   #[test]
   fn test_horizontally_scrollable_text_scroll_text_right() {
     let horizontally_scrollable_text = HorizontallyScrollableText::from("Test string");
-    *horizontally_scrollable_text.offset.borrow_mut() = horizontally_scrollable_text.text.len();
+    horizontally_scrollable_text
+      .offset
+      .store(horizontally_scrollable_text.len(), Ordering::SeqCst);
 
     for i in 1..horizontally_scrollable_text.text.len() {
       horizontally_scrollable_text.scroll_right();
 
       assert_eq!(
-        *horizontally_scrollable_text.offset.borrow(),
+        horizontally_scrollable_text.offset.load(Ordering::SeqCst),
         horizontally_scrollable_text.text.len() - i
       );
     }
 
     horizontally_scrollable_text.scroll_right();
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
   }
 
   #[test]
@@ -220,7 +262,7 @@ mod tests {
     horizontally_scrollable_text.scroll_home();
 
     assert_eq!(
-      *horizontally_scrollable_text.offset.borrow(),
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
       horizontally_scrollable_text.text.len()
     );
   }
@@ -231,19 +273,25 @@ mod tests {
 
     horizontally_scrollable_text.scroll_home();
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 2);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      2
+    );
   }
 
   #[test]
   fn test_horizontally_scrollable_text_reset_offset() {
     let horizontally_scrollable_text = HorizontallyScrollableText {
       text: "Test string".to_owned(),
-      offset: RefCell::new(1),
+      offset: AtomicUsize::new(1),
     };
 
     horizontally_scrollable_text.reset_offset();
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
   }
 
   #[test]
@@ -254,23 +302,38 @@ mod tests {
 
     horizontally_scrollable_text.scroll_left_or_reset(width, true, true);
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      1
+    );
 
     horizontally_scrollable_text.scroll_left_or_reset(width, false, true);
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
 
     horizontally_scrollable_text.scroll_left_or_reset(width, true, false);
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
 
     horizontally_scrollable_text.scroll_left_or_reset(width, true, true);
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      1
+    );
 
     horizontally_scrollable_text.scroll_left_or_reset(test_text.len(), false, true);
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
   }
 
   #[test]
@@ -278,11 +341,17 @@ mod tests {
     let horizontally_scrollable_test = HorizontallyScrollableText::from("Test string");
     horizontally_scrollable_test.scroll_left();
 
-    assert_eq!(*horizontally_scrollable_test.offset.borrow(), 1);
+    assert_eq!(
+      horizontally_scrollable_test.offset.load(Ordering::SeqCst),
+      1
+    );
 
     horizontally_scrollable_test.scroll_left_or_reset(3, false, false);
 
-    assert_eq!(*horizontally_scrollable_test.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_test.offset.load(Ordering::SeqCst),
+      0
+    );
   }
 
   #[test]
@@ -292,15 +361,24 @@ mod tests {
 
     horizontally_scrollable_text.scroll_left_or_reset(width, true, true);
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      1
+    );
 
     horizontally_scrollable_text.scroll_left_or_reset(width, true, true);
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 2);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      2
+    );
 
     horizontally_scrollable_text.scroll_left_or_reset(width, true, true);
 
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
   }
 
   #[test]
@@ -310,32 +388,47 @@ mod tests {
     horizontally_scrollable_text.pop();
 
     assert_str_eq!(horizontally_scrollable_text.text, "Test sTrin우g");
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
 
     horizontally_scrollable_text.scroll_left();
     horizontally_scrollable_text.pop();
 
     assert_str_eq!(horizontally_scrollable_text.text, "Test sTring");
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      1
+    );
 
     horizontally_scrollable_text.scroll_right();
     horizontally_scrollable_text.scroll_right();
     horizontally_scrollable_text.pop();
 
     assert_str_eq!(horizontally_scrollable_text.text, "Test sTrin");
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
 
     horizontally_scrollable_text.scroll_home();
     horizontally_scrollable_text.pop();
 
     assert_str_eq!(horizontally_scrollable_text.text, "Test sTrin");
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 10);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      10
+    );
 
     horizontally_scrollable_text.scroll_right();
     horizontally_scrollable_text.pop();
 
     assert_str_eq!(horizontally_scrollable_text.text, "est sTrin");
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 9);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      9
+    );
   }
 
   #[test]
@@ -344,17 +437,26 @@ mod tests {
     horizontally_scrollable_text.pop();
 
     assert_str_eq!(horizontally_scrollable_text.text, "우");
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
 
     horizontally_scrollable_text.pop();
 
     assert!(horizontally_scrollable_text.text.is_empty());
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
 
     horizontally_scrollable_text.pop();
 
     assert!(horizontally_scrollable_text.text.is_empty());
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
   }
 
   #[test]
@@ -364,20 +466,29 @@ mod tests {
     horizontally_scrollable_text.push('h');
 
     assert_str_eq!(horizontally_scrollable_text.text, "Test stri우ngh");
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
 
     horizontally_scrollable_text.scroll_left();
     horizontally_scrollable_text.push('l');
 
     assert_str_eq!(horizontally_scrollable_text.text, "Test stri우nglh");
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 1);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      1
+    );
 
     horizontally_scrollable_text.scroll_right();
     horizontally_scrollable_text.scroll_right();
     horizontally_scrollable_text.push('리');
 
     assert_str_eq!(horizontally_scrollable_text.text, "Test stri우nglh리");
-    assert_eq!(*horizontally_scrollable_text.offset.borrow(), 0);
+    assert_eq!(
+      horizontally_scrollable_text.offset.load(Ordering::SeqCst),
+      0
+    );
   }
 
   #[test]

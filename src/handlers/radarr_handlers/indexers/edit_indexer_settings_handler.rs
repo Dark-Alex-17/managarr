@@ -49,7 +49,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
   fn handle_scroll_up(&mut self) {
     let indexer_settings = self.app.data.radarr_data.indexer_settings.as_mut().unwrap();
     match self.active_radarr_block {
-      ActiveRadarrBlock::IndexerSettingsPrompt => {
+      ActiveRadarrBlock::AllIndexerSettingsPrompt => {
         self.app.data.radarr_data.selected_block.previous();
       }
       ActiveRadarrBlock::IndexerSettingsMinimumAgeInput => {
@@ -74,7 +74,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
   fn handle_scroll_down(&mut self) {
     let indexer_settings = self.app.data.radarr_data.indexer_settings.as_mut().unwrap();
     match self.active_radarr_block {
-      ActiveRadarrBlock::IndexerSettingsPrompt => self.app.data.radarr_data.selected_block.next(),
+      ActiveRadarrBlock::AllIndexerSettingsPrompt => {
+        self.app.data.radarr_data.selected_block.next()
+      }
       ActiveRadarrBlock::IndexerSettingsMinimumAgeInput => {
         if indexer_settings.minimum_age > 0 {
           indexer_settings.minimum_age -= 1;
@@ -134,7 +136,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
 
   fn handle_left_right_action(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::IndexerSettingsPrompt => {
+      ActiveRadarrBlock::AllIndexerSettingsPrompt => {
         if self.app.data.radarr_data.selected_block.get_active_block()
           == &ActiveRadarrBlock::IndexerSettingsConfirmPrompt
         {
@@ -165,12 +167,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
 
   fn handle_submit(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::IndexerSettingsPrompt => {
+      ActiveRadarrBlock::AllIndexerSettingsPrompt => {
         match self.app.data.radarr_data.selected_block.get_active_block() {
           ActiveRadarrBlock::IndexerSettingsConfirmPrompt => {
             let radarr_data = &mut self.app.data.radarr_data;
             if radarr_data.prompt_confirm {
-              radarr_data.prompt_confirm_action = Some(RadarrEvent::EditAllIndexerSettings);
+              radarr_data.prompt_confirm_action = Some(RadarrEvent::EditAllIndexerSettings(None));
               self.app.should_refresh = true;
             } else {
               radarr_data.indexer_settings = None;
@@ -225,7 +227,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
 
   fn handle_esc(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::IndexerSettingsPrompt => {
+      ActiveRadarrBlock::AllIndexerSettingsPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.prompt_confirm = false;
         self.app.data.radarr_data.indexer_settings = None;

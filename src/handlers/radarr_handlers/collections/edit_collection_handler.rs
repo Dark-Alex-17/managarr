@@ -192,7 +192,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
         match self.app.data.radarr_data.selected_block.get_active_block() {
           ActiveRadarrBlock::EditCollectionConfirmPrompt => {
             if self.app.data.radarr_data.prompt_confirm {
-              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditCollection);
+              self.app.data.radarr_data.prompt_confirm_action =
+                Some(RadarrEvent::EditCollection(None));
               self.app.should_refresh = true;
             }
 
