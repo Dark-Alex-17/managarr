@@ -45,6 +45,14 @@ cargo install managarr
 cargo install --locked managarr
 ```
 
+### Docker
+Run Managarr as a docker container by mounting your `config.yml` file to `/root/.config/managarr/config.yml`. For example:
+```shell
+docker run --rm -it -v ~/.config/managarr:/root/.config/managarr darkalex17/managarr
+```
+
+You can also clone this repo and run `make docker` to build a docker image locally and run it using the above command.
+
 ## Features
 
 ### Radarr
@@ -155,16 +163,6 @@ Options:
 $ managarr radarr list movies | jq '.[] | select(.title == "Ad Astra") | .id'
 277
 ```
-
-## Installation
-
-### Docker
-Run Managarr as a docker container by mounting your `config.yml` file to `/root/.config/managarr/config.yml`. For example:
-```shell
-docker run --rm -it -v ~/.config/managarr:/root/.config/managarr darkalex17/managarr
-```
-
-You can also clone this repo and run `make docker` to build a docker image locally and run it using the above command.
 
 # Configuration
 Managarr assumes reasonable defaults to connect to each service (i.e. Radarr is on localhost:7878),
