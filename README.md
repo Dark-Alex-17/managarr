@@ -144,7 +144,7 @@ Options:
   -h, --help  Print help
 ```
 
-**Usage Tip:** The CLI is even more powerful and useful when used in conjunction with the `jq` CLI tool. This allows you to parse the JSON response from the Managarr CLI and use it in your scripts; For example, to extract the `movieId` of the movie "Ad Astra", you would run:
+**Pro Tip:** The CLI is even more powerful and useful when used in conjunction with the `jq` CLI tool. This allows you to parse the JSON response from the Managarr CLI and use it in your scripts; For example, to extract the `movieId` of the movie "Ad Astra", you would run:
 
 ```shell
 $ managarr radarr list movies | jq '.[] | select(.title == "Ad Astra") | .id'
