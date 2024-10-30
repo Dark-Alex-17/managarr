@@ -24,7 +24,7 @@ pub struct InputBox<'a> {
 }
 
 impl<'a> InputBox<'a> {
-  pub fn new(content: &'a str) -> InputBox<'_> {
+  pub fn new(content: &'a str) -> InputBox<'a> {
     InputBox {
       content,
       offset: 0,

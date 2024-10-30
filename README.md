@@ -1,25 +1,19 @@
-# managarr - A TUI to manage your Servarrs
-Managarr is a TUI to help you manage your HTPC (Home Theater PC). Built with 🤎 in Rust!
+# managarr - A TUI and CLI to manage your Servarrs
+
+![check](https://github.com/Dark-Alex-17/managarr/actions/workflows/check.yml/badge.svg)
+![test](https://github.com/Dark-Alex-17/managarr/actions/workflows/test.yml/badge.svg)
+![test](https://github.com/Dark-Alex-17/managarr/actions/workflows/release.yml/badge.svg)
+![License](https://img.shields.io/badge/license-MIT-blueviolet.svg)
+![LOC](https://tokei.rs/b1/github/Dark-Alex-17/managarr?category=code)
+[![crates.io link](https://img.shields.io/crates/v/managarr.svg)](https://crates.io/crates/managarr)
+![Release](https://img.shields.io/github/v/release/Dark-Alex-17/managarr?color=%23c694ff)
+[![codecov](https://codecov.io/gh/Dark-Alex-17/managarr/graph/badge.svg?token=33G179TW67)](https://codecov.io/gh/Dark-Alex-17/managarr)
+[![GitHub Downloads](https://img.shields.io/github/downloads/Dark-Alex-17/managarr/total.svg?label=GitHub%20downloads)](https://github.com/Dark-Alex-17/managarr/releases)
+![Crate.io downloads](https://img.shields.io/crates/d/managarr?label=Crate%20downloads)
+
+Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC). Built with 🤎 in Rust!
 
 ![library](screenshots/library.png)
-
-## NOTE: Managarr is not yet stable (Pre-Alpha)
-I'm regularly making changes to get Managarr to an alpha release. As such, I'm regularly refactoring the code to be cleaner
-and more easily extensible. Until I get Managarr across the alpha-release finish line, this regular refactoring will make
-contributions difficult. Thus, stability is not guaranteed (yet!).
-
-This means that while all tests will pass, there may be certain menus or keymappings that are no-ops, or produce empty 
-screens, or things of this sort.
-
-Part of the alpha release plan is to add contribution guidelines, CI/CD, release pipelines, etc. so that
-all future maintenance and additions can be handled easily. So unfortunately, until that happens, Managarr may contain
-breaking changes and be slow to react to any PR's.
-
-Progress for the alpha release can be followed on my [Wekan Board](https://wekan.alexjclarke.com/b/dHoGjBb44MHM9HSv4/managarr)
-with all items tagged `Alpha`.
-
-Thanks for your patience as I work to get this into a place ready for contributions and to make developer experiences as
-pleasant as possible!
 
 ## What Servarrs are supported?
 
@@ -38,6 +32,17 @@ Simply run the following command to start a demo:
 
 ```shell
 curl https://raw.githubusercontent.com/Dark-Alex-17/managarr-demo/main/managarr-demo.sh > /tmp/managarr-demo.sh && bash /tmp/managarr-demo.sh
+```
+
+## Installation
+### Cargo
+If you have Cargo installed, then you can install Managarr from Crates.io:
+
+```shell
+cargo install managarr
+
+# If you encounter issues installing, try installing with '--locked'
+cargo install --locked managarr
 ```
 
 ## Features
@@ -217,6 +222,10 @@ tautulli:
   port: 8181
   api_token: someApiToken1234567890
 ```
+
+## Track My Progress for the Beta release (With Sonarr Support!)
+Progress for the beta release can be followed on my [Wekan Board](https://wekan.alexjclarke.com/b/dHoGjBb44MHM9HSv4/managarr)
+with all items tagged `Beta`.
 
 ## Screenshots
 
