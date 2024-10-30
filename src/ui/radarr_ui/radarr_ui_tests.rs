@@ -1,15 +1,15 @@
 #[cfg(test)]
 mod tests {
+  use crate::models::radarr_models::{DownloadRecord, Movie};
   use pretty_assertions::assert_eq;
   use ratatui::widgets::{Cell, Row};
   use rstest::rstest;
   use strum::IntoEnumIterator;
-  use crate::models::radarr_models::{DownloadRecord, Movie};
 
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::ui::radarr_ui::{decorate_with_row_style, RadarrUi};
-  use crate::ui::DrawUi;
   use crate::ui::styles::ManagarrStyle;
+  use crate::ui::DrawUi;
 
   #[test]
   fn test_radarr_ui_accepts() {
@@ -17,7 +17,7 @@ mod tests {
       assert!(RadarrUi::accepts(active_radarr_block.into()));
     });
   }
-  
+
   #[rstest]
   #[case(false, Some("downloading"), false, "", RowStyle::Downloading)]
   #[case(false, Some("completed"), false, "", RowStyle::AwaitingImport)]
@@ -50,9 +50,9 @@ mod tests {
       ..Movie::default()
     };
     let row = Row::new(vec![Cell::from("test".to_owned())]);
-    
+
     let style = decorate_with_row_style(&downloads_vec, &movie, row.clone());
-    
+
     match expected_style {
       RowStyle::AwaitingImport => assert_eq!(style, row.awaiting_import()),
       RowStyle::Downloaded => assert_eq!(style, row.downloaded()),
@@ -63,7 +63,7 @@ mod tests {
       RowStyle::Unreleased => assert_eq!(style, row.unreleased()),
     }
   }
-  
+
   enum RowStyle {
     AwaitingImport,
     Downloaded,

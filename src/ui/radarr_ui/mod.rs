@@ -224,7 +224,7 @@ fn decorate_with_row_style<'a>(
     if !movie.monitored {
       return row.unmonitored_missing();
     }
-    
+
     if movie.status != "released" {
       return row.unreleased();
     }

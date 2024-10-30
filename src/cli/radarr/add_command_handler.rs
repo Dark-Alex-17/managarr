@@ -20,7 +20,7 @@ mod add_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum RadarrAddCommand {
-    #[command(about = "Add a new movie to your Radarr library")]
+  #[command(about = "Add a new movie to your Radarr library")]
   Movie {
     #[arg(
       long,
@@ -50,22 +50,22 @@ pub enum RadarrAddCommand {
     #[arg(long, help = "Should Radarr monitor this film")]
     disable_monitoring: bool,
     #[arg(
-      long, 
+      long,
       help = "Tag IDs to tag the film with", 
-      value_parser, 
+      value_parser,
       action = ArgAction::Append
     )]
     tag: Vec<i64>,
     #[arg(
-      long, 
+      long,
       help = "What Radarr should monitor", 
-      value_enum, 
+      value_enum,
       default_value_t = Monitor::default()
     )]
     monitor: Monitor,
     #[arg(
       long,
-      help = "Tell Radarr to not start a search for this film once it's added to your library",
+      help = "Tell Radarr to not start a search for this film once it's added to your library"
     )]
     no_search_for_movie: bool,
   },
@@ -77,14 +77,14 @@ pub enum RadarrAddCommand {
   #[command(about = "Add new tag")]
   Tag {
     #[arg(long, help = "The name of the tag to be added", required = true)]
-    name: String
+    name: String,
   },
 }
 
 impl From<RadarrAddCommand> for Command {
-    fn from(value: RadarrAddCommand) -> Self {
-        Command::Radarr(RadarrCommand::Add(value))
-    }
+  fn from(value: RadarrAddCommand) -> Self {
+    Command::Radarr(RadarrCommand::Add(value))
+  }
 }
 
 pub(super) struct RadarrAddCommandHandler<'a, 'b> {
@@ -94,7 +94,11 @@ pub(super) struct RadarrAddCommandHandler<'a, 'b> {
 }
 
 impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHandler<'a, 'b> {
-  fn with(_app: &'a Arc<Mutex<App<'b>>>, command: RadarrAddCommand, network: &'a mut dyn NetworkTrait) -> Self {
+  fn with(
+    _app: &'a Arc<Mutex<App<'b>>>,
+    command: RadarrAddCommand,
+    network: &'a mut dyn NetworkTrait,
+  ) -> Self {
     RadarrAddCommandHandler {
       _app,
       command,
