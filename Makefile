@@ -32,6 +32,9 @@ lint-fix:
 fmt:
 	@cargo fmt
 
+minimal-versions:
+	@cargo +nightly update -Zdirect-minimal-versions
+
 ## Analyze for unsafe usage - `cargo install cargo-geiger`
 analyze:
 	@cargo geiger
