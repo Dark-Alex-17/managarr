@@ -185,6 +185,15 @@ $HOME/Library/Application Support/managarr/config.yml
 %APPDATA%/Roaming/managarr/config.yml
 ```
 
+## Specify Configuration File
+It can sometimes be useful to specify the configuration file you wish to use. This is useful in cases
+where you may have more than one instance of a given Servarr running. Thus, you can specify the 
+config file using the `--config` flag:
+
+```shell
+managarr --config /path/to/config.yml
+```
+
 ### Example Configuration:
 ```yaml
 radarr:

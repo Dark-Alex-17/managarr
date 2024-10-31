@@ -23,4 +23,4 @@ FROM debian:stable-slim
 # Copy the compiled binary from the builder container
 COPY --from=builder --chown=nonroot:nonroot /usr/src/managarr-temp/managarr /usr/local/bin
 
-ENTRYPOINT [ "/usr/local/bin/managarr" ]
+ENTRYPOINT [ "/usr/local/bin/managarr", "--disable-terminal-size-checks" ]

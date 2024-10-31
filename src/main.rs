@@ -1,12 +1,16 @@
 #![warn(rust_2018_idioms)]
 
+use std::fs::File;
+use std::io::BufReader;
 use std::panic::PanicHookInfo;
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::{io, panic, process};
 
 use anyhow::anyhow;
 use anyhow::Result;
+use app::AppConfig;
 use clap::{
   command, crate_authors, crate_description, crate_name, crate_version, CommandFactory, Parser,
 };
@@ -62,6 +66,22 @@ static MIN_TERM_HEIGHT: u16 = 40;
 struct Cli {
   #[command(subcommand)]
   command: Option<Command>,
+  #[arg(
+    long,
+    global = true,
+    value_parser,
+    help = "The Managarr configuration file to use"
+  )]
+  config: Option<PathBuf>,
+  #[arg(long, global = true, help = "Disable the terminal size checks")]
+  disable_terminal_size_checks: bool,
+}
+
+fn load_config(path: &str) -> Result<AppConfig> {
+  let file = File::open(path).map_err(|e| anyhow!(e))?;
+  let reader = BufReader::new(file);
+  let config = serde_yaml::from_reader(reader)?;
+  Ok(config)
 }
 
 #[tokio::main]
@@ -73,7 +93,11 @@ async fn main() -> Result<()> {
   let running = Arc::new(AtomicBool::new(true));
   let r = running.clone();
   let args = Cli::parse();
-  let config = confy::load("managarr", "config")?;
+  let config = if let Some(ref config_file) = args.config {
+    load_config(config_file.to_str().expect("Invalid config file specified"))?
+  } else {
+    confy::load("managarr", "config")?
+  };
   let (sync_network_tx, sync_network_rx) = mpsc::channel(500);
   let cancellation_token = CancellationToken::new();
   let ctrlc_cancellation_token = cancellation_token.clone();
@@ -110,7 +134,7 @@ async fn main() -> Result<()> {
     None => {
       let app_nw = Arc::clone(&app);
       std::thread::spawn(move || start_networking(sync_network_rx, &app_nw, cancellation_token));
-      start_ui(&app).await?;
+      start_ui(&app, !args.disable_terminal_size_checks).await?;
     }
   }
 
@@ -132,16 +156,18 @@ async fn start_networking(
   }
 }
 
-async fn start_ui(app: &Arc<Mutex<App<'_>>>) -> Result<()> {
-  let (width, height) = size()?;
-  if width < MIN_TERM_WIDTH || height < MIN_TERM_HEIGHT {
-    return Err(anyhow!(
-      "Terminal too small. Minimum size required: {}x{}; current terminal size: {}x{}",
-      MIN_TERM_WIDTH,
-      MIN_TERM_HEIGHT,
-      width,
-      height
-    ));
+async fn start_ui(app: &Arc<Mutex<App<'_>>>, check_terminal_size: bool) -> Result<()> {
+  if check_terminal_size {
+    let (width, height) = size()?;
+    if width < MIN_TERM_WIDTH || height < MIN_TERM_HEIGHT {
+      return Err(anyhow!(
+        "Terminal too small. Minimum size required: {}x{}; current terminal size: {}x{}",
+        MIN_TERM_WIDTH,
+        MIN_TERM_HEIGHT,
+        width,
+        height
+      ));
+    }
   }
 
   let mut stdout = io::stdout();
