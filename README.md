@@ -17,14 +17,14 @@ Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC). Built 
 
 ## What Servarrs are supported?
 
-- ![radarr_logo](logos/radarr.png) [Radarr](https://wiki.servarr.com/radarr)
-- ![sonarr_logo](logos/sonarr.png) [Sonarr](https://wiki.servarr.com/en/sonarr)
-- ![readarr_logo](logos/readarr.png) [Readarr](https://wiki.servarr.com/en/readarr)
-- ![lidarr_logo](logos/lidarr.png) [Lidarr](https://wiki.servarr.com/en/lidarr)
-- ![prowlarr_logo](logos/prowlarr.png) [Prowlarr](https://wiki.servarr.com/en/prowlarr)
-- ![whisparr_logo](logos/whisparr.png) [Whisparr](https://wiki.servarr.com/whisparr)
-- ![bazarr_logo](logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
-- ![tautulli_logo](logos/tautulli.png) [Tautulli](https://tautulli.com/)
+- [x] ![radarr_logo](logos/radarr.png) [Radarr](https://wiki.servarr.com/radarr)
+- [ ] ![sonarr_logo](logos/sonarr.png) [Sonarr](https://wiki.servarr.com/en/sonarr)
+- [ ] ![readarr_logo](logos/readarr.png) [Readarr](https://wiki.servarr.com/en/readarr)
+- [ ] ![lidarr_logo](logos/lidarr.png) [Lidarr](https://wiki.servarr.com/en/lidarr)
+- [ ] ![prowlarr_logo](logos/prowlarr.png) [Prowlarr](https://wiki.servarr.com/en/prowlarr)
+- [ ] ![whisparr_logo](logos/whisparr.png) [Whisparr](https://wiki.servarr.com/whisparr)
+- [ ] ![bazarr_logo](logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
+- [ ] ![tautulli_logo](logos/tautulli.png) [Tautulli](https://tautulli.com/)
 
 ## Try Before You Buy
 To try out Managarr before linking it to your HTPC, you can use the purpose built [managarr-demo](https://github.com/Dark-Alex-17/managarr-demo) repository.
@@ -111,12 +111,12 @@ To see all available commands, simply run `managarr --help`:
 
 ```shell
 $ managarr --help
-managarr 0.0.36
+managarr 0.1.3
 Alex Clarke <alex.j.tusa@gmail.com>
 
 A TUI and CLI to manage your Servarrs
 
-Usage: managarr [COMMAND]
+Usage: managarr [OPTIONS] [COMMAND]
 
 Commands:
   radarr       Commands for manging your Radarr instance
@@ -124,8 +124,10 @@ Commands:
   help         Print this message or the help of the given subcommand(s)
 
 Options:
-  -h, --help     Print help
-  -V, --version  Print version
+      --config <CONFIG>               The Managarr configuration file to use
+      --disable-terminal-size-checks  Disable the terminal size checks
+  -h, --help                          Print help
+  -V, --version                       Print version
 ```
 
 All subcommands also have detailed help menus to show you how to use them. For example, to see all available commands for Radarr, you would run:
@@ -134,7 +136,7 @@ All subcommands also have detailed help menus to show you how to use them. For e
 $ managarr radarr --help
 Commands for manging your Radarr instance
 
-Usage: managarr radarr <COMMAND>
+Usage: managarr radarr [OPTIONS] <COMMAND>
 
 Commands:
   add                       Commands to add or create new resources within your Radarr instance
@@ -154,7 +156,9 @@ Commands:
   help                      Print this message or the help of the given subcommand(s)
 
 Options:
-  -h, --help  Print help
+      --config <CONFIG>               The Managarr configuration file to use
+      --disable-terminal-size-checks  Disable the terminal size checks
+  -h, --help                          Print help
 ```
 
 **Pro Tip:** The CLI is even more powerful and useful when used in conjunction with the `jq` CLI tool. This allows you to parse the JSON response from the Managarr CLI and use it in your scripts; For example, to extract the `movieId` of the movie "Ad Astra", you would run:
@@ -185,7 +189,7 @@ $HOME/Library/Application Support/managarr/config.yml
 %APPDATA%/Roaming/managarr/config.yml
 ```
 
-## Specify Configuration File
+## Specify Which Configuration File to Use
 It can sometimes be useful to specify the configuration file you wish to use. This is useful in cases
 where you may have more than one instance of a given Servarr running. Thus, you can specify the 
 config file using the `--config` flag:
