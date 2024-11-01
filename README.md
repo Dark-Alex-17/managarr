@@ -60,6 +60,7 @@ You can also clone this repo and run `make docker` to build a docker image local
 - [x] View your library, downloads, collections, and blocklist
 - [x] View details of a specific movie including description, history, downloaded file info, or the credits
 - [x] View details of any collection and the movies in them
+- [x] View your host and security configs from the CLI to programmatically fetch the API token, among other settings
 - [x] Search your library or collections
 - [x] Add movies to your library
 - [x] Delete movies, downloads, and indexers
@@ -103,7 +104,8 @@ You can also clone this repo and run `make docker` to build a docker image local
 ### The Managarr CLI
 Managarr can be used in one of two ways: As a TUI, or as a CLI for managing your Servarrs. 
 
-All management features available in the TUI are also available in the CLI.
+All management features available in the TUI are also available in the CLI. However, the CLI is
+equipped with additional features to allow for more advanced usage and automation.
 
 The CLI can be helpful for automating tasks or for use in scripts. For example, you can use the CLI to trigger a search for a movie, or to add a movie to your library.
 

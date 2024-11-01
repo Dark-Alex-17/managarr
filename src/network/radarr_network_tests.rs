@@ -175,6 +175,13 @@ mod test {
   }
 
   #[rstest]
+  fn test_resource_host_config(
+    #[values(RadarrEvent::GetHostConfig, RadarrEvent::GetSecurityConfig)] event: RadarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/config/host");
+  }
+
+  #[rstest]
   fn test_resource_command(
     #[values(
       RadarrEvent::StartTask(None),
@@ -2172,6 +2179,37 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_get_host_config_event() {
+    let host_config_response = json!({
+      "bindAddress": "*",
+      "port": 7878,
+      "urlBase": "some.test.site/radarr",
+      "instanceName": "Radarr",
+      "applicationUrl": "https://some.test.site:7878/radarr",
+      "enableSsl": true
+    });
+    let response: HostConfig = serde_json::from_value(host_config_response.clone()).unwrap();
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(host_config_response),
+      None,
+      RadarrEvent::GetHostConfig.resource(),
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    if let RadarrSerdeable::HostConfig(host_config) = network
+      .handle_radarr_event(RadarrEvent::GetHostConfig)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(host_config, response);
+    }
+  }
+
+  #[tokio::test]
   async fn test_handle_get_indexers_event() {
     let indexers_response_json = json!([{
         "enableRss": true,
@@ -2711,7 +2749,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_add_tag() {
+  async fn test_handle_add_tag() {
     let tag_json = json!({ "id": 3, "label": "testing" });
     let response: Tag = serde_json::from_value(tag_json.clone()).unwrap();
     let (async_server, app_arc, _server) = mock_radarr_api(
@@ -2789,6 +2827,38 @@ mod test {
         vec![root_folder()]
       );
       assert_eq!(root_folders, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_security_config_event() {
+    let security_config_response = json!({
+      "authenticationMethod": "forms",
+      "authenticationRequired": "disabledForLocalAddresses",
+      "username": "test",
+      "password": "some password",
+      "apiKey": "someApiKey12345",
+      "certificateValidation": "disabledForLocalAddresses",
+    });
+    let response: SecurityConfig =
+      serde_json::from_value(security_config_response.clone()).unwrap();
+    let (async_server, app_arc, _server) = mock_radarr_api(
+      RequestMethod::Get,
+      None,
+      Some(security_config_response),
+      None,
+      RadarrEvent::GetSecurityConfig.resource(),
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new());
+
+    if let RadarrSerdeable::SecurityConfig(security_config) = network
+      .handle_radarr_event(RadarrEvent::GetSecurityConfig)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(security_config, response);
     }
   }
 

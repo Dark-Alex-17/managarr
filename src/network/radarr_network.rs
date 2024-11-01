@@ -11,10 +11,10 @@ use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, BlocklistResponse, Collection,
   CollectionMovie, CommandBody, Credit, CreditType, DeleteMovieParams, DiskSpace, DownloadRecord,
-  DownloadsResponse, EditCollectionParams, EditIndexerParams, EditMovieParams, Indexer,
+  DownloadsResponse, EditCollectionParams, EditIndexerParams, EditMovieParams, HostConfig, Indexer,
   IndexerSettings, IndexerTestResult, LogResponse, Movie, MovieCommandBody, MovieHistoryItem,
   QualityProfile, QueueEvent, RadarrSerdeable, Release, ReleaseDownloadBody, RootFolder,
-  SystemStatus, Tag, Task, TaskName, Update,
+  SecurityConfig, SystemStatus, Tag, Task, TaskName, Update,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
@@ -50,6 +50,7 @@ pub enum RadarrEvent {
   GetBlocklist,
   GetCollections,
   GetDownloads,
+  GetHostConfig,
   GetIndexers,
   GetAllIndexerSettings,
   GetLogs(Option<u64>),
@@ -62,6 +63,7 @@ pub enum RadarrEvent {
   GetQueuedEvents,
   GetReleases(Option<i64>),
   GetRootFolders,
+  GetSecurityConfig,
   GetStatus,
   GetTags,
   GetTasks,
@@ -86,6 +88,7 @@ impl RadarrEvent {
       RadarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       RadarrEvent::GetCollections | RadarrEvent::EditCollection(_) => "/collection",
       RadarrEvent::GetDownloads | RadarrEvent::DeleteDownload(_) => "/queue",
+      RadarrEvent::GetHostConfig | RadarrEvent::GetSecurityConfig => "/config/host",
       RadarrEvent::GetIndexers | RadarrEvent::EditIndexer(_) | RadarrEvent::DeleteIndexer(_) => {
         "/indexer"
       }
@@ -179,14 +182,15 @@ impl<'a, 'b> Network<'a, 'b> {
         self.edit_indexer(params).await.map(RadarrSerdeable::from)
       }
       RadarrEvent::EditMovie(params) => self.edit_movie(params).await.map(RadarrSerdeable::from),
-      RadarrEvent::GetBlocklist => self.get_blocklist().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetCollections => self.get_collections().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetDownloads => self.get_downloads().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetIndexers => self.get_indexers().await.map(RadarrSerdeable::from),
       RadarrEvent::GetAllIndexerSettings => self
         .get_all_indexer_settings()
         .await
         .map(RadarrSerdeable::from),
+      RadarrEvent::GetBlocklist => self.get_blocklist().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetCollections => self.get_collections().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetDownloads => self.get_downloads().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetHostConfig => self.get_host_config().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetIndexers => self.get_indexers().await.map(RadarrSerdeable::from),
       RadarrEvent::GetLogs(events) => self.get_logs(events).await.map(RadarrSerdeable::from),
       RadarrEvent::GetMovieCredits(movie_id) => {
         self.get_credits(movie_id).await.map(RadarrSerdeable::from)
@@ -209,6 +213,7 @@ impl<'a, 'b> Network<'a, 'b> {
         self.get_releases(movie_id).await.map(RadarrSerdeable::from)
       }
       RadarrEvent::GetRootFolders => self.get_root_folders().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetSecurityConfig => self.get_security_config().await.map(RadarrSerdeable::from),
       RadarrEvent::GetStatus => self.get_status().await.map(RadarrSerdeable::from),
       RadarrEvent::GetTags => self.get_tags().await.map(RadarrSerdeable::from),
       RadarrEvent::GetTasks => self.get_tasks().await.map(RadarrSerdeable::from),
@@ -1354,6 +1359,22 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
+  async fn get_host_config(&mut self) -> Result<HostConfig> {
+    info!("Fetching Radarr host config");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::GetHostConfig.resource(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), HostConfig>(request_props, |_, _| ())
+      .await
+  }
+
   async fn get_indexers(&mut self) -> Result<Vec<Indexer>> {
     info!("Fetching Radarr indexers");
 
@@ -1762,6 +1783,22 @@ impl<'a, 'b> Network<'a, 'b> {
       .handle_request::<(), Vec<RootFolder>>(request_props, |root_folders, mut app| {
         app.data.radarr_data.root_folders.set_items(root_folders);
       })
+      .await
+  }
+
+  async fn get_security_config(&mut self) -> Result<SecurityConfig> {
+    info!("Fetching Radarr security config");
+
+    let request_props = self
+      .radarr_request_props_from(
+        RadarrEvent::GetSecurityConfig.resource(),
+        RequestMethod::Get,
+        None::<()>,
+      )
+      .await;
+
+    self
+      .handle_request::<(), SecurityConfig>(request_props, |_, _| ())
       .await
   }
 

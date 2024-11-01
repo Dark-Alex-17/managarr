@@ -1,7 +1,7 @@
 # Adapted from https://github.com/joshka/github-workflows/blob/main/.github/workflows/rust-release-plz.yml
 # Thanks to joshka for permission to use this template!
 
-name: Create Release PR and publish to crates.io
+name: Create Release PR and Publish Release
 
 permissions:
   pull-requests: write

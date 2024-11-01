@@ -30,6 +30,14 @@ mod test {
     }
 
     #[test]
+    fn test_get_host_config_has_no_arg_requirements() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "radarr", "get", "host-config"]);
+
+      assert!(result.is_ok());
+    }
+
+    #[test]
     fn test_movie_details_requires_movie_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "get", "movie-details"]);
@@ -77,6 +85,14 @@ mod test {
         "--movie-id",
         "1",
       ]);
+
+      assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_security_config_has_no_arg_requirements() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "radarr", "get", "security-config"]);
 
       assert!(result.is_ok());
     }
@@ -136,6 +152,29 @@ mod test {
     }
 
     #[tokio::test]
+    async fn test_handle_get_host_config_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(RadarrEvent::GetHostConfig.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Radarr(RadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let get_host_config_command = RadarrGetCommand::HostConfig;
+
+      let result =
+        RadarrGetCommandHandler::with(&app_arc, get_host_config_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
     async fn test_handle_get_movie_details_command() {
       let expected_movie_id = 1;
       let mut mock_network = MockNetworkTrait::new();
@@ -181,6 +220,29 @@ mod test {
 
       let result =
         RadarrGetCommandHandler::with(&app_arc, get_movie_history_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_get_security_config_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(RadarrEvent::GetSecurityConfig.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Radarr(RadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let get_security_config_command = RadarrGetCommand::SecurityConfig;
+
+      let result =
+        RadarrGetCommandHandler::with(&app_arc, get_security_config_command, &mut mock_network)
           .handle()
           .await;
 

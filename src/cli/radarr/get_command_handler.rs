@@ -21,6 +21,8 @@ mod get_command_handler_tests;
 pub enum RadarrGetCommand {
   #[command(about = "Get the shared settings for all indexers")]
   AllIndexerSettings,
+  #[command(about = "Fetch the host config for your Radarr instance")]
+  HostConfig,
   #[command(about = "Get detailed information for the movie with the given ID")]
   MovieDetails {
     #[arg(
@@ -39,6 +41,8 @@ pub enum RadarrGetCommand {
     )]
     movie_id: i64,
   },
+  #[command(about = "Fetch the security config for your Radarr instance")]
+  SecurityConfig,
   #[command(about = "Get the system status")]
   SystemStatus,
 }
@@ -73,11 +77,17 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrGetCommand> for RadarrGetCommandHan
       RadarrGetCommand::AllIndexerSettings => {
         execute_network_event!(self, RadarrEvent::GetAllIndexerSettings);
       }
+      RadarrGetCommand::HostConfig => {
+        execute_network_event!(self, RadarrEvent::GetHostConfig);
+      }
       RadarrGetCommand::MovieDetails { movie_id } => {
         execute_network_event!(self, RadarrEvent::GetMovieDetails(Some(movie_id)));
       }
       RadarrGetCommand::MovieHistory { movie_id } => {
         execute_network_event!(self, RadarrEvent::GetMovieHistory(Some(movie_id)));
+      }
+      RadarrGetCommand::SecurityConfig => {
+        execute_network_event!(self, RadarrEvent::GetSecurityConfig);
       }
       RadarrGetCommand::SystemStatus => {
         execute_network_event!(self, RadarrEvent::GetStatus);
