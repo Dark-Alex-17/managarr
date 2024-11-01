@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4](https://github.com/Dark-Alex-17/managarr/compare/v0.1.3...v0.1.4) - 2024-11-01
+
+### Other
+
+- Added the ability to fetch host configs and security configs to the CLI
+- Updated README to be more clear about what features are supported [skip ci]
+
 ## [0.1.2](https://github.com/Dark-Alex-17/managarr/compare/v0.1.1...v0.1.2) - 2024-10-30
 
 ### Other
