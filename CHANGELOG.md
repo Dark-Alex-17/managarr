@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5](https://github.com/Dark-Alex-17/managarr/compare/v0.1.4...v0.1.5) - 2024-11-03
+
+### Other
+
+- Added HTTPS support for all Servarrs
+
 ## [0.1.4](https://github.com/Dark-Alex-17/managarr/compare/v0.1.3...v0.1.4) - 2024-11-01
 
 ### Other
