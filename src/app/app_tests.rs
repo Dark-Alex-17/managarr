@@ -224,5 +224,7 @@ mod tests {
     assert_str_eq!(radarr_config.host, "localhost");
     assert_eq!(radarr_config.port, Some(7878));
     assert!(radarr_config.api_token.is_empty());
+    assert!(!radarr_config.use_ssl);
+    assert_eq!(radarr_config.ssl_cert_path, None);
   }
 }

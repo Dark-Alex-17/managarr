@@ -2262,8 +2262,14 @@ impl<'a, 'b> Network<'a, 'b> {
       host,
       port,
       api_token,
+      use_ssl,
+      ..
     } = &app.config.radarr;
-    let uri = format!("http://{host}:{}/api/v3{resource}", port.unwrap_or(7878));
+    let protocol = if *use_ssl { "https" } else { "http" };
+    let uri = format!(
+      "{protocol}://{host}:{}/api/v3{resource}",
+      port.unwrap_or(7878)
+    );
 
     RequestProps {
       uri,

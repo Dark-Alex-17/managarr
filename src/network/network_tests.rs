@@ -6,6 +6,7 @@ mod tests {
 
   use mockito::{Mock, Server, ServerGuard};
   use pretty_assertions::assert_str_eq;
+  use reqwest::Client;
   use rstest::rstest;
   use serde::{Deserialize, Serialize};
   use tokio::sync::{mpsc, Mutex};
@@ -37,10 +38,12 @@ mod tests {
       host,
       api_token: String::new(),
       port,
+      use_ssl: false,
+      ssl_cert_path: None,
     };
     app.config.radarr = radarr_config;
     let app_arc = Arc::new(Mutex::new(app));
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let _ = network
       .handle_network_event(RadarrEvent::HealthCheck.into())
@@ -64,7 +67,7 @@ mod tests {
       .create_async()
       .await;
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let _ = network
       .handle_request::<Test, ()>(
@@ -90,7 +93,7 @@ mod tests {
     #[values(RequestMethod::Get, RequestMethod::Post)] request_method: RequestMethod,
   ) {
     let (async_server, app_arc, server) = mock_api(request_method, 200, true).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let resp = network
       .handle_request::<(), Test>(
@@ -122,7 +125,7 @@ mod tests {
     #[values(RequestMethod::Get, RequestMethod::Post)] request_method: RequestMethod,
   ) {
     let (async_server, app_arc, server) = mock_api(request_method, 400, true).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
     let mut test_result = String::new();
 
     let resp = network
@@ -160,7 +163,7 @@ mod tests {
       cancellation_token.clone(),
     )));
     app_arc.lock().await.is_loading = true;
-    let mut network = Network::new(&app_arc, cancellation_token);
+    let mut network = Network::new(&app_arc, cancellation_token, Client::new());
     network.cancellation_token.cancel();
 
     let resp = network
@@ -194,7 +197,7 @@ mod tests {
       .create_async()
       .await;
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let resp = network
       .handle_request::<(), Test>(
@@ -226,7 +229,7 @@ mod tests {
   #[tokio::test]
   async fn test_handle_request_failure_to_send_request() {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let resp = network
       .handle_request::<(), Test>(
@@ -266,7 +269,7 @@ mod tests {
     request_method: RequestMethod,
   ) {
     let (async_server, app_arc, server) = mock_api(request_method, 404, true).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let resp = network
       .handle_request::<(), Test>(
@@ -296,7 +299,7 @@ mod tests {
   #[tokio::test]
   async fn test_handle_request_non_success_code_empty_response_body() {
     let (async_server, app_arc, server) = mock_api(RequestMethod::Post, 404, false).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let resp = network
       .handle_request::<(), Test>(
@@ -354,7 +357,7 @@ mod tests {
 
     async_server = async_server.create_async().await;
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let network = Network::new(&app_arc, CancellationToken::new());
+    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     network
       .call_api(RequestProps {

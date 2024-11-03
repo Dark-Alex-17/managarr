@@ -6,6 +6,7 @@ mod test {
   use chrono::{DateTime, Utc};
   use mockito::{Matcher, Mock, Server, ServerGuard};
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use reqwest::Client;
   use rstest::rstest;
   use serde_json::{json, Number, Value};
   use strum::IntoEnumIterator;
@@ -236,7 +237,7 @@ mod test {
       RadarrEvent::HealthCheck.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let _ = network.handle_radarr_event(RadarrEvent::HealthCheck).await;
 
@@ -262,7 +263,7 @@ mod test {
       RadarrEvent::GetOverview.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
     let disk_space_vec = vec![
       DiskSpace {
         free_space: 1111,
@@ -301,7 +302,7 @@ mod test {
       RadarrEvent::GetStatus.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
     let date_time = DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap())
       as DateTime<Utc>;
 
@@ -385,7 +386,7 @@ mod test {
         .movies
         .sorting(vec![title_sort_option]);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Movies(movies) = network
       .handle_radarr_event(RadarrEvent::GetMovies)
@@ -440,7 +441,7 @@ mod test {
       .radarr_data
       .movies
       .sorting(vec![title_sort_option]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::GetMovies)
@@ -493,7 +494,7 @@ mod test {
       .movies
       .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Releases(releases_vec) = network
       .handle_radarr_event(RadarrEvent::GetReleases(None))
@@ -551,7 +552,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::GetReleases(None))
@@ -610,7 +611,7 @@ mod test {
     )
     .await;
     app_arc.lock().await.data.radarr_data.add_movie_search = Some("test term".into());
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::AddMovieSearchResults(add_movie_search_results) = network
       .handle_radarr_event(RadarrEvent::SearchNewMovie(None))
@@ -676,7 +677,7 @@ mod test {
       &resource,
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::AddMovieSearchResults(add_movie_search_results) = network
       .handle_radarr_event(RadarrEvent::SearchNewMovie(Some("test term".into())))
@@ -711,7 +712,7 @@ mod test {
         task_name: TaskName::default(),
         ..Task::default()
       }]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Value(value) = network
       .handle_radarr_event(RadarrEvent::StartTask(None))
@@ -736,7 +737,7 @@ mod test {
       RadarrEvent::StartTask(None).resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Value(value) = network
       .handle_radarr_event(RadarrEvent::StartTask(Some(TaskName::default())))
@@ -757,7 +758,7 @@ mod test {
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Get, None, Some(json!([])), None, &resource).await;
     app_arc.lock().await.data.radarr_data.add_movie_search = Some("test term".into());
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::SearchNewMovie(None))
@@ -804,10 +805,12 @@ mod test {
       host,
       port,
       api_token: "test1234".to_owned(),
+      use_ssl: false,
+      ssl_cert_path: None,
     };
     app.config.radarr = radarr_config;
     let app_arc = Arc::new(Mutex::new(app));
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::SearchNewMovie(None))
@@ -886,7 +889,7 @@ mod test {
       .radarr_data
       .indexers
       .set_items(vec![indexer()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Value(value) = network
       .handle_radarr_event(RadarrEvent::TestIndexer(None))
@@ -954,7 +957,7 @@ mod test {
       .radarr_data
       .indexers
       .set_items(vec![indexer()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Value(value) = network
       .handle_radarr_event(RadarrEvent::TestIndexer(None))
@@ -1015,7 +1018,7 @@ mod test {
       .with_body("{}")
       .create_async()
       .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Value(value) = network
       .handle_radarr_event(RadarrEvent::TestIndexer(Some(1)))
@@ -1092,7 +1095,7 @@ mod test {
       .radarr_data
       .indexers
       .set_items(indexers);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::IndexerTestResults(results) = network
       .handle_radarr_event(RadarrEvent::TestAllIndexers)
@@ -1143,7 +1146,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::TriggerAutomaticSearch(None))
@@ -1166,7 +1169,7 @@ mod test {
       RadarrEvent::TriggerAutomaticSearch(None).resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::TriggerAutomaticSearch(Some(1)))
@@ -1196,7 +1199,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::UpdateAndScan(None))
@@ -1219,7 +1222,7 @@ mod test {
       RadarrEvent::UpdateAndScan(None).resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::UpdateAndScan(Some(1)))
@@ -1242,7 +1245,7 @@ mod test {
       RadarrEvent::UpdateAllMovies.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::UpdateAllMovies)
@@ -1264,7 +1267,7 @@ mod test {
       RadarrEvent::UpdateDownloads.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::UpdateDownloads)
@@ -1286,7 +1289,7 @@ mod test {
       RadarrEvent::UpdateCollections.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::UpdateCollections)
@@ -1317,7 +1320,7 @@ mod test {
       .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.quality_profile_map =
       BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Movie(movie) = network
       .handle_radarr_event(RadarrEvent::GetMovieDetails(None))
@@ -1402,7 +1405,7 @@ mod test {
       &resource,
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Movie(movie) = network
       .handle_radarr_event(RadarrEvent::GetMovieDetails(Some(1)))
@@ -1456,7 +1459,7 @@ mod test {
       .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.quality_profile_map =
       BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::GetMovieDetails(None))
@@ -1530,7 +1533,7 @@ mod test {
       .movies
       .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::MovieHistoryItems(history) = network
       .handle_radarr_event(RadarrEvent::GetMovieHistory(None))
@@ -1578,7 +1581,7 @@ mod test {
       &resource,
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::MovieHistoryItems(history) = network
       .handle_radarr_event(RadarrEvent::GetMovieHistory(Some(1)))
@@ -1618,7 +1621,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::GetMovieHistory(None))
@@ -1767,7 +1770,7 @@ mod test {
         .blocklist
         .sorting(vec![blocklist_sort_option]);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::BlocklistResponse(blocklist) = network
       .handle_radarr_event(RadarrEvent::GetBlocklist)
@@ -1888,7 +1891,7 @@ mod test {
       .radarr_data
       .blocklist
       .sorting(vec![blocklist_sort_option]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::GetBlocklist)
@@ -2011,7 +2014,7 @@ mod test {
         .collections
         .sorting(vec![collection_sort_option]);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Collections(collections) = network
       .handle_radarr_event(RadarrEvent::GetCollections)
@@ -2118,7 +2121,7 @@ mod test {
       .radarr_data
       .collections
       .sorting(vec![collection_sort_option]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::GetCollections)
@@ -2162,7 +2165,7 @@ mod test {
       RadarrEvent::GetDownloads.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::DownloadsResponse(downloads) = network
       .handle_radarr_event(RadarrEvent::GetDownloads)
@@ -2186,7 +2189,10 @@ mod test {
       "urlBase": "some.test.site/radarr",
       "instanceName": "Radarr",
       "applicationUrl": "https://some.test.site:7878/radarr",
-      "enableSsl": true
+      "enableSsl": true,
+      "sslPort": 9898,
+      "sslCertPath": "/app/radarr.pfx",
+      "sslCertPassword": "test"
     });
     let response: HostConfig = serde_json::from_value(host_config_response.clone()).unwrap();
     let (async_server, app_arc, _server) = mock_radarr_api(
@@ -2197,7 +2203,7 @@ mod test {
       RadarrEvent::GetHostConfig.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::HostConfig(host_config) = network
       .handle_radarr_event(RadarrEvent::GetHostConfig)
@@ -2250,7 +2256,7 @@ mod test {
       RadarrEvent::GetIndexers.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Indexers(indexers) = network
       .handle_radarr_event(RadarrEvent::GetIndexers)
@@ -2289,7 +2295,7 @@ mod test {
       RadarrEvent::GetAllIndexerSettings.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::IndexerSettings(settings) = network
       .handle_radarr_event(RadarrEvent::GetAllIndexerSettings)
@@ -2327,7 +2333,7 @@ mod test {
     )
     .await;
     app_arc.lock().await.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::GetAllIndexerSettings)
@@ -2374,7 +2380,7 @@ mod test {
       RadarrEvent::GetQueuedEvents.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::QueueEvents(events) = network
       .handle_radarr_event(RadarrEvent::GetQueuedEvents)
@@ -2435,7 +2441,7 @@ mod test {
       &resource,
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::LogResponse(logs) = network
       .handle_radarr_event(RadarrEvent::GetLogs(None))
@@ -2505,7 +2511,7 @@ mod test {
       &resource,
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::LogResponse(logs) = network
       .handle_radarr_event(RadarrEvent::GetLogs(Some(1000)))
@@ -2546,7 +2552,7 @@ mod test {
       RadarrEvent::GetQualityProfiles.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::QualityProfiles(quality_profiles) = network
       .handle_radarr_event(RadarrEvent::GetQualityProfiles)
@@ -2577,7 +2583,7 @@ mod test {
       RadarrEvent::GetTags.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Tags(tags) = network
       .handle_radarr_event(RadarrEvent::GetTags)
@@ -2639,7 +2645,7 @@ mod test {
       RadarrEvent::GetTasks.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Tasks(tasks) = network
       .handle_radarr_event(RadarrEvent::GetTasks)
@@ -2732,7 +2738,7 @@ mod test {
       RadarrEvent::GetUpdates.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Updates(updates) = network
       .handle_radarr_event(RadarrEvent::GetUpdates)
@@ -2762,7 +2768,7 @@ mod test {
     .await;
     app_arc.lock().await.data.radarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Tag(tag) = network
       .handle_radarr_event(RadarrEvent::AddTag("testing".to_owned()))
@@ -2787,7 +2793,7 @@ mod test {
     let resource = format!("{}/1", RadarrEvent::DeleteTag(1).resource());
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::DeleteTag(1))
@@ -2814,7 +2820,7 @@ mod test {
       RadarrEvent::GetRootFolders.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::RootFolders(root_folders) = network
       .handle_radarr_event(RadarrEvent::GetRootFolders)
@@ -2850,7 +2856,7 @@ mod test {
       RadarrEvent::GetSecurityConfig.resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::SecurityConfig(security_config) = network
       .handle_radarr_event(RadarrEvent::GetSecurityConfig)
@@ -2898,7 +2904,7 @@ mod test {
       .movies
       .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Credits(credits) = network
       .handle_radarr_event(RadarrEvent::GetMovieCredits(None))
@@ -2943,7 +2949,7 @@ mod test {
       &resource,
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Credits(credits) = network
       .handle_radarr_event(RadarrEvent::GetMovieCredits(Some(1)))
@@ -2989,7 +2995,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::GetMovieCredits(None))
@@ -3018,7 +3024,7 @@ mod test {
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::DeleteMovie(None))
@@ -3038,7 +3044,7 @@ mod test {
     );
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
     let delete_movie_params = DeleteMovieParams {
       id: 1,
       delete_movie_files: true,
@@ -3087,7 +3093,7 @@ mod test {
       .radarr_data
       .blocklist
       .set_items(blocklist_items);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::ClearBlocklist)
@@ -3109,7 +3115,7 @@ mod test {
       .radarr_data
       .blocklist
       .set_items(vec![blocklist_item()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::DeleteBlocklistItem(None))
@@ -3124,7 +3130,7 @@ mod test {
     let resource = format!("{}/1", RadarrEvent::DeleteBlocklistItem(None).resource());
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::DeleteBlocklistItem(Some(1)))
@@ -3146,7 +3152,7 @@ mod test {
       .radarr_data
       .downloads
       .set_items(vec![download_record()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::DeleteDownload(None))
@@ -3161,7 +3167,7 @@ mod test {
     let resource = format!("{}/1", RadarrEvent::DeleteDownload(None).resource());
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::DeleteDownload(Some(1)))
@@ -3183,7 +3189,7 @@ mod test {
       .radarr_data
       .indexers
       .set_items(vec![indexer()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::DeleteIndexer(None))
@@ -3198,7 +3204,7 @@ mod test {
     let resource = format!("{}/1", RadarrEvent::DeleteIndexer(None).resource());
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::DeleteIndexer(Some(1)))
@@ -3220,7 +3226,7 @@ mod test {
       .radarr_data
       .root_folders
       .set_items(vec![root_folder()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::DeleteRootFolder(None))
@@ -3235,7 +3241,7 @@ mod test {
     let resource = format!("{}/1", RadarrEvent::DeleteRootFolder(None).resource());
     let (async_server, app_arc, _server) =
       mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::DeleteRootFolder(Some(1)))
@@ -3319,7 +3325,7 @@ mod test {
         app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
       }
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::AddMovie(None))
@@ -3372,7 +3378,7 @@ mod test {
       },
     };
 
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::AddMovie(Some(body)))
@@ -3458,7 +3464,7 @@ mod test {
       add_searched_movies.scroll_to_bottom();
       app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::AddMovie(None))
@@ -3502,7 +3508,7 @@ mod test {
     .await;
 
     app_arc.lock().await.data.radarr_data.edit_root_folder = Some("/nfs/test".into());
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::AddRootFolder(None))
@@ -3532,7 +3538,7 @@ mod test {
     )
     .await;
 
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::AddRootFolder(Some("/test/test".to_owned())))
@@ -3572,7 +3578,7 @@ mod test {
     .await;
 
     app_arc.lock().await.data.radarr_data.indexer_settings = Some(indexer_settings());
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditAllIndexerSettings(None))
@@ -3611,7 +3617,7 @@ mod test {
     )
     .await;
 
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditAllIndexerSettings(
@@ -3709,7 +3715,7 @@ mod test {
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditCollection(None))
@@ -3794,7 +3800,7 @@ mod test {
       root_folder_path: Some("/nfs/Test Path".to_owned()),
       search_on_add: Some(false),
     };
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditCollection(Some(edit_collection_params)))
@@ -3873,7 +3879,7 @@ mod test {
       collection_id: 123,
       ..EditCollectionParams::default()
     };
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditCollection(Some(edit_collection_params)))
@@ -3969,7 +3975,7 @@ mod test {
       app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
       app.data.radarr_data.indexers.set_items(vec![indexer()]);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditIndexer(None))
@@ -4070,7 +4076,7 @@ mod test {
       );
       app.data.radarr_data.indexers.set_items(vec![indexer]);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditIndexer(None))
@@ -4185,7 +4191,7 @@ mod test {
       );
       app.data.radarr_data.indexers.set_items(vec![indexer]);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditIndexer(None))
@@ -4280,7 +4286,7 @@ mod test {
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditIndexer(Some(edit_indexer_params)))
@@ -4340,7 +4346,7 @@ mod test {
       .match_body(Matcher::Json(indexer_details_json))
       .create_async()
       .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditIndexer(Some(edit_indexer_params)))
@@ -4425,7 +4431,7 @@ mod test {
       .match_body(Matcher::Json(expected_edit_indexer_body))
       .create_async()
       .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditIndexer(Some(edit_indexer_params)))
@@ -4488,7 +4494,7 @@ mod test {
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditMovie(None))
@@ -4539,7 +4545,7 @@ mod test {
       tags: Some(vec![1, 2]),
       ..EditMovieParams::default()
     };
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditMovie(Some(edit_movie_params)))
@@ -4576,7 +4582,7 @@ mod test {
       movie_id: 1,
       ..EditMovieParams::default()
     };
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditMovie(Some(edit_movie_params)))
@@ -4617,7 +4623,7 @@ mod test {
       clear_tags: true,
       ..EditMovieParams::default()
     };
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::EditMovie(Some(edit_movie_params)))
@@ -4654,7 +4660,7 @@ mod test {
       .radarr_data
       .movies
       .set_items(vec![movie()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
       .handle_radarr_event(RadarrEvent::DownloadRelease(None))
@@ -4678,7 +4684,7 @@ mod test {
       RadarrEvent::DownloadRelease(None).resource(),
     )
     .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
     let params = ReleaseDownloadBody {
       guid: "1234".to_owned(),
       indexer_id: 2,
@@ -4705,7 +4711,7 @@ mod test {
         (3, "hi".to_owned()),
       ]);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert_eq!(
       network.extract_and_add_tag_ids_vec(tags).await,
@@ -4733,7 +4739,7 @@ mod test {
       app.data.radarr_data.tags_map =
         BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let tag_ids_vec = network.extract_and_add_tag_ids_vec(tags).await;
 
@@ -4762,7 +4768,7 @@ mod test {
         id: 1,
         ..Movie::default()
       }]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert_eq!(network.extract_movie_id().await, 1);
   }
@@ -4776,7 +4782,7 @@ mod test {
       ..Movie::default()
     }]);
     app_arc.lock().await.data.radarr_data.movies = filtered_movies;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert_eq!(network.extract_movie_id().await, 1);
   }
@@ -4794,7 +4800,7 @@ mod test {
         id: 1,
         ..Collection::default()
       }]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert_eq!(network.extract_collection_id().await, 1);
   }
@@ -4808,7 +4814,7 @@ mod test {
       ..Collection::default()
     }]);
     app_arc.lock().await.data.radarr_data.collections = filtered_collections;
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert_eq!(network.extract_collection_id().await, 1);
   }
@@ -4826,7 +4832,7 @@ mod test {
         id: 1,
         ..Movie::default()
       }]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert_str_eq!(
       network.append_movie_id_param("/test", None).await,
@@ -4847,7 +4853,7 @@ mod test {
         id: 1,
         ..Movie::default()
       }]);
-    let mut network = Network::new(&app_arc, CancellationToken::new());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert_str_eq!(
       network.append_movie_id_param("/test", Some(11)).await,
@@ -4858,7 +4864,7 @@ mod test {
   #[tokio::test]
   async fn test_radarr_request_props_from_default_radarr_config() {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let network = Network::new(&app_arc, CancellationToken::new());
+    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let request_props = network
       .radarr_request_props_from("/test", RequestMethod::Get, None::<()>)
@@ -4873,6 +4879,8 @@ mod test {
       host: "192.168.0.123".to_owned(),
       port: Some(8080),
       api_token: "testToken1234".to_owned(),
+      use_ssl: false,
+      ssl_cert_path: None,
     };
   }
 
@@ -4884,14 +4892,16 @@ mod test {
       host: "192.168.0.123".to_owned(),
       port: Some(8080),
       api_token: api_token.clone(),
+      use_ssl: true,
+      ssl_cert_path: None,
     };
-    let network = Network::new(&app_arc, CancellationToken::new());
+    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let request_props = network
       .radarr_request_props_from("/test", RequestMethod::Get, None::<()>)
       .await;
 
-    assert_str_eq!(request_props.uri, "http://192.168.0.123:8080/api/v3/test");
+    assert_str_eq!(request_props.uri, "https://192.168.0.123:8080/api/v3/test");
     assert_eq!(request_props.method, RequestMethod::Get);
     assert_eq!(request_props.body, None);
     assert_str_eq!(request_props.api_token, api_token);
@@ -4987,6 +4997,8 @@ mod test {
       host,
       port,
       api_token: "test1234".to_owned(),
+      use_ssl: false,
+      ssl_cert_path: None,
     };
     app.config.radarr = radarr_config;
     let app_arc = Arc::new(Mutex::new(app));

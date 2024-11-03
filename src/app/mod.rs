@@ -176,6 +176,9 @@ pub struct RadarrConfig {
   pub host: String,
   pub port: Option<u16>,
   pub api_token: String,
+  #[serde(default)]
+  pub use_ssl: bool,
+  pub ssl_cert_path: Option<String>,
 }
 
 impl Default for RadarrConfig {
@@ -184,6 +187,8 @@ impl Default for RadarrConfig {
       host: "localhost".to_string(),
       port: Some(7878),
       api_token: "".to_string(),
+      use_ssl: false,
+      ssl_cert_path: None,
     }
   }
 }

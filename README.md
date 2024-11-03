@@ -206,6 +206,8 @@ radarr:
   host: 127.0.0.1
   port: 7878
   api_token: someApiToken1234567890
+  use_ssl: true
+  ssl_cert_path: /path/to/radarr.crt
 sonarr:
   host: 127.0.0.1
   port: 8989
@@ -214,26 +216,32 @@ readarr:
   host: 127.0.0.1
   port: 8787
   api_token: someApiToken1234567890
+  use_ssl: false
 lidarr:
   host: 127.0.0.1
   port: 8686
   api_token: someApiToken1234567890
+  use_ssl: false
 whisparr:
   host: 127.0.0.1
   port: 6969
   api_token: someApiToken1234567890
+  use_ssl: false
 bazarr:
   host: 127.0.0.1
   port: 6767
   api_token: someApiToken1234567890
+  use_ssl: false
 prowlarr:
   host: 127.0.0.1
   port: 9696
   api_token: someApiToken1234567890
+  use_ssl: false
 tautulli:
   host: 127.0.0.1
   port: 8181
   api_token: someApiToken1234567890
+  use_ssl: false
 ```
 
 ## Track My Progress for the Beta release (With Sonarr Support!)

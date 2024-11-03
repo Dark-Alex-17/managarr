@@ -1,6 +1,6 @@
 #![warn(rust_2018_idioms)]
 
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::BufReader;
 use std::panic::PanicHookInfo;
 use std::path::PathBuf;
@@ -24,6 +24,7 @@ use log::error;
 use network::NetworkTrait;
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
+use reqwest::{Certificate, Client};
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::{mpsc, Mutex};
 use tokio_util::sync::CancellationToken;
@@ -77,13 +78,6 @@ struct Cli {
   disable_terminal_size_checks: bool,
 }
 
-fn load_config(path: &str) -> Result<AppConfig> {
-  let file = File::open(path).map_err(|e| anyhow!(e))?;
-  let reader = BufReader::new(file);
-  let config = serde_yaml::from_reader(reader)?;
-  Ok(config)
-}
-
 #[tokio::main]
 async fn main() -> Result<()> {
   log4rs::init_config(utils::init_logging_config())?;
@@ -98,6 +92,7 @@ async fn main() -> Result<()> {
   } else {
     confy::load("managarr", "config")?
   };
+  let reqwest_client = build_network_client(&config);
   let (sync_network_tx, sync_network_rx) = mpsc::channel(500);
   let cancellation_token = CancellationToken::new();
   let ctrlc_cancellation_token = cancellation_token.clone();
@@ -119,7 +114,7 @@ async fn main() -> Result<()> {
     Some(command) => match command {
       Command::Radarr(_) => {
         let app_nw = Arc::clone(&app);
-        let mut network = Network::new(&app_nw, cancellation_token);
+        let mut network = Network::new(&app_nw, cancellation_token, reqwest_client);
 
         if let Err(e) = cli::handle_command(&app, command, &mut network).await {
           eprintln!("error: {}", e.to_string().red());
@@ -133,7 +128,9 @@ async fn main() -> Result<()> {
     },
     None => {
       let app_nw = Arc::clone(&app);
-      std::thread::spawn(move || start_networking(sync_network_rx, &app_nw, cancellation_token));
+      std::thread::spawn(move || {
+        start_networking(sync_network_rx, &app_nw, cancellation_token, reqwest_client)
+      });
       start_ui(&app, !args.disable_terminal_size_checks).await?;
     }
   }
@@ -146,8 +143,9 @@ async fn start_networking(
   mut network_rx: Receiver<NetworkEvent>,
   app: &Arc<Mutex<App<'_>>>,
   cancellation_token: CancellationToken,
+  client: Client,
 ) {
-  let mut network = Network::new(app, cancellation_token);
+  let mut network = Network::new(app, cancellation_token, client);
 
   while let Some(network_event) = network_rx.recv().await {
     if let Err(e) = network.handle_network_event(network_event).await {
@@ -236,6 +234,60 @@ fn panic_hook(info: &PanicHookInfo<'_>) {
     )),
   )
   .unwrap();
+}
+
+fn load_config(path: &str) -> Result<AppConfig> {
+  let file = File::open(path).map_err(|e| anyhow!(e))?;
+  let reader = BufReader::new(file);
+  let config = serde_yaml::from_reader(reader)?;
+  Ok(config)
+}
+
+fn build_network_client(config: &AppConfig) -> Client {
+  let mut client_builder = Client::builder();
+
+  if config.radarr.use_ssl {
+    let cert = add_cert_to_builder(config.radarr.ssl_cert_path.clone(), "Radarr");
+    client_builder = client_builder.add_root_certificate(cert);
+  }
+
+  match client_builder.build() {
+    Ok(client) => client,
+    Err(e) => {
+      error!("Unable to create reqwest client: {}", e);
+      eprintln!("error: {}", e.to_string().red());
+      process::exit(1);
+    }
+  }
+}
+
+fn add_cert_to_builder(cert_path: Option<String>, servarr_name: &str) -> Certificate {
+  let err = |error: String| {
+    error!("{}", error);
+    eprintln!("error: {}", error.red());
+    process::exit(1);
+  };
+
+  if cert_path.is_none() {
+    err(format!(
+      "A {} cert path is required when 'use_ssl' is 'true'",
+      servarr_name
+    ));
+  }
+
+  match fs::read(cert_path.unwrap()) {
+    Ok(cert) => match Certificate::from_pem(&cert) {
+      Ok(certificate) => certificate,
+      Err(_) => err(format!(
+        "Unable to read the specified {} SSL certificate",
+        servarr_name
+      )),
+    },
+    Err(_) => err(format!(
+      "Unable to open specified {} SSL certificate",
+      servarr_name
+    )),
+  }
 }
 
 #[cfg(not(debug_assertions))]

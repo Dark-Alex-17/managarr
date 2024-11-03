@@ -291,6 +291,10 @@ pub struct HostConfig {
   pub instance_name: Option<HorizontallyScrollableText>,
   pub application_url: Option<HorizontallyScrollableText>,
   pub enable_ssl: bool,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub ssl_port: i64,
+  pub ssl_cert_path: Option<String>,
+  pub ssl_cert_password: Option<String>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]

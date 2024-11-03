@@ -62,9 +62,13 @@ impl<'a, 'b> NetworkTrait for Network<'a, 'b> {
 }
 
 impl<'a, 'b> Network<'a, 'b> {
-  pub fn new(app: &'a Arc<Mutex<App<'b>>>, cancellation_token: CancellationToken) -> Self {
+  pub fn new(
+    app: &'a Arc<Mutex<App<'b>>>,
+    cancellation_token: CancellationToken,
+    client: Client,
+  ) -> Self {
     Network {
-      client: Client::new(),
+      client,
       app,
       cancellation_token,
     }
