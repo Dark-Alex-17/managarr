@@ -1,0 +1,32 @@
+# Adapted from https://github.com/joshka/github-workflows/blob/main/.github/workflows/rust-release-plz.yml
+# Thanks to joshka for permission to use this template!
+
+name: Create major release
+
+permissions:
+  pull-requests: write
+  contents: write
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release-plz:
+    # see https://release-plz.ieni.dev/docs/github
+    # for more information
+    name: Release-plz
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run release-plz
+        uses: MarcoIeni/release-plz-action@v0.5
+        with:
+          args: release --bump-major
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
