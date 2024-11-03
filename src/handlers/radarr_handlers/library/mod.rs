@@ -386,6 +386,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
           self.app.data.radarr_data.movies.filter.as_mut().unwrap()
         )
       }
+      ActiveRadarrBlock::UpdateAllMoviesPrompt => {
+        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+          self.app.data.radarr_data.prompt_confirm = true;
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAllMovies);
+
+          self.app.pop_navigation_stack();
+        }
+      }
       _ => (),
     }
   }

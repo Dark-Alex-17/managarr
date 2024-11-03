@@ -940,7 +940,16 @@ mod tests {
 
   mod test_handle_key_char {
     use super::*;
-    use crate::models::servarr_data::radarr::modals::EditMovieModal;
+    use crate::{
+      models::{
+        servarr_data::radarr::{
+          modals::EditMovieModal,
+          radarr_data::{EDIT_COLLECTION_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS},
+        },
+        BlockSelectionState,
+      },
+      network::radarr_network::RadarrEvent,
+    };
 
     #[test]
     fn test_edit_movie_path_input_backspace() {
@@ -1050,6 +1059,36 @@ mod tests {
           .text,
         "h"
       );
+    }
+
+    #[test]
+    fn test_edit_movie_confirm_prompt_prompt_confirm() {
+      let mut app = App::default();
+      app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
+      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
+
+      EditMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.confirm.key,
+        &mut app,
+        &ActiveRadarrBlock::EditMoviePrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(RadarrEvent::EditMovie(None))
+      );
+      assert!(app.data.radarr_data.edit_movie_modal.is_some());
+      assert!(app.should_refresh);
     }
   }
 

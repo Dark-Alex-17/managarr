@@ -120,6 +120,11 @@ pub static ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.esc, "edit search"),
 ];
 
+pub static CONFIRMATION_PROMPT_CONTEXT_CLUES: [ContextClue; 2] = [
+  (DEFAULT_KEYBINDINGS.confirm, "submit"),
+  (DEFAULT_KEYBINDINGS.esc, "cancel"),
+];
+
 pub static SYSTEM_TASKS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.submit, "start task"),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),

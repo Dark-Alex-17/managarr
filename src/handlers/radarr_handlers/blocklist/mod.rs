@@ -182,8 +182,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
 
   fn handle_char_key_event(&mut self) {
     let key = self.key;
-    if self.active_radarr_block == &ActiveRadarrBlock::Blocklist {
-      match self.key {
+    match self.active_radarr_block {
+      ActiveRadarrBlock::Blocklist => match self.key {
         _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
@@ -204,7 +204,25 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
             .push_navigation_stack(ActiveRadarrBlock::BlocklistSortPrompt.into());
         }
         _ => (),
+      },
+      ActiveRadarrBlock::DeleteBlocklistItemPrompt => {
+        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+          self.app.data.radarr_data.prompt_confirm = true;
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::DeleteBlocklistItem(None));
+
+          self.app.pop_navigation_stack();
+        }
       }
+      ActiveRadarrBlock::BlocklistClearAllItemsPrompt => {
+        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+          self.app.data.radarr_data.prompt_confirm = true;
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::ClearBlocklist);
+
+          self.app.pop_navigation_stack();
+        }
+      }
+      _ => (),
     }
   }
 }

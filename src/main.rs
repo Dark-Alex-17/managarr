@@ -18,7 +18,7 @@ use clap_complete::generate;
 use colored::Colorize;
 use crossterm::execute;
 use crossterm::terminal::{
-  disable_raw_mode, enable_raw_mode, size, EnterAlternateScreen, LeaveAlternateScreen,
+  disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
 use log::error;
 use network::NetworkTrait;
@@ -46,9 +46,6 @@ mod network;
 mod ui;
 mod utils;
 
-static MIN_TERM_WIDTH: u16 = 205;
-static MIN_TERM_HEIGHT: u16 = 40;
-
 #[derive(Debug, Parser)]
 #[command(
   name = crate_name!(),
@@ -71,11 +68,10 @@ struct Cli {
     long,
     global = true,
     value_parser,
+    env = "MANAGARR_CONFIG_FILE",
     help = "The Managarr configuration file to use"
   )]
   config: Option<PathBuf>,
-  #[arg(long, global = true, help = "Disable the terminal size checks")]
-  disable_terminal_size_checks: bool,
 }
 
 #[tokio::main]
@@ -131,7 +127,7 @@ async fn main() -> Result<()> {
       std::thread::spawn(move || {
         start_networking(sync_network_rx, &app_nw, cancellation_token, reqwest_client)
       });
-      start_ui(&app, !args.disable_terminal_size_checks).await?;
+      start_ui(&app).await?;
     }
   }
 
@@ -154,20 +150,7 @@ async fn start_networking(
   }
 }
 
-async fn start_ui(app: &Arc<Mutex<App<'_>>>, check_terminal_size: bool) -> Result<()> {
-  if check_terminal_size {
-    let (width, height) = size()?;
-    if width < MIN_TERM_WIDTH || height < MIN_TERM_HEIGHT {
-      return Err(anyhow!(
-        "Terminal too small. Minimum size required: {}x{}; current terminal size: {}x{}",
-        MIN_TERM_WIDTH,
-        MIN_TERM_HEIGHT,
-        width,
-        height
-      ));
-    }
-  }
-
+async fn start_ui(app: &Arc<Mutex<App<'_>>>) -> Result<()> {
   let mut stdout = io::stdout();
   enable_raw_mode()?;
 
@@ -247,7 +230,7 @@ fn build_network_client(config: &AppConfig) -> Client {
   let mut client_builder = Client::builder();
 
   if config.radarr.use_ssl {
-    let cert = add_cert_to_builder(config.radarr.ssl_cert_path.clone(), "Radarr");
+    let cert = create_cert(config.radarr.ssl_cert_path.clone(), "Radarr");
     client_builder = client_builder.add_root_certificate(cert);
   }
 
@@ -261,7 +244,7 @@ fn build_network_client(config: &AppConfig) -> Client {
   }
 }
 
-fn add_cert_to_builder(cert_path: Option<String>, servarr_name: &str) -> Certificate {
+fn create_cert(cert_path: Option<String>, servarr_name: &str) -> Certificate {
   let err = |error: String| {
     error!("{}", error);
     eprintln!("error: {}", error.red());

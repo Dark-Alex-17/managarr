@@ -996,6 +996,7 @@ mod tests {
       RadarrData, EDIT_MOVIE_SELECTION_BLOCKS,
     };
 
+    use crate::network::radarr_network::RadarrEvent;
     use crate::test_edit_movie_key;
 
     use super::*;
@@ -1451,6 +1452,33 @@ mod tests {
 
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
       assert!(app.data.radarr_data.movies.sort.is_none());
+    }
+
+    #[test]
+    fn test_update_all_movies_prompt_confirm() {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_items(vec![Movie::default()]);
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      app.push_navigation_stack(ActiveRadarrBlock::UpdateAllMoviesPrompt.into());
+
+      LibraryHandler::with(
+        &DEFAULT_KEYBINDINGS.confirm.key,
+        &mut app,
+        &ActiveRadarrBlock::UpdateAllMoviesPrompt,
+        &None,
+      )
+      .handle();
+
+      assert!(app.data.radarr_data.prompt_confirm);
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(RadarrEvent::UpdateAllMovies)
+      );
+      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
     }
   }
 

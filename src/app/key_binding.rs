@@ -33,6 +33,7 @@ generate_keybindings! {
   tab,
   delete,
   submit,
+  confirm,
   quit,
   esc
 }
@@ -138,6 +139,10 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   },
   submit: KeyBinding {
     key: Key::Enter,
+    desc: "submit",
+  },
+  confirm: KeyBinding {
+    key: Key::Ctrl('s'),
     desc: "submit",
   },
   quit: KeyBinding {

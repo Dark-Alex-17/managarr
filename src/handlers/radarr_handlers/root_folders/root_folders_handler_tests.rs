@@ -554,6 +554,8 @@ mod tests {
   mod test_handle_key_char {
     use pretty_assertions::{assert_eq, assert_str_eq};
 
+    use crate::network::radarr_network::RadarrEvent;
+
     use super::*;
 
     #[test]
@@ -704,6 +706,36 @@ mod tests {
       assert_str_eq!(
         app.data.radarr_data.edit_root_folder.as_ref().unwrap().text,
         "h"
+      );
+    }
+
+    #[test]
+    fn test_delete_root_folder_prompt_confirm() {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .root_folders
+        .set_items(vec![RootFolder::default()]);
+      app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
+      app.push_navigation_stack(ActiveRadarrBlock::DeleteRootFolderPrompt.into());
+
+      RootFoldersHandler::with(
+        &DEFAULT_KEYBINDINGS.confirm.key,
+        &mut app,
+        &ActiveRadarrBlock::DeleteRootFolderPrompt,
+        &None,
+      )
+      .handle();
+
+      assert!(app.data.radarr_data.prompt_confirm);
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(RadarrEvent::DeleteRootFolder(None))
+      );
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::RootFolders.into()
       );
     }
   }

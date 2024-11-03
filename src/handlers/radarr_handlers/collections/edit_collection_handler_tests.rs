@@ -871,7 +871,15 @@ mod tests {
 
   mod test_handle_key_char {
     use super::*;
-    use crate::models::servarr_data::radarr::modals::EditCollectionModal;
+    use crate::{
+      models::{
+        servarr_data::radarr::{
+          modals::EditCollectionModal, radarr_data::EDIT_COLLECTION_SELECTION_BLOCKS,
+        },
+        BlockSelectionState,
+      },
+      network::radarr_network::RadarrEvent,
+    };
 
     #[test]
     fn test_edit_collection_root_folder_path_input_backspace() {
@@ -926,6 +934,39 @@ mod tests {
           .text,
         "h"
       );
+    }
+
+    #[test]
+    fn test_edit_collection_confirm_prompt_prompt_confirmation_confirm() {
+      let mut app = App::default();
+      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
+
+      EditCollectionHandler::with(
+        &DEFAULT_KEYBINDINGS.confirm.key,
+        &mut app,
+        &ActiveRadarrBlock::EditCollectionPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(RadarrEvent::EditCollection(None))
+      );
+      assert!(app.should_refresh);
     }
   }
 

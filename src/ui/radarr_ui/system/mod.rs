@@ -1,7 +1,7 @@
 use std::ops::Sub;
 
 use chrono::Utc;
-use ratatui::layout::{Alignment, Layout};
+use ratatui::layout::Layout;
 use ratatui::style::Style;
 use ratatui::text::{Span, Text};
 use ratatui::widgets::{Cell, Paragraph, Row};
@@ -204,7 +204,7 @@ fn draw_help(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   );
   let help_paragraph = Paragraph::new(help_text)
     .block(layout_block_top_border())
-    .alignment(Alignment::Left);
+    .left_aligned();
 
   f.render_widget(help_paragraph, area);
 }

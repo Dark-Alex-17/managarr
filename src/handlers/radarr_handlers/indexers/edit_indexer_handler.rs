@@ -429,6 +429,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
             .tags
         );
       }
+      ActiveRadarrBlock::EditIndexerPrompt => {
+        if self.app.data.radarr_data.selected_block.get_active_block()
+          == &ActiveRadarrBlock::EditIndexerConfirmPrompt
+          && *self.key == DEFAULT_KEYBINDINGS.confirm.key
+        {
+          self.app.data.radarr_data.prompt_confirm = true;
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditIndexer(None));
+          self.app.should_refresh = true;
+
+          self.app.pop_navigation_stack();
+        }
+      }
       _ => (),
     }
   }

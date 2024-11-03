@@ -43,7 +43,7 @@ pub fn layout_paragraph_borderless(string: &str) -> Paragraph<'_> {
     .primary()
     .bold()
     .wrap(Wrap { trim: false })
-    .alignment(Alignment::Center)
+    .centered()
 }
 
 pub fn borderless_block<'a>() -> Block<'a> {

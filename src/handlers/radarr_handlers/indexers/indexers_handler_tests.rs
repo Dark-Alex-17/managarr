@@ -464,7 +464,10 @@ mod tests {
   mod test_handle_key_char {
     use pretty_assertions::assert_eq;
 
-    use crate::models::servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS;
+    use crate::{
+      models::servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS,
+      network::radarr_network::RadarrEvent,
+    };
 
     use super::*;
 
@@ -694,6 +697,33 @@ mod tests {
       )
       .handle();
 
+      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+    }
+
+    #[test]
+    fn test_delete_indexer_prompt_confirm() {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .indexers
+        .set_items(vec![Indexer::default()]);
+      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into());
+
+      IndexersHandler::with(
+        &DEFAULT_KEYBINDINGS.confirm.key,
+        &mut app,
+        &ActiveRadarrBlock::DeleteIndexerPrompt,
+        &None,
+      )
+      .handle();
+
+      assert!(app.data.radarr_data.prompt_confirm);
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(RadarrEvent::DeleteIndexer(None))
+      );
       assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
     }
   }

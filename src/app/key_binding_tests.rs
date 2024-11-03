@@ -31,6 +31,7 @@ mod test {
   #[case(DEFAULT_KEYBINDINGS.tab, Key::Tab, "tab")]
   #[case(DEFAULT_KEYBINDINGS.delete, Key::Delete, "delete")]
   #[case(DEFAULT_KEYBINDINGS.submit, Key::Enter, "submit")]
+  #[case(DEFAULT_KEYBINDINGS.confirm, Key::Ctrl('s'), "submit")]
   #[case(DEFAULT_KEYBINDINGS.quit, Key::Char('q'), "quit")]
   #[case(DEFAULT_KEYBINDINGS.esc, Key::Esc, "close")]
   fn test_default_key_bindings_and_descriptions(

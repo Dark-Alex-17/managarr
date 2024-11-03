@@ -1,9 +1,12 @@
 use std::sync::atomic::Ordering;
 
 use ratatui::layout::{Constraint, Layout, Rect};
-use ratatui::widgets::ListItem;
+use ratatui::text::Text;
+use ratatui::widgets::{ListItem, Paragraph};
 use ratatui::Frame;
 
+use crate::app::context_clues::build_context_clue_string;
+use crate::app::radarr::radarr_context_clues::CONFIRMATION_PROMPT_CONTEXT_CLUES;
 use crate::app::App;
 use crate::models::servarr_data::radarr::modals::EditCollectionModal;
 use crate::models::servarr_data::radarr::radarr_data::{
@@ -110,7 +113,7 @@ fn draw_edit_collection_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>
   let selected_minimum_availability = minimum_availability_list.current_selection();
   let selected_quality_profile = quality_profile_list.current_selection();
 
-  let [paragraph_area, monitored_area, min_availability_area, quality_profile_area, root_folder_area, search_on_add_area, _, buttons_area] =
+  let [paragraph_area, monitored_area, min_availability_area, quality_profile_area, root_folder_area, search_on_add_area, _, buttons_area, help_area] =
     Layout::vertical([
       Constraint::Length(6),
       Constraint::Length(3),
@@ -118,8 +121,9 @@ fn draw_edit_collection_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
-      Constraint::Fill(0),
+      Constraint::Fill(1),
       Constraint::Length(3),
+      Constraint::Length(1),
     ])
     .margin(1)
     .areas(area);
@@ -127,6 +131,8 @@ fn draw_edit_collection_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>
     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
       .areas(buttons_area);
 
+  let help_text = Text::from(build_context_clue_string(&CONFIRMATION_PROMPT_CONTEXT_CLUES).help());
+  let help_paragraph = Paragraph::new(help_text).centered();
   let prompt_paragraph = layout_paragraph_borderless(&collection_overview);
   let monitored_checkbox = Checkbox::new("Monitored")
     .highlighted(selected_block == &ActiveRadarrBlock::EditCollectionToggleMonitored)
@@ -169,6 +175,7 @@ fn draw_edit_collection_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>
   f.render_widget(search_on_add_checkbox, search_on_add_area);
   f.render_widget(save_button, save_area);
   f.render_widget(cancel_button, cancel_area);
+  f.render_widget(help_paragraph, help_area);
 }
 
 fn draw_edit_collection_select_minimum_availability_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
