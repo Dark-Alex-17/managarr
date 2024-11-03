@@ -1,2 +1,5 @@
 coverage:
   range: "80..100"
+
+ignore:
+  - "**/*_tests.rs"
