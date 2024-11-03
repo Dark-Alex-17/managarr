@@ -71,10 +71,16 @@ struct Cli {
     long,
     global = true,
     value_parser,
+    env = "MANAGARR_CONFIG_FILE",
     help = "The Managarr configuration file to use"
   )]
   config: Option<PathBuf>,
-  #[arg(long, global = true, help = "Disable the terminal size checks")]
+  #[arg(
+    long,
+    global = true,
+    env = "MANAGARR_DISABLE_TERMINAL_SIZE_CHECKS",
+    help = "Disable the terminal size checks"
+  )]
   disable_terminal_size_checks: bool,
 }
 
