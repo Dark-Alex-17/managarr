@@ -1282,6 +1282,9 @@ mod tests {
   mod test_handle_key_char {
     use crate::app::App;
     use crate::models::servarr_data::radarr::modals::EditIndexerModal;
+    use crate::models::servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS;
+    use crate::models::BlockSelectionState;
+    use crate::network::radarr_network::RadarrEvent;
     use pretty_assertions::assert_str_eq;
 
     use super::*;
@@ -1558,6 +1561,37 @@ mod tests {
           .tags
           .text,
         "h"
+      );
+    }
+
+    #[test]
+    fn test_edit_indexer_prompt_prompt_confirmation_confirm() {
+      let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
+      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+
+      EditIndexerHandler::with(
+        &DEFAULT_KEYBINDINGS.confirm.key,
+        &mut app,
+        &ActiveRadarrBlock::EditIndexerPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert!(app.data.radarr_data.edit_indexer_modal.is_some());
+      assert!(app.should_refresh);
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(RadarrEvent::EditIndexer(None))
       );
     }
   }

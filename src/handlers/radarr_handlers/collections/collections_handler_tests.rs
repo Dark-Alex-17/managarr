@@ -1040,6 +1040,7 @@ mod tests {
     use crate::models::servarr_data::radarr::radarr_data::{
       RadarrData, EDIT_COLLECTION_SELECTION_BLOCKS,
     };
+    use crate::network::radarr_network::RadarrEvent;
     use crate::test_edit_collection_key;
 
     use super::*;
@@ -1508,6 +1509,36 @@ mod tests {
       );
       assert!(app.data.radarr_data.collections.sort.is_none());
       assert!(!app.data.radarr_data.collections.sort_asc);
+    }
+
+    #[test]
+    fn test_update_all_collections_prompt_confirm_confirm() {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
+      app.push_navigation_stack(ActiveRadarrBlock::UpdateAllCollectionsPrompt.into());
+
+      CollectionsHandler::with(
+        &DEFAULT_KEYBINDINGS.confirm.key,
+        &mut app,
+        &ActiveRadarrBlock::UpdateAllCollectionsPrompt,
+        &None,
+      )
+      .handle();
+
+      assert!(app.data.radarr_data.prompt_confirm);
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(RadarrEvent::UpdateCollections)
+      );
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::Collections.into()
+      );
     }
   }
 

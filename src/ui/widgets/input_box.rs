@@ -1,5 +1,5 @@
 use ratatui::buffer::Buffer;
-use ratatui::layout::{Alignment, Constraint, Layout, Position, Rect};
+use ratatui::layout::{Constraint, Layout, Position, Rect};
 use ratatui::prelude::Text;
 use ratatui::style::{Style, Styled, Stylize};
 use ratatui::widgets::{Block, Paragraph, Widget};
@@ -114,7 +114,7 @@ impl<'a> InputBox<'a> {
 
       Paragraph::new(Text::from(format!("\n{label}: ")))
         .block(borderless_block())
-        .alignment(Alignment::Right)
+        .right_aligned()
         .primary()
         .render(label_area, buf);
       input_box_paragraph.render(text_box_area, buf);

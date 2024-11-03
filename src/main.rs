@@ -253,7 +253,7 @@ fn build_network_client(config: &AppConfig) -> Client {
   let mut client_builder = Client::builder();
 
   if config.radarr.use_ssl {
-    let cert = add_cert_to_builder(config.radarr.ssl_cert_path.clone(), "Radarr");
+    let cert = create_cert(config.radarr.ssl_cert_path.clone(), "Radarr");
     client_builder = client_builder.add_root_certificate(cert);
   }
 
@@ -267,7 +267,7 @@ fn build_network_client(config: &AppConfig) -> Client {
   }
 }
 
-fn add_cert_to_builder(cert_path: Option<String>, servarr_name: &str) -> Certificate {
+fn create_cert(cert_path: Option<String>, servarr_name: &str) -> Certificate {
   let err = |error: String| {
     error!("{}", error);
     eprintln!("error: {}", error.red());

@@ -291,19 +291,34 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
 
   fn handle_char_key_event(&mut self) {
     let key = self.key;
-    if self.active_radarr_block == &ActiveRadarrBlock::EditCollectionRootFolderPathInput {
-      handle_text_box_keys!(
-        self,
-        key,
-        self
-          .app
-          .data
-          .radarr_data
-          .edit_collection_modal
-          .as_mut()
-          .unwrap()
-          .path
-      )
+    match self.active_radarr_block {
+      ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
+        handle_text_box_keys!(
+          self,
+          key,
+          self
+            .app
+            .data
+            .radarr_data
+            .edit_collection_modal
+            .as_mut()
+            .unwrap()
+            .path
+        )
+      }
+      ActiveRadarrBlock::EditCollectionPrompt => {
+        if self.app.data.radarr_data.selected_block.get_active_block()
+          == &ActiveRadarrBlock::EditCollectionConfirmPrompt
+          && *key == DEFAULT_KEYBINDINGS.confirm.key
+        {
+          self.app.data.radarr_data.prompt_confirm = true;
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditCollection(None));
+          self.app.should_refresh = true;
+
+          self.app.pop_navigation_stack();
+        }
+      }
+      _ => (),
     }
   }
 }

@@ -1,7 +1,7 @@
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_block, style_block_highlight};
 use ratatui::buffer::Buffer;
-use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
+use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::prelude::{Style, Text, Widget};
 use ratatui::style::Styled;
 use ratatui::widgets::Paragraph;
@@ -58,11 +58,11 @@ impl<'a> Button<'a> {
     if let Some(icon) = self.icon {
       layout_block().style(style).render(area, buf);
       Paragraph::new(Text::from(self.title))
-        .alignment(Alignment::Left)
+        .left_aligned()
         .style(style)
         .render(title_area, buf);
       Paragraph::new(Text::from(format!("{icon} ")))
-        .alignment(Alignment::Right)
+        .right_aligned()
         .style(style)
         .render(icon_area, buf);
     }
@@ -72,7 +72,7 @@ impl<'a> Button<'a> {
     let [label_area, button_area] =
       Layout::horizontal([Constraint::Percentage(48), Constraint::Percentage(48)]).areas(area);
     let label_paragraph = Paragraph::new(Text::from(format!("\n{}: ", self.label.unwrap())))
-      .alignment(Alignment::Right)
+      .right_aligned()
       .primary();
 
     if self.icon.is_some() {
@@ -87,7 +87,7 @@ impl<'a> Button<'a> {
   fn render_button(self, area: Rect, buf: &mut Buffer) {
     Paragraph::new(Text::from(self.title))
       .block(layout_block())
-      .alignment(Alignment::Center)
+      .centered()
       .style(style_block_highlight(self.is_selected))
       .render(area, buf);
   }

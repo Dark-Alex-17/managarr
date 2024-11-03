@@ -1,12 +1,14 @@
 use std::sync::atomic::Ordering;
 
-use ratatui::layout::{Alignment, Constraint, Layout, Rect};
+use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::Text;
 use ratatui::widgets::{Cell, ListItem, Paragraph, Row};
 use ratatui::Frame;
 
 use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
-use crate::app::radarr::radarr_context_clues::ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES;
+use crate::app::radarr::radarr_context_clues::{
+  ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
+};
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::servarr_data::radarr::modals::AddMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
@@ -209,7 +211,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         let help_text = Text::from(build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES).help());
         let help_paragraph = Paragraph::new(help_text)
           .block(borderless_block())
-          .alignment(Alignment::Center);
+          .centered();
 
         search_box.show_cursor(f, search_box_area);
         f.render_widget(layout_block(), results_area);
@@ -220,7 +222,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         let help_text = Text::from(build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES).help());
         let help_paragraph = Paragraph::new(help_text)
           .block(borderless_block())
-          .alignment(Alignment::Center);
+          .centered();
         let error_message = Message::new("No movies found matching your query!");
         let error_message_popup = Popup::new(error_message).size(Size::Message);
 
@@ -240,7 +242,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Text::from(build_context_clue_string(&ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES).help());
         let help_paragraph = Paragraph::new(help_text)
           .block(borderless_block())
-          .alignment(Alignment::Center);
+          .centered();
         let search_results_table = ManagarrTable::new(
           app.data.radarr_data.add_searched_movies.as_mut(),
           search_results_row_mapping,
@@ -369,7 +371,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
   f.render_widget(title_block_centered(&title), area);
 
-  let [paragraph_area, root_folder_area, monitor_area, min_availability_area, quality_profile_area, tags_area, _, buttons_area] =
+  let [paragraph_area, root_folder_area, monitor_area, min_availability_area, quality_profile_area, tags_area, _, buttons_area, help_area] =
     Layout::vertical([
       Constraint::Length(6),
       Constraint::Length(3),
@@ -377,14 +379,18 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
-      Constraint::Fill(0),
+      Constraint::Fill(1),
       Constraint::Length(3),
+      Constraint::Length(1),
     ])
     .margin(1)
     .areas(area);
 
   let prompt_paragraph = layout_paragraph_borderless(&prompt);
+  let help_text = Text::from(build_context_clue_string(&CONFIRMATION_PROMPT_CONTEXT_CLUES).help());
+  let help_paragraph = Paragraph::new(help_text).centered();
   f.render_widget(prompt_paragraph, paragraph_area);
+  f.render_widget(help_paragraph, help_area);
 
   let [add_area, cancel_area] =
     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])

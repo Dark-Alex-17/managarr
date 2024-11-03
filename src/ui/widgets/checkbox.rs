@@ -1,7 +1,7 @@
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, layout_block, style_block_highlight};
 use ratatui::buffer::Buffer;
-use ratatui::layout::{Alignment, Constraint, Layout, Rect};
+use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Text;
 use ratatui::style::Stylize;
 use ratatui::widgets::{Paragraph, Widget};
@@ -47,13 +47,13 @@ impl<'a> Checkbox<'a> {
 
     Paragraph::new(Text::from(format!("\n{}: ", self.label)))
       .block(borderless_block())
-      .alignment(Alignment::Right)
+      .right_aligned()
       .primary()
       .render(label_area, buf);
 
     Paragraph::new(Text::from(check))
       .block(layout_block())
-      .alignment(Alignment::Center)
+      .centered()
       .style(style_block_highlight(self.is_highlighted).bold())
       .render(checkbox_box_area, buf);
   }

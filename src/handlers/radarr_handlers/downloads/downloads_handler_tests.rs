@@ -349,6 +349,9 @@ mod tests {
 
   mod test_handle_key_char {
     use pretty_assertions::assert_eq;
+    use rstest::rstest;
+
+    use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
 
@@ -449,6 +452,47 @@ mod tests {
         &ActiveRadarrBlock::Downloads.into()
       );
       assert!(!app.should_refresh);
+    }
+
+    #[rstest]
+    #[case(
+      ActiveRadarrBlock::Downloads,
+      ActiveRadarrBlock::DeleteDownloadPrompt,
+      RadarrEvent::DeleteDownload(None)
+    )]
+    #[case(
+      ActiveRadarrBlock::Downloads,
+      ActiveRadarrBlock::UpdateDownloadsPrompt,
+      RadarrEvent::UpdateDownloads
+    )]
+    fn test_downloads_prompt_confirm_submit(
+      #[case] base_route: ActiveRadarrBlock,
+      #[case] prompt_block: ActiveRadarrBlock,
+      #[case] expected_action: RadarrEvent,
+    ) {
+      let mut app = App::default();
+      app
+        .data
+        .radarr_data
+        .downloads
+        .set_items(vec![DownloadRecord::default()]);
+      app.push_navigation_stack(base_route.into());
+      app.push_navigation_stack(prompt_block.into());
+
+      DownloadsHandler::with(
+        &DEFAULT_KEYBINDINGS.confirm.key,
+        &mut app,
+        &prompt_block,
+        &None,
+      )
+      .handle();
+
+      assert!(app.data.radarr_data.prompt_confirm);
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(expected_action)
+      );
+      assert_eq!(app.get_current_route(), &base_route.into());
     }
   }
 

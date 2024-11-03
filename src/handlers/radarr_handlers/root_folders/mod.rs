@@ -180,6 +180,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
           self.app.data.radarr_data.edit_root_folder.as_mut().unwrap()
         )
       }
+      ActiveRadarrBlock::DeleteRootFolderPrompt => {
+        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+          self.app.data.radarr_data.prompt_confirm = true;
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::DeleteRootFolder(None));
+
+          self.app.pop_navigation_stack();
+        }
+      }
       _ => (),
     }
   }

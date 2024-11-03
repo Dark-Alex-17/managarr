@@ -166,8 +166,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
 
   fn handle_char_key_event(&mut self) {
     let key = self.key;
-    if self.active_radarr_block == &ActiveRadarrBlock::Indexers {
-      match self.key {
+    match self.active_radarr_block {
+      ActiveRadarrBlock::Indexers => match self.key {
         _ if *key == DEFAULT_KEYBINDINGS.add.key => {
           self
             .app
@@ -194,7 +194,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
             BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
         }
         _ => (),
+      },
+      ActiveRadarrBlock::DeleteIndexerPrompt => {
+        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+          self.app.data.radarr_data.prompt_confirm = true;
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteIndexer(None));
+
+          self.app.pop_navigation_stack();
+        }
       }
+      _ => (),
     }
   }
 }

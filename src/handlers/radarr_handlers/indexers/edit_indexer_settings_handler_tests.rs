@@ -851,7 +851,13 @@ mod tests {
   mod test_handle_key_char {
     use pretty_assertions::assert_str_eq;
 
-    use crate::models::radarr_models::IndexerSettings;
+    use crate::{
+      models::{
+        radarr_models::IndexerSettings,
+        servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS, BlockSelectionState,
+      },
+      network::radarr_network::RadarrEvent,
+    };
 
     use super::*;
 
@@ -908,6 +914,37 @@ mod tests {
           .text,
         "h"
       );
+    }
+
+    #[test]
+    fn test_edit_indexer_settings_prompt_prompt_confirmation_confirm() {
+      let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(INDEXER_SETTINGS_SELECTION_BLOCKS.len() - 1);
+      app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
+
+      IndexerSettingsHandler::with(
+        &DEFAULT_KEYBINDINGS.confirm.key,
+        &mut app,
+        &ActiveRadarrBlock::AllIndexerSettingsPrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(RadarrEvent::EditAllIndexerSettings(None))
+      );
+      assert!(app.data.radarr_data.indexer_settings.is_some());
+      assert!(app.should_refresh);
     }
   }
 

@@ -858,6 +858,8 @@ mod tests {
   mod test_handle_key_char {
     use rstest::rstest;
 
+    use crate::network::radarr_network::RadarrEvent;
+
     use super::*;
 
     #[rstest]
@@ -911,6 +913,32 @@ mod tests {
 
       assert_eq!(app.get_current_route(), &active_radarr_block.into());
       assert!(!app.should_refresh);
+    }
+
+    #[test]
+    fn test_system_tasks_start_task_prompt_confirm() {
+      let mut app = App::default();
+      app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
+      app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
+      app.push_navigation_stack(ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into());
+
+      SystemDetailsHandler::with(
+        &DEFAULT_KEYBINDINGS.confirm.key,
+        &mut app,
+        &ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
+        &None,
+      )
+      .handle();
+
+      assert!(app.data.radarr_data.prompt_confirm);
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(RadarrEvent::StartTask(None))
+      );
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::SystemTasks.into()
+      );
     }
   }
 

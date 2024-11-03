@@ -1,6 +1,6 @@
 use std::sync::atomic::Ordering;
 
-use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
+use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Text};
 use ratatui::widgets::Clear;
@@ -83,7 +83,7 @@ fn draw_header_row(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .select(app.server_tabs.index);
   let help = Paragraph::new(help_text)
     .block(borderless_block())
-    .alignment(Alignment::Right);
+    .right_aligned();
 
   f.render_widget(tabs, tabs_area);
   f.render_widget(help, help_area);
@@ -170,7 +170,7 @@ fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -
     .select(tab_state.index);
   let help = Paragraph::new(Text::from(tab_state.get_active_tab_help().help()))
     .block(borderless_block())
-    .alignment(Alignment::Right);
+    .right_aligned();
 
   f.render_widget(tabs, tabs_area);
   f.render_widget(help, help_area);
@@ -197,7 +197,7 @@ pub fn draw_input_box_popup(
 
   let help = Paragraph::new("<esc> cancel")
     .help()
-    .alignment(Alignment::Center)
+    .centered()
     .block(borderless_block());
   f.render_widget(help, help_area);
 }

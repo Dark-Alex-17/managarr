@@ -1468,6 +1468,7 @@ mod tests {
     use crate::models::servarr_data::radarr::radarr_data::{
       RadarrData, EDIT_MOVIE_SELECTION_BLOCKS,
     };
+    use crate::network::radarr_network::RadarrEvent;
     use crate::test_edit_movie_key;
 
     use super::*;
@@ -1779,6 +1780,50 @@ mod tests {
 
       assert_eq!(app.get_current_route(), &active_radarr_block.into());
       assert!(app.is_routing);
+    }
+
+    #[rstest]
+    #[case(
+      ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
+      RadarrEvent::TriggerAutomaticSearch(None)
+    )]
+    #[case(
+      ActiveRadarrBlock::UpdateAndScanPrompt,
+      RadarrEvent::UpdateAndScan(None)
+    )]
+    #[case(
+      ActiveRadarrBlock::ManualSearchConfirmPrompt,
+      RadarrEvent::DownloadRelease(None)
+    )]
+    fn test_movie_info_prompt_confirm(
+      #[case] prompt_block: ActiveRadarrBlock,
+      #[case] expected_action: RadarrEvent,
+    ) {
+      let mut app = App::default();
+      app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
+        movie_details: ScrollableText::with_string("test".to_owned()),
+        ..MovieDetailsModal::default()
+      });
+      app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
+      app.push_navigation_stack(prompt_block.into());
+
+      MovieDetailsHandler::with(
+        &DEFAULT_KEYBINDINGS.confirm.key,
+        &mut app,
+        &prompt_block,
+        &None,
+      )
+      .handle();
+
+      assert!(app.data.radarr_data.prompt_confirm);
+      assert_eq!(
+        app.get_current_route(),
+        &ActiveRadarrBlock::MovieDetails.into()
+      );
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(expected_action)
+      );
     }
   }
 
