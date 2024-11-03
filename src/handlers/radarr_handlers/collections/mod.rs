@@ -385,6 +385,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
             .unwrap()
         )
       }
+      ActiveRadarrBlock::UpdateAllCollectionsPrompt => {
+        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+          self.app.data.radarr_data.prompt_confirm = true;
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateCollections);
+
+          self.app.pop_navigation_stack();
+        }
+      }
       _ => (),
     }
   }

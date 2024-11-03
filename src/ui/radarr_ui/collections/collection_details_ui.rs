@@ -259,7 +259,7 @@ fn draw_movie_overview(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .wrap(Wrap { trim: false });
   let help_paragraph = Paragraph::new(help_text)
     .block(borderless_block())
-    .alignment(Alignment::Center);
+    .centered();
 
   f.render_widget(paragraph, paragraph_area);
   f.render_widget(help_paragraph, help_area);

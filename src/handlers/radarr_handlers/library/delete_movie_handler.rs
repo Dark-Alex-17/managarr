@@ -1,3 +1,4 @@
+use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
@@ -100,5 +101,17 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'
     }
   }
 
-  fn handle_char_key_event(&mut self) {}
+  fn handle_char_key_event(&mut self) {
+    if self.active_radarr_block == &ActiveRadarrBlock::DeleteMoviePrompt
+      && self.app.data.radarr_data.selected_block.get_active_block()
+        == &ActiveRadarrBlock::DeleteMovieConfirmPrompt
+      && *self.key == DEFAULT_KEYBINDINGS.confirm.key
+    {
+      self.app.data.radarr_data.prompt_confirm = true;
+      self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteMovie(None));
+      self.app.should_refresh = true;
+
+      self.app.pop_navigation_stack();
+    }
+  }
 }

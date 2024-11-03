@@ -241,19 +241,35 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
   }
 
   fn handle_char_key_event(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput {
-      handle_text_box_keys!(
-        self,
-        self.key,
-        self
-          .app
-          .data
-          .radarr_data
-          .indexer_settings
-          .as_mut()
-          .unwrap()
-          .whitelisted_hardcoded_subs
-      )
+    match self.active_radarr_block {
+      ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput => {
+        handle_text_box_keys!(
+          self,
+          self.key,
+          self
+            .app
+            .data
+            .radarr_data
+            .indexer_settings
+            .as_mut()
+            .unwrap()
+            .whitelisted_hardcoded_subs
+        )
+      }
+      ActiveRadarrBlock::AllIndexerSettingsPrompt => {
+        if self.app.data.radarr_data.selected_block.get_active_block()
+          == &ActiveRadarrBlock::IndexerSettingsConfirmPrompt
+          && *self.key == DEFAULT_KEYBINDINGS.confirm.key
+        {
+          self.app.data.radarr_data.prompt_confirm = true;
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::EditAllIndexerSettings(None));
+          self.app.should_refresh = true;
+
+          self.app.pop_navigation_stack();
+        }
+      }
+      _ => (),
     }
   }
 }

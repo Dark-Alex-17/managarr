@@ -1494,7 +1494,13 @@ mod tests {
 
   mod test_handle_key_char {
     use super::*;
-    use crate::models::servarr_data::radarr::modals::AddMovieModal;
+    use crate::{
+      models::{
+        servarr_data::radarr::{modals::AddMovieModal, radarr_data::ADD_MOVIE_SELECTION_BLOCKS},
+        BlockSelectionState,
+      },
+      network::radarr_network::RadarrEvent,
+    };
 
     #[test]
     fn test_add_movie_search_input_backspace() {
@@ -1587,6 +1593,35 @@ mod tests {
           .text,
         "h"
       );
+    }
+
+    #[test]
+    fn test_add_movie_confirm_prompt_prompt_confirmation_confirm() {
+      let mut app = App::default();
+      app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
+      app.data.radarr_data.selected_block = BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
+      app
+        .data
+        .radarr_data
+        .selected_block
+        .set_index(ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
+
+      AddMovieHandler::with(
+        &DEFAULT_KEYBINDINGS.confirm.key,
+        &mut app,
+        &ActiveRadarrBlock::AddMoviePrompt,
+        &None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(RadarrEvent::AddMovie(None))
+      );
+      assert!(app.data.radarr_data.add_movie_modal.is_some());
     }
   }
 

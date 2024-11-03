@@ -1,6 +1,6 @@
 use std::iter;
 
-use ratatui::layout::{Alignment, Constraint, Layout, Rect};
+use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
@@ -510,7 +510,7 @@ fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>) {
     let content_paragraph = Paragraph::new(lines_vec)
       .block(borderless_block())
       .wrap(Wrap { trim: false })
-      .alignment(Alignment::Left);
+      .left_aligned();
     let confirmation_prompt = ConfirmationPrompt::new()
       .title(title)
       .prompt(&prompt)

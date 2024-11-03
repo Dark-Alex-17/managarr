@@ -168,5 +168,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler
     {
       self.app.should_refresh = true;
     }
+
+    if self.active_radarr_block == &ActiveRadarrBlock::SystemTaskStartConfirmPrompt
+      && *self.key == DEFAULT_KEYBINDINGS.confirm.key
+    {
+      self.app.data.radarr_data.prompt_confirm = true;
+      self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::StartTask(None));
+      self.app.pop_navigation_stack();
+    }
   }
 }

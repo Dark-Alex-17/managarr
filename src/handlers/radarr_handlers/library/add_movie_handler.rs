@@ -461,6 +461,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
             .tags
         )
       }
+      ActiveRadarrBlock::AddMoviePrompt => {
+        if self.app.data.radarr_data.selected_block.get_active_block()
+          == &ActiveRadarrBlock::AddMovieConfirmPrompt
+          && *key == DEFAULT_KEYBINDINGS.confirm.key
+        {
+          self.app.data.radarr_data.prompt_confirm = true;
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddMovie(None));
+          self.app.pop_navigation_stack();
+        }
+      }
       _ => (),
     }
   }

@@ -1,7 +1,7 @@
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{background_block, centered_rect, layout_block_top_border};
 use ratatui::buffer::Buffer;
-use ratatui::layout::{Alignment, Constraint, Layout, Rect};
+use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Text;
 use ratatui::widgets::{Block, Clear, Paragraph, Widget};
 
@@ -27,7 +27,7 @@ impl Size {
   pub fn to_percent(&self) -> (u16, u16) {
     match self {
       Size::SmallPrompt => (20, 20),
-      Size::Prompt => (35, 35),
+      Size::Prompt => (37, 37),
       Size::LargePrompt => (70, 45),
       Size::Message => (25, 8),
       Size::NarrowMessage => (50, 20),
@@ -100,7 +100,7 @@ impl<'a, T: Widget> Popup<'a, T> {
 
       Paragraph::new(Text::from(format!(" {footer}").help()))
         .block(layout_block_top_border())
-        .alignment(Alignment::Left)
+        .left_aligned()
         .render(help_footer_area, buf);
 
       content_area

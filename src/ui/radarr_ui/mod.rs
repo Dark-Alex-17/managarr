@@ -1,7 +1,7 @@
 use std::iter;
 
 use chrono::{Duration, Utc};
-use ratatui::layout::{Alignment, Constraint, Layout, Rect};
+use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Stylize;
 use ratatui::text::Text;
 use ratatui::widgets::{Paragraph, Row};
@@ -244,6 +244,6 @@ fn draw_radarr_logo(f: &mut Frame<'_>, area: Rect) {
   let logo = Paragraph::new(logo_text)
     .light_yellow()
     .block(layout_block().default())
-    .alignment(Alignment::Center);
+    .centered();
   f.render_widget(logo, area);
 }

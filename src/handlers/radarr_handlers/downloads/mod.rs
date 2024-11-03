@@ -119,8 +119,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
 
   fn handle_char_key_event(&mut self) {
     let key = self.key;
-    if self.active_radarr_block == &ActiveRadarrBlock::Downloads {
-      match self.key {
+    match self.active_radarr_block {
+      ActiveRadarrBlock::Downloads => match self.key {
         _ if *key == DEFAULT_KEYBINDINGS.update.key => {
           self
             .app
@@ -130,7 +130,24 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
           self.app.should_refresh = true;
         }
         _ => (),
+      },
+      ActiveRadarrBlock::DeleteDownloadPrompt => {
+        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+          self.app.data.radarr_data.prompt_confirm = true;
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteDownload(None));
+
+          self.app.pop_navigation_stack();
+        }
       }
+      ActiveRadarrBlock::UpdateDownloadsPrompt => {
+        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+          self.app.data.radarr_data.prompt_confirm = true;
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateDownloads);
+
+          self.app.pop_navigation_stack();
+        }
+      }
+      _ => (),
     }
   }
 }
