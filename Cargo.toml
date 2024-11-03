@@ -38,7 +38,7 @@ tokio = { version = "1.36.0", features = ["full"] }
 tokio-util = "0.7.8"
 ratatui = { version = "0.28.0", features = ["all-widgets"] }
 urlencoding = "2.1.2"
-clap = { version = "4.5.20", features = ["derive", "cargo"] }
+clap = { version = "4.5.20", features = ["derive", "cargo", "env"] }
 clap_complete = "4.5.33"
 itertools = "0.13.0"
 ctrlc = "3.4.5"
