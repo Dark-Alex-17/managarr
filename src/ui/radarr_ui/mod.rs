@@ -192,7 +192,11 @@ fn draw_downloads_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
         size,
         ..
       } = &downloads_vec[i];
-      let percent = 1f64 - (*sizeleft as f64 / *size as f64);
+      let percent = if *size == 0 {
+        0.0
+      } else {
+        1f64 - (*sizeleft as f64 / *size as f64)
+      };
       let download_gauge = line_gauge_with_title(title, percent);
 
       f.render_widget(download_gauge, download_item_areas[i]);
