@@ -113,7 +113,7 @@ To see all available commands, simply run `managarr --help`:
 
 ```shell
 $ managarr --help
-managarr 0.1.3
+managarr 0.1.5
 Alex Clarke <alex.j.tusa@gmail.com>
 
 A TUI and CLI to manage your Servarrs
@@ -127,7 +127,6 @@ Commands:
 
 Options:
       --config <CONFIG>               The Managarr configuration file to use
-      --disable-terminal-size-checks  Disable the terminal size checks
   -h, --help                          Print help
   -V, --version                       Print version
 ```
@@ -159,7 +158,6 @@ Commands:
 
 Options:
       --config <CONFIG>               The Managarr configuration file to use
-      --disable-terminal-size-checks  Disable the terminal size checks
   -h, --help                          Print help
 ```
 
@@ -250,7 +248,6 @@ Managarr supports using environment variables on startup so you don't have to al
 | Variable                                | Description                      | Equivalent Flag                  |
 | --------------------------------------- | -------------------------------- | -------------------------------- |
 | `MANAGARR_CONFIG_FILE`                  | Set the path to the config file  | `--config`                       |
-| `MANAGARR_DISABLE_TERMINAL_SIZE_CHECKS` | Disable the terminal size checks | `--disable-terminal-size-checks` |
 
 ## Track My Progress for the Beta release (With Sonarr Support!)
 Progress for the beta release can be followed on my [Wekan Board](https://wekan.alexjclarke.com/b/dHoGjBb44MHM9HSv4/managarr)
