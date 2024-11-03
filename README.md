@@ -244,6 +244,14 @@ tautulli:
   use_ssl: false
 ```
 
+## Environment Variables
+Managarr supports using environment variables on startup so you don't have to always specify certain flags:
+
+| Variable                                | Description                      | Equivalent Flag                  |
+| --------------------------------------- | -------------------------------- | -------------------------------- |
+| `MANAGARR_CONFIG_FILE`                  | Set the path to the config file  | `--config`                       |
+| `MANAGARR_DISABLE_TERMINAL_SIZE_CHECKS` | Disable the terminal size checks | `--disable-terminal-size-checks` |
+
 ## Track My Progress for the Beta release (With Sonarr Support!)
 Progress for the beta release can be followed on my [Wekan Board](https://wekan.alexjclarke.com/b/dHoGjBb44MHM9HSv4/managarr)
 with all items tagged `Beta`.
