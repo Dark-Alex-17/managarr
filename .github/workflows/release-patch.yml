@@ -1,16 +1,14 @@
 # Adapted from https://github.com/joshka/github-workflows/blob/main/.github/workflows/rust-release-plz.yml
 # Thanks to joshka for permission to use this template!
 
-name: Create Release PR and Publish Release
+name: Create patch release
 
 permissions:
   pull-requests: write
   contents: write
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   release-plz:
