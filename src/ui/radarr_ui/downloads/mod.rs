@@ -92,7 +92,11 @@ fn draw_downloads(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       );
     }
 
-    let percent = 1f64 - (*sizeleft as f64 / *size as f64);
+    let percent = if *size == 0 {
+      0.0
+    } else {
+      1f64 - (*sizeleft as f64 / *size as f64)
+    };
     let file_size: f64 = convert_to_gb(*size);
 
     Row::new(vec![
