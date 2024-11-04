@@ -7,7 +7,6 @@
 [![crates.io link](https://img.shields.io/crates/v/managarr.svg)](https://crates.io/crates/managarr)
 ![Release](https://img.shields.io/github/v/release/Dark-Alex-17/managarr?color=%23c694ff)
 [![codecov](https://codecov.io/gh/Dark-Alex-17/managarr/graph/badge.svg?token=33G179TW67)](https://codecov.io/gh/Dark-Alex-17/managarr)
-[![GitHub Downloads](https://img.shields.io/github/downloads/Dark-Alex-17/managarr/total.svg?label=GitHub%20downloads)](https://github.com/Dark-Alex-17/managarr/releases)
 ![Crate.io downloads](https://img.shields.io/crates/d/managarr?label=Crate%20downloads)
 
 Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC). Built with 🤎 in Rust!
