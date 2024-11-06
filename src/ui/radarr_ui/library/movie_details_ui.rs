@@ -166,6 +166,7 @@ fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
 
 fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   let block = layout_block_top_border();
+  let unknown_download_status = "Status: Unknown".to_owned();
 
   match app.data.radarr_data.movie_details_modal.as_ref() {
     Some(movie_details_modal) if !app.is_loading => {
@@ -182,7 +183,7 @@ fn draw_movie_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
         .items
         .iter()
         .find(|&line| line.starts_with("Status: "))
-        .unwrap()
+        .unwrap_or(&unknown_download_status)
         .split(": ")
         .collect::<Vec<&str>>()[1];
       let text = Text::from(
@@ -285,6 +286,7 @@ fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_movie_cast(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  let is_loading = app.is_loading && app.data.radarr_data.movie_details_modal.is_none();
   let cast_row_mapping = |cast_member: &Credit| {
     let Credit {
       person_name,
@@ -315,7 +317,7 @@ fn draw_movie_cast(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let cast_table = ManagarrTable::new(content, cast_row_mapping)
     .block(layout_block_top_border())
     .footer(help_footer)
-    .loading(app.is_loading)
+    .loading(is_loading)
     .headers(["Cast Member", "Character"])
     .constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)]);
 
@@ -323,6 +325,7 @@ fn draw_movie_cast(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  let is_loading = app.is_loading && app.data.radarr_data.movie_details_modal.is_none();
   let crew_row_mapping = |crew_member: &Credit| {
     let Credit {
       person_name,
@@ -354,7 +357,7 @@ fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .get_active_tab_contextual_help();
   let crew_table = ManagarrTable::new(content, crew_row_mapping)
     .block(layout_block_top_border())
-    .loading(app.is_loading)
+    .loading(is_loading)
     .headers(["Crew Member", "Job", "Department"])
     .constraints(iter::repeat(Constraint::Ratio(1, 3)).take(3))
     .footer(help_footer);
