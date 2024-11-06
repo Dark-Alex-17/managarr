@@ -181,9 +181,29 @@ mod tests {
 
     assert!(!async_server.matched_async().await);
     assert!(app_arc.lock().await.error.text.is_empty());
-    assert!(!network.cancellation_token.is_cancelled());
     assert!(resp.is_ok());
     assert_eq!(resp.unwrap(), Test::default());
+  }
+
+  #[tokio::test]
+  async fn test_reset_cancellation_token() {
+    let cancellation_token = CancellationToken::new();
+    let (tx, _) = mpsc::channel::<NetworkEvent>(500);
+    let app_arc = Arc::new(Mutex::new(App::new(
+      tx,
+      AppConfig::default(),
+      cancellation_token.clone(),
+    )));
+    app_arc.lock().await.should_refresh = false;
+    app_arc.lock().await.is_loading = true;
+    let mut network = Network::new(&app_arc, cancellation_token, Client::new());
+    network.cancellation_token.cancel();
+
+    network.reset_cancellation_token().await;
+
+    assert!(!network.cancellation_token.is_cancelled());
+    assert!(app_arc.lock().await.should_refresh);
+    assert!(!app_arc.lock().await.is_loading);
   }
 
   #[tokio::test]

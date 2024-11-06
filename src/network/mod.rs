@@ -40,7 +40,7 @@ pub trait NetworkTrait {
 #[derive(Clone)]
 pub struct Network<'a, 'b> {
   client: Client,
-  cancellation_token: CancellationToken,
+  pub cancellation_token: CancellationToken,
   pub app: &'a Arc<Mutex<App<'b>>>,
 }
 
@@ -74,6 +74,13 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
+  pub(super) async fn reset_cancellation_token(&mut self) {
+    let mut app = self.app.lock().await;
+    self.cancellation_token = app.reset_cancellation_token();
+    app.should_refresh = true;
+    app.is_loading = false;
+  }
+
   async fn handle_request<B, R>(
     &mut self,
     request_props: RequestProps<B>,
@@ -89,9 +96,6 @@ impl<'a, 'b> Network<'a, 'b> {
     select! {
     _ = self.cancellation_token.cancelled() => {
         warn!("Received Cancel request. Cancelling request to: {request_uri}");
-        let mut app = self.app.lock().await;
-        self.cancellation_token = app.reset_cancellation_token();
-        app.is_loading = false;
         Ok(R::default())
       }
     resp = self.call_api(request_props).await.send() => {

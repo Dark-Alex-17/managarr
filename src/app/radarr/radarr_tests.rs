@@ -582,7 +582,6 @@ mod tests {
     async fn test_radarr_on_tick_routing_while_long_request_is_running_should_cancel_request() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
       app.is_routing = true;
-      app.is_loading = true;
       app.should_refresh = false;
 
       app

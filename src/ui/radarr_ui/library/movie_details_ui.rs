@@ -286,83 +286,88 @@ fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_movie_cast(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let is_loading = app.is_loading && app.data.radarr_data.movie_details_modal.is_none();
-  let cast_row_mapping = |cast_member: &Credit| {
-    let Credit {
-      person_name,
-      character,
-      ..
-    } = cast_member;
+  match app.data.radarr_data.movie_details_modal.as_mut() {
+    Some(movie_details_modal) if !app.is_loading => {
+      let cast_row_mapping = |cast_member: &Credit| {
+        let Credit {
+          person_name,
+          character,
+          ..
+        } = cast_member;
 
-    Row::new(vec![
-      Cell::from(person_name.to_owned()),
-      Cell::from(character.clone().unwrap_or_default()),
-    ])
-    .success()
-  };
-  let content = Some(
-    &mut app
-      .data
-      .radarr_data
-      .movie_details_modal
-      .as_mut()
-      .unwrap()
-      .movie_cast,
-  );
-  let help_footer = app
-    .data
-    .radarr_data
-    .movie_info_tabs
-    .get_active_tab_contextual_help();
-  let cast_table = ManagarrTable::new(content, cast_row_mapping)
-    .block(layout_block_top_border())
-    .footer(help_footer)
-    .loading(is_loading)
-    .headers(["Cast Member", "Character"])
-    .constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)]);
+        Row::new(vec![
+          Cell::from(person_name.to_owned()),
+          Cell::from(character.clone().unwrap_or_default()),
+        ])
+        .success()
+      };
+      let content = Some(&mut movie_details_modal.movie_cast);
+      let help_footer = app
+        .data
+        .radarr_data
+        .movie_info_tabs
+        .get_active_tab_contextual_help();
+      let cast_table = ManagarrTable::new(content, cast_row_mapping)
+        .block(layout_block_top_border())
+        .footer(help_footer)
+        .loading(app.is_loading)
+        .headers(["Cast Member", "Character"])
+        .constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)]);
 
-  f.render_widget(cast_table, area);
+      f.render_widget(cast_table, area);
+    }
+    _ => f.render_widget(
+      LoadingBlock::new(
+        app.is_loading || app.data.radarr_data.movie_details_modal.is_none(),
+        layout_block_top_border(),
+      ),
+      area,
+    ),
+  }
 }
 
 fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let is_loading = app.is_loading && app.data.radarr_data.movie_details_modal.is_none();
-  let crew_row_mapping = |crew_member: &Credit| {
-    let Credit {
-      person_name,
-      job,
-      department,
-      ..
-    } = crew_member;
+  match app.data.radarr_data.movie_details_modal.as_mut() {
+    Some(movie_details_modal) if !app.is_loading => {
+      let crew_row_mapping = |crew_member: &Credit| {
+        let Credit {
+          person_name,
+          job,
+          department,
+          ..
+        } = crew_member;
 
-    Row::new(vec![
-      Cell::from(person_name.to_owned()),
-      Cell::from(job.clone().unwrap_or_default()),
-      Cell::from(department.clone().unwrap_or_default()),
-    ])
-    .success()
-  };
-  let content = Some(
-    &mut app
-      .data
-      .radarr_data
-      .movie_details_modal
-      .as_mut()
-      .unwrap()
-      .movie_crew,
-  );
-  let help_footer = app
-    .data
-    .radarr_data
-    .movie_info_tabs
-    .get_active_tab_contextual_help();
-  let crew_table = ManagarrTable::new(content, crew_row_mapping)
-    .block(layout_block_top_border())
-    .loading(is_loading)
-    .headers(["Crew Member", "Job", "Department"])
-    .constraints(iter::repeat(Constraint::Ratio(1, 3)).take(3))
-    .footer(help_footer);
+        Row::new(vec![
+          Cell::from(person_name.to_owned()),
+          Cell::from(job.clone().unwrap_or_default()),
+          Cell::from(department.clone().unwrap_or_default()),
+        ])
+        .success()
+      };
+      let content = Some(&mut movie_details_modal.movie_crew);
+      let help_footer = app
+        .data
+        .radarr_data
+        .movie_info_tabs
+        .get_active_tab_contextual_help();
+      let crew_table = ManagarrTable::new(content, crew_row_mapping)
+        .block(layout_block_top_border())
+        .loading(app.is_loading)
+        .headers(["Crew Member", "Job", "Department"])
+        .constraints(iter::repeat(Constraint::Ratio(1, 3)).take(3))
+        .footer(help_footer);
 
-  f.render_widget(crew_table, area);
+      f.render_widget(crew_table, area);
+    }
+
+    _ => f.render_widget(
+      LoadingBlock::new(
+        app.is_loading || app.data.radarr_data.movie_details_modal.is_none(),
+        layout_block_top_border(),
+      ),
+      area,
+    ),
+  }
 }
 
 fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

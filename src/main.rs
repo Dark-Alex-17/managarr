@@ -6,6 +6,7 @@ use std::panic::PanicHookInfo;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 use std::{io, panic, process};
 
 use anyhow::anyhow;
@@ -20,11 +21,12 @@ use crossterm::execute;
 use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
-use log::error;
+use log::{error, warn};
 use network::NetworkTrait;
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
 use reqwest::{Certificate, Client};
+use tokio::select;
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::{mpsc, Mutex};
 use tokio_util::sync::CancellationToken;
@@ -144,9 +146,24 @@ async fn start_networking(
 ) {
   let mut network = Network::new(app, cancellation_token, client);
 
-  while let Some(network_event) = network_rx.recv().await {
-    if let Err(e) = network.handle_network_event(network_event).await {
-      error!("Encountered an error handling network event: {e:?}");
+  loop {
+    select! {
+      Some(network_event) = network_rx.recv() => {
+        if let Err(e) = network.handle_network_event(network_event).await {
+          error!("Encountered an error handling network event: {e:?}");
+        }
+      }
+      _ = network.cancellation_token.cancelled() => {
+        warn!("Clearing network channel");
+        while network_rx.try_recv().is_ok() {
+          // Discard the message
+        }
+        {
+          /* Wrapped in its own block so we don't lock the app arc early,
+             so UI is still processed */
+          network.reset_cancellation_token().await;
+        }
+      }
     }
   }
 }
@@ -228,7 +245,10 @@ fn load_config(path: &str) -> Result<AppConfig> {
 }
 
 fn build_network_client(config: &AppConfig) -> Client {
-  let mut client_builder = Client::builder();
+  let mut client_builder = Client::builder()
+    .pool_max_idle_per_host(10)
+    .http2_keep_alive_interval(Duration::from_secs(5))
+    .tcp_keepalive(Duration::from_secs(5));
 
   if let Some(ref cert_path) = config.radarr.ssl_cert_path {
     let cert = create_cert(cert_path, "Radarr");
