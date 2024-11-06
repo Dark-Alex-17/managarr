@@ -17,6 +17,12 @@ jobs:
     name: Release-plz
     runs-on: ubuntu-latest
     steps:
+      - name: Check if actor is repository owner
+        if: ${{ github.actor != github.repository_owner }}
+        run: |
+          echo "You are not authorized to run this workflow."
+          exit 1
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
