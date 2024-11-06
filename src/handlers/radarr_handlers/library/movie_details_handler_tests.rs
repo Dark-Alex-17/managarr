@@ -3,6 +3,7 @@ mod tests {
   use std::cmp::Ordering;
 
   use pretty_assertions::assert_str_eq;
+  use rstest::rstest;
   use serde_json::Number;
   use strum::IntoEnumIterator;
 
@@ -1245,10 +1246,12 @@ mod tests {
     #[test]
     fn test_manual_search_submit() {
       let mut app = App::default();
-      app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
+      let mut modal = MovieDetailsModal {
         movie_details: ScrollableText::with_string("test".to_owned()),
         ..MovieDetailsModal::default()
-      });
+      };
+      modal.movie_releases.set_items(vec![Release::default()]);
+      app.data.radarr_data.movie_details_modal = Some(modal);
       app.push_navigation_stack(ActiveRadarrBlock::ManualSearch.into());
 
       MovieDetailsHandler::with(
@@ -1486,10 +1489,17 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
-      app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
-        movie_details: ScrollableText::with_string("test".to_owned()),
+      let mut modal = MovieDetailsModal {
+        movie_details: ScrollableText::with_string("Test".to_owned()),
         ..MovieDetailsModal::default()
-      });
+      };
+      modal
+        .movie_history
+        .set_items(vec![MovieHistoryItem::default()]);
+      modal.movie_cast.set_items(vec![Credit::default()]);
+      modal.movie_crew.set_items(vec![Credit::default()]);
+      modal.movie_releases.set_items(vec![Release::default()]);
+      app.data.radarr_data.movie_details_modal = Some(modal);
 
       MovieDetailsHandler::with(
         &DEFAULT_KEYBINDINGS.search.key,
@@ -1539,10 +1549,9 @@ mod tests {
     #[test]
     fn test_sort_key() {
       let mut app = App::default();
-      app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
-        movie_details: ScrollableText::with_string("test".to_owned()),
-        ..MovieDetailsModal::default()
-      });
+      let mut modal = MovieDetailsModal::default();
+      modal.movie_releases.set_items(release_vec());
+      app.data.radarr_data.movie_details_modal = Some(modal);
 
       MovieDetailsHandler::with(
         &DEFAULT_KEYBINDINGS.sort.key,
@@ -1670,10 +1679,17 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
-      app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
-        movie_details: ScrollableText::with_string("test".to_owned()),
+      let mut modal = MovieDetailsModal {
+        movie_details: ScrollableText::with_string("Test".to_owned()),
         ..MovieDetailsModal::default()
-      });
+      };
+      modal
+        .movie_history
+        .set_items(vec![MovieHistoryItem::default()]);
+      modal.movie_cast.set_items(vec![Credit::default()]);
+      modal.movie_crew.set_items(vec![Credit::default()]);
+      modal.movie_releases.set_items(vec![Release::default()]);
+      app.data.radarr_data.movie_details_modal = Some(modal);
 
       MovieDetailsHandler::with(
         &DEFAULT_KEYBINDINGS.update.key,
@@ -1733,10 +1749,17 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
-      app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
-        movie_details: ScrollableText::with_string("test".to_owned()),
+      let mut modal = MovieDetailsModal {
+        movie_details: ScrollableText::with_string("Test".to_owned()),
         ..MovieDetailsModal::default()
-      });
+      };
+      modal
+        .movie_history
+        .set_items(vec![MovieHistoryItem::default()]);
+      modal.movie_cast.set_items(vec![Credit::default()]);
+      modal.movie_crew.set_items(vec![Credit::default()]);
+      modal.movie_releases.set_items(vec![Release::default()]);
+      app.data.radarr_data.movie_details_modal = Some(modal);
 
       MovieDetailsHandler::with(
         &DEFAULT_KEYBINDINGS.refresh.key,
@@ -1994,15 +2017,37 @@ mod tests {
     });
   }
 
-  #[test]
-  fn test_movie_details_handler_is_not_ready_when_loading() {
+  #[rstest]
+  fn test_movie_details_handler_is_not_ready_when_loading(
+    #[values(
+      ActiveRadarrBlock::MovieDetails,
+      ActiveRadarrBlock::MovieHistory,
+      ActiveRadarrBlock::FileInfo,
+      ActiveRadarrBlock::Cast,
+      ActiveRadarrBlock::Crew,
+      ActiveRadarrBlock::ManualSearch,
+      ActiveRadarrBlock::ManualSearch
+    )]
+    movie_details_block: ActiveRadarrBlock,
+  ) {
     let mut app = App::default();
     app.is_loading = true;
+    let mut modal = MovieDetailsModal {
+      movie_details: ScrollableText::with_string("Test".to_owned()),
+      ..MovieDetailsModal::default()
+    };
+    modal
+      .movie_history
+      .set_items(vec![MovieHistoryItem::default()]);
+    modal.movie_cast.set_items(vec![Credit::default()]);
+    modal.movie_crew.set_items(vec![Credit::default()]);
+    modal.movie_releases.set_items(vec![Release::default()]);
+    app.data.radarr_data.movie_details_modal = Some(modal);
 
     let handler = MovieDetailsHandler::with(
       &DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::MovieDetails,
+      &movie_details_block,
       &None,
     );
 
