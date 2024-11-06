@@ -1,6 +1,7 @@
 # Contributing
 Contributors are very welcome! **No contribution is too small and all contributions are valued.**
 
+## Rust
 You'll need to have the stable Rust toolchain installed in order to develop Managarr.
 
 The Rust toolchain (stable) can be installed via rustup using the following command:
@@ -10,6 +11,37 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
 This will install `rustup`, `rustc` and `cargo`. For more information, refer to the [official Rust installation documentation](https://www.rust-lang.org/tools/install). 
+
+## Commitizen
+[Commitizen](https://github.com/commitizen-tools/commitizen?tab=readme-ov-file) is a nifty tool that helps us write better commit messages. It ensures that our 
+commits have a consistent style and makes it easier to generate CHANGELOGS. Additionally, 
+Commitizen is used to run pre-commit checks to enforce style constraints. 
+
+To install `commitizen` and the `pre-commit` prerequisite, run the following command:
+
+```shell
+python3 -m pip install commitizen pre-commit
+```
+
+### Commitizen Quick Guide
+To see an example commit to get an idea for the Commitizen style, run:
+
+```shell
+cz example
+```
+
+To see the allowed types of commits and their descriptions, run:
+
+```shell
+cz info
+```
+
+If you'd like to create a commit using Commitizen with an interactive prompt to help you get
+comfortable with the style, use:
+
+```shell
+cz commit
+```
 
 ## Setup workspace
 
