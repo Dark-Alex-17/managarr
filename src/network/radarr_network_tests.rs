@@ -794,7 +794,7 @@ mod test {
       .match_header("X-Api-Key", "test1234");
     async_server = async_server.expect_at_most(0).create_async().await;
 
-    let host = server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned();
+    let host = Some(server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned());
     let port = Some(
       server.host_with_port().split(':').collect::<Vec<&str>>()[1]
         .parse()
@@ -805,8 +805,7 @@ mod test {
       host,
       port,
       api_token: "test1234".to_owned(),
-      use_ssl: false,
-      ssl_cert_path: None,
+      ..RadarrConfig::default()
     };
     app.config.radarr = radarr_config;
     let app_arc = Arc::new(Mutex::new(app));
@@ -4876,11 +4875,10 @@ mod test {
     assert!(request_props.api_token.is_empty());
 
     app_arc.lock().await.config.radarr = RadarrConfig {
-      host: "192.168.0.123".to_owned(),
+      host: Some("192.168.0.123".to_owned()),
       port: Some(8080),
       api_token: "testToken1234".to_owned(),
-      use_ssl: false,
-      ssl_cert_path: None,
+      ..RadarrConfig::default()
     };
   }
 
@@ -4889,11 +4887,33 @@ mod test {
     let api_token = "testToken1234".to_owned();
     let app_arc = Arc::new(Mutex::new(App::default()));
     app_arc.lock().await.config.radarr = RadarrConfig {
-      host: "192.168.0.123".to_owned(),
+      host: Some("192.168.0.123".to_owned()),
       port: Some(8080),
       api_token: api_token.clone(),
-      use_ssl: true,
-      ssl_cert_path: None,
+      ssl_cert_path: Some("/test/cert.crt".to_owned()),
+      ..RadarrConfig::default()
+    };
+    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    let request_props = network
+      .radarr_request_props_from("/test", RequestMethod::Get, None::<()>)
+      .await;
+
+    assert_str_eq!(request_props.uri, "https://192.168.0.123:8080/api/v3/test");
+    assert_eq!(request_props.method, RequestMethod::Get);
+    assert_eq!(request_props.body, None);
+    assert_str_eq!(request_props.api_token, api_token);
+  }
+
+  #[tokio::test]
+  async fn test_radarr_request_props_from_custom_radarr_config_using_uri_instead_of_host_and_port()
+  {
+    let api_token = "testToken1234".to_owned();
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc.lock().await.config.radarr = RadarrConfig {
+      uri: Some("https://192.168.0.123:8080".to_owned()),
+      api_token: api_token.clone(),
+      ..RadarrConfig::default()
     };
     let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
@@ -4986,7 +5006,7 @@ mod test {
 
     async_server = async_server.create_async().await;
 
-    let host = server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned();
+    let host = Some(server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned());
     let port = Some(
       server.host_with_port().split(':').collect::<Vec<&str>>()[1]
         .parse()
@@ -4997,8 +5017,7 @@ mod test {
       host,
       port,
       api_token: "test1234".to_owned(),
-      use_ssl: false,
-      ssl_cert_path: None,
+      ..RadarrConfig::default()
     };
     app.config.radarr = radarr_config;
     let app_arc = Arc::new(Mutex::new(app));

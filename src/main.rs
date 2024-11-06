@@ -10,7 +10,7 @@ use std::{io, panic, process};
 
 use anyhow::anyhow;
 use anyhow::Result;
-use app::AppConfig;
+use app::{log_and_print_error, AppConfig, ServarrConfig};
 use clap::{
   command, crate_authors, crate_description, crate_name, crate_version, CommandFactory, Parser,
 };
@@ -88,6 +88,7 @@ async fn main() -> Result<()> {
   } else {
     confy::load("managarr", "config")?
   };
+  config.validate();
   let reqwest_client = build_network_client(&config);
   let (sync_network_tx, sync_network_rx) = mpsc::channel(500);
   let cancellation_token = CancellationToken::new();
@@ -229,8 +230,8 @@ fn load_config(path: &str) -> Result<AppConfig> {
 fn build_network_client(config: &AppConfig) -> Client {
   let mut client_builder = Client::builder();
 
-  if config.radarr.use_ssl {
-    let cert = create_cert(config.radarr.ssl_cert_path.clone(), "Radarr");
+  if let Some(ref cert_path) = config.radarr.ssl_cert_path {
+    let cert = create_cert(cert_path, "Radarr");
     client_builder = client_builder.add_root_certificate(cert);
   }
 
@@ -244,32 +245,25 @@ fn build_network_client(config: &AppConfig) -> Client {
   }
 }
 
-fn create_cert(cert_path: Option<String>, servarr_name: &str) -> Certificate {
-  let err = |error: String| {
-    error!("{}", error);
-    eprintln!("error: {}", error.red());
-    process::exit(1);
-  };
-
-  if cert_path.is_none() {
-    err(format!(
-      "A {} cert path is required when 'use_ssl' is 'true'",
-      servarr_name
-    ));
-  }
-
-  match fs::read(cert_path.unwrap()) {
+fn create_cert(cert_path: &String, servarr_name: &str) -> Certificate {
+  match fs::read(cert_path) {
     Ok(cert) => match Certificate::from_pem(&cert) {
       Ok(certificate) => certificate,
-      Err(_) => err(format!(
-        "Unable to read the specified {} SSL certificate",
-        servarr_name
-      )),
+      Err(_) => {
+        log_and_print_error(format!(
+          "Unable to read the specified {} SSL certificate",
+          servarr_name
+        ));
+        process::exit(1);
+      }
     },
-    Err(_) => err(format!(
-      "Unable to open specified {} SSL certificate",
-      servarr_name
-    )),
+    Err(_) => {
+      log_and_print_error(format!(
+        "Unable to open specified {} SSL certificate",
+        servarr_name
+      ));
+      process::exit(1);
+    }
   }
 }
 

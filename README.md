@@ -111,7 +111,7 @@ To see all available commands, simply run `managarr --help`:
 
 ```shell
 $ managarr --help
-managarr 0.1.5
+managarr 0.2.1
 Alex Clarke <alex.j.tusa@gmail.com>
 
 A TUI and CLI to manage your Servarrs
@@ -199,45 +199,38 @@ managarr --config /path/to/config.yml
 ### Example Configuration:
 ```yaml
 radarr:
-  host: 127.0.0.1
+  host: 192.168.0.78
   port: 7878
   api_token: someApiToken1234567890
-  use_ssl: true
-  ssl_cert_path: /path/to/radarr.crt
+  ssl_cert_path: /path/to/radarr.crt # Required to enable SSL
 sonarr:
-  host: 127.0.0.1
-  port: 8989
+  uri: http://htpc.local/sonarr # Example of using the 'uri' key instead of 'host' and 'port'
   api_token: someApiToken1234567890
 readarr:
-  host: 127.0.0.1
+  host: 192.168.0.87
   port: 8787
   api_token: someApiToken1234567890
-  use_ssl: false
 lidarr:
-  host: 127.0.0.1
+  host: 192.168.0.86
   port: 8686
   api_token: someApiToken1234567890
-  use_ssl: false
 whisparr:
-  host: 127.0.0.1
+  host: 192.168.0.69
   port: 6969
   api_token: someApiToken1234567890
-  use_ssl: false
+  ssl_cert_path: /path/to/whisparr.crt
 bazarr:
-  host: 127.0.0.1
+  host: 192.168.0.67
   port: 6767
   api_token: someApiToken1234567890
-  use_ssl: false
 prowlarr:
-  host: 127.0.0.1
+  host: 192.168.0.96
   port: 9696
   api_token: someApiToken1234567890
-  use_ssl: false
 tautulli:
-  host: 127.0.0.1
+  host: 192.168.0.81
   port: 8181
   api_token: someApiToken1234567890
-  use_ssl: false
 ```
 
 ## Environment Variables

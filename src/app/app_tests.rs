@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
   use anyhow::anyhow;
-  use pretty_assertions::{assert_eq, assert_str_eq};
+  use pretty_assertions::assert_eq;
   use tokio::sync::mpsc;
 
   use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
@@ -221,10 +221,10 @@ mod tests {
   fn test_radarr_config_default() {
     let radarr_config = RadarrConfig::default();
 
-    assert_str_eq!(radarr_config.host, "localhost");
+    assert_eq!(radarr_config.host, Some("localhost".to_string()));
     assert_eq!(radarr_config.port, Some(7878));
+    assert_eq!(radarr_config.uri, None);
     assert!(radarr_config.api_token.is_empty());
-    assert!(!radarr_config.use_ssl);
     assert_eq!(radarr_config.ssl_cert_path, None);
   }
 }

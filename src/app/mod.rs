@@ -1,4 +1,7 @@
+use std::process;
+
 use anyhow::anyhow;
+use colored::Colorize;
 use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
@@ -166,29 +169,52 @@ pub struct Data<'a> {
   pub radarr_data: RadarrData<'a>,
 }
 
+pub trait ServarrConfig {
+  fn validate(&self);
+}
+
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct AppConfig {
   pub radarr: RadarrConfig,
 }
 
+impl ServarrConfig for AppConfig {
+  fn validate(&self) {
+    self.radarr.validate();
+  }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RadarrConfig {
-  pub host: String,
+  pub host: Option<String>,
   pub port: Option<u16>,
+  pub uri: Option<String>,
   pub api_token: String,
-  #[serde(default)]
-  pub use_ssl: bool,
   pub ssl_cert_path: Option<String>,
+}
+
+impl ServarrConfig for RadarrConfig {
+  fn validate(&self) {
+    if self.host.is_none() && self.uri.is_none() {
+      log_and_print_error("'host' or 'uri' is required for Radarr configuration".to_owned());
+      process::exit(1);
+    }
+  }
 }
 
 impl Default for RadarrConfig {
   fn default() -> Self {
     RadarrConfig {
-      host: "localhost".to_string(),
+      host: Some("localhost".to_string()),
       port: Some(7878),
+      uri: None,
       api_token: "".to_string(),
-      use_ssl: false,
       ssl_cert_path: None,
     }
   }
+}
+
+pub fn log_and_print_error(error: String) {
+  error!("{}", error);
+  eprintln!("error: {}", error.red());
 }

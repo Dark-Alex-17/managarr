@@ -2261,15 +2261,24 @@ impl<'a, 'b> Network<'a, 'b> {
     let RadarrConfig {
       host,
       port,
+      uri,
       api_token,
-      use_ssl,
-      ..
+      ssl_cert_path,
     } = &app.config.radarr;
-    let protocol = if *use_ssl { "https" } else { "http" };
-    let uri = format!(
-      "{protocol}://{host}:{}/api/v3{resource}",
-      port.unwrap_or(7878)
-    );
+    let uri = if let Some(radarr_uri) = uri {
+      format!("{radarr_uri}/api/v3{resource}")
+    } else {
+      let protocol = if ssl_cert_path.is_some() {
+        "https"
+      } else {
+        "http"
+      };
+      let host = host.as_ref().unwrap();
+      format!(
+        "{protocol}://{host}:{}/api/v3{resource}",
+        port.unwrap_or(7878)
+      )
+    };
 
     RequestProps {
       uri,

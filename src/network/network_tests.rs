@@ -26,7 +26,7 @@ mod tests {
       .with_body("{}")
       .create_async()
       .await;
-    let host = server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned();
+    let host = Some(server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned());
     let port = Some(
       server.host_with_port().split(':').collect::<Vec<&str>>()[1]
         .parse()
@@ -38,8 +38,8 @@ mod tests {
       host,
       api_token: String::new(),
       port,
-      use_ssl: false,
       ssl_cert_path: None,
+      ..RadarrConfig::default()
     };
     app.config.radarr = radarr_config;
     let app_arc = Arc::new(Mutex::new(app));
