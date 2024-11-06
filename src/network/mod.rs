@@ -75,10 +75,7 @@ impl<'a, 'b> Network<'a, 'b> {
   }
 
   pub(super) async fn reset_cancellation_token(&mut self) {
-    let mut app = self.app.lock().await;
-    self.cancellation_token = app.reset_cancellation_token();
-    app.should_refresh = true;
-    app.is_loading = false;
+    self.cancellation_token = self.app.lock().await.reset_cancellation_token();
   }
 
   async fn handle_request<B, R>(

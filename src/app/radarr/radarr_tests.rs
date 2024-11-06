@@ -508,6 +508,14 @@ mod tests {
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetDownloads.into()
       );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetOverview.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetStatus.into()
+      );
       assert!(app.is_loading);
     }
 
@@ -531,15 +539,15 @@ mod tests {
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetDownloads.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetOverview.into()
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetStatus.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetDownloads.into()
       );
       assert!(app.is_loading);
       assert!(!app.data.radarr_data.prompt_confirm);
@@ -549,6 +557,7 @@ mod tests {
     async fn test_radarr_on_tick_routing() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
       app.is_routing = true;
+      app.should_refresh = true;
 
       app
         .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
@@ -574,13 +583,12 @@ mod tests {
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetDownloads.into()
       );
-      assert!(app.is_loading);
       assert!(!app.data.radarr_data.prompt_confirm);
     }
 
     #[tokio::test]
     async fn test_radarr_on_tick_routing_while_long_request_is_running_should_cancel_request() {
-      let (mut app, mut sync_network_rx) = construct_app_unit();
+      let (mut app, _) = construct_app_unit();
       app.is_routing = true;
       app.should_refresh = false;
 
@@ -588,28 +596,6 @@ mod tests {
         .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
         .await;
 
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetDownloads.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetQualityProfiles.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetTags.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetRootFolders.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetDownloads.into()
-      );
-      assert!(app.is_loading);
-      assert!(!app.data.radarr_data.prompt_confirm);
       assert!(app.cancellation_token.is_cancelled());
     }
 
@@ -626,7 +612,6 @@ mod tests {
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetDownloads.into()
       );
-      assert!(app.is_loading);
       assert!(app.should_refresh);
       assert!(!app.data.radarr_data.prompt_confirm);
     }

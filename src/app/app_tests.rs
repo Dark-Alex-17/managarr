@@ -87,7 +87,11 @@ mod tests {
 
   #[test]
   fn test_reset_cancellation_token() {
-    let mut app = App::default();
+    let mut app = App {
+      is_loading: true,
+      should_refresh: false,
+      ..App::default()
+    };
     app.cancellation_token.cancel();
 
     assert!(app.cancellation_token.is_cancelled());
@@ -96,6 +100,8 @@ mod tests {
 
     assert!(!app.cancellation_token.is_cancelled());
     assert!(!new_token.is_cancelled());
+    assert!(!app.is_loading);
+    assert!(app.should_refresh);
   }
 
   #[test]
@@ -146,6 +152,29 @@ mod tests {
   }
 
   #[tokio::test]
+  async fn test_dispatch_network_event() {
+    let (sync_network_tx, mut sync_network_rx) = mpsc::channel::<NetworkEvent>(500);
+
+    let mut app = App {
+      tick_until_poll: 2,
+      network_tx: Some(sync_network_tx),
+      ..App::default()
+    };
+
+    assert_eq!(app.tick_count, 0);
+
+    app
+      .dispatch_network_event(RadarrEvent::GetStatus.into())
+      .await;
+
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetStatus.into()
+    );
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
   async fn test_on_tick_first_render() {
     let (sync_network_tx, mut sync_network_rx) = mpsc::channel::<NetworkEvent>(500);
 
@@ -158,6 +187,7 @@ mod tests {
     assert_eq!(app.tick_count, 0);
 
     app.on_tick(true).await;
+
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
       RadarrEvent::GetQualityProfiles.into()
@@ -172,6 +202,10 @@ mod tests {
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetDownloads.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
       RadarrEvent::GetOverview.into()
     );
     assert_eq!(
@@ -181,10 +215,6 @@ mod tests {
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
       RadarrEvent::GetMovies.into()
-    );
-    assert_eq!(
-      sync_network_rx.recv().await.unwrap(),
-      RadarrEvent::GetDownloads.into()
     );
     assert!(!app.is_routing);
     assert!(!app.should_refresh);

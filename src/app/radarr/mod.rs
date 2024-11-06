@@ -142,35 +142,22 @@ impl<'a> App<'a> {
     is_first_render: bool,
   ) {
     if is_first_render {
-      self
-        .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
-        .await;
-      self
-        .dispatch_network_event(RadarrEvent::GetTags.into())
-        .await;
-      self
-        .dispatch_network_event(RadarrEvent::GetRootFolders.into())
-        .await;
-      self
-        .dispatch_network_event(RadarrEvent::GetOverview.into())
-        .await;
-      self
-        .dispatch_network_event(RadarrEvent::GetStatus.into())
-        .await;
+      self.refresh_metadata().await;
       self.dispatch_by_radarr_block(&active_radarr_block).await;
     }
 
     if self.should_refresh {
       self.dispatch_by_radarr_block(&active_radarr_block).await;
+      self.refresh_metadata().await;
     }
 
     if self.is_routing {
       if !self.should_refresh {
         self.cancellation_token.cancel();
+      } else {
+        self.dispatch_by_radarr_block(&active_radarr_block).await;
+        self.refresh_metadata().await;
       }
-
-      self.dispatch_by_radarr_block(&active_radarr_block).await;
-      self.refresh_metadata().await;
     }
 
     if self.tick_count % self.tick_until_poll == 0 {
@@ -190,6 +177,12 @@ impl<'a> App<'a> {
       .await;
     self
       .dispatch_network_event(RadarrEvent::GetDownloads.into())
+      .await;
+    self
+      .dispatch_network_event(RadarrEvent::GetOverview.into())
+      .await;
+    self
+      .dispatch_network_event(RadarrEvent::GetStatus.into())
       .await;
   }
 

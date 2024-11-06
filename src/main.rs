@@ -158,11 +158,7 @@ async fn start_networking(
         while network_rx.try_recv().is_ok() {
           // Discard the message
         }
-        {
-          /* Wrapped in its own block so we don't lock the app arc early,
-             so UI is still processed */
-          network.reset_cancellation_token().await;
-        }
+        network.reset_cancellation_token().await;
       }
     }
   }

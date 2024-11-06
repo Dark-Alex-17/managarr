@@ -56,7 +56,10 @@ impl<'a> App<'a> {
   pub async fn dispatch_network_event(&mut self, action: NetworkEvent) {
     debug!("Dispatching network event: {action:?}");
 
-    self.is_loading = true;
+    if !self.should_refresh {
+      self.is_loading = true;
+    }
+
     if let Some(network_tx) = &self.network_tx {
       if let Err(e) = network_tx.send(action).await {
         self.is_loading = false;
@@ -113,6 +116,8 @@ impl<'a> App<'a> {
 
   pub fn reset_cancellation_token(&mut self) -> CancellationToken {
     self.cancellation_token = CancellationToken::new();
+    self.should_refresh = true;
+    self.is_loading = false;
 
     self.cancellation_token.clone()
   }
