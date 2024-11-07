@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## v0.2.2 (2024-11-06)
+
+### Fix
+
+- **handler**: Fixed a bug in the movie details handler that would allow key events to be processed before the data was finished loading
+- **ui**: Fixed a bug that would freeze all user input while background network requests were running
+- **radarr_ui**: Fixed a race condition bug in the movie details UI that would panic if the user changes tabs too quickly
+
+### Perf
+
+- **network**: Improved performance and reactiveness of the UI by speeding up network requests and clearing the channel whenever a request is cancelled/the UI is routing
+
+## v0.2.1 (2024-11-06)
 
 ## [0.2.1](https://github.com/Dark-Alex-17/managarr/compare/v0.2.0...v0.2.1) - 2024-11-06
 
