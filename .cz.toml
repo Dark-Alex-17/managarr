@@ -5,3 +5,6 @@ version_scheme = "semver"
 version_provider = "cargo"
 update_changelog_on_bump = true
 major_version_zero = true
+
+[tool.commitizen.hooks]
+pre-commit = "git add Cargo.toml Cargo.lock"
