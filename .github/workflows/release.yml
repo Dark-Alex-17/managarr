@@ -9,8 +9,45 @@ permissions:
 
 on:
   workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Specify the type of version bump"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
+  bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x" # Specify your required Python version
+
+      - name: Install Commitizen
+        run: |
+          python -m pip install --upgrade pip
+          pip install commitizen
+
+      - name: Bump version with Commitizen
+        run: |
+          cz bump --yes --increment ${{ github.event.inputs.bump_type }}
+
+      - name: Push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin main --follow-tags
+
   release-plz:
     # see https://release-plz.ieni.dev/docs/github
     # for more information
