@@ -30,6 +30,7 @@ use tokio::select;
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::{mpsc, Mutex};
 use tokio_util::sync::CancellationToken;
+use utils::tail_logs;
 
 use crate::app::App;
 use crate::cli::Command;
@@ -124,6 +125,7 @@ async fn main() -> Result<()> {
         let mut cli = Cli::command();
         generate(shell, &mut cli, "managarr", &mut io::stdout())
       }
+      Command::TailLogs { no_color } => tail_logs(no_color).await,
     },
     None => {
       let app_nw = Arc::clone(&app);

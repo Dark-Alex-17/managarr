@@ -27,6 +27,12 @@ pub enum Command {
     #[arg(value_enum)]
     shell: Shell,
   },
+
+  #[command(about = "Tail Managarr logs")]
+  TailLogs {
+    #[arg(long, help = "Disable colored log output")]
+    no_color: bool,
+  },
 }
 
 pub trait CliCommandHandler<'a, 'b, T: Into<Command>> {
