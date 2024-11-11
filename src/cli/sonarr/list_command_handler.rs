@@ -21,6 +21,16 @@ mod list_command_handler_tests;
 pub enum SonarrListCommand {
   #[command(about = "List all items in the Sonarr blocklist")]
   Blocklist,
+  #[command(about = "Fetch Sonarr logs")]
+  Logs {
+    #[arg(long, help = "How many log events to fetch", default_value_t = 500)]
+    events: u64,
+    #[arg(
+      long,
+      help = "Output the logs in the same format as they appear in the log files"
+    )]
+    output_in_log_format: bool,
+  },
   #[command(about = "List all series in your Sonarr library")]
   Series,
 }
@@ -54,6 +64,25 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
     match self.command {
       SonarrListCommand::Blocklist => {
         execute_network_event!(self, SonarrEvent::GetBlocklist);
+      }
+      SonarrListCommand::Logs {
+        events,
+        output_in_log_format,
+      } => {
+        let logs = self
+          .network
+          .handle_network_event(SonarrEvent::GetLogs(Some(events)).into())
+          .await?;
+
+        if output_in_log_format {
+          let log_lines = self.app.lock().await.data.sonarr_data.logs.items.clone();
+
+          let json = serde_json::to_string_pretty(&log_lines)?;
+          println!("{}", json);
+        } else {
+          let json = serde_json::to_string_pretty(&logs)?;
+          println!("{}", json);
+        }
       }
       SonarrListCommand::Series => {
         execute_network_event!(self, SonarrEvent::ListSeries);

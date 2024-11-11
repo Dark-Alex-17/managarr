@@ -18,6 +18,8 @@ mod tests {
 
   mod cli {
     use super::*;
+    use clap::{error::ErrorKind, Parser};
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     #[rstest]
@@ -27,6 +29,30 @@ mod tests {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "list", subcommand]);
 
       assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_list_logs_events_flag_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "list", "logs", "--events"]);
+
+      assert!(result.is_err());
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[test]
+    fn test_list_logs_default_values() {
+      let expected_args = SonarrListCommand::Logs {
+        events: 500,
+        output_in_log_format: false,
+      };
+      let result = Cli::try_parse_from(["managarr", "sonarr", "list", "logs"]);
+
+      assert!(result.is_ok());
+
+      if let Some(Command::Sonarr(SonarrCommand::List(refresh_command))) = result.unwrap().command {
+        assert_eq!(refresh_command, expected_args);
+      }
     }
   }
 
@@ -39,8 +65,9 @@ mod tests {
     use serde_json::json;
     use tokio::sync::Mutex;
 
-    use crate::cli::sonarr::list_command_handler::SonarrListCommand;
+    use crate::cli::sonarr::list_command_handler::{SonarrListCommand, SonarrListCommandHandler};
     use crate::cli::CliCommandHandler;
+    use crate::models::sonarr_models::SonarrSerdeable;
     use crate::network::sonarr_network::SonarrEvent;
     use crate::{
       app::App,
@@ -56,8 +83,6 @@ mod tests {
       #[case] list_command: SonarrListCommand,
       #[case] expected_sonarr_event: SonarrEvent,
     ) {
-      use crate::cli::sonarr::list_command_handler::SonarrListCommandHandler;
-
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
@@ -71,6 +96,34 @@ mod tests {
       let app_arc = Arc::new(Mutex::new(App::default()));
 
       let result = SonarrListCommandHandler::with(&app_arc, list_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_logs_command() {
+      let expected_events = 1000;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::GetLogs(Some(expected_events)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let list_logs_command = SonarrListCommand::Logs {
+        events: 1000,
+        output_in_log_format: false,
+      };
+
+      let result = SonarrListCommandHandler::with(&app_arc, list_logs_command, &mut mock_network)
         .handle()
         .await;
 
