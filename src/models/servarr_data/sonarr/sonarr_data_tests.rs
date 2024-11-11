@@ -38,6 +38,7 @@ mod tests {
       assert_eq!(sonarr_data.start_time, <DateTime<Utc>>::default());
       assert!(sonarr_data.series.is_empty());
       assert!(sonarr_data.blocklist.is_empty());
+      assert!(sonarr_data.logs.is_empty());
     }
   }
 }

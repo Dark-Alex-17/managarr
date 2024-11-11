@@ -194,7 +194,10 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::GetDownloads => self.get_downloads().await.map(RadarrSerdeable::from),
       RadarrEvent::GetHostConfig => self.get_host_config().await.map(RadarrSerdeable::from),
       RadarrEvent::GetIndexers => self.get_indexers().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetLogs(events) => self.get_logs(events).await.map(RadarrSerdeable::from),
+      RadarrEvent::GetLogs(events) => self
+        .get_radarr_logs(events)
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::GetMovieCredits(movie_id) => {
         self.get_credits(movie_id).await.map(RadarrSerdeable::from)
       }
@@ -1438,7 +1441,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_logs(&mut self, events: Option<u64>) -> Result<LogResponse> {
+  async fn get_radarr_logs(&mut self, events: Option<u64>) -> Result<LogResponse> {
     info!("Fetching Radarr logs");
     let event = RadarrEvent::GetLogs(events);
 

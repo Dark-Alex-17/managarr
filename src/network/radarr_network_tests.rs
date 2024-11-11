@@ -2450,7 +2450,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_logs_event() {
+  async fn test_handle_get_radarr_logs_event() {
     let expected_logs = vec![
       HorizontallyScrollableText::from(
         "2023-05-20 21:29:16 UTC|FATAL|RadarrError|Some.Big.Bad.Exception|test exception",
@@ -2518,7 +2518,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_logs_event_uses_provided_events() {
+  async fn test_handle_get_radarr_logs_event_uses_provided_events() {
     let expected_logs = vec![
       HorizontallyScrollableText::from(
         "2023-05-20 21:29:16 UTC|FATAL|RadarrError|Some.Big.Bad.Exception|test exception",

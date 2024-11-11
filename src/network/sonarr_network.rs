@@ -5,9 +5,8 @@ use serde_json::{json, Value};
 use crate::{
   models::{
     servarr_data::sonarr::sonarr_data::ActiveSonarrBlock,
-    sonarr_models::BlocklistResponse,
-    sonarr_models::{Series, SonarrSerdeable, SystemStatus},
-    Route,
+    sonarr_models::{BlocklistResponse, LogResponse, Series, SonarrSerdeable, SystemStatus},
+    HorizontallyScrollableText, Route, Scrollable,
   },
   network::RequestMethod,
 };
@@ -22,6 +21,7 @@ pub enum SonarrEvent {
   ClearBlocklist,
   DeleteBlocklistItem(Option<i64>),
   GetBlocklist,
+  GetLogs(Option<u64>),
   GetStatus,
   HealthCheck,
   ListSeries,
@@ -33,6 +33,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::ClearBlocklist => "/blocklist/bulk",
       SonarrEvent::DeleteBlocklistItem(_) => "/blocklist",
       SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
+      SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetStatus => "/system/status",
       SonarrEvent::HealthCheck => "/health",
       SonarrEvent::ListSeries => "/series",
@@ -61,6 +62,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetBlocklist => self.get_sonarr_blocklist().await.map(SonarrSerdeable::from),
+      SonarrEvent::GetLogs(events) => self
+        .get_sonarr_logs(events)
+        .await
+        .map(SonarrSerdeable::from),
       SonarrEvent::GetStatus => self.get_sonarr_status().await.map(SonarrSerdeable::from),
       SonarrEvent::HealthCheck => self
         .get_sonarr_healthcheck()
@@ -166,6 +171,53 @@ impl<'a, 'b> Network<'a, 'b> {
           app.data.sonarr_data.blocklist.set_items(blocklist_vec);
           app.data.sonarr_data.blocklist.apply_sorting_toggle(false);
         }
+      })
+      .await
+  }
+
+  async fn get_sonarr_logs(&mut self, events: Option<u64>) -> Result<LogResponse> {
+    info!("Fetching Sonarr logs");
+    let event = SonarrEvent::GetLogs(events);
+
+    let params = format!(
+      "pageSize={}&sortDirection=descending&sortKey=time",
+      events.unwrap_or(500)
+    );
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
+      .await;
+
+    self
+      .handle_request::<(), LogResponse>(request_props, |log_response, mut app| {
+        let mut logs = log_response.records;
+        logs.reverse();
+
+        let log_lines = logs
+          .into_iter()
+          .map(|log| {
+            if log.exception.is_some() {
+              HorizontallyScrollableText::from(format!(
+                "{}|{}|{}|{}|{}",
+                log.time,
+                log.level.to_uppercase(),
+                log.logger.as_ref().unwrap(),
+                log.exception_type.as_ref().unwrap(),
+                log.exception.as_ref().unwrap()
+              ))
+            } else {
+              HorizontallyScrollableText::from(format!(
+                "{}|{}|{}|{}",
+                log.time,
+                log.level.to_uppercase(),
+                log.logger.as_ref().unwrap(),
+                log.message.as_ref().unwrap()
+              ))
+            }
+          })
+          .collect();
+
+        app.data.sonarr_data.logs.set_items(log_lines);
+        app.data.sonarr_data.logs.scroll_to_bottom();
       })
       .await
   }

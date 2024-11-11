@@ -42,6 +42,23 @@ pub struct Language {
   pub name: String,
 }
 
+#[derive(Default, Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct Log {
+  pub time: DateTime<Utc>,
+  pub exception: Option<String>,
+  pub exception_type: Option<String>,
+  pub level: String,
+  pub logger: Option<String>,
+  pub message: Option<String>,
+  pub method: Option<String>,
+}
+
+#[derive(Default, Clone, Serialize, Deserialize, Debug, Eq, PartialEq)]
+pub struct LogResponse {
+  pub records: Vec<Log>,
+}
+
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Quality {
   pub name: String,
@@ -215,6 +232,7 @@ pub enum SonarrSerdeable {
   SeriesVec(Vec<Series>),
   SystemStatus(SystemStatus),
   BlocklistResponse(BlocklistResponse),
+  LogResponse(LogResponse),
 }
 
 impl From<SonarrSerdeable> for Serdeable {
@@ -235,6 +253,7 @@ serde_enum_from!(
     SeriesVec(Vec<Series>),
     SystemStatus(SystemStatus),
     BlocklistResponse(BlocklistResponse),
+  LogResponse(LogResponse),
   }
 );
 

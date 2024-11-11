@@ -5,8 +5,8 @@ mod tests {
 
   use crate::models::{
     sonarr_models::{
-      BlocklistItem, BlocklistResponse, Series, SeriesStatus, SeriesType, SonarrSerdeable,
-      SystemStatus,
+      BlocklistItem, BlocklistResponse, Log, LogResponse, Series, SeriesStatus, SeriesType,
+      SonarrSerdeable, SystemStatus,
     },
     Serdeable,
   };
@@ -108,5 +108,19 @@ mod tests {
       sonarr_serdeable,
       SonarrSerdeable::BlocklistResponse(blocklist_response)
     );
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_log_response() {
+    let log_response = LogResponse {
+      records: vec![Log {
+        level: "info".to_owned(),
+        ..Log::default()
+      }],
+    };
+
+    let sonarr_serdeable: SonarrSerdeable = log_response.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::LogResponse(log_response));
   }
 }
