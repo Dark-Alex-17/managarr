@@ -1679,7 +1679,7 @@ mod test {
 
   #[rstest]
   #[tokio::test]
-  async fn test_handle_get_blocklist_event(#[values(true, false)] use_custom_sorting: bool) {
+  async fn test_handle_get_radarr_blocklist_event(#[values(true, false)] use_custom_sorting: bool) {
     let blocklist_json = json!({"records": [{
         "id": 123,
         "movieId": 1007,
@@ -3134,7 +3134,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_clear_blocklist_event() {
+  async fn test_handle_clear_radarr_blocklist_event() {
     let blocklist_items = vec![
       BlocklistItem {
         id: 1,
@@ -3178,7 +3178,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_delete_blocklist_item_event() {
+  async fn test_handle_delete_radarr_blocklist_item_event() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Delete,
       None,

@@ -19,6 +19,8 @@ mod list_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum SonarrListCommand {
+  #[command(about = "List all items in the Sonarr blocklist")]
+  Blocklist,
   #[command(about = "List all series in your Sonarr library")]
   Series,
 }
@@ -50,6 +52,9 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
 
   async fn handle(self) -> Result<()> {
     match self.command {
+      SonarrListCommand::Blocklist => {
+        execute_network_event!(self, SonarrEvent::GetBlocklist);
+      }
       SonarrListCommand::Series => {
         execute_network_event!(self, SonarrEvent::ListSeries);
       }

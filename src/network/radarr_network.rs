@@ -145,9 +145,12 @@ impl<'a, 'b> Network<'a, 'b> {
         self.add_root_folder(path).await.map(RadarrSerdeable::from)
       }
       RadarrEvent::AddTag(tag) => self.add_tag(tag).await.map(RadarrSerdeable::from),
-      RadarrEvent::ClearBlocklist => self.clear_blocklist().await.map(RadarrSerdeable::from),
+      RadarrEvent::ClearBlocklist => self
+        .clear_radarr_blocklist()
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::DeleteBlocklistItem(blocklist_item_id) => self
-        .delete_blocklist_item(blocklist_item_id)
+        .delete_radarr_blocklist_item(blocklist_item_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::DeleteDownload(download_id) => self
@@ -186,7 +189,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .get_all_indexer_settings()
         .await
         .map(RadarrSerdeable::from),
-      RadarrEvent::GetBlocklist => self.get_blocklist().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetBlocklist => self.get_radarr_blocklist().await.map(RadarrSerdeable::from),
       RadarrEvent::GetCollections => self.get_collections().await.map(RadarrSerdeable::from),
       RadarrEvent::GetDownloads => self.get_downloads().await.map(RadarrSerdeable::from),
       RadarrEvent::GetHostConfig => self.get_host_config().await.map(RadarrSerdeable::from),
@@ -421,7 +424,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn clear_blocklist(&mut self) -> Result<()> {
+  async fn clear_radarr_blocklist(&mut self) -> Result<()> {
     info!("Clearing Radarr blocklist");
     let event = RadarrEvent::ClearBlocklist;
 
@@ -452,7 +455,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_blocklist_item(&mut self, blocklist_item_id: Option<i64>) -> Result<()> {
+  async fn delete_radarr_blocklist_item(&mut self, blocklist_item_id: Option<i64>) -> Result<()> {
     let event = RadarrEvent::DeleteBlocklistItem(None);
     let id = if let Some(b_id) = blocklist_item_id {
       b_id
@@ -1244,8 +1247,8 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_blocklist(&mut self) -> Result<BlocklistResponse> {
-    info!("Fetching blocklist");
+  async fn get_radarr_blocklist(&mut self) -> Result<BlocklistResponse> {
+    info!("Fetching Radarr blocklist");
     let event = RadarrEvent::GetBlocklist;
 
     let request_props = self

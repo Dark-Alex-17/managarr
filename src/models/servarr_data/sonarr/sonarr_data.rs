@@ -1,7 +1,11 @@
 use chrono::{DateTime, Utc};
 use strum::EnumIter;
 
-use crate::models::{sonarr_models::Series, stateful_table::StatefulTable, Route};
+use crate::models::{
+  sonarr_models::{BlocklistItem, Series},
+  stateful_table::StatefulTable,
+  Route,
+};
 
 #[cfg(test)]
 #[path = "sonarr_data_tests.rs"]
@@ -11,6 +15,7 @@ pub struct SonarrData {
   pub version: String,
   pub start_time: DateTime<Utc>,
   pub series: StatefulTable<Series>,
+  pub blocklist: StatefulTable<BlocklistItem>,
 }
 
 impl Default for SonarrData {
@@ -19,12 +24,15 @@ impl Default for SonarrData {
       version: String::new(),
       start_time: DateTime::default(),
       series: StatefulTable::default(),
+      blocklist: StatefulTable::default(),
     }
   }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, EnumIter)]
 pub enum ActiveSonarrBlock {
+  Blocklist,
+  BlocklistSortPrompt,
   #[default]
   Series,
   SeriesSortPrompt,

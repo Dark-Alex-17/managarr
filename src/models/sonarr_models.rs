@@ -15,6 +15,43 @@ use super::{HorizontallyScrollableText, Serdeable};
 #[path = "sonarr_models_tests.rs"]
 mod sonarr_models_tests;
 
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct BlocklistItem {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub series_id: i64,
+  pub episode_ids: Vec<Number>,
+  pub source_title: String,
+  pub language: Language,
+  pub quality: QualityWrapper,
+  pub date: DateTime<Utc>,
+  pub protocol: String,
+  pub indexer: String,
+  pub message: String,
+}
+
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct BlocklistResponse {
+  pub records: Vec<BlocklistItem>,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
+pub struct Language {
+  pub name: String,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
+pub struct Quality {
+  pub name: String,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
+pub struct QualityWrapper {
+  pub quality: Quality,
+}
+
 #[derive(Derivative, Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[derivative(Default)]
 pub struct Rating {
@@ -177,6 +214,7 @@ pub enum SonarrSerdeable {
   Value(Value),
   SeriesVec(Vec<Series>),
   SystemStatus(SystemStatus),
+  BlocklistResponse(BlocklistResponse),
 }
 
 impl From<SonarrSerdeable> for Serdeable {
@@ -196,6 +234,7 @@ serde_enum_from!(
     Value(Value),
     SeriesVec(Vec<Series>),
     SystemStatus(SystemStatus),
+    BlocklistResponse(BlocklistResponse),
   }
 );
 

@@ -1,9 +1,11 @@
 use anyhow::Result;
 use log::info;
+use serde_json::{json, Value};
 
 use crate::{
   models::{
     servarr_data::sonarr::sonarr_data::ActiveSonarrBlock,
+    sonarr_models::BlocklistResponse,
     sonarr_models::{Series, SonarrSerdeable, SystemStatus},
     Route,
   },
@@ -17,6 +19,9 @@ mod sonarr_network_tests;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum SonarrEvent {
+  ClearBlocklist,
+  DeleteBlocklistItem(Option<i64>),
+  GetBlocklist,
   GetStatus,
   HealthCheck,
   ListSeries,
@@ -25,6 +30,9 @@ pub enum SonarrEvent {
 impl NetworkResource for SonarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
+      SonarrEvent::ClearBlocklist => "/blocklist/bulk",
+      SonarrEvent::DeleteBlocklistItem(_) => "/blocklist",
+      SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       SonarrEvent::GetStatus => "/system/status",
       SonarrEvent::HealthCheck => "/health",
       SonarrEvent::ListSeries => "/series",
@@ -44,6 +52,15 @@ impl<'a, 'b> Network<'a, 'b> {
     sonarr_event: SonarrEvent,
   ) -> Result<SonarrSerdeable> {
     match sonarr_event {
+      SonarrEvent::ClearBlocklist => self
+        .clear_sonarr_blocklist()
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::DeleteBlocklistItem(blocklist_item_id) => self
+        .delete_sonarr_blocklist_item(blocklist_item_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::GetBlocklist => self.get_sonarr_blocklist().await.map(SonarrSerdeable::from),
       SonarrEvent::GetStatus => self.get_sonarr_status().await.map(SonarrSerdeable::from),
       SonarrEvent::HealthCheck => self
         .get_sonarr_healthcheck()
@@ -51,6 +68,70 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::ListSeries => self.list_series().await.map(SonarrSerdeable::from),
     }
+  }
+
+  async fn clear_sonarr_blocklist(&mut self) -> Result<()> {
+    info!("Clearing Sonarr blocklist");
+    let event = SonarrEvent::ClearBlocklist;
+
+    let ids = self
+      .app
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .blocklist
+      .items
+      .iter()
+      .map(|item| item.id)
+      .collect::<Vec<i64>>();
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        Some(json!({"ids": ids})),
+        None,
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<Value, ()>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn delete_sonarr_blocklist_item(&mut self, blocklist_item_id: Option<i64>) -> Result<()> {
+    let event = SonarrEvent::DeleteBlocklistItem(None);
+    let id = if let Some(b_id) = blocklist_item_id {
+      b_id
+    } else {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .blocklist
+        .current_selection()
+        .id
+    };
+
+    info!("Deleting Sonarr blocklist item for item with id: {id}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        None::<()>,
+        Some(format!("/{id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
   }
 
   async fn get_sonarr_healthcheck(&mut self) -> Result<()> {
@@ -63,6 +144,29 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn get_sonarr_blocklist(&mut self) -> Result<BlocklistResponse> {
+    info!("Fetching Sonarr blocklist");
+    let event = SonarrEvent::GetBlocklist;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), BlocklistResponse>(request_props, |blocklist_resp, mut app| {
+        if !matches!(
+          app.get_current_route(),
+          Route::Sonarr(ActiveSonarrBlock::BlocklistSortPrompt, _)
+        ) {
+          let mut blocklist_vec = blocklist_resp.records;
+          blocklist_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          app.data.sonarr_data.blocklist.set_items(blocklist_vec);
+          app.data.sonarr_data.blocklist.apply_sorting_toggle(false);
+        }
+      })
       .await
   }
 

@@ -4,7 +4,10 @@ mod tests {
   use serde_json::json;
 
   use crate::models::{
-    sonarr_models::{Series, SeriesStatus, SeriesType, SonarrSerdeable, SystemStatus},
+    sonarr_models::{
+      BlocklistItem, BlocklistResponse, Series, SeriesStatus, SeriesType, SonarrSerdeable,
+      SystemStatus,
+    },
     Serdeable,
   };
 
@@ -87,6 +90,23 @@ mod tests {
     assert_eq!(
       sonarr_serdeable,
       SonarrSerdeable::SystemStatus(system_status)
+    );
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_blocklist_response() {
+    let blocklist_response = BlocklistResponse {
+      records: vec![BlocklistItem {
+        id: 1,
+        ..BlocklistItem::default()
+      }],
+    };
+
+    let sonarr_serdeable: SonarrSerdeable = blocklist_response.clone().into();
+
+    assert_eq!(
+      sonarr_serdeable,
+      SonarrSerdeable::BlocklistResponse(blocklist_response)
     );
   }
 }
