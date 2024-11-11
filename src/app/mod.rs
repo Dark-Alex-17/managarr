@@ -9,6 +9,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
+use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
 use crate::models::{HorizontallyScrollableText, Route, TabRoute, TabState};
 use crate::network::NetworkEvent;
 
@@ -151,7 +152,7 @@ impl<'a> Default for App<'a> {
         },
         TabRoute {
           title: "Sonarr",
-          route: Route::Sonarr,
+          route: ActiveSonarrBlock::Series.into(),
           help: format!("{}  ", build_context_clue_string(&SERVARR_CONTEXT_CLUES)),
           contextual_help: None,
         },
@@ -172,25 +173,24 @@ impl<'a> Default for App<'a> {
 #[derive(Default)]
 pub struct Data<'a> {
   pub radarr_data: RadarrData<'a>,
-}
-
-pub trait ServarrConfig {
-  fn validate(&self);
+  pub sonarr_data: SonarrData,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct AppConfig {
-  pub radarr: RadarrConfig,
+  pub radarr: ServarrConfig,
+  pub sonarr: ServarrConfig,
 }
 
-impl ServarrConfig for AppConfig {
-  fn validate(&self) {
+impl AppConfig {
+  pub fn validate(&self) {
     self.radarr.validate();
   }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct RadarrConfig {
+#[cfg_attr(test, derive(Clone))]
+pub struct ServarrConfig {
   pub host: Option<String>,
   pub port: Option<u16>,
   pub uri: Option<String>,
@@ -198,20 +198,20 @@ pub struct RadarrConfig {
   pub ssl_cert_path: Option<String>,
 }
 
-impl ServarrConfig for RadarrConfig {
+impl ServarrConfig {
   fn validate(&self) {
     if self.host.is_none() && self.uri.is_none() {
-      log_and_print_error("'host' or 'uri' is required for Radarr configuration".to_owned());
+      log_and_print_error("'host' or 'uri' is required for configuration".to_owned());
       process::exit(1);
     }
   }
 }
 
-impl Default for RadarrConfig {
+impl Default for ServarrConfig {
   fn default() -> Self {
-    RadarrConfig {
+    ServarrConfig {
       host: Some("localhost".to_string()),
-      port: Some(7878),
+      port: None,
       uri: None,
       api_token: "".to_string(),
       ssl_cert_path: None,

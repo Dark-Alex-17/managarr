@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod test {
+mod tests {
   use clap::error::ErrorKind;
   use clap::CommandFactory;
 

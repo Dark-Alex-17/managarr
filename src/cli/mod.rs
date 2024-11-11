@@ -4,11 +4,13 @@ use anyhow::Result;
 use clap::{command, Subcommand};
 use clap_complete::Shell;
 use radarr::{RadarrCliHandler, RadarrCommand};
+use sonarr::{SonarrCliHandler, SonarrCommand};
 use tokio::sync::Mutex;
 
 use crate::{app::App, network::NetworkTrait};
 
 pub mod radarr;
+pub mod sonarr;
 
 #[cfg(test)]
 #[path = "cli_tests.rs"]
@@ -18,6 +20,9 @@ mod cli_tests;
 pub enum Command {
   #[command(subcommand, about = "Commands for manging your Radarr instance")]
   Radarr(RadarrCommand),
+
+  #[command(subcommand, about = "Commands for manging your Sonarr instance")]
+  Sonarr(SonarrCommand),
 
   #[command(
     arg_required_else_help = true,
@@ -45,11 +50,20 @@ pub(crate) async fn handle_command(
   command: Command,
   network: &mut dyn NetworkTrait,
 ) -> Result<()> {
-  if let Command::Radarr(radarr_command) = command {
-    RadarrCliHandler::with(app, radarr_command, network)
-      .handle()
-      .await?
+  match command {
+    Command::Radarr(radarr_command) => {
+      RadarrCliHandler::with(app, radarr_command, network)
+        .handle()
+        .await?
+    }
+    Command::Sonarr(sonarr_command) => {
+      SonarrCliHandler::with(app, sonarr_command, network)
+        .handle()
+        .await?
+    }
+    _ => (),
   }
+
   Ok(())
 }
 

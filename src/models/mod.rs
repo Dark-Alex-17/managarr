@@ -6,8 +6,11 @@ use radarr_models::RadarrSerdeable;
 use regex::Regex;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Number;
+use servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
+use sonarr_models::SonarrSerdeable;
 pub mod radarr_models;
 pub mod servarr_data;
+pub mod sonarr_models;
 pub mod stateful_list;
 pub mod stateful_table;
 
@@ -20,7 +23,7 @@ mod model_tests;
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Route {
   Radarr(ActiveRadarrBlock, Option<ActiveRadarrBlock>),
-  Sonarr,
+  Sonarr(ActiveSonarrBlock, Option<ActiveSonarrBlock>),
   Readarr,
   Lidarr,
   Whisparr,
@@ -33,6 +36,7 @@ pub enum Route {
 #[serde(untagged)]
 pub enum Serdeable {
   Radarr(RadarrSerdeable),
+  Sonarr(SonarrSerdeable),
 }
 
 pub trait Scrollable {
@@ -356,6 +360,16 @@ where
   let num: Number = Deserialize::deserialize(deserializer)?;
   num.as_i64().ok_or(de::Error::custom(format!(
     "Unable to convert Number to i64: {num:?}"
+  )))
+}
+
+pub fn from_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>
+where
+  D: Deserializer<'de>,
+{
+  let num: Number = Deserialize::deserialize(deserializer)?;
+  num.as_f64().ok_or(de::Error::custom(format!(
+    "Unable to convert Number to f64: {num:?}"
   )))
 }
 

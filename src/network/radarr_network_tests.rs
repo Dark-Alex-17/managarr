@@ -4,7 +4,7 @@ mod test {
 
   use bimap::BiMap;
   use chrono::{DateTime, Utc};
-  use mockito::{Matcher, Mock, Server, ServerGuard};
+  use mockito::{Matcher, Server};
   use pretty_assertions::{assert_eq, assert_str_eq};
   use reqwest::Client;
   use rstest::rstest;
@@ -13,6 +13,7 @@ mod test {
   use tokio::sync::Mutex;
   use tokio_util::sync::CancellationToken;
 
+  use crate::app::ServarrConfig;
   use crate::models::radarr_models::{
     BlocklistItem, BlocklistItemMovie, CollectionMovie, IndexerField, Language, MediaInfo,
     MinimumAvailability, Monitor, MovieCollection, MovieFile, Quality, QualityWrapper, Rating,
@@ -21,6 +22,7 @@ mod test {
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
+  use crate::network::network_tests::test_utils::mock_servarr_api;
   use crate::App;
 
   use super::super::*;
@@ -228,13 +230,15 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_healthcheck_event() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+  async fn test_handle_get_radarr_healthcheck_event() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       None,
       None,
-      RadarrEvent::HealthCheck.resource(),
+      RadarrEvent::HealthCheck,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -246,7 +250,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_get_diskspace_event() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(json!([
@@ -260,7 +264,9 @@ mod test {
         }
       ])),
       None,
-      RadarrEvent::GetOverview.resource(),
+      RadarrEvent::GetOverview,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -291,7 +297,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_get_status_event() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(json!({
@@ -299,7 +305,9 @@ mod test {
         "startTime": "2023-02-25T20:16:43Z"
       })),
       None,
-      RadarrEvent::GetStatus.resource(),
+      RadarrEvent::GetStatus,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -357,12 +365,14 @@ mod test {
         ..movie()
       },
     ];
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(json!([movie_1, movie_2])),
       None,
-      RadarrEvent::GetMovies.resource(),
+      RadarrEvent::GetMovies,
+      None,
+      None,
     )
     .await;
     app_arc.lock().await.data.radarr_data.movies.sort_asc = true;
@@ -411,12 +421,14 @@ mod test {
     *movie_1.get_mut("title").unwrap() = json!("z test");
     *movie_2.get_mut("id").unwrap() = json!(2);
     *movie_2.get_mut("title").unwrap() = json!("A test");
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(json!([movie_1, movie_2])),
       None,
-      RadarrEvent::GetMovies.resource(),
+      RadarrEvent::GetMovies,
+      None,
+      None,
     )
     .await;
     app_arc
@@ -477,13 +489,14 @@ mod test {
       "languages": [ { "name": "English" } ],
       "quality": { "quality": { "name": "HD - 1080p" }}
     }]);
-    let resource = format!("{}?movieId=1", RadarrEvent::GetReleases(None).resource());
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(release_json),
       None,
-      &resource,
+      RadarrEvent::GetReleases(None),
+      None,
+      Some("movieId=1"),
     )
     .await;
     app_arc
@@ -536,13 +549,14 @@ mod test {
       "languages": [ { "name": "English" } ],
       "quality": { "quality": { "name": "HD - 1080p" }}
     }]);
-    let resource = format!("{}?movieId=1", RadarrEvent::GetReleases(None).resource());
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(release_json),
       None,
-      &resource,
+      RadarrEvent::GetReleases(None),
+      None,
+      Some("movieId=1"),
     )
     .await;
     app_arc
@@ -598,16 +612,14 @@ mod test {
         }
       }
     }]);
-    let resource = format!(
-      "{}?term=test%20term",
-      RadarrEvent::SearchNewMovie(None).resource()
-    );
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(add_movie_search_result_json),
       None,
-      &resource,
+      RadarrEvent::SearchNewMovie(None),
+      None,
+      Some("term=test%20term"),
     )
     .await;
     app_arc.lock().await.data.radarr_data.add_movie_search = Some("test term".into());
@@ -665,16 +677,14 @@ mod test {
         }
       }
     }]);
-    let resource = format!(
-      "{}?term=test%20term",
-      RadarrEvent::SearchNewMovie(None).resource()
-    );
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(add_movie_search_result_json),
       None,
-      &resource,
+      RadarrEvent::SearchNewMovie(None),
+      None,
+      Some("term=test%20term"),
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -692,14 +702,16 @@ mod test {
   #[tokio::test]
   async fn test_handle_start_task_event() {
     let response = json!({ "test": "test"});
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "ApplicationCheckUpdate"
       })),
       Some(response.clone()),
       None,
-      RadarrEvent::StartTask(None).resource(),
+      RadarrEvent::StartTask(None),
+      None,
+      None,
     )
     .await;
     app_arc
@@ -727,14 +739,16 @@ mod test {
   #[tokio::test]
   async fn test_handle_start_task_event_uses_provided_task_name() {
     let response = json!({ "test": "test"});
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "ApplicationCheckUpdate"
       })),
       Some(response.clone()),
       None,
-      RadarrEvent::StartTask(None).resource(),
+      RadarrEvent::StartTask(None),
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -751,12 +765,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_search_new_movie_event_no_results() {
-    let resource = format!(
-      "{}?term=test%20term",
-      RadarrEvent::SearchNewMovie(None).resource()
-    );
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Get, None, Some(json!([])), None, &resource).await;
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([])),
+      None,
+      RadarrEvent::SearchNewMovie(None),
+      None,
+      Some("term=test%20term"),
+    )
+    .await;
     app_arc.lock().await.data.radarr_data.add_movie_search = Some("test term".into());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
@@ -801,11 +819,11 @@ mod test {
         .unwrap(),
     );
     let mut app = App::default();
-    let radarr_config = RadarrConfig {
+    let radarr_config = ServarrConfig {
       host,
       port,
       api_token: "test1234".to_owned(),
-      ..RadarrConfig::default()
+      ..ServarrConfig::default()
     };
     app.config.radarr = radarr_config;
     let app_arc = Arc::new(Mutex::new(app));
@@ -861,13 +879,14 @@ mod test {
         "errorMessage": "test failure",
         "severity": "error"
     }]);
-    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(indexer_details_json.clone()),
       None,
-      &resource,
+      RadarrEvent::GetIndexers,
+      Some("/1"),
+      None,
     )
     .await;
     let async_test_server = server
@@ -929,13 +948,14 @@ mod test {
         "tags": [1],
         "id": 1
     });
-    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(indexer_details_json.clone()),
       None,
-      &resource,
+      RadarrEvent::GetIndexers,
+      Some("/1"),
+      None,
     )
     .await;
     let async_test_server = server
@@ -997,13 +1017,14 @@ mod test {
         "tags": [1],
         "id": 1
     });
-    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(indexer_details_json.clone()),
       None,
-      &resource,
+      RadarrEvent::GetIndexers,
+      Some("/1"),
+      None,
     )
     .await;
     let async_test_server = server
@@ -1079,12 +1100,14 @@ mod test {
       ]
     }]);
     let response: Vec<IndexerTestResult> = serde_json::from_value(response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       None,
       Some(response_json),
       Some(400),
-      RadarrEvent::TestAllIndexers.resource(),
+      RadarrEvent::TestAllIndexers,
+      None,
+      None,
     )
     .await;
     app_arc
@@ -1127,7 +1150,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_trigger_automatic_search_event() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "MoviesSearch",
@@ -1135,7 +1158,9 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::TriggerAutomaticSearch(None).resource(),
+      RadarrEvent::TriggerAutomaticSearch(None),
+      None,
+      None,
     )
     .await;
     app_arc
@@ -1157,7 +1182,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_trigger_automatic_search_event_uses_provided_id() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "MoviesSearch",
@@ -1165,7 +1190,9 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::TriggerAutomaticSearch(None).resource(),
+      RadarrEvent::TriggerAutomaticSearch(None),
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -1180,7 +1207,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_update_and_scan_event() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "RefreshMovie",
@@ -1188,7 +1215,9 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::UpdateAndScan(None).resource(),
+      RadarrEvent::UpdateAndScan(None),
+      None,
+      None,
     )
     .await;
     app_arc
@@ -1210,7 +1239,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_update_and_scan_event_uses_provied_movie_id() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "RefreshMovie",
@@ -1218,7 +1247,9 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::UpdateAndScan(None).resource(),
+      RadarrEvent::UpdateAndScan(None),
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -1233,7 +1264,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_update_all_movies_event() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "RefreshMovie",
@@ -1241,7 +1272,9 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::UpdateAllMovies.resource(),
+      RadarrEvent::UpdateAllMovies,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -1256,14 +1289,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_update_downloads_event() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "RefreshMonitoredDownloads"
       })),
       Some(json!({})),
       None,
-      RadarrEvent::UpdateDownloads.resource(),
+      RadarrEvent::UpdateDownloads,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -1278,14 +1313,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_update_collections_event() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "name": "RefreshCollections"
       })),
       Some(json!({})),
       None,
-      RadarrEvent::UpdateCollections.resource(),
+      RadarrEvent::UpdateCollections,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -1300,14 +1337,15 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_get_movie_details_event() {
-    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
     let response: Movie = serde_json::from_str(MOVIE_JSON).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
       None,
-      &resource,
+      RadarrEvent::GetMovieDetails(None),
+      Some("/1"),
+      None,
     )
     .await;
     app_arc
@@ -1394,14 +1432,15 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_get_movie_details_event_uses_provided_id() {
-    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
     let response: Movie = serde_json::from_str(MOVIE_JSON).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
       None,
-      &resource,
+      RadarrEvent::GetMovieDetails(None),
+      Some("/1"),
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -1440,13 +1479,14 @@ mod test {
       "minimumAvailability": "released",
       "ratings": {}
     });
-    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(movie_json_with_missing_fields),
       None,
-      &resource,
+      RadarrEvent::GetMovieDetails(None),
+      Some("/1"),
+      None,
     )
     .await;
     app_arc
@@ -1512,16 +1552,14 @@ mod test {
     }]);
     let response: Vec<MovieHistoryItem> =
       serde_json::from_value(movie_history_item_json.clone()).unwrap();
-    let resource = format!(
-      "{}?movieId=1",
-      RadarrEvent::GetMovieHistory(None).resource()
-    );
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(movie_history_item_json),
       None,
-      &resource,
+      RadarrEvent::GetMovieHistory(None),
+      None,
+      Some("movieId=1"),
     )
     .await;
     app_arc
@@ -1568,16 +1606,14 @@ mod test {
     }]);
     let response: Vec<MovieHistoryItem> =
       serde_json::from_value(movie_history_item_json.clone()).unwrap();
-    let resource = format!(
-      "{}?movieId=1",
-      RadarrEvent::GetMovieHistory(None).resource()
-    );
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(movie_history_item_json),
       None,
-      &resource,
+      RadarrEvent::GetMovieHistory(None),
+      None,
+      Some("movieId=1"),
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -1601,16 +1637,14 @@ mod test {
       "date": "2022-12-30T07:37:56Z",
       "eventType": "grabbed"
     }]);
-    let resource = format!(
-      "{}?movieId=1",
-      RadarrEvent::GetMovieHistory(None).resource()
-    );
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(movie_history_item_json),
       None,
-      &resource,
+      RadarrEvent::GetMovieHistory(None),
+      None,
+      Some("movieId=1"),
     )
     .await;
     app_arc
@@ -1740,12 +1774,14 @@ mod test {
         ..blocklist_item()
       },
     ];
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(blocklist_json),
       None,
-      RadarrEvent::GetBlocklist.resource(),
+      RadarrEvent::GetBlocklist,
+      None,
+      None,
     )
     .await;
     app_arc.lock().await.data.radarr_data.blocklist.sort_asc = true;
@@ -1861,12 +1897,14 @@ mod test {
           },
         },
     }]});
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(blocklist_json),
       None,
-      RadarrEvent::GetBlocklist.resource(),
+      RadarrEvent::GetBlocklist,
+      None,
+      None,
     )
     .await;
     app_arc.lock().await.data.radarr_data.blocklist.sort_asc = true;
@@ -1983,12 +2021,14 @@ mod test {
         ..collection()
       },
     ];
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(collections_json),
       None,
-      RadarrEvent::GetCollections.resource(),
+      RadarrEvent::GetCollections,
+      None,
+      None,
     )
     .await;
     app_arc.lock().await.data.radarr_data.collections.sort_asc = true;
@@ -2090,12 +2130,14 @@ mod test {
         }
       }],
     }]);
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(collections_json),
       None,
-      RadarrEvent::GetCollections.resource(),
+      RadarrEvent::GetCollections,
+      None,
+      None,
     )
     .await;
     app_arc.lock().await.data.radarr_data.collections.sort_asc = true;
@@ -2156,12 +2198,14 @@ mod test {
     });
     let response: DownloadsResponse =
       serde_json::from_value(downloads_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(downloads_response_json),
       None,
-      RadarrEvent::GetDownloads.resource(),
+      RadarrEvent::GetDownloads,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2194,12 +2238,14 @@ mod test {
       "sslCertPassword": "test"
     });
     let response: HostConfig = serde_json::from_value(host_config_response.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(host_config_response),
       None,
-      RadarrEvent::GetHostConfig.resource(),
+      RadarrEvent::GetHostConfig,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2247,12 +2293,14 @@ mod test {
         "id": 1
     }]);
     let response: Vec<Indexer> = serde_json::from_value(indexers_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(indexers_response_json),
       None,
-      RadarrEvent::GetIndexers.resource(),
+      RadarrEvent::GetIndexers,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2286,12 +2334,14 @@ mod test {
     });
     let response: IndexerSettings =
       serde_json::from_value(indexer_settings_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(indexer_settings_response_json),
       None,
-      RadarrEvent::GetAllIndexerSettings.resource(),
+      RadarrEvent::GetAllIndexerSettings,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2323,12 +2373,14 @@ mod test {
         "whitelistedHardcodedSubs": "",
         "id": 1
     });
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(indexer_settings_response_json),
       None,
-      RadarrEvent::GetAllIndexerSettings.resource(),
+      RadarrEvent::GetAllIndexerSettings,
+      None,
+      None,
     )
     .await;
     app_arc.lock().await.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
@@ -2371,12 +2423,14 @@ mod test {
       trigger: "scheduled".to_owned(),
     };
 
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(queued_events_json),
       None,
-      RadarrEvent::GetQueuedEvents.resource(),
+      RadarrEvent::GetQueuedEvents,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2397,10 +2451,6 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_get_logs_event() {
-    let resource = format!(
-      "{}?pageSize=500&sortDirection=descending&sortKey=time",
-      RadarrEvent::GetLogs(None).resource()
-    );
     let expected_logs = vec![
       HorizontallyScrollableText::from(
         "2023-05-20 21:29:16 UTC|FATAL|RadarrError|Some.Big.Bad.Exception|test exception",
@@ -2432,12 +2482,14 @@ mod test {
         ]
     });
     let response: LogResponse = serde_json::from_value(logs_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(logs_response_json),
       None,
-      &resource,
+      RadarrEvent::GetLogs(None),
+      None,
+      Some("pageSize=500&sortDirection=descending&sortKey=time"),
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2467,10 +2519,6 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_get_logs_event_uses_provided_events() {
-    let resource = format!(
-      "{}?pageSize=1000&sortDirection=descending&sortKey=time",
-      RadarrEvent::GetLogs(Some(1000)).resource()
-    );
     let expected_logs = vec![
       HorizontallyScrollableText::from(
         "2023-05-20 21:29:16 UTC|FATAL|RadarrError|Some.Big.Bad.Exception|test exception",
@@ -2502,12 +2550,14 @@ mod test {
         ]
     });
     let response: LogResponse = serde_json::from_value(logs_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(logs_response_json),
       None,
-      &resource,
+      RadarrEvent::GetLogs(Some(1000)),
+      None,
+      Some("pageSize=1000&sortDirection=descending&sortKey=time"),
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2543,12 +2593,14 @@ mod test {
     }]);
     let response: Vec<QualityProfile> =
       serde_json::from_value(quality_profile_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(quality_profile_json),
       None,
-      RadarrEvent::GetQualityProfiles.resource(),
+      RadarrEvent::GetQualityProfiles,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2574,12 +2626,14 @@ mod test {
       "label": "usenet"
     }]);
     let response: Vec<Tag> = serde_json::from_value(tags_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(tags_json),
       None,
-      RadarrEvent::GetTags.resource(),
+      RadarrEvent::GetTags,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2636,12 +2690,14 @@ mod test {
         last_duration: "00:00:00.5111547".to_owned(),
       },
     ];
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(tasks_json),
       None,
-      RadarrEvent::GetTasks.resource(),
+      RadarrEvent::GetTasks,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2729,12 +2785,14 @@ mod test {
       * Killed bug 1
       * Fixed bug 2"
     ));
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(updates_json),
       None,
-      RadarrEvent::GetUpdates.resource(),
+      RadarrEvent::GetUpdates,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2757,12 +2815,14 @@ mod test {
   async fn test_handle_add_tag() {
     let tag_json = json!({ "id": 3, "label": "testing" });
     let response: Tag = serde_json::from_value(tag_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({ "label": "testing" })),
       Some(tag_json),
       None,
-      RadarrEvent::GetTags.resource(),
+      RadarrEvent::GetTags,
+      None,
+      None,
     )
     .await;
     app_arc.lock().await.data.radarr_data.tags_map =
@@ -2789,9 +2849,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_tag_event() {
-    let resource = format!("{}/1", RadarrEvent::DeleteTag(1).resource());
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      RadarrEvent::DeleteTag(1),
+      Some("/1"),
+      None,
+    )
+    .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -2811,12 +2878,14 @@ mod test {
       "freeSpace": 219902325555200u64,
     }]);
     let response: Vec<RootFolder> = serde_json::from_value(root_folder_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(root_folder_json),
       None,
-      RadarrEvent::GetRootFolders.resource(),
+      RadarrEvent::GetRootFolders,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2847,12 +2916,14 @@ mod test {
     });
     let response: SecurityConfig =
       serde_json::from_value(security_config_response.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(security_config_response),
       None,
-      RadarrEvent::GetSecurityConfig.resource(),
+      RadarrEvent::GetSecurityConfig,
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2883,16 +2954,14 @@ mod test {
         }
     ]);
     let response: Vec<Credit> = serde_json::from_value(credits_json.clone()).unwrap();
-    let resource = format!(
-      "{}?movieId=1",
-      RadarrEvent::GetMovieCredits(None).resource()
-    );
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(credits_json),
       None,
-      &resource,
+      RadarrEvent::GetMovieCredits(None),
+      None,
+      Some("movieId=1"),
     )
     .await;
     app_arc
@@ -2936,16 +3005,14 @@ mod test {
         }
     ]);
     let response: Vec<Credit> = serde_json::from_value(credits_json.clone()).unwrap();
-    let resource = format!(
-      "{}?movieId=1",
-      RadarrEvent::GetMovieCredits(None).resource()
-    );
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(credits_json),
       None,
-      &resource,
+      RadarrEvent::GetMovieCredits(None),
+      None,
+      Some("movieId=1"),
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -2975,16 +3042,14 @@ mod test {
           "type": "crew",
         }
     ]);
-    let resource = format!(
-      "{}?movieId=1",
-      RadarrEvent::GetMovieCredits(None).resource()
-    );
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(credits_json),
       None,
-      &resource,
+      RadarrEvent::GetMovieCredits(None),
+      None,
+      Some("movieId=1"),
     )
     .await;
     app_arc
@@ -3011,12 +3076,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_movie_event() {
-    let resource = format!(
-      "{}/1?deleteFiles=true&addImportExclusion=true",
-      RadarrEvent::DeleteMovie(None).resource()
-    );
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      RadarrEvent::DeleteMovie(None),
+      Some("/1"),
+      Some("deleteFiles=true&addImportExclusion=true"),
+    )
+    .await;
     {
       let mut app = app_arc.lock().await;
       app.data.radarr_data.movies.set_items(vec![movie()]);
@@ -3037,12 +3106,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_movie_event_use_provided_params() {
-    let resource = format!(
-      "{}/1?deleteFiles=true&addImportExclusion=true",
-      RadarrEvent::DeleteMovie(None).resource()
-    );
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      RadarrEvent::DeleteMovie(None),
+      Some("/1"),
+      Some("deleteFiles=true&addImportExclusion=true"),
+    )
+    .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
     let delete_movie_params = DeleteMovieParams {
       id: 1,
@@ -3077,12 +3150,14 @@ mod test {
       },
     ];
     let expected_request_json = json!({ "ids": [1, 2, 3]});
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Delete,
       Some(expected_request_json),
       None,
       None,
-      RadarrEvent::ClearBlocklist.resource(),
+      RadarrEvent::ClearBlocklist,
+      None,
+      None,
     )
     .await;
     app_arc
@@ -3104,9 +3179,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_blocklist_item_event() {
-    let resource = format!("{}/1", RadarrEvent::DeleteBlocklistItem(None).resource());
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      RadarrEvent::DeleteBlocklistItem(None),
+      Some("/1"),
+      None,
+    )
+    .await;
     app_arc
       .lock()
       .await
@@ -3126,9 +3208,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_blocklist_item_event_uses_provided_id() {
-    let resource = format!("{}/1", RadarrEvent::DeleteBlocklistItem(None).resource());
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      RadarrEvent::DeleteBlocklistItem(None),
+      Some("/1"),
+      None,
+    )
+    .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -3141,9 +3230,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_download_event() {
-    let resource = format!("{}/1", RadarrEvent::DeleteDownload(None).resource());
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      RadarrEvent::DeleteDownload(None),
+      Some("/1"),
+      None,
+    )
+    .await;
     app_arc
       .lock()
       .await
@@ -3163,9 +3259,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_download_event_uses_provided_id() {
-    let resource = format!("{}/1", RadarrEvent::DeleteDownload(None).resource());
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      RadarrEvent::DeleteDownload(None),
+      Some("/1"),
+      None,
+    )
+    .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -3178,9 +3281,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_indexer_event() {
-    let resource = format!("{}/1", RadarrEvent::DeleteIndexer(None).resource());
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      RadarrEvent::DeleteIndexer(None),
+      Some("/1"),
+      None,
+    )
+    .await;
     app_arc
       .lock()
       .await
@@ -3200,9 +3310,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_indexer_event_uses_provided_id() {
-    let resource = format!("{}/1", RadarrEvent::DeleteIndexer(None).resource());
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      RadarrEvent::DeleteIndexer(None),
+      Some("/1"),
+      None,
+    )
+    .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -3215,9 +3332,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_root_folder_event() {
-    let resource = format!("{}/1", RadarrEvent::DeleteRootFolder(None).resource());
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      RadarrEvent::DeleteRootFolder(None),
+      Some("/1"),
+      None,
+    )
+    .await;
     app_arc
       .lock()
       .await
@@ -3237,9 +3361,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_root_folder_event_uses_provided_id() {
-    let resource = format!("{}/1", RadarrEvent::DeleteRootFolder(None).resource());
-    let (async_server, app_arc, _server) =
-      mock_radarr_api(RequestMethod::Delete, None, None, None, &resource).await;
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      RadarrEvent::DeleteRootFolder(None),
+      Some("/1"),
+      None,
+    )
+    .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -3253,7 +3384,7 @@ mod test {
   #[rstest]
   #[tokio::test]
   async fn test_handle_add_movie_event(#[values(true, false)] movie_details_context: bool) {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "tmdbId": 1234,
@@ -3270,7 +3401,9 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::AddMovie(None).resource(),
+      RadarrEvent::AddMovie(None),
+      None,
+      None,
     )
     .await;
 
@@ -3343,7 +3476,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_add_movie_event_uses_provided_body() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "tmdbId": 1234,
@@ -3360,7 +3493,9 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::AddMovie(None).resource(),
+      RadarrEvent::AddMovie(None),
+      None,
+      None,
     )
     .await;
     let body = AddMovieBody {
@@ -3396,7 +3531,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_add_movie_event_reuse_existing_table_if_search_already_performed() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "tmdbId": 5678,
@@ -3413,7 +3548,9 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::AddMovie(None).resource(),
+      RadarrEvent::AddMovie(None),
+      None,
+      None,
     )
     .await;
 
@@ -3495,14 +3632,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_add_root_folder_event() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "path": "/nfs/test"
       })),
       Some(json!({})),
       None,
-      RadarrEvent::AddRootFolder(None).resource(),
+      RadarrEvent::AddRootFolder(None),
+      None,
+      None,
     )
     .await;
 
@@ -3526,14 +3665,16 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_add_root_folder_event_uses_provided_path() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "path": "/test/test"
       })),
       Some(json!({})),
       None,
-      RadarrEvent::AddRootFolder(None).resource(),
+      RadarrEvent::AddRootFolder(None),
+      None,
+      None,
     )
     .await;
 
@@ -3567,12 +3708,14 @@ mod test {
         "whitelistedHardcodedSubs": "",
         "id": 1
     });
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Put,
       Some(indexer_settings_json),
       None,
       None,
-      RadarrEvent::EditAllIndexerSettings(None).resource(),
+      RadarrEvent::EditAllIndexerSettings(None),
+      None,
+      None,
     )
     .await;
 
@@ -3607,12 +3750,14 @@ mod test {
         "whitelistedHardcodedSubs": "",
         "id": 1
     });
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Put,
       Some(indexer_settings_json),
       None,
       None,
-      RadarrEvent::EditAllIndexerSettings(None).resource(),
+      RadarrEvent::EditAllIndexerSettings(None),
+      None,
+      None,
     )
     .await;
 
@@ -3668,13 +3813,14 @@ mod test {
     *expected_body.get_mut("rootFolderPath").unwrap() = json!("/nfs/Test Path");
     *expected_body.get_mut("searchOnAdd").unwrap() = json!(false);
 
-    let resource = format!("{}/123", RadarrEvent::GetCollections.resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(detailed_collection_body),
       None,
-      &resource,
+      RadarrEvent::GetCollections,
+      Some("/123"),
+      None,
     )
     .await;
     let async_edit_server = server
@@ -3768,13 +3914,14 @@ mod test {
     *expected_body.get_mut("rootFolderPath").unwrap() = json!("/nfs/Test Path");
     *expected_body.get_mut("searchOnAdd").unwrap() = json!(false);
 
-    let resource = format!("{}/123", RadarrEvent::GetCollections.resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(detailed_collection_body),
       None,
-      &resource,
+      RadarrEvent::GetCollections,
+      Some("/123"),
+      None,
     )
     .await;
     let async_edit_server = server
@@ -3851,13 +3998,14 @@ mod test {
     *expected_body.get_mut("rootFolderPath").unwrap() = json!("/nfs/movies");
     *expected_body.get_mut("searchOnAdd").unwrap() = json!(true);
 
-    let resource = format!("{}/123", RadarrEvent::GetCollections.resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(detailed_collection_body),
       None,
-      &resource,
+      RadarrEvent::GetCollections,
+      Some("/123"),
+      None,
     )
     .await;
     let async_edit_server = server
@@ -3938,13 +4086,14 @@ mod test {
         "id": 1
     });
 
-    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(indexer_details_json),
       None,
-      &resource,
+      RadarrEvent::GetIndexers,
+      Some("/1"),
+      None,
     )
     .await;
     let async_edit_server = server
@@ -4030,13 +4179,14 @@ mod test {
         "id": 1
     });
 
-    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(indexer_details_json),
       None,
-      &resource,
+      RadarrEvent::GetIndexers,
+      Some("/1"),
+      None,
     )
     .await;
     let async_edit_server = server
@@ -4138,13 +4288,14 @@ mod test {
         "id": 1
     });
 
-    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(indexer_details_json),
       None,
-      &resource,
+      RadarrEvent::GetIndexers,
+      Some("/1"),
+      None,
     )
     .await;
     let async_edit_server = server
@@ -4266,13 +4417,14 @@ mod test {
       ..EditIndexerParams::default()
     };
 
-    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(indexer_details_json),
       None,
-      &resource,
+      RadarrEvent::GetIndexers,
+      Some("/1"),
+      None,
     )
     .await;
     let async_edit_server = server
@@ -4326,13 +4478,14 @@ mod test {
       ..EditIndexerParams::default()
     };
 
-    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(indexer_details_json.clone()),
       None,
-      &resource,
+      RadarrEvent::GetIndexers,
+      Some("/1"),
+      None,
     )
     .await;
     let async_edit_server = server
@@ -4411,13 +4564,14 @@ mod test {
       ..EditIndexerParams::default()
     };
 
-    let resource = format!("{}/1", RadarrEvent::GetIndexers.resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(indexer_details_json),
       None,
-      &resource,
+      RadarrEvent::GetIndexers,
+      Some("/1"),
+      None,
     )
     .await;
     let async_edit_server = server
@@ -4450,13 +4604,14 @@ mod test {
     *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
     *expected_body.get_mut("tags").unwrap() = json!([1, 2]);
 
-    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
       None,
-      &resource,
+      RadarrEvent::GetMovieDetails(None),
+      Some("/1"),
+      None,
     )
     .await;
     let async_edit_server = server
@@ -4516,13 +4671,14 @@ mod test {
     *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
     *expected_body.get_mut("tags").unwrap() = json!([1, 2]);
 
-    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
       None,
-      &resource,
+      RadarrEvent::GetMovieDetails(None),
+      Some("/1"),
+      None,
     )
     .await;
     let async_edit_server = server
@@ -4558,13 +4714,14 @@ mod test {
   #[tokio::test]
   async fn test_handle_edit_movie_event_uses_provided_parameters_defaults_to_previous_values() {
     let expected_body: Value = serde_json::from_str(MOVIE_JSON).unwrap();
-    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
       None,
-      &resource,
+      RadarrEvent::GetMovieDetails(None),
+      Some("/1"),
+      None,
     )
     .await;
     let async_edit_server = server
@@ -4598,13 +4755,14 @@ mod test {
     let mut expected_body: Value = serde_json::from_str(MOVIE_JSON).unwrap();
     *expected_body.get_mut("tags").unwrap() = json!([]);
 
-    let resource = format!("{}/1", RadarrEvent::GetMovieDetails(None).resource());
-    let (async_details_server, app_arc, mut server) = mock_radarr_api(
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
       None,
-      &resource,
+      RadarrEvent::GetMovieDetails(None),
+      Some("/1"),
+      None,
     )
     .await;
     let async_edit_server = server
@@ -4635,7 +4793,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_download_release_event() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "guid": "1234",
@@ -4644,7 +4802,9 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::DownloadRelease(None).resource(),
+      RadarrEvent::DownloadRelease(None),
+      None,
+      None,
     )
     .await;
     let mut movie_details_modal = MovieDetailsModal::default();
@@ -4671,7 +4831,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_download_release_event_uses_provided_params() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
         "guid": "1234",
@@ -4680,7 +4840,9 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::DownloadRelease(None).resource(),
+      RadarrEvent::DownloadRelease(None),
+      None,
+      None,
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
@@ -4720,12 +4882,14 @@ mod test {
 
   #[tokio::test]
   async fn test_extract_and_add_tag_ids_vec_add_missing_tags_first() {
-    let (async_server, app_arc, _server) = mock_radarr_api(
+    let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({ "label": "testing" })),
       Some(json!({ "id": 3, "label": "testing" })),
       None,
-      RadarrEvent::GetTags.resource(),
+      RadarrEvent::GetTags,
+      None,
+      None,
     )
     .await;
     let tags = "usenet, test, testing".to_owned();
@@ -4769,7 +4933,31 @@ mod test {
       }]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
-    assert_eq!(network.extract_movie_id().await, 1);
+    let (id, movie_id_param) = network.extract_movie_id(None).await;
+
+    assert_eq!(id, 1);
+    assert_str_eq!(movie_id_param, "movieId=1");
+  }
+
+  #[tokio::test]
+  async fn test_extract_movie_id_uses_provided_id() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc
+      .lock()
+      .await
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![Movie {
+        id: 1,
+        ..Movie::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    let (id, movie_id_param) = network.extract_movie_id(Some(2)).await;
+
+    assert_eq!(id, 2);
+    assert_str_eq!(movie_id_param, "movieId=2");
   }
 
   #[tokio::test]
@@ -4783,7 +4971,10 @@ mod test {
     app_arc.lock().await.data.radarr_data.movies = filtered_movies;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
-    assert_eq!(network.extract_movie_id().await, 1);
+    let (id, movie_id_param) = network.extract_movie_id(None).await;
+
+    assert_eq!(id, 1);
+    assert_str_eq!(movie_id_param, "movieId=1");
   }
 
   #[tokio::test]
@@ -4816,115 +5007,6 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert_eq!(network.extract_collection_id().await, 1);
-  }
-
-  #[tokio::test]
-  async fn test_append_movie_id_param() {
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![Movie {
-        id: 1,
-        ..Movie::default()
-      }]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert_str_eq!(
-      network.append_movie_id_param("/test", None).await,
-      "/test?movieId=1"
-    );
-  }
-
-  #[tokio::test]
-  async fn test_append_movie_id_param_uses_provided_id() {
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![Movie {
-        id: 1,
-        ..Movie::default()
-      }]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert_str_eq!(
-      network.append_movie_id_param("/test", Some(11)).await,
-      "/test?movieId=11"
-    );
-  }
-
-  #[tokio::test]
-  async fn test_radarr_request_props_from_default_radarr_config() {
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    let request_props = network
-      .radarr_request_props_from("/test", RequestMethod::Get, None::<()>)
-      .await;
-
-    assert_str_eq!(request_props.uri, "http://localhost:7878/api/v3/test");
-    assert_eq!(request_props.method, RequestMethod::Get);
-    assert_eq!(request_props.body, None);
-    assert!(request_props.api_token.is_empty());
-
-    app_arc.lock().await.config.radarr = RadarrConfig {
-      host: Some("192.168.0.123".to_owned()),
-      port: Some(8080),
-      api_token: "testToken1234".to_owned(),
-      ..RadarrConfig::default()
-    };
-  }
-
-  #[tokio::test]
-  async fn test_radarr_request_props_from_custom_radarr_config() {
-    let api_token = "testToken1234".to_owned();
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    app_arc.lock().await.config.radarr = RadarrConfig {
-      host: Some("192.168.0.123".to_owned()),
-      port: Some(8080),
-      api_token: api_token.clone(),
-      ssl_cert_path: Some("/test/cert.crt".to_owned()),
-      ..RadarrConfig::default()
-    };
-    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    let request_props = network
-      .radarr_request_props_from("/test", RequestMethod::Get, None::<()>)
-      .await;
-
-    assert_str_eq!(request_props.uri, "https://192.168.0.123:8080/api/v3/test");
-    assert_eq!(request_props.method, RequestMethod::Get);
-    assert_eq!(request_props.body, None);
-    assert_str_eq!(request_props.api_token, api_token);
-  }
-
-  #[tokio::test]
-  async fn test_radarr_request_props_from_custom_radarr_config_using_uri_instead_of_host_and_port()
-  {
-    let api_token = "testToken1234".to_owned();
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    app_arc.lock().await.config.radarr = RadarrConfig {
-      uri: Some("https://192.168.0.123:8080".to_owned()),
-      api_token: api_token.clone(),
-      ..RadarrConfig::default()
-    };
-    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    let request_props = network
-      .radarr_request_props_from("/test", RequestMethod::Get, None::<()>)
-      .await;
-
-    assert_str_eq!(request_props.uri, "https://192.168.0.123:8080/api/v3/test");
-    assert_eq!(request_props.method, RequestMethod::Get);
-    assert_eq!(request_props.body, None);
-    assert_str_eq!(request_props.api_token, api_token);
   }
 
   #[test]
@@ -4977,52 +5059,6 @@ mod test {
       ),
       "Awaiting Import"
     );
-  }
-
-  async fn mock_radarr_api(
-    method: RequestMethod,
-    request_body: Option<Value>,
-    response_body: Option<Value>,
-    response_status: Option<usize>,
-    resource: &str,
-  ) -> (Mock, Arc<Mutex<App<'_>>>, ServerGuard) {
-    let status = response_status.unwrap_or(200);
-    let mut server = Server::new_async().await;
-    let mut async_server = server
-      .mock(
-        &method.to_string().to_uppercase(),
-        format!("/api/v3{resource}").as_str(),
-      )
-      .match_header("X-Api-Key", "test1234")
-      .with_status(status);
-
-    if let Some(body) = request_body {
-      async_server = async_server.match_body(Matcher::Json(body));
-    }
-
-    if let Some(body) = response_body {
-      async_server = async_server.with_body(body.to_string());
-    }
-
-    async_server = async_server.create_async().await;
-
-    let host = Some(server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned());
-    let port = Some(
-      server.host_with_port().split(':').collect::<Vec<&str>>()[1]
-        .parse()
-        .unwrap(),
-    );
-    let mut app = App::default();
-    let radarr_config = RadarrConfig {
-      host,
-      port,
-      api_token: "test1234".to_owned(),
-      ..RadarrConfig::default()
-    };
-    app.config.radarr = radarr_config;
-    let app_arc = Arc::new(Mutex::new(app));
-
-    (async_server, app_arc, server)
   }
 
   fn language() -> Language {

@@ -11,7 +11,7 @@ use std::{io, panic, process};
 
 use anyhow::anyhow;
 use anyhow::Result;
-use app::{log_and_print_error, AppConfig, ServarrConfig};
+use app::{log_and_print_error, AppConfig};
 use clap::{
   command, crate_authors, crate_description, crate_name, crate_version, CommandFactory, Parser,
 };
@@ -112,7 +112,7 @@ async fn main() -> Result<()> {
 
   match args.command {
     Some(command) => match command {
-      Command::Radarr(_) => {
+      Command::Radarr(_) | Command::Sonarr(_) => {
         let app_nw = Arc::clone(&app);
         let mut network = Network::new(&app_nw, cancellation_token, reqwest_client);
 

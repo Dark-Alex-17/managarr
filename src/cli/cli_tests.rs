@@ -20,9 +20,9 @@ mod tests {
   };
   use pretty_assertions::assert_eq;
 
-  #[test]
-  fn test_radarr_subcommand_requires_subcommand() {
-    let result = Cli::command().try_get_matches_from(["managarr", "radarr"]);
+  #[rstest]
+  fn test_servarr_subcommand_requires_subcommand(#[values("radarr", "sonarr")] subcommand: &str) {
+    let result = Cli::command().try_get_matches_from(["managarr", subcommand]);
 
     assert!(result.is_err());
     assert_eq!(
@@ -35,6 +35,13 @@ mod tests {
   fn test_radarr_subcommand_delegates_to_radarr() {
     let result =
       Cli::command().try_get_matches_from(["managarr", "radarr", "get", "all-indexer-settings"]);
+
+    assert!(result.is_ok());
+  }
+
+  #[test]
+  fn test_sonarr_subcommand_delegates_to_sonarr() {
+    let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "list", "series"]);
 
     assert!(result.is_ok());
   }
@@ -121,10 +128,41 @@ mod tests {
         )))
       });
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let claer_blocklist_command = RadarrCommand::ClearBlocklist.into();
+    let clear_blocklist_command = RadarrCommand::ClearBlocklist.into();
 
-    let result = handle_command(&app_arc, claer_blocklist_command, &mut mock_network).await;
+    let result = handle_command(&app_arc, clear_blocklist_command, &mut mock_network).await;
 
     assert!(result.is_ok());
   }
+
+  // TODO: Uncomment to properly test delegation once the ClearBlocklist command is added to Sonarr
+  // #[tokio::test]
+  // async fn test_cli_handler_delegates_sonarr_commands_to_the_sonarr_cli_handler() {
+  //   let mut mock_network = MockNetworkTrait::new();
+  //   mock_network
+  //     .expect_handle_network_event()
+  //     .with(eq::<NetworkEvent>(SonarrEvent::GetBlocklist.into()))
+  //     .times(1)
+  //     .returning(|_| {
+  //       Ok(Serdeable::Sonarr(SonarrSerdeable::BlocklistResponse(
+  //         BlocklistResponse {
+  //           records: vec![BlocklistItem::default()],
+  //         },
+  //       )))
+  //     });
+  //   mock_network
+  //     .expect_handle_network_event()
+  //     .with(eq::<NetworkEvent>(SonarrEvent::ClearBlocklist.into()))
+  //     .times(1)
+  //     .returning(|_| {
+  //       Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+  //         json!({"testResponse": "response"}),
+  //       )))
+  //     });
+  //   let clear_blocklist_command = SonarrCommand::ClearBlocklist.into();
+
+  //   let result = handle_command(&app_arc, clear_blocklist_command, &mut mock_network).await;
+
+  //   assert!(result.is_ok());
+  // }
 }

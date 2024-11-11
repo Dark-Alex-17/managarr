@@ -130,7 +130,7 @@ mod tests {
     #[case(RadarrListCommand::Tasks, RadarrEvent::GetTasks)]
     #[case(RadarrListCommand::Updates, RadarrEvent::GetUpdates)]
     #[tokio::test]
-    async fn test_handle_list_blocklist_command(
+    async fn test_handle_list_command(
       #[case] list_command: RadarrListCommand,
       #[case] expected_radarr_event: RadarrEvent,
     ) {

@@ -20,6 +20,14 @@ mod tests {
     use crate::models::BlockSelectionState;
 
     #[test]
+    fn test_from_active_radarr_block_to_route() {
+      assert_eq!(
+        Route::from(ActiveRadarrBlock::AddMoviePrompt),
+        Route::Radarr(ActiveRadarrBlock::AddMoviePrompt, None)
+      );
+    }
+
+    #[test]
     fn test_from_tuple_to_route_with_context() {
       assert_eq!(
         Route::from((
@@ -60,7 +68,7 @@ mod tests {
       assert_eq!(radarr_data.disk_space_vec, Vec::new());
       assert!(radarr_data.version.is_empty());
       assert_eq!(radarr_data.start_time, <DateTime<Utc>>::default());
-      assert!(radarr_data.movies.items.is_empty());
+      assert!(radarr_data.movies.is_empty());
       assert_eq!(radarr_data.selected_block, BlockSelectionState::default());
       assert!(radarr_data.downloads.items.is_empty());
       assert!(radarr_data.indexers.items.is_empty());
