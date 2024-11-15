@@ -12,7 +12,7 @@ mod stateful_tree_tests;
 #[derive(Default)]
 pub struct StatefulTree<T>
 where
-  T: ToText + Hash + Clone + PartialEq + Eq + Debug + Default + Display,
+  T: ToText + Hash + Clone + PartialEq + Eq + Debug + Default + Display + PartialEq + Eq,
 {
   pub state: TreeState,
   pub items: Vec<TreeItem<T>>,
@@ -20,7 +20,7 @@ where
 
 impl<T> StatefulTree<T>
 where
-  T: ToText + Hash + Clone + PartialEq + Eq + Debug + Default + Display,
+  T: ToText + Hash + Clone + PartialEq + Eq + Debug + Default + Display + PartialEq + Eq,
 {
   pub fn set_items(&mut self, items: Vec<TreeItem<T>>) {
     self.items = items;

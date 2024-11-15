@@ -1,11 +1,16 @@
+use std::collections::BTreeMap;
+
 use anyhow::Result;
 use log::info;
+use managarr_tree_widget::TreeItem;
 use serde_json::{json, Value};
 
 use crate::{
   models::{
     servarr_data::sonarr::sonarr_data::ActiveSonarrBlock,
-    sonarr_models::{BlocklistResponse, LogResponse, Series, SonarrSerdeable, SystemStatus},
+    sonarr_models::{
+      BlocklistResponse, Episode, LogResponse, Series, SonarrSerdeable, SystemStatus,
+    },
     HorizontallyScrollableText, Route, Scrollable,
   },
   network::RequestMethod,
@@ -21,6 +26,7 @@ pub enum SonarrEvent {
   ClearBlocklist,
   DeleteBlocklistItem(Option<i64>),
   GetBlocklist,
+  GetEpisodes(Option<i64>),
   GetLogs(Option<u64>),
   GetStatus,
   HealthCheck,
@@ -33,6 +39,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::ClearBlocklist => "/blocklist/bulk",
       SonarrEvent::DeleteBlocklistItem(_) => "/blocklist",
       SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
+      SonarrEvent::GetEpisodes(_) => "/episode",
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetStatus => "/system/status",
       SonarrEvent::HealthCheck => "/health",
@@ -62,6 +69,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetBlocklist => self.get_sonarr_blocklist().await.map(SonarrSerdeable::from),
+      SonarrEvent::GetEpisodes(series_id) => self
+        .get_episodes(series_id)
+        .await
+        .map(SonarrSerdeable::from),
       SonarrEvent::GetLogs(events) => self
         .get_sonarr_logs(events)
         .await
@@ -175,6 +186,51 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
+  async fn get_episodes(&mut self, series_id: Option<i64>) -> Result<Vec<Episode>> {
+    let event = SonarrEvent::GetEpisodes(series_id);
+    let (id, series_id_param) = self.extract_series_id(series_id).await;
+    info!("Fetching episodes for Sonarr series with ID: {id}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(series_id_param),
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<Episode>>(request_props, |mut episode_vec, mut app| {
+        episode_vec.sort_by(|a, b| a.id.cmp(&b.id));
+        let mut seasons = BTreeMap::new();
+
+        for episode in episode_vec {
+          seasons
+            .entry(episode.season_number)
+            .or_insert_with(Vec::new)
+            .push(episode);
+        }
+
+        let tree = seasons
+          .into_iter()
+          .map(|(season, episodes_vec)| {
+            let marker_episode = Episode {
+              title: Some(format!("Season {season}")),
+              ..Episode::default()
+            };
+            let children = episodes_vec.into_iter().map(TreeItem::new_leaf).collect();
+
+            TreeItem::new(marker_episode, children).expect("All item identifiers must be unique")
+          })
+          .collect();
+
+        app.data.sonarr_data.episodes.set_items(tree);
+      })
+      .await
+  }
+
   async fn get_sonarr_logs(&mut self, events: Option<u64>) -> Result<LogResponse> {
     info!("Fetching Sonarr logs");
     let event = SonarrEvent::GetLogs(events);
@@ -258,5 +314,22 @@ impl<'a, 'b> Network<'a, 'b> {
         app.data.sonarr_data.start_time = system_status.start_time;
       })
       .await
+  }
+
+  async fn extract_series_id(&mut self, series_id: Option<i64>) -> (i64, String) {
+    let series_id = if let Some(id) = series_id {
+      id
+    } else {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .series
+        .current_selection()
+        .id
+    };
+    (series_id, format!("seriesId={series_id}"))
   }
 }

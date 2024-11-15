@@ -279,11 +279,11 @@ impl From<()> for SonarrSerdeable {
 serde_enum_from!(
   SonarrSerdeable {
     Value(Value),
-  Episodes(Vec<Episode>),
+    Episodes(Vec<Episode>),
     SeriesVec(Vec<Series>),
     SystemStatus(SystemStatus),
     BlocklistResponse(BlocklistResponse),
-  LogResponse(LogResponse),
+    LogResponse(LogResponse),
   }
 );
 

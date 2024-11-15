@@ -1,17 +1,23 @@
 #[cfg(test)]
 mod test {
+  use std::sync::Arc;
+
   use chrono::{DateTime, Utc};
+  use managarr_tree_widget::TreeItem;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use reqwest::Client;
   use rstest::rstest;
   use serde_json::json;
   use serde_json::{Number, Value};
+  use tokio::sync::Mutex;
   use tokio_util::sync::CancellationToken;
 
+  use crate::app::App;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
-  use crate::models::sonarr_models::{BlocklistItem, Language, LogResponse};
+  use crate::models::sonarr_models::{BlocklistItem, Episode, Language, LogResponse};
   use crate::models::sonarr_models::{BlocklistResponse, Quality};
   use crate::models::sonarr_models::{QualityWrapper, SystemStatus};
+  use crate::models::stateful_table::StatefulTable;
   use crate::models::HorizontallyScrollableText;
   use crate::models::{sonarr_models::SonarrSerdeable, stateful_table::SortOption};
 
@@ -80,6 +86,7 @@ mod test {
   #[case(SonarrEvent::DeleteBlocklistItem(None), "/blocklist")]
   #[case(SonarrEvent::HealthCheck, "/health")]
   #[case(SonarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
+  #[case(SonarrEvent::GetEpisodes(None), "/episode")]
   #[case(SonarrEvent::GetLogs(Some(500)), "/log")]
   #[case(SonarrEvent::GetStatus, "/system/status")]
   fn test_resource(#[case] event: SonarrEvent, #[case] expected_uri: String) {
@@ -276,6 +283,190 @@ mod test {
     let _ = network.handle_sonarr_event(SonarrEvent::HealthCheck).await;
 
     async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episodes_event() {
+    let episodes_json = json!([
+      {
+          "id": 2,
+          "seriesId": 1,
+          "tvdbId": 1234,
+          "episodeFileId": 2,
+          "seasonNumber": 2,
+          "episodeNumber": 2,
+          "title": "Something cool",
+          "airDateUtc": "2024-02-10T07:28:45Z",
+          "overview": "Okay so this one time at band camp...",
+          "hasFile": true,
+          "monitored": true
+      },
+      {
+          "id": 1,
+          "seriesId": 1,
+          "tvdbId": 1234,
+          "episodeFileId": 1,
+          "seasonNumber": 1,
+          "episodeNumber": 1,
+          "title": "Something cool",
+          "airDateUtc": "2024-02-10T07:28:45Z",
+          "overview": "Okay so this one time at band camp...",
+          "hasFile": true,
+          "monitored": true
+      }
+    ]);
+    let marker_episode_1 = Episode {
+      title: Some("Season 1".to_owned()),
+      ..Episode::default()
+    };
+    let marker_episode_2 = Episode {
+      title: Some("Season 2".to_owned()),
+      ..Episode::default()
+    };
+    let episode_1 = episode();
+    let episode_2 = Episode {
+      id: 2,
+      episode_file_id: 2,
+      season_number: 2,
+      episode_number: 2,
+      ..episode()
+    };
+    let expected_episodes = vec![episode_2.clone(), episode_1.clone()];
+    let expected_tree = vec![
+      TreeItem::new(
+        marker_episode_1,
+        vec![TreeItem::new_leaf(episode_1.clone())],
+      )
+      .unwrap(),
+      TreeItem::new(
+        marker_episode_2,
+        vec![TreeItem::new_leaf(episode_2.clone())],
+      )
+      .unwrap(),
+    ];
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(episodes_json),
+      None,
+      SonarrEvent::GetEpisodes(None),
+      None,
+      Some("seriesId=1"),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Episodes(episodes) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodes(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.episodes.items,
+        expected_tree
+      );
+      assert_eq!(episodes, expected_episodes);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episodes_event_uses_provided_series_id() {
+    let episodes_json = json!([
+      {
+          "id": 2,
+          "seriesId": 2,
+          "tvdbId": 1234,
+          "episodeFileId": 2,
+          "seasonNumber": 2,
+          "episodeNumber": 2,
+          "title": "Something cool",
+          "airDateUtc": "2024-02-10T07:28:45Z",
+          "overview": "Okay so this one time at band camp...",
+          "hasFile": true,
+          "monitored": true
+      },
+      {
+          "id": 1,
+          "seriesId": 2,
+          "tvdbId": 1234,
+          "episodeFileId": 1,
+          "seasonNumber": 1,
+          "episodeNumber": 1,
+          "title": "Something cool",
+          "airDateUtc": "2024-02-10T07:28:45Z",
+          "overview": "Okay so this one time at band camp...",
+          "hasFile": true,
+          "monitored": true
+      }
+    ]);
+    let marker_episode_1 = Episode {
+      title: Some("Season 1".to_owned()),
+      ..Episode::default()
+    };
+    let marker_episode_2 = Episode {
+      title: Some("Season 2".to_owned()),
+      ..Episode::default()
+    };
+    let episode_1 = Episode {
+      series_id: 2,
+      ..episode()
+    };
+    let episode_2 = Episode {
+      id: 2,
+      episode_file_id: 2,
+      season_number: 2,
+      episode_number: 2,
+      series_id: 2,
+      ..episode()
+    };
+    let expected_episodes = vec![episode_2.clone(), episode_1.clone()];
+    let expected_tree = vec![
+      TreeItem::new(
+        marker_episode_1,
+        vec![TreeItem::new_leaf(episode_1.clone())],
+      )
+      .unwrap(),
+      TreeItem::new(
+        marker_episode_2,
+        vec![TreeItem::new_leaf(episode_2.clone())],
+      )
+      .unwrap(),
+    ];
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(episodes_json),
+      None,
+      SonarrEvent::GetEpisodes(None),
+      None,
+      Some("seriesId=2"),
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Episodes(episodes) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodes(Some(2)))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.episodes.items,
+        expected_tree
+      );
+      assert_eq!(episodes, expected_episodes);
+    }
   }
 
   #[tokio::test]
@@ -591,6 +782,65 @@ mod test {
     }
   }
 
+  #[tokio::test]
+  async fn test_extract_series_id() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    let (id, series_id_param) = network.extract_series_id(None).await;
+
+    assert_eq!(id, 1);
+    assert_str_eq!(series_id_param, "seriesId=1");
+  }
+
+  #[tokio::test]
+  async fn test_extract_series_id_uses_provided_id() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    let (id, series_id_param) = network.extract_series_id(Some(2)).await;
+
+    assert_eq!(id, 2);
+    assert_str_eq!(series_id_param, "seriesId=2");
+  }
+
+  #[tokio::test]
+  async fn test_extract_series_id_filtered_series() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    let mut filtered_series = StatefulTable::default();
+    filtered_series.set_filtered_items(vec![Series {
+      id: 1,
+      ..Series::default()
+    }]);
+    app_arc.lock().await.data.sonarr_data.series = filtered_series;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    let (id, series_id_param) = network.extract_series_id(None).await;
+
+    assert_eq!(id, 1);
+    assert_str_eq!(series_id_param, "seriesId=1");
+  }
+
   fn blocklist_item() -> BlocklistItem {
     BlocklistItem {
       id: 1,
@@ -603,6 +853,24 @@ mod test {
       protocol: "usenet".to_owned(),
       indexer: "NZBgeek (Prowlarr)".to_owned(),
       message: "test message".to_owned(),
+    }
+  }
+
+  fn episode() -> Episode {
+    Episode {
+      id: 1,
+      series_id: 1,
+      tvdb_id: 1234,
+      episode_file_id: 1,
+      season_number: 1,
+      episode_number: 1,
+      title: Some("Something cool".to_owned()),
+      air_date_utc: Some(DateTime::from(
+        DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap(),
+      )),
+      overview: Some("Okay so this one time at band camp...".to_owned()),
+      has_file: true,
+      monitored: true,
     }
   }
 

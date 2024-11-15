@@ -1314,7 +1314,7 @@ dependencies = [
 [[package]]
 name = "managarr-tree-widget"
 version = "0.24.0"
-source = "git+https://github.com/Dark-Alex-17/managarr-tree-widget.git#6baef469c8d20f7f1e567edba9886401ea9baa7c"
+source = "git+https://github.com/Dark-Alex-17/managarr-tree-widget.git#b0d8d9f0bfdbb4f4a43f9a59806f8e84bbaf4e30"
 dependencies = [
  "ratatui",
  "unicode-width 0.2.0",
