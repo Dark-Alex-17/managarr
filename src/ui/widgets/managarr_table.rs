@@ -146,7 +146,7 @@ where
 
         if self.highlight_rows {
           table = table
-            .highlight_style(Style::new().highlight())
+            .row_highlight_style(Style::new().highlight())
             .highlight_symbol(HIGHLIGHT_SYMBOL);
         }
 

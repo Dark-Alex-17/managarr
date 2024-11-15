@@ -13,6 +13,7 @@ pub mod servarr_data;
 pub mod sonarr_models;
 pub mod stateful_list;
 pub mod stateful_table;
+pub mod stateful_tree;
 
 #[cfg(test)]
 #[path = "model_tests.rs"]

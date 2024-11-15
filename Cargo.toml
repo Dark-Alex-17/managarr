@@ -21,14 +21,14 @@ chrono = { version = "0.4.38", features = ["serde"] }
 confy = { version = "0.6.0", default-features = false, features = [
   "yaml_conf",
 ] }
-crossterm = "0.27.0"
+crossterm = "0.28.1"
 derivative = "2.2.0"
-human-panic = "1.1.3"
+human-panic = "2.0.2"
 indoc = "2.0.0"
 log = "0.4.17"
 log4rs = { version = "1.2.0", features = ["file_appender"] }
 regex = "1.11.1"
-reqwest = { version = "0.11.14", features = ["json"] }
+reqwest = { version = "0.12.9", features = ["json"] }
 serde_yaml = "0.9.16"
 serde_json = "1.0.91"
 serde = { version = "1.0.214", features = ["derive"] }
@@ -36,7 +36,7 @@ strum = { version = "0.26.3", features = ["derive"] }
 strum_macros = "0.26.4"
 tokio = { version = "1.36.0", features = ["full"] }
 tokio-util = "0.7.8"
-ratatui = { version = "0.28.0", features = ["all-widgets"] }
+ratatui = { version = "0.29.0", features = ["all-widgets"] }
 urlencoding = "2.1.2"
 clap = { version = "4.5.20", features = ["derive", "cargo", "env"] }
 clap_complete = "4.5.33"
@@ -45,13 +45,14 @@ ctrlc = "3.4.5"
 colored = "2.1.0"
 async-trait = "0.1.83"
 dirs-next = "2.0.0"
+managarr-tree-widget = { git = "https://github.com/Dark-Alex-17/managarr-tree-widget.git" }
 
 [dev-dependencies]
 assert_cmd = "2.0.16"
 mockall = "0.13.0"
 mockito = "1.0.0"
 pretty_assertions = "1.3.0"
-rstest = "0.18.2"
+rstest = "0.23.0"
 
 [dev-dependencies.cargo-husky]
 version = "1"
