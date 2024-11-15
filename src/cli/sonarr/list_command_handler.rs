@@ -21,6 +21,15 @@ mod list_command_handler_tests;
 pub enum SonarrListCommand {
   #[command(about = "List all items in the Sonarr blocklist")]
   Blocklist,
+  #[command(about = "List the episodes for the series with the given ID")]
+  Episodes {
+    #[arg(
+      long,
+      help = "The Sonarr ID of the series whose episodes you wish to fetch",
+      required = true
+    )]
+    series_id: i64,
+  },
   #[command(about = "Fetch Sonarr logs")]
   Logs {
     #[arg(long, help = "How many log events to fetch", default_value_t = 500)]
@@ -64,6 +73,9 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
     match self.command {
       SonarrListCommand::Blocklist => {
         execute_network_event!(self, SonarrEvent::GetBlocklist);
+      }
+      SonarrListCommand::Episodes { series_id } => {
+        execute_network_event!(self, SonarrEvent::GetEpisodes(Some(series_id)));
       }
       SonarrListCommand::Logs {
         events,

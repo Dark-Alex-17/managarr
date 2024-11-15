@@ -32,6 +32,17 @@ mod tests {
     }
 
     #[test]
+    fn test_list_episodes_requires_series_id() {
+      let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "list", "episodes"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
     fn test_list_logs_events_flag_requires_arguments() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "list", "logs", "--events"]);
@@ -52,6 +63,20 @@ mod tests {
 
       if let Some(Command::Sonarr(SonarrCommand::List(refresh_command))) = result.unwrap().command {
         assert_eq!(refresh_command, expected_args);
+      }
+    }
+
+    #[test]
+    fn test_list_episodes_success() {
+      let expected_args = SonarrListCommand::Episodes { series_id: 1 };
+      let result =
+        Cli::try_parse_from(["managarr", "sonarr", "list", "episodes", "--series-id", "1"]);
+
+      assert!(result.is_ok());
+
+      if let Some(Command::Sonarr(SonarrCommand::List(episodes_command))) = result.unwrap().command
+      {
+        assert_eq!(episodes_command, expected_args);
       }
     }
   }
@@ -98,6 +123,32 @@ mod tests {
       let result = SonarrListCommandHandler::with(&app_arc, list_command, &mut mock_network)
         .handle()
         .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_episodes_command() {
+      let expected_series_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::GetEpisodes(Some(expected_series_id)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let list_episodes_command = SonarrListCommand::Episodes { series_id: 1 };
+
+      let result =
+        SonarrListCommandHandler::with(&app_arc, list_episodes_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert!(result.is_ok());
     }

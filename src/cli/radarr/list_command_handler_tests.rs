@@ -80,8 +80,8 @@ mod tests {
 
       assert!(result.is_ok());
 
-      if let Some(Command::Radarr(RadarrCommand::List(refresh_command))) = result.unwrap().command {
-        assert_eq!(refresh_command, expected_args);
+      if let Some(Command::Radarr(RadarrCommand::List(credits_command))) = result.unwrap().command {
+        assert_eq!(credits_command, expected_args);
       }
     }
 

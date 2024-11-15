@@ -21,6 +21,7 @@ use crossterm::execute;
 use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
+use human_panic::metadata;
 use log::{error, warn};
 use network::NetworkTrait;
 use ratatui::backend::CrosstermBackend;
@@ -287,14 +288,9 @@ fn create_cert(cert_path: &String, servarr_name: &str) -> Certificate {
 
 #[cfg(not(debug_assertions))]
 fn panic_hook(info: &PanicHookInfo<'_>) {
-  use human_panic::{handle_dump, print_msg, Metadata};
+  use human_panic::{handle_dump, print_msg};
 
-  let meta = Metadata {
-    version: env!("CARGO_PKG_VERSION").into(),
-    name: env!("CARGO_PKG_NAME").into(),
-    authors: env!("CARGO_PKG_AUTHORS").replace(":", ", ").into(),
-    homepage: env!("CARGO_PKG_HOMEPAGE").into(),
-  };
+  let meta = metadata!();
   let file_path = handle_dump(&meta, info);
   disable_raw_mode().unwrap();
   execute!(io::stdout(), LeaveAlternateScreen).unwrap();
