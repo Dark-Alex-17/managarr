@@ -5,11 +5,22 @@ mod tests {
 
   use crate::models::{
     sonarr_models::{
-      BlocklistItem, BlocklistResponse, Log, LogResponse, Series, SeriesStatus, SeriesType,
-      SonarrSerdeable, SystemStatus,
+      BlocklistItem, BlocklistResponse, Episode, Log, LogResponse, Series, SeriesStatus,
+      SeriesType, SonarrSerdeable, SystemStatus,
     },
     Serdeable,
   };
+
+  #[test]
+  fn test_episode_display() {
+    let episode = Episode {
+      title: Some("Test Title".to_owned()),
+      ..Episode::default()
+    };
+
+    assert_str_eq!(Episode::default().to_string(), "");
+    assert_str_eq!(episode.to_string(), "Test Title");
+  }
 
   #[test]
   fn test_series_status_display() {
@@ -64,6 +75,18 @@ mod tests {
     let sonarr_serdeable: SonarrSerdeable = value.clone().into();
 
     assert_eq!(sonarr_serdeable, SonarrSerdeable::Value(value));
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_episodes() {
+    let episodes = vec![Episode {
+      id: 1,
+      ..Episode::default()
+    }];
+
+    let sonarr_serdeable: SonarrSerdeable = episodes.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::Episodes(episodes));
   }
 
   #[test]

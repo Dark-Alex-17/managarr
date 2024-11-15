@@ -37,6 +37,34 @@ pub struct BlocklistResponse {
   pub records: Vec<BlocklistItem>,
 }
 
+#[derive(Default, Serialize, Deserialize, Hash, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Episode {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub series_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub tvdb_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub episode_file_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub season_number: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub episode_number: i64,
+  pub title: Option<String>,
+  pub air_date_utc: Option<DateTime<Utc>>,
+  pub overview: Option<String>,
+  pub has_file: bool,
+  pub monitored: bool,
+}
+
+impl Display for Episode {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.title.as_ref().unwrap_or(&String::new()))
+  }
+}
+
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Language {
   pub name: String,
@@ -229,6 +257,7 @@ impl SeriesStatus {
 #[allow(clippy::large_enum_variant)]
 pub enum SonarrSerdeable {
   Value(Value),
+  Episodes(Vec<Episode>),
   SeriesVec(Vec<Series>),
   SystemStatus(SystemStatus),
   BlocklistResponse(BlocklistResponse),
@@ -250,6 +279,7 @@ impl From<()> for SonarrSerdeable {
 serde_enum_from!(
   SonarrSerdeable {
     Value(Value),
+  Episodes(Vec<Episode>),
     SeriesVec(Vec<Series>),
     SystemStatus(SystemStatus),
     BlocklistResponse(BlocklistResponse),

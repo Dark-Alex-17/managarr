@@ -2,9 +2,10 @@ use chrono::{DateTime, Utc};
 use strum::EnumIter;
 
 use crate::models::{
-  sonarr_models::{BlocklistItem, Series},
+  sonarr_models::{BlocklistItem, Episode, Series},
   stateful_list::StatefulList,
   stateful_table::StatefulTable,
+  stateful_tree::StatefulTree,
   HorizontallyScrollableText, Route,
 };
 
@@ -18,6 +19,7 @@ pub struct SonarrData {
   pub series: StatefulTable<Series>,
   pub blocklist: StatefulTable<BlocklistItem>,
   pub logs: StatefulList<HorizontallyScrollableText>,
+  pub episodes: StatefulTree<Episode>,
 }
 
 impl Default for SonarrData {
@@ -28,6 +30,7 @@ impl Default for SonarrData {
       series: StatefulTable::default(),
       blocklist: StatefulTable::default(),
       logs: StatefulList::default(),
+      episodes: StatefulTree::default(),
     }
   }
 }
