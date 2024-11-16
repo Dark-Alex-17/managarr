@@ -23,8 +23,8 @@ mod test {
   use crate::app::App;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::sonarr_models::{
-    BlocklistItem, DownloadRecord, Episode, EpisodeFile, Language, LogResponse, MediaInfo,
-    QualityProfile,
+    BlocklistItem, DownloadRecord, DownloadsResponse, Episode, EpisodeFile, Language, LogResponse,
+    MediaInfo, QualityProfile,
   };
   use crate::models::sonarr_models::{BlocklistResponse, Quality};
   use crate::models::sonarr_models::{QualityWrapper, SystemStatus};
@@ -142,6 +142,7 @@ mod test {
   #[case(SonarrEvent::DeleteBlocklistItem(None), "/blocklist")]
   #[case(SonarrEvent::HealthCheck, "/health")]
   #[case(SonarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
+  #[case(SonarrEvent::GetDownloads, "/queue")]
   #[case(SonarrEvent::GetLogs(Some(500)), "/log")]
   #[case(SonarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(SonarrEvent::GetStatus, "/system/status")]
@@ -319,6 +320,49 @@ mod test {
       );
       assert!(app_arc.lock().await.data.sonarr_data.blocklist.sort_asc);
       assert_eq!(blocklist, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_downloads_event() {
+    let downloads_response_json = json!({
+      "records": [{
+        "title": "Test Download Title",
+        "status": "downloading",
+        "id": 1,
+        "episodeId": 1,
+        "size": 3543348019u64,
+        "sizeleft": 1771674009,
+        "outputPath": "/nfs/tv/Test show/season 1/",
+        "indexer": "kickass torrents",
+        "downloadClient": "transmission",
+      }]
+    });
+    let response: DownloadsResponse =
+      serde_json::from_value(downloads_response_json.clone()).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(downloads_response_json),
+      None,
+      SonarrEvent::GetDownloads,
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::DownloadsResponse(downloads) = network
+      .handle_sonarr_event(SonarrEvent::GetDownloads)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.downloads.items,
+        downloads_response().records
+      );
+      assert_eq!(downloads, response);
     }
   }
 
@@ -1400,6 +1444,28 @@ mod test {
       protocol: "usenet".to_owned(),
       indexer: "NZBgeek (Prowlarr)".to_owned(),
       message: "test message".to_owned(),
+    }
+  }
+
+  fn download_record() -> DownloadRecord {
+    DownloadRecord {
+      title: "Test Download Title".to_owned(),
+      status: "downloading".to_owned(),
+      id: 1,
+      episode_id: 1,
+      size: 3543348019,
+      sizeleft: 1771674009,
+      output_path: Some(HorizontallyScrollableText::from(
+        "/nfs/tv/Test show/season 1/",
+      )),
+      indexer: "kickass torrents".to_owned(),
+      download_client: "transmission".to_owned(),
+    }
+  }
+
+  fn downloads_response() -> DownloadsResponse {
+    DownloadsResponse {
+      records: vec![download_record()],
     }
   }
 

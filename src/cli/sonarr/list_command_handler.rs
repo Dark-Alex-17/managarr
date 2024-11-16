@@ -21,6 +21,8 @@ mod list_command_handler_tests;
 pub enum SonarrListCommand {
   #[command(about = "List all items in the Sonarr blocklist")]
   Blocklist,
+  #[command(about = "List all active downloads in Sonarr")]
+  Downloads,
   #[command(about = "List the episodes for the series with the given ID")]
   Episodes {
     #[arg(
@@ -40,6 +42,8 @@ pub enum SonarrListCommand {
     )]
     output_in_log_format: bool,
   },
+  #[command(about = "List all Sonarr quality profiles")]
+  QualityProfiles,
   #[command(about = "List all series in your Sonarr library")]
   Series,
 }
@@ -74,6 +78,9 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
       SonarrListCommand::Blocklist => {
         execute_network_event!(self, SonarrEvent::GetBlocklist);
       }
+      SonarrListCommand::Downloads => {
+        execute_network_event!(self, SonarrEvent::GetDownloads);
+      }
       SonarrListCommand::Episodes { series_id } => {
         execute_network_event!(self, SonarrEvent::GetEpisodes(Some(series_id)));
       }
@@ -95,6 +102,9 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
           let json = serde_json::to_string_pretty(&logs)?;
           println!("{}", json);
         }
+      }
+      SonarrListCommand::QualityProfiles => {
+        execute_network_event!(self, SonarrEvent::GetQualityProfiles);
       }
       SonarrListCommand::Series => {
         execute_network_event!(self, SonarrEvent::ListSeries);

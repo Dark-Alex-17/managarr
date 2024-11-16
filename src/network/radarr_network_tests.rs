@@ -2182,7 +2182,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_downloads_event() {
+  async fn test_handle_get_radarr_downloads_event() {
     let downloads_response_json = json!({
       "records": [{
         "title": "Test Download Title",

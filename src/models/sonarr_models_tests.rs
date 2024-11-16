@@ -5,8 +5,8 @@ mod tests {
 
   use crate::models::{
     sonarr_models::{
-      BlocklistItem, BlocklistResponse, Episode, Log, LogResponse, QualityProfile, Series,
-      SeriesStatus, SeriesType, SonarrSerdeable, SystemStatus,
+      BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, Log,
+      LogResponse, QualityProfile, Series, SeriesStatus, SeriesType, SonarrSerdeable, SystemStatus,
     },
     Serdeable,
   };
@@ -142,6 +142,22 @@ mod tests {
     assert_eq!(
       sonarr_serdeable,
       SonarrSerdeable::BlocklistResponse(blocklist_response)
+    );
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_downloads_response() {
+    let downloads_response = DownloadsResponse {
+      records: vec![DownloadRecord {
+        id: 1,
+        ..DownloadRecord::default()
+      }],
+    };
+    let sonarr_serdeable: SonarrSerdeable = downloads_response.clone().into();
+
+    assert_eq!(
+      sonarr_serdeable,
+      SonarrSerdeable::DownloadsResponse(downloads_response)
     );
   }
 

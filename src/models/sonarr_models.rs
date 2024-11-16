@@ -56,6 +56,12 @@ pub struct DownloadRecord {
   pub download_client: String,
 }
 
+#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct DownloadsResponse {
+  pub records: Vec<DownloadRecord>,
+}
+
 #[derive(Default, Serialize, Deserialize, Hash, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Episode {
@@ -321,6 +327,7 @@ impl SeriesStatus {
 #[allow(clippy::large_enum_variant)]
 pub enum SonarrSerdeable {
   Value(Value),
+  DownloadsResponse(DownloadsResponse),
   Episode(Episode),
   Episodes(Vec<Episode>),
   QualityProfiles(Vec<QualityProfile>),
@@ -345,6 +352,7 @@ impl From<()> for SonarrSerdeable {
 serde_enum_from!(
   SonarrSerdeable {
     Value(Value),
+    DownloadsResponse(DownloadsResponse),
     Episode(Episode),
     Episodes(Vec<Episode>),
     QualityProfiles(Vec<QualityProfile>),

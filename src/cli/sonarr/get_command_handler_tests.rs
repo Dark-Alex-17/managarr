@@ -17,12 +17,40 @@ mod tests {
   }
 
   mod cli {
+    use clap::error::ErrorKind;
+
     use super::*;
 
     #[test]
     fn test_system_status_has_no_arg_requirements() {
       let result =
-        Cli::command().try_get_matches_from(["managarr", "radarr", "get", "system-status"]);
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "get", "system-status"]);
+
+      assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_episode_details_requires_episode_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "get", "episode-details"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_episode_details_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "get",
+        "episode-details",
+        "--episode-id",
+        "1",
+      ]);
 
       assert!(result.is_ok());
     }
@@ -44,6 +72,32 @@ mod tests {
       models::{sonarr_models::SonarrSerdeable, Serdeable},
       network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
     };
+
+    #[tokio::test]
+    async fn test_handle_get_episode_details_command() {
+      let expected_episode_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::GetEpisodeDetails(Some(expected_episode_id)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let get_episode_details_command = SonarrGetCommand::EpisodeDetails { episode_id: 1 };
+
+      let result =
+        SonarrGetCommandHandler::with(&app_arc, get_episode_details_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
 
     #[tokio::test]
     async fn test_handle_get_system_status_command() {

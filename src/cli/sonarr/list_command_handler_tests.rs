@@ -24,7 +24,7 @@ mod tests {
 
     #[rstest]
     fn test_list_commands_have_no_arg_requirements(
-      #[values("blocklist", "series")] subcommand: &str,
+      #[values("blocklist", "series", "downloads", "quality-profiles")] subcommand: &str,
     ) {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "list", subcommand]);
 
@@ -102,6 +102,8 @@ mod tests {
 
     #[rstest]
     #[case(SonarrListCommand::Blocklist, SonarrEvent::GetBlocklist)]
+    #[case(SonarrListCommand::Downloads, SonarrEvent::GetDownloads)]
+    #[case(SonarrListCommand::QualityProfiles, SonarrEvent::GetQualityProfiles)]
     #[case(SonarrListCommand::Series, SonarrEvent::ListSeries)]
     #[tokio::test]
     async fn test_handle_list_command(

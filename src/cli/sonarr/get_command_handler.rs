@@ -19,6 +19,15 @@ mod get_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum SonarrGetCommand {
+  #[command(about = "Get detailed information for the episode with the given ID")]
+  EpisodeDetails {
+    #[arg(
+      long,
+      help = "The Sonarr ID of the episode whose details you wish to fetch",
+      required = true
+    )]
+    episode_id: i64,
+  },
   #[command(about = "Get the system status")]
   SystemStatus,
 }
@@ -50,6 +59,9 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrGetCommand> for SonarrGetCommandHan
 
   async fn handle(self) -> Result<()> {
     match self.command {
+      SonarrGetCommand::EpisodeDetails { episode_id } => {
+        execute_network_event!(self, SonarrEvent::GetEpisodeDetails(Some(episode_id)));
+      }
       SonarrGetCommand::SystemStatus => {
         execute_network_event!(self, SonarrEvent::GetStatus);
       }

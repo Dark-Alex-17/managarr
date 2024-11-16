@@ -10,8 +10,8 @@ use crate::{
   models::{
     servarr_data::sonarr::{modals::EpisodeDetailsModal, sonarr_data::ActiveSonarrBlock},
     sonarr_models::{
-      BlocklistResponse, DownloadRecord, Episode, LogResponse, QualityProfile, Series,
-      SonarrSerdeable, SystemStatus,
+      BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, LogResponse, QualityProfile,
+      Series, SonarrSerdeable, SystemStatus,
     },
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
   },
@@ -29,6 +29,7 @@ pub enum SonarrEvent {
   ClearBlocklist,
   DeleteBlocklistItem(Option<i64>),
   GetBlocklist,
+  GetDownloads,
   GetEpisodeDetails(Option<i64>),
   GetEpisodes(Option<i64>),
   GetLogs(Option<u64>),
@@ -44,6 +45,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::ClearBlocklist => "/blocklist/bulk",
       SonarrEvent::DeleteBlocklistItem(_) => "/blocklist",
       SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
+      SonarrEvent::GetDownloads => "/queue",
       SonarrEvent::GetEpisodes(_) | SonarrEvent::GetEpisodeDetails(_) => "/episode",
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
@@ -75,6 +77,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetBlocklist => self.get_sonarr_blocklist().await.map(SonarrSerdeable::from),
+      SonarrEvent::GetDownloads => self.get_sonarr_downloads().await.map(SonarrSerdeable::from),
       SonarrEvent::GetEpisodes(series_id) => self
         .get_episodes(series_id)
         .await
@@ -196,6 +199,25 @@ impl<'a, 'b> Network<'a, 'b> {
           app.data.sonarr_data.blocklist.set_items(blocklist_vec);
           app.data.sonarr_data.blocklist.apply_sorting_toggle(false);
         }
+      })
+      .await
+  }
+
+  async fn get_sonarr_downloads(&mut self) -> Result<DownloadsResponse> {
+    info!("Fetching Sonarr downloads");
+    let event = SonarrEvent::GetDownloads;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), DownloadsResponse>(request_props, |queue_response, mut app| {
+        app
+          .data
+          .sonarr_data
+          .downloads
+          .set_items(queue_response.records);
       })
       .await
   }
