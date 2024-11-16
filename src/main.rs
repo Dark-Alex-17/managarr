@@ -287,7 +287,7 @@ fn create_cert(cert_path: &String, servarr_name: &str) -> Certificate {
 
 #[cfg(not(debug_assertions))]
 fn panic_hook(info: &PanicHookInfo<'_>) {
-  use human_panic::{handle_dump, print_msg};
+  use human_panic::{handle_dump, metadata, print_msg};
 
   let meta = metadata!();
   let file_path = handle_dump(&meta, info);
