@@ -5,8 +5,8 @@ mod tests {
 
   use crate::models::{
     sonarr_models::{
-      BlocklistItem, BlocklistResponse, Episode, Log, LogResponse, Series, SeriesStatus,
-      SeriesType, SonarrSerdeable, SystemStatus,
+      BlocklistItem, BlocklistResponse, Episode, Log, LogResponse, QualityProfile, Series,
+      SeriesStatus, SeriesType, SonarrSerdeable, SystemStatus,
     },
     Serdeable,
   };
@@ -78,6 +78,18 @@ mod tests {
   }
 
   #[test]
+  fn test_sonarr_serdeable_from_episode() {
+    let episode = Episode {
+      id: 1,
+      ..Episode::default()
+    };
+
+    let sonarr_serdeable: SonarrSerdeable = episode.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::Episode(episode));
+  }
+
+  #[test]
   fn test_sonarr_serdeable_from_episodes() {
     let episodes = vec![Episode {
       id: 1,
@@ -145,5 +157,20 @@ mod tests {
     let sonarr_serdeable: SonarrSerdeable = log_response.clone().into();
 
     assert_eq!(sonarr_serdeable, SonarrSerdeable::LogResponse(log_response));
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_quality_profiles() {
+    let quality_profiles = vec![QualityProfile {
+      name: "Test Profile".to_owned(),
+      id: 1,
+    }];
+
+    let sonarr_serdeable: SonarrSerdeable = quality_profiles.clone().into();
+
+    assert_eq!(
+      sonarr_serdeable,
+      SonarrSerdeable::QualityProfiles(quality_profiles)
+    );
   }
 }

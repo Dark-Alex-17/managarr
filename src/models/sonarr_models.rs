@@ -37,6 +37,25 @@ pub struct BlocklistResponse {
   pub records: Vec<BlocklistItem>,
 }
 
+#[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct DownloadRecord {
+  pub title: String,
+  pub status: String,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub episode_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub size: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub sizeleft: i64,
+  pub output_path: Option<HorizontallyScrollableText>,
+  #[serde(default)]
+  pub indexer: String,
+  pub download_client: String,
+}
+
 #[derive(Default, Serialize, Deserialize, Hash, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Episode {
@@ -57,6 +76,7 @@ pub struct Episode {
   pub overview: Option<String>,
   pub has_file: bool,
   pub monitored: bool,
+  pub episode_file: Option<EpisodeFile>,
 }
 
 impl Display for Episode {
@@ -65,7 +85,19 @@ impl Display for Episode {
   }
 }
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
+#[derive(Default, Serialize, Deserialize, Hash, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct EpisodeFile {
+  pub relative_path: String,
+  pub path: String,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub size: i64,
+  pub language: Language,
+  pub date_added: DateTime<Utc>,
+  pub media_info: Option<MediaInfo>,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Hash, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Language {
   pub name: String,
 }
@@ -87,14 +119,46 @@ pub struct LogResponse {
   pub records: Vec<Log>,
 }
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
+#[derive(Serialize, Deserialize, Derivative, Hash, Debug, Clone, PartialEq, Eq)]
+#[derivative(Default)]
+#[serde(rename_all = "camelCase")]
+pub struct MediaInfo {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub audio_bitrate: i64,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub audio_channels: Number,
+  pub audio_codec: Option<String>,
+  pub audio_languages: Option<String>,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub audio_stream_count: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub video_bit_depth: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub video_bitrate: i64,
+  pub video_codec: String,
+  #[derivative(Default(value = "Number::from(0)"))]
+  pub video_fps: Number,
+  pub resolution: String,
+  pub run_time: String,
+  pub scan_type: String,
+  pub subtitles: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Hash, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Quality {
   pub name: String,
 }
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
+#[derive(Serialize, Deserialize, Default, Debug, Hash, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct QualityWrapper {
   pub quality: Quality,
+}
+
+#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct QualityProfile {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  pub name: String,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -257,7 +321,9 @@ impl SeriesStatus {
 #[allow(clippy::large_enum_variant)]
 pub enum SonarrSerdeable {
   Value(Value),
+  Episode(Episode),
   Episodes(Vec<Episode>),
+  QualityProfiles(Vec<QualityProfile>),
   SeriesVec(Vec<Series>),
   SystemStatus(SystemStatus),
   BlocklistResponse(BlocklistResponse),
@@ -279,7 +345,9 @@ impl From<()> for SonarrSerdeable {
 serde_enum_from!(
   SonarrSerdeable {
     Value(Value),
+    Episode(Episode),
     Episodes(Vec<Episode>),
+    QualityProfiles(Vec<QualityProfile>),
     SeriesVec(Vec<Series>),
     SystemStatus(SystemStatus),
     BlocklistResponse(BlocklistResponse),

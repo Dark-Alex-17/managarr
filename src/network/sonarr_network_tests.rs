@@ -1,10 +1,18 @@
 #[cfg(test)]
 mod test {
+  use std::fmt::Display;
+  use std::hash::Hash;
   use std::sync::Arc;
 
+  use bimap::BiMap;
   use chrono::{DateTime, Utc};
-  use managarr_tree_widget::TreeItem;
+  use indoc::formatdoc;
+  use managarr_tree_widget::{Tree, TreeItem, TreeState};
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use ratatui::buffer::Buffer;
+  use ratatui::layout::Rect;
+  use ratatui::text::ToText;
+  use ratatui::widgets::StatefulWidget;
   use reqwest::Client;
   use rstest::rstest;
   use serde_json::json;
@@ -14,13 +22,17 @@ mod test {
 
   use crate::app::App;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
-  use crate::models::sonarr_models::{BlocklistItem, Episode, Language, LogResponse};
+  use crate::models::sonarr_models::{
+    BlocklistItem, DownloadRecord, Episode, EpisodeFile, Language, LogResponse, MediaInfo,
+    QualityProfile,
+  };
   use crate::models::sonarr_models::{BlocklistResponse, Quality};
   use crate::models::sonarr_models::{QualityWrapper, SystemStatus};
   use crate::models::stateful_table::StatefulTable;
   use crate::models::HorizontallyScrollableText;
   use crate::models::{sonarr_models::SonarrSerdeable, stateful_table::SortOption};
 
+  use crate::network::sonarr_network::get_episode_status;
   use crate::{
     models::sonarr_models::{
       Rating, Season, SeasonStatistics, Series, SeriesStatistics, SeriesStatus, SeriesType,
@@ -75,6 +87,50 @@ mod test {
         "id": 1
     }
 "#;
+  const EPISODE_JSON: &str = r#"{
+    "seriesId": 1,
+    "tvdbId": 1234,
+    "episodeFileId": 1,
+    "seasonNumber": 1,
+    "episodeNumber": 1,
+    "title": "Something cool",
+    "airDateUtc": "2024-02-10T07:28:45Z",
+    "overview": "Okay so this one time at band camp...",
+    "episodeFile": {
+        "relativePath": "/season 1/episode 1.mkv",
+        "path": "/nfs/tv/series/season 1/episode 1.mkv",
+        "size": 3543348019,
+        "dateAdded": "2024-02-10T07:28:45Z",
+        "language": { "name": "English" },
+        "quality": { "quality": { "name": "Bluray-1080p" } },
+        "mediaInfo": {
+            "audioBitrate": 0,
+            "audioChannels": 7.1,
+            "audioCodec": "AAC",
+            "audioLanguages": "eng",
+            "audioStreamCount": 1,
+            "videoBitDepth": 10,
+            "videoBitrate": 0,
+            "videoCodec": "x265",
+            "videoFps": 23.976,
+            "resolution": "1920x1080",
+            "runTime": "23:51",
+            "scanType": "Progressive",
+            "subtitles": "English"
+        }
+    },
+    "hasFile": true,
+    "monitored": true,
+    "id": 1
+  }"#;
+
+  #[rstest]
+  fn test_resource_episode(
+    #[values(SonarrEvent::GetEpisodes(None), SonarrEvent::GetEpisodeDetails(None))]
+    event: SonarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/episode");
+  }
 
   #[rstest]
   fn test_resource_series(#[values(SonarrEvent::ListSeries)] event: SonarrEvent) {
@@ -86,8 +142,8 @@ mod test {
   #[case(SonarrEvent::DeleteBlocklistItem(None), "/blocklist")]
   #[case(SonarrEvent::HealthCheck, "/health")]
   #[case(SonarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
-  #[case(SonarrEvent::GetEpisodes(None), "/episode")]
   #[case(SonarrEvent::GetLogs(Some(500)), "/log")]
+  #[case(SonarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(SonarrEvent::GetStatus, "/system/status")]
   fn test_resource(#[case] event: SonarrEvent, #[case] expected_uri: String) {
     assert_str_eq!(event.resource(), expected_uri);
@@ -285,8 +341,124 @@ mod test {
     async_server.assert_async().await;
   }
 
+  #[rstest]
   #[tokio::test]
-  async fn test_handle_get_episodes_event() {
+  async fn test_handle_get_episodes_event(#[values(true, false)] use_custom_sorting: bool) {
+    let marker_episode_1 = Episode {
+      title: Some("Season 1".to_owned()),
+      ..Episode::default()
+    };
+    let marker_episode_2 = Episode {
+      title: Some("Season 2".to_owned()),
+      ..Episode::default()
+    };
+    let episode_1 = Episode {
+      title: Some("z test".to_owned()),
+      episode_file: None,
+      ..episode()
+    };
+    let episode_2 = Episode {
+      id: 2,
+      title: Some("A test".to_owned()),
+      episode_file_id: 2,
+      season_number: 2,
+      episode_number: 2,
+      episode_file: None,
+      ..episode()
+    };
+    let expected_episodes = vec![episode_1.clone(), episode_2.clone()];
+    let mut expected_sorted_episodes = vec![episode_1.clone(), episode_2.clone()];
+    let expected_tree = vec![
+      TreeItem::new(
+        marker_episode_1,
+        vec![TreeItem::new_leaf(episode_1.clone())],
+      )
+      .unwrap(),
+      TreeItem::new(
+        marker_episode_2,
+        vec![TreeItem::new_leaf(episode_2.clone())],
+      )
+      .unwrap(),
+    ];
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([episode_1, episode_2])),
+      None,
+      SonarrEvent::GetEpisodes(None),
+      None,
+      Some("seriesId=1"),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .episodes_table
+      .sort_asc = true;
+    if use_custom_sorting {
+      let cmp_fn = |a: &Episode, b: &Episode| {
+        a.title
+          .as_ref()
+          .unwrap()
+          .to_lowercase()
+          .cmp(&b.title.as_ref().unwrap().to_lowercase())
+      };
+      expected_sorted_episodes.sort_by(cmp_fn);
+      let title_sort_option = SortOption {
+        name: "Title",
+        cmp_fn: Some(cmp_fn),
+      };
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .episodes_table
+        .sorting(vec![title_sort_option]);
+    }
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Episodes(episodes) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodes(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.episodes_table.items,
+        expected_sorted_episodes
+      );
+      assert!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .episodes_table
+          .sort_asc
+      );
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.episodes_tree.items,
+        expected_tree
+      );
+      assert_eq!(episodes, expected_episodes);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episodes_event_no_op_while_user_is_selecting_sort_options_on_table() {
     let episodes_json = json!([
       {
           "id": 2,
@@ -323,15 +495,19 @@ mod test {
       title: Some("Season 2".to_owned()),
       ..Episode::default()
     };
-    let episode_1 = episode();
+    let episode_1 = Episode {
+      episode_file: None,
+      ..episode()
+    };
     let episode_2 = Episode {
       id: 2,
       episode_file_id: 2,
       season_number: 2,
       episode_number: 2,
+      episode_file: None,
       ..episode()
     };
-    let expected_episodes = vec![episode_2.clone(), episode_1.clone()];
+    let mut expected_episodes = vec![episode_2.clone(), episode_1.clone()];
     let expected_tree = vec![
       TreeItem::new(
         marker_episode_1,
@@ -357,6 +533,36 @@ mod test {
     app_arc
       .lock()
       .await
+      .push_navigation_stack(ActiveSonarrBlock::EpisodesTableSortPrompt.into());
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .episodes_table
+      .sort_asc = true;
+    let cmp_fn = |a: &Episode, b: &Episode| {
+      a.title
+        .as_ref()
+        .unwrap()
+        .to_lowercase()
+        .cmp(&b.title.as_ref().unwrap().to_lowercase())
+    };
+    expected_episodes.sort_by(cmp_fn);
+    let title_sort_option = SortOption {
+      name: "Title",
+      cmp_fn: Some(cmp_fn),
+    };
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .episodes_table
+      .sorting(vec![title_sort_option]);
+    app_arc
+      .lock()
+      .await
       .data
       .sonarr_data
       .series
@@ -372,8 +578,24 @@ mod test {
       .unwrap()
     {
       async_server.assert_async().await;
+      assert!(app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .episodes_table
+        .is_empty());
+      assert!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .episodes_table
+          .sort_asc
+      );
       assert_eq!(
-        app_arc.lock().await.data.sonarr_data.episodes.items,
+        app_arc.lock().await.data.sonarr_data.episodes_tree.items,
         expected_tree
       );
       assert_eq!(episodes, expected_episodes);
@@ -420,6 +642,7 @@ mod test {
     };
     let episode_1 = Episode {
       series_id: 2,
+      episode_file: None,
       ..episode()
     };
     let episode_2 = Episode {
@@ -428,6 +651,7 @@ mod test {
       season_number: 2,
       episode_number: 2,
       series_id: 2,
+      episode_file: None,
       ..episode()
     };
     let expected_episodes = vec![episode_2.clone(), episode_1.clone()];
@@ -462,10 +686,125 @@ mod test {
     {
       async_server.assert_async().await;
       assert_eq!(
-        app_arc.lock().await.data.sonarr_data.episodes.items,
+        app_arc.lock().await.data.sonarr_data.episodes_tree.items,
         expected_tree
       );
       assert_eq!(episodes, expected_episodes);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episode_details_event() {
+    let response: Episode = serde_json::from_str(EPISODE_JSON).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(EPISODE_JSON).unwrap()),
+      None,
+      SonarrEvent::GetEpisodeDetails(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .episodes_table
+      .set_items(vec![episode()]);
+    app_arc
+      .lock()
+      .await
+      .push_navigation_stack(ActiveSonarrBlock::EpisodesTable.into());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Episode(episode) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert!(app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .episode_details_modal
+        .is_some());
+      assert_eq!(episode, response);
+
+      let app = app_arc.lock().await;
+      let episode_details_modal = app.data.sonarr_data.episode_details_modal.as_ref().unwrap();
+      assert_str_eq!(
+        episode_details_modal.episode_details.get_text(),
+        formatdoc!(
+          "Title: Something cool
+          Season: 1
+          Episode Number: 1
+          Air Date: 2024-02-10 07:28:45 UTC
+          Status: Downloaded
+          Description: Okay so this one time at band camp..."
+        )
+      );
+      assert_str_eq!(
+        episode_details_modal.file_details,
+        formatdoc!(
+          "Relative Path: /season 1/episode 1.mkv
+          Absolute Path: /nfs/tv/series/season 1/episode 1.mkv
+          Size: 3.30 GB
+          Language: English
+          Date Added: 2024-02-10 07:28:45 UTC"
+        )
+      );
+      assert_str_eq!(
+        episode_details_modal.audio_details,
+        formatdoc!(
+          "Bitrate: 0
+          Channels: 7.1
+          Codec: AAC
+          Languages: eng
+          Stream Count: 1"
+        )
+      );
+      assert_str_eq!(
+        episode_details_modal.video_details,
+        formatdoc!(
+          "Bit Depth: 10
+          Bitrate: 0
+          Codec: x265
+          FPS: 23.976
+          Resolution: 1920x1080
+          Scan Type: Progressive
+          Runtime: 23:51
+          Subtitles: English"
+        )
+      );
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episode_details_event_uses_provided_id() {
+    let response: Episode = serde_json::from_str(EPISODE_JSON).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(EPISODE_JSON).unwrap()),
+      None,
+      SonarrEvent::GetEpisodeDetails(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Episode(episode) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(Some(1)))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(episode, response);
     }
   }
 
@@ -602,6 +941,40 @@ mod test {
         .text
         .contains("INFO"));
       assert_eq!(logs, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_quality_profiles_event() {
+    let quality_profile_json = json!([{
+      "id": 2222,
+      "name": "HD - 1080p"
+    }]);
+    let response: Vec<QualityProfile> =
+      serde_json::from_value(quality_profile_json.clone()).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(quality_profile_json),
+      None,
+      SonarrEvent::GetQualityProfiles,
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::QualityProfiles(quality_profiles) = network
+      .handle_sonarr_event(SonarrEvent::GetQualityProfiles)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.quality_profile_map,
+        BiMap::from_iter([(2222i64, "HD - 1080p".to_owned())])
+      );
+      assert_eq!(quality_profiles, response);
     }
   }
 
@@ -841,6 +1214,180 @@ mod test {
     assert_str_eq!(series_id_param, "seriesId=1");
   }
 
+  #[tokio::test]
+  async fn test_extract_episode_id() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .episodes_table
+      .set_items(vec![Episode {
+        id: 1,
+        ..Episode::default()
+      }]);
+    app_arc
+      .lock()
+      .await
+      .push_navigation_stack(ActiveSonarrBlock::EpisodesTable.into());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    let id = network.extract_episode_id(None).await;
+
+    assert_eq!(id, 1);
+  }
+
+  #[tokio::test]
+  async fn test_extract_episode_id_uses_provided_id() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .episodes_table
+      .set_items(vec![Episode {
+        id: 1,
+        ..Episode::default()
+      }]);
+    app_arc
+      .lock()
+      .await
+      .push_navigation_stack(ActiveSonarrBlock::EpisodesTable.into());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    let id = network.extract_episode_id(Some(2)).await;
+
+    assert_eq!(id, 2);
+  }
+
+  #[tokio::test]
+  async fn test_extract_episode_id_filtered_series() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    let mut filtered_episodes = StatefulTable::default();
+    filtered_episodes.set_filtered_items(vec![Episode {
+      id: 1,
+      ..Episode::default()
+    }]);
+    app_arc.lock().await.data.sonarr_data.episodes_table = filtered_episodes;
+    app_arc
+      .lock()
+      .await
+      .push_navigation_stack(ActiveSonarrBlock::EpisodesTable.into());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    let id = network.extract_episode_id(None).await;
+
+    assert_eq!(id, 1);
+  }
+
+  #[tokio::test]
+  async fn test_extract_episode_id_from_tree() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    {
+      let mut app = app_arc.lock().await;
+      let items = vec![TreeItem::new_leaf(Episode {
+        id: 1,
+        ..Episode::default()
+      })];
+      app.data.sonarr_data.episodes_tree.set_items(items.clone());
+      render(
+        &mut app.data.sonarr_data.episodes_tree.state,
+        &items.clone(),
+      );
+      app.data.sonarr_data.episodes_tree.state.key_down();
+      render(
+        &mut app.data.sonarr_data.episodes_tree.state,
+        &items.clone(),
+      );
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    let id = network.extract_episode_id(None).await;
+
+    assert_eq!(id, 1);
+  }
+
+  #[tokio::test]
+  async fn test_extract_episode_id_uses_provided_id_over_tree() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    {
+      let mut app = app_arc.lock().await;
+      let items = vec![TreeItem::new_leaf(Episode {
+        id: 1,
+        ..Episode::default()
+      })];
+      app.data.sonarr_data.episodes_tree.set_items(items.clone());
+      render(
+        &mut app.data.sonarr_data.episodes_tree.state,
+        &items.clone(),
+      );
+      app.data.sonarr_data.episodes_tree.state.key_down();
+      render(
+        &mut app.data.sonarr_data.episodes_tree.state,
+        &items.clone(),
+      );
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    let id = network.extract_episode_id(Some(2)).await;
+
+    assert_eq!(id, 2);
+  }
+
+  #[test]
+  fn test_get_episode_status_downloaded() {
+    assert_str_eq!(get_episode_status(true, &[], 0), "Downloaded");
+  }
+
+  #[test]
+  fn test_get_episode_status_missing() {
+    let download_record = DownloadRecord {
+      episode_id: 1,
+      ..DownloadRecord::default()
+    };
+
+    assert_str_eq!(
+      get_episode_status(false, &[download_record.clone()], 0),
+      "Missing"
+    );
+
+    assert_str_eq!(get_episode_status(false, &[download_record], 1), "Missing");
+  }
+
+  #[test]
+  fn test_get_episode_status_downloading() {
+    assert_str_eq!(
+      get_episode_status(
+        false,
+        &[DownloadRecord {
+          episode_id: 1,
+          status: "downloading".to_owned(),
+          ..DownloadRecord::default()
+        }],
+        1
+      ),
+      "Downloading"
+    );
+  }
+
+  #[test]
+  fn test_get_episode_status_awaiting_import() {
+    assert_str_eq!(
+      get_episode_status(
+        false,
+        &[DownloadRecord {
+          episode_id: 1,
+          status: "completed".to_owned(),
+          ..DownloadRecord::default()
+        }],
+        1
+      ),
+      "Awaiting Import"
+    );
+  }
+
   fn blocklist_item() -> BlocklistItem {
     BlocklistItem {
       id: 1,
@@ -871,6 +1418,18 @@ mod test {
       overview: Some("Okay so this one time at band camp...".to_owned()),
       has_file: true,
       monitored: true,
+      episode_file: Some(episode_file()),
+    }
+  }
+
+  fn episode_file() -> EpisodeFile {
+    EpisodeFile {
+      relative_path: "/season 1/episode 1.mkv".to_owned(),
+      path: "/nfs/tv/series/season 1/episode 1.mkv".to_owned(),
+      size: 3543348019,
+      language: language(),
+      date_added: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
+      media_info: Some(media_info()),
     }
   }
 
@@ -880,6 +1439,23 @@ mod test {
     }
   }
 
+  fn media_info() -> MediaInfo {
+    MediaInfo {
+      audio_bitrate: 0,
+      audio_channels: Number::from_f64(7.1).unwrap(),
+      audio_codec: Some("AAC".to_owned()),
+      audio_languages: Some("eng".to_owned()),
+      audio_stream_count: 1,
+      video_bit_depth: 10,
+      video_bitrate: 0,
+      video_codec: "x265".to_owned(),
+      video_fps: Number::from_f64(23.976).unwrap(),
+      resolution: "1920x1080".to_owned(),
+      run_time: "23:51".to_owned(),
+      scan_type: "Progressive".to_owned(),
+      subtitles: Some("English".to_owned()),
+    }
+  }
   fn quality() -> Quality {
     Quality {
       name: "Bluray-1080p".to_owned(),
@@ -954,5 +1530,15 @@ mod test {
       size_on_disk: 63894022699,
       percent_of_episodes: 100.0,
     }
+  }
+
+  fn render<T>(state: &mut TreeState, items: &[TreeItem<T>])
+  where
+    T: ToText + Clone + Default + Display + Hash + PartialEq + Eq,
+  {
+    let tree = Tree::new(items).unwrap();
+    let area = Rect::new(0, 0, 10, 4);
+    let mut buffer = Buffer::empty(area);
+    StatefulWidget::render(tree, area, &mut buffer, state);
   }
 }

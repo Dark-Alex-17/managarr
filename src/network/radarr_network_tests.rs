@@ -2586,7 +2586,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_quality_profiles_event() {
+  async fn test_handle_get_radarr_quality_profiles_event() {
     let quality_profile_json = json!([{
       "id": 2222,
       "name": "HD - 1080p"

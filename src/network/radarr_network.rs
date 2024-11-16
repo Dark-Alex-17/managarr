@@ -211,9 +211,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(RadarrSerdeable::from),
       RadarrEvent::GetMovies => self.get_movies().await.map(RadarrSerdeable::from),
       RadarrEvent::GetOverview => self.get_diskspace().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetQualityProfiles => {
-        self.get_quality_profiles().await.map(RadarrSerdeable::from)
-      }
+      RadarrEvent::GetQualityProfiles => self
+        .get_radarr_quality_profiles()
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::GetQueuedEvents => self.get_queued_events().await.map(RadarrSerdeable::from),
       RadarrEvent::GetReleases(movie_id) => {
         self.get_releases(movie_id).await.map(RadarrSerdeable::from)
@@ -1702,7 +1703,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_quality_profiles(&mut self) -> Result<Vec<QualityProfile>> {
+  async fn get_radarr_quality_profiles(&mut self) -> Result<Vec<QualityProfile>> {
     info!("Fetching Radarr quality profiles");
     let event = RadarrEvent::GetQualityProfiles;
 

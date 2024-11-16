@@ -21,7 +21,6 @@ use crossterm::execute;
 use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
-use human_panic::metadata;
 use log::{error, warn};
 use network::NetworkTrait;
 use ratatui::backend::CrosstermBackend;

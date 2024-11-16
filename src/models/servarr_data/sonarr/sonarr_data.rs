@@ -1,13 +1,16 @@
+use bimap::BiMap;
 use chrono::{DateTime, Utc};
 use strum::EnumIter;
 
 use crate::models::{
-  sonarr_models::{BlocklistItem, Episode, Series},
+  sonarr_models::{BlocklistItem, DownloadRecord, Episode, Series},
   stateful_list::StatefulList,
   stateful_table::StatefulTable,
   stateful_tree::StatefulTree,
   HorizontallyScrollableText, Route,
 };
+
+use super::modals::EpisodeDetailsModal;
 
 #[cfg(test)]
 #[path = "sonarr_data_tests.rs"]
@@ -19,7 +22,11 @@ pub struct SonarrData {
   pub series: StatefulTable<Series>,
   pub blocklist: StatefulTable<BlocklistItem>,
   pub logs: StatefulList<HorizontallyScrollableText>,
-  pub episodes: StatefulTree<Episode>,
+  pub episodes_tree: StatefulTree<Episode>,
+  pub episodes_table: StatefulTable<Episode>,
+  pub downloads: StatefulTable<DownloadRecord>,
+  pub episode_details_modal: Option<EpisodeDetailsModal>,
+  pub quality_profile_map: BiMap<i64, String>,
 }
 
 impl Default for SonarrData {
@@ -30,7 +37,11 @@ impl Default for SonarrData {
       series: StatefulTable::default(),
       blocklist: StatefulTable::default(),
       logs: StatefulList::default(),
-      episodes: StatefulTree::default(),
+      episodes_tree: StatefulTree::default(),
+      episodes_table: StatefulTable::default(),
+      downloads: StatefulTable::default(),
+      episode_details_modal: None,
+      quality_profile_map: BiMap::new(),
     }
   }
 }
@@ -39,6 +50,9 @@ impl Default for SonarrData {
 pub enum ActiveSonarrBlock {
   Blocklist,
   BlocklistSortPrompt,
+  EpisodesExplorer,
+  EpisodesTable,
+  EpisodesTableSortPrompt,
   #[default]
   Series,
   SeriesSortPrompt,
