@@ -8,6 +8,7 @@ use tokio::sync::mpsc::Sender;
 use tokio_util::sync::CancellationToken;
 
 use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
+use crate::cli::Command;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
 use crate::models::{HorizontallyScrollableText, Route, TabRoute, TabState};
@@ -178,20 +179,45 @@ pub struct Data<'a> {
   pub sonarr_data: SonarrData,
 }
 
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct AppConfig {
-  pub radarr: ServarrConfig,
-  pub sonarr: ServarrConfig,
+  pub radarr: Option<ServarrConfig>,
+  pub sonarr: Option<ServarrConfig>,
 }
 
 impl AppConfig {
   pub fn validate(&self) {
-    self.radarr.validate();
+    if let Some(radarr_config) = &self.radarr {
+      radarr_config.validate();
+    }
+
+    if let Some(sonarr_config) = &self.sonarr {
+      sonarr_config.validate();
+    }
+  }
+
+  pub fn verify_config_present_for_cli(&self, command: &Command) {
+    let msg = |servarr: &str| {
+      log_and_print_error(format!(
+        "{} configuration missing; Unable to run any {} commands.",
+        servarr, servarr
+      ))
+    };
+    match command {
+      Command::Radarr(_) if self.radarr.is_none() => {
+        msg("Radarr");
+        process::exit(1);
+      }
+      Command::Sonarr(_) if self.sonarr.is_none() => {
+        msg("Sonarr");
+        process::exit(1);
+      }
+      _ => (),
+    }
   }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-#[cfg_attr(test, derive(Clone))]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ServarrConfig {
   pub host: Option<String>,
   pub port: Option<u16>,

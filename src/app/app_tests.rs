@@ -5,7 +5,7 @@ mod tests {
   use tokio::sync::mpsc;
 
   use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
-  use crate::app::{App, Data, ServarrConfig, DEFAULT_ROUTE};
+  use crate::app::{App, AppConfig, Data, ServarrConfig, DEFAULT_ROUTE};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
   use crate::models::{HorizontallyScrollableText, TabRoute};
@@ -255,13 +255,21 @@ mod tests {
   }
 
   #[test]
-  fn test_servarr_config_default() {
-    let radarr_config = ServarrConfig::default();
+  fn test_app_config_default() {
+    let app_config = AppConfig::default();
 
-    assert_eq!(radarr_config.host, Some("localhost".to_string()));
-    assert_eq!(radarr_config.port, None);
-    assert_eq!(radarr_config.uri, None);
-    assert!(radarr_config.api_token.is_empty());
-    assert_eq!(radarr_config.ssl_cert_path, None);
+    assert!(app_config.radarr.is_none());
+    assert!(app_config.sonarr.is_none());
+  }
+
+  #[test]
+  fn test_servarr_config_default() {
+    let servarr_config = ServarrConfig::default();
+
+    assert_eq!(servarr_config.host, Some("localhost".to_string()));
+    assert_eq!(servarr_config.port, None);
+    assert_eq!(servarr_config.uri, None);
+    assert!(servarr_config.api_token.is_empty());
+    assert_eq!(servarr_config.ssl_cert_path, None);
   }
 }

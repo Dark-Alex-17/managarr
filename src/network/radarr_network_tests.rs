@@ -827,7 +827,7 @@ mod test {
       api_token: "test1234".to_owned(),
       ..ServarrConfig::default()
     };
-    app.config.radarr = radarr_config;
+    app.config.radarr = Some(radarr_config);
     let app_arc = Arc::new(Mutex::new(app));
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 

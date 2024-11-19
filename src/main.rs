@@ -106,13 +106,14 @@ async fn main() -> Result<()> {
 
   let app = Arc::new(Mutex::new(App::new(
     sync_network_tx,
-    config,
+    config.clone(),
     cancellation_token.clone(),
   )));
 
   match args.command {
     Some(command) => match command {
       Command::Radarr(_) | Command::Sonarr(_) => {
+        config.verify_config_present_for_cli(&command);
         app.lock().await.cli_mode = true;
         let app_nw = Arc::clone(&app);
         let mut network = Network::new(&app_nw, cancellation_token, reqwest_client);
@@ -249,9 +250,18 @@ fn build_network_client(config: &AppConfig) -> Client {
     .http2_keep_alive_interval(Duration::from_secs(5))
     .tcp_keepalive(Duration::from_secs(5));
 
-  if let Some(ref cert_path) = config.radarr.ssl_cert_path {
-    let cert = create_cert(cert_path, "Radarr");
-    client_builder = client_builder.add_root_certificate(cert);
+  if let Some(radarr_config) = &config.radarr {
+    if let Some(ref cert_path) = &radarr_config.ssl_cert_path {
+      let cert = create_cert(cert_path, "Radarr");
+      client_builder = client_builder.add_root_certificate(cert);
+    }
+  }
+
+  if let Some(sonarr_config) = &config.sonarr {
+    if let Some(ref cert_path) = &sonarr_config.ssl_cert_path {
+      let cert = create_cert(cert_path, "Sonarr");
+      client_builder = client_builder.add_root_certificate(cert);
+    }
   }
 
   match client_builder.build() {

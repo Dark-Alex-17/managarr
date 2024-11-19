@@ -216,8 +216,14 @@ impl<'a, 'b> Network<'a, 'b> {
       },
       default_port,
     ) = match network_event.into() {
-      NetworkEvent::Radarr(_) => (&app.config.radarr, 7878),
-      NetworkEvent::Sonarr(_) => (&app.config.sonarr, 8989),
+      NetworkEvent::Radarr(_) => (
+        &app.config.radarr.as_ref().expect("Radarr config undefined"),
+        7878,
+      ),
+      NetworkEvent::Sonarr(_) => (
+        &app.config.sonarr.as_ref().expect("Sonarr config undefined"),
+        8989,
+      ),
     };
     let mut uri = if let Some(servarr_uri) = uri {
       format!("{servarr_uri}/api/v3{resource}")

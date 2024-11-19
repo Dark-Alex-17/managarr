@@ -43,7 +43,7 @@ mod tests {
       ssl_cert_path: None,
       ..ServarrConfig::default()
     };
-    app.config.radarr = radarr_config;
+    app.config.radarr = Some(radarr_config);
     let app_arc = Arc::new(Mutex::new(app));
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
@@ -397,6 +397,40 @@ mod tests {
     async_server.assert_async().await;
   }
 
+  #[tokio::test]
+  #[should_panic(expected = "Radarr config undefined")]
+  async fn test_request_props_from_requires_radarr_config_to_be_present_for_radarr_events() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    network
+      .request_props_from(
+        RadarrEvent::GetMovies,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        None,
+      )
+      .await;
+  }
+
+  #[tokio::test]
+  #[should_panic(expected = "Sonarr config undefined")]
+  async fn test_request_props_from_requires_sonarr_config_to_be_present_for_sonarr_events() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    network
+      .request_props_from(
+        SonarrEvent::ListSeries,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        None,
+      )
+      .await;
+  }
+
   #[rstest]
   #[case(RadarrEvent::GetMovies, 7878)]
   #[case(SonarrEvent::ListSeries, 8989)]
@@ -408,6 +442,10 @@ mod tests {
     let app_arc = Arc::new(Mutex::new(App::default()));
     let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
     let resource = network_event.resource();
+    app_arc.lock().await.config = AppConfig {
+      radarr: Some(ServarrConfig::default()),
+      sonarr: Some(ServarrConfig::default()),
+    };
 
     let request_props = network
       .request_props_from(network_event, RequestMethod::Get, None::<()>, None, None)
@@ -440,8 +478,8 @@ mod tests {
     };
     {
       let mut app = app_arc.lock().await;
-      app.config.radarr = servarr_config.clone();
-      app.config.sonarr = servarr_config;
+      app.config.radarr = Some(servarr_config.clone());
+      app.config.sonarr = Some(servarr_config);
     }
     let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
@@ -474,8 +512,8 @@ mod tests {
     };
     {
       let mut app = app_arc.lock().await;
-      app.config.radarr = servarr_config.clone();
-      app.config.sonarr = servarr_config;
+      app.config.radarr = Some(servarr_config.clone());
+      app.config.sonarr = Some(servarr_config);
     }
     let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
@@ -503,6 +541,10 @@ mod tests {
     let app_arc = Arc::new(Mutex::new(App::default()));
     let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
     let resource = network_event.resource();
+    app_arc.lock().await.config = AppConfig {
+      radarr: Some(ServarrConfig::default()),
+      sonarr: Some(ServarrConfig::default()),
+    };
 
     let request_props = network
       .request_props_from(
@@ -541,8 +583,8 @@ mod tests {
     };
     {
       let mut app = app_arc.lock().await;
-      app.config.radarr = servarr_config.clone();
-      app.config.sonarr = servarr_config;
+      app.config.radarr = Some(servarr_config.clone());
+      app.config.sonarr = Some(servarr_config);
     }
     let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
@@ -581,8 +623,8 @@ mod tests {
     };
     {
       let mut app = app_arc.lock().await;
-      app.config.radarr = servarr_config.clone();
-      app.config.sonarr = servarr_config;
+      app.config.radarr = Some(servarr_config.clone());
+      app.config.sonarr = Some(servarr_config);
     }
     let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
@@ -701,8 +743,8 @@ pub(in crate::network) mod test_utils {
     };
 
     match network_event.into() {
-      NetworkEvent::Radarr(_) => app.config.radarr = servarr_config,
-      NetworkEvent::Sonarr(_) => app.config.sonarr = servarr_config,
+      NetworkEvent::Radarr(_) => app.config.radarr = Some(servarr_config),
+      NetworkEvent::Sonarr(_) => app.config.sonarr = Some(servarr_config),
     }
 
     let app_arc = Arc::new(Mutex::new(app));
