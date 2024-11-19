@@ -1314,7 +1314,8 @@ dependencies = [
 [[package]]
 name = "managarr-tree-widget"
 version = "0.24.0"
-source = "git+https://github.com/Dark-Alex-17/managarr-tree-widget.git#b0d8d9f0bfdbb4f4a43f9a59806f8e84bbaf4e30"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aae8e5f28f9581dcddb67e4741a96231752dafb997224cae6d42c75db29eb5af"
 dependencies = [
  "ratatui",
  "unicode-width 0.2.0",
