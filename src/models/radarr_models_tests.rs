@@ -6,11 +6,11 @@ mod tests {
   use crate::models::{
     radarr_models::{
       AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, DiskSpace,
-      DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult, Log,
-      LogResponse, MinimumAvailability, Monitor, Movie, MovieHistoryItem, QualityProfile,
-      RadarrSerdeable, Release, RootFolder, SystemStatus, Tag, Task, TaskName, Update,
+      DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult,
+      MinimumAvailability, Monitor, Movie, MovieHistoryItem, QualityProfile, RadarrSerdeable,
+      Release, RootFolder, SystemStatus, Tag, Task, TaskName, Update,
     },
-    servarr_models::{HostConfig, QueueEvent, SecurityConfig},
+    servarr_models::{HostConfig, Log, LogResponse, QueueEvent, SecurityConfig},
     Serdeable,
   };
 

@@ -1,4 +1,6 @@
-use crate::models::ScrollableText;
+use crate::models::{
+  servarr_models::Release, sonarr_models::Episode, stateful_table::StatefulTable, ScrollableText,
+};
 
 #[derive(Default)]
 pub struct EpisodeDetailsModal {
@@ -9,5 +11,13 @@ pub struct EpisodeDetailsModal {
   // pub episode_history: StatefulTable<MovieHistoryItem>,
   // pub episode_cast: StatefulTable<Credit>,
   // pub episode_crew: StatefulTable<Credit>,
-  // pub episode_releases: StatefulTable<Release>,
+  pub episode_releases: StatefulTable<Release>,
+}
+
+#[derive(Default)]
+pub struct SeasonDetailsModal {
+  pub season_details: ScrollableText,
+  pub episodes: StatefulTable<Episode>,
+  pub episode_details_modal: Option<EpisodeDetailsModal>,
+  pub season_releases: StatefulTable<Release>,
 }

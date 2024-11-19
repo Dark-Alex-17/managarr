@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::assert_str_eq;
+  use pretty_assertions::{assert_eq, assert_str_eq};
 
   use crate::models::servarr_models::{
-    AuthenticationMethod, AuthenticationRequired, CertificateValidation,
+    AuthenticationMethod, AuthenticationRequired, CertificateValidation, QualityProfile,
   };
 
   #[test]
@@ -30,5 +30,20 @@ mod tests {
       "disabledForLocalAddresses"
     );
     assert_str_eq!(CertificateValidation::Disabled.to_string(), "disabled");
+  }
+
+  #[test]
+  fn test_quality_profile_from_tuple_ref() {
+    let id = 2;
+    let name = "Test".to_owned();
+    let quality_profile_tuple = (&id, &name);
+    let expected_quality_profile = QualityProfile {
+      id: 2,
+      name: "Test".to_owned(),
+    };
+
+    let quality_profile = QualityProfile::from(quality_profile_tuple);
+
+    assert_eq!(expected_quality_profile, quality_profile);
   }
 }

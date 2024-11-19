@@ -1,18 +1,20 @@
-use std::collections::BTreeMap;
-
 use anyhow::Result;
 use indoc::formatdoc;
 use log::{debug, info};
-use managarr_tree_widget::TreeItem;
 use serde_json::{json, Value};
 
 use crate::{
   models::{
-    servarr_data::sonarr::{modals::EpisodeDetailsModal, sonarr_data::ActiveSonarrBlock},
-    servarr_models::{HostConfig, Indexer, QueueEvent, SecurityConfig},
+    servarr_data::sonarr::{
+      modals::{EpisodeDetailsModal, SeasonDetailsModal},
+      sonarr_data::ActiveSonarrBlock,
+    },
+    servarr_models::{
+      HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release, SecurityConfig,
+    },
     sonarr_models::{
-      BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, LogResponse,
-      QualityProfile, Series, SonarrSerdeable, SystemStatus,
+      BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
+      SonarrSerdeable, SystemStatus,
     },
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
   },
@@ -39,6 +41,7 @@ pub enum SonarrEvent {
   GetLogs(Option<u64>),
   GetQualityProfiles,
   GetQueuedEvents,
+  GetSeasonReleases(Option<(i64, i64)>),
   GetSecurityConfig,
   GetStatus,
   HealthCheck,
@@ -59,6 +62,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
       SonarrEvent::GetQueuedEvents => "/command",
+      SonarrEvent::GetSeasonReleases(_) => "/release",
       SonarrEvent::GetStatus => "/system/status",
       SonarrEvent::HealthCheck => "/health",
       SonarrEvent::ListSeries => "/series",
@@ -100,9 +104,13 @@ impl<'a, 'b> Network<'a, 'b> {
         .get_episode_details(episode_id)
         .await
         .map(SonarrSerdeable::from),
-      SonarrEvent::GetIndexers => self.get_sonarr_indexers().await.map(SonarrSerdeable::from),
       SonarrEvent::GetHostConfig => self
         .get_sonarr_host_config()
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::GetIndexers => self.get_sonarr_indexers().await.map(SonarrSerdeable::from),
+      SonarrEvent::GetLogs(events) => self
+        .get_sonarr_logs(events)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetQualityProfiles => self
@@ -113,8 +121,8 @@ impl<'a, 'b> Network<'a, 'b> {
         .get_queued_sonarr_events()
         .await
         .map(SonarrSerdeable::from),
-      SonarrEvent::GetLogs(events) => self
-        .get_sonarr_logs(events)
+      SonarrEvent::GetSeasonReleases(params) => self
+        .get_season_releases(params)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetSecurityConfig => self
@@ -288,43 +296,29 @@ impl<'a, 'b> Network<'a, 'b> {
         episode_vec.sort_by(|a, b| a.id.cmp(&b.id));
         if !matches!(
           app.get_current_route(),
-          Route::Sonarr(ActiveSonarrBlock::EpisodesTableSortPrompt, _)
+          Route::Sonarr(ActiveSonarrBlock::EpisodesSortPrompt, _)
         ) {
+          if app.data.sonarr_data.season_details_modal.is_none() {
+            app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
+          }
+
           app
             .data
             .sonarr_data
-            .episodes_table
+            .season_details_modal
+            .as_mut()
+            .unwrap()
+            .episodes
             .set_items(episode_vec.clone());
           app
             .data
             .sonarr_data
-            .episodes_table
+            .season_details_modal
+            .as_mut()
+            .unwrap()
+            .episodes
             .apply_sorting_toggle(false);
         }
-
-        let mut seasons = BTreeMap::new();
-
-        for episode in episode_vec {
-          seasons
-            .entry(episode.season_number)
-            .or_insert_with(Vec::new)
-            .push(episode);
-        }
-
-        let tree = seasons
-          .into_iter()
-          .map(|(season, episodes_vec)| {
-            let marker_episode = Episode {
-              title: Some(format!("Season {season}")),
-              ..Episode::default()
-            };
-            let children = episodes_vec.into_iter().map(TreeItem::new_leaf).collect();
-
-            TreeItem::new(marker_episode, children).expect("All item identifiers must be unique")
-          })
-          .collect();
-
-        app.data.sonarr_data.episodes_tree.set_items(tree);
       })
       .await
   }
@@ -431,7 +425,15 @@ impl<'a, 'b> Network<'a, 'b> {
           }
         };
 
-        app.data.sonarr_data.episode_details_modal = Some(episode_details_modal);
+        if !app.cli_mode {
+          app
+            .data
+            .sonarr_data
+            .season_details_modal
+            .as_mut()
+            .expect("Season details modal is empty")
+            .episode_details_modal = Some(episode_details_modal);
+        }
       })
       .await
   }
@@ -548,6 +550,51 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
+  async fn get_season_releases(
+    &mut self,
+    series_season_id_tuple: Option<(i64, i64)>,
+  ) -> Result<Vec<Release>> {
+    let event = SonarrEvent::GetSeasonReleases(None);
+    let (series_id, season_number) =
+      if let Some((series_id, season_number)) = series_season_id_tuple {
+        (Some(series_id), Some(season_number))
+      } else {
+        (None, None)
+      };
+
+    let (series_id, series_id_param) = self.extract_series_id(series_id).await;
+    let (season_number, season_number_param) = self.extract_season_number(season_number).await;
+
+    info!("Fetching releases for series with ID: {series_id} and season number: {season_number}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("{}&{}", series_id_param, season_number_param)),
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<Release>>(request_props, |release_vec, mut app| {
+        if app.data.sonarr_data.season_details_modal.is_none() {
+          app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
+        }
+
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_mut()
+          .unwrap()
+          .season_releases
+          .set_items(release_vec);
+      })
+      .await
+  }
+
   async fn get_sonarr_security_config(&mut self) -> Result<SecurityConfig> {
     info!("Fetching Sonarr security config");
     let event = SonarrEvent::GetSecurityConfig;
@@ -616,24 +663,38 @@ impl<'a, 'b> Network<'a, 'b> {
     (series_id, format!("seriesId={series_id}"))
   }
 
-  async fn extract_episode_id(&mut self, episode_id: Option<i64>) -> i64 {
-    let app = self.app.lock().await;
-
-    let episode_id = if let Some(id) = episode_id {
-      id
-    } else if matches!(
-      app.get_current_route(),
-      Route::Sonarr(ActiveSonarrBlock::EpisodesTable, _)
-    ) {
-      app.data.sonarr_data.episodes_table.current_selection().id
+  async fn extract_season_number(&mut self, season_number: Option<i64>) -> (i64, String) {
+    let season_number = if let Some(number) = season_number {
+      number
     } else {
-      app
+      self
+        .app
+        .lock()
+        .await
         .data
         .sonarr_data
-        .episodes_tree
+        .seasons
         .current_selection()
+        .season_number
+    };
+    (season_number, format!("seasonNumber={season_number}"))
+  }
+
+  async fn extract_episode_id(&mut self, episode_id: Option<i64>) -> i64 {
+    let episode_id = if let Some(id) = episode_id {
+      id
+    } else {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
         .as_ref()
-        .unwrap()
+        .expect("Season details have not been loaded")
+        .episodes
+        .current_selection()
         .id
     };
 

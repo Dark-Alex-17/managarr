@@ -11,10 +11,9 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::blocklist::{blocklist_sorting_options, BlocklistHandler};
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::{
-    BlocklistItem, BlocklistItemMovie, Language, Quality, QualityWrapper,
-  };
+  use crate::models::radarr_models::{BlocklistItem, BlocklistItemMovie};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, BLOCKLIST_BLOCKS};
+  use crate::models::servarr_models::{Language, Quality, QualityWrapper};
   use crate::models::stateful_table::SortOption;
 
   mod test_handle_scroll_up_and_down {

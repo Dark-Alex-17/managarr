@@ -6,9 +6,10 @@ mod tests {
 
     use crate::app::radarr::ActiveRadarrBlock;
     use crate::app::App;
-    use crate::models::radarr_models::{Collection, CollectionMovie, Credit, Release};
+    use crate::models::radarr_models::{Collection, CollectionMovie, Credit};
     use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 
+    use crate::models::servarr_models::Release;
     use crate::network::radarr_network::RadarrEvent;
     use crate::network::NetworkEvent;
 

@@ -10,7 +10,10 @@ use strum::EnumIter;
 use crate::serde_enum_from;
 
 use super::{
-  servarr_models::{HostConfig, Indexer, QueueEvent, SecurityConfig},
+  servarr_models::{
+    HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper, QueueEvent,
+    Release, SecurityConfig,
+  },
   HorizontallyScrollableText, Serdeable,
 };
 
@@ -121,28 +124,6 @@ pub struct IndexerSettings {
   pub rss_sync_interval: i64,
 }
 
-#[derive(Serialize, Deserialize, Default, Debug, Hash, Clone, PartialEq, Eq, Ord, PartialOrd)]
-pub struct Language {
-  pub name: String,
-}
-
-#[derive(Default, Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct Log {
-  pub time: DateTime<Utc>,
-  pub exception: Option<String>,
-  pub exception_type: Option<String>,
-  pub level: String,
-  pub logger: Option<String>,
-  pub message: Option<String>,
-  pub method: Option<String>,
-}
-
-#[derive(Default, Clone, Serialize, Deserialize, Debug, Eq, PartialEq)]
-pub struct LogResponse {
-  pub records: Vec<Log>,
-}
-
 #[derive(Serialize, Deserialize, Derivative, Hash, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
@@ -166,23 +147,6 @@ pub struct MediaInfo {
   pub run_time: String,
   pub scan_type: String,
   pub subtitles: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Default, Debug, Hash, Clone, PartialEq, Eq, Ord, PartialOrd)]
-pub struct Quality {
-  pub name: String,
-}
-
-#[derive(Serialize, Deserialize, Default, Debug, Hash, Clone, PartialEq, Eq, Ord, PartialOrd)]
-pub struct QualityWrapper {
-  pub quality: Quality,
-}
-
-#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct QualityProfile {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub id: i64,
-  pub name: String,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -353,6 +317,7 @@ pub enum SonarrSerdeable {
   Indexers(Vec<Indexer>),
   QualityProfiles(Vec<QualityProfile>),
   QueueEvents(Vec<QueueEvent>),
+  Releases(Vec<Release>),
   SecurityConfig(SecurityConfig),
   SeriesVec(Vec<Series>),
   SystemStatus(SystemStatus),
@@ -383,6 +348,7 @@ serde_enum_from!(
     Indexers(Vec<Indexer>),
     QualityProfiles(Vec<QualityProfile>),
     QueueEvents(Vec<QueueEvent>),
+    Releases(Vec<Release>),
     SecurityConfig(SecurityConfig),
     SeriesVec(Vec<Series>),
     SystemStatus(SystemStatus),

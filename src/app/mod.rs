@@ -36,6 +36,7 @@ pub struct App<'a> {
   pub is_loading: bool,
   pub should_refresh: bool,
   pub should_ignore_quit_key: bool,
+  pub cli_mode: bool,
   pub config: AppConfig,
   pub data: Data<'a>,
 }
@@ -164,6 +165,7 @@ impl<'a> Default for App<'a> {
       is_routing: false,
       should_refresh: false,
       should_ignore_quit_key: false,
+      cli_mode: false,
       config: AppConfig::default(),
       data: Data::default(),
     }

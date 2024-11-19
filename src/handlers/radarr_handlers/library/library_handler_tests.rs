@@ -11,11 +11,12 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::library::{movies_sorting_options, LibraryHandler};
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::{Language, Movie};
+  use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, ADD_MOVIE_BLOCKS, DELETE_MOVIE_BLOCKS, EDIT_MOVIE_BLOCKS, LIBRARY_BLOCKS,
     MOVIE_DETAILS_BLOCKS,
   };
+  use crate::models::servarr_models::Language;
   use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
   use crate::test_handler_delegation;

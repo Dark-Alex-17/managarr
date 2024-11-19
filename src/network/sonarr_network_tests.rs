@@ -21,16 +21,17 @@ mod test {
   use tokio_util::sync::CancellationToken;
 
   use crate::app::App;
+  use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::servarr_models::{
-    HostConfig, Indexer, IndexerField, QueueEvent, SecurityConfig,
+    HostConfig, Indexer, IndexerField, Language, LogResponse, Quality, QualityProfile,
+    QualityWrapper, QueueEvent, Release, SecurityConfig,
   };
+  use crate::models::sonarr_models::BlocklistResponse;
+  use crate::models::sonarr_models::SystemStatus;
   use crate::models::sonarr_models::{
-    BlocklistItem, DownloadRecord, DownloadsResponse, Episode, EpisodeFile, Language, LogResponse,
-    MediaInfo, QualityProfile,
+    BlocklistItem, DownloadRecord, DownloadsResponse, Episode, EpisodeFile, MediaInfo,
   };
-  use crate::models::sonarr_models::{BlocklistResponse, Quality};
-  use crate::models::sonarr_models::{QualityWrapper, SystemStatus};
   use crate::models::stateful_table::StatefulTable;
   use crate::models::HorizontallyScrollableText;
   use crate::models::{sonarr_models::SonarrSerdeable, stateful_table::SortOption};
@@ -155,6 +156,11 @@ mod test {
   #[rstest]
   fn test_resource_indexer(#[values(SonarrEvent::GetIndexers)] event: SonarrEvent) {
     assert_str_eq!(event.resource(), "/indexer");
+  }
+
+  #[rstest]
+  fn test_resource_release(#[values(SonarrEvent::GetSeasonReleases(None))] event: SonarrEvent) {
+    assert_str_eq!(event.resource(), "/release");
   }
 
   #[rstest]
@@ -408,14 +414,6 @@ mod test {
   #[rstest]
   #[tokio::test]
   async fn test_handle_get_episodes_event(#[values(true, false)] use_custom_sorting: bool) {
-    let marker_episode_1 = Episode {
-      title: Some("Season 1".to_owned()),
-      ..Episode::default()
-    };
-    let marker_episode_2 = Episode {
-      title: Some("Season 2".to_owned()),
-      ..Episode::default()
-    };
     let episode_1 = Episode {
       title: Some("z test".to_owned()),
       episode_file: None,
@@ -432,18 +430,6 @@ mod test {
     };
     let expected_episodes = vec![episode_1.clone(), episode_2.clone()];
     let mut expected_sorted_episodes = vec![episode_1.clone(), episode_2.clone()];
-    let expected_tree = vec![
-      TreeItem::new(
-        marker_episode_1,
-        vec![TreeItem::new_leaf(episode_1.clone())],
-      )
-      .unwrap(),
-      TreeItem::new(
-        marker_episode_2,
-        vec![TreeItem::new_leaf(episode_2.clone())],
-      )
-      .unwrap(),
-    ];
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
@@ -454,13 +440,8 @@ mod test {
       Some("seriesId=1"),
     )
     .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .episodes_table
-      .sort_asc = true;
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.sort_asc = true;
     if use_custom_sorting {
       let cmp_fn = |a: &Episode, b: &Episode| {
         a.title
@@ -474,14 +455,11 @@ mod test {
         name: "Title",
         cmp_fn: Some(cmp_fn),
       };
-      app_arc
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .episodes_table
+      season_details_modal
+        .episodes
         .sorting(vec![title_sort_option]);
     }
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
     app_arc
       .lock()
       .await
@@ -501,7 +479,16 @@ mod test {
     {
       async_server.assert_async().await;
       assert_eq!(
-        app_arc.lock().await.data.sonarr_data.episodes_table.items,
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episodes
+          .items,
         expected_sorted_episodes
       );
       assert!(
@@ -510,14 +497,60 @@ mod test {
           .await
           .data
           .sonarr_data
-          .episodes_table
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episodes
           .sort_asc
       );
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.episodes_tree.items,
-        expected_tree
-      );
       assert_eq!(episodes, expected_episodes);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episodes_event_empty_season_details_modal() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([episode()])),
+      None,
+      SonarrEvent::GetEpisodes(None),
+      None,
+      Some("seriesId=1"),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Episodes(episodes) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodes(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episodes
+          .items,
+        vec![episode()]
+      );
+      assert_eq!(episodes, vec![episode()]);
     }
   }
 
@@ -551,14 +584,6 @@ mod test {
           "monitored": true
       }
     ]);
-    let marker_episode_1 = Episode {
-      title: Some("Season 1".to_owned()),
-      ..Episode::default()
-    };
-    let marker_episode_2 = Episode {
-      title: Some("Season 2".to_owned()),
-      ..Episode::default()
-    };
     let episode_1 = Episode {
       episode_file: None,
       ..episode()
@@ -572,18 +597,6 @@ mod test {
       ..episode()
     };
     let mut expected_episodes = vec![episode_2.clone(), episode_1.clone()];
-    let expected_tree = vec![
-      TreeItem::new(
-        marker_episode_1,
-        vec![TreeItem::new_leaf(episode_1.clone())],
-      )
-      .unwrap(),
-      TreeItem::new(
-        marker_episode_2,
-        vec![TreeItem::new_leaf(episode_2.clone())],
-      )
-      .unwrap(),
-    ];
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
@@ -597,14 +610,9 @@ mod test {
     app_arc
       .lock()
       .await
-      .push_navigation_stack(ActiveSonarrBlock::EpisodesTableSortPrompt.into());
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .episodes_table
-      .sort_asc = true;
+      .push_navigation_stack(ActiveSonarrBlock::EpisodesSortPrompt.into());
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.sort_asc = true;
     let cmp_fn = |a: &Episode, b: &Episode| {
       a.title
         .as_ref()
@@ -617,12 +625,8 @@ mod test {
       name: "Title",
       cmp_fn: Some(cmp_fn),
     };
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .episodes_table
+    season_details_modal
+      .episodes
       .sorting(vec![title_sort_option]);
     app_arc
       .lock()
@@ -634,6 +638,7 @@ mod test {
         id: 1,
         ..Series::default()
       }]);
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episodes(episodes) = network
@@ -647,7 +652,10 @@ mod test {
         .await
         .data
         .sonarr_data
-        .episodes_table
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episodes
         .is_empty());
       assert!(
         app_arc
@@ -655,12 +663,11 @@ mod test {
           .await
           .data
           .sonarr_data
-          .episodes_table
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episodes
           .sort_asc
-      );
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.episodes_tree.items,
-        expected_tree
       );
       assert_eq!(episodes, expected_episodes);
     }
@@ -791,14 +798,6 @@ mod test {
           "monitored": true
       }
     ]);
-    let marker_episode_1 = Episode {
-      title: Some("Season 1".to_owned()),
-      ..Episode::default()
-    };
-    let marker_episode_2 = Episode {
-      title: Some("Season 2".to_owned()),
-      ..Episode::default()
-    };
     let episode_1 = Episode {
       series_id: 2,
       episode_file: None,
@@ -814,18 +813,6 @@ mod test {
       ..episode()
     };
     let expected_episodes = vec![episode_2.clone(), episode_1.clone()];
-    let expected_tree = vec![
-      TreeItem::new(
-        marker_episode_1,
-        vec![TreeItem::new_leaf(episode_1.clone())],
-      )
-      .unwrap(),
-      TreeItem::new(
-        marker_episode_2,
-        vec![TreeItem::new_leaf(episode_2.clone())],
-      )
-      .unwrap(),
-    ];
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
@@ -844,10 +831,6 @@ mod test {
       .unwrap()
     {
       async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.episodes_tree.items,
-        expected_tree
-      );
       assert_eq!(episodes, expected_episodes);
     }
   }
@@ -865,17 +848,13 @@ mod test {
       None,
     )
     .await;
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.set_items(vec![episode()]);
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
     app_arc
       .lock()
       .await
-      .data
-      .sonarr_data
-      .episodes_table
-      .set_items(vec![episode()]);
-    app_arc
-      .lock()
-      .await
-      .push_navigation_stack(ActiveSonarrBlock::EpisodesTable.into());
+      .push_navigation_stack(ActiveSonarrBlock::Episodes.into());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episode(episode) = network
@@ -889,12 +868,23 @@ mod test {
         .await
         .data
         .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
         .episode_details_modal
         .is_some());
       assert_eq!(episode, response);
 
       let app = app_arc.lock().await;
-      let episode_details_modal = app.data.sonarr_data.episode_details_modal.as_ref().unwrap();
+      let episode_details_modal = app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .as_ref()
+        .unwrap();
       assert_str_eq!(
         episode_details_modal.episode_details.get_text(),
         formatdoc!(
@@ -955,6 +945,9 @@ mod test {
       None,
     )
     .await;
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.set_items(vec![episode()]);
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episode(episode) = network
@@ -965,6 +958,75 @@ mod test {
       async_server.assert_async().await;
       assert_eq!(episode, response);
     }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episode_details_event_season_details_modal_not_required_in_cli_mode() {
+    let response: Episode = serde_json::from_str(EPISODE_JSON).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(EPISODE_JSON).unwrap()),
+      None,
+      SonarrEvent::GetEpisodeDetails(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    app_arc.lock().await.cli_mode = true;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Episode(episode) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(Some(1)))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(episode, response);
+    }
+  }
+
+  #[tokio::test]
+  #[should_panic(expected = "Season details have not been loaded")]
+  async fn test_handle_get_episode_details_event_requires_season_details_modal_to_be_some_when_no_parameter_is_passed(
+  ) {
+    let (_async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(EPISODE_JSON).unwrap()),
+      None,
+      SonarrEvent::GetEpisodeDetails(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(None))
+      .await
+      .unwrap();
+  }
+
+  #[tokio::test]
+  #[should_panic(expected = "Season details modal is empty")]
+  async fn test_handle_get_episode_details_event_requires_season_details_modal_to_be_some() {
+    let (_async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(EPISODE_JSON).unwrap()),
+      None,
+      SonarrEvent::GetEpisodeDetails(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(Some(1)))
+      .await
+      .unwrap();
   }
 
   #[tokio::test]
@@ -1185,6 +1247,272 @@ mod test {
         vec![expected_event]
       );
       assert_eq!(events, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_season_releases_event() {
+    let release_json = json!([{
+      "guid": "1234",
+      "protocol": "torrent",
+      "age": 1,
+      "title": "Test Release",
+      "indexer": "kickass torrents",
+      "indexerId": 2,
+      "size": 1234,
+      "rejected": true,
+      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+      "seeders": 2,
+      "leechers": 1,
+      "languages": [ { "name": "English" } ],
+      "quality": { "quality": { "name": "Bluray-1080p" }}
+    }]);
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(release_json),
+      None,
+      SonarrEvent::GetSeasonReleases(None),
+      None,
+      Some("seriesId=1&seasonNumber=1"),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![series()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .seasons
+      .set_items(vec![season()]);
+    app_arc.lock().await.data.sonarr_data.season_details_modal =
+      Some(SeasonDetailsModal::default());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Releases(releases_vec) = network
+      .handle_sonarr_event(SonarrEvent::GetSeasonReleases(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_releases
+          .items,
+        vec![release()]
+      );
+      assert_eq!(releases_vec, vec![release()]);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_season_releases_event_empty_season_details_modal() {
+    let release_json = json!([{
+      "guid": "1234",
+      "protocol": "torrent",
+      "age": 1,
+      "title": "Test Release",
+      "indexer": "kickass torrents",
+      "indexerId": 2,
+      "size": 1234,
+      "rejected": true,
+      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+      "seeders": 2,
+      "leechers": 1,
+      "languages": [ { "name": "English" } ],
+      "quality": { "quality": { "name": "Bluray-1080p" }}
+    }]);
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(release_json),
+      None,
+      SonarrEvent::GetSeasonReleases(None),
+      None,
+      Some("seriesId=1&seasonNumber=1"),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![series()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .seasons
+      .set_items(vec![season()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::GetSeasonReleases(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .season_releases
+        .items,
+      vec![release()]
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_season_releases_event_uses_provided_series_id_and_season_number() {
+    let release_json = json!([{
+      "guid": "1234",
+      "protocol": "torrent",
+      "age": 1,
+      "title": "Test Release",
+      "indexer": "kickass torrents",
+      "indexerId": 2,
+      "size": 1234,
+      "rejected": true,
+      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+      "seeders": 2,
+      "leechers": 1,
+      "languages": [ { "name": "English" } ],
+      "quality": { "quality": { "name": "Bluray-1080p" }}
+    }]);
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(release_json),
+      None,
+      SonarrEvent::GetSeasonReleases(None),
+      None,
+      Some("seriesId=2&seasonNumber=2"),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![series()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .seasons
+      .set_items(vec![season()]);
+    app_arc.lock().await.data.sonarr_data.season_details_modal =
+      Some(SeasonDetailsModal::default());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Releases(releases_vec) = network
+      .handle_sonarr_event(SonarrEvent::GetSeasonReleases(Some((2, 2))))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_releases
+          .items,
+        vec![release()]
+      );
+      assert_eq!(releases_vec, vec![release()]);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_season_releases_event_filtered_series_and_filtered_seasons() {
+    let release_json = json!([{
+      "guid": "1234",
+      "protocol": "torrent",
+      "age": 1,
+      "title": "Test Release",
+      "indexer": "kickass torrents",
+      "indexerId": 2,
+      "size": 1234,
+      "rejected": true,
+      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+      "seeders": 2,
+      "leechers": 1,
+      "languages": [ { "name": "English" } ],
+      "quality": { "quality": { "name": "Bluray-1080p" }}
+    }]);
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(release_json),
+      None,
+      SonarrEvent::GetSeasonReleases(None),
+      None,
+      Some("seriesId=1&seasonNumber=1"),
+    )
+    .await;
+    let mut filtered_series = StatefulTable::default();
+    filtered_series.set_filtered_items(vec![Series {
+      id: 1,
+      ..Series::default()
+    }]);
+    app_arc.lock().await.data.sonarr_data.series = filtered_series;
+    let mut filtered_seasons = StatefulTable::default();
+    filtered_seasons.set_filtered_items(vec![Season {
+      season_number: 1,
+      ..Season::default()
+    }]);
+    app_arc.lock().await.data.sonarr_data.seasons = filtered_seasons;
+    app_arc.lock().await.data.sonarr_data.season_details_modal =
+      Some(SeasonDetailsModal::default());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Releases(releases_vec) = network
+      .handle_sonarr_event(SonarrEvent::GetSeasonReleases(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_releases
+          .items,
+        vec![release()]
+      );
+      assert_eq!(releases_vec, vec![release()]);
     }
   }
 
@@ -1459,22 +1787,76 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_extract_episode_id() {
+  async fn test_extract_season_number() {
     let app_arc = Arc::new(Mutex::new(App::default()));
     app_arc
       .lock()
       .await
       .data
       .sonarr_data
-      .episodes_table
-      .set_items(vec![Episode {
-        id: 1,
-        ..Episode::default()
+      .seasons
+      .set_items(vec![Season {
+        season_number: 1,
+        ..Season::default()
       }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    let (id, season_number_param) = network.extract_season_number(None).await;
+
+    assert_eq!(id, 1);
+    assert_str_eq!(season_number_param, "seasonNumber=1");
+  }
+
+  #[tokio::test]
+  async fn test_extract_season_number_uses_provided_season_number() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
     app_arc
       .lock()
       .await
-      .push_navigation_stack(ActiveSonarrBlock::EpisodesTable.into());
+      .data
+      .sonarr_data
+      .seasons
+      .set_items(vec![Season {
+        season_number: 1,
+        ..Season::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (id, season_number_param) = network.extract_season_number(Some(2)).await;
+
+    assert_eq!(id, 2);
+    assert_str_eq!(season_number_param, "seasonNumber=2");
+  }
+
+  #[tokio::test]
+  async fn test_extract_season_number_filtered_seasons() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    let mut filtered_seasons = StatefulTable::default();
+    filtered_seasons.set_filtered_items(vec![Season {
+      season_number: 1,
+      ..Season::default()
+    }]);
+    app_arc.lock().await.data.sonarr_data.seasons = filtered_seasons;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    let (id, season_number_param) = network.extract_season_number(None).await;
+
+    assert_eq!(id, 1);
+    assert_str_eq!(season_number_param, "seasonNumber=1");
+  }
+
+  #[tokio::test]
+  async fn test_extract_episode_id() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.set_items(vec![Episode {
+      id: 1,
+      ..Episode::default()
+    }]);
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    app_arc
+      .lock()
+      .await
+      .push_navigation_stack(ActiveSonarrBlock::Episodes.into());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let id = network.extract_episode_id(None).await;
@@ -1485,20 +1867,16 @@ mod test {
   #[tokio::test]
   async fn test_extract_episode_id_uses_provided_id() {
     let app_arc = Arc::new(Mutex::new(App::default()));
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.set_items(vec![Episode {
+      id: 1,
+      ..Episode::default()
+    }]);
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
     app_arc
       .lock()
       .await
-      .data
-      .sonarr_data
-      .episodes_table
-      .set_items(vec![Episode {
-        id: 1,
-        ..Episode::default()
-      }]);
-    app_arc
-      .lock()
-      .await
-      .push_navigation_stack(ActiveSonarrBlock::EpisodesTable.into());
+      .push_navigation_stack(ActiveSonarrBlock::Episodes.into());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let id = network.extract_episode_id(Some(2)).await;
@@ -1514,70 +1892,20 @@ mod test {
       id: 1,
       ..Episode::default()
     }]);
-    app_arc.lock().await.data.sonarr_data.episodes_table = filtered_episodes;
+    let season_details_modal = SeasonDetailsModal {
+      episodes: filtered_episodes,
+      ..SeasonDetailsModal::default()
+    };
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
     app_arc
       .lock()
       .await
-      .push_navigation_stack(ActiveSonarrBlock::EpisodesTable.into());
+      .push_navigation_stack(ActiveSonarrBlock::Episodes.into());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let id = network.extract_episode_id(None).await;
 
     assert_eq!(id, 1);
-  }
-
-  #[tokio::test]
-  async fn test_extract_episode_id_from_tree() {
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    {
-      let mut app = app_arc.lock().await;
-      let items = vec![TreeItem::new_leaf(Episode {
-        id: 1,
-        ..Episode::default()
-      })];
-      app.data.sonarr_data.episodes_tree.set_items(items.clone());
-      render(
-        &mut app.data.sonarr_data.episodes_tree.state,
-        &items.clone(),
-      );
-      app.data.sonarr_data.episodes_tree.state.key_down();
-      render(
-        &mut app.data.sonarr_data.episodes_tree.state,
-        &items.clone(),
-      );
-    }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    let id = network.extract_episode_id(None).await;
-
-    assert_eq!(id, 1);
-  }
-
-  #[tokio::test]
-  async fn test_extract_episode_id_uses_provided_id_over_tree() {
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    {
-      let mut app = app_arc.lock().await;
-      let items = vec![TreeItem::new_leaf(Episode {
-        id: 1,
-        ..Episode::default()
-      })];
-      app.data.sonarr_data.episodes_tree.set_items(items.clone());
-      render(
-        &mut app.data.sonarr_data.episodes_tree.state,
-        &items.clone(),
-      );
-      app.data.sonarr_data.episodes_tree.state.key_down();
-      render(
-        &mut app.data.sonarr_data.episodes_tree.state,
-        &items.clone(),
-      );
-    }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    let id = network.extract_episode_id(Some(2)).await;
-
-    assert_eq!(id, 2);
   }
 
   #[test]
@@ -1828,6 +2156,31 @@ mod test {
       total_episode_count: 50,
       size_on_disk: 63894022699,
       percent_of_episodes: 100.0,
+    }
+  }
+
+  fn rejections() -> Vec<String> {
+    vec![
+      "Unknown quality profile".to_owned(),
+      "Release is already mapped".to_owned(),
+    ]
+  }
+
+  fn release() -> Release {
+    Release {
+      guid: "1234".to_owned(),
+      protocol: "torrent".to_owned(),
+      age: 1,
+      title: HorizontallyScrollableText::from("Test Release"),
+      indexer: "kickass torrents".to_owned(),
+      indexer_id: 2,
+      size: 1234,
+      rejected: true,
+      rejections: Some(rejections()),
+      seeders: Some(Number::from(2)),
+      leechers: Some(Number::from(1)),
+      languages: Some(vec![language()]),
+      quality: quality_wrapper(),
     }
   }
 

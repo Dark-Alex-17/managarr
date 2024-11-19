@@ -10,16 +10,17 @@ use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, BlocklistResponse, Collection,
   CollectionMovie, CommandBody, Credit, CreditType, DeleteMovieParams, DiskSpace, DownloadRecord,
   DownloadsResponse, EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings,
-  IndexerTestResult, LogResponse, Movie, MovieCommandBody, MovieHistoryItem, QualityProfile,
-  RadarrSerdeable, Release, ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task, TaskName,
-  Update,
+  IndexerTestResult, Movie, MovieCommandBody, MovieHistoryItem, RadarrSerdeable,
+  ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task, TaskName, Update,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
   MovieDetailsModal,
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-use crate::models::servarr_models::{HostConfig, Indexer, QueueEvent, SecurityConfig};
+use crate::models::servarr_models::{
+  HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release, SecurityConfig,
+};
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
 use crate::network::{Network, NetworkEvent, RequestMethod};
@@ -223,9 +224,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .get_queued_radarr_events()
         .await
         .map(RadarrSerdeable::from),
-      RadarrEvent::GetReleases(movie_id) => {
-        self.get_releases(movie_id).await.map(RadarrSerdeable::from)
-      }
+      RadarrEvent::GetReleases(movie_id) => self
+        .get_movie_releases(movie_id)
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::GetRootFolders => self.get_root_folders().await.map(RadarrSerdeable::from),
       RadarrEvent::GetSecurityConfig => self
         .get_radarr_security_config()
@@ -1750,7 +1752,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_releases(&mut self, movie_id: Option<i64>) -> Result<Vec<Release>> {
+  async fn get_movie_releases(&mut self, movie_id: Option<i64>) -> Result<Vec<Release>> {
     let (id, movie_id_param) = self.extract_movie_id(movie_id).await;
     info!("Fetching releases for movie with ID: {id}");
     let event = RadarrEvent::GetReleases(None);

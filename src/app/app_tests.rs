@@ -48,6 +48,7 @@ mod tests {
     assert!(!app.is_routing);
     assert!(!app.should_refresh);
     assert!(!app.should_ignore_quit_key);
+    assert!(!app.cli_mode);
   }
 
   #[test]

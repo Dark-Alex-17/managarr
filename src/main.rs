@@ -113,6 +113,7 @@ async fn main() -> Result<()> {
   match args.command {
     Some(command) => match command {
       Command::Radarr(_) | Command::Sonarr(_) => {
+        app.lock().await.cli_mode = true;
         let app_nw = Arc::clone(&app);
         let mut network = Network::new(&app_nw, cancellation_token, reqwest_client);
 

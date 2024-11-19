@@ -15,11 +15,13 @@ mod test {
 
   use crate::app::ServarrConfig;
   use crate::models::radarr_models::{
-    BlocklistItem, BlocklistItemMovie, CollectionMovie, Language, MediaInfo, MinimumAvailability,
-    Monitor, MovieCollection, MovieFile, Quality, QualityWrapper, Rating, RatingsList,
+    BlocklistItem, BlocklistItemMovie, CollectionMovie, MediaInfo, MinimumAvailability, Monitor,
+    MovieCollection, MovieFile, Rating, RatingsList,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-  use crate::models::servarr_models::{HostConfig, IndexerField};
+  use crate::models::servarr_models::{
+    HostConfig, IndexerField, Language, Quality, QualityWrapper,
+  };
   use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
   use crate::network::network_tests::test_utils::mock_servarr_api;

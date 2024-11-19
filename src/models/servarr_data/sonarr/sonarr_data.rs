@@ -4,14 +4,13 @@ use strum::EnumIter;
 
 use crate::models::{
   servarr_models::{Indexer, QueueEvent},
-  sonarr_models::{BlocklistItem, DownloadRecord, Episode, IndexerSettings, Series},
+  sonarr_models::{BlocklistItem, DownloadRecord, IndexerSettings, Season, Series},
   stateful_list::StatefulList,
   stateful_table::StatefulTable,
-  stateful_tree::StatefulTree,
   HorizontallyScrollableText, Route,
 };
 
-use super::modals::EpisodeDetailsModal;
+use super::modals::SeasonDetailsModal;
 
 #[cfg(test)]
 #[path = "sonarr_data_tests.rs"]
@@ -20,14 +19,13 @@ mod sonarr_data_tests;
 pub struct SonarrData {
   pub blocklist: StatefulTable<BlocklistItem>,
   pub downloads: StatefulTable<DownloadRecord>,
-  pub episode_details_modal: Option<EpisodeDetailsModal>,
-  pub episodes_table: StatefulTable<Episode>,
-  pub episodes_tree: StatefulTree<Episode>,
   pub indexers: StatefulTable<Indexer>,
   pub indexer_settings: Option<IndexerSettings>,
   pub logs: StatefulList<HorizontallyScrollableText>,
   pub quality_profile_map: BiMap<i64, String>,
   pub queued_events: StatefulTable<QueueEvent>,
+  pub seasons: StatefulTable<Season>,
+  pub season_details_modal: Option<SeasonDetailsModal>,
   pub series: StatefulTable<Series>,
   pub start_time: DateTime<Utc>,
   pub version: String,
@@ -38,15 +36,14 @@ impl Default for SonarrData {
     SonarrData {
       blocklist: StatefulTable::default(),
       downloads: StatefulTable::default(),
-      episode_details_modal: None,
-      episodes_table: StatefulTable::default(),
-      episodes_tree: StatefulTree::default(),
       indexers: StatefulTable::default(),
       indexer_settings: None,
       logs: StatefulList::default(),
       quality_profile_map: BiMap::new(),
       queued_events: StatefulTable::default(),
+      seasons: StatefulTable::default(),
       series: StatefulTable::default(),
+      season_details_modal: None,
       start_time: DateTime::default(),
       version: String::new(),
     }
@@ -57,9 +54,10 @@ impl Default for SonarrData {
 pub enum ActiveSonarrBlock {
   Blocklist,
   BlocklistSortPrompt,
-  EpisodesExplorer,
-  EpisodesTable,
-  EpisodesTableSortPrompt,
+  Episodes,
+  EpisodesSortPrompt,
+  Seasons,
+  SeasonsSortPrompt,
   #[default]
   Series,
   SeriesSortPrompt,

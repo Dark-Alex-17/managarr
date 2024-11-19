@@ -4,11 +4,12 @@ mod tests {
   use serde_json::json;
 
   use crate::models::{
-    servarr_models::{HostConfig, Indexer, QueueEvent, SecurityConfig},
+    servarr_models::{
+      HostConfig, Indexer, Log, LogResponse, QualityProfile, QueueEvent, Release, SecurityConfig,
+    },
     sonarr_models::{
       BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode,
-      IndexerSettings, Log, LogResponse, QualityProfile, Series, SeriesStatus, SeriesType,
-      SonarrSerdeable, SystemStatus,
+      IndexerSettings, Series, SeriesStatus, SeriesType, SonarrSerdeable, SystemStatus,
     },
     Serdeable,
   };
@@ -241,6 +242,18 @@ mod tests {
     let sonarr_serdeable: SonarrSerdeable = queue_events.clone().into();
 
     assert_eq!(sonarr_serdeable, SonarrSerdeable::QueueEvents(queue_events));
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_releases() {
+    let releases = vec![Release {
+      size: 1,
+      ..Release::default()
+    }];
+
+    let sonarr_serdeable: SonarrSerdeable = releases.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::Releases(releases));
   }
 
   #[test]

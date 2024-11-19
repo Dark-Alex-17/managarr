@@ -14,11 +14,10 @@ mod tests {
     releases_sorting_options, MovieDetailsHandler,
   };
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::{
-    Credit, Language, MovieHistoryItem, Quality, QualityWrapper, Release,
-  };
+  use crate::models::radarr_models::{Credit, MovieHistoryItem};
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
+  use crate::models::servarr_models::{Language, Quality, QualityWrapper, Release};
   use crate::models::stateful_table::SortOption;
   use crate::models::{HorizontallyScrollableText, ScrollableText};
 

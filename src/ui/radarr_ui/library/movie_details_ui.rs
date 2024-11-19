@@ -7,9 +7,10 @@ use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use ratatui::Frame;
 
 use crate::app::App;
-use crate::models::radarr_models::{Credit, MovieHistoryItem, Release};
+use crate::models::radarr_models::{Credit, MovieHistoryItem};
 use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
+use crate::models::servarr_models::Release;
 use crate::models::Route;
 use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::styles::ManagarrStyle;

@@ -1,10 +1,11 @@
 #[cfg(test)]
 pub mod utils {
   use crate::models::radarr_models::{
-    AddMovieSearchResult, CollectionMovie, Credit, MovieHistoryItem, Release,
+    AddMovieSearchResult, CollectionMovie, Credit, MovieHistoryItem,
   };
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_data::radarr::radarr_data::RadarrData;
+  use crate::models::servarr_models::Release;
   use crate::models::stateful_table::StatefulTable;
   use crate::models::{HorizontallyScrollableText, ScrollableText};
 
