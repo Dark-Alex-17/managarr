@@ -144,15 +144,27 @@ mod tests {
   }
 
   #[test]
-  fn test_sonarr_serdeable_from_series() {
-    let series = vec![Series {
+  fn test_sonarr_serdeable_from_series_vec() {
+    let series_vec = vec![Series {
       id: 1,
       ..Series::default()
     }];
 
+    let sonarr_serdeable: SonarrSerdeable = series_vec.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::SeriesVec(series_vec));
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_series() {
+    let series = Series {
+      id: 1,
+      ..Series::default()
+    };
+
     let sonarr_serdeable: SonarrSerdeable = series.clone().into();
 
-    assert_eq!(sonarr_serdeable, SonarrSerdeable::SeriesVec(series));
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::Series(series));
   }
 
   #[test]

@@ -137,7 +137,9 @@ mod test {
   }
 
   #[rstest]
-  fn test_resource_series(#[values(SonarrEvent::ListSeries)] event: SonarrEvent) {
+  fn test_resource_series(
+    #[values(SonarrEvent::ListSeries, SonarrEvent::GetSeriesDetails(None))] event: SonarrEvent,
+  ) {
     assert_str_eq!(event.resource(), "/series");
   }
 
@@ -1010,7 +1012,8 @@ mod test {
 
   #[tokio::test]
   #[should_panic(expected = "Season details modal is empty")]
-  async fn test_handle_get_episode_details_event_requires_season_details_modal_to_be_some() {
+  async fn test_handle_get_episode_details_event_requires_season_details_modal_to_be_some_when_in_tui_mode(
+  ) {
     let (_async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
@@ -1518,7 +1521,7 @@ mod test {
 
   #[rstest]
   #[tokio::test]
-  async fn test_handle_get_series_event(#[values(true, false)] use_custom_sorting: bool) {
+  async fn test_handle_list_series_event(#[values(true, false)] use_custom_sorting: bool) {
     let mut series_1: Value = serde_json::from_str(SERIES_JSON).unwrap();
     let mut series_2: Value = serde_json::from_str(SERIES_JSON).unwrap();
     *series_1.get_mut("id").unwrap() = json!(1);
@@ -1593,6 +1596,75 @@ mod test {
         expected_sorted_series
       );
       assert!(app_arc.lock().await.data.sonarr_data.series.sort_asc);
+      assert_eq!(series, expected_series);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_series_details_event() {
+    let expected_series: Series = serde_json::from_str(SERIES_JSON).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(SERIES_JSON).unwrap()),
+      None,
+      SonarrEvent::GetSeriesDetails(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![series()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Series(series) = network
+      .handle_sonarr_event(SonarrEvent::GetSeriesDetails(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(series, expected_series);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_series_details_event_uses_provided_series_id() {
+    let expected_series: Series = Series {
+      id: 2,
+      ..serde_json::from_str(SERIES_JSON).unwrap()
+    };
+    let mut response: Value = serde_json::from_str(SERIES_JSON).unwrap();
+    *response.get_mut("id").unwrap() = json!(2);
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(response),
+      None,
+      SonarrEvent::GetSeriesDetails(Some(2)),
+      Some("/2"),
+      None,
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![series()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Series(series) = network
+      .handle_sonarr_event(SonarrEvent::GetSeriesDetails(Some(2)))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
       assert_eq!(series, expected_series);
     }
   }
@@ -2182,15 +2254,5 @@ mod test {
       languages: Some(vec![language()]),
       quality: quality_wrapper(),
     }
-  }
-
-  fn render<T>(state: &mut TreeState, items: &[TreeItem<T>])
-  where
-    T: ToText + Clone + Default + Display + Hash + PartialEq + Eq,
-  {
-    let tree = Tree::new(items).unwrap();
-    let area = Rect::new(0, 0, 10, 4);
-    let mut buffer = Buffer::empty(area);
-    StatefulWidget::render(tree, area, &mut buffer, state);
   }
 }

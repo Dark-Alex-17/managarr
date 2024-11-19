@@ -43,6 +43,7 @@ pub enum SonarrEvent {
   GetQueuedEvents,
   GetSeasonReleases(Option<(i64, i64)>),
   GetSecurityConfig,
+  GetSeriesDetails(Option<i64>),
   GetStatus,
   HealthCheck,
   ListSeries,
@@ -65,7 +66,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetSeasonReleases(_) => "/release",
       SonarrEvent::GetStatus => "/system/status",
       SonarrEvent::HealthCheck => "/health",
-      SonarrEvent::ListSeries => "/series",
+      SonarrEvent::ListSeries | SonarrEvent::GetSeriesDetails(_) => "/series",
     }
   }
 }
@@ -127,6 +128,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::GetSecurityConfig => self
         .get_sonarr_security_config()
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::GetSeriesDetails(series_id) => self
+        .get_series_details(series_id)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetStatus => self.get_sonarr_status().await.map(SonarrSerdeable::from),
@@ -605,6 +610,26 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<(), SecurityConfig>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn get_series_details(&mut self, series_id: Option<i64>) -> Result<Series> {
+    let (id, _) = self.extract_series_id(series_id).await;
+    info!("Fetching details for Sonarr series with ID: {id}");
+    let event = SonarrEvent::GetSeriesDetails(series_id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Series>(request_props, |_, _| ())
       .await
   }
 
