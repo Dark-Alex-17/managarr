@@ -22,9 +22,10 @@ mod test {
 
   use crate::app::App;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
+  use crate::models::servarr_models::{HostConfig, Indexer, IndexerField, SecurityConfig};
   use crate::models::sonarr_models::{
-    BlocklistItem, DownloadRecord, DownloadsResponse, Episode, EpisodeFile, Indexer, IndexerField,
-    Language, LogResponse, MediaInfo, QualityProfile,
+    BlocklistItem, DownloadRecord, DownloadsResponse, Episode, EpisodeFile, Language, LogResponse,
+    MediaInfo, QualityProfile,
   };
   use crate::models::sonarr_models::{BlocklistResponse, Quality};
   use crate::models::sonarr_models::{QualityWrapper, SystemStatus};
@@ -135,6 +136,13 @@ mod test {
   #[rstest]
   fn test_resource_series(#[values(SonarrEvent::ListSeries)] event: SonarrEvent) {
     assert_str_eq!(event.resource(), "/series");
+  }
+
+  #[rstest]
+  fn test_resource_host_config(
+    #[values(SonarrEvent::GetHostConfig, SonarrEvent::GetSecurityConfig)] event: SonarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/config/host");
   }
 
   #[rstest]
@@ -648,6 +656,42 @@ mod test {
         expected_tree
       );
       assert_eq!(episodes, expected_episodes);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_host_config_event() {
+    let host_config_response = json!({
+      "bindAddress": "*",
+      "port": 7878,
+      "urlBase": "some.test.site/sonarr",
+      "instanceName": "Sonarr",
+      "applicationUrl": "https://some.test.site:7878/sonarr",
+      "enableSsl": true,
+      "sslPort": 9898,
+      "sslCertPath": "/app/sonarr.pfx",
+      "sslCertPassword": "test"
+    });
+    let response: HostConfig = serde_json::from_value(host_config_response.clone()).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(host_config_response),
+      None,
+      SonarrEvent::GetHostConfig,
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::HostConfig(host_config) = network
+      .handle_sonarr_event(SonarrEvent::GetHostConfig)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(host_config, response);
     }
   }
 
@@ -1224,6 +1268,40 @@ mod test {
       .items
       .is_empty());
     assert!(app_arc.lock().await.data.sonarr_data.series.sort_asc);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_security_config_event() {
+    let security_config_response = json!({
+      "authenticationMethod": "forms",
+      "authenticationRequired": "disabledForLocalAddresses",
+      "username": "test",
+      "password": "some password",
+      "apiKey": "someApiKey12345",
+      "certificateValidation": "disabledForLocalAddresses",
+    });
+    let response: SecurityConfig =
+      serde_json::from_value(security_config_response.clone()).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(security_config_response),
+      None,
+      SonarrEvent::GetSecurityConfig,
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::SecurityConfig(security_config) = network
+      .handle_sonarr_event(SonarrEvent::GetSecurityConfig)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(security_config, response);
+    }
   }
 
   #[tokio::test]

@@ -9,7 +9,10 @@ use strum::EnumIter;
 
 use crate::serde_enum_from;
 
-use super::{HorizontallyScrollableText, Serdeable};
+use super::{
+  servarr_models::{HostConfig, Indexer, SecurityConfig},
+  HorizontallyScrollableText, Serdeable,
+};
 
 #[cfg(test)]
 #[path = "sonarr_models_tests.rs"]
@@ -101,35 +104,6 @@ pub struct EpisodeFile {
   pub language: Language,
   pub date_added: DateTime<Utc>,
   pub media_info: Option<MediaInfo>,
-}
-
-#[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct Indexer {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub id: i64,
-  pub name: Option<String>,
-  pub implementation: Option<String>,
-  pub implementation_name: Option<String>,
-  pub config_contract: Option<String>,
-  pub supports_rss: bool,
-  pub supports_search: bool,
-  pub fields: Option<Vec<IndexerField>>,
-  pub enable_rss: bool,
-  pub enable_automatic_search: bool,
-  pub enable_interactive_search: bool,
-  pub protocol: String,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub priority: i64,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub download_client_id: i64,
-  pub tags: Vec<Number>,
-}
-
-#[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
-pub struct IndexerField {
-  pub name: Option<String>,
-  pub value: Option<Value>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Hash, Clone, PartialEq, Eq, Ord, PartialOrd)]
@@ -359,8 +333,10 @@ pub enum SonarrSerdeable {
   DownloadsResponse(DownloadsResponse),
   Episode(Episode),
   Episodes(Vec<Episode>),
+  HostConfig(HostConfig),
   Indexers(Vec<Indexer>),
   QualityProfiles(Vec<QualityProfile>),
+  SecurityConfig(SecurityConfig),
   SeriesVec(Vec<Series>),
   SystemStatus(SystemStatus),
   BlocklistResponse(BlocklistResponse),
@@ -385,8 +361,10 @@ serde_enum_from!(
     DownloadsResponse(DownloadsResponse),
     Episode(Episode),
     Episodes(Vec<Episode>),
+    HostConfig(HostConfig),
     Indexers(Vec<Indexer>),
     QualityProfiles(Vec<QualityProfile>),
+    SecurityConfig(SecurityConfig),
     SeriesVec(Vec<Series>),
     SystemStatus(SystemStatus),
     BlocklistResponse(BlocklistResponse),

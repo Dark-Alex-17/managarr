@@ -10,6 +10,7 @@ use servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use sonarr_models::SonarrSerdeable;
 pub mod radarr_models;
 pub mod servarr_data;
+pub mod servarr_models;
 pub mod sonarr_models;
 pub mod stateful_list;
 pub mod stateful_table;

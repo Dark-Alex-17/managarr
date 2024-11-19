@@ -3,7 +3,8 @@ use chrono::{DateTime, Utc};
 use strum::EnumIter;
 
 use crate::models::{
-  sonarr_models::{BlocklistItem, DownloadRecord, Episode, Indexer, Series},
+  servarr_models::Indexer,
+  sonarr_models::{BlocklistItem, DownloadRecord, Episode, Series},
   stateful_list::StatefulList,
   stateful_table::StatefulTable,
   stateful_tree::StatefulTree,

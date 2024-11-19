@@ -9,9 +9,10 @@ use serde_json::{json, Value};
 use crate::{
   models::{
     servarr_data::sonarr::{modals::EpisodeDetailsModal, sonarr_data::ActiveSonarrBlock},
+    servarr_models::{HostConfig, Indexer, SecurityConfig},
     sonarr_models::{
-      BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, Indexer, LogResponse,
-      QualityProfile, Series, SonarrSerdeable, SystemStatus,
+      BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, LogResponse, QualityProfile,
+      Series, SonarrSerdeable, SystemStatus,
     },
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
   },
@@ -30,11 +31,13 @@ pub enum SonarrEvent {
   DeleteBlocklistItem(Option<i64>),
   GetBlocklist,
   GetDownloads,
+  GetHostConfig,
   GetIndexers,
   GetEpisodeDetails(Option<i64>),
   GetEpisodes(Option<i64>),
   GetLogs(Option<u64>),
   GetQualityProfiles,
+  GetSecurityConfig,
   GetStatus,
   HealthCheck,
   ListSeries,
@@ -48,6 +51,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       SonarrEvent::GetDownloads => "/queue",
       SonarrEvent::GetEpisodes(_) | SonarrEvent::GetEpisodeDetails(_) => "/episode",
+      SonarrEvent::GetHostConfig | SonarrEvent::GetSecurityConfig => "/config/host",
       SonarrEvent::GetIndexers => "/indexer",
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
@@ -89,12 +93,20 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetIndexers => self.get_sonarr_indexers().await.map(SonarrSerdeable::from),
+      SonarrEvent::GetHostConfig => self
+        .get_sonarr_host_config()
+        .await
+        .map(SonarrSerdeable::from),
       SonarrEvent::GetQualityProfiles => self
         .get_sonarr_quality_profiles()
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetLogs(events) => self
         .get_sonarr_logs(events)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::GetSecurityConfig => self
+        .get_sonarr_security_config()
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetStatus => self.get_sonarr_status().await.map(SonarrSerdeable::from),
@@ -393,6 +405,19 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
+  async fn get_sonarr_host_config(&mut self) -> Result<HostConfig> {
+    info!("Fetching Sonarr host config");
+    let event = SonarrEvent::GetHostConfig;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), HostConfig>(request_props, |_, _| ())
+      .await
+  }
+
   async fn get_sonarr_indexers(&mut self) -> Result<Vec<Indexer>> {
     info!("Fetching Sonarr indexers");
     let event = SonarrEvent::GetIndexers;
@@ -470,6 +495,19 @@ impl<'a, 'b> Network<'a, 'b> {
           .map(|profile| (profile.id, profile.name))
           .collect();
       })
+      .await
+  }
+
+  async fn get_sonarr_security_config(&mut self) -> Result<SecurityConfig> {
+    info!("Fetching Sonarr security config");
+    let event = SonarrEvent::GetSecurityConfig;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), SecurityConfig>(request_props, |_, _| ())
       .await
   }
 

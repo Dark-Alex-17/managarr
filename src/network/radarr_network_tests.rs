@@ -15,11 +15,11 @@ mod test {
 
   use crate::app::ServarrConfig;
   use crate::models::radarr_models::{
-    BlocklistItem, BlocklistItemMovie, CollectionMovie, IndexerField, Language, MediaInfo,
-    MinimumAvailability, Monitor, MovieCollection, MovieFile, Quality, QualityWrapper, Rating,
-    RatingsList,
+    BlocklistItem, BlocklistItemMovie, CollectionMovie, Language, MediaInfo, MinimumAvailability,
+    Monitor, MovieCollection, MovieFile, Quality, QualityWrapper, Rating, RatingsList,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+  use crate::models::servarr_models::{HostConfig, IndexerField};
   use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
   use crate::network::network_tests::test_utils::mock_servarr_api;
@@ -2225,7 +2225,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_host_config_event() {
+  async fn test_handle_get_radarr_host_config_event() {
     let host_config_response = json!({
       "bindAddress": "*",
       "port": 7878,
@@ -2905,7 +2905,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_security_config_event() {
+  async fn test_handle_get_radarr_security_config_event() {
     let security_config_response = json!({
       "authenticationMethod": "forms",
       "authenticationRequired": "disabledForLocalAddresses",

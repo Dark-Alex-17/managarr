@@ -5,8 +5,8 @@ use ratatui::widgets::{Cell, Row};
 use ratatui::Frame;
 
 use crate::app::App;
-use crate::models::radarr_models::Indexer;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, INDEXERS_BLOCKS};
+use crate::models::servarr_models::Indexer;
 use crate::models::Route;
 use crate::ui::radarr_ui::indexers::edit_indexer_ui::EditIndexerUi;
 use crate::ui::radarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;

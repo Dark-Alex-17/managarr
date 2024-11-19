@@ -9,16 +9,15 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::indexers::IndexersHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::Indexer;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, EDIT_INDEXER_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
   };
+  use crate::models::servarr_models::Indexer;
   use crate::test_handler_delegation;
 
   mod test_handle_scroll_up_and_down {
     use rstest::rstest;
 
-    use crate::models::radarr_models::Indexer;
     use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
 
     use super::*;
@@ -65,7 +64,6 @@ mod tests {
   }
 
   mod test_handle_home_end {
-    use crate::models::radarr_models::Indexer;
     use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
 
     use super::*;
@@ -239,11 +237,11 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use crate::models::radarr_models::{Indexer, IndexerField};
     use crate::models::servarr_data::radarr::modals::EditIndexerModal;
     use crate::models::servarr_data::radarr::radarr_data::{
       RadarrData, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
     };
+    use crate::models::servarr_models::{Indexer, IndexerField};
     use bimap::BiMap;
     use pretty_assertions::assert_eq;
     use serde_json::{Number, Value};

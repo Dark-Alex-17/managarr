@@ -1,13 +1,12 @@
 #[cfg(test)]
 mod test {
-  use crate::models::radarr_models::{
-    Collection, Indexer, IndexerField, MinimumAvailability, Monitor, Movie, RootFolder,
-  };
+  use crate::models::radarr_models::{Collection, MinimumAvailability, Monitor, Movie, RootFolder};
   use crate::models::servarr_data::radarr::modals::{
     AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal,
   };
   use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
   use crate::models::servarr_data::radarr::radarr_data::RadarrData;
+  use crate::models::servarr_models::{Indexer, IndexerField};
   use crate::models::stateful_table::StatefulTable;
   use bimap::BiMap;
   use pretty_assertions::{assert_eq, assert_str_eq};
@@ -17,6 +16,8 @@ mod test {
 
   #[rstest]
   fn test_edit_indexer_modal_from_radarr_data(#[values(true, false)] seed_ratio_present: bool) {
+    use crate::models::servarr_models::{Indexer, IndexerField};
+
     let mut radarr_data = RadarrData {
       tags_map: BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]),
       ..RadarrData::default()

@@ -9,16 +9,17 @@ use urlencoding::encode;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, BlocklistResponse, Collection,
   CollectionMovie, CommandBody, Credit, CreditType, DeleteMovieParams, DiskSpace, DownloadRecord,
-  DownloadsResponse, EditCollectionParams, EditIndexerParams, EditMovieParams, HostConfig, Indexer,
-  IndexerSettings, IndexerTestResult, LogResponse, Movie, MovieCommandBody, MovieHistoryItem,
-  QualityProfile, QueueEvent, RadarrSerdeable, Release, ReleaseDownloadBody, RootFolder,
-  SecurityConfig, SystemStatus, Tag, Task, TaskName, Update,
+  DownloadsResponse, EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings,
+  IndexerTestResult, LogResponse, Movie, MovieCommandBody, MovieHistoryItem, QualityProfile,
+  QueueEvent, RadarrSerdeable, Release, ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task,
+  TaskName, Update,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
   MovieDetailsModal,
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+use crate::models::servarr_models::{HostConfig, Indexer, SecurityConfig};
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
 use crate::network::{Network, NetworkEvent, RequestMethod};
@@ -192,7 +193,10 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::GetBlocklist => self.get_radarr_blocklist().await.map(RadarrSerdeable::from),
       RadarrEvent::GetCollections => self.get_collections().await.map(RadarrSerdeable::from),
       RadarrEvent::GetDownloads => self.get_radarr_downloads().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetHostConfig => self.get_host_config().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetHostConfig => self
+        .get_radarr_host_config()
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::GetIndexers => self.get_radarr_indexers().await.map(RadarrSerdeable::from),
       RadarrEvent::GetLogs(events) => self
         .get_radarr_logs(events)
@@ -220,7 +224,10 @@ impl<'a, 'b> Network<'a, 'b> {
         self.get_releases(movie_id).await.map(RadarrSerdeable::from)
       }
       RadarrEvent::GetRootFolders => self.get_root_folders().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetSecurityConfig => self.get_security_config().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetSecurityConfig => self
+        .get_radarr_security_config()
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::GetStatus => self.get_radarr_status().await.map(RadarrSerdeable::from),
       RadarrEvent::GetTags => self.get_tags().await.map(RadarrSerdeable::from),
       RadarrEvent::GetTasks => self.get_tasks().await.map(RadarrSerdeable::from),
@@ -1382,7 +1389,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_host_config(&mut self) -> Result<HostConfig> {
+  async fn get_radarr_host_config(&mut self) -> Result<HostConfig> {
     info!("Fetching Radarr host config");
     let event = RadarrEvent::GetHostConfig;
 
@@ -1788,7 +1795,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_security_config(&mut self) -> Result<SecurityConfig> {
+  async fn get_radarr_security_config(&mut self) -> Result<SecurityConfig> {
     info!("Fetching Radarr security config");
     let event = RadarrEvent::GetSecurityConfig;
 
