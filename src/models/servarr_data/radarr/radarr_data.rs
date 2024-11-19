@@ -7,13 +7,13 @@ use crate::app::radarr::radarr_context_clues::{
 };
 use crate::models::radarr_models::{
   AddMovieSearchResult, BlocklistItem, Collection, CollectionMovie, DiskSpace, DownloadRecord,
-  IndexerSettings, Movie, QueueEvent, RootFolder, Task,
+  IndexerSettings, Movie, RootFolder, Task,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
   MovieDetailsModal,
 };
-use crate::models::servarr_models::Indexer;
+use crate::models::servarr_models::{Indexer, QueueEvent};
 use crate::models::stateful_list::StatefulList;
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{

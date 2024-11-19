@@ -8,10 +8,11 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::system::system_details_handler::SystemDetailsHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::{QueueEvent, Task};
+  use crate::models::radarr_models::Task;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS,
   };
+  use crate::models::servarr_models::QueueEvent;
   use crate::models::{HorizontallyScrollableText, ScrollableText};
 
   mod test_handle_scroll_up_and_down {

@@ -2399,7 +2399,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_queued_events_event() {
+  async fn test_handle_get_queued_radarr_events_event() {
     let queued_events_json = json!([{
         "name": "RefreshMonitoredDownloads",
         "commandName": "Refresh Monitored Downloads",

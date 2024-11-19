@@ -4,7 +4,7 @@ mod tests {
   use serde_json::json;
 
   use crate::models::{
-    servarr_models::{HostConfig, Indexer, SecurityConfig},
+    servarr_models::{HostConfig, Indexer, QueueEvent, SecurityConfig},
     sonarr_models::{
       BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode,
       IndexerSettings, Log, LogResponse, QualityProfile, Series, SeriesStatus, SeriesType,
@@ -229,6 +229,18 @@ mod tests {
       sonarr_serdeable,
       SonarrSerdeable::QualityProfiles(quality_profiles)
     );
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_queue_events() {
+    let queue_events = vec![QueueEvent {
+      trigger: "test".to_owned(),
+      ..QueueEvent::default()
+    }];
+
+    let sonarr_serdeable: SonarrSerdeable = queue_events.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::QueueEvents(queue_events));
   }
 
   #[test]

@@ -22,7 +22,9 @@ mod test {
 
   use crate::app::App;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
-  use crate::models::servarr_models::{HostConfig, Indexer, IndexerField, SecurityConfig};
+  use crate::models::servarr_models::{
+    HostConfig, Indexer, IndexerField, QueueEvent, SecurityConfig,
+  };
   use crate::models::sonarr_models::{
     BlocklistItem, DownloadRecord, DownloadsResponse, Episode, EpisodeFile, Language, LogResponse,
     MediaInfo, QualityProfile,
@@ -143,6 +145,11 @@ mod test {
     #[values(SonarrEvent::GetHostConfig, SonarrEvent::GetSecurityConfig)] event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/config/host");
+  }
+
+  #[rstest]
+  fn test_resource_command(#[values(SonarrEvent::GetQueuedEvents)] event: SonarrEvent) {
+    assert_str_eq!(event.resource(), "/command");
   }
 
   #[rstest]
@@ -1127,6 +1134,57 @@ mod test {
         BiMap::from_iter([(2222i64, "HD - 1080p".to_owned())])
       );
       assert_eq!(quality_profiles, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_queued_sonarr_events_event() {
+    let queued_events_json = json!([{
+        "name": "RefreshMonitoredDownloads",
+        "commandName": "Refresh Monitored Downloads",
+        "status": "completed",
+        "queued": "2023-05-20T21:29:16Z",
+        "started": "2023-05-20T21:29:16Z",
+        "ended": "2023-05-20T21:29:16Z",
+        "duration": "00:00:00.5111547",
+        "trigger": "scheduled",
+    }]);
+    let response: Vec<QueueEvent> = serde_json::from_value(queued_events_json.clone()).unwrap();
+    let timestamp = DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap());
+    let expected_event = QueueEvent {
+      name: "RefreshMonitoredDownloads".to_owned(),
+      command_name: "Refresh Monitored Downloads".to_owned(),
+      status: "completed".to_owned(),
+      queued: timestamp,
+      started: Some(timestamp),
+      ended: Some(timestamp),
+      duration: Some("00:00:00.5111547".to_owned()),
+      trigger: "scheduled".to_owned(),
+    };
+
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(queued_events_json),
+      None,
+      SonarrEvent::GetQueuedEvents,
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::QueueEvents(events) = network
+      .handle_sonarr_event(SonarrEvent::GetQueuedEvents)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.queued_events.items,
+        vec![expected_event]
+      );
+      assert_eq!(events, response);
     }
   }
 

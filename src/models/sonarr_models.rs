@@ -10,7 +10,7 @@ use strum::EnumIter;
 use crate::serde_enum_from;
 
 use super::{
-  servarr_models::{HostConfig, Indexer, SecurityConfig},
+  servarr_models::{HostConfig, Indexer, QueueEvent, SecurityConfig},
   HorizontallyScrollableText, Serdeable,
 };
 
@@ -352,6 +352,7 @@ pub enum SonarrSerdeable {
   IndexerSettings(IndexerSettings),
   Indexers(Vec<Indexer>),
   QualityProfiles(Vec<QualityProfile>),
+  QueueEvents(Vec<QueueEvent>),
   SecurityConfig(SecurityConfig),
   SeriesVec(Vec<Series>),
   SystemStatus(SystemStatus),
@@ -381,6 +382,7 @@ serde_enum_from!(
     IndexerSettings(IndexerSettings),
     Indexers(Vec<Indexer>),
     QualityProfiles(Vec<QualityProfile>),
+    QueueEvents(Vec<QueueEvent>),
     SecurityConfig(SecurityConfig),
     SeriesVec(Vec<Series>),
     SystemStatus(SystemStatus),

@@ -11,15 +11,15 @@ use crate::models::radarr_models::{
   CollectionMovie, CommandBody, Credit, CreditType, DeleteMovieParams, DiskSpace, DownloadRecord,
   DownloadsResponse, EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings,
   IndexerTestResult, LogResponse, Movie, MovieCommandBody, MovieHistoryItem, QualityProfile,
-  QueueEvent, RadarrSerdeable, Release, ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task,
-  TaskName, Update,
+  RadarrSerdeable, Release, ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task, TaskName,
+  Update,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
   MovieDetailsModal,
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-use crate::models::servarr_models::{HostConfig, Indexer, SecurityConfig};
+use crate::models::servarr_models::{HostConfig, Indexer, QueueEvent, SecurityConfig};
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
 use crate::network::{Network, NetworkEvent, RequestMethod};
@@ -219,7 +219,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .get_radarr_quality_profiles()
         .await
         .map(RadarrSerdeable::from),
-      RadarrEvent::GetQueuedEvents => self.get_queued_events().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetQueuedEvents => self
+        .get_queued_radarr_events()
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::GetReleases(movie_id) => {
         self.get_releases(movie_id).await.map(RadarrSerdeable::from)
       }
@@ -1728,7 +1731,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_queued_events(&mut self) -> Result<Vec<QueueEvent>> {
+  async fn get_queued_radarr_events(&mut self) -> Result<Vec<QueueEvent>> {
     info!("Fetching Radarr queued events");
     let event = RadarrEvent::GetQueuedEvents;
 

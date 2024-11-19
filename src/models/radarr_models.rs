@@ -9,7 +9,7 @@ use strum_macros::EnumIter;
 
 use crate::{models::HorizontallyScrollableText, serde_enum_from};
 
-use super::servarr_models::{HostConfig, Indexer, SecurityConfig};
+use super::servarr_models::{HostConfig, Indexer, QueueEvent, SecurityConfig};
 use super::Serdeable;
 
 #[cfg(test)]
@@ -460,19 +460,6 @@ impl From<(&i64, &String)> for QualityProfile {
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct QualityWrapper {
   pub quality: Quality,
-}
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct QueueEvent {
-  pub trigger: String,
-  pub name: String,
-  pub command_name: String,
-  pub status: String,
-  pub queued: DateTime<Utc>,
-  pub started: Option<DateTime<Utc>>,
-  pub ended: Option<DateTime<Utc>>,
-  pub duration: Option<String>,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

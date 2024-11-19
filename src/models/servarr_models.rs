@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter, Result};
 
+use chrono::{DateTime, Utc};
 use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
@@ -111,6 +112,19 @@ pub struct Indexer {
 pub struct IndexerField {
   pub name: Option<String>,
   pub value: Option<Value>,
+}
+
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct QueueEvent {
+  pub trigger: String,
+  pub name: String,
+  pub command_name: String,
+  pub status: String,
+  pub queued: DateTime<Utc>,
+  pub started: Option<DateTime<Utc>>,
+  pub ended: Option<DateTime<Utc>>,
+  pub duration: Option<String>,
 }
 
 #[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]

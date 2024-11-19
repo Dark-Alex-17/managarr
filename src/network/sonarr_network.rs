@@ -9,7 +9,7 @@ use serde_json::{json, Value};
 use crate::{
   models::{
     servarr_data::sonarr::{modals::EpisodeDetailsModal, sonarr_data::ActiveSonarrBlock},
-    servarr_models::{HostConfig, Indexer, SecurityConfig},
+    servarr_models::{HostConfig, Indexer, QueueEvent, SecurityConfig},
     sonarr_models::{
       BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, LogResponse,
       QualityProfile, Series, SonarrSerdeable, SystemStatus,
@@ -38,6 +38,7 @@ pub enum SonarrEvent {
   GetEpisodes(Option<i64>),
   GetLogs(Option<u64>),
   GetQualityProfiles,
+  GetQueuedEvents,
   GetSecurityConfig,
   GetStatus,
   HealthCheck,
@@ -57,6 +58,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetIndexers => "/indexer",
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
+      SonarrEvent::GetQueuedEvents => "/command",
       SonarrEvent::GetStatus => "/system/status",
       SonarrEvent::HealthCheck => "/health",
       SonarrEvent::ListSeries => "/series",
@@ -105,6 +107,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::GetQualityProfiles => self
         .get_sonarr_quality_profiles()
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::GetQueuedEvents => self
+        .get_queued_sonarr_events()
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetLogs(events) => self
@@ -519,6 +525,25 @@ impl<'a, 'b> Network<'a, 'b> {
           .into_iter()
           .map(|profile| (profile.id, profile.name))
           .collect();
+      })
+      .await
+  }
+
+  async fn get_queued_sonarr_events(&mut self) -> Result<Vec<QueueEvent>> {
+    info!("Fetching Sonarr queued events");
+    let event = SonarrEvent::GetQueuedEvents;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), Vec<QueueEvent>>(request_props, |queued_events_vec, mut app| {
+        app
+          .data
+          .sonarr_data
+          .queued_events
+          .set_items(queued_events_vec);
       })
       .await
   }

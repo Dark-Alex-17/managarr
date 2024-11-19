@@ -12,8 +12,9 @@ use ratatui::{
 };
 
 use crate::app::App;
-use crate::models::radarr_models::{QueueEvent, Task};
+use crate::models::radarr_models::Task;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+use crate::models::servarr_models::QueueEvent;
 use crate::ui::radarr_ui::radarr_ui_utils::{convert_to_minutes_hours_days, style_log_list_item};
 use crate::ui::radarr_ui::system::system_details_ui::SystemDetailsUi;
 use crate::ui::styles::ManagarrStyle;

@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use strum::EnumIter;
 
 use crate::models::{
-  servarr_models::Indexer,
+  servarr_models::{Indexer, QueueEvent},
   sonarr_models::{BlocklistItem, DownloadRecord, Episode, IndexerSettings, Series},
   stateful_list::StatefulList,
   stateful_table::StatefulTable,
@@ -18,35 +18,37 @@ use super::modals::EpisodeDetailsModal;
 mod sonarr_data_tests;
 
 pub struct SonarrData {
-  pub version: String,
-  pub start_time: DateTime<Utc>,
-  pub series: StatefulTable<Series>,
   pub blocklist: StatefulTable<BlocklistItem>,
-  pub logs: StatefulList<HorizontallyScrollableText>,
-  pub episodes_tree: StatefulTree<Episode>,
-  pub episodes_table: StatefulTable<Episode>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub episode_details_modal: Option<EpisodeDetailsModal>,
-  pub quality_profile_map: BiMap<i64, String>,
+  pub episodes_table: StatefulTable<Episode>,
+  pub episodes_tree: StatefulTree<Episode>,
   pub indexers: StatefulTable<Indexer>,
   pub indexer_settings: Option<IndexerSettings>,
+  pub logs: StatefulList<HorizontallyScrollableText>,
+  pub quality_profile_map: BiMap<i64, String>,
+  pub queued_events: StatefulTable<QueueEvent>,
+  pub series: StatefulTable<Series>,
+  pub start_time: DateTime<Utc>,
+  pub version: String,
 }
 
 impl Default for SonarrData {
   fn default() -> SonarrData {
     SonarrData {
-      version: String::new(),
-      start_time: DateTime::default(),
-      series: StatefulTable::default(),
       blocklist: StatefulTable::default(),
-      logs: StatefulList::default(),
-      episodes_tree: StatefulTree::default(),
-      episodes_table: StatefulTable::default(),
       downloads: StatefulTable::default(),
       episode_details_modal: None,
-      quality_profile_map: BiMap::new(),
+      episodes_table: StatefulTable::default(),
+      episodes_tree: StatefulTree::default(),
       indexers: StatefulTable::default(),
       indexer_settings: None,
+      logs: StatefulList::default(),
+      quality_profile_map: BiMap::new(),
+      queued_events: StatefulTable::default(),
+      series: StatefulTable::default(),
+      start_time: DateTime::default(),
+      version: String::new(),
     }
   }
 }
