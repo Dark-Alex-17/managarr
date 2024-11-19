@@ -193,7 +193,7 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::GetCollections => self.get_collections().await.map(RadarrSerdeable::from),
       RadarrEvent::GetDownloads => self.get_radarr_downloads().await.map(RadarrSerdeable::from),
       RadarrEvent::GetHostConfig => self.get_host_config().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetIndexers => self.get_indexers().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetIndexers => self.get_radarr_indexers().await.map(RadarrSerdeable::from),
       RadarrEvent::GetLogs(events) => self
         .get_radarr_logs(events)
         .await
@@ -1395,7 +1395,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_indexers(&mut self) -> Result<Vec<Indexer>> {
+  async fn get_radarr_indexers(&mut self) -> Result<Vec<Indexer>> {
     info!("Fetching Radarr indexers");
     let event = RadarrEvent::GetIndexers;
 

@@ -2261,7 +2261,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_indexers_event() {
+  async fn test_handle_get_radarr_indexers_event() {
     let indexers_response_json = json!([{
         "enableRss": true,
         "enableAutomaticSearch": true,

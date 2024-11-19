@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use strum::EnumIter;
 
 use crate::models::{
-  sonarr_models::{BlocklistItem, DownloadRecord, Episode, Series},
+  sonarr_models::{BlocklistItem, DownloadRecord, Episode, Indexer, Series},
   stateful_list::StatefulList,
   stateful_table::StatefulTable,
   stateful_tree::StatefulTree,
@@ -27,6 +27,7 @@ pub struct SonarrData {
   pub downloads: StatefulTable<DownloadRecord>,
   pub episode_details_modal: Option<EpisodeDetailsModal>,
   pub quality_profile_map: BiMap<i64, String>,
+  pub indexers: StatefulTable<Indexer>,
 }
 
 impl Default for SonarrData {
@@ -42,6 +43,7 @@ impl Default for SonarrData {
       downloads: StatefulTable::default(),
       episode_details_modal: None,
       quality_profile_map: BiMap::new(),
+      indexers: StatefulTable::default(),
     }
   }
 }

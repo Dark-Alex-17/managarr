@@ -10,8 +10,8 @@ use crate::{
   models::{
     servarr_data::sonarr::{modals::EpisodeDetailsModal, sonarr_data::ActiveSonarrBlock},
     sonarr_models::{
-      BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, LogResponse, QualityProfile,
-      Series, SonarrSerdeable, SystemStatus,
+      BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, Indexer, LogResponse,
+      QualityProfile, Series, SonarrSerdeable, SystemStatus,
     },
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
   },
@@ -30,6 +30,7 @@ pub enum SonarrEvent {
   DeleteBlocklistItem(Option<i64>),
   GetBlocklist,
   GetDownloads,
+  GetIndexers,
   GetEpisodeDetails(Option<i64>),
   GetEpisodes(Option<i64>),
   GetLogs(Option<u64>),
@@ -47,6 +48,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       SonarrEvent::GetDownloads => "/queue",
       SonarrEvent::GetEpisodes(_) | SonarrEvent::GetEpisodeDetails(_) => "/episode",
+      SonarrEvent::GetIndexers => "/indexer",
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
       SonarrEvent::GetStatus => "/system/status",
@@ -86,6 +88,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .get_episode_details(episode_id)
         .await
         .map(SonarrSerdeable::from),
+      SonarrEvent::GetIndexers => self.get_sonarr_indexers().await.map(SonarrSerdeable::from),
       SonarrEvent::GetQualityProfiles => self
         .get_sonarr_quality_profiles()
         .await
@@ -386,6 +389,21 @@ impl<'a, 'b> Network<'a, 'b> {
         };
 
         app.data.sonarr_data.episode_details_modal = Some(episode_details_modal);
+      })
+      .await
+  }
+
+  async fn get_sonarr_indexers(&mut self) -> Result<Vec<Indexer>> {
+    info!("Fetching Sonarr indexers");
+    let event = SonarrEvent::GetIndexers;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), Vec<Indexer>>(request_props, |indexers, mut app| {
+        app.data.sonarr_data.indexers.set_items(indexers);
       })
       .await
   }

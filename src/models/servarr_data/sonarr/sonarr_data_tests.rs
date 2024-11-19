@@ -44,6 +44,7 @@ mod tests {
       assert!(sonarr_data.downloads.is_empty());
       assert!(sonarr_data.episode_details_modal.is_none());
       assert!(sonarr_data.quality_profile_map.is_empty());
+      assert!(sonarr_data.indexers.is_empty());
     }
   }
 }

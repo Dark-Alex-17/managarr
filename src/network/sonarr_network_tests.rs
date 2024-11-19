@@ -23,8 +23,8 @@ mod test {
   use crate::app::App;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::sonarr_models::{
-    BlocklistItem, DownloadRecord, DownloadsResponse, Episode, EpisodeFile, Language, LogResponse,
-    MediaInfo, QualityProfile,
+    BlocklistItem, DownloadRecord, DownloadsResponse, Episode, EpisodeFile, Indexer, IndexerField,
+    Language, LogResponse, MediaInfo, QualityProfile,
   };
   use crate::models::sonarr_models::{BlocklistResponse, Quality};
   use crate::models::sonarr_models::{QualityWrapper, SystemStatus};
@@ -135,6 +135,11 @@ mod test {
   #[rstest]
   fn test_resource_series(#[values(SonarrEvent::ListSeries)] event: SonarrEvent) {
     assert_str_eq!(event.resource(), "/series");
+  }
+
+  #[rstest]
+  fn test_resource_indexer(#[values(SonarrEvent::GetIndexers)] event: SonarrEvent) {
+    assert_str_eq!(event.resource(), "/indexer");
   }
 
   #[rstest]
@@ -643,6 +648,65 @@ mod test {
         expected_tree
       );
       assert_eq!(episodes, expected_episodes);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_indexers_event() {
+    let indexers_response_json = json!([{
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "supportsRss": true,
+        "supportsSearch": true,
+        "protocol": "torrent",
+        "priority": 25,
+        "downloadClientId": 0,
+        "name": "Test Indexer",
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "implementationName": "Torznab",
+        "implementation": "Torznab",
+        "configContract": "TorznabSettings",
+        "tags": [1],
+        "id": 1
+    }]);
+    let response: Vec<Indexer> = serde_json::from_value(indexers_response_json.clone()).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexers_response_json),
+      None,
+      SonarrEvent::GetIndexers,
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Indexers(indexers) = network
+      .handle_sonarr_event(SonarrEvent::GetIndexers)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.indexers.items,
+        vec![indexer()]
+      );
+      assert_eq!(indexers, response);
     }
   }
 
@@ -1496,6 +1560,39 @@ mod test {
       language: language(),
       date_added: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
       media_info: Some(media_info()),
+    }
+  }
+
+  fn indexer() -> Indexer {
+    Indexer {
+      enable_rss: true,
+      enable_automatic_search: true,
+      enable_interactive_search: true,
+      supports_rss: true,
+      supports_search: true,
+      protocol: "torrent".to_owned(),
+      priority: 25,
+      download_client_id: 0,
+      name: Some("Test Indexer".to_owned()),
+      implementation_name: Some("Torznab".to_owned()),
+      implementation: Some("Torznab".to_owned()),
+      config_contract: Some("TorznabSettings".to_owned()),
+      tags: vec![Number::from(1)],
+      id: 1,
+      fields: Some(vec![
+        IndexerField {
+          name: Some("baseUrl".to_owned()),
+          value: Some(json!("https://test.com")),
+        },
+        IndexerField {
+          name: Some("apiKey".to_owned()),
+          value: Some(json!("")),
+        },
+        IndexerField {
+          name: Some("seedCriteria.seedRatio".to_owned()),
+          value: Some(json!("1.2")),
+        },
+      ]),
     }
   }
 
