@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use anyhow::Result;
 use indoc::formatdoc;
-use log::info;
+use log::{debug, info};
 use managarr_tree_widget::TreeItem;
 use serde_json::{json, Value};
 
@@ -11,8 +11,8 @@ use crate::{
     servarr_data::sonarr::{modals::EpisodeDetailsModal, sonarr_data::ActiveSonarrBlock},
     servarr_models::{HostConfig, Indexer, SecurityConfig},
     sonarr_models::{
-      BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, LogResponse, QualityProfile,
-      Series, SonarrSerdeable, SystemStatus,
+      BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, LogResponse,
+      QualityProfile, Series, SonarrSerdeable, SystemStatus,
     },
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
   },
@@ -29,6 +29,7 @@ mod sonarr_network_tests;
 pub enum SonarrEvent {
   ClearBlocklist,
   DeleteBlocklistItem(Option<i64>),
+  GetAllIndexerSettings,
   GetBlocklist,
   GetDownloads,
   GetHostConfig,
@@ -48,6 +49,7 @@ impl NetworkResource for SonarrEvent {
     match &self {
       SonarrEvent::ClearBlocklist => "/blocklist/bulk",
       SonarrEvent::DeleteBlocklistItem(_) => "/blocklist",
+      SonarrEvent::GetAllIndexerSettings => "/config/indexer",
       SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       SonarrEvent::GetDownloads => "/queue",
       SonarrEvent::GetEpisodes(_) | SonarrEvent::GetEpisodeDetails(_) => "/episode",
@@ -76,6 +78,10 @@ impl<'a, 'b> Network<'a, 'b> {
     match sonarr_event {
       SonarrEvent::ClearBlocklist => self
         .clear_sonarr_blocklist()
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::GetAllIndexerSettings => self
+        .get_all_sonarr_indexer_settings()
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::DeleteBlocklistItem(blocklist_item_id) => self
@@ -179,6 +185,25 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn get_all_sonarr_indexer_settings(&mut self) -> Result<IndexerSettings> {
+    info!("Fetching Sonarr indexer settings");
+    let event = SonarrEvent::GetAllIndexerSettings;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), IndexerSettings>(request_props, |indexer_settings, mut app| {
+        if app.data.sonarr_data.indexer_settings.is_none() {
+          app.data.sonarr_data.indexer_settings = Some(indexer_settings);
+        } else {
+          debug!("Indexer Settings are being modified. Ignoring update...");
+        }
+      })
       .await
   }
 

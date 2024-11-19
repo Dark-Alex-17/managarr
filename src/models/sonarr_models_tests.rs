@@ -4,9 +4,11 @@ mod tests {
   use serde_json::json;
 
   use crate::models::{
+    servarr_models::{HostConfig, Indexer, SecurityConfig},
     sonarr_models::{
-      BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, Log,
-      LogResponse, QualityProfile, Series, SeriesStatus, SeriesType, SonarrSerdeable, SystemStatus,
+      BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode,
+      IndexerSettings, Log, LogResponse, QualityProfile, Series, SeriesStatus, SeriesType,
+      SonarrSerdeable, SystemStatus,
     },
     Serdeable,
   };
@@ -102,6 +104,45 @@ mod tests {
   }
 
   #[test]
+  fn test_sonarr_serdeable_from_host_config() {
+    let host_config = HostConfig {
+      port: 1234,
+      ..HostConfig::default()
+    };
+
+    let sonarr_serdeable: SonarrSerdeable = host_config.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::HostConfig(host_config));
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_indexers() {
+    let indexers = vec![Indexer {
+      id: 1,
+      ..Indexer::default()
+    }];
+
+    let sonarr_serdeable: SonarrSerdeable = indexers.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::Indexers(indexers));
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_indexer_settings() {
+    let indexer_settings = IndexerSettings {
+      id: 1,
+      ..IndexerSettings::default()
+    };
+
+    let sonarr_serdeable: SonarrSerdeable = indexer_settings.clone().into();
+
+    assert_eq!(
+      sonarr_serdeable,
+      SonarrSerdeable::IndexerSettings(indexer_settings)
+    );
+  }
+
+  #[test]
   fn test_sonarr_serdeable_from_series() {
     let series = vec![Series {
       id: 1,
@@ -187,6 +228,21 @@ mod tests {
     assert_eq!(
       sonarr_serdeable,
       SonarrSerdeable::QualityProfiles(quality_profiles)
+    );
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_security_config() {
+    let security_config = SecurityConfig {
+      username: Some("Test".to_owned()),
+      ..SecurityConfig::default()
+    };
+
+    let sonarr_serdeable: SonarrSerdeable = security_config.clone().into();
+
+    assert_eq!(
+      sonarr_serdeable,
+      SonarrSerdeable::SecurityConfig(security_config)
     );
   }
 }

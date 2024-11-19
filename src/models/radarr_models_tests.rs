@@ -10,6 +10,7 @@ mod tests {
       LogResponse, MinimumAvailability, Monitor, Movie, MovieHistoryItem, QualityProfile,
       QueueEvent, RadarrSerdeable, Release, RootFolder, SystemStatus, Tag, Task, TaskName, Update,
     },
+    servarr_models::{HostConfig, SecurityConfig},
     Serdeable,
   };
 
@@ -179,6 +180,18 @@ mod tests {
   }
 
   #[test]
+  fn test_radarr_serdeable_from_host_config() {
+    let host_config = HostConfig {
+      port: 1234,
+      ..HostConfig::default()
+    };
+
+    let radarr_serdeable: RadarrSerdeable = host_config.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::HostConfig(host_config));
+  }
+
+  #[test]
   fn test_radarr_serdeable_from_downloads_response() {
     let downloads_response = DownloadsResponse {
       records: vec![DownloadRecord {
@@ -324,6 +337,21 @@ mod tests {
     let radarr_serdeable: RadarrSerdeable = root_folders.clone().into();
 
     assert_eq!(radarr_serdeable, RadarrSerdeable::RootFolders(root_folders));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_security_config() {
+    let security_config = SecurityConfig {
+      username: Some("Test".to_owned()),
+      ..SecurityConfig::default()
+    };
+
+    let radarr_serdeable: RadarrSerdeable = security_config.clone().into();
+
+    assert_eq!(
+      radarr_serdeable,
+      RadarrSerdeable::SecurityConfig(security_config)
+    );
   }
 
   #[test]

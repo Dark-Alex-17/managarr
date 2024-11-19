@@ -187,7 +187,7 @@ impl<'a, 'b> Network<'a, 'b> {
       }
       RadarrEvent::EditMovie(params) => self.edit_movie(params).await.map(RadarrSerdeable::from),
       RadarrEvent::GetAllIndexerSettings => self
-        .get_all_indexer_settings()
+        .get_all_radarr_indexer_settings()
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::GetBlocklist => self.get_radarr_blocklist().await.map(RadarrSerdeable::from),
@@ -1417,7 +1417,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_all_indexer_settings(&mut self) -> Result<IndexerSettings> {
+  async fn get_all_radarr_indexer_settings(&mut self) -> Result<IndexerSettings> {
     info!("Fetching Radarr indexer settings");
     let event = RadarrEvent::GetAllIndexerSettings;
 

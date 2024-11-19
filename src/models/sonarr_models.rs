@@ -106,6 +106,21 @@ pub struct EpisodeFile {
   pub media_info: Option<MediaInfo>,
 }
 
+#[derive(Default, Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct IndexerSettings {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub mimimum_age: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub retention: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub maximum_size: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub rss_sync_interval: i64,
+}
+
 #[derive(Serialize, Deserialize, Default, Debug, Hash, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Language {
   pub name: String,
@@ -334,6 +349,7 @@ pub enum SonarrSerdeable {
   Episode(Episode),
   Episodes(Vec<Episode>),
   HostConfig(HostConfig),
+  IndexerSettings(IndexerSettings),
   Indexers(Vec<Indexer>),
   QualityProfiles(Vec<QualityProfile>),
   SecurityConfig(SecurityConfig),
@@ -362,6 +378,7 @@ serde_enum_from!(
     Episode(Episode),
     Episodes(Vec<Episode>),
     HostConfig(HostConfig),
+    IndexerSettings(IndexerSettings),
     Indexers(Vec<Indexer>),
     QualityProfiles(Vec<QualityProfile>),
     SecurityConfig(SecurityConfig),

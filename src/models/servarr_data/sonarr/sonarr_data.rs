@@ -4,7 +4,7 @@ use strum::EnumIter;
 
 use crate::models::{
   servarr_models::Indexer,
-  sonarr_models::{BlocklistItem, DownloadRecord, Episode, Series},
+  sonarr_models::{BlocklistItem, DownloadRecord, Episode, IndexerSettings, Series},
   stateful_list::StatefulList,
   stateful_table::StatefulTable,
   stateful_tree::StatefulTree,
@@ -29,6 +29,7 @@ pub struct SonarrData {
   pub episode_details_modal: Option<EpisodeDetailsModal>,
   pub quality_profile_map: BiMap<i64, String>,
   pub indexers: StatefulTable<Indexer>,
+  pub indexer_settings: Option<IndexerSettings>,
 }
 
 impl Default for SonarrData {
@@ -45,6 +46,7 @@ impl Default for SonarrData {
       episode_details_modal: None,
       quality_profile_map: BiMap::new(),
       indexers: StatefulTable::default(),
+      indexer_settings: None,
     }
   }
 }
