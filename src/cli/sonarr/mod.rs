@@ -42,6 +42,19 @@ pub enum SonarrCommand {
   List(SonarrListCommand),
   #[command(about = "Clear the blocklist")]
   ClearBlocklist,
+  #[command(
+    about = "Trigger a manual search of releases for the given season corresponding to the series with the given ID"
+  )]
+  ManualSeasonSearch {
+    #[arg(
+      long,
+      help = "The Sonarr ID of the series whose releases you wish to fetch and list",
+      required = true
+    )]
+    series_id: i64,
+    #[arg(long, help = "The season number to search for", required = true)]
+    season_number: i64,
+  },
 }
 
 impl From<SonarrCommand> for Command {
@@ -92,6 +105,16 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
           .handle_network_event(SonarrEvent::GetBlocklist.into())
           .await?;
         execute_network_event!(self, SonarrEvent::ClearBlocklist);
+      }
+      SonarrCommand::ManualSeasonSearch {
+        series_id,
+        season_number,
+      } => {
+        println!("Searching for season releases. This may take a minute...");
+        execute_network_event!(
+          self,
+          SonarrEvent::GetSeasonReleases(Some((series_id, season_number)))
+        );
       }
     }
 

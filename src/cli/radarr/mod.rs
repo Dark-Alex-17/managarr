@@ -86,7 +86,7 @@ pub enum RadarrCommand {
   ManualSearch {
     #[arg(
       long,
-      help = "The Radarr ID of the movie whose releases you wish to fetch and list",
+      help = "The Radarr ID of the movie whose releases you wish to fetch",
       required = true
     )]
     movie_id: i64,
