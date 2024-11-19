@@ -46,6 +46,8 @@ pub enum SonarrListCommand {
   },
   #[command(about = "List all Sonarr quality profiles")]
   QualityProfiles,
+  #[command(about = "List all queued events")]
+  QueuedEvents,
   #[command(about = "List all series in your Sonarr library")]
   Series,
 }
@@ -110,6 +112,9 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
       }
       SonarrListCommand::QualityProfiles => {
         execute_network_event!(self, SonarrEvent::GetQualityProfiles);
+      }
+      SonarrListCommand::QueuedEvents => {
+        execute_network_event!(self, SonarrEvent::GetQueuedEvents);
       }
       SonarrListCommand::Series => {
         execute_network_event!(self, SonarrEvent::ListSeries);
