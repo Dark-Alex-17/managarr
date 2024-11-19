@@ -19,6 +19,8 @@ mod get_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum SonarrGetCommand {
+  #[command(about = "Get the shared settings for all indexers")]
+  AllIndexerSettings,
   #[command(about = "Get detailed information for the episode with the given ID")]
   EpisodeDetails {
     #[arg(
@@ -63,6 +65,9 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrGetCommand> for SonarrGetCommandHan
 
   async fn handle(self) -> Result<()> {
     match self.command {
+      SonarrGetCommand::AllIndexerSettings => {
+        execute_network_event!(self, SonarrEvent::GetAllIndexerSettings);
+      }
       SonarrGetCommand::EpisodeDetails { episode_id } => {
         execute_network_event!(self, SonarrEvent::GetEpisodeDetails(Some(episode_id)));
       }

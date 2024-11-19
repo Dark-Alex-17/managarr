@@ -22,6 +22,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_all_indexer_settings_has_no_arg_requirements() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "get", "all-indexer-settings"]);
+
+      assert!(result.is_ok());
+    }
+
+    #[test]
     fn test_system_status_has_no_arg_requirements() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "get", "system-status"]);
@@ -88,6 +96,34 @@ mod tests {
       models::{sonarr_models::SonarrSerdeable, Serdeable},
       network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
     };
+
+    #[tokio::test]
+    async fn test_handle_get_all_indexer_settings_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::GetAllIndexerSettings.into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let get_all_indexer_settings_command = SonarrGetCommand::AllIndexerSettings;
+
+      let result = SonarrGetCommandHandler::with(
+        &app_arc,
+        get_all_indexer_settings_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert!(result.is_ok());
+    }
 
     #[tokio::test]
     async fn test_handle_get_episode_details_command() {
