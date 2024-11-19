@@ -28,6 +28,10 @@ pub enum SonarrGetCommand {
     )]
     episode_id: i64,
   },
+  #[command(about = "Fetch the host config for your Sonarr instance")]
+  HostConfig,
+  #[command(about = "Fetch the security config for your Sonarr instance")]
+  SecurityConfig,
   #[command(about = "Get the system status")]
   SystemStatus,
 }
@@ -61,6 +65,12 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrGetCommand> for SonarrGetCommandHan
     match self.command {
       SonarrGetCommand::EpisodeDetails { episode_id } => {
         execute_network_event!(self, SonarrEvent::GetEpisodeDetails(Some(episode_id)));
+      }
+      SonarrGetCommand::HostConfig => {
+        execute_network_event!(self, SonarrEvent::GetHostConfig);
+      }
+      SonarrGetCommand::SecurityConfig => {
+        execute_network_event!(self, SonarrEvent::GetSecurityConfig);
       }
       SonarrGetCommand::SystemStatus => {
         execute_network_event!(self, SonarrEvent::GetStatus);

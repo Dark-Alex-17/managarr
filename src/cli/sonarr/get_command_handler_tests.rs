@@ -54,6 +54,22 @@ mod tests {
 
       assert!(result.is_ok());
     }
+
+    #[test]
+    fn test_get_host_config_has_no_arg_requirements() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "get", "host-config"]);
+
+      assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_get_security_config_has_no_arg_requirements() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "get", "security-config"]);
+
+      assert!(result.is_ok());
+    }
   }
 
   mod handler {
@@ -93,6 +109,52 @@ mod tests {
 
       let result =
         SonarrGetCommandHandler::with(&app_arc, get_episode_details_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_get_host_config_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(SonarrEvent::GetHostConfig.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let get_host_config_command = SonarrGetCommand::HostConfig;
+
+      let result =
+        SonarrGetCommandHandler::with(&app_arc, get_host_config_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_get_security_config_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(SonarrEvent::GetSecurityConfig.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let get_security_config_command = SonarrGetCommand::SecurityConfig;
+
+      let result =
+        SonarrGetCommandHandler::with(&app_arc, get_security_config_command, &mut mock_network)
           .handle()
           .await;
 

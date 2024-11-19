@@ -964,7 +964,7 @@ mod test {
   async fn test_handle_get_sonarr_logs_event() {
     let expected_logs = vec![
       HorizontallyScrollableText::from(
-        "2023-05-20 21:29:16 UTC|FATAL|RadarrError|Some.Big.Bad.Exception|test exception",
+        "2023-05-20 21:29:16 UTC|FATAL|SonarrError|Some.Big.Bad.Exception|test exception",
       ),
       HorizontallyScrollableText::from("2023-05-20 21:29:16 UTC|INFO|TestLogger|test message"),
     ];
@@ -985,7 +985,7 @@ mod test {
           {
               "time": "2023-05-20T21:29:16Z",
               "level": "fatal",
-              "logger": "RadarrError",
+              "logger": "SonarrError",
               "exception": "test exception",
               "exceptionType": "Some.Big.Bad.Exception",
               "id": 2
@@ -1032,7 +1032,7 @@ mod test {
   async fn test_handle_get_sonarr_logs_event_uses_provided_events() {
     let expected_logs = vec![
       HorizontallyScrollableText::from(
-        "2023-05-20 21:29:16 UTC|FATAL|RadarrError|Some.Big.Bad.Exception|test exception",
+        "2023-05-20 21:29:16 UTC|FATAL|SonarrError|Some.Big.Bad.Exception|test exception",
       ),
       HorizontallyScrollableText::from("2023-05-20 21:29:16 UTC|INFO|TestLogger|test message"),
     ];
@@ -1053,7 +1053,7 @@ mod test {
           {
               "time": "2023-05-20T21:29:16Z",
               "level": "fatal",
-              "logger": "RadarrError",
+              "logger": "SonarrError",
               "exception": "test exception",
               "exceptionType": "Some.Big.Bad.Exception",
               "id": 2

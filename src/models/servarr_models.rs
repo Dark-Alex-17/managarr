@@ -117,8 +117,11 @@ pub struct IndexerField {
 #[serde(rename_all = "camelCase")]
 pub struct SecurityConfig {
   pub authentication_method: AuthenticationMethod,
-  pub authentication_required: AuthenticationRequired,
-  pub username: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub authentication_required: Option<AuthenticationRequired>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub username: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub password: Option<String>,
   pub api_key: String,
   pub certificate_validation: CertificateValidation,
