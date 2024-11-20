@@ -68,7 +68,7 @@ pub struct DownloadsResponse {
   pub records: Vec<DownloadRecord>,
 }
 
-#[derive(Default, Serialize, Deserialize, Hash, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Episode {
   #[serde(deserialize_with = "super::from_i64")]
@@ -97,7 +97,7 @@ impl Display for Episode {
   }
 }
 
-#[derive(Default, Serialize, Deserialize, Hash, Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct EpisodeFile {
   pub relative_path: String,
@@ -124,7 +124,7 @@ pub struct IndexerSettings {
   pub rss_sync_interval: i64,
 }
 
-#[derive(Serialize, Deserialize, Derivative, Hash, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaInfo {
@@ -302,6 +302,34 @@ impl SeriesStatus {
       SeriesStatus::Deleted => "Deleted",
     }
   }
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SonarrEpisodeHistoryResponse {
+  pub records: Vec<SonarrHistoryItem>,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SonarrHistoryData {
+  pub dropped_path: String,
+  pub imported_path: String,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SonarrHistoryItem {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  pub source_title: HorizontallyScrollableText,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub episode_id: i64,
+  pub quality: QualityWrapper,
+  pub languages: Vec<Language>,
+  pub date: DateTime<Utc>,
+  pub event_type: String,
+  pub data: SonarrHistoryData,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]

@@ -114,7 +114,7 @@ pub struct IndexerField {
   pub value: Option<Value>,
 }
 
-#[derive(Serialize, Deserialize, Default, Hash, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Language {
   pub name: String,
 }

@@ -855,7 +855,7 @@ mod test {
     app_arc
       .lock()
       .await
-      .push_navigation_stack(ActiveSonarrBlock::Episodes.into());
+      .push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episode(episode) = network
@@ -2155,7 +2155,7 @@ mod test {
     app_arc
       .lock()
       .await
-      .push_navigation_stack(ActiveSonarrBlock::Episodes.into());
+      .push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let id = network.extract_episode_id(None).await;
@@ -2175,7 +2175,7 @@ mod test {
     app_arc
       .lock()
       .await
-      .push_navigation_stack(ActiveSonarrBlock::Episodes.into());
+      .push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let id = network.extract_episode_id(Some(2)).await;
@@ -2199,7 +2199,7 @@ mod test {
     app_arc
       .lock()
       .await
-      .push_navigation_stack(ActiveSonarrBlock::Episodes.into());
+      .push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let id = network.extract_episode_id(None).await;

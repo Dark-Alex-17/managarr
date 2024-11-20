@@ -9,8 +9,6 @@ pub struct EpisodeDetailsModal {
   pub audio_details: String,
   pub video_details: String,
   // pub episode_history: StatefulTable<MovieHistoryItem>,
-  // pub episode_cast: StatefulTable<Credit>,
-  // pub episode_crew: StatefulTable<Credit>,
   pub episode_releases: StatefulTable<Release>,
 }
 
