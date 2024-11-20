@@ -6,7 +6,6 @@ use crate::models::{
   servarr_models::{Indexer, QueueEvent},
   sonarr_models::{
     BlocklistItem, DownloadRecord, IndexerSettings, Season, Series, SonarrHistoryItem,
-    SonarrHistoryWrapper,
   },
   stateful_list::StatefulList,
   stateful_table::StatefulTable,
@@ -22,7 +21,7 @@ mod sonarr_data_tests;
 pub struct SonarrData {
   pub blocklist: StatefulTable<BlocklistItem>,
   pub downloads: StatefulTable<DownloadRecord>,
-  pub history: StatefulTable<SonarrHistoryWrapper>,
+  pub history: StatefulTable<SonarrHistoryItem>,
   pub indexers: StatefulTable<Indexer>,
   pub indexer_settings: Option<IndexerSettings>,
   pub logs: StatefulList<HorizontallyScrollableText>,

@@ -14,7 +14,7 @@ use crate::{
     },
     sonarr_models::{
       BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
-      SonarrSerdeable, SystemStatus,
+      SonarrHistoryWrapper, SonarrSerdeable, SystemStatus,
     },
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
   },
@@ -34,6 +34,7 @@ pub enum SonarrEvent {
   GetAllIndexerSettings,
   GetBlocklist,
   GetDownloads,
+  GetHistory(Option<u64>),
   GetHostConfig,
   GetIndexers,
   GetEpisodeDetails(Option<i64>),
@@ -59,6 +60,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       SonarrEvent::GetDownloads => "/queue",
       SonarrEvent::GetEpisodes(_) | SonarrEvent::GetEpisodeDetails(_) => "/episode",
+      SonarrEvent::GetHistory(_) => "/history",
       SonarrEvent::GetHostConfig | SonarrEvent::GetSecurityConfig => "/config/host",
       SonarrEvent::GetIndexers => "/indexer",
       SonarrEvent::GetLogs(_) => "/log",
@@ -104,6 +106,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::GetEpisodeDetails(episode_id) => self
         .get_episode_details(episode_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::GetHistory(items) => self
+        .get_sonarr_history(items)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetHostConfig => self
@@ -458,6 +464,33 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<(), HostConfig>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn get_sonarr_history(&mut self, items: Option<u64>) -> Result<SonarrHistoryWrapper> {
+    info!("Fetching all Sonarr history events");
+    let event = SonarrEvent::GetHistory(items);
+
+    let params = format!(
+      "pageSize={}&sortDirection=descending&sortKey=time",
+      items.unwrap_or(500)
+    );
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
+      .await;
+
+    self
+      .handle_request::<(), SonarrHistoryWrapper>(request_props, |history_response, mut app| {
+        if !matches!(
+          app.get_current_route(),
+          Route::Sonarr(ActiveSonarrBlock::HistorySortPrompt, _)
+        ) {
+          let mut history_vec = history_response.records;
+          history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          app.data.sonarr_data.history.set_items(history_vec);
+          app.data.sonarr_data.history.apply_sorting_toggle(false);
+        }
+      })
       .await
   }
 
