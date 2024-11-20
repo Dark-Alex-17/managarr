@@ -1,18 +1,11 @@
 #[cfg(test)]
 mod test {
-  use std::fmt::Display;
-  use std::hash::Hash;
   use std::sync::Arc;
 
   use bimap::BiMap;
   use chrono::{DateTime, Utc};
   use indoc::formatdoc;
-  use managarr_tree_widget::{Tree, TreeItem, TreeState};
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use ratatui::buffer::Buffer;
-  use ratatui::layout::Rect;
-  use ratatui::text::ToText;
-  use ratatui::widgets::StatefulWidget;
   use reqwest::Client;
   use rstest::rstest;
   use serde_json::json;
@@ -21,7 +14,7 @@ mod test {
   use tokio_util::sync::CancellationToken;
 
   use crate::app::App;
-  use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
+  use crate::models::servarr_data::sonarr::modals::{EpisodeDetailsModal, SeasonDetailsModal};
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::servarr_models::{
     HostConfig, Indexer, IndexerField, Language, LogResponse, Quality, QualityProfile,
@@ -161,7 +154,13 @@ mod test {
   }
 
   #[rstest]
-  fn test_resource_release(#[values(SonarrEvent::GetSeasonReleases(None))] event: SonarrEvent) {
+  fn test_resource_release(
+    #[values(
+      SonarrEvent::GetSeasonReleases(None),
+      SonarrEvent::GetEpisodeReleases(None)
+    )]
+    event: SonarrEvent,
+  ) {
     assert_str_eq!(event.resource(), "/release");
   }
 
@@ -1250,6 +1249,234 @@ mod test {
         vec![expected_event]
       );
       assert_eq!(events, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episode_releases_event() {
+    let release_json = json!([{
+      "guid": "1234",
+      "protocol": "torrent",
+      "age": 1,
+      "title": "Test Release",
+      "indexer": "kickass torrents",
+      "indexerId": 2,
+      "size": 1234,
+      "rejected": true,
+      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+      "seeders": 2,
+      "leechers": 1,
+      "languages": [ { "name": "English" } ],
+      "quality": { "quality": { "name": "Bluray-1080p" }}
+    }]);
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(release_json),
+      None,
+      SonarrEvent::GetEpisodeReleases(None),
+      None,
+      Some("episodeId=1"),
+    )
+    .await;
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.set_items(vec![episode()]);
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_mut()
+      .unwrap()
+      .episode_details_modal = Some(EpisodeDetailsModal::default());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Releases(releases_vec) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_releases
+          .items,
+        vec![release()]
+      );
+      assert_eq!(releases_vec, vec![release()]);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episode_releases_event_empty_episode_details_modal() {
+    let release_json = json!([{
+      "guid": "1234",
+      "protocol": "torrent",
+      "age": 1,
+      "title": "Test Release",
+      "indexer": "kickass torrents",
+      "indexerId": 2,
+      "size": 1234,
+      "rejected": true,
+      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+      "seeders": 2,
+      "leechers": 1,
+      "languages": [ { "name": "English" } ],
+      "quality": { "quality": { "name": "Bluray-1080p" }}
+    }]);
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(release_json),
+      None,
+      SonarrEvent::GetEpisodeReleases(None),
+      None,
+      Some("episodeId=1"),
+    )
+    .await;
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.set_items(vec![episode()]);
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Releases(releases_vec) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_releases
+          .items,
+        vec![release()]
+      );
+      assert_eq!(releases_vec, vec![release()]);
+    }
+  }
+
+  #[tokio::test]
+  #[should_panic(expected = "Season details have not been loaded")]
+  async fn test_handle_get_episode_releases_event_empty_season_details_modal_panics() {
+    let release_json = json!([{
+      "guid": "1234",
+      "protocol": "torrent",
+      "age": 1,
+      "title": "Test Release",
+      "indexer": "kickass torrents",
+      "indexerId": 2,
+      "size": 1234,
+      "rejected": true,
+      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+      "seeders": 2,
+      "leechers": 1,
+      "languages": [ { "name": "English" } ],
+      "quality": { "quality": { "name": "Bluray-1080p" }}
+    }]);
+    let (_async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(release_json),
+      None,
+      SonarrEvent::GetEpisodeReleases(None),
+      None,
+      Some("episodeId=1"),
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(None))
+      .await
+      .unwrap();
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episode_releases_event_uses_provided_series_id() {
+    let release_json = json!([{
+      "guid": "1234",
+      "protocol": "torrent",
+      "age": 1,
+      "title": "Test Release",
+      "indexer": "kickass torrents",
+      "indexerId": 2,
+      "size": 1234,
+      "rejected": true,
+      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
+      "seeders": 2,
+      "leechers": 1,
+      "languages": [ { "name": "English" } ],
+      "quality": { "quality": { "name": "Bluray-1080p" }}
+    }]);
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(release_json),
+      None,
+      SonarrEvent::GetEpisodeReleases(None),
+      None,
+      Some("episodeId=2"),
+    )
+    .await;
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.set_items(vec![episode()]);
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_mut()
+      .unwrap()
+      .episode_details_modal = Some(EpisodeDetailsModal::default());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Releases(releases_vec) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(Some(2)))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_releases
+          .items,
+        vec![release()]
+      );
+      assert_eq!(releases_vec, vec![release()]);
     }
   }
 

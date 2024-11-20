@@ -41,6 +41,7 @@ pub enum SonarrEvent {
   GetLogs(Option<u64>),
   GetQualityProfiles,
   GetQueuedEvents,
+  GetEpisodeReleases(Option<i64>),
   GetSeasonReleases(Option<(i64, i64)>),
   GetSecurityConfig,
   GetSeriesDetails(Option<i64>),
@@ -63,7 +64,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
       SonarrEvent::GetQueuedEvents => "/command",
-      SonarrEvent::GetSeasonReleases(_) => "/release",
+      SonarrEvent::GetSeasonReleases(_) | SonarrEvent::GetEpisodeReleases(_) => "/release",
       SonarrEvent::GetStatus => "/system/status",
       SonarrEvent::HealthCheck => "/health",
       SonarrEvent::ListSeries | SonarrEvent::GetSeriesDetails(_) => "/series",
@@ -120,6 +121,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::GetQueuedEvents => self
         .get_queued_sonarr_events()
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::GetEpisodeReleases(params) => self
+        .get_episode_releases(params)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetSeasonReleases(params) => self
@@ -551,6 +556,61 @@ impl<'a, 'b> Network<'a, 'b> {
           .sonarr_data
           .queued_events
           .set_items(queued_events_vec);
+      })
+      .await
+  }
+
+  async fn get_episode_releases(&mut self, episode_id: Option<i64>) -> Result<Vec<Release>> {
+    let event = SonarrEvent::GetEpisodeReleases(None);
+    let id = self.extract_episode_id(episode_id).await;
+
+    info!("Fetching releases for episode with ID: {id}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("episodeId={id}")),
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<Release>>(request_props, |release_vec, mut app| {
+        if app.data.sonarr_data.season_details_modal.is_none() {
+          app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
+        }
+
+        if app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_mut()
+          .unwrap()
+          .episode_details_modal
+          .is_none()
+        {
+          app
+            .data
+            .sonarr_data
+            .season_details_modal
+            .as_mut()
+            .unwrap()
+            .episode_details_modal = Some(EpisodeDetailsModal::default());
+        }
+
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_mut()
+          .unwrap()
+          .episode_details_modal
+          .as_mut()
+          .unwrap()
+          .episode_releases
+          .set_items(release_vec);
       })
       .await
   }
