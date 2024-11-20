@@ -58,7 +58,6 @@ impl Default for SonarrData {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, EnumIter)]
 pub enum ActiveSonarrBlock {
-  #[default]
   AddRootFolderPrompt,
   AddSeriesAlreadyInLibrary,
   AddSeriesConfirmPrompt,
@@ -95,6 +94,8 @@ pub enum ActiveSonarrBlock {
   FilterHistoryError,
   FilterSeries,
   FilterSeriesError,
+  FilterSeriesHistory,
+  FilterSeriesHistoryError,
   History,
   HistoryDetails,
   HistorySortPrompt,
@@ -116,11 +117,15 @@ pub enum ActiveSonarrBlock {
   SearchSeasonError,
   SearchSeries,
   SearchSeriesError,
+  SearchSeriesHistory,
+  SearchSeriesHistoryError,
   SeasonDetails,
   SeasonHistory,
+  #[default]
   Series,
   SeriesDetails,
   SeriesHistory,
+  SeriesHistorySortPrompt,
   SeriesSortPrompt,
   System,
   SystemLogs,

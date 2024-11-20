@@ -9,8 +9,8 @@ mod tests {
     },
     sonarr_models::{
       BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode,
-      IndexerSettings, Series, SeriesStatus, SeriesType, SonarrHistoryItem, SonarrHistoryWrapper,
-      SonarrSerdeable, SystemStatus,
+      IndexerSettings, Series, SeriesStatus, SeriesType, SonarrHistoryItem, SonarrSerdeable,
+      SystemStatus,
     },
     Serdeable,
   };
@@ -169,18 +169,16 @@ mod tests {
   }
 
   #[test]
-  fn test_sonarr_serdeable_from_sonarr_history_wrapper() {
-    let history_wrapper = SonarrHistoryWrapper {
-      records: vec![SonarrHistoryItem {
-        id: 1,
-        ..SonarrHistoryItem::default()
-      }],
-    };
-    let sonarr_serdeable: SonarrSerdeable = history_wrapper.clone().into();
+  fn test_sonarr_serdeable_from_sonarr_history_items() {
+    let history_items = vec![SonarrHistoryItem {
+      id: 1,
+      ..SonarrHistoryItem::default()
+    }];
+    let sonarr_serdeable: SonarrSerdeable = history_items.clone().into();
 
     assert_eq!(
       sonarr_serdeable,
-      SonarrSerdeable::SonarrHistoryWrapper(history_wrapper)
+      SonarrSerdeable::SonarrHistoryItems(history_items)
     );
   }
 

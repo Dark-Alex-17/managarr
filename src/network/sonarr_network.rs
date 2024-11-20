@@ -14,8 +14,9 @@ use crate::{
     },
     sonarr_models::{
       BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
-      SonarrHistoryWrapper, SonarrSerdeable, SystemStatus,
+      SonarrHistoryItem, SonarrHistoryWrapper, SonarrSerdeable, SystemStatus,
     },
+    stateful_table::StatefulTable,
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
   },
   network::RequestMethod,
@@ -46,6 +47,7 @@ pub enum SonarrEvent {
   GetSeasonReleases(Option<(i64, i64)>),
   GetSecurityConfig,
   GetSeriesDetails(Option<i64>),
+  GetSeriesHistory(Option<i64>),
   GetStatus,
   HealthCheck,
   ListSeries,
@@ -67,6 +69,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
       SonarrEvent::GetQueuedEvents => "/command",
       SonarrEvent::GetSeasonReleases(_) | SonarrEvent::GetEpisodeReleases(_) => "/release",
+      SonarrEvent::GetSeriesHistory(_) => "/history/series",
       SonarrEvent::GetStatus => "/system/status",
       SonarrEvent::HealthCheck => "/health",
       SonarrEvent::ListSeries | SonarrEvent::GetSeriesDetails(_) => "/series",
@@ -143,6 +146,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::GetSeriesDetails(series_id) => self
         .get_series_details(series_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::GetSeriesHistory(series_id) => self
+        .get_sonarr_series_history(series_id)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetStatus => self.get_sonarr_status().await.map(SonarrSerdeable::from),
@@ -723,6 +730,54 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<(), Series>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn get_sonarr_series_history(
+    &mut self,
+    series_id: Option<i64>,
+  ) -> Result<Vec<SonarrHistoryItem>> {
+    let (id, series_id_param) = self.extract_series_id(series_id).await;
+    info!("Fetching Sonarr series history for series with ID: {id}");
+    let event = SonarrEvent::GetSeriesHistory(series_id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(series_id_param),
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<SonarrHistoryItem>>(request_props, |mut history_vec, mut app| {
+        if app.data.sonarr_data.series_history.is_none() {
+          app.data.sonarr_data.series_history = Some(StatefulTable::default());
+        }
+
+        if !matches!(
+          app.get_current_route(),
+          Route::Sonarr(ActiveSonarrBlock::SeriesHistorySortPrompt, _)
+        ) {
+          history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          app
+            .data
+            .sonarr_data
+            .series_history
+            .as_mut()
+            .unwrap()
+            .set_items(history_vec);
+          app
+            .data
+            .sonarr_data
+            .series_history
+            .as_mut()
+            .unwrap()
+            .apply_sorting_toggle(false);
+        }
+      })
       .await
   }
 
