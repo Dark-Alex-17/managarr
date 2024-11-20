@@ -55,6 +55,15 @@ pub enum SonarrListCommand {
   QueuedEvents,
   #[command(about = "List all series in your Sonarr library")]
   Series,
+  #[command(about = "Fetch all history events for the series with the given ID")]
+  SeriesHistory {
+    #[arg(
+      long,
+      help = "The Sonarr ID of the series whose history you wish to fetch",
+      required = true
+    )]
+    series_id: i64,
+  },
 }
 
 impl From<SonarrListCommand> for Command {
@@ -126,6 +135,9 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
       }
       SonarrListCommand::Series => {
         execute_network_event!(self, SonarrEvent::ListSeries);
+      }
+      SonarrListCommand::SeriesHistory { series_id } => {
+        execute_network_event!(self, SonarrEvent::GetSeriesHistory(Some(series_id)));
       }
     }
 
