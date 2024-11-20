@@ -32,6 +32,11 @@ pub enum SonarrListCommand {
     )]
     series_id: i64,
   },
+  #[command(about = "Fetch all Sonarr history events")]
+  History {
+    #[arg(long, help = "How many history events to fetch", default_value_t = 500)]
+    events: u64,
+  },
   #[command(about = "List all Sonarr indexers")]
   Indexers,
   #[command(about = "Fetch Sonarr logs")]
@@ -87,6 +92,9 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
       }
       SonarrListCommand::Episodes { series_id } => {
         execute_network_event!(self, SonarrEvent::GetEpisodes(Some(series_id)));
+      }
+      SonarrListCommand::History { events: items } => {
+        execute_network_event!(self, SonarrEvent::GetHistory(Some(items)));
       }
       SonarrListCommand::Indexers => {
         execute_network_event!(self, SonarrEvent::GetIndexers);

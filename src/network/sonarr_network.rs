@@ -108,8 +108,8 @@ impl<'a, 'b> Network<'a, 'b> {
         .get_episode_details(episode_id)
         .await
         .map(SonarrSerdeable::from),
-      SonarrEvent::GetHistory(items) => self
-        .get_sonarr_history(items)
+      SonarrEvent::GetHistory(events) => self
+        .get_sonarr_history(events)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetHostConfig => self
@@ -467,13 +467,13 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_sonarr_history(&mut self, items: Option<u64>) -> Result<SonarrHistoryWrapper> {
+  async fn get_sonarr_history(&mut self, events: Option<u64>) -> Result<SonarrHistoryWrapper> {
     info!("Fetching all Sonarr history events");
-    let event = SonarrEvent::GetHistory(items);
+    let event = SonarrEvent::GetHistory(events);
 
     let params = format!(
       "pageSize={}&sortDirection=descending&sortKey=time",
-      items.unwrap_or(500)
+      events.unwrap_or(500)
     );
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
