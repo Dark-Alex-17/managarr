@@ -16,7 +16,6 @@ pub struct EpisodeDetailsModal {
 
 #[derive(Default)]
 pub struct SeasonDetailsModal {
-  pub season_details: ScrollableText,
   pub episodes: StatefulTable<Episode>,
   pub episode_details_modal: Option<EpisodeDetailsModal>,
   pub season_releases: StatefulTable<Release>,
