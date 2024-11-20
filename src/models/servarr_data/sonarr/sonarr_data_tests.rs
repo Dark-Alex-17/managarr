@@ -36,6 +36,7 @@ mod tests {
 
       assert!(sonarr_data.blocklist.is_empty());
       assert!(sonarr_data.downloads.is_empty());
+      assert!(sonarr_data.history.is_empty());
       assert!(sonarr_data.indexers.is_empty());
       assert!(sonarr_data.indexer_settings.is_none());
       assert!(sonarr_data.logs.is_empty());
@@ -44,6 +45,7 @@ mod tests {
       assert!(sonarr_data.seasons.is_empty());
       assert!(sonarr_data.season_details_modal.is_none());
       assert!(sonarr_data.series.is_empty());
+      assert!(sonarr_data.series_history.is_empty());
       assert_eq!(sonarr_data.start_time, <DateTime<Utc>>::default());
       assert!(sonarr_data.version.is_empty());
     }

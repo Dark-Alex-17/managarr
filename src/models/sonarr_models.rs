@@ -306,7 +306,7 @@ impl SeriesStatus {
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct SonarrEpisodeHistoryResponse {
+pub struct SonarrHistoryWrapper {
   pub records: Vec<SonarrHistoryItem>,
 }
 
