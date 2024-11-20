@@ -76,6 +76,31 @@ mod tests {
 
       assert!(result.is_ok());
     }
+
+    #[rstest]
+    fn test_manual_episode_search_requires_episode_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "manual-episode-search"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_manual_episode_search_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "manual-episode-search",
+        "--episode-id",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
+    }
   }
 
   mod handler {
@@ -130,6 +155,32 @@ mod tests {
       let result = SonarrCliHandler::with(&app_arc, claer_blocklist_command, &mut mock_network)
         .handle()
         .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_manual_episode_search_command() {
+      let expected_episode_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::GetEpisodeReleases(Some(expected_episode_id)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let manual_episode_search_command = SonarrCommand::ManualEpisodeSearch { episode_id: 1 };
+
+      let result =
+        SonarrCliHandler::with(&app_arc, manual_episode_search_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert!(result.is_ok());
     }
