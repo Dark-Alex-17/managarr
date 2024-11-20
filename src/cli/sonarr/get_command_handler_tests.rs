@@ -78,6 +78,32 @@ mod tests {
 
       assert!(result.is_ok());
     }
+
+    #[test]
+    fn test_series_details_requires_series_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "get", "series-details"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_series_details_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "get",
+        "series-details",
+        "--series-id",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
+    }
   }
 
   mod handler {
@@ -191,6 +217,32 @@ mod tests {
 
       let result =
         SonarrGetCommandHandler::with(&app_arc, get_security_config_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_get_series_details_command() {
+      let expected_series_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::GetSeriesDetails(Some(expected_series_id)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let get_series_details_command = SonarrGetCommand::SeriesDetails { series_id: 1 };
+
+      let result =
+        SonarrGetCommandHandler::with(&app_arc, get_series_details_command, &mut mock_network)
           .handle()
           .await;
 
