@@ -7,7 +7,6 @@ use tokio::sync::Mutex;
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
-  execute_network_event,
   models::radarr_models::{AddMovieBody, AddOptions, MinimumAvailability, Monitor},
   network::{radarr_network::RadarrEvent, NetworkTrait},
 };
@@ -106,8 +105,8 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHan
     }
   }
 
-  async fn handle(self) -> Result<()> {
-    match self.command {
+  async fn handle(self) -> Result<String> {
+    let result = match self.command {
       RadarrAddCommand::Movie {
         tmdb_id,
         root_folder_path,
@@ -131,19 +130,28 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHan
             search_for_movie: !no_search_for_movie,
           },
         };
-        execute_network_event!(self, RadarrEvent::AddMovie(Some(body)));
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::AddMovie(Some(body))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrAddCommand::RootFolder { root_folder_path } => {
-        execute_network_event!(
-          self,
-          RadarrEvent::AddRootFolder(Some(root_folder_path.clone()))
-        );
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::AddRootFolder(Some(root_folder_path.clone()))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrAddCommand::Tag { name } => {
-        execute_network_event!(self, RadarrEvent::AddTag(name.clone()));
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::AddTag(name.clone())).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
-    }
+    };
 
-    Ok(())
+    Ok(result)
   }
 }

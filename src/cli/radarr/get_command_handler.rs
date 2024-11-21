@@ -7,7 +7,6 @@ use tokio::sync::Mutex;
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
-  execute_network_event,
   network::{radarr_network::RadarrEvent, NetworkTrait},
 };
 
@@ -72,28 +71,52 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrGetCommand> for RadarrGetCommandHan
     }
   }
 
-  async fn handle(self) -> Result<()> {
-    match self.command {
+  async fn handle(self) -> Result<String> {
+    let result = match self.command {
       RadarrGetCommand::AllIndexerSettings => {
-        execute_network_event!(self, RadarrEvent::GetAllIndexerSettings);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetAllIndexerSettings).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrGetCommand::HostConfig => {
-        execute_network_event!(self, RadarrEvent::GetHostConfig);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetHostConfig).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrGetCommand::MovieDetails { movie_id } => {
-        execute_network_event!(self, RadarrEvent::GetMovieDetails(Some(movie_id)));
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetMovieDetails(Some(movie_id))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrGetCommand::MovieHistory { movie_id } => {
-        execute_network_event!(self, RadarrEvent::GetMovieHistory(Some(movie_id)));
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetMovieHistory(Some(movie_id))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrGetCommand::SecurityConfig => {
-        execute_network_event!(self, RadarrEvent::GetSecurityConfig);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetSecurityConfig).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrGetCommand::SystemStatus => {
-        execute_network_event!(self, RadarrEvent::GetStatus);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetStatus).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
-    }
+    };
 
-    Ok(())
+    Ok(result)
   }
 }

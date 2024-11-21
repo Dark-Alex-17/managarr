@@ -7,7 +7,6 @@ use tokio::sync::Mutex;
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
-  execute_network_event,
   network::{radarr_network::RadarrEvent, NetworkTrait},
 };
 
@@ -87,19 +86,35 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrListCommand> for RadarrListCommandH
     }
   }
 
-  async fn handle(self) -> Result<()> {
-    match self.command {
+  async fn handle(self) -> Result<String> {
+    let result = match self.command {
       RadarrListCommand::Blocklist => {
-        execute_network_event!(self, RadarrEvent::GetBlocklist);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetBlocklist).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrListCommand::Collections => {
-        execute_network_event!(self, RadarrEvent::GetCollections);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetCollections).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrListCommand::Downloads => {
-        execute_network_event!(self, RadarrEvent::GetDownloads);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetDownloads).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrListCommand::Indexers => {
-        execute_network_event!(self, RadarrEvent::GetIndexers);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetIndexers).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrListCommand::Logs {
         events,
@@ -113,39 +128,69 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrListCommand> for RadarrListCommandH
         if output_in_log_format {
           let log_lines = self.app.lock().await.data.radarr_data.logs.items.clone();
 
-          let json = serde_json::to_string_pretty(&log_lines)?;
-          println!("{}", json);
+          serde_json::to_string_pretty(&log_lines)?
         } else {
-          let json = serde_json::to_string_pretty(&logs)?;
-          println!("{}", json);
+          serde_json::to_string_pretty(&logs)?
         }
       }
       RadarrListCommand::Movies => {
-        execute_network_event!(self, RadarrEvent::GetMovies);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetMovies).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrListCommand::MovieCredits { movie_id } => {
-        execute_network_event!(self, RadarrEvent::GetMovieCredits(Some(movie_id)));
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetMovieCredits(Some(movie_id))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrListCommand::QualityProfiles => {
-        execute_network_event!(self, RadarrEvent::GetQualityProfiles);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetQualityProfiles).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrListCommand::QueuedEvents => {
-        execute_network_event!(self, RadarrEvent::GetQueuedEvents);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetQueuedEvents).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrListCommand::RootFolders => {
-        execute_network_event!(self, RadarrEvent::GetRootFolders);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetRootFolders).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrListCommand::Tags => {
-        execute_network_event!(self, RadarrEvent::GetTags);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetTags).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrListCommand::Tasks => {
-        execute_network_event!(self, RadarrEvent::GetTasks);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetTasks).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrListCommand::Updates => {
-        execute_network_event!(self, RadarrEvent::GetUpdates);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetUpdates).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
-    }
+    };
 
-    Ok(())
+    Ok(result)
   }
 }

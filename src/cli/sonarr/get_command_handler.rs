@@ -7,7 +7,6 @@ use tokio::sync::Mutex;
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
-  execute_network_event,
   network::{sonarr_network::SonarrEvent, NetworkTrait},
 };
 
@@ -72,28 +71,52 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrGetCommand> for SonarrGetCommandHan
     }
   }
 
-  async fn handle(self) -> Result<()> {
-    match self.command {
+  async fn handle(self) -> Result<String> {
+    let result = match self.command {
       SonarrGetCommand::AllIndexerSettings => {
-        execute_network_event!(self, SonarrEvent::GetAllIndexerSettings);
+        let resp = self
+          .network
+          .handle_network_event((SonarrEvent::GetAllIndexerSettings).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       SonarrGetCommand::EpisodeDetails { episode_id } => {
-        execute_network_event!(self, SonarrEvent::GetEpisodeDetails(Some(episode_id)));
+        let resp = self
+          .network
+          .handle_network_event((SonarrEvent::GetEpisodeDetails(Some(episode_id))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       SonarrGetCommand::HostConfig => {
-        execute_network_event!(self, SonarrEvent::GetHostConfig);
+        let resp = self
+          .network
+          .handle_network_event((SonarrEvent::GetHostConfig).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       SonarrGetCommand::SecurityConfig => {
-        execute_network_event!(self, SonarrEvent::GetSecurityConfig);
+        let resp = self
+          .network
+          .handle_network_event((SonarrEvent::GetSecurityConfig).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       SonarrGetCommand::SeriesDetails { series_id } => {
-        execute_network_event!(self, SonarrEvent::GetSeriesDetails(Some(series_id)));
+        let resp = self
+          .network
+          .handle_network_event((SonarrEvent::GetSeriesDetails(Some(series_id))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       SonarrGetCommand::SystemStatus => {
-        execute_network_event!(self, SonarrEvent::GetStatus);
+        let resp = self
+          .network
+          .handle_network_event((SonarrEvent::GetStatus).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
-    }
+    };
 
-    Ok(())
+    Ok(result)
   }
 }

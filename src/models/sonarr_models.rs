@@ -14,7 +14,7 @@ use super::{
     HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper, QueueEvent,
     Release, SecurityConfig,
   },
-  HorizontallyScrollableText, Serdeable,
+  EnumDisplayStyle, HorizontallyScrollableText, Serdeable,
 };
 
 #[cfg(test)]
@@ -43,7 +43,7 @@ pub struct BlocklistResponse {
   pub records: Vec<BlocklistItem>,
 }
 
-#[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {
   pub title: String,
@@ -52,15 +52,17 @@ pub struct DownloadRecord {
   pub id: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub episode_id: i64,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub size: i64,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub sizeleft: i64,
+  #[serde(deserialize_with = "super::from_f64")]
+  pub size: f64,
+  #[serde(deserialize_with = "super::from_f64")]
+  pub sizeleft: f64,
   pub output_path: Option<HorizontallyScrollableText>,
   #[serde(default)]
   pub indexer: String,
   pub download_client: String,
 }
+
+impl Eq for DownloadRecord {}
 
 #[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -242,8 +244,8 @@ impl Display for SeriesType {
   }
 }
 
-impl SeriesType {
-  pub fn to_display_str<'a>(self) -> &'a str {
+impl<'a> EnumDisplayStyle<'a> for SeriesType {
+  fn to_display_str(self) -> &'a str {
     match self {
       SeriesType::Standard => "Standard",
       SeriesType::Daily => "Daily",
@@ -293,8 +295,8 @@ impl Display for SeriesStatus {
   }
 }
 
-impl SeriesStatus {
-  pub fn to_display_str<'a>(self) -> &'a str {
+impl<'a> EnumDisplayStyle<'a> for SeriesStatus {
+  fn to_display_str(self) -> &'a str {
     match self {
       SeriesStatus::Continuing => "Continuing",
       SeriesStatus::Ended => "Ended",
@@ -313,8 +315,62 @@ pub struct SonarrHistoryWrapper {
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SonarrHistoryData {
-  pub dropped_path: String,
-  pub imported_path: String,
+  pub dropped_path: Option<String>,
+  pub imported_path: Option<String>,
+  pub indexer: Option<String>,
+  pub release_group: Option<String>,
+  pub series_match_type: Option<String>,
+  pub nzb_info_url: Option<String>,
+  pub download_client_name: Option<String>,
+  pub age: Option<String>,
+  pub published_date: Option<DateTime<Utc>>,
+  pub message: Option<String>,
+  pub reason: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum SonarrHistoryEventType {
+  #[default]
+  Unknown,
+  Grabbed,
+  SeriesFolderImported,
+  DownloadFolderImported,
+  DownloadFailed,
+  EpisodeFileDeleted,
+  EpisodeFileRenamed,
+  DownloadIgnored,
+}
+
+impl Display for SonarrHistoryEventType {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    let event_type = match self {
+      SonarrHistoryEventType::Unknown => "unknown",
+      SonarrHistoryEventType::Grabbed => "grabbed",
+      SonarrHistoryEventType::SeriesFolderImported => "seriesFolderImported",
+      SonarrHistoryEventType::DownloadFolderImported => "downloadFolderImported",
+      SonarrHistoryEventType::DownloadFailed => "downloadFailed",
+      SonarrHistoryEventType::EpisodeFileDeleted => "episodeFileDeleted",
+      SonarrHistoryEventType::EpisodeFileRenamed => "episodeFileRenamed",
+      SonarrHistoryEventType::DownloadIgnored => "downloadIgnored",
+    };
+    write!(f, "{event_type}")
+  }
+}
+
+impl<'a> EnumDisplayStyle<'a> for SonarrHistoryEventType {
+  fn to_display_str(self) -> &'a str {
+    match self {
+      SonarrHistoryEventType::Unknown => "Unknown",
+      SonarrHistoryEventType::Grabbed => "Grabbed",
+      SonarrHistoryEventType::SeriesFolderImported => "Series Folder Imported",
+      SonarrHistoryEventType::DownloadFolderImported => "Download Folder Imported",
+      SonarrHistoryEventType::DownloadFailed => "Download Failed",
+      SonarrHistoryEventType::EpisodeFileDeleted => "Episode File Deleted",
+      SonarrHistoryEventType::EpisodeFileRenamed => "Episode File Renamed",
+      SonarrHistoryEventType::DownloadIgnored => "Download Ignored",
+    }
+  }
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
@@ -326,7 +382,7 @@ pub struct SonarrHistoryItem {
   #[serde(deserialize_with = "super::from_i64")]
   pub episode_id: i64,
   pub quality: QualityWrapper,
-  pub languages: Vec<Language>,
+  pub language: Language,
   pub date: DateTime<Utc>,
   pub event_type: String,
   pub data: SonarrHistoryData,

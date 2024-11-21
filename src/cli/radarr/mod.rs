@@ -12,7 +12,6 @@ use tokio::sync::Mutex;
 use crate::app::App;
 
 use crate::cli::CliCommandHandler;
-use crate::execute_network_event;
 use crate::models::radarr_models::{ReleaseDownloadBody, TaskName};
 use crate::network::radarr_network::RadarrEvent;
 use crate::network::NetworkTrait;
@@ -155,8 +154,8 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrCommand> for RadarrCliHandler<'a, '
     }
   }
 
-  async fn handle(self) -> Result<()> {
-    match self.command {
+  async fn handle(self) -> Result<String> {
+    let result = match self.command {
       RadarrCommand::Add(add_command) => {
         RadarrAddCommandHandler::with(self.app, add_command, self.network)
           .handle()
@@ -192,7 +191,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrCommand> for RadarrCliHandler<'a, '
           .network
           .handle_network_event(RadarrEvent::GetBlocklist.into())
           .await?;
-        execute_network_event!(self, RadarrEvent::ClearBlocklist);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::ClearBlocklist).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrCommand::DownloadRelease {
         guid,
@@ -204,29 +207,57 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrCommand> for RadarrCliHandler<'a, '
           indexer_id,
           movie_id,
         };
-        execute_network_event!(self, RadarrEvent::DownloadRelease(Some(params)));
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::DownloadRelease(Some(params))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrCommand::ManualSearch { movie_id } => {
         println!("Searching for releases. This may take a minute...");
-        execute_network_event!(self, RadarrEvent::GetReleases(Some(movie_id)));
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::GetReleases(Some(movie_id))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrCommand::SearchNewMovie { query } => {
-        execute_network_event!(self, RadarrEvent::SearchNewMovie(Some(query)));
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::SearchNewMovie(Some(query))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrCommand::StartTask { task_name } => {
-        execute_network_event!(self, RadarrEvent::StartTask(Some(task_name)));
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::StartTask(Some(task_name))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrCommand::TestIndexer { indexer_id } => {
-        execute_network_event!(self, RadarrEvent::TestIndexer(Some(indexer_id)));
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::TestIndexer(Some(indexer_id))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrCommand::TestAllIndexers => {
-        execute_network_event!(self, RadarrEvent::TestAllIndexers);
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::TestAllIndexers).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrCommand::TriggerAutomaticSearch { movie_id } => {
-        execute_network_event!(self, RadarrEvent::TriggerAutomaticSearch(Some(movie_id)));
+        let resp = self
+          .network
+          .handle_network_event((RadarrEvent::TriggerAutomaticSearch(Some(movie_id))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
-    }
+    };
 
-    Ok(())
+    Ok(result)
   }
 }

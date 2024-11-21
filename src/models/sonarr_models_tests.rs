@@ -9,10 +9,10 @@ mod tests {
     },
     sonarr_models::{
       BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode,
-      IndexerSettings, Series, SeriesStatus, SeriesType, SonarrHistoryItem, SonarrSerdeable,
-      SystemStatus,
+      IndexerSettings, Series, SeriesStatus, SeriesType, SonarrHistoryEventType, SonarrHistoryItem,
+      SonarrSerdeable, SystemStatus,
     },
-    Serdeable,
+    EnumDisplayStyle, Serdeable,
   };
 
   #[test]
@@ -54,6 +54,66 @@ mod tests {
     assert_str_eq!(SeriesType::Standard.to_display_str(), "Standard");
     assert_str_eq!(SeriesType::Daily.to_display_str(), "Daily");
     assert_str_eq!(SeriesType::Anime.to_display_str(), "Anime");
+  }
+
+  #[test]
+  fn test_sonarr_history_event_type_display() {
+    assert_str_eq!(SonarrHistoryEventType::Unknown.to_string(), "unknown",);
+    assert_str_eq!(SonarrHistoryEventType::Grabbed.to_string(), "grabbed",);
+    assert_str_eq!(
+      SonarrHistoryEventType::SeriesFolderImported.to_string(),
+      "seriesFolderImported",
+    );
+    assert_str_eq!(
+      SonarrHistoryEventType::DownloadFolderImported.to_string(),
+      "downloadFolderImported",
+    );
+    assert_str_eq!(
+      SonarrHistoryEventType::DownloadFailed.to_string(),
+      "downloadFailed",
+    );
+    assert_str_eq!(
+      SonarrHistoryEventType::EpisodeFileDeleted.to_string(),
+      "episodeFileDeleted",
+    );
+    assert_str_eq!(
+      SonarrHistoryEventType::EpisodeFileRenamed.to_string(),
+      "episodeFileRenamed",
+    );
+    assert_str_eq!(
+      SonarrHistoryEventType::DownloadIgnored.to_string(),
+      "downloadIgnored",
+    );
+  }
+
+  #[test]
+  fn test_sonarr_history_event_type_to_display_str() {
+    assert_str_eq!(SonarrHistoryEventType::Unknown.to_display_str(), "Unknown",);
+    assert_str_eq!(SonarrHistoryEventType::Grabbed.to_display_str(), "Grabbed",);
+    assert_str_eq!(
+      SonarrHistoryEventType::SeriesFolderImported.to_display_str(),
+      "Series Folder Imported",
+    );
+    assert_str_eq!(
+      SonarrHistoryEventType::DownloadFolderImported.to_display_str(),
+      "Download Folder Imported",
+    );
+    assert_str_eq!(
+      SonarrHistoryEventType::DownloadFailed.to_display_str(),
+      "Download Failed",
+    );
+    assert_str_eq!(
+      SonarrHistoryEventType::EpisodeFileDeleted.to_display_str(),
+      "Episode File Deleted",
+    );
+    assert_str_eq!(
+      SonarrHistoryEventType::EpisodeFileRenamed.to_display_str(),
+      "Episode File Renamed",
+    );
+    assert_str_eq!(
+      SonarrHistoryEventType::DownloadIgnored.to_display_str(),
+      "Download Ignored",
+    );
   }
 
   #[test]

@@ -42,15 +42,15 @@ pub enum Command {
 
 pub trait CliCommandHandler<'a, 'b, T: Into<Command>> {
   fn with(app: &'a Arc<Mutex<App<'b>>>, command: T, network: &'a mut dyn NetworkTrait) -> Self;
-  async fn handle(self) -> Result<()>;
+  async fn handle(self) -> Result<String>;
 }
 
 pub(crate) async fn handle_command(
   app: &Arc<Mutex<App<'_>>>,
   command: Command,
   network: &mut dyn NetworkTrait,
-) -> Result<()> {
-  match command {
+) -> Result<String> {
+  let result = match command {
     Command::Radarr(radarr_command) => {
       RadarrCliHandler::with(app, radarr_command, network)
         .handle()
@@ -61,10 +61,10 @@ pub(crate) async fn handle_command(
         .handle()
         .await?
     }
-    _ => (),
-  }
+    _ => String::new(),
+  };
 
-  Ok(())
+  Ok(result)
 }
 
 #[inline]
@@ -87,17 +87,4 @@ pub fn mutex_flags_or_default(positive: bool, negative: bool, default_value: boo
   } else {
     default_value
   }
-}
-
-#[macro_export]
-macro_rules! execute_network_event {
-  ($self:ident, $event:expr) => {
-    let resp = $self.network.handle_network_event($event.into()).await?;
-    let json = serde_json::to_string_pretty(&resp)?;
-    println!("{}", json);
-  };
-  ($self:ident, $event:expr, $happy_output:expr) => {
-    $self.network.handle_network_event($event.into()).await?;
-    println!("{}", $happy_output);
-  };
 }

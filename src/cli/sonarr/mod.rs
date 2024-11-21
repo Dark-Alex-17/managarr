@@ -9,7 +9,6 @@ use tokio::sync::Mutex;
 
 use crate::{
   app::App,
-  execute_network_event,
   network::{sonarr_network::SonarrEvent, NetworkTrait},
 };
 
@@ -91,8 +90,8 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
     }
   }
 
-  async fn handle(self) -> Result<()> {
-    match self.command {
+  async fn handle(self) -> Result<String> {
+    let result = match self.command {
       SonarrCommand::Delete(delete_command) => {
         SonarrDeleteCommandHandler::with(self.app, delete_command, self.network)
           .handle()
@@ -113,24 +112,35 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
           .network
           .handle_network_event(SonarrEvent::GetBlocklist.into())
           .await?;
-        execute_network_event!(self, SonarrEvent::ClearBlocklist);
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::ClearBlocklist.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       SonarrCommand::ManualEpisodeSearch { episode_id } => {
         println!("Searching for episode releases. This may take a minute...");
-        execute_network_event!(self, SonarrEvent::GetEpisodeReleases(Some(episode_id)));
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::GetEpisodeReleases(Some(episode_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       SonarrCommand::ManualSeasonSearch {
         series_id,
         season_number,
       } => {
         println!("Searching for season releases. This may take a minute...");
-        execute_network_event!(
-          self,
-          SonarrEvent::GetSeasonReleases(Some((series_id, season_number)))
-        );
+        let resp = self
+          .network
+          .handle_network_event(
+            SonarrEvent::GetSeasonReleases(Some((series_id, season_number))).into(),
+          )
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
-    }
+    };
 
-    Ok(())
+    Ok(result)
   }
 }

@@ -7,7 +7,6 @@ use tokio::sync::Mutex;
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
-  execute_network_event,
   network::{sonarr_network::SonarrEvent, NetworkTrait},
 };
 
@@ -55,16 +54,17 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrDeleteCommand> for SonarrDeleteComm
     }
   }
 
-  async fn handle(self) -> Result<()> {
-    match self.command {
+  async fn handle(self) -> Result<String> {
+    let resp = match self.command {
       SonarrDeleteCommand::BlocklistItem { blocklist_item_id } => {
-        execute_network_event!(
-          self,
-          SonarrEvent::DeleteBlocklistItem(Some(blocklist_item_id))
-        );
+        let resp = self
+          .network
+          .handle_network_event((SonarrEvent::DeleteBlocklistItem(Some(blocklist_item_id))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
-    }
+    };
 
-    Ok(())
+    Ok(resp)
   }
 }
