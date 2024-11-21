@@ -9,7 +9,6 @@ use std::{io, panic, process};
 
 use clap::{crate_authors, crate_description, crate_name, crate_version, CommandFactory, Parser};
 use clap_complete::generate;
-use colored::Colorize;
 use crossterm::execute;
 use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
@@ -24,11 +23,10 @@ use tokio::sync::mpsc::Receiver;
 use tokio::sync::{mpsc, Mutex};
 use tokio_util::sync::CancellationToken;
 use utils::{
-  build_network_client, load_config, render_spinner, start_cli_no_spinner, start_cli_with_spinner,
-  tail_logs,
+  build_network_client, load_config, start_cli_no_spinner, start_cli_with_spinner, tail_logs,
 };
 
-use crate::app::{App, AppConfig};
+use crate::app::App;
 use crate::cli::Command;
 use crate::event::input_event::{Events, InputEvent};
 use crate::event::Key;
