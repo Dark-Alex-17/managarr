@@ -40,6 +40,7 @@ pub enum SonarrEvent {
   GetIndexers,
   GetEpisodeDetails(Option<i64>),
   GetEpisodes(Option<i64>),
+  GetEpisodeHistory(Option<i64>),
   GetLogs(Option<u64>),
   GetQualityProfiles,
   GetQueuedEvents,
@@ -62,7 +63,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       SonarrEvent::GetDownloads => "/queue",
       SonarrEvent::GetEpisodes(_) | SonarrEvent::GetEpisodeDetails(_) => "/episode",
-      SonarrEvent::GetHistory(_) => "/history",
+      SonarrEvent::GetHistory(_) | SonarrEvent::GetEpisodeHistory(_) => "/history",
       SonarrEvent::GetHostConfig | SonarrEvent::GetSecurityConfig => "/config/host",
       SonarrEvent::GetIndexers => "/indexer",
       SonarrEvent::GetLogs(_) => "/log",
@@ -109,6 +110,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::GetEpisodeDetails(episode_id) => self
         .get_episode_details(episode_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::GetEpisodeHistory(episode_id) => self
+        .get_sonarr_episode_history(episode_id)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetHistory(events) => self
@@ -342,6 +347,71 @@ impl<'a, 'b> Network<'a, 'b> {
             .episodes
             .apply_sorting_toggle(false);
         }
+      })
+      .await
+  }
+
+  async fn get_sonarr_episode_history(
+    &mut self,
+    episode_id: Option<i64>,
+  ) -> Result<SonarrHistoryWrapper> {
+    let id = self.extract_episode_id(episode_id).await;
+    info!("Fetching Sonarr history for episode with ID: {id}");
+    let event = SonarrEvent::GetEpisodeHistory(episode_id);
+
+    let params = format!("episodeId={id}&pageSize=1000&sortDirection=descending&sortKey=date",);
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
+      .await;
+
+    self
+      .handle_request::<(), SonarrHistoryWrapper>(request_props, |history_response, mut app| {
+        if app.data.sonarr_data.season_details_modal.is_none() {
+          app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
+        }
+
+        if app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_details_modal
+          .is_none()
+        {
+          app
+            .data
+            .sonarr_data
+            .season_details_modal
+            .as_mut()
+            .unwrap()
+            .episode_details_modal = Some(EpisodeDetailsModal::default());
+        }
+
+        let mut history_vec = history_response.records;
+        history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_mut()
+          .unwrap()
+          .episode_details_modal
+          .as_mut()
+          .unwrap()
+          .episode_history
+          .set_items(history_vec);
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_mut()
+          .unwrap()
+          .episode_details_modal
+          .as_mut()
+          .unwrap()
+          .episode_history
+          .apply_sorting_toggle(false);
       })
       .await
   }
