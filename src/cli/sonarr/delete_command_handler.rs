@@ -32,6 +32,11 @@ pub enum SonarrDeleteCommand {
     #[arg(long, help = "The ID of the download to delete", required = true)]
     download_id: i64,
   },
+  #[command(about = "Delete the indexer with the given ID")]
+  Indexer {
+    #[arg(long, help = "The ID of the indexer to delete", required = true)]
+    indexer_id: i64,
+  },
 }
 
 impl From<SonarrDeleteCommand> for Command {
@@ -72,6 +77,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrDeleteCommand> for SonarrDeleteComm
         let resp = self
           .network
           .handle_network_event((SonarrEvent::DeleteDownload(Some(download_id))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrDeleteCommand::Indexer { indexer_id } => {
+        let resp = self
+          .network
+          .handle_network_event((SonarrEvent::DeleteIndexer(Some(indexer_id))).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
