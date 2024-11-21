@@ -35,6 +35,7 @@ pub enum SonarrEvent {
   DeleteBlocklistItem(Option<i64>),
   DeleteDownload(Option<i64>),
   DeleteIndexer(Option<i64>),
+  DeleteRootFolder(Option<i64>),
   GetAllIndexerSettings,
   GetBlocklist,
   GetDownloads,
@@ -73,7 +74,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
       SonarrEvent::GetQueuedEvents => "/command",
-      SonarrEvent::GetRootFolders => "/rootfolder",
+      SonarrEvent::GetRootFolders | SonarrEvent::DeleteRootFolder(_) => "/rootfolder",
       SonarrEvent::GetSeasonReleases(_) | SonarrEvent::GetEpisodeReleases(_) => "/release",
       SonarrEvent::GetSeriesHistory(_) => "/history/series",
       SonarrEvent::GetStatus => "/system/status",
@@ -113,6 +114,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::DeleteIndexer(indexer_id) => self
         .delete_sonarr_indexer(indexer_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::DeleteRootFolder(root_folder_id) => self
+        .delete_sonarr_root_folder(root_folder_id)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetBlocklist => self.get_sonarr_blocklist().await.map(SonarrSerdeable::from),
@@ -297,6 +302,39 @@ impl<'a, 'b> Network<'a, 'b> {
     };
 
     info!("Deleting Sonarr indexer for indexer with id: {id}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        None::<()>,
+        Some(format!("/{id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn delete_sonarr_root_folder(&mut self, root_folder_id: Option<i64>) -> Result<()> {
+    let event = SonarrEvent::DeleteRootFolder(None);
+    let id = if let Some(rf_id) = root_folder_id {
+      rf_id
+    } else {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .root_folders
+        .current_selection()
+        .id
+    };
+
+    info!("Deleting Sonarr root folder for folder with id: {id}");
 
     let request_props = self
       .request_props_from(

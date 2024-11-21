@@ -167,7 +167,7 @@ impl<'a, 'b> Network<'a, 'b> {
         self.delete_movie(params).await.map(RadarrSerdeable::from)
       }
       RadarrEvent::DeleteRootFolder(root_folder_id) => self
-        .delete_root_folder(root_folder_id)
+        .delete_radarr_root_folder(root_folder_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::DeleteTag(tag_id) => self.delete_tag(tag_id).await.map(RadarrSerdeable::from),
@@ -618,7 +618,7 @@ impl<'a, 'b> Network<'a, 'b> {
     resp
   }
 
-  async fn delete_root_folder(&mut self, root_folder_id: Option<i64>) -> Result<()> {
+  async fn delete_radarr_root_folder(&mut self, root_folder_id: Option<i64>) -> Result<()> {
     let event = RadarrEvent::DeleteRootFolder(None);
     let id = if let Some(rf_id) = root_folder_id {
       rf_id

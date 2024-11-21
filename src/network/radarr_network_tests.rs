@@ -3333,7 +3333,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_delete_root_folder_event() {
+  async fn test_handle_delete_radarr_root_folder_event() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Delete,
       None,
@@ -3362,7 +3362,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_delete_root_folder_event_uses_provided_id() {
+  async fn test_handle_delete_radarr_root_folder_event_uses_provided_id() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Delete,
       None,
