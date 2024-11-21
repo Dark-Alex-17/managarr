@@ -9,8 +9,9 @@ use ratatui::Frame;
 
 use crate::app::App;
 use crate::logos::RADARR_LOGO;
-use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie, RootFolder};
+use crate::models::radarr_models::{DiskSpace, DownloadRecord, Movie};
 use crate::models::servarr_data::radarr::radarr_data::RadarrData;
+use crate::models::servarr_models::RootFolder;
 use crate::models::Route;
 use crate::ui::draw_tabs;
 use crate::ui::radarr_ui::blocklist::BlocklistUi;

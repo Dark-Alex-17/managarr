@@ -12,7 +12,7 @@ use crate::serde_enum_from;
 use super::{
   servarr_models::{
     HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper, QueueEvent,
-    Release, SecurityConfig,
+    Release, RootFolder, SecurityConfig,
   },
   EnumDisplayStyle, HorizontallyScrollableText, Serdeable,
 };
@@ -402,6 +402,7 @@ pub enum SonarrSerdeable {
   QualityProfiles(Vec<QualityProfile>),
   QueueEvents(Vec<QueueEvent>),
   Releases(Vec<Release>),
+  RootFolders(Vec<RootFolder>),
   SecurityConfig(SecurityConfig),
   SeriesVec(Vec<Series>),
   Series(Series),
@@ -436,6 +437,7 @@ serde_enum_from!(
     QualityProfiles(Vec<QualityProfile>),
     QueueEvents(Vec<QueueEvent>),
     Releases(Vec<Release>),
+    RootFolders(Vec<RootFolder>),
     SecurityConfig(SecurityConfig),
     SeriesVec(Vec<Series>),
     Series(Series),

@@ -18,7 +18,7 @@ mod test {
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::servarr_models::{
     HostConfig, Indexer, IndexerField, Language, LogResponse, Quality, QualityProfile,
-    QualityWrapper, QueueEvent, Release, SecurityConfig,
+    QualityWrapper, QueueEvent, Release, RootFolder, SecurityConfig,
   };
   use crate::models::sonarr_models::SystemStatus;
   use crate::models::sonarr_models::{
@@ -170,6 +170,11 @@ mod test {
     #[values(SonarrEvent::GetDownloads, SonarrEvent::DeleteDownload(None))] event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/queue");
+  }
+
+  #[rstest]
+  fn test_resource_root_folder(#[values(SonarrEvent::GetRootFolders)] event: SonarrEvent) {
+    assert_str_eq!(event.resource(), "/rootfolder");
   }
 
   #[rstest]
@@ -2149,6 +2154,41 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_get_sonarr_root_folders_event() {
+    let root_folder_json = json!([{
+      "id": 1,
+      "path": "/nfs",
+      "accessible": true,
+      "freeSpace": 219902325555200u64,
+    }]);
+    let response: Vec<RootFolder> = serde_json::from_value(root_folder_json.clone()).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(root_folder_json),
+      None,
+      SonarrEvent::GetRootFolders,
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::RootFolders(root_folders) = network
+      .handle_sonarr_event(SonarrEvent::GetRootFolders)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.root_folders.items,
+        vec![root_folder()]
+      );
+      assert_eq!(root_folders, response);
+    }
+  }
+
+  #[tokio::test]
   async fn test_handle_get_episode_releases_event() {
     let release_json = json!([{
       "guid": "1234",
@@ -3837,6 +3877,16 @@ mod test {
       leechers: Some(Number::from(1)),
       languages: Some(vec![language()]),
       quality: quality_wrapper(),
+    }
+  }
+
+  fn root_folder() -> RootFolder {
+    RootFolder {
+      id: 1,
+      path: "/nfs".to_owned(),
+      accessible: true,
+      free_space: 219902325555200,
+      unmapped_folders: None,
     }
   }
 }

@@ -8,9 +8,9 @@ mod tests {
       AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, DiskSpace,
       DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult,
       MinimumAvailability, Monitor, Movie, MovieHistoryItem, QualityProfile, RadarrSerdeable,
-      Release, RootFolder, SystemStatus, Tag, Task, TaskName, Update,
+      Release, SystemStatus, Tag, Task, TaskName, Update,
     },
-    servarr_models::{HostConfig, Log, LogResponse, QueueEvent, SecurityConfig},
+    servarr_models::{HostConfig, Log, LogResponse, QueueEvent, RootFolder, SecurityConfig},
     EnumDisplayStyle, Serdeable,
   };
 

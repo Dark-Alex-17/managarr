@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use strum::EnumIter;
 
 use crate::models::{
-  servarr_models::{Indexer, QueueEvent},
+  servarr_models::{Indexer, QueueEvent, RootFolder},
   sonarr_models::{
     BlocklistItem, DownloadRecord, IndexerSettings, Season, Series, SonarrHistoryItem,
   },
@@ -27,6 +27,7 @@ pub struct SonarrData {
   pub logs: StatefulList<HorizontallyScrollableText>,
   pub quality_profile_map: BiMap<i64, String>,
   pub queued_events: StatefulTable<QueueEvent>,
+  pub root_folders: StatefulTable<RootFolder>,
   pub seasons: StatefulTable<Season>,
   pub season_details_modal: Option<SeasonDetailsModal>,
   pub series: StatefulTable<Series>,
@@ -46,6 +47,7 @@ impl Default for SonarrData {
       logs: StatefulList::default(),
       quality_profile_map: BiMap::new(),
       queued_events: StatefulTable::default(),
+      root_folders: StatefulTable::default(),
       seasons: StatefulTable::default(),
       season_details_modal: None,
       series: StatefulTable::default(),

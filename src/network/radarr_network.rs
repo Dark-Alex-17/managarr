@@ -11,7 +11,7 @@ use crate::models::radarr_models::{
   CollectionMovie, CommandBody, Credit, CreditType, DeleteMovieParams, DiskSpace, DownloadRecord,
   DownloadsResponse, EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings,
   IndexerTestResult, Movie, MovieCommandBody, MovieHistoryItem, RadarrSerdeable,
-  ReleaseDownloadBody, RootFolder, SystemStatus, Tag, Task, TaskName, Update,
+  ReleaseDownloadBody, SystemStatus, Tag, Task, TaskName, Update,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
@@ -19,7 +19,7 @@ use crate::models::servarr_data::radarr::modals::{
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::{
-  HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release, SecurityConfig,
+  HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release, RootFolder, SecurityConfig,
 };
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
@@ -228,7 +228,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .get_movie_releases(movie_id)
         .await
         .map(RadarrSerdeable::from),
-      RadarrEvent::GetRootFolders => self.get_root_folders().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetRootFolders => self
+        .get_radarr_root_folders()
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::GetSecurityConfig => self
         .get_radarr_security_config()
         .await
@@ -1785,7 +1788,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_root_folders(&mut self) -> Result<Vec<RootFolder>> {
+  async fn get_radarr_root_folders(&mut self) -> Result<Vec<RootFolder>> {
     info!("Fetching Radarr root folders");
     let event = RadarrEvent::GetRootFolders;
 

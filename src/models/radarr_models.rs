@@ -11,7 +11,7 @@ use crate::{models::HorizontallyScrollableText, serde_enum_from};
 
 use super::servarr_models::{
   HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper, QueueEvent, Release,
-  SecurityConfig,
+  RootFolder, SecurityConfig,
 };
 use super::{EnumDisplayStyle, Serdeable};
 
@@ -440,18 +440,6 @@ pub struct ReleaseDownloadBody {
   pub movie_id: i64,
 }
 
-#[derive(Default, Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct RootFolder {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub id: i64,
-  pub path: String,
-  pub accessible: bool,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub free_space: i64,
-  pub unmapped_folders: Option<Vec<UnmappedFolder>>,
-}
-
 #[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SystemStatus {
@@ -502,12 +490,6 @@ impl Display for TaskName {
       .replace('"', "");
     write!(f, "{task_name}")
   }
-}
-
-#[derive(Serialize, Deserialize, Default, Debug, Clone, Eq, PartialEq)]
-pub struct UnmappedFolder {
-  pub name: String,
-  pub path: String,
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

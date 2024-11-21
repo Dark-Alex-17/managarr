@@ -5,7 +5,8 @@ mod tests {
 
   use crate::models::{
     servarr_models::{
-      HostConfig, Indexer, Log, LogResponse, QualityProfile, QueueEvent, Release, SecurityConfig,
+      HostConfig, Indexer, Log, LogResponse, QualityProfile, QueueEvent, Release, RootFolder,
+      SecurityConfig,
     },
     sonarr_models::{
       BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode,
@@ -341,6 +342,18 @@ mod tests {
     let sonarr_serdeable: SonarrSerdeable = releases.clone().into();
 
     assert_eq!(sonarr_serdeable, SonarrSerdeable::Releases(releases));
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_root_folders() {
+    let root_folders = vec![RootFolder {
+      id: 1,
+      ..RootFolder::default()
+    }];
+
+    let sonarr_serdeable: SonarrSerdeable = root_folders.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::RootFolders(root_folders));
   }
 
   #[test]

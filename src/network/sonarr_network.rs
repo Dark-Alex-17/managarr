@@ -10,7 +10,8 @@ use crate::{
       sonarr_data::ActiveSonarrBlock,
     },
     servarr_models::{
-      HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release, SecurityConfig,
+      HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release, RootFolder,
+      SecurityConfig,
     },
     sonarr_models::{
       BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
@@ -46,6 +47,7 @@ pub enum SonarrEvent {
   GetLogs(Option<u64>),
   GetQualityProfiles,
   GetQueuedEvents,
+  GetRootFolders,
   GetEpisodeReleases(Option<i64>),
   GetSeasonReleases(Option<(i64, i64)>),
   GetSecurityConfig,
@@ -71,6 +73,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
       SonarrEvent::GetQueuedEvents => "/command",
+      SonarrEvent::GetRootFolders => "/rootfolder",
       SonarrEvent::GetSeasonReleases(_) | SonarrEvent::GetEpisodeReleases(_) => "/release",
       SonarrEvent::GetSeriesHistory(_) => "/history/series",
       SonarrEvent::GetStatus => "/system/status",
@@ -145,6 +148,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::GetQueuedEvents => self
         .get_queued_sonarr_events()
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::GetRootFolders => self
+        .get_sonarr_root_folders()
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetEpisodeReleases(params) => self
@@ -742,6 +749,21 @@ impl<'a, 'b> Network<'a, 'b> {
           .sonarr_data
           .queued_events
           .set_items(queued_events_vec);
+      })
+      .await
+  }
+
+  async fn get_sonarr_root_folders(&mut self) -> Result<Vec<RootFolder>> {
+    info!("Fetching Sonarr root folders");
+    let event = SonarrEvent::GetRootFolders;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), Vec<RootFolder>>(request_props, |root_folders, mut app| {
+        app.data.sonarr_data.root_folders.set_items(root_folders);
       })
       .await
   }

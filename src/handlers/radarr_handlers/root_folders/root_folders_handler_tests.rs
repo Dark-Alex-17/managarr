@@ -8,14 +8,14 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::root_folders::RootFoldersHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::RootFolder;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
+  use crate::models::servarr_models::RootFolder;
   use crate::models::HorizontallyScrollableText;
 
   mod test_handle_scroll_up_and_down {
     use rstest::rstest;
 
-    use crate::models::radarr_models::RootFolder;
+    use crate::models::servarr_models::RootFolder;
     use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
 
     use super::*;
@@ -63,7 +63,7 @@ mod tests {
 
     use pretty_assertions::assert_eq;
 
-    use crate::models::radarr_models::RootFolder;
+    use crate::models::servarr_models::RootFolder;
     use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
 
     use super::*;

@@ -8,10 +8,9 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::library::add_movie_handler::AddMovieHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::{
-    AddMovieSearchResult, MinimumAvailability, Monitor, RootFolder,
-  };
+  use crate::models::radarr_models::{AddMovieSearchResult, MinimumAvailability, Monitor};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
+  use crate::models::servarr_models::RootFolder;
   use crate::models::HorizontallyScrollableText;
 
   mod test_handle_scroll_up_and_down {

@@ -42,6 +42,7 @@ mod tests {
       assert!(sonarr_data.logs.is_empty());
       assert!(sonarr_data.quality_profile_map.is_empty());
       assert!(sonarr_data.queued_events.is_empty());
+      assert!(sonarr_data.root_folders.is_empty());
       assert!(sonarr_data.seasons.is_empty());
       assert!(sonarr_data.season_details_modal.is_none());
       assert!(sonarr_data.series.is_empty());

@@ -197,6 +197,18 @@ pub struct Release {
   pub quality: QualityWrapper,
 }
 
+#[derive(Default, Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct RootFolder {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  pub path: String,
+  pub accessible: bool,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub free_space: i64,
+  pub unmapped_folders: Option<Vec<UnmappedFolder>>,
+}
+
 #[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SecurityConfig {
@@ -209,4 +221,10 @@ pub struct SecurityConfig {
   pub password: Option<String>,
   pub api_key: String,
   pub certificate_validation: CertificateValidation,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, Eq, PartialEq)]
+pub struct UnmappedFolder {
+  pub name: String,
+  pub path: String,
 }

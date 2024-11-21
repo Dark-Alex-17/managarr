@@ -2872,7 +2872,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_root_folders_event() {
+  async fn test_handle_get_radarr_root_folders_event() {
     let root_folder_json = json!([{
       "id": 1,
       "path": "/nfs",

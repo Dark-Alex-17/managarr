@@ -1,10 +1,10 @@
 use strum::IntoEnumIterator;
 
 use crate::models::radarr_models::{
-  Collection, Credit, MinimumAvailability, Monitor, Movie, MovieHistoryItem, RootFolder,
+  Collection, Credit, MinimumAvailability, Monitor, Movie, MovieHistoryItem,
 };
 use crate::models::servarr_data::radarr::radarr_data::RadarrData;
-use crate::models::servarr_models::{Indexer, Release};
+use crate::models::servarr_models::{Indexer, Release, RootFolder};
 use crate::models::stateful_list::StatefulList;
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, ScrollableText};
