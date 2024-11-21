@@ -30,7 +30,8 @@ mod tests {
         "downloads",
         "quality-profiles",
         "indexers",
-        "queued-events"
+        "queued-events",
+        "root-folders"
       )]
       subcommand: &str,
     ) {
@@ -199,6 +200,7 @@ mod tests {
     #[case(SonarrListCommand::Indexers, SonarrEvent::GetIndexers)]
     #[case(SonarrListCommand::QualityProfiles, SonarrEvent::GetQualityProfiles)]
     #[case(SonarrListCommand::QueuedEvents, SonarrEvent::GetQueuedEvents)]
+    #[case(SonarrListCommand::RootFolders, SonarrEvent::GetRootFolders)]
     #[case(SonarrListCommand::Series, SonarrEvent::ListSeries)]
     #[tokio::test]
     async fn test_handle_list_command(

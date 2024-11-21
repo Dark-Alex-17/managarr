@@ -62,6 +62,8 @@ pub enum SonarrListCommand {
   #[command(about = "List all queued events")]
   QueuedEvents,
   #[command(about = "List all series in your Sonarr library")]
+  #[command(about = "List all root folders in Sonarr")]
+  RootFolders,
   Series,
   #[command(about = "Fetch all history events for the series with the given ID")]
   SeriesHistory {
@@ -171,6 +173,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
         let resp = self
           .network
           .handle_network_event((SonarrEvent::GetQueuedEvents).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrListCommand::RootFolders => {
+        let resp = self
+          .network
+          .handle_network_event((SonarrEvent::GetRootFolders).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
