@@ -51,7 +51,7 @@ docker run --rm -it -v ~/.config/managarr/config.yml:/root/.config/managarr/conf
 
 You can also clone this repo and run `make docker` to build a docker image locally and run it using the above command.
 
-Please note that you will need to create and popular your configuration file first before starting the container. Otherwise the container will fail to start.
+Please note that you will need to create and popular your configuration file first before starting the container. Otherwise, the container will fail to start.
 
 ## Features
 Key:

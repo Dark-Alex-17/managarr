@@ -164,6 +164,13 @@ mod test {
   }
 
   #[rstest]
+  fn test_resource_queue(
+    #[values(SonarrEvent::GetDownloads, SonarrEvent::DeleteDownload(None))] event: SonarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/queue");
+  }
+
+  #[rstest]
   fn test_resource_release(
     #[values(
       SonarrEvent::GetSeasonReleases(None),
@@ -179,7 +186,6 @@ mod test {
   #[case(SonarrEvent::DeleteBlocklistItem(None), "/blocklist")]
   #[case(SonarrEvent::HealthCheck, "/health")]
   #[case(SonarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
-  #[case(SonarrEvent::GetDownloads, "/queue")]
   #[case(SonarrEvent::GetSeriesHistory(None), "/history/series")]
   #[case(SonarrEvent::GetLogs(Some(500)), "/log")]
   #[case(SonarrEvent::GetQualityProfiles, "/qualityprofile")]
@@ -263,6 +269,57 @@ mod test {
 
     assert!(network
       .handle_sonarr_event(SonarrEvent::DeleteBlocklistItem(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_sonarr_download_event() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      SonarrEvent::DeleteDownload(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .downloads
+      .set_items(vec![download_record()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::DeleteDownload(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_sonarr_download_event_uses_provided_id() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      SonarrEvent::DeleteDownload(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::DeleteDownload(Some(1)))
       .await
       .is_ok());
 

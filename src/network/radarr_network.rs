@@ -156,7 +156,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::DeleteDownload(download_id) => self
-        .delete_download(download_id)
+        .delete_radarr_download(download_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::DeleteIndexer(indexer_id) => self
@@ -504,7 +504,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_download(&mut self, download_id: Option<i64>) -> Result<()> {
+  async fn delete_radarr_download(&mut self, download_id: Option<i64>) -> Result<()> {
     let event = RadarrEvent::DeleteDownload(None);
     let id = if let Some(dl_id) = download_id {
       dl_id

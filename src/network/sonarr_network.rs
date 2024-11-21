@@ -32,6 +32,7 @@ mod sonarr_network_tests;
 pub enum SonarrEvent {
   ClearBlocklist,
   DeleteBlocklistItem(Option<i64>),
+  DeleteDownload(Option<i64>),
   GetAllIndexerSettings,
   GetBlocklist,
   GetDownloads,
@@ -61,7 +62,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::DeleteBlocklistItem(_) => "/blocklist",
       SonarrEvent::GetAllIndexerSettings => "/config/indexer",
       SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
-      SonarrEvent::GetDownloads => "/queue",
+      SonarrEvent::GetDownloads | SonarrEvent::DeleteDownload(_) => "/queue",
       SonarrEvent::GetEpisodes(_) | SonarrEvent::GetEpisodeDetails(_) => "/episode",
       SonarrEvent::GetHistory(_) | SonarrEvent::GetEpisodeHistory(_) => "/history",
       SonarrEvent::GetHostConfig | SonarrEvent::GetSecurityConfig => "/config/host",
@@ -100,6 +101,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::DeleteBlocklistItem(blocklist_item_id) => self
         .delete_sonarr_blocklist_item(blocklist_item_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::DeleteDownload(download_id) => self
+        .delete_sonarr_download(download_id)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetBlocklist => self.get_sonarr_blocklist().await.map(SonarrSerdeable::from),
@@ -214,6 +219,39 @@ impl<'a, 'b> Network<'a, 'b> {
     };
 
     info!("Deleting Sonarr blocklist item for item with id: {id}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        None::<()>,
+        Some(format!("/{id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn delete_sonarr_download(&mut self, download_id: Option<i64>) -> Result<()> {
+    let event = SonarrEvent::DeleteDownload(None);
+    let id = if let Some(dl_id) = download_id {
+      dl_id
+    } else {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .downloads
+        .current_selection()
+        .id
+    };
+
+    info!("Deleting Sonarr download for download with id: {id}");
 
     let request_props = self
       .request_props_from(
