@@ -37,6 +37,11 @@ pub enum SonarrDeleteCommand {
     #[arg(long, help = "The ID of the indexer to delete", required = true)]
     indexer_id: i64,
   },
+  #[command(about = "Delete the root folder with the given ID")]
+  RootFolder {
+    #[arg(long, help = "The ID of the root folder to delete", required = true)]
+    root_folder_id: i64,
+  },
 }
 
 impl From<SonarrDeleteCommand> for Command {
@@ -84,6 +89,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrDeleteCommand> for SonarrDeleteComm
         let resp = self
           .network
           .handle_network_event((SonarrEvent::DeleteIndexer(Some(indexer_id))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrDeleteCommand::RootFolder { root_folder_id } => {
+        let resp = self
+          .network
+          .handle_network_event((SonarrEvent::DeleteRootFolder(Some(root_folder_id))).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
