@@ -479,7 +479,7 @@ impl<'a, 'b> Network<'a, 'b> {
     let event = SonarrEvent::GetHistory(events);
 
     let params = format!(
-      "pageSize={}&sortDirection=descending&sortKey=time",
+      "pageSize={}&sortDirection=descending&sortKey=date",
       events.unwrap_or(500)
     );
     let request_props = self

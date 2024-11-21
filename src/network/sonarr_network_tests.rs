@@ -156,8 +156,8 @@ mod test {
   }
 
   #[rstest]
-  fn test_resource_history(#[values(SonarrEvent::GetSeriesHistory(None))] event: SonarrEvent) {
-    assert_str_eq!(event.resource(), "/history/series");
+  fn test_resource_history(#[values(SonarrEvent::GetHistory(None))] event: SonarrEvent) {
+    assert_str_eq!(event.resource(), "/history");
   }
 
   #[rstest]
@@ -177,7 +177,7 @@ mod test {
   #[case(SonarrEvent::HealthCheck, "/health")]
   #[case(SonarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(SonarrEvent::GetDownloads, "/queue")]
-  #[case(SonarrEvent::GetHistory(None), "/history")]
+  #[case(SonarrEvent::GetSeriesHistory(None), "/history/series")]
   #[case(SonarrEvent::GetLogs(Some(500)), "/log")]
   #[case(SonarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(SonarrEvent::GetStatus, "/system/status")]
@@ -438,8 +438,8 @@ mod test {
         "status": "downloading",
         "id": 1,
         "episodeId": 1,
-        "size": 3543348019u64,
-        "sizeleft": 1771674009,
+        "size": 3543348019f64,
+        "sizeleft": 1771674009f64,
         "outputPath": "/nfs/tv/Test show/season 1/",
         "indexer": "kickass torrents",
         "downloadClient": "transmission",
@@ -798,7 +798,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -811,7 +811,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -841,7 +841,7 @@ mod test {
       None,
       SonarrEvent::GetHistory(None),
       None,
-      Some("pageSize=500&sortDirection=descending&sortKey=time"),
+      Some("pageSize=500&sortDirection=descending&sortKey=date"),
     )
     .await;
     app_arc.lock().await.data.sonarr_data.history.sort_asc = true;
@@ -890,7 +890,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -903,7 +903,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -933,7 +933,7 @@ mod test {
       None,
       SonarrEvent::GetHistory(Some(1000)),
       None,
-      Some("pageSize=1000&sortDirection=descending&sortKey=time"),
+      Some("pageSize=1000&sortDirection=descending&sortKey=date"),
     )
     .await;
     app_arc.lock().await.data.sonarr_data.history.sort_asc = true;
@@ -961,7 +961,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -974,7 +974,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -990,7 +990,7 @@ mod test {
       None,
       SonarrEvent::GetHistory(None),
       None,
-      Some("pageSize=500&sortDirection=descending&sortKey=time"),
+      Some("pageSize=500&sortDirection=descending&sortKey=date"),
     )
     .await;
     app_arc.lock().await.data.sonarr_data.history.sort_asc = true;
@@ -2225,7 +2225,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2238,7 +2238,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2347,7 +2347,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2360,7 +2360,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2453,7 +2453,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2466,7 +2466,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2555,7 +2555,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2568,7 +2568,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{"name": "English"}],
+      "language": { "name": "English" },
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3037,8 +3037,8 @@ mod test {
       status: "downloading".to_owned(),
       id: 1,
       episode_id: 1,
-      size: 3543348019,
-      sizeleft: 1771674009,
+      size: 3543348019f64,
+      sizeleft: 1771674009f64,
       output_path: Some(HorizontallyScrollableText::from(
         "/nfs/tv/Test show/season 1/",
       )),
@@ -3085,9 +3085,11 @@ mod test {
 
   fn history_data() -> SonarrHistoryData {
     SonarrHistoryData {
-      dropped_path: "/nfs/nzbget/completed/series/Coolness/something.cool.mkv".to_owned(),
-      imported_path:
+      dropped_path: Some("/nfs/nzbget/completed/series/Coolness/something.cool.mkv".to_owned()),
+      imported_path: Some(
         "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv".to_owned(),
+      ),
+      ..SonarrHistoryData::default()
     }
   }
 
@@ -3097,7 +3099,7 @@ mod test {
       source_title: "Test source".into(),
       episode_id: 1,
       quality: quality_wrapper(),
-      languages: vec![language()],
+      language: language(),
       date: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
       event_type: "grabbed".into(),
       data: history_data(),

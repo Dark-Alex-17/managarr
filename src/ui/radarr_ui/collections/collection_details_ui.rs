@@ -11,7 +11,7 @@ use crate::models::radarr_models::CollectionMovie;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS,
 };
-use crate::models::Route;
+use crate::models::{EnumDisplayStyle, Route};
 use crate::ui::radarr_ui::collections::draw_collections;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{

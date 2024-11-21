@@ -11,7 +11,7 @@ mod tests {
       Release, RootFolder, SystemStatus, Tag, Task, TaskName, Update,
     },
     servarr_models::{HostConfig, Log, LogResponse, QueueEvent, SecurityConfig},
-    Serdeable,
+    EnumDisplayStyle, Serdeable,
   };
 
   #[test]

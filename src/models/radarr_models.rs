@@ -13,7 +13,7 @@ use super::servarr_models::{
   HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper, QueueEvent, Release,
   SecurityConfig,
 };
-use super::Serdeable;
+use super::{EnumDisplayStyle, Serdeable};
 
 #[cfg(test)]
 #[path = "radarr_models_tests.rs"]
@@ -313,8 +313,8 @@ impl Display for MinimumAvailability {
   }
 }
 
-impl MinimumAvailability {
-  pub fn to_display_str<'a>(self) -> &'a str {
+impl<'a> EnumDisplayStyle<'a> for MinimumAvailability {
+  fn to_display_str(self) -> &'a str {
     match self {
       MinimumAvailability::Tba => "TBA",
       MinimumAvailability::Announced => "Announced",
@@ -343,8 +343,8 @@ impl Display for Monitor {
   }
 }
 
-impl Monitor {
-  pub fn to_display_str<'a>(self) -> &'a str {
+impl<'a> EnumDisplayStyle<'a> for Monitor {
+  fn to_display_str(self) -> &'a str {
     match self {
       Monitor::MovieOnly => "Movie only",
       Monitor::MovieAndCollection => "Movie and Collection",

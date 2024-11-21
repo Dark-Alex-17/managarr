@@ -1,5 +1,8 @@
 use crate::models::{
-  servarr_models::Release, sonarr_models::Episode, stateful_table::StatefulTable, ScrollableText,
+  servarr_models::Release,
+  sonarr_models::{Episode, SonarrHistoryItem},
+  stateful_table::StatefulTable,
+  ScrollableText,
 };
 
 #[derive(Default)]
@@ -8,7 +11,7 @@ pub struct EpisodeDetailsModal {
   pub file_details: String,
   pub audio_details: String,
   pub video_details: String,
-  // pub episode_history: StatefulTable<MovieHistoryItem>,
+  pub episode_history: StatefulTable<SonarrHistoryItem>,
   pub episode_releases: StatefulTable<Release>,
 }
 

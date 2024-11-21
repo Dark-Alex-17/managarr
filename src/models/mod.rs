@@ -41,6 +41,10 @@ pub enum Serdeable {
   Sonarr(SonarrSerdeable),
 }
 
+pub trait EnumDisplayStyle<'a> {
+  fn to_display_str(self) -> &'a str;
+}
+
 pub trait Scrollable {
   fn scroll_down(&mut self);
   fn scroll_up(&mut self);

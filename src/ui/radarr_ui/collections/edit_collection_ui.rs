@@ -12,7 +12,7 @@ use crate::models::servarr_data::radarr::modals::EditCollectionModal;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS,
 };
-use crate::models::Route;
+use crate::models::{EnumDisplayStyle, Route};
 use crate::render_selectable_input_box;
 use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsUi;
 use crate::ui::radarr_ui::collections::draw_collections;
