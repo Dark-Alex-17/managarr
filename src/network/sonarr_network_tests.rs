@@ -151,7 +151,9 @@ mod test {
   }
 
   #[rstest]
-  fn test_resource_indexer(#[values(SonarrEvent::GetIndexers)] event: SonarrEvent) {
+  fn test_resource_indexer(
+    #[values(SonarrEvent::GetIndexers, SonarrEvent::DeleteIndexer(None))] event: SonarrEvent,
+  ) {
     assert_str_eq!(event.resource(), "/indexer");
   }
 
@@ -320,6 +322,57 @@ mod test {
 
     assert!(network
       .handle_sonarr_event(SonarrEvent::DeleteDownload(Some(1)))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_sonarr_indexer_event() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      SonarrEvent::DeleteIndexer(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .indexers
+      .set_items(vec![indexer()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::DeleteIndexer(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_sonarr_indexer_event_uses_provided_id() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      SonarrEvent::DeleteIndexer(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::DeleteIndexer(Some(1)))
       .await
       .is_ok());
 

@@ -33,6 +33,7 @@ pub enum SonarrEvent {
   ClearBlocklist,
   DeleteBlocklistItem(Option<i64>),
   DeleteDownload(Option<i64>),
+  DeleteIndexer(Option<i64>),
   GetAllIndexerSettings,
   GetBlocklist,
   GetDownloads,
@@ -66,7 +67,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetEpisodes(_) | SonarrEvent::GetEpisodeDetails(_) => "/episode",
       SonarrEvent::GetHistory(_) | SonarrEvent::GetEpisodeHistory(_) => "/history",
       SonarrEvent::GetHostConfig | SonarrEvent::GetSecurityConfig => "/config/host",
-      SonarrEvent::GetIndexers => "/indexer",
+      SonarrEvent::GetIndexers | SonarrEvent::DeleteIndexer(_) => "/indexer",
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
       SonarrEvent::GetQueuedEvents => "/command",
@@ -105,6 +106,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::DeleteDownload(download_id) => self
         .delete_sonarr_download(download_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::DeleteIndexer(indexer_id) => self
+        .delete_sonarr_indexer(indexer_id)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetBlocklist => self.get_sonarr_blocklist().await.map(SonarrSerdeable::from),
@@ -252,6 +257,39 @@ impl<'a, 'b> Network<'a, 'b> {
     };
 
     info!("Deleting Sonarr download for download with id: {id}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        None::<()>,
+        Some(format!("/{id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn delete_sonarr_indexer(&mut self, indexer_id: Option<i64>) -> Result<()> {
+    let event = SonarrEvent::DeleteIndexer(None);
+    let id = if let Some(i_id) = indexer_id {
+      i_id
+    } else {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .indexers
+        .current_selection()
+        .id
+    };
+
+    info!("Deleting Sonarr indexer for indexer with id: {id}");
 
     let request_props = self
       .request_props_from(

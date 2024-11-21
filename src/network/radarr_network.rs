@@ -160,7 +160,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::DeleteIndexer(indexer_id) => self
-        .delete_indexer(indexer_id)
+        .delete_radarr_indexer(indexer_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::DeleteMovie(params) => {
@@ -537,7 +537,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_indexer(&mut self, indexer_id: Option<i64>) -> Result<()> {
+  async fn delete_radarr_indexer(&mut self, indexer_id: Option<i64>) -> Result<()> {
     let event = RadarrEvent::DeleteIndexer(None);
     let id = if let Some(i_id) = indexer_id {
       i_id

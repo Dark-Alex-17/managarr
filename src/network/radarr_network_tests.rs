@@ -3282,7 +3282,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_delete_indexer_event() {
+  async fn test_handle_delete_radarr_indexer_event() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Delete,
       None,
@@ -3311,7 +3311,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_delete_indexer_event_uses_provided_id() {
+  async fn test_handle_delete_radarr_indexer_event_uses_provided_id() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Delete,
       None,
