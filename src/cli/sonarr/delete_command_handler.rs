@@ -27,6 +27,11 @@ pub enum SonarrDeleteCommand {
     )]
     blocklist_item_id: i64,
   },
+  #[command(about = "Delete the specified download")]
+  Download {
+    #[arg(long, help = "The ID of the download to delete", required = true)]
+    download_id: i64,
+  },
 }
 
 impl From<SonarrDeleteCommand> for Command {
@@ -60,6 +65,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrDeleteCommand> for SonarrDeleteComm
         let resp = self
           .network
           .handle_network_event((SonarrEvent::DeleteBlocklistItem(Some(blocklist_item_id))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrDeleteCommand::Download { download_id } => {
+        let resp = self
+          .network
+          .handle_network_event((SonarrEvent::DeleteDownload(Some(download_id))).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

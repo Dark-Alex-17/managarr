@@ -58,6 +58,39 @@ mod tests {
         assert_eq!(delete_command, expected_args);
       }
     }
+
+    #[test]
+    fn test_delete_download_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "delete", "download"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_delete_download_success() {
+      let expected_args = SonarrDeleteCommand::Download { download_id: 1 };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "sonarr",
+        "delete",
+        "download",
+        "--download-id",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
+
+      if let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
+      {
+        assert_eq!(delete_command, expected_args);
+      }
+    }
   }
 
   mod handler {
@@ -104,6 +137,32 @@ mod tests {
       )
       .handle()
       .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_delete_download_command() {
+      let expected_download_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::DeleteDownload(Some(expected_download_id)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let delete_download_command = SonarrDeleteCommand::Download { download_id: 1 };
+
+      let result =
+        SonarrDeleteCommandHandler::with(&app_arc, delete_download_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert!(result.is_ok());
     }
