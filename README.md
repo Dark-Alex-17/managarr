@@ -57,22 +57,24 @@ Please note that you will need to create and popular your configuration file fir
 
 ### Radarr
 
-- [x] View your library, downloads, collections, and blocklist
-- [x] View details of a specific movie including description, history, downloaded file info, or the credits
-- [x] View details of any collection and the movies in them
-- [x] View your host and security configs from the CLI to programmatically fetch the API token, among other settings
-- [x] Search your library or collections
-- [x] Add movies to your library
-- [x] Delete movies, downloads, and indexers
-- [x] Trigger automatic searches for movies
-- [x] Trigger refresh and disk scan for movies, downloads, and collections
-- [x] Manually search for movies
-- [x] Edit your movies, collections, and indexers
-- [x] Manage your tags
-- [x] Manage your root folders
-- [x] Manage your blocklist
-- [x] View and browse logs, tasks, events queues, and updates
-- [x] Manually trigger scheduled tasks
+| TUI | CLI | Feature                                                                                                        |
+|-----|-----|----------------------------------------------------------------------------------------------------------------|
+| ✅  | ✅  | View your library, downloads, collections, and blocklist                                                       |
+| ✅  | ✅  | View details of a specific movie including description, history, downloaded file info, or the credits          |
+| ✅  | ✅  | View details of any collection and the movies in them                                                          |
+|     | ✅  | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
+| ✅  | ✅  | Search your library or collections                                                                             |
+| ✅  | ✅  | Add movies to your library                                                                                     |
+| ✅  | ✅  | Delete movies, downloads, and indexers                                                                         |
+| ✅  | ✅  | Trigger automatic searches for movies                                                                          |
+| ✅  | ✅  | Trigger refresh and disk scan for movies, downloads, and collections                                           |
+| ✅  | ✅  | Manually search for movies                                                                                     |
+| ✅  | ✅  | Edit your movies, collections, and indexers                                                                    |
+| ✅  | ✅  | Manage your tags                                                                                               |
+| ✅  | ✅  | Manage your root folders                                                                                       |
+| ✅  | ✅  | Manage your blocklist                                                                                          |
+| ✅  | ✅  | View and browse logs, tasks, events queues, and updates                                                        |
+| ✅  | ✅  | Manually trigger scheduled tasks                                                                               |
 
 ### Sonarr
 - [ ] Support for Sonarr
