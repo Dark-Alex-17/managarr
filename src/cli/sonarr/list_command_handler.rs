@@ -31,6 +31,15 @@ pub enum SonarrListCommand {
     )]
     series_id: i64,
   },
+  #[command(about = "Fetch all history events for the episode with the given ID")]
+  EpisodeHistory {
+    #[arg(
+      long,
+      help = "The Sonarr ID of the episode whose history you wish to fetch",
+      required = true
+    )]
+    episode_id: i64,
+  },
   #[command(about = "Fetch all Sonarr history events")]
   History {
     #[arg(long, help = "How many history events to fetch", default_value_t = 500)]
@@ -110,6 +119,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
         let resp = self
           .network
           .handle_network_event((SonarrEvent::GetEpisodes(Some(series_id))).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrListCommand::EpisodeHistory { episode_id } => {
+        let resp = self
+          .network
+          .handle_network_event((SonarrEvent::GetEpisodeHistory(Some(episode_id))).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

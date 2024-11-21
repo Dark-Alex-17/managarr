@@ -51,6 +51,39 @@ mod tests {
     }
 
     #[test]
+    fn test_list_episode_history_requires_series_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "list", "episode-history"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_list_episode_history_success() {
+      let expected_args = SonarrListCommand::EpisodeHistory { episode_id: 1 };
+      let result = Cli::try_parse_from([
+        "managarr",
+        "sonarr",
+        "list",
+        "episode-history",
+        "--episode-id",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
+
+      if let Some(Command::Sonarr(SonarrCommand::List(episode_history_command))) =
+        result.unwrap().command
+      {
+        assert_eq!(episode_history_command, expected_args);
+      }
+    }
+
+    #[test]
     fn test_list_history_events_flag_requires_arguments() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "list", "history", "--events"]);
@@ -291,6 +324,32 @@ mod tests {
 
       let result =
         SonarrListCommandHandler::with(&app_arc, list_series_history_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_episode_history_command() {
+      let expected_episode_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::GetEpisodeHistory(Some(expected_episode_id)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let list_episode_history_command = SonarrListCommand::EpisodeHistory { episode_id: 1 };
+
+      let result =
+        SonarrListCommandHandler::with(&app_arc, list_episode_history_command, &mut mock_network)
           .handle()
           .await;
 
