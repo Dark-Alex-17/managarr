@@ -48,6 +48,15 @@ pub enum SonarrCommand {
   List(SonarrListCommand),
   #[command(about = "Clear the blocklist")]
   ClearBlocklist,
+  #[command(about = "Mark the Sonarr history item with the given ID as 'failed'")]
+  MarkHistoryItemAsFailed {
+    #[arg(
+      long,
+      help = "The Sonarr ID of the history item you wish to mark as 'failed'",
+      required = true
+    )]
+    history_item_id: i64,
+  },
   #[command(about = "Trigger a manual search of releases for the episode with the given ID")]
   ManualEpisodeSearch {
     #[arg(
@@ -129,6 +138,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
           .handle_network_event(SonarrEvent::ClearBlocklist.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
+      }
+      SonarrCommand::MarkHistoryItemAsFailed { history_item_id } => {
+        let _ = self
+          .network
+          .handle_network_event(SonarrEvent::MarkHistoryItemAsFailed(history_item_id).into())
+          .await?;
+        "Sonarr history item marked as 'failed'".to_owned()
       }
       SonarrCommand::ManualEpisodeSearch { episode_id } => {
         println!("Searching for episode releases. This may take a minute...");
