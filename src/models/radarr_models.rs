@@ -11,7 +11,7 @@ use crate::{models::HorizontallyScrollableText, serde_enum_from};
 
 use super::servarr_models::{
   HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper, QueueEvent, Release,
-  RootFolder, SecurityConfig,
+  RootFolder, SecurityConfig, Tag,
 };
 use super::{EnumDisplayStyle, Serdeable};
 
@@ -440,13 +440,6 @@ pub struct ReleaseDownloadBody {
 pub struct SystemStatus {
   pub version: String,
   pub start_time: DateTime<Utc>,
-}
-
-#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct Tag {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub id: i64,
-  pub label: String,
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

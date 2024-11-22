@@ -6,7 +6,7 @@ mod tests {
   use crate::models::{
     servarr_models::{
       HostConfig, Indexer, Log, LogResponse, QualityProfile, QueueEvent, Release, RootFolder,
-      SecurityConfig,
+      SecurityConfig, Tag,
     },
     sonarr_models::{
       BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode,
@@ -369,5 +369,29 @@ mod tests {
       sonarr_serdeable,
       SonarrSerdeable::SecurityConfig(security_config)
     );
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_tag() {
+    let tag = Tag {
+      id: 1,
+      ..Tag::default()
+    };
+
+    let sonarr_serdeable: SonarrSerdeable = tag.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::Tag(tag));
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_tags() {
+    let tags = vec![Tag {
+      id: 1,
+      ..Tag::default()
+    }];
+
+    let sonarr_serdeable: SonarrSerdeable = tags.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::Tags(tags));
   }
 }

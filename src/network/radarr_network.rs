@@ -11,7 +11,7 @@ use crate::models::radarr_models::{
   CommandBody, Credit, CreditType, DeleteMovieParams, DiskSpace, DownloadRecord, DownloadsResponse,
   EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings, IndexerTestResult,
   Movie, MovieCommandBody, MovieHistoryItem, RadarrSerdeable, ReleaseDownloadBody, SystemStatus,
-  Tag, Task, TaskName, Update,
+  Task, TaskName, Update,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
@@ -20,7 +20,7 @@ use crate::models::servarr_data::radarr::modals::{
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::{
   AddRootFolderBody, HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release,
-  RootFolder, SecurityConfig,
+  RootFolder, SecurityConfig, Tag,
 };
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
@@ -148,7 +148,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .add_radarr_root_folder(path)
         .await
         .map(RadarrSerdeable::from),
-      RadarrEvent::AddTag(tag) => self.add_tag(tag).await.map(RadarrSerdeable::from),
+      RadarrEvent::AddTag(tag) => self.add_radarr_tag(tag).await.map(RadarrSerdeable::from),
       RadarrEvent::ClearBlocklist => self
         .clear_radarr_blocklist()
         .await
@@ -405,7 +405,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn add_tag(&mut self, tag: String) -> Result<Tag> {
+  async fn add_radarr_tag(&mut self, tag: String) -> Result<Tag> {
     info!("Adding a new Radarr tag");
     let event = RadarrEvent::AddTag(String::new());
 
@@ -2234,7 +2234,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
     for tag in missing_tags_vec {
       self
-        .add_tag(tag.trim().to_owned())
+        .add_radarr_tag(tag.trim().to_owned())
         .await
         .expect("Unable to add tag");
     }

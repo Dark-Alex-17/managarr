@@ -11,7 +11,7 @@ use crate::{
     },
     servarr_models::{
       AddRootFolderBody, HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release,
-      RootFolder, SecurityConfig,
+      RootFolder, SecurityConfig, Tag,
     },
     sonarr_models::{
       BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
@@ -32,6 +32,7 @@ mod sonarr_network_tests;
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum SonarrEvent {
   AddRootFolder(Option<String>),
+  AddTag(String),
   ClearBlocklist,
   DeleteBlocklistItem(Option<i64>),
   DeleteDownload(Option<i64>),
@@ -63,6 +64,7 @@ pub enum SonarrEvent {
 impl NetworkResource for SonarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
+      SonarrEvent::AddTag(_) => "/tag",
       SonarrEvent::ClearBlocklist => "/blocklist/bulk",
       SonarrEvent::DeleteBlocklistItem(_) => "/blocklist",
       SonarrEvent::GetAllIndexerSettings => "/config/indexer",
@@ -103,6 +105,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .add_sonarr_root_folder(path)
         .await
         .map(SonarrSerdeable::from),
+      SonarrEvent::AddTag(tag) => self.add_sonarr_tag(tag).await.map(SonarrSerdeable::from),
       SonarrEvent::ClearBlocklist => self
         .clear_sonarr_blocklist()
         .await
@@ -224,6 +227,27 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<AddRootFolderBody, Value>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn add_sonarr_tag(&mut self, tag: String) -> Result<Tag> {
+    info!("Adding a new Sonarr tag");
+    let event = SonarrEvent::AddTag(String::new());
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Post,
+        Some(json!({ "label": tag })),
+        None,
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<Value, Tag>(request_props, |tag, mut app| {
+        app.data.sonarr_data.tags_map.insert(tag.id, tag.label);
+      })
       .await
   }
 

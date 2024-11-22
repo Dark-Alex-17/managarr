@@ -228,6 +228,13 @@ pub struct SecurityConfig {
   pub certificate_validation: CertificateValidation,
 }
 
+#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct Tag {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  pub label: String,
+}
+
 #[derive(Serialize, Deserialize, Default, Debug, Clone, Eq, PartialEq)]
 pub struct UnmappedFolder {
   pub name: String,

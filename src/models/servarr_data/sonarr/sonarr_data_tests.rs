@@ -49,6 +49,7 @@ mod tests {
       assert!(sonarr_data.series.is_empty());
       assert!(sonarr_data.series_history.is_none());
       assert_eq!(sonarr_data.start_time, <DateTime<Utc>>::default());
+      assert!(sonarr_data.tags_map.is_empty());
       assert!(sonarr_data.version.is_empty());
     }
   }

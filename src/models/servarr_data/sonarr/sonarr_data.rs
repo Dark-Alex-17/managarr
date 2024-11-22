@@ -34,6 +34,7 @@ pub struct SonarrData {
   pub series: StatefulTable<Series>,
   pub series_history: Option<StatefulTable<SonarrHistoryItem>>,
   pub start_time: DateTime<Utc>,
+  pub tags_map: BiMap<i64, String>,
   pub version: String,
 }
 
@@ -55,6 +56,7 @@ impl Default for SonarrData {
       series: StatefulTable::default(),
       series_history: None,
       start_time: DateTime::default(),
+      tags_map: BiMap::default(),
       version: String::new(),
     }
   }

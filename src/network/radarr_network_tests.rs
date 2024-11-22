@@ -165,6 +165,18 @@ mod test {
   }
 
   #[rstest]
+  fn test_resource_tag(
+    #[values(
+      RadarrEvent::AddTag(String::new()),
+      RadarrEvent::GetTags,
+      RadarrEvent::DeleteTag(0)
+    )]
+    event: RadarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/tag");
+  }
+
+  #[rstest]
   fn test_resource_release(
     #[values(RadarrEvent::GetReleases(None), RadarrEvent::DownloadRelease(None))]
     event: RadarrEvent,
@@ -213,7 +225,6 @@ mod test {
   #[case(RadarrEvent::GetOverview, "/diskspace")]
   #[case(RadarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(RadarrEvent::GetStatus, "/system/status")]
-  #[case(RadarrEvent::GetTags, "/tag")]
   #[case(RadarrEvent::GetTasks, "/system/task")]
   #[case(RadarrEvent::GetUpdates, "/update")]
   #[case(RadarrEvent::TestIndexer(None), "/indexer/test")]
@@ -2814,7 +2825,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_add_tag() {
+  async fn test_handle_add_radarr_tag() {
     let tag_json = json!({ "id": 3, "label": "testing" });
     let response: Tag = serde_json::from_value(tag_json.clone()).unwrap();
     let (async_server, app_arc, _server) = mock_servarr_api(
@@ -2822,7 +2833,7 @@ mod test {
       Some(json!({ "label": "testing" })),
       Some(tag_json),
       None,
-      RadarrEvent::GetTags,
+      RadarrEvent::AddTag(String::new()),
       None,
       None,
     )

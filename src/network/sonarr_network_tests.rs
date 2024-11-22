@@ -18,7 +18,7 @@ mod test {
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::servarr_models::{
     HostConfig, Indexer, IndexerField, Language, LogResponse, Quality, QualityProfile,
-    QualityWrapper, QueueEvent, Release, RootFolder, SecurityConfig,
+    QualityWrapper, QueueEvent, Release, RootFolder, SecurityConfig, Tag,
   };
   use crate::models::sonarr_models::SystemStatus;
   use crate::models::sonarr_models::{
@@ -136,6 +136,11 @@ mod test {
     #[values(SonarrEvent::ListSeries, SonarrEvent::GetSeriesDetails(None))] event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/series");
+  }
+
+  #[rstest]
+  fn test_resource_tag(#[values(SonarrEvent::AddTag(String::new()))] event: SonarrEvent) {
+    assert_str_eq!(event.resource(), "/tag");
   }
 
   #[rstest]
@@ -279,6 +284,42 @@ mod test {
       .sonarr_data
       .edit_root_folder
       .is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_sonarr_tag() {
+    let tag_json = json!({ "id": 3, "label": "testing" });
+    let response: Tag = serde_json::from_value(tag_json.clone()).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      Some(json!({ "label": "testing" })),
+      Some(tag_json),
+      None,
+      SonarrEvent::AddTag(String::new()),
+      None,
+      None,
+    )
+    .await;
+    app_arc.lock().await.data.sonarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Tag(tag) = network
+      .handle_sonarr_event(SonarrEvent::AddTag("testing".to_owned()))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.tags_map,
+        BiMap::from_iter([
+          (1, "usenet".to_owned()),
+          (2, "test".to_owned()),
+          (3, "testing".to_owned())
+        ])
+      );
+      assert_eq!(tag, response);
+    }
   }
 
   #[tokio::test]
