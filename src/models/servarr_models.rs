@@ -249,3 +249,21 @@ pub struct UnmappedFolder {
   pub name: String,
   pub path: String,
 }
+
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Update {
+  pub version: String,
+  pub release_date: DateTime<Utc>,
+  pub installed: bool,
+  pub latest: bool,
+  pub installed_on: Option<DateTime<Utc>>,
+  pub changes: UpdateChanges,
+}
+
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateChanges {
+  pub new: Option<Vec<String>>,
+  pub fixed: Option<Vec<String>>,
+}

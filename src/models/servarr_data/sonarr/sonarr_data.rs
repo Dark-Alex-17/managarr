@@ -9,7 +9,7 @@ use crate::models::{
   },
   stateful_list::StatefulList,
   stateful_table::StatefulTable,
-  HorizontallyScrollableText, Route,
+  HorizontallyScrollableText, Route, ScrollableText,
 };
 
 use super::modals::SeasonDetailsModal;
@@ -37,6 +37,7 @@ pub struct SonarrData {
   pub start_time: DateTime<Utc>,
   pub tags_map: BiMap<i64, String>,
   pub tasks: StatefulTable<SonarrTask>,
+  pub updates: ScrollableText,
   pub version: String,
 }
 
@@ -61,6 +62,7 @@ impl Default for SonarrData {
       start_time: DateTime::default(),
       tags_map: BiMap::default(),
       tasks: StatefulTable::default(),
+      updates: ScrollableText::default(),
       version: String::new(),
     }
   }

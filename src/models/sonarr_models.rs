@@ -12,7 +12,7 @@ use crate::serde_enum_from;
 use super::{
   servarr_models::{
     DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
-    QueueEvent, Release, RootFolder, SecurityConfig, Tag,
+    QueueEvent, Release, RootFolder, SecurityConfig, Tag, Update,
   },
   EnumDisplayStyle, HorizontallyScrollableText, Serdeable,
 };
@@ -430,7 +430,7 @@ impl Display for SonarrTaskName {
 #[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
 pub enum SonarrSerdeable {
-  Value(Value),
+  BlocklistResponse(BlocklistResponse),
   DownloadsResponse(DownloadsResponse),
   DiskSpaces(Vec<DiskSpace>),
   Episode(Episode),
@@ -438,6 +438,7 @@ pub enum SonarrSerdeable {
   HostConfig(HostConfig),
   IndexerSettings(IndexerSettings),
   Indexers(Vec<Indexer>),
+  LogResponse(LogResponse),
   QualityProfiles(Vec<QualityProfile>),
   QueueEvents(Vec<QueueEvent>),
   Releases(Vec<Release>),
@@ -451,8 +452,8 @@ pub enum SonarrSerdeable {
   Tag(Tag),
   Tags(Vec<Tag>),
   Tasks(Vec<SonarrTask>),
-  BlocklistResponse(BlocklistResponse),
-  LogResponse(LogResponse),
+  Updates(Vec<Update>),
+  Value(Value),
 }
 
 impl From<SonarrSerdeable> for Serdeable {
@@ -469,7 +470,7 @@ impl From<()> for SonarrSerdeable {
 
 serde_enum_from!(
   SonarrSerdeable {
-    Value(Value),
+    BlocklistResponse(BlocklistResponse),
     DownloadsResponse(DownloadsResponse),
     DiskSpaces(Vec<DiskSpace>),
     Episode(Episode),
@@ -477,6 +478,7 @@ serde_enum_from!(
     HostConfig(HostConfig),
     IndexerSettings(IndexerSettings),
     Indexers(Vec<Indexer>),
+    LogResponse(LogResponse),
     QualityProfiles(Vec<QualityProfile>),
     QueueEvents(Vec<QueueEvent>),
     Releases(Vec<Release>),
@@ -490,8 +492,8 @@ serde_enum_from!(
     Tag(Tag),
     Tags(Vec<Tag>),
     Tasks(Vec<SonarrTask>),
-    BlocklistResponse(BlocklistResponse),
-    LogResponse(LogResponse),
+    Updates(Vec<Update>),
+    Value(Value),
   }
 );
 

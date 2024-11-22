@@ -11,7 +11,7 @@ use crate::{models::HorizontallyScrollableText, serde_enum_from};
 
 use super::servarr_models::{
   DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
-  QueueEvent, Release, RootFolder, SecurityConfig, Tag,
+  QueueEvent, Release, RootFolder, SecurityConfig, Tag, Update,
 };
 use super::{EnumDisplayStyle, Serdeable};
 
@@ -469,24 +469,6 @@ impl Display for RadarrTaskName {
       .replace('"', "");
     write!(f, "{task_name}")
   }
-}
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct Update {
-  pub version: String,
-  pub release_date: DateTime<Utc>,
-  pub installed: bool,
-  pub latest: bool,
-  pub installed_on: Option<DateTime<Utc>>,
-  pub changes: UpdateChanges,
-}
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateChanges {
-  pub new: Option<Vec<String>>,
-  pub fixed: Option<Vec<String>>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]

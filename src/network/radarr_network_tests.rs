@@ -2730,7 +2730,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_updates_event() {
+  async fn test_handle_get_radarr_updates_event() {
     let updates_json = json!([{
       "version": "4.3.2.1",
       "releaseDate": "2023-04-15T02:02:53Z",

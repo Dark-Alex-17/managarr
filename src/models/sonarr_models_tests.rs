@@ -6,7 +6,7 @@ mod tests {
   use crate::models::{
     servarr_models::{
       DiskSpace, HostConfig, Indexer, Log, LogResponse, QualityProfile, QueueEvent, Release,
-      RootFolder, SecurityConfig, Tag,
+      RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
       BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode,
@@ -425,5 +425,17 @@ mod tests {
     let sonarr_serdeable: SonarrSerdeable = tasks.clone().into();
 
     assert_eq!(sonarr_serdeable, SonarrSerdeable::Tasks(tasks));
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_updates() {
+    let updates = vec![Update {
+      version: "test".to_owned(),
+      ..Update::default()
+    }];
+
+    let sonarr_serdeable: SonarrSerdeable = updates.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::Updates(updates));
   }
 }

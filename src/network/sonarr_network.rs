@@ -11,7 +11,7 @@ use crate::{
     },
     servarr_models::{
       AddRootFolderBody, DiskSpace, HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent,
-      Release, RootFolder, SecurityConfig, Tag,
+      Release, RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
       BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
@@ -59,6 +59,7 @@ pub enum SonarrEvent {
   GetSeriesDetails(Option<i64>),
   GetSeriesHistory(Option<i64>),
   GetStatus,
+  GetUpdates,
   GetTags,
   GetTasks,
   HealthCheck,
@@ -90,6 +91,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetSeriesHistory(_) => "/history/series",
       SonarrEvent::GetStatus => "/system/status",
       SonarrEvent::GetTasks => "/system/task",
+      SonarrEvent::GetUpdates => "/update",
       SonarrEvent::HealthCheck => "/health",
       SonarrEvent::ListSeries | SonarrEvent::GetSeriesDetails(_) => "/series",
       SonarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
@@ -205,6 +207,7 @@ impl<'a, 'b> Network<'a, 'b> {
       SonarrEvent::GetStatus => self.get_sonarr_status().await.map(SonarrSerdeable::from),
       SonarrEvent::GetTags => self.get_sonarr_tags().await.map(SonarrSerdeable::from),
       SonarrEvent::GetTasks => self.get_sonarr_tasks().await.map(SonarrSerdeable::from),
+      SonarrEvent::GetUpdates => self.get_sonarr_updates().await.map(SonarrSerdeable::from),
       SonarrEvent::HealthCheck => self
         .get_sonarr_healthcheck()
         .await
@@ -1170,6 +1173,84 @@ impl<'a, 'b> Network<'a, 'b> {
     self
       .handle_request::<(), Vec<SonarrTask>>(request_props, |tasks_vec, mut app| {
         app.data.sonarr_data.tasks.set_items(tasks_vec);
+      })
+      .await
+  }
+
+  async fn get_sonarr_updates(&mut self) -> Result<Vec<Update>> {
+    info!("Fetching Sonarr updates");
+    let event = SonarrEvent::GetUpdates;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), Vec<Update>>(request_props, |updates_vec, mut app| {
+        let latest_installed = if updates_vec
+          .iter()
+          .any(|update| update.latest && update.installed_on.is_some())
+        {
+          "already".to_owned()
+        } else {
+          "not".to_owned()
+        };
+        let updates = updates_vec
+          .into_iter()
+          .map(|update| {
+            let install_status = if update.installed_on.is_some() {
+              if update.installed {
+                "(Currently Installed)".to_owned()
+              } else {
+                "(Previously Installed)".to_owned()
+              }
+            } else {
+              String::new()
+            };
+            let vec_to_bullet_points = |vec: Vec<String>| {
+              vec
+                .iter()
+                .map(|change| format!("  * {change}"))
+                .collect::<Vec<String>>()
+                .join("\n")
+            };
+
+            let mut update_info = formatdoc!(
+              "{} - {} {install_status}
+              {}",
+              update.version,
+              update.release_date,
+              "-".repeat(200)
+            );
+
+            if let Some(new_changes) = update.changes.new {
+              let changes = vec_to_bullet_points(new_changes);
+              update_info = formatdoc!(
+                "{update_info}
+              New:
+              {changes}"
+              )
+            }
+
+            if let Some(fixes) = update.changes.fixed {
+              let fixes = vec_to_bullet_points(fixes);
+              update_info = formatdoc!(
+                "{update_info}
+              Fixed:
+              {fixes}"
+              );
+            }
+
+            update_info
+          })
+          .reduce(|version_1, version_2| format!("{version_1}\n\n\n{version_2}"))
+          .unwrap();
+
+        app.data.sonarr_data.updates = ScrollableText::with_string(formatdoc!(
+          "The latest version of Sonarr is {latest_installed} installed
+          
+          {updates}"
+        ));
       })
       .await
   }

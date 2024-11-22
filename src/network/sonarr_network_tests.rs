@@ -18,7 +18,7 @@ mod test {
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::servarr_models::{
     DiskSpace, HostConfig, Indexer, IndexerField, Language, LogResponse, Quality, QualityProfile,
-    QualityWrapper, QueueEvent, Release, RootFolder, SecurityConfig, Tag,
+    QualityWrapper, QueueEvent, Release, RootFolder, SecurityConfig, Tag, Update,
   };
   use crate::models::sonarr_models::{
     BlocklistItem, DownloadRecord, DownloadsResponse, Episode, EpisodeFile, MediaInfo,
@@ -29,8 +29,8 @@ mod test {
   };
   use crate::models::sonarr_models::{SonarrTask, SystemStatus};
   use crate::models::stateful_table::StatefulTable;
-  use crate::models::HorizontallyScrollableText;
   use crate::models::{sonarr_models::SonarrSerdeable, stateful_table::SortOption};
+  use crate::models::{HorizontallyScrollableText, ScrollableText};
 
   use crate::network::sonarr_network::get_episode_status;
   use crate::{
@@ -219,6 +219,7 @@ mod test {
   #[case(SonarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(SonarrEvent::GetStatus, "/system/status")]
   #[case(SonarrEvent::GetTasks, "/system/task")]
+  #[case(SonarrEvent::GetUpdates, "/update")]
   #[case(SonarrEvent::MarkHistoryItemAsFailed(0), "/history/failed")]
   fn test_resource(#[case] event: SonarrEvent, #[case] expected_uri: String) {
     assert_str_eq!(event.resource(), expected_uri);
@@ -3738,6 +3739,101 @@ mod test {
         expected_tasks
       );
       assert_eq!(tasks, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_updates_event() {
+    let updates_json = json!([{
+      "version": "4.3.2.1",
+      "releaseDate": "2023-04-15T02:02:53Z",
+      "installed": true,
+      "installedOn": "2023-04-15T02:02:53Z",
+      "latest": true,
+      "changes": {
+        "new": [
+          "Cool new thing"
+        ],
+        "fixed": [
+          "Some bugs killed"
+        ]
+      },
+    },
+      {
+        "version": "3.2.1.0",
+        "releaseDate": "2023-04-15T02:02:53Z",
+        "installed": false,
+        "installedOn": "2023-04-15T02:02:53Z",
+        "latest": false,
+        "changes": {
+          "new": [
+            "Cool new thing (old)",
+            "Other cool new thing (old)"
+            ],
+        },
+    },
+    {
+      "version": "2.1.0",
+      "releaseDate": "2023-04-15T02:02:53Z",
+      "installed": false,
+      "latest": false,
+      "changes": {
+        "fixed": [
+          "Killed bug 1",
+          "Fixed bug 2"
+        ]
+      },
+    }]);
+    let response: Vec<Update> = serde_json::from_value(updates_json.clone()).unwrap();
+    let line_break = "-".repeat(200);
+    let expected_text = ScrollableText::with_string(formatdoc!(
+      "
+    The latest version of Sonarr is already installed
+
+    4.3.2.1 - 2023-04-15 02:02:53 UTC (Currently Installed)
+    {line_break}
+    New:
+      * Cool new thing
+    Fixed:
+      * Some bugs killed
+    
+    
+    3.2.1.0 - 2023-04-15 02:02:53 UTC (Previously Installed)
+    {line_break}
+    New:
+      * Cool new thing (old)
+      * Other cool new thing (old)
+    
+    
+    2.1.0 - 2023-04-15 02:02:53 UTC 
+    {line_break}
+    Fixed:
+      * Killed bug 1
+      * Fixed bug 2"
+    ));
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(updates_json),
+      None,
+      SonarrEvent::GetUpdates,
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Updates(updates) = network
+      .handle_sonarr_event(SonarrEvent::GetUpdates)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_str_eq!(
+        app_arc.lock().await.data.sonarr_data.updates.get_text(),
+        expected_text.get_text()
+      );
+      assert_eq!(updates, response);
     }
   }
 
