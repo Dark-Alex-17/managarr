@@ -89,21 +89,21 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrDeleteCommand> for RadarrDeleteComm
       RadarrDeleteCommand::BlocklistItem { blocklist_item_id } => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::DeleteBlocklistItem(Some(blocklist_item_id))).into())
+          .handle_network_event(RadarrEvent::DeleteBlocklistItem(Some(blocklist_item_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrDeleteCommand::Download { download_id } => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::DeleteDownload(Some(download_id))).into())
+          .handle_network_event(RadarrEvent::DeleteDownload(Some(download_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrDeleteCommand::Indexer { indexer_id } => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::DeleteIndexer(Some(indexer_id))).into())
+          .handle_network_event(RadarrEvent::DeleteIndexer(Some(indexer_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
@@ -119,21 +119,21 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrDeleteCommand> for RadarrDeleteComm
         };
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::DeleteMovie(Some(delete_movie_params))).into())
+          .handle_network_event(RadarrEvent::DeleteMovie(Some(delete_movie_params)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrDeleteCommand::RootFolder { root_folder_id } => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::DeleteRootFolder(Some(root_folder_id))).into())
+          .handle_network_event(RadarrEvent::DeleteRootFolder(Some(root_folder_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrDeleteCommand::Tag { tag_id } => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::DeleteTag(tag_id)).into())
+          .handle_network_event(RadarrEvent::DeleteTag(tag_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

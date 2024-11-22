@@ -67,28 +67,28 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrRefreshCommand>
       RadarrRefreshCommand::AllMovies => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::UpdateAllMovies).into())
+          .handle_network_event(RadarrEvent::UpdateAllMovies.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrRefreshCommand::Collections => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::UpdateCollections).into())
+          .handle_network_event(RadarrEvent::UpdateCollections.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrRefreshCommand::Downloads => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::UpdateDownloads).into())
+          .handle_network_event(RadarrEvent::UpdateDownloads.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrRefreshCommand::Movie { movie_id } => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::UpdateAndScan(Some(movie_id))).into())
+          .handle_network_event(RadarrEvent::UpdateAndScan(Some(movie_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

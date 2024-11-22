@@ -76,42 +76,42 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrGetCommand> for SonarrGetCommandHan
       SonarrGetCommand::AllIndexerSettings => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetAllIndexerSettings).into())
+          .handle_network_event(SonarrEvent::GetAllIndexerSettings.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrGetCommand::EpisodeDetails { episode_id } => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetEpisodeDetails(Some(episode_id))).into())
+          .handle_network_event(SonarrEvent::GetEpisodeDetails(Some(episode_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrGetCommand::HostConfig => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetHostConfig).into())
+          .handle_network_event(SonarrEvent::GetHostConfig.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrGetCommand::SecurityConfig => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetSecurityConfig).into())
+          .handle_network_event(SonarrEvent::GetSecurityConfig.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrGetCommand::SeriesDetails { series_id } => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetSeriesDetails(Some(series_id))).into())
+          .handle_network_event(SonarrEvent::GetSeriesDetails(Some(series_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrGetCommand::SystemStatus => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetStatus).into())
+          .handle_network_event(SonarrEvent::GetStatus.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

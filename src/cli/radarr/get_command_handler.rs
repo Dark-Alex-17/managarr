@@ -76,42 +76,42 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrGetCommand> for RadarrGetCommandHan
       RadarrGetCommand::AllIndexerSettings => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::GetAllIndexerSettings).into())
+          .handle_network_event(RadarrEvent::GetAllIndexerSettings.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrGetCommand::HostConfig => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::GetHostConfig).into())
+          .handle_network_event(RadarrEvent::GetHostConfig.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrGetCommand::MovieDetails { movie_id } => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::GetMovieDetails(Some(movie_id))).into())
+          .handle_network_event(RadarrEvent::GetMovieDetails(Some(movie_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrGetCommand::MovieHistory { movie_id } => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::GetMovieHistory(Some(movie_id))).into())
+          .handle_network_event(RadarrEvent::GetMovieHistory(Some(movie_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrGetCommand::SecurityConfig => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::GetSecurityConfig).into())
+          .handle_network_event(RadarrEvent::GetSecurityConfig.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrGetCommand::SystemStatus => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::GetStatus).into())
+          .handle_network_event(RadarrEvent::GetStatus.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

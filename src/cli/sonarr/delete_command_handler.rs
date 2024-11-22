@@ -74,28 +74,28 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrDeleteCommand> for SonarrDeleteComm
       SonarrDeleteCommand::BlocklistItem { blocklist_item_id } => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::DeleteBlocklistItem(Some(blocklist_item_id))).into())
+          .handle_network_event(SonarrEvent::DeleteBlocklistItem(Some(blocklist_item_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrDeleteCommand::Download { download_id } => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::DeleteDownload(Some(download_id))).into())
+          .handle_network_event(SonarrEvent::DeleteDownload(Some(download_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrDeleteCommand::Indexer { indexer_id } => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::DeleteIndexer(Some(indexer_id))).into())
+          .handle_network_event(SonarrEvent::DeleteIndexer(Some(indexer_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrDeleteCommand::RootFolder { root_folder_id } => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::DeleteRootFolder(Some(root_folder_id))).into())
+          .handle_network_event(SonarrEvent::DeleteRootFolder(Some(root_folder_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

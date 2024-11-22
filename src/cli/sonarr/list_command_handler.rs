@@ -61,9 +61,9 @@ pub enum SonarrListCommand {
   QualityProfiles,
   #[command(about = "List all queued events")]
   QueuedEvents,
-  #[command(about = "List all series in your Sonarr library")]
   #[command(about = "List all root folders in Sonarr")]
   RootFolders,
+  #[command(about = "List all series in your Sonarr library")]
   Series,
   #[command(about = "Fetch all history events for the series with the given ID")]
   SeriesHistory {
@@ -74,6 +74,8 @@ pub enum SonarrListCommand {
     )]
     series_id: i64,
   },
+  #[command(about = "List all Sonarr tags")]
+  Tags,
 }
 
 impl From<SonarrListCommand> for Command {
@@ -106,42 +108,42 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
       SonarrListCommand::Blocklist => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetBlocklist).into())
+          .handle_network_event(SonarrEvent::GetBlocklist.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrListCommand::Downloads => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetDownloads).into())
+          .handle_network_event(SonarrEvent::GetDownloads.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrListCommand::Episodes { series_id } => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetEpisodes(Some(series_id))).into())
+          .handle_network_event(SonarrEvent::GetEpisodes(Some(series_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrListCommand::EpisodeHistory { episode_id } => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetEpisodeHistory(Some(episode_id))).into())
+          .handle_network_event(SonarrEvent::GetEpisodeHistory(Some(episode_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrListCommand::History { events: items } => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetHistory(Some(items))).into())
+          .handle_network_event(SonarrEvent::GetHistory(Some(items)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrListCommand::Indexers => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetIndexers).into())
+          .handle_network_event(SonarrEvent::GetIndexers.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
@@ -165,35 +167,42 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
       SonarrListCommand::QualityProfiles => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetQualityProfiles).into())
+          .handle_network_event(SonarrEvent::GetQualityProfiles.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrListCommand::QueuedEvents => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetQueuedEvents).into())
+          .handle_network_event(SonarrEvent::GetQueuedEvents.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrListCommand::RootFolders => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetRootFolders).into())
+          .handle_network_event(SonarrEvent::GetRootFolders.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrListCommand::Series => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::ListSeries).into())
+          .handle_network_event(SonarrEvent::ListSeries.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrListCommand::SeriesHistory { series_id } => {
         let resp = self
           .network
-          .handle_network_event((SonarrEvent::GetSeriesHistory(Some(series_id))).into())
+          .handle_network_event(SonarrEvent::GetSeriesHistory(Some(series_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrListCommand::Tags => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::GetTags.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
