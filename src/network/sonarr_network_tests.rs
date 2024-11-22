@@ -17,7 +17,7 @@ mod test {
   use crate::models::servarr_data::sonarr::modals::{EpisodeDetailsModal, SeasonDetailsModal};
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::servarr_models::{
-    HostConfig, Indexer, IndexerField, Language, LogResponse, Quality, QualityProfile,
+    DiskSpace, HostConfig, Indexer, IndexerField, Language, LogResponse, Quality, QualityProfile,
     QualityWrapper, QueueEvent, Release, RootFolder, SecurityConfig, Tag,
   };
   use crate::models::sonarr_models::SystemStatus;
@@ -212,6 +212,7 @@ mod test {
   #[case(SonarrEvent::DeleteBlocklistItem(None), "/blocklist")]
   #[case(SonarrEvent::HealthCheck, "/health")]
   #[case(SonarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
+  #[case(SonarrEvent::GetDiskSpace, "/diskspace")]
   #[case(SonarrEvent::GetSeriesHistory(None), "/history/series")]
   #[case(SonarrEvent::GetLogs(Some(500)), "/log")]
   #[case(SonarrEvent::GetQualityProfiles, "/qualityprofile")]
@@ -781,6 +782,53 @@ mod test {
         downloads_response().records
       );
       assert_eq!(downloads, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_diskspace_event() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([
+        {
+          "freeSpace": 1111,
+          "totalSpace": 2222,
+        },
+        {
+          "freeSpace": 3333,
+          "totalSpace": 4444
+        }
+      ])),
+      None,
+      SonarrEvent::GetDiskSpace,
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let disk_space_vec = vec![
+      DiskSpace {
+        free_space: 1111,
+        total_space: 2222,
+      },
+      DiskSpace {
+        free_space: 3333,
+        total_space: 4444,
+      },
+    ];
+
+    if let SonarrSerdeable::DiskSpaces(disk_space) = network
+      .handle_sonarr_event(SonarrEvent::GetDiskSpace)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.disk_space_vec,
+        disk_space_vec
+      );
+      assert_eq!(disk_space, disk_space_vec);
     }
   }
 

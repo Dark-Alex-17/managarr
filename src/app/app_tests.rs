@@ -213,7 +213,7 @@ mod tests {
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
-      RadarrEvent::GetOverview.into()
+      RadarrEvent::GetDiskSpace.into()
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),

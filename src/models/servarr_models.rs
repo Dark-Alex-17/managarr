@@ -74,6 +74,15 @@ impl Display for CertificateValidation {
   }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct DiskSpace {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub free_space: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub total_space: i64,
+}
+
 #[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct HostConfig {

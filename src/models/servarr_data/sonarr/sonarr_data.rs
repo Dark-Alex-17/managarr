@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use strum::EnumIter;
 
 use crate::models::{
-  servarr_models::{Indexer, QueueEvent, RootFolder},
+  servarr_models::{DiskSpace, Indexer, QueueEvent, RootFolder},
   sonarr_models::{
     BlocklistItem, DownloadRecord, IndexerSettings, Season, Series, SonarrHistoryItem,
   },
@@ -21,6 +21,7 @@ mod sonarr_data_tests;
 pub struct SonarrData {
   pub blocklist: StatefulTable<BlocklistItem>,
   pub downloads: StatefulTable<DownloadRecord>,
+  pub disk_space_vec: Vec<DiskSpace>,
   pub edit_root_folder: Option<HorizontallyScrollableText>,
   pub history: StatefulTable<SonarrHistoryItem>,
   pub indexers: StatefulTable<Indexer>,
@@ -43,6 +44,7 @@ impl Default for SonarrData {
     SonarrData {
       blocklist: StatefulTable::default(),
       downloads: StatefulTable::default(),
+      disk_space_vec: Vec::new(),
       edit_root_folder: None,
       history: StatefulTable::default(),
       indexers: StatefulTable::default(),

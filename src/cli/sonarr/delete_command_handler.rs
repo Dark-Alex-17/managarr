@@ -42,6 +42,11 @@ pub enum SonarrDeleteCommand {
     #[arg(long, help = "The ID of the root folder to delete", required = true)]
     root_folder_id: i64,
   },
+  #[command(about = "Delete the tag with the specified ID")]
+  Tag {
+    #[arg(long, help = "The ID of the tag to delete", required = true)]
+    tag_id: i64,
+  },
 }
 
 impl From<SonarrDeleteCommand> for Command {
@@ -96,6 +101,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrDeleteCommand> for SonarrDeleteComm
         let resp = self
           .network
           .handle_network_event(SonarrEvent::DeleteRootFolder(Some(root_folder_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrDeleteCommand::Tag { tag_id } => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::DeleteTag(tag_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

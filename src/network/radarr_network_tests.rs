@@ -222,7 +222,7 @@ mod test {
   #[case(RadarrEvent::SearchNewMovie(None), "/movie/lookup")]
   #[case(RadarrEvent::GetMovieCredits(None), "/credit")]
   #[case(RadarrEvent::GetMovieHistory(None), "/history/movie")]
-  #[case(RadarrEvent::GetOverview, "/diskspace")]
+  #[case(RadarrEvent::GetDiskSpace, "/diskspace")]
   #[case(RadarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(RadarrEvent::GetStatus, "/system/status")]
   #[case(RadarrEvent::GetTasks, "/system/task")]
@@ -262,7 +262,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_diskspace_event() {
+  async fn test_handle_get_radarr_diskspace_event() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
@@ -277,7 +277,7 @@ mod test {
         }
       ])),
       None,
-      RadarrEvent::GetOverview,
+      RadarrEvent::GetDiskSpace,
       None,
       None,
     )
@@ -295,7 +295,7 @@ mod test {
     ];
 
     if let RadarrSerdeable::DiskSpaces(disk_space) = network
-      .handle_radarr_event(RadarrEvent::GetOverview)
+      .handle_radarr_event(RadarrEvent::GetDiskSpace)
       .await
       .unwrap()
     {

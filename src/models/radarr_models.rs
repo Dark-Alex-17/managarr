@@ -10,8 +10,8 @@ use strum_macros::EnumIter;
 use crate::{models::HorizontallyScrollableText, serde_enum_from};
 
 use super::servarr_models::{
-  HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper, QueueEvent, Release,
-  RootFolder, SecurityConfig, Tag,
+  DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
+  QueueEvent, Release, RootFolder, SecurityConfig, Tag,
 };
 use super::{EnumDisplayStyle, Serdeable};
 
@@ -147,15 +147,6 @@ pub struct DeleteMovieParams {
   pub id: i64,
   pub delete_movie_files: bool,
   pub add_list_exclusion: bool,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct DiskSpace {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub free_space: i64,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub total_space: i64,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]

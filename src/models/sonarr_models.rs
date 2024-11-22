@@ -11,8 +11,8 @@ use crate::serde_enum_from;
 
 use super::{
   servarr_models::{
-    HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper, QueueEvent,
-    Release, RootFolder, SecurityConfig, Tag,
+    DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
+    QueueEvent, Release, RootFolder, SecurityConfig, Tag,
   },
   EnumDisplayStyle, HorizontallyScrollableText, Serdeable,
 };
@@ -394,6 +394,7 @@ pub struct SonarrHistoryItem {
 pub enum SonarrSerdeable {
   Value(Value),
   DownloadsResponse(DownloadsResponse),
+  DiskSpaces(Vec<DiskSpace>),
   Episode(Episode),
   Episodes(Vec<Episode>),
   HostConfig(HostConfig),
@@ -431,6 +432,7 @@ serde_enum_from!(
   SonarrSerdeable {
     Value(Value),
     DownloadsResponse(DownloadsResponse),
+    DiskSpaces(Vec<DiskSpace>),
     Episode(Episode),
     Episodes(Vec<Episode>),
     HostConfig(HostConfig),

@@ -5,8 +5,8 @@ mod tests {
 
   use crate::models::{
     servarr_models::{
-      HostConfig, Indexer, Log, LogResponse, QualityProfile, QueueEvent, Release, RootFolder,
-      SecurityConfig, Tag,
+      DiskSpace, HostConfig, Indexer, Log, LogResponse, QualityProfile, QueueEvent, Release,
+      RootFolder, SecurityConfig, Tag,
     },
     sonarr_models::{
       BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode,
@@ -289,6 +289,18 @@ mod tests {
       sonarr_serdeable,
       SonarrSerdeable::DownloadsResponse(downloads_response)
     );
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_disk_spaces() {
+    let disk_spaces = vec![DiskSpace {
+      free_space: 1,
+      total_space: 1,
+    }];
+
+    let sonarr_serdeable: SonarrSerdeable = disk_spaces.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::DiskSpaces(disk_spaces));
   }
 
   #[test]

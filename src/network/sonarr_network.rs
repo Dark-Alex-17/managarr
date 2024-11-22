@@ -10,8 +10,8 @@ use crate::{
       sonarr_data::ActiveSonarrBlock,
     },
     servarr_models::{
-      AddRootFolderBody, HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release,
-      RootFolder, SecurityConfig, Tag,
+      AddRootFolderBody, DiskSpace, HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent,
+      Release, RootFolder, SecurityConfig, Tag,
     },
     sonarr_models::{
       BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
@@ -49,6 +49,7 @@ pub enum SonarrEvent {
   GetEpisodes(Option<i64>),
   GetEpisodeHistory(Option<i64>),
   GetLogs(Option<u64>),
+  GetDiskSpace,
   GetQualityProfiles,
   GetQueuedEvents,
   GetRootFolders,
@@ -77,6 +78,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetHostConfig | SonarrEvent::GetSecurityConfig => "/config/host",
       SonarrEvent::GetIndexers | SonarrEvent::DeleteIndexer(_) => "/indexer",
       SonarrEvent::GetLogs(_) => "/log",
+      SonarrEvent::GetDiskSpace => "/diskspace",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
       SonarrEvent::GetQueuedEvents => "/command",
       SonarrEvent::GetRootFolders
@@ -163,6 +165,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .get_sonarr_logs(events)
         .await
         .map(SonarrSerdeable::from),
+      SonarrEvent::GetDiskSpace => self.get_sonarr_diskspace().await.map(SonarrSerdeable::from),
       SonarrEvent::GetQualityProfiles => self
         .get_sonarr_quality_profiles()
         .await
@@ -839,6 +842,21 @@ impl<'a, 'b> Network<'a, 'b> {
 
         app.data.sonarr_data.logs.set_items(log_lines);
         app.data.sonarr_data.logs.scroll_to_bottom();
+      })
+      .await
+  }
+
+  async fn get_sonarr_diskspace(&mut self) -> Result<Vec<DiskSpace>> {
+    info!("Fetching Sonarr disk space");
+    let event = SonarrEvent::GetDiskSpace;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), Vec<DiskSpace>>(request_props, |disk_space_vec, mut app| {
+        app.data.sonarr_data.disk_space_vec = disk_space_vec;
       })
       .await
   }

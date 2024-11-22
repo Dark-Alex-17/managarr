@@ -8,7 +8,7 @@ use urlencoding::encode;
 
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, BlocklistResponse, Collection, CollectionMovie,
-  CommandBody, Credit, CreditType, DeleteMovieParams, DiskSpace, DownloadRecord, DownloadsResponse,
+  CommandBody, Credit, CreditType, DeleteMovieParams, DownloadRecord, DownloadsResponse,
   EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings, IndexerTestResult,
   Movie, MovieCommandBody, MovieHistoryItem, RadarrSerdeable, ReleaseDownloadBody, SystemStatus,
   Task, TaskName, Update,
@@ -19,8 +19,8 @@ use crate::models::servarr_data::radarr::modals::{
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::{
-  AddRootFolderBody, HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release,
-  RootFolder, SecurityConfig, Tag,
+  AddRootFolderBody, DiskSpace, HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent,
+  Release, RootFolder, SecurityConfig, Tag,
 };
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
@@ -61,7 +61,7 @@ pub enum RadarrEvent {
   GetMovieDetails(Option<i64>),
   GetMovieHistory(Option<i64>),
   GetMovies,
-  GetOverview,
+  GetDiskSpace,
   GetQualityProfiles,
   GetQueuedEvents,
   GetReleases(Option<i64>),
@@ -107,7 +107,7 @@ impl NetworkResource for RadarrEvent {
       RadarrEvent::SearchNewMovie(_) => "/movie/lookup",
       RadarrEvent::GetMovieCredits(_) => "/credit",
       RadarrEvent::GetMovieHistory(_) => "/history/movie",
-      RadarrEvent::GetOverview => "/diskspace",
+      RadarrEvent::GetDiskSpace => "/diskspace",
       RadarrEvent::GetQualityProfiles => "/qualityprofile",
       RadarrEvent::GetReleases(_) | RadarrEvent::DownloadRelease(_) => "/release",
       RadarrEvent::AddRootFolder(_)
@@ -220,7 +220,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::GetMovies => self.get_movies().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetOverview => self.get_diskspace().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetDiskSpace => self.get_radarr_diskspace().await.map(RadarrSerdeable::from),
       RadarrEvent::GetQualityProfiles => self
         .get_radarr_quality_profiles()
         .await
@@ -1368,9 +1368,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_diskspace(&mut self) -> Result<Vec<DiskSpace>> {
+  async fn get_radarr_diskspace(&mut self) -> Result<Vec<DiskSpace>> {
     info!("Fetching Radarr disk space");
-    let event = RadarrEvent::GetOverview;
+    let event = RadarrEvent::GetDiskSpace;
 
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
