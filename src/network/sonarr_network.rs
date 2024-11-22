@@ -10,8 +10,8 @@ use crate::{
       sonarr_data::ActiveSonarrBlock,
     },
     servarr_models::{
-      HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release, RootFolder,
-      SecurityConfig,
+      AddRootFolderBody, HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release,
+      RootFolder, SecurityConfig,
     },
     sonarr_models::{
       BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
@@ -31,6 +31,7 @@ mod sonarr_network_tests;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum SonarrEvent {
+  AddRootFolder(Option<String>),
   ClearBlocklist,
   DeleteBlocklistItem(Option<i64>),
   DeleteDownload(Option<i64>),
@@ -74,7 +75,9 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
       SonarrEvent::GetQueuedEvents => "/command",
-      SonarrEvent::GetRootFolders | SonarrEvent::DeleteRootFolder(_) => "/rootfolder",
+      SonarrEvent::GetRootFolders
+      | SonarrEvent::DeleteRootFolder(_)
+      | SonarrEvent::AddRootFolder(_) => "/rootfolder",
       SonarrEvent::GetSeasonReleases(_) | SonarrEvent::GetEpisodeReleases(_) => "/release",
       SonarrEvent::GetSeriesHistory(_) => "/history/series",
       SonarrEvent::GetStatus => "/system/status",
@@ -96,6 +99,10 @@ impl<'a, 'b> Network<'a, 'b> {
     sonarr_event: SonarrEvent,
   ) -> Result<SonarrSerdeable> {
     match sonarr_event {
+      SonarrEvent::AddRootFolder(path) => self
+        .add_sonarr_root_folder(path)
+        .await
+        .map(SonarrSerdeable::from),
       SonarrEvent::ClearBlocklist => self
         .clear_sonarr_blocklist()
         .await
@@ -186,6 +193,38 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::ListSeries => self.list_series().await.map(SonarrSerdeable::from),
     }
+  }
+
+  async fn add_sonarr_root_folder(&mut self, root_folder: Option<String>) -> Result<Value> {
+    info!("Adding new root folder to Sonarr");
+    let event = SonarrEvent::AddRootFolder(None);
+    let body = if let Some(path) = root_folder {
+      AddRootFolderBody { path }
+    } else {
+      let mut app = self.app.lock().await;
+      let path = app
+        .data
+        .sonarr_data
+        .edit_root_folder
+        .as_ref()
+        .unwrap()
+        .text
+        .clone();
+
+      app.data.sonarr_data.edit_root_folder = None;
+
+      AddRootFolderBody { path }
+    };
+
+    debug!("Add root folder body: {body:?}");
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<AddRootFolderBody, Value>(request_props, |_, _| ())
+      .await
   }
 
   async fn clear_sonarr_blocklist(&mut self) -> Result<()> {

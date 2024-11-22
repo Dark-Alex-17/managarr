@@ -21,6 +21,7 @@ mod sonarr_data_tests;
 pub struct SonarrData {
   pub blocklist: StatefulTable<BlocklistItem>,
   pub downloads: StatefulTable<DownloadRecord>,
+  pub edit_root_folder: Option<HorizontallyScrollableText>,
   pub history: StatefulTable<SonarrHistoryItem>,
   pub indexers: StatefulTable<Indexer>,
   pub indexer_settings: Option<IndexerSettings>,
@@ -41,6 +42,7 @@ impl Default for SonarrData {
     SonarrData {
       blocklist: StatefulTable::default(),
       downloads: StatefulTable::default(),
+      edit_root_folder: None,
       history: StatefulTable::default(),
       indexers: StatefulTable::default(),
       indexer_settings: None,

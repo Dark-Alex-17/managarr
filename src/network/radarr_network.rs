@@ -7,11 +7,11 @@ use serde_json::{json, Value};
 use urlencoding::encode;
 
 use crate::models::radarr_models::{
-  AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, BlocklistResponse, Collection,
-  CollectionMovie, CommandBody, Credit, CreditType, DeleteMovieParams, DiskSpace, DownloadRecord,
-  DownloadsResponse, EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings,
-  IndexerTestResult, Movie, MovieCommandBody, MovieHistoryItem, RadarrSerdeable,
-  ReleaseDownloadBody, SystemStatus, Tag, Task, TaskName, Update,
+  AddMovieBody, AddMovieSearchResult, AddOptions, BlocklistResponse, Collection, CollectionMovie,
+  CommandBody, Credit, CreditType, DeleteMovieParams, DiskSpace, DownloadRecord, DownloadsResponse,
+  EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings, IndexerTestResult,
+  Movie, MovieCommandBody, MovieHistoryItem, RadarrSerdeable, ReleaseDownloadBody, SystemStatus,
+  Tag, Task, TaskName, Update,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
@@ -19,7 +19,8 @@ use crate::models::servarr_data::radarr::modals::{
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::{
-  HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release, RootFolder, SecurityConfig,
+  AddRootFolderBody, HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent, Release,
+  RootFolder, SecurityConfig,
 };
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
@@ -143,9 +144,10 @@ impl<'a, 'b> Network<'a, 'b> {
   ) -> Result<RadarrSerdeable> {
     match radarr_event {
       RadarrEvent::AddMovie(body) => self.add_movie(body).await.map(RadarrSerdeable::from),
-      RadarrEvent::AddRootFolder(path) => {
-        self.add_root_folder(path).await.map(RadarrSerdeable::from)
-      }
+      RadarrEvent::AddRootFolder(path) => self
+        .add_radarr_root_folder(path)
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::AddTag(tag) => self.add_tag(tag).await.map(RadarrSerdeable::from),
       RadarrEvent::ClearBlocklist => self
         .clear_radarr_blocklist()
@@ -371,7 +373,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn add_root_folder(&mut self, root_folder: Option<String>) -> Result<Value> {
+  async fn add_radarr_root_folder(&mut self, root_folder: Option<String>) -> Result<Value> {
     info!("Adding new root folder to Radarr");
     let event = RadarrEvent::AddRootFolder(None);
     let body = if let Some(path) = root_folder {

@@ -3633,7 +3633,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_add_root_folder_event() {
+  async fn test_handle_add_radarr_root_folder_event() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -3666,7 +3666,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_add_root_folder_event_uses_provided_path() {
+  async fn test_handle_add_radarr_root_folder_event_uses_provided_path() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({

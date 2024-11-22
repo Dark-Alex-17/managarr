@@ -11,6 +11,11 @@ use super::HorizontallyScrollableText;
 #[path = "servarr_models_tests.rs"]
 mod servarr_models_tests;
 
+#[derive(Default, Serialize, Debug)]
+pub struct AddRootFolderBody {
+  pub path: String,
+}
+
 #[derive(Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, ValueEnum)]
 #[serde(rename_all = "camelCase")]
 pub enum AuthenticationMethod {

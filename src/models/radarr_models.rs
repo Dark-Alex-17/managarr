@@ -56,11 +56,6 @@ pub struct AddOptions {
   pub search_for_movie: bool,
 }
 
-#[derive(Default, Serialize, Debug)]
-pub struct AddRootFolderBody {
-  pub path: String,
-}
-
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct BlocklistResponse {
   pub records: Vec<BlocklistItem>,

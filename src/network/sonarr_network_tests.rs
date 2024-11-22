@@ -174,7 +174,12 @@ mod test {
 
   #[rstest]
   fn test_resource_root_folder(
-    #[values(SonarrEvent::GetRootFolders, SonarrEvent::DeleteRootFolder(None))] event: SonarrEvent,
+    #[values(
+      SonarrEvent::GetRootFolders,
+      SonarrEvent::DeleteRootFolder(None),
+      SonarrEvent::AddRootFolder(None)
+    )]
+    event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/rootfolder");
   }
@@ -209,6 +214,71 @@ mod test {
       NetworkEvent::Sonarr(SonarrEvent::HealthCheck),
       NetworkEvent::from(SonarrEvent::HealthCheck)
     );
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_sonarr_root_folder_event() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "path": "/nfs/test"
+      })),
+      Some(json!({})),
+      None,
+      SonarrEvent::AddRootFolder(None),
+      None,
+      None,
+    )
+    .await;
+
+    app_arc.lock().await.data.sonarr_data.edit_root_folder = Some("/nfs/test".into());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::AddRootFolder(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .edit_root_folder
+      .is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_sonarr_root_folder_event_uses_provided_path() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "path": "/test/test"
+      })),
+      Some(json!({})),
+      None,
+      SonarrEvent::AddRootFolder(None),
+      None,
+      None,
+    )
+    .await;
+
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::AddRootFolder(Some("/test/test".to_owned())))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .edit_root_folder
+      .is_none());
   }
 
   #[tokio::test]

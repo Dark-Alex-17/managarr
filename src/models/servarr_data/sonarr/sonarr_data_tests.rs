@@ -36,6 +36,7 @@ mod tests {
 
       assert!(sonarr_data.blocklist.is_empty());
       assert!(sonarr_data.downloads.is_empty());
+      assert!(sonarr_data.edit_root_folder.is_none());
       assert!(sonarr_data.history.is_empty());
       assert!(sonarr_data.indexers.is_empty());
       assert!(sonarr_data.indexer_settings.is_none());
