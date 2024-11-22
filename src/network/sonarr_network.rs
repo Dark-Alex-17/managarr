@@ -62,6 +62,7 @@ pub enum SonarrEvent {
   GetTags,
   HealthCheck,
   ListSeries,
+  MarkHistoryItemAsFailed(i64),
 }
 
 impl NetworkResource for SonarrEvent {
@@ -89,6 +90,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetStatus => "/system/status",
       SonarrEvent::HealthCheck => "/health",
       SonarrEvent::ListSeries | SonarrEvent::GetSeriesDetails(_) => "/series",
+      SonarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
     }
   }
 }
@@ -205,6 +207,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::ListSeries => self.list_series().await.map(SonarrSerdeable::from),
+      SonarrEvent::MarkHistoryItemAsFailed(history_item_id) => self
+        .mark_sonarr_history_item_as_failed(history_item_id)
+        .await
+        .map(SonarrSerdeable::from),
     }
   }
 
@@ -1147,6 +1153,25 @@ impl<'a, 'b> Network<'a, 'b> {
           .map(|tag| (tag.id, tag.label))
           .collect();
       })
+      .await
+  }
+
+  async fn mark_sonarr_history_item_as_failed(&mut self, history_item_id: i64) -> Result<Value> {
+    info!("Marking the Sonarr history item with ID: {history_item_id} as 'failed'");
+    let event = SonarrEvent::MarkHistoryItemAsFailed(history_item_id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Post,
+        None,
+        Some(format!("/{history_item_id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), Value>(request_props, |_, _| ())
       .await
   }
 

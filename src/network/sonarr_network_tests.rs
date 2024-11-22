@@ -217,6 +217,7 @@ mod test {
   #[case(SonarrEvent::GetLogs(Some(500)), "/log")]
   #[case(SonarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(SonarrEvent::GetStatus, "/system/status")]
+  #[case(SonarrEvent::MarkHistoryItemAsFailed(0), "/history/failed")]
   fn test_resource(#[case] event: SonarrEvent, #[case] expected_uri: String) {
     assert_str_eq!(event.resource(), expected_uri);
   }
@@ -3672,6 +3673,30 @@ mod test {
       );
       assert_eq!(tags, response);
     }
+  }
+
+  #[tokio::test]
+  async fn test_handle_mark_sonarr_history_item_as_failed_event() {
+    let expected_history_item_id = 1;
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      None,
+      Some(json!({})),
+      None,
+      SonarrEvent::MarkHistoryItemAsFailed(expected_history_item_id),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::MarkHistoryItemAsFailed(
+        expected_history_item_id
+      ))
+      .await
+      .is_ok());
+    async_server.assert_async().await;
   }
 
   #[tokio::test]
