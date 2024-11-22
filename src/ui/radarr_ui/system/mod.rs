@@ -12,7 +12,7 @@ use ratatui::{
 };
 
 use crate::app::App;
-use crate::models::radarr_models::Task;
+use crate::models::radarr_models::RadarrTask;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::QueueEvent;
 use crate::ui::radarr_ui::radarr_ui_utils::{convert_to_minutes_hours_days, style_log_list_item};
@@ -91,7 +91,7 @@ pub(super) fn draw_system_ui_layout(f: &mut Frame<'_>, app: &mut App<'_>, area: 
 }
 
 fn draw_tasks(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let tasks_row_mapping = |task: &Task| {
+  let tasks_row_mapping = |task: &RadarrTask| {
     let task_props = extract_task_props(task);
 
     Row::new(vec![
@@ -218,7 +218,7 @@ pub(super) struct TaskProps {
   pub(super) next_execution: String,
 }
 
-pub(super) fn extract_task_props(task: &Task) -> TaskProps {
+pub(super) fn extract_task_props(task: &RadarrTask) -> TaskProps {
   let interval = convert_to_minutes_hours_days(task.interval);
   let last_duration = &task.last_duration[..8];
   let next_execution =

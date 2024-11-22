@@ -11,7 +11,7 @@ mod tests {
     sonarr_models::{
       BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode,
       IndexerSettings, Series, SeriesStatus, SeriesType, SonarrHistoryEventType, SonarrHistoryItem,
-      SonarrSerdeable, SystemStatus,
+      SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
     },
     EnumDisplayStyle, Serdeable,
   };
@@ -114,6 +114,14 @@ mod tests {
     assert_str_eq!(
       SonarrHistoryEventType::DownloadIgnored.to_display_str(),
       "Download Ignored",
+    );
+  }
+
+  #[test]
+  fn test_task_name_display() {
+    assert_str_eq!(
+      SonarrTaskName::ApplicationUpdateCheck.to_string(),
+      "ApplicationUpdateCheck"
     );
   }
 
@@ -405,5 +413,17 @@ mod tests {
     let sonarr_serdeable: SonarrSerdeable = tags.clone().into();
 
     assert_eq!(sonarr_serdeable, SonarrSerdeable::Tags(tags));
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_tasks() {
+    let tasks = vec![SonarrTask {
+      name: "test".to_owned(),
+      ..SonarrTask::default()
+    }];
+
+    let sonarr_serdeable: SonarrSerdeable = tasks.clone().into();
+
+    assert_eq!(sonarr_serdeable, SonarrSerdeable::Tasks(tasks));
   }
 }

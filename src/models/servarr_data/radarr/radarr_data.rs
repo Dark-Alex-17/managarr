@@ -7,7 +7,7 @@ use crate::app::radarr::radarr_context_clues::{
 };
 use crate::models::radarr_models::{
   AddMovieSearchResult, BlocklistItem, Collection, CollectionMovie, DownloadRecord,
-  IndexerSettings, Movie, Task,
+  IndexerSettings, Movie, RadarrTask,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
@@ -48,7 +48,7 @@ pub struct RadarrData<'a> {
   pub collection_movies: StatefulTable<CollectionMovie>,
   pub logs: StatefulList<HorizontallyScrollableText>,
   pub log_details: StatefulList<HorizontallyScrollableText>,
-  pub tasks: StatefulTable<Task>,
+  pub tasks: StatefulTable<RadarrTask>,
   pub queued_events: StatefulTable<QueueEvent>,
   pub updates: ScrollableText,
   pub main_tabs: TabState,

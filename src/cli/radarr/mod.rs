@@ -12,7 +12,7 @@ use tokio::sync::Mutex;
 use crate::app::App;
 
 use crate::cli::CliCommandHandler;
-use crate::models::radarr_models::{ReleaseDownloadBody, TaskName};
+use crate::models::radarr_models::{RadarrTaskName, ReleaseDownloadBody};
 use crate::network::radarr_network::RadarrEvent;
 use crate::network::NetworkTrait;
 use anyhow::Result;
@@ -107,7 +107,7 @@ pub enum RadarrCommand {
       value_enum,
       required = true
     )]
-    task_name: TaskName,
+    task_name: RadarrTaskName,
   },
   #[command(
     about = "Test the indexer with the given ID. Note that a successful test returns an empty JSON body; i.e. '{}'"

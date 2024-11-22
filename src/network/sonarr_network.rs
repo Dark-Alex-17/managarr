@@ -15,7 +15,7 @@ use crate::{
     },
     sonarr_models::{
       BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
-      SonarrHistoryItem, SonarrHistoryWrapper, SonarrSerdeable, SystemStatus,
+      SonarrHistoryItem, SonarrHistoryWrapper, SonarrSerdeable, SonarrTask, SystemStatus,
     },
     stateful_table::StatefulTable,
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
@@ -60,6 +60,7 @@ pub enum SonarrEvent {
   GetSeriesHistory(Option<i64>),
   GetStatus,
   GetTags,
+  GetTasks,
   HealthCheck,
   ListSeries,
   MarkHistoryItemAsFailed(i64),
@@ -88,6 +89,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetSeasonReleases(_) | SonarrEvent::GetEpisodeReleases(_) => "/release",
       SonarrEvent::GetSeriesHistory(_) => "/history/series",
       SonarrEvent::GetStatus => "/system/status",
+      SonarrEvent::GetTasks => "/system/task",
       SonarrEvent::HealthCheck => "/health",
       SonarrEvent::ListSeries | SonarrEvent::GetSeriesDetails(_) => "/series",
       SonarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
@@ -202,6 +204,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::GetStatus => self.get_sonarr_status().await.map(SonarrSerdeable::from),
       SonarrEvent::GetTags => self.get_sonarr_tags().await.map(SonarrSerdeable::from),
+      SonarrEvent::GetTasks => self.get_sonarr_tasks().await.map(SonarrSerdeable::from),
       SonarrEvent::HealthCheck => self
         .get_sonarr_healthcheck()
         .await
@@ -1152,6 +1155,21 @@ impl<'a, 'b> Network<'a, 'b> {
           .into_iter()
           .map(|tag| (tag.id, tag.label))
           .collect();
+      })
+      .await
+  }
+
+  async fn get_sonarr_tasks(&mut self) -> Result<Vec<SonarrTask>> {
+    info!("Fetching Sonarr tasks");
+    let event = SonarrEvent::GetTasks;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), Vec<SonarrTask>>(request_props, |tasks_vec, mut app| {
+        app.data.sonarr_data.tasks.set_items(tasks_vec);
       })
       .await
   }

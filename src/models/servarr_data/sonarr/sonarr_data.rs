@@ -5,7 +5,7 @@ use strum::EnumIter;
 use crate::models::{
   servarr_models::{DiskSpace, Indexer, QueueEvent, RootFolder},
   sonarr_models::{
-    BlocklistItem, DownloadRecord, IndexerSettings, Season, Series, SonarrHistoryItem,
+    BlocklistItem, DownloadRecord, IndexerSettings, Season, Series, SonarrHistoryItem, SonarrTask,
   },
   stateful_list::StatefulList,
   stateful_table::StatefulTable,
@@ -36,6 +36,7 @@ pub struct SonarrData {
   pub series_history: Option<StatefulTable<SonarrHistoryItem>>,
   pub start_time: DateTime<Utc>,
   pub tags_map: BiMap<i64, String>,
+  pub tasks: StatefulTable<SonarrTask>,
   pub version: String,
 }
 
@@ -59,6 +60,7 @@ impl Default for SonarrData {
       series_history: None,
       start_time: DateTime::default(),
       tags_map: BiMap::default(),
+      tasks: StatefulTable::default(),
       version: String::new(),
     }
   }

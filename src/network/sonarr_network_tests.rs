@@ -20,13 +20,14 @@ mod test {
     DiskSpace, HostConfig, Indexer, IndexerField, Language, LogResponse, Quality, QualityProfile,
     QualityWrapper, QueueEvent, Release, RootFolder, SecurityConfig, Tag,
   };
-  use crate::models::sonarr_models::SystemStatus;
   use crate::models::sonarr_models::{
     BlocklistItem, DownloadRecord, DownloadsResponse, Episode, EpisodeFile, MediaInfo,
+    SonarrTaskName,
   };
   use crate::models::sonarr_models::{
     BlocklistResponse, SonarrHistoryData, SonarrHistoryItem, SonarrHistoryWrapper,
   };
+  use crate::models::sonarr_models::{SonarrTask, SystemStatus};
   use crate::models::stateful_table::StatefulTable;
   use crate::models::HorizontallyScrollableText;
   use crate::models::{sonarr_models::SonarrSerdeable, stateful_table::SortOption};
@@ -217,6 +218,7 @@ mod test {
   #[case(SonarrEvent::GetLogs(Some(500)), "/log")]
   #[case(SonarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(SonarrEvent::GetStatus, "/system/status")]
+  #[case(SonarrEvent::GetTasks, "/system/task")]
   #[case(SonarrEvent::MarkHistoryItemAsFailed(0), "/history/failed")]
   fn test_resource(#[case] event: SonarrEvent, #[case] expected_uri: String) {
     assert_str_eq!(event.resource(), expected_uri);
@@ -3672,6 +3674,70 @@ mod test {
         BiMap::from_iter([(2222i64, "usenet".to_owned())])
       );
       assert_eq!(tags, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_tasks_event() {
+    let tasks_json = json!([{
+        "name": "Application Update Check",
+        "taskName": "ApplicationUpdateCheck",
+        "interval": 360,
+        "lastExecution": "2023-05-20T21:29:16Z",
+        "nextExecution": "2023-05-20T21:29:16Z",
+        "lastDuration": "00:00:00.5111547",
+    },
+    {
+        "name": "Backup",
+        "taskName": "Backup",
+        "interval": 10080,
+        "lastExecution": "2023-05-20T21:29:16Z",
+        "nextExecution": "2023-05-20T21:29:16Z",
+        "lastDuration": "00:00:00.5111547",
+    }]);
+    let response: Vec<SonarrTask> = serde_json::from_value(tasks_json.clone()).unwrap();
+    let timestamp = DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap());
+    let expected_tasks = vec![
+      SonarrTask {
+        name: "Application Update Check".to_owned(),
+        task_name: SonarrTaskName::ApplicationUpdateCheck,
+        interval: 360,
+        last_execution: timestamp,
+        next_execution: timestamp,
+        last_duration: "00:00:00.5111547".to_owned(),
+      },
+      SonarrTask {
+        name: "Backup".to_owned(),
+        task_name: SonarrTaskName::Backup,
+        interval: 10080,
+        last_execution: timestamp,
+        next_execution: timestamp,
+        last_duration: "00:00:00.5111547".to_owned(),
+      },
+    ];
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(tasks_json),
+      None,
+      SonarrEvent::GetTasks,
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Tasks(tasks) = network
+      .handle_sonarr_event(SonarrEvent::GetTasks)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.tasks.items,
+        expected_tasks
+      );
+      assert_eq!(tasks, response);
     }
   }
 

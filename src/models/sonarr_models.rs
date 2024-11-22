@@ -388,6 +388,44 @@ pub struct SonarrHistoryItem {
   pub data: SonarrHistoryData,
 }
 
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SonarrTask {
+  pub name: String,
+  pub task_name: SonarrTaskName,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub interval: i64,
+  pub last_execution: DateTime<Utc>,
+  pub last_duration: String,
+  pub next_execution: DateTime<Utc>,
+}
+
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Copy, ValueEnum)]
+#[serde(rename_all = "PascalCase")]
+pub enum SonarrTaskName {
+  #[default]
+  ApplicationUpdateCheck,
+  Backup,
+  CheckHealth,
+  CleanUpRecycleBin,
+  Housekeeping,
+  ImportListSync,
+  MessagingCleanup,
+  RefreshMonitoredDownloads,
+  RefreshSeries,
+  RssSync,
+  UpdateSceneMapping,
+}
+
+impl Display for SonarrTaskName {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    let task_name = serde_json::to_string(&self)
+      .expect("Unable to serialize task name")
+      .replace('"', "");
+    write!(f, "{task_name}")
+  }
+}
+
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
@@ -412,6 +450,7 @@ pub enum SonarrSerdeable {
   SystemStatus(SystemStatus),
   Tag(Tag),
   Tags(Vec<Tag>),
+  Tasks(Vec<SonarrTask>),
   BlocklistResponse(BlocklistResponse),
   LogResponse(LogResponse),
 }
@@ -450,6 +489,7 @@ serde_enum_from!(
     SystemStatus(SystemStatus),
     Tag(Tag),
     Tags(Vec<Tag>),
+    Tasks(Vec<SonarrTask>),
     BlocklistResponse(BlocklistResponse),
     LogResponse(LogResponse),
   }

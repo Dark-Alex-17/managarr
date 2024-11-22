@@ -8,7 +8,7 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::system::system_details_handler::SystemDetailsHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::Task;
+  use crate::models::radarr_models::RadarrTask;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS,
   };
@@ -74,7 +74,7 @@ mod tests {
         .data
         .radarr_data
         .tasks
-        .set_items(simple_stateful_iterable_vec!(Task, String, name));
+        .set_items(simple_stateful_iterable_vec!(RadarrTask, String, name));
 
       SystemDetailsHandler::with(&key, &mut app, &ActiveRadarrBlock::SystemTasks, &None).handle();
 
@@ -102,7 +102,7 @@ mod tests {
         .data
         .radarr_data
         .tasks
-        .set_items(simple_stateful_iterable_vec!(Task, String, name));
+        .set_items(simple_stateful_iterable_vec!(RadarrTask, String, name));
 
       SystemDetailsHandler::with(&key, &mut app, &ActiveRadarrBlock::SystemTasks, &None).handle();
 
@@ -318,7 +318,7 @@ mod tests {
         .data
         .radarr_data
         .tasks
-        .set_items(extended_stateful_iterable_vec!(Task, String, name));
+        .set_items(extended_stateful_iterable_vec!(RadarrTask, String, name));
 
       SystemDetailsHandler::with(
         &DEFAULT_KEYBINDINGS.end.key,
@@ -357,7 +357,7 @@ mod tests {
         .data
         .radarr_data
         .tasks
-        .set_items(extended_stateful_iterable_vec!(Task, String, name));
+        .set_items(extended_stateful_iterable_vec!(RadarrTask, String, name));
 
       SystemDetailsHandler::with(
         &DEFAULT_KEYBINDINGS.end.key,
@@ -789,7 +789,11 @@ mod tests {
       app.is_loading = is_ready;
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
-      app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+      app
+        .data
+        .radarr_data
+        .tasks
+        .set_items(vec![RadarrTask::default()]);
 
       SystemDetailsHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::SystemTasks, &None)
         .handle();

@@ -8,7 +8,7 @@ mod tests {
       AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, DiskSpace,
       DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult,
       MinimumAvailability, Monitor, Movie, MovieHistoryItem, QualityProfile, RadarrSerdeable,
-      Release, SystemStatus, Tag, Task, TaskName, Update,
+      RadarrTask, RadarrTaskName, Release, SystemStatus, Tag, Update,
     },
     servarr_models::{HostConfig, Log, LogResponse, QueueEvent, RootFolder, SecurityConfig},
     EnumDisplayStyle, Serdeable,
@@ -17,7 +17,7 @@ mod tests {
   #[test]
   fn test_task_name_display() {
     assert_str_eq!(
-      TaskName::ApplicationCheckUpdate.to_string(),
+      RadarrTaskName::ApplicationCheckUpdate.to_string(),
       "ApplicationCheckUpdate"
     );
   }
@@ -383,9 +383,9 @@ mod tests {
 
   #[test]
   fn test_radarr_serdeable_from_tasks() {
-    let tasks = vec![Task {
+    let tasks = vec![RadarrTask {
       name: "test".to_owned(),
-      ..Task::default()
+      ..RadarrTask::default()
     }];
 
     let radarr_serdeable: RadarrSerdeable = tasks.clone().into();

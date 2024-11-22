@@ -435,9 +435,9 @@ pub struct SystemStatus {
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Task {
+pub struct RadarrTask {
   pub name: String,
-  pub task_name: TaskName,
+  pub task_name: RadarrTaskName,
   #[serde(deserialize_with = "super::from_i64")]
   pub interval: i64,
   pub last_execution: DateTime<Utc>,
@@ -447,7 +447,7 @@ pub struct Task {
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Copy, ValueEnum)]
 #[serde(rename_all = "PascalCase")]
-pub enum TaskName {
+pub enum RadarrTaskName {
   #[default]
   ApplicationCheckUpdate,
   Backup,
@@ -462,7 +462,7 @@ pub enum TaskName {
   RssSync,
 }
 
-impl Display for TaskName {
+impl Display for RadarrTaskName {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
     let task_name = serde_json::to_string(&self)
       .expect("Unable to serialize task name")
@@ -514,7 +514,7 @@ pub enum RadarrSerdeable {
   SecurityConfig(SecurityConfig),
   SystemStatus(SystemStatus),
   Tags(Vec<Tag>),
-  Tasks(Vec<Task>),
+  Tasks(Vec<RadarrTask>),
   Updates(Vec<Update>),
   AddMovieSearchResults(Vec<AddMovieSearchResult>),
   IndexerTestResults(Vec<IndexerTestResult>),
@@ -555,7 +555,7 @@ serde_enum_from!(
     SecurityConfig(SecurityConfig),
     SystemStatus(SystemStatus),
     Tags(Vec<Tag>),
-    Tasks(Vec<Task>),
+    Tasks(Vec<RadarrTask>),
     Updates(Vec<Update>),
     AddMovieSearchResults(Vec<AddMovieSearchResult>),
     IndexerTestResults(Vec<IndexerTestResult>),

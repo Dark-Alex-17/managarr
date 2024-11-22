@@ -733,9 +733,9 @@ mod test {
       .data
       .radarr_data
       .tasks
-      .set_items(vec![Task {
-        task_name: TaskName::default(),
-        ..Task::default()
+      .set_items(vec![RadarrTask {
+        task_name: RadarrTaskName::default(),
+        ..RadarrTask::default()
       }]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
@@ -767,7 +767,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Value(value) = network
-      .handle_radarr_event(RadarrEvent::StartTask(Some(TaskName::default())))
+      .handle_radarr_event(RadarrEvent::StartTask(Some(RadarrTaskName::default())))
       .await
       .unwrap()
     {
@@ -2666,7 +2666,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_tasks_event() {
+  async fn test_handle_get_radarr_tasks_event() {
     let tasks_json = json!([{
         "name": "Application Check Update",
         "taskName": "ApplicationCheckUpdate",
@@ -2683,20 +2683,20 @@ mod test {
         "nextExecution": "2023-05-20T21:29:16Z",
         "lastDuration": "00:00:00.5111547",
     }]);
-    let response: Vec<Task> = serde_json::from_value(tasks_json.clone()).unwrap();
+    let response: Vec<RadarrTask> = serde_json::from_value(tasks_json.clone()).unwrap();
     let timestamp = DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap());
     let expected_tasks = vec![
-      Task {
+      RadarrTask {
         name: "Application Check Update".to_owned(),
-        task_name: TaskName::ApplicationCheckUpdate,
+        task_name: RadarrTaskName::ApplicationCheckUpdate,
         interval: 360,
         last_execution: timestamp,
         next_execution: timestamp,
         last_duration: "00:00:00.5111547".to_owned(),
       },
-      Task {
+      RadarrTask {
         name: "Backup".to_owned(),
-        task_name: TaskName::Backup,
+        task_name: RadarrTaskName::Backup,
         interval: 10080,
         last_execution: timestamp,
         next_execution: timestamp,

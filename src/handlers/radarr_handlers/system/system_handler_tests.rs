@@ -9,7 +9,7 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::system::SystemHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::Task;
+  use crate::models::radarr_models::RadarrTask;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS,
   };
@@ -105,7 +105,11 @@ mod tests {
         .radarr_data
         .queued_events
         .set_items(vec![QueueEvent::default()]);
-      app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+      app
+        .data
+        .radarr_data
+        .tasks
+        .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
         &DEFAULT_KEYBINDINGS.update.key,
@@ -135,7 +139,11 @@ mod tests {
         .radarr_data
         .queued_events
         .set_items(vec![QueueEvent::default()]);
-      app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+      app
+        .data
+        .radarr_data
+        .tasks
+        .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
         &DEFAULT_KEYBINDINGS.update.key,
@@ -160,7 +168,11 @@ mod tests {
         .radarr_data
         .queued_events
         .set_items(vec![QueueEvent::default()]);
-      app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+      app
+        .data
+        .radarr_data
+        .tasks
+        .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
         &DEFAULT_KEYBINDINGS.events.key,
@@ -190,7 +202,11 @@ mod tests {
         .radarr_data
         .queued_events
         .set_items(vec![QueueEvent::default()]);
-      app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+      app
+        .data
+        .radarr_data
+        .tasks
+        .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
         &DEFAULT_KEYBINDINGS.events.key,
@@ -215,7 +231,11 @@ mod tests {
         .radarr_data
         .queued_events
         .set_items(vec![QueueEvent::default()]);
-      app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+      app
+        .data
+        .radarr_data
+        .tasks
+        .set_items(vec![RadarrTask::default()]);
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
 
       SystemHandler::with(
@@ -244,7 +264,11 @@ mod tests {
         .radarr_data
         .queued_events
         .set_items(vec![QueueEvent::default()]);
-      app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+      app
+        .data
+        .radarr_data
+        .tasks
+        .set_items(vec![RadarrTask::default()]);
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
 
       SystemHandler::with(
@@ -271,7 +295,11 @@ mod tests {
         .radarr_data
         .queued_events
         .set_items(vec![QueueEvent::default()]);
-      app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+      app
+        .data
+        .radarr_data
+        .tasks
+        .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
         &DEFAULT_KEYBINDINGS.logs.key,
@@ -309,7 +337,11 @@ mod tests {
         .radarr_data
         .queued_events
         .set_items(vec![QueueEvent::default()]);
-      app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+      app
+        .data
+        .radarr_data
+        .tasks
+        .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
         &DEFAULT_KEYBINDINGS.logs.key,
@@ -335,7 +367,11 @@ mod tests {
         .radarr_data
         .queued_events
         .set_items(vec![QueueEvent::default()]);
-      app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+      app
+        .data
+        .radarr_data
+        .tasks
+        .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
         &DEFAULT_KEYBINDINGS.tasks.key,
@@ -365,7 +401,11 @@ mod tests {
         .radarr_data
         .queued_events
         .set_items(vec![QueueEvent::default()]);
-      app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+      app
+        .data
+        .radarr_data
+        .tasks
+        .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
         &DEFAULT_KEYBINDINGS.tasks.key,
@@ -430,7 +470,11 @@ mod tests {
   fn test_system_handler_is_not_ready_when_logs_is_empty() {
     let mut app = App::default();
     app.is_loading = false;
-    app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+    app
+      .data
+      .radarr_data
+      .tasks
+      .set_items(vec![RadarrTask::default()]);
     app
       .data
       .radarr_data
@@ -473,7 +517,11 @@ mod tests {
     let mut app = App::default();
     app.is_loading = false;
     app.data.radarr_data.logs.set_items(vec!["test".into()]);
-    app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+    app
+      .data
+      .radarr_data
+      .tasks
+      .set_items(vec![RadarrTask::default()]);
 
     let system_handler = SystemHandler::with(
       &DEFAULT_KEYBINDINGS.update.key,
@@ -490,7 +538,11 @@ mod tests {
     let mut app = App::default();
     app.is_loading = false;
     app.data.radarr_data.logs.set_items(vec!["test".into()]);
-    app.data.radarr_data.tasks.set_items(vec![Task::default()]);
+    app
+      .data
+      .radarr_data
+      .tasks
+      .set_items(vec![RadarrTask::default()]);
     app
       .data
       .radarr_data

@@ -10,8 +10,8 @@ use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, BlocklistResponse, Collection, CollectionMovie,
   CommandBody, Credit, CreditType, DeleteMovieParams, DownloadRecord, DownloadsResponse,
   EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings, IndexerTestResult,
-  Movie, MovieCommandBody, MovieHistoryItem, RadarrSerdeable, ReleaseDownloadBody, SystemStatus,
-  Task, TaskName, Update,
+  Movie, MovieCommandBody, MovieHistoryItem, RadarrSerdeable, RadarrTask, RadarrTaskName,
+  ReleaseDownloadBody, SystemStatus, Update,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
@@ -73,7 +73,7 @@ pub enum RadarrEvent {
   GetUpdates,
   HealthCheck,
   SearchNewMovie(Option<String>),
-  StartTask(Option<TaskName>),
+  StartTask(Option<RadarrTaskName>),
   TestIndexer(Option<i64>),
   TestAllIndexers,
   TriggerAutomaticSearch(Option<i64>),
@@ -243,7 +243,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(RadarrSerdeable::from),
       RadarrEvent::GetStatus => self.get_radarr_status().await.map(RadarrSerdeable::from),
       RadarrEvent::GetTags => self.get_radarr_tags().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetTasks => self.get_tasks().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetTasks => self.get_radarr_tasks().await.map(RadarrSerdeable::from),
       RadarrEvent::GetUpdates => self.get_updates().await.map(RadarrSerdeable::from),
       RadarrEvent::HealthCheck => self
         .get_radarr_healthcheck()
@@ -1855,7 +1855,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_tasks(&mut self) -> Result<Vec<Task>> {
+  async fn get_radarr_tasks(&mut self) -> Result<Vec<RadarrTask>> {
     info!("Fetching Radarr tasks");
     let event = RadarrEvent::GetTasks;
 
@@ -1864,7 +1864,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-      .handle_request::<(), Vec<Task>>(request_props, |tasks_vec, mut app| {
+      .handle_request::<(), Vec<RadarrTask>>(request_props, |tasks_vec, mut app| {
         app.data.radarr_data.tasks.set_items(tasks_vec);
       })
       .await
@@ -2006,7 +2006,7 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn start_task(&mut self, task: Option<TaskName>) -> Result<Value> {
+  async fn start_task(&mut self, task: Option<RadarrTaskName>) -> Result<Value> {
     let event = RadarrEvent::StartTask(None);
     let task_name = if let Some(t_name) = task {
       t_name

@@ -261,8 +261,8 @@ mod tests {
       },
       models::{
         radarr_models::{
-          BlocklistItem, BlocklistResponse, IndexerSettings, RadarrSerdeable, ReleaseDownloadBody,
-          TaskName,
+          BlocklistItem, BlocklistResponse, IndexerSettings, RadarrSerdeable, RadarrTaskName,
+          ReleaseDownloadBody,
         },
         Serdeable,
       },
@@ -389,7 +389,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_start_task_command() {
-      let expected_task_name = TaskName::ApplicationCheckUpdate;
+      let expected_task_name = RadarrTaskName::ApplicationCheckUpdate;
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
@@ -404,7 +404,7 @@ mod tests {
         });
       let app_arc = Arc::new(Mutex::new(App::default()));
       let start_task_command = RadarrCommand::StartTask {
-        task_name: TaskName::ApplicationCheckUpdate,
+        task_name: RadarrTaskName::ApplicationCheckUpdate,
       };
 
       let result = RadarrCliHandler::with(&app_arc, start_task_command, &mut mock_network)
