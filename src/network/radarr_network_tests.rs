@@ -2861,7 +2861,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_delete_tag_event() {
+  async fn test_handle_delete_radarr_tag_event() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Delete,
       None,

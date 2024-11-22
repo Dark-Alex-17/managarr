@@ -139,7 +139,9 @@ mod test {
   }
 
   #[rstest]
-  fn test_resource_tag(#[values(SonarrEvent::AddTag(String::new()))] event: SonarrEvent) {
+  fn test_resource_tag(
+    #[values(SonarrEvent::AddTag(String::new()), SonarrEvent::DeleteTag(0))] event: SonarrEvent,
+  ) {
     assert_str_eq!(event.resource(), "/tag");
   }
 
@@ -542,6 +544,28 @@ mod test {
 
     assert!(network
       .handle_sonarr_event(SonarrEvent::DeleteRootFolder(Some(1)))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_sonarr_tag_event() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      SonarrEvent::DeleteTag(1),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::DeleteTag(1))
       .await
       .is_ok());
 

@@ -172,7 +172,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .delete_radarr_root_folder(root_folder_id)
         .await
         .map(RadarrSerdeable::from),
-      RadarrEvent::DeleteTag(tag_id) => self.delete_tag(tag_id).await.map(RadarrSerdeable::from),
+      RadarrEvent::DeleteTag(tag_id) => self
+        .delete_radarr_tag(tag_id)
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::DownloadRelease(params) => self
         .download_release(params)
         .await
@@ -426,7 +429,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_tag(&mut self, id: i64) -> Result<()> {
+  async fn delete_radarr_tag(&mut self, id: i64) -> Result<()> {
     info!("Deleting Radarr tag with id: {id}");
     let event = RadarrEvent::DeleteTag(id);
 

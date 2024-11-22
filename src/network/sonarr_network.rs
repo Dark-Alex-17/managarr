@@ -38,6 +38,7 @@ pub enum SonarrEvent {
   DeleteDownload(Option<i64>),
   DeleteIndexer(Option<i64>),
   DeleteRootFolder(Option<i64>),
+  DeleteTag(i64),
   GetAllIndexerSettings,
   GetBlocklist,
   GetDownloads,
@@ -64,7 +65,7 @@ pub enum SonarrEvent {
 impl NetworkResource for SonarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
-      SonarrEvent::AddTag(_) => "/tag",
+      SonarrEvent::AddTag(_) | SonarrEvent::DeleteTag(_) => "/tag",
       SonarrEvent::ClearBlocklist => "/blocklist/bulk",
       SonarrEvent::DeleteBlocklistItem(_) => "/blocklist",
       SonarrEvent::GetAllIndexerSettings => "/config/indexer",
@@ -128,6 +129,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::DeleteRootFolder(root_folder_id) => self
         .delete_sonarr_root_folder(root_folder_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::DeleteTag(tag_id) => self
+        .delete_sonarr_tag(tag_id)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetBlocklist => self.get_sonarr_blocklist().await.map(SonarrSerdeable::from),
@@ -398,6 +403,25 @@ impl<'a, 'b> Network<'a, 'b> {
     };
 
     info!("Deleting Sonarr root folder for folder with id: {id}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        None::<()>,
+        Some(format!("/{id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn delete_sonarr_tag(&mut self, id: i64) -> Result<()> {
+    info!("Deleting Sonarr tag with id: {id}");
+    let event = SonarrEvent::DeleteTag(id);
 
     let request_props = self
       .request_props_from(
