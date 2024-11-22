@@ -58,6 +58,7 @@ pub enum SonarrEvent {
   GetSeriesDetails(Option<i64>),
   GetSeriesHistory(Option<i64>),
   GetStatus,
+  GetTags,
   HealthCheck,
   ListSeries,
 }
@@ -65,7 +66,7 @@ pub enum SonarrEvent {
 impl NetworkResource for SonarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
-      SonarrEvent::AddTag(_) | SonarrEvent::DeleteTag(_) => "/tag",
+      SonarrEvent::AddTag(_) | SonarrEvent::DeleteTag(_) | SonarrEvent::GetTags => "/tag",
       SonarrEvent::ClearBlocklist => "/blocklist/bulk",
       SonarrEvent::DeleteBlocklistItem(_) => "/blocklist",
       SonarrEvent::GetAllIndexerSettings => "/config/indexer",
@@ -195,6 +196,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetStatus => self.get_sonarr_status().await.map(SonarrSerdeable::from),
+      SonarrEvent::GetTags => self.get_sonarr_tags().await.map(SonarrSerdeable::from),
       SonarrEvent::HealthCheck => self
         .get_sonarr_healthcheck()
         .await
@@ -1108,6 +1110,24 @@ impl<'a, 'b> Network<'a, 'b> {
       .handle_request::<(), SystemStatus>(request_props, |system_status, mut app| {
         app.data.sonarr_data.version = system_status.version;
         app.data.sonarr_data.start_time = system_status.start_time;
+      })
+      .await
+  }
+
+  async fn get_sonarr_tags(&mut self) -> Result<Vec<Tag>> {
+    info!("Fetching Sonarr tags");
+    let event = SonarrEvent::GetTags;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), Vec<Tag>>(request_props, |tags_vec, mut app| {
+        app.data.sonarr_data.tags_map = tags_vec
+          .into_iter()
+          .map(|tag| (tag.id, tag.label))
+          .collect();
       })
       .await
   }

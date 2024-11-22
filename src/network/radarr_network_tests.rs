@@ -2633,7 +2633,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_tags_event() {
+  async fn test_handle_get_radarr_tags_event() {
     let tags_json = json!([{
       "id": 2222,
       "label": "usenet"

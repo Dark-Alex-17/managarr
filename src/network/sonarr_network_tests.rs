@@ -140,7 +140,12 @@ mod test {
 
   #[rstest]
   fn test_resource_tag(
-    #[values(SonarrEvent::AddTag(String::new()), SonarrEvent::DeleteTag(0))] event: SonarrEvent,
+    #[values(
+      SonarrEvent::AddTag(String::new()),
+      SonarrEvent::DeleteTag(0),
+      SonarrEvent::GetTags
+    )]
+    event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/tag");
   }
@@ -3585,6 +3590,39 @@ mod test {
           start_time: date_time
         }
       );
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_tags_event() {
+    let tags_json = json!([{
+      "id": 2222,
+      "label": "usenet"
+    }]);
+    let response: Vec<Tag> = serde_json::from_value(tags_json.clone()).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(tags_json),
+      None,
+      SonarrEvent::GetTags,
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Tags(tags) = network
+      .handle_sonarr_event(SonarrEvent::GetTags)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.tags_map,
+        BiMap::from_iter([(2222i64, "usenet".to_owned())])
+      );
+      assert_eq!(tags, response);
     }
   }
 

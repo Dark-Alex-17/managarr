@@ -242,7 +242,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::GetStatus => self.get_radarr_status().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetTags => self.get_tags().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetTags => self.get_radarr_tags().await.map(RadarrSerdeable::from),
       RadarrEvent::GetTasks => self.get_tasks().await.map(RadarrSerdeable::from),
       RadarrEvent::GetUpdates => self.get_updates().await.map(RadarrSerdeable::from),
       RadarrEvent::HealthCheck => self
@@ -1837,7 +1837,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_tags(&mut self) -> Result<Vec<Tag>> {
+  async fn get_radarr_tags(&mut self) -> Result<Vec<Tag>> {
     info!("Fetching Radarr tags");
     let event = RadarrEvent::GetTags;
 
