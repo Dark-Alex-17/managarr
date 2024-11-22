@@ -22,6 +22,8 @@ pub enum SonarrListCommand {
   Blocklist,
   #[command(about = "List all active downloads in Sonarr")]
   Downloads,
+  #[command(about = "List disk space details for all provisioned root folders in Sonarr")]
+  DiskSpace,
   #[command(about = "List the episodes for the series with the given ID")]
   Episodes {
     #[arg(
@@ -116,6 +118,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
         let resp = self
           .network
           .handle_network_event(SonarrEvent::GetDownloads.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrListCommand::DiskSpace => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::GetDiskSpace.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

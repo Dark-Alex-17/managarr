@@ -29,6 +29,7 @@ mod tests {
         "blocklist",
         "collections",
         "downloads",
+        "disk-space",
         "indexers",
         "movies",
         "quality-profiles",
@@ -121,6 +122,7 @@ mod tests {
     #[case(RadarrListCommand::Blocklist, RadarrEvent::GetBlocklist)]
     #[case(RadarrListCommand::Collections, RadarrEvent::GetCollections)]
     #[case(RadarrListCommand::Downloads, RadarrEvent::GetDownloads)]
+    #[case(RadarrListCommand::DiskSpace, RadarrEvent::GetDiskSpace)]
     #[case(RadarrListCommand::Indexers, RadarrEvent::GetIndexers)]
     #[case(RadarrListCommand::Movies, RadarrEvent::GetMovies)]
     #[case(RadarrListCommand::QualityProfiles, RadarrEvent::GetQualityProfiles)]

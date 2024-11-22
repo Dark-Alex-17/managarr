@@ -28,6 +28,7 @@ mod tests {
         "blocklist",
         "series",
         "downloads",
+        "disk-space",
         "quality-profiles",
         "indexers",
         "queued-events",
@@ -198,6 +199,7 @@ mod tests {
     #[rstest]
     #[case(SonarrListCommand::Blocklist, SonarrEvent::GetBlocklist)]
     #[case(SonarrListCommand::Downloads, SonarrEvent::GetDownloads)]
+    #[case(SonarrListCommand::DiskSpace, SonarrEvent::GetDiskSpace)]
     #[case(SonarrListCommand::Indexers, SonarrEvent::GetIndexers)]
     #[case(SonarrListCommand::QualityProfiles, SonarrEvent::GetQualityProfiles)]
     #[case(SonarrListCommand::QueuedEvents, SonarrEvent::GetQueuedEvents)]
