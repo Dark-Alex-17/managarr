@@ -18,6 +18,11 @@ mod add_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum SonarrAddCommand {
+  #[command(about = "Add a new root folder")]
+  RootFolder {
+    #[arg(long, help = "The path of the new root folder", required = true)]
+    root_folder_path: String,
+  },
   #[command(about = "Add new tag")]
   Tag {
     #[arg(long, help = "The name of the tag to be added", required = true)]
@@ -52,6 +57,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrAddCommand> for SonarrAddCommandHan
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      SonarrAddCommand::RootFolder { root_folder_path } => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::AddRootFolder(Some(root_folder_path)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
       SonarrAddCommand::Tag { name } => {
         let resp = self
           .network
