@@ -713,7 +713,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_start_task_event() {
+  async fn test_handle_start_radarr_task_event() {
     let response = json!({ "test": "test"});
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
@@ -750,7 +750,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_start_task_event_uses_provided_task_name() {
+  async fn test_handle_start_radarr_task_event_uses_provided_task_name() {
     let response = json!({ "test": "test"});
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,

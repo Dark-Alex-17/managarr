@@ -159,7 +159,9 @@ mod test {
   }
 
   #[rstest]
-  fn test_resource_command(#[values(SonarrEvent::GetQueuedEvents)] event: SonarrEvent) {
+  fn test_resource_command(
+    #[values(SonarrEvent::GetQueuedEvents, SonarrEvent::StartTask(None))] event: SonarrEvent,
+  ) {
     assert_str_eq!(event.resource(), "/command");
   }
 
@@ -3859,6 +3861,70 @@ mod test {
       .await
       .is_ok());
     async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_start_sonarr_task_event() {
+    let response = json!({ "test": "test"});
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "ApplicationUpdateCheck"
+      })),
+      Some(response.clone()),
+      None,
+      SonarrEvent::StartTask(None),
+      None,
+      None,
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .tasks
+      .set_items(vec![SonarrTask {
+        task_name: SonarrTaskName::default(),
+        ..SonarrTask::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Value(value) = network
+      .handle_sonarr_event(SonarrEvent::StartTask(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(value, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_start_sonarr_task_event_uses_provided_task_name() {
+    let response = json!({ "test": "test"});
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "ApplicationUpdateCheck"
+      })),
+      Some(response.clone()),
+      None,
+      SonarrEvent::StartTask(None),
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Value(value) = network
+      .handle_sonarr_event(SonarrEvent::StartTask(Some(SonarrTaskName::default())))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(value, response);
+    }
   }
 
   #[tokio::test]

@@ -116,12 +116,6 @@ pub struct CollectionMovie {
   pub ratings: RatingsList,
 }
 
-#[derive(Default, Serialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct CommandBody {
-  pub name: String,
-}
-
 #[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Credit {

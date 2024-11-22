@@ -10,12 +10,13 @@ use crate::{
       sonarr_data::ActiveSonarrBlock,
     },
     servarr_models::{
-      AddRootFolderBody, DiskSpace, HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent,
-      Release, RootFolder, SecurityConfig, Tag, Update,
+      AddRootFolderBody, CommandBody, DiskSpace, HostConfig, Indexer, LogResponse, QualityProfile,
+      QueueEvent, Release, RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
       BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
-      SonarrHistoryItem, SonarrHistoryWrapper, SonarrSerdeable, SonarrTask, SystemStatus,
+      SonarrHistoryItem, SonarrHistoryWrapper, SonarrSerdeable, SonarrTask, SonarrTaskName,
+      SystemStatus,
     },
     stateful_table::StatefulTable,
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
@@ -65,6 +66,7 @@ pub enum SonarrEvent {
   HealthCheck,
   ListSeries,
   MarkHistoryItemAsFailed(i64),
+  StartTask(Option<SonarrTaskName>),
 }
 
 impl NetworkResource for SonarrEvent {
@@ -95,6 +97,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::HealthCheck => "/health",
       SonarrEvent::ListSeries | SonarrEvent::GetSeriesDetails(_) => "/series",
       SonarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
+      SonarrEvent::StartTask(_) => "/command",
     }
   }
 }
@@ -215,6 +218,10 @@ impl<'a, 'b> Network<'a, 'b> {
       SonarrEvent::ListSeries => self.list_series().await.map(SonarrSerdeable::from),
       SonarrEvent::MarkHistoryItemAsFailed(history_item_id) => self
         .mark_sonarr_history_item_as_failed(history_item_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::StartTask(task_name) => self
+        .start_sonarr_task(task_name)
         .await
         .map(SonarrSerdeable::from),
     }
@@ -1271,6 +1278,36 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<(), Value>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn start_sonarr_task(&mut self, task: Option<SonarrTaskName>) -> Result<Value> {
+    let event = SonarrEvent::StartTask(None);
+    let task_name = if let Some(t_name) = task {
+      t_name
+    } else {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .tasks
+        .current_selection()
+        .task_name
+    }
+    .to_string();
+
+    info!("Starting Sonarr task: {task_name}");
+
+    let body = CommandBody { name: task_name };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
       .await
   }
 

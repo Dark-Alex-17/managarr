@@ -8,10 +8,9 @@ use urlencoding::encode;
 
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, BlocklistResponse, Collection, CollectionMovie,
-  CommandBody, Credit, CreditType, DeleteMovieParams, DownloadRecord, DownloadsResponse,
-  EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings, IndexerTestResult,
-  Movie, MovieCommandBody, MovieHistoryItem, RadarrSerdeable, RadarrTask, RadarrTaskName,
-  ReleaseDownloadBody, SystemStatus,
+  Credit, CreditType, DeleteMovieParams, DownloadRecord, DownloadsResponse, EditCollectionParams,
+  EditIndexerParams, EditMovieParams, IndexerSettings, IndexerTestResult, Movie, MovieCommandBody,
+  MovieHistoryItem, RadarrSerdeable, RadarrTask, RadarrTaskName, ReleaseDownloadBody, SystemStatus,
 };
 use crate::models::servarr_data::radarr::modals::{
   AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
@@ -19,8 +18,8 @@ use crate::models::servarr_data::radarr::modals::{
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::{
-  AddRootFolderBody, DiskSpace, HostConfig, Indexer, LogResponse, QualityProfile, QueueEvent,
-  Release, RootFolder, SecurityConfig, Tag, Update,
+  AddRootFolderBody, CommandBody, DiskSpace, HostConfig, Indexer, LogResponse, QualityProfile,
+  QueueEvent, Release, RootFolder, SecurityConfig, Tag, Update,
 };
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
@@ -252,9 +251,10 @@ impl<'a, 'b> Network<'a, 'b> {
       RadarrEvent::SearchNewMovie(query) => {
         self.search_movie(query).await.map(RadarrSerdeable::from)
       }
-      RadarrEvent::StartTask(task_name) => {
-        self.start_task(task_name).await.map(RadarrSerdeable::from)
-      }
+      RadarrEvent::StartTask(task_name) => self
+        .start_radarr_task(task_name)
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::TestIndexer(indexer_id) => self
         .test_indexer(indexer_id)
         .await
@@ -2006,7 +2006,7 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn start_task(&mut self, task: Option<RadarrTaskName>) -> Result<Value> {
+  async fn start_radarr_task(&mut self, task: Option<RadarrTaskName>) -> Result<Value> {
     let event = RadarrEvent::StartTask(None);
     let task_name = if let Some(t_name) = task {
       t_name
