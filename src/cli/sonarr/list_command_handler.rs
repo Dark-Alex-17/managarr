@@ -80,6 +80,8 @@ pub enum SonarrListCommand {
   Tags,
   #[command(about = "List all Sonarr tasks")]
   Tasks,
+  #[command(about = "List all Sonarr updates")]
+  Updates,
 }
 
 impl From<SonarrListCommand> for Command {
@@ -221,6 +223,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
         let resp = self
           .network
           .handle_network_event(SonarrEvent::GetTasks.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrListCommand::Updates => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::GetUpdates.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
