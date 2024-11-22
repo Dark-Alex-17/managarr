@@ -114,8 +114,9 @@ mod tests {
       app::App,
       cli::{
         sonarr::{
-          delete_command_handler::SonarrDeleteCommand, get_command_handler::SonarrGetCommand,
-          list_command_handler::SonarrListCommand, SonarrCliHandler, SonarrCommand,
+          add_command_handler::SonarrAddCommand, delete_command_handler::SonarrDeleteCommand,
+          get_command_handler::SonarrGetCommand, list_command_handler::SonarrListCommand,
+          SonarrCliHandler, SonarrCommand,
         },
         CliCommandHandler,
       },
@@ -211,6 +212,33 @@ mod tests {
         SonarrCliHandler::with(&app_arc, manual_season_search_command, &mut mock_network)
           .handle()
           .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_sonarr_cli_handler_delegates_add_commands_to_the_add_command_handler() {
+      let expected_tag_name = "test".to_owned();
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::AddTag(expected_tag_name.clone()).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let add_tag_command = SonarrCommand::Add(SonarrAddCommand::Tag {
+        name: expected_tag_name,
+      });
+
+      let result = SonarrCliHandler::with(&app_arc, add_tag_command, &mut mock_network)
+        .handle()
+        .await;
 
       assert!(result.is_ok());
     }

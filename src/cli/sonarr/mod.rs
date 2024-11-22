@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use add_command_handler::{SonarrAddCommand, SonarrAddCommandHandler};
 use anyhow::Result;
 use clap::Subcommand;
 use delete_command_handler::{SonarrDeleteCommand, SonarrDeleteCommandHandler};
@@ -14,6 +15,7 @@ use crate::{
 
 use super::{CliCommandHandler, Command};
 
+mod add_command_handler;
 mod delete_command_handler;
 mod get_command_handler;
 mod list_command_handler;
@@ -24,6 +26,11 @@ mod sonarr_command_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum SonarrCommand {
+  #[command(
+    subcommand,
+    about = "Commands to add or create new resources within your Sonarr instance"
+  )]
+  Add(SonarrAddCommand),
   #[command(
     subcommand,
     about = "Commands to delete resources from your Sonarr instance"
@@ -92,6 +99,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      SonarrCommand::Add(add_command) => {
+        SonarrAddCommandHandler::with(self.app, add_command, self.network)
+          .handle()
+          .await?
+      }
       SonarrCommand::Delete(delete_command) => {
         SonarrDeleteCommandHandler::with(self.app, delete_command, self.network)
           .handle()

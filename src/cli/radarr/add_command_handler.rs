@@ -132,21 +132,21 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHan
         };
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::AddMovie(Some(body))).into())
+          .handle_network_event(RadarrEvent::AddMovie(Some(body)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrAddCommand::RootFolder { root_folder_path } => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::AddRootFolder(Some(root_folder_path.clone()))).into())
+          .handle_network_event(RadarrEvent::AddRootFolder(Some(root_folder_path)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrAddCommand::Tag { name } => {
         let resp = self
           .network
-          .handle_network_event((RadarrEvent::AddTag(name.clone())).into())
+          .handle_network_event(RadarrEvent::AddTag(name).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
