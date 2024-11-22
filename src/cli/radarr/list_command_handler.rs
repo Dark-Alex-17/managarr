@@ -57,7 +57,7 @@ pub enum RadarrListCommand {
   RootFolders,
   #[command(about = "List all Radarr tags")]
   Tags,
-  #[command(about = "List tasks")]
+  #[command(about = "List all Radarr tasks")]
   Tasks,
   #[command(about = "List all Radarr updates")]
   Updates,

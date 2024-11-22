@@ -33,7 +33,8 @@ mod tests {
         "indexers",
         "queued-events",
         "root-folders",
-        "tags"
+        "tags",
+        "tasks"
       )]
       subcommand: &str,
     ) {
@@ -206,6 +207,7 @@ mod tests {
     #[case(SonarrListCommand::RootFolders, SonarrEvent::GetRootFolders)]
     #[case(SonarrListCommand::Series, SonarrEvent::ListSeries)]
     #[case(SonarrListCommand::Tags, SonarrEvent::GetTags)]
+    #[case(SonarrListCommand::Tasks, SonarrEvent::GetTasks)]
     #[tokio::test]
     async fn test_handle_list_command(
       #[case] list_command: SonarrListCommand,
