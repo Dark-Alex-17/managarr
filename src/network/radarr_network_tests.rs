@@ -862,7 +862,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_test_indexer_event_error() {
+  async fn test_handle_test_radarr_indexer_event_error() {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -938,7 +938,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_test_indexer_event_success() {
+  async fn test_handle_test_radarr_indexer_event_success() {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -1007,7 +1007,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_test_indexer_event_success_uses_provided_id() {
+  async fn test_handle_test_radarr_indexer_event_success_uses_provided_id() {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,

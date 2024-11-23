@@ -5,6 +5,7 @@ mod test {
   use bimap::BiMap;
   use chrono::{DateTime, Utc};
   use indoc::formatdoc;
+  use mockito::Matcher;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use reqwest::Client;
   use rstest::rstest;
@@ -223,6 +224,7 @@ mod test {
   #[case(SonarrEvent::GetTasks, "/system/task")]
   #[case(SonarrEvent::GetUpdates, "/update")]
   #[case(SonarrEvent::MarkHistoryItemAsFailed(0), "/history/failed")]
+  #[case(SonarrEvent::TestIndexer(None), "/indexer/test")]
   fn test_resource(#[case] event: SonarrEvent, #[case] expected_uri: String) {
     assert_str_eq!(event.resource(), expected_uri);
   }
@@ -3920,6 +3922,209 @@ mod test {
     {
       async_server.assert_async().await;
       assert_eq!(value, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_test_sonarr_indexer_event_error() {
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let response_json = json!([
+    {
+        "isWarning": false,
+        "propertyName": "",
+        "errorMessage": "test failure",
+        "severity": "error"
+    }]);
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json.clone()),
+      None,
+      SonarrEvent::GetIndexers,
+      Some("/1"),
+      None,
+    )
+    .await;
+    let async_test_server = server
+      .mock(
+        "POST",
+        format!("/api/v3{}", SonarrEvent::TestIndexer(None).resource()).as_str(),
+      )
+      .with_status(400)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(indexer_details_json.clone()))
+      .with_body(response_json.to_string())
+      .create_async()
+      .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .indexers
+      .set_items(vec![indexer()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Value(value) = network
+      .handle_sonarr_event(SonarrEvent::TestIndexer(None))
+      .await
+      .unwrap()
+    {
+      async_details_server.assert_async().await;
+      async_test_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.indexer_test_error,
+        Some("\"test failure\"".to_owned())
+      );
+      assert_eq!(value, response_json)
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_test_sonarr_indexer_event_success() {
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json.clone()),
+      None,
+      SonarrEvent::GetIndexers,
+      Some("/1"),
+      None,
+    )
+    .await;
+    let async_test_server = server
+      .mock(
+        "POST",
+        format!("/api/v3{}", SonarrEvent::TestIndexer(None).resource()).as_str(),
+      )
+      .with_status(200)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(indexer_details_json.clone()))
+      .with_body("{}")
+      .create_async()
+      .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .indexers
+      .set_items(vec![indexer()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Value(value) = network
+      .handle_sonarr_event(SonarrEvent::TestIndexer(None))
+      .await
+      .unwrap()
+    {
+      async_details_server.assert_async().await;
+      async_test_server.assert_async().await;
+      assert_eq!(
+        app_arc.lock().await.data.sonarr_data.indexer_test_error,
+        None
+      );
+      assert_eq!(value, json!({}));
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_test_sonarr_indexer_event_success_uses_provided_id() {
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json.clone()),
+      None,
+      SonarrEvent::GetIndexers,
+      Some("/1"),
+      None,
+    )
+    .await;
+    let async_test_server = server
+      .mock(
+        "POST",
+        format!("/api/v3{}", SonarrEvent::TestIndexer(None).resource()).as_str(),
+      )
+      .with_status(200)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(indexer_details_json.clone()))
+      .with_body("{}")
+      .create_async()
+      .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Value(value) = network
+      .handle_sonarr_event(SonarrEvent::TestIndexer(Some(1)))
+      .await
+      .unwrap()
+    {
+      async_details_server.assert_async().await;
+      async_test_server.assert_async().await;
+      assert_eq!(value, json!({}));
     }
   }
 

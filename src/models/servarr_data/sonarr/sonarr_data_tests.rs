@@ -41,6 +41,7 @@ mod tests {
       assert!(sonarr_data.history.is_empty());
       assert!(sonarr_data.indexers.is_empty());
       assert!(sonarr_data.indexer_settings.is_none());
+      assert!(sonarr_data.indexer_test_error.is_none());
       assert!(sonarr_data.logs.is_empty());
       assert!(sonarr_data.quality_profile_map.is_empty());
       assert!(sonarr_data.queued_events.is_empty());

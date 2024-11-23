@@ -67,6 +67,7 @@ pub enum SonarrEvent {
   ListSeries,
   MarkHistoryItemAsFailed(i64),
   StartTask(Option<SonarrTaskName>),
+  TestIndexer(Option<i64>),
 }
 
 impl NetworkResource for SonarrEvent {
@@ -98,6 +99,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::ListSeries | SonarrEvent::GetSeriesDetails(_) => "/series",
       SonarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
       SonarrEvent::StartTask(_) => "/command",
+      SonarrEvent::TestIndexer(_) => "/indexer/test",
     }
   }
 }
@@ -222,6 +224,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::StartTask(task_name) => self
         .start_sonarr_task(task_name)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::TestIndexer(indexer_id) => self
+        .test_sonarr_indexer(indexer_id)
         .await
         .map(SonarrSerdeable::from),
     }
@@ -1308,6 +1314,65 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<CommandBody, Value>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn test_sonarr_indexer(&mut self, indexer_id: Option<i64>) -> Result<Value> {
+    let detail_event = SonarrEvent::GetIndexers;
+    let event = SonarrEvent::TestIndexer(None);
+    let id = if let Some(i_id) = indexer_id {
+      i_id
+    } else {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .indexers
+        .current_selection()
+        .id
+    };
+    info!("Testing Sonarr indexer with ID: {id}");
+
+    info!("Fetching indexer details for indexer with ID: {id}");
+
+    let request_props = self
+      .request_props_from(
+        detail_event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{id}")),
+        None,
+      )
+      .await;
+
+    let mut test_body: Value = Value::default();
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_indexer_body, _| {
+        test_body = detailed_indexer_body;
+      })
+      .await?;
+
+    info!("Testing indexer");
+
+    let mut request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(test_body), None, None)
+      .await;
+    request_props.ignore_status_code = true;
+
+    self
+      .handle_request::<Value, Value>(request_props, |test_results, mut app| {
+        if test_results.as_object().is_none() {
+          app.data.sonarr_data.indexer_test_error = Some(
+            test_results.as_array().unwrap()[0]
+              .get("errorMessage")
+              .unwrap()
+              .to_string(),
+          );
+        };
+      })
       .await
   }
 

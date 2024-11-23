@@ -256,7 +256,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::TestIndexer(indexer_id) => self
-        .test_indexer(indexer_id)
+        .test_radarr_indexer(indexer_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::TestAllIndexers => self.test_all_indexers().await.map(RadarrSerdeable::from),
@@ -2036,7 +2036,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn test_indexer(&mut self, indexer_id: Option<i64>) -> Result<Value> {
+  async fn test_radarr_indexer(&mut self, indexer_id: Option<i64>) -> Result<Value> {
     let detail_event = RadarrEvent::GetIndexers;
     let event = RadarrEvent::TestIndexer(None);
     let id = if let Some(i_id) = indexer_id {
