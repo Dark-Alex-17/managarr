@@ -1301,7 +1301,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_update_downloads_event() {
+  async fn test_handle_update_radarr_downloads_event() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({

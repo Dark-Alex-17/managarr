@@ -78,6 +78,7 @@ pub enum SonarrEvent {
   TriggerAutomaticSeriesSearch(Option<i64>),
   UpdateAllSeries,
   UpdateAndScanSeries(Option<i64>),
+  UpdateDownloads,
 }
 
 impl NetworkResource for SonarrEvent {
@@ -102,7 +103,8 @@ impl NetworkResource for SonarrEvent {
       | SonarrEvent::TriggerAutomaticSeasonSearch(_)
       | SonarrEvent::TriggerAutomaticEpisodeSearch(_)
       | SonarrEvent::UpdateAllSeries
-      | SonarrEvent::UpdateAndScanSeries(_) => "/command",
+      | SonarrEvent::UpdateAndScanSeries(_)
+      | SonarrEvent::UpdateDownloads => "/command",
       SonarrEvent::GetRootFolders
       | SonarrEvent::DeleteRootFolder(_)
       | SonarrEvent::AddRootFolder(_) => "/rootfolder",
@@ -265,6 +267,10 @@ impl<'a, 'b> Network<'a, 'b> {
       SonarrEvent::UpdateAllSeries => self.update_all_series().await.map(SonarrSerdeable::from),
       SonarrEvent::UpdateAndScanSeries(series_id) => self
         .update_and_scan_series(series_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::UpdateDownloads => self
+        .update_sonarr_downloads()
         .await
         .map(SonarrSerdeable::from),
     }
@@ -1565,6 +1571,22 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<SonarrCommandBody, Value>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn update_sonarr_downloads(&mut self) -> Result<Value> {
+    info!("Updating Sonarr downloads");
+    let event = SonarrEvent::UpdateDownloads;
+    let body = CommandBody {
+      name: "RefreshMonitoredDownloads".to_owned(),
+    };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
       .await
   }
 

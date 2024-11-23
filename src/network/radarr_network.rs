@@ -273,7 +273,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::UpdateCollections => self.update_collections().await.map(RadarrSerdeable::from),
-      RadarrEvent::UpdateDownloads => self.update_downloads().await.map(RadarrSerdeable::from),
+      RadarrEvent::UpdateDownloads => self
+        .update_radarr_downloads()
+        .await
+        .map(RadarrSerdeable::from),
     }
   }
 
@@ -2214,8 +2217,8 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn update_downloads(&mut self) -> Result<Value> {
-    info!("Updating downloads");
+  async fn update_radarr_downloads(&mut self) -> Result<Value> {
+    info!("Updating Radarr downloads");
     let event = RadarrEvent::UpdateDownloads;
     let body = CommandBody {
       name: "RefreshMonitoredDownloads".to_owned(),
