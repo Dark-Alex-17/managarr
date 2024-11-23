@@ -1,10 +1,10 @@
 use strum::IntoEnumIterator;
 
 use crate::models::radarr_models::{
-  Collection, Credit, MinimumAvailability, Monitor, Movie, MovieHistoryItem,
+  Collection, Credit, MinimumAvailability, Monitor, Movie, MovieHistoryItem, RadarrRelease,
 };
 use crate::models::servarr_data::radarr::radarr_data::RadarrData;
-use crate::models::servarr_models::{Indexer, Release, RootFolder};
+use crate::models::servarr_models::{Indexer, RootFolder};
 use crate::models::stateful_list::StatefulList;
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, ScrollableText};
@@ -22,7 +22,7 @@ pub struct MovieDetailsModal {
   pub movie_history: StatefulTable<MovieHistoryItem>,
   pub movie_cast: StatefulTable<Credit>,
   pub movie_crew: StatefulTable<Credit>,
-  pub movie_releases: StatefulTable<Release>,
+  pub movie_releases: StatefulTable<RadarrRelease>,
 }
 
 #[derive(Default, Debug, PartialEq, Eq)]

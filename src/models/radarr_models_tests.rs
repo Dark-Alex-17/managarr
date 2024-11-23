@@ -7,8 +7,8 @@ mod tests {
     radarr_models::{
       AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, DiskSpace,
       DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult,
-      MinimumAvailability, Monitor, Movie, MovieHistoryItem, QualityProfile, RadarrSerdeable,
-      RadarrTask, RadarrTaskName, Release, SystemStatus, Tag, Update,
+      MinimumAvailability, Monitor, Movie, MovieHistoryItem, QualityProfile, RadarrRelease,
+      RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus, Tag, Update,
     },
     servarr_models::{HostConfig, Log, LogResponse, QueueEvent, RootFolder, SecurityConfig},
     EnumDisplayStyle, Serdeable,
@@ -317,9 +317,9 @@ mod tests {
 
   #[test]
   fn test_radarr_serdeable_from_releases() {
-    let releases = vec![Release {
+    let releases = vec![RadarrRelease {
       size: 1,
-      ..Release::default()
+      ..RadarrRelease::default()
     }];
 
     let radarr_serdeable: RadarrSerdeable = releases.clone().into();

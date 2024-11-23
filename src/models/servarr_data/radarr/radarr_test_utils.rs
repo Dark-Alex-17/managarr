@@ -1,11 +1,10 @@
 #[cfg(test)]
 pub mod utils {
   use crate::models::radarr_models::{
-    AddMovieSearchResult, CollectionMovie, Credit, MovieHistoryItem,
+    AddMovieSearchResult, CollectionMovie, Credit, MovieHistoryItem, RadarrRelease,
   };
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_data::radarr::radarr_data::RadarrData;
-  use crate::models::servarr_models::Release;
   use crate::models::stateful_table::StatefulTable;
   use crate::models::{HorizontallyScrollableText, ScrollableText};
 
@@ -25,7 +24,7 @@ pub mod utils {
       .set_items(vec![Credit::default()]);
     movie_details_modal
       .movie_releases
-      .set_items(vec![Release::default()]);
+      .set_items(vec![RadarrRelease::default()]);
 
     let mut radarr_data = RadarrData {
       delete_movie_files: true,

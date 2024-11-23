@@ -6,10 +6,9 @@ mod tests {
 
     use crate::app::radarr::ActiveRadarrBlock;
     use crate::app::App;
-    use crate::models::radarr_models::{Collection, CollectionMovie, Credit};
+    use crate::models::radarr_models::{Collection, CollectionMovie, Credit, RadarrRelease};
     use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 
-    use crate::models::servarr_models::Release;
     use crate::network::radarr_network::RadarrEvent;
     use crate::network::NetworkEvent;
 
@@ -431,7 +430,7 @@ mod tests {
       let mut movie_details_modal = MovieDetailsModal::default();
       movie_details_modal
         .movie_releases
-        .set_items(vec![Release::default()]);
+        .set_items(vec![RadarrRelease::default()]);
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
 
       app

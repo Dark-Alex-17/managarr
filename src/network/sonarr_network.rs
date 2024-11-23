@@ -15,12 +15,12 @@ use crate::{
     },
     servarr_models::{
       AddRootFolderBody, CommandBody, DiskSpace, HostConfig, Indexer, LogResponse, QualityProfile,
-      QueueEvent, Release, RootFolder, SecurityConfig, Tag, Update,
+      QueueEvent, RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
       BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
-      SonarrCommandBody, SonarrHistoryItem, SonarrHistoryWrapper, SonarrReleaseDownloadBody,
-      SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
+      SonarrCommandBody, SonarrHistoryItem, SonarrHistoryWrapper, SonarrRelease,
+      SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
     },
     stateful_table::StatefulTable,
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
@@ -1009,7 +1009,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_episode_releases(&mut self, episode_id: Option<i64>) -> Result<Vec<Release>> {
+  async fn get_episode_releases(&mut self, episode_id: Option<i64>) -> Result<Vec<SonarrRelease>> {
     let event = SonarrEvent::GetEpisodeReleases(None);
     let id = self.extract_episode_id(episode_id).await;
 
@@ -1026,7 +1026,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-      .handle_request::<(), Vec<Release>>(request_props, |release_vec, mut app| {
+      .handle_request::<(), Vec<SonarrRelease>>(request_props, |release_vec, mut app| {
         if app.data.sonarr_data.season_details_modal.is_none() {
           app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
         }
@@ -1067,7 +1067,7 @@ impl<'a, 'b> Network<'a, 'b> {
   async fn get_season_releases(
     &mut self,
     series_season_id_tuple: Option<(i64, i64)>,
-  ) -> Result<Vec<Release>> {
+  ) -> Result<Vec<SonarrRelease>> {
     let event = SonarrEvent::GetSeasonReleases(None);
     let (series_id, season_number) =
       if let Some((series_id, season_number)) = series_season_id_tuple {
@@ -1092,10 +1092,15 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-      .handle_request::<(), Vec<Release>>(request_props, |release_vec, mut app| {
+      .handle_request::<(), Vec<SonarrRelease>>(request_props, |release_vec, mut app| {
         if app.data.sonarr_data.season_details_modal.is_none() {
           app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
         }
+
+        let season_releases_vec = release_vec
+          .into_iter()
+          .filter(|release| release.full_season)
+          .collect();
 
         app
           .data
@@ -1104,7 +1109,7 @@ impl<'a, 'b> Network<'a, 'b> {
           .as_mut()
           .unwrap()
           .season_releases
-          .set_items(release_vec);
+          .set_items(season_releases_vec);
       })
       .await
   }

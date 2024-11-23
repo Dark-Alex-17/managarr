@@ -10,8 +10,8 @@ use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, BlocklistResponse, Collection, CollectionMovie,
   Credit, CreditType, DeleteMovieParams, DownloadRecord, DownloadsResponse, EditCollectionParams,
   EditIndexerParams, EditMovieParams, IndexerSettings, IndexerTestResult, Movie, MovieCommandBody,
-  MovieHistoryItem, RadarrReleaseDownloadBody, RadarrSerdeable, RadarrTask, RadarrTaskName,
-  SystemStatus,
+  MovieHistoryItem, RadarrRelease, RadarrReleaseDownloadBody, RadarrSerdeable, RadarrTask,
+  RadarrTaskName, SystemStatus,
 };
 use crate::models::servarr_data::modals::IndexerTestResultModalItem;
 use crate::models::servarr_data::radarr::modals::{
@@ -20,7 +20,7 @@ use crate::models::servarr_data::radarr::modals::{
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::{
   AddRootFolderBody, CommandBody, DiskSpace, HostConfig, Indexer, LogResponse, QualityProfile,
-  QueueEvent, Release, RootFolder, SecurityConfig, Tag, Update,
+  QueueEvent, RootFolder, SecurityConfig, Tag, Update,
 };
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
@@ -675,7 +675,7 @@ impl<'a, 'b> Network<'a, 'b> {
       let (movie_id, _) = self.extract_movie_id(None).await;
       let (guid, title, indexer_id) = {
         let app = self.app.lock().await;
-        let Release {
+        let RadarrRelease {
           guid,
           title,
           indexer_id,
@@ -1770,7 +1770,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_movie_releases(&mut self, movie_id: Option<i64>) -> Result<Vec<Release>> {
+  async fn get_movie_releases(&mut self, movie_id: Option<i64>) -> Result<Vec<RadarrRelease>> {
     let (id, movie_id_param) = self.extract_movie_id(movie_id).await;
     info!("Fetching releases for movie with ID: {id}");
     let event = RadarrEvent::GetReleases(None);
@@ -1786,7 +1786,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-      .handle_request::<(), Vec<Release>>(request_props, |release_vec, mut app| {
+      .handle_request::<(), Vec<RadarrRelease>>(request_props, |release_vec, mut app| {
         if app.data.radarr_data.movie_details_modal.is_none() {
           app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
         }

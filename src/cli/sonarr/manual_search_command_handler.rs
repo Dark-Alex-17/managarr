@@ -28,7 +28,7 @@ pub enum SonarrManualSearchCommand {
     episode_id: i64,
   },
   #[command(
-    about = "Trigger a manual search of releases for the given season corresponding to the series with the given ID"
+    about = "Trigger a manual search of releases for the given season corresponding to the series with the given ID.\nNote that when downloading a season release, ensure that the release includes 'fullSeason: true', otherwise you'll run into issues"
   )]
   Season {
     #[arg(

@@ -13,7 +13,7 @@ use super::{
   radarr_models::IndexerTestResult,
   servarr_models::{
     DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
-    QueueEvent, Release, RootFolder, SecurityConfig, Tag, Update,
+    QueueEvent, RootFolder, SecurityConfig, Tag, Update,
   },
   EnumDisplayStyle, HorizontallyScrollableText, Serdeable,
 };
@@ -401,6 +401,28 @@ pub struct SonarrCommandBody {
   pub episode_ids: Option<Vec<i64>>,
 }
 
+#[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+pub struct SonarrRelease {
+  pub guid: String,
+  pub protocol: String,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub age: i64,
+  pub title: HorizontallyScrollableText,
+  pub indexer: String,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub indexer_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub size: i64,
+  pub rejected: bool,
+  pub rejections: Option<Vec<String>>,
+  pub seeders: Option<Number>,
+  pub leechers: Option<Number>,
+  pub languages: Option<Vec<Language>>,
+  pub quality: QualityWrapper,
+  pub full_season: bool,
+}
 #[derive(Default, Serialize, Debug, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SonarrReleaseDownloadBody {
@@ -467,7 +489,7 @@ pub enum SonarrSerdeable {
   LogResponse(LogResponse),
   QualityProfiles(Vec<QualityProfile>),
   QueueEvents(Vec<QueueEvent>),
-  Releases(Vec<Release>),
+  Releases(Vec<SonarrRelease>),
   RootFolders(Vec<RootFolder>),
   SecurityConfig(SecurityConfig),
   SeriesVec(Vec<Series>),
@@ -508,7 +530,7 @@ serde_enum_from!(
     LogResponse(LogResponse),
     QualityProfiles(Vec<QualityProfile>),
     QueueEvents(Vec<QueueEvent>),
-    Releases(Vec<Release>),
+    Releases(Vec<SonarrRelease>),
     RootFolders(Vec<RootFolder>),
     SecurityConfig(SecurityConfig),
     SeriesVec(Vec<Series>),

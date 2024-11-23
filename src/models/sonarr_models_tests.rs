@@ -6,13 +6,13 @@ mod tests {
   use crate::models::{
     radarr_models::IndexerTestResult,
     servarr_models::{
-      DiskSpace, HostConfig, Indexer, Log, LogResponse, QualityProfile, QueueEvent, Release,
-      RootFolder, SecurityConfig, Tag, Update,
+      DiskSpace, HostConfig, Indexer, Log, LogResponse, QualityProfile, QueueEvent, RootFolder,
+      SecurityConfig, Tag, Update,
     },
     sonarr_models::{
       BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode,
       IndexerSettings, Series, SeriesStatus, SeriesType, SonarrHistoryEventType, SonarrHistoryItem,
-      SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
+      SonarrRelease, SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
     },
     EnumDisplayStyle, Serdeable,
   };
@@ -355,9 +355,9 @@ mod tests {
 
   #[test]
   fn test_sonarr_serdeable_from_releases() {
-    let releases = vec![Release {
+    let releases = vec![SonarrRelease {
       size: 1,
-      ..Release::default()
+      ..SonarrRelease::default()
     }];
 
     let sonarr_serdeable: SonarrSerdeable = releases.clone().into();

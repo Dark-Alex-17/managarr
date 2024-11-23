@@ -195,28 +195,6 @@ pub struct QueueEvent {
   pub duration: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-#[serde(default)]
-pub struct Release {
-  pub guid: String,
-  pub protocol: String,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub age: i64,
-  pub title: HorizontallyScrollableText,
-  pub indexer: String,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub indexer_id: i64,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub size: i64,
-  pub rejected: bool,
-  pub rejections: Option<Vec<String>>,
-  pub seeders: Option<Number>,
-  pub leechers: Option<Number>,
-  pub languages: Option<Vec<Language>>,
-  pub quality: QualityWrapper,
-}
-
 #[derive(Default, Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct RootFolder {

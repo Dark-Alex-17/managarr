@@ -14,10 +14,11 @@ mod tests {
     releases_sorting_options, MovieDetailsHandler,
   };
   use crate::handlers::KeyEventHandler;
+  use crate::models::radarr_models::RadarrRelease;
   use crate::models::radarr_models::{Credit, MovieHistoryItem};
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
-  use crate::models::servarr_models::{Language, Quality, QualityWrapper, Release};
+  use crate::models::servarr_models::{Language, Quality, QualityWrapper};
   use crate::models::stateful_table::SortOption;
   use crate::models::{HorizontallyScrollableText, ScrollableText};
 
@@ -405,7 +406,7 @@ mod tests {
       movie_details_modal
         .movie_releases
         .set_items(simple_stateful_iterable_vec!(
-          Release,
+          RadarrRelease,
           HorizontallyScrollableText
         ));
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
@@ -453,7 +454,7 @@ mod tests {
       movie_details_modal
         .movie_releases
         .set_items(simple_stateful_iterable_vec!(
-          Release,
+          RadarrRelease,
           HorizontallyScrollableText
         ));
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
@@ -996,7 +997,7 @@ mod tests {
       movie_details_modal
         .movie_releases
         .set_items(extended_stateful_iterable_vec!(
-          Release,
+          RadarrRelease,
           HorizontallyScrollableText
         ));
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
@@ -1054,7 +1055,7 @@ mod tests {
       movie_details_modal
         .movie_releases
         .set_items(extended_stateful_iterable_vec!(
-          Release,
+          RadarrRelease,
           HorizontallyScrollableText
         ));
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
@@ -1249,7 +1250,9 @@ mod tests {
         movie_details: ScrollableText::with_string("test".to_owned()),
         ..MovieDetailsModal::default()
       };
-      modal.movie_releases.set_items(vec![Release::default()]);
+      modal
+        .movie_releases
+        .set_items(vec![RadarrRelease::default()]);
       app.data.radarr_data.movie_details_modal = Some(modal);
       app.push_navigation_stack(ActiveRadarrBlock::ManualSearch.into());
 
@@ -1487,6 +1490,8 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
+      use crate::models::radarr_models::RadarrRelease;
+
       let mut app = App::default();
       let mut modal = MovieDetailsModal {
         movie_details: ScrollableText::with_string("Test".to_owned()),
@@ -1497,7 +1502,9 @@ mod tests {
         .set_items(vec![MovieHistoryItem::default()]);
       modal.movie_cast.set_items(vec![Credit::default()]);
       modal.movie_crew.set_items(vec![Credit::default()]);
-      modal.movie_releases.set_items(vec![Release::default()]);
+      modal
+        .movie_releases
+        .set_items(vec![RadarrRelease::default()]);
       app.data.radarr_data.movie_details_modal = Some(modal);
 
       MovieDetailsHandler::with(
@@ -1687,7 +1694,9 @@ mod tests {
         .set_items(vec![MovieHistoryItem::default()]);
       modal.movie_cast.set_items(vec![Credit::default()]);
       modal.movie_crew.set_items(vec![Credit::default()]);
-      modal.movie_releases.set_items(vec![Release::default()]);
+      modal
+        .movie_releases
+        .set_items(vec![RadarrRelease::default()]);
       app.data.radarr_data.movie_details_modal = Some(modal);
 
       MovieDetailsHandler::with(
@@ -1757,7 +1766,9 @@ mod tests {
         .set_items(vec![MovieHistoryItem::default()]);
       modal.movie_cast.set_items(vec![Credit::default()]);
       modal.movie_crew.set_items(vec![Credit::default()]);
-      modal.movie_releases.set_items(vec![Release::default()]);
+      modal
+        .movie_releases
+        .set_items(vec![RadarrRelease::default()]);
       app.data.radarr_data.movie_details_modal = Some(modal);
 
       MovieDetailsHandler::with(
@@ -1851,7 +1862,8 @@ mod tests {
 
   #[test]
   fn test_releases_sorting_options_source() {
-    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| a.protocol.cmp(&b.protocol);
+    let expected_cmp_fn: fn(&RadarrRelease, &RadarrRelease) -> Ordering =
+      |a, b| a.protocol.cmp(&b.protocol);
     let mut expected_releases_vec = release_vec();
     expected_releases_vec.sort_by(expected_cmp_fn);
 
@@ -1865,7 +1877,7 @@ mod tests {
 
   #[test]
   fn test_releases_sorting_options_age() {
-    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| a.age.cmp(&b.age);
+    let expected_cmp_fn: fn(&RadarrRelease, &RadarrRelease) -> Ordering = |a, b| a.age.cmp(&b.age);
     let mut expected_releases_vec = release_vec();
     expected_releases_vec.sort_by(expected_cmp_fn);
 
@@ -1879,7 +1891,8 @@ mod tests {
 
   #[test]
   fn test_releases_sorting_options_rejected() {
-    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| a.rejected.cmp(&b.rejected);
+    let expected_cmp_fn: fn(&RadarrRelease, &RadarrRelease) -> Ordering =
+      |a, b| a.rejected.cmp(&b.rejected);
     let mut expected_releases_vec = release_vec();
     expected_releases_vec.sort_by(expected_cmp_fn);
 
@@ -1893,7 +1906,7 @@ mod tests {
 
   #[test]
   fn test_releases_sorting_options_title() {
-    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| {
+    let expected_cmp_fn: fn(&RadarrRelease, &RadarrRelease) -> Ordering = |a, b| {
       a.title
         .text
         .to_lowercase()
@@ -1912,7 +1925,7 @@ mod tests {
 
   #[test]
   fn test_releases_sorting_options_indexer() {
-    let expected_cmp_fn: fn(&Release, &Release) -> Ordering =
+    let expected_cmp_fn: fn(&RadarrRelease, &RadarrRelease) -> Ordering =
       |a, b| a.indexer.to_lowercase().cmp(&b.indexer.to_lowercase());
     let mut expected_releases_vec = release_vec();
     expected_releases_vec.sort_by(expected_cmp_fn);
@@ -1927,7 +1940,8 @@ mod tests {
 
   #[test]
   fn test_releases_sorting_options_size() {
-    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| a.size.cmp(&b.size);
+    let expected_cmp_fn: fn(&RadarrRelease, &RadarrRelease) -> Ordering =
+      |a, b| a.size.cmp(&b.size);
     let mut expected_releases_vec = release_vec();
     expected_releases_vec.sort_by(expected_cmp_fn);
 
@@ -1941,7 +1955,7 @@ mod tests {
 
   #[test]
   fn test_releases_sorting_options_peers() {
-    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| {
+    let expected_cmp_fn: fn(&RadarrRelease, &RadarrRelease) -> Ordering = |a, b| {
       let default_number = Number::from(i64::MAX);
       let seeder_a = a
         .seeders
@@ -1971,7 +1985,7 @@ mod tests {
 
   #[test]
   fn test_releases_sorting_options_language() {
-    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| {
+    let expected_cmp_fn: fn(&RadarrRelease, &RadarrRelease) -> Ordering = |a, b| {
       let default_language_vec = vec![Language {
         name: "_".to_owned(),
       }];
@@ -1993,7 +2007,8 @@ mod tests {
 
   #[test]
   fn test_releases_sorting_options_quality() {
-    let expected_cmp_fn: fn(&Release, &Release) -> Ordering = |a, b| a.quality.cmp(&b.quality);
+    let expected_cmp_fn: fn(&RadarrRelease, &RadarrRelease) -> Ordering =
+      |a, b| a.quality.cmp(&b.quality);
     let mut expected_releases_vec = release_vec();
     expected_releases_vec.sort_by(expected_cmp_fn);
 
@@ -2040,7 +2055,9 @@ mod tests {
       .set_items(vec![MovieHistoryItem::default()]);
     modal.movie_cast.set_items(vec![Credit::default()]);
     modal.movie_crew.set_items(vec![Credit::default()]);
-    modal.movie_releases.set_items(vec![Release::default()]);
+    modal
+      .movie_releases
+      .set_items(vec![RadarrRelease::default()]);
     app.data.radarr_data.movie_details_modal = Some(modal);
 
     let handler = MovieDetailsHandler::with(
@@ -2149,7 +2166,9 @@ mod tests {
     let mut app = App::default();
     app.is_loading = false;
     let mut modal = MovieDetailsModal::default();
-    modal.movie_releases.set_items(vec![Release::default()]);
+    modal
+      .movie_releases
+      .set_items(vec![RadarrRelease::default()]);
     app.data.radarr_data.movie_details_modal = Some(modal);
 
     let handler = MovieDetailsHandler::with(
@@ -2162,8 +2181,8 @@ mod tests {
     assert!(handler.is_ready());
   }
 
-  fn release_vec() -> Vec<Release> {
-    let release_a = Release {
+  fn release_vec() -> Vec<RadarrRelease> {
+    let release_a = RadarrRelease {
       protocol: "Protocol A".to_owned(),
       age: 1,
       title: HorizontallyScrollableText::from("Title A"),
@@ -2179,9 +2198,9 @@ mod tests {
           name: "Quality A".to_owned(),
         },
       },
-      ..Release::default()
+      ..RadarrRelease::default()
     };
-    let release_b = Release {
+    let release_b = RadarrRelease {
       protocol: "Protocol B".to_owned(),
       age: 2,
       title: HorizontallyScrollableText::from("title B"),
@@ -2197,9 +2216,9 @@ mod tests {
           name: "Quality B".to_owned(),
         },
       },
-      ..Release::default()
+      ..RadarrRelease::default()
     };
-    let release_c = Release {
+    let release_c = RadarrRelease {
       protocol: "Protocol C".to_owned(),
       age: 3,
       title: HorizontallyScrollableText::from("Title C"),
@@ -2213,13 +2232,13 @@ mod tests {
           name: "Quality C".to_owned(),
         },
       },
-      ..Release::default()
+      ..RadarrRelease::default()
     };
 
     vec![release_a, release_b, release_c]
   }
 
-  fn sort_options() -> Vec<SortOption<Release>> {
+  fn sort_options() -> Vec<SortOption<RadarrRelease>> {
     vec![SortOption {
       name: "Test 1",
       cmp_fn: Some(|a, b| a.age.cmp(&b.age)),

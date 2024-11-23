@@ -11,7 +11,7 @@ use crate::{models::HorizontallyScrollableText, serde_enum_from};
 
 use super::servarr_models::{
   DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
-  QueueEvent, Release, RootFolder, SecurityConfig, Tag, Update,
+  QueueEvent, RootFolder, SecurityConfig, Tag, Update,
 };
 use super::{EnumDisplayStyle, Serdeable};
 
@@ -412,6 +412,28 @@ pub struct RatingsList {
   pub rotten_tomatoes: Option<Rating>,
 }
 
+#[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+pub struct RadarrRelease {
+  pub guid: String,
+  pub protocol: String,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub age: i64,
+  pub title: HorizontallyScrollableText,
+  pub indexer: String,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub indexer_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub size: i64,
+  pub rejected: bool,
+  pub rejections: Option<Vec<String>>,
+  pub seeders: Option<Number>,
+  pub leechers: Option<Number>,
+  pub languages: Option<Vec<Language>>,
+  pub quality: QualityWrapper,
+}
+
 #[derive(Default, Serialize, Debug, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RadarrReleaseDownloadBody {
@@ -485,7 +507,7 @@ pub enum RadarrSerdeable {
   Movies(Vec<Movie>),
   QualityProfiles(Vec<QualityProfile>),
   QueueEvents(Vec<QueueEvent>),
-  Releases(Vec<Release>),
+  Releases(Vec<RadarrRelease>),
   RootFolders(Vec<RootFolder>),
   SecurityConfig(SecurityConfig),
   SystemStatus(SystemStatus),
@@ -526,7 +548,7 @@ serde_enum_from!(
     Movies(Vec<Movie>),
     QualityProfiles(Vec<QualityProfile>),
     QueueEvents(Vec<QueueEvent>),
-    Releases(Vec<Release>),
+    Releases(Vec<RadarrRelease>),
     RootFolders(Vec<RootFolder>),
     SecurityConfig(SecurityConfig),
     SystemStatus(SystemStatus),

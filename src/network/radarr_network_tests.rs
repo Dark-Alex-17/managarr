@@ -5221,8 +5221,8 @@ mod test {
     QualityWrapper { quality: quality() }
   }
 
-  fn release() -> Release {
-    Release {
+  fn release() -> RadarrRelease {
+    RadarrRelease {
       guid: "1234".to_owned(),
       protocol: "torrent".to_owned(),
       age: 1,
