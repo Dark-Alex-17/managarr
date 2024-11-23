@@ -20,7 +20,9 @@ use super::modals::SeasonDetailsModal;
 mod sonarr_data_tests;
 
 pub struct SonarrData {
+  pub add_list_exclusion: bool,
   pub blocklist: StatefulTable<BlocklistItem>,
+  pub delete_series_files: bool,
   pub downloads: StatefulTable<DownloadRecord>,
   pub disk_space_vec: Vec<DiskSpace>,
   pub edit_root_folder: Option<HorizontallyScrollableText>,
@@ -44,11 +46,20 @@ pub struct SonarrData {
   pub version: String,
 }
 
+impl SonarrData {
+  pub fn reset_delete_series_preferences(&mut self) {
+    self.delete_series_files = false;
+    self.add_list_exclusion = false;
+  }
+}
+
 impl Default for SonarrData {
   fn default() -> SonarrData {
     SonarrData {
+      add_list_exclusion: false,
       blocklist: StatefulTable::default(),
       downloads: StatefulTable::default(),
+      delete_series_files: false,
       disk_space_vec: Vec::new(),
       edit_root_folder: None,
       history: StatefulTable::default(),
@@ -97,6 +108,8 @@ pub enum ActiveSonarrBlock {
   DeleteRootFolderPrompt,
   DeleteSeriesConfirmPrompt,
   DeleteSeriesPrompt,
+  DeleteSeriesToggleAddListExclusion,
+  DeleteSeriesToggleDeleteFile,
   Downloads,
   EditEpisodePrompt,
   EditIndexerPrompt,

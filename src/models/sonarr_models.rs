@@ -44,6 +44,14 @@ pub struct BlocklistResponse {
   pub records: Vec<BlocklistItem>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub struct DeleteSeriesParams {
+  pub id: i64,
+  pub delete_series_files: bool,
+  pub add_list_exclusion: bool,
+}
+
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {

@@ -24,8 +24,8 @@ mod test {
     QualityWrapper, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
   };
   use crate::models::sonarr_models::{
-    BlocklistItem, DownloadRecord, DownloadsResponse, Episode, EpisodeFile, MediaInfo,
-    SonarrRelease, SonarrReleaseDownloadBody, SonarrTaskName,
+    BlocklistItem, DeleteSeriesParams, DownloadRecord, DownloadsResponse, Episode, EpisodeFile,
+    MediaInfo, SonarrRelease, SonarrReleaseDownloadBody, SonarrTaskName,
   };
   use crate::models::sonarr_models::{
     BlocklistResponse, SonarrHistoryData, SonarrHistoryItem, SonarrHistoryWrapper,
@@ -137,7 +137,12 @@ mod test {
 
   #[rstest]
   fn test_resource_series(
-    #[values(SonarrEvent::ListSeries, SonarrEvent::GetSeriesDetails(None))] event: SonarrEvent,
+    #[values(
+      SonarrEvent::ListSeries,
+      SonarrEvent::GetSeriesDetails(None),
+      SonarrEvent::DeleteSeries(None)
+    )]
+    event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/series");
   }
@@ -575,6 +580,65 @@ mod test {
       .is_ok());
 
     async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_series_event() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      SonarrEvent::DeleteSeries(None),
+      Some("/1"),
+      Some("deleteFiles=true&addImportExclusion=true"),
+    )
+    .await;
+    {
+      let mut app = app_arc.lock().await;
+      app.data.sonarr_data.series.set_items(vec![series()]);
+      app.data.sonarr_data.delete_series_files = true;
+      app.data.sonarr_data.add_list_exclusion = true;
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::DeleteSeries(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+    assert!(!app_arc.lock().await.data.sonarr_data.delete_series_files);
+    assert!(!app_arc.lock().await.data.sonarr_data.add_list_exclusion);
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_series_event_use_provided_params() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      SonarrEvent::DeleteSeries(None),
+      Some("/1"),
+      Some("deleteFiles=true&addImportExclusion=true"),
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let delete_series_params = DeleteSeriesParams {
+      id: 1,
+      delete_series_files: true,
+      add_list_exclusion: true,
+    };
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::DeleteSeries(Some(delete_series_params)))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+    assert!(!app_arc.lock().await.data.sonarr_data.delete_series_files);
+    assert!(!app_arc.lock().await.data.sonarr_data.add_list_exclusion);
   }
 
   #[tokio::test]

@@ -31,10 +31,26 @@ mod tests {
     }
 
     #[test]
+    fn test_reset_delete_series_preferences() {
+      let mut sonarr_data = SonarrData {
+        add_list_exclusion: true,
+        delete_series_files: true,
+        ..SonarrData::default()
+      };
+
+      sonarr_data.reset_delete_series_preferences();
+
+      assert!(!sonarr_data.delete_series_files);
+      assert!(!sonarr_data.add_list_exclusion);
+    }
+
+    #[test]
     fn test_sonarr_data_defaults() {
       let sonarr_data = SonarrData::default();
 
+      assert!(!sonarr_data.add_list_exclusion);
       assert!(sonarr_data.blocklist.is_empty());
+      assert!(!sonarr_data.delete_series_files);
       assert!(sonarr_data.downloads.is_empty());
       assert!(sonarr_data.disk_space_vec.is_empty());
       assert!(sonarr_data.edit_root_folder.is_none());
