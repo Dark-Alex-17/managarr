@@ -32,7 +32,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_mark_history_item_as_failed_requires_history_item_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "mark-history-item-as-failed"]);
@@ -44,7 +44,7 @@ mod tests {
       );
     }
 
-    #[rstest]
+    #[test]
     fn test_mark_history_item_as_failed_requirements_satisfied() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -57,81 +57,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
-    fn test_manual_season_search_requires_series_id() {
-      let result = Cli::command().try_get_matches_from([
-        "managarr",
-        "sonarr",
-        "manual-season-search",
-        "--season-number",
-        "1",
-      ]);
-
-      assert!(result.is_err());
-      assert_eq!(
-        result.unwrap_err().kind(),
-        ErrorKind::MissingRequiredArgument
-      );
-    }
-
-    #[rstest]
-    fn test_manual_season_search_requires_season_number() {
-      let result = Cli::command().try_get_matches_from([
-        "managarr",
-        "sonarr",
-        "manual-season-search",
-        "--series-id",
-        "1",
-      ]);
-
-      assert!(result.is_err());
-      assert_eq!(
-        result.unwrap_err().kind(),
-        ErrorKind::MissingRequiredArgument
-      );
-    }
-
     #[test]
-    fn test_manual_season_search_requirements_satisfied() {
-      let result = Cli::command().try_get_matches_from([
-        "managarr",
-        "sonarr",
-        "manual-season-search",
-        "--series-id",
-        "1",
-        "--season-number",
-        "1",
-      ]);
-
-      assert!(result.is_ok());
-    }
-
-    #[rstest]
-    fn test_manual_episode_search_requires_episode_id() {
-      let result =
-        Cli::command().try_get_matches_from(["managarr", "sonarr", "manual-episode-search"]);
-
-      assert!(result.is_err());
-      assert_eq!(
-        result.unwrap_err().kind(),
-        ErrorKind::MissingRequiredArgument
-      );
-    }
-
-    #[test]
-    fn test_manual_episode_search_requirements_satisfied() {
-      let result = Cli::command().try_get_matches_from([
-        "managarr",
-        "sonarr",
-        "manual-episode-search",
-        "--episode-id",
-        "1",
-      ]);
-
-      assert!(result.is_ok());
-    }
-
-    #[rstest]
     fn test_start_task_requires_task_name() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "start-task"]);
 
@@ -142,7 +68,7 @@ mod tests {
       );
     }
 
-    #[rstest]
+    #[test]
     fn test_start_task_task_name_validation() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -169,7 +95,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_test_indexer_requires_indexer_id() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "test-indexer"]);
 
@@ -193,7 +119,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_trigger_automatic_series_search_requires_series_id() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -221,7 +147,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_trigger_automatic_season_search_requires_series_id() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -238,7 +164,7 @@ mod tests {
       );
     }
 
-    #[rstest]
+    #[test]
     fn test_trigger_automatic_season_search_requires_season_number() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -270,7 +196,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_trigger_automatic_episode_search_requires_episode_id() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -386,62 +312,6 @@ mod tests {
       )
       .handle()
       .await;
-
-      assert!(result.is_ok());
-    }
-
-    #[tokio::test]
-    async fn test_manual_episode_search_command() {
-      let expected_episode_id = 1;
-      let mut mock_network = MockNetworkTrait::new();
-      mock_network
-        .expect_handle_network_event()
-        .with(eq::<NetworkEvent>(
-          SonarrEvent::GetEpisodeReleases(Some(expected_episode_id)).into(),
-        ))
-        .times(1)
-        .returning(|_| {
-          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
-            json!({"testResponse": "response"}),
-          )))
-        });
-      let app_arc = Arc::new(Mutex::new(App::default()));
-      let manual_episode_search_command = SonarrCommand::ManualEpisodeSearch { episode_id: 1 };
-
-      let result =
-        SonarrCliHandler::with(&app_arc, manual_episode_search_command, &mut mock_network)
-          .handle()
-          .await;
-
-      assert!(result.is_ok());
-    }
-
-    #[tokio::test]
-    async fn test_manual_season_search_command() {
-      let expected_series_id = 1;
-      let expected_season_number = 1;
-      let mut mock_network = MockNetworkTrait::new();
-      mock_network
-        .expect_handle_network_event()
-        .with(eq::<NetworkEvent>(
-          SonarrEvent::GetSeasonReleases(Some((expected_series_id, expected_season_number))).into(),
-        ))
-        .times(1)
-        .returning(|_| {
-          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
-            json!({"testResponse": "response"}),
-          )))
-        });
-      let app_arc = Arc::new(Mutex::new(App::default()));
-      let manual_season_search_command = SonarrCommand::ManualSeasonSearch {
-        series_id: 1,
-        season_number: 1,
-      };
-
-      let result =
-        SonarrCliHandler::with(&app_arc, manual_season_search_command, &mut mock_network)
-          .handle()
-          .await;
 
       assert!(result.is_ok());
     }

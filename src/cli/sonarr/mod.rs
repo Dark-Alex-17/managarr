@@ -7,6 +7,7 @@ use delete_command_handler::{SonarrDeleteCommand, SonarrDeleteCommandHandler};
 use download_command_handler::{SonarrDownloadCommand, SonarrDownloadCommandHandler};
 use get_command_handler::{SonarrGetCommand, SonarrGetCommandHandler};
 use list_command_handler::{SonarrListCommand, SonarrListCommandHandler};
+use manual_search_command_handler::{SonarrManualSearchCommand, SonarrManualSearchCommandHandler};
 use refresh_command_handler::{SonarrRefreshCommand, SonarrRefreshCommandHandler};
 use tokio::sync::Mutex;
 
@@ -23,6 +24,7 @@ mod delete_command_handler;
 mod download_command_handler;
 mod get_command_handler;
 mod list_command_handler;
+mod manual_search_command_handler;
 mod refresh_command_handler;
 
 #[cfg(test)]
@@ -61,6 +63,8 @@ pub enum SonarrCommand {
     about = "Commands to refresh the data in your Sonarr instance"
   )]
   Refresh(SonarrRefreshCommand),
+  #[command(subcommand, about = "Commands to manually search for releases")]
+  ManualSearch(SonarrManualSearchCommand),
   #[command(about = "Clear the blocklist")]
   ClearBlocklist,
   #[command(about = "Mark the Sonarr history item with the given ID as 'failed'")]
@@ -71,28 +75,6 @@ pub enum SonarrCommand {
       required = true
     )]
     history_item_id: i64,
-  },
-  #[command(about = "Trigger a manual search of releases for the episode with the given ID")]
-  ManualEpisodeSearch {
-    #[arg(
-      long,
-      help = "The Sonarr ID of the episode whose releases you wish to fetch and list",
-      required = true
-    )]
-    episode_id: i64,
-  },
-  #[command(
-    about = "Trigger a manual search of releases for the given season corresponding to the series with the given ID"
-  )]
-  ManualSeasonSearch {
-    #[arg(
-      long,
-      help = "The Sonarr ID of the series whose releases you wish to fetch and list",
-      required = true
-    )]
-    series_id: i64,
-    #[arg(long, help = "The season number to search for", required = true)]
-    season_number: i64,
   },
   #[command(about = "Start the specified Sonarr task")]
   StartTask {
@@ -198,8 +180,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
           .handle()
           .await?
       }
-      SonarrCommand::Refresh(update_command) => {
-        SonarrRefreshCommandHandler::with(self.app, update_command, self.network)
+      SonarrCommand::Refresh(refresh_command) => {
+        SonarrRefreshCommandHandler::with(self.app, refresh_command, self.network)
+          .handle()
+          .await?
+      }
+      SonarrCommand::ManualSearch(manual_search_command) => {
+        SonarrManualSearchCommandHandler::with(self.app, manual_search_command, self.network)
           .handle()
           .await?
       }
@@ -220,27 +207,6 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
           .handle_network_event(SonarrEvent::MarkHistoryItemAsFailed(history_item_id).into())
           .await?;
         "Sonarr history item marked as 'failed'".to_owned()
-      }
-      SonarrCommand::ManualEpisodeSearch { episode_id } => {
-        println!("Searching for episode releases. This may take a minute...");
-        let resp = self
-          .network
-          .handle_network_event(SonarrEvent::GetEpisodeReleases(Some(episode_id)).into())
-          .await?;
-        serde_json::to_string_pretty(&resp)?
-      }
-      SonarrCommand::ManualSeasonSearch {
-        series_id,
-        season_number,
-      } => {
-        println!("Searching for season releases. This may take a minute...");
-        let resp = self
-          .network
-          .handle_network_event(
-            SonarrEvent::GetSeasonReleases(Some((series_id, season_number))).into(),
-          )
-          .await?;
-        serde_json::to_string_pretty(&resp)?
       }
       SonarrCommand::StartTask { task_name } => {
         let resp = self

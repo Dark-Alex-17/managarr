@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use anyhow::Result;
 use clap::Subcommand;
 use tokio::sync::Mutex;
 
@@ -106,7 +107,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrDownloadCommand>
     }
   }
 
-  async fn handle(self) -> anyhow::Result<String> {
+  async fn handle(self) -> Result<String> {
     let result = match self.command {
       SonarrDownloadCommand::Series {
         guid,
