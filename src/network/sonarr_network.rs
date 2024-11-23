@@ -73,8 +73,9 @@ pub enum SonarrEvent {
   StartTask(Option<SonarrTaskName>),
   TestIndexer(Option<i64>),
   TestAllIndexers,
-  TriggerAutomaticSeriesSearch(Option<i64>),
+  TriggerAutomaticEpisodeSearch(Option<i64>),
   TriggerAutomaticSeasonSearch(Option<(i64, i64)>),
+  TriggerAutomaticSeriesSearch(Option<i64>),
 }
 
 impl NetworkResource for SonarrEvent {
@@ -96,7 +97,8 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetQueuedEvents
       | SonarrEvent::StartTask(_)
       | SonarrEvent::TriggerAutomaticSeriesSearch(_)
-      | SonarrEvent::TriggerAutomaticSeasonSearch(_) => "/command",
+      | SonarrEvent::TriggerAutomaticSeasonSearch(_)
+      | SonarrEvent::TriggerAutomaticEpisodeSearch(_) => "/command",
       SonarrEvent::GetRootFolders
       | SonarrEvent::DeleteRootFolder(_)
       | SonarrEvent::AddRootFolder(_) => "/rootfolder",
@@ -244,12 +246,16 @@ impl<'a, 'b> Network<'a, 'b> {
         .test_all_sonarr_indexers()
         .await
         .map(SonarrSerdeable::from),
+      SonarrEvent::TriggerAutomaticSeasonSearch(params) => self
+        .trigger_automatic_season_search(params)
+        .await
+        .map(SonarrSerdeable::from),
       SonarrEvent::TriggerAutomaticSeriesSearch(series_id) => self
         .trigger_automatic_series_search(series_id)
         .await
         .map(SonarrSerdeable::from),
-      SonarrEvent::TriggerAutomaticSeasonSearch(params) => self
-        .trigger_automatic_season_search(params)
+      SonarrEvent::TriggerAutomaticEpisodeSearch(episode_id) => self
+        .trigger_automatic_episode_search(episode_id)
         .await
         .map(SonarrSerdeable::from),
     }
@@ -1449,6 +1455,7 @@ impl<'a, 'b> Network<'a, 'b> {
     let event = SonarrEvent::TriggerAutomaticSeriesSearch(series_id);
     let (id, _) = self.extract_series_id(series_id).await;
     info!("Searching indexers for series with ID: {id}");
+
     let body = SonarrCommandBody {
       name: "SeriesSearch".to_owned(),
       series_id: Some(id),
@@ -1484,6 +1491,26 @@ impl<'a, 'b> Network<'a, 'b> {
       name: "SeasonSearch".to_owned(),
       season_number: Some(season_number),
       series_id: Some(series_id),
+      ..SonarrCommandBody::default()
+    };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<SonarrCommandBody, Value>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn trigger_automatic_episode_search(&mut self, episode_id: Option<i64>) -> Result<Value> {
+    let event = SonarrEvent::TriggerAutomaticEpisodeSearch(episode_id);
+    let id = self.extract_episode_id(episode_id).await;
+    info!("Searching indexers for episode with ID: {id}");
+
+    let body = SonarrCommandBody {
+      name: "EpisodeSearch".to_owned(),
+      episode_ids: Some(vec![id]),
       ..SonarrCommandBody::default()
     };
 

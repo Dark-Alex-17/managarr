@@ -166,8 +166,9 @@ mod test {
     #[values(
       SonarrEvent::GetQueuedEvents,
       SonarrEvent::StartTask(None),
-      SonarrEvent::TriggerAutomaticSeriesSearch(None),
-      SonarrEvent::TriggerAutomaticSeasonSearch(None)
+      SonarrEvent::TriggerAutomaticEpisodeSearch(None),
+      SonarrEvent::TriggerAutomaticSeasonSearch(None),
+      SonarrEvent::TriggerAutomaticSeriesSearch(None)
     )]
     event: SonarrEvent,
   ) {
@@ -4232,6 +4233,83 @@ mod test {
       );
       assert_eq!(results, response);
     }
+  }
+
+  #[tokio::test]
+  async fn test_handle_trigger_automatic_episode_search_event() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "EpisodeSearch",
+        "episodeIds": [ 1 ]
+      })),
+      Some(json!({})),
+      None,
+      SonarrEvent::TriggerAutomaticEpisodeSearch(None),
+      None,
+      None,
+    )
+    .await;
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.set_items(vec![episode()]);
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::TriggerAutomaticEpisodeSearch(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_trigger_automatic_episode_search_event_uses_provided_id() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "EpisodeSearch",
+        "episodeIds": [ 1 ]
+      })),
+      Some(json!({})),
+      None,
+      SonarrEvent::TriggerAutomaticEpisodeSearch(Some(1)),
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::TriggerAutomaticEpisodeSearch(Some(1)))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  #[should_panic(expected = "Season details have not been loaded")]
+  async fn test_handle_trigger_automatic_episode_search_event_empty_season_details_modal_panics() {
+    let (_async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "EpisodeSearch",
+        "episodeIds": [ 1 ]
+      })),
+      Some(json!({})),
+      None,
+      SonarrEvent::TriggerAutomaticEpisodeSearch(None),
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    network
+      .handle_sonarr_event(SonarrEvent::TriggerAutomaticEpisodeSearch(None))
+      .await
+      .unwrap();
   }
 
   #[tokio::test]
