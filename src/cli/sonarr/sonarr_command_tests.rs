@@ -238,8 +238,9 @@ mod tests {
         sonarr::{
           add_command_handler::SonarrAddCommand, delete_command_handler::SonarrDeleteCommand,
           download_command_handler::SonarrDownloadCommand, get_command_handler::SonarrGetCommand,
-          list_command_handler::SonarrListCommand, refresh_command_handler::SonarrRefreshCommand,
-          SonarrCliHandler, SonarrCommand,
+          list_command_handler::SonarrListCommand,
+          manual_search_command_handler::SonarrManualSearchCommand,
+          refresh_command_handler::SonarrRefreshCommand, SonarrCliHandler, SonarrCommand,
         },
         CliCommandHandler,
       },
@@ -402,6 +403,34 @@ mod tests {
 
       let result =
         SonarrCliHandler::with(&app_arc, download_series_release_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_sonarr_cli_handler_delegates_manual_search_commands_to_the_manual_search_command_handler(
+    ) {
+      let expected_episode_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::GetEpisodeReleases(Some(expected_episode_id)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let manual_episode_search_command =
+        SonarrCommand::ManualSearch(SonarrManualSearchCommand::Episode { episode_id: 1 });
+
+      let result =
+        SonarrCliHandler::with(&app_arc, manual_episode_search_command, &mut mock_network)
           .handle()
           .await;
 
