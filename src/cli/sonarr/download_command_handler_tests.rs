@@ -27,9 +27,8 @@ mod tests {
     use super::*;
     use clap::error::ErrorKind;
     use pretty_assertions::assert_eq;
-    use rstest::rstest;
 
-    #[rstest]
+    #[test]
     fn test_download_series_requires_series_id() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -49,7 +48,7 @@ mod tests {
       );
     }
 
-    #[rstest]
+    #[test]
     fn test_download_series_requires_guid() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -69,7 +68,7 @@ mod tests {
       );
     }
 
-    #[rstest]
+    #[test]
     fn test_download_series_requires_indexer_id() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -106,6 +105,114 @@ mod tests {
 
       assert!(result.is_ok());
     }
+
+    #[test]
+    fn test_download_season_requires_series_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "download",
+        "season",
+        "--indexer-id",
+        "1",
+        "--season-number",
+        "1",
+        "--guid",
+        "1",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_download_season_requires_season_number() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "download",
+        "season",
+        "--indexer-id",
+        "1",
+        "--series-id",
+        "1",
+        "--guid",
+        "1",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_download_season_requires_guid() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "download",
+        "season",
+        "--indexer-id",
+        "1",
+        "--season-number",
+        "1",
+        "--series-id",
+        "1",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_download_season_requires_indexer_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "download",
+        "season",
+        "--guid",
+        "1",
+        "--season-number",
+        "1",
+        "--series-id",
+        "1",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_download_season_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "download",
+        "season",
+        "--guid",
+        "1",
+        "--series-id",
+        "1",
+        "--season-number",
+        "1",
+        "--indexer-id",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
+    }
   }
 
   mod handler {
@@ -129,7 +236,7 @@ mod tests {
     };
 
     #[tokio::test]
-    async fn test_download_release_command() {
+    async fn test_download_series_release_command() {
       let expected_release_download_body = SonarrReleaseDownloadBody {
         guid: "guid".to_owned(),
         indexer_id: 1,
@@ -153,6 +260,43 @@ mod tests {
         guid: "guid".to_owned(),
         indexer_id: 1,
         series_id: 1,
+      };
+
+      let result =
+        SonarrDownloadCommandHandler::with(&app_arc, download_release_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_download_season_release_command() {
+      let expected_release_download_body = SonarrReleaseDownloadBody {
+        guid: "guid".to_owned(),
+        indexer_id: 1,
+        series_id: Some(1),
+        season_number: Some(1),
+        ..SonarrReleaseDownloadBody::default()
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::DownloadRelease(expected_release_download_body).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let download_release_command = SonarrDownloadCommand::Season {
+        guid: "guid".to_owned(),
+        indexer_id: 1,
+        series_id: 1,
+        season_number: 1,
       };
 
       let result =
