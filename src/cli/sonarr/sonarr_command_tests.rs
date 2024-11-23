@@ -6,6 +6,7 @@ mod tests {
   };
   use crate::Cli;
   use clap::CommandFactory;
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn test_sonarr_command_from() {
@@ -19,6 +20,7 @@ mod tests {
   mod cli {
     use super::*;
     use clap::error::ErrorKind;
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     #[rstest]
@@ -213,6 +215,55 @@ mod tests {
         "sonarr",
         "trigger-automatic-series-search",
         "--series-id",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
+    }
+
+    #[rstest]
+    fn test_trigger_automatic_season_search_requires_series_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "trigger-automatic-season-search",
+        "--season-number",
+        "1",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[rstest]
+    fn test_trigger_automatic_season_search_requires_season_number() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "trigger-automatic-season-search",
+        "--series-id",
+        "1",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_trigger_automatic_season_search_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "trigger-automatic-season-search",
+        "--series-id",
+        "1",
+        "--season-number",
         "1",
       ]);
 
@@ -561,6 +612,43 @@ mod tests {
       let result = SonarrCliHandler::with(
         &app_arc,
         trigger_automatic_series_search_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_trigger_automatic_season_search_command() {
+      let expected_series_id = 1;
+      let expected_season_number = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::TriggerAutomaticSeasonSearch(Some((
+            expected_series_id,
+            expected_season_number,
+          )))
+          .into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let trigger_automatic_season_search_command = SonarrCommand::TriggerAutomaticSeasonSearch {
+        series_id: 1,
+        season_number: 1,
+      };
+
+      let result = SonarrCliHandler::with(
+        &app_arc,
+        trigger_automatic_season_search_command,
         &mut mock_network,
       )
       .handle()

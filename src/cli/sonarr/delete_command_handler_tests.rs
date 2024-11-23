@@ -8,6 +8,7 @@ mod tests {
     Cli,
   };
   use clap::{error::ErrorKind, CommandFactory, Parser};
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn test_sonarr_delete_command_from() {

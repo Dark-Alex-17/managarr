@@ -10,6 +10,7 @@ mod tests {
     models::radarr_models::{MinimumAvailability, Monitor},
     Cli,
   };
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn test_radarr_add_command_from() {

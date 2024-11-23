@@ -6,6 +6,7 @@ mod tests {
   };
   use crate::Cli;
   use clap::CommandFactory;
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn test_sonarr_list_command_from() {

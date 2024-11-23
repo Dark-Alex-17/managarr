@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
   use clap::{error::ErrorKind, CommandFactory, Parser};
+  use pretty_assertions::assert_eq;
 
   use crate::{
     cli::{

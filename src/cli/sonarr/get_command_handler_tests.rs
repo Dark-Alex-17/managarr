@@ -6,6 +6,7 @@ mod tests {
   };
   use crate::Cli;
   use clap::CommandFactory;
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn test_sonarr_get_command_from() {
@@ -18,6 +19,7 @@ mod tests {
 
   mod cli {
     use clap::error::ErrorKind;
+    use pretty_assertions::assert_eq;
 
     use super::*;
 

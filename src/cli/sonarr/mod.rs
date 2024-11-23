@@ -108,6 +108,19 @@ pub enum SonarrCommand {
     )]
     series_id: i64,
   },
+  #[command(
+    about = "Trigger an automatic search for the given season corresponding to the series with the given ID"
+  )]
+  TriggerAutomaticSeasonSearch {
+    #[arg(
+      long,
+      help = "The Sonarr ID of the series whose season you wish to trigger an automatic search for",
+      required = true
+    )]
+    series_id: i64,
+    #[arg(long, help = "The season number to search for", required = true)]
+    season_number: i64,
+  },
 }
 
 impl From<SonarrCommand> for Command {
@@ -222,6 +235,18 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
         let resp = self
           .network
           .handle_network_event(SonarrEvent::TriggerAutomaticSeriesSearch(Some(series_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrCommand::TriggerAutomaticSeasonSearch {
+        series_id,
+        season_number,
+      } => {
+        let resp = self
+          .network
+          .handle_network_event(
+            SonarrEvent::TriggerAutomaticSeasonSearch(Some((series_id, season_number))).into(),
+          )
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

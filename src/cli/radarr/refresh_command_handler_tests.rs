@@ -7,6 +7,7 @@ mod tests {
   use crate::cli::radarr::RadarrCommand;
   use crate::cli::Command;
   use crate::Cli;
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn test_radarr_refresh_command_from() {
