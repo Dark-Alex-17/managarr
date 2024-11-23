@@ -7,6 +7,7 @@ use tokio::sync::Mutex;
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
+  models::sonarr_models::DeleteSeriesParams,
   network::{sonarr_network::SonarrEvent, NetworkTrait},
 };
 
@@ -41,6 +42,15 @@ pub enum SonarrDeleteCommand {
   RootFolder {
     #[arg(long, help = "The ID of the root folder to delete", required = true)]
     root_folder_id: i64,
+  },
+  #[command(about = "Delete a series from your Sonarr library")]
+  Series {
+    #[arg(long, help = "The ID of the series to delete", required = true)]
+    series_id: i64,
+    #[arg(long, help = "Delete the series files from disk as well")]
+    delete_files_from_disk: bool,
+    #[arg(long, help = "Add a list exclusion for this series")]
+    add_list_exclusion: bool,
   },
   #[command(about = "Delete the tag with the specified ID")]
   Tag {
@@ -101,6 +111,22 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrDeleteCommand> for SonarrDeleteComm
         let resp = self
           .network
           .handle_network_event(SonarrEvent::DeleteRootFolder(Some(root_folder_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrDeleteCommand::Series {
+        series_id,
+        delete_files_from_disk,
+        add_list_exclusion,
+      } => {
+        let delete_series_params = DeleteSeriesParams {
+          id: series_id,
+          delete_series_files: delete_files_from_disk,
+          add_list_exclusion,
+        };
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::DeleteSeries(Some(delete_series_params)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

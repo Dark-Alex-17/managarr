@@ -159,6 +159,63 @@ mod tests {
     }
 
     #[test]
+    fn test_delete_series_requires_arguments() {
+      let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "delete", "series"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_delete_series_defaults() {
+      let expected_args = SonarrDeleteCommand::Series {
+        series_id: 1,
+        delete_files_from_disk: false,
+        add_list_exclusion: false,
+      };
+
+      let result =
+        Cli::try_parse_from(["managarr", "sonarr", "delete", "series", "--series-id", "1"]);
+
+      assert!(result.is_ok());
+
+      if let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
+      {
+        assert_eq!(delete_command, expected_args);
+      }
+    }
+
+    #[test]
+    fn test_delete_series_all_args_defined() {
+      let expected_args = SonarrDeleteCommand::Series {
+        series_id: 1,
+        delete_files_from_disk: true,
+        add_list_exclusion: true,
+      };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "sonarr",
+        "delete",
+        "series",
+        "--series-id",
+        "1",
+        "--delete-files-from-disk",
+        "--add-list-exclusion",
+      ]);
+
+      assert!(result.is_ok());
+
+      if let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
+      {
+        assert_eq!(delete_command, expected_args);
+      }
+    }
+
+    #[test]
     fn test_delete_tag_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "delete", "tag"]);
 
@@ -197,7 +254,10 @@ mod tests {
         sonarr::delete_command_handler::{SonarrDeleteCommand, SonarrDeleteCommandHandler},
         CliCommandHandler,
       },
-      models::{sonarr_models::SonarrSerdeable, Serdeable},
+      models::{
+        sonarr_models::{DeleteSeriesParams, SonarrSerdeable},
+        Serdeable,
+      },
       network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
     };
 
@@ -304,6 +364,40 @@ mod tests {
 
       let result =
         SonarrDeleteCommandHandler::with(&app_arc, delete_root_folder_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_delete_series_command() {
+      let expected_delete_series_params = DeleteSeriesParams {
+        id: 1,
+        delete_series_files: true,
+        add_list_exclusion: true,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::DeleteSeries(Some(expected_delete_series_params)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let delete_series_command = SonarrDeleteCommand::Series {
+        series_id: 1,
+        delete_files_from_disk: true,
+        add_list_exclusion: true,
+      };
+
+      let result =
+        SonarrDeleteCommandHandler::with(&app_arc, delete_series_command, &mut mock_network)
           .handle()
           .await;
 
