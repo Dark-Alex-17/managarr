@@ -190,6 +190,34 @@ mod tests {
 
       assert!(result.is_ok());
     }
+
+    #[rstest]
+    fn test_trigger_automatic_series_search_requires_series_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "trigger-automatic-series-search",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_trigger_automatic_series_search_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "trigger-automatic-series-search",
+        "--series-id",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
+    }
   }
 
   mod handler {
@@ -507,6 +535,36 @@ mod tests {
       let result = SonarrCliHandler::with(&app_arc, test_all_indexers_command, &mut mock_network)
         .handle()
         .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_trigger_automatic_series_search_command() {
+      let expected_series_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::TriggerAutomaticSeriesSearch(Some(expected_series_id)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let trigger_automatic_series_search_command =
+        SonarrCommand::TriggerAutomaticSeriesSearch { series_id: 1 };
+
+      let result = SonarrCliHandler::with(
+        &app_arc,
+        trigger_automatic_series_search_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
 
       assert!(result.is_ok());
     }

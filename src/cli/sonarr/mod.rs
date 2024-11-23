@@ -99,6 +99,15 @@ pub enum SonarrCommand {
   },
   #[command(about = "Test all Radarr indexers")]
   TestAllIndexers,
+  #[command(about = "Trigger an automatic search for the series with the specified ID")]
+  TriggerAutomaticSeriesSearch {
+    #[arg(
+      long,
+      help = "The ID of the series you want to trigger an automatic search for",
+      required = true
+    )]
+    series_id: i64,
+  },
 }
 
 impl From<SonarrCommand> for Command {
@@ -206,6 +215,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
         let resp = self
           .network
           .handle_network_event(SonarrEvent::TestAllIndexers.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrCommand::TriggerAutomaticSeriesSearch { series_id } => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::TriggerAutomaticSeriesSearch(Some(series_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
