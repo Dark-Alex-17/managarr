@@ -15,6 +15,8 @@ mod test {
   use tokio_util::sync::CancellationToken;
 
   use crate::app::App;
+  use crate::models::radarr_models::IndexerTestResult;
+  use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_data::sonarr::modals::{EpisodeDetailsModal, SeasonDetailsModal};
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::servarr_models::{
@@ -225,6 +227,7 @@ mod test {
   #[case(SonarrEvent::GetUpdates, "/update")]
   #[case(SonarrEvent::MarkHistoryItemAsFailed(0), "/history/failed")]
   #[case(SonarrEvent::TestIndexer(None), "/indexer/test")]
+  #[case(SonarrEvent::TestAllIndexers, "/indexer/testall")]
   fn test_resource(#[case] event: SonarrEvent, #[case] expected_uri: String) {
     assert_str_eq!(event.resource(), expected_uri);
   }
@@ -4125,6 +4128,103 @@ mod test {
       async_details_server.assert_async().await;
       async_test_server.assert_async().await;
       assert_eq!(value, json!({}));
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_test_all_sonarr_indexers_event() {
+    let indexers = vec![
+      Indexer {
+        id: 1,
+        name: Some("Test 1".to_owned()),
+        ..Indexer::default()
+      },
+      Indexer {
+        id: 2,
+        name: Some("Test 2".to_owned()),
+        ..Indexer::default()
+      },
+    ];
+    let indexer_test_results_modal_items = vec![
+			IndexerTestResultModalItem {
+				name: "Test 1".to_owned(),
+				is_valid: true,
+				validation_failures: HorizontallyScrollableText::default(),
+			},
+			IndexerTestResultModalItem {
+				name: "Test 2".to_owned(),
+				is_valid: false,
+				validation_failures: "Failure for field 'test field 1': test error message, Failure for field 'test field 2': test error message 2".into(),
+			},
+		];
+    let response_json = json!([
+    {
+      "id": 1,
+      "isValid": true,
+      "validationFailures": []
+    },
+    {
+      "id": 2,
+      "isValid": false,
+      "validationFailures": [
+          {
+              "propertyName": "test field 1",
+              "errorMessage": "test error message",
+              "severity": "error"
+          },
+          {
+              "propertyName": "test field 2",
+              "errorMessage": "test error message 2",
+              "severity": "error"
+          },
+      ]
+    }]);
+    let response: Vec<IndexerTestResult> = serde_json::from_value(response_json.clone()).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      None,
+      Some(response_json),
+      Some(400),
+      SonarrEvent::TestAllIndexers,
+      None,
+      None,
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .indexers
+      .set_items(indexers);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::IndexerTestResults(results) = network
+      .handle_sonarr_event(SonarrEvent::TestAllIndexers)
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert!(app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .indexer_test_all_results
+        .is_some());
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .indexer_test_all_results
+          .as_ref()
+          .unwrap()
+          .items,
+        indexer_test_results_modal_items
+      );
+      assert_eq!(results, response);
     }
   }
 

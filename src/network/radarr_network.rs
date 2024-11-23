@@ -12,9 +12,9 @@ use crate::models::radarr_models::{
   EditIndexerParams, EditMovieParams, IndexerSettings, IndexerTestResult, Movie, MovieCommandBody,
   MovieHistoryItem, RadarrSerdeable, RadarrTask, RadarrTaskName, ReleaseDownloadBody, SystemStatus,
 };
+use crate::models::servarr_data::modals::IndexerTestResultModalItem;
 use crate::models::servarr_data::radarr::modals::{
-  AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
-  MovieDetailsModal,
+  AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, MovieDetailsModal,
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::{
@@ -259,7 +259,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .test_radarr_indexer(indexer_id)
         .await
         .map(RadarrSerdeable::from),
-      RadarrEvent::TestAllIndexers => self.test_all_indexers().await.map(RadarrSerdeable::from),
+      RadarrEvent::TestAllIndexers => self
+        .test_all_radarr_indexers()
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::TriggerAutomaticSearch(movie_id) => self
         .trigger_automatic_search(movie_id)
         .await
@@ -2095,8 +2098,8 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn test_all_indexers(&mut self) -> Result<Vec<IndexerTestResult>> {
-    info!("Testing all indexers");
+  async fn test_all_radarr_indexers(&mut self) -> Result<Vec<IndexerTestResult>> {
+    info!("Testing all Radarr indexers");
     let event = RadarrEvent::TestAllIndexers;
 
     let mut request_props = self

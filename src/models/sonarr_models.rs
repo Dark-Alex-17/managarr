@@ -10,6 +10,7 @@ use strum::EnumIter;
 use crate::serde_enum_from;
 
 use super::{
+  radarr_models::IndexerTestResult,
   servarr_models::{
     DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
     QueueEvent, Release, RootFolder, SecurityConfig, Tag, Update,
@@ -437,6 +438,7 @@ pub enum SonarrSerdeable {
   HostConfig(HostConfig),
   IndexerSettings(IndexerSettings),
   Indexers(Vec<Indexer>),
+  IndexerTestResults(Vec<IndexerTestResult>),
   LogResponse(LogResponse),
   QualityProfiles(Vec<QualityProfile>),
   QueueEvents(Vec<QueueEvent>),
@@ -477,6 +479,7 @@ serde_enum_from!(
     HostConfig(HostConfig),
     IndexerSettings(IndexerSettings),
     Indexers(Vec<Indexer>),
+    IndexerTestResults(Vec<IndexerTestResult>),
     LogResponse(LogResponse),
     QualityProfiles(Vec<QualityProfile>),
     QueueEvents(Vec<QueueEvent>),

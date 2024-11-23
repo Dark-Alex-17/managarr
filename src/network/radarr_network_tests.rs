@@ -1065,7 +1065,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_test_all_indexers_event() {
+  async fn test_handle_test_all_radarr_indexers_event() {
     let indexers = vec![
       Indexer {
         id: 1,

@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use strum::EnumIter;
 
 use crate::models::{
+  servarr_data::modals::IndexerTestResultModalItem,
   servarr_models::{DiskSpace, Indexer, QueueEvent, RootFolder},
   sonarr_models::{
     BlocklistItem, DownloadRecord, IndexerSettings, Season, Series, SonarrHistoryItem, SonarrTask,
@@ -26,6 +27,7 @@ pub struct SonarrData {
   pub history: StatefulTable<SonarrHistoryItem>,
   pub indexers: StatefulTable<Indexer>,
   pub indexer_settings: Option<IndexerSettings>,
+  pub indexer_test_all_results: Option<StatefulTable<IndexerTestResultModalItem>>,
   pub indexer_test_error: Option<String>,
   pub logs: StatefulList<HorizontallyScrollableText>,
   pub quality_profile_map: BiMap<i64, String>,
@@ -53,6 +55,7 @@ impl Default for SonarrData {
       indexers: StatefulTable::default(),
       indexer_settings: None,
       indexer_test_error: None,
+      indexer_test_all_results: None,
       logs: StatefulList::default(),
       quality_profile_map: BiMap::new(),
       queued_events: StatefulTable::default(),

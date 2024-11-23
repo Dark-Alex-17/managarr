@@ -5,9 +5,13 @@ use serde_json::{json, Value};
 
 use crate::{
   models::{
-    servarr_data::sonarr::{
-      modals::{EpisodeDetailsModal, SeasonDetailsModal},
-      sonarr_data::ActiveSonarrBlock,
+    radarr_models::IndexerTestResult,
+    servarr_data::{
+      modals::IndexerTestResultModalItem,
+      sonarr::{
+        modals::{EpisodeDetailsModal, SeasonDetailsModal},
+        sonarr_data::ActiveSonarrBlock,
+      },
     },
     servarr_models::{
       AddRootFolderBody, CommandBody, DiskSpace, HostConfig, Indexer, LogResponse, QualityProfile,
@@ -68,6 +72,7 @@ pub enum SonarrEvent {
   MarkHistoryItemAsFailed(i64),
   StartTask(Option<SonarrTaskName>),
   TestIndexer(Option<i64>),
+  TestAllIndexers,
 }
 
 impl NetworkResource for SonarrEvent {
@@ -100,6 +105,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
       SonarrEvent::StartTask(_) => "/command",
       SonarrEvent::TestIndexer(_) => "/indexer/test",
+      SonarrEvent::TestAllIndexers => "/indexer/testall",
     }
   }
 }
@@ -228,6 +234,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::TestIndexer(indexer_id) => self
         .test_sonarr_indexer(indexer_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::TestAllIndexers => self
+        .test_all_sonarr_indexers()
         .await
         .map(SonarrSerdeable::from),
     }
@@ -1372,6 +1382,53 @@ impl<'a, 'b> Network<'a, 'b> {
               .to_string(),
           );
         };
+      })
+      .await
+  }
+
+  async fn test_all_sonarr_indexers(&mut self) -> Result<Vec<IndexerTestResult>> {
+    info!("Testing all Sonarr indexers");
+    let event = SonarrEvent::TestAllIndexers;
+
+    let mut request_props = self
+      .request_props_from(event, RequestMethod::Post, None, None, None)
+      .await;
+    request_props.ignore_status_code = true;
+
+    self
+      .handle_request::<(), Vec<IndexerTestResult>>(request_props, |test_results, mut app| {
+        let mut test_all_indexer_results = StatefulTable::default();
+        let indexers = app.data.sonarr_data.indexers.items.clone();
+        let modal_test_results = test_results
+          .iter()
+          .map(|result| {
+            let name = indexers
+              .iter()
+              .filter(|&indexer| indexer.id == result.id)
+              .map(|indexer| indexer.name.clone())
+              .nth(0)
+              .unwrap_or_default();
+            let validation_failures = result
+              .validation_failures
+              .iter()
+              .map(|failure| {
+                format!(
+                  "Failure for field '{}': {}",
+                  failure.property_name, failure.error_message
+                )
+              })
+              .collect::<Vec<String>>()
+              .join(", ");
+
+            IndexerTestResultModalItem {
+              name: name.unwrap_or_default(),
+              is_valid: result.is_valid,
+              validation_failures: validation_failures.into(),
+            }
+          })
+          .collect();
+        test_all_indexer_results.set_items(modal_test_results);
+        app.data.sonarr_data.indexer_test_all_results = Some(test_all_indexer_results);
       })
       .await
   }

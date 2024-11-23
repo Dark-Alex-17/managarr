@@ -5,7 +5,7 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::indexers::test_all_indexers_handler::TestAllIndexersHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::servarr_data::radarr::modals::IndexerTestResultModalItem;
+  use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::stateful_table::StatefulTable;
   use strum::IntoEnumIterator;
@@ -14,7 +14,7 @@ mod tests {
     use pretty_assertions::assert_str_eq;
     use rstest::rstest;
 
-    use crate::models::servarr_data::radarr::modals::IndexerTestResultModalItem;
+    use crate::models::servarr_data::modals::IndexerTestResultModalItem;
     use crate::models::stateful_table::StatefulTable;
     use crate::simple_stateful_iterable_vec;
 
@@ -112,7 +112,7 @@ mod tests {
 
   mod test_handle_home_end {
     use crate::extended_stateful_iterable_vec;
-    use crate::models::servarr_data::radarr::modals::IndexerTestResultModalItem;
+    use crate::models::servarr_data::modals::IndexerTestResultModalItem;
     use crate::models::stateful_table::StatefulTable;
     use pretty_assertions::assert_str_eq;
 

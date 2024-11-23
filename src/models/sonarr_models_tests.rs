@@ -4,6 +4,7 @@ mod tests {
   use serde_json::json;
 
   use crate::models::{
+    radarr_models::IndexerTestResult,
     servarr_models::{
       DiskSpace, HostConfig, Indexer, Log, LogResponse, QualityProfile, QueueEvent, Release,
       RootFolder, SecurityConfig, Tag, Update,
@@ -437,5 +438,20 @@ mod tests {
     let sonarr_serdeable: SonarrSerdeable = updates.clone().into();
 
     assert_eq!(sonarr_serdeable, SonarrSerdeable::Updates(updates));
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_indexer_test_results() {
+    let indexer_test_results = vec![IndexerTestResult {
+      id: 1,
+      ..IndexerTestResult::default()
+    }];
+
+    let sonarr_serdeable: SonarrSerdeable = indexer_test_results.clone().into();
+
+    assert_eq!(
+      sonarr_serdeable,
+      SonarrSerdeable::IndexerTestResults(indexer_test_results)
+    );
   }
 }
