@@ -6,6 +6,7 @@ use clap::Subcommand;
 use delete_command_handler::{SonarrDeleteCommand, SonarrDeleteCommandHandler};
 use get_command_handler::{SonarrGetCommand, SonarrGetCommandHandler};
 use list_command_handler::{SonarrListCommand, SonarrListCommandHandler};
+use refresh_command_handler::{SonarrRefreshCommand, SonarrRefreshCommandHandler};
 use tokio::sync::Mutex;
 
 use crate::{
@@ -20,6 +21,7 @@ mod add_command_handler;
 mod delete_command_handler;
 mod get_command_handler;
 mod list_command_handler;
+mod refresh_command_handler;
 
 #[cfg(test)]
 #[path = "sonarr_command_tests.rs"]
@@ -47,6 +49,11 @@ pub enum SonarrCommand {
     about = "Commands to list attributes from your Sonarr instance"
   )]
   List(SonarrListCommand),
+  #[command(
+    subcommand,
+    about = "Commands to refresh the data in your Sonarr instance"
+  )]
+  Refresh(SonarrRefreshCommand),
   #[command(about = "Clear the blocklist")]
   ClearBlocklist,
   #[command(about = "Mark the Sonarr history item with the given ID as 'failed'")]
@@ -176,6 +183,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
       }
       SonarrCommand::List(list_command) => {
         SonarrListCommandHandler::with(self.app, list_command, self.network)
+          .handle()
+          .await?
+      }
+      SonarrCommand::Refresh(update_command) => {
+        SonarrRefreshCommandHandler::with(self.app, update_command, self.network)
           .handle()
           .await?
       }

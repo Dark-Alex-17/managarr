@@ -18,7 +18,7 @@ mod refresh_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum RadarrRefreshCommand {
-  #[command(about = "Refresh all movie data for all movies in your library")]
+  #[command(about = "Refresh all movie data for all movies in your Radarr library")]
   AllMovies,
   #[command(about = "Refresh movie data and scan disk for the movie with the given ID")]
   Movie {

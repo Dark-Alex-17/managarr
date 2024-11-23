@@ -544,6 +544,32 @@ mod tests {
       assert!(result.is_ok());
     }
 
+    // #[tokio::test]
+    // async fn test_sonarr_cli_handler_delegates_refresh_commands_to_the_refresh_command_handler() {
+    //   let expected_series_id = 1;
+    //   let mut mock_network = MockNetworkTrait::new();
+    //   mock_network
+    //     .expect_handle_network_event()
+    //     .with(eq::<NetworkEvent>(
+    //       SonarrEvent::UpdateAndScan(Some(expected_movie_id)).into(),
+    //     ))
+    //     .times(1)
+    //     .returning(|_| {
+    //       Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+    //         json!({"testResponse": "response"}),
+    //       )))
+    //     });
+    //   let app_arc = Arc::new(Mutex::new(App::default()));
+    //   let refresh_all_series_command =
+    //     SonarrCommand::Refresh(SonarrRefreshCommand::Movie { movie_id: 1 });
+
+    //   let result = SonarrCliHandler::with(&app_arc, refresh_movie_command, &mut mock_network)
+    //     .handle()
+    //     .await;
+
+    //   assert!(result.is_ok());
+    // }
+
     #[tokio::test]
     async fn test_start_task_command() {
       let expected_task_name = SonarrTaskName::ApplicationUpdateCheck;
