@@ -311,14 +311,16 @@ mod tests {
       cli::{
         sonarr::{
           add_command_handler::SonarrAddCommand, delete_command_handler::SonarrDeleteCommand,
-          get_command_handler::SonarrGetCommand, list_command_handler::SonarrListCommand,
-          refresh_command_handler::SonarrRefreshCommand, SonarrCliHandler, SonarrCommand,
+          download_command_handler::SonarrDownloadCommand, get_command_handler::SonarrGetCommand,
+          list_command_handler::SonarrListCommand, refresh_command_handler::SonarrRefreshCommand,
+          SonarrCliHandler, SonarrCommand,
         },
         CliCommandHandler,
       },
       models::{
         sonarr_models::{
-          BlocklistItem, BlocklistResponse, Series, SonarrSerdeable, SonarrTaskName,
+          BlocklistItem, BlocklistResponse, Series, SonarrReleaseDownloadBody, SonarrSerdeable,
+          SonarrTaskName,
         },
         Serdeable,
       },
@@ -494,6 +496,42 @@ mod tests {
 
       let result =
         SonarrCliHandler::with(&app_arc, delete_blocklist_item_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_sonarr_cli_handler_delegates_download_commands_to_the_download_command_handler() {
+      let expected_params = SonarrReleaseDownloadBody {
+        guid: "1234".to_owned(),
+        indexer_id: 1,
+        series_id: Some(1),
+        ..SonarrReleaseDownloadBody::default()
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::DownloadRelease(expected_params).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let download_series_release_command =
+        SonarrCommand::Download(SonarrDownloadCommand::Series {
+          guid: "1234".to_owned(),
+          indexer_id: 1,
+          series_id: 1,
+        });
+
+      let result =
+        SonarrCliHandler::with(&app_arc, download_series_release_command, &mut mock_network)
           .handle()
           .await;
 

@@ -4,6 +4,7 @@ use add_command_handler::{SonarrAddCommand, SonarrAddCommandHandler};
 use anyhow::Result;
 use clap::Subcommand;
 use delete_command_handler::{SonarrDeleteCommand, SonarrDeleteCommandHandler};
+use download_command_handler::{SonarrDownloadCommand, SonarrDownloadCommandHandler};
 use get_command_handler::{SonarrGetCommand, SonarrGetCommandHandler};
 use list_command_handler::{SonarrListCommand, SonarrListCommandHandler};
 use refresh_command_handler::{SonarrRefreshCommand, SonarrRefreshCommandHandler};
@@ -19,6 +20,7 @@ use super::{CliCommandHandler, Command};
 
 mod add_command_handler;
 mod delete_command_handler;
+mod download_command_handler;
 mod get_command_handler;
 mod list_command_handler;
 mod refresh_command_handler;
@@ -44,6 +46,11 @@ pub enum SonarrCommand {
     about = "Commands to fetch details of the resources in your Sonarr instance"
   )]
   Get(SonarrGetCommand),
+  #[command(
+    subcommand,
+    about = "Commands to download releases in your Sonarr instance"
+  )]
+  Download(SonarrDownloadCommand),
   #[command(
     subcommand,
     about = "Commands to list attributes from your Sonarr instance"
@@ -173,6 +180,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
       }
       SonarrCommand::Delete(delete_command) => {
         SonarrDeleteCommandHandler::with(self.app, delete_command, self.network)
+          .handle()
+          .await?
+      }
+      SonarrCommand::Download(download_command) => {
+        SonarrDownloadCommandHandler::with(self.app, download_command, self.network)
           .handle()
           .await?
       }
