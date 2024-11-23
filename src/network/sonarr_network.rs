@@ -74,6 +74,7 @@ pub enum SonarrEvent {
   TestIndexer(Option<i64>),
   TestAllIndexers,
   TriggerAutomaticSeriesSearch(Option<i64>),
+  TriggerAutomaticSeasonSearch(Option<(i64, i64)>),
 }
 
 impl NetworkResource for SonarrEvent {
@@ -94,7 +95,8 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
       SonarrEvent::GetQueuedEvents
       | SonarrEvent::StartTask(_)
-      | SonarrEvent::TriggerAutomaticSeriesSearch(_) => "/command",
+      | SonarrEvent::TriggerAutomaticSeriesSearch(_)
+      | SonarrEvent::TriggerAutomaticSeasonSearch(_) => "/command",
       SonarrEvent::GetRootFolders
       | SonarrEvent::DeleteRootFolder(_)
       | SonarrEvent::AddRootFolder(_) => "/rootfolder",
@@ -244,6 +246,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::TriggerAutomaticSeriesSearch(series_id) => self
         .trigger_automatic_series_search(series_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::TriggerAutomaticSeasonSearch(params) => self
+        .trigger_automatic_season_search(params)
         .await
         .map(SonarrSerdeable::from),
     }
@@ -1446,6 +1452,38 @@ impl<'a, 'b> Network<'a, 'b> {
     let body = SonarrCommandBody {
       name: "SeriesSearch".to_owned(),
       series_id: Some(id),
+      ..SonarrCommandBody::default()
+    };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<SonarrCommandBody, Value>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn trigger_automatic_season_search(
+    &mut self,
+    series_season_id_tuple: Option<(i64, i64)>,
+  ) -> Result<Value> {
+    let event = SonarrEvent::TriggerAutomaticSeasonSearch(series_season_id_tuple);
+    let (series_id, season_number) =
+      if let Some((series_id, season_number)) = series_season_id_tuple {
+        (Some(series_id), Some(season_number))
+      } else {
+        (None, None)
+      };
+
+    let (series_id, _) = self.extract_series_id(series_id).await;
+    let (season_number, _) = self.extract_season_number(season_number).await;
+    info!("Searching indexers for series with ID: {series_id} and season number: {season_number}");
+
+    let body = SonarrCommandBody {
+      name: "SeasonSearch".to_owned(),
+      season_number: Some(season_number),
+      series_id: Some(series_id),
       ..SonarrCommandBody::default()
     };
 
