@@ -10,6 +10,9 @@ use list_command_handler::{SonarrListCommand, SonarrListCommandHandler};
 use manual_search_command_handler::{SonarrManualSearchCommand, SonarrManualSearchCommandHandler};
 use refresh_command_handler::{SonarrRefreshCommand, SonarrRefreshCommandHandler};
 use tokio::sync::Mutex;
+use trigger_automatic_search_command_handler::{
+  SonarrTriggerAutomaticSearchCommand, SonarrTriggerAutomaticSearchCommandHandler,
+};
 
 use crate::{
   app::App,
@@ -26,6 +29,7 @@ mod get_command_handler;
 mod list_command_handler;
 mod manual_search_command_handler;
 mod refresh_command_handler;
+mod trigger_automatic_search_command_handler;
 
 #[cfg(test)]
 #[path = "sonarr_command_tests.rs"]
@@ -65,6 +69,11 @@ pub enum SonarrCommand {
   Refresh(SonarrRefreshCommand),
   #[command(subcommand, about = "Commands to manually search for releases")]
   ManualSearch(SonarrManualSearchCommand),
+  #[command(
+    subcommand,
+    about = "Commands to trigger automatic searches for releases of different resources in your Sonarr instance"
+  )]
+  TriggerAutomaticSearch(SonarrTriggerAutomaticSearchCommand),
   #[command(about = "Clear the blocklist")]
   ClearBlocklist,
   #[command(about = "Mark the Sonarr history item with the given ID as 'failed'")]
@@ -95,37 +104,6 @@ pub enum SonarrCommand {
   },
   #[command(about = "Test all Radarr indexers")]
   TestAllIndexers,
-  #[command(about = "Trigger an automatic search for the series with the specified ID")]
-  TriggerAutomaticSeriesSearch {
-    #[arg(
-      long,
-      help = "The ID of the series you want to trigger an automatic search for",
-      required = true
-    )]
-    series_id: i64,
-  },
-  #[command(
-    about = "Trigger an automatic search for the given season corresponding to the series with the given ID"
-  )]
-  TriggerAutomaticSeasonSearch {
-    #[arg(
-      long,
-      help = "The Sonarr ID of the series whose season you wish to trigger an automatic search for",
-      required = true
-    )]
-    series_id: i64,
-    #[arg(long, help = "The season number to search for", required = true)]
-    season_number: i64,
-  },
-  #[command(about = "Trigger an automatic search for the episode with the specified ID")]
-  TriggerAutomaticEpisodeSearch {
-    #[arg(
-      long,
-      help = "The ID of the episode you want to trigger an automatic search for",
-      required = true
-    )]
-    episode_id: i64,
-  },
 }
 
 impl From<SonarrCommand> for Command {
@@ -190,6 +168,15 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
           .handle()
           .await?
       }
+      SonarrCommand::TriggerAutomaticSearch(trigger_automatic_search_command) => {
+        SonarrTriggerAutomaticSearchCommandHandler::with(
+          self.app,
+          trigger_automatic_search_command,
+          self.network,
+        )
+        .handle()
+        .await?
+      }
       SonarrCommand::ClearBlocklist => {
         self
           .network
@@ -227,32 +214,6 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
         let resp = self
           .network
           .handle_network_event(SonarrEvent::TestAllIndexers.into())
-          .await?;
-        serde_json::to_string_pretty(&resp)?
-      }
-      SonarrCommand::TriggerAutomaticSeriesSearch { series_id } => {
-        let resp = self
-          .network
-          .handle_network_event(SonarrEvent::TriggerAutomaticSeriesSearch(Some(series_id)).into())
-          .await?;
-        serde_json::to_string_pretty(&resp)?
-      }
-      SonarrCommand::TriggerAutomaticSeasonSearch {
-        series_id,
-        season_number,
-      } => {
-        let resp = self
-          .network
-          .handle_network_event(
-            SonarrEvent::TriggerAutomaticSeasonSearch(Some((series_id, season_number))).into(),
-          )
-          .await?;
-        serde_json::to_string_pretty(&resp)?
-      }
-      SonarrCommand::TriggerAutomaticEpisodeSearch { episode_id } => {
-        let resp = self
-          .network
-          .handle_network_event(SonarrEvent::TriggerAutomaticEpisodeSearch(Some(episode_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
