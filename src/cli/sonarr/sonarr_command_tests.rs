@@ -22,7 +22,9 @@ mod tests {
     use rstest::rstest;
 
     #[rstest]
-    fn test_commands_that_have_no_arg_requirements(#[values("clear-blocklist")] subcommand: &str) {
+    fn test_commands_that_have_no_arg_requirements(
+      #[values("clear-blocklist", "test-all-indexers")] subcommand: &str,
+    ) {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", subcommand]);
 
       assert!(result.is_ok());
@@ -481,6 +483,28 @@ mod tests {
       let test_indexer_command = SonarrCommand::TestIndexer { indexer_id: 1 };
 
       let result = SonarrCliHandler::with(&app_arc, test_indexer_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_test_all_indexers_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(SonarrEvent::TestAllIndexers.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let test_all_indexers_command = SonarrCommand::TestAllIndexers;
+
+      let result = SonarrCliHandler::with(&app_arc, test_all_indexers_command, &mut mock_network)
         .handle()
         .await;
 

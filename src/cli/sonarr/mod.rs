@@ -97,6 +97,8 @@ pub enum SonarrCommand {
     #[arg(long, help = "The ID of the indexer to test", required = true)]
     indexer_id: i64,
   },
+  #[command(about = "Test all Radarr indexers")]
+  TestAllIndexers,
 }
 
 impl From<SonarrCommand> for Command {
@@ -196,6 +198,14 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
         let resp = self
           .network
           .handle_network_event(SonarrEvent::TestIndexer(Some(indexer_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrCommand::TestAllIndexers => {
+        println!("Testing all Sonarr indexers. This may take a minute...");
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::TestAllIndexers.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

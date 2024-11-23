@@ -116,7 +116,7 @@ pub enum RadarrCommand {
     #[arg(long, help = "The ID of the indexer to test", required = true)]
     indexer_id: i64,
   },
-  #[command(about = "Test all indexers")]
+  #[command(about = "Test all Radarr indexers")]
   TestAllIndexers,
   #[command(about = "Trigger an automatic search for the movie with the specified ID")]
   TriggerAutomaticSearch {
@@ -243,6 +243,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrCommand> for RadarrCliHandler<'a, '
         serde_json::to_string_pretty(&resp)?
       }
       RadarrCommand::TestAllIndexers => {
+        println!("Testing all Radarr indexers. This may take a minute...");
         let resp = self
           .network
           .handle_network_event(RadarrEvent::TestAllIndexers.into())
