@@ -19,6 +19,15 @@ mod refresh_command_handler_tests;
 pub enum SonarrRefreshCommand {
   #[command(about = "Refresh all series data for all series in your Sonarr library")]
   AllSeries,
+  #[command(about = "Refresh series data and scan disk for the series with the given ID")]
+  Series {
+    #[arg(
+      long,
+      help = "The ID of the series to refresh information on and to scan the disk for",
+      required = true
+    )]
+    series_id: i64,
+  },
 }
 
 impl From<SonarrRefreshCommand> for Command {
@@ -54,6 +63,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrRefreshCommand>
         let resp = self
           .network
           .handle_network_event(SonarrEvent::UpdateAllSeries.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrRefreshCommand::Series { series_id } => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::UpdateAndScanSeries(Some(series_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
