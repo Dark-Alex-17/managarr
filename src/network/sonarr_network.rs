@@ -19,8 +19,8 @@ use crate::{
     },
     sonarr_models::{
       BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
-      SonarrCommandBody, SonarrHistoryItem, SonarrHistoryWrapper, SonarrSerdeable, SonarrTask,
-      SonarrTaskName, SystemStatus,
+      SonarrCommandBody, SonarrHistoryItem, SonarrHistoryWrapper, SonarrReleaseDownloadBody,
+      SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
     },
     stateful_table::StatefulTable,
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
@@ -44,6 +44,7 @@ pub enum SonarrEvent {
   DeleteIndexer(Option<i64>),
   DeleteRootFolder(Option<i64>),
   DeleteTag(i64),
+  DownloadRelease(SonarrReleaseDownloadBody),
   GetAllIndexerSettings,
   GetBlocklist,
   GetDownloads,
@@ -86,6 +87,7 @@ impl NetworkResource for SonarrEvent {
     match &self {
       SonarrEvent::AddTag(_) | SonarrEvent::DeleteTag(_) | SonarrEvent::GetTags => "/tag",
       SonarrEvent::ClearBlocklist => "/blocklist/bulk",
+      SonarrEvent::DownloadRelease(_) => "/release",
       SonarrEvent::DeleteBlocklistItem(_) => "/blocklist",
       SonarrEvent::GetAllIndexerSettings => "/config/indexer",
       SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
@@ -165,6 +167,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::DeleteTag(tag_id) => self
         .delete_sonarr_tag(tag_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::DownloadRelease(sonarr_release_download_body) => self
+        .download_sonarr_release(sonarr_release_download_body)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetBlocklist => self.get_sonarr_blocklist().await.map(SonarrSerdeable::from),
@@ -508,6 +514,28 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn download_sonarr_release(
+    &mut self,
+    sonarr_release_download_body: SonarrReleaseDownloadBody,
+  ) -> Result<Value> {
+    let event = SonarrEvent::DownloadRelease(sonarr_release_download_body.clone());
+    info!("Downloading Sonarr release with params: {sonarr_release_download_body:?}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Post,
+        Some(sonarr_release_download_body),
+        None,
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<SonarrReleaseDownloadBody, Value>(request_props, |_, _| ())
       .await
   }
 

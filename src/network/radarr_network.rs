@@ -10,7 +10,8 @@ use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, AddOptions, BlocklistResponse, Collection, CollectionMovie,
   Credit, CreditType, DeleteMovieParams, DownloadRecord, DownloadsResponse, EditCollectionParams,
   EditIndexerParams, EditMovieParams, IndexerSettings, IndexerTestResult, Movie, MovieCommandBody,
-  MovieHistoryItem, RadarrSerdeable, RadarrTask, RadarrTaskName, ReleaseDownloadBody, SystemStatus,
+  MovieHistoryItem, RadarrReleaseDownloadBody, RadarrSerdeable, RadarrTask, RadarrTaskName,
+  SystemStatus,
 };
 use crate::models::servarr_data::modals::IndexerTestResultModalItem;
 use crate::models::servarr_data::radarr::modals::{
@@ -44,7 +45,7 @@ pub enum RadarrEvent {
   DeleteMovie(Option<DeleteMovieParams>),
   DeleteRootFolder(Option<i64>),
   DeleteTag(i64),
-  DownloadRelease(Option<ReleaseDownloadBody>),
+  DownloadRelease(Option<RadarrReleaseDownloadBody>),
   EditAllIndexerSettings(Option<IndexerSettings>),
   EditCollection(Option<EditCollectionParams>),
   EditIndexer(Option<EditIndexerParams>),
@@ -176,7 +177,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::DownloadRelease(params) => self
-        .download_release(params)
+        .download_radarr_release(params)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::EditAllIndexerSettings(params) => self
@@ -662,10 +663,13 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn download_release(&mut self, params: Option<ReleaseDownloadBody>) -> Result<Value> {
+  async fn download_radarr_release(
+    &mut self,
+    params: Option<RadarrReleaseDownloadBody>,
+  ) -> Result<Value> {
     let event = RadarrEvent::DownloadRelease(None);
     let body = if let Some(release_download_body) = params {
-      info!("Downloading release with params: {release_download_body:?}");
+      info!("Downloading Radarr release with params: {release_download_body:?}");
       release_download_body
     } else {
       let (movie_id, _) = self.extract_movie_id(None).await;
@@ -690,7 +694,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
       info!("Downloading release: {title}");
 
-      ReleaseDownloadBody {
+      RadarrReleaseDownloadBody {
         guid,
         indexer_id,
         movie_id,
@@ -702,7 +706,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-      .handle_request::<ReleaseDownloadBody, Value>(request_props, |_, _| ())
+      .handle_request::<RadarrReleaseDownloadBody, Value>(request_props, |_, _| ())
       .await
   }
 

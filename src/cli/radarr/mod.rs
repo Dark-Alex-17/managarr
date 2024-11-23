@@ -12,7 +12,7 @@ use tokio::sync::Mutex;
 use crate::app::App;
 
 use crate::cli::CliCommandHandler;
-use crate::models::radarr_models::{RadarrTaskName, ReleaseDownloadBody};
+use crate::models::radarr_models::{RadarrReleaseDownloadBody, RadarrTaskName};
 use crate::network::radarr_network::RadarrEvent;
 use crate::network::NetworkTrait;
 use anyhow::Result;
@@ -202,7 +202,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrCommand> for RadarrCliHandler<'a, '
         indexer_id,
         movie_id,
       } => {
-        let params = ReleaseDownloadBody {
+        let params = RadarrReleaseDownloadBody {
           guid,
           indexer_id,
           movie_id,

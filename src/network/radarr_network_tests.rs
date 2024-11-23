@@ -4805,7 +4805,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_download_release_event() {
+  async fn test_handle_download_radarr_release_event() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -4843,7 +4843,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_download_release_event_uses_provided_params() {
+  async fn test_handle_download_radarr_release_event_uses_provided_params() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -4859,7 +4859,7 @@ mod test {
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-    let params = ReleaseDownloadBody {
+    let params = RadarrReleaseDownloadBody {
       guid: "1234".to_owned(),
       indexer_id: 2,
       movie_id: 1,

@@ -261,8 +261,8 @@ mod tests {
       },
       models::{
         radarr_models::{
-          BlocklistItem, BlocklistResponse, IndexerSettings, RadarrSerdeable, RadarrTaskName,
-          ReleaseDownloadBody,
+          BlocklistItem, BlocklistResponse, IndexerSettings, RadarrReleaseDownloadBody,
+          RadarrSerdeable, RadarrTaskName,
         },
         Serdeable,
       },
@@ -304,7 +304,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_download_release_command() {
-      let expected_release_download_body = ReleaseDownloadBody {
+      let expected_release_download_body = RadarrReleaseDownloadBody {
         guid: "guid".to_owned(),
         indexer_id: 1,
         movie_id: 1,

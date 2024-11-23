@@ -414,7 +414,7 @@ pub struct RatingsList {
 
 #[derive(Default, Serialize, Debug, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct ReleaseDownloadBody {
+pub struct RadarrReleaseDownloadBody {
   pub guid: String,
   pub indexer_id: i64,
   pub movie_id: i64,

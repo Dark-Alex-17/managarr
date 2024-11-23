@@ -401,6 +401,19 @@ pub struct SonarrCommandBody {
   pub episode_ids: Option<Vec<i64>>,
 }
 
+#[derive(Default, Serialize, Debug, PartialEq, Eq, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct SonarrReleaseDownloadBody {
+  pub guid: String,
+  pub indexer_id: i64,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub series_id: Option<i64>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub episode_id: Option<i64>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub season_number: Option<i64>,
+}
+
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SonarrTask {
