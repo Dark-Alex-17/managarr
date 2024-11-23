@@ -215,7 +215,7 @@ pub struct Series {
   pub ratings: Rating,
   pub ended: bool,
   pub status: SeriesStatus,
-  pub overview: String,
+  pub overview: Option<String>,
   pub network: Option<String>,
   pub season_folder: bool,
   pub certification: Option<String>,

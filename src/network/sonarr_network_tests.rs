@@ -5176,7 +5176,7 @@ mod test {
       title: "Test".to_owned().into(),
       status: SeriesStatus::Continuing,
       ended: false,
-      overview: "Blah blah blah".into(),
+      overview: Some("Blah blah blah".to_owned()),
       network: Some("HBO".to_owned()),
       seasons: Some(vec![season()]),
       year: 2022,
