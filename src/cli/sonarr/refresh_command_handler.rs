@@ -28,6 +28,8 @@ pub enum SonarrRefreshCommand {
     )]
     series_id: i64,
   },
+  #[command(about = "Refresh all downloads in Sonarr")]
+  Downloads,
 }
 
 impl From<SonarrRefreshCommand> for Command {
@@ -70,6 +72,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrRefreshCommand>
         let resp = self
           .network
           .handle_network_event(SonarrEvent::UpdateAndScanSeries(Some(series_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrRefreshCommand::Downloads => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::UpdateDownloads.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

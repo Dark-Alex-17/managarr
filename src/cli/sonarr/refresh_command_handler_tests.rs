@@ -25,7 +25,9 @@ mod tests {
     use rstest::rstest;
 
     #[rstest]
-    fn test_refresh_commands_have_no_arg_requirements(#[values("all-series")] subcommand: &str) {
+    fn test_refresh_commands_have_no_arg_requirements(
+      #[values("all-series", "downloads")] subcommand: &str,
+    ) {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "refresh", subcommand]);
 
@@ -85,6 +87,7 @@ mod tests {
 
     #[rstest]
     #[case(SonarrRefreshCommand::AllSeries, SonarrEvent::UpdateAllSeries)]
+    #[case(SonarrRefreshCommand::Downloads, SonarrEvent::UpdateDownloads)]
     #[tokio::test]
     async fn test_handle_refresh_command(
       #[case] refresh_command: SonarrRefreshCommand,
