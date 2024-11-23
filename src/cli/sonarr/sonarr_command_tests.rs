@@ -126,6 +126,44 @@ mod tests {
 
       assert!(result.is_ok());
     }
+
+    #[rstest]
+    fn test_start_task_requires_task_name() {
+      let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "start-task"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[rstest]
+    fn test_start_task_task_name_validation() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "start-task",
+        "--task-name",
+        "test",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[test]
+    fn test_start_task_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "start-task",
+        "--task-name",
+        "application-update-check",
+      ]);
+
+      assert!(result.is_ok());
+    }
   }
 
   mod handler {
@@ -146,7 +184,9 @@ mod tests {
         CliCommandHandler,
       },
       models::{
-        sonarr_models::{BlocklistItem, BlocklistResponse, Series, SonarrSerdeable},
+        sonarr_models::{
+          BlocklistItem, BlocklistResponse, Series, SonarrSerdeable, SonarrTaskName,
+        },
         Serdeable,
       },
       network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
@@ -365,6 +405,33 @@ mod tests {
       let list_series_command = SonarrCommand::List(SonarrListCommand::Series);
 
       let result = SonarrCliHandler::with(&app_arc, list_series_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_start_task_command() {
+      let expected_task_name = SonarrTaskName::ApplicationUpdateCheck;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::StartTask(Some(expected_task_name)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let start_task_command = SonarrCommand::StartTask {
+        task_name: SonarrTaskName::ApplicationUpdateCheck,
+      };
+
+      let result = SonarrCliHandler::with(&app_arc, start_task_command, &mut mock_network)
         .handle()
         .await;
 

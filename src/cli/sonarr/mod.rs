@@ -10,6 +10,7 @@ use tokio::sync::Mutex;
 
 use crate::{
   app::App,
+  models::sonarr_models::SonarrTaskName,
   network::{sonarr_network::SonarrEvent, NetworkTrait},
 };
 
@@ -78,6 +79,16 @@ pub enum SonarrCommand {
     series_id: i64,
     #[arg(long, help = "The season number to search for", required = true)]
     season_number: i64,
+  },
+  #[command(about = "Start the specified Sonarr task")]
+  StartTask {
+    #[arg(
+      long,
+      help = "The name of the task to trigger",
+      value_enum,
+      required = true
+    )]
+    task_name: SonarrTaskName,
   },
 }
 
@@ -164,6 +175,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
           .handle_network_event(
             SonarrEvent::GetSeasonReleases(Some((series_id, season_number))).into(),
           )
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrCommand::StartTask { task_name } => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::StartTask(Some(task_name)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
