@@ -60,6 +60,23 @@ pub enum SonarrDownloadCommand {
     )]
     season_number: i64,
   },
+  #[command(about = "Manually download the given episode release for the specified episode ID")]
+  Episode {
+    #[arg(long, help = "The GUID of the release to download", required = true)]
+    guid: String,
+    #[arg(
+      long,
+      help = "The indexer ID to download the release from",
+      required = true
+    )]
+    indexer_id: i64,
+    #[arg(
+      long,
+      help = "The episode ID that the release is associated with",
+      required = true
+    )]
+    episode_id: i64,
+  },
 }
 
 impl From<SonarrDownloadCommand> for Command {
@@ -119,6 +136,23 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrDownloadCommand>
           indexer_id,
           series_id: Some(series_id),
           season_number: Some(season_number),
+          ..SonarrReleaseDownloadBody::default()
+        };
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::DownloadRelease(params).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrDownloadCommand::Episode {
+        guid,
+        indexer_id,
+        episode_id,
+      } => {
+        let params = SonarrReleaseDownloadBody {
+          guid,
+          indexer_id,
+          episode_id: Some(episode_id),
           ..SonarrReleaseDownloadBody::default()
         };
         let resp = self
