@@ -396,7 +396,6 @@ pub struct SonarrTask {
   #[serde(deserialize_with = "super::from_i64")]
   pub interval: i64,
   pub last_execution: DateTime<Utc>,
-  pub last_duration: String,
   pub next_execution: DateTime<Utc>,
 }
 

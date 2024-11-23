@@ -3688,7 +3688,6 @@ mod test {
         "interval": 360,
         "lastExecution": "2023-05-20T21:29:16Z",
         "nextExecution": "2023-05-20T21:29:16Z",
-        "lastDuration": "00:00:00.5111547",
     },
     {
         "name": "Backup",
@@ -3696,7 +3695,6 @@ mod test {
         "interval": 10080,
         "lastExecution": "2023-05-20T21:29:16Z",
         "nextExecution": "2023-05-20T21:29:16Z",
-        "lastDuration": "00:00:00.5111547",
     }]);
     let response: Vec<SonarrTask> = serde_json::from_value(tasks_json.clone()).unwrap();
     let timestamp = DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap());
@@ -3707,7 +3705,6 @@ mod test {
         interval: 360,
         last_execution: timestamp,
         next_execution: timestamp,
-        last_duration: "00:00:00.5111547".to_owned(),
       },
       SonarrTask {
         name: "Backup".to_owned(),
@@ -3715,7 +3712,6 @@ mod test {
         interval: 10080,
         last_execution: timestamp,
         next_execution: timestamp,
-        last_duration: "00:00:00.5111547".to_owned(),
       },
     ];
     let (async_server, app_arc, _server) = mock_servarr_api(
