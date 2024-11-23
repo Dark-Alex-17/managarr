@@ -19,8 +19,8 @@ use crate::{
     },
     sonarr_models::{
       BlocklistResponse, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
-      SonarrHistoryItem, SonarrHistoryWrapper, SonarrSerdeable, SonarrTask, SonarrTaskName,
-      SystemStatus,
+      SonarrCommandBody, SonarrHistoryItem, SonarrHistoryWrapper, SonarrSerdeable, SonarrTask,
+      SonarrTaskName, SystemStatus,
     },
     stateful_table::StatefulTable,
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
@@ -73,6 +73,7 @@ pub enum SonarrEvent {
   StartTask(Option<SonarrTaskName>),
   TestIndexer(Option<i64>),
   TestAllIndexers,
+  TriggerAutomaticSeriesSearch(Option<i64>),
 }
 
 impl NetworkResource for SonarrEvent {
@@ -91,7 +92,9 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetDiskSpace => "/diskspace",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
-      SonarrEvent::GetQueuedEvents => "/command",
+      SonarrEvent::GetQueuedEvents
+      | SonarrEvent::StartTask(_)
+      | SonarrEvent::TriggerAutomaticSeriesSearch(_) => "/command",
       SonarrEvent::GetRootFolders
       | SonarrEvent::DeleteRootFolder(_)
       | SonarrEvent::AddRootFolder(_) => "/rootfolder",
@@ -103,7 +106,6 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::HealthCheck => "/health",
       SonarrEvent::ListSeries | SonarrEvent::GetSeriesDetails(_) => "/series",
       SonarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
-      SonarrEvent::StartTask(_) => "/command",
       SonarrEvent::TestIndexer(_) => "/indexer/test",
       SonarrEvent::TestAllIndexers => "/indexer/testall",
     }
@@ -238,6 +240,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::TestAllIndexers => self
         .test_all_sonarr_indexers()
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::TriggerAutomaticSeriesSearch(series_id) => self
+        .trigger_automatic_series_search(series_id)
         .await
         .map(SonarrSerdeable::from),
     }
@@ -1430,6 +1436,25 @@ impl<'a, 'b> Network<'a, 'b> {
         test_all_indexer_results.set_items(modal_test_results);
         app.data.sonarr_data.indexer_test_all_results = Some(test_all_indexer_results);
       })
+      .await
+  }
+
+  async fn trigger_automatic_series_search(&mut self, series_id: Option<i64>) -> Result<Value> {
+    let event = SonarrEvent::TriggerAutomaticSeriesSearch(series_id);
+    let (id, _) = self.extract_series_id(series_id).await;
+    info!("Searching indexers for series with ID: {id}");
+    let body = SonarrCommandBody {
+      name: "SeriesSearch".to_owned(),
+      series_id: Some(id),
+      ..SonarrCommandBody::default()
+    };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<SonarrCommandBody, Value>(request_props, |_, _| ())
       .await
   }
 

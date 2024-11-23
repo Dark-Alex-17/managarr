@@ -1162,7 +1162,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_trigger_automatic_search_event() {
+  async fn test_handle_trigger_automatic_movie_search_event() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -1194,7 +1194,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_trigger_automatic_search_event_uses_provided_id() {
+  async fn test_handle_trigger_automatic_movie_search_event_uses_provided_id() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({

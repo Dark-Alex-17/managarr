@@ -389,6 +389,18 @@ pub struct SonarrHistoryItem {
   pub data: SonarrHistoryData,
 }
 
+#[derive(Default, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SonarrCommandBody {
+  pub name: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub series_id: Option<i64>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub season_number: Option<i64>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub episode_ids: Option<Vec<i64>>,
+}
+
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SonarrTask {

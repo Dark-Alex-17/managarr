@@ -264,7 +264,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::TriggerAutomaticSearch(movie_id) => self
-        .trigger_automatic_search(movie_id)
+        .trigger_automatic_movie_search(movie_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::UpdateAllMovies => self.update_all_movies().await.map(RadarrSerdeable::from),
@@ -2145,8 +2145,8 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn trigger_automatic_search(&mut self, movie_id: Option<i64>) -> Result<Value> {
-    let event = RadarrEvent::TriggerAutomaticSearch(None);
+  async fn trigger_automatic_movie_search(&mut self, movie_id: Option<i64>) -> Result<Value> {
+    let event = RadarrEvent::TriggerAutomaticSearch(movie_id);
     let (id, _) = self.extract_movie_id(movie_id).await;
     info!("Searching indexers for movie with ID: {id}");
     let body = MovieCommandBody {
