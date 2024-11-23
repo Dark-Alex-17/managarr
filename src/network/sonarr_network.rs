@@ -76,6 +76,7 @@ pub enum SonarrEvent {
   TriggerAutomaticEpisodeSearch(Option<i64>),
   TriggerAutomaticSeasonSearch(Option<(i64, i64)>),
   TriggerAutomaticSeriesSearch(Option<i64>),
+  UpdateAllSeries,
 }
 
 impl NetworkResource for SonarrEvent {
@@ -98,7 +99,8 @@ impl NetworkResource for SonarrEvent {
       | SonarrEvent::StartTask(_)
       | SonarrEvent::TriggerAutomaticSeriesSearch(_)
       | SonarrEvent::TriggerAutomaticSeasonSearch(_)
-      | SonarrEvent::TriggerAutomaticEpisodeSearch(_) => "/command",
+      | SonarrEvent::TriggerAutomaticEpisodeSearch(_)
+      | SonarrEvent::UpdateAllSeries => "/command",
       SonarrEvent::GetRootFolders
       | SonarrEvent::DeleteRootFolder(_)
       | SonarrEvent::AddRootFolder(_) => "/rootfolder",
@@ -258,6 +260,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .trigger_automatic_episode_search(episode_id)
         .await
         .map(SonarrSerdeable::from),
+      SonarrEvent::UpdateAllSeries => self.update_all_series().await.map(SonarrSerdeable::from),
     }
   }
 
@@ -1511,6 +1514,23 @@ impl<'a, 'b> Network<'a, 'b> {
     let body = SonarrCommandBody {
       name: "EpisodeSearch".to_owned(),
       episode_ids: Some(vec![id]),
+      ..SonarrCommandBody::default()
+    };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<SonarrCommandBody, Value>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn update_all_series(&mut self) -> Result<Value> {
+    info!("Updating all series");
+    let event = SonarrEvent::UpdateAllSeries;
+    let body = SonarrCommandBody {
+      name: "RefreshSeries".to_owned(),
       ..SonarrCommandBody::default()
     };
 

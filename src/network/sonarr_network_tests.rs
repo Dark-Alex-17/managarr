@@ -168,7 +168,8 @@ mod test {
       SonarrEvent::StartTask(None),
       SonarrEvent::TriggerAutomaticEpisodeSearch(None),
       SonarrEvent::TriggerAutomaticSeasonSearch(None),
-      SonarrEvent::TriggerAutomaticSeriesSearch(None)
+      SonarrEvent::TriggerAutomaticSeriesSearch(None),
+      SonarrEvent::UpdateAllSeries
     )]
     event: SonarrEvent,
   ) {
@@ -4489,6 +4490,30 @@ mod test {
 
     assert!(network
       .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeriesSearch(Some(1)))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_update_all_series_event() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "RefreshSeries",
+      })),
+      Some(json!({})),
+      None,
+      SonarrEvent::UpdateAllSeries,
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::UpdateAllSeries)
       .await
       .is_ok());
 
