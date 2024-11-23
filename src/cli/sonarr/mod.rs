@@ -90,6 +90,13 @@ pub enum SonarrCommand {
     )]
     task_name: SonarrTaskName,
   },
+  #[command(
+    about = "Test the indexer with the given ID. Note that a successful test returns an empty JSON body; i.e. '{}'"
+  )]
+  TestIndexer {
+    #[arg(long, help = "The ID of the indexer to test", required = true)]
+    indexer_id: i64,
+  },
 }
 
 impl From<SonarrCommand> for Command {
@@ -182,6 +189,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
         let resp = self
           .network
           .handle_network_event(SonarrEvent::StartTask(Some(task_name)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrCommand::TestIndexer { indexer_id } => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::TestIndexer(Some(indexer_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
