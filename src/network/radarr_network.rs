@@ -269,7 +269,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(RadarrSerdeable::from),
       RadarrEvent::UpdateAllMovies => self.update_all_movies().await.map(RadarrSerdeable::from),
       RadarrEvent::UpdateAndScan(movie_id) => self
-        .update_and_scan(movie_id)
+        .update_and_scan_movie(movie_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::UpdateCollections => self.update_collections().await.map(RadarrSerdeable::from),
@@ -2180,7 +2180,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn update_and_scan(&mut self, movie_id: Option<i64>) -> Result<Value> {
+  async fn update_and_scan_movie(&mut self, movie_id: Option<i64>) -> Result<Value> {
     let (id, _) = self.extract_movie_id(movie_id).await;
     let event = RadarrEvent::UpdateAndScan(None);
     info!("Updating and scanning movie with ID: {id}");

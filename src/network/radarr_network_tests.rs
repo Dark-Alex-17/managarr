@@ -1219,7 +1219,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_update_and_scan_event() {
+  async fn test_handle_update_and_scan_movie_event() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -1251,7 +1251,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_update_and_scan_event_uses_provied_movie_id() {
+  async fn test_handle_update_and_scan_movie_event_uses_provied_movie_id() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
