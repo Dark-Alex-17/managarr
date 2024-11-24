@@ -1807,6 +1807,7 @@ mod tests {
         id: 3,
         title: "test 1".into(),
         original_language: Language {
+          id: 1,
           name: "English".to_owned(),
         },
         size_on_disk: 1024,
@@ -1823,6 +1824,7 @@ mod tests {
         id: 2,
         title: "test 2".into(),
         original_language: Language {
+          id: 2,
           name: "Chinese".to_owned(),
         },
         size_on_disk: 2048,
@@ -1839,6 +1841,7 @@ mod tests {
         id: 1,
         title: "test 3".into(),
         original_language: Language {
+          id: 3,
           name: "Japanese".to_owned(),
         },
         size_on_disk: 512,

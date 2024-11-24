@@ -6,13 +6,13 @@ mod tests {
   use crate::models::{
     radarr_models::IndexerTestResult,
     servarr_models::{
-      DiskSpace, HostConfig, Indexer, Log, LogResponse, QualityProfile, QueueEvent, RootFolder,
-      SecurityConfig, Tag, Update,
+      DiskSpace, HostConfig, Indexer, Language, Log, LogResponse, QualityProfile, QueueEvent,
+      RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
       BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode,
-      IndexerSettings, Series, SeriesStatus, SeriesType, SonarrHistoryEventType, SonarrHistoryItem,
-      SonarrRelease, SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
+      IndexerSettings, Series, SeriesMonitor, SeriesStatus, SeriesType, SonarrHistoryEventType,
+      SonarrHistoryItem, SonarrRelease, SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
     },
     EnumDisplayStyle, Serdeable,
   };
@@ -26,6 +26,66 @@ mod tests {
 
     assert_str_eq!(Episode::default().to_string(), "");
     assert_str_eq!(episode.to_string(), "Test Title");
+  }
+
+  #[test]
+  fn test_series_monitor_display() {
+    assert_str_eq!(SeriesMonitor::Unknown.to_string(), "unknown");
+    assert_str_eq!(SeriesMonitor::All.to_string(), "all");
+    assert_str_eq!(SeriesMonitor::Future.to_string(), "future");
+    assert_str_eq!(SeriesMonitor::Missing.to_string(), "missing");
+    assert_str_eq!(SeriesMonitor::Existing.to_string(), "existing");
+    assert_str_eq!(SeriesMonitor::FirstSeason.to_string(), "firstSeason");
+    assert_str_eq!(SeriesMonitor::LastSeason.to_string(), "lastSeason");
+    assert_str_eq!(SeriesMonitor::LatestSeason.to_string(), "latestSeason");
+    assert_str_eq!(SeriesMonitor::Pilot.to_string(), "pilot");
+    assert_str_eq!(SeriesMonitor::Recent.to_string(), "recent");
+    assert_str_eq!(
+      SeriesMonitor::MonitorSpecials.to_string(),
+      "monitorSpecials"
+    );
+    assert_str_eq!(
+      SeriesMonitor::UnmonitorSpecials.to_string(),
+      "unmonitorSpecials"
+    );
+    assert_str_eq!(SeriesMonitor::None.to_string(), "none");
+    assert_str_eq!(SeriesMonitor::Skip.to_string(), "skip");
+  }
+
+  #[test]
+  fn test_series_monitor_to_display_str() {
+    assert_str_eq!(SeriesMonitor::Unknown.to_display_str(), "Unknown");
+    assert_str_eq!(SeriesMonitor::All.to_display_str(), "All Episodes");
+    assert_str_eq!(SeriesMonitor::Future.to_display_str(), "Future Episodes");
+    assert_str_eq!(SeriesMonitor::Missing.to_display_str(), "Missing Episodes");
+    assert_str_eq!(
+      SeriesMonitor::Existing.to_display_str(),
+      "Existing Episodes"
+    );
+    assert_str_eq!(
+      SeriesMonitor::FirstSeason.to_display_str(),
+      "Only First Season"
+    );
+    assert_str_eq!(
+      SeriesMonitor::LastSeason.to_display_str(),
+      "Only Last Season"
+    );
+    assert_str_eq!(
+      SeriesMonitor::LatestSeason.to_display_str(),
+      "Only Latest Season"
+    );
+    assert_str_eq!(SeriesMonitor::Pilot.to_display_str(), "Pilot Episode");
+    assert_str_eq!(SeriesMonitor::Recent.to_display_str(), "Recent Episodes");
+    assert_str_eq!(
+      SeriesMonitor::MonitorSpecials.to_display_str(),
+      "Only Specials"
+    );
+    assert_str_eq!(
+      SeriesMonitor::UnmonitorSpecials.to_display_str(),
+      "Not Specials"
+    );
+    assert_str_eq!(SeriesMonitor::None.to_display_str(), "None");
+    assert_str_eq!(SeriesMonitor::Skip.to_display_str(), "Skip");
   }
 
   #[test]
@@ -310,6 +370,27 @@ mod tests {
     let sonarr_serdeable: SonarrSerdeable = disk_spaces.clone().into();
 
     assert_eq!(sonarr_serdeable, SonarrSerdeable::DiskSpaces(disk_spaces));
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_language_profiles() {
+    let language_profiles = vec![
+      Language {
+        id: 1,
+        name: "English".to_owned(),
+      },
+      Language {
+        id: 2,
+        name: "Japanese".to_owned(),
+      },
+    ];
+
+    let sonarr_serdeable: SonarrSerdeable = language_profiles.clone().into();
+
+    assert_eq!(
+      sonarr_serdeable,
+      SonarrSerdeable::LanguageProfiles(language_profiles)
+    );
   }
 
   #[test]

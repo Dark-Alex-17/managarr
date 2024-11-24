@@ -1987,6 +1987,7 @@ mod tests {
   fn test_releases_sorting_options_language() {
     let expected_cmp_fn: fn(&RadarrRelease, &RadarrRelease) -> Ordering = |a, b| {
       let default_language_vec = vec![Language {
+        id: 1,
         name: "_".to_owned(),
       }];
       let language_a = &a.languages.as_ref().unwrap_or(&default_language_vec)[0];
@@ -2191,6 +2192,7 @@ mod tests {
       rejected: true,
       seeders: Some(Number::from(1)),
       languages: Some(vec![Language {
+        id: 1,
         name: "Language A".to_owned(),
       }]),
       quality: QualityWrapper {
@@ -2209,6 +2211,7 @@ mod tests {
       rejected: false,
       seeders: Some(Number::from(2)),
       languages: Some(vec![Language {
+        id: 2,
         name: "Language B".to_owned(),
       }]),
       quality: QualityWrapper {

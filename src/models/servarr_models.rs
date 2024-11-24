@@ -136,6 +136,8 @@ pub struct IndexerField {
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Language {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
   pub name: String,
 }
 

@@ -34,6 +34,7 @@ mod test {
         "title": "Test",
         "tmdbId": 1234,
         "originalLanguage": {
+          "id": 1,
           "name": "English"
         },
         "sizeOnDisk": 3543348019,
@@ -499,7 +500,7 @@ mod test {
       "rejections": [ "Unknown quality profile", "Release is already mapped" ],
       "seeders": 2,
       "leechers": 1,
-      "languages": [ { "name": "English" } ],
+      "languages": [ { "id": 1, "name": "English" } ],
       "quality": { "quality": { "name": "HD - 1080p" }}
     }]);
     let (async_server, app_arc, _server) = mock_servarr_api(
@@ -559,7 +560,7 @@ mod test {
       "rejections": [ "Unknown quality profile", "Release is already mapped" ],
       "seeders": 2,
       "leechers": 1,
-      "languages": [ { "name": "English" } ],
+      "languages": [ { "id": 1, "name": "English" } ],
       "quality": { "quality": { "name": "HD - 1080p" }}
     }]);
     let (async_server, app_arc, _server) = mock_servarr_api(
@@ -607,7 +608,7 @@ mod test {
     let add_movie_search_result_json = json!([{
       "tmdbId": 1234,
       "title": "Test",
-      "originalLanguage": { "name": "English" },
+      "originalLanguage": { "id": 1, "name": "English" },
       "status": "released",
       "overview": "New movie blah blah blah",
       "genres": ["cool", "family", "fun"],
@@ -672,7 +673,7 @@ mod test {
     let add_movie_search_result_json = json!([{
       "tmdbId": 1234,
       "title": "Test",
-      "originalLanguage": { "name": "English" },
+      "originalLanguage": { "id": 1, "name": "English" },
       "status": "released",
       "overview": "New movie blah blah blah",
       "genres": ["cool", "family", "fun"],
@@ -1474,6 +1475,7 @@ mod test {
       "id": 1,
       "title": "Test",
       "originalLanguage": {
+        "id": 1,
         "name": "English"
       },
       "sizeOnDisk": 0,
@@ -1559,7 +1561,7 @@ mod test {
     let movie_history_item_json = json!([{
       "sourceTitle": "Test",
       "quality": { "quality": { "name": "HD - 1080p" }},
-      "languages": [ { "name": "English" } ],
+      "languages": [ { "id": 1, "name": "English" } ],
       "date": "2022-12-30T07:37:56Z",
       "eventType": "grabbed"
     }]);
@@ -1613,7 +1615,7 @@ mod test {
     let movie_history_item_json = json!([{
       "sourceTitle": "Test",
       "quality": { "quality": { "name": "HD - 1080p" }},
-      "languages": [ { "name": "English" } ],
+      "languages": [ { "id": 1, "name": "English" } ],
       "date": "2022-12-30T07:37:56Z",
       "eventType": "grabbed"
     }]);
@@ -1646,7 +1648,7 @@ mod test {
     let movie_history_item_json = json!([{
       "sourceTitle": "Test",
       "quality": { "quality": { "name": "HD - 1080p" }},
-      "languages": [ { "name": "English" } ],
+      "languages": [ { "id": 1, "name": "English" } ],
       "date": "2022-12-30T07:37:56Z",
       "eventType": "grabbed"
     }]);
@@ -1697,9 +1699,9 @@ mod test {
         "id": 123,
         "movieId": 1007,
         "sourceTitle": "z movie",
-        "languages": [{"name": "English"}],
+        "languages": [{"id": 1, "name": "English"}],
         "quality": {"quality": {"name": "HD - 1080p"}},
-        "customFormats": [{"name": "English"}],
+        "customFormats": [{"id": 1, "name": "English"}],
         "date": "2024-02-10T07:28:45Z",
         "protocol": "usenet",
         "indexer": "DrunkenSlug (Prowlarr)",
@@ -1708,7 +1710,7 @@ mod test {
           "id": 1007,
           "title": "z movie",
           "tmdbId": 1234,
-          "originalLanguage": {"name": "English"},
+          "originalLanguage": {"id": 1, "name": "English"},
           "sizeOnDisk": 3543348019i64,
           "status": "Downloaded",
           "overview": "Blah blah blah",
@@ -1733,9 +1735,9 @@ mod test {
         "id": 456,
         "movieId": 2001,
         "sourceTitle": "A Movie",
-        "languages": [{"name": "English"}],
+        "languages": [{"id": 1, "name": "English"}],
         "quality": {"quality": {"name": "HD - 1080p"}},
-        "customFormats": [{"name": "English"}],
+        "customFormats": [{"id": 1, "name": "English"}],
         "date": "2024-02-10T07:28:45Z",
         "protocol": "usenet",
         "indexer": "DrunkenSlug (Prowlarr)",
@@ -1744,7 +1746,7 @@ mod test {
           "id": 2001,
           "title": "A Movie",
           "tmdbId": 1234,
-          "originalLanguage": {"name": "English"},
+          "originalLanguage": {"id": 1, "name": "English"},
           "sizeOnDisk": 3543348019i64,
           "status": "Downloaded",
           "overview": "Blah blah blah",
@@ -1841,9 +1843,9 @@ mod test {
         "id": 123,
         "movieId": 1007,
         "sourceTitle": "z movie",
-        "languages": [{"name": "English"}],
+        "languages": [{"id": 1, "name": "English"}],
         "quality": {"quality": {"name": "HD - 1080p"}},
-        "customFormats": [{"name": "English"}],
+        "customFormats": [{"id": 1, "name": "English"}],
         "date": "2024-02-10T07:28:45Z",
         "protocol": "usenet",
         "indexer": "DrunkenSlug (Prowlarr)",
@@ -1852,7 +1854,7 @@ mod test {
           "id": 1007,
           "title": "z movie",
           "tmdbId": 1234,
-          "originalLanguage": {"name": "English"},
+          "originalLanguage": {"id": 1, "name": "English"},
           "sizeOnDisk": 3543348019i64,
           "status": "Downloaded",
           "overview": "Blah blah blah",
@@ -1877,9 +1879,9 @@ mod test {
         "id": 456,
         "movieId": 2001,
         "sourceTitle": "A Movie",
-        "languages": [{"name": "English"}],
+        "languages": [{"id": 1, "name": "English"}],
         "quality": {"quality": {"name": "HD - 1080p"}},
-        "customFormats": [{"name": "English"}],
+        "customFormats": [{"id": 1, "name": "English"}],
         "date": "2024-02-10T07:28:45Z",
         "protocol": "usenet",
         "indexer": "DrunkenSlug (Prowlarr)",
@@ -1888,7 +1890,7 @@ mod test {
           "id": 2001,
           "title": "A Movie",
           "tmdbId": 1234,
-          "originalLanguage": {"name": "English"},
+          "originalLanguage": {"id": 1, "name": "English"},
           "sizeOnDisk": 3543348019i64,
           "status": "Downloaded",
           "overview": "Blah blah blah",
@@ -5076,6 +5078,7 @@ mod test {
 
   fn language() -> Language {
     Language {
+      id: 1,
       name: "English".to_owned(),
     }
   }

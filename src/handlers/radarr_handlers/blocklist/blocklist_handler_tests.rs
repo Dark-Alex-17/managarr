@@ -959,6 +959,7 @@ mod tests {
         id: 3,
         source_title: "test 1".to_owned(),
         languages: vec![Language {
+          id: 1,
           name: "telgu".to_owned(),
         }],
         quality: QualityWrapper {
@@ -967,6 +968,7 @@ mod tests {
           },
         },
         custom_formats: Some(vec![Language {
+          id: 2,
           name: "nikki".to_owned(),
         }]),
         date: DateTime::from(DateTime::parse_from_rfc3339("2024-01-10T07:28:45Z").unwrap()),
@@ -979,6 +981,7 @@ mod tests {
         id: 2,
         source_title: "test 2".to_owned(),
         languages: vec![Language {
+          id: 3,
           name: "chinese".to_owned(),
         }],
         quality: QualityWrapper {
@@ -988,9 +991,11 @@ mod tests {
         },
         custom_formats: Some(vec![
           Language {
+            id: 4,
             name: "alex".to_owned(),
           },
           Language {
+            id: 5,
             name: "English".to_owned(),
           },
         ]),
@@ -1004,6 +1009,7 @@ mod tests {
         id: 1,
         source_title: "test 3".to_owned(),
         languages: vec![Language {
+          id: 1,
           name: "english".to_owned(),
         }],
         quality: QualityWrapper {
@@ -1012,6 +1018,7 @@ mod tests {
           },
         },
         custom_formats: Some(vec![Language {
+          id: 2,
           name: "English".to_owned(),
         }]),
         date: DateTime::from(DateTime::parse_from_rfc3339("2024-03-10T07:28:45Z").unwrap()),

@@ -22,6 +22,28 @@ use super::{
 #[path = "sonarr_models_tests.rs"]
 mod sonarr_models_tests;
 
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AddSeriesBody {
+  pub tvdb_id: i64,
+  pub title: String,
+  pub root_folder_path: String,
+  pub quality_profile_id: i64,
+  pub series_type: SeriesType,
+  pub season_folder: bool,
+  pub language_profile_id: i64,
+  pub tags: Vec<i64>,
+  pub add_options: AddSeriesOptions,
+}
+
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AddSeriesOptions {
+  pub monitor: SeriesMonitor,
+  pub search_for_cutoff_unmet_episodes: bool,
+  pub search_for_missing_episodes: bool,
+}
+
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct BlocklistItem {
@@ -229,6 +251,71 @@ pub struct Series {
   pub certification: Option<String>,
   pub statistics: Option<SeriesStatistics>,
   pub seasons: Option<Vec<Season>>,
+}
+
+#[derive(
+  Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, ValueEnum,
+)]
+#[serde(rename_all = "camelCase")]
+pub enum SeriesMonitor {
+  Unknown,
+  #[default]
+  All,
+  Future,
+  Missing,
+  Existing,
+  FirstSeason,
+  LastSeason,
+  LatestSeason,
+  Pilot,
+  Recent,
+  MonitorSpecials,
+  UnmonitorSpecials,
+  None,
+  Skip,
+}
+
+impl Display for SeriesMonitor {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    let series_monitor = match self {
+      SeriesMonitor::Unknown => "unknown",
+      SeriesMonitor::All => "all",
+      SeriesMonitor::Future => "future",
+      SeriesMonitor::Missing => "missing",
+      SeriesMonitor::Existing => "existing",
+      SeriesMonitor::FirstSeason => "firstSeason",
+      SeriesMonitor::LastSeason => "lastSeason",
+      SeriesMonitor::LatestSeason => "latestSeason",
+      SeriesMonitor::Pilot => "pilot",
+      SeriesMonitor::Recent => "recent",
+      SeriesMonitor::MonitorSpecials => "monitorSpecials",
+      SeriesMonitor::UnmonitorSpecials => "unmonitorSpecials",
+      SeriesMonitor::None => "none",
+      SeriesMonitor::Skip => "skip",
+    };
+    write!(f, "{series_monitor}")
+  }
+}
+
+impl<'a> EnumDisplayStyle<'a> for SeriesMonitor {
+  fn to_display_str(self) -> &'a str {
+    match self {
+      SeriesMonitor::Unknown => "Unknown",
+      SeriesMonitor::All => "All Episodes",
+      SeriesMonitor::Future => "Future Episodes",
+      SeriesMonitor::Missing => "Missing Episodes",
+      SeriesMonitor::Existing => "Existing Episodes",
+      SeriesMonitor::FirstSeason => "Only First Season",
+      SeriesMonitor::LastSeason => "Only Last Season",
+      SeriesMonitor::LatestSeason => "Only Latest Season",
+      SeriesMonitor::Pilot => "Pilot Episode",
+      SeriesMonitor::Recent => "Recent Episodes",
+      SeriesMonitor::MonitorSpecials => "Only Specials",
+      SeriesMonitor::UnmonitorSpecials => "Not Specials",
+      SeriesMonitor::None => "None",
+      SeriesMonitor::Skip => "Skip",
+    }
+  }
 }
 
 #[derive(
@@ -494,6 +581,7 @@ pub enum SonarrSerdeable {
   IndexerSettings(IndexerSettings),
   Indexers(Vec<Indexer>),
   IndexerTestResults(Vec<IndexerTestResult>),
+  LanguageProfiles(Vec<Language>),
   LogResponse(LogResponse),
   QualityProfiles(Vec<QualityProfile>),
   QueueEvents(Vec<QueueEvent>),
@@ -535,6 +623,7 @@ serde_enum_from!(
     IndexerSettings(IndexerSettings),
     Indexers(Vec<Indexer>),
     IndexerTestResults(Vec<IndexerTestResult>),
+    LanguageProfiles(Vec<Language>),
     LogResponse(LogResponse),
     QualityProfiles(Vec<QualityProfile>),
     QueueEvents(Vec<QueueEvent>),

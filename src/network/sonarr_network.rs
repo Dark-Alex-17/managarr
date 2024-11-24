@@ -14,8 +14,8 @@ use crate::{
       },
     },
     servarr_models::{
-      AddRootFolderBody, CommandBody, DiskSpace, HostConfig, Indexer, LogResponse, QualityProfile,
-      QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+      AddRootFolderBody, CommandBody, DiskSpace, HostConfig, Indexer, Language, LogResponse,
+      QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
       BlocklistResponse, DeleteSeriesParams, DownloadRecord, DownloadsResponse, Episode,
@@ -56,6 +56,7 @@ pub enum SonarrEvent {
   GetEpisodeDetails(Option<i64>),
   GetEpisodes(Option<i64>),
   GetEpisodeHistory(Option<i64>),
+  GetLanguageProfiles,
   GetLogs(Option<u64>),
   GetDiskSpace,
   GetQualityProfiles,
@@ -98,6 +99,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetHistory(_) | SonarrEvent::GetEpisodeHistory(_) => "/history",
       SonarrEvent::GetHostConfig | SonarrEvent::GetSecurityConfig => "/config/host",
       SonarrEvent::GetIndexers | SonarrEvent::DeleteIndexer(_) => "/indexer",
+      SonarrEvent::GetLanguageProfiles => "/languageprofile",
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetDiskSpace => "/diskspace",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
@@ -203,6 +205,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetIndexers => self.get_sonarr_indexers().await.map(SonarrSerdeable::from),
+      SonarrEvent::GetLanguageProfiles => self
+        .get_sonarr_language_profiles()
+        .await
+        .map(SonarrSerdeable::from),
       SonarrEvent::GetLogs(events) => self
         .get_sonarr_logs(events)
         .await
@@ -947,6 +953,24 @@ impl<'a, 'b> Network<'a, 'b> {
     self
       .handle_request::<(), Vec<Indexer>>(request_props, |indexers, mut app| {
         app.data.sonarr_data.indexers.set_items(indexers);
+      })
+      .await
+  }
+
+  async fn get_sonarr_language_profiles(&mut self) -> Result<Vec<Language>> {
+    info!("Fetching Sonarr language profiles");
+    let event = SonarrEvent::GetLanguageProfiles;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), Vec<Language>>(request_props, |language_profiles_vec, mut app| {
+        app.data.sonarr_data.language_profiles_map = language_profiles_vec
+          .into_iter()
+          .map(|language| (language.id, language.name))
+          .collect();
       })
       .await
   }

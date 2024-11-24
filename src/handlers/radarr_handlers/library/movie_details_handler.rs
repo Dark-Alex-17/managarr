@@ -561,6 +561,7 @@ fn releases_sorting_options() -> Vec<SortOption<RadarrRelease>> {
       name: "Language",
       cmp_fn: Some(|a, b| {
         let default_language_vec = vec![Language {
+          id: 1,
           name: "_".to_owned(),
         }];
         let language_a = &a.languages.as_ref().unwrap_or(&default_language_vec)[0];
