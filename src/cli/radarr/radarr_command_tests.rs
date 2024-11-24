@@ -129,7 +129,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_search_new_movie_requires_query() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "search-new-movie"]);
 
@@ -153,7 +153,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_start_task_requires_task_name() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "start-task"]);
 

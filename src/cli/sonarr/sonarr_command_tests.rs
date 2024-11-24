@@ -58,6 +58,30 @@ mod tests {
     }
 
     #[test]
+    fn test_search_new_series_requires_query() {
+      let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "search-new-series"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_search_new_series_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "search-new-series",
+        "--query",
+        "halo",
+      ]);
+
+      assert!(result.is_ok());
+    }
+
+    #[test]
     fn test_start_task_requires_task_name() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "start-task"]);
 
@@ -428,6 +452,33 @@ mod tests {
         SonarrCommand::Refresh(SonarrRefreshCommand::Series { series_id: 1 });
 
       let result = SonarrCliHandler::with(&app_arc, refresh_series_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_search_new_series_command() {
+      let expected_search_query = "halo".to_owned();
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::SearchNewSeries(Some(expected_search_query)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let search_new_series_command = SonarrCommand::SearchNewSeries {
+        query: "halo".to_owned(),
+      };
+
+      let result = SonarrCliHandler::with(&app_arc, search_new_series_command, &mut mock_network)
         .handle()
         .await;
 

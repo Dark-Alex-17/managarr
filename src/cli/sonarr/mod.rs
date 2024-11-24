@@ -85,6 +85,15 @@ pub enum SonarrCommand {
     )]
     history_item_id: i64,
   },
+  #[command(about = "Search for a new series to add to Sonarr")]
+  SearchNewSeries {
+    #[arg(
+      long,
+      help = "The title of the series you want to search for",
+      required = true
+    )]
+    query: String,
+  },
   #[command(about = "Start the specified Sonarr task")]
   StartTask {
     #[arg(
@@ -194,6 +203,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
           .handle_network_event(SonarrEvent::MarkHistoryItemAsFailed(history_item_id).into())
           .await?;
         "Sonarr history item marked as 'failed'".to_owned()
+      }
+      SonarrCommand::SearchNewSeries { query } => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::SearchNewSeries(Some(query)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       SonarrCommand::StartTask { task_name } => {
         let resp = self
