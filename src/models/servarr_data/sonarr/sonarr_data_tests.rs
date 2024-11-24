@@ -49,6 +49,9 @@ mod tests {
       let sonarr_data = SonarrData::default();
 
       assert!(!sonarr_data.add_list_exclusion);
+      assert!(sonarr_data.add_searched_series.is_none());
+      assert!(sonarr_data.add_series_search.is_none());
+      assert!(sonarr_data.add_series_modal.is_none());
       assert!(sonarr_data.blocklist.is_empty());
       assert!(!sonarr_data.delete_series_files);
       assert!(sonarr_data.downloads.is_empty());

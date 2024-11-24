@@ -6,14 +6,15 @@ use crate::models::{
   servarr_data::modals::IndexerTestResultModalItem,
   servarr_models::{DiskSpace, Indexer, QueueEvent, RootFolder},
   sonarr_models::{
-    BlocklistItem, DownloadRecord, IndexerSettings, Season, Series, SonarrHistoryItem, SonarrTask,
+    AddSeriesSearchResult, BlocklistItem, DownloadRecord, IndexerSettings, Season, Series,
+    SonarrHistoryItem, SonarrTask,
   },
   stateful_list::StatefulList,
   stateful_table::StatefulTable,
   HorizontallyScrollableText, Route, ScrollableText,
 };
 
-use super::modals::SeasonDetailsModal;
+use super::modals::{AddSeriesModal, SeasonDetailsModal};
 
 #[cfg(test)]
 #[path = "sonarr_data_tests.rs"]
@@ -21,6 +22,9 @@ mod sonarr_data_tests;
 
 pub struct SonarrData {
   pub add_list_exclusion: bool,
+  pub add_searched_series: Option<StatefulTable<AddSeriesSearchResult>>,
+  pub add_series_modal: Option<AddSeriesModal>,
+  pub add_series_search: Option<HorizontallyScrollableText>,
   pub blocklist: StatefulTable<BlocklistItem>,
   pub delete_series_files: bool,
   pub downloads: StatefulTable<DownloadRecord>,
@@ -58,6 +62,9 @@ impl Default for SonarrData {
   fn default() -> SonarrData {
     SonarrData {
       add_list_exclusion: false,
+      add_searched_series: None,
+      add_series_search: None,
+      add_series_modal: None,
       blocklist: StatefulTable::default(),
       downloads: StatefulTable::default(),
       delete_series_files: false,

@@ -9,7 +9,7 @@ use crate::{
     servarr_data::{
       modals::IndexerTestResultModalItem,
       sonarr::{
-        modals::{EpisodeDetailsModal, SeasonDetailsModal},
+        modals::{AddSeriesModal, EpisodeDetailsModal, SeasonDetailsModal},
         sonarr_data::ActiveSonarrBlock,
       },
     },
@@ -18,10 +18,10 @@ use crate::{
       QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
-      BlocklistResponse, DeleteSeriesParams, DownloadRecord, DownloadsResponse, Episode,
-      IndexerSettings, Series, SonarrCommandBody, SonarrHistoryItem, SonarrHistoryWrapper,
-      SonarrRelease, SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTask, SonarrTaskName,
-      SystemStatus,
+      AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, BlocklistResponse,
+      DeleteSeriesParams, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
+      SonarrCommandBody, SonarrHistoryItem, SonarrHistoryWrapper, SonarrRelease,
+      SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
     },
     stateful_table::StatefulTable,
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
@@ -38,6 +38,7 @@ mod sonarr_network_tests;
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum SonarrEvent {
   AddRootFolder(Option<String>),
+  AddSeries(Option<AddSeriesBody>),
   AddTag(String),
   ClearBlocklist,
   DeleteBlocklistItem(Option<i64>),
@@ -120,9 +121,10 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetTasks => "/system/task",
       SonarrEvent::GetUpdates => "/update",
       SonarrEvent::HealthCheck => "/health",
-      SonarrEvent::ListSeries | SonarrEvent::GetSeriesDetails(_) | SonarrEvent::DeleteSeries(_) => {
-        "/series"
-      }
+      SonarrEvent::AddSeries(_)
+      | SonarrEvent::ListSeries
+      | SonarrEvent::GetSeriesDetails(_)
+      | SonarrEvent::DeleteSeries(_) => "/series",
       SonarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
       SonarrEvent::TestIndexer(_) => "/indexer/test",
       SonarrEvent::TestAllIndexers => "/indexer/testall",
@@ -144,6 +146,10 @@ impl<'a, 'b> Network<'a, 'b> {
     match sonarr_event {
       SonarrEvent::AddRootFolder(path) => self
         .add_sonarr_root_folder(path)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::AddSeries(body) => self
+        .add_sonarr_series(body)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::AddTag(tag) => self.add_sonarr_tag(tag).await.map(SonarrSerdeable::from),
@@ -324,6 +330,106 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<AddRootFolderBody, Value>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn add_sonarr_series(
+    &mut self,
+    add_series_body_option: Option<AddSeriesBody>,
+  ) -> Result<Value> {
+    info!("Adding new series to Sonarr");
+    let event = SonarrEvent::AddSeries(None);
+    let body = if let Some(add_series_body) = add_series_body_option {
+      add_series_body
+    } else {
+      let tags = self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .add_series_modal
+        .as_ref()
+        .unwrap()
+        .tags
+        .text
+        .clone();
+      let tag_ids_vec = self.extract_and_add_sonarr_tag_ids_vec(tags).await;
+      let mut app = self.app.lock().await;
+      let AddSeriesModal {
+        root_folder_list,
+        monitor_list,
+        quality_profile_list,
+        language_profile_list,
+        series_type_list,
+        use_season_folder,
+        ..
+      } = app.data.sonarr_data.add_series_modal.as_ref().unwrap();
+      let season_folder = *use_season_folder;
+      let (tvdb_id, title) = {
+        let AddSeriesSearchResult { tvdb_id, title, .. } = app
+          .data
+          .sonarr_data
+          .add_searched_series
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .clone();
+        (tvdb_id, title.text)
+      };
+      let quality_profile = quality_profile_list.current_selection();
+      let quality_profile_id = *app
+        .data
+        .sonarr_data
+        .quality_profile_map
+        .iter()
+        .filter(|(_, value)| *value == quality_profile)
+        .map(|(key, _)| key)
+        .next()
+        .unwrap();
+      let language_profile = language_profile_list.current_selection();
+      let language_profile_id = *app
+        .data
+        .sonarr_data
+        .language_profiles_map
+        .iter()
+        .filter(|(_, value)| *value == language_profile)
+        .map(|(key, _)| key)
+        .next()
+        .unwrap();
+
+      let path = root_folder_list.current_selection().path.clone();
+      let monitor = monitor_list.current_selection().to_string();
+      let series_type = series_type_list.current_selection().to_string();
+
+      app.data.sonarr_data.add_series_modal = None;
+
+      AddSeriesBody {
+        tvdb_id,
+        title,
+        monitored: true,
+        root_folder_path: path,
+        quality_profile_id,
+        language_profile_id,
+        series_type,
+        season_folder,
+        tags: tag_ids_vec,
+        add_options: AddSeriesOptions {
+          monitor,
+          search_for_cutoff_unmet_episodes: true,
+          search_for_missing_episodes: true,
+        },
+      }
+    };
+
+    debug!("Add series body: {body:?}");
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<AddSeriesBody, Value>(request_props, |_, _| ())
       .await
   }
 
@@ -1701,6 +1807,36 @@ impl<'a, 'b> Network<'a, 'b> {
     self
       .handle_request::<CommandBody, Value>(request_props, |_, _| ())
       .await
+  }
+
+  async fn extract_and_add_sonarr_tag_ids_vec(&mut self, edit_tags: String) -> Vec<i64> {
+    let tags_map = self.app.lock().await.data.sonarr_data.tags_map.clone();
+    let tags = edit_tags.clone();
+    let missing_tags_vec = edit_tags
+      .split(',')
+      .filter(|&tag| !tag.is_empty() && tags_map.get_by_right(tag.trim()).is_none())
+      .collect::<Vec<&str>>();
+
+    for tag in missing_tags_vec {
+      self
+        .add_sonarr_tag(tag.trim().to_owned())
+        .await
+        .expect("Unable to add tag");
+    }
+
+    let app = self.app.lock().await;
+    tags
+      .split(',')
+      .filter(|tag| !tag.is_empty())
+      .map(|tag| {
+        *app
+          .data
+          .sonarr_data
+          .tags_map
+          .get_by_right(tag.trim())
+          .unwrap()
+      })
+      .collect()
   }
 
   async fn extract_series_id(&mut self, series_id: Option<i64>) -> (i64, String) {

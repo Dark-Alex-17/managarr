@@ -4876,7 +4876,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_extract_and_add_tag_ids_vec() {
+  async fn test_extract_and_add_radarr_tag_ids_vec() {
     let app_arc = Arc::new(Mutex::new(App::default()));
     let tags = "    test,hi ,, usenet ".to_owned();
     {
@@ -4890,13 +4890,13 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert_eq!(
-      network.extract_and_add_tag_ids_vec(tags).await,
+      network.extract_and_add_radarr_tag_ids_vec(tags).await,
       vec![2, 3, 1]
     );
   }
 
   #[tokio::test]
-  async fn test_extract_and_add_tag_ids_vec_add_missing_tags_first() {
+  async fn test_extract_and_add_radarr_tag_ids_vec_add_missing_tags_first() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({ "label": "testing" })),
@@ -4919,7 +4919,7 @@ mod test {
     }
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
-    let tag_ids_vec = network.extract_and_add_tag_ids_vec(tags).await;
+    let tag_ids_vec = network.extract_and_add_radarr_tag_ids_vec(tags).await;
 
     async_server.assert_async().await;
     assert_eq!(tag_ids_vec, vec![1, 2, 3]);

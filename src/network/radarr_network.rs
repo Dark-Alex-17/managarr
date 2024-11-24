@@ -299,7 +299,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .tags
         .text
         .clone();
-      let tag_ids_vec = self.extract_and_add_tag_ids_vec(tags).await;
+      let tag_ids_vec = self.extract_and_add_radarr_tag_ids_vec(tags).await;
       let mut app = self.app.lock().await;
       let AddMovieModal {
         root_folder_list,
@@ -1037,7 +1037,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .tags
         .text
         .clone();
-      let tag_ids_vec = self.extract_and_add_tag_ids_vec(tags).await;
+      let tag_ids_vec = self.extract_and_add_radarr_tag_ids_vec(tags).await;
       let mut app = self.app.lock().await;
 
       let params = {
@@ -1222,7 +1222,7 @@ impl<'a, 'b> Network<'a, 'b> {
           .tags
           .text
           .clone();
-        let tag_ids_vec = self.extract_and_add_tag_ids_vec(tags).await;
+        let tag_ids_vec = self.extract_and_add_radarr_tag_ids_vec(tags).await;
         let mut app = self.app.lock().await;
 
         let params = {
@@ -2237,7 +2237,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn extract_and_add_tag_ids_vec(&mut self, edit_tags: String) -> Vec<i64> {
+  async fn extract_and_add_radarr_tag_ids_vec(&mut self, edit_tags: String) -> Vec<i64> {
     let tags_map = self.app.lock().await.data.radarr_data.tags_map.clone();
     let tags = edit_tags.clone();
     let missing_tags_vec = edit_tags

@@ -27,19 +27,46 @@ mod sonarr_models_tests;
 pub struct AddSeriesBody {
   pub tvdb_id: i64,
   pub title: String,
+  pub monitored: bool,
   pub root_folder_path: String,
   pub quality_profile_id: i64,
-  pub series_type: SeriesType,
-  pub season_folder: bool,
   pub language_profile_id: i64,
+  pub series_type: String,
+  pub season_folder: bool,
   pub tags: Vec<i64>,
   pub add_options: AddSeriesOptions,
+}
+
+#[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AddSeriesSearchResult {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub tvdb_id: i64,
+  pub title: HorizontallyScrollableText,
+  pub status: Option<String>,
+  pub ended: bool,
+  pub overview: Option<String>,
+  pub genres: Vec<String>,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub year: i64,
+  pub network: Option<String>,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub runtime: i64,
+  pub ratings: Option<Rating>,
+  pub statistics: Option<AddSeriesSearchResultStatistics>,
+}
+
+#[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AddSeriesSearchResultStatistics {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub season_count: i64,
 }
 
 #[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AddSeriesOptions {
-  pub monitor: SeriesMonitor,
+  pub monitor: String,
   pub search_for_cutoff_unmet_episodes: bool,
   pub search_for_missing_episodes: bool,
 }
@@ -258,9 +285,9 @@ pub struct Series {
 )]
 #[serde(rename_all = "camelCase")]
 pub enum SeriesMonitor {
-  Unknown,
   #[default]
   All,
+  Unknown,
   Future,
   Missing,
   Existing,
