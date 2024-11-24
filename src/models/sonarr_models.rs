@@ -599,6 +599,7 @@ impl Display for SonarrTaskName {
 #[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
 pub enum SonarrSerdeable {
+  AddSeriesSearchResults(Vec<AddSeriesSearchResult>),
   BlocklistResponse(BlocklistResponse),
   DownloadsResponse(DownloadsResponse),
   DiskSpaces(Vec<DiskSpace>),
@@ -641,6 +642,7 @@ impl From<()> for SonarrSerdeable {
 
 serde_enum_from!(
   SonarrSerdeable {
+    AddSeriesSearchResults(Vec<AddSeriesSearchResult>),
     BlocklistResponse(BlocklistResponse),
     DownloadsResponse(DownloadsResponse),
     DiskSpaces(Vec<DiskSpace>),

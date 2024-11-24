@@ -10,9 +10,10 @@ mod tests {
       RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
-      BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse, Episode,
-      IndexerSettings, Series, SeriesMonitor, SeriesStatus, SeriesType, SonarrHistoryEventType,
-      SonarrHistoryItem, SonarrRelease, SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
+      AddSeriesSearchResult, BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse,
+      Episode, IndexerSettings, Series, SeriesMonitor, SeriesStatus, SeriesType,
+      SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease, SonarrSerdeable, SonarrTask,
+      SonarrTaskName, SystemStatus,
     },
     EnumDisplayStyle, Serdeable,
   };
@@ -324,6 +325,21 @@ mod tests {
     assert_eq!(
       sonarr_serdeable,
       SonarrSerdeable::SystemStatus(system_status)
+    );
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_add_series_search_results() {
+    let add_series_search_results = vec![AddSeriesSearchResult {
+      tvdb_id: 1,
+      ..AddSeriesSearchResult::default()
+    }];
+
+    let sonarr_serdeable: SonarrSerdeable = add_series_search_results.clone().into();
+
+    assert_eq!(
+      sonarr_serdeable,
+      SonarrSerdeable::AddSeriesSearchResults(add_series_search_results)
     );
   }
 

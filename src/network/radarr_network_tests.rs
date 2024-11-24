@@ -751,33 +751,6 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_start_radarr_task_event_uses_provided_task_name() {
-    let response = json!({ "test": "test"});
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "name": "ApplicationCheckUpdate"
-      })),
-      Some(response.clone()),
-      None,
-      RadarrEvent::StartTask(None),
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let RadarrSerdeable::Value(value) = network
-      .handle_radarr_event(RadarrEvent::StartTask(Some(RadarrTaskName::default())))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(value, response);
-    }
-  }
-
-  #[tokio::test]
   async fn test_handle_search_new_movie_event_no_results() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
@@ -860,6 +833,33 @@ mod test {
       app_arc.lock().await.get_current_route(),
       &ActiveRadarrBlock::Movies.into()
     );
+  }
+
+  #[tokio::test]
+  async fn test_handle_start_radarr_task_event_uses_provided_task_name() {
+    let response = json!({ "test": "test"});
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "name": "ApplicationCheckUpdate"
+      })),
+      Some(response.clone()),
+      None,
+      RadarrEvent::StartTask(None),
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let RadarrSerdeable::Value(value) = network
+      .handle_radarr_event(RadarrEvent::StartTask(Some(RadarrTaskName::default())))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(value, response);
+    }
   }
 
   #[tokio::test]
