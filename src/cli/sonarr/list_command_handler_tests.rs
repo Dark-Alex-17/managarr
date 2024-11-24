@@ -36,7 +36,8 @@ mod tests {
         "root-folders",
         "tags",
         "tasks",
-        "updates"
+        "updates",
+        "language-profiles"
       )]
       subcommand: &str,
     ) {
@@ -211,6 +212,7 @@ mod tests {
     #[case(SonarrListCommand::Tags, SonarrEvent::GetTags)]
     #[case(SonarrListCommand::Tasks, SonarrEvent::GetTasks)]
     #[case(SonarrListCommand::Updates, SonarrEvent::GetUpdates)]
+    #[case(SonarrListCommand::LanguageProfiles, SonarrEvent::GetLanguageProfiles)]
     #[tokio::test]
     async fn test_handle_list_command(
       #[case] list_command: SonarrListCommand,

@@ -49,6 +49,8 @@ pub enum SonarrListCommand {
   },
   #[command(about = "List all Sonarr indexers")]
   Indexers,
+  #[command(about = "List all Sonarr language profiles")]
+  LanguageProfiles,
   #[command(about = "Fetch Sonarr logs")]
   Logs {
     #[arg(long, help = "How many log events to fetch", default_value_t = 500)]
@@ -157,6 +159,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
         let resp = self
           .network
           .handle_network_event(SonarrEvent::GetIndexers.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrListCommand::LanguageProfiles => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::GetLanguageProfiles.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
