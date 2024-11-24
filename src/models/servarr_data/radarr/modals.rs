@@ -1,7 +1,7 @@
 use strum::IntoEnumIterator;
 
 use crate::models::radarr_models::{
-  Collection, Credit, MinimumAvailability, Monitor, Movie, MovieHistoryItem, RadarrRelease,
+  Collection, Credit, MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, RadarrRelease,
 };
 use crate::models::servarr_data::radarr::radarr_data::RadarrData;
 use crate::models::servarr_models::{Indexer, RootFolder};
@@ -195,7 +195,7 @@ impl From<&RadarrData<'_>> for EditMovieModal {
 #[derive(Default)]
 pub struct AddMovieModal {
   pub root_folder_list: StatefulList<RootFolder>,
-  pub monitor_list: StatefulList<Monitor>,
+  pub monitor_list: StatefulList<MovieMonitor>,
   pub minimum_availability_list: StatefulList<MinimumAvailability>,
   pub quality_profile_list: StatefulList<String>,
   pub tags: HorizontallyScrollableText,
@@ -206,7 +206,7 @@ impl From<&RadarrData<'_>> for AddMovieModal {
     let mut add_movie_modal = AddMovieModal::default();
     add_movie_modal
       .monitor_list
-      .set_items(Vec::from_iter(Monitor::iter()));
+      .set_items(Vec::from_iter(MovieMonitor::iter()));
     add_movie_modal
       .minimum_availability_list
       .set_items(Vec::from_iter(MinimumAvailability::iter()));

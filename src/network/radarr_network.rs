@@ -7,11 +7,11 @@ use serde_json::{json, Value};
 use urlencoding::encode;
 
 use crate::models::radarr_models::{
-  AddMovieBody, AddMovieSearchResult, AddOptions, BlocklistResponse, Collection, CollectionMovie,
-  Credit, CreditType, DeleteMovieParams, DownloadRecord, DownloadsResponse, EditCollectionParams,
-  EditIndexerParams, EditMovieParams, IndexerSettings, IndexerTestResult, Movie, MovieCommandBody,
-  MovieHistoryItem, RadarrRelease, RadarrReleaseDownloadBody, RadarrSerdeable, RadarrTask,
-  RadarrTaskName, SystemStatus,
+  AddMovieBody, AddMovieOptions, AddMovieSearchResult, BlocklistResponse, Collection,
+  CollectionMovie, Credit, CreditType, DeleteMovieParams, DownloadRecord, DownloadsResponse,
+  EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings, IndexerTestResult,
+  Movie, MovieCommandBody, MovieHistoryItem, RadarrRelease, RadarrReleaseDownloadBody,
+  RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus,
 };
 use crate::models::servarr_data::modals::IndexerTestResultModalItem;
 use crate::models::servarr_data::radarr::modals::{
@@ -365,7 +365,7 @@ impl<'a, 'b> Network<'a, 'b> {
         monitored: true,
         quality_profile_id,
         tags: tag_ids_vec,
-        add_options: AddOptions {
+        add_options: AddMovieOptions {
           monitor,
           search_for_movie: true,
         },

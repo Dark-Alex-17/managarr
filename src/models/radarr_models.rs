@@ -29,7 +29,7 @@ pub struct AddMovieBody {
   pub minimum_availability: String,
   pub monitored: bool,
   pub tags: Vec<i64>,
-  pub add_options: AddOptions,
+  pub add_options: AddMovieOptions,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
@@ -51,7 +51,7 @@ pub struct AddMovieSearchResult {
 
 #[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct AddOptions {
+pub struct AddMovieOptions {
   pub monitor: String,
   pub search_for_movie: bool,
 }
@@ -305,30 +305,30 @@ impl<'a> EnumDisplayStyle<'a> for MinimumAvailability {
 }
 
 #[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, ValueEnum)]
-pub enum Monitor {
+pub enum MovieMonitor {
   #[default]
   MovieOnly,
   MovieAndCollection,
   None,
 }
 
-impl Display for Monitor {
+impl Display for MovieMonitor {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
     let monitor = match self {
-      Monitor::MovieOnly => "movieOnly",
-      Monitor::MovieAndCollection => "movieAndCollection",
-      Monitor::None => "none",
+      MovieMonitor::MovieOnly => "movieOnly",
+      MovieMonitor::MovieAndCollection => "movieAndCollection",
+      MovieMonitor::None => "none",
     };
     write!(f, "{monitor}")
   }
 }
 
-impl<'a> EnumDisplayStyle<'a> for Monitor {
+impl<'a> EnumDisplayStyle<'a> for MovieMonitor {
   fn to_display_str(self) -> &'a str {
     match self {
-      Monitor::MovieOnly => "Movie only",
-      Monitor::MovieAndCollection => "Movie and Collection",
-      Monitor::None => "None",
+      MovieMonitor::MovieOnly => "Movie only",
+      MovieMonitor::MovieAndCollection => "Movie and Collection",
+      MovieMonitor::None => "None",
     }
   }
 }

@@ -7,7 +7,7 @@ use tokio::sync::Mutex;
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
-  models::radarr_models::{AddMovieBody, AddOptions, MinimumAvailability, Monitor},
+  models::radarr_models::{AddMovieBody, AddMovieOptions, MinimumAvailability, MovieMonitor},
   network::{radarr_network::RadarrEvent, NetworkTrait},
 };
 
@@ -46,7 +46,7 @@ pub enum RadarrAddCommand {
       default_value_t = MinimumAvailability::default()
     )]
     minimum_availability: MinimumAvailability,
-    #[arg(long, help = "Should Radarr monitor this film")]
+    #[arg(long, help = "Disable monitoring for this film")]
     disable_monitoring: bool,
     #[arg(
       long,
@@ -59,9 +59,9 @@ pub enum RadarrAddCommand {
       long,
       help = "What Radarr should monitor", 
       value_enum,
-      default_value_t = Monitor::default()
+      default_value_t = MovieMonitor::default()
     )]
-    monitor: Monitor,
+    monitor: MovieMonitor,
     #[arg(
       long,
       help = "Tell Radarr to not start a search for this film once it's added to your library"
@@ -125,7 +125,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHan
           minimum_availability: minimum_availability.to_string(),
           monitored: !disable_monitoring,
           tags,
-          add_options: AddOptions {
+          add_options: AddMovieOptions {
             monitor: monitor.to_string(),
             search_for_movie: !no_search_for_movie,
           },

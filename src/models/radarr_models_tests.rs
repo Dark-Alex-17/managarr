@@ -7,7 +7,7 @@ mod tests {
     radarr_models::{
       AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, DiskSpace,
       DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult,
-      MinimumAvailability, Monitor, Movie, MovieHistoryItem, QualityProfile, RadarrRelease,
+      MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, QualityProfile, RadarrRelease,
       RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus, Tag, Update,
     },
     servarr_models::{HostConfig, Log, LogResponse, QueueEvent, RootFolder, SecurityConfig},
@@ -43,22 +43,22 @@ mod tests {
 
   #[test]
   fn test_monitor_display() {
-    assert_str_eq!(Monitor::MovieOnly.to_string(), "movieOnly");
+    assert_str_eq!(MovieMonitor::MovieOnly.to_string(), "movieOnly");
     assert_str_eq!(
-      Monitor::MovieAndCollection.to_string(),
+      MovieMonitor::MovieAndCollection.to_string(),
       "movieAndCollection"
     );
-    assert_str_eq!(Monitor::None.to_string(), "none");
+    assert_str_eq!(MovieMonitor::None.to_string(), "none");
   }
 
   #[test]
   fn test_monitor_to_display_str() {
-    assert_str_eq!(Monitor::MovieOnly.to_display_str(), "Movie only");
+    assert_str_eq!(MovieMonitor::MovieOnly.to_display_str(), "Movie only");
     assert_str_eq!(
-      Monitor::MovieAndCollection.to_display_str(),
+      MovieMonitor::MovieAndCollection.to_display_str(),
       "Movie and Collection"
     );
-    assert_str_eq!(Monitor::None.to_display_str(), "None");
+    assert_str_eq!(MovieMonitor::None.to_display_str(), "None");
   }
 
   #[test]

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test {
-  use crate::models::radarr_models::{Collection, MinimumAvailability, Monitor, Movie};
+  use crate::models::radarr_models::{Collection, MinimumAvailability, Movie, MovieMonitor};
   use crate::models::servarr_data::radarr::modals::{
     AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal,
   };
@@ -185,7 +185,7 @@ mod test {
 
     assert_eq!(
       add_movie_modal.monitor_list.items,
-      Vec::from_iter(Monitor::iter())
+      Vec::from_iter(MovieMonitor::iter())
     );
     assert_eq!(
       add_movie_modal.minimum_availability_list.items,

@@ -15,8 +15,8 @@ mod test {
 
   use crate::app::ServarrConfig;
   use crate::models::radarr_models::{
-    BlocklistItem, BlocklistItemMovie, CollectionMovie, MediaInfo, MinimumAvailability, Monitor,
-    MovieCollection, MovieFile, Rating, RatingsList,
+    BlocklistItem, BlocklistItemMovie, CollectionMovie, MediaInfo, MinimumAvailability,
+    MovieCollection, MovieFile, MovieMonitor, Rating, RatingsList,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_models::{
@@ -3450,7 +3450,7 @@ mod test {
         .set_items(vec!["HD - 1080p".to_owned()]);
       add_movie_modal
         .monitor_list
-        .set_items(Vec::from_iter(Monitor::iter()));
+        .set_items(Vec::from_iter(MovieMonitor::iter()));
       add_movie_modal
         .minimum_availability_list
         .set_items(Vec::from_iter(MinimumAvailability::iter()));
@@ -3521,7 +3521,7 @@ mod test {
       monitored: true,
       quality_profile_id: 2222,
       tags: vec![1, 2],
-      add_options: AddOptions {
+      add_options: AddMovieOptions {
         monitor: "movieOnly".to_owned(),
         search_for_movie: true,
       },
@@ -3597,7 +3597,7 @@ mod test {
         .set_items(vec!["HD - 1080p".to_owned()]);
       add_movie_modal
         .monitor_list
-        .set_items(Vec::from_iter(Monitor::iter()));
+        .set_items(Vec::from_iter(MovieMonitor::iter()));
       add_movie_modal
         .minimum_availability_list
         .set_items(Vec::from_iter(MinimumAvailability::iter()));
