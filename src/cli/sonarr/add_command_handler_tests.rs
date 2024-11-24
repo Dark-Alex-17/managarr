@@ -87,6 +87,32 @@ mod tests {
         "1",
         "--language-profile-id",
         "1",
+        "--title",
+        "test",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_add_series_requires_title() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "add",
+        "series",
+        "--tvdb-id",
+        "1",
+        "--root-folder-path",
+        "test",
+        "--quality-profile-id",
+        "1",
+        "--language-profile-id",
+        "1",
       ]);
 
       assert!(result.is_err());
@@ -109,6 +135,8 @@ mod tests {
         "1",
         "--language-profile-id",
         "1",
+        "--title",
+        "test",
       ]);
 
       assert!(result.is_err());
@@ -131,6 +159,8 @@ mod tests {
         "test",
         "--language-profile-id",
         "1",
+        "--title",
+        "test",
       ]);
 
       assert!(result.is_err());
@@ -153,6 +183,8 @@ mod tests {
         "test",
         "--quality-profile-id",
         "1",
+        "--title",
+        "test",
       ]);
 
       assert!(result.is_err());
@@ -173,6 +205,8 @@ mod tests {
         "series",
         "--tvdb-id",
         "1",
+        "--title",
+        "test",
         "--root-folder-path",
         "/test",
         "--quality-profile-id",
@@ -193,6 +227,8 @@ mod tests {
         "sonarr",
         "add",
         "series",
+        "--title",
+        "test",
         "--root-folder-path",
         "/test",
         "--quality-profile-id",
@@ -221,6 +257,8 @@ mod tests {
         "1",
         "--tvdb-id",
         "1",
+        "--title",
+        "test",
         "--series-type",
         "test",
       ]);
@@ -243,6 +281,8 @@ mod tests {
         "--language-profile-id",
         "1",
         "--tvdb-id",
+        "--title",
+        "test",
         "1",
         "--monitor",
         "test",
@@ -256,6 +296,7 @@ mod tests {
     fn test_add_series_defaults() {
       let expected_args = SonarrAddCommand::Series {
         tvdb_id: 1,
+        title: "test".to_owned(),
         root_folder_path: "/test".to_owned(),
         quality_profile_id: 1,
         language_profile_id: 1,
@@ -278,6 +319,8 @@ mod tests {
         "1",
         "--language-profile-id",
         "1",
+        "--title",
+        "test",
         "--tvdb-id",
         "1",
       ]);
@@ -292,6 +335,7 @@ mod tests {
     fn test_add_series_tags_is_repeatable() {
       let expected_args = SonarrAddCommand::Series {
         tvdb_id: 1,
+        title: "test".to_owned(),
         root_folder_path: "/test".to_owned(),
         quality_profile_id: 1,
         language_profile_id: 1,
@@ -316,6 +360,8 @@ mod tests {
         "1",
         "--tvdb-id",
         "1",
+        "--title",
+        "test",
         "--tag",
         "1",
         "--tag",
@@ -332,6 +378,7 @@ mod tests {
     fn test_add_series_all_args_defined() {
       let expected_args = SonarrAddCommand::Series {
         tvdb_id: 1,
+        title: "test".to_owned(),
         root_folder_path: "/test".to_owned(),
         quality_profile_id: 1,
         language_profile_id: 1,
@@ -360,6 +407,8 @@ mod tests {
         "--disable-season-folders",
         "--tvdb-id",
         "1",
+        "--title",
+        "test",
         "--tag",
         "1",
         "--tag",
@@ -455,7 +504,7 @@ mod tests {
     async fn test_handle_add_series_command() {
       let expected_add_series_body = AddSeriesBody {
         tvdb_id: 1,
-        title: String::new(),
+        title: "test".to_owned(),
         root_folder_path: "/test".to_owned(),
         quality_profile_id: 1,
         language_profile_id: 1,
@@ -484,6 +533,7 @@ mod tests {
       let app_arc = Arc::new(Mutex::new(App::default()));
       let add_series_command = SonarrAddCommand::Series {
         tvdb_id: 1,
+        title: "test".to_owned(),
         root_folder_path: "/test".to_owned(),
         quality_profile_id: 1,
         language_profile_id: 1,

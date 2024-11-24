@@ -27,6 +27,8 @@ pub enum SonarrAddCommand {
       required = true
     )]
     tvdb_id: i64,
+    #[arg(long, help = "The title of the series", required = true)]
+    title: String,
     #[arg(
       long,
       help = "The root folder path where all series data and metadata should live",
@@ -117,6 +119,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrAddCommand> for SonarrAddCommandHan
     let result = match self.command {
       SonarrAddCommand::Series {
         tvdb_id,
+        title,
         root_folder_path,
         quality_profile_id,
         language_profile_id,
@@ -129,7 +132,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrAddCommand> for SonarrAddCommandHan
       } => {
         let body = AddSeriesBody {
           tvdb_id,
-          title: String::new(),
+          title,
           monitored: !disable_monitoring,
           root_folder_path,
           quality_profile_id,
