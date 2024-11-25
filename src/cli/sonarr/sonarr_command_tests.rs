@@ -156,8 +156,8 @@ mod tests {
       cli::{
         sonarr::{
           add_command_handler::SonarrAddCommand, delete_command_handler::SonarrDeleteCommand,
-          download_command_handler::SonarrDownloadCommand, get_command_handler::SonarrGetCommand,
-          list_command_handler::SonarrListCommand,
+          download_command_handler::SonarrDownloadCommand, edit_command_handler::SonarrEditCommand,
+          get_command_handler::SonarrGetCommand, list_command_handler::SonarrListCommand,
           manual_search_command_handler::SonarrManualSearchCommand,
           refresh_command_handler::SonarrRefreshCommand,
           trigger_automatic_search_command_handler::SonarrTriggerAutomaticSearchCommand,
@@ -167,8 +167,8 @@ mod tests {
       },
       models::{
         sonarr_models::{
-          BlocklistItem, BlocklistResponse, Series, SonarrReleaseDownloadBody, SonarrSerdeable,
-          SonarrTaskName,
+          BlocklistItem, BlocklistResponse, IndexerSettings, Series, SonarrReleaseDownloadBody,
+          SonarrSerdeable, SonarrTaskName,
         },
         Serdeable,
       },
@@ -326,6 +326,64 @@ mod tests {
         SonarrCliHandler::with(&app_arc, download_series_release_command, &mut mock_network)
           .handle()
           .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_sonarr_cli_handler_delegates_edit_commands_to_the_edit_command_handler() {
+      let expected_edit_all_indexer_settings = IndexerSettings {
+        id: 1,
+        maximum_size: 1,
+        minimum_age: 1,
+        retention: 1,
+        rss_sync_interval: 1,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::GetAllIndexerSettings.into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::IndexerSettings(
+            IndexerSettings {
+              id: 1,
+              maximum_size: 2,
+              minimum_age: 2,
+              retention: 2,
+              rss_sync_interval: 2,
+            },
+          )))
+        });
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::EditAllIndexerSettings(Some(expected_edit_all_indexer_settings)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let edit_all_indexer_settings_command =
+        SonarrCommand::Edit(SonarrEditCommand::AllIndexerSettings {
+          maximum_size: Some(1),
+          minimum_age: Some(1),
+          retention: Some(1),
+          rss_sync_interval: Some(1),
+        });
+
+      let result = SonarrCliHandler::with(
+        &app_arc,
+        edit_all_indexer_settings_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
 
       assert!(result.is_ok());
     }

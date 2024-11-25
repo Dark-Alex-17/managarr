@@ -5,6 +5,7 @@ use anyhow::Result;
 use clap::Subcommand;
 use delete_command_handler::{SonarrDeleteCommand, SonarrDeleteCommandHandler};
 use download_command_handler::{SonarrDownloadCommand, SonarrDownloadCommandHandler};
+use edit_command_handler::{SonarrEditCommand, SonarrEditCommandHandler};
 use get_command_handler::{SonarrGetCommand, SonarrGetCommandHandler};
 use list_command_handler::{SonarrListCommand, SonarrListCommandHandler};
 use manual_search_command_handler::{SonarrManualSearchCommand, SonarrManualSearchCommandHandler};
@@ -25,6 +26,7 @@ use super::{CliCommandHandler, Command};
 mod add_command_handler;
 mod delete_command_handler;
 mod download_command_handler;
+mod edit_command_handler;
 mod get_command_handler;
 mod list_command_handler;
 mod manual_search_command_handler;
@@ -47,6 +49,11 @@ pub enum SonarrCommand {
     about = "Commands to delete resources from your Sonarr instance"
   )]
   Delete(SonarrDeleteCommand),
+  #[command(
+    subcommand,
+    about = "Commands to edit resources in your Sonarr instance"
+  )]
+  Edit(SonarrEditCommand),
   #[command(
     subcommand,
     about = "Commands to fetch details of the resources in your Sonarr instance"
@@ -149,6 +156,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
       }
       SonarrCommand::Delete(delete_command) => {
         SonarrDeleteCommandHandler::with(self.app, delete_command, self.network)
+          .handle()
+          .await?
+      }
+      SonarrCommand::Edit(edit_command) => {
+        SonarrEditCommandHandler::with(self.app, edit_command, self.network)
           .handle()
           .await?
       }

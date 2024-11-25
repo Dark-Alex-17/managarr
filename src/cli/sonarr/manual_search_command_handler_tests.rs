@@ -24,9 +24,8 @@ mod tests {
     use super::*;
     use clap::error::ErrorKind;
     use pretty_assertions::assert_eq;
-    use rstest::rstest;
 
-    #[rstest]
+    #[test]
     fn test_manual_season_search_requires_series_id() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -44,7 +43,7 @@ mod tests {
       );
     }
 
-    #[rstest]
+    #[test]
     fn test_manual_season_search_requires_season_number() {
       let result = Cli::command().try_get_matches_from([
         "managarr",

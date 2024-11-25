@@ -31,7 +31,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_download_release_requires_movie_id() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -50,7 +50,7 @@ mod tests {
       );
     }
 
-    #[rstest]
+    #[test]
     fn test_download_release_requires_guid() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -69,7 +69,7 @@ mod tests {
       );
     }
 
-    #[rstest]
+    #[test]
     fn test_download_release_requires_indexer_id() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -105,7 +105,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_manual_search_requires_movie_id() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "manual-search"]);
 
@@ -164,7 +164,7 @@ mod tests {
       );
     }
 
-    #[rstest]
+    #[test]
     fn test_start_task_task_name_validation() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -191,7 +191,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_test_indexer_requires_indexer_id() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "test-indexer"]);
 
@@ -215,7 +215,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_trigger_automatic_search_requires_movie_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "trigger-automatic-search"]);
