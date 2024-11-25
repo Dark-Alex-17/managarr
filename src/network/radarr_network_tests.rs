@@ -3711,7 +3711,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_all_indexer_settings_event() {
+  async fn test_handle_edit_all_radarr_indexer_settings_event() {
     let indexer_settings_json = json!({
         "minimumAge": 0,
         "maximumSize": 0,
@@ -3753,7 +3753,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_all_indexer_settings_event_uses_provided_settings() {
+  async fn test_handle_edit_all_radarr_indexer_settings_event_uses_provided_settings() {
     let indexer_settings_json = json!({
         "minimumAge": 0,
         "maximumSize": 0,

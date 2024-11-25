@@ -181,7 +181,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::EditAllIndexerSettings(params) => self
-        .edit_all_indexer_settings(params)
+        .edit_all_radarr_indexer_settings(params)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::EditCollection(params) => self
@@ -710,7 +710,10 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn edit_all_indexer_settings(&mut self, params: Option<IndexerSettings>) -> Result<Value> {
+  async fn edit_all_radarr_indexer_settings(
+    &mut self,
+    params: Option<IndexerSettings>,
+  ) -> Result<Value> {
     info!("Updating Radarr indexer settings");
     let event = RadarrEvent::EditAllIndexerSettings(None);
 

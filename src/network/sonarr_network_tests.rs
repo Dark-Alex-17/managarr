@@ -17,7 +17,7 @@ mod test {
 
   use crate::models::sonarr_models::{
     AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, AddSeriesSearchResultStatistics,
-    SeriesMonitor,
+    IndexerSettings, SeriesMonitor,
   };
 
   use crate::app::{App, ServarrConfig};
@@ -134,6 +134,17 @@ mod test {
     "monitored": true,
     "id": 1
   }"#;
+
+  #[rstest]
+  fn test_resource_all_indexer_settings(
+    #[values(
+      SonarrEvent::GetAllIndexerSettings,
+      SonarrEvent::EditAllIndexerSettings(None)
+    )]
+    event: SonarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/config/indexer");
+  }
 
   #[rstest]
   fn test_resource_episode(
@@ -961,6 +972,76 @@ mod test {
 
     assert!(network
       .handle_sonarr_event(SonarrEvent::DownloadRelease(params))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_all_indexer_settings_event() {
+    let indexer_settings_json = json!({
+        "id": 1,
+        "minimumAge": 1,
+        "maximumSize": 12345,
+        "retention": 1,
+        "rssSyncInterval": 60
+    });
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Put,
+      Some(indexer_settings_json),
+      None,
+      None,
+      SonarrEvent::EditAllIndexerSettings(None),
+      None,
+      None,
+    )
+    .await;
+
+    app_arc.lock().await.data.sonarr_data.indexer_settings = Some(indexer_settings());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::EditAllIndexerSettings(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+    assert!(app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .indexer_settings
+      .is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_all_indexer_settings_event_uses_provided_settings() {
+    let indexer_settings_json = json!({
+        "id": 1,
+        "minimumAge": 1,
+        "maximumSize": 12345,
+        "retention": 1,
+        "rssSyncInterval": 60
+    });
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Put,
+      Some(indexer_settings_json),
+      None,
+      None,
+      SonarrEvent::EditAllIndexerSettings(None),
+      None,
+      None,
+    )
+    .await;
+
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::EditAllIndexerSettings(
+        Some(indexer_settings())
+      ))
       .await
       .is_ok());
 
@@ -5740,6 +5821,16 @@ mod test {
           value: Some(json!("1.2")),
         },
       ]),
+    }
+  }
+
+  fn indexer_settings() -> IndexerSettings {
+    IndexerSettings {
+      id: 1,
+      minimum_age: 1,
+      retention: 1,
+      maximum_size: 12345,
+      rss_sync_interval: 60,
     }
   }
 
