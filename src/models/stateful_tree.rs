@@ -15,9 +15,15 @@ where
   T: ToText + Hash + Clone + PartialEq + Eq + Debug + Default + Display + PartialEq + Eq,
 {
   pub state: TreeState,
+  // Allowing the existence of this struct for now, since it may become useful
+  // for future UI developments with additional Servarrs
+  #[allow(dead_code)]
   pub items: Vec<TreeItem<T>>,
 }
 
+// Allowing the existence of this struct for now, since it may become useful
+// for future UI developments with additional Servarrs
+#[allow(dead_code)]
 impl<T> StatefulTree<T>
 where
   T: ToText + Hash + Clone + PartialEq + Eq + Debug + Default + Display + PartialEq + Eq,

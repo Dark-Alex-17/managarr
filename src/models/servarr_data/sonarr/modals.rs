@@ -248,6 +248,9 @@ impl From<&SonarrData> for EditSeriesModal {
 
 #[derive(Default)]
 pub struct EpisodeDetailsModal {
+  // Temporarily allowing this, since the value is only current written and not read.
+  // This will be read from once I begin the UI work for Sonarr
+  #[allow(dead_code)]
   pub episode_details: ScrollableText,
   pub file_details: String,
   pub audio_details: String,
