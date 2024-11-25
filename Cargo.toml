@@ -15,7 +15,7 @@ exclude = [".github", "CONTRIBUTING.md", "*.log", "tags"]
 
 [dependencies]
 anyhow = "1.0.68"
-backtrace = "0.3.67"
+backtrace = "0.3.74"
 bimap = { version = "0.6.3", features = ["serde"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 confy = { version = "0.6.0", default-features = false, features = [
