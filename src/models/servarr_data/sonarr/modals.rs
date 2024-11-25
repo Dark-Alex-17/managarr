@@ -3,7 +3,7 @@ use strum::IntoEnumIterator;
 use crate::models::{
   servarr_data::modals::EditIndexerModal,
   servarr_models::{Indexer, RootFolder},
-  sonarr_models::{Episode, SeriesMonitor, SeriesType, SonarrHistoryItem, SonarrRelease},
+  sonarr_models::{Episode, Series, SeriesMonitor, SeriesType, SonarrHistoryItem, SonarrRelease},
   stateful_list::StatefulList,
   stateful_table::StatefulTable,
   HorizontallyScrollableText, ScrollableText,
@@ -139,6 +139,110 @@ impl From<&SonarrData> for EditIndexerModal {
       .into();
 
     edit_indexer_modal
+  }
+}
+
+#[derive(Default)]
+pub struct EditSeriesModal {
+  pub series_type_list: StatefulList<SeriesType>,
+  pub quality_profile_list: StatefulList<String>,
+  pub language_profile_list: StatefulList<String>,
+  pub monitored: Option<bool>,
+  pub use_season_folders: Option<bool>,
+  pub path: HorizontallyScrollableText,
+  pub tags: HorizontallyScrollableText,
+}
+
+impl From<&SonarrData> for EditSeriesModal {
+  fn from(sonarr_data: &SonarrData) -> EditSeriesModal {
+    let mut edit_series_modal = EditSeriesModal::default();
+    let Series {
+      path,
+      tags,
+      monitored,
+      season_folder,
+      series_type,
+      quality_profile_id,
+      language_profile_id,
+      ..
+    } = sonarr_data.series.current_selection();
+
+    edit_series_modal
+      .series_type_list
+      .set_items(Vec::from_iter(SeriesType::iter()));
+    edit_series_modal.path = path.clone().into();
+    edit_series_modal.tags = tags
+      .iter()
+      .map(|tag_id| {
+        sonarr_data
+          .tags_map
+          .get_by_left(&tag_id.as_i64().unwrap())
+          .unwrap()
+          .clone()
+      })
+      .collect::<Vec<String>>()
+      .join(", ")
+      .into();
+
+    edit_series_modal.monitored = Some(*monitored);
+    edit_series_modal.use_season_folders = Some(*season_folder);
+
+    let series_type_index = edit_series_modal
+      .series_type_list
+      .items
+      .iter()
+      .position(|st| st == series_type);
+    edit_series_modal
+      .series_type_list
+      .state
+      .select(series_type_index);
+
+    let mut quality_profile_names: Vec<String> = sonarr_data
+      .quality_profile_map
+      .right_values()
+      .cloned()
+      .collect();
+    quality_profile_names.sort();
+    edit_series_modal
+      .quality_profile_list
+      .set_items(quality_profile_names);
+    let quality_profile_name = sonarr_data
+      .quality_profile_map
+      .get_by_left(quality_profile_id)
+      .unwrap();
+    let quality_profile_index = edit_series_modal
+      .quality_profile_list
+      .items
+      .iter()
+      .position(|profile| profile == quality_profile_name);
+    edit_series_modal
+      .quality_profile_list
+      .state
+      .select(quality_profile_index);
+    let mut language_profile_names: Vec<String> = sonarr_data
+      .language_profiles_map
+      .right_values()
+      .cloned()
+      .collect();
+    language_profile_names.sort();
+    edit_series_modal
+      .language_profile_list
+      .set_items(language_profile_names);
+    let language_profile_name = sonarr_data
+      .language_profiles_map
+      .get_by_left(language_profile_id)
+      .unwrap();
+    let language_profile_index = edit_series_modal
+      .language_profile_list
+      .items
+      .iter()
+      .position(|profile| profile == language_profile_name);
+    edit_series_modal
+      .language_profile_list
+      .state
+      .select(language_profile_index);
+
+    edit_series_modal
   }
 }
 

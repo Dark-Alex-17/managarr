@@ -58,6 +58,7 @@ mod tests {
       assert!(sonarr_data.disk_space_vec.is_empty());
       assert!(sonarr_data.edit_indexer_modal.is_none());
       assert!(sonarr_data.edit_root_folder.is_none());
+      assert!(sonarr_data.edit_series_modal.is_none());
       assert!(sonarr_data.history.is_empty());
       assert!(sonarr_data.indexers.is_empty());
       assert!(sonarr_data.indexer_settings.is_none());

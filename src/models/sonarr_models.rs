@@ -128,6 +128,20 @@ pub struct DownloadsResponse {
   pub records: Vec<DownloadRecord>,
 }
 
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct EditSeriesParams {
+  pub series_id: i64,
+  pub monitored: Option<bool>,
+  pub use_season_folders: Option<bool>,
+  pub quality_profile_id: Option<i64>,
+  pub language_profile_id: Option<i64>,
+  pub series_type: Option<SeriesType>,
+  pub root_folder_path: Option<String>,
+  pub tags: Option<Vec<i64>>,
+  pub clear_tags: bool,
+}
+
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Episode {

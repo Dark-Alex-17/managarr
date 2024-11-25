@@ -14,7 +14,7 @@ use crate::models::{
   HorizontallyScrollableText, Route, ScrollableText,
 };
 
-use super::modals::{AddSeriesModal, SeasonDetailsModal};
+use super::modals::{AddSeriesModal, EditSeriesModal, SeasonDetailsModal};
 
 #[cfg(test)]
 #[path = "sonarr_data_tests.rs"]
@@ -31,6 +31,7 @@ pub struct SonarrData {
   pub disk_space_vec: Vec<DiskSpace>,
   pub edit_indexer_modal: Option<EditIndexerModal>,
   pub edit_root_folder: Option<HorizontallyScrollableText>,
+  pub edit_series_modal: Option<EditSeriesModal>,
   pub history: StatefulTable<SonarrHistoryItem>,
   pub indexers: StatefulTable<Indexer>,
   pub indexer_settings: Option<IndexerSettings>,
@@ -72,6 +73,7 @@ impl Default for SonarrData {
       disk_space_vec: Vec::new(),
       edit_indexer_modal: None,
       edit_root_folder: None,
+      edit_series_modal: None,
       history: StatefulTable::default(),
       indexers: StatefulTable::default(),
       indexer_settings: None,
