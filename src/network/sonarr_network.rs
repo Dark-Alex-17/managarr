@@ -10,7 +10,7 @@ use crate::{
     servarr_data::{
       modals::{EditIndexerModal, IndexerTestResultModalItem},
       sonarr::{
-        modals::{AddSeriesModal, EpisodeDetailsModal, SeasonDetailsModal},
+        modals::{AddSeriesModal, EditSeriesModal, EpisodeDetailsModal, SeasonDetailsModal},
         sonarr_data::ActiveSonarrBlock,
       },
     },
@@ -20,9 +20,10 @@ use crate::{
     },
     sonarr_models::{
       AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, BlocklistResponse,
-      DeleteSeriesParams, DownloadRecord, DownloadsResponse, Episode, IndexerSettings, Series,
-      SonarrCommandBody, SonarrHistoryItem, SonarrHistoryWrapper, SonarrRelease,
-      SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
+      DeleteSeriesParams, DownloadRecord, DownloadsResponse, EditSeriesParams, Episode,
+      IndexerSettings, Series, SonarrCommandBody, SonarrHistoryItem, SonarrHistoryWrapper,
+      SonarrRelease, SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTask, SonarrTaskName,
+      SystemStatus,
     },
     stateful_table::StatefulTable,
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
@@ -52,6 +53,7 @@ pub enum SonarrEvent {
   DownloadRelease(SonarrReleaseDownloadBody),
   EditAllIndexerSettings(Option<IndexerSettings>),
   EditIndexer(Option<EditIndexerParams>),
+  EditSeries(Option<EditSeriesParams>),
   GetAllIndexerSettings,
   GetBlocklist,
   GetDownloads,
@@ -134,7 +136,8 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::AddSeries(_)
       | SonarrEvent::ListSeries
       | SonarrEvent::GetSeriesDetails(_)
-      | SonarrEvent::DeleteSeries(_) => "/series",
+      | SonarrEvent::DeleteSeries(_)
+      | SonarrEvent::EditSeries(_) => "/series",
       SonarrEvent::SearchNewSeries(_) => "/series/lookup",
       SonarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
       SonarrEvent::TestIndexer(_) => "/indexer/test",
@@ -209,6 +212,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::EditIndexer(params) => self
         .edit_sonarr_indexer(params)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::EditSeries(params) => self
+        .edit_sonarr_series(params)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetBlocklist => self.get_sonarr_blocklist().await.map(SonarrSerdeable::from),
@@ -1053,6 +1060,194 @@ impl<'a, 'b> Network<'a, 'b> {
         RequestMethod::Put,
         Some(detailed_indexer_body),
         Some(format!("/{id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<Value, ()>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn edit_sonarr_series(
+    &mut self,
+    edit_series_params: Option<EditSeriesParams>,
+  ) -> Result<()> {
+    info!("Editing Sonarr series");
+    let detail_event = SonarrEvent::GetSeriesDetails(None);
+    let event = SonarrEvent::EditSeries(None);
+
+    let (series_id, _) = if let Some(ref params) = edit_series_params {
+      self.extract_series_id(Some(params.series_id)).await
+    } else {
+      self.extract_series_id(None).await
+    };
+    info!("Fetching series details for series with ID: {series_id}");
+
+    let request_props = self
+      .request_props_from(
+        detail_event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{series_id}")),
+        None,
+      )
+      .await;
+
+    let mut response = String::new();
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_series_body, _| {
+        response = detailed_series_body.to_string()
+      })
+      .await?;
+
+    info!("Constructing edit series body");
+
+    let mut detailed_series_body: Value = serde_json::from_str(&response).unwrap();
+    let (
+      monitored,
+      use_season_folders,
+      series_type,
+      quality_profile_id,
+      language_profile_id,
+      root_folder_path,
+      tags,
+    ) = if let Some(params) = edit_series_params {
+      let monitored = params.monitored.unwrap_or(
+        detailed_series_body["monitored"]
+          .as_bool()
+          .expect("Unable to deserialize 'monitored'"),
+      );
+      let use_season_folders = params.use_season_folders.unwrap_or(
+        detailed_series_body["seasonFolder"]
+          .as_bool()
+          .expect("Unable to deserialize 'season_folder'"),
+      );
+      let series_type = params
+        .series_type
+        .unwrap_or_else(|| {
+          serde_json::from_value(detailed_series_body["seriesType"].clone())
+            .expect("Unable to deserialize 'seriesType'")
+        })
+        .to_string();
+      let quality_profile_id = params.quality_profile_id.unwrap_or_else(|| {
+        detailed_series_body["qualityProfileId"]
+          .as_i64()
+          .expect("Unable to deserialize 'qualityProfileId'")
+      });
+      let language_profile_id = params.language_profile_id.unwrap_or_else(|| {
+        detailed_series_body["languageProfileId"]
+          .as_i64()
+          .expect("Unable to deserialize 'languageProfileId'")
+      });
+      let root_folder_path = params.root_folder_path.unwrap_or_else(|| {
+        detailed_series_body["path"]
+          .as_str()
+          .expect("Unable to deserialize 'path'")
+          .to_owned()
+      });
+      let tags = if params.clear_tags {
+        vec![]
+      } else {
+        params.tags.unwrap_or(
+          detailed_series_body["tags"]
+            .as_array()
+            .expect("Unable to deserialize 'tags'")
+            .iter()
+            .map(|item| item.as_i64().expect("Unable to deserialize tag ID"))
+            .collect(),
+        )
+      };
+
+      (
+        monitored,
+        use_season_folders,
+        series_type,
+        quality_profile_id,
+        language_profile_id,
+        root_folder_path,
+        tags,
+      )
+    } else {
+      let tags = self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .edit_series_modal
+        .as_ref()
+        .unwrap()
+        .tags
+        .text
+        .clone();
+      let tag_ids_vec = self.extract_and_add_sonarr_tag_ids_vec(tags).await;
+      let mut app = self.app.lock().await;
+
+      let params = {
+        let EditSeriesModal {
+          monitored,
+          use_season_folders,
+          path,
+          series_type_list,
+          quality_profile_list,
+          language_profile_list,
+          ..
+        } = app.data.sonarr_data.edit_series_modal.as_ref().unwrap();
+        let quality_profile = quality_profile_list.current_selection();
+        let quality_profile_id = *app
+          .data
+          .sonarr_data
+          .quality_profile_map
+          .iter()
+          .filter(|(_, value)| *value == quality_profile)
+          .map(|(key, _)| key)
+          .next()
+          .unwrap();
+        let language_profile = language_profile_list.current_selection();
+        let language_profile_id = *app
+          .data
+          .sonarr_data
+          .language_profiles_map
+          .iter()
+          .filter(|(_, value)| *value == language_profile)
+          .map(|(key, _)| key)
+          .next()
+          .unwrap();
+
+        (
+          monitored.unwrap_or_default(),
+          use_season_folders.unwrap_or_default(),
+          series_type_list.current_selection().to_string(),
+          quality_profile_id,
+          language_profile_id,
+          path.text.clone(),
+          tag_ids_vec,
+        )
+      };
+
+      app.data.sonarr_data.edit_series_modal = None;
+
+      params
+    };
+
+    *detailed_series_body.get_mut("monitored").unwrap() = json!(monitored);
+    *detailed_series_body.get_mut("seasonFolder").unwrap() = json!(use_season_folders);
+    *detailed_series_body.get_mut("seriesType").unwrap() = json!(series_type);
+    *detailed_series_body.get_mut("qualityProfileId").unwrap() = json!(quality_profile_id);
+    *detailed_series_body.get_mut("languageProfileId").unwrap() = json!(language_profile_id);
+    *detailed_series_body.get_mut("path").unwrap() = json!(root_folder_path);
+    *detailed_series_body.get_mut("tags").unwrap() = json!(tags);
+
+    debug!("Edit series body: {detailed_series_body:?}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Put,
+        Some(detailed_series_body),
+        Some(format!("/{series_id}")),
         None,
       )
       .await;

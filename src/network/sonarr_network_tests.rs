@@ -17,14 +17,14 @@ mod test {
 
   use crate::models::sonarr_models::{
     AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, AddSeriesSearchResultStatistics,
-    IndexerSettings, SeriesMonitor,
+    EditSeriesParams, IndexerSettings, SeriesMonitor,
   };
 
   use crate::app::{App, ServarrConfig};
   use crate::models::radarr_models::IndexerTestResult;
   use crate::models::servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem};
   use crate::models::servarr_data::sonarr::modals::{
-    AddSeriesModal, EpisodeDetailsModal, SeasonDetailsModal,
+    AddSeriesModal, EditSeriesModal, EpisodeDetailsModal, SeasonDetailsModal,
   };
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::servarr_models::{
@@ -160,7 +160,8 @@ mod test {
       SonarrEvent::AddSeries(None),
       SonarrEvent::ListSeries,
       SonarrEvent::GetSeriesDetails(None),
-      SonarrEvent::DeleteSeries(None)
+      SonarrEvent::DeleteSeries(None),
+      SonarrEvent::EditSeries(None)
     )]
     event: SonarrEvent,
   ) {
@@ -1683,6 +1684,215 @@ mod test {
 
     assert!(network
       .handle_sonarr_event(SonarrEvent::EditIndexer(Some(edit_indexer_params)))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_series_event() {
+    let mut expected_body: Value = serde_json::from_str(SERIES_JSON).unwrap();
+    *expected_body.get_mut("monitored").unwrap() = json!(false);
+    *expected_body.get_mut("seasonFolder").unwrap() = json!(false);
+    *expected_body.get_mut("seriesType").unwrap() = json!("standard");
+    *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
+    *expected_body.get_mut("languageProfileId").unwrap() = json!(1111);
+    *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
+    *expected_body.get_mut("tags").unwrap() = json!([1, 2]);
+
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(SERIES_JSON).unwrap()),
+      None,
+      SonarrEvent::GetSeriesDetails(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", SonarrEvent::EditSeries(None).resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    {
+      let mut app = app_arc.lock().await;
+      app.data.sonarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+      let mut edit_series = EditSeriesModal {
+        tags: "usenet, testing".to_owned().into(),
+        path: "/nfs/Test Path".to_owned().into(),
+        monitored: Some(false),
+        use_season_folders: Some(false),
+        ..EditSeriesModal::default()
+      };
+      edit_series
+        .quality_profile_list
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      edit_series
+        .language_profile_list
+        .set_items(vec!["Any".to_owned(), "English".to_owned()]);
+      edit_series
+        .series_type_list
+        .set_items(Vec::from_iter(SeriesType::iter()));
+      app.data.sonarr_data.edit_series_modal = Some(edit_series);
+      app.data.sonarr_data.series.set_items(vec![Series {
+        monitored: false,
+        season_folder: false,
+        ..series()
+      }]);
+      app.data.sonarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+      app.data.sonarr_data.language_profiles_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "English".to_owned())]);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::EditSeries(None))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+
+    let app = app_arc.lock().await;
+    assert!(app.data.sonarr_data.edit_series_modal.is_none());
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_series_event_uses_provided_parameters() {
+    let mut expected_body: Value = serde_json::from_str(SERIES_JSON).unwrap();
+    *expected_body.get_mut("monitored").unwrap() = json!(false);
+    *expected_body.get_mut("seasonFolder").unwrap() = json!(false);
+    *expected_body.get_mut("seriesType").unwrap() = json!("standard");
+    *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
+    *expected_body.get_mut("languageProfileId").unwrap() = json!(1111);
+    *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
+    *expected_body.get_mut("tags").unwrap() = json!([1, 2]);
+
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(SERIES_JSON).unwrap()),
+      None,
+      SonarrEvent::GetSeriesDetails(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", SonarrEvent::EditSeries(None).resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    let edit_series_params = EditSeriesParams {
+      series_id: 1,
+      monitored: Some(false),
+      use_season_folders: Some(false),
+      series_type: Some(SeriesType::Standard),
+      quality_profile_id: Some(1111),
+      language_profile_id: Some(1111),
+      root_folder_path: Some("/nfs/Test Path".to_owned()),
+      tags: Some(vec![1, 2]),
+      ..EditSeriesParams::default()
+    };
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::EditSeries(Some(edit_series_params)))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_series_event_uses_provided_parameters_defaults_to_previous_values() {
+    let expected_body: Value = serde_json::from_str(SERIES_JSON).unwrap();
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(SERIES_JSON).unwrap()),
+      None,
+      SonarrEvent::GetSeriesDetails(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", SonarrEvent::EditSeries(None).resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    let edit_series_params = EditSeriesParams {
+      series_id: 1,
+      ..EditSeriesParams::default()
+    };
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::EditSeries(Some(edit_series_params)))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_series_event_uses_provided_parameters_returns_empty_tags_vec_when_clear_tags_is_true(
+  ) {
+    let mut expected_body: Value = serde_json::from_str(SERIES_JSON).unwrap();
+    *expected_body.get_mut("tags").unwrap() = json!([]);
+
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(SERIES_JSON).unwrap()),
+      None,
+      SonarrEvent::GetSeriesDetails(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1", SonarrEvent::EditSeries(None).resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    let edit_series_params = EditSeriesParams {
+      series_id: 1,
+      clear_tags: true,
+      ..EditSeriesParams::default()
+    };
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::EditSeries(Some(edit_series_params)))
       .await
       .is_ok());
 
