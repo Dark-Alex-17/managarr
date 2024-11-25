@@ -193,10 +193,10 @@ mod tests {
     use crate::cli::sonarr::list_command_handler::{SonarrListCommand, SonarrListCommandHandler};
     use crate::cli::CliCommandHandler;
     use crate::models::sonarr_models::SonarrSerdeable;
+    use crate::models::Serdeable;
     use crate::network::sonarr_network::SonarrEvent;
     use crate::{
       app::App,
-      models::{radarr_models::RadarrSerdeable, Serdeable},
       network::{MockNetworkTrait, NetworkEvent},
     };
 
@@ -224,7 +224,7 @@ mod tests {
         .with(eq::<NetworkEvent>(expected_sonarr_event.into()))
         .times(1)
         .returning(|_| {
-          Ok(Serdeable::Radarr(RadarrSerdeable::Value(
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
             json!({"testResponse": "response"}),
           )))
         });

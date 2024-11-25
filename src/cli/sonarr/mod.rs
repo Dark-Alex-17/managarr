@@ -118,7 +118,7 @@ pub enum SonarrCommand {
     #[arg(long, help = "The ID of the indexer to test", required = true)]
     indexer_id: i64,
   },
-  #[command(about = "Test all Radarr indexers")]
+  #[command(about = "Test all Sonarr indexers")]
   TestAllIndexers,
 }
 
