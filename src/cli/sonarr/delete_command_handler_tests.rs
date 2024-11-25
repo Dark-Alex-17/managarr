@@ -94,6 +94,39 @@ mod tests {
     }
 
     #[test]
+    fn test_delete_episode_file_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "delete", "episode-file"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_delete_episode_file_success() {
+      let expected_args = SonarrDeleteCommand::EpisodeFile { episode_file_id: 1 };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "sonarr",
+        "delete",
+        "episode-file",
+        "--episode-file-id",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
+
+      if let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
+      {
+        assert_eq!(delete_command, expected_args);
+      }
+    }
+
+    #[test]
     fn test_delete_indexer_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "delete", "indexer"]);
 
