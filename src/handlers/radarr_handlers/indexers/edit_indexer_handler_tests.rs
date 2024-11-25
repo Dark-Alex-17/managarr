@@ -5,7 +5,7 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::servarr_data::radarr::modals::EditIndexerModal;
+  use crate::models::servarr_data::modals::EditIndexerModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
   use strum::IntoEnumIterator;
 
@@ -14,7 +14,7 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::models::servarr_data::radarr::modals::EditIndexerModal;
+    use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
 
@@ -69,7 +69,7 @@ mod tests {
     use std::sync::atomic::Ordering;
 
     use crate::app::App;
-    use crate::models::servarr_data::radarr::modals::EditIndexerModal;
+    use crate::models::servarr_data::modals::EditIndexerModal;
     use pretty_assertions::assert_eq;
 
     use super::*;
@@ -334,7 +334,7 @@ mod tests {
     use std::sync::atomic::Ordering;
 
     use crate::app::App;
-    use crate::models::servarr_data::radarr::modals::EditIndexerModal;
+    use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::servarr_data::radarr::radarr_data::{
       EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
     };
@@ -759,7 +759,7 @@ mod tests {
     use rstest::rstest;
 
     use crate::app::App;
-    use crate::models::servarr_data::radarr::modals::EditIndexerModal;
+    use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::{
       servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, BlockSelectionState,
     };
@@ -1224,7 +1224,7 @@ mod tests {
     use super::*;
     use crate::app::App;
     use crate::event::Key;
-    use crate::models::servarr_data::radarr::modals::EditIndexerModal;
+    use crate::models::servarr_data::modals::EditIndexerModal;
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -1281,7 +1281,7 @@ mod tests {
 
   mod test_handle_key_char {
     use crate::app::App;
-    use crate::models::servarr_data::radarr::modals::EditIndexerModal;
+    use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
     use crate::network::radarr_network::RadarrEvent;

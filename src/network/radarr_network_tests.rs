@@ -4053,7 +4053,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_indexer_event() {
+  async fn test_handle_edit_radarr_indexer_event() {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -4153,7 +4153,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_indexer_event_does_not_add_seed_ratio_when_seed_ratio_field_is_none_in_details(
+  async fn test_handle_edit_radarr_indexer_event_does_not_add_seed_ratio_when_seed_ratio_field_is_none_in_details(
   ) {
     let indexer_details_json = json!({
         "enableRss": true,
@@ -4255,7 +4255,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_indexer_event_populates_the_seed_ratio_value_when_seed_ratio_field_is_present_in_details(
+  async fn test_handle_edit_radarr_indexer_event_populates_the_seed_ratio_value_when_seed_ratio_field_is_present_in_details(
   ) {
     let indexer_details_json = json!({
         "enableRss": true,
@@ -4371,7 +4371,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_indexer_event_uses_provided_parameters() {
+  async fn test_handle_edit_radarr_indexer_event_uses_provided_parameters() {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -4464,7 +4464,8 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_indexer_event_uses_provided_parameters_defaults_to_previous_values() {
+  async fn test_handle_edit_radarr_indexer_event_uses_provided_parameters_defaults_to_previous_values(
+  ) {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -4525,7 +4526,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_indexer_event_uses_provided_parameters_clears_tags_when_clear_tags_is_true(
+  async fn test_handle_edit_radarr_indexer_event_uses_provided_parameters_clears_tags_when_clear_tags_is_true(
   ) {
     let indexer_details_json = json!({
         "enableRss": true,

@@ -810,9 +810,10 @@ mod tests {
       },
       models::{
         radarr_models::{
-          EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings,
-          MinimumAvailability, RadarrSerdeable,
+          EditCollectionParams, EditMovieParams, IndexerSettings, MinimumAvailability,
+          RadarrSerdeable,
         },
+        servarr_models::EditIndexerParams,
         Serdeable,
       },
       network::{radarr_network::RadarrEvent, MockNetworkTrait, NetworkEvent},

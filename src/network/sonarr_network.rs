@@ -8,15 +8,15 @@ use crate::{
   models::{
     radarr_models::IndexerTestResult,
     servarr_data::{
-      modals::IndexerTestResultModalItem,
+      modals::{EditIndexerModal, IndexerTestResultModalItem},
       sonarr::{
         modals::{AddSeriesModal, EpisodeDetailsModal, SeasonDetailsModal},
         sonarr_data::ActiveSonarrBlock,
       },
     },
     servarr_models::{
-      AddRootFolderBody, CommandBody, DiskSpace, HostConfig, Indexer, Language, LogResponse,
-      QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+      AddRootFolderBody, CommandBody, DiskSpace, EditIndexerParams, HostConfig, Indexer, Language,
+      LogResponse, QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
       AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, BlocklistResponse,
@@ -51,6 +51,7 @@ pub enum SonarrEvent {
   DeleteTag(i64),
   DownloadRelease(SonarrReleaseDownloadBody),
   EditAllIndexerSettings(Option<IndexerSettings>),
+  EditIndexer(Option<EditIndexerParams>),
   GetAllIndexerSettings,
   GetBlocklist,
   GetDownloads,
@@ -106,7 +107,9 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetEpisodes(_) | SonarrEvent::GetEpisodeDetails(_) => "/episode",
       SonarrEvent::GetHistory(_) | SonarrEvent::GetEpisodeHistory(_) => "/history",
       SonarrEvent::GetHostConfig | SonarrEvent::GetSecurityConfig => "/config/host",
-      SonarrEvent::GetIndexers | SonarrEvent::DeleteIndexer(_) => "/indexer",
+      SonarrEvent::GetIndexers | SonarrEvent::DeleteIndexer(_) | SonarrEvent::EditIndexer(_) => {
+        "/indexer"
+      }
       SonarrEvent::GetLanguageProfiles => "/languageprofile",
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetDiskSpace => "/diskspace",
@@ -202,6 +205,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::EditAllIndexerSettings(params) => self
         .edit_all_sonarr_indexer_settings(params)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::EditIndexer(params) => self
+        .edit_sonarr_indexer(params)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetBlocklist => self.get_sonarr_blocklist().await.map(SonarrSerdeable::from),
@@ -798,6 +805,261 @@ impl<'a, 'b> Network<'a, 'b> {
     self.app.lock().await.data.sonarr_data.indexer_settings = None;
 
     resp
+  }
+
+  async fn edit_sonarr_indexer(
+    &mut self,
+    edit_indexer_params: Option<EditIndexerParams>,
+  ) -> Result<()> {
+    let detail_event = SonarrEvent::GetIndexers;
+    let event = SonarrEvent::EditIndexer(None);
+    let id = if let Some(ref params) = edit_indexer_params {
+      params.indexer_id
+    } else {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .indexers
+        .current_selection()
+        .id
+    };
+    info!("Updating Sonarr indexer with ID: {id}");
+
+    info!("Fetching indexer details for indexer with ID: {id}");
+
+    let request_props = self
+      .request_props_from(
+        detail_event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{id}")),
+        None,
+      )
+      .await;
+
+    let mut response = String::new();
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_indexer_body, _| {
+        response = detailed_indexer_body.to_string()
+      })
+      .await?;
+
+    info!("Constructing edit indexer body");
+
+    let mut detailed_indexer_body: Value = serde_json::from_str(&response).unwrap();
+    let priority = detailed_indexer_body["priority"]
+      .as_i64()
+      .expect("Unable to deserialize 'priority'");
+
+    let (
+      name,
+      enable_rss,
+      enable_automatic_search,
+      enable_interactive_search,
+      url,
+      api_key,
+      seed_ratio,
+      tags,
+      priority,
+    ) = if let Some(params) = edit_indexer_params {
+      let seed_ratio_field_option = detailed_indexer_body["fields"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|field| field["name"] == "seedCriteria.seedRatio");
+      let name = params.name.unwrap_or(
+        detailed_indexer_body["name"]
+          .as_str()
+          .expect("Unable to deserialize 'name'")
+          .to_owned(),
+      );
+      let enable_rss = params.enable_rss.unwrap_or(
+        detailed_indexer_body["enableRss"]
+          .as_bool()
+          .expect("Unable to deserialize 'enableRss'"),
+      );
+      let enable_automatic_search = params.enable_automatic_search.unwrap_or(
+        detailed_indexer_body["enableAutomaticSearch"]
+          .as_bool()
+          .expect("Unable to deserialize 'enableAutomaticSearch"),
+      );
+      let enable_interactive_search = params.enable_interactive_search.unwrap_or(
+        detailed_indexer_body["enableInteractiveSearch"]
+          .as_bool()
+          .expect("Unable to deserialize 'enableInteractiveSearch'"),
+      );
+      let url = params.url.unwrap_or(
+        detailed_indexer_body["fields"]
+          .as_array()
+          .expect("Unable to deserialize 'fields'")
+          .iter()
+          .find(|field| field["name"] == "baseUrl")
+          .expect("Field 'baseUrl' was not found in the 'fields' array")
+          .get("value")
+          .unwrap_or(&json!(""))
+          .as_str()
+          .expect("Unable to deserialize 'baseUrl value'")
+          .to_owned(),
+      );
+      let api_key = params.api_key.unwrap_or(
+        detailed_indexer_body["fields"]
+          .as_array()
+          .expect("Unable to deserialize 'fields'")
+          .iter()
+          .find(|field| field["name"] == "apiKey")
+          .expect("Field 'apiKey' was not found in the 'fields' array")
+          .get("value")
+          .unwrap_or(&json!(""))
+          .as_str()
+          .expect("Unable to deserialize 'apiKey value'")
+          .to_owned(),
+      );
+      let seed_ratio = params.seed_ratio.unwrap_or_else(|| {
+        if let Some(seed_ratio_field) = seed_ratio_field_option {
+          return seed_ratio_field
+            .get("value")
+            .unwrap_or(&json!(""))
+            .as_str()
+            .expect("Unable to deserialize 'seedCriteria.seedRatio value'")
+            .to_owned();
+        }
+
+        String::new()
+      });
+      let tags = if params.clear_tags {
+        vec![]
+      } else {
+        params.tags.unwrap_or(
+          detailed_indexer_body["tags"]
+            .as_array()
+            .expect("Unable to deserialize 'tags'")
+            .iter()
+            .map(|item| item.as_i64().expect("Unable to deserialize tag ID"))
+            .collect(),
+        )
+      };
+      let priority = params.priority.unwrap_or(priority);
+
+      (
+        name,
+        enable_rss,
+        enable_automatic_search,
+        enable_interactive_search,
+        url,
+        api_key,
+        seed_ratio,
+        tags,
+        priority,
+      )
+    } else {
+      let tags = self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .edit_indexer_modal
+        .as_ref()
+        .unwrap()
+        .tags
+        .text
+        .clone();
+      let tag_ids_vec = self.extract_and_add_sonarr_tag_ids_vec(tags).await;
+      let mut app = self.app.lock().await;
+
+      let params = {
+        let EditIndexerModal {
+          name,
+          enable_rss,
+          enable_automatic_search,
+          enable_interactive_search,
+          url,
+          api_key,
+          seed_ratio,
+          ..
+        } = app.data.sonarr_data.edit_indexer_modal.as_ref().unwrap();
+
+        (
+          name.text.clone(),
+          enable_rss.unwrap_or_default(),
+          enable_automatic_search.unwrap_or_default(),
+          enable_interactive_search.unwrap_or_default(),
+          url.text.clone(),
+          api_key.text.clone(),
+          seed_ratio.text.clone(),
+          tag_ids_vec,
+          priority,
+        )
+      };
+
+      app.data.sonarr_data.edit_indexer_modal = None;
+
+      params
+    };
+
+    *detailed_indexer_body.get_mut("name").unwrap() = json!(name);
+    *detailed_indexer_body.get_mut("priority").unwrap() = json!(priority);
+    *detailed_indexer_body.get_mut("enableRss").unwrap() = json!(enable_rss);
+    *detailed_indexer_body
+      .get_mut("enableAutomaticSearch")
+      .unwrap() = json!(enable_automatic_search);
+    *detailed_indexer_body
+      .get_mut("enableInteractiveSearch")
+      .unwrap() = json!(enable_interactive_search);
+    *detailed_indexer_body
+      .get_mut("fields")
+      .unwrap()
+      .as_array_mut()
+      .unwrap()
+      .iter_mut()
+      .find(|field| field["name"] == "baseUrl")
+      .unwrap()
+      .get_mut("value")
+      .unwrap() = json!(url);
+    *detailed_indexer_body
+      .get_mut("fields")
+      .unwrap()
+      .as_array_mut()
+      .unwrap()
+      .iter_mut()
+      .find(|field| field["name"] == "apiKey")
+      .unwrap()
+      .get_mut("value")
+      .unwrap() = json!(api_key);
+    *detailed_indexer_body.get_mut("tags").unwrap() = json!(tags);
+    let seed_ratio_field_option = detailed_indexer_body
+      .get_mut("fields")
+      .unwrap()
+      .as_array_mut()
+      .unwrap()
+      .iter_mut()
+      .find(|field| field["name"] == "seedCriteria.seedRatio");
+    if let Some(seed_ratio_field) = seed_ratio_field_option {
+      seed_ratio_field
+        .as_object_mut()
+        .unwrap()
+        .insert("value".to_string(), json!(seed_ratio));
+    }
+
+    debug!("Edit indexer body: {detailed_indexer_body:?}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Put,
+        Some(detailed_indexer_body),
+        Some(format!("/{id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<Value, ()>(request_props, |_, _| ())
+      .await
   }
 
   async fn get_all_sonarr_indexer_settings(&mut self) -> Result<IndexerSettings> {

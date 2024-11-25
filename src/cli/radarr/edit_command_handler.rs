@@ -9,9 +9,9 @@ use crate::{
   cli::{mutex_flags_or_default, mutex_flags_or_option, CliCommandHandler, Command},
   models::{
     radarr_models::{
-      EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings,
-      MinimumAvailability, RadarrSerdeable,
+      EditCollectionParams, EditMovieParams, IndexerSettings, MinimumAvailability, RadarrSerdeable,
     },
+    servarr_models::EditIndexerParams,
     Serdeable,
   },
   network::{radarr_network::RadarrEvent, NetworkTrait},

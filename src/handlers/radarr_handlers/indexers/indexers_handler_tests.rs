@@ -237,7 +237,7 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use crate::models::servarr_data::radarr::modals::EditIndexerModal;
+    use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::servarr_data::radarr::radarr_data::{
       RadarrData, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
     };

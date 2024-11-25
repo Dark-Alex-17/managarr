@@ -181,22 +181,6 @@ pub struct EditCollectionParams {
 
 #[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct EditIndexerParams {
-  pub indexer_id: i64,
-  pub name: Option<String>,
-  pub enable_rss: Option<bool>,
-  pub enable_automatic_search: Option<bool>,
-  pub enable_interactive_search: Option<bool>,
-  pub url: Option<String>,
-  pub api_key: Option<String>,
-  pub seed_ratio: Option<String>,
-  pub tags: Option<Vec<i64>>,
-  pub priority: Option<i64>,
-  pub clear_tags: bool,
-}
-
-#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
 pub struct EditMovieParams {
   pub movie_id: i64,
   pub monitored: Option<bool>,

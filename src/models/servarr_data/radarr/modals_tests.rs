@@ -16,8 +16,6 @@ mod test {
 
   #[rstest]
   fn test_edit_indexer_modal_from_radarr_data(#[values(true, false)] seed_ratio_present: bool) {
-    use crate::models::servarr_models::{Indexer, IndexerField};
-
     let mut radarr_data = RadarrData {
       tags_map: BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]),
       ..RadarrData::default()

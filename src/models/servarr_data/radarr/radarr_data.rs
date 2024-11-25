@@ -9,9 +9,9 @@ use crate::models::radarr_models::{
   AddMovieSearchResult, BlocklistItem, Collection, CollectionMovie, DownloadRecord,
   IndexerSettings, Movie, RadarrTask,
 };
-use crate::models::servarr_data::modals::IndexerTestResultModalItem;
+use crate::models::servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem};
 use crate::models::servarr_data::radarr::modals::{
-  AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, MovieDetailsModal,
+  AddMovieModal, EditCollectionModal, EditMovieModal, MovieDetailsModal,
 };
 use crate::models::servarr_models::{DiskSpace, Indexer, QueueEvent, RootFolder};
 use crate::models::stateful_list::StatefulList;

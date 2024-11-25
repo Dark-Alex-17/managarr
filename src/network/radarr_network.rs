@@ -9,18 +9,18 @@ use urlencoding::encode;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieOptions, AddMovieSearchResult, BlocklistResponse, Collection,
   CollectionMovie, Credit, CreditType, DeleteMovieParams, DownloadRecord, DownloadsResponse,
-  EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings, IndexerTestResult,
-  Movie, MovieCommandBody, MovieHistoryItem, RadarrRelease, RadarrReleaseDownloadBody,
-  RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus,
+  EditCollectionParams, EditMovieParams, IndexerSettings, IndexerTestResult, Movie,
+  MovieCommandBody, MovieHistoryItem, RadarrRelease, RadarrReleaseDownloadBody, RadarrSerdeable,
+  RadarrTask, RadarrTaskName, SystemStatus,
 };
-use crate::models::servarr_data::modals::IndexerTestResultModalItem;
+use crate::models::servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem};
 use crate::models::servarr_data::radarr::modals::{
-  AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, MovieDetailsModal,
+  AddMovieModal, EditCollectionModal, EditMovieModal, MovieDetailsModal,
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::{
-  AddRootFolderBody, CommandBody, DiskSpace, HostConfig, Indexer, LogResponse, QualityProfile,
-  QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+  AddRootFolderBody, CommandBody, DiskSpace, EditIndexerParams, HostConfig, Indexer, LogResponse,
+  QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
 };
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
@@ -188,9 +188,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .edit_collection(params)
         .await
         .map(RadarrSerdeable::from),
-      RadarrEvent::EditIndexer(params) => {
-        self.edit_indexer(params).await.map(RadarrSerdeable::from)
-      }
+      RadarrEvent::EditIndexer(params) => self
+        .edit_radarr_indexer(params)
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::EditMovie(params) => self.edit_movie(params).await.map(RadarrSerdeable::from),
       RadarrEvent::GetAllIndexerSettings => self
         .get_all_radarr_indexer_settings()
@@ -882,7 +883,10 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn edit_indexer(&mut self, edit_indexer_params: Option<EditIndexerParams>) -> Result<()> {
+  async fn edit_radarr_indexer(
+    &mut self,
+    edit_indexer_params: Option<EditIndexerParams>,
+  ) -> Result<()> {
     let detail_event = RadarrEvent::GetIndexers;
     let event = RadarrEvent::EditIndexer(None);
     let id = if let Some(ref params) = edit_indexer_params {

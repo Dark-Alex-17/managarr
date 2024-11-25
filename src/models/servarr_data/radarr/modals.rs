@@ -3,6 +3,7 @@ use strum::IntoEnumIterator;
 use crate::models::radarr_models::{
   Collection, Credit, MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, RadarrRelease,
 };
+use crate::models::servarr_data::modals::EditIndexerModal;
 use crate::models::servarr_data::radarr::radarr_data::RadarrData;
 use crate::models::servarr_models::{Indexer, RootFolder};
 use crate::models::stateful_list::StatefulList;
@@ -23,18 +24,6 @@ pub struct MovieDetailsModal {
   pub movie_cast: StatefulTable<Credit>,
   pub movie_crew: StatefulTable<Credit>,
   pub movie_releases: StatefulTable<RadarrRelease>,
-}
-
-#[derive(Default, Debug, PartialEq, Eq)]
-pub struct EditIndexerModal {
-  pub name: HorizontallyScrollableText,
-  pub enable_rss: Option<bool>,
-  pub enable_automatic_search: Option<bool>,
-  pub enable_interactive_search: Option<bool>,
-  pub url: HorizontallyScrollableText,
-  pub api_key: HorizontallyScrollableText,
-  pub seed_ratio: HorizontallyScrollableText,
-  pub tags: HorizontallyScrollableText,
 }
 
 impl From<&RadarrData<'_>> for EditIndexerModal {
