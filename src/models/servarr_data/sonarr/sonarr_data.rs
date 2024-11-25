@@ -127,7 +127,6 @@ pub enum ActiveSonarrBlock {
   DeleteSeriesToggleAddListExclusion,
   DeleteSeriesToggleDeleteFile,
   Downloads,
-  EditEpisodePrompt,
   EditIndexerPrompt,
   EditSeriesPrompt,
   EpisodeDetails,

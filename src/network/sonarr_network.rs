@@ -44,6 +44,7 @@ pub enum SonarrEvent {
   ClearBlocklist,
   DeleteBlocklistItem(Option<i64>),
   DeleteDownload(Option<i64>),
+  DeleteEpisodeFile(Option<i64>),
   DeleteIndexer(Option<i64>),
   DeleteRootFolder(Option<i64>),
   DeleteSeries(Option<DeleteSeriesParams>),
@@ -99,6 +100,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetAllIndexerSettings | SonarrEvent::EditAllIndexerSettings(_) => {
         "/config/indexer"
       }
+      SonarrEvent::DeleteEpisodeFile(_) => "/episodefile",
       SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       SonarrEvent::GetDownloads | SonarrEvent::DeleteDownload(_) => "/queue",
       SonarrEvent::GetEpisodes(_) | SonarrEvent::GetEpisodeDetails(_) => "/episode",
@@ -173,6 +175,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::DeleteDownload(download_id) => self
         .delete_sonarr_download(download_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::DeleteEpisodeFile(episode_file_id) => self
+        .delete_sonarr_episode_file(episode_file_id)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::DeleteIndexer(indexer_id) => self
@@ -516,6 +522,42 @@ impl<'a, 'b> Network<'a, 'b> {
     };
 
     info!("Deleting Sonarr blocklist item for item with id: {id}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        None::<()>,
+        Some(format!("/{id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
+  }
+
+  async fn delete_sonarr_episode_file(&mut self, episode_file_id: Option<i64>) -> Result<()> {
+    let event = SonarrEvent::DeleteEpisodeFile(None);
+    let id = if let Some(ep_id) = episode_file_id {
+      ep_id
+    } else {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .expect("Season details have not been loaded")
+        .episodes
+        .current_selection()
+        .episode_file_id
+    };
+
+    info!("Deleting Sonarr episode file for episode file with id: {id}");
 
     let request_props = self
       .request_props_from(

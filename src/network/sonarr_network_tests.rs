@@ -251,6 +251,7 @@ mod test {
   #[rstest]
   #[case(SonarrEvent::ClearBlocklist, "/blocklist/bulk")]
   #[case(SonarrEvent::DeleteBlocklistItem(None), "/blocklist")]
+  #[case(SonarrEvent::DeleteEpisodeFile(None), "/episodefile")]
   #[case(SonarrEvent::HealthCheck, "/health")]
   #[case(SonarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(SonarrEvent::GetDiskSpace, "/diskspace")]
@@ -710,6 +711,83 @@ mod test {
       .is_ok());
 
     async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_sonarr_episode_file_event() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      SonarrEvent::DeleteEpisodeFile(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    app_arc.lock().await.data.sonarr_data.season_details_modal =
+      Some(SeasonDetailsModal::default());
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_mut()
+      .unwrap()
+      .episodes
+      .set_items(vec![episode()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::DeleteEpisodeFile(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_sonarr_episode_file_event_uses_provided_id() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      SonarrEvent::DeleteEpisodeFile(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::DeleteEpisodeFile(Some(1)))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  #[should_panic(expected = "Season details have not been loaded")]
+  async fn test_handle_delete_sonarr_episode_file_event_empty_season_details_modal_panics() {
+    let (_async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      SonarrEvent::DeleteEpisodeFile(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    network
+      .handle_sonarr_event(SonarrEvent::DeleteEpisodeFile(None))
+      .await
+      .unwrap();
   }
 
   #[tokio::test]
