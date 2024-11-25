@@ -3,12 +3,12 @@ mod tests {
   use std::hash::{DefaultHasher, Hash, Hasher};
 
   use crate::models::stateful_tree::StatefulTree;
+  use crate::models::Scrollable;
   use managarr_tree_widget::{Tree, TreeItem, TreeState};
   use pretty_assertions::{assert_eq, assert_str_eq};
   use ratatui::buffer::Buffer;
   use ratatui::layout::Rect;
   use ratatui::widgets::StatefulWidget;
-  use crate::models::Scrollable;
 
   #[test]
   fn test_stateful_tree_scrolling_on_empty_tree_performs_no_op() {
@@ -106,21 +106,21 @@ mod tests {
     render(&mut stateful_tree.state, &stateful_tree.items);
     stateful_tree.state.key_down();
     render(&mut stateful_tree.state, &stateful_tree.items);
-  
+
     assert_eq!(stateful_tree.state.selected(), &[hash("Test 1")]);
 
     stateful_tree.state.key_down();
     render(&mut stateful_tree.state, &stateful_tree.items);
     stateful_tree.set_items(items_vec.clone());
     render(&mut stateful_tree.state, &stateful_tree.items);
-  
+
     assert_eq!(stateful_tree.state.selected(), &[hash("Test 2")]);
 
     stateful_tree.state.key_down();
     render(&mut stateful_tree.state, &stateful_tree.items);
     stateful_tree.set_items(items_vec);
     render(&mut stateful_tree.state, &stateful_tree.items);
-  
+
     assert_eq!(stateful_tree.state.selected(), &[hash("Test 3")]);
   }
 
@@ -130,7 +130,7 @@ mod tests {
     render(&mut stateful_tree.state, &stateful_tree.items);
     stateful_tree.state.key_down();
     render(&mut stateful_tree.state, &stateful_tree.items);
-    
+
     let current_selection = stateful_tree.current_selection();
 
     assert!(current_selection.is_some());
