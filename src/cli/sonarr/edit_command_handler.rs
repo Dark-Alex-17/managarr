@@ -1,13 +1,14 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use clap::{ArgGroup, Subcommand};
+use clap::{ArgAction, ArgGroup, Subcommand};
 use tokio::sync::Mutex;
 
 use crate::{
   app::App,
-  cli::{CliCommandHandler, Command},
+  cli::{mutex_flags_or_option, CliCommandHandler, Command},
   models::{
+    servarr_models::EditIndexerParams,
     sonarr_models::{IndexerSettings, SonarrSerdeable},
     Serdeable,
   },
@@ -55,6 +56,97 @@ pub enum SonarrEditCommand {
       help = "The RSS sync interval in minutes. Set to zero to disable (this will stop all automatic release grabbing)"
     )]
     rss_sync_interval: Option<i64>,
+  },
+  #[command(
+    about = "Edit preferences for the specified indexer",
+    group(
+      ArgGroup::new("edit_indexer")
+      .args([
+        "name",
+        "enable_rss",
+        "disable_rss",
+        "enable_automatic_search",
+        "disable_automatic_search",
+        "enable_interactive_search",
+        "disable_automatic_search",
+        "url",
+        "api_key",
+        "seed_ratio",
+        "tag",
+        "priority",
+        "clear_tags"
+      ]).required(true)
+      .multiple(true))
+  )]
+  Indexer {
+    #[arg(
+      long,
+      help = "The ID of the indexer whose settings you wish to edit",
+      required = true
+    )]
+    indexer_id: i64,
+    #[arg(long, help = "The name of the indexer")]
+    name: Option<String>,
+    #[arg(
+      long,
+      help = "Indicate to Sonarr that this indexer should be used when Sonarr periodically looks for releases via RSS Sync",
+      conflicts_with = "disable_rss"
+    )]
+    enable_rss: bool,
+    #[arg(
+      long,
+      help = "Disable using this indexer when Sonarr periodically looks for releases via RSS Sync",
+      conflicts_with = "enable_rss"
+    )]
+    disable_rss: bool,
+    #[arg(
+      long,
+      help = "Indicate to Sonarr that this indexer should be used when automatic searches are performed via the UI or by Sonarr",
+      conflicts_with = "disable_automatic_search"
+    )]
+    enable_automatic_search: bool,
+    #[arg(
+      long,
+      help = "Disable using this indexer whenever automatic searches are performed via the UI or by Sonarr",
+      conflicts_with = "enable_automatic_search"
+    )]
+    disable_automatic_search: bool,
+    #[arg(
+      long,
+      help = "Indicate to Sonarr that this indexer should be used when an interactive search is used",
+      conflicts_with = "disable_interactive_search"
+    )]
+    enable_interactive_search: bool,
+    #[arg(
+      long,
+      help = "Disable using this indexer whenever an interactive search is performed",
+      conflicts_with = "enable_interactive_search"
+    )]
+    disable_interactive_search: bool,
+    #[arg(long, help = "The URL of the indexer")]
+    url: Option<String>,
+    #[arg(long, help = "The API key used to access the indexer's API")]
+    api_key: Option<String>,
+    #[arg(
+      long,
+      help = "The ratio a torrent should reach before stopping; Empty uses the download client's default. Ratio should be at least 1.0 and follow the indexer's rules"
+    )]
+    seed_ratio: Option<String>,
+    #[arg(
+      long,
+      help = "Only use this indexer for series with at least one matching tag ID. Leave blank to use with all series.",
+      value_parser,
+      action = ArgAction::Append,
+      conflicts_with = "clear_tags"
+    )]
+    tag: Option<Vec<i64>>,
+    #[arg(
+      long,
+      help = "Indexer Priority from 1 (Highest) to 50 (Lowest). Default: 25. Used when grabbing releases as a tiebreaker for otherwise equal releases, Sonarr will still use all enabled indexers for RSS Sync and Searching"
+    )]
+    priority: Option<i64>,
+    #[arg(long, help = "Clear all tags on this indexer", conflicts_with = "tag")]
+    clear_tags: bool,
   },
 }
 
@@ -112,6 +204,47 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrEditCommand> for SonarrEditCommandH
         } else {
           String::new()
         }
+      }
+      SonarrEditCommand::Indexer {
+        indexer_id,
+        name,
+        enable_rss,
+        disable_rss,
+        enable_automatic_search,
+        disable_automatic_search,
+        enable_interactive_search,
+        disable_interactive_search,
+        url,
+        api_key,
+        seed_ratio,
+        tag,
+        priority,
+        clear_tags,
+      } => {
+        let rss_value = mutex_flags_or_option(enable_rss, disable_rss);
+        let automatic_search_value =
+          mutex_flags_or_option(enable_automatic_search, disable_automatic_search);
+        let interactive_search_value =
+          mutex_flags_or_option(enable_interactive_search, disable_interactive_search);
+        let edit_indexer_params = EditIndexerParams {
+          indexer_id,
+          name,
+          enable_rss: rss_value,
+          enable_automatic_search: automatic_search_value,
+          enable_interactive_search: interactive_search_value,
+          url,
+          api_key,
+          seed_ratio,
+          tags: tag,
+          priority,
+          clear_tags,
+        };
+
+        self
+          .network
+          .handle_network_event(SonarrEvent::EditIndexer(Some(edit_indexer_params)).into())
+          .await?;
+        "Indexer updated".to_owned()
       }
     };
 
