@@ -1060,7 +1060,7 @@ impl<'a, 'b> Network<'a, 'b> {
         RequestMethod::Put,
         Some(detailed_indexer_body),
         Some(format!("/{id}")),
-        None,
+        Some("forceSave=true".to_owned()),
       )
       .await;
 

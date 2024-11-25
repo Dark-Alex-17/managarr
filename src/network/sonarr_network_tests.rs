@@ -1194,7 +1194,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", SonarrEvent::EditIndexer(None).resource()).as_str(),
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          SonarrEvent::EditIndexer(None).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -1287,7 +1291,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", SonarrEvent::EditIndexer(None).resource()).as_str(),
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          SonarrEvent::EditIndexer(None).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -1396,7 +1404,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", SonarrEvent::EditIndexer(None).resource()).as_str(),
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          SonarrEvent::EditIndexer(None).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -1525,7 +1537,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", SonarrEvent::EditIndexer(None).resource()).as_str(),
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          SonarrEvent::EditIndexer(None).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -1587,7 +1603,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", SonarrEvent::EditIndexer(None).resource()).as_str(),
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          SonarrEvent::EditIndexer(None).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -1673,7 +1693,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", SonarrEvent::EditIndexer(None).resource()).as_str(),
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          SonarrEvent::EditIndexer(None).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
