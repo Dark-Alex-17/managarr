@@ -20,7 +20,7 @@ mod tests {
   }
 
   mod cli {
-    use crate::Cli;
+    use crate::{models::sonarr_models::SeriesType, Cli};
 
     use super::*;
     use clap::{error::ErrorKind, CommandFactory, Parser};
@@ -358,6 +358,245 @@ mod tests {
         assert_eq!(edit_command, expected_args);
       }
     }
+
+    #[test]
+    fn test_edit_series_requires_arguments() {
+      let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "edit", "series"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_edit_series_with_series_id_still_requires_arguments() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "edit",
+        "series",
+        "--series-id",
+        "1",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_edit_series_monitoring_flags_conflict() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "edit",
+        "series",
+        "--series-id",
+        "1",
+        "--enable-monitoring",
+        "--disable-monitoring",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
+    }
+
+    #[test]
+    fn test_edit_series_season_folders_flags_conflict() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "edit",
+        "series",
+        "--series-id",
+        "1",
+        "--enable-season-folders",
+        "--disable-season-folders",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
+    }
+
+    #[test]
+    fn test_edit_series_tag_flags_conflict() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "edit",
+        "series",
+        "--series-id",
+        "1",
+        "--tag",
+        "1",
+        "--clear-tags",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
+    }
+
+    #[rstest]
+    fn test_edit_series_assert_argument_flags_require_args(
+      #[values(
+        "--series-type",
+        "--quality-profile-id",
+        "--language-profile-id",
+        "--root-folder-path",
+        "--tag"
+      )]
+      flag: &str,
+    ) {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "edit",
+        "series",
+        "--series-id",
+        "1",
+        flag,
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[test]
+    fn test_edit_series_series_type_validation() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "edit",
+        "series",
+        "--series-id",
+        "1",
+        "--series-type",
+        "test",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[test]
+    fn test_edit_series_only_requires_at_least_one_argument_plus_series_id() {
+      let expected_args = SonarrEditCommand::Series {
+        series_id: 1,
+        enable_monitoring: false,
+        disable_monitoring: false,
+        enable_season_folders: false,
+        disable_season_folders: false,
+        series_type: None,
+        quality_profile_id: None,
+        language_profile_id: None,
+        root_folder_path: Some("/nfs/test".to_owned()),
+        tag: None,
+        clear_tags: false,
+      };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "sonarr",
+        "edit",
+        "series",
+        "--series-id",
+        "1",
+        "--root-folder-path",
+        "/nfs/test",
+      ]);
+
+      assert!(result.is_ok());
+
+      if let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command {
+        assert_eq!(edit_command, expected_args);
+      }
+    }
+
+    #[test]
+    fn test_edit_series_tag_argument_is_repeatable() {
+      let expected_args = SonarrEditCommand::Series {
+        series_id: 1,
+        enable_monitoring: false,
+        disable_monitoring: false,
+        enable_season_folders: false,
+        disable_season_folders: false,
+        series_type: None,
+        quality_profile_id: None,
+        language_profile_id: None,
+        root_folder_path: None,
+        tag: Some(vec![1, 2]),
+        clear_tags: false,
+      };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "sonarr",
+        "edit",
+        "series",
+        "--series-id",
+        "1",
+        "--tag",
+        "1",
+        "--tag",
+        "2",
+      ]);
+
+      assert!(result.is_ok());
+
+      if let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command {
+        assert_eq!(edit_command, expected_args);
+      }
+    }
+
+    #[test]
+    fn test_edit_series_all_arguments_defined() {
+      let expected_args = SonarrEditCommand::Series {
+        series_id: 1,
+        enable_monitoring: true,
+        disable_monitoring: false,
+        enable_season_folders: true,
+        disable_season_folders: false,
+        series_type: Some(SeriesType::Anime),
+        quality_profile_id: Some(1),
+        language_profile_id: Some(1),
+        root_folder_path: Some("/nfs/test".to_owned()),
+        tag: Some(vec![1, 2]),
+        clear_tags: false,
+      };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "sonarr",
+        "edit",
+        "series",
+        "--series-id",
+        "1",
+        "--enable-monitoring",
+        "--enable-season-folders",
+        "--series-type",
+        "anime",
+        "--quality-profile-id",
+        "1",
+        "--language-profile-id",
+        "1",
+        "--root-folder-path",
+        "/nfs/test",
+        "--tag",
+        "1",
+        "--tag",
+        "2",
+      ]);
+
+      assert!(result.is_ok());
+
+      if let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command {
+        assert_eq!(edit_command, expected_args);
+      }
+    }
   }
 
   mod handler {
@@ -375,7 +614,7 @@ mod tests {
       },
       models::{
         servarr_models::EditIndexerParams,
-        sonarr_models::{IndexerSettings, SonarrSerdeable},
+        sonarr_models::{EditSeriesParams, IndexerSettings, SeriesType, SonarrSerdeable},
         Serdeable,
       },
       network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
@@ -487,6 +726,147 @@ mod tests {
         SonarrEditCommandHandler::with(&app_arc, edit_indexer_command, &mut mock_network)
           .handle()
           .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_edit_series_command() {
+      let expected_edit_series_params = EditSeriesParams {
+        series_id: 1,
+        monitored: Some(true),
+        use_season_folders: Some(true),
+        series_type: Some(SeriesType::Anime),
+        quality_profile_id: Some(1),
+        language_profile_id: Some(1),
+        root_folder_path: Some("/nfs/test".to_owned()),
+        tags: Some(vec![1, 2]),
+        clear_tags: false,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::EditSeries(Some(expected_edit_series_params)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let edit_series_command = SonarrEditCommand::Series {
+        series_id: 1,
+        enable_monitoring: true,
+        disable_monitoring: false,
+        enable_season_folders: true,
+        disable_season_folders: false,
+        series_type: Some(SeriesType::Anime),
+        quality_profile_id: Some(1),
+        language_profile_id: Some(1),
+        root_folder_path: Some("/nfs/test".to_owned()),
+        tag: Some(vec![1, 2]),
+        clear_tags: false,
+      };
+
+      let result = SonarrEditCommandHandler::with(&app_arc, edit_series_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_edit_series_command_handles_disable_monitoring_flag_properly() {
+      let expected_edit_series_params = EditSeriesParams {
+        series_id: 1,
+        monitored: Some(false),
+        use_season_folders: Some(false),
+        series_type: Some(SeriesType::Anime),
+        quality_profile_id: Some(1),
+        language_profile_id: Some(1),
+        root_folder_path: Some("/nfs/test".to_owned()),
+        tags: Some(vec![1, 2]),
+        clear_tags: false,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::EditSeries(Some(expected_edit_series_params)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let edit_series_command = SonarrEditCommand::Series {
+        series_id: 1,
+        enable_monitoring: false,
+        disable_monitoring: true,
+        enable_season_folders: false,
+        disable_season_folders: true,
+        series_type: Some(SeriesType::Anime),
+        quality_profile_id: Some(1),
+        language_profile_id: Some(1),
+        root_folder_path: Some("/nfs/test".to_owned()),
+        tag: Some(vec![1, 2]),
+        clear_tags: false,
+      };
+
+      let result = SonarrEditCommandHandler::with(&app_arc, edit_series_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_edit_series_command_no_monitoring_boolean_flags_returns_none_value() {
+      let expected_edit_series_params = EditSeriesParams {
+        series_id: 1,
+        monitored: None,
+        use_season_folders: None,
+        series_type: Some(SeriesType::Anime),
+        quality_profile_id: Some(1),
+        language_profile_id: Some(1),
+        root_folder_path: Some("/nfs/test".to_owned()),
+        tags: Some(vec![1, 2]),
+        clear_tags: false,
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::EditSeries(Some(expected_edit_series_params)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let edit_series_command = SonarrEditCommand::Series {
+        series_id: 1,
+        enable_monitoring: false,
+        disable_monitoring: false,
+        enable_season_folders: false,
+        disable_season_folders: false,
+        series_type: Some(SeriesType::Anime),
+        quality_profile_id: Some(1),
+        language_profile_id: Some(1),
+        root_folder_path: Some("/nfs/test".to_owned()),
+        tag: Some(vec![1, 2]),
+        clear_tags: false,
+      };
+
+      let result = SonarrEditCommandHandler::with(&app_arc, edit_series_command, &mut mock_network)
+        .handle()
+        .await;
 
       assert!(result.is_ok());
     }
