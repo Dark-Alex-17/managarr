@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.3.2 (2024-11-26)
+
+### Fix
+
+- **ci**: Updated the Cargo.lock file [skip ci]
+- **ci**: Use a different GitHub action to release the crate to Crates.io [skip ci]
+- **ci**: Don't manually push the tags and let Commitizen do it [skip ci]
+
 ## v0.3.1 (2024-11-26)
 
 ### Fix
