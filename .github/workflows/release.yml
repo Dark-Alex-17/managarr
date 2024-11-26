@@ -58,6 +58,15 @@ jobs:
         run: |
           git commit --amend --no-edit -m "$(git log -1 --pretty=%B) [skip ci]"
 
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Update the Cargo.lock
+        run: |
+          cargo update
+          git add Cargo.lock
+          git commit -m "chore: Bump the version in Cargo.lock"
+
       - name: Get the new version tag
         id: version
         run: |
