@@ -28,12 +28,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
+          ssh-key: ${{ secrets.RELEASE_BOT_SSH_KEY }}
           fetch-depth: 0
-
-      - name: Configure Git user
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -49,36 +45,17 @@ jobs:
         run: |
           cz bump --yes --increment ${{ github.event.inputs.bump_type }}
 
-      - name: Stage and Commit Changes
-        run: |
-          git add .
-          git commit -m "chore: bump version using Commitizen"
-
-      - name: Push changes to a new branch
+      - name: Push changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(cz version)
-          BRANCH_NAME="release-$VERSION"
-          git checkout -b $BRANCH_NAME
-          git add .
-          git commit -m "chore: bump version to $VERSION"
-          git push origin $BRANCH_NAME
-
-      - name: Create pull request
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ steps.push-changes.outputs.BRANCH_NAME }}
-          title: "Release ${{ steps.push-changes.outputs.VERSION }}"
-          body: "This pull request contains the changes for the ${{ steps.push-changes.outputs.VERSION }} release."
-          base: main
+          git push origin main --follow-tags
 
   release-plz:
     # see https://release-plz.ieni.dev/docs/github
     # for more information
     needs: bump
-    name: Release Crate
+    name: Release-plz
     runs-on: ubuntu-latest
     steps:
       - name: Check if actor is repository owner
