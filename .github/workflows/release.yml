@@ -19,11 +19,15 @@ on:
           - patch
           - minor
           - major
+      target_job:
+        description: "Which job to start with"
+        required: false
+        default: "bump"
 
 jobs:
   bump:
     runs-on: ubuntu-latest
-
+    if: ${{ github.event.inputs.target_job == 'bump' }}
     steps:
       - name: Configure SSH for Git
         run: |
@@ -106,6 +110,7 @@ jobs:
     # for more information
     needs: bump
     name: Release-plz
+    if: ${{ github.event.inputs.target_job == 'release-plz' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check if actor is repository owner
