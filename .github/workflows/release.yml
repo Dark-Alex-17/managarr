@@ -19,20 +19,10 @@ on:
           - patch
           - minor
           - major
-      start_from:
-        description: "Specify the job to start from"
-        required: true
-        default: ""
-        type: choice
-        options:
-          - ""
-          - bump
-          - release-plz
 
 jobs:
   bump:
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.start_from == 'bump' || github.event.inputs.start_from == '' }}
     steps:
       - name: Configure SSH for Git
         run: |
@@ -115,7 +105,6 @@ jobs:
     # for more information
     needs: bump
     name: Release-plz
-    if: ${{ github.event.inputs.start_from == 'release-plz' || github.event.inputs.start_from == '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check if actor is repository owner
