@@ -21,7 +21,7 @@ on:
           - major
       start_from:
         description: "Specify the job to start from"
-        required: false
+        required: true
         default: ""
         type: choice
         options:
