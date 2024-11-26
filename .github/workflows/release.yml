@@ -120,8 +120,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Ensure repository is up-to-date
+        run: |
+          git fetch --all
+
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
+
       - uses: katyo/publish-crates@v2
         with:
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
