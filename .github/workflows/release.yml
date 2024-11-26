@@ -124,6 +124,7 @@ jobs:
       - name: Ensure repository is up-to-date
         run: |
           git fetch --all
+          git pull
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
