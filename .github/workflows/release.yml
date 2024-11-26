@@ -61,15 +61,44 @@ jobs:
         run: |
           git commit --amend --no-edit -m "$(git log -1 --pretty=%B) [skip ci]"
 
-      - name: Create the new tag
+      - name: Get the new version tag
+        id: version
         run: |
-          git tag $(cz version --project)
+          NEW_TAG=$(git describe --tags --abbrev=0)
+          echo "New version: $NEW_TAG"
+          echo "version=$NEW_TAG" >> $GITHUB_ENV
+
+      - name: Get the previous version tag
+        id: prev_version
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 ${GITHUB_SHA}^)
+          echo "Previous tag: $PREV_TAG"
+          echo "prev_version=$PREV_TAG" >> $GITHUB_ENV
+
+      - name: Generate changelog for the version bump
+        id: changelog
+        run: |
+          changelog=$(conventional-changelog -p angular -i CHANGELOG.md -s --from ${{ env.prev_version }} --to ${{ env.version }})
+          echo "$changelog" > changelog.md
+          echo "changelog_body=$(cat changelog.md)" >> $GITHUB_ENV
+
+      - name: Create a GitHub Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.version }}
+          release_name: "Release ${{ env.version }}"
+          body: ${{ env.changelog_body }}
+          draft: false
+          prerelease: false
 
       - name: Push changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git push origin main --follow-tags
+          git tag ${{ env.version }}
+          git push origin --follow-tags
 
   release-plz:
     # see https://release-plz.ieni.dev/docs/github
