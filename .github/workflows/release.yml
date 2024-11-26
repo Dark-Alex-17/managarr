@@ -55,7 +55,7 @@ jobs:
 
       - name: Bump version with Commitizen
         run: |
-          cz bump --yes --increment ${{ github.event.inputs.bump_type }}
+          cz bump --yes --increment ${{ github.event.inputs.bump_type }} --message "chore: bump version [skip ci]"
 
       - name: Push changes
         env:
