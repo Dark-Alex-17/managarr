@@ -65,7 +65,7 @@ jobs:
       - name: Get the new version tag
         id: version
         run: |
-          NEW_TAG=$(git describe --tags --abbrev=0)
+          NEW_TAG=$(cz version --project)
           echo "New version: $NEW_TAG"
           echo "version=$NEW_TAG" >> $GITHUB_ENV
 
