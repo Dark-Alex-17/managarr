@@ -38,7 +38,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.x" # Specify your required Python version
+          python-version: "3.10"
 
       - name: Install Commitizen
         run: |
@@ -48,6 +48,11 @@ jobs:
       - name: Bump version with Commitizen
         run: |
           cz bump --yes --increment ${{ github.event.inputs.bump_type }}
+
+      - name: Stage and Commit Changes
+        run: |
+          git add .
+          git commit -m "chore: bump version using Commitizen"
 
       - name: Push changes to a new branch
         env:
@@ -74,7 +79,6 @@ jobs:
     # for more information
     needs: bump
     name: Release Crate
-    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Check if actor is repository owner
