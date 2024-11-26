@@ -49,16 +49,32 @@ jobs:
         run: |
           cz bump --yes --increment ${{ github.event.inputs.bump_type }}
 
-      - name: Push changes
+      - name: Push changes to a new branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git push origin main --follow-tags --force
+          VERSION=$(cz version)
+          BRANCH_NAME="release-$VERSION"
+          git checkout -b $BRANCH_NAME
+          git add .
+          git commit -m "chore: bump version to $VERSION"
+          git push origin $BRANCH_NAME
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ steps.push-changes.outputs.BRANCH_NAME }}
+          title: "Release ${{ steps.push-changes.outputs.VERSION }}"
+          body: "This pull request contains the changes for the ${{ steps.push-changes.outputs.VERSION }} release."
+          base: main
 
   release-plz:
     # see https://release-plz.ieni.dev/docs/github
     # for more information
-    name: Release-plz
+    needs: bump
+    name: Release Crate
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Check if actor is repository owner
