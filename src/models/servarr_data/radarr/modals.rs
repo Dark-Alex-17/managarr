@@ -1,10 +1,11 @@
 use strum::IntoEnumIterator;
 
 use crate::models::radarr_models::{
-  Collection, Credit, Indexer, MinimumAvailability, Monitor, Movie, MovieHistoryItem, Release,
-  RootFolder,
+  Collection, Credit, MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, RadarrRelease,
 };
+use crate::models::servarr_data::modals::EditIndexerModal;
 use crate::models::servarr_data::radarr::radarr_data::RadarrData;
+use crate::models::servarr_models::{Indexer, RootFolder};
 use crate::models::stateful_list::StatefulList;
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, ScrollableText};
@@ -22,19 +23,7 @@ pub struct MovieDetailsModal {
   pub movie_history: StatefulTable<MovieHistoryItem>,
   pub movie_cast: StatefulTable<Credit>,
   pub movie_crew: StatefulTable<Credit>,
-  pub movie_releases: StatefulTable<Release>,
-}
-
-#[derive(Default, Debug, PartialEq, Eq)]
-pub struct EditIndexerModal {
-  pub name: HorizontallyScrollableText,
-  pub enable_rss: Option<bool>,
-  pub enable_automatic_search: Option<bool>,
-  pub enable_interactive_search: Option<bool>,
-  pub url: HorizontallyScrollableText,
-  pub api_key: HorizontallyScrollableText,
-  pub seed_ratio: HorizontallyScrollableText,
-  pub tags: HorizontallyScrollableText,
+  pub movie_releases: StatefulTable<RadarrRelease>,
 }
 
 impl From<&RadarrData<'_>> for EditIndexerModal {
@@ -195,7 +184,7 @@ impl From<&RadarrData<'_>> for EditMovieModal {
 #[derive(Default)]
 pub struct AddMovieModal {
   pub root_folder_list: StatefulList<RootFolder>,
-  pub monitor_list: StatefulList<Monitor>,
+  pub monitor_list: StatefulList<MovieMonitor>,
   pub minimum_availability_list: StatefulList<MinimumAvailability>,
   pub quality_profile_list: StatefulList<String>,
   pub tags: HorizontallyScrollableText,
@@ -206,7 +195,7 @@ impl From<&RadarrData<'_>> for AddMovieModal {
     let mut add_movie_modal = AddMovieModal::default();
     add_movie_modal
       .monitor_list
-      .set_items(Vec::from_iter(Monitor::iter()));
+      .set_items(Vec::from_iter(MovieMonitor::iter()));
     add_movie_modal
       .minimum_availability_list
       .set_items(Vec::from_iter(MinimumAvailability::iter()));
@@ -290,11 +279,4 @@ impl From<&RadarrData<'_>> for EditCollectionModal {
 
     edit_collection_modal
   }
-}
-
-#[derive(Default, Clone, Eq, PartialEq, Debug)]
-pub struct IndexerTestResultModalItem {
-  pub name: String,
-  pub is_valid: bool,
-  pub validation_failures: HorizontallyScrollableText,
 }

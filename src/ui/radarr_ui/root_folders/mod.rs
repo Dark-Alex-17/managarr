@@ -3,8 +3,8 @@ use ratatui::widgets::{Cell, Row};
 use ratatui::Frame;
 
 use crate::app::App;
-use crate::models::radarr_models::RootFolder;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
+use crate::models::servarr_models::RootFolder;
 use crate::models::Route;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::layout_block_top_border;

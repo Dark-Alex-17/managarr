@@ -3,28 +3,31 @@ use std::fmt::Debug;
 
 use indoc::formatdoc;
 use log::{debug, info, warn};
-use serde::Serialize;
 use serde_json::{json, Value};
 use urlencoding::encode;
 
-use crate::app::RadarrConfig;
 use crate::models::radarr_models::{
-  AddMovieBody, AddMovieSearchResult, AddOptions, AddRootFolderBody, BlocklistResponse, Collection,
-  CollectionMovie, CommandBody, Credit, CreditType, DeleteMovieParams, DiskSpace, DownloadRecord,
-  DownloadsResponse, EditCollectionParams, EditIndexerParams, EditMovieParams, HostConfig, Indexer,
-  IndexerSettings, IndexerTestResult, LogResponse, Movie, MovieCommandBody, MovieHistoryItem,
-  QualityProfile, QueueEvent, RadarrSerdeable, Release, ReleaseDownloadBody, RootFolder,
-  SecurityConfig, SystemStatus, Tag, Task, TaskName, Update,
+  AddMovieBody, AddMovieOptions, AddMovieSearchResult, BlocklistResponse, Collection,
+  CollectionMovie, Credit, CreditType, DeleteMovieParams, DownloadRecord, DownloadsResponse,
+  EditCollectionParams, EditMovieParams, IndexerSettings, IndexerTestResult, Movie,
+  MovieCommandBody, MovieHistoryItem, RadarrRelease, RadarrReleaseDownloadBody, RadarrSerdeable,
+  RadarrTask, RadarrTaskName, SystemStatus,
 };
+use crate::models::servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem};
 use crate::models::servarr_data::radarr::modals::{
-  AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
-  MovieDetailsModal,
+  AddMovieModal, EditCollectionModal, EditMovieModal, MovieDetailsModal,
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+use crate::models::servarr_models::{
+  AddRootFolderBody, CommandBody, DiskSpace, EditIndexerParams, HostConfig, Indexer, LogResponse,
+  QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+};
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};
-use crate::network::{Network, NetworkEvent, RequestMethod, RequestProps};
+use crate::network::{Network, NetworkEvent, RequestMethod};
 use crate::utils::{convert_runtime, convert_to_gb};
+
+use super::NetworkResource;
 
 #[cfg(test)]
 #[path = "radarr_network_tests.rs"]
@@ -42,7 +45,7 @@ pub enum RadarrEvent {
   DeleteMovie(Option<DeleteMovieParams>),
   DeleteRootFolder(Option<i64>),
   DeleteTag(i64),
-  DownloadRelease(Option<ReleaseDownloadBody>),
+  DownloadRelease(Option<RadarrReleaseDownloadBody>),
   EditAllIndexerSettings(Option<IndexerSettings>),
   EditCollection(Option<EditCollectionParams>),
   EditIndexer(Option<EditIndexerParams>),
@@ -58,7 +61,7 @@ pub enum RadarrEvent {
   GetMovieDetails(Option<i64>),
   GetMovieHistory(Option<i64>),
   GetMovies,
-  GetOverview,
+  GetDiskSpace,
   GetQualityProfiles,
   GetQueuedEvents,
   GetReleases(Option<i64>),
@@ -70,7 +73,7 @@ pub enum RadarrEvent {
   GetUpdates,
   HealthCheck,
   SearchNewMovie(Option<String>),
-  StartTask(Option<TaskName>),
+  StartTask(Option<RadarrTaskName>),
   TestIndexer(Option<i64>),
   TestAllIndexers,
   TriggerAutomaticSearch(Option<i64>),
@@ -80,8 +83,8 @@ pub enum RadarrEvent {
   UpdateDownloads,
 }
 
-impl RadarrEvent {
-  const fn resource(&self) -> &'static str {
+impl NetworkResource for RadarrEvent {
+  fn resource(&self) -> &'static str {
     match &self {
       RadarrEvent::ClearBlocklist => "/blocklist/bulk",
       RadarrEvent::DeleteBlocklistItem(_) => "/blocklist",
@@ -104,7 +107,7 @@ impl RadarrEvent {
       RadarrEvent::SearchNewMovie(_) => "/movie/lookup",
       RadarrEvent::GetMovieCredits(_) => "/credit",
       RadarrEvent::GetMovieHistory(_) => "/history/movie",
-      RadarrEvent::GetOverview => "/diskspace",
+      RadarrEvent::GetDiskSpace => "/diskspace",
       RadarrEvent::GetQualityProfiles => "/qualityprofile",
       RadarrEvent::GetReleases(_) | RadarrEvent::DownloadRelease(_) => "/release",
       RadarrEvent::AddRootFolder(_)
@@ -141,57 +144,71 @@ impl<'a, 'b> Network<'a, 'b> {
   ) -> Result<RadarrSerdeable> {
     match radarr_event {
       RadarrEvent::AddMovie(body) => self.add_movie(body).await.map(RadarrSerdeable::from),
-      RadarrEvent::AddRootFolder(path) => {
-        self.add_root_folder(path).await.map(RadarrSerdeable::from)
-      }
-      RadarrEvent::AddTag(tag) => self.add_tag(tag).await.map(RadarrSerdeable::from),
-      RadarrEvent::ClearBlocklist => self.clear_blocklist().await.map(RadarrSerdeable::from),
+      RadarrEvent::AddRootFolder(path) => self
+        .add_radarr_root_folder(path)
+        .await
+        .map(RadarrSerdeable::from),
+      RadarrEvent::AddTag(tag) => self.add_radarr_tag(tag).await.map(RadarrSerdeable::from),
+      RadarrEvent::ClearBlocklist => self
+        .clear_radarr_blocklist()
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::DeleteBlocklistItem(blocklist_item_id) => self
-        .delete_blocklist_item(blocklist_item_id)
+        .delete_radarr_blocklist_item(blocklist_item_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::DeleteDownload(download_id) => self
-        .delete_download(download_id)
+        .delete_radarr_download(download_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::DeleteIndexer(indexer_id) => self
-        .delete_indexer(indexer_id)
+        .delete_radarr_indexer(indexer_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::DeleteMovie(params) => {
         self.delete_movie(params).await.map(RadarrSerdeable::from)
       }
       RadarrEvent::DeleteRootFolder(root_folder_id) => self
-        .delete_root_folder(root_folder_id)
+        .delete_radarr_root_folder(root_folder_id)
         .await
         .map(RadarrSerdeable::from),
-      RadarrEvent::DeleteTag(tag_id) => self.delete_tag(tag_id).await.map(RadarrSerdeable::from),
+      RadarrEvent::DeleteTag(tag_id) => self
+        .delete_radarr_tag(tag_id)
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::DownloadRelease(params) => self
-        .download_release(params)
+        .download_radarr_release(params)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::EditAllIndexerSettings(params) => self
-        .edit_all_indexer_settings(params)
+        .edit_all_radarr_indexer_settings(params)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::EditCollection(params) => self
         .edit_collection(params)
         .await
         .map(RadarrSerdeable::from),
-      RadarrEvent::EditIndexer(params) => {
-        self.edit_indexer(params).await.map(RadarrSerdeable::from)
-      }
-      RadarrEvent::EditMovie(params) => self.edit_movie(params).await.map(RadarrSerdeable::from),
-      RadarrEvent::GetAllIndexerSettings => self
-        .get_all_indexer_settings()
+      RadarrEvent::EditIndexer(params) => self
+        .edit_radarr_indexer(params)
         .await
         .map(RadarrSerdeable::from),
-      RadarrEvent::GetBlocklist => self.get_blocklist().await.map(RadarrSerdeable::from),
+      RadarrEvent::EditMovie(params) => self.edit_movie(params).await.map(RadarrSerdeable::from),
+      RadarrEvent::GetAllIndexerSettings => self
+        .get_all_radarr_indexer_settings()
+        .await
+        .map(RadarrSerdeable::from),
+      RadarrEvent::GetBlocklist => self.get_radarr_blocklist().await.map(RadarrSerdeable::from),
       RadarrEvent::GetCollections => self.get_collections().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetDownloads => self.get_downloads().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetHostConfig => self.get_host_config().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetIndexers => self.get_indexers().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetLogs(events) => self.get_logs(events).await.map(RadarrSerdeable::from),
+      RadarrEvent::GetDownloads => self.get_radarr_downloads().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetHostConfig => self
+        .get_radarr_host_config()
+        .await
+        .map(RadarrSerdeable::from),
+      RadarrEvent::GetIndexers => self.get_radarr_indexers().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetLogs(events) => self
+        .get_radarr_logs(events)
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::GetMovieCredits(movie_id) => {
         self.get_credits(movie_id).await.map(RadarrSerdeable::from)
       }
@@ -204,48 +221,70 @@ impl<'a, 'b> Network<'a, 'b> {
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::GetMovies => self.get_movies().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetOverview => self.get_diskspace().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetQualityProfiles => {
-        self.get_quality_profiles().await.map(RadarrSerdeable::from)
-      }
-      RadarrEvent::GetQueuedEvents => self.get_queued_events().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetReleases(movie_id) => {
-        self.get_releases(movie_id).await.map(RadarrSerdeable::from)
-      }
-      RadarrEvent::GetRootFolders => self.get_root_folders().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetSecurityConfig => self.get_security_config().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetStatus => self.get_status().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetTags => self.get_tags().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetTasks => self.get_tasks().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetUpdates => self.get_updates().await.map(RadarrSerdeable::from),
-      RadarrEvent::HealthCheck => self.get_healthcheck().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetDiskSpace => self.get_radarr_diskspace().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetQualityProfiles => self
+        .get_radarr_quality_profiles()
+        .await
+        .map(RadarrSerdeable::from),
+      RadarrEvent::GetQueuedEvents => self
+        .get_queued_radarr_events()
+        .await
+        .map(RadarrSerdeable::from),
+      RadarrEvent::GetReleases(movie_id) => self
+        .get_movie_releases(movie_id)
+        .await
+        .map(RadarrSerdeable::from),
+      RadarrEvent::GetRootFolders => self
+        .get_radarr_root_folders()
+        .await
+        .map(RadarrSerdeable::from),
+      RadarrEvent::GetSecurityConfig => self
+        .get_radarr_security_config()
+        .await
+        .map(RadarrSerdeable::from),
+      RadarrEvent::GetStatus => self.get_radarr_status().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetTags => self.get_radarr_tags().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetTasks => self.get_radarr_tasks().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetUpdates => self.get_radarr_updates().await.map(RadarrSerdeable::from),
+      RadarrEvent::HealthCheck => self
+        .get_radarr_healthcheck()
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::SearchNewMovie(query) => {
         self.search_movie(query).await.map(RadarrSerdeable::from)
       }
-      RadarrEvent::StartTask(task_name) => {
-        self.start_task(task_name).await.map(RadarrSerdeable::from)
-      }
-      RadarrEvent::TestIndexer(indexer_id) => self
-        .test_indexer(indexer_id)
+      RadarrEvent::StartTask(task_name) => self
+        .start_radarr_task(task_name)
         .await
         .map(RadarrSerdeable::from),
-      RadarrEvent::TestAllIndexers => self.test_all_indexers().await.map(RadarrSerdeable::from),
+      RadarrEvent::TestIndexer(indexer_id) => self
+        .test_radarr_indexer(indexer_id)
+        .await
+        .map(RadarrSerdeable::from),
+      RadarrEvent::TestAllIndexers => self
+        .test_all_radarr_indexers()
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::TriggerAutomaticSearch(movie_id) => self
-        .trigger_automatic_search(movie_id)
+        .trigger_automatic_movie_search(movie_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::UpdateAllMovies => self.update_all_movies().await.map(RadarrSerdeable::from),
       RadarrEvent::UpdateAndScan(movie_id) => self
-        .update_and_scan(movie_id)
+        .update_and_scan_movie(movie_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::UpdateCollections => self.update_collections().await.map(RadarrSerdeable::from),
-      RadarrEvent::UpdateDownloads => self.update_downloads().await.map(RadarrSerdeable::from),
+      RadarrEvent::UpdateDownloads => self
+        .update_radarr_downloads()
+        .await
+        .map(RadarrSerdeable::from),
     }
   }
 
   async fn add_movie(&mut self, add_movie_body_option: Option<AddMovieBody>) -> Result<Value> {
     info!("Adding new movie to Radarr");
+    let event = RadarrEvent::AddMovie(None);
     let body = if let Some(add_movie_body) = add_movie_body_option {
       add_movie_body
     } else {
@@ -261,7 +300,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .tags
         .text
         .clone();
-      let tag_ids_vec = self.extract_and_add_tag_ids_vec(tags).await;
+      let tag_ids_vec = self.extract_and_add_radarr_tag_ids_vec(tags).await;
       let mut app = self.app.lock().await;
       let AddMovieModal {
         root_folder_list,
@@ -327,7 +366,7 @@ impl<'a, 'b> Network<'a, 'b> {
         monitored: true,
         quality_profile_id,
         tags: tag_ids_vec,
-        add_options: AddOptions {
+        add_options: AddMovieOptions {
           monitor,
           search_for_movie: true,
         },
@@ -337,11 +376,7 @@ impl<'a, 'b> Network<'a, 'b> {
     debug!("Add movie body: {body:?}");
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::AddMovie(None).resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
       .await;
 
     self
@@ -349,8 +384,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn add_root_folder(&mut self, root_folder: Option<String>) -> Result<Value> {
+  async fn add_radarr_root_folder(&mut self, root_folder: Option<String>) -> Result<Value> {
     info!("Adding new root folder to Radarr");
+    let event = RadarrEvent::AddRootFolder(None);
     let body = if let Some(path) = root_folder {
       AddRootFolderBody { path }
     } else {
@@ -372,11 +408,7 @@ impl<'a, 'b> Network<'a, 'b> {
     debug!("Add root folder body: {body:?}");
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::AddRootFolder(None).resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
       .await;
 
     self
@@ -384,14 +416,17 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn add_tag(&mut self, tag: String) -> Result<Tag> {
+  async fn add_radarr_tag(&mut self, tag: String) -> Result<Tag> {
     info!("Adding a new Radarr tag");
+    let event = RadarrEvent::AddTag(String::new());
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::AddTag(String::new()).resource(),
+      .request_props_from(
+        event,
         RequestMethod::Post,
         Some(json!({ "label": tag })),
+        None,
+        None,
       )
       .await;
 
@@ -402,14 +437,17 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_tag(&mut self, id: i64) -> Result<()> {
+  async fn delete_radarr_tag(&mut self, id: i64) -> Result<()> {
     info!("Deleting Radarr tag with id: {id}");
+    let event = RadarrEvent::DeleteTag(id);
 
     let request_props = self
-      .radarr_request_props_from(
-        format!("{}/{id}", RadarrEvent::DeleteTag(id).resource()).as_str(),
+      .request_props_from(
+        event,
         RequestMethod::Delete,
         None::<()>,
+        Some(format!("/{id}")),
+        None,
       )
       .await;
 
@@ -418,8 +456,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn clear_blocklist(&mut self) -> Result<()> {
+  async fn clear_radarr_blocklist(&mut self) -> Result<()> {
     info!("Clearing Radarr blocklist");
+    let event = RadarrEvent::ClearBlocklist;
 
     let ids = self
       .app
@@ -434,10 +473,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .collect::<Vec<i64>>();
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::ClearBlocklist.resource(),
+      .request_props_from(
+        event,
         RequestMethod::Delete,
         Some(json!({"ids": ids})),
+        None,
+        None,
       )
       .await;
 
@@ -446,7 +487,8 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_blocklist_item(&mut self, blocklist_item_id: Option<i64>) -> Result<()> {
+  async fn delete_radarr_blocklist_item(&mut self, blocklist_item_id: Option<i64>) -> Result<()> {
+    let event = RadarrEvent::DeleteBlocklistItem(None);
     let id = if let Some(b_id) = blocklist_item_id {
       b_id
     } else {
@@ -464,10 +506,12 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Deleting Radarr blocklist item for item with id: {id}");
 
     let request_props = self
-      .radarr_request_props_from(
-        format!("{}/{id}", RadarrEvent::DeleteBlocklistItem(None).resource()).as_str(),
+      .request_props_from(
+        event,
         RequestMethod::Delete,
         None::<()>,
+        Some(format!("/{id}")),
+        None,
       )
       .await;
 
@@ -476,7 +520,8 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_download(&mut self, download_id: Option<i64>) -> Result<()> {
+  async fn delete_radarr_download(&mut self, download_id: Option<i64>) -> Result<()> {
+    let event = RadarrEvent::DeleteDownload(None);
     let id = if let Some(dl_id) = download_id {
       dl_id
     } else {
@@ -494,10 +539,12 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Deleting Radarr download for download with id: {id}");
 
     let request_props = self
-      .radarr_request_props_from(
-        format!("{}/{id}", RadarrEvent::DeleteDownload(None).resource()).as_str(),
+      .request_props_from(
+        event,
         RequestMethod::Delete,
         None::<()>,
+        Some(format!("/{id}")),
+        None,
       )
       .await;
 
@@ -506,7 +553,8 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_indexer(&mut self, indexer_id: Option<i64>) -> Result<()> {
+  async fn delete_radarr_indexer(&mut self, indexer_id: Option<i64>) -> Result<()> {
+    let event = RadarrEvent::DeleteIndexer(None);
     let id = if let Some(i_id) = indexer_id {
       i_id
     } else {
@@ -524,10 +572,12 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Deleting Radarr indexer for indexer with id: {id}");
 
     let request_props = self
-      .radarr_request_props_from(
-        format!("{}/{id}", RadarrEvent::DeleteIndexer(None).resource()).as_str(),
+      .request_props_from(
+        event,
         RequestMethod::Delete,
         None::<()>,
+        Some(format!("/{id}")),
+        None,
       )
       .await;
 
@@ -537,6 +587,7 @@ impl<'a, 'b> Network<'a, 'b> {
   }
 
   async fn delete_movie(&mut self, delete_movie_params: Option<DeleteMovieParams>) -> Result<()> {
+    let event = RadarrEvent::DeleteMovie(None);
     let (movie_id, delete_files, add_import_exclusion) = if let Some(params) = delete_movie_params {
       (
         params.id,
@@ -544,7 +595,7 @@ impl<'a, 'b> Network<'a, 'b> {
         params.add_list_exclusion,
       )
     } else {
-      let movie_id = self.extract_movie_id().await;
+      let (movie_id, _) = self.extract_movie_id(None).await;
       let delete_files = self.app.lock().await.data.radarr_data.delete_movie_files;
       let add_import_exclusion = self.app.lock().await.data.radarr_data.add_list_exclusion;
 
@@ -554,14 +605,14 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Deleting Radarr movie with ID: {movie_id} with deleteFiles={delete_files} and addImportExclusion={add_import_exclusion}");
 
     let request_props = self
-      .radarr_request_props_from(
-        format!(
-          "{}/{movie_id}?deleteFiles={delete_files}&addImportExclusion={add_import_exclusion}",
-          RadarrEvent::DeleteMovie(None).resource()
-        )
-        .as_str(),
+      .request_props_from(
+        event,
         RequestMethod::Delete,
         None::<()>,
+        Some(format!("/{movie_id}")),
+        Some(format!(
+          "deleteFiles={delete_files}&addImportExclusion={add_import_exclusion}"
+        )),
       )
       .await;
 
@@ -580,7 +631,8 @@ impl<'a, 'b> Network<'a, 'b> {
     resp
   }
 
-  async fn delete_root_folder(&mut self, root_folder_id: Option<i64>) -> Result<()> {
+  async fn delete_radarr_root_folder(&mut self, root_folder_id: Option<i64>) -> Result<()> {
+    let event = RadarrEvent::DeleteRootFolder(None);
     let id = if let Some(rf_id) = root_folder_id {
       rf_id
     } else {
@@ -598,10 +650,12 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Deleting Radarr root folder for folder with id: {id}");
 
     let request_props = self
-      .radarr_request_props_from(
-        format!("{}/{id}", RadarrEvent::DeleteRootFolder(None).resource()).as_str(),
+      .request_props_from(
+        event,
         RequestMethod::Delete,
         None::<()>,
+        Some(format!("/{id}")),
+        None,
       )
       .await;
 
@@ -610,15 +664,19 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn download_release(&mut self, params: Option<ReleaseDownloadBody>) -> Result<Value> {
+  async fn download_radarr_release(
+    &mut self,
+    params: Option<RadarrReleaseDownloadBody>,
+  ) -> Result<Value> {
+    let event = RadarrEvent::DownloadRelease(None);
     let body = if let Some(release_download_body) = params {
-      info!("Downloading release with params: {release_download_body:?}");
+      info!("Downloading Radarr release with params: {release_download_body:?}");
       release_download_body
     } else {
-      let movie_id = self.extract_movie_id().await;
+      let (movie_id, _) = self.extract_movie_id(None).await;
       let (guid, title, indexer_id) = {
         let app = self.app.lock().await;
-        let Release {
+        let RadarrRelease {
           guid,
           title,
           indexer_id,
@@ -637,7 +695,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
       info!("Downloading release: {title}");
 
-      ReleaseDownloadBody {
+      RadarrReleaseDownloadBody {
         guid,
         indexer_id,
         movie_id,
@@ -645,20 +703,20 @@ impl<'a, 'b> Network<'a, 'b> {
     };
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::DownloadRelease(None).resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
       .await;
 
     self
-      .handle_request::<ReleaseDownloadBody, Value>(request_props, |_, _| ())
+      .handle_request::<RadarrReleaseDownloadBody, Value>(request_props, |_, _| ())
       .await
   }
 
-  async fn edit_all_indexer_settings(&mut self, params: Option<IndexerSettings>) -> Result<Value> {
+  async fn edit_all_radarr_indexer_settings(
+    &mut self,
+    params: Option<IndexerSettings>,
+  ) -> Result<Value> {
     info!("Updating Radarr indexer settings");
+    let event = RadarrEvent::EditAllIndexerSettings(None);
 
     let body = if let Some(indexer_settings) = params {
       indexer_settings
@@ -678,11 +736,7 @@ impl<'a, 'b> Network<'a, 'b> {
     debug!("Indexer settings body: {body:?}");
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::EditAllIndexerSettings(None).resource(),
-        RequestMethod::Put,
-        Some(body),
-      )
+      .request_props_from(event, RequestMethod::Put, Some(body), None, None)
       .await;
 
     let resp = self
@@ -699,18 +753,22 @@ impl<'a, 'b> Network<'a, 'b> {
     edit_collection_params: Option<EditCollectionParams>,
   ) -> Result<()> {
     info!("Editing Radarr collection");
-
+    let detail_event = RadarrEvent::GetCollections;
+    let event = RadarrEvent::EditCollection(None);
     info!("Fetching collection details");
+
     let collection_id = if let Some(ref params) = edit_collection_params {
       params.collection_id
     } else {
       self.extract_collection_id().await
     };
     let request_props = self
-      .radarr_request_props_from(
-        format!("{}/{collection_id}", RadarrEvent::GetCollections.resource()).as_str(),
+      .request_props_from(
+        detail_event,
         RequestMethod::Get,
         None::<()>,
+        Some(format!("/{collection_id}")),
+        None,
       )
       .await;
 
@@ -811,14 +869,12 @@ impl<'a, 'b> Network<'a, 'b> {
     debug!("Edit collection body: {detailed_collection_body:?}");
 
     let request_props = self
-      .radarr_request_props_from(
-        format!(
-          "{}/{collection_id}",
-          RadarrEvent::EditCollection(None).resource()
-        )
-        .as_str(),
+      .request_props_from(
+        event,
         RequestMethod::Put,
         Some(detailed_collection_body),
+        Some(format!("/{collection_id}")),
+        None,
       )
       .await;
 
@@ -827,7 +883,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn edit_indexer(&mut self, edit_indexer_params: Option<EditIndexerParams>) -> Result<()> {
+  async fn edit_radarr_indexer(
+    &mut self,
+    edit_indexer_params: Option<EditIndexerParams>,
+  ) -> Result<()> {
+    let detail_event = RadarrEvent::GetIndexers;
+    let event = RadarrEvent::EditIndexer(None);
     let id = if let Some(ref params) = edit_indexer_params {
       params.indexer_id
     } else {
@@ -846,10 +907,12 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Fetching indexer details for indexer with ID: {id}");
 
     let request_props = self
-      .radarr_request_props_from(
-        format!("{}/{id}", RadarrEvent::GetIndexers.resource()).as_str(),
+      .request_props_from(
+        detail_event,
         RequestMethod::Get,
         None::<()>,
+        Some(format!("/{id}")),
+        None,
       )
       .await;
 
@@ -981,7 +1044,7 @@ impl<'a, 'b> Network<'a, 'b> {
         .tags
         .text
         .clone();
-      let tag_ids_vec = self.extract_and_add_tag_ids_vec(tags).await;
+      let tag_ids_vec = self.extract_and_add_radarr_tag_ids_vec(tags).await;
       let mut app = self.app.lock().await;
 
       let params = {
@@ -1061,10 +1124,12 @@ impl<'a, 'b> Network<'a, 'b> {
     debug!("Edit indexer body: {detailed_indexer_body:?}");
 
     let request_props = self
-      .radarr_request_props_from(
-        format!("{}/{id}", RadarrEvent::EditIndexer(None).resource()).as_str(),
+      .request_props_from(
+        event,
         RequestMethod::Put,
         Some(detailed_indexer_body),
+        Some(format!("/{id}")),
+        None,
       )
       .await;
 
@@ -1075,23 +1140,23 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn edit_movie(&mut self, edit_movie_params: Option<EditMovieParams>) -> Result<()> {
     info!("Editing Radarr movie");
+    let detail_event = RadarrEvent::GetMovieDetails(None);
+    let event = RadarrEvent::EditMovie(None);
 
-    let movie_id = if let Some(ref params) = edit_movie_params {
-      params.movie_id
+    let (movie_id, _) = if let Some(ref params) = edit_movie_params {
+      self.extract_movie_id(Some(params.movie_id)).await
     } else {
-      self.extract_movie_id().await
+      self.extract_movie_id(None).await
     };
     info!("Fetching movie details for movie with ID: {movie_id}");
 
     let request_props = self
-      .radarr_request_props_from(
-        format!(
-          "{}/{movie_id}",
-          RadarrEvent::GetMovieDetails(None).resource()
-        )
-        .as_str(),
+      .request_props_from(
+        detail_event,
         RequestMethod::Get,
         None::<()>,
+        Some(format!("/{movie_id}")),
+        None,
       )
       .await;
 
@@ -1164,7 +1229,7 @@ impl<'a, 'b> Network<'a, 'b> {
           .tags
           .text
           .clone();
-        let tag_ids_vec = self.extract_and_add_tag_ids_vec(tags).await;
+        let tag_ids_vec = self.extract_and_add_radarr_tag_ids_vec(tags).await;
         let mut app = self.app.lock().await;
 
         let params = {
@@ -1209,10 +1274,12 @@ impl<'a, 'b> Network<'a, 'b> {
     debug!("Edit movie body: {detailed_movie_body:?}");
 
     let request_props = self
-      .radarr_request_props_from(
-        format!("{}/{movie_id}", RadarrEvent::EditMovie(None).resource()).as_str(),
+      .request_props_from(
+        event,
         RequestMethod::Put,
         Some(detailed_movie_body),
+        Some(format!("/{movie_id}")),
+        None,
       )
       .await;
 
@@ -1221,15 +1288,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_blocklist(&mut self) -> Result<BlocklistResponse> {
-    info!("Fetching blocklist");
+  async fn get_radarr_blocklist(&mut self) -> Result<BlocklistResponse> {
+    info!("Fetching Radarr blocklist");
+    let event = RadarrEvent::GetBlocklist;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetBlocklist.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1249,13 +1313,10 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn get_collections(&mut self) -> Result<Vec<Collection>> {
     info!("Fetching Radarr collections");
+    let event = RadarrEvent::GetCollections;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetCollections.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1274,12 +1335,17 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn get_credits(&mut self, movie_id: Option<i64>) -> Result<Vec<Credit>> {
     info!("Fetching Radarr movie credits");
+    let event = RadarrEvent::GetMovieCredits(None);
+    let (_, movie_id_param) = self.extract_movie_id(movie_id).await;
 
-    let request_uri = self
-      .append_movie_id_param(RadarrEvent::GetMovieCredits(None).resource(), movie_id)
-      .await;
     let request_props = self
-      .radarr_request_props_from(request_uri.as_str(), RequestMethod::Get, None::<()>)
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(movie_id_param),
+      )
       .await;
 
     self
@@ -1319,15 +1385,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_diskspace(&mut self) -> Result<Vec<DiskSpace>> {
+  async fn get_radarr_diskspace(&mut self) -> Result<Vec<DiskSpace>> {
     info!("Fetching Radarr disk space");
+    let event = RadarrEvent::GetDiskSpace;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetOverview.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1337,15 +1400,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_downloads(&mut self) -> Result<DownloadsResponse> {
+  async fn get_radarr_downloads(&mut self) -> Result<DownloadsResponse> {
     info!("Fetching Radarr downloads");
+    let event = RadarrEvent::GetDownloads;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetDownloads.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1359,15 +1419,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_host_config(&mut self) -> Result<HostConfig> {
+  async fn get_radarr_host_config(&mut self) -> Result<HostConfig> {
     info!("Fetching Radarr host config");
+    let event = RadarrEvent::GetHostConfig;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetHostConfig.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1375,15 +1432,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_indexers(&mut self) -> Result<Vec<Indexer>> {
+  async fn get_radarr_indexers(&mut self) -> Result<Vec<Indexer>> {
     info!("Fetching Radarr indexers");
+    let event = RadarrEvent::GetIndexers;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetIndexers.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1393,15 +1447,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_all_indexer_settings(&mut self) -> Result<IndexerSettings> {
+  async fn get_all_radarr_indexer_settings(&mut self) -> Result<IndexerSettings> {
     info!("Fetching Radarr indexer settings");
+    let event = RadarrEvent::GetAllIndexerSettings;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetAllIndexerSettings.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1415,15 +1466,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_healthcheck(&mut self) -> Result<()> {
+  async fn get_radarr_healthcheck(&mut self) -> Result<()> {
     info!("Performing Radarr health check");
+    let event = RadarrEvent::HealthCheck;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::HealthCheck.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1431,16 +1479,16 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_logs(&mut self, events: Option<u64>) -> Result<LogResponse> {
+  async fn get_radarr_logs(&mut self, events: Option<u64>) -> Result<LogResponse> {
     info!("Fetching Radarr logs");
+    let event = RadarrEvent::GetLogs(events);
 
-    let resource = format!(
-      "{}?pageSize={}&sortDirection=descending&sortKey=time",
-      RadarrEvent::GetLogs(events).resource(),
+    let params = format!(
+      "pageSize={}&sortDirection=descending&sortKey=time",
       events.unwrap_or(500)
     );
     let request_props = self
-      .radarr_request_props_from(&resource, RequestMethod::Get, None::<()>)
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
       .await;
 
     self
@@ -1480,19 +1528,18 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn get_movie_details(&mut self, movie_id: Option<i64>) -> Result<Movie> {
     info!("Fetching Radarr movie details");
+    let event = RadarrEvent::GetMovieDetails(None);
+    let (id, _) = self.extract_movie_id(movie_id).await;
 
-    let id = if let Some(m_id) = movie_id {
-      m_id
-    } else {
-      self.extract_movie_id().await
-    };
     info!("Fetching movie details for movie with ID: {id}");
 
     let request_props = self
-      .radarr_request_props_from(
-        format!("{}/{id}", RadarrEvent::GetMovieDetails(None).resource()).as_str(),
+      .request_props_from(
+        event,
         RequestMethod::Get,
         None::<()>,
+        Some(format!("/{id}")),
+        None,
       )
       .await;
 
@@ -1637,12 +1684,17 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn get_movie_history(&mut self, movie_id: Option<i64>) -> Result<Vec<MovieHistoryItem>> {
     info!("Fetching Radarr movie history");
+    let event = RadarrEvent::GetMovieHistory(None);
 
-    let request_uri = self
-      .append_movie_id_param(RadarrEvent::GetMovieHistory(None).resource(), movie_id)
-      .await;
+    let (_, movie_id_param) = self.extract_movie_id(movie_id).await;
     let request_props = self
-      .radarr_request_props_from(request_uri.as_str(), RequestMethod::Get, None::<()>)
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(movie_id_param),
+      )
       .await;
 
     self
@@ -1668,13 +1720,10 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn get_movies(&mut self) -> Result<Vec<Movie>> {
     info!("Fetching Radarr library");
+    let event = RadarrEvent::GetMovies;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetMovies.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1691,15 +1740,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_quality_profiles(&mut self) -> Result<Vec<QualityProfile>> {
+  async fn get_radarr_quality_profiles(&mut self) -> Result<Vec<QualityProfile>> {
     info!("Fetching Radarr quality profiles");
+    let event = RadarrEvent::GetQualityProfiles;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetQualityProfiles.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1712,15 +1758,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_queued_events(&mut self) -> Result<Vec<QueueEvent>> {
+  async fn get_queued_radarr_events(&mut self) -> Result<Vec<QueueEvent>> {
     info!("Fetching Radarr queued events");
+    let event = RadarrEvent::GetQueuedEvents;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetQueuedEvents.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1734,24 +1777,23 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_releases(&mut self, movie_id: Option<i64>) -> Result<Vec<Release>> {
-    let id = if let Some(m_id) = movie_id {
-      m_id
-    } else {
-      self.extract_movie_id().await
-    };
+  async fn get_movie_releases(&mut self, movie_id: Option<i64>) -> Result<Vec<RadarrRelease>> {
+    let (id, movie_id_param) = self.extract_movie_id(movie_id).await;
     info!("Fetching releases for movie with ID: {id}");
+    let event = RadarrEvent::GetReleases(None);
 
     let request_props = self
-      .radarr_request_props_from(
-        format!("{}?movieId={id}", RadarrEvent::GetReleases(None).resource()).as_str(),
+      .request_props_from(
+        event,
         RequestMethod::Get,
         None::<()>,
+        None,
+        Some(movie_id_param),
       )
       .await;
 
     self
-      .handle_request::<(), Vec<Release>>(request_props, |release_vec, mut app| {
+      .handle_request::<(), Vec<RadarrRelease>>(request_props, |release_vec, mut app| {
         if app.data.radarr_data.movie_details_modal.is_none() {
           app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
         }
@@ -1768,15 +1810,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_root_folders(&mut self) -> Result<Vec<RootFolder>> {
+  async fn get_radarr_root_folders(&mut self) -> Result<Vec<RootFolder>> {
     info!("Fetching Radarr root folders");
+    let event = RadarrEvent::GetRootFolders;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetRootFolders.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1786,15 +1825,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_security_config(&mut self) -> Result<SecurityConfig> {
+  async fn get_radarr_security_config(&mut self) -> Result<SecurityConfig> {
     info!("Fetching Radarr security config");
+    let event = RadarrEvent::GetSecurityConfig;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetSecurityConfig.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1802,15 +1838,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_status(&mut self) -> Result<SystemStatus> {
+  async fn get_radarr_status(&mut self) -> Result<SystemStatus> {
     info!("Fetching Radarr system status");
+    let event = RadarrEvent::GetStatus;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetStatus.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1821,15 +1854,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_tags(&mut self) -> Result<Vec<Tag>> {
+  async fn get_radarr_tags(&mut self) -> Result<Vec<Tag>> {
     info!("Fetching Radarr tags");
+    let event = RadarrEvent::GetTags;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetTags.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1842,33 +1872,27 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_tasks(&mut self) -> Result<Vec<Task>> {
+  async fn get_radarr_tasks(&mut self) -> Result<Vec<RadarrTask>> {
     info!("Fetching Radarr tasks");
+    let event = RadarrEvent::GetTasks;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetTasks.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
-      .handle_request::<(), Vec<Task>>(request_props, |tasks_vec, mut app| {
+      .handle_request::<(), Vec<RadarrTask>>(request_props, |tasks_vec, mut app| {
         app.data.radarr_data.tasks.set_items(tasks_vec);
       })
       .await
   }
 
-  async fn get_updates(&mut self) -> Result<Vec<Update>> {
+  async fn get_radarr_updates(&mut self) -> Result<Vec<Update>> {
     info!("Fetching Radarr updates");
+    let event = RadarrEvent::GetUpdates;
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::GetUpdates.resource(),
-        RequestMethod::Get,
-        None::<()>,
-      )
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
@@ -1943,6 +1967,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn search_movie(&mut self, query: Option<String>) -> Result<Vec<AddMovieSearchResult>> {
     info!("Searching for specific Radarr movie");
+    let event = RadarrEvent::SearchNewMovie(None);
     let search = if let Some(search_query) = query {
       Ok(search_query.into())
     } else {
@@ -1960,15 +1985,12 @@ impl<'a, 'b> Network<'a, 'b> {
     match search {
       Ok(search_string) => {
         let request_props = self
-          .radarr_request_props_from(
-            format!(
-              "{}?term={}",
-              RadarrEvent::SearchNewMovie(None).resource(),
-              encode(&search_string.text)
-            )
-            .as_str(),
+          .request_props_from(
+            event,
             RequestMethod::Get,
             None::<()>,
+            None,
+            Some(format!("term={}", encode(&search_string.text))),
           )
           .await;
 
@@ -2001,7 +2023,8 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn start_task(&mut self, task: Option<TaskName>) -> Result<Value> {
+  async fn start_radarr_task(&mut self, task: Option<RadarrTaskName>) -> Result<Value> {
+    let event = RadarrEvent::StartTask(None);
     let task_name = if let Some(t_name) = task {
       t_name
     } else {
@@ -2022,11 +2045,7 @@ impl<'a, 'b> Network<'a, 'b> {
     let body = CommandBody { name: task_name };
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::StartTask(None).resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
       .await;
 
     self
@@ -2034,7 +2053,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn test_indexer(&mut self, indexer_id: Option<i64>) -> Result<Value> {
+  async fn test_radarr_indexer(&mut self, indexer_id: Option<i64>) -> Result<Value> {
+    let detail_event = RadarrEvent::GetIndexers;
+    let event = RadarrEvent::TestIndexer(None);
     let id = if let Some(i_id) = indexer_id {
       i_id
     } else {
@@ -2053,10 +2074,12 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Fetching indexer details for indexer with ID: {id}");
 
     let request_props = self
-      .radarr_request_props_from(
-        format!("{}/{id}", RadarrEvent::GetIndexers.resource()).as_str(),
+      .request_props_from(
+        detail_event,
         RequestMethod::Get,
         None::<()>,
+        Some(format!("/{id}")),
+        None,
       )
       .await;
 
@@ -2071,11 +2094,7 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Testing indexer");
 
     let mut request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::TestIndexer(None).resource(),
-        RequestMethod::Post,
-        Some(test_body),
-      )
+      .request_props_from(event, RequestMethod::Post, Some(test_body), None, None)
       .await;
     request_props.ignore_status_code = true;
 
@@ -2093,15 +2112,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn test_all_indexers(&mut self) -> Result<Vec<IndexerTestResult>> {
-    info!("Testing all indexers");
+  async fn test_all_radarr_indexers(&mut self) -> Result<Vec<IndexerTestResult>> {
+    info!("Testing all Radarr indexers");
+    let event = RadarrEvent::TestAllIndexers;
 
     let mut request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::TestAllIndexers.resource(),
-        RequestMethod::Post,
-        None,
-      )
+      .request_props_from(event, RequestMethod::Post, None, None, None)
       .await;
     request_props.ignore_status_code = true;
 
@@ -2143,12 +2159,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn trigger_automatic_search(&mut self, movie_id: Option<i64>) -> Result<Value> {
-    let id = if let Some(m_id) = movie_id {
-      m_id
-    } else {
-      self.extract_movie_id().await
-    };
+  async fn trigger_automatic_movie_search(&mut self, movie_id: Option<i64>) -> Result<Value> {
+    let event = RadarrEvent::TriggerAutomaticSearch(movie_id);
+    let (id, _) = self.extract_movie_id(movie_id).await;
     info!("Searching indexers for movie with ID: {id}");
     let body = MovieCommandBody {
       name: "MoviesSearch".to_owned(),
@@ -2156,11 +2169,7 @@ impl<'a, 'b> Network<'a, 'b> {
     };
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::TriggerAutomaticSearch(None).resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
       .await;
 
     self
@@ -2170,17 +2179,14 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn update_all_movies(&mut self) -> Result<Value> {
     info!("Updating all movies");
+    let event = RadarrEvent::UpdateAllMovies;
     let body = MovieCommandBody {
       name: "RefreshMovie".to_owned(),
       movie_ids: Vec::new(),
     };
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::UpdateAllMovies.resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
       .await;
 
     self
@@ -2188,12 +2194,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn update_and_scan(&mut self, movie_id: Option<i64>) -> Result<Value> {
-    let id = if let Some(m_id) = movie_id {
-      m_id
-    } else {
-      self.extract_movie_id().await
-    };
+  async fn update_and_scan_movie(&mut self, movie_id: Option<i64>) -> Result<Value> {
+    let (id, _) = self.extract_movie_id(movie_id).await;
+    let event = RadarrEvent::UpdateAndScan(None);
     info!("Updating and scanning movie with ID: {id}");
     let body = MovieCommandBody {
       name: "RefreshMovie".to_owned(),
@@ -2201,11 +2204,7 @@ impl<'a, 'b> Network<'a, 'b> {
     };
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::UpdateAndScan(None).resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
       .await;
 
     self
@@ -2215,16 +2214,13 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn update_collections(&mut self) -> Result<Value> {
     info!("Updating collections");
+    let event = RadarrEvent::UpdateCollections;
     let body = CommandBody {
       name: "RefreshCollections".to_owned(),
     };
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::UpdateCollections.resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
       .await;
 
     self
@@ -2232,18 +2228,15 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn update_downloads(&mut self) -> Result<Value> {
-    info!("Updating downloads");
+  async fn update_radarr_downloads(&mut self) -> Result<Value> {
+    info!("Updating Radarr downloads");
+    let event = RadarrEvent::UpdateDownloads;
     let body = CommandBody {
       name: "RefreshMonitoredDownloads".to_owned(),
     };
 
     let request_props = self
-      .radarr_request_props_from(
-        RadarrEvent::UpdateDownloads.resource(),
-        RequestMethod::Post,
-        Some(body),
-      )
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
       .await;
 
     self
@@ -2251,45 +2244,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn radarr_request_props_from<T: Serialize + Debug>(
-    &self,
-    resource: &str,
-    method: RequestMethod,
-    body: Option<T>,
-  ) -> RequestProps<T> {
-    let app = self.app.lock().await;
-    let RadarrConfig {
-      host,
-      port,
-      uri,
-      api_token,
-      ssl_cert_path,
-    } = &app.config.radarr;
-    let uri = if let Some(radarr_uri) = uri {
-      format!("{radarr_uri}/api/v3{resource}")
-    } else {
-      let protocol = if ssl_cert_path.is_some() {
-        "https"
-      } else {
-        "http"
-      };
-      let host = host.as_ref().unwrap();
-      format!(
-        "{protocol}://{host}:{}/api/v3{resource}",
-        port.unwrap_or(7878)
-      )
-    };
-
-    RequestProps {
-      uri,
-      method,
-      body,
-      api_token: api_token.to_owned(),
-      ignore_status_code: false,
-    }
-  }
-
-  async fn extract_and_add_tag_ids_vec(&mut self, edit_tags: String) -> Vec<i64> {
+  async fn extract_and_add_radarr_tag_ids_vec(&mut self, edit_tags: String) -> Vec<i64> {
     let tags_map = self.app.lock().await.data.radarr_data.tags_map.clone();
     let tags = edit_tags.clone();
     let missing_tags_vec = edit_tags
@@ -2299,7 +2254,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
     for tag in missing_tags_vec {
       self
-        .add_tag(tag.trim().to_owned())
+        .add_radarr_tag(tag.trim().to_owned())
         .await
         .expect("Unable to add tag");
     }
@@ -2319,16 +2274,21 @@ impl<'a, 'b> Network<'a, 'b> {
       .collect()
   }
 
-  async fn extract_movie_id(&mut self) -> i64 {
-    self
-      .app
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .current_selection()
-      .id
+  async fn extract_movie_id(&mut self, movie_id: Option<i64>) -> (i64, String) {
+    let movie_id = if let Some(id) = movie_id {
+      id
+    } else {
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .movies
+        .current_selection()
+        .id
+    };
+    (movie_id, format!("movieId={movie_id}"))
   }
 
   async fn extract_collection_id(&mut self) -> i64 {
@@ -2341,15 +2301,6 @@ impl<'a, 'b> Network<'a, 'b> {
       .collections
       .current_selection()
       .id
-  }
-
-  async fn append_movie_id_param(&mut self, resource: &str, movie_id: Option<i64>) -> String {
-    let movie_id = if let Some(id) = movie_id {
-      id
-    } else {
-      self.extract_movie_id().await
-    };
-    format!("{resource}?movieId={movie_id}")
   }
 }
 

@@ -179,7 +179,7 @@ impl<'a> App<'a> {
       .dispatch_network_event(RadarrEvent::GetDownloads.into())
       .await;
     self
-      .dispatch_network_event(RadarrEvent::GetOverview.into())
+      .dispatch_network_event(RadarrEvent::GetDiskSpace.into())
       .await;
     self
       .dispatch_network_event(RadarrEvent::GetStatus.into())

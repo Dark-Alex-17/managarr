@@ -9,7 +9,11 @@ use strum_macros::EnumIter;
 
 use crate::{models::HorizontallyScrollableText, serde_enum_from};
 
-use super::Serdeable;
+use super::servarr_models::{
+  DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
+  QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+};
+use super::{EnumDisplayStyle, Serdeable};
 
 #[cfg(test)]
 #[path = "radarr_models_tests.rs"]
@@ -25,7 +29,7 @@ pub struct AddMovieBody {
   pub minimum_availability: String,
   pub monitored: bool,
   pub tags: Vec<i64>,
-  pub add_options: AddOptions,
+  pub add_options: AddMovieOptions,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
@@ -47,52 +51,9 @@ pub struct AddMovieSearchResult {
 
 #[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct AddOptions {
+pub struct AddMovieOptions {
   pub monitor: String,
   pub search_for_movie: bool,
-}
-
-#[derive(Default, Serialize, Debug)]
-pub struct AddRootFolderBody {
-  pub path: String,
-}
-
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, ValueEnum)]
-#[serde(rename_all = "camelCase")]
-pub enum AuthenticationMethod {
-  #[default]
-  Basic,
-  Forms,
-  None,
-}
-
-impl Display for AuthenticationMethod {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    let authentication_method = match self {
-      AuthenticationMethod::Basic => "basic",
-      AuthenticationMethod::Forms => "forms",
-      AuthenticationMethod::None => "none",
-    };
-    write!(f, "{authentication_method}")
-  }
-}
-
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, ValueEnum)]
-#[serde(rename_all = "camelCase")]
-pub enum AuthenticationRequired {
-  Enabled,
-  #[default]
-  DisabledForLocalAddresses,
-}
-
-impl Display for AuthenticationRequired {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    let authentication_required = match self {
-      AuthenticationRequired::Enabled => "enabled",
-      AuthenticationRequired::DisabledForLocalAddresses => "disabledForLocalAddresses",
-    };
-    write!(f, "{authentication_required}")
-  }
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -121,26 +82,6 @@ pub struct BlocklistItem {
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct BlocklistItemMovie {
   pub title: HorizontallyScrollableText,
-}
-
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, ValueEnum)]
-#[serde(rename_all = "camelCase")]
-pub enum CertificateValidation {
-  #[default]
-  Enabled,
-  DisabledForLocalAddresses,
-  Disabled,
-}
-
-impl Display for CertificateValidation {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    let certificate_validation = match self {
-      CertificateValidation::Enabled => "enabled",
-      CertificateValidation::DisabledForLocalAddresses => "disabledForLocalAddresses",
-      CertificateValidation::Disabled => "disabled",
-    };
-    write!(f, "{certificate_validation}")
-  }
 }
 
 #[derive(Serialize, Deserialize, Derivative, Default, Clone, Debug, PartialEq, Eq)]
@@ -175,12 +116,6 @@ pub struct CollectionMovie {
   pub ratings: RatingsList,
 }
 
-#[derive(Default, Serialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct CommandBody {
-  pub name: String,
-}
-
 #[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Credit {
@@ -206,15 +141,6 @@ pub struct DeleteMovieParams {
   pub id: i64,
   pub delete_movie_files: bool,
   pub add_list_exclusion: bool,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct DiskSpace {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub free_space: i64,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub total_space: i64,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
@@ -255,22 +181,6 @@ pub struct EditCollectionParams {
 
 #[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct EditIndexerParams {
-  pub indexer_id: i64,
-  pub name: Option<String>,
-  pub enable_rss: Option<bool>,
-  pub enable_automatic_search: Option<bool>,
-  pub enable_interactive_search: Option<bool>,
-  pub url: Option<String>,
-  pub api_key: Option<String>,
-  pub seed_ratio: Option<String>,
-  pub tags: Option<Vec<i64>>,
-  pub priority: Option<i64>,
-  pub clear_tags: bool,
-}
-
-#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
 pub struct EditMovieParams {
   pub movie_id: i64,
   pub monitored: Option<bool>,
@@ -279,51 +189,6 @@ pub struct EditMovieParams {
   pub root_folder_path: Option<String>,
   pub tags: Option<Vec<i64>>,
   pub clear_tags: bool,
-}
-
-#[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct HostConfig {
-  pub bind_address: HorizontallyScrollableText,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub port: i64,
-  pub url_base: Option<HorizontallyScrollableText>,
-  pub instance_name: Option<HorizontallyScrollableText>,
-  pub application_url: Option<HorizontallyScrollableText>,
-  pub enable_ssl: bool,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub ssl_port: i64,
-  pub ssl_cert_path: Option<String>,
-  pub ssl_cert_password: Option<String>,
-}
-
-#[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct Indexer {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub id: i64,
-  pub name: Option<String>,
-  pub implementation: Option<String>,
-  pub implementation_name: Option<String>,
-  pub config_contract: Option<String>,
-  pub supports_rss: bool,
-  pub supports_search: bool,
-  pub fields: Option<Vec<IndexerField>>,
-  pub enable_rss: bool,
-  pub enable_automatic_search: bool,
-  pub enable_interactive_search: bool,
-  pub protocol: String,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub priority: i64,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub download_client_id: i64,
-  pub tags: Vec<Number>,
-}
-
-#[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
-pub struct IndexerField {
-  pub name: Option<String>,
-  pub value: Option<Value>,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
@@ -362,28 +227,6 @@ pub struct IndexerValidationFailure {
   pub property_name: String,
   pub error_message: String,
   pub severity: String,
-}
-
-#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
-pub struct Language {
-  pub name: String,
-}
-
-#[derive(Default, Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct Log {
-  pub time: DateTime<Utc>,
-  pub exception: Option<String>,
-  pub exception_type: Option<String>,
-  pub level: String,
-  pub logger: Option<String>,
-  pub message: Option<String>,
-  pub method: Option<String>,
-}
-
-#[derive(Default, Clone, Serialize, Deserialize, Debug, Eq, PartialEq)]
-pub struct LogResponse {
-  pub records: Vec<Log>,
 }
 
 #[derive(Serialize, Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
@@ -434,8 +277,8 @@ impl Display for MinimumAvailability {
   }
 }
 
-impl MinimumAvailability {
-  pub fn to_display_str<'a>(self) -> &'a str {
+impl<'a> EnumDisplayStyle<'a> for MinimumAvailability {
+  fn to_display_str(self) -> &'a str {
     match self {
       MinimumAvailability::Tba => "TBA",
       MinimumAvailability::Announced => "Announced",
@@ -446,30 +289,30 @@ impl MinimumAvailability {
 }
 
 #[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, ValueEnum)]
-pub enum Monitor {
+pub enum MovieMonitor {
   #[default]
   MovieOnly,
   MovieAndCollection,
   None,
 }
 
-impl Display for Monitor {
+impl Display for MovieMonitor {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
     let monitor = match self {
-      Monitor::MovieOnly => "movieOnly",
-      Monitor::MovieAndCollection => "movieAndCollection",
-      Monitor::None => "none",
+      MovieMonitor::MovieOnly => "movieOnly",
+      MovieMonitor::MovieAndCollection => "movieAndCollection",
+      MovieMonitor::None => "none",
     };
     write!(f, "{monitor}")
   }
 }
 
-impl Monitor {
-  pub fn to_display_str<'a>(self) -> &'a str {
+impl<'a> EnumDisplayStyle<'a> for MovieMonitor {
+  fn to_display_str(self) -> &'a str {
     match self {
-      Monitor::MovieOnly => "Movie only",
-      Monitor::MovieAndCollection => "Movie and Collection",
-      Monitor::None => "None",
+      MovieMonitor::MovieOnly => "Movie only",
+      MovieMonitor::MovieAndCollection => "Movie and Collection",
+      MovieMonitor::None => "None",
     }
   }
 }
@@ -538,45 +381,6 @@ pub struct MovieHistoryItem {
   pub event_type: String,
 }
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
-pub struct Quality {
-  pub name: String,
-}
-
-#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct QualityProfile {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub id: i64,
-  pub name: String,
-}
-
-impl From<(&i64, &String)> for QualityProfile {
-  fn from(value: (&i64, &String)) -> Self {
-    QualityProfile {
-      id: *value.0,
-      name: value.1.clone(),
-    }
-  }
-}
-
-#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
-pub struct QualityWrapper {
-  pub quality: Quality,
-}
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct QueueEvent {
-  pub trigger: String,
-  pub name: String,
-  pub command_name: String,
-  pub status: String,
-  pub queued: DateTime<Utc>,
-  pub started: Option<DateTime<Utc>>,
-  pub ended: Option<DateTime<Utc>>,
-  pub duration: Option<String>,
-}
-
 #[derive(Derivative, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 pub struct Rating {
@@ -595,7 +399,7 @@ pub struct RatingsList {
 #[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-pub struct Release {
+pub struct RadarrRelease {
   pub guid: String,
   pub protocol: String,
   #[serde(deserialize_with = "super::from_i64")]
@@ -616,33 +420,10 @@ pub struct Release {
 
 #[derive(Default, Serialize, Debug, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct ReleaseDownloadBody {
+pub struct RadarrReleaseDownloadBody {
   pub guid: String,
   pub indexer_id: i64,
   pub movie_id: i64,
-}
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct RootFolder {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub id: i64,
-  pub path: String,
-  pub accessible: bool,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub free_space: i64,
-  pub unmapped_folders: Option<Vec<UnmappedFolder>>,
-}
-
-#[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct SecurityConfig {
-  pub authentication_method: AuthenticationMethod,
-  pub authentication_required: AuthenticationRequired,
-  pub username: String,
-  pub password: Option<String>,
-  pub api_key: String,
-  pub certificate_validation: CertificateValidation,
 }
 
 #[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -652,18 +433,11 @@ pub struct SystemStatus {
   pub start_time: DateTime<Utc>,
 }
 
-#[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct Tag {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub id: i64,
-  pub label: String,
-}
-
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Task {
+pub struct RadarrTask {
   pub name: String,
-  pub task_name: TaskName,
+  pub task_name: RadarrTaskName,
   #[serde(deserialize_with = "super::from_i64")]
   pub interval: i64,
   pub last_execution: DateTime<Utc>,
@@ -673,7 +447,7 @@ pub struct Task {
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Copy, ValueEnum)]
 #[serde(rename_all = "PascalCase")]
-pub enum TaskName {
+pub enum RadarrTaskName {
   #[default]
   ApplicationCheckUpdate,
   Backup,
@@ -688,37 +462,13 @@ pub enum TaskName {
   RssSync,
 }
 
-impl Display for TaskName {
+impl Display for RadarrTaskName {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
     let task_name = serde_json::to_string(&self)
       .expect("Unable to serialize task name")
       .replace('"', "");
     write!(f, "{task_name}")
   }
-}
-
-#[derive(Serialize, Deserialize, Default, Debug, Clone, Eq, PartialEq)]
-pub struct UnmappedFolder {
-  pub name: String,
-  pub path: String,
-}
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct Update {
-  pub version: String,
-  pub release_date: DateTime<Utc>,
-  pub installed: bool,
-  pub latest: bool,
-  pub installed_on: Option<DateTime<Utc>>,
-  pub changes: UpdateChanges,
-}
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateChanges {
-  pub new: Option<Vec<String>>,
-  pub fixed: Option<Vec<String>>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -741,12 +491,12 @@ pub enum RadarrSerdeable {
   Movies(Vec<Movie>),
   QualityProfiles(Vec<QualityProfile>),
   QueueEvents(Vec<QueueEvent>),
-  Releases(Vec<Release>),
+  Releases(Vec<RadarrRelease>),
   RootFolders(Vec<RootFolder>),
   SecurityConfig(SecurityConfig),
   SystemStatus(SystemStatus),
   Tags(Vec<Tag>),
-  Tasks(Vec<Task>),
+  Tasks(Vec<RadarrTask>),
   Updates(Vec<Update>),
   AddMovieSearchResults(Vec<AddMovieSearchResult>),
   IndexerTestResults(Vec<IndexerTestResult>),
@@ -782,12 +532,12 @@ serde_enum_from!(
     Movies(Vec<Movie>),
     QualityProfiles(Vec<QualityProfile>),
     QueueEvents(Vec<QueueEvent>),
-    Releases(Vec<Release>),
+    Releases(Vec<RadarrRelease>),
     RootFolders(Vec<RootFolder>),
     SecurityConfig(SecurityConfig),
     SystemStatus(SystemStatus),
     Tags(Vec<Tag>),
-    Tasks(Vec<Task>),
+    Tasks(Vec<RadarrTask>),
     Updates(Vec<Update>),
     AddMovieSearchResults(Vec<AddMovieSearchResult>),
     IndexerTestResults(Vec<IndexerTestResult>),

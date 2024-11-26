@@ -7,12 +7,11 @@ use tokio::sync::Mutex;
 use crate::{
   app::App,
   cli::{mutex_flags_or_default, mutex_flags_or_option, CliCommandHandler, Command},
-  execute_network_event,
   models::{
     radarr_models::{
-      EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings,
-      MinimumAvailability, RadarrSerdeable,
+      EditCollectionParams, EditMovieParams, IndexerSettings, MinimumAvailability, RadarrSerdeable,
     },
+    servarr_models::EditIndexerParams,
     Serdeable,
   },
   network::{radarr_network::RadarrEvent, NetworkTrait},
@@ -339,8 +338,8 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
     }
   }
 
-  async fn handle(self) -> Result<()> {
-    match self.command {
+  async fn handle(self) -> Result<String> {
+    let result = match self.command {
       RadarrEditCommand::AllIndexerSettings {
         allow_hardcoded_subs,
         disable_allow_hardcoded_subs,
@@ -389,11 +388,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
               })
               .into(),
           };
-          execute_network_event!(
-            self,
-            RadarrEvent::EditAllIndexerSettings(Some(params)),
-            "All indexer settings updated"
-          );
+          self
+            .network
+            .handle_network_event(RadarrEvent::EditAllIndexerSettings(Some(params)).into())
+            .await?;
+          "All indexer settings updated".to_owned()
+        } else {
+          String::new()
         }
       }
       RadarrEditCommand::Collection {
@@ -417,11 +418,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
           root_folder_path,
           search_on_add: search_on_add_value,
         };
-        execute_network_event!(
-          self,
-          RadarrEvent::EditCollection(Some(edit_collection_params)),
-          "Collection Updated"
-        );
+        self
+          .network
+          .handle_network_event(RadarrEvent::EditCollection(Some(edit_collection_params)).into())
+          .await?;
+        "Collection updated".to_owned()
       }
       RadarrEditCommand::Indexer {
         indexer_id,
@@ -458,11 +459,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
           clear_tags,
         };
 
-        execute_network_event!(
-          self,
-          RadarrEvent::EditIndexer(Some(edit_indexer_params)),
-          "Indexer updated"
-        );
+        self
+          .network
+          .handle_network_event(RadarrEvent::EditIndexer(Some(edit_indexer_params)).into())
+          .await?;
+        "Indexer updated".to_owned()
       }
       RadarrEditCommand::Movie {
         movie_id,
@@ -485,14 +486,14 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
           clear_tags,
         };
 
-        execute_network_event!(
-          self,
-          RadarrEvent::EditMovie(Some(edit_movie_params)),
-          "Movie updated"
-        );
+        self
+          .network
+          .handle_network_event(RadarrEvent::EditMovie(Some(edit_movie_params)).into())
+          .await?;
+        "Movie Updated".to_owned()
       }
-    }
+    };
 
-    Ok(())
+    Ok(result)
   }
 }

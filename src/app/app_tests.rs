@@ -5,9 +5,10 @@ mod tests {
   use tokio::sync::mpsc;
 
   use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
-  use crate::app::{App, Data, RadarrConfig, DEFAULT_ROUTE};
+  use crate::app::{App, AppConfig, Data, ServarrConfig, DEFAULT_ROUTE};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
-  use crate::models::{HorizontallyScrollableText, Route, TabRoute};
+  use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
+  use crate::models::{HorizontallyScrollableText, TabRoute};
   use crate::network::radarr_network::RadarrEvent;
   use crate::network::NetworkEvent;
 
@@ -34,7 +35,7 @@ mod tests {
         },
         TabRoute {
           title: "Sonarr",
-          route: Route::Sonarr,
+          route: ActiveSonarrBlock::Series.into(),
           help: format!("{}  ", build_context_clue_string(&SERVARR_CONTEXT_CLUES)),
           contextual_help: None,
         },
@@ -47,6 +48,7 @@ mod tests {
     assert!(!app.is_routing);
     assert!(!app.should_refresh);
     assert!(!app.should_ignore_quit_key);
+    assert!(!app.cli_mode);
   }
 
   #[test]
@@ -126,6 +128,10 @@ mod tests {
           version: "test".to_owned(),
           ..RadarrData::default()
         },
+        sonarr_data: SonarrData {
+          version: "test".to_owned(),
+          ..SonarrData::default()
+        },
       },
       ..App::default()
     };
@@ -135,6 +141,7 @@ mod tests {
     assert_eq!(app.tick_count, 0);
     assert_eq!(app.error, HorizontallyScrollableText::default());
     assert!(app.data.radarr_data.version.is_empty());
+    assert!(app.data.sonarr_data.version.is_empty());
   }
 
   #[test]
@@ -206,7 +213,7 @@ mod tests {
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
-      RadarrEvent::GetOverview.into()
+      RadarrEvent::GetDiskSpace.into()
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
@@ -248,13 +255,21 @@ mod tests {
   }
 
   #[test]
-  fn test_radarr_config_default() {
-    let radarr_config = RadarrConfig::default();
+  fn test_app_config_default() {
+    let app_config = AppConfig::default();
 
-    assert_eq!(radarr_config.host, Some("localhost".to_string()));
-    assert_eq!(radarr_config.port, Some(7878));
-    assert_eq!(radarr_config.uri, None);
-    assert!(radarr_config.api_token.is_empty());
-    assert_eq!(radarr_config.ssl_cert_path, None);
+    assert!(app_config.radarr.is_none());
+    assert!(app_config.sonarr.is_none());
+  }
+
+  #[test]
+  fn test_servarr_config_default() {
+    let servarr_config = ServarrConfig::default();
+
+    assert_eq!(servarr_config.host, Some("localhost".to_string()));
+    assert_eq!(servarr_config.port, None);
+    assert_eq!(servarr_config.uri, None);
+    assert!(servarr_config.api_token.is_empty());
+    assert_eq!(servarr_config.ssl_cert_path, None);
   }
 }

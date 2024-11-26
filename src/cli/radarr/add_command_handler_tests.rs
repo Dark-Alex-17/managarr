@@ -7,9 +7,10 @@ mod tests {
       radarr::{add_command_handler::RadarrAddCommand, RadarrCommand},
       Command,
     },
-    models::radarr_models::{MinimumAvailability, Monitor},
+    models::radarr_models::{MinimumAvailability, MovieMonitor},
     Cli,
   };
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn test_radarr_add_command_from() {
@@ -111,6 +112,8 @@ mod tests {
         "/test",
         "--quality-profile-id",
         "1",
+        "--tmdb-id",
+        "1",
         flag,
       ]);
 
@@ -187,7 +190,7 @@ mod tests {
         minimum_availability: MinimumAvailability::default(),
         disable_monitoring: false,
         tag: vec![],
-        monitor: Monitor::default(),
+        monitor: MovieMonitor::default(),
         no_search_for_movie: false,
       };
 
@@ -219,7 +222,7 @@ mod tests {
         minimum_availability: MinimumAvailability::default(),
         disable_monitoring: false,
         tag: vec![1, 2],
-        monitor: Monitor::default(),
+        monitor: MovieMonitor::default(),
         no_search_for_movie: false,
       };
 
@@ -255,7 +258,7 @@ mod tests {
         minimum_availability: MinimumAvailability::Released,
         disable_monitoring: true,
         tag: vec![1, 2],
-        monitor: Monitor::MovieAndCollection,
+        monitor: MovieMonitor::MovieAndCollection,
         no_search_for_movie: true,
       };
 
@@ -356,7 +359,7 @@ mod tests {
       app::App,
       cli::{radarr::add_command_handler::RadarrAddCommandHandler, CliCommandHandler},
       models::{
-        radarr_models::{AddMovieBody, AddOptions, RadarrSerdeable},
+        radarr_models::{AddMovieBody, AddMovieOptions, RadarrSerdeable},
         Serdeable,
       },
       network::{radarr_network::RadarrEvent, MockNetworkTrait, NetworkEvent},
@@ -378,7 +381,7 @@ mod tests {
         minimum_availability: "released".to_owned(),
         monitored: false,
         tags: vec![1, 2],
-        add_options: AddOptions {
+        add_options: AddMovieOptions {
           monitor: "movieAndCollection".to_owned(),
           search_for_movie: false,
         },
@@ -403,7 +406,7 @@ mod tests {
         minimum_availability: MinimumAvailability::Released,
         disable_monitoring: true,
         tag: vec![1, 2],
-        monitor: Monitor::MovieAndCollection,
+        monitor: MovieMonitor::MovieAndCollection,
         no_search_for_movie: true,
       };
 

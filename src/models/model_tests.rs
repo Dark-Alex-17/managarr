@@ -10,6 +10,7 @@ mod tests {
   use serde::de::IntoDeserializer;
   use serde_json::to_string;
 
+  use crate::models::from_f64;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::{from_i64, strip_non_search_characters};
   use crate::models::{
@@ -647,6 +648,13 @@ mod tests {
       from_i64(deserializer).unwrap_err().to_string(),
       "Unable to convert Number to i64: Number(1.0)"
     );
+  }
+
+  #[test]
+  fn test_from_f64() {
+    let deserializer: F64Deserializer<ValueError> = 1f64.into_deserializer();
+
+    assert_eq!(from_f64(deserializer), Ok(1.0));
   }
 
   #[test]

@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod test {
+mod tests {
   use clap::error::ErrorKind;
   use clap::CommandFactory;
 
@@ -7,6 +7,7 @@ mod test {
   use crate::cli::radarr::RadarrCommand;
   use crate::cli::Command;
   use crate::Cli;
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn test_radarr_get_command_from() {

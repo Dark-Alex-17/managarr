@@ -31,7 +31,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_download_release_requires_movie_id() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -50,7 +50,7 @@ mod tests {
       );
     }
 
-    #[rstest]
+    #[test]
     fn test_download_release_requires_guid() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -69,7 +69,7 @@ mod tests {
       );
     }
 
-    #[rstest]
+    #[test]
     fn test_download_release_requires_indexer_id() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -105,7 +105,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_manual_search_requires_movie_id() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "manual-search"]);
 
@@ -129,7 +129,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_search_new_movie_requires_query() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "search-new-movie"]);
 
@@ -153,7 +153,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_start_task_requires_task_name() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "start-task"]);
 
@@ -164,7 +164,7 @@ mod tests {
       );
     }
 
-    #[rstest]
+    #[test]
     fn test_start_task_task_name_validation() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -191,7 +191,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_test_indexer_requires_indexer_id() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "test-indexer"]);
 
@@ -215,7 +215,7 @@ mod tests {
       assert!(result.is_ok());
     }
 
-    #[rstest]
+    #[test]
     fn test_trigger_automatic_search_requires_movie_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "trigger-automatic-search"]);
@@ -261,8 +261,8 @@ mod tests {
       },
       models::{
         radarr_models::{
-          BlocklistItem, BlocklistResponse, IndexerSettings, RadarrSerdeable, ReleaseDownloadBody,
-          TaskName,
+          BlocklistItem, BlocklistResponse, IndexerSettings, RadarrReleaseDownloadBody,
+          RadarrSerdeable, RadarrTaskName,
         },
         Serdeable,
       },
@@ -304,7 +304,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_download_release_command() {
-      let expected_release_download_body = ReleaseDownloadBody {
+      let expected_release_download_body = RadarrReleaseDownloadBody {
         guid: "guid".to_owned(),
         indexer_id: 1,
         movie_id: 1,
@@ -389,7 +389,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_start_task_command() {
-      let expected_task_name = TaskName::ApplicationCheckUpdate;
+      let expected_task_name = RadarrTaskName::ApplicationCheckUpdate;
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
@@ -404,7 +404,7 @@ mod tests {
         });
       let app_arc = Arc::new(Mutex::new(App::default()));
       let start_task_command = RadarrCommand::StartTask {
-        task_name: TaskName::ApplicationCheckUpdate,
+        task_name: RadarrTaskName::ApplicationCheckUpdate,
       };
 
       let result = RadarrCliHandler::with(&app_arc, start_task_command, &mut mock_network)

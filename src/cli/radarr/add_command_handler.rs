@@ -7,8 +7,7 @@ use tokio::sync::Mutex;
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
-  execute_network_event,
-  models::radarr_models::{AddMovieBody, AddOptions, MinimumAvailability, Monitor},
+  models::radarr_models::{AddMovieBody, AddMovieOptions, MinimumAvailability, MovieMonitor},
   network::{radarr_network::RadarrEvent, NetworkTrait},
 };
 
@@ -47,7 +46,7 @@ pub enum RadarrAddCommand {
       default_value_t = MinimumAvailability::default()
     )]
     minimum_availability: MinimumAvailability,
-    #[arg(long, help = "Should Radarr monitor this film")]
+    #[arg(long, help = "Disable monitoring for this film")]
     disable_monitoring: bool,
     #[arg(
       long,
@@ -60,9 +59,9 @@ pub enum RadarrAddCommand {
       long,
       help = "What Radarr should monitor", 
       value_enum,
-      default_value_t = Monitor::default()
+      default_value_t = MovieMonitor::default()
     )]
-    monitor: Monitor,
+    monitor: MovieMonitor,
     #[arg(
       long,
       help = "Tell Radarr to not start a search for this film once it's added to your library"
@@ -106,8 +105,8 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHan
     }
   }
 
-  async fn handle(self) -> Result<()> {
-    match self.command {
+  async fn handle(self) -> Result<String> {
+    let result = match self.command {
       RadarrAddCommand::Movie {
         tmdb_id,
         root_folder_path,
@@ -126,24 +125,33 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHan
           minimum_availability: minimum_availability.to_string(),
           monitored: !disable_monitoring,
           tags,
-          add_options: AddOptions {
+          add_options: AddMovieOptions {
             monitor: monitor.to_string(),
             search_for_movie: !no_search_for_movie,
           },
         };
-        execute_network_event!(self, RadarrEvent::AddMovie(Some(body)));
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::AddMovie(Some(body)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrAddCommand::RootFolder { root_folder_path } => {
-        execute_network_event!(
-          self,
-          RadarrEvent::AddRootFolder(Some(root_folder_path.clone()))
-        );
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::AddRootFolder(Some(root_folder_path)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrAddCommand::Tag { name } => {
-        execute_network_event!(self, RadarrEvent::AddTag(name.clone()));
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::AddTag(name).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
-    }
+    };
 
-    Ok(())
+    Ok(result)
   }
 }

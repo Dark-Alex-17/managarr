@@ -13,7 +13,7 @@ use crate::models::servarr_data::radarr::modals::EditMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, EDIT_MOVIE_BLOCKS, MOVIE_DETAILS_BLOCKS,
 };
-use crate::models::Route;
+use crate::models::{EnumDisplayStyle, Route};
 use crate::render_selectable_input_box;
 use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::radarr_ui::library::movie_details_ui::MovieDetailsUi;

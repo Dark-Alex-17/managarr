@@ -6,13 +6,14 @@ use crate::app::radarr::radarr_context_clues::{
   SYSTEM_CONTEXT_CLUES,
 };
 use crate::models::radarr_models::{
-  AddMovieSearchResult, BlocklistItem, Collection, CollectionMovie, DiskSpace, DownloadRecord,
-  Indexer, IndexerSettings, Movie, QueueEvent, RootFolder, Task,
+  AddMovieSearchResult, BlocklistItem, Collection, CollectionMovie, DownloadRecord,
+  IndexerSettings, Movie, RadarrTask,
 };
+use crate::models::servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem};
 use crate::models::servarr_data::radarr::modals::{
-  AddMovieModal, EditCollectionModal, EditIndexerModal, EditMovieModal, IndexerTestResultModalItem,
-  MovieDetailsModal,
+  AddMovieModal, EditCollectionModal, EditMovieModal, MovieDetailsModal,
 };
+use crate::models::servarr_models::{DiskSpace, Indexer, QueueEvent, RootFolder};
 use crate::models::stateful_list::StatefulList;
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{
@@ -47,7 +48,7 @@ pub struct RadarrData<'a> {
   pub collection_movies: StatefulTable<CollectionMovie>,
   pub logs: StatefulList<HorizontallyScrollableText>,
   pub log_details: StatefulList<HorizontallyScrollableText>,
-  pub tasks: StatefulTable<Task>,
+  pub tasks: StatefulTable<RadarrTask>,
   pub queued_events: StatefulTable<QueueEvent>,
   pub updates: ScrollableText,
   pub main_tabs: TabState,

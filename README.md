@@ -51,31 +51,59 @@ docker run --rm -it -v ~/.config/managarr/config.yml:/root/.config/managarr/conf
 
 You can also clone this repo and run `make docker` to build a docker image locally and run it using the above command.
 
-Please note that you will need to create and popular your configuration file first before starting the container. Otherwise the container will fail to start.
+Please note that you will need to create and popular your configuration file first before starting the container. Otherwise, the container will fail to start.
 
 ## Features
+Key:
+
+| Symbol             | Status    |
+|--------------------|-----------|
+| :white_check_mark: | Supported |
+| :x:                | Missing   |
+| :clock3:           | Planned   |
+| :no_entry_sign:    | Won't Add |
 
 ### Radarr
 
-- [x] View your library, downloads, collections, and blocklist
-- [x] View details of a specific movie including description, history, downloaded file info, or the credits
-- [x] View details of any collection and the movies in them
-- [x] View your host and security configs from the CLI to programmatically fetch the API token, among other settings
-- [x] Search your library or collections
-- [x] Add movies to your library
-- [x] Delete movies, downloads, and indexers
-- [x] Trigger automatic searches for movies
-- [x] Trigger refresh and disk scan for movies, downloads, and collections
-- [x] Manually search for movies
-- [x] Edit your movies, collections, and indexers
-- [x] Manage your tags
-- [x] Manage your root folders
-- [x] Manage your blocklist
-- [x] View and browse logs, tasks, events queues, and updates
-- [x] Manually trigger scheduled tasks
+| TUI                | CLI                | Feature                                                                                                        |
+|--------------------|--------------------|----------------------------------------------------------------------------------------------------------------|
+| :white_check_mark: | :white_check_mark: | View your library, downloads, collections, and blocklist                                                       |
+| :white_check_mark: | :white_check_mark: | View details of a specific movie including description, history, downloaded file info, or the credits          |
+| :white_check_mark: | :white_check_mark: | View details of any collection and the movies in them                                                          |
+| :no_entry_sign:    | :white_check_mark: | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
+| :white_check_mark: | :white_check_mark: | Search your library or collections                                                                             |
+| :white_check_mark: | :white_check_mark: | Add movies to your library                                                                                     |
+| :white_check_mark: | :white_check_mark: | Delete movies, downloads, and indexers                                                                         |
+| :white_check_mark: | :white_check_mark: | Trigger automatic searches for movies                                                                          |
+| :white_check_mark: | :white_check_mark: | Trigger refresh and disk scan for movies, downloads, and collections                                           |
+| :white_check_mark: | :white_check_mark: | Manually search for movies                                                                                     |
+| :white_check_mark: | :white_check_mark: | Edit your movies, collections, and indexers                                                                    |
+| :white_check_mark: | :white_check_mark: | Manage your tags                                                                                               |
+| :white_check_mark: | :white_check_mark: | Manage your root folders                                                                                       |
+| :white_check_mark: | :white_check_mark: | Manage your blocklist                                                                                          |
+| :white_check_mark: | :white_check_mark: | View and browse logs, tasks, events queues, and updates                                                        |
+| :white_check_mark: | :white_check_mark: | Manually trigger scheduled tasks                                                                               |
 
 ### Sonarr
-- [ ] Support for Sonarr
+
+| TUI      | CLI                | Feature                                                                                                            |
+|----------|--------------------|--------------------------------------------------------------------------------------------------------------------|
+| :clock3: | :white_check_mark: | View your library, downloads, blocklist, episodes                                                                  |
+| :clock3: | :white_check_mark: | View details of a specific series, or episode including description, history, downloaded file info, or the credits |
+| :clock3: | :white_check_mark: | View your host and security configs from the CLI to programmatically fetch the API token, among other settings     |
+| :clock3: | :white_check_mark: | Search your library                                                                                                |
+| :clock3: | :white_check_mark: | Add series to your library                                                                                         |
+| :clock3: | :white_check_mark: | Delete series, downloads, indexers, root folders, and episode files                                                |
+| :clock3: | :white_check_mark: | Mark history events as failed                                                                                      |
+| :clock3: | :white_check_mark: | Trigger automatic searches for series, seasons, or episodes                                                        |
+| :clock3: | :white_check_mark: | Trigger refresh and disk scan for series and downloads                                                             |
+| :clock3: | :white_check_mark: | Manually search for series, seasons, or episodes                                                                   |
+| :clock3: | :white_check_mark: | Edit your series and indexers                                                                                      |
+| :clock3: | :white_check_mark: | Manage your tags                                                                                                   |
+| :clock3: | :white_check_mark: | Manage your root folders                                                                                           |
+| :clock3: | :white_check_mark: | Manage your blocklist                                                                                              |
+| :clock3: | :white_check_mark: | View and browse logs, tasks, events queues, and updates                                                            |
+| :clock3: | :white_check_mark: | Manually trigger scheduled tasks                                                                                   |
 
 ### Readarr
 
@@ -107,13 +135,13 @@ Managarr can be used in one of two ways: As a TUI, or as a CLI for managing your
 All management features available in the TUI are also available in the CLI. However, the CLI is
 equipped with additional features to allow for more advanced usage and automation.
 
-The CLI can be helpful for automating tasks or for use in scripts. For example, you can use the CLI to trigger a search for a movie, or to add a movie to your library.
+The CLI can be helpful for automating tasks or for use in scripts. For example, you can use the CLI to trigger a search for a movie, or to add a movie to your Radarr library.
 
 To see all available commands, simply run `managarr --help`:
 
 ```shell
 $ managarr --help
-managarr 0.2.1
+managarr 0.3.0
 Alex Clarke <alex.j.tusa@gmail.com>
 
 A TUI and CLI to manage your Servarrs
@@ -122,43 +150,48 @@ Usage: managarr [OPTIONS] [COMMAND]
 
 Commands:
   radarr       Commands for manging your Radarr instance
+  sonarr       Commands for manging your Sonarr instance
   completions  Generate shell completions for the Managarr CLI
+  tail-logs    Tail Managarr logs
   help         Print this message or the help of the given subcommand(s)
 
 Options:
-      --config <CONFIG>               The Managarr configuration file to use
-  -h, --help                          Print help
-  -V, --version                       Print version
+      --disable-spinner  Disable the spinner (can sometimes make parsing output challenging) [env: MANAGARR_DISABLE_SPINNER=]
+      --config <CONFIG>  The Managarr configuration file to use [env: MANAGARR_CONFIG_FILE=]
+  -h, --help             Print help
+  -V, --version          Print version
 ```
 
-All subcommands also have detailed help menus to show you how to use them. For example, to see all available commands for Radarr, you would run:
+All subcommands also have detailed help menus to show you how to use them. For example, to see all available commands for Sonarr, you would run:
 
 ```shell
-$ managarr radarr --help
-Commands for manging your Radarr instance
+$ managarr sonarr --help
+Commands for manging your Sonarr instance
 
-Usage: managarr radarr [OPTIONS] <COMMAND>
+Usage: managarr sonarr [OPTIONS] <COMMAND>
 
 Commands:
-  add                       Commands to add or create new resources within your Radarr instance
-  delete                    Commands to delete resources from your Radarr instance
-  edit                      Commands to edit resources in your Radarr instance
-  get                       Commands to fetch details of the resources in your Radarr instance
-  list                      Commands to list attributes from your Radarr instance
-  refresh                   Commands to refresh the data in your Radarr instance
-  clear-blocklist           Clear the blocklist
-  download-release          Manually download the given release for the specified movie ID
-  manual-search             Trigger a manual search of releases for the movie with the given ID
-  search-new-movie          Search for a new film to add to Radarr
-  start-task                Start the specified Radarr task
-  test-indexer              Test the indexer with the given ID. Note that a successful test returns an empty JSON body; i.e. '{}'
-  test-all-indexers         Test all indexers
-  trigger-automatic-search  Trigger an automatic search for the movie with the specified ID
-  help                      Print this message or the help of the given subcommand(s)
+  add                          Commands to add or create new resources within your Sonarr instance
+  delete                       Commands to delete resources from your Sonarr instance
+  edit                         Commands to edit resources in your Sonarr instance
+  get                          Commands to fetch details of the resources in your Sonarr instance
+  download                     Commands to download releases in your Sonarr instance
+  list                         Commands to list attributes from your Sonarr instance
+  refresh                      Commands to refresh the data in your Sonarr instance
+  manual-search                Commands to manually search for releases
+  trigger-automatic-search     Commands to trigger automatic searches for releases of different resources in your Sonarr instance
+  clear-blocklist              Clear the blocklist
+  mark-history-item-as-failed  Mark the Sonarr history item with the given ID as 'failed'
+  search-new-series            Search for a new series to add to Sonarr
+  start-task                   Start the specified Sonarr task
+  test-indexer                 Test the indexer with the given ID. Note that a successful test returns an empty JSON body; i.e. '{}'
+  test-all-indexers            Test all Sonarr indexers
+  help                         Print this message or the help of the given subcommand(s)
 
 Options:
-      --config <CONFIG>               The Managarr configuration file to use
-  -h, --help                          Print help
+      --disable-spinner  Disable the spinner (can sometimes make parsing output challenging) [env: MANAGARR_DISABLE_SPINNER=]
+      --config <CONFIG>  The Managarr configuration file to use [env: MANAGARR_CONFIG_FILE=]
+  -h, --help             Print help
 ```
 
 **Pro Tip:** The CLI is even more powerful and useful when used in conjunction with the `jq` CLI tool. This allows you to parse the JSON response from the Managarr CLI and use it in your scripts; For example, to extract the `movieId` of the movie "Ad Astra", you would run:
@@ -172,7 +205,7 @@ $ managarr radarr list movies | jq '.[] | select(.title == "Ad Astra") | .id'
 Managarr assumes reasonable defaults to connect to each service (i.e. Radarr is on localhost:7878),
 but all servers will require you to input the API token.
 
-The configuration file is located somewhere different for each OS
+The configuration file is located somewhere different for each OS.
 
 ### Linux
 ```
@@ -238,9 +271,11 @@ tautulli:
 ## Environment Variables
 Managarr supports using environment variables on startup so you don't have to always specify certain flags:
 
-| Variable                                | Description                      | Equivalent Flag                  |
-| --------------------------------------- | -------------------------------- | -------------------------------- |
-| `MANAGARR_CONFIG_FILE`                  | Set the path to the config file  | `--config`                       |
+| Variable                                | Description                                                                    | Equivalent Flag                  |
+|-----------------------------------------|--------------------------------------------------------------------------------|----------------------------------|
+| `MANAGARR_CONFIG_FILE`                  | Set the path to the config file                                                | `--config`                       |
+| `MANAGARR_DISABLE_SPINNER`              | Disable the CLI spinner (this can be useful when scripting and parsing output) | `--disable-spinner`              |
+|-----------------------------------------|--------------------------------------------------------------------------------|----------------------------------|
 
 ## Track My Progress for the Beta release (With Sonarr Support!)
 Progress for the beta release can be followed on my [Wekan Board](https://wekan.alexjclarke.com/b/dHoGjBb44MHM9HSv4/managarr)

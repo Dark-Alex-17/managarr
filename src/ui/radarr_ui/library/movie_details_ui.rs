@@ -7,7 +7,7 @@ use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use ratatui::Frame;
 
 use crate::app::App;
-use crate::models::radarr_models::{Credit, MovieHistoryItem, Release};
+use crate::models::radarr_models::{Credit, MovieHistoryItem, RadarrRelease};
 use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
 use crate::models::Route;
@@ -380,7 +380,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .clone(),
         movie_details_modal.movie_releases.items.is_empty(),
       ),
-      _ => (Release::default(), true),
+      _ => (RadarrRelease::default(), true),
     };
     let current_route = *app.get_current_route();
     let mut default_movie_details_modal = MovieDetailsModal::default();
@@ -398,8 +398,8 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .unwrap_or(&mut default_movie_details_modal)
         .movie_releases,
     );
-    let releases_row_mapping = |release: &Release| {
-      let Release {
+    let releases_row_mapping = |release: &RadarrRelease| {
+      let RadarrRelease {
         protocol,
         age,
         title,

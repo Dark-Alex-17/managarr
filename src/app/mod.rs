@@ -8,7 +8,9 @@ use tokio::sync::mpsc::Sender;
 use tokio_util::sync::CancellationToken;
 
 use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
+use crate::cli::Command;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
+use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
 use crate::models::{HorizontallyScrollableText, Route, TabRoute, TabState};
 use crate::network::NetworkEvent;
 
@@ -35,6 +37,7 @@ pub struct App<'a> {
   pub is_loading: bool,
   pub should_refresh: bool,
   pub should_ignore_quit_key: bool,
+  pub cli_mode: bool,
   pub config: AppConfig,
   pub data: Data<'a>,
 }
@@ -151,7 +154,7 @@ impl<'a> Default for App<'a> {
         },
         TabRoute {
           title: "Sonarr",
-          route: Route::Sonarr,
+          route: ActiveSonarrBlock::Series.into(),
           help: format!("{}  ", build_context_clue_string(&SERVARR_CONTEXT_CLUES)),
           contextual_help: None,
         },
@@ -163,6 +166,7 @@ impl<'a> Default for App<'a> {
       is_routing: false,
       should_refresh: false,
       should_ignore_quit_key: false,
+      cli_mode: false,
       config: AppConfig::default(),
       data: Data::default(),
     }
@@ -172,25 +176,49 @@ impl<'a> Default for App<'a> {
 #[derive(Default)]
 pub struct Data<'a> {
   pub radarr_data: RadarrData<'a>,
+  pub sonarr_data: SonarrData,
 }
 
-pub trait ServarrConfig {
-  fn validate(&self);
-}
-
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct AppConfig {
-  pub radarr: RadarrConfig,
+  pub radarr: Option<ServarrConfig>,
+  pub sonarr: Option<ServarrConfig>,
 }
 
-impl ServarrConfig for AppConfig {
-  fn validate(&self) {
-    self.radarr.validate();
+impl AppConfig {
+  pub fn validate(&self) {
+    if let Some(radarr_config) = &self.radarr {
+      radarr_config.validate();
+    }
+
+    if let Some(sonarr_config) = &self.sonarr {
+      sonarr_config.validate();
+    }
+  }
+
+  pub fn verify_config_present_for_cli(&self, command: &Command) {
+    let msg = |servarr: &str| {
+      log_and_print_error(format!(
+        "{} configuration missing; Unable to run any {} commands.",
+        servarr, servarr
+      ))
+    };
+    match command {
+      Command::Radarr(_) if self.radarr.is_none() => {
+        msg("Radarr");
+        process::exit(1);
+      }
+      Command::Sonarr(_) if self.sonarr.is_none() => {
+        msg("Sonarr");
+        process::exit(1);
+      }
+      _ => (),
+    }
   }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct RadarrConfig {
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ServarrConfig {
   pub host: Option<String>,
   pub port: Option<u16>,
   pub uri: Option<String>,
@@ -198,20 +226,20 @@ pub struct RadarrConfig {
   pub ssl_cert_path: Option<String>,
 }
 
-impl ServarrConfig for RadarrConfig {
+impl ServarrConfig {
   fn validate(&self) {
     if self.host.is_none() && self.uri.is_none() {
-      log_and_print_error("'host' or 'uri' is required for Radarr configuration".to_owned());
+      log_and_print_error("'host' or 'uri' is required for configuration".to_owned());
       process::exit(1);
     }
   }
 }
 
-impl Default for RadarrConfig {
+impl Default for ServarrConfig {
   fn default() -> Self {
-    RadarrConfig {
+    ServarrConfig {
       host: Some("localhost".to_string()),
-      port: Some(7878),
+      port: None,
       uri: None,
       api_token: "".to_string(),
       ssl_cert_path: None,

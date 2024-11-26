@@ -6,7 +6,7 @@ mod tests {
 
     use crate::app::radarr::ActiveRadarrBlock;
     use crate::app::App;
-    use crate::models::radarr_models::{Collection, CollectionMovie, Credit, Release};
+    use crate::models::radarr_models::{Collection, CollectionMovie, Credit, RadarrRelease};
     use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 
     use crate::network::radarr_network::RadarrEvent;
@@ -430,7 +430,7 @@ mod tests {
       let mut movie_details_modal = MovieDetailsModal::default();
       movie_details_modal
         .movie_releases
-        .set_items(vec![Release::default()]);
+        .set_items(vec![RadarrRelease::default()]);
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
 
       app
@@ -510,7 +510,7 @@ mod tests {
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetOverview.into()
+        RadarrEvent::GetDiskSpace.into()
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
@@ -543,7 +543,7 @@ mod tests {
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetOverview.into()
+        RadarrEvent::GetDiskSpace.into()
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),

@@ -1,22 +1,14 @@
 #![warn(rust_2018_idioms)]
 
-use std::fs::{self, File};
-use std::io::BufReader;
+use anyhow::Result;
 use std::panic::PanicHookInfo;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
 use std::{io, panic, process};
 
-use anyhow::anyhow;
-use anyhow::Result;
-use app::{log_and_print_error, AppConfig, ServarrConfig};
-use clap::{
-  command, crate_authors, crate_description, crate_name, crate_version, CommandFactory, Parser,
-};
+use clap::{crate_authors, crate_description, crate_name, crate_version, CommandFactory, Parser};
 use clap_complete::generate;
-use colored::Colorize;
 use crossterm::execute;
 use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
@@ -25,12 +17,14 @@ use log::{error, warn};
 use network::NetworkTrait;
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
-use reqwest::{Certificate, Client};
+use reqwest::Client;
 use tokio::select;
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::{mpsc, Mutex};
 use tokio_util::sync::CancellationToken;
-use utils::tail_logs;
+use utils::{
+  build_network_client, load_config, start_cli_no_spinner, start_cli_with_spinner, tail_logs,
+};
 
 use crate::app::App;
 use crate::cli::Command;
@@ -70,6 +64,13 @@ struct Cli {
   #[arg(
     long,
     global = true,
+    env = "MANAGARR_DISABLE_SPINNER",
+    help = "Disable the spinner (can sometimes make parsing output challenging)"
+  )]
+  disable_spinner: bool,
+  #[arg(
+    long,
+    global = true,
     value_parser,
     env = "MANAGARR_CONFIG_FILE",
     help = "The Managarr configuration file to use"
@@ -91,6 +92,7 @@ async fn main() -> Result<()> {
   } else {
     confy::load("managarr", "config")?
   };
+  let spinner_disabled = args.disable_spinner;
   config.validate();
   let reqwest_client = build_network_client(&config);
   let (sync_network_tx, sync_network_rx) = mpsc::channel(500);
@@ -106,19 +108,17 @@ async fn main() -> Result<()> {
 
   let app = Arc::new(Mutex::new(App::new(
     sync_network_tx,
-    config,
+    config.clone(),
     cancellation_token.clone(),
   )));
 
   match args.command {
     Some(command) => match command {
-      Command::Radarr(_) => {
-        let app_nw = Arc::clone(&app);
-        let mut network = Network::new(&app_nw, cancellation_token, reqwest_client);
-
-        if let Err(e) = cli::handle_command(&app, command, &mut network).await {
-          eprintln!("error: {}", e.to_string().red());
-          process::exit(1);
+      Command::Radarr(_) | Command::Sonarr(_) => {
+        if spinner_disabled {
+          start_cli_no_spinner(config, reqwest_client, cancellation_token, app, command).await;
+        } else {
+          start_cli_with_spinner(config, reqwest_client, cancellation_token, app, command).await;
         }
       }
       Command::Completions { shell } => {
@@ -235,66 +235,11 @@ fn panic_hook(info: &PanicHookInfo<'_>) {
   .unwrap();
 }
 
-fn load_config(path: &str) -> Result<AppConfig> {
-  let file = File::open(path).map_err(|e| anyhow!(e))?;
-  let reader = BufReader::new(file);
-  let config = serde_yaml::from_reader(reader)?;
-  Ok(config)
-}
-
-fn build_network_client(config: &AppConfig) -> Client {
-  let mut client_builder = Client::builder()
-    .pool_max_idle_per_host(10)
-    .http2_keep_alive_interval(Duration::from_secs(5))
-    .tcp_keepalive(Duration::from_secs(5));
-
-  if let Some(ref cert_path) = config.radarr.ssl_cert_path {
-    let cert = create_cert(cert_path, "Radarr");
-    client_builder = client_builder.add_root_certificate(cert);
-  }
-
-  match client_builder.build() {
-    Ok(client) => client,
-    Err(e) => {
-      error!("Unable to create reqwest client: {}", e);
-      eprintln!("error: {}", e.to_string().red());
-      process::exit(1);
-    }
-  }
-}
-
-fn create_cert(cert_path: &String, servarr_name: &str) -> Certificate {
-  match fs::read(cert_path) {
-    Ok(cert) => match Certificate::from_pem(&cert) {
-      Ok(certificate) => certificate,
-      Err(_) => {
-        log_and_print_error(format!(
-          "Unable to read the specified {} SSL certificate",
-          servarr_name
-        ));
-        process::exit(1);
-      }
-    },
-    Err(_) => {
-      log_and_print_error(format!(
-        "Unable to open specified {} SSL certificate",
-        servarr_name
-      ));
-      process::exit(1);
-    }
-  }
-}
-
 #[cfg(not(debug_assertions))]
 fn panic_hook(info: &PanicHookInfo<'_>) {
-  use human_panic::{handle_dump, print_msg, Metadata};
+  use human_panic::{handle_dump, metadata, print_msg};
 
-  let meta = Metadata {
-    version: env!("CARGO_PKG_VERSION").into(),
-    name: env!("CARGO_PKG_NAME").into(),
-    authors: env!("CARGO_PKG_AUTHORS").replace(":", ", ").into(),
-    homepage: env!("CARGO_PKG_HOMEPAGE").into(),
-  };
+  let meta = metadata!();
   let file_path = handle_dump(&meta, info);
   disable_raw_mode().unwrap();
   execute!(io::stdout(), LeaveAlternateScreen).unwrap();

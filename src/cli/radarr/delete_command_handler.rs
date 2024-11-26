@@ -7,7 +7,6 @@ use tokio::sync::Mutex;
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
-  execute_network_event,
   models::radarr_models::DeleteMovieParams,
   network::{radarr_network::RadarrEvent, NetworkTrait},
 };
@@ -85,19 +84,28 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrDeleteCommand> for RadarrDeleteComm
     }
   }
 
-  async fn handle(self) -> Result<()> {
-    match self.command {
+  async fn handle(self) -> Result<String> {
+    let result = match self.command {
       RadarrDeleteCommand::BlocklistItem { blocklist_item_id } => {
-        execute_network_event!(
-          self,
-          RadarrEvent::DeleteBlocklistItem(Some(blocklist_item_id))
-        );
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::DeleteBlocklistItem(Some(blocklist_item_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrDeleteCommand::Download { download_id } => {
-        execute_network_event!(self, RadarrEvent::DeleteDownload(Some(download_id)));
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::DeleteDownload(Some(download_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrDeleteCommand::Indexer { indexer_id } => {
-        execute_network_event!(self, RadarrEvent::DeleteIndexer(Some(indexer_id)));
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::DeleteIndexer(Some(indexer_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrDeleteCommand::Movie {
         movie_id,
@@ -109,16 +117,28 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrDeleteCommand> for RadarrDeleteComm
           delete_movie_files: delete_files_from_disk,
           add_list_exclusion,
         };
-        execute_network_event!(self, RadarrEvent::DeleteMovie(Some(delete_movie_params)));
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::DeleteMovie(Some(delete_movie_params)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrDeleteCommand::RootFolder { root_folder_id } => {
-        execute_network_event!(self, RadarrEvent::DeleteRootFolder(Some(root_folder_id)));
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::DeleteRootFolder(Some(root_folder_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrDeleteCommand::Tag { tag_id } => {
-        execute_network_event!(self, RadarrEvent::DeleteTag(tag_id));
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::DeleteTag(tag_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
-    }
+    };
 
-    Ok(())
+    Ok(result)
   }
 }

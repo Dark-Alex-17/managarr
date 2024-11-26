@@ -7,6 +7,7 @@ mod tests {
   use crate::cli::radarr::RadarrCommand;
   use crate::cli::Command;
   use crate::Cli;
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn test_radarr_list_command_from() {
@@ -29,6 +30,7 @@ mod tests {
         "blocklist",
         "collections",
         "downloads",
+        "disk-space",
         "indexers",
         "movies",
         "quality-profiles",
@@ -80,8 +82,8 @@ mod tests {
 
       assert!(result.is_ok());
 
-      if let Some(Command::Radarr(RadarrCommand::List(refresh_command))) = result.unwrap().command {
-        assert_eq!(refresh_command, expected_args);
+      if let Some(Command::Radarr(RadarrCommand::List(credits_command))) = result.unwrap().command {
+        assert_eq!(credits_command, expected_args);
       }
     }
 
@@ -121,6 +123,7 @@ mod tests {
     #[case(RadarrListCommand::Blocklist, RadarrEvent::GetBlocklist)]
     #[case(RadarrListCommand::Collections, RadarrEvent::GetCollections)]
     #[case(RadarrListCommand::Downloads, RadarrEvent::GetDownloads)]
+    #[case(RadarrListCommand::DiskSpace, RadarrEvent::GetDiskSpace)]
     #[case(RadarrListCommand::Indexers, RadarrEvent::GetIndexers)]
     #[case(RadarrListCommand::Movies, RadarrEvent::GetMovies)]
     #[case(RadarrListCommand::QualityProfiles, RadarrEvent::GetQualityProfiles)]
@@ -130,7 +133,7 @@ mod tests {
     #[case(RadarrListCommand::Tasks, RadarrEvent::GetTasks)]
     #[case(RadarrListCommand::Updates, RadarrEvent::GetUpdates)]
     #[tokio::test]
-    async fn test_handle_list_blocklist_command(
+    async fn test_handle_list_command(
       #[case] list_command: RadarrListCommand,
       #[case] expected_radarr_event: RadarrEvent,
     ) {

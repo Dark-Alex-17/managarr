@@ -11,11 +11,12 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::library::{movies_sorting_options, LibraryHandler};
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::{Language, Movie};
+  use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, ADD_MOVIE_BLOCKS, DELETE_MOVIE_BLOCKS, EDIT_MOVIE_BLOCKS, LIBRARY_BLOCKS,
     MOVIE_DETAILS_BLOCKS,
   };
+  use crate::models::servarr_models::Language;
   use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
   use crate::test_handler_delegation;
@@ -1806,6 +1807,7 @@ mod tests {
         id: 3,
         title: "test 1".into(),
         original_language: Language {
+          id: 1,
           name: "English".to_owned(),
         },
         size_on_disk: 1024,
@@ -1822,6 +1824,7 @@ mod tests {
         id: 2,
         title: "test 2".into(),
         original_language: Language {
+          id: 2,
           name: "Chinese".to_owned(),
         },
         size_on_disk: 2048,
@@ -1838,6 +1841,7 @@ mod tests {
         id: 1,
         title: "test 3".into(),
         original_language: Language {
+          id: 3,
           name: "Japanese".to_owned(),
         },
         size_on_disk: 512,

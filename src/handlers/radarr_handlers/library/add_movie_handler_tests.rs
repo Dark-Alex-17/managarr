@@ -8,10 +8,9 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::library::add_movie_handler::AddMovieHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::{
-    AddMovieSearchResult, MinimumAvailability, Monitor, RootFolder,
-  };
+  use crate::models::radarr_models::{AddMovieSearchResult, MinimumAvailability, MovieMonitor};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
+  use crate::models::servarr_models::RootFolder;
   use crate::models::HorizontallyScrollableText;
 
   mod test_handle_scroll_up_and_down {
@@ -142,7 +141,7 @@ mod tests {
     fn test_add_movie_select_monitor_scroll(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
-      let monitor_vec = Vec::from_iter(Monitor::iter());
+      let monitor_vec = Vec::from_iter(MovieMonitor::iter());
       let mut app = App::default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app
@@ -535,7 +534,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_select_monitor_home_end() {
-      let monitor_vec = Vec::from_iter(Monitor::iter());
+      let monitor_vec = Vec::from_iter(MovieMonitor::iter());
       let mut app = App::default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app

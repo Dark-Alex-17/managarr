@@ -10,7 +10,8 @@ use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
   INDEXERS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS,
 };
-use crate::models::{BlockSelectionState, Scrollable};
+use crate::models::BlockSelectionState;
+use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 
 mod edit_indexer_handler;

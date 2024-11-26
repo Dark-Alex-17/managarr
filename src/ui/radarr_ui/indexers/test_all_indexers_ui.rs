@@ -1,6 +1,6 @@
 use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
 use crate::app::App;
-use crate::models::servarr_data::radarr::modals::IndexerTestResultModalItem;
+use crate::models::servarr_data::modals::IndexerTestResultModalItem;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::Route;
 use crate::ui::radarr_ui::indexers::draw_indexers;

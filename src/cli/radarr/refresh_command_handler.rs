@@ -7,7 +7,6 @@ use tokio::sync::Mutex;
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
-  execute_network_event,
   network::{radarr_network::RadarrEvent, NetworkTrait},
 };
 
@@ -19,7 +18,7 @@ mod refresh_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum RadarrRefreshCommand {
-  #[command(about = "Refresh all movie data for all movies in your library")]
+  #[command(about = "Refresh all movie data for all movies in your Radarr library")]
   AllMovies,
   #[command(about = "Refresh movie data and scan disk for the movie with the given ID")]
   Movie {
@@ -63,22 +62,38 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrRefreshCommand>
     }
   }
 
-  async fn handle(self) -> Result<()> {
-    match self.command {
+  async fn handle(self) -> Result<String> {
+    let result = match self.command {
       RadarrRefreshCommand::AllMovies => {
-        execute_network_event!(self, RadarrEvent::UpdateAllMovies);
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::UpdateAllMovies.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrRefreshCommand::Collections => {
-        execute_network_event!(self, RadarrEvent::UpdateCollections);
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::UpdateCollections.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrRefreshCommand::Downloads => {
-        execute_network_event!(self, RadarrEvent::UpdateDownloads);
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::UpdateDownloads.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       RadarrRefreshCommand::Movie { movie_id } => {
-        execute_network_event!(self, RadarrEvent::UpdateAndScan(Some(movie_id)));
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::UpdateAndScan(Some(movie_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
-    }
+    };
 
-    Ok(())
+    Ok(result)
   }
 }

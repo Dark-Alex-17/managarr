@@ -6,7 +6,7 @@ use ratatui::Frame;
 use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
 use crate::app::radarr::radarr_context_clues::SYSTEM_TASKS_CONTEXT_CLUES;
 use crate::app::App;
-use crate::models::radarr_models::Task;
+use crate::models::radarr_models::RadarrTask;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::radarr_ui_utils::style_log_list_item;
@@ -108,7 +108,7 @@ fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
 
 fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let help_footer = Some(build_context_clue_string(&SYSTEM_TASKS_CONTEXT_CLUES));
-  let tasks_row_mapping = |task: &Task| {
+  let tasks_row_mapping = |task: &RadarrTask| {
     let task_props = extract_task_props(task);
 
     Row::new(vec![

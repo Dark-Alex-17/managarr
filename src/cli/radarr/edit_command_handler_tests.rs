@@ -8,6 +8,7 @@ mod tests {
     Cli,
   };
   use clap::{error::ErrorKind, CommandFactory, Parser};
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn test_radarr_edit_command_from() {
@@ -809,9 +810,10 @@ mod tests {
       },
       models::{
         radarr_models::{
-          EditCollectionParams, EditIndexerParams, EditMovieParams, IndexerSettings,
-          MinimumAvailability, RadarrSerdeable,
+          EditCollectionParams, EditMovieParams, IndexerSettings, MinimumAvailability,
+          RadarrSerdeable,
         },
+        servarr_models::EditIndexerParams,
         Serdeable,
       },
       network::{radarr_network::RadarrEvent, MockNetworkTrait, NetworkEvent},

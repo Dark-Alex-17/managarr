@@ -5,45 +5,19 @@ mod tests {
 
   use crate::models::{
     radarr_models::{
-      AddMovieSearchResult, AuthenticationMethod, AuthenticationRequired, BlocklistItem,
-      BlocklistResponse, CertificateValidation, Collection, Credit, DiskSpace, DownloadRecord,
-      DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult, Log, LogResponse,
-      MinimumAvailability, Monitor, Movie, MovieHistoryItem, QualityProfile, QueueEvent,
-      RadarrSerdeable, Release, RootFolder, SystemStatus, Tag, Task, TaskName, Update,
+      AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, DiskSpace,
+      DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult,
+      MinimumAvailability, Movie, MovieHistoryItem, MovieMonitor, QualityProfile, RadarrRelease,
+      RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus, Tag, Update,
     },
-    Serdeable,
+    servarr_models::{HostConfig, Log, LogResponse, QueueEvent, RootFolder, SecurityConfig},
+    EnumDisplayStyle, Serdeable,
   };
-
-  #[test]
-  fn test_authentication_method_display() {
-    assert_str_eq!(AuthenticationMethod::Basic.to_string(), "basic");
-    assert_str_eq!(AuthenticationMethod::Forms.to_string(), "forms");
-    assert_str_eq!(AuthenticationMethod::None.to_string(), "none");
-  }
-
-  #[test]
-  fn test_authentication_required_display() {
-    assert_str_eq!(AuthenticationRequired::Enabled.to_string(), "enabled");
-    assert_str_eq!(
-      AuthenticationRequired::DisabledForLocalAddresses.to_string(),
-      "disabledForLocalAddresses"
-    );
-  }
-
-  #[test]
-  fn test_certificate_validation_display() {
-    assert_str_eq!(CertificateValidation::Enabled.to_string(), "enabled");
-    assert_str_eq!(
-      CertificateValidation::DisabledForLocalAddresses.to_string(),
-      "disabledForLocalAddresses"
-    );
-    assert_str_eq!(CertificateValidation::Disabled.to_string(), "disabled");
-  }
 
   #[test]
   fn test_task_name_display() {
     assert_str_eq!(
-      TaskName::ApplicationCheckUpdate.to_string(),
+      RadarrTaskName::ApplicationCheckUpdate.to_string(),
       "ApplicationCheckUpdate"
     );
   }
@@ -69,22 +43,22 @@ mod tests {
 
   #[test]
   fn test_monitor_display() {
-    assert_str_eq!(Monitor::MovieOnly.to_string(), "movieOnly");
+    assert_str_eq!(MovieMonitor::MovieOnly.to_string(), "movieOnly");
     assert_str_eq!(
-      Monitor::MovieAndCollection.to_string(),
+      MovieMonitor::MovieAndCollection.to_string(),
       "movieAndCollection"
     );
-    assert_str_eq!(Monitor::None.to_string(), "none");
+    assert_str_eq!(MovieMonitor::None.to_string(), "none");
   }
 
   #[test]
   fn test_monitor_to_display_str() {
-    assert_str_eq!(Monitor::MovieOnly.to_display_str(), "Movie only");
+    assert_str_eq!(MovieMonitor::MovieOnly.to_display_str(), "Movie only");
     assert_str_eq!(
-      Monitor::MovieAndCollection.to_display_str(),
+      MovieMonitor::MovieAndCollection.to_display_str(),
       "Movie and Collection"
     );
-    assert_str_eq!(Monitor::None.to_display_str(), "None");
+    assert_str_eq!(MovieMonitor::None.to_display_str(), "None");
   }
 
   #[test]
@@ -203,6 +177,18 @@ mod tests {
     let radarr_serdeable: RadarrSerdeable = disk_spaces.clone().into();
 
     assert_eq!(radarr_serdeable, RadarrSerdeable::DiskSpaces(disk_spaces));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_host_config() {
+    let host_config = HostConfig {
+      port: 1234,
+      ..HostConfig::default()
+    };
+
+    let radarr_serdeable: RadarrSerdeable = host_config.clone().into();
+
+    assert_eq!(radarr_serdeable, RadarrSerdeable::HostConfig(host_config));
   }
 
   #[test]
@@ -331,9 +317,9 @@ mod tests {
 
   #[test]
   fn test_radarr_serdeable_from_releases() {
-    let releases = vec![Release {
+    let releases = vec![RadarrRelease {
       size: 1,
-      ..Release::default()
+      ..RadarrRelease::default()
     }];
 
     let radarr_serdeable: RadarrSerdeable = releases.clone().into();
@@ -351,6 +337,21 @@ mod tests {
     let radarr_serdeable: RadarrSerdeable = root_folders.clone().into();
 
     assert_eq!(radarr_serdeable, RadarrSerdeable::RootFolders(root_folders));
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_security_config() {
+    let security_config = SecurityConfig {
+      username: Some("Test".to_owned()),
+      ..SecurityConfig::default()
+    };
+
+    let radarr_serdeable: RadarrSerdeable = security_config.clone().into();
+
+    assert_eq!(
+      radarr_serdeable,
+      RadarrSerdeable::SecurityConfig(security_config)
+    );
   }
 
   #[test]
@@ -382,9 +383,9 @@ mod tests {
 
   #[test]
   fn test_radarr_serdeable_from_tasks() {
-    let tasks = vec![Task {
+    let tasks = vec![RadarrTask {
       name: "test".to_owned(),
-      ..Task::default()
+      ..RadarrTask::default()
     }];
 
     let radarr_serdeable: RadarrSerdeable = tasks.clone().into();

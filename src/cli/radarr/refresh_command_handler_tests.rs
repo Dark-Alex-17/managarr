@@ -7,6 +7,7 @@ mod tests {
   use crate::cli::radarr::RadarrCommand;
   use crate::cli::Command;
   use crate::Cli;
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn test_radarr_refresh_command_from() {
@@ -81,7 +82,7 @@ mod tests {
     #[case(RadarrRefreshCommand::Collections, RadarrEvent::UpdateCollections)]
     #[case(RadarrRefreshCommand::Downloads, RadarrEvent::UpdateDownloads)]
     #[tokio::test]
-    async fn test_handle_list_blocklist_command(
+    async fn test_handle_refresh_command(
       #[case] refresh_command: RadarrRefreshCommand,
       #[case] expected_radarr_event: RadarrEvent,
     ) {
