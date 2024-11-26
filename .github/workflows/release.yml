@@ -25,6 +25,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Configure SSH for Git
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.RELEASE_BOT_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
