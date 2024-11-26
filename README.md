@@ -56,54 +56,54 @@ Please note that you will need to create and popular your configuration file fir
 ## Features
 Key:
 
-| Symbol             | Status    |
-|--------------------|-----------|
-| :white_check_mark: | Supported |
-| :x:                | Missing   |
-| :clock3:           | Planned   |
-| :no_entry_sign:    | Won't Add |
+| Symbol | Status    |
+|--------|-----------|
+| ✅      | Supported |
+| ❌      | Missing   |
+| 🕒     | Planned   |
+| 🚫     | Won't Add |
 
 ### Radarr
 
-| TUI                | CLI                | Feature                                                                                                        |
-|--------------------|--------------------|----------------------------------------------------------------------------------------------------------------|
-| :white_check_mark: | :white_check_mark: | View your library, downloads, collections, and blocklist                                                       |
-| :white_check_mark: | :white_check_mark: | View details of a specific movie including description, history, downloaded file info, or the credits          |
-| :white_check_mark: | :white_check_mark: | View details of any collection and the movies in them                                                          |
-| :no_entry_sign:    | :white_check_mark: | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
-| :white_check_mark: | :white_check_mark: | Search your library or collections                                                                             |
-| :white_check_mark: | :white_check_mark: | Add movies to your library                                                                                     |
-| :white_check_mark: | :white_check_mark: | Delete movies, downloads, and indexers                                                                         |
-| :white_check_mark: | :white_check_mark: | Trigger automatic searches for movies                                                                          |
-| :white_check_mark: | :white_check_mark: | Trigger refresh and disk scan for movies, downloads, and collections                                           |
-| :white_check_mark: | :white_check_mark: | Manually search for movies                                                                                     |
-| :white_check_mark: | :white_check_mark: | Edit your movies, collections, and indexers                                                                    |
-| :white_check_mark: | :white_check_mark: | Manage your tags                                                                                               |
-| :white_check_mark: | :white_check_mark: | Manage your root folders                                                                                       |
-| :white_check_mark: | :white_check_mark: | Manage your blocklist                                                                                          |
-| :white_check_mark: | :white_check_mark: | View and browse logs, tasks, events queues, and updates                                                        |
-| :white_check_mark: | :white_check_mark: | Manually trigger scheduled tasks                                                                               |
+| TUI | CLI | Feature                                                                                                        |
+|-----|-----|----------------------------------------------------------------------------------------------------------------|
+| ✅   | ✅   | View your library, downloads, collections, and blocklist                                                       |
+| ✅   | ✅   | View details of a specific movie including description, history, downloaded file info, or the credits          |
+| ✅   | ✅   | View details of any collection and the movies in them                                                          |
+| 🚫  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings |
+| ✅   | ✅   | Search your library or collections                                                                             |
+| ✅   | ✅   | Add movies to your library                                                                                     |
+| ✅   | ✅   | Delete movies, downloads, and indexers                                                                         |
+| ✅   | ✅   | Trigger automatic searches for movies                                                                          |
+| ✅   | ✅   | Trigger refresh and disk scan for movies, downloads, and collections                                           |
+| ✅   | ✅   | Manually search for movies                                                                                     |
+| ✅   | ✅   | Edit your movies, collections, and indexers                                                                    |
+| ✅   | ✅   | Manage your tags                                                                                               |
+| ✅   | ✅   | Manage your root folders                                                                                       |
+| ✅   | ✅   | Manage your blocklist                                                                                          |
+| ✅   | ✅   | View and browse logs, tasks, events queues, and updates                                                        |
+| ✅   | ✅   | Manually trigger scheduled tasks                                                                               |
 
 ### Sonarr
 
-| TUI      | CLI                | Feature                                                                                                            |
-|----------|--------------------|--------------------------------------------------------------------------------------------------------------------|
-| :clock3: | :white_check_mark: | View your library, downloads, blocklist, episodes                                                                  |
-| :clock3: | :white_check_mark: | View details of a specific series, or episode including description, history, downloaded file info, or the credits |
-| :clock3: | :white_check_mark: | View your host and security configs from the CLI to programmatically fetch the API token, among other settings     |
-| :clock3: | :white_check_mark: | Search your library                                                                                                |
-| :clock3: | :white_check_mark: | Add series to your library                                                                                         |
-| :clock3: | :white_check_mark: | Delete series, downloads, indexers, root folders, and episode files                                                |
-| :clock3: | :white_check_mark: | Mark history events as failed                                                                                      |
-| :clock3: | :white_check_mark: | Trigger automatic searches for series, seasons, or episodes                                                        |
-| :clock3: | :white_check_mark: | Trigger refresh and disk scan for series and downloads                                                             |
-| :clock3: | :white_check_mark: | Manually search for series, seasons, or episodes                                                                   |
-| :clock3: | :white_check_mark: | Edit your series and indexers                                                                                      |
-| :clock3: | :white_check_mark: | Manage your tags                                                                                                   |
-| :clock3: | :white_check_mark: | Manage your root folders                                                                                           |
-| :clock3: | :white_check_mark: | Manage your blocklist                                                                                              |
-| :clock3: | :white_check_mark: | View and browse logs, tasks, events queues, and updates                                                            |
-| :clock3: | :white_check_mark: | Manually trigger scheduled tasks                                                                                   |
+| TUI | CLI | Feature                                                                                                            |
+|-----|-----|--------------------------------------------------------------------------------------------------------------------|
+| 🕒  | ✅   | View your library, downloads, blocklist, episodes                                                                  |
+| 🕒  | ✅   | View details of a specific series, or episode including description, history, downloaded file info, or the credits |
+| 🕒  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings     |
+| 🕒  | ✅   | Search your library                                                                                                |
+| 🕒  | ✅   | Add series to your library                                                                                         |
+| 🕒  | ✅   | Delete series, downloads, indexers, root folders, and episode files                                                |
+| 🕒  | ✅   | Mark history events as failed                                                                                      |
+| 🕒  | ✅   | Trigger automatic searches for series, seasons, or episodes                                                        |
+| 🕒  | ✅   | Trigger refresh and disk scan for series and downloads                                                             |
+| 🕒  | ✅   | Manually search for series, seasons, or episodes                                                                   |
+| 🕒  | ✅   | Edit your series and indexers                                                                                      |
+| 🕒  | ✅   | Manage your tags                                                                                                   |
+| 🕒  | ✅   | Manage your root folders                                                                                           |
+| 🕒  | ✅   | Manage your blocklist                                                                                              |
+| 🕒  | ✅   | View and browse logs, tasks, events queues, and updates                                                            |
+| 🕒  | ✅   | Manually trigger scheduled tasks                                                                                   |
 
 ### Readarr
 
