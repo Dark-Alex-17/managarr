@@ -32,6 +32,11 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
