@@ -16,7 +16,7 @@ Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC). Built 
 ## What Servarrs are supported?
 
 - [x] ![radarr_logo](logos/radarr.png) [Radarr](https://wiki.servarr.com/radarr)
-- [ ] ![sonarr_logo](logos/sonarr.png) [Sonarr](https://wiki.servarr.com/en/sonarr)
+- [x] ![sonarr_logo](logos/sonarr.png) [Sonarr](https://wiki.servarr.com/en/sonarr)
 - [ ] ![readarr_logo](logos/readarr.png) [Readarr](https://wiki.servarr.com/en/readarr)
 - [ ] ![lidarr_logo](logos/lidarr.png) [Lidarr](https://wiki.servarr.com/en/lidarr)
 - [ ] ![prowlarr_logo](logos/prowlarr.png) [Prowlarr](https://wiki.servarr.com/en/prowlarr)
