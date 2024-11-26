@@ -55,7 +55,11 @@ jobs:
 
       - name: Bump version with Commitizen
         run: |
-          cz bump --yes --increment ${{ github.event.inputs.bump_type }} --message "chore: bump version [skip ci]"
+          cz bump --yes --increment ${{ github.event.inputs.bump_type }}
+
+      - name: Amend commit message to include '[skip ci]'
+        run: |
+          git commit --amend --no-edit -m "$(git log -1 --pretty=%B) [skip ci]"
 
       - name: Push changes
         env:
