@@ -30,7 +30,6 @@ mod test {
   #[case(DEFAULT_KEYBINDINGS.update, Key::Char('u'), "update")]
   #[case(DEFAULT_KEYBINDINGS.home, Key::Home, "home")]
   #[case(DEFAULT_KEYBINDINGS.end, Key::End, "end")]
-  #[case(DEFAULT_KEYBINDINGS.tab, Key::Tab, "tab")]
   #[case(DEFAULT_KEYBINDINGS.delete, Key::Delete, "delete")]
   #[case(DEFAULT_KEYBINDINGS.submit, Key::Enter, "submit")]
   #[case(DEFAULT_KEYBINDINGS.confirm, Key::Ctrl('s'), "submit")]

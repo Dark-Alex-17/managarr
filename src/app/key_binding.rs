@@ -32,7 +32,6 @@ generate_keybindings! {
   events,
   home,
   end,
-  tab,
   delete,
   submit,
   confirm,
@@ -138,10 +137,6 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   end: KeyBinding {
     key: Key::End,
     desc: "end",
-  },
-  tab: KeyBinding {
-    key: Key::Tab,
-    desc: "tab",
   },
   delete: KeyBinding {
     key: Key::Delete,

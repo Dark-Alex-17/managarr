@@ -14,8 +14,15 @@ pub fn build_context_clue_string(context_clues: &[(KeyBinding, &str)]) -> String
     .join(" | ")
 }
 
-pub static SERVARR_CONTEXT_CLUES: [ContextClue; 2] = [
-  (DEFAULT_KEYBINDINGS.tab, "change servarr"),
+pub static SERVARR_CONTEXT_CLUES: [ContextClue; 3] = [
+  (
+    DEFAULT_KEYBINDINGS.next_servarr,
+    DEFAULT_KEYBINDINGS.next_servarr.desc,
+  ),
+  (
+    DEFAULT_KEYBINDINGS.previous_servarr,
+    DEFAULT_KEYBINDINGS.previous_servarr.desc,
+  ),
   (DEFAULT_KEYBINDINGS.quit, DEFAULT_KEYBINDINGS.quit.desc),
 ];
 

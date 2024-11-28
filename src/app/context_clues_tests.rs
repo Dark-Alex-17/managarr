@@ -28,8 +28,13 @@ mod test {
 
     let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
 
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.tab);
-    assert_str_eq!(*description, "change servarr");
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.next_servarr);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.next_servarr.desc);
+
+    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.previous_servarr);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.previous_servarr.desc);
 
     let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
 
