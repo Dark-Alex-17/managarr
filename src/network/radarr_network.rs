@@ -309,7 +309,7 @@ impl<'a, 'b> Network<'a, 'b> {
         quality_profile_list,
         ..
       } = app.data.radarr_data.add_movie_modal.as_ref().unwrap();
-      let (tmdb_id, title) = if let Route::Radarr(active_radarr_block, _) = *app.get_current_route()
+      let (tmdb_id, title) = if let Route::Radarr(active_radarr_block, _) = app.get_current_route()
       {
         if active_radarr_block == ActiveRadarrBlock::CollectionDetails {
           let CollectionMovie { tmdb_id, title, .. } = app

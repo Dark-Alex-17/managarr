@@ -39,7 +39,7 @@ impl DrawUi for MovieDetailsUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
+    if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
       let draw_movie_info_popup = |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| {
         let content_area = draw_tabs(
           f,
@@ -371,7 +371,7 @@ fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     let (current_selection, is_empty) = match app.data.radarr_data.movie_details_modal.as_ref() {
       Some(movie_details_modal) if !movie_details_modal.movie_releases.items.is_empty() => (
         movie_details_modal
@@ -382,7 +382,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       ),
       _ => (RadarrRelease::default(), true),
     };
-    let current_route = *app.get_current_route();
+    let current_route = app.get_current_route();
     let mut default_movie_details_modal = MovieDetailsModal::default();
     let help_footer = app
       .data

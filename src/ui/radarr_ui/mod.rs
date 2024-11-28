@@ -51,7 +51,7 @@ impl DrawUi for RadarrUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let content_area = draw_tabs(f, area, "Movies", &app.data.radarr_data.main_tabs);
-    let route = *app.get_current_route();
+    let route = app.get_current_route();
 
     match route {
       _ if LibraryUi::accepts(route) => LibraryUi::draw(f, app, content_area),

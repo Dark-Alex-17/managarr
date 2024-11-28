@@ -14,22 +14,22 @@ use crate::models::{BlockSelectionState, Scrollable};
 mod collection_details_handler_tests;
 
 pub(super) struct CollectionDetailsHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  _context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  _context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    COLLECTION_DETAILS_BLOCKS.contains(active_block)
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    COLLECTION_DETAILS_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    _context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    _context: Option<ActiveRadarrBlock>,
   ) -> CollectionDetailsHandler<'a, 'b> {
     CollectionDetailsHandler {
       key,
@@ -39,7 +39,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -48,25 +48,25 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
   }
 
   fn handle_scroll_up(&mut self) {
-    if ActiveRadarrBlock::CollectionDetails == *self.active_radarr_block {
+    if ActiveRadarrBlock::CollectionDetails == self.active_radarr_block {
       self.app.data.radarr_data.collection_movies.scroll_up()
     }
   }
 
   fn handle_scroll_down(&mut self) {
-    if ActiveRadarrBlock::CollectionDetails == *self.active_radarr_block {
+    if ActiveRadarrBlock::CollectionDetails == self.active_radarr_block {
       self.app.data.radarr_data.collection_movies.scroll_down()
     }
   }
 
   fn handle_home(&mut self) {
-    if ActiveRadarrBlock::CollectionDetails == *self.active_radarr_block {
+    if ActiveRadarrBlock::CollectionDetails == self.active_radarr_block {
       self.app.data.radarr_data.collection_movies.scroll_to_top();
     }
   }
 
   fn handle_end(&mut self) {
-    if ActiveRadarrBlock::CollectionDetails == *self.active_radarr_block {
+    if ActiveRadarrBlock::CollectionDetails == self.active_radarr_block {
       self
         .app
         .data
@@ -81,7 +81,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
   fn handle_left_right_action(&mut self) {}
 
   fn handle_submit(&mut self) {
-    if ActiveRadarrBlock::CollectionDetails == *self.active_radarr_block {
+    if ActiveRadarrBlock::CollectionDetails == self.active_radarr_block {
       let tmdb_id = self
         .app
         .data
@@ -129,13 +129,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
   }
 
   fn handle_char_key_event(&mut self) {
-    if *self.active_radarr_block == ActiveRadarrBlock::CollectionDetails
-      && *self.key == DEFAULT_KEYBINDINGS.edit.key
+    if self.active_radarr_block == ActiveRadarrBlock::CollectionDetails
+      && self.key == DEFAULT_KEYBINDINGS.edit.key
     {
       self.app.push_navigation_stack(
         (
           ActiveRadarrBlock::EditCollectionPrompt,
-          Some(*self.active_radarr_block),
+          Some(self.active_radarr_block),
         )
           .into(),
       );

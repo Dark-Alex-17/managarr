@@ -11,22 +11,22 @@ use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
 mod edit_indexer_handler_tests;
 
 pub(super) struct EditIndexerHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  _context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  _context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    EDIT_INDEXER_BLOCKS.contains(active_block)
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    EDIT_INDEXER_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    _context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    _context: Option<ActiveRadarrBlock>,
   ) -> EditIndexerHandler<'a, 'b> {
     EditIndexerHandler {
       key,
@@ -36,7 +36,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -45,13 +45,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
   }
 
   fn handle_scroll_up(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::EditIndexerPrompt {
+    if self.active_radarr_block == ActiveRadarrBlock::EditIndexerPrompt {
       self.app.data.radarr_data.selected_block.previous();
     }
   }
 
   fn handle_scroll_down(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::EditIndexerPrompt {
+    if self.active_radarr_block == ActiveRadarrBlock::EditIndexerPrompt {
       self.app.data.radarr_data.selected_block.next();
     }
   }
@@ -184,7 +184,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
     match self.active_radarr_block {
       ActiveRadarrBlock::EditIndexerPrompt => {
         if self.app.data.radarr_data.selected_block.get_active_block()
-          == &ActiveRadarrBlock::EditIndexerConfirmPrompt
+          == ActiveRadarrBlock::EditIndexerConfirmPrompt
         {
           handle_prompt_toggle(self.app, self.key);
         } else {
@@ -270,7 +270,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
   fn handle_submit(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::EditIndexerPrompt => {
-        let selected_block = *self.app.data.radarr_data.selected_block.get_active_block();
+        let selected_block = self.app.data.radarr_data.selected_block.get_active_block();
         match selected_block {
           ActiveRadarrBlock::EditIndexerConfirmPrompt => {
             let radarr_data = &mut self.app.data.radarr_data;
@@ -431,8 +431,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
       }
       ActiveRadarrBlock::EditIndexerPrompt => {
         if self.app.data.radarr_data.selected_block.get_active_block()
-          == &ActiveRadarrBlock::EditIndexerConfirmPrompt
-          && *self.key == DEFAULT_KEYBINDINGS.confirm.key
+          == ActiveRadarrBlock::EditIndexerConfirmPrompt
+          && self.key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditIndexer(None));

@@ -43,7 +43,7 @@ impl DrawUi for IndexersUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    let route = *app.get_current_route();
+    let route = app.get_current_route();
     let mut indexers_matchers = |active_radarr_block| match active_radarr_block {
       ActiveRadarrBlock::Indexers => draw_indexers(f, app, area),
       ActiveRadarrBlock::TestIndexer => {

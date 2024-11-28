@@ -57,7 +57,7 @@ pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
 
   draw_header_row(f, app, header_area);
 
-  if RadarrUi::accepts(*app.get_current_route()) {
+  if RadarrUi::accepts(app.get_current_route()) {
     RadarrUi::draw_context_row(f, app, context_area);
     RadarrUi::draw(f, app, table_area);
   }

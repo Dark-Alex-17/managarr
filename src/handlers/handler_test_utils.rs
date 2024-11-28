@@ -129,14 +129,14 @@ mod test_utils {
           .$data_ref
           .set_items(simple_stateful_iterable_vec!($items));
 
-        $handler::with(&key, &mut app, &$block, &$context).handle();
+        $handler::with(key, &mut app, $block, $context).handle();
 
         assert_str_eq!(
           app.data.radarr_data.$data_ref.current_selection().$field,
           "Test 2"
         );
 
-        $handler::with(&key, &mut app, &$block, &$context).handle();
+        $handler::with(key, &mut app, $block, $context).handle();
 
         assert_str_eq!(
           app.data.radarr_data.$data_ref.current_selection().$field,
@@ -151,14 +151,14 @@ mod test_utils {
         let mut app = App::default();
         app.data.radarr_data.$data_ref.set_items($items);
 
-        $handler::with(&key, &mut app, &$block, &$context).handle();
+        $handler::with(key, &mut app, $block, $context).handle();
 
         assert_str_eq!(
           app.data.radarr_data.$data_ref.current_selection().$field,
           "Test 2"
         );
 
-        $handler::with(&key, &mut app, &$block, &$context).handle();
+        $handler::with(key, &mut app, $block, $context).handle();
 
         assert_str_eq!(
           app.data.radarr_data.$data_ref.current_selection().$field,
@@ -173,7 +173,7 @@ mod test_utils {
         let mut app = App::default();
         app.data.radarr_data.$data_ref.set_items($items);
 
-        $handler::with(&key, &mut app, &$block, &$context).handle();
+        $handler::with(key, &mut app, $block, $context).handle();
 
         assert_str_eq!(
           app
@@ -186,7 +186,7 @@ mod test_utils {
           "Test 2"
         );
 
-        $handler::with(&key, &mut app, &$block, &$context).handle();
+        $handler::with(key, &mut app, $block, $context).handle();
 
         assert_str_eq!(
           app
@@ -214,11 +214,11 @@ mod test_utils {
           "Test 3".to_owned(),
         ]);
 
-        $handler::with(&DEFAULT_KEYBINDINGS.end.key, &mut app, &$block, &$context).handle();
+        $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
 
         assert_str_eq!(app.data.radarr_data.$data_ref.current_selection(), "Test 3");
 
-        $handler::with(&DEFAULT_KEYBINDINGS.home.key, &mut app, &$block, &$context).handle();
+        $handler::with(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
 
         assert_str_eq!(app.data.radarr_data.$data_ref.current_selection(), "Test 1");
       }
@@ -234,14 +234,14 @@ mod test_utils {
           .$data_ref
           .set_items(extended_stateful_iterable_vec!($items));
 
-        $handler::with(&DEFAULT_KEYBINDINGS.end.key, &mut app, &$block, &$context).handle();
+        $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
 
         assert_str_eq!(
           app.data.radarr_data.$data_ref.current_selection().$field,
           "Test 3"
         );
 
-        $handler::with(&DEFAULT_KEYBINDINGS.home.key, &mut app, &$block, &$context).handle();
+        $handler::with(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
 
         assert_str_eq!(
           app.data.radarr_data.$data_ref.current_selection().$field,
@@ -256,14 +256,14 @@ mod test_utils {
         let mut app = App::default();
         app.data.radarr_data.$data_ref.set_items($items);
 
-        $handler::with(&DEFAULT_KEYBINDINGS.end.key, &mut app, &$block, &$context).handle();
+        $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
 
         assert_str_eq!(
           app.data.radarr_data.$data_ref.current_selection().$field,
           "Test 3"
         );
 
-        $handler::with(&DEFAULT_KEYBINDINGS.home.key, &mut app, &$block, &$context).handle();
+        $handler::with(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
 
         assert_str_eq!(
           app.data.radarr_data.$data_ref.current_selection().$field,
@@ -278,7 +278,7 @@ mod test_utils {
         let mut app = App::default();
         app.data.radarr_data.$data_ref.set_items($items);
 
-        $handler::with(&DEFAULT_KEYBINDINGS.end.key, &mut app, &$block, &$context).handle();
+        $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
 
         assert_str_eq!(
           app
@@ -291,7 +291,7 @@ mod test_utils {
           "Test 3"
         );
 
-        $handler::with(&DEFAULT_KEYBINDINGS.home.key, &mut app, &$block, &$context).handle();
+        $handler::with(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
 
         assert_str_eq!(
           app
@@ -311,18 +311,12 @@ mod test_utils {
   macro_rules! test_handler_delegation {
     ($handler:ident, $base:expr, $active_block:expr) => {
       let mut app = App::default();
-      app.push_navigation_stack($base.clone().into());
-      app.push_navigation_stack($active_block.clone().into());
+      app.push_navigation_stack($base.into());
+      app.push_navigation_stack($active_block.into());
 
-      $handler::with(
-        &DEFAULT_KEYBINDINGS.esc.key,
-        &mut app,
-        &$active_block,
-        &None,
-      )
-      .handle();
+      $handler::with(DEFAULT_KEYBINDINGS.esc.key, &mut app, $active_block, None).handle();
 
-      assert_eq!(app.get_current_route(), &$base.into());
+      assert_eq!(app.get_current_route(), $base.into());
     };
   }
 }

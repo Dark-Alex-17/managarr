@@ -2,16 +2,26 @@ use bimap::BiMap;
 use chrono::{DateTime, Utc};
 use strum::EnumIter;
 
-use crate::models::{
-  servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem},
-  servarr_models::{DiskSpace, Indexer, QueueEvent, RootFolder},
-  sonarr_models::{
-    AddSeriesSearchResult, BlocklistItem, DownloadRecord, IndexerSettings, Season, Series,
-    SonarrHistoryItem, SonarrTask,
+use crate::{
+  app::{
+    context_clues::{
+      build_context_clue_string, BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
+      INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+    },
+    sonarr::sonarr_context_clues::{HISTORY_CONTEXT_CLUES, SERIES_CONTEXT_CLUES},
   },
-  stateful_list::StatefulList,
-  stateful_table::StatefulTable,
-  HorizontallyScrollableText, Route, ScrollableText,
+  models::{
+    servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem},
+    servarr_models::{DiskSpace, Indexer, QueueEvent, RootFolder},
+    sonarr_models::{
+      AddSeriesSearchResult, BlocklistItem, DownloadRecord, IndexerSettings, Season, Series,
+      SonarrHistoryItem, SonarrTask,
+    },
+    stateful_list::StatefulList,
+    stateful_table::StatefulTable,
+    BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, TabRoute, TabState,
+  },
+  network::sonarr_network::SonarrEvent,
 };
 
 use super::modals::{AddSeriesModal, EditSeriesModal, SeasonDetailsModal};
@@ -20,7 +30,7 @@ use super::modals::{AddSeriesModal, EditSeriesModal, SeasonDetailsModal};
 #[path = "sonarr_data_tests.rs"]
 mod sonarr_data_tests;
 
-pub struct SonarrData {
+pub struct SonarrData<'a> {
   pub add_list_exclusion: bool,
   pub add_searched_series: Option<StatefulTable<AddSeriesSearchResult>>,
   pub add_series_modal: Option<AddSeriesModal>,
@@ -39,11 +49,15 @@ pub struct SonarrData {
   pub indexer_test_error: Option<String>,
   pub language_profiles_map: BiMap<i64, String>,
   pub logs: StatefulList<HorizontallyScrollableText>,
+  pub main_tabs: TabState,
+  pub prompt_confirm: bool,
+  pub prompt_confirm_action: Option<SonarrEvent>,
   pub quality_profile_map: BiMap<i64, String>,
   pub queued_events: StatefulTable<QueueEvent>,
   pub root_folders: StatefulTable<RootFolder>,
   pub seasons: StatefulTable<Season>,
   pub season_details_modal: Option<SeasonDetailsModal>,
+  pub selected_block: BlockSelectionState<'a, ActiveSonarrBlock>,
   pub series: StatefulTable<Series>,
   pub series_history: Option<StatefulTable<SonarrHistoryItem>>,
   pub start_time: DateTime<Utc>,
@@ -53,15 +67,15 @@ pub struct SonarrData {
   pub version: String,
 }
 
-impl SonarrData {
+impl<'a> SonarrData<'a> {
   pub fn reset_delete_series_preferences(&mut self) {
     self.delete_series_files = false;
     self.add_list_exclusion = false;
   }
 }
 
-impl Default for SonarrData {
-  fn default() -> SonarrData {
+impl<'a> Default for SonarrData<'a> {
+  fn default() -> SonarrData<'a> {
     SonarrData {
       add_list_exclusion: false,
       add_searched_series: None,
@@ -81,11 +95,14 @@ impl Default for SonarrData {
       indexer_test_all_results: None,
       language_profiles_map: BiMap::new(),
       logs: StatefulList::default(),
+      prompt_confirm: false,
+      prompt_confirm_action: None,
       quality_profile_map: BiMap::new(),
       queued_events: StatefulTable::default(),
       root_folders: StatefulTable::default(),
       seasons: StatefulTable::default(),
       season_details_modal: None,
+      selected_block: BlockSelectionState::default(),
       series: StatefulTable::default(),
       series_history: None,
       start_time: DateTime::default(),
@@ -93,6 +110,50 @@ impl Default for SonarrData {
       tasks: StatefulTable::default(),
       updates: ScrollableText::default(),
       version: String::new(),
+      main_tabs: TabState::new(vec![
+        TabRoute {
+          title: "Library",
+          route: ActiveSonarrBlock::Series.into(),
+          help: String::new(),
+          contextual_help: Some(build_context_clue_string(&SERIES_CONTEXT_CLUES)),
+        },
+        TabRoute {
+          title: "Downloads",
+          route: ActiveSonarrBlock::Downloads.into(),
+          help: String::new(),
+          contextual_help: Some(build_context_clue_string(&DOWNLOADS_CONTEXT_CLUES)),
+        },
+        TabRoute {
+          title: "Blocklist",
+          route: ActiveSonarrBlock::Blocklist.into(),
+          help: String::new(),
+          contextual_help: Some(build_context_clue_string(&BLOCKLIST_CONTEXT_CLUES)),
+        },
+        TabRoute {
+          title: "History",
+          route: ActiveSonarrBlock::History.into(),
+          help: String::new(),
+          contextual_help: Some(build_context_clue_string(&HISTORY_CONTEXT_CLUES)),
+        },
+        TabRoute {
+          title: "Root Folders",
+          route: ActiveSonarrBlock::RootFolders.into(),
+          help: String::new(),
+          contextual_help: Some(build_context_clue_string(&ROOT_FOLDERS_CONTEXT_CLUES)),
+        },
+        TabRoute {
+          title: "Indexers",
+          route: ActiveSonarrBlock::Indexers.into(),
+          help: String::new(),
+          contextual_help: Some(build_context_clue_string(&INDEXERS_CONTEXT_CLUES)),
+        },
+        TabRoute {
+          title: "System",
+          route: ActiveSonarrBlock::System.into(),
+          help: String::new(),
+          contextual_help: Some(build_context_clue_string(&SYSTEM_CONTEXT_CLUES)),
+        },
+      ]),
     }
   }
 }
@@ -182,7 +243,6 @@ pub enum ActiveSonarrBlock {
   SearchSeriesHistory,
   SearchSeriesHistoryError,
   SeasonDetails,
-  SeasonHistory,
   #[default]
   Series,
   SeriesDetails,
@@ -199,7 +259,24 @@ pub enum ActiveSonarrBlock {
   TestIndexer,
   UpdateAllSeriesPrompt,
   UpdateAndScanSeriesPrompt,
+  UpdateDownloadsPrompt,
 }
+
+pub static SERIES_BLOCKS: [ActiveSonarrBlock; 7] = [
+  ActiveSonarrBlock::Series,
+  ActiveSonarrBlock::SeriesSortPrompt,
+  ActiveSonarrBlock::SearchSeries,
+  ActiveSonarrBlock::SearchSeriesError,
+  ActiveSonarrBlock::FilterSeries,
+  ActiveSonarrBlock::FilterSeriesError,
+  ActiveSonarrBlock::UpdateAllSeriesPrompt,
+];
+
+pub static DOWNLOADS_BLOCKS: [ActiveSonarrBlock; 3] = [
+  ActiveSonarrBlock::Downloads,
+  ActiveSonarrBlock::DeleteDownloadPrompt,
+  ActiveSonarrBlock::UpdateDownloadsPrompt,
+];
 
 impl From<ActiveSonarrBlock> for Route {
   fn from(active_sonarr_block: ActiveSonarrBlock) -> Route {

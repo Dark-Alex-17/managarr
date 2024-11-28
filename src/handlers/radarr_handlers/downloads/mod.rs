@@ -12,22 +12,22 @@ use crate::network::radarr_network::RadarrEvent;
 mod downloads_handler_tests;
 
 pub(super) struct DownloadsHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  _context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  _context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    DOWNLOADS_BLOCKS.contains(active_block)
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    DOWNLOADS_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    _context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    _context: Option<ActiveRadarrBlock>,
   ) -> DownloadsHandler<'a, 'b> {
     DownloadsHandler {
       key,
@@ -37,7 +37,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -46,31 +46,31 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
   }
 
   fn handle_scroll_up(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Downloads {
+    if self.active_radarr_block == ActiveRadarrBlock::Downloads {
       self.app.data.radarr_data.downloads.scroll_up()
     }
   }
 
   fn handle_scroll_down(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Downloads {
+    if self.active_radarr_block == ActiveRadarrBlock::Downloads {
       self.app.data.radarr_data.downloads.scroll_down()
     }
   }
 
   fn handle_home(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Downloads {
+    if self.active_radarr_block == ActiveRadarrBlock::Downloads {
       self.app.data.radarr_data.downloads.scroll_to_top()
     }
   }
 
   fn handle_end(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Downloads {
+    if self.active_radarr_block == ActiveRadarrBlock::Downloads {
       self.app.data.radarr_data.downloads.scroll_to_bottom()
     }
   }
 
   fn handle_delete(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Downloads {
+    if self.active_radarr_block == ActiveRadarrBlock::Downloads {
       self
         .app
         .push_navigation_stack(ActiveRadarrBlock::DeleteDownloadPrompt.into())
@@ -121,18 +121,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::Downloads => match self.key {
-        _ if *key == DEFAULT_KEYBINDINGS.update.key => {
+        _ if key == DEFAULT_KEYBINDINGS.update.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::UpdateDownloadsPrompt.into());
         }
-        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
         _ => (),
       },
       ActiveRadarrBlock::DeleteDownloadPrompt => {
-        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+        if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteDownload(None));
 
@@ -140,7 +140,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
         }
       }
       ActiveRadarrBlock::UpdateDownloadsPrompt => {
-        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+        if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateDownloads);
 

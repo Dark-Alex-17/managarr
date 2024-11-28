@@ -14,22 +14,22 @@ use crate::network::radarr_network::RadarrEvent;
 mod blocklist_handler_tests;
 
 pub(super) struct BlocklistHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  _context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  _context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    BLOCKLIST_BLOCKS.contains(active_block)
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    BLOCKLIST_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    context: Option<ActiveRadarrBlock>,
   ) -> Self {
     BlocklistHandler {
       key,
@@ -39,7 +39,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -112,7 +112,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
   }
 
   fn handle_delete(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Blocklist {
+    if self.active_radarr_block == ActiveRadarrBlock::Blocklist {
       self
         .app
         .push_navigation_stack(ActiveRadarrBlock::DeleteBlocklistItemPrompt.into());
@@ -184,15 +184,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::Blocklist => match self.key {
-        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
-        _ if *key == DEFAULT_KEYBINDINGS.clear.key => {
+        _ if key == DEFAULT_KEYBINDINGS.clear.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::BlocklistClearAllItemsPrompt.into());
         }
-        _ if *key == DEFAULT_KEYBINDINGS.sort.key => {
+        _ if key == DEFAULT_KEYBINDINGS.sort.key => {
           self
             .app
             .data
@@ -206,7 +206,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
         _ => (),
       },
       ActiveRadarrBlock::DeleteBlocklistItemPrompt => {
-        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+        if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action =
             Some(RadarrEvent::DeleteBlocklistItem(None));
@@ -215,7 +215,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
         }
       }
       ActiveRadarrBlock::BlocklistClearAllItemsPrompt => {
-        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+        if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::ClearBlocklist);
 

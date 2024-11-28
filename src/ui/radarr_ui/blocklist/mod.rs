@@ -31,7 +31,7 @@ impl DrawUi for BlocklistUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+    if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
       match active_radarr_block {
         ActiveRadarrBlock::Blocklist | ActiveRadarrBlock::BlocklistSortPrompt => {
           draw_blocklist_table(f, app, area)
@@ -77,7 +77,7 @@ impl DrawUi for BlocklistUi {
 }
 
 fn draw_blocklist_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     let current_selection = if app.data.radarr_data.blocklist.items.is_empty() {
       BlocklistItem::default()
     } else {

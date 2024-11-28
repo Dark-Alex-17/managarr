@@ -15,6 +15,8 @@ generate_keybindings! {
   left,
   right,
   backspace,
+  next_servarr,
+  previous_servarr,
   clear,
   search,
   settings,
@@ -68,6 +70,14 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   backspace: KeyBinding {
     key: Key::Backspace,
     desc: "backspace",
+  },
+  next_servarr: KeyBinding {
+    key: Key::Tab,
+    desc: "next servarr",
+  },
+  previous_servarr: KeyBinding {
+    key: Key::BackTab,
+    desc: "previous servarr",
   },
   clear: KeyBinding {
     key: Key::Char('c'),

@@ -12,22 +12,22 @@ use crate::network::radarr_network::RadarrEvent;
 mod system_details_handler_tests;
 
 pub(super) struct SystemDetailsHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  _context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  _context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    SYSTEM_DETAILS_BLOCKS.contains(active_block)
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    SYSTEM_DETAILS_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    context: Option<ActiveRadarrBlock>,
   ) -> SystemDetailsHandler<'a, 'b> {
     SystemDetailsHandler {
       key,
@@ -37,7 +37,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -100,7 +100,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler
 
     match self.active_radarr_block {
       ActiveRadarrBlock::SystemLogs => match self.key {
-        _ if *key == DEFAULT_KEYBINDINGS.left.key => {
+        _ if key == DEFAULT_KEYBINDINGS.left.key => {
           self
             .app
             .data
@@ -110,7 +110,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler
             .iter()
             .for_each(|log| log.scroll_right());
         }
-        _ if *key == DEFAULT_KEYBINDINGS.right.key => {
+        _ if key == DEFAULT_KEYBINDINGS.right.key => {
           self
             .app
             .data
@@ -163,14 +163,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler
   }
 
   fn handle_char_key_event(&mut self) {
-    if SYSTEM_DETAILS_BLOCKS.contains(self.active_radarr_block)
-      && self.key == &DEFAULT_KEYBINDINGS.refresh.key
+    if SYSTEM_DETAILS_BLOCKS.contains(&self.active_radarr_block)
+      && self.key == DEFAULT_KEYBINDINGS.refresh.key
     {
       self.app.should_refresh = true;
     }
 
-    if self.active_radarr_block == &ActiveRadarrBlock::SystemTaskStartConfirmPrompt
-      && *self.key == DEFAULT_KEYBINDINGS.confirm.key
+    if self.active_radarr_block == ActiveRadarrBlock::SystemTaskStartConfirmPrompt
+      && self.key == DEFAULT_KEYBINDINGS.confirm.key
     {
       self.app.data.radarr_data.prompt_confirm = true;
       self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::StartTask(None));

@@ -9,22 +9,22 @@ use crate::models::Scrollable;
 mod test_all_indexers_handler_tests;
 
 pub(super) struct TestAllIndexersHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  _context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  _context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for TestAllIndexersHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    active_block == &ActiveRadarrBlock::TestAllIndexers
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    active_block == ActiveRadarrBlock::TestAllIndexers
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    _context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    _context: Option<ActiveRadarrBlock>,
   ) -> TestAllIndexersHandler<'a, 'b> {
     TestAllIndexersHandler {
       key,
@@ -34,7 +34,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for TestAllIndexersHandl
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -49,7 +49,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for TestAllIndexersHandl
   }
 
   fn handle_scroll_up(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::TestAllIndexers {
+    if self.active_radarr_block == ActiveRadarrBlock::TestAllIndexers {
       self
         .app
         .data
@@ -62,7 +62,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for TestAllIndexersHandl
   }
 
   fn handle_scroll_down(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::TestAllIndexers {
+    if self.active_radarr_block == ActiveRadarrBlock::TestAllIndexers {
       self
         .app
         .data
@@ -75,7 +75,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for TestAllIndexersHandl
   }
 
   fn handle_home(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::TestAllIndexers {
+    if self.active_radarr_block == ActiveRadarrBlock::TestAllIndexers {
       self
         .app
         .data
@@ -88,7 +88,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for TestAllIndexersHandl
   }
 
   fn handle_end(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::TestAllIndexers {
+    if self.active_radarr_block == ActiveRadarrBlock::TestAllIndexers {
       self
         .app
         .data
@@ -107,7 +107,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for TestAllIndexersHandl
   fn handle_submit(&mut self) {}
 
   fn handle_esc(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::TestAllIndexers {
+    if self.active_radarr_block == ActiveRadarrBlock::TestAllIndexers {
       self.app.pop_navigation_stack();
       self.app.data.radarr_data.indexer_test_all_results = None;
     }

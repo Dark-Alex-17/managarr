@@ -23,10 +23,10 @@ mod test_all_indexers_handler;
 mod indexers_handler_tests;
 
 pub(super) struct IndexersHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 'b> {
@@ -48,18 +48,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
     }
   }
 
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
     EditIndexerHandler::accepts(active_block)
       || IndexerSettingsHandler::accepts(active_block)
       || TestAllIndexersHandler::accepts(active_block)
-      || INDEXERS_BLOCKS.contains(active_block)
+      || INDEXERS_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    context: Option<ActiveRadarrBlock>,
   ) -> IndexersHandler<'a, 'b> {
     IndexersHandler {
       key,
@@ -69,7 +69,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -78,31 +78,31 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
   }
 
   fn handle_scroll_up(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Indexers {
+    if self.active_radarr_block == ActiveRadarrBlock::Indexers {
       self.app.data.radarr_data.indexers.scroll_up();
     }
   }
 
   fn handle_scroll_down(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Indexers {
+    if self.active_radarr_block == ActiveRadarrBlock::Indexers {
       self.app.data.radarr_data.indexers.scroll_down();
     }
   }
 
   fn handle_home(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Indexers {
+    if self.active_radarr_block == ActiveRadarrBlock::Indexers {
       self.app.data.radarr_data.indexers.scroll_to_top();
     }
   }
 
   fn handle_end(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Indexers {
+    if self.active_radarr_block == ActiveRadarrBlock::Indexers {
       self.app.data.radarr_data.indexers.scroll_to_bottom();
     }
   }
 
   fn handle_delete(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Indexers {
+    if self.active_radarr_block == ActiveRadarrBlock::Indexers {
       self
         .app
         .push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into());
@@ -169,25 +169,25 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::Indexers => match self.key {
-        _ if *key == DEFAULT_KEYBINDINGS.add.key => {
+        _ if key == DEFAULT_KEYBINDINGS.add.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::AddIndexer.into());
         }
-        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
-        _ if *key == DEFAULT_KEYBINDINGS.test.key => {
+        _ if key == DEFAULT_KEYBINDINGS.test.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::TestIndexer.into());
         }
-        _ if *key == DEFAULT_KEYBINDINGS.test_all.key => {
+        _ if key == DEFAULT_KEYBINDINGS.test_all.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::TestAllIndexers.into());
         }
-        _ if *key == DEFAULT_KEYBINDINGS.settings.key => {
+        _ if key == DEFAULT_KEYBINDINGS.settings.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
@@ -197,7 +197,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
         _ => (),
       },
       ActiveRadarrBlock::DeleteIndexerPrompt => {
-        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+        if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteIndexer(None));
 

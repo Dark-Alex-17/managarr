@@ -15,44 +15,44 @@ mod handlers_tests;
 #[path = "handler_test_utils.rs"]
 pub mod handler_test_utils;
 
-pub trait KeyEventHandler<'a, 'b, T: Into<Route>> {
+pub trait KeyEventHandler<'a, 'b, T: Into<Route> + Copy> {
   fn handle_key_event(&mut self) {
     let key = self.get_key();
     match key {
-      _ if *key == DEFAULT_KEYBINDINGS.up.key => {
+      _ if key == DEFAULT_KEYBINDINGS.up.key => {
         if self.is_ready() {
           self.handle_scroll_up();
         }
       }
-      _ if *key == DEFAULT_KEYBINDINGS.down.key => {
+      _ if key == DEFAULT_KEYBINDINGS.down.key => {
         if self.is_ready() {
           self.handle_scroll_down();
         }
       }
-      _ if *key == DEFAULT_KEYBINDINGS.home.key => {
+      _ if key == DEFAULT_KEYBINDINGS.home.key => {
         if self.is_ready() {
           self.handle_home();
         }
       }
-      _ if *key == DEFAULT_KEYBINDINGS.end.key => {
+      _ if key == DEFAULT_KEYBINDINGS.end.key => {
         if self.is_ready() {
           self.handle_end();
         }
       }
-      _ if *key == DEFAULT_KEYBINDINGS.delete.key => {
+      _ if key == DEFAULT_KEYBINDINGS.delete.key => {
         if self.is_ready() {
           self.handle_delete();
         }
       }
-      _ if *key == DEFAULT_KEYBINDINGS.left.key || *key == DEFAULT_KEYBINDINGS.right.key => {
+      _ if key == DEFAULT_KEYBINDINGS.left.key || key == DEFAULT_KEYBINDINGS.right.key => {
         self.handle_left_right_action()
       }
-      _ if *key == DEFAULT_KEYBINDINGS.submit.key => {
+      _ if key == DEFAULT_KEYBINDINGS.submit.key => {
         if self.is_ready() {
           self.handle_submit();
         }
       }
-      _ if *key == DEFAULT_KEYBINDINGS.esc.key => self.handle_esc(),
+      _ if key == DEFAULT_KEYBINDINGS.esc.key => self.handle_esc(),
       _ => {
         if self.is_ready() {
           self.handle_char_key_event();
@@ -65,9 +65,9 @@ pub trait KeyEventHandler<'a, 'b, T: Into<Route>> {
     self.handle_key_event();
   }
 
-  fn accepts(active_block: &'a T) -> bool;
-  fn with(key: &'a Key, app: &'a mut App<'b>, active_block: &'a T, context: &'a Option<T>) -> Self;
-  fn get_key(&self) -> &Key;
+  fn accepts(active_block: T) -> bool;
+  fn with(key: Key, app: &'a mut App<'b>, active_block: T, context: Option<T>) -> Self;
+  fn get_key(&self) -> Key;
   fn is_ready(&self) -> bool;
   fn handle_scroll_up(&mut self);
   fn handle_scroll_down(&mut self);
@@ -81,8 +81,14 @@ pub trait KeyEventHandler<'a, 'b, T: Into<Route>> {
 }
 
 pub fn handle_events(key: Key, app: &mut App<'_>) {
-  if let Route::Radarr(active_radarr_block, context) = *app.get_current_route() {
-    RadarrHandler::with(&key, app, &active_radarr_block, &context).handle()
+  if key == DEFAULT_KEYBINDINGS.next_servarr.key {
+    app.server_tabs.next();
+    app.pop_and_push_navigation_stack(app.server_tabs.get_active_route());
+  } else if key == DEFAULT_KEYBINDINGS.previous_servarr.key {
+    app.server_tabs.previous();
+    app.pop_and_push_navigation_stack(app.server_tabs.get_active_route());
+  } else if let Route::Radarr(active_radarr_block, context) = app.get_current_route() {
+    RadarrHandler::with(key, app, active_radarr_block, context).handle()
   }
 }
 
@@ -92,10 +98,10 @@ fn handle_clear_errors(app: &mut App<'_>) {
   }
 }
 
-fn handle_prompt_toggle(app: &mut App<'_>, key: &Key) {
+fn handle_prompt_toggle(app: &mut App<'_>, key: Key) {
   match key {
-    _ if *key == DEFAULT_KEYBINDINGS.left.key || *key == DEFAULT_KEYBINDINGS.right.key => {
-      if let Route::Radarr(_, _) = *app.get_current_route() {
+    _ if key == DEFAULT_KEYBINDINGS.left.key || key == DEFAULT_KEYBINDINGS.right.key => {
+      if let Route::Radarr(_, _) = app.get_current_route() {
         app.data.radarr_data.prompt_confirm = !app.data.radarr_data.prompt_confirm;
       }
     }
@@ -107,10 +113,10 @@ fn handle_prompt_toggle(app: &mut App<'_>, key: &Key) {
 macro_rules! handle_text_box_left_right_keys {
   ($self:expr, $key:expr, $input:expr) => {
     match $self.key {
-      _ if *$key == DEFAULT_KEYBINDINGS.left.key => {
+      _ if $key == DEFAULT_KEYBINDINGS.left.key => {
         $input.scroll_left();
       }
-      _ if *$key == DEFAULT_KEYBINDINGS.right.key => {
+      _ if $key == DEFAULT_KEYBINDINGS.right.key => {
         $input.scroll_right();
       }
       _ => (),
@@ -122,11 +128,11 @@ macro_rules! handle_text_box_left_right_keys {
 macro_rules! handle_text_box_keys {
   ($self:expr, $key:expr, $input:expr) => {
     match $self.key {
-      _ if *$key == DEFAULT_KEYBINDINGS.backspace.key => {
+      _ if $key == DEFAULT_KEYBINDINGS.backspace.key => {
         $input.pop();
       }
       Key::Char(character) => {
-        $input.push(*character);
+        $input.push(character);
       }
       _ => (),
     }

@@ -28,18 +28,17 @@ mod tests {
         BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.next();
 
-      EditIndexerHandler::with(&key, &mut app, &ActiveRadarrBlock::EditIndexerPrompt, &None)
-        .handle();
+      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
 
       if key == Key::Up {
         assert_eq!(
           app.data.radarr_data.selected_block.get_active_block(),
-          &ActiveRadarrBlock::EditIndexerNameInput
+          ActiveRadarrBlock::EditIndexerNameInput
         );
       } else {
         assert_eq!(
           app.data.radarr_data.selected_block.get_active_block(),
-          &ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch
+          ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch
         );
       }
     }
@@ -55,12 +54,11 @@ mod tests {
         BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.next();
 
-      EditIndexerHandler::with(&key, &mut app, &ActiveRadarrBlock::EditIndexerPrompt, &None)
-        .handle();
+      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &ActiveRadarrBlock::EditIndexerToggleEnableRss
+        ActiveRadarrBlock::EditIndexerToggleEnableRss
       );
     }
   }
@@ -83,10 +81,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerNameInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerNameInput,
+        None,
       )
       .handle();
 
@@ -104,10 +102,10 @@ mod tests {
       );
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerNameInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerNameInput,
+        None,
       )
       .handle();
 
@@ -134,10 +132,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerUrlInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerUrlInput,
+        None,
       )
       .handle();
 
@@ -155,10 +153,10 @@ mod tests {
       );
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerUrlInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerUrlInput,
+        None,
       )
       .handle();
 
@@ -185,10 +183,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerApiKeyInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        None,
       )
       .handle();
 
@@ -206,10 +204,10 @@ mod tests {
       );
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerApiKeyInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        None,
       )
       .handle();
 
@@ -236,10 +234,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerSeedRatioInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        None,
       )
       .handle();
 
@@ -257,10 +255,10 @@ mod tests {
       );
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerSeedRatioInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        None,
       )
       .handle();
 
@@ -287,10 +285,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerTagsInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerTagsInput,
+        None,
       )
       .handle();
 
@@ -308,10 +306,10 @@ mod tests {
       );
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerTagsInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerTagsInput,
+        None,
       )
       .handle();
 
@@ -351,13 +349,11 @@ mod tests {
         BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.index = EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1;
 
-      EditIndexerHandler::with(&key, &mut app, &ActiveRadarrBlock::EditIndexerPrompt, &None)
-        .handle();
+      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      EditIndexerHandler::with(&key, &mut app, &ActiveRadarrBlock::EditIndexerPrompt, &None)
-        .handle();
+      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
     }
@@ -396,23 +392,21 @@ mod tests {
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &left_block
+        left_block
       );
 
-      EditIndexerHandler::with(&key, &mut app, &ActiveRadarrBlock::EditIndexerPrompt, &None)
-        .handle();
+      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &right_block
+        right_block
       );
 
-      EditIndexerHandler::with(&key, &mut app, &ActiveRadarrBlock::EditIndexerPrompt, &None)
-        .handle();
+      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &left_block
+        left_block
       );
     }
 
@@ -445,23 +439,21 @@ mod tests {
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &left_block
+        left_block
       );
 
-      EditIndexerHandler::with(&key, &mut app, &ActiveRadarrBlock::EditIndexerPrompt, &None)
-        .handle();
+      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &right_block
+        right_block
       );
 
-      EditIndexerHandler::with(&key, &mut app, &ActiveRadarrBlock::EditIndexerPrompt, &None)
-        .handle();
+      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &left_block
+        left_block
       );
     }
 
@@ -477,23 +469,21 @@ mod tests {
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch
+        ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch
       );
 
-      EditIndexerHandler::with(&key, &mut app, &ActiveRadarrBlock::EditIndexerPrompt, &None)
-        .handle();
+      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &ActiveRadarrBlock::EditIndexerConfirmPrompt
+        ActiveRadarrBlock::EditIndexerConfirmPrompt
       );
 
-      EditIndexerHandler::with(&key, &mut app, &ActiveRadarrBlock::EditIndexerPrompt, &None)
-        .handle();
+      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &ActiveRadarrBlock::EditIndexerConfirmPrompt
+        ActiveRadarrBlock::EditIndexerConfirmPrompt
       );
       assert!(app.data.radarr_data.prompt_confirm);
     }
@@ -507,10 +497,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerNameInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerNameInput,
+        None,
       )
       .handle();
 
@@ -528,10 +518,10 @@ mod tests {
       );
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerNameInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerNameInput,
+        None,
       )
       .handle();
 
@@ -558,10 +548,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerUrlInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerUrlInput,
+        None,
       )
       .handle();
 
@@ -579,10 +569,10 @@ mod tests {
       );
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerUrlInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerUrlInput,
+        None,
       )
       .handle();
 
@@ -609,10 +599,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerApiKeyInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        None,
       )
       .handle();
 
@@ -630,10 +620,10 @@ mod tests {
       );
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerApiKeyInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        None,
       )
       .handle();
 
@@ -660,10 +650,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerSeedRatioInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        None,
       )
       .handle();
 
@@ -681,10 +671,10 @@ mod tests {
       );
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerSeedRatioInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        None,
       )
       .handle();
 
@@ -711,10 +701,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerTagsInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerTagsInput,
+        None,
       )
       .handle();
 
@@ -732,10 +722,10 @@ mod tests {
       );
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerTagsInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerTagsInput,
+        None,
       )
       .handle();
 
@@ -784,14 +774,14 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::EditIndexerPrompt,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
       assert!(!app.should_refresh);
       assert_eq!(app.data.radarr_data.edit_indexer_modal, None);
@@ -813,14 +803,14 @@ mod tests {
       app.data.radarr_data.prompt_confirm = true;
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::EditIndexerPrompt,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert!(app.data.radarr_data.edit_indexer_modal.is_some());
       assert!(app.should_refresh);
       assert_eq!(
@@ -839,16 +829,16 @@ mod tests {
       app.data.radarr_data.prompt_confirm = true;
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::EditIndexerPrompt,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveRadarrBlock::EditIndexerPrompt.into()
       );
       assert!(app.data.radarr_data.edit_indexer_modal.is_some());
       assert!(!app.should_refresh);
@@ -877,14 +867,14 @@ mod tests {
         .set_index(starting_index);
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::EditIndexerPrompt,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &block.into());
+      assert_eq!(app.get_current_route(), block.into());
       assert!(app.should_ignore_quit_key);
     }
 
@@ -898,16 +888,16 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::EditIndexerPrompt,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveRadarrBlock::EditIndexerPrompt.into()
       );
       assert!(app
         .data
@@ -919,16 +909,16 @@ mod tests {
         .unwrap());
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::EditIndexerPrompt,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveRadarrBlock::EditIndexerPrompt.into()
       );
       assert!(!app
         .data
@@ -950,16 +940,16 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::EditIndexerPrompt,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveRadarrBlock::EditIndexerPrompt.into()
       );
       assert!(app
         .data
@@ -971,16 +961,16 @@ mod tests {
         .unwrap());
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::EditIndexerPrompt,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveRadarrBlock::EditIndexerPrompt.into()
       );
       assert!(!app
         .data
@@ -1002,16 +992,16 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::EditIndexerPrompt,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveRadarrBlock::EditIndexerPrompt.into()
       );
       assert!(app
         .data
@@ -1023,16 +1013,16 @@ mod tests {
         .unwrap());
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::EditIndexerPrompt,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveRadarrBlock::EditIndexerPrompt.into()
       );
       assert!(!app
         .data
@@ -1056,10 +1046,10 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerNameInput.into());
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerNameInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerNameInput,
+        None,
       )
       .handle();
 
@@ -1075,7 +1065,7 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveRadarrBlock::EditIndexerPrompt.into()
       );
     }
 
@@ -1091,10 +1081,10 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerUrlInput.into());
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerUrlInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerUrlInput,
+        None,
       )
       .handle();
 
@@ -1110,7 +1100,7 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveRadarrBlock::EditIndexerPrompt.into()
       );
     }
 
@@ -1126,10 +1116,10 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerApiKeyInput.into());
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerApiKeyInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        None,
       )
       .handle();
 
@@ -1145,7 +1135,7 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveRadarrBlock::EditIndexerPrompt.into()
       );
     }
 
@@ -1161,10 +1151,10 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerSeedRatioInput.into());
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerSeedRatioInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        None,
       )
       .handle();
 
@@ -1180,7 +1170,7 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveRadarrBlock::EditIndexerPrompt.into()
       );
     }
 
@@ -1196,10 +1186,10 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerTagsInput.into());
 
       EditIndexerHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerTagsInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerTagsInput,
+        None,
       )
       .handle();
 
@@ -1215,7 +1205,7 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveRadarrBlock::EditIndexerPrompt.into()
       );
     }
   }
@@ -1239,14 +1229,14 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
-        &ESC_KEY,
+        ESC_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::EditIndexerPrompt,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.data.radarr_data.edit_indexer_modal, None);
     }
@@ -1268,9 +1258,9 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.should_ignore_quit_key = true;
 
-      EditIndexerHandler::with(&ESC_KEY, &mut app, &active_radarr_block, &None).handle();
+      EditIndexerHandler::with(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert!(!app.should_ignore_quit_key);
       assert_eq!(
         app.data.radarr_data.edit_indexer_modal,
@@ -1298,10 +1288,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.backspace.key,
+        DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerNameInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerNameInput,
+        None,
       )
       .handle();
 
@@ -1327,10 +1317,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.backspace.key,
+        DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerUrlInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerUrlInput,
+        None,
       )
       .handle();
 
@@ -1356,10 +1346,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.backspace.key,
+        DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerApiKeyInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        None,
       )
       .handle();
 
@@ -1385,10 +1375,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.backspace.key,
+        DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerSeedRatioInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        None,
       )
       .handle();
 
@@ -1414,10 +1404,10 @@ mod tests {
       });
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.backspace.key,
+        DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerTagsInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerTagsInput,
+        None,
       )
       .handle();
 
@@ -1440,10 +1430,10 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
-        &Key::Char('h'),
+        Key::Char('h'),
         &mut app,
-        &ActiveRadarrBlock::EditIndexerNameInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerNameInput,
+        None,
       )
       .handle();
 
@@ -1466,10 +1456,10 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
-        &Key::Char('h'),
+        Key::Char('h'),
         &mut app,
-        &ActiveRadarrBlock::EditIndexerUrlInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerUrlInput,
+        None,
       )
       .handle();
 
@@ -1492,10 +1482,10 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
-        &Key::Char('h'),
+        Key::Char('h'),
         &mut app,
-        &ActiveRadarrBlock::EditIndexerApiKeyInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        None,
       )
       .handle();
 
@@ -1518,10 +1508,10 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
-        &Key::Char('h'),
+        Key::Char('h'),
         &mut app,
-        &ActiveRadarrBlock::EditIndexerSeedRatioInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        None,
       )
       .handle();
 
@@ -1544,10 +1534,10 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
-        &Key::Char('h'),
+        Key::Char('h'),
         &mut app,
-        &ActiveRadarrBlock::EditIndexerTagsInput,
-        &None,
+        ActiveRadarrBlock::EditIndexerTagsInput,
+        None,
       )
       .handle();
 
@@ -1579,14 +1569,14 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
-        &DEFAULT_KEYBINDINGS.confirm.key,
+        DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
-        &ActiveRadarrBlock::EditIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::EditIndexerPrompt,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert!(app.data.radarr_data.edit_indexer_modal.is_some());
       assert!(app.should_refresh);
       assert_eq!(
@@ -1600,9 +1590,9 @@ mod tests {
   fn test_indexer_settings_handler_accepts() {
     ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
       if EDIT_INDEXER_BLOCKS.contains(&active_radarr_block) {
-        assert!(EditIndexerHandler::accepts(&active_radarr_block));
+        assert!(EditIndexerHandler::accepts(active_radarr_block));
       } else {
-        assert!(!EditIndexerHandler::accepts(&active_radarr_block));
+        assert!(!EditIndexerHandler::accepts(active_radarr_block));
       }
     })
   }
@@ -1613,10 +1603,10 @@ mod tests {
     app.is_loading = true;
 
     let handler = EditIndexerHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::EditIndexerPrompt,
-      &None,
+      ActiveRadarrBlock::EditIndexerPrompt,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -1628,10 +1618,10 @@ mod tests {
     app.is_loading = false;
 
     let handler = EditIndexerHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::EditIndexerPrompt,
-      &None,
+      ActiveRadarrBlock::EditIndexerPrompt,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -1644,10 +1634,10 @@ mod tests {
     app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
     let handler = EditIndexerHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::EditIndexerPrompt,
-      &None,
+      ActiveRadarrBlock::EditIndexerPrompt,
+      None,
     );
 
     assert!(handler.is_ready());

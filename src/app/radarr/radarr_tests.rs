@@ -459,22 +459,22 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_check_for_prompt_action_no_prompt_confirm() {
+    async fn test_check_for_radarr_prompt_action_no_prompt_confirm() {
       let mut app = App::default();
       app.data.radarr_data.prompt_confirm = false;
 
-      app.check_for_prompt_action().await;
+      app.check_for_radarr_prompt_action().await;
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert!(!app.should_refresh);
     }
 
     #[tokio::test]
-    async fn test_check_for_prompt_action() {
+    async fn test_check_for_radarr_prompt_action() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
       app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::GetStatus);
 
-      app.check_for_prompt_action().await;
+      app.check_for_radarr_prompt_action().await;
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(
@@ -490,7 +490,7 @@ mod tests {
       let (mut app, mut sync_network_rx) = construct_app_unit();
       app.is_routing = true;
 
-      app.refresh_metadata().await;
+      app.refresh_radarr_metadata().await;
 
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
@@ -522,8 +522,9 @@ mod tests {
     #[tokio::test]
     async fn test_radarr_on_tick_first_render() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.is_first_render = true;
 
-      app.radarr_on_tick(ActiveRadarrBlock::Downloads, true).await;
+      app.radarr_on_tick(ActiveRadarrBlock::Downloads).await;
 
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
@@ -551,6 +552,7 @@ mod tests {
       );
       assert!(app.is_loading);
       assert!(!app.data.radarr_data.prompt_confirm);
+      assert!(!app.is_first_render);
     }
 
     #[tokio::test]
@@ -559,9 +561,7 @@ mod tests {
       app.is_routing = true;
       app.should_refresh = true;
 
-      app
-        .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
-        .await;
+      app.radarr_on_tick(ActiveRadarrBlock::Downloads).await;
 
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
@@ -592,9 +592,7 @@ mod tests {
       app.is_routing = true;
       app.should_refresh = false;
 
-      app
-        .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
-        .await;
+      app.radarr_on_tick(ActiveRadarrBlock::Downloads).await;
 
       assert!(app.cancellation_token.is_cancelled());
     }
@@ -604,9 +602,7 @@ mod tests {
       let (mut app, mut sync_network_rx) = construct_app_unit();
       app.should_refresh = true;
 
-      app
-        .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
-        .await;
+      app.radarr_on_tick(ActiveRadarrBlock::Downloads).await;
 
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
@@ -623,9 +619,7 @@ mod tests {
       app.is_routing = true;
       app.should_refresh = true;
 
-      app
-        .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
-        .await;
+      app.radarr_on_tick(ActiveRadarrBlock::Downloads).await;
 
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
@@ -643,9 +637,7 @@ mod tests {
       app.tick_count = 2;
       app.tick_until_poll = 2;
 
-      app
-        .radarr_on_tick(ActiveRadarrBlock::Downloads, false)
-        .await;
+      app.radarr_on_tick(ActiveRadarrBlock::Downloads).await;
 
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
@@ -701,6 +693,7 @@ mod tests {
       let mut app = App {
         network_tx: Some(sync_network_tx),
         tick_count: 1,
+        is_first_render: false,
         ..App::default()
       };
       app.data.radarr_data.prompt_confirm = true;

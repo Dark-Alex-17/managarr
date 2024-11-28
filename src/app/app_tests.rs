@@ -5,9 +5,9 @@ mod tests {
   use tokio::sync::mpsc;
 
   use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
-  use crate::app::{App, AppConfig, Data, ServarrConfig, DEFAULT_ROUTE};
-  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
-  use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
+  use crate::app::{App, AppConfig, ServarrConfig, DEFAULT_ROUTE};
+  use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+  use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::{HorizontallyScrollableText, TabRoute};
   use crate::network::radarr_network::RadarrEvent;
   use crate::network::NetworkEvent;
@@ -19,6 +19,7 @@ mod tests {
     assert_eq!(app.navigation_stack, vec![DEFAULT_ROUTE]);
     assert!(app.network_tx.is_none());
     assert!(!app.cancellation_token.is_cancelled());
+    assert!(app.is_first_render);
     assert_eq!(app.error, HorizontallyScrollableText::default());
     assert_eq!(app.server_tabs.index, 0);
     assert_eq!(
@@ -55,14 +56,11 @@ mod tests {
   fn test_navigation_stack_methods() {
     let mut app = App::default();
 
-    assert_eq!(app.get_current_route(), &DEFAULT_ROUTE);
+    assert_eq!(app.get_current_route(), DEFAULT_ROUTE);
 
     app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
 
-    assert_eq!(
-      app.get_current_route(),
-      &ActiveRadarrBlock::Downloads.into()
-    );
+    assert_eq!(app.get_current_route(), ActiveRadarrBlock::Downloads.into());
     assert!(app.is_routing);
 
     app.is_routing = false;
@@ -70,20 +68,20 @@ mod tests {
 
     assert_eq!(
       app.get_current_route(),
-      &ActiveRadarrBlock::Collections.into()
+      ActiveRadarrBlock::Collections.into()
     );
     assert!(app.is_routing);
 
     app.is_routing = false;
     app.pop_navigation_stack();
 
-    assert_eq!(app.get_current_route(), &DEFAULT_ROUTE);
+    assert_eq!(app.get_current_route(), DEFAULT_ROUTE);
     assert!(app.is_routing);
 
     app.is_routing = false;
     app.pop_navigation_stack();
 
-    assert_eq!(app.get_current_route(), &DEFAULT_ROUTE);
+    assert_eq!(app.get_current_route(), DEFAULT_ROUTE);
     assert!(app.is_routing);
   }
 
@@ -123,16 +121,7 @@ mod tests {
     let mut app = App {
       tick_count: 2,
       error: "Test error".to_owned().into(),
-      data: Data {
-        radarr_data: RadarrData {
-          version: "test".to_owned(),
-          ..RadarrData::default()
-        },
-        sonarr_data: SonarrData {
-          version: "test".to_owned(),
-          ..SonarrData::default()
-        },
-      },
+      is_first_render: false,
       ..App::default()
     };
 
@@ -140,8 +129,7 @@ mod tests {
 
     assert_eq!(app.tick_count, 0);
     assert_eq!(app.error, HorizontallyScrollableText::default());
-    assert!(app.data.radarr_data.version.is_empty());
-    assert!(app.data.sonarr_data.version.is_empty());
+    assert!(app.is_first_render);
   }
 
   #[test]
@@ -188,12 +176,13 @@ mod tests {
     let mut app = App {
       tick_until_poll: 2,
       network_tx: Some(sync_network_tx),
+      is_first_render: true,
       ..App::default()
     };
 
     assert_eq!(app.tick_count, 0);
 
-    app.on_tick(true).await;
+    app.on_tick().await;
 
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
@@ -237,7 +226,7 @@ mod tests {
       ..App::default()
     };
 
-    app.on_tick(false).await;
+    app.on_tick().await;
     assert!(!app.is_routing);
   }
 
@@ -250,7 +239,7 @@ mod tests {
       ..App::default()
     };
 
-    app.on_tick(false).await;
+    app.on_tick().await;
     assert!(!app.should_refresh);
   }
 

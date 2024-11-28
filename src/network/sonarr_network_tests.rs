@@ -2214,12 +2214,21 @@ mod test {
       episode_file: None,
       ..episode()
     };
-    let expected_episodes = vec![episode_1.clone(), episode_2.clone()];
-    let mut expected_sorted_episodes = vec![episode_1.clone(), episode_2.clone()];
+    let episode_3 = Episode {
+      id: 3,
+      title: Some("A test".to_owned()),
+      episode_file_id: 3,
+      season_number: 1,
+      episode_number: 2,
+      episode_file: None,
+      ..episode()
+    };
+    let expected_episodes = vec![episode_1.clone(), episode_2.clone(), episode_3.clone()];
+    let mut expected_sorted_episodes = vec![episode_1.clone(), episode_3.clone()];
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
-      Some(json!([episode_1, episode_2])),
+      Some(json!([episode_1, episode_2, episode_3])),
       None,
       SonarrEvent::GetEpisodes(None),
       None,
@@ -2256,6 +2265,16 @@ mod test {
         id: 1,
         ..Series::default()
       }]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .seasons
+      .set_items(vec![Season {
+        season_number: 1,
+        ..Season::default()
+      }]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episodes(episodes) = network
@@ -2276,6 +2295,92 @@ mod test {
           .episodes
           .items,
         expected_sorted_episodes
+      );
+      assert!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episodes
+          .sort_asc
+      );
+      assert_eq!(episodes, expected_episodes);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episodes_event_empty_seasons_table_returns_all_episodes_by_default() {
+    let episode_1 = Episode {
+      title: Some("z test".to_owned()),
+      episode_file: None,
+      ..episode()
+    };
+    let episode_2 = Episode {
+      id: 2,
+      title: Some("A test".to_owned()),
+      episode_file_id: 2,
+      season_number: 2,
+      episode_number: 2,
+      episode_file: None,
+      ..episode()
+    };
+    let episode_3 = Episode {
+      id: 3,
+      title: Some("A test".to_owned()),
+      episode_file_id: 3,
+      season_number: 1,
+      episode_number: 2,
+      episode_file: None,
+      ..episode()
+    };
+    let expected_episodes = vec![episode_1.clone(), episode_2.clone(), episode_3.clone()];
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([episode_1, episode_2, episode_3])),
+      None,
+      SonarrEvent::GetEpisodes(None),
+      None,
+      Some("seriesId=1"),
+    )
+    .await;
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.sort_asc = true;
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Episodes(episodes) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodes(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episodes
+          .items,
+        expected_episodes
       );
       assert!(
         app_arc
@@ -5474,7 +5579,7 @@ mod test {
       .is_none());
     assert_eq!(
       app_arc.lock().await.get_current_route(),
-      &ActiveSonarrBlock::AddSeriesEmptySearchResults.into()
+      ActiveSonarrBlock::AddSeriesEmptySearchResults.into()
     );
   }
 
@@ -5529,7 +5634,7 @@ mod test {
       .is_none());
     assert_eq!(
       app_arc.lock().await.get_current_route(),
-      &ActiveSonarrBlock::Series.into()
+      ActiveSonarrBlock::Series.into()
     );
   }
 

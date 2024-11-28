@@ -23,15 +23,15 @@ mod utils {
       }]);
       app.data.radarr_data = radarr_data;
 
-      $handler::with(&DEFAULT_KEYBINDINGS.edit.key, &mut app, &$block, &None).handle();
+      $handler::with(DEFAULT_KEYBINDINGS.edit.key, &mut app, $block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
-        &(ActiveRadarrBlock::EditMoviePrompt, Some($context)).into()
+        (ActiveRadarrBlock::EditMoviePrompt, Some($context)).into()
       );
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &ActiveRadarrBlock::EditMovieToggleMonitored
+        ActiveRadarrBlock::EditMovieToggleMonitored
       );
       assert_eq!(
         app
@@ -137,15 +137,15 @@ mod utils {
       }]);
       app.data.radarr_data = radarr_data;
 
-      $handler::with(&DEFAULT_KEYBINDINGS.edit.key, &mut app, &$block, &None).handle();
+      $handler::with(DEFAULT_KEYBINDINGS.edit.key, &mut app, $block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
-        &(ActiveRadarrBlock::EditCollectionPrompt, Some($context)).into()
+        (ActiveRadarrBlock::EditCollectionPrompt, Some($context)).into()
       );
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &ActiveRadarrBlock::EditCollectionToggleMonitored
+        ActiveRadarrBlock::EditCollectionToggleMonitored
       );
       assert_eq!(
         app
@@ -234,29 +234,29 @@ mod utils {
     ($block:expr, $expected_block:expr) => {
       let mut app = App::default();
 
-      RadarrHandler::with(&DELETE_KEY, &mut app, &$block, &None).handle();
+      RadarrHandler::with(DELETE_KEY, &mut app, $block, None).handle();
 
-      assert_eq!(app.get_current_route(), &$expected_block.into());
+      assert_eq!(app.get_current_route(), $expected_block.into());
     };
 
     ($handler:ident, $block:expr, $expected_block:expr) => {
       let mut app = App::default();
 
-      $handler::with(&DELETE_KEY, &mut app, &$block, &None).handle();
+      $handler::with(DELETE_KEY, &mut app, $block, None).handle();
 
-      assert_eq!(app.get_current_route(), &$expected_block.into());
+      assert_eq!(app.get_current_route(), $expected_block.into());
     };
 
     ($app:expr, $block:expr, $expected_block:expr) => {
-      RadarrHandler::with(&DELETE_KEY, &mut $app, &$block, &None).handle();
+      RadarrHandler::with(DELETE_KEY, &mut $app, $block, None).handle();
 
-      assert_eq!($app.get_current_route(), &$expected_block.into());
+      assert_eq!($app.get_current_route(), $expected_block.into());
     };
 
     ($handler:ident, $app:expr, $block:expr, $expected_block:expr) => {
-      $handler::with(&DELETE_KEY, &mut $app, &$block, &None).handle();
+      $handler::with(DELETE_KEY, &mut $app, $block, None).handle();
 
-      assert_eq!($app.get_current_route(), &$expected_block.into());
+      assert_eq!($app.get_current_route(), $expected_block.into());
     };
   }
 
@@ -266,9 +266,9 @@ mod utils {
       let mut app = App::default();
       app.push_navigation_stack($block.into());
 
-      $handler::with(&DEFAULT_KEYBINDINGS.refresh.key, &mut app, &$block, &None).handle();
+      $handler::with(DEFAULT_KEYBINDINGS.refresh.key, &mut app, $block, None).handle();
 
-      assert_eq!(app.get_current_route(), &$block.into());
+      assert_eq!(app.get_current_route(), $block.into());
       assert!(app.should_refresh);
     };
   }

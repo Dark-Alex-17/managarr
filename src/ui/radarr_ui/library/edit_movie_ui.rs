@@ -43,7 +43,7 @@ impl DrawUi for EditMovieUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
+    if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
       let draw_edit_movie_prompt =
         |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| match active_radarr_block {
           ActiveRadarrBlock::EditMovieSelectMinimumAvailability => {
@@ -105,7 +105,7 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, are
   let title = format!("Edit - {movie_title}");
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();
-  let highlight_yes_no = selected_block == &ActiveRadarrBlock::EditMovieConfirmPrompt;
+  let highlight_yes_no = selected_block == ActiveRadarrBlock::EditMovieConfirmPrompt;
   let EditMovieModal {
     minimum_availability_list,
     quality_profile_list,
@@ -139,28 +139,28 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, are
   let prompt_paragraph = layout_paragraph_borderless(&movie_overview);
   let monitored_checkbox = Checkbox::new("Monitored")
     .checked(monitored.unwrap_or_default())
-    .highlighted(selected_block == &ActiveRadarrBlock::EditMovieToggleMonitored);
+    .highlighted(selected_block == ActiveRadarrBlock::EditMovieToggleMonitored);
   let min_availability_drop_down_button = Button::new()
     .title(selected_minimum_availability.to_display_str())
     .label("Minimum Availability")
     .icon("▼")
-    .selected(selected_block == &ActiveRadarrBlock::EditMovieSelectMinimumAvailability);
+    .selected(selected_block == ActiveRadarrBlock::EditMovieSelectMinimumAvailability);
   let quality_profile_drop_down_button = Button::new()
     .title(selected_quality_profile)
     .label("Quality Profile")
     .icon("▼")
-    .selected(selected_block == &ActiveRadarrBlock::EditMovieSelectQualityProfile);
+    .selected(selected_block == ActiveRadarrBlock::EditMovieSelectQualityProfile);
 
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     let path_input_box = InputBox::new(&path.text)
       .offset(path.offset.load(Ordering::SeqCst))
       .label("Path")
-      .highlighted(selected_block == &ActiveRadarrBlock::EditMoviePathInput)
+      .highlighted(selected_block == ActiveRadarrBlock::EditMoviePathInput)
       .selected(active_radarr_block == ActiveRadarrBlock::EditMoviePathInput);
     let tags_input_box = InputBox::new(&tags.text)
       .offset(tags.offset.load(Ordering::SeqCst))
       .label("Tags")
-      .highlighted(selected_block == &ActiveRadarrBlock::EditMovieTagsInput)
+      .highlighted(selected_block == ActiveRadarrBlock::EditMovieTagsInput)
       .selected(active_radarr_block == ActiveRadarrBlock::EditMovieTagsInput);
 
     match active_radarr_block {

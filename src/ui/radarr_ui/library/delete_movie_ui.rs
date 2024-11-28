@@ -27,7 +27,7 @@ impl DrawUi for DeleteMovieUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     if matches!(
-      *app.get_current_route(),
+      app.get_current_route(),
       Route::Radarr(ActiveRadarrBlock::DeleteMoviePrompt, _)
     ) {
       let selected_block = app.data.radarr_data.selected_block.get_active_block();
@@ -38,16 +38,16 @@ impl DrawUi for DeleteMovieUi {
       let checkboxes = vec![
         Checkbox::new("Delete Movie File")
           .checked(app.data.radarr_data.delete_movie_files)
-          .highlighted(selected_block == &ActiveRadarrBlock::DeleteMovieToggleDeleteFile),
+          .highlighted(selected_block == ActiveRadarrBlock::DeleteMovieToggleDeleteFile),
         Checkbox::new("Add List Exclusion")
           .checked(app.data.radarr_data.add_list_exclusion)
-          .highlighted(selected_block == &ActiveRadarrBlock::DeleteMovieToggleAddListExclusion),
+          .highlighted(selected_block == ActiveRadarrBlock::DeleteMovieToggleAddListExclusion),
       ];
       let confirmation_prompt = ConfirmationPrompt::new()
         .title("Delete Movie")
         .prompt(&prompt)
         .checkboxes(checkboxes)
-        .yes_no_highlighted(selected_block == &ActiveRadarrBlock::DeleteMovieConfirmPrompt)
+        .yes_no_highlighted(selected_block == ActiveRadarrBlock::DeleteMovieConfirmPrompt)
         .yes_no_value(app.data.radarr_data.prompt_confirm);
 
       draw_library(f, app, area);

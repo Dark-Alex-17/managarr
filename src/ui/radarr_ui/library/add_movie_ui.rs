@@ -46,7 +46,7 @@ impl DrawUi for AddMovieUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
+    if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
       let draw_add_movie_search_popup =
         |f: &mut Frame<'_>, app: &mut App<'_>, area: Rect| match active_radarr_block {
           ActiveRadarrBlock::AddMovieSearchInput
@@ -202,7 +202,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .primary()
   };
 
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSearchInput => {
         let search_box = InputBox::new(block_content)
@@ -284,7 +284,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_confirmation_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSelectMonitor => {
         draw_confirmation_prompt(f, app, area);
@@ -354,7 +354,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let prompt = movie_overview;
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();
-  let highlight_yes_no = selected_block == &ActiveRadarrBlock::AddMovieConfirmPrompt;
+  let highlight_yes_no = selected_block == ActiveRadarrBlock::AddMovieConfirmPrompt;
   let AddMovieModal {
     monitor_list,
     minimum_availability_list,
@@ -400,33 +400,33 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .title(&selected_root_folder.path)
     .label("Root Folder")
     .icon("▼")
-    .selected(selected_block == &ActiveRadarrBlock::AddMovieSelectRootFolder);
+    .selected(selected_block == ActiveRadarrBlock::AddMovieSelectRootFolder);
   let monitor_drop_down_button = Button::new()
     .title(selected_monitor.to_display_str())
     .label("Monitor")
     .icon("▼")
-    .selected(selected_block == &ActiveRadarrBlock::AddMovieSelectMonitor);
+    .selected(selected_block == ActiveRadarrBlock::AddMovieSelectMonitor);
   let min_availability_drop_down_button = Button::new()
     .title(selected_minimum_availability.to_display_str())
     .label("Minimum Availability")
     .icon("▼")
-    .selected(selected_block == &ActiveRadarrBlock::AddMovieSelectMinimumAvailability);
+    .selected(selected_block == ActiveRadarrBlock::AddMovieSelectMinimumAvailability);
   let quality_profile_drop_down_button = Button::new()
     .title(selected_quality_profile)
     .label("Quality Profile")
     .icon("▼")
-    .selected(selected_block == &ActiveRadarrBlock::AddMovieSelectQualityProfile);
+    .selected(selected_block == ActiveRadarrBlock::AddMovieSelectQualityProfile);
 
   f.render_widget(root_folder_drop_down_button, root_folder_area);
   f.render_widget(monitor_drop_down_button, monitor_area);
   f.render_widget(min_availability_drop_down_button, min_availability_area);
   f.render_widget(quality_profile_drop_down_button, quality_profile_area);
 
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     let tags_input_box = InputBox::new(&tags.text)
       .offset(tags.offset.load(Ordering::SeqCst))
       .label("Tags")
-      .highlighted(selected_block == &ActiveRadarrBlock::AddMovieTagsInput)
+      .highlighted(selected_block == ActiveRadarrBlock::AddMovieTagsInput)
       .selected(active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput);
     render_selectable_input_box!(tags_input_box, f, tags_area);
   }

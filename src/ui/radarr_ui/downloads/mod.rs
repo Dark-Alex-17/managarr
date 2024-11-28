@@ -30,7 +30,7 @@ impl DrawUi for DownloadsUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+    if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
       match active_radarr_block {
         ActiveRadarrBlock::Downloads => draw_downloads(f, app, area),
         ActiveRadarrBlock::DeleteDownloadPrompt => {

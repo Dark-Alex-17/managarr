@@ -26,8 +26,8 @@ pub struct AddSeriesModal {
   pub tags: HorizontallyScrollableText,
 }
 
-impl From<&SonarrData> for AddSeriesModal {
-  fn from(sonarr_data: &SonarrData) -> AddSeriesModal {
+impl From<&SonarrData<'_>> for AddSeriesModal {
+  fn from(sonarr_data: &SonarrData<'_>) -> AddSeriesModal {
     let mut add_series_modal = AddSeriesModal {
       use_season_folder: true,
       ..AddSeriesModal::default()
@@ -64,8 +64,8 @@ impl From<&SonarrData> for AddSeriesModal {
   }
 }
 
-impl From<&SonarrData> for EditIndexerModal {
-  fn from(sonarr_data: &SonarrData) -> EditIndexerModal {
+impl From<&SonarrData<'_>> for EditIndexerModal {
+  fn from(sonarr_data: &SonarrData<'_>) -> EditIndexerModal {
     let mut edit_indexer_modal = EditIndexerModal::default();
     let Indexer {
       name,
@@ -153,8 +153,8 @@ pub struct EditSeriesModal {
   pub tags: HorizontallyScrollableText,
 }
 
-impl From<&SonarrData> for EditSeriesModal {
-  fn from(sonarr_data: &SonarrData) -> EditSeriesModal {
+impl From<&SonarrData<'_>> for EditSeriesModal {
+  fn from(sonarr_data: &SonarrData<'_>) -> EditSeriesModal {
     let mut edit_series_modal = EditSeriesModal::default();
     let Series {
       path,

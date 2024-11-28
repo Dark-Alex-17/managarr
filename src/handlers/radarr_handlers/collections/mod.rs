@@ -22,10 +22,10 @@ mod edit_collection_handler;
 mod collections_handler_tests;
 
 pub(super) struct CollectionsHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'a, 'b> {
@@ -43,17 +43,17 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
     }
   }
 
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
     CollectionDetailsHandler::accepts(active_block)
       || EditCollectionHandler::accepts(active_block)
-      || COLLECTIONS_BLOCKS.contains(active_block)
+      || COLLECTIONS_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    context: Option<ActiveRadarrBlock>,
   ) -> CollectionsHandler<'a, 'b> {
     CollectionsHandler {
       key,
@@ -63,7 +63,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -306,7 +306,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::Collections => match self.key {
-        _ if *key == DEFAULT_KEYBINDINGS.search.key => {
+        _ if key == DEFAULT_KEYBINDINGS.search.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
@@ -314,7 +314,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
             Some(HorizontallyScrollableText::default());
           self.app.should_ignore_quit_key = true;
         }
-        _ if *key == DEFAULT_KEYBINDINGS.filter.key => {
+        _ if key == DEFAULT_KEYBINDINGS.filter.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
@@ -323,7 +323,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
             Some(HorizontallyScrollableText::default());
           self.app.should_ignore_quit_key = true;
         }
-        _ if *key == DEFAULT_KEYBINDINGS.edit.key => {
+        _ if key == DEFAULT_KEYBINDINGS.edit.key => {
           self.app.push_navigation_stack(
             (
               ActiveRadarrBlock::EditCollectionPrompt,
@@ -336,15 +336,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
           self.app.data.radarr_data.selected_block =
             BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
         }
-        _ if *key == DEFAULT_KEYBINDINGS.update.key => {
+        _ if key == DEFAULT_KEYBINDINGS.update.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::UpdateAllCollectionsPrompt.into());
         }
-        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
-        _ if *key == DEFAULT_KEYBINDINGS.sort.key => {
+        _ if key == DEFAULT_KEYBINDINGS.sort.key => {
           self
             .app
             .data
@@ -386,7 +386,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
         )
       }
       ActiveRadarrBlock::UpdateAllCollectionsPrompt => {
-        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+        if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateCollections);
 

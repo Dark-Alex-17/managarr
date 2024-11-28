@@ -1357,6 +1357,22 @@ impl<'a, 'b> Network<'a, 'b> {
             app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
           }
 
+          let season_episodes_vec = if !app.data.sonarr_data.seasons.is_empty() {
+            let season_number = app
+              .data
+              .sonarr_data
+              .seasons
+              .current_selection()
+              .season_number;
+
+            episode_vec
+              .into_iter()
+              .filter(|episode| episode.season_number == season_number)
+              .collect()
+          } else {
+            episode_vec
+          };
+
           app
             .data
             .sonarr_data
@@ -1364,7 +1380,7 @@ impl<'a, 'b> Network<'a, 'b> {
             .as_mut()
             .unwrap()
             .episodes
-            .set_items(episode_vec.clone());
+            .set_items(season_episodes_vec);
           app
             .data
             .sonarr_data

@@ -517,7 +517,7 @@ mod tests {
 
     let active_route = tab_state.get_active_route();
 
-    assert_eq!(active_route, &second_tab);
+    assert_eq!(active_route, second_tab);
   }
 
   #[test]
@@ -548,15 +548,15 @@ mod tests {
     let tab_routes = create_test_tab_routes();
     let mut tab_state = TabState::new(create_test_tab_routes());
 
-    assert_eq!(tab_state.get_active_route(), &tab_routes[0].route);
+    assert_eq!(tab_state.get_active_route(), tab_routes[0].route);
 
     tab_state.next();
 
-    assert_eq!(tab_state.get_active_route(), &tab_routes[1].route);
+    assert_eq!(tab_state.get_active_route(), tab_routes[1].route);
 
     tab_state.next();
 
-    assert_eq!(tab_state.get_active_route(), &tab_routes[0].route);
+    assert_eq!(tab_state.get_active_route(), tab_routes[0].route);
   }
 
   #[test]
@@ -564,15 +564,15 @@ mod tests {
     let tab_routes = create_test_tab_routes();
     let mut tab_state = TabState::new(create_test_tab_routes());
 
-    assert_eq!(tab_state.get_active_route(), &tab_routes[0].route);
+    assert_eq!(tab_state.get_active_route(), tab_routes[0].route);
 
     tab_state.previous();
 
-    assert_eq!(tab_state.get_active_route(), &tab_routes[1].route);
+    assert_eq!(tab_state.get_active_route(), tab_routes[1].route);
 
     tab_state.previous();
 
-    assert_eq!(tab_state.get_active_route(), &tab_routes[0].route);
+    assert_eq!(tab_state.get_active_route(), tab_routes[0].route);
   }
 
   #[test]
@@ -592,7 +592,7 @@ mod tests {
 
     let active_block = block_selection_state.get_active_block();
 
-    assert_eq!(active_block, &second_block);
+    assert_eq!(active_block, second_block);
   }
 
   #[test]
@@ -603,15 +603,15 @@ mod tests {
     ];
     let mut block_selection_state = BlockSelectionState::new(&blocks);
 
-    assert_eq!(block_selection_state.get_active_block(), &blocks[0]);
+    assert_eq!(block_selection_state.get_active_block(), blocks[0]);
 
     block_selection_state.next();
 
-    assert_eq!(block_selection_state.get_active_block(), &blocks[1]);
+    assert_eq!(block_selection_state.get_active_block(), blocks[1]);
 
     block_selection_state.next();
 
-    assert_eq!(block_selection_state.get_active_block(), &blocks[0]);
+    assert_eq!(block_selection_state.get_active_block(), blocks[0]);
   }
 
   #[test]
@@ -622,15 +622,15 @@ mod tests {
     ];
     let mut block_selection_state = BlockSelectionState::new(&blocks);
 
-    assert_eq!(block_selection_state.get_active_block(), &blocks[0]);
+    assert_eq!(block_selection_state.get_active_block(), blocks[0]);
 
     block_selection_state.previous();
 
-    assert_eq!(block_selection_state.get_active_block(), &blocks[1]);
+    assert_eq!(block_selection_state.get_active_block(), blocks[1]);
 
     block_selection_state.previous();
 
-    assert_eq!(block_selection_state.get_active_block(), &blocks[0]);
+    assert_eq!(block_selection_state.get_active_block(), blocks[0]);
   }
 
   #[test]

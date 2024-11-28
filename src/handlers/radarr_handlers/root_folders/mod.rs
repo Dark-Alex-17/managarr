@@ -13,22 +13,22 @@ use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
 mod root_folders_handler_tests;
 
 pub(super) struct RootFoldersHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  _context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  _context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    ROOT_FOLDERS_BLOCKS.contains(active_block)
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    ROOT_FOLDERS_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    _context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    _context: Option<ActiveRadarrBlock>,
   ) -> RootFoldersHandler<'a, 'b> {
     RootFoldersHandler {
       key,
@@ -38,7 +38,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -47,13 +47,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
   }
 
   fn handle_scroll_up(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::RootFolders {
+    if self.active_radarr_block == ActiveRadarrBlock::RootFolders {
       self.app.data.radarr_data.root_folders.scroll_up()
     }
   }
 
   fn handle_scroll_down(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::RootFolders {
+    if self.active_radarr_block == ActiveRadarrBlock::RootFolders {
       self.app.data.radarr_data.root_folders.scroll_down()
     }
   }
@@ -89,7 +89,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
   }
 
   fn handle_delete(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::RootFolders {
+    if self.active_radarr_block == ActiveRadarrBlock::RootFolders {
       self
         .app
         .push_navigation_stack(ActiveRadarrBlock::DeleteRootFolderPrompt.into())
@@ -121,7 +121,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
 
         self.app.pop_navigation_stack();
       }
-      _ if *self.active_radarr_block == ActiveRadarrBlock::AddRootFolderPrompt
+      _ if self.active_radarr_block == ActiveRadarrBlock::AddRootFolderPrompt
         && !self
           .app
           .data
@@ -161,10 +161,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::RootFolders => match self.key {
-        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
-        _ if *key == DEFAULT_KEYBINDINGS.add.key => {
+        _ if key == DEFAULT_KEYBINDINGS.add.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
@@ -181,7 +181,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
         )
       }
       ActiveRadarrBlock::DeleteRootFolderPrompt => {
-        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+        if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action =
             Some(RadarrEvent::DeleteRootFolder(None));

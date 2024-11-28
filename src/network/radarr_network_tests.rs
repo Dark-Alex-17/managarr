@@ -780,7 +780,7 @@ mod test {
       .is_none());
     assert_eq!(
       app_arc.lock().await.get_current_route(),
-      &ActiveRadarrBlock::AddMovieEmptySearchResults.into()
+      ActiveRadarrBlock::AddMovieEmptySearchResults.into()
     );
   }
 
@@ -831,7 +831,7 @@ mod test {
       .is_none());
     assert_eq!(
       app_arc.lock().await.get_current_route(),
-      &ActiveRadarrBlock::Movies.into()
+      ActiveRadarrBlock::Movies.into()
     );
   }
 

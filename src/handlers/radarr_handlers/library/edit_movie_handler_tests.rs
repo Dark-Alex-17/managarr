@@ -42,10 +42,10 @@ mod tests {
       if key == Key::Up {
         for i in (0..minimum_availability_vec.len()).rev() {
           EditMovieHandler::with(
-            &key,
+            key,
             &mut app,
-            &ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
-            &None,
+            ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
+            None,
           )
           .handle();
 
@@ -64,10 +64,10 @@ mod tests {
       } else {
         for i in 0..minimum_availability_vec.len() {
           EditMovieHandler::with(
-            &key,
+            key,
             &mut app,
-            &ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
-            &None,
+            ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
+            None,
           )
           .handle();
 
@@ -102,10 +102,10 @@ mod tests {
         .set_items(vec!["Test 1".to_owned(), "Test 2".to_owned()]);
 
       EditMovieHandler::with(
-        &key,
+        key,
         &mut app,
-        &ActiveRadarrBlock::EditMovieSelectQualityProfile,
-        &None,
+        ActiveRadarrBlock::EditMovieSelectQualityProfile,
+        None,
       )
       .handle();
 
@@ -122,10 +122,10 @@ mod tests {
       );
 
       EditMovieHandler::with(
-        &key,
+        key,
         &mut app,
-        &ActiveRadarrBlock::EditMovieSelectQualityProfile,
-        &None,
+        ActiveRadarrBlock::EditMovieSelectQualityProfile,
+        None,
       )
       .handle();
 
@@ -149,17 +149,17 @@ mod tests {
       app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.next();
 
-      EditMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::EditMoviePrompt, &None).handle();
+      EditMovieHandler::with(key, &mut app, ActiveRadarrBlock::EditMoviePrompt, None).handle();
 
       if key == Key::Up {
         assert_eq!(
           app.data.radarr_data.selected_block.get_active_block(),
-          &ActiveRadarrBlock::EditMovieToggleMonitored
+          ActiveRadarrBlock::EditMovieToggleMonitored
         );
       } else {
         assert_eq!(
           app.data.radarr_data.selected_block.get_active_block(),
-          &ActiveRadarrBlock::EditMovieSelectQualityProfile
+          ActiveRadarrBlock::EditMovieSelectQualityProfile
         );
       }
     }
@@ -172,11 +172,11 @@ mod tests {
       app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.next();
 
-      EditMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::EditMoviePrompt, &None).handle();
+      EditMovieHandler::with(key, &mut app, ActiveRadarrBlock::EditMoviePrompt, None).handle();
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &ActiveRadarrBlock::EditMovieSelectMinimumAvailability
+        ActiveRadarrBlock::EditMovieSelectMinimumAvailability
       );
     }
   }
@@ -205,10 +205,10 @@ mod tests {
         .set_items(minimum_availability_vec.clone());
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
-        &None,
+        ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
+        None,
       )
       .handle();
 
@@ -225,10 +225,10 @@ mod tests {
       );
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
-        &None,
+        ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
+        None,
       )
       .handle();
 
@@ -263,10 +263,10 @@ mod tests {
         ]);
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::EditMovieSelectQualityProfile,
-        &None,
+        ActiveRadarrBlock::EditMovieSelectQualityProfile,
+        None,
       )
       .handle();
 
@@ -283,10 +283,10 @@ mod tests {
       );
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::EditMovieSelectQualityProfile,
-        &None,
+        ActiveRadarrBlock::EditMovieSelectQualityProfile,
+        None,
       )
       .handle();
 
@@ -312,10 +312,10 @@ mod tests {
       });
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePathInput,
-        &None,
+        ActiveRadarrBlock::EditMoviePathInput,
+        None,
       )
       .handle();
 
@@ -333,10 +333,10 @@ mod tests {
       );
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePathInput,
-        &None,
+        ActiveRadarrBlock::EditMoviePathInput,
+        None,
       )
       .handle();
 
@@ -363,10 +363,10 @@ mod tests {
       });
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::EditMovieTagsInput,
-        &None,
+        ActiveRadarrBlock::EditMovieTagsInput,
+        None,
       )
       .handle();
 
@@ -384,10 +384,10 @@ mod tests {
       );
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::EditMovieTagsInput,
-        &None,
+        ActiveRadarrBlock::EditMovieTagsInput,
+        None,
       )
       .handle();
 
@@ -418,11 +418,11 @@ mod tests {
     fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
       let mut app = App::default();
 
-      EditMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::EditMoviePrompt, &None).handle();
+      EditMovieHandler::with(key, &mut app, ActiveRadarrBlock::EditMoviePrompt, None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      EditMovieHandler::with(&key, &mut app, &ActiveRadarrBlock::EditMoviePrompt, &None).handle();
+      EditMovieHandler::with(key, &mut app, ActiveRadarrBlock::EditMoviePrompt, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
     }
@@ -436,10 +436,10 @@ mod tests {
       });
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePathInput,
-        &None,
+        ActiveRadarrBlock::EditMoviePathInput,
+        None,
       )
       .handle();
 
@@ -457,10 +457,10 @@ mod tests {
       );
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePathInput,
-        &None,
+        ActiveRadarrBlock::EditMoviePathInput,
+        None,
       )
       .handle();
 
@@ -487,10 +487,10 @@ mod tests {
       });
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &ActiveRadarrBlock::EditMovieTagsInput,
-        &None,
+        ActiveRadarrBlock::EditMovieTagsInput,
+        None,
       )
       .handle();
 
@@ -508,10 +508,10 @@ mod tests {
       );
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &ActiveRadarrBlock::EditMovieTagsInput,
-        &None,
+        ActiveRadarrBlock::EditMovieTagsInput,
+        None,
       )
       .handle();
 
@@ -557,10 +557,10 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePathInput.into());
 
       EditMovieHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePathInput,
-        &None,
+        ActiveRadarrBlock::EditMoviePathInput,
+        None,
       )
       .handle();
 
@@ -576,7 +576,7 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditMoviePrompt.into()
+        ActiveRadarrBlock::EditMoviePrompt.into()
       );
     }
 
@@ -592,10 +592,10 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePathInput.into());
 
       EditMovieHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditMovieTagsInput,
-        &None,
+        ActiveRadarrBlock::EditMovieTagsInput,
+        None,
       )
       .handle();
 
@@ -611,7 +611,7 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditMoviePrompt.into()
+        ActiveRadarrBlock::EditMoviePrompt.into()
       );
     }
 
@@ -629,14 +629,14 @@ mod tests {
         .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditMovieHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePrompt,
-        &None,
+        ActiveRadarrBlock::EditMoviePrompt,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
     }
 
@@ -655,14 +655,14 @@ mod tests {
         .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditMovieHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePrompt,
-        &None,
+        ActiveRadarrBlock::EditMoviePrompt,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::EditMovie(None))
@@ -681,16 +681,16 @@ mod tests {
       app.data.radarr_data.prompt_confirm = true;
 
       EditMovieHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePrompt,
-        &None,
+        ActiveRadarrBlock::EditMoviePrompt,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditMoviePrompt.into()
+        ActiveRadarrBlock::EditMoviePrompt.into()
       );
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
       assert!(!app.should_refresh);
@@ -708,14 +708,14 @@ mod tests {
       app.push_navigation_stack(current_route);
 
       EditMovieHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePrompt,
-        &Some(ActiveRadarrBlock::Movies),
+        ActiveRadarrBlock::EditMoviePrompt,
+        Some(ActiveRadarrBlock::Movies),
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &current_route);
+      assert_eq!(app.get_current_route(), current_route);
       assert_eq!(
         app
           .data
@@ -728,14 +728,14 @@ mod tests {
       );
 
       EditMovieHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePrompt,
-        &Some(ActiveRadarrBlock::Movies),
+        ActiveRadarrBlock::EditMoviePrompt,
+        Some(ActiveRadarrBlock::Movies),
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &current_route);
+      assert_eq!(app.get_current_route(), current_route);
       assert_eq!(
         app
           .data
@@ -770,16 +770,16 @@ mod tests {
       app.data.radarr_data.selected_block.set_index(index);
 
       EditMovieHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePrompt,
-        &Some(ActiveRadarrBlock::Movies),
+        ActiveRadarrBlock::EditMoviePrompt,
+        Some(ActiveRadarrBlock::Movies),
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &(selected_block, Some(ActiveRadarrBlock::Movies)).into()
+        (selected_block, Some(ActiveRadarrBlock::Movies)).into()
       );
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
 
@@ -808,16 +808,16 @@ mod tests {
       app.data.radarr_data.selected_block.set_index(index);
 
       EditMovieHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePrompt,
-        &Some(ActiveRadarrBlock::Movies),
+        ActiveRadarrBlock::EditMoviePrompt,
+        Some(ActiveRadarrBlock::Movies),
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &(
+        (
           ActiveRadarrBlock::EditMoviePrompt,
           Some(ActiveRadarrBlock::Movies),
         )
@@ -843,16 +843,16 @@ mod tests {
       app.push_navigation_stack(active_radarr_block.into());
 
       EditMovieHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &active_radarr_block,
-        &Some(ActiveRadarrBlock::Movies),
+        active_radarr_block,
+        Some(ActiveRadarrBlock::Movies),
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditMoviePrompt.into()
+        ActiveRadarrBlock::EditMoviePrompt.into()
       );
 
       if active_radarr_block == ActiveRadarrBlock::EditMoviePathInput
@@ -888,12 +888,12 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
       app.push_navigation_stack(active_radarr_block.into());
 
-      EditMovieHandler::with(&ESC_KEY, &mut app, &active_radarr_block, &None).handle();
+      EditMovieHandler::with(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
       assert!(!app.should_ignore_quit_key);
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditMoviePrompt.into()
+        ActiveRadarrBlock::EditMoviePrompt.into()
       );
     }
 
@@ -904,15 +904,9 @@ mod tests {
       app.data.radarr_data = create_test_radarr_data();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
 
-      EditMovieHandler::with(
-        &ESC_KEY,
-        &mut app,
-        &ActiveRadarrBlock::EditMoviePrompt,
-        &None,
-      )
-      .handle();
+      EditMovieHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::EditMoviePrompt, None).handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
 
       assert!(app.data.radarr_data.edit_movie_modal.is_none());
       assert!(!app.data.radarr_data.prompt_confirm);
@@ -932,9 +926,9 @@ mod tests {
       app.data.radarr_data = create_test_radarr_data();
       app.push_navigation_stack(active_radarr_block.into());
 
-      EditMovieHandler::with(&ESC_KEY, &mut app, &active_radarr_block, &None).handle();
+      EditMovieHandler::with(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
     }
   }
 
@@ -960,10 +954,10 @@ mod tests {
       });
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.backspace.key,
+        DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePathInput,
-        &None,
+        ActiveRadarrBlock::EditMoviePathInput,
+        None,
       )
       .handle();
 
@@ -989,10 +983,10 @@ mod tests {
       });
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.backspace.key,
+        DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
-        &ActiveRadarrBlock::EditMovieTagsInput,
-        &None,
+        ActiveRadarrBlock::EditMovieTagsInput,
+        None,
       )
       .handle();
 
@@ -1015,10 +1009,10 @@ mod tests {
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
 
       EditMovieHandler::with(
-        &Key::Char('h'),
+        Key::Char('h'),
         &mut app,
-        &ActiveRadarrBlock::EditMoviePathInput,
-        &None,
+        ActiveRadarrBlock::EditMoviePathInput,
+        None,
       )
       .handle();
 
@@ -1041,10 +1035,10 @@ mod tests {
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
 
       EditMovieHandler::with(
-        &Key::Char('h'),
+        Key::Char('h'),
         &mut app,
-        &ActiveRadarrBlock::EditMovieTagsInput,
-        &None,
+        ActiveRadarrBlock::EditMovieTagsInput,
+        None,
       )
       .handle();
 
@@ -1075,14 +1069,14 @@ mod tests {
         .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditMovieHandler::with(
-        &DEFAULT_KEYBINDINGS.confirm.key,
+        DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
-        &ActiveRadarrBlock::EditMoviePrompt,
-        &None,
+        ActiveRadarrBlock::EditMoviePrompt,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::EditMovie(None))
@@ -1096,9 +1090,9 @@ mod tests {
   fn test_edit_movie_handler_accepts() {
     ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
       if EDIT_MOVIE_BLOCKS.contains(&active_radarr_block) {
-        assert!(EditMovieHandler::accepts(&active_radarr_block));
+        assert!(EditMovieHandler::accepts(active_radarr_block));
       } else {
-        assert!(!EditMovieHandler::accepts(&active_radarr_block));
+        assert!(!EditMovieHandler::accepts(active_radarr_block));
       }
     });
   }
@@ -1109,10 +1103,10 @@ mod tests {
     app.is_loading = true;
 
     let handler = EditMovieHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::EditMoviePrompt,
-      &None,
+      ActiveRadarrBlock::EditMoviePrompt,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -1124,10 +1118,10 @@ mod tests {
     app.is_loading = false;
 
     let handler = EditMovieHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::EditMoviePrompt,
-      &None,
+      ActiveRadarrBlock::EditMoviePrompt,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -1140,10 +1134,10 @@ mod tests {
     app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
 
     let handler = EditMovieHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::EditMoviePrompt,
-      &None,
+      ActiveRadarrBlock::EditMoviePrompt,
+      None,
     );
 
     assert!(handler.is_ready());

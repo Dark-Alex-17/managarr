@@ -12,22 +12,22 @@ use crate::{handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
 mod add_movie_handler_tests;
 
 pub(super) struct AddMovieHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    ADD_MOVIE_BLOCKS.contains(active_block)
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    ADD_MOVIE_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    context: Option<ActiveRadarrBlock>,
   ) -> AddMovieHandler<'a, 'b> {
     AddMovieHandler {
       key,
@@ -37,7 +37,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -313,7 +313,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
 
   fn handle_submit(&mut self) {
     match self.active_radarr_block {
-      _ if *self.active_radarr_block == ActiveRadarrBlock::AddMovieSearchInput
+      _ if self.active_radarr_block == ActiveRadarrBlock::AddMovieSearchInput
         && !self
           .app
           .data
@@ -329,7 +329,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
           .push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
         self.app.should_ignore_quit_key = false;
       }
-      _ if *self.active_radarr_block == ActiveRadarrBlock::AddMovieSearchResults
+      _ if self.active_radarr_block == ActiveRadarrBlock::AddMovieSearchResults
         && self.app.data.radarr_data.add_searched_movies.is_some() =>
       {
         let tmdb_id = self
@@ -377,16 +377,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
           | ActiveRadarrBlock::AddMovieSelectQualityProfile
           | ActiveRadarrBlock::AddMovieSelectRootFolder => self.app.push_navigation_stack(
             (
-              *self.app.data.radarr_data.selected_block.get_active_block(),
-              *self.context,
+              self.app.data.radarr_data.selected_block.get_active_block(),
+              self.context,
             )
               .into(),
           ),
           ActiveRadarrBlock::AddMovieTagsInput => {
             self.app.push_navigation_stack(
               (
-                *self.app.data.radarr_data.selected_block.get_active_block(),
-                *self.context,
+                self.app.data.radarr_data.selected_block.get_active_block(),
+                self.context,
               )
                 .into(),
             );
@@ -463,8 +463,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
       }
       ActiveRadarrBlock::AddMoviePrompt => {
         if self.app.data.radarr_data.selected_block.get_active_block()
-          == &ActiveRadarrBlock::AddMovieConfirmPrompt
-          && *key == DEFAULT_KEYBINDINGS.confirm.key
+          == ActiveRadarrBlock::AddMovieConfirmPrompt
+          && key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddMovie(None));

@@ -33,7 +33,7 @@ mod tests {
       ));
       app.data.radarr_data.indexer_test_all_results = Some(indexer_test_results);
 
-      TestAllIndexersHandler::with(&key, &mut app, &ActiveRadarrBlock::TestAllIndexers, &None)
+      TestAllIndexersHandler::with(key, &mut app, ActiveRadarrBlock::TestAllIndexers, None)
         .handle();
 
       assert_str_eq!(
@@ -48,7 +48,7 @@ mod tests {
         "Test 2"
       );
 
-      TestAllIndexersHandler::with(&key, &mut app, &ActiveRadarrBlock::TestAllIndexers, &None)
+      TestAllIndexersHandler::with(key, &mut app, ActiveRadarrBlock::TestAllIndexers, None)
         .handle();
 
       assert_str_eq!(
@@ -78,7 +78,7 @@ mod tests {
       ));
       app.data.radarr_data.indexer_test_all_results = Some(indexer_test_results);
 
-      TestAllIndexersHandler::with(&key, &mut app, &ActiveRadarrBlock::TestAllIndexers, &None)
+      TestAllIndexersHandler::with(key, &mut app, ActiveRadarrBlock::TestAllIndexers, None)
         .handle();
 
       assert_str_eq!(
@@ -93,7 +93,7 @@ mod tests {
         "Test 1"
       );
 
-      TestAllIndexersHandler::with(&key, &mut app, &ActiveRadarrBlock::TestAllIndexers, &None)
+      TestAllIndexersHandler::with(key, &mut app, ActiveRadarrBlock::TestAllIndexers, None)
         .handle();
 
       assert_str_eq!(
@@ -130,10 +130,10 @@ mod tests {
       app.data.radarr_data.indexer_test_all_results = Some(indexer_test_results);
 
       TestAllIndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::TestAllIndexers,
-        &None,
+        ActiveRadarrBlock::TestAllIndexers,
+        None,
       )
       .handle();
 
@@ -150,10 +150,10 @@ mod tests {
       );
 
       TestAllIndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::TestAllIndexers,
-        &None,
+        ActiveRadarrBlock::TestAllIndexers,
+        None,
       )
       .handle();
 
@@ -183,10 +183,10 @@ mod tests {
       app.data.radarr_data.indexer_test_all_results = Some(indexer_test_results);
 
       TestAllIndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::TestAllIndexers,
-        &None,
+        ActiveRadarrBlock::TestAllIndexers,
+        None,
       )
       .handle();
 
@@ -203,10 +203,10 @@ mod tests {
       );
 
       TestAllIndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::TestAllIndexers,
-        &None,
+        ActiveRadarrBlock::TestAllIndexers,
+        None,
       )
       .handle();
 
@@ -239,14 +239,14 @@ mod tests {
       app.data.radarr_data.indexer_test_all_results = Some(StatefulTable::default());
 
       TestAllIndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.esc.key,
+        DEFAULT_KEYBINDINGS.esc.key,
         &mut app,
-        &ActiveRadarrBlock::TestAllIndexers,
-        &None,
+        ActiveRadarrBlock::TestAllIndexers,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert!(!app.data.radarr_data.prompt_confirm);
       assert!(app.data.radarr_data.indexer_test_all_results.is_none());
     }
@@ -256,9 +256,9 @@ mod tests {
   fn test_test_all_indexers_handler_accepts() {
     ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
       if active_radarr_block == ActiveRadarrBlock::TestAllIndexers {
-        assert!(TestAllIndexersHandler::accepts(&active_radarr_block));
+        assert!(TestAllIndexersHandler::accepts(active_radarr_block));
       } else {
-        assert!(!TestAllIndexersHandler::accepts(&active_radarr_block));
+        assert!(!TestAllIndexersHandler::accepts(active_radarr_block));
       }
     });
   }
@@ -269,10 +269,10 @@ mod tests {
     app.is_loading = true;
 
     let handler = TestAllIndexersHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::TestAllIndexers,
-      &None,
+      ActiveRadarrBlock::TestAllIndexers,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -284,10 +284,10 @@ mod tests {
     app.is_loading = false;
 
     let handler = TestAllIndexersHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::TestAllIndexers,
-      &None,
+      ActiveRadarrBlock::TestAllIndexers,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -300,10 +300,10 @@ mod tests {
     app.data.radarr_data.indexer_test_all_results = Some(StatefulTable::default());
 
     let handler = TestAllIndexersHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::TestAllIndexers,
-      &None,
+      ActiveRadarrBlock::TestAllIndexers,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -318,10 +318,10 @@ mod tests {
     app.data.radarr_data.indexer_test_all_results = Some(indexer_test_results);
 
     let handler = TestAllIndexersHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::TestAllIndexers,
-      &None,
+      ActiveRadarrBlock::TestAllIndexers,
+      None,
     );
 
     assert!(handler.is_ready());

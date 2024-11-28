@@ -27,10 +27,10 @@ mod movie_details_handler;
 mod library_handler_tests;
 
 pub(super) struct LibraryHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, 'b> {
@@ -54,19 +54,19 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
     }
   }
 
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
     AddMovieHandler::accepts(active_block)
       || DeleteMovieHandler::accepts(active_block)
       || EditMovieHandler::accepts(active_block)
       || MovieDetailsHandler::accepts(active_block)
-      || LIBRARY_BLOCKS.contains(active_block)
+      || LIBRARY_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    context: Option<ActiveRadarrBlock>,
   ) -> LibraryHandler<'a, 'b> {
     LibraryHandler {
       key,
@@ -76,7 +76,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -189,7 +189,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
   }
 
   fn handle_delete(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Movies {
+    if self.active_radarr_block == ActiveRadarrBlock::Movies {
       self
         .app
         .push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
@@ -317,14 +317,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::Movies => match self.key {
-        _ if *key == DEFAULT_KEYBINDINGS.search.key => {
+        _ if key == DEFAULT_KEYBINDINGS.search.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
           self.app.data.radarr_data.movies.search = Some(HorizontallyScrollableText::default());
           self.app.should_ignore_quit_key = true;
         }
-        _ if *key == DEFAULT_KEYBINDINGS.filter.key => {
+        _ if key == DEFAULT_KEYBINDINGS.filter.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
@@ -332,7 +332,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
           self.app.data.radarr_data.movies.filter = Some(HorizontallyScrollableText::default());
           self.app.should_ignore_quit_key = true;
         }
-        _ if *key == DEFAULT_KEYBINDINGS.edit.key => {
+        _ if key == DEFAULT_KEYBINDINGS.edit.key => {
           self.app.push_navigation_stack(
             (
               ActiveRadarrBlock::EditMoviePrompt,
@@ -344,22 +344,22 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
           self.app.data.radarr_data.selected_block =
             BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
         }
-        _ if *key == DEFAULT_KEYBINDINGS.add.key => {
+        _ if key == DEFAULT_KEYBINDINGS.add.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
           self.app.data.radarr_data.add_movie_search = Some(HorizontallyScrollableText::default());
           self.app.should_ignore_quit_key = true;
         }
-        _ if *key == DEFAULT_KEYBINDINGS.update.key => {
+        _ if key == DEFAULT_KEYBINDINGS.update.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::UpdateAllMoviesPrompt.into());
         }
-        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
-        _ if *key == DEFAULT_KEYBINDINGS.sort.key => {
+        _ if key == DEFAULT_KEYBINDINGS.sort.key => {
           self
             .app
             .data
@@ -387,7 +387,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
         )
       }
       ActiveRadarrBlock::UpdateAllMoviesPrompt => {
-        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+        if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAllMovies);
 

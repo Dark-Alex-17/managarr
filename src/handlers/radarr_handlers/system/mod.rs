@@ -14,10 +14,10 @@ mod system_details_handler;
 mod system_handler_tests;
 
 pub(super) struct SystemHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemHandler<'a, 'b> {
@@ -31,15 +31,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemHandler<'a, 'b
     }
   }
 
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    SystemDetailsHandler::accepts(active_block) || active_block == &ActiveRadarrBlock::System
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    SystemDetailsHandler::accepts(active_block) || active_block == ActiveRadarrBlock::System
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    context: Option<ActiveRadarrBlock>,
   ) -> SystemHandler<'a, 'b> {
     SystemHandler {
       key,
@@ -49,7 +49,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemHandler<'a, 'b
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -71,7 +71,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemHandler<'a, 'b
   fn handle_delete(&mut self) {}
 
   fn handle_left_right_action(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::System {
+    if self.active_radarr_block == ActiveRadarrBlock::System {
       handle_change_tab_left_right_keys(self.app, self.key);
     }
   }
@@ -83,18 +83,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemHandler<'a, 'b
   }
 
   fn handle_char_key_event(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::System {
+    if self.active_radarr_block == ActiveRadarrBlock::System {
       let key = self.key;
       match self.key {
-        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
-        _ if *key == DEFAULT_KEYBINDINGS.events.key => {
+        _ if key == DEFAULT_KEYBINDINGS.events.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::SystemQueuedEvents.into());
         }
-        _ if *key == DEFAULT_KEYBINDINGS.logs.key => {
+        _ if key == DEFAULT_KEYBINDINGS.logs.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::SystemLogs.into());
@@ -106,12 +106,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemHandler<'a, 'b
             .set_items(self.app.data.radarr_data.logs.items.to_vec());
           self.app.data.radarr_data.log_details.scroll_to_bottom();
         }
-        _ if *key == DEFAULT_KEYBINDINGS.tasks.key => {
+        _ if key == DEFAULT_KEYBINDINGS.tasks.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
         }
-        _ if *key == DEFAULT_KEYBINDINGS.update.key => {
+        _ if key == DEFAULT_KEYBINDINGS.update.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::SystemUpdates.into());

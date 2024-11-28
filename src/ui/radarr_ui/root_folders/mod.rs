@@ -30,7 +30,7 @@ impl DrawUi for RootFoldersUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+    if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
       match active_radarr_block {
         ActiveRadarrBlock::RootFolders => draw_root_folders(f, app, area),
         ActiveRadarrBlock::AddRootFolderPrompt => draw_popup_over(

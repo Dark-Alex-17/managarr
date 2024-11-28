@@ -44,7 +44,7 @@ impl DrawUi for LibraryUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    let route = *app.get_current_route();
+    let route = app.get_current_route();
     let mut library_ui_matchers = |active_radarr_block: ActiveRadarrBlock| match active_radarr_block
     {
       ActiveRadarrBlock::Movies | ActiveRadarrBlock::MoviesSortPrompt => draw_library(f, app, area),
@@ -103,7 +103,7 @@ impl DrawUi for LibraryUi {
 }
 
 pub(super) fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     let current_selection = if !app.data.radarr_data.movies.items.is_empty() {
       app.data.radarr_data.movies.current_selection().clone()
     } else {

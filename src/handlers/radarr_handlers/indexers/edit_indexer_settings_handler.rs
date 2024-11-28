@@ -13,22 +13,22 @@ use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
 mod edit_indexer_settings_handler_tests;
 
 pub(super) struct IndexerSettingsHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  _context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  _context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    INDEXER_SETTINGS_BLOCKS.contains(active_block)
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    INDEXER_SETTINGS_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    _context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    _context: Option<ActiveRadarrBlock>,
   ) -> IndexerSettingsHandler<'a, 'b> {
     IndexerSettingsHandler {
       key,
@@ -38,7 +38,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -105,7 +105,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
   }
 
   fn handle_home(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput {
+    if self.active_radarr_block == ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput {
       self
         .app
         .data
@@ -119,7 +119,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
   }
 
   fn handle_end(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput {
+    if self.active_radarr_block == ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput {
       self
         .app
         .data
@@ -138,7 +138,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
     match self.active_radarr_block {
       ActiveRadarrBlock::AllIndexerSettingsPrompt => {
         if self.app.data.radarr_data.selected_block.get_active_block()
-          == &ActiveRadarrBlock::IndexerSettingsConfirmPrompt
+          == ActiveRadarrBlock::IndexerSettingsConfirmPrompt
         {
           handle_prompt_toggle(self.app, self.key);
         } else {
@@ -187,7 +187,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
           | ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput => {
             self.app.push_navigation_stack(
               (
-                *self.app.data.radarr_data.selected_block.get_active_block(),
+                self.app.data.radarr_data.selected_block.get_active_block(),
                 None,
               )
                 .into(),
@@ -258,8 +258,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
       }
       ActiveRadarrBlock::AllIndexerSettingsPrompt => {
         if self.app.data.radarr_data.selected_block.get_active_block()
-          == &ActiveRadarrBlock::IndexerSettingsConfirmPrompt
-          && *self.key == DEFAULT_KEYBINDINGS.confirm.key
+          == ActiveRadarrBlock::IndexerSettingsConfirmPrompt
+          && self.key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action =

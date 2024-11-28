@@ -17,6 +17,7 @@ mod tests {
   #[case(Key::Home, "home")]
   #[case(Key::End, "end")]
   #[case(Key::Tab, "tab")]
+  #[case(Key::BackTab, "shift-tab")]
   #[case(Key::Delete, "del")]
   #[case(Key::Char('q'), "q")]
   #[case(Key::Ctrl('q'), "ctrl-q")]
@@ -65,6 +66,19 @@ mod tests {
   #[test]
   fn test_key_from_tab() {
     assert_eq!(Key::from(KeyEvent::from(KeyCode::Tab)), Key::Tab);
+  }
+
+  #[test]
+  fn test_key_from_back_tab() {
+    assert_eq!(
+      Key::from(KeyEvent {
+        code: KeyCode::BackTab,
+        modifiers: KeyModifiers::SHIFT,
+        kind: KeyEventKind::Press,
+        state: KeyEventState::NONE
+      }),
+      Key::BackTab
+    );
   }
 
   #[test]

@@ -39,7 +39,7 @@ impl DrawUi for CollectionDetailsUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
+    if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
       let draw_collection_details_popup =
         |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| match context_option
           .unwrap_or(active_radarr_block)

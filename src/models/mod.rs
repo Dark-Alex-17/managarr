@@ -290,8 +290,8 @@ impl TabState {
     &self.tabs[self.index]
   }
 
-  pub fn get_active_route(&self) -> &Route {
-    &self.tabs[self.index].route
+  pub fn get_active_route(&self) -> Route {
+    self.tabs[self.index].route
   }
 
   pub fn get_active_tab_help(&self) -> &str {
@@ -332,8 +332,8 @@ where
     BlockSelectionState { blocks, index: 0 }
   }
 
-  pub fn get_active_block(&self) -> &T {
-    &self.blocks[self.index]
+  pub fn get_active_block(&self) -> T {
+    self.blocks[self.index]
   }
 
   pub fn next(&mut self) {

@@ -38,7 +38,7 @@ impl DrawUi for CollectionsUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    let route = *app.get_current_route();
+    let route = app.get_current_route();
     let mut collections_ui_matcher = |active_radarr_block| match active_radarr_block {
       ActiveRadarrBlock::Collections | ActiveRadarrBlock::CollectionsSortPrompt => {
         draw_collections(f, app, area)
@@ -100,7 +100,7 @@ impl DrawUi for CollectionsUi {
 }
 
 pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     let current_selection = if !app.data.radarr_data.collections.items.is_empty() {
       app.data.radarr_data.collections.current_selection().clone()
     } else {

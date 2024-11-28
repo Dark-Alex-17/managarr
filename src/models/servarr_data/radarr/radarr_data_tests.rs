@@ -4,12 +4,14 @@ mod tests {
     use chrono::{DateTime, Utc};
     use pretty_assertions::{assert_eq, assert_str_eq};
 
-    use crate::app::context_clues::build_context_clue_string;
+    use crate::app::context_clues::{
+      build_context_clue_string, BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
+      INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+    };
     use crate::app::radarr::radarr_context_clues::{
-      BLOCKLIST_CONTEXT_CLUES, COLLECTIONS_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
-      INDEXERS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
-      MANUAL_MOVIE_SEARCH_CONTEXT_CLUES, MOVIE_DETAILS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
-      SYSTEM_CONTEXT_CLUES,
+      COLLECTIONS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES,
+      MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXT_CLUES,
+      MOVIE_DETAILS_CONTEXT_CLUES,
     };
 
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils;

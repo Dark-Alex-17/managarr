@@ -19,6 +19,7 @@ pub enum Key {
   Home,
   End,
   Tab,
+  BackTab,
   Delete,
   Ctrl(char),
   Char(char),
@@ -40,6 +41,7 @@ impl Display for Key {
       Key::Home => write!(f, "<home>"),
       Key::End => write!(f, "<end>"),
       Key::Tab => write!(f, "<tab>"),
+      Key::BackTab => write!(f, "<shift-tab>"),
       Key::Delete => write!(f, "<del>"),
       _ => write!(f, "<{self:?}>"),
     }
@@ -75,6 +77,11 @@ impl From<KeyEvent> for Key {
       KeyEvent {
         code: KeyCode::End, ..
       } => Key::End,
+      KeyEvent {
+        code: KeyCode::BackTab,
+        modifiers: KeyModifiers::SHIFT,
+        ..
+      } => Key::BackTab,
       KeyEvent {
         code: KeyCode::Tab, ..
       } => Key::Tab,

@@ -27,10 +27,10 @@ mod radarr_handler_tests;
 mod radarr_handler_test_utils;
 
 pub(super) struct RadarrHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b> {
@@ -63,15 +63,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
     }
   }
 
-  fn accepts(_active_block: &'a ActiveRadarrBlock) -> bool {
+  fn accepts(_active_block: ActiveRadarrBlock) -> bool {
     true
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    context: Option<ActiveRadarrBlock>,
   ) -> RadarrHandler<'a, 'b> {
     RadarrHandler {
       key,
@@ -81,7 +81,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -108,16 +108,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
   fn handle_char_key_event(&mut self) {}
 }
 
-pub fn handle_change_tab_left_right_keys(app: &mut App<'_>, key: &Key) {
+pub fn handle_change_tab_left_right_keys(app: &mut App<'_>, key: Key) {
   let key_ref = key;
   match key_ref {
-    _ if *key == DEFAULT_KEYBINDINGS.left.key => {
+    _ if key == DEFAULT_KEYBINDINGS.left.key => {
       app.data.radarr_data.main_tabs.previous();
-      app.pop_and_push_navigation_stack(*app.data.radarr_data.main_tabs.get_active_route());
+      app.pop_and_push_navigation_stack(app.data.radarr_data.main_tabs.get_active_route());
     }
-    _ if *key == DEFAULT_KEYBINDINGS.right.key => {
+    _ if key == DEFAULT_KEYBINDINGS.right.key => {
       app.data.radarr_data.main_tabs.next();
-      app.pop_and_push_navigation_stack(*app.data.radarr_data.main_tabs.get_active_route());
+      app.pop_and_push_navigation_stack(app.data.radarr_data.main_tabs.get_active_route());
     }
     _ => (),
   }
