@@ -82,9 +82,11 @@ pub trait KeyEventHandler<'a, 'b, T: Into<Route> + Copy> {
 
 pub fn handle_events(key: Key, app: &mut App<'_>) {
   if key == DEFAULT_KEYBINDINGS.next_servarr.key {
+    app.reset();
     app.server_tabs.next();
     app.pop_and_push_navigation_stack(app.server_tabs.get_active_route());
   } else if key == DEFAULT_KEYBINDINGS.previous_servarr.key {
+    app.reset();
     app.server_tabs.previous();
     app.pop_and_push_navigation_stack(app.server_tabs.get_active_route());
   } else if let Route::Radarr(active_radarr_block, context) = app.get_current_route() {

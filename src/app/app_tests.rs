@@ -5,9 +5,9 @@ mod tests {
   use tokio::sync::mpsc;
 
   use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
-  use crate::app::{App, AppConfig, ServarrConfig, DEFAULT_ROUTE};
-  use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-  use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
+  use crate::app::{App, AppConfig, Data, ServarrConfig, DEFAULT_ROUTE};
+  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
+  use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
   use crate::models::{HorizontallyScrollableText, TabRoute};
   use crate::network::radarr_network::RadarrEvent;
   use crate::network::NetworkEvent;
@@ -118,10 +118,23 @@ mod tests {
 
   #[test]
   fn test_reset() {
+    let radarr_data = RadarrData {
+      version: "test".into(),
+      ..RadarrData::default()
+    };
+    let sonarr_data = SonarrData {
+      version: "test".into(),
+      ..SonarrData::default()
+    };
+    let data = Data {
+      radarr_data,
+      sonarr_data,
+    };
     let mut app = App {
       tick_count: 2,
       error: "Test error".to_owned().into(),
       is_first_render: false,
+      data,
       ..App::default()
     };
 
@@ -130,6 +143,8 @@ mod tests {
     assert_eq!(app.tick_count, 0);
     assert_eq!(app.error, HorizontallyScrollableText::default());
     assert!(app.is_first_render);
+    assert!(app.data.radarr_data.version.is_empty());
+    assert!(app.data.sonarr_data.version.is_empty());
   }
 
   #[test]

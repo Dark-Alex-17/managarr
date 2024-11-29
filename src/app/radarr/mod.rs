@@ -141,6 +141,7 @@ impl<'a> App<'a> {
       self.refresh_radarr_metadata().await;
       self.dispatch_by_radarr_block(&active_radarr_block).await;
       self.is_first_render = false;
+      return;
     }
 
     if self.should_refresh {

@@ -78,12 +78,12 @@ impl<'a> App<'a> {
     self.tick_count = 0;
   }
 
-  // Allowing this code for now since we'll eventually be implementing additional Servarr support and we'll need it then
   #[allow(dead_code)]
   pub fn reset(&mut self) {
     self.reset_tick_count();
     self.error = HorizontallyScrollableText::default();
     self.is_first_render = true;
+    self.data = Data::default();
   }
 
   pub fn handle_error(&mut self, error: Error) {

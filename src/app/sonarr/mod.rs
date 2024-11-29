@@ -138,6 +138,7 @@ impl<'a> App<'a> {
       self.refresh_sonarr_metadata().await;
       self.dispatch_by_sonarr_block(&active_sonarr_block).await;
       self.is_first_render = false;
+      return;
     }
 
     if self.should_refresh {

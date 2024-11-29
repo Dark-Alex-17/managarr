@@ -8,6 +8,7 @@ use ratatui::widgets::Paragraph;
 use ratatui::widgets::Tabs;
 use ratatui::widgets::Wrap;
 use ratatui::Frame;
+use sonarr_ui::SonarrUi;
 
 use crate::app::App;
 use crate::models::{HorizontallyScrollableText, Route, TabState};
@@ -20,6 +21,7 @@ use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::popup::Size;
 
 mod radarr_ui;
+mod sonarr_ui;
 mod styles;
 mod utils;
 mod widgets;
@@ -57,9 +59,16 @@ pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
 
   draw_header_row(f, app, header_area);
 
-  if RadarrUi::accepts(app.get_current_route()) {
-    RadarrUi::draw_context_row(f, app, context_area);
-    RadarrUi::draw(f, app, table_area);
+  match app.get_current_route() {
+    route if RadarrUi::accepts(route) => {
+      RadarrUi::draw_context_row(f, app, context_area);
+      RadarrUi::draw(f, app, table_area);
+    }
+    route if SonarrUi::accepts(route) => {
+      SonarrUi::draw_context_row(f, app, context_area);
+      SonarrUi::draw(f, app, table_area);
+    }
+    _ => (),
   }
 }
 

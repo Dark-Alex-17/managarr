@@ -10,6 +10,7 @@ mod tests {
   use crate::handlers::{handle_clear_errors, handle_prompt_toggle};
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
+  use crate::models::HorizontallyScrollableText;
   use crate::models::Route;
 
   #[test]
@@ -30,19 +31,26 @@ mod tests {
     T: Into<Route> + Copy,
   {
     let mut app = App::default();
+    app.error = "Test".into();
     app.server_tabs.set_index(index);
 
     handle_events(DEFAULT_KEYBINDINGS.previous_servarr.key, &mut app);
 
     assert_eq!(app.server_tabs.get_active_route(), left_block.into());
     assert_eq!(app.get_current_route(), left_block.into());
+    assert!(app.is_first_render);
+    assert_eq!(app.error, HorizontallyScrollableText::default());
 
     app.server_tabs.set_index(index);
+    app.is_first_render = false;
+    app.error = "Test".into();
 
     handle_events(DEFAULT_KEYBINDINGS.next_servarr.key, &mut app);
 
     assert_eq!(app.server_tabs.get_active_route(), right_block.into());
     assert_eq!(app.get_current_route(), right_block.into());
+    assert!(app.is_first_render);
+    assert_eq!(app.error, HorizontallyScrollableText::default());
   }
 
   #[rstest]

@@ -1,66 +1,57 @@
 use std::{cmp, iter};
 
 use chrono::{Duration, Utc};
-use ratatui::layout::{Constraint, Layout, Rect};
-use ratatui::prelude::Stylize;
-use ratatui::text::Text;
-use ratatui::widgets::{Paragraph, Row};
-use ratatui::Frame;
-
-use crate::app::App;
-use crate::logos::RADARR_LOGO;
-use crate::models::radarr_models::{DownloadRecord, Movie};
-use crate::models::servarr_data::radarr::radarr_data::RadarrData;
-use crate::models::servarr_models::{DiskSpace, RootFolder};
-use crate::models::Route;
-use crate::ui::draw_tabs;
-use crate::ui::radarr_ui::blocklist::BlocklistUi;
-use crate::ui::radarr_ui::collections::CollectionsUi;
-use crate::ui::radarr_ui::downloads::DownloadsUi;
-use crate::ui::radarr_ui::indexers::IndexersUi;
-use crate::ui::radarr_ui::library::LibraryUi;
-use crate::ui::radarr_ui::root_folders::RootFoldersUi;
-use crate::ui::radarr_ui::system::SystemUi;
-use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::{
-  borderless_block, layout_block, line_gauge_with_label, line_gauge_with_title, title_block,
+use library::LibraryUi;
+use log::debug;
+use ratatui::{
+  layout::{Constraint, Layout, Rect},
+  style::Stylize,
+  text::Text,
+  widgets::Paragraph,
+  Frame,
 };
-use crate::ui::widgets::loading_block::LoadingBlock;
-use crate::ui::DrawUi;
-use crate::utils::convert_to_gb;
 
-mod blocklist;
-mod collections;
-mod downloads;
-mod indexers;
+use crate::{
+  app::App,
+  logos::SONARR_LOGO,
+  models::{
+    servarr_data::sonarr::sonarr_data::SonarrData,
+    servarr_models::{DiskSpace, RootFolder},
+    sonarr_models::DownloadRecord,
+    Route,
+  },
+  utils::convert_to_gb,
+};
+
+use super::{
+  draw_tabs,
+  styles::ManagarrStyle,
+  utils::{
+    borderless_block, layout_block, line_gauge_with_label, line_gauge_with_title, title_block,
+  },
+  widgets::loading_block::LoadingBlock,
+  DrawUi,
+};
+
 mod library;
-mod radarr_ui_utils;
-mod root_folders;
-mod system;
 
 #[cfg(test)]
-#[path = "radarr_ui_tests.rs"]
-mod radarr_ui_tests;
+#[path = "sonarr_ui_tests.rs"]
+mod sonarr_ui_tests;
 
-pub(super) struct RadarrUi;
+pub(super) struct SonarrUi;
 
-impl DrawUi for RadarrUi {
+impl DrawUi for SonarrUi {
   fn accepts(route: Route) -> bool {
-    matches!(route, Route::Radarr(_, _))
+    matches!(route, Route::Sonarr(_, _))
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    let content_area = draw_tabs(f, area, "Movies", &app.data.radarr_data.main_tabs);
+    let content_area = draw_tabs(f, area, "Series", &app.data.sonarr_data.main_tabs);
     let route = app.get_current_route();
 
     match route {
       _ if LibraryUi::accepts(route) => LibraryUi::draw(f, app, content_area),
-      _ if CollectionsUi::accepts(route) => CollectionsUi::draw(f, app, content_area),
-      _ if DownloadsUi::accepts(route) => DownloadsUi::draw(f, app, content_area),
-      _ if IndexersUi::accepts(route) => IndexersUi::draw(f, app, content_area),
-      _ if RootFoldersUi::accepts(route) => RootFoldersUi::draw(f, app, content_area),
-      _ if SystemUi::accepts(route) => SystemUi::draw(f, app, content_area),
-      _ if BlocklistUi::accepts(route) => BlocklistUi::draw(f, app, content_area),
       _ => (),
     }
   }
@@ -74,21 +65,21 @@ impl DrawUi for RadarrUi {
 
     draw_stats_context(f, app, stats_area);
     draw_downloads_context(f, app, downloads_area);
-    draw_radarr_logo(f, logo_area);
+    draw_sonarr_logo(f, logo_area);
   }
 }
 
 fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   let block = title_block("Stats");
 
-  if !app.data.radarr_data.version.is_empty() {
+  if !app.data.sonarr_data.version.is_empty() {
     f.render_widget(block, area);
-    let RadarrData {
+    let SonarrData {
       root_folders,
       disk_space_vec,
       start_time,
       ..
-    } = &app.data.radarr_data;
+    } = &app.data.sonarr_data;
 
     let mut constraints = vec![
       Constraint::Length(1),
@@ -105,8 +96,8 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
     let stat_item_areas = Layout::vertical(constraints).margin(1).split(area);
 
     let version_paragraph = Paragraph::new(Text::from(format!(
-      "Radarr Version:  {}",
-      app.data.radarr_data.version
+      "Sonarr Version:  {}",
+      app.data.sonarr_data.version
     )))
     .block(borderless_block())
     .bold();
@@ -173,13 +164,14 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
 
 fn draw_downloads_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   let block = title_block("Downloads");
-  let downloads_vec = &app.data.radarr_data.downloads.items;
+  let downloads_vec = &app.data.sonarr_data.downloads.items;
 
   if !downloads_vec.is_empty() {
     f.render_widget(block, area);
-
     let max_items = (((area.height as f64 / 2.0).floor() * 2.0) as usize) / 2;
+
     let items = cmp::min(downloads_vec.len(), max_items - 1);
+    debug!("Items: {items}");
     let download_item_areas = Layout::vertical(
       iter::repeat(Constraint::Length(2))
         .take(items)
@@ -195,10 +187,10 @@ fn draw_downloads_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
         size,
         ..
       } = &downloads_vec[i];
-      let percent = if *size == 0 {
+      let percent = if *size == 0.0 {
         0.0
       } else {
-        1f64 - (*sizeleft as f64 / *size as f64)
+        1f64 - (*sizeleft / *size)
       };
       let download_gauge = line_gauge_with_title(title, percent);
 
@@ -209,47 +201,10 @@ fn draw_downloads_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   }
 }
 
-fn decorate_with_row_style<'a>(
-  downloads_vec: &[DownloadRecord],
-  movie: &Movie,
-  row: Row<'a>,
-) -> Row<'a> {
-  if !movie.has_file {
-    if let Some(download) = downloads_vec
-      .iter()
-      .find(|&download| download.movie_id == movie.id)
-    {
-      if download.status == "downloading" {
-        return row.downloading();
-      }
-
-      if download.status == "completed" {
-        return row.awaiting_import();
-      }
-    }
-
-    if !movie.monitored {
-      return row.unmonitored_missing();
-    }
-
-    if movie.status != "released" {
-      return row.unreleased();
-    }
-
-    return row.missing();
-  }
-
-  if !movie.monitored {
-    row.unmonitored()
-  } else {
-    row.downloaded()
-  }
-}
-
-fn draw_radarr_logo(f: &mut Frame<'_>, area: Rect) {
-  let logo_text = Text::from(RADARR_LOGO);
+fn draw_sonarr_logo(f: &mut Frame<'_>, area: Rect) {
+  let logo_text = Text::from(SONARR_LOGO);
   let logo = Paragraph::new(logo_text)
-    .light_yellow()
+    .light_cyan()
     .block(layout_block().default())
     .centered();
   f.render_widget(logo, area);
