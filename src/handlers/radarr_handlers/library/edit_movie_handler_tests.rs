@@ -146,8 +146,8 @@ mod tests {
     fn test_edit_movie_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
       let mut app = App::default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.next();
+      app.data.radarr_data.selected_block = BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.down();
 
       EditMovieHandler::with(key, &mut app, ActiveRadarrBlock::EditMoviePrompt, None).handle();
 
@@ -169,8 +169,8 @@ mod tests {
       let mut app = App::default();
       app.is_loading = true;
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.next();
+      app.data.radarr_data.selected_block = BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.down();
 
       EditMovieHandler::with(key, &mut app, ActiveRadarrBlock::EditMoviePrompt, None).handle();
 
@@ -621,12 +621,12 @@ mod tests {
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditMovieHandler::with(
         SUBMIT_KEY,
@@ -647,12 +647,12 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
       app.data.radarr_data.prompt_confirm = true;
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditMovieHandler::with(
         SUBMIT_KEY,
@@ -704,7 +704,7 @@ mod tests {
       ));
       let mut app = App::default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
       app.push_navigation_stack(current_route);
 
       EditMovieHandler::with(
@@ -755,7 +755,7 @@ mod tests {
     #[case(ActiveRadarrBlock::EditMovieTagsInput, 4)]
     fn test_edit_movie_prompt_selected_block_submit(
       #[case] selected_block: ActiveRadarrBlock,
-      #[case] index: usize,
+      #[case] y_index: usize,
     ) {
       let mut app = App::default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
@@ -766,8 +766,8 @@ mod tests {
         )
           .into(),
       );
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.set_index(index);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.set_index(0, y_index);
 
       EditMovieHandler::with(
         SUBMIT_KEY,
@@ -792,7 +792,7 @@ mod tests {
 
     #[rstest]
     fn test_edit_movie_prompt_selected_block_submit_no_op_when_not_ready(
-      #[values(1, 2, 3, 4)] index: usize,
+      #[values(1, 2, 3, 4)] y_index: usize,
     ) {
       let mut app = App::default();
       app.is_loading = true;
@@ -804,8 +804,8 @@ mod tests {
         )
           .into(),
       );
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.set_index(index);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.set_index(0, y_index);
 
       EditMovieHandler::with(
         SUBMIT_KEY,
@@ -1061,12 +1061,12 @@ mod tests {
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditMovieHandler::with(
         DEFAULT_KEYBINDINGS.confirm.key,

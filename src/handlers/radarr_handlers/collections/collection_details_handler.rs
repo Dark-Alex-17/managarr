@@ -111,7 +111,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
             .into(),
         );
         self.app.data.radarr_data.selected_block =
-          BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
+          BlockSelectionState::new(ADD_MOVIE_SELECTION_BLOCKS);
         self.app.data.radarr_data.add_movie_modal = Some((&self.app.data.radarr_data).into());
       }
     }
@@ -141,7 +141,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
       );
       self.app.data.radarr_data.edit_collection_modal = Some((&self.app.data.radarr_data).into());
       self.app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+        BlockSelectionState::new(EDIT_COLLECTION_SELECTION_BLOCKS);
     }
   }
 }

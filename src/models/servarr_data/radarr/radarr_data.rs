@@ -357,13 +357,13 @@ pub static ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::AddMovieAlreadyInLibrary,
   ActiveRadarrBlock::AddMovieTagsInput,
 ];
-pub static ADD_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
-  ActiveRadarrBlock::AddMovieSelectRootFolder,
-  ActiveRadarrBlock::AddMovieSelectMonitor,
-  ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
-  ActiveRadarrBlock::AddMovieSelectQualityProfile,
-  ActiveRadarrBlock::AddMovieTagsInput,
-  ActiveRadarrBlock::AddMovieConfirmPrompt,
+pub const ADD_MOVIE_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[ActiveRadarrBlock::AddMovieSelectRootFolder],
+  &[ActiveRadarrBlock::AddMovieSelectMonitor],
+  &[ActiveRadarrBlock::AddMovieSelectMinimumAvailability],
+  &[ActiveRadarrBlock::AddMovieSelectQualityProfile],
+  &[ActiveRadarrBlock::AddMovieTagsInput],
+  &[ActiveRadarrBlock::AddMovieConfirmPrompt],
 ];
 pub static EDIT_COLLECTION_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditCollectionPrompt,
@@ -374,13 +374,13 @@ pub static EDIT_COLLECTION_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditCollectionToggleSearchOnAdd,
   ActiveRadarrBlock::EditCollectionToggleMonitored,
 ];
-pub static EDIT_COLLECTION_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
-  ActiveRadarrBlock::EditCollectionToggleMonitored,
-  ActiveRadarrBlock::EditCollectionSelectMinimumAvailability,
-  ActiveRadarrBlock::EditCollectionSelectQualityProfile,
-  ActiveRadarrBlock::EditCollectionRootFolderPathInput,
-  ActiveRadarrBlock::EditCollectionToggleSearchOnAdd,
-  ActiveRadarrBlock::EditCollectionConfirmPrompt,
+pub const EDIT_COLLECTION_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[ActiveRadarrBlock::EditCollectionToggleMonitored],
+  &[ActiveRadarrBlock::EditCollectionSelectMinimumAvailability],
+  &[ActiveRadarrBlock::EditCollectionSelectQualityProfile],
+  &[ActiveRadarrBlock::EditCollectionRootFolderPathInput],
+  &[ActiveRadarrBlock::EditCollectionToggleSearchOnAdd],
+  &[ActiveRadarrBlock::EditCollectionConfirmPrompt],
 ];
 pub static EDIT_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditMoviePrompt,
@@ -391,13 +391,13 @@ pub static EDIT_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditMovieTagsInput,
   ActiveRadarrBlock::EditMovieToggleMonitored,
 ];
-pub static EDIT_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
-  ActiveRadarrBlock::EditMovieToggleMonitored,
-  ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
-  ActiveRadarrBlock::EditMovieSelectQualityProfile,
-  ActiveRadarrBlock::EditMoviePathInput,
-  ActiveRadarrBlock::EditMovieTagsInput,
-  ActiveRadarrBlock::EditMovieConfirmPrompt,
+pub const EDIT_MOVIE_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[ActiveRadarrBlock::EditMovieToggleMonitored],
+  &[ActiveRadarrBlock::EditMovieSelectMinimumAvailability],
+  &[ActiveRadarrBlock::EditMovieSelectQualityProfile],
+  &[ActiveRadarrBlock::EditMoviePathInput],
+  &[ActiveRadarrBlock::EditMovieTagsInput],
+  &[ActiveRadarrBlock::EditMovieConfirmPrompt],
 ];
 pub static DOWNLOADS_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::Downloads,
@@ -426,10 +426,10 @@ pub static DELETE_MOVIE_BLOCKS: [ActiveRadarrBlock; 4] = [
   ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
   ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
 ];
-pub static DELETE_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 3] = [
-  ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
-  ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
-  ActiveRadarrBlock::DeleteMovieConfirmPrompt,
+pub const DELETE_MOVIE_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[ActiveRadarrBlock::DeleteMovieToggleDeleteFile],
+  &[ActiveRadarrBlock::DeleteMovieToggleAddListExclusion],
+  &[ActiveRadarrBlock::DeleteMovieConfirmPrompt],
 ];
 pub static EDIT_INDEXER_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::EditIndexerPrompt,
@@ -443,29 +443,49 @@ pub static EDIT_INDEXER_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::EditIndexerUrlInput,
   ActiveRadarrBlock::EditIndexerTagsInput,
 ];
-pub static EDIT_INDEXER_TORRENT_SELECTION_BLOCKS: [ActiveRadarrBlock; 10] = [
-  ActiveRadarrBlock::EditIndexerNameInput,
-  ActiveRadarrBlock::EditIndexerToggleEnableRss,
-  ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
-  ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
-  ActiveRadarrBlock::EditIndexerConfirmPrompt,
-  ActiveRadarrBlock::EditIndexerUrlInput,
-  ActiveRadarrBlock::EditIndexerApiKeyInput,
-  ActiveRadarrBlock::EditIndexerSeedRatioInput,
-  ActiveRadarrBlock::EditIndexerTagsInput,
-  ActiveRadarrBlock::EditIndexerConfirmPrompt,
+pub const EDIT_INDEXER_TORRENT_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[
+    ActiveRadarrBlock::EditIndexerNameInput,
+    ActiveRadarrBlock::EditIndexerUrlInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerToggleEnableRss,
+    ActiveRadarrBlock::EditIndexerApiKeyInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
+    ActiveRadarrBlock::EditIndexerSeedRatioInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+    ActiveRadarrBlock::EditIndexerTagsInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerConfirmPrompt,
+    ActiveRadarrBlock::EditIndexerConfirmPrompt,
+  ],
 ];
-pub static EDIT_INDEXER_NZB_SELECTION_BLOCKS: [ActiveRadarrBlock; 10] = [
-  ActiveRadarrBlock::EditIndexerNameInput,
-  ActiveRadarrBlock::EditIndexerToggleEnableRss,
-  ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
-  ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
-  ActiveRadarrBlock::EditIndexerConfirmPrompt,
-  ActiveRadarrBlock::EditIndexerUrlInput,
-  ActiveRadarrBlock::EditIndexerApiKeyInput,
-  ActiveRadarrBlock::EditIndexerTagsInput,
-  ActiveRadarrBlock::EditIndexerConfirmPrompt,
-  ActiveRadarrBlock::EditIndexerConfirmPrompt,
+pub const EDIT_INDEXER_NZB_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[
+    ActiveRadarrBlock::EditIndexerNameInput,
+    ActiveRadarrBlock::EditIndexerUrlInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerToggleEnableRss,
+    ActiveRadarrBlock::EditIndexerApiKeyInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
+    ActiveRadarrBlock::EditIndexerTagsInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+    ActiveRadarrBlock::EditIndexerConfirmPrompt,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerConfirmPrompt,
+    ActiveRadarrBlock::EditIndexerConfirmPrompt,
+  ],
 ];
 pub static INDEXER_SETTINGS_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -479,17 +499,27 @@ pub static INDEXER_SETTINGS_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags,
   ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
 ];
-pub static INDEXER_SETTINGS_SELECTION_BLOCKS: [ActiveRadarrBlock; 10] = [
-  ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
-  ActiveRadarrBlock::IndexerSettingsRetentionInput,
-  ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
-  ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags,
-  ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
-  ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
-  ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
-  ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
-  ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs,
-  ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
+pub const INDEXER_SETTINGS_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[
+    ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
+    ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
+  ],
+  &[
+    ActiveRadarrBlock::IndexerSettingsRetentionInput,
+    ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
+  ],
+  &[
+    ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
+    ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
+  ],
+  &[
+    ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags,
+    ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs,
+  ],
+  &[
+    ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
+    ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
+  ],
 ];
 pub static SYSTEM_DETAILS_BLOCKS: [ActiveRadarrBlock; 5] = [
   ActiveRadarrBlock::SystemLogs,

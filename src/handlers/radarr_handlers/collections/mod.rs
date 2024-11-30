@@ -334,7 +334,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
           self.app.data.radarr_data.edit_collection_modal =
             Some((&self.app.data.radarr_data).into());
           self.app.data.radarr_data.selected_block =
-            BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+            BlockSelectionState::new(EDIT_COLLECTION_SELECTION_BLOCKS);
         }
         _ if key == DEFAULT_KEYBINDINGS.update.key => {
           self

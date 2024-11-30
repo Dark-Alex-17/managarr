@@ -149,8 +149,8 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.next();
+        BlockSelectionState::new(EDIT_COLLECTION_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.down();
 
       EditCollectionHandler::with(key, &mut app, ActiveRadarrBlock::EditCollectionPrompt, None)
         .handle();
@@ -176,8 +176,8 @@ mod tests {
       app.is_loading = true;
       app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.next();
+        BlockSelectionState::new(EDIT_COLLECTION_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.down();
 
       EditCollectionHandler::with(key, &mut app, ActiveRadarrBlock::EditCollectionPrompt, None)
         .handle();
@@ -494,12 +494,12 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+        BlockSelectionState::new(EDIT_COLLECTION_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditCollectionHandler::with(
         SUBMIT_KEY,
@@ -524,12 +524,12 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
       app.data.radarr_data.prompt_confirm = true;
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+        BlockSelectionState::new(EDIT_COLLECTION_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditCollectionHandler::with(
         SUBMIT_KEY,
@@ -559,12 +559,12 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
       app.data.radarr_data.prompt_confirm = true;
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+        BlockSelectionState::new(EDIT_COLLECTION_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditCollectionHandler::with(
         SUBMIT_KEY,
@@ -591,7 +591,7 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+        BlockSelectionState::new(EDIT_COLLECTION_SELECTION_BLOCKS);
       app.push_navigation_stack(current_route);
 
       EditCollectionHandler::with(
@@ -644,12 +644,12 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+        BlockSelectionState::new(EDIT_COLLECTION_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 2);
+        .set_index(0, EDIT_COLLECTION_SELECTION_BLOCKS.len() - 2);
       app.push_navigation_stack(current_route);
 
       EditCollectionHandler::with(
@@ -711,8 +711,8 @@ mod tests {
           .into(),
       );
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.set_index(index);
+        BlockSelectionState::new(EDIT_COLLECTION_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.set_index(0, index);
 
       EditCollectionHandler::with(
         SUBMIT_KEY,
@@ -923,12 +923,12 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_COLLECTION_SELECTION_BLOCKS);
+        BlockSelectionState::new(EDIT_COLLECTION_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
 
       EditCollectionHandler::with(
         DEFAULT_KEYBINDINGS.confirm.key,

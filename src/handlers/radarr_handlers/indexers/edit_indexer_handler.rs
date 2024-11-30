@@ -4,7 +4,7 @@ use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::{handle_prompt_left_right_keys, handle_text_box_keys, handle_text_box_left_right_keys};
 
 #[cfg(test)]
 #[path = "edit_indexer_handler_tests.rs"]
@@ -46,13 +46,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
 
   fn handle_scroll_up(&mut self) {
     if self.active_radarr_block == ActiveRadarrBlock::EditIndexerPrompt {
-      self.app.data.radarr_data.selected_block.previous();
+      self.app.data.radarr_data.selected_block.up();
     }
   }
 
   fn handle_scroll_down(&mut self) {
     if self.active_radarr_block == ActiveRadarrBlock::EditIndexerPrompt {
-      self.app.data.radarr_data.selected_block.next();
+      self.app.data.radarr_data.selected_block.down();
     }
   }
 
@@ -183,15 +183,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
   fn handle_left_right_action(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::EditIndexerPrompt => {
-        if self.app.data.radarr_data.selected_block.get_active_block()
-          == ActiveRadarrBlock::EditIndexerConfirmPrompt
-        {
-          handle_prompt_toggle(self.app, self.key);
-        } else {
-          let len = self.app.data.radarr_data.selected_block.blocks.len();
-          let idx = self.app.data.radarr_data.selected_block.index;
-          self.app.data.radarr_data.selected_block.index = (idx + 5) % len;
-        }
+        handle_prompt_left_right_keys!(
+          self,
+          ActiveRadarrBlock::EditIndexerConfirmPrompt,
+          radarr_data
+        );
       }
       ActiveRadarrBlock::EditIndexerNameInput => {
         handle_text_box_left_right_keys!(

@@ -91,7 +91,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         .unwrap()
         .root_folder_list
         .scroll_up(),
-      ActiveRadarrBlock::AddMoviePrompt => self.app.data.radarr_data.selected_block.previous(),
+      ActiveRadarrBlock::AddMoviePrompt => self.app.data.radarr_data.selected_block.up(),
       _ => (),
     }
   }
@@ -142,7 +142,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         .unwrap()
         .root_folder_list
         .scroll_down(),
-      ActiveRadarrBlock::AddMoviePrompt => self.app.data.radarr_data.selected_block.next(),
+      ActiveRadarrBlock::AddMoviePrompt => self.app.data.radarr_data.selected_block.down(),
       _ => (),
     }
   }
@@ -360,7 +360,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
             .push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
           self.app.data.radarr_data.add_movie_modal = Some((&self.app.data.radarr_data).into());
           self.app.data.radarr_data.selected_block =
-            BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
+            BlockSelectionState::new(ADD_MOVIE_SELECTION_BLOCKS);
         }
       }
       ActiveRadarrBlock::AddMoviePrompt => {

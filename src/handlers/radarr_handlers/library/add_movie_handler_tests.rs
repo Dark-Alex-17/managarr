@@ -380,8 +380,8 @@ mod tests {
     #[rstest]
     fn test_add_movie_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
       let mut app = App::default();
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.next();
+      app.data.radarr_data.selected_block = BlockSelectionState::new(ADD_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.down();
 
       AddMovieHandler::with(key, &mut app, ActiveRadarrBlock::AddMoviePrompt, None).handle();
 
@@ -402,8 +402,8 @@ mod tests {
     fn test_add_movie_prompt_scroll_no_op_when_not_ready(#[values(Key::Up, Key::Down)] key: Key) {
       let mut app = App::default();
       app.is_loading = true;
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.next();
+      app.data.radarr_data.selected_block = BlockSelectionState::new(ADD_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.down();
 
       AddMovieHandler::with(key, &mut app, ActiveRadarrBlock::AddMoviePrompt, None).handle();
 
@@ -1170,12 +1170,12 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(ADD_MOVIE_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
 
       AddMovieHandler::with(
         SUBMIT_KEY,
@@ -1196,12 +1196,12 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
       app.data.radarr_data.prompt_confirm = true;
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(ADD_MOVIE_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
 
       AddMovieHandler::with(
         SUBMIT_KEY,
@@ -1227,7 +1227,7 @@ mod tests {
     #[case(ActiveRadarrBlock::AddMovieTagsInput, 4)]
     fn test_add_movie_prompt_selected_block_submit(
       #[case] selected_block: ActiveRadarrBlock,
-      #[case] index: usize,
+      #[case] y_index: usize,
     ) {
       let mut app = App::default();
       app.push_navigation_stack(
@@ -1237,8 +1237,8 @@ mod tests {
         )
           .into(),
       );
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.set_index(index);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(ADD_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.set_index(0, y_index);
 
       AddMovieHandler::with(
         SUBMIT_KEY,
@@ -1594,12 +1594,12 @@ mod tests {
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(ADD_MOVIE_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
 
       AddMovieHandler::with(
         DEFAULT_KEYBINDINGS.confirm.key,

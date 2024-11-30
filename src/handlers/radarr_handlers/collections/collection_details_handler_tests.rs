@@ -171,12 +171,12 @@ mod tests {
         .set_items(vec![CollectionMovie::default()]);
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(1, "B - Test 2".to_owned()), (0, "A - Test 1".to_owned())]);
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(ADD_MOVIE_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
 
       CollectionDetailsHandler::with(
         SUBMIT_KEY,

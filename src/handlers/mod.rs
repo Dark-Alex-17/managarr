@@ -140,3 +140,16 @@ macro_rules! handle_text_box_keys {
     }
   };
 }
+
+#[macro_export]
+macro_rules! handle_prompt_left_right_keys {
+  ($self:expr, $confirm_prompt:expr, $data:ident) => {
+    if $self.app.data.$data.selected_block.get_active_block() == $confirm_prompt {
+      handle_prompt_toggle($self.app, $self.key);
+    } else if $self.key == DEFAULT_KEYBINDINGS.left.key {
+      $self.app.data.$data.selected_block.left();
+    } else {
+      $self.app.data.$data.selected_block.right();
+    }
+  };
+}

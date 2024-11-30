@@ -375,7 +375,7 @@ mod tests {
       );
       assert_eq!(
         app.data.radarr_data.selected_block.blocks,
-        &DELETE_MOVIE_SELECTION_BLOCKS
+        DELETE_MOVIE_SELECTION_BLOCKS
       );
     }
 

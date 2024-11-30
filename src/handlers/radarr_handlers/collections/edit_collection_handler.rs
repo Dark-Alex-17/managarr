@@ -65,9 +65,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
         .unwrap()
         .quality_profile_list
         .scroll_up(),
-      ActiveRadarrBlock::EditCollectionPrompt => {
-        self.app.data.radarr_data.selected_block.previous()
-      }
+      ActiveRadarrBlock::EditCollectionPrompt => self.app.data.radarr_data.selected_block.up(),
       _ => (),
     }
   }
@@ -92,7 +90,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
         .unwrap()
         .quality_profile_list
         .scroll_down(),
-      ActiveRadarrBlock::EditCollectionPrompt => self.app.data.radarr_data.selected_block.next(),
+      ActiveRadarrBlock::EditCollectionPrompt => self.app.data.radarr_data.selected_block.down(),
       _ => (),
     }
   }

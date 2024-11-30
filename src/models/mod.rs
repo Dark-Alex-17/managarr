@@ -320,32 +320,45 @@ pub struct BlockSelectionState<'a, T>
 where
   T: Sized + Clone + Copy + Default,
 {
-  pub blocks: &'a [T],
-  pub index: usize,
+  pub blocks: &'a [&'a [T]],
+  pub x: usize,
+  pub y: usize,
 }
 
 impl<'a, T> BlockSelectionState<'a, T>
 where
   T: Sized + Clone + Copy + Default,
 {
-  pub fn new(blocks: &'a [T]) -> BlockSelectionState<'a, T> {
-    BlockSelectionState { blocks, index: 0 }
+  pub fn new(blocks: &'a [&'a [T]]) -> BlockSelectionState<'a, T> {
+    BlockSelectionState { blocks, x: 0, y: 0 }
   }
 
   pub fn get_active_block(&self) -> T {
-    self.blocks[self.index]
+    self.blocks[self.y][self.x]
   }
 
-  pub fn next(&mut self) {
-    self.index = (self.index + 1) % self.blocks.len();
-  }
-
-  pub fn previous(&mut self) {
-    if self.index > 0 {
-      self.index -= 1;
+  pub fn left(&mut self) {
+    if self.x > 0 {
+      self.x -= 1;
     } else {
-      self.index = self.blocks.len() - 1;
+      self.x = self.blocks[0].len() - 1;
     }
+  }
+
+  pub fn right(&mut self) {
+    self.x = (self.x + 1) % self.blocks[0].len();
+  }
+
+  pub fn up(&mut self) {
+    if self.y > 0 {
+      self.y -= 1;
+    } else {
+      self.y = self.blocks.len() - 1;
+    }
+  }
+
+  pub fn down(&mut self) {
+    self.y = (self.y + 1) % self.blocks.len();
   }
 }
 
@@ -354,8 +367,9 @@ impl<'a, T> BlockSelectionState<'a, T>
 where
   T: Sized + Clone + Copy + Default,
 {
-  pub fn set_index(&mut self, index: usize) {
-    self.index = index;
+  pub fn set_index(&mut self, x: usize, y: usize) {
+    self.x = x;
+    self.y = y;
   }
 }
 

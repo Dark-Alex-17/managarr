@@ -17,14 +17,7 @@ mod tests {
     BlockSelectionState, HorizontallyScrollableText, Scrollable, ScrollableText, TabRoute, TabState,
   };
 
-  const BLOCKS: [ActiveRadarrBlock; 6] = [
-    ActiveRadarrBlock::AddMovieSelectRootFolder,
-    ActiveRadarrBlock::AddMovieSelectMonitor,
-    ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
-    ActiveRadarrBlock::AddMovieSelectQualityProfile,
-    ActiveRadarrBlock::AddMovieTagsInput,
-    ActiveRadarrBlock::AddMovieConfirmPrompt,
-  ];
+  const BLOCKS: &[&[i32]] = &[&[11, 12], &[21, 22], &[31, 32]];
 
   #[test]
   fn test_scrollable_text_with_string() {
@@ -577,17 +570,19 @@ mod tests {
 
   #[test]
   fn test_block_selection_state_new() {
-    let block_selection_state = BlockSelectionState::new(&BLOCKS);
+    let block_selection_state = BlockSelectionState::new(BLOCKS);
 
-    assert_eq!(block_selection_state.index, 0);
+    assert_eq!(block_selection_state.x, 0);
+    assert_eq!(block_selection_state.y, 0);
   }
 
   #[test]
   fn test_block_selection_state_get_active_block() {
-    let second_block = BLOCKS[1];
+    let second_block = BLOCKS[1][1];
     let block_selection_state = BlockSelectionState {
-      blocks: &BLOCKS,
-      index: 1,
+      blocks: BLOCKS,
+      x: 1,
+      y: 1,
     };
 
     let active_block = block_selection_state.get_active_block();
@@ -596,41 +591,95 @@ mod tests {
   }
 
   #[test]
-  fn test_block_selection_state_next() {
-    let blocks = [
-      ActiveRadarrBlock::AddMovieSelectRootFolder,
-      ActiveRadarrBlock::AddMovieSelectMonitor,
-    ];
-    let mut block_selection_state = BlockSelectionState::new(&blocks);
+  fn test_block_selection_state_down() {
+    let mut block_selection_state = BlockSelectionState::new(BLOCKS);
 
-    assert_eq!(block_selection_state.get_active_block(), blocks[0]);
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[0][0]);
 
-    block_selection_state.next();
+    block_selection_state.down();
 
-    assert_eq!(block_selection_state.get_active_block(), blocks[1]);
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[1][0]);
 
-    block_selection_state.next();
+    block_selection_state.down();
 
-    assert_eq!(block_selection_state.get_active_block(), blocks[0]);
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[2][0]);
+
+    block_selection_state.down();
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[0][0]);
   }
 
   #[test]
-  fn test_block_selection_state_previous() {
-    let blocks = [
-      ActiveRadarrBlock::AddMovieSelectRootFolder,
-      ActiveRadarrBlock::AddMovieSelectMonitor,
-    ];
-    let mut block_selection_state = BlockSelectionState::new(&blocks);
+  fn test_block_selection_state_up() {
+    let mut block_selection_state = BlockSelectionState::new(BLOCKS);
 
-    assert_eq!(block_selection_state.get_active_block(), blocks[0]);
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[0][0]);
 
-    block_selection_state.previous();
+    block_selection_state.up();
 
-    assert_eq!(block_selection_state.get_active_block(), blocks[1]);
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[2][0]);
 
-    block_selection_state.previous();
+    block_selection_state.up();
 
-    assert_eq!(block_selection_state.get_active_block(), blocks[0]);
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[1][0]);
+
+    block_selection_state.up();
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[0][0]);
+  }
+
+  #[test]
+  fn test_block_selection_state_left() {
+    let mut block_selection_state = BlockSelectionState::new(BLOCKS);
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[0][0]);
+
+    block_selection_state.left();
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[0][1]);
+
+    block_selection_state.left();
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[0][0]);
+
+    block_selection_state.set_index(0, 1);
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[1][0]);
+
+    block_selection_state.left();
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[1][1]);
+
+    block_selection_state.left();
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[1][0]);
+  }
+
+  #[test]
+  fn test_block_selection_state_right() {
+    let mut block_selection_state = BlockSelectionState::new(BLOCKS);
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[0][0]);
+
+    block_selection_state.right();
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[0][1]);
+
+    block_selection_state.right();
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[0][0]);
+
+    block_selection_state.set_index(0, 1);
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[1][0]);
+
+    block_selection_state.right();
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[1][1]);
+
+    block_selection_state.right();
+
+    assert_eq!(block_selection_state.get_active_block(), BLOCKS[1][0]);
   }
 
   #[test]

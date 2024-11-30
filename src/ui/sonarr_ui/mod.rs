@@ -169,7 +169,7 @@ fn draw_downloads_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
     f.render_widget(block, area);
 
     let max_items = ((((area.height as f64 / 2.0).floor() * 2.0) as i64) / 2) - 1;
-    let items = cmp::min(downloads_vec.len(), max_items.abs() as usize);
+    let items = cmp::min(downloads_vec.len(), max_items.unsigned_abs() as usize);
     let download_item_areas = Layout::vertical(
       iter::repeat(Constraint::Length(2))
         .take(items)

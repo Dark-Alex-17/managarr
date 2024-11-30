@@ -6,7 +6,7 @@ use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS,
 };
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::{handle_prompt_left_right_keys, handle_text_box_keys, handle_text_box_left_right_keys};
 
 #[cfg(test)]
 #[path = "edit_indexer_settings_handler_tests.rs"]
@@ -50,7 +50,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
     let indexer_settings = self.app.data.radarr_data.indexer_settings.as_mut().unwrap();
     match self.active_radarr_block {
       ActiveRadarrBlock::AllIndexerSettingsPrompt => {
-        self.app.data.radarr_data.selected_block.previous();
+        self.app.data.radarr_data.selected_block.up();
       }
       ActiveRadarrBlock::IndexerSettingsMinimumAgeInput => {
         indexer_settings.minimum_age += 1;
@@ -75,7 +75,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
     let indexer_settings = self.app.data.radarr_data.indexer_settings.as_mut().unwrap();
     match self.active_radarr_block {
       ActiveRadarrBlock::AllIndexerSettingsPrompt => {
-        self.app.data.radarr_data.selected_block.next()
+        self.app.data.radarr_data.selected_block.down()
       }
       ActiveRadarrBlock::IndexerSettingsMinimumAgeInput => {
         if indexer_settings.minimum_age > 0 {
@@ -137,15 +137,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
   fn handle_left_right_action(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::AllIndexerSettingsPrompt => {
-        if self.app.data.radarr_data.selected_block.get_active_block()
-          == ActiveRadarrBlock::IndexerSettingsConfirmPrompt
-        {
-          handle_prompt_toggle(self.app, self.key);
-        } else {
-          let len = self.app.data.radarr_data.selected_block.blocks.len();
-          let idx = self.app.data.radarr_data.selected_block.index;
-          self.app.data.radarr_data.selected_block.index = (idx + 5) % len;
-        }
+        handle_prompt_left_right_keys!(
+          self,
+          ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
+          radarr_data
+        );
       }
       ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput => {
         handle_text_box_left_right_keys!(

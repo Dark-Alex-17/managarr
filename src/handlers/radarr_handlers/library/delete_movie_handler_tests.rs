@@ -21,9 +21,8 @@ mod tests {
     #[rstest]
     fn test_delete_movie_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
       let mut app = App::default();
-      app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&DELETE_MOVIE_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.next();
+      app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.down();
 
       DeleteMovieHandler::with(key, &mut app, ActiveRadarrBlock::DeleteMoviePrompt, None).handle();
 
@@ -46,9 +45,8 @@ mod tests {
     ) {
       let mut app = App::default();
       app.is_loading = true;
-      app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&DELETE_MOVIE_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.next();
+      app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.down();
 
       DeleteMovieHandler::with(key, &mut app, ActiveRadarrBlock::DeleteMoviePrompt, None).handle();
 
@@ -94,13 +92,12 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
-      app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&DELETE_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(DELETE_MOVIE_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, DELETE_MOVIE_SELECTION_BLOCKS.len() - 1);
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
 
@@ -127,13 +124,12 @@ mod tests {
       app.data.radarr_data.prompt_confirm = true;
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
-      app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&DELETE_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(DELETE_MOVIE_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, DELETE_MOVIE_SELECTION_BLOCKS.len() - 1);
 
       DeleteMovieHandler::with(
         SUBMIT_KEY,
@@ -187,8 +183,7 @@ mod tests {
     fn test_delete_movie_toggle_delete_files_submit() {
       let current_route = ActiveRadarrBlock::DeleteMoviePrompt.into();
       let mut app = App::default();
-      app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&DELETE_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
 
       DeleteMovieHandler::with(
@@ -263,13 +258,12 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
-      app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&DELETE_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(DELETE_MOVIE_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, DELETE_MOVIE_SELECTION_BLOCKS.len() - 1);
 
       DeleteMovieHandler::with(
         DEFAULT_KEYBINDINGS.confirm.key,

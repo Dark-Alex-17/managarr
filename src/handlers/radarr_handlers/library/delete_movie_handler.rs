@@ -45,13 +45,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'
 
   fn handle_scroll_up(&mut self) {
     if self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
-      self.app.data.radarr_data.selected_block.previous();
+      self.app.data.radarr_data.selected_block.up();
     }
   }
 
   fn handle_scroll_down(&mut self) {
     if self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
-      self.app.data.radarr_data.selected_block.next();
+      self.app.data.radarr_data.selected_block.down();
     }
   }
 

@@ -447,7 +447,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
           );
           self.app.data.radarr_data.edit_movie_modal = Some((&self.app.data.radarr_data).into());
           self.app.data.radarr_data.selected_block =
-            BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+            BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
         }
         _ if key == DEFAULT_KEYBINDINGS.update.key => {
           self

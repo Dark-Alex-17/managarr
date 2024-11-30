@@ -65,7 +65,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
         .unwrap()
         .quality_profile_list
         .scroll_up(),
-      ActiveRadarrBlock::EditMoviePrompt => self.app.data.radarr_data.selected_block.previous(),
+      ActiveRadarrBlock::EditMoviePrompt => self.app.data.radarr_data.selected_block.up(),
       _ => (),
     }
   }
@@ -90,7 +90,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
         .unwrap()
         .quality_profile_list
         .scroll_down(),
-      ActiveRadarrBlock::EditMoviePrompt => self.app.data.radarr_data.selected_block.next(),
+      ActiveRadarrBlock::EditMoviePrompt => self.app.data.radarr_data.selected_block.down(),
       _ => (),
     }
   }

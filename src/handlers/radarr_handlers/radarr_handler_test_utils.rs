@@ -111,7 +111,7 @@ mod utils {
       );
       assert_eq!(
         app.data.radarr_data.selected_block.blocks,
-        &EDIT_MOVIE_SELECTION_BLOCKS
+        EDIT_MOVIE_SELECTION_BLOCKS
       );
     };
   }
@@ -224,7 +224,7 @@ mod utils {
       );
       assert_eq!(
         app.data.radarr_data.selected_block.blocks,
-        &EDIT_COLLECTION_SELECTION_BLOCKS
+        EDIT_COLLECTION_SELECTION_BLOCKS
       );
     };
   }

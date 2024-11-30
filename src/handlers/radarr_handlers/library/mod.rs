@@ -194,7 +194,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
         .app
         .push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
       self.app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&DELETE_MOVIE_SELECTION_BLOCKS);
+        BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
     }
   }
 
@@ -342,7 +342,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
           );
           self.app.data.radarr_data.edit_movie_modal = Some((&self.app.data.radarr_data).into());
           self.app.data.radarr_data.selected_block =
-            BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+            BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
         }
         _ if key == DEFAULT_KEYBINDINGS.add.key => {
           self

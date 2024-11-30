@@ -311,12 +311,12 @@ mod tests {
       if torrent_protocol {
         assert_eq!(
           app.data.radarr_data.selected_block.blocks,
-          &EDIT_INDEXER_TORRENT_SELECTION_BLOCKS
+          EDIT_INDEXER_TORRENT_SELECTION_BLOCKS
         );
       } else {
         assert_eq!(
           app.data.radarr_data.selected_block.blocks,
-          &EDIT_INDEXER_NZB_SELECTION_BLOCKS
+          EDIT_INDEXER_NZB_SELECTION_BLOCKS
         );
       }
     }
@@ -570,7 +570,7 @@ mod tests {
       );
       assert_eq!(
         app.data.radarr_data.selected_block.blocks,
-        &INDEXER_SETTINGS_SELECTION_BLOCKS
+        INDEXER_SETTINGS_SELECTION_BLOCKS
       );
     }
 

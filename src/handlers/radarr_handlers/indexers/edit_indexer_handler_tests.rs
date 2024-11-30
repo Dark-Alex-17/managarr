@@ -25,8 +25,8 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.next();
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.down();
 
       EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
 
@@ -51,8 +51,8 @@ mod tests {
       app.is_loading = true;
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.next();
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.down();
 
       EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
 
@@ -346,8 +346,8 @@ mod tests {
     fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
       let mut app = App::default();
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.index = EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1;
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.y = EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1;
 
       EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
 
@@ -381,14 +381,14 @@ mod tests {
     )]
     fn test_left_right_block_toggle_torrents(
       #[values(Key::Left, Key::Right)] key: Key,
-      #[case] starting_index: usize,
+      #[case] starting_y_index: usize,
       #[case] left_block: ActiveRadarrBlock,
       #[case] right_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.index = starting_index;
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.y = starting_y_index;
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
@@ -428,14 +428,14 @@ mod tests {
     )]
     fn test_left_right_block_toggle_nzb(
       #[values(Key::Left, Key::Right)] key: Key,
-      #[case] starting_index: usize,
+      #[case] starting_y_index: usize,
       #[case] left_block: ActiveRadarrBlock,
       #[case] right_block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_INDEXER_NZB_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.index = starting_index;
+        BlockSelectionState::new(EDIT_INDEXER_NZB_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.y = starting_y_index;
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
@@ -463,8 +463,8 @@ mod tests {
     ) {
       let mut app = App::default();
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_INDEXER_NZB_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.index = 3;
+        BlockSelectionState::new(EDIT_INDEXER_NZB_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.y = 3;
       app.data.radarr_data.prompt_confirm = false;
 
       assert_eq!(
@@ -765,12 +765,12 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
@@ -793,12 +793,12 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.data.radarr_data.prompt_confirm = true;
 
@@ -846,25 +846,26 @@ mod tests {
     }
 
     #[rstest]
-    #[case(0, ActiveRadarrBlock::EditIndexerNameInput)]
-    #[case(5, ActiveRadarrBlock::EditIndexerUrlInput)]
-    #[case(6, ActiveRadarrBlock::EditIndexerApiKeyInput)]
-    #[case(7, ActiveRadarrBlock::EditIndexerSeedRatioInput)]
-    #[case(8, ActiveRadarrBlock::EditIndexerTagsInput)]
+    #[case(0, 0, ActiveRadarrBlock::EditIndexerNameInput)]
+    #[case(0, 1, ActiveRadarrBlock::EditIndexerUrlInput)]
+    #[case(1, 1, ActiveRadarrBlock::EditIndexerApiKeyInput)]
+    #[case(2, 1, ActiveRadarrBlock::EditIndexerSeedRatioInput)]
+    #[case(3, 1, ActiveRadarrBlock::EditIndexerTagsInput)]
     fn test_edit_indexer_prompt_submit_input_fields(
-      #[case] starting_index: usize,
+      #[case] starting_y: usize,
+      #[case] starting_x: usize,
       #[case] block: ActiveRadarrBlock,
     ) {
       let mut app = App::default();
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(starting_index);
+        .set_index(starting_x, starting_y);
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
@@ -883,8 +884,8 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.set_index(1);
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.set_index(0, 1);
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
 
       EditIndexerHandler::with(
@@ -935,8 +936,8 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.set_index(2);
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.set_index(0, 2);
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
 
       EditIndexerHandler::with(
@@ -987,8 +988,8 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.set_index(3);
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block.set_index(0, 3);
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
 
       EditIndexerHandler::with(
@@ -1560,12 +1561,12 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
       app.data.radarr_data.selected_block =
-        BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+        BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(

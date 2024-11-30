@@ -141,10 +141,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
           .protocol;
         if protocol == "torrent" {
           self.app.data.radarr_data.selected_block =
-            BlockSelectionState::new(&EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
+            BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
         } else {
           self.app.data.radarr_data.selected_block =
-            BlockSelectionState::new(&EDIT_INDEXER_NZB_SELECTION_BLOCKS);
+            BlockSelectionState::new(EDIT_INDEXER_NZB_SELECTION_BLOCKS);
         }
       }
       _ => (),
@@ -192,7 +192,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
             .app
             .push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
           self.app.data.radarr_data.selected_block =
-            BlockSelectionState::new(&INDEXER_SETTINGS_SELECTION_BLOCKS);
+            BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
         }
         _ => (),
       },
