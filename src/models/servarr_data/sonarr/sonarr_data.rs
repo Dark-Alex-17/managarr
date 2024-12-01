@@ -295,10 +295,39 @@ pub static SERIES_BLOCKS: [ActiveSonarrBlock; 7] = [
   ActiveSonarrBlock::UpdateAllSeriesPrompt,
 ];
 
+pub static EDIT_SERIES_BLOCKS: [ActiveSonarrBlock; 9] = [
+  ActiveSonarrBlock::EditSeriesPrompt,
+  ActiveSonarrBlock::EditSeriesConfirmPrompt,
+  ActiveSonarrBlock::EditSeriesPathInput,
+  ActiveSonarrBlock::EditSeriesSelectSeriesType,
+  ActiveSonarrBlock::EditSeriesSelectQualityProfile,
+  ActiveSonarrBlock::EditSeriesSelectLanguageProfile,
+  ActiveSonarrBlock::EditSeriesTagsInput,
+  ActiveSonarrBlock::EditSeriesToggleMonitored,
+  ActiveSonarrBlock::EditSeriesToggleSeasonFolder,
+];
+
+pub static EDIT_SERIES_SELECTION_BLOCKS: &[&[ActiveSonarrBlock]] = &[
+  &[ActiveSonarrBlock::EditSeriesToggleMonitored],
+  &[ActiveSonarrBlock::EditSeriesToggleSeasonFolder],
+  &[ActiveSonarrBlock::EditSeriesSelectQualityProfile],
+  &[ActiveSonarrBlock::EditSeriesSelectLanguageProfile],
+  &[ActiveSonarrBlock::EditSeriesSelectSeriesType],
+  &[ActiveSonarrBlock::EditSeriesPathInput],
+  &[ActiveSonarrBlock::EditSeriesTagsInput],
+  &[ActiveSonarrBlock::EditSeriesConfirmPrompt],
+];
+
 pub static DOWNLOADS_BLOCKS: [ActiveSonarrBlock; 3] = [
   ActiveSonarrBlock::Downloads,
   ActiveSonarrBlock::DeleteDownloadPrompt,
   ActiveSonarrBlock::UpdateDownloadsPrompt,
+];
+
+pub const DELETE_SERIES_SELECTION_BLOCKS: &[&[ActiveSonarrBlock]] = &[
+  &[ActiveSonarrBlock::DeleteSeriesToggleDeleteFile],
+  &[ActiveSonarrBlock::DeleteSeriesToggleAddListExclusion],
+  &[ActiveSonarrBlock::DeleteSeriesConfirmPrompt],
 ];
 
 impl From<ActiveSonarrBlock> for Route {

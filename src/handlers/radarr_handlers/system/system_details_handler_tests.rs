@@ -26,6 +26,7 @@ mod tests {
     test_iterable_scroll!(
       test_log_details_scroll,
       SystemDetailsHandler,
+      radarr_data,
       log_details,
       simple_stateful_iterable_vec!(HorizontallyScrollableText, String, text),
       ActiveRadarrBlock::SystemLogs,
@@ -241,6 +242,7 @@ mod tests {
     test_iterable_home_and_end!(
       test_log_details_home_end,
       SystemDetailsHandler,
+      radarr_data,
       log_details,
       extended_stateful_iterable_vec!(HorizontallyScrollableText, String, text),
       ActiveRadarrBlock::SystemLogs,

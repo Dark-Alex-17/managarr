@@ -1,4 +1,5 @@
 use radarr_handlers::RadarrHandler;
+use sonarr_handlers::SonarrHandler;
 
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
@@ -6,6 +7,7 @@ use crate::event::Key;
 use crate::models::{HorizontallyScrollableText, Route};
 
 mod radarr_handlers;
+mod sonarr_handlers;
 
 #[cfg(test)]
 #[path = "handlers_tests.rs"]
@@ -89,8 +91,16 @@ pub fn handle_events(key: Key, app: &mut App<'_>) {
     app.reset();
     app.server_tabs.previous();
     app.pop_and_push_navigation_stack(app.server_tabs.get_active_route());
-  } else if let Route::Radarr(active_radarr_block, context) = app.get_current_route() {
-    RadarrHandler::with(key, app, active_radarr_block, context).handle()
+  } else {
+    match app.get_current_route() {
+      Route::Radarr(active_radarr_block, context) => {
+        RadarrHandler::with(key, app, active_radarr_block, context).handle()
+      }
+      Route::Sonarr(active_sonarr_block, context) => {
+        SonarrHandler::with(key, app, active_sonarr_block, context).handle()
+      }
+      _ => (),
+    }
   }
 }
 
@@ -103,8 +113,14 @@ fn handle_clear_errors(app: &mut App<'_>) {
 fn handle_prompt_toggle(app: &mut App<'_>, key: Key) {
   match key {
     _ if key == DEFAULT_KEYBINDINGS.left.key || key == DEFAULT_KEYBINDINGS.right.key => {
-      if let Route::Radarr(_, _) = app.get_current_route() {
-        app.data.radarr_data.prompt_confirm = !app.data.radarr_data.prompt_confirm;
+      match app.get_current_route() {
+        Route::Radarr(_, _) => {
+          app.data.radarr_data.prompt_confirm = !app.data.radarr_data.prompt_confirm
+        }
+        Route::Sonarr(_, _) => {
+          app.data.sonarr_data.prompt_confirm = !app.data.sonarr_data.prompt_confirm
+        }
+        _ => (),
       }
     }
     _ => (),

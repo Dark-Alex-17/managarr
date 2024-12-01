@@ -22,6 +22,7 @@ mod tests {
     test_iterable_scroll!(
       test_downloads_scroll,
       DownloadsHandler,
+      radarr_data,
       downloads,
       DownloadRecord,
       ActiveRadarrBlock::Downloads,
@@ -69,6 +70,7 @@ mod tests {
     test_iterable_home_and_end!(
       test_downloads_home_end,
       DownloadsHandler,
+      radarr_data,
       downloads,
       DownloadRecord,
       ActiveRadarrBlock::Downloads,

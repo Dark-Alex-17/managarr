@@ -34,6 +34,7 @@ mod tests {
     test_iterable_scroll!(
       test_collections_scroll,
       CollectionsHandler,
+      radarr_data,
       collections,
       simple_stateful_iterable_vec!(Collection, HorizontallyScrollableText),
       ActiveRadarrBlock::Collections,
@@ -153,6 +154,7 @@ mod tests {
     test_iterable_home_and_end!(
       test_collections_home_end,
       CollectionsHandler,
+      radarr_data,
       collections,
       extended_stateful_iterable_vec!(Collection, HorizontallyScrollableText),
       ActiveRadarrBlock::Collections,

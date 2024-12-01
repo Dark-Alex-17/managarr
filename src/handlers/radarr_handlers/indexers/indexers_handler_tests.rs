@@ -25,6 +25,7 @@ mod tests {
     test_iterable_scroll!(
       test_indexers_scroll,
       IndexersHandler,
+      radarr_data,
       indexers,
       simple_stateful_iterable_vec!(Indexer, String, protocol),
       ActiveRadarrBlock::Indexers,
@@ -71,6 +72,7 @@ mod tests {
     test_iterable_home_and_end!(
       test_indexers_home_end,
       IndexersHandler,
+      radarr_data,
       indexers,
       extended_stateful_iterable_vec!(Indexer, String, protocol),
       ActiveRadarrBlock::Indexers,

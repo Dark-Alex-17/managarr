@@ -24,6 +24,19 @@ mod tests {
   }
 
   #[rstest]
+  #[case(ActiveRadarrBlock::Movies.into(), ActiveRadarrBlock::SearchMovie.into())]
+  #[case(ActiveSonarrBlock::Series.into(), ActiveSonarrBlock::SearchSeries.into())]
+  fn test_handle_events(#[case] base_block: Route, #[case] top_block: Route) {
+    let mut app = App::default();
+    app.push_navigation_stack(base_block);
+    app.push_navigation_stack(top_block);
+
+    handle_events(DEFAULT_KEYBINDINGS.esc.key, &mut app);
+
+    assert_eq!(app.get_current_route(), base_block);
+  }
+
+  #[rstest]
   #[case(0, ActiveSonarrBlock::Series, ActiveSonarrBlock::Series)]
   #[case(1, ActiveRadarrBlock::Movies, ActiveRadarrBlock::Movies)]
   fn test_handle_change_tabs<T>(#[case] index: usize, #[case] left_block: T, #[case] right_block: T)
@@ -54,8 +67,9 @@ mod tests {
   }
 
   #[rstest]
-  fn test_handle_prompt_toggle_left_right(#[values(Key::Left, Key::Right)] key: Key) {
+  fn test_handle_prompt_toggle_left_right_radarr(#[values(Key::Left, Key::Right)] key: Key) {
     let mut app = App::default();
+    app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
 
     assert!(!app.data.radarr_data.prompt_confirm);
 
@@ -66,5 +80,21 @@ mod tests {
     handle_prompt_toggle(&mut app, key);
 
     assert!(!app.data.radarr_data.prompt_confirm);
+  }
+
+  #[rstest]
+  fn test_handle_prompt_toggle_left_right_sonarr(#[values(Key::Left, Key::Right)] key: Key) {
+    let mut app = App::default();
+    app.push_navigation_stack(ActiveSonarrBlock::Series.into());
+
+    assert!(!app.data.sonarr_data.prompt_confirm);
+
+    handle_prompt_toggle(&mut app, key);
+
+    assert!(app.data.sonarr_data.prompt_confirm);
+
+    handle_prompt_toggle(&mut app, key);
+
+    assert!(!app.data.sonarr_data.prompt_confirm);
   }
 }

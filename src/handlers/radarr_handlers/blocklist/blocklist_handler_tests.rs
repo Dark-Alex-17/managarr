@@ -28,6 +28,7 @@ mod tests {
     test_iterable_scroll!(
       test_blocklist_scroll,
       BlocklistHandler,
+      radarr_data,
       blocklist,
       simple_stateful_iterable_vec!(BlocklistItem, String, source_title),
       ActiveRadarrBlock::Blocklist,
@@ -136,6 +137,7 @@ mod tests {
     test_iterable_home_and_end!(
       test_blocklist_home_and_end,
       BlocklistHandler,
+      radarr_data,
       blocklist,
       extended_stateful_iterable_vec!(BlocklistItem, String, source_title),
       ActiveRadarrBlock::Blocklist,

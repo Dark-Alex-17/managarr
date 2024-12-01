@@ -24,6 +24,7 @@ mod tests {
     test_iterable_scroll!(
       test_collection_details_scroll,
       CollectionDetailsHandler,
+      radarr_data,
       collection_movies,
       simple_stateful_iterable_vec!(CollectionMovie, HorizontallyScrollableText),
       ActiveRadarrBlock::CollectionDetails,
@@ -88,6 +89,7 @@ mod tests {
     test_iterable_home_and_end!(
       test_collection_details_home_end,
       CollectionDetailsHandler,
+      radarr_data,
       collection_movies,
       extended_stateful_iterable_vec!(CollectionMovie, HorizontallyScrollableText),
       ActiveRadarrBlock::CollectionDetails,

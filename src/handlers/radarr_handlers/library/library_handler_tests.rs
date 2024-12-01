@@ -30,6 +30,7 @@ mod tests {
     test_iterable_scroll!(
       test_movies_scroll,
       LibraryHandler,
+      radarr_data,
       movies,
       simple_stateful_iterable_vec!(Movie, HorizontallyScrollableText),
       ActiveRadarrBlock::Movies,
@@ -134,6 +135,7 @@ mod tests {
     test_iterable_home_and_end!(
       test_movies_home_end,
       LibraryHandler,
+      radarr_data,
       movies,
       extended_stateful_iterable_vec!(Movie, HorizontallyScrollableText),
       ActiveRadarrBlock::Movies,

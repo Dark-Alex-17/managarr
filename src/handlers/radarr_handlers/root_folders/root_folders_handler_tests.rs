@@ -23,6 +23,7 @@ mod tests {
     test_iterable_scroll!(
       test_root_folders_scroll,
       RootFoldersHandler,
+      radarr_data,
       root_folders,
       simple_stateful_iterable_vec!(RootFolder, String, path),
       ActiveRadarrBlock::RootFolders,
@@ -71,6 +72,7 @@ mod tests {
     test_iterable_home_and_end!(
       test_root_folders_home_end,
       RootFoldersHandler,
+      radarr_data,
       root_folders,
       extended_stateful_iterable_vec!(RootFolder, String, path),
       ActiveRadarrBlock::RootFolders,
