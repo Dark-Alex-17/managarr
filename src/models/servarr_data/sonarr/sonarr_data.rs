@@ -8,7 +8,9 @@ use crate::{
       build_context_clue_string, BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
       INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
     },
-    sonarr::sonarr_context_clues::{HISTORY_CONTEXT_CLUES, SERIES_CONTEXT_CLUES},
+    sonarr::sonarr_context_clues::{
+      HISTORY_CONTEXT_CLUES, SERIES_CONTEXT_CLUES, SERIES_DETAILS_CONTEXT_CLUES,
+    },
   },
   models::{
     servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem},
@@ -30,6 +32,10 @@ use super::modals::{AddSeriesModal, EditSeriesModal, SeasonDetailsModal};
 #[path = "sonarr_data_tests.rs"]
 mod sonarr_data_tests;
 
+#[cfg(test)]
+#[path = "sonarr_test_utils.rs"]
+pub mod sonarr_test_utils;
+
 pub struct SonarrData<'a> {
   pub add_list_exclusion: bool,
   pub add_searched_series: Option<StatefulTable<AddSeriesSearchResult>>,
@@ -49,6 +55,7 @@ pub struct SonarrData<'a> {
   pub indexer_test_error: Option<String>,
   pub language_profiles_map: BiMap<i64, String>,
   pub logs: StatefulList<HorizontallyScrollableText>,
+  pub log_details: StatefulList<HorizontallyScrollableText>,
   pub main_tabs: TabState,
   pub prompt_confirm: bool,
   pub prompt_confirm_action: Option<SonarrEvent>,
@@ -60,6 +67,7 @@ pub struct SonarrData<'a> {
   pub selected_block: BlockSelectionState<'a, ActiveSonarrBlock>,
   pub series: StatefulTable<Series>,
   pub series_history: Option<StatefulTable<SonarrHistoryItem>>,
+  pub series_info_tabs: TabState,
   pub start_time: DateTime<Utc>,
   pub tags_map: BiMap<i64, String>,
   pub tasks: StatefulTable<SonarrTask>,
@@ -95,6 +103,7 @@ impl<'a> Default for SonarrData<'a> {
       indexer_test_all_results: None,
       language_profiles_map: BiMap::new(),
       logs: StatefulList::default(),
+      log_details: StatefulList::default(),
       prompt_confirm: false,
       prompt_confirm_action: None,
       quality_profile_map: BiMap::new(),
@@ -152,6 +161,20 @@ impl<'a> Default for SonarrData<'a> {
           route: ActiveSonarrBlock::System.into(),
           help: String::new(),
           contextual_help: Some(build_context_clue_string(&SYSTEM_CONTEXT_CLUES)),
+        },
+      ]),
+      series_info_tabs: TabState::new(vec![
+        TabRoute {
+          title: "Seasons",
+          route: ActiveSonarrBlock::SeriesDetails.into(),
+          help: String::new(),
+          contextual_help: Some(build_context_clue_string(&SERIES_DETAILS_CONTEXT_CLUES)),
+        },
+        TabRoute {
+          title: "History",
+          route: ActiveSonarrBlock::SeriesHistory.into(),
+          help: String::new(),
+          contextual_help: Some(build_context_clue_string(&HISTORY_CONTEXT_CLUES)),
         },
       ]),
     }

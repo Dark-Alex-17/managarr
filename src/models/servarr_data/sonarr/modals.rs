@@ -1,15 +1,25 @@
 use strum::IntoEnumIterator;
 
-use crate::models::{
-  servarr_data::modals::EditIndexerModal,
-  servarr_models::{Indexer, RootFolder},
-  sonarr_models::{Episode, Series, SeriesMonitor, SeriesType, SonarrHistoryItem, SonarrRelease},
-  stateful_list::StatefulList,
-  stateful_table::StatefulTable,
-  HorizontallyScrollableText, ScrollableText,
+use crate::{
+  app::{
+    context_clues::build_context_clue_string,
+    sonarr::sonarr_context_clues::{
+      EPISODE_DETAILS_CONTEXT_CLUES, MANUAL_EPISODE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
+      MANUAL_EPISODE_SEARCH_CONTEXT_CLUES, MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
+      SEASON_DETAILS_CONTEXT_CLUES,
+    },
+  },
+  models::{
+    servarr_data::modals::EditIndexerModal,
+    servarr_models::{Indexer, RootFolder},
+    sonarr_models::{Episode, Series, SeriesMonitor, SeriesType, SonarrHistoryItem, SonarrRelease},
+    stateful_list::StatefulList,
+    stateful_table::StatefulTable,
+    HorizontallyScrollableText, ScrollableText, TabRoute, TabState,
+  },
 };
 
-use super::sonarr_data::SonarrData;
+use super::sonarr_data::{ActiveSonarrBlock, SonarrData};
 
 #[cfg(test)]
 #[path = "modals_tests.rs"]
@@ -246,22 +256,86 @@ impl From<&SonarrData<'_>> for EditSeriesModal {
   }
 }
 
-#[derive(Default)]
 pub struct EpisodeDetailsModal {
-  // Temporarily allowing this, since the value is only current written and not read.
-  // This will be read from once I begin the UI work for Sonarr
-  #[allow(dead_code)]
   pub episode_details: ScrollableText,
   pub file_details: String,
   pub audio_details: String,
   pub video_details: String,
   pub episode_history: StatefulTable<SonarrHistoryItem>,
   pub episode_releases: StatefulTable<SonarrRelease>,
+  pub episode_details_tabs: TabState,
 }
 
-#[derive(Default)]
+impl Default for EpisodeDetailsModal {
+  fn default() -> EpisodeDetailsModal {
+    EpisodeDetailsModal {
+      episode_details: ScrollableText::default(),
+      file_details: String::new(),
+      audio_details: String::new(),
+      video_details: String::new(),
+      episode_history: StatefulTable::default(),
+      episode_releases: StatefulTable::default(),
+      episode_details_tabs: TabState::new(vec![
+        TabRoute {
+          title: "Details",
+          route: ActiveSonarrBlock::EpisodeDetails.into(),
+          help: build_context_clue_string(&EPISODE_DETAILS_CONTEXT_CLUES),
+          contextual_help: None,
+        },
+        TabRoute {
+          title: "History",
+          route: ActiveSonarrBlock::EpisodeHistory.into(),
+          help: build_context_clue_string(&EPISODE_DETAILS_CONTEXT_CLUES),
+          contextual_help: None,
+        },
+        TabRoute {
+          title: "File",
+          route: ActiveSonarrBlock::EpisodeFile.into(),
+          help: build_context_clue_string(&EPISODE_DETAILS_CONTEXT_CLUES),
+          contextual_help: None,
+        },
+        TabRoute {
+          title: "Manual Search",
+          route: ActiveSonarrBlock::ManualEpisodeSearch.into(),
+          help: build_context_clue_string(&MANUAL_EPISODE_SEARCH_CONTEXT_CLUES),
+          contextual_help: Some(build_context_clue_string(
+            &MANUAL_EPISODE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
+          )),
+        },
+      ]),
+    }
+  }
+}
+
 pub struct SeasonDetailsModal {
   pub episodes: StatefulTable<Episode>,
   pub episode_details_modal: Option<EpisodeDetailsModal>,
   pub season_releases: StatefulTable<SonarrRelease>,
+  pub season_details_tabs: TabState,
+}
+
+impl Default for SeasonDetailsModal {
+  fn default() -> SeasonDetailsModal {
+    SeasonDetailsModal {
+      episodes: StatefulTable::default(),
+      episode_details_modal: None,
+      season_releases: StatefulTable::default(),
+      season_details_tabs: TabState::new(vec![
+        TabRoute {
+          title: "Episodes",
+          route: ActiveSonarrBlock::SeasonDetails.into(),
+          help: String::new(),
+          contextual_help: Some(build_context_clue_string(&SEASON_DETAILS_CONTEXT_CLUES)),
+        },
+        TabRoute {
+          title: "Manual Search",
+          route: ActiveSonarrBlock::ManualSeasonSearch.into(),
+          help: String::new(),
+          contextual_help: Some(build_context_clue_string(
+            &MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
+          )),
+        },
+      ]),
+    }
+  }
 }

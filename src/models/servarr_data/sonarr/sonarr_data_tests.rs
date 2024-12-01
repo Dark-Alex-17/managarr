@@ -10,7 +10,9 @@ mod tests {
           build_context_clue_string, BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
           INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
         },
-        sonarr::sonarr_context_clues::{HISTORY_CONTEXT_CLUES, SERIES_CONTEXT_CLUES},
+        sonarr::sonarr_context_clues::{
+          HISTORY_CONTEXT_CLUES, SERIES_CONTEXT_CLUES, SERIES_DETAILS_CONTEXT_CLUES,
+        },
       },
       models::{
         servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData},
@@ -76,6 +78,7 @@ mod tests {
       assert!(sonarr_data.indexer_test_all_results.is_none());
       assert!(sonarr_data.language_profiles_map.is_empty());
       assert!(sonarr_data.logs.is_empty());
+      assert!(sonarr_data.log_details.is_empty());
       assert!(!sonarr_data.prompt_confirm);
       assert!(sonarr_data.prompt_confirm_action.is_none());
       assert!(sonarr_data.quality_profile_map.is_empty());
@@ -169,6 +172,30 @@ mod tests {
       assert_eq!(
         sonarr_data.main_tabs.tabs[6].contextual_help,
         Some(build_context_clue_string(&SYSTEM_CONTEXT_CLUES))
+      );
+
+      assert_eq!(sonarr_data.series_info_tabs.tabs.len(), 2);
+
+      assert_str_eq!(sonarr_data.series_info_tabs.tabs[0].title, "Seasons");
+      assert_eq!(
+        sonarr_data.series_info_tabs.tabs[0].route,
+        ActiveSonarrBlock::SeriesDetails.into()
+      );
+      assert!(sonarr_data.series_info_tabs.tabs[0].help.is_empty());
+      assert_eq!(
+        sonarr_data.series_info_tabs.tabs[0].contextual_help,
+        Some(build_context_clue_string(&SERIES_DETAILS_CONTEXT_CLUES))
+      );
+
+      assert_str_eq!(sonarr_data.series_info_tabs.tabs[1].title, "History");
+      assert_eq!(
+        sonarr_data.series_info_tabs.tabs[1].route,
+        ActiveSonarrBlock::SeriesHistory.into()
+      );
+      assert!(sonarr_data.series_info_tabs.tabs[1].help.is_empty());
+      assert_eq!(
+        sonarr_data.series_info_tabs.tabs[1].contextual_help,
+        Some(build_context_clue_string(&HISTORY_CONTEXT_CLUES))
       );
     }
   }
