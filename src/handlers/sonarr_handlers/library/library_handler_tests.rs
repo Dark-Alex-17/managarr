@@ -12,7 +12,7 @@ mod tests {
   use crate::handlers::sonarr_handlers::library::{series_sorting_options, LibraryHandler};
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SERIES_BLOCKS};
-  use crate::models::sonarr_models::{Series, SeriesType};
+  use crate::models::sonarr_models::{Series, SeriesStatus, SeriesType};
   use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
 
@@ -1563,8 +1563,13 @@ mod tests {
   }
 
   #[test]
-  fn test_series_sorting_options_runtime() {
-    let expected_cmp_fn: fn(&Series, &Series) -> Ordering = |a, b| a.runtime.cmp(&b.runtime);
+  fn test_series_sorting_options_status() {
+    let expected_cmp_fn: fn(&Series, &Series) -> Ordering = |a, b| {
+      a.status
+        .to_string()
+        .to_lowercase()
+        .cmp(&b.status.to_string().to_lowercase())
+    };
     let mut expected_series_vec = series_vec();
     expected_series_vec.sort_by(expected_cmp_fn);
 
@@ -1573,7 +1578,7 @@ mod tests {
     sorted_series_vec.sort_by(sort_option.cmp_fn.unwrap());
 
     assert_eq!(sorted_series_vec, expected_series_vec);
-    assert_str_eq!(sort_option.name, "Runtime");
+    assert_str_eq!(sort_option.name, "Status");
   }
 
   #[test]
@@ -1766,7 +1771,7 @@ mod tests {
         year: 2024,
         monitored: false,
         season_folder: false,
-        runtime: 12.into(),
+        status: SeriesStatus::Ended,
         quality_profile_id: 1,
         language_profile_id: 1,
         certification: Some("TV-MA".to_owned()),
@@ -1781,7 +1786,7 @@ mod tests {
         year: 1998,
         monitored: false,
         season_folder: false,
-        runtime: 60.into(),
+        status: SeriesStatus::Continuing,
         quality_profile_id: 2,
         language_profile_id: 2,
         certification: Some("TV-PG".to_owned()),
@@ -1796,7 +1801,7 @@ mod tests {
         year: 1954,
         monitored: true,
         season_folder: false,
-        runtime: 120.into(),
+        status: SeriesStatus::Upcoming,
         quality_profile_id: 3,
         language_profile_id: 3,
         certification: Some("TV-G".to_owned()),

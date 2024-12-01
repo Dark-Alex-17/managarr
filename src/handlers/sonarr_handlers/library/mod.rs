@@ -403,8 +403,13 @@ fn series_sorting_options() -> Vec<SortOption<Series>> {
       }),
     },
     SortOption {
-      name: "Runtime",
-      cmp_fn: Some(|a, b| a.runtime.cmp(&b.runtime)),
+      name: "Status",
+      cmp_fn: Some(|a, b| {
+        a.status
+          .to_string()
+          .to_lowercase()
+          .cmp(&b.status.to_string().to_lowercase())
+      }),
     },
     SortOption {
       name: "Rating",

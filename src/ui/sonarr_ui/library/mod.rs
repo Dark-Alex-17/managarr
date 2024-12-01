@@ -4,6 +4,11 @@ use ratatui::{
   Frame,
 };
 
+use crate::ui::widgets::{
+  confirmation_prompt::ConfirmationPrompt,
+  message::Message,
+  popup::{Popup, Size},
+};
 use crate::{
   app::App,
   models::{
@@ -12,12 +17,12 @@ use crate::{
     EnumDisplayStyle, Route,
   },
   ui::{
+    draw_input_box_popup, draw_popup_over,
     styles::ManagarrStyle,
     utils::{get_width_from_percentage, layout_block_top_border},
     widgets::managarr_table::ManagarrTable,
     DrawUi,
   },
-  utils::convert_runtime,
 };
 
 #[cfg(test)]
@@ -40,6 +45,44 @@ impl DrawUi for LibraryUi {
     let mut series_ui_matchers = |active_sonarr_block: ActiveSonarrBlock| match active_sonarr_block
     {
       ActiveSonarrBlock::Series | ActiveSonarrBlock::SeriesSortPrompt => draw_series(f, app, area),
+      ActiveSonarrBlock::SearchSeries => draw_popup_over(
+        f,
+        app,
+        area,
+        draw_series,
+        draw_series_search_box,
+        Size::InputBox,
+      ),
+      ActiveSonarrBlock::SearchSeriesError => {
+        let popup = Popup::new(Message::new("Series not found!")).size(Size::Message);
+
+        draw_series(f, app, area);
+        f.render_widget(popup, f.area());
+      }
+      ActiveSonarrBlock::FilterSeries => draw_popup_over(
+        f,
+        app,
+        area,
+        draw_series,
+        draw_filter_series_box,
+        Size::InputBox,
+      ),
+      ActiveSonarrBlock::FilterSeriesError => {
+        let popup = Popup::new(Message::new("No series found matching the given filter!"))
+          .size(Size::Message);
+
+        draw_series(f, app, area);
+        f.render_widget(popup, f.area());
+      }
+      ActiveSonarrBlock::UpdateAllSeriesPrompt => {
+        let confirmation_prompt = ConfirmationPrompt::new()
+          .title("Update All Series")
+          .prompt("Do you want to update info and scan your disks for all of your series?")
+          .yes_no_value(app.data.sonarr_data.prompt_confirm);
+
+        draw_series(f, app, area);
+        f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+      }
       _ => (),
     };
 
@@ -71,12 +114,11 @@ pub(super) fn draw_series(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
     let series_table_row_mapping = |series: &Series| {
       series.title.scroll_left_or_reset(
-        get_width_from_percentage(area, 27),
+        get_width_from_percentage(area, 23),
         *series == current_selection,
         app.tick_count % app.ticks_until_scroll == 0,
       );
       let monitored = if series.monitored { "🏷" } else { "" };
-      let (hours, minutes) = convert_runtime(series.runtime);
       let certification = series.certification.clone().unwrap_or_default();
       let network = series.network.clone().unwrap_or_default();
       let quality_profile = quality_profile_map
@@ -109,7 +151,7 @@ pub(super) fn draw_series(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Cell::from(series.title.to_string()),
           Cell::from(series.year.to_string()),
           Cell::from(network),
-          Cell::from(format!("{hours}h {minutes}m")),
+          Cell::from(series.status.to_display_str()),
           Cell::from(certification),
           Cell::from(series.series_type.to_display_str()),
           Cell::from(quality_profile),
@@ -128,7 +170,7 @@ pub(super) fn draw_series(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         "Title",
         "Year",
         "Network",
-        "Runtime",
+        "Status",
         "Rating",
         "Type",
         "Quality Profile",
@@ -137,9 +179,9 @@ pub(super) fn draw_series(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         "Tags",
       ])
       .constraints([
-        Constraint::Percentage(27),
+        Constraint::Percentage(23),
         Constraint::Percentage(4),
-        Constraint::Percentage(10),
+        Constraint::Percentage(14),
         Constraint::Percentage(6),
         Constraint::Percentage(6),
         Constraint::Percentage(6),
@@ -176,4 +218,22 @@ fn decorate_series_row_with_style<'a>(series: &Series, row: Row<'a>) -> Row<'a> 
     SeriesStatus::Upcoming => row.unreleased(),
     _ => row.missing(),
   }
+}
+
+fn draw_series_search_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  draw_input_box_popup(
+    f,
+    area,
+    "Search",
+    app.data.sonarr_data.series.search.as_ref().unwrap(),
+  );
+}
+
+fn draw_filter_series_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  draw_input_box_popup(
+    f,
+    area,
+    "Filter",
+    app.data.sonarr_data.series.filter.as_ref().unwrap(),
+  )
 }
