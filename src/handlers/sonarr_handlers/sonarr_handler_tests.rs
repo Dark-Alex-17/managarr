@@ -127,4 +127,22 @@ mod tests {
       active_sonarr_block
     );
   }
+
+  #[rstest]
+  fn test_delegates_blocklist_blocks_to_blocklist_handler(
+    #[values(
+      ActiveSonarrBlock::Blocklist,
+      ActiveSonarrBlock::BlocklistItemDetails,
+      ActiveSonarrBlock::DeleteBlocklistItemPrompt,
+      ActiveSonarrBlock::BlocklistClearAllItemsPrompt,
+      ActiveSonarrBlock::BlocklistSortPrompt
+    )]
+    active_sonarr_block: ActiveSonarrBlock,
+  ) {
+    test_handler_delegation!(
+      SonarrHandler,
+      ActiveSonarrBlock::Blocklist,
+      active_sonarr_block
+    );
+  }
 }
