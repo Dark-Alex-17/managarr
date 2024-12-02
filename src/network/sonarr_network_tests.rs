@@ -1956,6 +1956,7 @@ mod test {
       BlocklistItem {
         id: 123,
         series_id: 1007,
+        series_title: Some("Z Series".into()),
         source_title: "z series".into(),
         episode_ids: vec![Number::from(42020)],
         ..blocklist_item()
@@ -1978,6 +1979,17 @@ mod test {
       None,
     )
     .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1007,
+        title: "Z Series".into(),
+        ..series()
+      }]);
     app_arc.lock().await.data.sonarr_data.blocklist.sort_asc = true;
     if use_custom_sorting {
       let cmp_fn = |a: &BlocklistItem, b: &BlocklistItem| {
@@ -6682,6 +6694,7 @@ mod test {
     BlocklistItem {
       id: 1,
       series_id: 1,
+      series_title: None,
       episode_ids: vec![Number::from(1)],
       source_title: "Test Source Title".to_owned(),
       language: language(),

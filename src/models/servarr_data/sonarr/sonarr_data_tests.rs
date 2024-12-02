@@ -202,8 +202,8 @@ mod tests {
 
   mod active_sonarr_block_tests {
     use crate::models::servarr_data::sonarr::sonarr_data::{
-      ActiveSonarrBlock, ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, DELETE_SERIES_BLOCKS,
-      DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_SERIES_BLOCKS,
+      ActiveSonarrBlock, ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, BLOCKLIST_BLOCKS,
+      DELETE_SERIES_BLOCKS, DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_SERIES_BLOCKS,
       EDIT_SERIES_SELECTION_BLOCKS, LIBRARY_BLOCKS,
     };
 
@@ -274,6 +274,16 @@ mod tests {
         &[ActiveSonarrBlock::AddSeriesConfirmPrompt]
       );
       assert_eq!(add_series_block_iter.next(), None);
+    }
+
+    #[test]
+    fn test_blocklist_blocks_contents() {
+      assert_eq!(BLOCKLIST_BLOCKS.len(), 5);
+      assert!(BLOCKLIST_BLOCKS.contains(&ActiveSonarrBlock::Blocklist));
+      assert!(BLOCKLIST_BLOCKS.contains(&ActiveSonarrBlock::BlocklistItemDetails));
+      assert!(BLOCKLIST_BLOCKS.contains(&ActiveSonarrBlock::DeleteBlocklistItemPrompt));
+      assert!(BLOCKLIST_BLOCKS.contains(&ActiveSonarrBlock::BlocklistClearAllItemsPrompt));
+      assert!(BLOCKLIST_BLOCKS.contains(&ActiveSonarrBlock::BlocklistSortPrompt));
     }
 
     #[test]

@@ -322,6 +322,14 @@ pub const ADD_SERIES_SELECTION_BLOCKS: &[&[ActiveSonarrBlock]] = &[
   &[ActiveSonarrBlock::AddSeriesConfirmPrompt],
 ];
 
+pub static BLOCKLIST_BLOCKS: [ActiveSonarrBlock; 5] = [
+  ActiveSonarrBlock::Blocklist,
+  ActiveSonarrBlock::BlocklistItemDetails,
+  ActiveSonarrBlock::DeleteBlocklistItemPrompt,
+  ActiveSonarrBlock::BlocklistClearAllItemsPrompt,
+  ActiveSonarrBlock::BlocklistSortPrompt,
+];
+
 pub static EDIT_SERIES_BLOCKS: [ActiveSonarrBlock; 9] = [
   ActiveSonarrBlock::EditSeriesPrompt,
   ActiveSonarrBlock::EditSeriesConfirmPrompt,

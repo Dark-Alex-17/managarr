@@ -19,7 +19,7 @@ use crate::{
       LogResponse, QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
-      AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, BlocklistResponse,
+      AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, BlocklistItem, BlocklistResponse,
       DeleteSeriesParams, DownloadRecord, DownloadsResponse, EditSeriesParams, Episode,
       IndexerSettings, Series, SonarrCommandBody, SonarrHistoryItem, SonarrHistoryWrapper,
       SonarrRelease, SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTask, SonarrTaskName,
@@ -1303,7 +1303,27 @@ impl<'a, 'b> Network<'a, 'b> {
           app.get_current_route(),
           Route::Sonarr(ActiveSonarrBlock::BlocklistSortPrompt, _)
         ) {
-          let mut blocklist_vec = blocklist_resp.records;
+          let mut blocklist_vec: Vec<BlocklistItem> = blocklist_resp
+            .records
+            .into_iter()
+            .map(|item| {
+              if let Some(series) = app
+                .data
+                .sonarr_data
+                .series
+                .items
+                .iter()
+                .find(|it| it.id == item.series_id)
+              {
+                BlocklistItem {
+                  series_title: Some(series.title.text.clone()),
+                  ..item
+                }
+              } else {
+                item
+              }
+            })
+            .collect();
           blocklist_vec.sort_by(|a, b| a.id.cmp(&b.id));
           app.data.sonarr_data.blocklist.set_items(blocklist_vec);
           app.data.sonarr_data.blocklist.apply_sorting_toggle(false);

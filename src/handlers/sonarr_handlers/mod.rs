@@ -9,6 +9,7 @@ use crate::{
 
 use super::KeyEventHandler;
 
+mod blocklist;
 mod downloads;
 mod library;
 

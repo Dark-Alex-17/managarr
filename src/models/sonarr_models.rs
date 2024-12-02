@@ -78,6 +78,8 @@ pub struct BlocklistItem {
   pub id: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub series_id: i64,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub series_title: Option<String>,
   pub episode_ids: Vec<Number>,
   pub source_title: String,
   pub language: Language,
