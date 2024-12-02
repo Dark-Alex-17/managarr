@@ -1,5 +1,6 @@
 use add_series_ui::AddSeriesUi;
 use delete_series_ui::DeleteSeriesUi;
+use edit_series_ui::EditSeriesUi;
 use ratatui::{
   layout::{Constraint, Rect},
   widgets::{Cell, Row},
@@ -29,6 +30,7 @@ use crate::{
 
 mod add_series_ui;
 mod delete_series_ui;
+mod edit_series_ui;
 
 #[cfg(test)]
 #[path = "library_ui_tests.rs"]
@@ -41,6 +43,7 @@ impl DrawUi for LibraryUi {
     if let Route::Sonarr(active_sonarr_block, _) = route {
       return AddSeriesUi::accepts(route)
         || DeleteSeriesUi::accepts(route)
+        || EditSeriesUi::accepts(route)
         || LIBRARY_BLOCKS.contains(&active_sonarr_block);
     }
 
@@ -96,6 +99,7 @@ impl DrawUi for LibraryUi {
     match route {
       _ if AddSeriesUi::accepts(route) => AddSeriesUi::draw(f, app, area),
       _ if DeleteSeriesUi::accepts(route) => DeleteSeriesUi::draw(f, app, area),
+      _ if EditSeriesUi::accepts(route) => EditSeriesUi::draw(f, app, area),
       Route::Sonarr(active_sonarr_block, _) if LIBRARY_BLOCKS.contains(&active_sonarr_block) => {
         series_ui_matchers(active_sonarr_block)
       }

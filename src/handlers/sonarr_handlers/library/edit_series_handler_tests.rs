@@ -663,7 +663,7 @@ mod tests {
 
     use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
     use crate::models::servarr_data::sonarr::sonarr_data::EDIT_SERIES_SELECTION_BLOCKS;
-    use crate::models::BlockSelectionState;
+    use crate::models::{BlockSelectionState, Route};
     use crate::network::sonarr_network::SonarrEvent;
 
     use super::*;
@@ -825,24 +825,25 @@ mod tests {
 
     #[test]
     fn test_edit_series_toggle_monitored_submit() {
+      let current_route = Route::from((
+        ActiveSonarrBlock::EditSeriesPrompt,
+        Some(ActiveSonarrBlock::Series),
+      ));
       let mut app = App::default();
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
-      app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
+      app.push_navigation_stack(current_route);
 
       EditSeriesHandler::with(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
-        None,
+        Some(ActiveSonarrBlock::Series),
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EditSeriesPrompt.into()
-      );
+      assert_eq!(app.get_current_route(), current_route);
       assert_eq!(
         app
           .data
@@ -858,14 +859,11 @@ mod tests {
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
-        None,
+        Some(ActiveSonarrBlock::Series),
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EditSeriesPrompt.into()
-      );
+      assert_eq!(app.get_current_route(), current_route);
       assert_eq!(
         app
           .data
@@ -880,25 +878,26 @@ mod tests {
 
     #[test]
     fn test_edit_series_toggle_use_season_folders_submit() {
+      let current_route = Route::from((
+        ActiveSonarrBlock::EditSeriesPrompt,
+        Some(ActiveSonarrBlock::Series),
+      ));
       let mut app = App::default();
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.set_index(0, 1);
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
-      app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
+      app.push_navigation_stack(current_route);
 
       EditSeriesHandler::with(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
-        None,
+        Some(ActiveSonarrBlock::Series),
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EditSeriesPrompt.into()
-      );
+      assert_eq!(app.get_current_route(), current_route);
       assert_eq!(
         app
           .data
@@ -914,14 +913,11 @@ mod tests {
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
-        None,
+        Some(ActiveSonarrBlock::Series),
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EditSeriesPrompt.into()
-      );
+      assert_eq!(app.get_current_route(), current_route);
       assert_eq!(
         app
           .data
@@ -947,7 +943,13 @@ mod tests {
       let mut app = App::default();
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
-      app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
+      app.push_navigation_stack(
+        (
+          ActiveSonarrBlock::EditSeriesPrompt,
+          Some(ActiveSonarrBlock::Series),
+        )
+          .into(),
+      );
       app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.set_index(0, y_index);
 
@@ -959,7 +961,10 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), selected_block.into());
+      assert_eq!(
+        app.get_current_route(),
+        (selected_block, Some(ActiveSonarrBlock::Series)).into()
+      );
       assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
 
       if selected_block == ActiveSonarrBlock::EditSeriesPathInput
@@ -977,7 +982,13 @@ mod tests {
       app.is_loading = true;
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
-      app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
+      app.push_navigation_stack(
+        (
+          ActiveSonarrBlock::EditSeriesPrompt,
+          Some(ActiveSonarrBlock::Series),
+        )
+          .into(),
+      );
       app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.set_index(0, y_index);
 
@@ -985,13 +996,17 @@ mod tests {
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
-        None,
+        Some(ActiveSonarrBlock::Series),
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveSonarrBlock::EditSeriesPrompt.into()
+        (
+          ActiveSonarrBlock::EditSeriesPrompt,
+          Some(ActiveSonarrBlock::Series),
+        )
+          .into()
       );
       assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
       assert!(!app.should_ignore_quit_key);
@@ -1014,7 +1029,13 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
       app.push_navigation_stack(active_sonarr_block.into());
 
-      EditSeriesHandler::with(SUBMIT_KEY, &mut app, active_sonarr_block, None).handle();
+      EditSeriesHandler::with(
+        SUBMIT_KEY,
+        &mut app,
+        active_sonarr_block,
+        Some(ActiveSonarrBlock::Series),
+      )
+      .handle();
 
       assert_eq!(
         app.get_current_route(),

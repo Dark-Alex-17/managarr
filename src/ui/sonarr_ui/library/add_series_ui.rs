@@ -324,7 +324,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
   let [paragraph_area, root_folder_area, monitor_area, quality_profile_area, language_profile_area, series_type_area, season_folder_area, tags_area, _, buttons_area, help_area] =
     Layout::vertical([
-      Constraint::Length(7),
+      Constraint::Length(6),
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),

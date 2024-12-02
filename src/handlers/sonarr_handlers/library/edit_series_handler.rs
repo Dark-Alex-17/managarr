@@ -15,7 +15,7 @@ pub(super) struct EditSeriesHandler<'a, 'b> {
   key: Key,
   app: &'a mut App<'b>,
   active_sonarr_block: ActiveSonarrBlock,
-  _context: Option<ActiveSonarrBlock>,
+  context: Option<ActiveSonarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditSeriesHandler<'a, 'b> {
@@ -27,13 +27,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditSeriesHandler<'a
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveSonarrBlock,
-    _context: Option<ActiveSonarrBlock>,
+    context: Option<ActiveSonarrBlock>,
   ) -> EditSeriesHandler<'a, 'b> {
     EditSeriesHandler {
       key,
       app,
       active_sonarr_block: active_block,
-      _context,
+      context,
     }
   }
 
@@ -267,22 +267,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditSeriesHandler<'a
           ActiveSonarrBlock::EditSeriesSelectSeriesType
           | ActiveSonarrBlock::EditSeriesSelectQualityProfile
           | ActiveSonarrBlock::EditSeriesSelectLanguageProfile => self.app.push_navigation_stack(
-            self
-              .app
-              .data
-              .sonarr_data
-              .selected_block
-              .get_active_block()
+            (
+              self.app.data.sonarr_data.selected_block.get_active_block(),
+              self.context,
+            )
               .into(),
           ),
           ActiveSonarrBlock::EditSeriesPathInput | ActiveSonarrBlock::EditSeriesTagsInput => {
             self.app.push_navigation_stack(
-              self
-                .app
-                .data
-                .sonarr_data
-                .selected_block
-                .get_active_block()
+              (
+                self.app.data.sonarr_data.selected_block.get_active_block(),
+                self.context,
+              )
                 .into(),
             );
             self.app.should_ignore_quit_key = true;

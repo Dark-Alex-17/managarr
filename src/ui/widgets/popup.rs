@@ -38,7 +38,7 @@ impl Size {
       Size::Small => (40, 40),
       Size::Medium => (60, 60),
       Size::Large => (75, 75),
-      Size::Long => (65, 80),
+      Size::Long => (65, 75),
     }
   }
 }

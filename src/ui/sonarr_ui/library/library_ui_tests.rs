@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{
-    ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS,
+    ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
   };
   use crate::models::{
     servarr_data::sonarr::sonarr_data::LIBRARY_BLOCKS, sonarr_models::SeriesStatus,
@@ -25,6 +25,7 @@ mod tests {
     library_ui_blocks.extend(LIBRARY_BLOCKS);
     library_ui_blocks.extend(ADD_SERIES_BLOCKS);
     library_ui_blocks.extend(DELETE_SERIES_BLOCKS);
+    library_ui_blocks.extend(EDIT_SERIES_BLOCKS);
 
     ActiveSonarrBlock::iter().for_each(|active_radarr_block| {
       if library_ui_blocks.contains(&active_radarr_block) {
