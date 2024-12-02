@@ -8,6 +8,7 @@ use crate::{
 
 use super::KeyEventHandler;
 
+mod downloads;
 mod library;
 
 #[cfg(test)]
