@@ -12,7 +12,7 @@ mod tests {
   use crate::handlers::sonarr_handlers::library::{series_sorting_options, LibraryHandler};
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
-    ActiveSonarrBlock, DELETE_SERIES_BLOCKS, LIBRARY_BLOCKS,
+    ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, LIBRARY_BLOCKS,
   };
   use crate::models::sonarr_models::{Series, SeriesStatus, SeriesType};
   use crate::models::stateful_table::SortOption;
@@ -1441,27 +1441,29 @@ mod tests {
     }
   }
 
-  // #[rstest]
-  // fn test_delegates_add_series_blocks_to_add_series_handler(
-  //   #[values(
-  //     ActiveSonarrBlock::AddSeriesSearchInput,
-  //     ActiveSonarrBlock::AddSeriesSearchResults,
-  //     ActiveSonarrBlock::AddSeriesPrompt,
-  //     ActiveSonarrBlock::AddSeriesSelectMonitor,
-  //     ActiveSonarrBlock::AddSeriesSelectSeriesType,
-  //     ActiveSonarrBlock::AddSeriesSelectQualityProfile,
-  //     ActiveSonarrBlock::AddSeriesSelectRootFolder,
-  //     ActiveSonarrBlock::AddSeriesAlreadyInLibrary,
-  //     ActiveSonarrBlock::AddSeriesTagsInput
-  //   )]
-  //   active_sonarr_block: ActiveSonarrBlock,
-  // ) {
-  //   test_handler_delegation!(
-  //     LibraryHandler,
-  //     ActiveSonarrBlock::Series,
-  //     active_sonarr_block
-  //   );
-  // }
+  #[rstest]
+  fn test_delegates_add_series_blocks_to_add_series_handler(
+    #[values(
+      ActiveSonarrBlock::AddSeriesAlreadyInLibrary,
+      ActiveSonarrBlock::AddSeriesEmptySearchResults,
+      ActiveSonarrBlock::AddSeriesPrompt,
+      ActiveSonarrBlock::AddSeriesSearchInput,
+      ActiveSonarrBlock::AddSeriesSearchResults,
+      ActiveSonarrBlock::AddSeriesSelectLanguageProfile,
+      ActiveSonarrBlock::AddSeriesSelectMonitor,
+      ActiveSonarrBlock::AddSeriesSelectQualityProfile,
+      ActiveSonarrBlock::AddSeriesSelectRootFolder,
+      ActiveSonarrBlock::AddSeriesSelectSeriesType,
+      ActiveSonarrBlock::AddSeriesTagsInput
+    )]
+    active_sonarr_block: ActiveSonarrBlock,
+  ) {
+    test_handler_delegation!(
+      LibraryHandler,
+      ActiveSonarrBlock::Series,
+      active_sonarr_block
+    );
+  }
 
   // #[rstest]
   // fn test_delegates_series_details_blocks_to_series_details_handler(
@@ -1705,6 +1707,7 @@ mod tests {
   fn test_library_handler_accepts() {
     let mut library_handler_blocks = Vec::new();
     library_handler_blocks.extend(LIBRARY_BLOCKS);
+    library_handler_blocks.extend(ADD_SERIES_BLOCKS);
     library_handler_blocks.extend(DELETE_SERIES_BLOCKS);
 
     ActiveSonarrBlock::iter().for_each(|active_sonarr_block| {

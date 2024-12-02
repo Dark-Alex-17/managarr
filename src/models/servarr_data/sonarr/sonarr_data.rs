@@ -295,6 +295,33 @@ pub static LIBRARY_BLOCKS: [ActiveSonarrBlock; 7] = [
   ActiveSonarrBlock::UpdateAllSeriesPrompt,
 ];
 
+pub static ADD_SERIES_BLOCKS: [ActiveSonarrBlock; 13] = [
+  ActiveSonarrBlock::AddSeriesAlreadyInLibrary,
+  ActiveSonarrBlock::AddSeriesConfirmPrompt,
+  ActiveSonarrBlock::AddSeriesEmptySearchResults,
+  ActiveSonarrBlock::AddSeriesPrompt,
+  ActiveSonarrBlock::AddSeriesSearchInput,
+  ActiveSonarrBlock::AddSeriesSearchResults,
+  ActiveSonarrBlock::AddSeriesSelectLanguageProfile,
+  ActiveSonarrBlock::AddSeriesSelectMonitor,
+  ActiveSonarrBlock::AddSeriesSelectQualityProfile,
+  ActiveSonarrBlock::AddSeriesSelectRootFolder,
+  ActiveSonarrBlock::AddSeriesSelectSeriesType,
+  ActiveSonarrBlock::AddSeriesTagsInput,
+  ActiveSonarrBlock::AddSeriesToggleUseSeasonFolder,
+];
+
+pub const ADD_SERIES_SELECTION_BLOCKS: &[&[ActiveSonarrBlock]] = &[
+  &[ActiveSonarrBlock::AddSeriesSelectRootFolder],
+  &[ActiveSonarrBlock::AddSeriesSelectMonitor],
+  &[ActiveSonarrBlock::AddSeriesSelectQualityProfile],
+  &[ActiveSonarrBlock::AddSeriesSelectLanguageProfile],
+  &[ActiveSonarrBlock::AddSeriesSelectSeriesType],
+  &[ActiveSonarrBlock::AddSeriesToggleUseSeasonFolder],
+  &[ActiveSonarrBlock::AddSeriesTagsInput],
+  &[ActiveSonarrBlock::AddSeriesConfirmPrompt],
+];
+
 pub static EDIT_SERIES_BLOCKS: [ActiveSonarrBlock; 9] = [
   ActiveSonarrBlock::EditSeriesPrompt,
   ActiveSonarrBlock::EditSeriesConfirmPrompt,

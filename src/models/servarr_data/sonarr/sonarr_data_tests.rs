@@ -202,8 +202,9 @@ mod tests {
 
   mod active_sonarr_block_tests {
     use crate::models::servarr_data::sonarr::sonarr_data::{
-      ActiveSonarrBlock, DELETE_SERIES_BLOCKS, DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS,
-      EDIT_SERIES_BLOCKS, EDIT_SERIES_SELECTION_BLOCKS, LIBRARY_BLOCKS,
+      ActiveSonarrBlock, ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, DELETE_SERIES_BLOCKS,
+      DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_SERIES_BLOCKS,
+      EDIT_SERIES_SELECTION_BLOCKS, LIBRARY_BLOCKS,
     };
 
     #[test]
@@ -216,6 +217,63 @@ mod tests {
       assert!(LIBRARY_BLOCKS.contains(&ActiveSonarrBlock::FilterSeries));
       assert!(LIBRARY_BLOCKS.contains(&ActiveSonarrBlock::FilterSeriesError));
       assert!(LIBRARY_BLOCKS.contains(&ActiveSonarrBlock::UpdateAllSeriesPrompt));
+    }
+
+    #[test]
+    fn test_add_series_blocks_contents() {
+      assert_eq!(ADD_SERIES_BLOCKS.len(), 13);
+      assert!(ADD_SERIES_BLOCKS.contains(&ActiveSonarrBlock::AddSeriesAlreadyInLibrary));
+      assert!(ADD_SERIES_BLOCKS.contains(&ActiveSonarrBlock::AddSeriesConfirmPrompt));
+      assert!(ADD_SERIES_BLOCKS.contains(&ActiveSonarrBlock::AddSeriesEmptySearchResults));
+      assert!(ADD_SERIES_BLOCKS.contains(&ActiveSonarrBlock::AddSeriesPrompt));
+      assert!(ADD_SERIES_BLOCKS.contains(&ActiveSonarrBlock::AddSeriesSearchInput));
+      assert!(ADD_SERIES_BLOCKS.contains(&ActiveSonarrBlock::AddSeriesSearchResults));
+      assert!(ADD_SERIES_BLOCKS.contains(&ActiveSonarrBlock::AddSeriesSelectLanguageProfile));
+      assert!(ADD_SERIES_BLOCKS.contains(&ActiveSonarrBlock::AddSeriesSelectMonitor));
+      assert!(ADD_SERIES_BLOCKS.contains(&ActiveSonarrBlock::AddSeriesSelectQualityProfile));
+      assert!(ADD_SERIES_BLOCKS.contains(&ActiveSonarrBlock::AddSeriesSelectRootFolder));
+      assert!(ADD_SERIES_BLOCKS.contains(&ActiveSonarrBlock::AddSeriesSelectSeriesType));
+      assert!(ADD_SERIES_BLOCKS.contains(&ActiveSonarrBlock::AddSeriesTagsInput));
+      assert!(ADD_SERIES_BLOCKS.contains(&ActiveSonarrBlock::AddSeriesToggleUseSeasonFolder));
+    }
+
+    #[test]
+    fn test_add_series_selection_blocks_ordering() {
+      let mut add_series_block_iter = ADD_SERIES_SELECTION_BLOCKS.iter();
+
+      assert_eq!(
+        add_series_block_iter.next().unwrap(),
+        &[ActiveSonarrBlock::AddSeriesSelectRootFolder]
+      );
+      assert_eq!(
+        add_series_block_iter.next().unwrap(),
+        &[ActiveSonarrBlock::AddSeriesSelectMonitor]
+      );
+      assert_eq!(
+        add_series_block_iter.next().unwrap(),
+        &[ActiveSonarrBlock::AddSeriesSelectQualityProfile]
+      );
+      assert_eq!(
+        add_series_block_iter.next().unwrap(),
+        &[ActiveSonarrBlock::AddSeriesSelectLanguageProfile]
+      );
+      assert_eq!(
+        add_series_block_iter.next().unwrap(),
+        &[ActiveSonarrBlock::AddSeriesSelectSeriesType]
+      );
+      assert_eq!(
+        add_series_block_iter.next().unwrap(),
+        &[ActiveSonarrBlock::AddSeriesToggleUseSeasonFolder]
+      );
+      assert_eq!(
+        add_series_block_iter.next().unwrap(),
+        &[ActiveSonarrBlock::AddSeriesTagsInput]
+      );
+      assert_eq!(
+        add_series_block_iter.next().unwrap(),
+        &[ActiveSonarrBlock::AddSeriesConfirmPrompt]
+      );
+      assert_eq!(add_series_block_iter.next(), None);
     }
 
     #[test]
