@@ -1,5 +1,7 @@
 use add_series_handler::AddSeriesHandler;
+mod edit_series_handler;
 use delete_series_handler::DeleteSeriesHandler;
+use edit_series_handler::EditSeriesHandler;
 
 use crate::{
   app::App,
@@ -45,6 +47,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
         DeleteSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
           .handle();
       }
+      _ if EditSeriesHandler::accepts(self.active_sonarr_block) => {
+        EditSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+          .handle();
+      }
       _ => self.handle_key_event(),
     }
   }
@@ -52,6 +58,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     AddSeriesHandler::accepts(active_block)
       || DeleteSeriesHandler::accepts(active_block)
+      || EditSeriesHandler::accepts(active_block)
       || LIBRARY_BLOCKS.contains(&active_block)
   }
 

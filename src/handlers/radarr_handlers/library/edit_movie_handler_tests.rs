@@ -535,9 +535,7 @@ mod tests {
     use rstest::rstest;
 
     use crate::models::servarr_data::radarr::modals::EditMovieModal;
-    use crate::models::servarr_data::radarr::radarr_data::{
-      EDIT_COLLECTION_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS,
-    };
+    use crate::models::servarr_data::radarr::radarr_data::EDIT_MOVIE_SELECTION_BLOCKS;
     use crate::models::{BlockSelectionState, Route};
     use crate::network::radarr_network::RadarrEvent;
 
@@ -626,7 +624,7 @@ mod tests {
         .data
         .radarr_data
         .selected_block
-        .set_index(0, EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, EDIT_MOVIE_SELECTION_BLOCKS.len() - 1);
 
       EditMovieHandler::with(
         SUBMIT_KEY,
@@ -652,7 +650,7 @@ mod tests {
         .data
         .radarr_data
         .selected_block
-        .set_index(0, EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, EDIT_MOVIE_SELECTION_BLOCKS.len() - 1);
 
       EditMovieHandler::with(
         SUBMIT_KEY,
@@ -936,10 +934,7 @@ mod tests {
     use super::*;
     use crate::{
       models::{
-        servarr_data::radarr::{
-          modals::EditMovieModal,
-          radarr_data::{EDIT_COLLECTION_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS},
-        },
+        servarr_data::radarr::{modals::EditMovieModal, radarr_data::EDIT_MOVIE_SELECTION_BLOCKS},
         BlockSelectionState,
       },
       network::radarr_network::RadarrEvent,
@@ -1066,7 +1061,7 @@ mod tests {
         .data
         .radarr_data
         .selected_block
-        .set_index(0, EDIT_COLLECTION_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, EDIT_MOVIE_SELECTION_BLOCKS.len() - 1);
 
       EditMovieHandler::with(
         DEFAULT_KEYBINDINGS.confirm.key,

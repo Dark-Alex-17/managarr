@@ -12,7 +12,7 @@ mod tests {
   use crate::handlers::sonarr_handlers::library::{series_sorting_options, LibraryHandler};
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
-    ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, LIBRARY_BLOCKS,
+    ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS, LIBRARY_BLOCKS,
   };
   use crate::models::sonarr_models::{Series, SeriesStatus, SeriesType};
   use crate::models::stateful_table::SortOption;
@@ -1487,23 +1487,24 @@ mod tests {
   //   );
   // }
 
-  // #[rstest]
-  // fn test_delegates_edit_series_blocks_to_edit_series_handler(
-  //   #[values(
-  //     ActiveSonarrBlock::EditSeriesPrompt,
-  //     ActiveSonarrBlock::EditSeriesPathInput,
-  //     ActiveSonarrBlock::EditSeriesSelectMinimumAvailability,
-  //     ActiveSonarrBlock::EditSeriesSelectQualityProfile,
-  //     ActiveSonarrBlock::EditSeriesTagsInput
-  //   )]
-  //   active_sonarr_block: ActiveSonarrBlock,
-  // ) {
-  //   test_handler_delegation!(
-  //     LibraryHandler,
-  //     ActiveSonarrBlock::Series,
-  //     active_sonarr_block
-  //   );
-  // }
+  #[rstest]
+  fn test_delegates_edit_series_blocks_to_edit_series_handler(
+    #[values(
+      ActiveSonarrBlock::EditSeriesPrompt,
+      ActiveSonarrBlock::EditSeriesPathInput,
+      ActiveSonarrBlock::EditSeriesSelectSeriesType,
+      ActiveSonarrBlock::EditSeriesSelectQualityProfile,
+      ActiveSonarrBlock::EditSeriesSelectLanguageProfile,
+      ActiveSonarrBlock::EditSeriesTagsInput
+    )]
+    active_sonarr_block: ActiveSonarrBlock,
+  ) {
+    test_handler_delegation!(
+      LibraryHandler,
+      ActiveSonarrBlock::Series,
+      active_sonarr_block
+    );
+  }
 
   #[test]
   fn test_delegates_delete_series_blocks_to_delete_series_handler() {
@@ -1709,6 +1710,7 @@ mod tests {
     library_handler_blocks.extend(LIBRARY_BLOCKS);
     library_handler_blocks.extend(ADD_SERIES_BLOCKS);
     library_handler_blocks.extend(DELETE_SERIES_BLOCKS);
+    library_handler_blocks.extend(EDIT_SERIES_BLOCKS);
 
     ActiveSonarrBlock::iter().for_each(|active_sonarr_block| {
       if library_handler_blocks.contains(&active_sonarr_block) {
