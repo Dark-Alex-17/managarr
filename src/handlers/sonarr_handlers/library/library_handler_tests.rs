@@ -11,7 +11,9 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::sonarr_handlers::library::{series_sorting_options, LibraryHandler};
   use crate::handlers::KeyEventHandler;
-  use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SERIES_BLOCKS};
+  use crate::models::servarr_data::sonarr::sonarr_data::{
+    ActiveSonarrBlock, DELETE_SERIES_BLOCKS, LIBRARY_BLOCKS,
+  };
   use crate::models::sonarr_models::{Series, SeriesStatus, SeriesType};
   use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
@@ -1702,7 +1704,8 @@ mod tests {
   #[test]
   fn test_library_handler_accepts() {
     let mut library_handler_blocks = Vec::new();
-    library_handler_blocks.extend(SERIES_BLOCKS);
+    library_handler_blocks.extend(LIBRARY_BLOCKS);
+    library_handler_blocks.extend(DELETE_SERIES_BLOCKS);
 
     ActiveSonarrBlock::iter().for_each(|active_sonarr_block| {
       if library_handler_blocks.contains(&active_sonarr_block) {

@@ -285,7 +285,7 @@ pub enum ActiveSonarrBlock {
   UpdateDownloadsPrompt,
 }
 
-pub static SERIES_BLOCKS: [ActiveSonarrBlock; 7] = [
+pub static LIBRARY_BLOCKS: [ActiveSonarrBlock; 7] = [
   ActiveSonarrBlock::Series,
   ActiveSonarrBlock::SeriesSortPrompt,
   ActiveSonarrBlock::SearchSeries,

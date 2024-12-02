@@ -8,7 +8,7 @@ use crate::{
   models::{
     servarr_data::sonarr::sonarr_data::{
       ActiveSonarrBlock, DELETE_SERIES_SELECTION_BLOCKS, EDIT_SERIES_SELECTION_BLOCKS,
-      SERIES_BLOCKS,
+      LIBRARY_BLOCKS,
     },
     sonarr_models::Series,
     stateful_table::SortOption,
@@ -45,7 +45,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
   }
 
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
-    SERIES_BLOCKS.contains(&active_block)
+    DeleteSeriesHandler::accepts(active_block) || LIBRARY_BLOCKS.contains(&active_block)
   }
 
   fn with(

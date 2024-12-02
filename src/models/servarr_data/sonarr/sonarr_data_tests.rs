@@ -203,19 +203,19 @@ mod tests {
   mod active_sonarr_block_tests {
     use crate::models::servarr_data::sonarr::sonarr_data::{
       ActiveSonarrBlock, DELETE_SERIES_BLOCKS, DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS,
-      EDIT_SERIES_BLOCKS, EDIT_SERIES_SELECTION_BLOCKS, SERIES_BLOCKS,
+      EDIT_SERIES_BLOCKS, EDIT_SERIES_SELECTION_BLOCKS, LIBRARY_BLOCKS,
     };
 
     #[test]
-    fn test_series_blocks_contents() {
-      assert_eq!(SERIES_BLOCKS.len(), 7);
-      assert!(SERIES_BLOCKS.contains(&ActiveSonarrBlock::Series));
-      assert!(SERIES_BLOCKS.contains(&ActiveSonarrBlock::SeriesSortPrompt));
-      assert!(SERIES_BLOCKS.contains(&ActiveSonarrBlock::SearchSeries));
-      assert!(SERIES_BLOCKS.contains(&ActiveSonarrBlock::SearchSeriesError));
-      assert!(SERIES_BLOCKS.contains(&ActiveSonarrBlock::FilterSeries));
-      assert!(SERIES_BLOCKS.contains(&ActiveSonarrBlock::FilterSeriesError));
-      assert!(SERIES_BLOCKS.contains(&ActiveSonarrBlock::UpdateAllSeriesPrompt));
+    fn test_library_blocks_contents() {
+      assert_eq!(LIBRARY_BLOCKS.len(), 7);
+      assert!(LIBRARY_BLOCKS.contains(&ActiveSonarrBlock::Series));
+      assert!(LIBRARY_BLOCKS.contains(&ActiveSonarrBlock::SeriesSortPrompt));
+      assert!(LIBRARY_BLOCKS.contains(&ActiveSonarrBlock::SearchSeries));
+      assert!(LIBRARY_BLOCKS.contains(&ActiveSonarrBlock::SearchSeriesError));
+      assert!(LIBRARY_BLOCKS.contains(&ActiveSonarrBlock::FilterSeries));
+      assert!(LIBRARY_BLOCKS.contains(&ActiveSonarrBlock::FilterSeriesError));
+      assert!(LIBRARY_BLOCKS.contains(&ActiveSonarrBlock::UpdateAllSeriesPrompt));
     }
 
     #[test]

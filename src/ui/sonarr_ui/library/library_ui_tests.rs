@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
+  use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DELETE_SERIES_BLOCKS};
   use crate::models::{
-    servarr_data::sonarr::sonarr_data::SERIES_BLOCKS, sonarr_models::SeriesStatus,
+    servarr_data::sonarr::sonarr_data::LIBRARY_BLOCKS, sonarr_models::SeriesStatus,
   };
   use crate::ui::sonarr_ui::library::LibraryUi;
   use crate::ui::styles::ManagarrStyle;
@@ -20,7 +20,8 @@ mod tests {
   #[test]
   fn test_library_ui_accepts() {
     let mut library_ui_blocks = Vec::new();
-    library_ui_blocks.extend(SERIES_BLOCKS);
+    library_ui_blocks.extend(LIBRARY_BLOCKS);
+    library_ui_blocks.extend(DELETE_SERIES_BLOCKS);
 
     ActiveSonarrBlock::iter().for_each(|active_radarr_block| {
       if library_ui_blocks.contains(&active_radarr_block) {
