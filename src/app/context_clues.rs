@@ -40,6 +40,11 @@ pub static BLOCKLIST_CONTEXT_CLUES: [ContextClue; 5] = [
   (DEFAULT_KEYBINDINGS.clear, "clear blocklist"),
 ];
 
+pub static CONFIRMATION_PROMPT_CONTEXT_CLUES: [ContextClue; 2] = [
+  (DEFAULT_KEYBINDINGS.confirm, "submit"),
+  (DEFAULT_KEYBINDINGS.esc, "cancel"),
+];
+
 pub static DOWNLOADS_CONTEXT_CLUES: [ContextClue; 3] = [
   (
     DEFAULT_KEYBINDINGS.refresh,

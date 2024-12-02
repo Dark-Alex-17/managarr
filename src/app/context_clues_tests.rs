@@ -3,9 +3,9 @@ mod test {
   use pretty_assertions::{assert_eq, assert_str_eq};
 
   use crate::app::context_clues::{
-    BARE_POPUP_CONTEXT_CLUES, BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
-    INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SERVARR_CONTEXT_CLUES,
-    SYSTEM_CONTEXT_CLUES,
+    BARE_POPUP_CONTEXT_CLUES, BLOCKLIST_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
+    DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
+    SERVARR_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
   };
   use crate::app::{context_clues::build_context_clue_string, key_binding::DEFAULT_KEYBINDINGS};
 
@@ -104,6 +104,22 @@ mod test {
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.clear);
     assert_str_eq!(*description, "clear blocklist");
     assert_eq!(blocklist_context_clues_iter.next(), None);
+  }
+
+  #[test]
+  fn test_confirmation_prompt_context_clues() {
+    let mut confirmation_prompt_context_clues_iter = CONFIRMATION_PROMPT_CONTEXT_CLUES.iter();
+
+    let (key_binding, description) = confirmation_prompt_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.confirm);
+    assert_str_eq!(*description, "submit");
+
+    let (key_binding, description) = confirmation_prompt_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
+    assert_str_eq!(*description, "cancel");
+    assert_eq!(confirmation_prompt_context_clues_iter.next(), None);
   }
 
   #[test]

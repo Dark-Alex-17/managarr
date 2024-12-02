@@ -5,10 +5,10 @@ use ratatui::text::Text;
 use ratatui::widgets::{Cell, ListItem, Paragraph, Row};
 use ratatui::Frame;
 
-use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
-use crate::app::radarr::radarr_context_clues::{
-  ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
+use crate::app::context_clues::{
+  build_context_clue_string, BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
 };
+use crate::app::radarr::radarr_context_clues::ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES;
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::servarr_data::radarr::modals::AddMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};

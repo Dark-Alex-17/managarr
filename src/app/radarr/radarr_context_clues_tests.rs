@@ -5,7 +5,7 @@ mod tests {
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::radarr::radarr_context_clues::{
     ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES, COLLECTIONS_CONTEXT_CLUES,
-    COLLECTION_DETAILS_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES,
+    COLLECTION_DETAILS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES,
     MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXT_CLUES,
     MOVIE_DETAILS_CONTEXT_CLUES, SYSTEM_TASKS_CONTEXT_CLUES,
   };
@@ -211,22 +211,6 @@ mod tests {
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
     assert_str_eq!(*description, "edit search");
     assert_eq!(add_movie_search_results_context_clues_iter.next(), None);
-  }
-
-  #[test]
-  fn test_confirmation_prompt_context_clues() {
-    let mut confirmation_prompt_context_clues_iter = CONFIRMATION_PROMPT_CONTEXT_CLUES.iter();
-
-    let (key_binding, description) = confirmation_prompt_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.confirm);
-    assert_str_eq!(*description, "submit");
-
-    let (key_binding, description) = confirmation_prompt_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
-    assert_str_eq!(*description, "cancel");
-    assert_eq!(confirmation_prompt_context_clues_iter.next(), None);
   }
 
   #[test]

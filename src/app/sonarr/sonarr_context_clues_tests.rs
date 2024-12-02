@@ -5,12 +5,29 @@ mod tests {
   use crate::app::{
     key_binding::DEFAULT_KEYBINDINGS,
     sonarr::sonarr_context_clues::{
-      EPISODE_DETAILS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES,
-      MANUAL_EPISODE_SEARCH_CONTEXTUAL_CONTEXT_CLUES, MANUAL_EPISODE_SEARCH_CONTEXT_CLUES,
-      MANUAL_SEASON_SEARCH_CONTEXT_CLUES, SEASON_DETAILS_CONTEXT_CLUES, SERIES_CONTEXT_CLUES,
-      SERIES_DETAILS_CONTEXT_CLUES,
+      ADD_SERIES_SEARCH_RESULTS_CONTEXT_CLUES, EPISODE_DETAILS_CONTEXT_CLUES,
+      HISTORY_CONTEXT_CLUES, MANUAL_EPISODE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
+      MANUAL_EPISODE_SEARCH_CONTEXT_CLUES, MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
+      SEASON_DETAILS_CONTEXT_CLUES, SERIES_CONTEXT_CLUES, SERIES_DETAILS_CONTEXT_CLUES,
     },
   };
+
+  #[test]
+  fn test_add_series_search_results_context_clues() {
+    let mut add_series_search_results_context_clues_iter =
+      ADD_SERIES_SEARCH_RESULTS_CONTEXT_CLUES.iter();
+
+    let (key_binding, description) = add_series_search_results_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
+    assert_str_eq!(*description, "details");
+
+    let (key_binding, description) = add_series_search_results_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
+    assert_str_eq!(*description, "edit search");
+    assert_eq!(add_series_search_results_context_clues_iter.next(), None);
+  }
 
   #[test]
   fn test_series_context_clues() {

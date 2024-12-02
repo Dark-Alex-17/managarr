@@ -17,6 +17,7 @@ mod tests {
     assert_eq!(Size::Small.to_percent(), (40, 40));
     assert_eq!(Size::Medium.to_percent(), (60, 60));
     assert_eq!(Size::Large.to_percent(), (75, 75));
+    assert_eq!(Size::Long.to_percent(), (65, 80));
   }
 
   #[test]

@@ -1,5 +1,4 @@
-use crate::app::context_clues::build_context_clue_string;
-use crate::app::radarr::radarr_context_clues::CONFIRMATION_PROMPT_CONTEXT_CLUES;
+use crate::app::context_clues::{build_context_clue_string, CONFIRMATION_PROMPT_CONTEXT_CLUES};
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_paragraph_borderless, title_block_centered};
 use crate::ui::widgets::button::Button;

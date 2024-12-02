@@ -108,6 +108,11 @@ impl<'a> App<'a> {
           .dispatch_network_event(SonarrEvent::GetLogs(None).into())
           .await;
       }
+      ActiveSonarrBlock::AddSeriesSearchResults => {
+        self
+          .dispatch_network_event(SonarrEvent::SearchNewSeries(None).into())
+          .await;
+      }
       ActiveSonarrBlock::SystemUpdates => {
         self
           .dispatch_network_event(SonarrEvent::GetUpdates.into())

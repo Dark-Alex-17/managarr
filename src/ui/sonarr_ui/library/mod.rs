@@ -1,3 +1,4 @@
+use add_series_ui::AddSeriesUi;
 use delete_series_ui::DeleteSeriesUi;
 use ratatui::{
   layout::{Constraint, Rect},
@@ -26,6 +27,7 @@ use crate::{
   },
 };
 
+mod add_series_ui;
 mod delete_series_ui;
 
 #[cfg(test)]
@@ -37,7 +39,9 @@ pub(super) struct LibraryUi;
 impl DrawUi for LibraryUi {
   fn accepts(route: Route) -> bool {
     if let Route::Sonarr(active_sonarr_block, _) = route {
-      return DeleteSeriesUi::accepts(route) || LIBRARY_BLOCKS.contains(&active_sonarr_block);
+      return AddSeriesUi::accepts(route)
+        || DeleteSeriesUi::accepts(route)
+        || LIBRARY_BLOCKS.contains(&active_sonarr_block);
     }
 
     false
@@ -90,6 +94,7 @@ impl DrawUi for LibraryUi {
     };
 
     match route {
+      _ if AddSeriesUi::accepts(route) => AddSeriesUi::draw(f, app, area),
       _ if DeleteSeriesUi::accepts(route) => DeleteSeriesUi::draw(f, app, area),
       Route::Sonarr(active_sonarr_block, _) if LIBRARY_BLOCKS.contains(&active_sonarr_block) => {
         series_ui_matchers(active_sonarr_block)

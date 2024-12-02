@@ -5,8 +5,7 @@ use ratatui::text::Text;
 use ratatui::widgets::Paragraph;
 use ratatui::Frame;
 
-use crate::app::context_clues::build_context_clue_string;
-use crate::app::radarr::radarr_context_clues::CONFIRMATION_PROMPT_CONTEXT_CLUES;
+use crate::app::context_clues::{build_context_clue_string, CONFIRMATION_PROMPT_CONTEXT_CLUES};
 use crate::app::App;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS,

@@ -4,6 +4,11 @@ use crate::app::{context_clues::ContextClue, key_binding::DEFAULT_KEYBINDINGS};
 #[path = "sonarr_context_clues_tests.rs"]
 mod sonarr_context_clues_tests;
 
+pub static ADD_SERIES_SEARCH_RESULTS_CONTEXT_CLUES: [ContextClue; 2] = [
+  (DEFAULT_KEYBINDINGS.submit, "details"),
+  (DEFAULT_KEYBINDINGS.esc, "edit search"),
+];
+
 pub static SERIES_CONTEXT_CLUES: [ContextClue; 10] = [
   (DEFAULT_KEYBINDINGS.add, DEFAULT_KEYBINDINGS.add.desc),
   (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
