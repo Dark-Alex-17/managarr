@@ -48,36 +48,28 @@ mod tests {
   #[rstest]
   fn test_delegates_library_blocks_to_library_handler(
     #[values(
-      // ActiveSonarrBlock::AddSeriesAlreadyInLibrary,
-      // ActiveSonarrBlock::AddSeriesConfirmPrompt,
-      // ActiveSonarrBlock::AddSeriesEmptySearchResults,
-      // ActiveSonarrBlock::AddSeriesPrompt,
-      // ActiveSonarrBlock::AddSeriesSearchInput,
-      // ActiveSonarrBlock::AddSeriesSearchResults,
-      // ActiveSonarrBlock::AddSeriesSelectLanguageProfile,
-      // ActiveSonarrBlock::AddSeriesSelectMonitor,
-      // ActiveSonarrBlock::AddSeriesSelectQualityProfile,
-      // ActiveSonarrBlock::AddSeriesSelectRootFolder,
-      // ActiveSonarrBlock::AddSeriesSelectSeriesType,
-      // ActiveSonarrBlock::AddSeriesTagsInput,
-      // ActiveSonarrBlock::AddSeriesToggleUseSeasonFolder,
+      ActiveSonarrBlock::AddSeriesAlreadyInLibrary,
+      ActiveSonarrBlock::AddSeriesEmptySearchResults,
+      ActiveSonarrBlock::AddSeriesPrompt,
+      ActiveSonarrBlock::AddSeriesSearchInput,
+      ActiveSonarrBlock::AddSeriesSearchResults,
+      ActiveSonarrBlock::AddSeriesSelectLanguageProfile,
+      ActiveSonarrBlock::AddSeriesSelectMonitor,
+      ActiveSonarrBlock::AddSeriesSelectQualityProfile,
+      ActiveSonarrBlock::AddSeriesSelectRootFolder,
+      ActiveSonarrBlock::AddSeriesSelectSeriesType,
+      ActiveSonarrBlock::AddSeriesTagsInput,
       // ActiveSonarrBlock::AutomaticallySearchEpisodePrompt,
       // ActiveSonarrBlock::AutomaticallySearchSeasonPrompt,
       // ActiveSonarrBlock::AutomaticallySearchSeriesPrompt,
       // ActiveSonarrBlock::DeleteEpisodeFilePrompt,
-      // ActiveSonarrBlock::DeleteSeriesConfirmPrompt,
-      // ActiveSonarrBlock::DeleteSeriesPrompt,
-      // ActiveSonarrBlock::DeleteSeriesToggleAddListExclusion,
-      // ActiveSonarrBlock::DeleteSeriesToggleDeleteFile,
-      // ActiveSonarrBlock::EditSeriesPrompt,
-      // ActiveSonarrBlock::EditSeriesConfirmPrompt,
-      // ActiveSonarrBlock::EditSeriesPathInput,
-      // ActiveSonarrBlock::EditSeriesSelectSeriesType,
-      // ActiveSonarrBlock::EditSeriesSelectQualityProfile,
-      // ActiveSonarrBlock::EditSeriesSelectLanguageProfile,
-      // ActiveSonarrBlock::EditSeriesTagsInput,
-      // ActiveSonarrBlock::EditSeriesToggleMonitored,
-      // ActiveSonarrBlock::EditSeriesToggleSeasonFolder,
+      ActiveSonarrBlock::DeleteSeriesPrompt,
+      ActiveSonarrBlock::EditSeriesPrompt,
+      ActiveSonarrBlock::EditSeriesPathInput,
+      ActiveSonarrBlock::EditSeriesSelectSeriesType,
+      ActiveSonarrBlock::EditSeriesSelectQualityProfile,
+      ActiveSonarrBlock::EditSeriesSelectLanguageProfile,
+      ActiveSonarrBlock::EditSeriesTagsInput,
       // ActiveSonarrBlock::EpisodeDetails,
       // ActiveSonarrBlock::EpisodeFile,
       // ActiveSonarrBlock::EpisodeHistory,
@@ -116,6 +108,22 @@ mod tests {
     test_handler_delegation!(
       SonarrHandler,
       ActiveSonarrBlock::Series,
+      active_sonarr_block
+    );
+  }
+
+  #[rstest]
+  fn test_delegates_downloads_blocks_to_downloads_handler(
+    #[values(
+      ActiveSonarrBlock::Downloads,
+      ActiveSonarrBlock::DeleteDownloadPrompt,
+      ActiveSonarrBlock::UpdateDownloadsPrompt
+    )]
+    active_sonarr_block: ActiveSonarrBlock,
+  ) {
+    test_handler_delegation!(
+      SonarrHandler,
+      ActiveSonarrBlock::Downloads,
       active_sonarr_block
     );
   }

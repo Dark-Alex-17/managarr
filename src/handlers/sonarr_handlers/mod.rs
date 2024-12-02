@@ -1,3 +1,4 @@
+use downloads::DownloadsHandler;
 use library::LibraryHandler;
 
 use crate::{
@@ -31,6 +32,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SonarrHandler<'a, 'b
     match self.active_sonarr_block {
       _ if LibraryHandler::accepts(self.active_sonarr_block) => {
         LibraryHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle();
+      }
+      _ if DownloadsHandler::accepts(self.active_sonarr_block) => {
+        DownloadsHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle()
       }
       _ => self.handle_key_event(),
     }

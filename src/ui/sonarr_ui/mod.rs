@@ -1,6 +1,7 @@
 use std::{cmp, iter};
 
 use chrono::{Duration, Utc};
+use downloads::DownloadsUi;
 use library::LibraryUi;
 use ratatui::{
   layout::{Constraint, Layout, Rect},
@@ -32,6 +33,7 @@ use super::{
   DrawUi,
 };
 
+mod downloads;
 mod library;
 
 #[cfg(test)]
@@ -51,6 +53,7 @@ impl DrawUi for SonarrUi {
 
     match route {
       _ if LibraryUi::accepts(route) => LibraryUi::draw(f, app, content_area),
+      _ if DownloadsUi::accepts(route) => DownloadsUi::draw(f, app, content_area),
       _ => (),
     }
   }

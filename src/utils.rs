@@ -67,6 +67,10 @@ pub fn convert_to_gb(bytes: i64) -> f64 {
   bytes as f64 / 1024f64.powi(3)
 }
 
+pub fn convert_f64_to_gb(bytes: f64) -> f64 {
+  bytes / 1024f64.powi(3)
+}
+
 pub fn convert_runtime(runtime: i64) -> (i64, i64) {
   let hours = runtime / 60;
   let minutes = runtime % 60;
