@@ -1,3 +1,5 @@
+use delete_series_handler::DeleteSeriesHandler;
+
 use crate::{
   app::App,
   event::Key,
@@ -18,6 +20,8 @@ use crate::{
 use super::handle_change_tab_left_right_keys;
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 
+mod delete_series_handler;
+
 #[cfg(test)]
 #[path = "library_handler_tests.rs"]
 mod library_handler_tests;
@@ -26,12 +30,16 @@ pub(super) struct LibraryHandler<'a, 'b> {
   key: Key,
   app: &'a mut App<'b>,
   active_sonarr_block: ActiveSonarrBlock,
-  _context: Option<ActiveSonarrBlock>,
+  context: Option<ActiveSonarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, 'b> {
   fn handle(&mut self) {
     match self.active_sonarr_block {
+      _ if DeleteSeriesHandler::accepts(self.active_sonarr_block) => {
+        DeleteSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+          .handle();
+      }
       _ => self.handle_key_event(),
     }
   }
@@ -44,13 +52,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveSonarrBlock,
-    _context: Option<ActiveSonarrBlock>,
+    context: Option<ActiveSonarrBlock>,
   ) -> LibraryHandler<'a, 'b> {
     LibraryHandler {
       key,
       app,
       active_sonarr_block: active_block,
-      _context,
+      context,
     }
   }
 

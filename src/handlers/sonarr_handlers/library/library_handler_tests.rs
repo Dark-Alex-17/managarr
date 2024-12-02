@@ -15,6 +15,7 @@ mod tests {
   use crate::models::sonarr_models::{Series, SeriesStatus, SeriesType};
   use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
+  use crate::test_handler_delegation;
 
   mod test_handle_scroll_up_and_down {
     use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
@@ -1500,14 +1501,14 @@ mod tests {
   //   );
   // }
 
-  // #[test]
-  // fn test_delegates_delete_series_blocks_to_delete_series_handler() {
-  //   test_handler_delegation!(
-  //     LibraryHandler,
-  //     ActiveSonarrBlock::Series,
-  //     ActiveSonarrBlock::DeleteSeriesPrompt
-  //   );
-  // }
+  #[test]
+  fn test_delegates_delete_series_blocks_to_delete_series_handler() {
+    test_handler_delegation!(
+      LibraryHandler,
+      ActiveSonarrBlock::Series,
+      ActiveSonarrBlock::DeleteSeriesPrompt
+    );
+  }
 
   #[test]
   fn test_series_sorting_options_title() {

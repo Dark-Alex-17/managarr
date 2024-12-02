@@ -324,6 +324,13 @@ pub static DOWNLOADS_BLOCKS: [ActiveSonarrBlock; 3] = [
   ActiveSonarrBlock::UpdateDownloadsPrompt,
 ];
 
+pub static DELETE_SERIES_BLOCKS: [ActiveSonarrBlock; 4] = [
+  ActiveSonarrBlock::DeleteSeriesPrompt,
+  ActiveSonarrBlock::DeleteSeriesConfirmPrompt,
+  ActiveSonarrBlock::DeleteSeriesToggleDeleteFile,
+  ActiveSonarrBlock::DeleteSeriesToggleAddListExclusion,
+];
+
 pub const DELETE_SERIES_SELECTION_BLOCKS: &[&[ActiveSonarrBlock]] = &[
   &[ActiveSonarrBlock::DeleteSeriesToggleDeleteFile],
   &[ActiveSonarrBlock::DeleteSeriesToggleAddListExclusion],

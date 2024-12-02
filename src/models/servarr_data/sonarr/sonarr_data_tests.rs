@@ -202,8 +202,8 @@ mod tests {
 
   mod active_sonarr_block_tests {
     use crate::models::servarr_data::sonarr::sonarr_data::{
-      ActiveSonarrBlock, DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_SERIES_BLOCKS,
-      EDIT_SERIES_SELECTION_BLOCKS, SERIES_BLOCKS,
+      ActiveSonarrBlock, DELETE_SERIES_BLOCKS, DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS,
+      EDIT_SERIES_BLOCKS, EDIT_SERIES_SELECTION_BLOCKS, SERIES_BLOCKS,
     };
 
     #[test]
@@ -277,6 +277,15 @@ mod tests {
       assert!(DOWNLOADS_BLOCKS.contains(&ActiveSonarrBlock::Downloads));
       assert!(DOWNLOADS_BLOCKS.contains(&ActiveSonarrBlock::DeleteDownloadPrompt));
       assert!(DOWNLOADS_BLOCKS.contains(&ActiveSonarrBlock::UpdateDownloadsPrompt));
+    }
+
+    #[test]
+    fn test_delete_series_blocks_contents() {
+      assert_eq!(DELETE_SERIES_BLOCKS.len(), 4);
+      assert!(DELETE_SERIES_BLOCKS.contains(&ActiveSonarrBlock::DeleteSeriesPrompt));
+      assert!(DELETE_SERIES_BLOCKS.contains(&ActiveSonarrBlock::DeleteSeriesConfirmPrompt));
+      assert!(DELETE_SERIES_BLOCKS.contains(&ActiveSonarrBlock::DeleteSeriesToggleDeleteFile));
+      assert!(DELETE_SERIES_BLOCKS.contains(&ActiveSonarrBlock::DeleteSeriesToggleAddListExclusion));
     }
 
     #[test]
