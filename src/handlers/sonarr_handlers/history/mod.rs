@@ -323,8 +323,9 @@ fn history_sorting_options() -> Vec<SortOption<SonarrHistoryItem>> {
       name: "Event Type",
       cmp_fn: Some(|a, b| {
         a.event_type
+          .to_string()
           .to_lowercase()
-          .cmp(&b.event_type.to_lowercase())
+          .cmp(&b.event_type.to_string().to_lowercase())
       }),
     },
     SortOption {

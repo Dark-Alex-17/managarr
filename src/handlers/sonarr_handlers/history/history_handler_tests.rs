@@ -14,7 +14,7 @@ mod tests {
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTORY_BLOCKS};
   use crate::models::servarr_models::{Language, Quality, QualityWrapper};
-  use crate::models::sonarr_models::SonarrHistoryItem;
+  use crate::models::sonarr_models::{SonarrHistoryEventType, SonarrHistoryItem};
   use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
 
@@ -1197,8 +1197,9 @@ mod tests {
   fn test_history_sorting_options_event_type() {
     let expected_cmp_fn: fn(&SonarrHistoryItem, &SonarrHistoryItem) -> Ordering = |a, b| {
       a.event_type
+        .to_string()
         .to_lowercase()
-        .cmp(&b.event_type.to_lowercase())
+        .cmp(&b.event_type.to_string().to_lowercase())
     };
     let mut expected_history_vec = history_vec();
     expected_history_vec.sort_by(expected_cmp_fn);
@@ -1334,7 +1335,7 @@ mod tests {
       SonarrHistoryItem {
         id: 3,
         source_title: "test 1".into(),
-        event_type: "grabbed".to_owned(),
+        event_type: SonarrHistoryEventType::Grabbed,
         language: Language {
           id: 1,
           name: "telgu".to_owned(),
@@ -1350,7 +1351,7 @@ mod tests {
       SonarrHistoryItem {
         id: 2,
         source_title: "test 2".into(),
-        event_type: "downloadFolderImported".to_owned(),
+        event_type: SonarrHistoryEventType::DownloadFolderImported,
         language: Language {
           id: 3,
           name: "chinese".to_owned(),
@@ -1366,7 +1367,7 @@ mod tests {
       SonarrHistoryItem {
         id: 1,
         source_title: "test 3".into(),
-        event_type: "episodeFileDeleted".to_owned(),
+        event_type: SonarrHistoryEventType::EpisodeFileDeleted,
         language: Language {
           id: 1,
           name: "english".to_owned(),

@@ -17,7 +17,7 @@ mod test {
 
   use crate::models::sonarr_models::{
     AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, AddSeriesSearchResultStatistics,
-    EditSeriesParams, IndexerSettings, SeriesMonitor,
+    EditSeriesParams, IndexerSettings, SeriesMonitor, SonarrHistoryEventType,
   };
 
   use crate::app::{App, ServarrConfig};
@@ -6780,7 +6780,7 @@ mod test {
       quality: quality_wrapper(),
       language: language(),
       date: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
-      event_type: "grabbed".into(),
+      event_type: SonarrHistoryEventType::Grabbed,
       data: history_data(),
     }
   }

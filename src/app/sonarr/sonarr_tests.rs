@@ -179,7 +179,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetHistory(Some(10000)).into()
+        SonarrEvent::GetHistory(None).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);

@@ -465,6 +465,10 @@ pub struct SonarrHistoryData {
   pub published_date: Option<DateTime<Utc>>,
   pub message: Option<String>,
   pub reason: Option<String>,
+  pub source_path: Option<String>,
+  pub source_relative_path: Option<String>,
+  pub path: Option<String>,
+  pub relative_path: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
@@ -523,7 +527,7 @@ pub struct SonarrHistoryItem {
   pub quality: QualityWrapper,
   pub language: Language,
   pub date: DateTime<Utc>,
-  pub event_type: String,
+  pub event_type: SonarrHistoryEventType,
   pub data: SonarrHistoryData,
 }
 

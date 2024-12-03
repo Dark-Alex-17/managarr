@@ -3,6 +3,7 @@ use std::{cmp, iter};
 use blocklist::BlocklistUi;
 use chrono::{Duration, Utc};
 use downloads::DownloadsUi;
+use history::HistoryUi;
 use library::LibraryUi;
 use ratatui::{
   layout::{Constraint, Layout, Rect},
@@ -36,6 +37,7 @@ use super::{
 
 mod blocklist;
 mod downloads;
+mod history;
 mod library;
 
 #[cfg(test)]
@@ -57,6 +59,7 @@ impl DrawUi for SonarrUi {
       _ if LibraryUi::accepts(route) => LibraryUi::draw(f, app, content_area),
       _ if DownloadsUi::accepts(route) => DownloadsUi::draw(f, app, content_area),
       _ if BlocklistUi::accepts(route) => BlocklistUi::draw(f, app, content_area),
+      _ if HistoryUi::accepts(route) => HistoryUi::draw(f, app, content_area),
       _ => (),
     }
   }

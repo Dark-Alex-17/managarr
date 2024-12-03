@@ -116,7 +116,7 @@ fn draw_blocklist_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .headers([
       "Series Title",
       "Source Title",
-      "Languages",
+      "Language",
       "Quality",
       "Date",
     ])
