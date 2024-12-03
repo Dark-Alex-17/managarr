@@ -12,6 +12,7 @@ use ratatui::{
   widgets::Paragraph,
   Frame,
 };
+use root_folders::RootFoldersUi;
 
 use crate::{
   app::App,
@@ -39,6 +40,7 @@ mod blocklist;
 mod downloads;
 mod history;
 mod library;
+mod root_folders;
 
 #[cfg(test)]
 #[path = "sonarr_ui_tests.rs"]
@@ -60,6 +62,7 @@ impl DrawUi for SonarrUi {
       _ if DownloadsUi::accepts(route) => DownloadsUi::draw(f, app, content_area),
       _ if BlocklistUi::accepts(route) => BlocklistUi::draw(f, app, content_area),
       _ if HistoryUi::accepts(route) => HistoryUi::draw(f, app, content_area),
+      _ if RootFoldersUi::accepts(route) => RootFoldersUi::draw(f, app, content_area),
       _ => (),
     }
   }
