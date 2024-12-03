@@ -94,7 +94,7 @@ Key:
 | 🕒  | ✅   | Search your library                                                                                                |
 | 🕒  | ✅   | Add series to your library                                                                                         |
 | 🕒  | ✅   | Delete series, downloads, indexers, root folders, and episode files                                                |
-| 🕒  | ✅   | Mark history events as failed                                                                                      |
+| 🚫  | ✅   | Mark history events as failed                                                                                      |
 | 🕒  | ✅   | Trigger automatic searches for series, seasons, or episodes                                                        |
 | 🕒  | ✅   | Trigger refresh and disk scan for series and downloads                                                             |
 | 🕒  | ✅   | Manually search for series, seasons, or episodes                                                                   |

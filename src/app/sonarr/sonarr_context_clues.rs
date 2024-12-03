@@ -25,9 +25,8 @@ pub static SERIES_CONTEXT_CLUES: [ContextClue; 10] = [
   (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
 ];
 
-pub static HISTORY_CONTEXT_CLUES: [ContextClue; 6] = [
+pub static HISTORY_CONTEXT_CLUES: [ContextClue; 5] = [
   (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
-  (DEFAULT_KEYBINDINGS.delete, "mark as failed"),
   (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
   (DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc),
   (

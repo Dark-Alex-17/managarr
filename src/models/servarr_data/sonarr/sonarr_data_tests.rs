@@ -204,7 +204,7 @@ mod tests {
     use crate::models::servarr_data::sonarr::sonarr_data::{
       ActiveSonarrBlock, ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, BLOCKLIST_BLOCKS,
       DELETE_SERIES_BLOCKS, DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_SERIES_BLOCKS,
-      EDIT_SERIES_SELECTION_BLOCKS, LIBRARY_BLOCKS,
+      EDIT_SERIES_SELECTION_BLOCKS, HISTORY_BLOCKS, LIBRARY_BLOCKS,
     };
 
     #[test]
@@ -373,6 +373,18 @@ mod tests {
         &[ActiveSonarrBlock::DeleteSeriesConfirmPrompt]
       );
       assert_eq!(delete_series_block_iter.next(), None);
+    }
+
+    #[test]
+    fn test_history_blocks_contents() {
+      assert_eq!(HISTORY_BLOCKS.len(), 7);
+      assert!(HISTORY_BLOCKS.contains(&ActiveSonarrBlock::History));
+      assert!(HISTORY_BLOCKS.contains(&ActiveSonarrBlock::HistoryItemDetails));
+      assert!(HISTORY_BLOCKS.contains(&ActiveSonarrBlock::HistorySortPrompt));
+      assert!(HISTORY_BLOCKS.contains(&ActiveSonarrBlock::FilterHistory));
+      assert!(HISTORY_BLOCKS.contains(&ActiveSonarrBlock::FilterHistoryError));
+      assert!(HISTORY_BLOCKS.contains(&ActiveSonarrBlock::SearchHistory));
+      assert!(HISTORY_BLOCKS.contains(&ActiveSonarrBlock::SearchHistoryError));
     }
   }
 }

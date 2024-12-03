@@ -145,4 +145,24 @@ mod tests {
       active_sonarr_block
     );
   }
+
+  #[rstest]
+  fn test_delegates_history_blocks_to_history_handler(
+    #[values(
+      ActiveSonarrBlock::History,
+      ActiveSonarrBlock::HistoryItemDetails,
+      ActiveSonarrBlock::HistorySortPrompt,
+      ActiveSonarrBlock::FilterHistory,
+      ActiveSonarrBlock::FilterHistoryError,
+      ActiveSonarrBlock::SearchHistory,
+      ActiveSonarrBlock::SearchHistoryError
+    )]
+    active_sonarr_block: ActiveSonarrBlock,
+  ) {
+    test_handler_delegation!(
+      SonarrHandler,
+      ActiveSonarrBlock::History,
+      active_sonarr_block
+    );
+  }
 }

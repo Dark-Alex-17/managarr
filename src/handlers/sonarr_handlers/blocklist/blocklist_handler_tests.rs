@@ -475,8 +475,6 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::handlers::sonarr_handlers::downloads::DownloadsHandler;
-
     use super::*;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
@@ -547,7 +545,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Blocklist.into());
       app.push_navigation_stack(ActiveSonarrBlock::Blocklist.into());
 
-      DownloadsHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::Blocklist, None).handle();
+      BlocklistHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::Blocklist, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Blocklist.into());
       assert!(app.error.text.is_empty());

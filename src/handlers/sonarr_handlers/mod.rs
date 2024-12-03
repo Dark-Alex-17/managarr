@@ -1,5 +1,6 @@
 use blocklist::BlocklistHandler;
 use downloads::DownloadsHandler;
+use history::HistoryHandler;
 use library::LibraryHandler;
 
 use crate::{
@@ -12,6 +13,7 @@ use super::KeyEventHandler;
 
 mod blocklist;
 mod downloads;
+mod history;
 mod library;
 
 #[cfg(test)]
@@ -40,6 +42,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SonarrHandler<'a, 'b
       }
       _ if BlocklistHandler::accepts(self.active_sonarr_block) => {
         BlocklistHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle()
+      }
+      _ if HistoryHandler::accepts(self.active_sonarr_block) => {
+        HistoryHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle()
       }
       _ => self.handle_key_event(),
     }

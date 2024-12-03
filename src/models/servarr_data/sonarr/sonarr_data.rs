@@ -238,7 +238,7 @@ pub enum ActiveSonarrBlock {
   FilterSeriesHistory,
   FilterSeriesHistoryError,
   History,
-  HistoryDetails,
+  HistoryItemDetails,
   HistorySortPrompt,
   Indexers,
   IndexerSettingsConfirmPrompt,
@@ -252,8 +252,6 @@ pub enum ActiveSonarrBlock {
   ManualSeasonSearch,
   ManualSeasonSearchConfirmPrompt,
   ManualSeasonSearchSortPrompt,
-  MarkHistoryItemAsFailedConfirmPrompt,
-  MarkHistoryItemAsFailedPrompt,
   RootFolders,
   SearchEpisodes,
   SearchEpisodesError,
@@ -370,6 +368,16 @@ pub const DELETE_SERIES_SELECTION_BLOCKS: &[&[ActiveSonarrBlock]] = &[
   &[ActiveSonarrBlock::DeleteSeriesToggleDeleteFile],
   &[ActiveSonarrBlock::DeleteSeriesToggleAddListExclusion],
   &[ActiveSonarrBlock::DeleteSeriesConfirmPrompt],
+];
+
+pub static HISTORY_BLOCKS: [ActiveSonarrBlock; 7] = [
+  ActiveSonarrBlock::History,
+  ActiveSonarrBlock::HistoryItemDetails,
+  ActiveSonarrBlock::HistorySortPrompt,
+  ActiveSonarrBlock::FilterHistory,
+  ActiveSonarrBlock::FilterHistoryError,
+  ActiveSonarrBlock::SearchHistory,
+  ActiveSonarrBlock::SearchHistoryError,
 ];
 
 impl From<ActiveSonarrBlock> for Route {

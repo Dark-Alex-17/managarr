@@ -3,7 +3,7 @@ use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, BLOCKL
 use crate::models::sonarr_models::BlocklistItem;
 use crate::models::Route;
 use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
+use crate::ui::utils::layout_block_top_border;
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
@@ -78,11 +78,6 @@ impl DrawUi for BlocklistUi {
 
 fn draw_blocklist_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
-    let current_selection = if app.data.sonarr_data.blocklist.items.is_empty() {
-      BlocklistItem::default()
-    } else {
-      app.data.sonarr_data.blocklist.current_selection().clone()
-    };
     let blocklist_table_footer = app
       .data
       .sonarr_data
