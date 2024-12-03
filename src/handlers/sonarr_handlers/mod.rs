@@ -2,6 +2,7 @@ use blocklist::BlocklistHandler;
 use downloads::DownloadsHandler;
 use history::HistoryHandler;
 use library::LibraryHandler;
+use root_folders::RootFoldersHandler;
 
 use crate::{
   app::{key_binding::DEFAULT_KEYBINDINGS, App},
@@ -15,6 +16,7 @@ mod blocklist;
 mod downloads;
 mod history;
 mod library;
+mod root_folders;
 
 #[cfg(test)]
 #[path = "sonarr_handler_tests.rs"]
@@ -45,6 +47,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SonarrHandler<'a, 'b
       }
       _ if HistoryHandler::accepts(self.active_sonarr_block) => {
         HistoryHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle()
+      }
+      _ if RootFoldersHandler::accepts(self.active_sonarr_block) => {
+        RootFoldersHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+          .handle()
       }
       _ => self.handle_key_event(),
     }

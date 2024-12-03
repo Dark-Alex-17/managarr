@@ -204,7 +204,7 @@ mod tests {
     use crate::models::servarr_data::sonarr::sonarr_data::{
       ActiveSonarrBlock, ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, BLOCKLIST_BLOCKS,
       DELETE_SERIES_BLOCKS, DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_SERIES_BLOCKS,
-      EDIT_SERIES_SELECTION_BLOCKS, HISTORY_BLOCKS, LIBRARY_BLOCKS,
+      EDIT_SERIES_SELECTION_BLOCKS, HISTORY_BLOCKS, LIBRARY_BLOCKS, ROOT_FOLDERS_BLOCKS,
     };
 
     #[test]
@@ -385,6 +385,14 @@ mod tests {
       assert!(HISTORY_BLOCKS.contains(&ActiveSonarrBlock::FilterHistoryError));
       assert!(HISTORY_BLOCKS.contains(&ActiveSonarrBlock::SearchHistory));
       assert!(HISTORY_BLOCKS.contains(&ActiveSonarrBlock::SearchHistoryError));
+    }
+
+    #[test]
+    fn test_root_folders_blocks_contents() {
+      assert_eq!(ROOT_FOLDERS_BLOCKS.len(), 3);
+      assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveSonarrBlock::RootFolders));
+      assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveSonarrBlock::AddRootFolderPrompt));
+      assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveSonarrBlock::DeleteRootFolderPrompt));
     }
   }
 }

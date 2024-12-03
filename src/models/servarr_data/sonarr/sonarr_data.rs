@@ -380,6 +380,12 @@ pub static HISTORY_BLOCKS: [ActiveSonarrBlock; 7] = [
   ActiveSonarrBlock::SearchHistoryError,
 ];
 
+pub static ROOT_FOLDERS_BLOCKS: [ActiveSonarrBlock; 3] = [
+  ActiveSonarrBlock::RootFolders,
+  ActiveSonarrBlock::AddRootFolderPrompt,
+  ActiveSonarrBlock::DeleteRootFolderPrompt,
+];
+
 impl From<ActiveSonarrBlock> for Route {
   fn from(active_sonarr_block: ActiveSonarrBlock) -> Route {
     Route::Sonarr(active_sonarr_block, None)

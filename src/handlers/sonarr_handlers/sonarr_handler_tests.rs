@@ -165,4 +165,20 @@ mod tests {
       active_sonarr_block
     );
   }
+
+  #[rstest]
+  fn test_delegates_root_folders_blocks_to_root_folders_handler(
+    #[values(
+      ActiveSonarrBlock::RootFolders,
+      ActiveSonarrBlock::AddRootFolderPrompt,
+      ActiveSonarrBlock::DeleteRootFolderPrompt
+    )]
+    active_sonarr_block: ActiveSonarrBlock,
+  ) {
+    test_handler_delegation!(
+      SonarrHandler,
+      ActiveSonarrBlock::RootFolders,
+      active_sonarr_block
+    );
+  }
 }
