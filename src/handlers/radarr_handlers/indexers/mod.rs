@@ -169,11 +169,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::Indexers => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.add.key => {
-          self
-            .app
-            .push_navigation_stack(ActiveRadarrBlock::AddIndexer.into());
-        }
         _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }

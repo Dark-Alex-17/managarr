@@ -1056,6 +1056,7 @@ impl<'a, 'b> Network<'a, 'b> {
           url,
           api_key,
           seed_ratio,
+          priority,
           ..
         } = app.data.radarr_data.edit_indexer_modal.as_ref().unwrap();
 
@@ -1068,7 +1069,7 @@ impl<'a, 'b> Network<'a, 'b> {
           api_key.text.clone(),
           seed_ratio.text.clone(),
           tag_ids_vec,
-          priority,
+          *priority,
         )
       };
 

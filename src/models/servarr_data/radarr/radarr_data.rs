@@ -209,7 +209,6 @@ impl<'a> Default for RadarrData<'a> {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, EnumIter)]
 pub enum ActiveRadarrBlock {
-  AddIndexer,
   AddMovieAlreadyInLibrary,
   AddMovieSearchInput,
   AddMovieSearchResults,
@@ -256,6 +255,7 @@ pub enum ActiveRadarrBlock {
   EditIndexerToggleEnableRss,
   EditIndexerToggleEnableAutomaticSearch,
   EditIndexerToggleEnableInteractiveSearch,
+  EditIndexerPriorityInput,
   EditIndexerUrlInput,
   EditIndexerTagsInput,
   EditMoviePrompt,
@@ -327,8 +327,7 @@ pub static COLLECTIONS_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::FilterCollectionsError,
   ActiveRadarrBlock::UpdateAllCollectionsPrompt,
 ];
-pub static INDEXERS_BLOCKS: [ActiveRadarrBlock; 4] = [
-  ActiveRadarrBlock::AddIndexer,
+pub static INDEXERS_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::DeleteIndexerPrompt,
   ActiveRadarrBlock::Indexers,
   ActiveRadarrBlock::TestIndexer,
@@ -431,7 +430,7 @@ pub const DELETE_MOVIE_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
   &[ActiveRadarrBlock::DeleteMovieToggleAddListExclusion],
   &[ActiveRadarrBlock::DeleteMovieConfirmPrompt],
 ];
-pub static EDIT_INDEXER_BLOCKS: [ActiveRadarrBlock; 10] = [
+pub static EDIT_INDEXER_BLOCKS: [ActiveRadarrBlock; 11] = [
   ActiveRadarrBlock::EditIndexerPrompt,
   ActiveRadarrBlock::EditIndexerConfirmPrompt,
   ActiveRadarrBlock::EditIndexerApiKeyInput,
@@ -440,6 +439,7 @@ pub static EDIT_INDEXER_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::EditIndexerToggleEnableRss,
   ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
   ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+  ActiveRadarrBlock::EditIndexerPriorityInput,
   ActiveRadarrBlock::EditIndexerUrlInput,
   ActiveRadarrBlock::EditIndexerTagsInput,
 ];
@@ -461,6 +461,10 @@ pub const EDIT_INDEXER_TORRENT_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
     ActiveRadarrBlock::EditIndexerTagsInput,
   ],
   &[
+    ActiveRadarrBlock::EditIndexerPriorityInput,
+    ActiveRadarrBlock::EditIndexerConfirmPrompt,
+  ],
+  &[
     ActiveRadarrBlock::EditIndexerConfirmPrompt,
     ActiveRadarrBlock::EditIndexerConfirmPrompt,
   ],
@@ -480,7 +484,7 @@ pub const EDIT_INDEXER_NZB_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
   ],
   &[
     ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
-    ActiveRadarrBlock::EditIndexerConfirmPrompt,
+    ActiveRadarrBlock::EditIndexerPriorityInput,
   ],
   &[
     ActiveRadarrBlock::EditIndexerConfirmPrompt,

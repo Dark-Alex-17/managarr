@@ -7,10 +7,10 @@ mod tests {
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::indexers::IndexersHandler;
+  use crate::handlers::sonarr_handlers::indexers::IndexersHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::servarr_data::radarr::radarr_data::{
-    ActiveRadarrBlock, EDIT_INDEXER_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
+  use crate::models::servarr_data::sonarr::sonarr_data::{
+    ActiveSonarrBlock, EDIT_INDEXER_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
   };
   use crate::models::servarr_models::Indexer;
   use crate::test_handler_delegation;
@@ -25,10 +25,10 @@ mod tests {
     test_iterable_scroll!(
       test_indexers_scroll,
       IndexersHandler,
-      radarr_data,
+      sonarr_data,
       indexers,
       simple_stateful_iterable_vec!(Indexer, String, protocol),
-      ActiveRadarrBlock::Indexers,
+      ActiveSonarrBlock::Indexers,
       None,
       protocol
     );
@@ -41,24 +41,25 @@ mod tests {
       key: Key,
     ) {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.is_loading = true;
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(simple_stateful_iterable_vec!(Indexer, String, protocol));
 
-      IndexersHandler::with(key, &mut app, ActiveRadarrBlock::Indexers, None).handle();
+      IndexersHandler::with(key, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
       assert_str_eq!(
-        app.data.radarr_data.indexers.current_selection().protocol,
+        app.data.sonarr_data.indexers.current_selection().protocol,
         "Test 1"
       );
 
-      IndexersHandler::with(key, &mut app, ActiveRadarrBlock::Indexers, None).handle();
+      IndexersHandler::with(key, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
       assert_str_eq!(
-        app.data.radarr_data.indexers.current_selection().protocol,
+        app.data.sonarr_data.indexers.current_selection().protocol,
         "Test 1"
       );
     }
@@ -72,10 +73,10 @@ mod tests {
     test_iterable_home_and_end!(
       test_indexers_home_end,
       IndexersHandler,
-      radarr_data,
+      sonarr_data,
       indexers,
       extended_stateful_iterable_vec!(Indexer, String, protocol),
-      ActiveRadarrBlock::Indexers,
+      ActiveSonarrBlock::Indexers,
       None,
       protocol
     );
@@ -83,36 +84,37 @@ mod tests {
     #[test]
     fn test_indexers_home_end_no_op_when_not_ready() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.is_loading = true;
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(extended_stateful_iterable_vec!(Indexer, String, protocol));
 
       IndexersHandler::with(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        ActiveRadarrBlock::Indexers,
+        ActiveSonarrBlock::Indexers,
         None,
       )
       .handle();
 
       assert_str_eq!(
-        app.data.radarr_data.indexers.current_selection().protocol,
+        app.data.sonarr_data.indexers.current_selection().protocol,
         "Test 1"
       );
 
       IndexersHandler::with(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        ActiveRadarrBlock::Indexers,
+        ActiveSonarrBlock::Indexers,
         None,
       )
       .handle();
 
       assert_str_eq!(
-        app.data.radarr_data.indexers.current_selection().protocol,
+        app.data.sonarr_data.indexers.current_selection().protocol,
         "Test 1"
       );
     }
@@ -128,17 +130,18 @@ mod tests {
     #[test]
     fn test_delete_indexer_prompt() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(DELETE_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
+      IndexersHandler::with(DELETE_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::DeleteIndexerPrompt.into()
+        ActiveSonarrBlock::DeleteIndexerPrompt.into()
       );
     }
 
@@ -146,16 +149,16 @@ mod tests {
     fn test_delete_indexer_prompt_no_op_when_not_ready() {
       let mut app = App::default();
       app.is_loading = true;
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(DELETE_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
+      IndexersHandler::with(DELETE_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
     }
   }
 
@@ -168,46 +171,48 @@ mod tests {
     #[rstest]
     fn test_indexers_tab_left(#[values(true, false)] is_ready: bool) {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.is_loading = is_ready;
-      app.data.radarr_data.main_tabs.set_index(5);
+      app.data.sonarr_data.main_tabs.set_index(5);
 
       IndexersHandler::with(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        ActiveRadarrBlock::Indexers,
+        ActiveSonarrBlock::Indexers,
         None,
       )
       .handle();
 
       assert_eq!(
-        app.data.radarr_data.main_tabs.get_active_route(),
-        ActiveRadarrBlock::RootFolders.into()
+        app.data.sonarr_data.main_tabs.get_active_route(),
+        ActiveSonarrBlock::RootFolders.into()
       );
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::RootFolders.into()
+        ActiveSonarrBlock::RootFolders.into()
       );
     }
 
     #[rstest]
     fn test_indexers_tab_right(#[values(true, false)] is_ready: bool) {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.is_loading = is_ready;
-      app.data.radarr_data.main_tabs.set_index(5);
+      app.data.sonarr_data.main_tabs.set_index(5);
 
       IndexersHandler::with(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        ActiveRadarrBlock::Indexers,
+        ActiveSonarrBlock::Indexers,
         None,
       )
       .handle();
 
       assert_eq!(
-        app.data.radarr_data.main_tabs.get_active_route(),
-        ActiveRadarrBlock::System.into()
+        app.data.sonarr_data.main_tabs.get_active_route(),
+        ActiveSonarrBlock::System.into()
       );
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::System.into());
     }
 
     #[rstest]
@@ -215,28 +220,29 @@ mod tests {
       #[values(DEFAULT_KEYBINDINGS.left.key, DEFAULT_KEYBINDINGS.right.key)] key: Key,
     ) {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
 
-      IndexersHandler::with(key, &mut app, ActiveRadarrBlock::DeleteIndexerPrompt, None).handle();
+      IndexersHandler::with(key, &mut app, ActiveSonarrBlock::DeleteIndexerPrompt, None).handle();
 
-      assert!(app.data.radarr_data.prompt_confirm);
+      assert!(app.data.sonarr_data.prompt_confirm);
 
-      IndexersHandler::with(key, &mut app, ActiveRadarrBlock::DeleteIndexerPrompt, None).handle();
+      IndexersHandler::with(key, &mut app, ActiveSonarrBlock::DeleteIndexerPrompt, None).handle();
 
-      assert!(!app.data.radarr_data.prompt_confirm);
+      assert!(!app.data.sonarr_data.prompt_confirm);
     }
   }
 
   mod test_handle_submit {
     use crate::models::servarr_data::modals::EditIndexerModal;
-    use crate::models::servarr_data::radarr::radarr_data::{
-      RadarrData, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
+    use crate::models::servarr_data::sonarr::sonarr_data::{
+      SonarrData, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
     };
     use crate::models::servarr_models::{Indexer, IndexerField};
     use bimap::BiMap;
     use pretty_assertions::assert_eq;
     use serde_json::{Number, Value};
 
-    use crate::network::radarr_network::RadarrEvent;
+    use crate::network::sonarr_network::SonarrEvent;
 
     use super::*;
 
@@ -245,6 +251,7 @@ mod tests {
     #[rstest]
     fn test_edit_indexer_submit(#[values(true, false)] torrent_protocol: bool) {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       let protocol = if torrent_protocol {
         "torrent".to_owned()
       } else {
@@ -260,9 +267,9 @@ mod tests {
         tags: "usenet, test".into(),
         ..EditIndexerModal::default()
       };
-      let mut radarr_data = RadarrData {
+      let mut sonarr_data = SonarrData {
         tags_map: BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]),
-        ..RadarrData::default()
+        ..SonarrData::default()
       };
       let mut fields = vec![
         IndexerField {
@@ -293,31 +300,31 @@ mod tests {
         fields: Some(fields),
         ..Indexer::default()
       };
-      radarr_data.indexers.set_items(vec![indexer]);
-      app.data.radarr_data = radarr_data;
+      sonarr_data.indexers.set_items(vec![indexer]);
+      app.data.sonarr_data = sonarr_data;
 
-      IndexersHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
+      IndexersHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveSonarrBlock::EditIndexerPrompt.into()
       );
       assert_eq!(
-        app.data.radarr_data.edit_indexer_modal,
-        Some((&app.data.radarr_data).into())
+        app.data.sonarr_data.edit_indexer_modal,
+        Some((&app.data.sonarr_data).into())
       );
       assert_eq!(
-        app.data.radarr_data.edit_indexer_modal,
+        app.data.sonarr_data.edit_indexer_modal,
         Some(expected_edit_indexer_modal)
       );
       if torrent_protocol {
         assert_eq!(
-          app.data.radarr_data.selected_block.blocks,
+          app.data.sonarr_data.selected_block.blocks,
           EDIT_INDEXER_TORRENT_SELECTION_BLOCKS
         );
       } else {
         assert_eq!(
-          app.data.radarr_data.selected_block.blocks,
+          app.data.sonarr_data.selected_block.blocks,
           EDIT_INDEXER_NZB_SELECTION_BLOCKS
         );
       }
@@ -326,18 +333,19 @@ mod tests {
     #[test]
     fn test_edit_indexer_submit_no_op_when_not_ready() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.is_loading = true;
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
+      IndexersHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert_eq!(app.data.radarr_data.edit_indexer_modal, None);
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_eq!(app.data.sonarr_data.edit_indexer_modal, None);
     }
 
     #[test]
@@ -345,27 +353,27 @@ mod tests {
       let mut app = App::default();
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
-      app.data.radarr_data.prompt_confirm = true;
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into());
+      app.data.sonarr_data.prompt_confirm = true;
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
 
       IndexersHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::DeleteIndexerPrompt,
+        ActiveSonarrBlock::DeleteIndexerPrompt,
         None,
       )
       .handle();
 
-      assert!(app.data.radarr_data.prompt_confirm);
+      assert!(app.data.sonarr_data.prompt_confirm);
       assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteIndexer(None))
+        app.data.sonarr_data.prompt_confirm_action,
+        Some(SonarrEvent::DeleteIndexer(None))
       );
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
     }
 
     #[test]
@@ -373,23 +381,23 @@ mod tests {
       let mut app = App::default();
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
 
       IndexersHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::DeleteIndexerPrompt,
+        ActiveSonarrBlock::DeleteIndexerPrompt,
         None,
       )
       .handle();
 
-      assert!(!app.data.radarr_data.prompt_confirm);
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert!(!app.data.sonarr_data.prompt_confirm);
+      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
     }
   }
 
@@ -404,34 +412,34 @@ mod tests {
     fn test_delete_indexer_prompt_block_esc(#[values(true, false)] is_ready: bool) {
       let mut app = App::default();
       app.is_loading = is_ready;
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into());
-      app.data.radarr_data.prompt_confirm = true;
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
+      app.data.sonarr_data.prompt_confirm = true;
 
       IndexersHandler::with(
         ESC_KEY,
         &mut app,
-        ActiveRadarrBlock::DeleteIndexerPrompt,
+        ActiveSonarrBlock::DeleteIndexerPrompt,
         None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert!(!app.data.radarr_data.prompt_confirm);
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert!(!app.data.sonarr_data.prompt_confirm);
     }
 
     #[rstest]
     fn test_test_indexer_esc(#[values(true, false)] is_ready: bool) {
       let mut app = App::default();
       app.is_loading = is_ready;
-      app.data.radarr_data.indexer_test_error = Some("test result".to_owned());
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::TestIndexer.into());
+      app.data.sonarr_data.indexer_test_error = Some("test result".to_owned());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::TestIndexer.into());
 
-      IndexersHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::TestIndexer, None).handle();
+      IndexersHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::TestIndexer, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert_eq!(app.data.radarr_data.indexer_test_error, None);
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_eq!(app.data.sonarr_data.indexer_test_error, None);
     }
 
     #[rstest]
@@ -439,12 +447,12 @@ mod tests {
       let mut app = App::default();
       app.is_loading = is_ready;
       app.error = "test error".to_owned().into();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
 
-      IndexersHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
+      IndexersHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
       assert!(app.error.text.is_empty());
     }
   }
@@ -453,8 +461,8 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::{
-      models::servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS,
-      network::radarr_network::RadarrEvent,
+      models::servarr_data::sonarr::sonarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS,
+      network::sonarr_network::SonarrEvent,
     };
 
     use super::*;
@@ -464,20 +472,20 @@ mod tests {
       let mut app = App::default();
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
 
       IndexersHandler::with(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
-        ActiveRadarrBlock::Indexers,
+        ActiveSonarrBlock::Indexers,
         None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
       assert!(app.should_refresh);
     }
 
@@ -487,46 +495,47 @@ mod tests {
       app.is_loading = true;
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
 
       IndexersHandler::with(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
-        ActiveRadarrBlock::Indexers,
+        ActiveSonarrBlock::Indexers,
         None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
       assert!(!app.should_refresh);
     }
 
     #[test]
     fn test_indexer_settings_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
 
       IndexersHandler::with(
         DEFAULT_KEYBINDINGS.settings.key,
         &mut app,
-        ActiveRadarrBlock::Indexers,
+        ActiveSonarrBlock::Indexers,
         None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::AllIndexerSettingsPrompt.into()
+        ActiveSonarrBlock::AllIndexerSettingsPrompt.into()
       );
       assert_eq!(
-        app.data.radarr_data.selected_block.blocks,
+        app.data.sonarr_data.selected_block.blocks,
         INDEXER_SETTINGS_SELECTION_BLOCKS
       );
     }
@@ -535,44 +544,45 @@ mod tests {
     fn test_indexer_settings_key_no_op_when_not_ready() {
       let mut app = App::default();
       app.is_loading = true;
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
 
       IndexersHandler::with(
         DEFAULT_KEYBINDINGS.settings.key,
         &mut app,
-        ActiveRadarrBlock::Indexers,
+        ActiveSonarrBlock::Indexers,
         None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
     }
 
     #[test]
     fn test_test_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
 
       IndexersHandler::with(
         DEFAULT_KEYBINDINGS.test.key,
         &mut app,
-        ActiveRadarrBlock::Indexers,
+        ActiveSonarrBlock::Indexers,
         None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::TestIndexer.into()
+        ActiveSonarrBlock::TestIndexer.into()
       );
     }
 
@@ -580,44 +590,45 @@ mod tests {
     fn test_test_key_no_op_when_not_ready() {
       let mut app = App::default();
       app.is_loading = true;
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
 
       IndexersHandler::with(
         DEFAULT_KEYBINDINGS.test.key,
         &mut app,
-        ActiveRadarrBlock::Indexers,
+        ActiveSonarrBlock::Indexers,
         None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
     }
 
     #[test]
     fn test_test_all_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
 
       IndexersHandler::with(
         DEFAULT_KEYBINDINGS.test_all.key,
         &mut app,
-        ActiveRadarrBlock::Indexers,
+        ActiveSonarrBlock::Indexers,
         None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::TestAllIndexers.into()
+        ActiveSonarrBlock::TestAllIndexers.into()
       );
     }
 
@@ -625,22 +636,22 @@ mod tests {
     fn test_test_all_key_no_op_when_not_ready() {
       let mut app = App::default();
       app.is_loading = true;
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
 
       IndexersHandler::with(
         DEFAULT_KEYBINDINGS.test_all.key,
         &mut app,
-        ActiveRadarrBlock::Indexers,
+        ActiveSonarrBlock::Indexers,
         None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
     }
 
     #[test]
@@ -648,72 +659,68 @@ mod tests {
       let mut app = App::default();
       app
         .data
-        .radarr_data
+        .sonarr_data
         .indexers
         .set_items(vec![Indexer::default()]);
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
 
       IndexersHandler::with(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
-        ActiveRadarrBlock::DeleteIndexerPrompt,
+        ActiveSonarrBlock::DeleteIndexerPrompt,
         None,
       )
       .handle();
 
-      assert!(app.data.radarr_data.prompt_confirm);
+      assert!(app.data.sonarr_data.prompt_confirm);
       assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteIndexer(None))
+        app.data.sonarr_data.prompt_confirm_action,
+        Some(SonarrEvent::DeleteIndexer(None))
       );
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
     }
   }
 
   #[rstest]
   fn test_delegates_edit_indexer_blocks_to_edit_indexer_handler(
     #[values(
-      ActiveRadarrBlock::EditIndexerPrompt,
-      ActiveRadarrBlock::EditIndexerConfirmPrompt,
-      ActiveRadarrBlock::EditIndexerApiKeyInput,
-      ActiveRadarrBlock::EditIndexerNameInput,
-      ActiveRadarrBlock::EditIndexerSeedRatioInput,
-      ActiveRadarrBlock::EditIndexerToggleEnableRss,
-      ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
-      ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
-      ActiveRadarrBlock::EditIndexerUrlInput,
-      ActiveRadarrBlock::EditIndexerTagsInput
+      ActiveSonarrBlock::EditIndexerPrompt,
+      ActiveSonarrBlock::EditIndexerConfirmPrompt,
+      ActiveSonarrBlock::EditIndexerApiKeyInput,
+      ActiveSonarrBlock::EditIndexerNameInput,
+      ActiveSonarrBlock::EditIndexerSeedRatioInput,
+      ActiveSonarrBlock::EditIndexerToggleEnableRss,
+      ActiveSonarrBlock::EditIndexerToggleEnableAutomaticSearch,
+      ActiveSonarrBlock::EditIndexerToggleEnableInteractiveSearch,
+      ActiveSonarrBlock::EditIndexerUrlInput,
+      ActiveSonarrBlock::EditIndexerTagsInput
     )]
-    active_radarr_block: ActiveRadarrBlock,
+    active_sonarr_block: ActiveSonarrBlock,
   ) {
     test_handler_delegation!(
       IndexersHandler,
-      ActiveRadarrBlock::Indexers,
-      active_radarr_block
+      ActiveSonarrBlock::Indexers,
+      active_sonarr_block
     );
   }
 
   #[rstest]
   fn test_delegates_indexer_settings_blocks_to_indexer_settings_handler(
     #[values(
-      ActiveRadarrBlock::AllIndexerSettingsPrompt,
-      ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
-      ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
-      ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
-      ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
-      ActiveRadarrBlock::IndexerSettingsRetentionInput,
-      ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
-      ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs,
-      ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags,
-      ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput
+      ActiveSonarrBlock::AllIndexerSettingsPrompt,
+      ActiveSonarrBlock::IndexerSettingsConfirmPrompt,
+      ActiveSonarrBlock::IndexerSettingsMaximumSizeInput,
+      ActiveSonarrBlock::IndexerSettingsMinimumAgeInput,
+      ActiveSonarrBlock::IndexerSettingsRetentionInput,
+      ActiveSonarrBlock::IndexerSettingsRssSyncIntervalInput
     )]
-    active_radarr_block: ActiveRadarrBlock,
+    active_sonarr_block: ActiveSonarrBlock,
   ) {
     test_handler_delegation!(
       IndexersHandler,
-      ActiveRadarrBlock::Indexers,
-      active_radarr_block
+      ActiveSonarrBlock::Indexers,
+      active_sonarr_block
     );
   }
 
@@ -721,8 +728,8 @@ mod tests {
   fn test_delegates_test_all_indexers_block_to_test_all_indexers_handler() {
     test_handler_delegation!(
       IndexersHandler,
-      ActiveRadarrBlock::Indexers,
-      ActiveRadarrBlock::TestAllIndexers
+      ActiveSonarrBlock::Indexers,
+      ActiveSonarrBlock::TestAllIndexers
     );
   }
 
@@ -732,13 +739,13 @@ mod tests {
     indexers_blocks.extend(INDEXERS_BLOCKS);
     indexers_blocks.extend(INDEXER_SETTINGS_BLOCKS);
     indexers_blocks.extend(EDIT_INDEXER_BLOCKS);
-    indexers_blocks.push(ActiveRadarrBlock::TestAllIndexers);
+    indexers_blocks.push(ActiveSonarrBlock::TestAllIndexers);
 
-    ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
-      if indexers_blocks.contains(&active_radarr_block) {
-        assert!(IndexersHandler::accepts(active_radarr_block));
+    ActiveSonarrBlock::iter().for_each(|active_sonarr_block| {
+      if indexers_blocks.contains(&active_sonarr_block) {
+        assert!(IndexersHandler::accepts(active_sonarr_block));
       } else {
-        assert!(!IndexersHandler::accepts(active_radarr_block));
+        assert!(!IndexersHandler::accepts(active_sonarr_block));
       }
     })
   }
@@ -746,12 +753,13 @@ mod tests {
   #[test]
   fn test_indexers_handler_not_ready_when_loading() {
     let mut app = App::default();
+    app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = true;
 
     let handler = IndexersHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      ActiveRadarrBlock::Indexers,
+      ActiveSonarrBlock::Indexers,
       None,
     );
 
@@ -761,12 +769,13 @@ mod tests {
   #[test]
   fn test_indexers_handler_not_ready_when_indexers_is_empty() {
     let mut app = App::default();
+    app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = false;
 
     let handler = IndexersHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      ActiveRadarrBlock::Indexers,
+      ActiveSonarrBlock::Indexers,
       None,
     );
 
@@ -776,17 +785,18 @@ mod tests {
   #[test]
   fn test_indexers_handler_ready_when_not_loading_and_indexers_is_not_empty() {
     let mut app = App::default();
+    app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = false;
     app
       .data
-      .radarr_data
+      .sonarr_data
       .indexers
       .set_items(vec![Indexer::default()]);
 
     let handler = IndexersHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      ActiveRadarrBlock::Indexers,
+      ActiveSonarrBlock::Indexers,
       None,
     );
 

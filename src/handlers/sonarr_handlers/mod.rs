@@ -1,6 +1,7 @@
 use blocklist::BlocklistHandler;
 use downloads::DownloadsHandler;
 use history::HistoryHandler;
+use indexers::IndexersHandler;
 use library::LibraryHandler;
 use root_folders::RootFoldersHandler;
 
@@ -15,6 +16,7 @@ use super::KeyEventHandler;
 mod blocklist;
 mod downloads;
 mod history;
+mod indexers;
 mod library;
 mod root_folders;
 
@@ -51,6 +53,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SonarrHandler<'a, 'b
       _ if RootFoldersHandler::accepts(self.active_sonarr_block) => {
         RootFoldersHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
           .handle()
+      }
+      _ if IndexersHandler::accepts(self.active_sonarr_block) => {
+        IndexersHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle()
       }
       _ => self.handle_key_event(),
     }

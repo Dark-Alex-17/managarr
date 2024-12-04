@@ -3,10 +3,10 @@ mod tests {
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
+  use crate::handlers::sonarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::modals::EditIndexerModal;
-  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
+  use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_INDEXER_BLOCKS};
   use strum::IntoEnumIterator;
 
   mod test_handle_scroll_up_and_down {
@@ -15,7 +15,7 @@ mod tests {
     use rstest::rstest;
 
     use crate::models::servarr_data::modals::EditIndexerModal;
-    use crate::models::servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS;
+    use crate::models::servarr_data::sonarr::sonarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
 
     use super::*;
@@ -23,13 +23,13 @@ mod tests {
     #[rstest]
     fn test_edit_indexer_priority_scroll(#[values(Key::Up, Key::Down)] key: Key) {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
         key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPriorityInput,
+        ActiveSonarrBlock::EditIndexerPriorityInput,
         None,
       )
       .handle();
@@ -38,7 +38,7 @@ mod tests {
         assert_eq!(
           app
             .data
-            .radarr_data
+            .sonarr_data
             .edit_indexer_modal
             .as_ref()
             .unwrap()
@@ -49,7 +49,7 @@ mod tests {
         assert_eq!(
           app
             .data
-            .radarr_data
+            .sonarr_data
             .edit_indexer_modal
             .as_ref()
             .unwrap()
@@ -60,7 +60,7 @@ mod tests {
         EditIndexerHandler::with(
           Key::Up,
           &mut app,
-          ActiveRadarrBlock::EditIndexerPriorityInput,
+          ActiveSonarrBlock::EditIndexerPriorityInput,
           None,
         )
         .handle();
@@ -68,7 +68,7 @@ mod tests {
         assert_eq!(
           app
             .data
-            .radarr_data
+            .sonarr_data
             .edit_indexer_modal
             .as_ref()
             .unwrap()
@@ -79,14 +79,14 @@ mod tests {
         EditIndexerHandler::with(
           key,
           &mut app,
-          ActiveRadarrBlock::EditIndexerPriorityInput,
+          ActiveSonarrBlock::EditIndexerPriorityInput,
           None,
         )
         .handle();
         assert_eq!(
           app
             .data
-            .radarr_data
+            .sonarr_data
             .edit_indexer_modal
             .as_ref()
             .unwrap()
@@ -99,23 +99,23 @@ mod tests {
     #[rstest]
     fn test_edit_indexer_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
-      app.data.radarr_data.selected_block =
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.down();
+      app.data.sonarr_data.selected_block.down();
 
-      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
+      EditIndexerHandler::with(key, &mut app, ActiveSonarrBlock::EditIndexerPrompt, None).handle();
 
       if key == Key::Up {
         assert_eq!(
-          app.data.radarr_data.selected_block.get_active_block(),
-          ActiveRadarrBlock::EditIndexerNameInput
+          app.data.sonarr_data.selected_block.get_active_block(),
+          ActiveSonarrBlock::EditIndexerNameInput
         );
       } else {
         assert_eq!(
-          app.data.radarr_data.selected_block.get_active_block(),
-          ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch
+          app.data.sonarr_data.selected_block.get_active_block(),
+          ActiveSonarrBlock::EditIndexerToggleEnableAutomaticSearch
         );
       }
     }
@@ -125,18 +125,18 @@ mod tests {
       #[values(Key::Up, Key::Down)] key: Key,
     ) {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.is_loading = true;
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
-      app.data.radarr_data.selected_block =
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.down();
+      app.data.sonarr_data.selected_block.down();
 
-      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
+      EditIndexerHandler::with(key, &mut app, ActiveSonarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
-        app.data.radarr_data.selected_block.get_active_block(),
-        ActiveRadarrBlock::EditIndexerToggleEnableRss
+        app.data.sonarr_data.selected_block.get_active_block(),
+        ActiveSonarrBlock::EditIndexerToggleEnableRss
       );
     }
   }
@@ -153,8 +153,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_name_input_home_end() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         name: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -162,7 +162,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerNameInput,
+        ActiveSonarrBlock::EditIndexerNameInput,
         None,
       )
       .handle();
@@ -170,7 +170,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -183,7 +183,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerNameInput,
+        ActiveSonarrBlock::EditIndexerNameInput,
         None,
       )
       .handle();
@@ -191,7 +191,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -205,8 +205,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_url_input_home_end() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         url: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -214,7 +214,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerUrlInput,
+        ActiveSonarrBlock::EditIndexerUrlInput,
         None,
       )
       .handle();
@@ -222,7 +222,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -235,7 +235,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerUrlInput,
+        ActiveSonarrBlock::EditIndexerUrlInput,
         None,
       )
       .handle();
@@ -243,7 +243,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -257,8 +257,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_api_key_input_home_end() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         api_key: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -266,7 +266,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        ActiveSonarrBlock::EditIndexerApiKeyInput,
         None,
       )
       .handle();
@@ -274,7 +274,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -287,7 +287,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        ActiveSonarrBlock::EditIndexerApiKeyInput,
         None,
       )
       .handle();
@@ -295,7 +295,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -309,8 +309,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_seed_ratio_input_home_end() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         seed_ratio: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -318,7 +318,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        ActiveSonarrBlock::EditIndexerSeedRatioInput,
         None,
       )
       .handle();
@@ -326,7 +326,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -339,7 +339,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        ActiveSonarrBlock::EditIndexerSeedRatioInput,
         None,
       )
       .handle();
@@ -347,7 +347,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -361,8 +361,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_tags_input_home_end() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         tags: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -370,7 +370,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerTagsInput,
+        ActiveSonarrBlock::EditIndexerTagsInput,
         None,
       )
       .handle();
@@ -378,7 +378,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -391,7 +391,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerTagsInput,
+        ActiveSonarrBlock::EditIndexerTagsInput,
         None,
       )
       .handle();
@@ -399,7 +399,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -416,7 +416,7 @@ mod tests {
 
     use crate::app::App;
     use crate::models::servarr_data::modals::EditIndexerModal;
-    use crate::models::servarr_data::radarr::radarr_data::{
+    use crate::models::servarr_data::sonarr::sonarr_data::{
       EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
     };
     use crate::models::BlockSelectionState;
@@ -428,69 +428,69 @@ mod tests {
     #[rstest]
     fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.selected_block =
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.y = EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1;
+      app.data.sonarr_data.selected_block.y = EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1;
 
-      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
+      EditIndexerHandler::with(key, &mut app, ActiveSonarrBlock::EditIndexerPrompt, None).handle();
 
-      assert!(app.data.radarr_data.prompt_confirm);
+      assert!(app.data.sonarr_data.prompt_confirm);
 
-      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
+      EditIndexerHandler::with(key, &mut app, ActiveSonarrBlock::EditIndexerPrompt, None).handle();
 
-      assert!(!app.data.radarr_data.prompt_confirm);
+      assert!(!app.data.sonarr_data.prompt_confirm);
     }
 
     #[rstest]
     #[case(
       0,
-      ActiveRadarrBlock::EditIndexerNameInput,
-      ActiveRadarrBlock::EditIndexerUrlInput
+      ActiveSonarrBlock::EditIndexerNameInput,
+      ActiveSonarrBlock::EditIndexerUrlInput
     )]
     #[case(
       1,
-      ActiveRadarrBlock::EditIndexerToggleEnableRss,
-      ActiveRadarrBlock::EditIndexerApiKeyInput
+      ActiveSonarrBlock::EditIndexerToggleEnableRss,
+      ActiveSonarrBlock::EditIndexerApiKeyInput
     )]
     #[case(
       2,
-      ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
-      ActiveRadarrBlock::EditIndexerSeedRatioInput
+      ActiveSonarrBlock::EditIndexerToggleEnableAutomaticSearch,
+      ActiveSonarrBlock::EditIndexerSeedRatioInput
     )]
     #[case(
       3,
-      ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
-      ActiveRadarrBlock::EditIndexerTagsInput
+      ActiveSonarrBlock::EditIndexerToggleEnableInteractiveSearch,
+      ActiveSonarrBlock::EditIndexerTagsInput
     )]
     fn test_left_right_block_toggle_torrents(
       #[values(Key::Left, Key::Right)] key: Key,
       #[case] starting_y_index: usize,
-      #[case] left_block: ActiveRadarrBlock,
-      #[case] right_block: ActiveRadarrBlock,
+      #[case] left_block: ActiveSonarrBlock,
+      #[case] right_block: ActiveSonarrBlock,
     ) {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.selected_block =
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.y = starting_y_index;
+      app.data.sonarr_data.selected_block.y = starting_y_index;
 
       assert_eq!(
-        app.data.radarr_data.selected_block.get_active_block(),
+        app.data.sonarr_data.selected_block.get_active_block(),
         left_block
       );
 
-      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
+      EditIndexerHandler::with(key, &mut app, ActiveSonarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
-        app.data.radarr_data.selected_block.get_active_block(),
+        app.data.sonarr_data.selected_block.get_active_block(),
         right_block
       );
 
-      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
+      EditIndexerHandler::with(key, &mut app, ActiveSonarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
-        app.data.radarr_data.selected_block.get_active_block(),
+        app.data.sonarr_data.selected_block.get_active_block(),
         left_block
       );
     }
@@ -498,52 +498,52 @@ mod tests {
     #[rstest]
     #[case(
       0,
-      ActiveRadarrBlock::EditIndexerNameInput,
-      ActiveRadarrBlock::EditIndexerUrlInput
+      ActiveSonarrBlock::EditIndexerNameInput,
+      ActiveSonarrBlock::EditIndexerUrlInput
     )]
     #[case(
       1,
-      ActiveRadarrBlock::EditIndexerToggleEnableRss,
-      ActiveRadarrBlock::EditIndexerApiKeyInput
+      ActiveSonarrBlock::EditIndexerToggleEnableRss,
+      ActiveSonarrBlock::EditIndexerApiKeyInput
     )]
     #[case(
       2,
-      ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
-      ActiveRadarrBlock::EditIndexerTagsInput
+      ActiveSonarrBlock::EditIndexerToggleEnableAutomaticSearch,
+      ActiveSonarrBlock::EditIndexerTagsInput
     )]
     #[case(
       3,
-      ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
-      ActiveRadarrBlock::EditIndexerPriorityInput
+      ActiveSonarrBlock::EditIndexerToggleEnableInteractiveSearch,
+      ActiveSonarrBlock::EditIndexerPriorityInput
     )]
     fn test_left_right_block_toggle_nzb(
       #[values(Key::Left, Key::Right)] key: Key,
       #[case] starting_y_index: usize,
-      #[case] left_block: ActiveRadarrBlock,
-      #[case] right_block: ActiveRadarrBlock,
+      #[case] left_block: ActiveSonarrBlock,
+      #[case] right_block: ActiveSonarrBlock,
     ) {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.selected_block =
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_NZB_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.y = starting_y_index;
+      app.data.sonarr_data.selected_block.y = starting_y_index;
 
       assert_eq!(
-        app.data.radarr_data.selected_block.get_active_block(),
+        app.data.sonarr_data.selected_block.get_active_block(),
         left_block
       );
 
-      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
+      EditIndexerHandler::with(key, &mut app, ActiveSonarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
-        app.data.radarr_data.selected_block.get_active_block(),
+        app.data.sonarr_data.selected_block.get_active_block(),
         right_block
       );
 
-      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
+      EditIndexerHandler::with(key, &mut app, ActiveSonarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
-        app.data.radarr_data.selected_block.get_active_block(),
+        app.data.sonarr_data.selected_block.get_active_block(),
         left_block
       );
     }
@@ -553,38 +553,38 @@ mod tests {
       #[values(Key::Left, Key::Right)] key: Key,
     ) {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.selected_block =
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.y = 4;
-      app.data.radarr_data.prompt_confirm = false;
+      app.data.sonarr_data.selected_block.y = 4;
+      app.data.sonarr_data.prompt_confirm = false;
 
       assert_eq!(
-        app.data.radarr_data.selected_block.get_active_block(),
-        ActiveRadarrBlock::EditIndexerPriorityInput
+        app.data.sonarr_data.selected_block.get_active_block(),
+        ActiveSonarrBlock::EditIndexerPriorityInput
       );
 
-      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
+      EditIndexerHandler::with(key, &mut app, ActiveSonarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
-        app.data.radarr_data.selected_block.get_active_block(),
-        ActiveRadarrBlock::EditIndexerConfirmPrompt
+        app.data.sonarr_data.selected_block.get_active_block(),
+        ActiveSonarrBlock::EditIndexerConfirmPrompt
       );
 
-      EditIndexerHandler::with(key, &mut app, ActiveRadarrBlock::EditIndexerPrompt, None).handle();
+      EditIndexerHandler::with(key, &mut app, ActiveSonarrBlock::EditIndexerPrompt, None).handle();
 
       assert_eq!(
-        app.data.radarr_data.selected_block.get_active_block(),
-        ActiveRadarrBlock::EditIndexerConfirmPrompt
+        app.data.sonarr_data.selected_block.get_active_block(),
+        ActiveSonarrBlock::EditIndexerConfirmPrompt
       );
-      assert!(app.data.radarr_data.prompt_confirm);
+      assert!(app.data.sonarr_data.prompt_confirm);
     }
 
     #[test]
     fn test_edit_indexer_name_input_left_right_keys() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         name: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -592,7 +592,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerNameInput,
+        ActiveSonarrBlock::EditIndexerNameInput,
         None,
       )
       .handle();
@@ -600,7 +600,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -613,7 +613,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerNameInput,
+        ActiveSonarrBlock::EditIndexerNameInput,
         None,
       )
       .handle();
@@ -621,7 +621,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -635,8 +635,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_url_input_left_right_keys() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         url: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -644,7 +644,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerUrlInput,
+        ActiveSonarrBlock::EditIndexerUrlInput,
         None,
       )
       .handle();
@@ -652,7 +652,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -665,7 +665,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerUrlInput,
+        ActiveSonarrBlock::EditIndexerUrlInput,
         None,
       )
       .handle();
@@ -673,7 +673,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -687,8 +687,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_api_key_input_left_right_keys() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         api_key: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -696,7 +696,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        ActiveSonarrBlock::EditIndexerApiKeyInput,
         None,
       )
       .handle();
@@ -704,7 +704,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -717,7 +717,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        ActiveSonarrBlock::EditIndexerApiKeyInput,
         None,
       )
       .handle();
@@ -725,7 +725,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -739,8 +739,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_seed_ratio_input_left_right_keys() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         seed_ratio: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -748,7 +748,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        ActiveSonarrBlock::EditIndexerSeedRatioInput,
         None,
       )
       .handle();
@@ -756,7 +756,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -769,7 +769,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        ActiveSonarrBlock::EditIndexerSeedRatioInput,
         None,
       )
       .handle();
@@ -777,7 +777,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -791,8 +791,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_tags_input_left_right_keys() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         tags: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -800,7 +800,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerTagsInput,
+        ActiveSonarrBlock::EditIndexerTagsInput,
         None,
       )
       .handle();
@@ -808,7 +808,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -821,7 +821,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerTagsInput,
+        ActiveSonarrBlock::EditIndexerTagsInput,
         None,
       )
       .handle();
@@ -829,7 +829,7 @@ mod tests {
       assert_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -848,9 +848,9 @@ mod tests {
     use crate::app::App;
     use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::{
-      servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, BlockSelectionState,
+      servarr_data::sonarr::sonarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, BlockSelectionState,
     };
-    use crate::network::radarr_network::RadarrEvent;
+    use crate::network::sonarr_network::SonarrEvent;
 
     use super::*;
 
@@ -859,60 +859,60 @@ mod tests {
     #[test]
     fn test_edit_indexer_prompt_prompt_decline_submit() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
-      app.data.radarr_data.selected_block =
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
       app
         .data
-        .radarr_data
+        .sonarr_data
         .selected_block
         .set_index(0, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPrompt,
+        ActiveSonarrBlock::EditIndexerPrompt,
         None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
       assert!(!app.should_refresh);
-      assert_eq!(app.data.radarr_data.edit_indexer_modal, None);
+      assert_eq!(app.data.sonarr_data.edit_indexer_modal, None);
     }
 
     #[test]
     fn test_edit_indexer_prompt_prompt_confirmation_submit() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
-      app.data.radarr_data.selected_block =
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
       app
         .data
-        .radarr_data
+        .sonarr_data
         .selected_block
         .set_index(0, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
-      app.data.radarr_data.prompt_confirm = true;
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.sonarr_data.prompt_confirm = true;
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPrompt,
+        ActiveSonarrBlock::EditIndexerPrompt,
         None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert!(app.data.radarr_data.edit_indexer_modal.is_some());
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert!(app.data.sonarr_data.edit_indexer_modal.is_some());
       assert!(app.should_refresh);
       assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditIndexer(None))
+        app.data.sonarr_data.prompt_confirm_action,
+        Some(SonarrEvent::EditIndexer(None))
       );
     }
 
@@ -920,55 +920,55 @@ mod tests {
     fn test_edit_indexer_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
       let mut app = App::default();
       app.is_loading = true;
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
-      app.data.radarr_data.prompt_confirm = true;
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.sonarr_data.prompt_confirm = true;
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPrompt,
+        ActiveSonarrBlock::EditIndexerPrompt,
         None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveSonarrBlock::EditIndexerPrompt.into()
       );
-      assert!(app.data.radarr_data.edit_indexer_modal.is_some());
+      assert!(app.data.sonarr_data.edit_indexer_modal.is_some());
       assert!(!app.should_refresh);
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
     }
 
     #[rstest]
-    #[case(0, 0, ActiveRadarrBlock::EditIndexerNameInput)]
-    #[case(0, 1, ActiveRadarrBlock::EditIndexerUrlInput)]
-    #[case(1, 1, ActiveRadarrBlock::EditIndexerApiKeyInput)]
-    #[case(2, 1, ActiveRadarrBlock::EditIndexerSeedRatioInput)]
-    #[case(3, 1, ActiveRadarrBlock::EditIndexerTagsInput)]
+    #[case(0, 0, ActiveSonarrBlock::EditIndexerNameInput)]
+    #[case(0, 1, ActiveSonarrBlock::EditIndexerUrlInput)]
+    #[case(1, 1, ActiveSonarrBlock::EditIndexerApiKeyInput)]
+    #[case(2, 1, ActiveSonarrBlock::EditIndexerSeedRatioInput)]
+    #[case(3, 1, ActiveSonarrBlock::EditIndexerTagsInput)]
     fn test_edit_indexer_prompt_submit_input_fields(
       #[case] starting_y: usize,
       #[case] starting_x: usize,
-      #[case] block: ActiveRadarrBlock,
+      #[case] block: ActiveSonarrBlock,
     ) {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
-      app.data.radarr_data.selected_block =
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
       app
         .data
-        .radarr_data
+        .sonarr_data
         .selected_block
         .set_index(starting_x, starting_y);
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPrompt,
+        ActiveSonarrBlock::EditIndexerPrompt,
         None,
       )
       .handle();
@@ -980,24 +980,24 @@ mod tests {
     #[test]
     fn test_edit_indexer_priority_input_submit() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
-      app.data.radarr_data.selected_block =
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.set_index(0, 4);
+      app.data.sonarr_data.selected_block.set_index(0, 4);
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPrompt,
+        ActiveSonarrBlock::EditIndexerPrompt,
         None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPriorityInput.into()
+        ActiveSonarrBlock::EditIndexerPriorityInput.into()
       );
       assert!(!app.should_ignore_quit_key);
     }
@@ -1005,28 +1005,28 @@ mod tests {
     #[test]
     fn test_edit_indexer_toggle_enable_rss_submit() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
-      app.data.radarr_data.selected_block =
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.set_index(0, 1);
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
+      app.data.sonarr_data.selected_block.set_index(0, 1);
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPrompt,
+        ActiveSonarrBlock::EditIndexerPrompt,
         None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveSonarrBlock::EditIndexerPrompt.into()
       );
       assert!(app
         .data
-        .radarr_data
+        .sonarr_data
         .edit_indexer_modal
         .as_ref()
         .unwrap()
@@ -1036,18 +1036,18 @@ mod tests {
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPrompt,
+        ActiveSonarrBlock::EditIndexerPrompt,
         None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveSonarrBlock::EditIndexerPrompt.into()
       );
       assert!(!app
         .data
-        .radarr_data
+        .sonarr_data
         .edit_indexer_modal
         .as_ref()
         .unwrap()
@@ -1058,28 +1058,28 @@ mod tests {
     #[test]
     fn test_edit_indexer_toggle_enable_automatic_search_submit() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
-      app.data.radarr_data.selected_block =
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.set_index(0, 2);
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
+      app.data.sonarr_data.selected_block.set_index(0, 2);
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPrompt,
+        ActiveSonarrBlock::EditIndexerPrompt,
         None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveSonarrBlock::EditIndexerPrompt.into()
       );
       assert!(app
         .data
-        .radarr_data
+        .sonarr_data
         .edit_indexer_modal
         .as_ref()
         .unwrap()
@@ -1089,18 +1089,18 @@ mod tests {
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPrompt,
+        ActiveSonarrBlock::EditIndexerPrompt,
         None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveSonarrBlock::EditIndexerPrompt.into()
       );
       assert!(!app
         .data
-        .radarr_data
+        .sonarr_data
         .edit_indexer_modal
         .as_ref()
         .unwrap()
@@ -1111,28 +1111,28 @@ mod tests {
     #[test]
     fn test_edit_indexer_toggle_enable_interactive_search_submit() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
-      app.data.radarr_data.selected_block =
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
-      app.data.radarr_data.selected_block.set_index(0, 3);
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
+      app.data.sonarr_data.selected_block.set_index(0, 3);
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPrompt,
+        ActiveSonarrBlock::EditIndexerPrompt,
         None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveSonarrBlock::EditIndexerPrompt.into()
       );
       assert!(app
         .data
-        .radarr_data
+        .sonarr_data
         .edit_indexer_modal
         .as_ref()
         .unwrap()
@@ -1142,18 +1142,18 @@ mod tests {
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPrompt,
+        ActiveSonarrBlock::EditIndexerPrompt,
         None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveSonarrBlock::EditIndexerPrompt.into()
       );
       assert!(!app
         .data
-        .radarr_data
+        .sonarr_data
         .edit_indexer_modal
         .as_ref()
         .unwrap()
@@ -1164,19 +1164,19 @@ mod tests {
     #[test]
     fn test_edit_indexer_name_input_submit() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.should_ignore_quit_key = true;
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         name: "Test".into(),
         ..EditIndexerModal::default()
       });
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerNameInput.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerNameInput.into());
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerNameInput,
+        ActiveSonarrBlock::EditIndexerNameInput,
         None,
       )
       .handle();
@@ -1184,7 +1184,7 @@ mod tests {
       assert!(!app.should_ignore_quit_key);
       assert!(!app
         .data
-        .radarr_data
+        .sonarr_data
         .edit_indexer_modal
         .as_ref()
         .unwrap()
@@ -1193,26 +1193,26 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveSonarrBlock::EditIndexerPrompt.into()
       );
     }
 
     #[test]
     fn test_edit_indexer_url_input_submit() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.should_ignore_quit_key = true;
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         url: "Test".into(),
         ..EditIndexerModal::default()
       });
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerUrlInput.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerUrlInput.into());
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerUrlInput,
+        ActiveSonarrBlock::EditIndexerUrlInput,
         None,
       )
       .handle();
@@ -1220,7 +1220,7 @@ mod tests {
       assert!(!app.should_ignore_quit_key);
       assert!(!app
         .data
-        .radarr_data
+        .sonarr_data
         .edit_indexer_modal
         .as_ref()
         .unwrap()
@@ -1229,26 +1229,26 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveSonarrBlock::EditIndexerPrompt.into()
       );
     }
 
     #[test]
     fn test_edit_indexer_api_key_input_submit() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.should_ignore_quit_key = true;
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         api_key: "Test".into(),
         ..EditIndexerModal::default()
       });
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerApiKeyInput.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerApiKeyInput.into());
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        ActiveSonarrBlock::EditIndexerApiKeyInput,
         None,
       )
       .handle();
@@ -1256,7 +1256,7 @@ mod tests {
       assert!(!app.should_ignore_quit_key);
       assert!(!app
         .data
-        .radarr_data
+        .sonarr_data
         .edit_indexer_modal
         .as_ref()
         .unwrap()
@@ -1265,26 +1265,26 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveSonarrBlock::EditIndexerPrompt.into()
       );
     }
 
     #[test]
     fn test_edit_indexer_seed_ratio_input_submit() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.should_ignore_quit_key = true;
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         seed_ratio: "Test".into(),
         ..EditIndexerModal::default()
       });
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerSeedRatioInput.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerSeedRatioInput.into());
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        ActiveSonarrBlock::EditIndexerSeedRatioInput,
         None,
       )
       .handle();
@@ -1292,7 +1292,7 @@ mod tests {
       assert!(!app.should_ignore_quit_key);
       assert!(!app
         .data
-        .radarr_data
+        .sonarr_data
         .edit_indexer_modal
         .as_ref()
         .unwrap()
@@ -1301,26 +1301,26 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveSonarrBlock::EditIndexerPrompt.into()
       );
     }
 
     #[test]
     fn test_edit_indexer_tags_input_submit() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.should_ignore_quit_key = true;
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         tags: "Test".into(),
         ..EditIndexerModal::default()
       });
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerTagsInput.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerTagsInput.into());
 
       EditIndexerHandler::with(
         SUBMIT_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerTagsInput,
+        ActiveSonarrBlock::EditIndexerTagsInput,
         None,
       )
       .handle();
@@ -1328,7 +1328,7 @@ mod tests {
       assert!(!app.should_ignore_quit_key);
       assert!(!app
         .data
-        .radarr_data
+        .sonarr_data
         .edit_indexer_modal
         .as_ref()
         .unwrap()
@@ -1337,7 +1337,7 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveSonarrBlock::EditIndexerPrompt.into()
       );
     }
   }
@@ -1356,47 +1356,47 @@ mod tests {
     fn test_edit_indexer_prompt_esc(#[values(true, false)] is_ready: bool) {
       let mut app = App::default();
       app.is_loading = is_ready;
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
         ESC_KEY,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPrompt,
+        ActiveSonarrBlock::EditIndexerPrompt,
         None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert!(!app.data.radarr_data.prompt_confirm);
-      assert_eq!(app.data.radarr_data.edit_indexer_modal, None);
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert!(!app.data.sonarr_data.prompt_confirm);
+      assert_eq!(app.data.sonarr_data.edit_indexer_modal, None);
     }
 
     #[rstest]
     fn test_edit_indexer_input_fields_esc(
       #[values(
-        ActiveRadarrBlock::EditIndexerNameInput,
-        ActiveRadarrBlock::EditIndexerUrlInput,
-        ActiveRadarrBlock::EditIndexerApiKeyInput,
-        ActiveRadarrBlock::EditIndexerSeedRatioInput,
-        ActiveRadarrBlock::EditIndexerTagsInput,
-        ActiveRadarrBlock::EditIndexerPriorityInput
+        ActiveSonarrBlock::EditIndexerNameInput,
+        ActiveSonarrBlock::EditIndexerUrlInput,
+        ActiveSonarrBlock::EditIndexerApiKeyInput,
+        ActiveSonarrBlock::EditIndexerSeedRatioInput,
+        ActiveSonarrBlock::EditIndexerTagsInput,
+        ActiveSonarrBlock::EditIndexerPriorityInput
       )]
-      active_radarr_block: ActiveRadarrBlock,
+      active_sonarr_block: ActiveSonarrBlock,
     ) {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(active_radarr_block.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.push_navigation_stack(active_sonarr_block.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.should_ignore_quit_key = true;
 
-      EditIndexerHandler::with(ESC_KEY, &mut app, active_radarr_block, None).handle();
+      EditIndexerHandler::with(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
       assert!(!app.should_ignore_quit_key);
       assert_eq!(
-        app.data.radarr_data.edit_indexer_modal,
+        app.data.sonarr_data.edit_indexer_modal,
         Some(EditIndexerModal::default())
       );
     }
@@ -1405,9 +1405,9 @@ mod tests {
   mod test_handle_key_char {
     use crate::app::App;
     use crate::models::servarr_data::modals::EditIndexerModal;
-    use crate::models::servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS;
+    use crate::models::servarr_data::sonarr::sonarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
-    use crate::network::radarr_network::RadarrEvent;
+    use crate::network::sonarr_network::SonarrEvent;
     use pretty_assertions::assert_str_eq;
 
     use super::*;
@@ -1415,8 +1415,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_name_input_backspace() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         name: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -1424,7 +1424,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerNameInput,
+        ActiveSonarrBlock::EditIndexerNameInput,
         None,
       )
       .handle();
@@ -1432,7 +1432,7 @@ mod tests {
       assert_str_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -1445,8 +1445,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_url_input_backspace() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         url: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -1454,7 +1454,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerUrlInput,
+        ActiveSonarrBlock::EditIndexerUrlInput,
         None,
       )
       .handle();
@@ -1462,7 +1462,7 @@ mod tests {
       assert_str_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -1475,8 +1475,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_api_key_input_backspace() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         api_key: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -1484,7 +1484,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        ActiveSonarrBlock::EditIndexerApiKeyInput,
         None,
       )
       .handle();
@@ -1492,7 +1492,7 @@ mod tests {
       assert_str_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -1505,8 +1505,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_seed_ratio_input_backspace() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         seed_ratio: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -1514,7 +1514,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        ActiveSonarrBlock::EditIndexerSeedRatioInput,
         None,
       )
       .handle();
@@ -1522,7 +1522,7 @@ mod tests {
       assert_str_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -1535,8 +1535,8 @@ mod tests {
     #[test]
     fn test_edit_indexer_tags_input_backspace() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         tags: "Test".into(),
         ..EditIndexerModal::default()
       });
@@ -1544,7 +1544,7 @@ mod tests {
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerTagsInput,
+        ActiveSonarrBlock::EditIndexerTagsInput,
         None,
       )
       .handle();
@@ -1552,7 +1552,7 @@ mod tests {
       assert_str_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -1565,13 +1565,13 @@ mod tests {
     #[test]
     fn test_edit_indexer_name_input_char_key() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
         Key::Char('h'),
         &mut app,
-        ActiveRadarrBlock::EditIndexerNameInput,
+        ActiveSonarrBlock::EditIndexerNameInput,
         None,
       )
       .handle();
@@ -1579,7 +1579,7 @@ mod tests {
       assert_str_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -1592,13 +1592,13 @@ mod tests {
     #[test]
     fn test_edit_indexer_url_input_char_key() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
         Key::Char('h'),
         &mut app,
-        ActiveRadarrBlock::EditIndexerUrlInput,
+        ActiveSonarrBlock::EditIndexerUrlInput,
         None,
       )
       .handle();
@@ -1606,7 +1606,7 @@ mod tests {
       assert_str_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -1619,13 +1619,13 @@ mod tests {
     #[test]
     fn test_edit_indexer_api_key_input_char_key() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
         Key::Char('h'),
         &mut app,
-        ActiveRadarrBlock::EditIndexerApiKeyInput,
+        ActiveSonarrBlock::EditIndexerApiKeyInput,
         None,
       )
       .handle();
@@ -1633,7 +1633,7 @@ mod tests {
       assert_str_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -1646,13 +1646,13 @@ mod tests {
     #[test]
     fn test_edit_indexer_seed_ratio_input_char_key() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
         Key::Char('h'),
         &mut app,
-        ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        ActiveSonarrBlock::EditIndexerSeedRatioInput,
         None,
       )
       .handle();
@@ -1660,7 +1660,7 @@ mod tests {
       assert_str_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -1673,13 +1673,13 @@ mod tests {
     #[test]
     fn test_edit_indexer_tags_input_char_key() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
         Key::Char('h'),
         &mut app,
-        ActiveRadarrBlock::EditIndexerTagsInput,
+        ActiveSonarrBlock::EditIndexerTagsInput,
         None,
       )
       .handle();
@@ -1687,7 +1687,7 @@ mod tests {
       assert_str_eq!(
         app
           .data
-          .radarr_data
+          .sonarr_data
           .edit_indexer_modal
           .as_ref()
           .unwrap()
@@ -1700,42 +1700,42 @@ mod tests {
     #[test]
     fn test_edit_indexer_prompt_prompt_confirmation_confirm() {
       let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
-      app.data.radarr_data.selected_block =
+      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
+      app.push_navigation_stack(ActiveSonarrBlock::EditIndexerPrompt.into());
+      app.data.sonarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
       app
         .data
-        .radarr_data
+        .sonarr_data
         .selected_block
         .set_index(0, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
-        ActiveRadarrBlock::EditIndexerPrompt,
+        ActiveSonarrBlock::EditIndexerPrompt,
         None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert!(app.data.radarr_data.edit_indexer_modal.is_some());
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert!(app.data.sonarr_data.edit_indexer_modal.is_some());
       assert!(app.should_refresh);
       assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditIndexer(None))
+        app.data.sonarr_data.prompt_confirm_action,
+        Some(SonarrEvent::EditIndexer(None))
       );
     }
   }
 
   #[test]
   fn test_edit_indexer_handler_accepts() {
-    ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
-      if EDIT_INDEXER_BLOCKS.contains(&active_radarr_block) {
-        assert!(EditIndexerHandler::accepts(active_radarr_block));
+    ActiveSonarrBlock::iter().for_each(|active_sonarr_block| {
+      if EDIT_INDEXER_BLOCKS.contains(&active_sonarr_block) {
+        assert!(EditIndexerHandler::accepts(active_sonarr_block));
       } else {
-        assert!(!EditIndexerHandler::accepts(active_radarr_block));
+        assert!(!EditIndexerHandler::accepts(active_sonarr_block));
       }
     })
   }
@@ -1743,13 +1743,13 @@ mod tests {
   #[test]
   fn test_edit_indexer_handler_is_not_ready_when_loading() {
     let mut app = App::default();
-    app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+    app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = true;
 
     let handler = EditIndexerHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      ActiveRadarrBlock::EditIndexerPrompt,
+      ActiveSonarrBlock::EditIndexerPrompt,
       None,
     );
 
@@ -1759,13 +1759,13 @@ mod tests {
   #[test]
   fn test_edit_indexer_handler_is_not_ready_when_edit_indexer_modal_is_none() {
     let mut app = App::default();
-    app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+    app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = false;
 
     let handler = EditIndexerHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      ActiveRadarrBlock::EditIndexerPrompt,
+      ActiveSonarrBlock::EditIndexerPrompt,
       None,
     );
 
@@ -1775,14 +1775,14 @@ mod tests {
   #[test]
   fn test_edit_indexer_handler_is_ready_when_edit_indexer_modal_is_some() {
     let mut app = App::default();
-    app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+    app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = false;
-    app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+    app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
     let handler = EditIndexerHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      ActiveRadarrBlock::EditIndexerPrompt,
+      ActiveSonarrBlock::EditIndexerPrompt,
       None,
     );
 

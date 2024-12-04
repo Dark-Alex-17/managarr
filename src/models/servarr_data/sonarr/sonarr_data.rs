@@ -216,6 +216,16 @@ pub enum ActiveSonarrBlock {
   DeleteSeriesToggleDeleteFile,
   Downloads,
   EditIndexerPrompt,
+  EditIndexerConfirmPrompt,
+  EditIndexerApiKeyInput,
+  EditIndexerNameInput,
+  EditIndexerSeedRatioInput,
+  EditIndexerToggleEnableRss,
+  EditIndexerToggleEnableAutomaticSearch,
+  EditIndexerToggleEnableInteractiveSearch,
+  EditIndexerUrlInput,
+  EditIndexerPriorityInput,
+  EditIndexerTagsInput,
   EditSeriesPrompt,
   EditSeriesConfirmPrompt,
   EditSeriesPathInput,
@@ -370,6 +380,87 @@ pub const DELETE_SERIES_SELECTION_BLOCKS: &[&[ActiveSonarrBlock]] = &[
   &[ActiveSonarrBlock::DeleteSeriesConfirmPrompt],
 ];
 
+pub static EDIT_INDEXER_BLOCKS: [ActiveSonarrBlock; 11] = [
+  ActiveSonarrBlock::EditIndexerPrompt,
+  ActiveSonarrBlock::EditIndexerConfirmPrompt,
+  ActiveSonarrBlock::EditIndexerApiKeyInput,
+  ActiveSonarrBlock::EditIndexerNameInput,
+  ActiveSonarrBlock::EditIndexerSeedRatioInput,
+  ActiveSonarrBlock::EditIndexerToggleEnableRss,
+  ActiveSonarrBlock::EditIndexerToggleEnableAutomaticSearch,
+  ActiveSonarrBlock::EditIndexerToggleEnableInteractiveSearch,
+  ActiveSonarrBlock::EditIndexerPriorityInput,
+  ActiveSonarrBlock::EditIndexerUrlInput,
+  ActiveSonarrBlock::EditIndexerTagsInput,
+];
+
+pub const EDIT_INDEXER_TORRENT_SELECTION_BLOCKS: &[&[ActiveSonarrBlock]] = &[
+  &[
+    ActiveSonarrBlock::EditIndexerNameInput,
+    ActiveSonarrBlock::EditIndexerUrlInput,
+  ],
+  &[
+    ActiveSonarrBlock::EditIndexerToggleEnableRss,
+    ActiveSonarrBlock::EditIndexerApiKeyInput,
+  ],
+  &[
+    ActiveSonarrBlock::EditIndexerToggleEnableAutomaticSearch,
+    ActiveSonarrBlock::EditIndexerSeedRatioInput,
+  ],
+  &[
+    ActiveSonarrBlock::EditIndexerToggleEnableInteractiveSearch,
+    ActiveSonarrBlock::EditIndexerTagsInput,
+  ],
+  &[
+    ActiveSonarrBlock::EditIndexerPriorityInput,
+    ActiveSonarrBlock::EditIndexerConfirmPrompt,
+  ],
+  &[
+    ActiveSonarrBlock::EditIndexerConfirmPrompt,
+    ActiveSonarrBlock::EditIndexerConfirmPrompt,
+  ],
+];
+
+pub const EDIT_INDEXER_NZB_SELECTION_BLOCKS: &[&[ActiveSonarrBlock]] = &[
+  &[
+    ActiveSonarrBlock::EditIndexerNameInput,
+    ActiveSonarrBlock::EditIndexerUrlInput,
+  ],
+  &[
+    ActiveSonarrBlock::EditIndexerToggleEnableRss,
+    ActiveSonarrBlock::EditIndexerApiKeyInput,
+  ],
+  &[
+    ActiveSonarrBlock::EditIndexerToggleEnableAutomaticSearch,
+    ActiveSonarrBlock::EditIndexerTagsInput,
+  ],
+  &[
+    ActiveSonarrBlock::EditIndexerToggleEnableInteractiveSearch,
+    ActiveSonarrBlock::EditIndexerPriorityInput,
+  ],
+  &[
+    ActiveSonarrBlock::EditIndexerConfirmPrompt,
+    ActiveSonarrBlock::EditIndexerConfirmPrompt,
+  ],
+];
+
+pub static INDEXER_SETTINGS_BLOCKS: [ActiveSonarrBlock; 6] = [
+  ActiveSonarrBlock::AllIndexerSettingsPrompt,
+  ActiveSonarrBlock::IndexerSettingsConfirmPrompt,
+  ActiveSonarrBlock::IndexerSettingsMaximumSizeInput,
+  ActiveSonarrBlock::IndexerSettingsMinimumAgeInput,
+  ActiveSonarrBlock::IndexerSettingsRetentionInput,
+  ActiveSonarrBlock::IndexerSettingsRssSyncIntervalInput,
+];
+
+pub const INDEXER_SETTINGS_SELECTION_BLOCKS: &[&[ActiveSonarrBlock]] = &[
+  &[ActiveSonarrBlock::IndexerSettingsMinimumAgeInput],
+  &[ActiveSonarrBlock::IndexerSettingsRetentionInput],
+  &[ActiveSonarrBlock::IndexerSettingsMaximumSizeInput],
+  &[ActiveSonarrBlock::IndexerSettingsRssSyncIntervalInput],
+  &[ActiveSonarrBlock::IndexerSettingsConfirmPrompt],
+];
+
 pub static HISTORY_BLOCKS: [ActiveSonarrBlock; 7] = [
   ActiveSonarrBlock::History,
   ActiveSonarrBlock::HistoryItemDetails,
@@ -384,6 +475,12 @@ pub static ROOT_FOLDERS_BLOCKS: [ActiveSonarrBlock; 3] = [
   ActiveSonarrBlock::RootFolders,
   ActiveSonarrBlock::AddRootFolderPrompt,
   ActiveSonarrBlock::DeleteRootFolderPrompt,
+];
+
+pub static INDEXERS_BLOCKS: [ActiveSonarrBlock; 3] = [
+  ActiveSonarrBlock::DeleteIndexerPrompt,
+  ActiveSonarrBlock::Indexers,
+  ActiveSonarrBlock::TestIndexer,
 ];
 
 impl From<ActiveSonarrBlock> for Route {

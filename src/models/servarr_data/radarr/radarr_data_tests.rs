@@ -303,8 +303,7 @@ mod tests {
 
     #[test]
     fn test_indexers_blocks_contents() {
-      assert_eq!(INDEXERS_BLOCKS.len(), 4);
-      assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::AddIndexer));
+      assert_eq!(INDEXERS_BLOCKS.len(), 3);
       assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::DeleteIndexerPrompt));
       assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::Indexers));
       assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::TestIndexer));
@@ -413,7 +412,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_blocks_contents() {
-      assert_eq!(EDIT_INDEXER_BLOCKS.len(), 10);
+      assert_eq!(EDIT_INDEXER_BLOCKS.len(), 11);
       assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerPrompt));
       assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerConfirmPrompt));
       assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerApiKeyInput));
@@ -428,6 +427,7 @@ mod tests {
       );
       assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerUrlInput));
       assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerTagsInput));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerPriorityInput));
     }
 
     #[test]
@@ -610,6 +610,13 @@ mod tests {
       assert_eq!(
         edit_indexer_torrent_selection_block_iter.next().unwrap(),
         &[
+          ActiveRadarrBlock::EditIndexerPriorityInput,
+          ActiveRadarrBlock::EditIndexerConfirmPrompt,
+        ]
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &[
           ActiveRadarrBlock::EditIndexerConfirmPrompt,
           ActiveRadarrBlock::EditIndexerConfirmPrompt,
         ]
@@ -646,7 +653,7 @@ mod tests {
         edit_indexer_nzb_selection_block_iter.next().unwrap(),
         &[
           ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
-          ActiveRadarrBlock::EditIndexerConfirmPrompt,
+          ActiveRadarrBlock::EditIndexerPriorityInput,
         ]
       );
       assert_eq!(

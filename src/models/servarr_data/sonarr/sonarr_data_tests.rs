@@ -203,8 +203,10 @@ mod tests {
   mod active_sonarr_block_tests {
     use crate::models::servarr_data::sonarr::sonarr_data::{
       ActiveSonarrBlock, ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, BLOCKLIST_BLOCKS,
-      DELETE_SERIES_BLOCKS, DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_SERIES_BLOCKS,
-      EDIT_SERIES_SELECTION_BLOCKS, HISTORY_BLOCKS, LIBRARY_BLOCKS, ROOT_FOLDERS_BLOCKS,
+      DELETE_SERIES_BLOCKS, DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_INDEXER_BLOCKS,
+      EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, EDIT_SERIES_BLOCKS,
+      EDIT_SERIES_SELECTION_BLOCKS, HISTORY_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
+      INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS, ROOT_FOLDERS_BLOCKS,
     };
 
     #[test]
@@ -376,6 +378,158 @@ mod tests {
     }
 
     #[test]
+    fn test_edit_indexer_blocks_contents() {
+      assert_eq!(EDIT_INDEXER_BLOCKS.len(), 11);
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveSonarrBlock::EditIndexerPrompt));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveSonarrBlock::EditIndexerConfirmPrompt));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveSonarrBlock::EditIndexerApiKeyInput));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveSonarrBlock::EditIndexerNameInput));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveSonarrBlock::EditIndexerSeedRatioInput));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveSonarrBlock::EditIndexerToggleEnableRss));
+      assert!(
+        EDIT_INDEXER_BLOCKS.contains(&ActiveSonarrBlock::EditIndexerToggleEnableAutomaticSearch)
+      );
+      assert!(
+        EDIT_INDEXER_BLOCKS.contains(&ActiveSonarrBlock::EditIndexerToggleEnableInteractiveSearch)
+      );
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveSonarrBlock::EditIndexerUrlInput));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveSonarrBlock::EditIndexerTagsInput));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveSonarrBlock::EditIndexerPriorityInput));
+    }
+
+    #[test]
+    fn test_edit_indexer_nzb_selection_blocks_ordering() {
+      let mut edit_indexer_nzb_selection_block_iter = EDIT_INDEXER_NZB_SELECTION_BLOCKS.iter();
+
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &[
+          ActiveSonarrBlock::EditIndexerNameInput,
+          ActiveSonarrBlock::EditIndexerUrlInput,
+        ]
+      );
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &[
+          ActiveSonarrBlock::EditIndexerToggleEnableRss,
+          ActiveSonarrBlock::EditIndexerApiKeyInput,
+        ]
+      );
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &[
+          ActiveSonarrBlock::EditIndexerToggleEnableAutomaticSearch,
+          ActiveSonarrBlock::EditIndexerTagsInput,
+        ]
+      );
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &[
+          ActiveSonarrBlock::EditIndexerToggleEnableInteractiveSearch,
+          ActiveSonarrBlock::EditIndexerPriorityInput,
+        ]
+      );
+      assert_eq!(
+        edit_indexer_nzb_selection_block_iter.next().unwrap(),
+        &[
+          ActiveSonarrBlock::EditIndexerConfirmPrompt,
+          ActiveSonarrBlock::EditIndexerConfirmPrompt,
+        ]
+      );
+      assert_eq!(edit_indexer_nzb_selection_block_iter.next(), None);
+    }
+
+    #[test]
+    fn test_edit_indexer_torrent_selection_blocks_ordering() {
+      let mut edit_indexer_torrent_selection_block_iter =
+        EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.iter();
+
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &[
+          ActiveSonarrBlock::EditIndexerNameInput,
+          ActiveSonarrBlock::EditIndexerUrlInput,
+        ]
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &[
+          ActiveSonarrBlock::EditIndexerToggleEnableRss,
+          ActiveSonarrBlock::EditIndexerApiKeyInput,
+        ]
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &[
+          ActiveSonarrBlock::EditIndexerToggleEnableAutomaticSearch,
+          ActiveSonarrBlock::EditIndexerSeedRatioInput,
+        ]
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &[
+          ActiveSonarrBlock::EditIndexerToggleEnableInteractiveSearch,
+          ActiveSonarrBlock::EditIndexerTagsInput,
+        ]
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &[
+          ActiveSonarrBlock::EditIndexerPriorityInput,
+          ActiveSonarrBlock::EditIndexerConfirmPrompt,
+        ]
+      );
+      assert_eq!(
+        edit_indexer_torrent_selection_block_iter.next().unwrap(),
+        &[
+          ActiveSonarrBlock::EditIndexerConfirmPrompt,
+          ActiveSonarrBlock::EditIndexerConfirmPrompt,
+        ]
+      );
+      assert_eq!(edit_indexer_torrent_selection_block_iter.next(), None);
+    }
+
+    #[test]
+    fn test_indexer_settings_blocks_contents() {
+      assert_eq!(INDEXER_SETTINGS_BLOCKS.len(), 6);
+      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveSonarrBlock::AllIndexerSettingsPrompt));
+      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveSonarrBlock::IndexerSettingsConfirmPrompt));
+      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveSonarrBlock::IndexerSettingsMaximumSizeInput));
+      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveSonarrBlock::IndexerSettingsMinimumAgeInput));
+      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveSonarrBlock::IndexerSettingsRetentionInput));
+      assert!(
+        INDEXER_SETTINGS_BLOCKS.contains(&ActiveSonarrBlock::IndexerSettingsRssSyncIntervalInput)
+      );
+    }
+
+    #[test]
+    fn test_indexer_settings_selection_blocks_ordering() {
+      let mut indexer_settings_block_iter = INDEXER_SETTINGS_SELECTION_BLOCKS.iter();
+
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &[ActiveSonarrBlock::IndexerSettingsMinimumAgeInput,]
+      );
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &[ActiveSonarrBlock::IndexerSettingsRetentionInput,]
+      );
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &[ActiveSonarrBlock::IndexerSettingsMaximumSizeInput,]
+      );
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &[ActiveSonarrBlock::IndexerSettingsRssSyncIntervalInput,]
+      );
+      assert_eq!(
+        indexer_settings_block_iter.next().unwrap(),
+        &[ActiveSonarrBlock::IndexerSettingsConfirmPrompt,]
+      );
+      assert_eq!(indexer_settings_block_iter.next(), None);
+    }
+
+    #[test]
     fn test_history_blocks_contents() {
       assert_eq!(HISTORY_BLOCKS.len(), 7);
       assert!(HISTORY_BLOCKS.contains(&ActiveSonarrBlock::History));
@@ -393,6 +547,14 @@ mod tests {
       assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveSonarrBlock::RootFolders));
       assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveSonarrBlock::AddRootFolderPrompt));
       assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveSonarrBlock::DeleteRootFolderPrompt));
+    }
+
+    #[test]
+    fn test_indexers_blocks_contents() {
+      assert_eq!(INDEXERS_BLOCKS.len(), 3);
+      assert!(INDEXERS_BLOCKS.contains(&ActiveSonarrBlock::DeleteIndexerPrompt));
+      assert!(INDEXERS_BLOCKS.contains(&ActiveSonarrBlock::Indexers));
+      assert!(INDEXERS_BLOCKS.contains(&ActiveSonarrBlock::TestIndexer));
     }
   }
 }

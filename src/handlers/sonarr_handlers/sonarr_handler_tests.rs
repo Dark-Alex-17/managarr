@@ -181,4 +181,25 @@ mod tests {
       active_sonarr_block
     );
   }
+
+  #[rstest]
+  fn test_delegates_indexers_blocks_to_indexers_handler(
+    #[values(
+      ActiveSonarrBlock::DeleteIndexerPrompt,
+      ActiveSonarrBlock::Indexers,
+      ActiveSonarrBlock::AllIndexerSettingsPrompt,
+      ActiveSonarrBlock::IndexerSettingsConfirmPrompt,
+      ActiveSonarrBlock::IndexerSettingsMaximumSizeInput,
+      ActiveSonarrBlock::IndexerSettingsMinimumAgeInput,
+      ActiveSonarrBlock::IndexerSettingsRetentionInput,
+      ActiveSonarrBlock::IndexerSettingsRssSyncIntervalInput
+    )]
+    active_sonarr_block: ActiveSonarrBlock,
+  ) {
+    test_handler_delegation!(
+      SonarrHandler,
+      ActiveSonarrBlock::Indexers,
+      active_sonarr_block
+    );
+  }
 }

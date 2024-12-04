@@ -10,6 +10,7 @@ pub struct EditIndexerModal {
   pub api_key: HorizontallyScrollableText,
   pub seed_ratio: HorizontallyScrollableText,
   pub tags: HorizontallyScrollableText,
+  pub priority: i64,
 }
 
 #[derive(Default, Clone, Eq, PartialEq, Debug)]

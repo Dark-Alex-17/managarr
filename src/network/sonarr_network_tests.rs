@@ -1162,7 +1162,7 @@ mod test {
         "enableAutomaticSearch": false,
         "enableInteractiveSearch": false,
         "name": "Test Update",
-        "priority": 1,
+        "priority": 0,
         "fields": [
             {
                 "name": "baseUrl",
@@ -1218,6 +1218,7 @@ mod test {
         api_key: "test1234".into(),
         seed_ratio: "1.3".into(),
         tags: "usenet, testing".into(),
+        priority: 0,
       };
       app.data.sonarr_data.edit_indexer_modal = Some(edit_indexer_modal);
       app.data.sonarr_data.indexers.set_items(vec![indexer()]);
@@ -1263,7 +1264,7 @@ mod test {
         "enableAutomaticSearch": false,
         "enableInteractiveSearch": false,
         "name": "Test Update",
-        "priority": 1,
+        "priority": 0,
         "fields": [
             {
                 "name": "baseUrl",
@@ -1315,6 +1316,7 @@ mod test {
         api_key: "test1234".into(),
         seed_ratio: "1.3".into(),
         tags: "usenet, testing".into(),
+        priority: 0,
       };
       app.data.sonarr_data.edit_indexer_modal = Some(edit_indexer_modal);
       let mut indexer = indexer();
@@ -1372,7 +1374,7 @@ mod test {
         "enableAutomaticSearch": false,
         "enableInteractiveSearch": false,
         "name": "Test Update",
-        "priority": 1,
+        "priority": 0,
         "fields": [
             {
                 "name": "baseUrl",
@@ -1428,6 +1430,7 @@ mod test {
         api_key: "test1234".into(),
         seed_ratio: "1.3".into(),
         tags: "usenet, testing".into(),
+        priority: 0,
       };
       app.data.sonarr_data.edit_indexer_modal = Some(edit_indexer_modal);
       let mut indexer = indexer();
