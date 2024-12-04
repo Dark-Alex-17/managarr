@@ -84,6 +84,7 @@ impl From<&SonarrData<'_>> for EditIndexerModal {
       enable_interactive_search,
       tags,
       fields,
+      priority,
       ..
     } = sonarr_data.indexers.current_selection();
     let seed_ratio_field_option = fields
@@ -101,6 +102,7 @@ impl From<&SonarrData<'_>> for EditIndexerModal {
     edit_indexer_modal.enable_rss = Some(*enable_rss);
     edit_indexer_modal.enable_automatic_search = Some(*enable_automatic_search);
     edit_indexer_modal.enable_interactive_search = Some(*enable_interactive_search);
+    edit_indexer_modal.priority = *priority;
     edit_indexer_modal.url = fields
       .as_ref()
       .unwrap()

@@ -858,9 +858,6 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Constructing edit indexer body");
 
     let mut detailed_indexer_body: Value = serde_json::from_str(&response).unwrap();
-    let priority = detailed_indexer_body["priority"]
-      .as_i64()
-      .expect("Unable to deserialize 'priority'");
 
     let (
       name,
@@ -873,6 +870,9 @@ impl<'a, 'b> Network<'a, 'b> {
       tags,
       priority,
     ) = if let Some(params) = edit_indexer_params {
+      let priority = detailed_indexer_body["priority"]
+        .as_i64()
+        .expect("Unable to deserialize 'priority'");
       let seed_ratio_field_option = detailed_indexer_body["fields"]
         .as_array()
         .unwrap()

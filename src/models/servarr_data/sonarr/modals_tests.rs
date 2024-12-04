@@ -104,6 +104,7 @@ mod tests {
       enable_interactive_search: true,
       tags: vec![Number::from(1), Number::from(2)],
       fields: Some(fields),
+      priority: 1,
       ..Indexer::default()
     };
     sonarr_data.indexers.set_items(vec![indexer]);
@@ -114,6 +115,7 @@ mod tests {
     assert_eq!(edit_indexer_modal.enable_rss, Some(true));
     assert_eq!(edit_indexer_modal.enable_automatic_search, Some(true));
     assert_eq!(edit_indexer_modal.enable_interactive_search, Some(true));
+    assert_eq!(edit_indexer_modal.priority, 1);
     assert_str_eq!(edit_indexer_modal.url.text, "https://test.com");
     assert_str_eq!(edit_indexer_modal.api_key.text, "1234");
 
@@ -152,6 +154,7 @@ mod tests {
       enable_interactive_search: true,
       tags: vec![Number::from(1), Number::from(2)],
       fields: Some(fields),
+      priority: 1,
       ..Indexer::default()
     };
     sonarr_data.indexers.set_items(vec![indexer]);
@@ -162,6 +165,7 @@ mod tests {
     assert_eq!(edit_indexer_modal.enable_rss, Some(true));
     assert_eq!(edit_indexer_modal.enable_automatic_search, Some(true));
     assert_eq!(edit_indexer_modal.enable_interactive_search, Some(true));
+    assert_eq!(edit_indexer_modal.priority, 1);
     assert_str_eq!(edit_indexer_modal.url.text, "https://test.com");
     assert_str_eq!(edit_indexer_modal.api_key.text, "1234");
     assert!(edit_indexer_modal.seed_ratio.text.is_empty());

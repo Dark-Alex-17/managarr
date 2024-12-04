@@ -29,7 +29,7 @@ impl Size {
     match self {
       Size::SmallPrompt => (20, 20),
       Size::Prompt => (37, 37),
-      Size::LargePrompt => (70, 45),
+      Size::LargePrompt => (70, 50),
       Size::Message => (25, 8),
       Size::NarrowMessage => (50, 20),
       Size::LargeMessage => (25, 25),

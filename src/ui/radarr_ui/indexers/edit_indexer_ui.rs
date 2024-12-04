@@ -59,8 +59,9 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if edit_indexer_modal_option.is_some() {
     let edit_indexer_modal = edit_indexer_modal_option.as_ref().unwrap();
 
-    let [settings_area, _, buttons_area, help_area] = Layout::vertical([
-      Constraint::Length(15),
+    let [_, settings_area, _, buttons_area, help_area] = Layout::vertical([
+      Constraint::Fill(1),
+      Constraint::Length(18),
       Constraint::Fill(1),
       Constraint::Length(3),
       Constraint::Length(1),
@@ -71,13 +72,15 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       Layout::horizontal([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)])
         .margin(1)
         .areas(settings_area);
-    let [name_area, rss_area, auto_search_area, interactive_search_area] = Layout::vertical([
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-    ])
-    .areas(left_side_area);
+    let [name_area, rss_area, auto_search_area, interactive_search_area, priority_area] =
+      Layout::vertical([
+        Constraint::Length(3),
+        Constraint::Length(3),
+        Constraint::Length(3),
+        Constraint::Length(3),
+        Constraint::Length(3),
+      ])
+      .areas(left_side_area);
     let [url_area, api_key_area, seed_ratio_area, tags_area] = Layout::vertical([
       Constraint::Length(3),
       Constraint::Length(3),
@@ -87,6 +90,7 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .areas(right_side_area);
 
     if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
+      let priority = edit_indexer_modal.priority.to_string();
       let name_input_box = InputBox::new(&edit_indexer_modal.name.text)
         .offset(edit_indexer_modal.name.offset.load(Ordering::SeqCst))
         .label("Name")
@@ -107,6 +111,11 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .label("Tags")
         .highlighted(selected_block == ActiveRadarrBlock::EditIndexerTagsInput)
         .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerTagsInput);
+      let priority_input_box = InputBox::new(&priority)
+        .cursor_after_string(false)
+        .label("Indexer Priority ▴▾")
+        .highlighted(selected_block == ActiveRadarrBlock::EditIndexerPriorityInput)
+        .selected(active_radarr_block == ActiveRadarrBlock::EditIndexerPriorityInput);
 
       render_selectable_input_box!(name_input_box, f, name_area);
       render_selectable_input_box!(url_input_box, f, url_area);
@@ -126,8 +135,10 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
         render_selectable_input_box!(seed_ratio_input_box, f, seed_ratio_area);
         render_selectable_input_box!(tags_input_box, f, tags_area);
+        render_selectable_input_box!(priority_input_box, f, priority_area);
       } else {
         render_selectable_input_box!(tags_input_box, f, seed_ratio_area);
+        render_selectable_input_box!(priority_input_box, f, tags_area);
       }
 
       let rss_checkbox = Checkbox::new("Enable RSS")
