@@ -24,6 +24,10 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
+        SonarrEvent::ListSeries.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
         SonarrEvent::GetBlocklist.into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
@@ -231,10 +235,6 @@ mod tests {
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         SonarrEvent::ListSeries.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetDownloads.into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -478,26 +478,6 @@ mod tests {
 
       app.sonarr_on_tick(ActiveSonarrBlock::Downloads).await;
 
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetDownloads.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetQualityProfiles.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetLanguageProfiles.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetTags.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetRootFolders.into()
-      );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         SonarrEvent::GetDownloads.into()

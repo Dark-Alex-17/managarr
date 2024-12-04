@@ -18,9 +18,6 @@ impl<'a> App<'a> {
         self
           .dispatch_network_event(SonarrEvent::ListSeries.into())
           .await;
-        self
-          .dispatch_network_event(SonarrEvent::GetDownloads.into())
-          .await;
       }
       ActiveSonarrBlock::SeriesDetails => {
         self.is_loading = true;
@@ -63,6 +60,9 @@ impl<'a> App<'a> {
           .await;
       }
       ActiveSonarrBlock::Blocklist => {
+        self
+          .dispatch_network_event(SonarrEvent::ListSeries.into())
+          .await;
         self
           .dispatch_network_event(SonarrEvent::GetBlocklist.into())
           .await;
@@ -156,7 +156,6 @@ impl<'a> App<'a> {
         self.cancellation_token.cancel();
       } else {
         self.dispatch_by_sonarr_block(&active_sonarr_block).await;
-        self.refresh_sonarr_metadata().await;
       }
     }
 

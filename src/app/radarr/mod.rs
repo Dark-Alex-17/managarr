@@ -154,7 +154,6 @@ impl<'a> App<'a> {
         self.cancellation_token.cancel();
       } else {
         self.dispatch_by_radarr_block(&active_radarr_block).await;
-        self.refresh_radarr_metadata().await;
       }
     }
 

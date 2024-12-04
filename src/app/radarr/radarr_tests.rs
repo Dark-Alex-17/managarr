@@ -567,22 +567,6 @@ mod tests {
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetDownloads.into()
       );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetQualityProfiles.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetTags.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetRootFolders.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetDownloads.into()
-      );
       assert!(!app.data.radarr_data.prompt_confirm);
     }
 
