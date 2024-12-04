@@ -145,7 +145,10 @@ fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .prompt(&prompt)
       .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-    f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+    f.render_widget(
+      Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+      f.area(),
+    );
   }
 }
 

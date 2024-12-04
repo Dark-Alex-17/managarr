@@ -4,6 +4,7 @@ use blocklist::BlocklistUi;
 use chrono::{Duration, Utc};
 use downloads::DownloadsUi;
 use history::HistoryUi;
+use indexers::IndexersUi;
 use library::LibraryUi;
 use ratatui::{
   layout::{Constraint, Layout, Rect},
@@ -39,6 +40,7 @@ use super::{
 mod blocklist;
 mod downloads;
 mod history;
+mod indexers;
 mod library;
 mod root_folders;
 
@@ -63,6 +65,7 @@ impl DrawUi for SonarrUi {
       _ if BlocklistUi::accepts(route) => BlocklistUi::draw(f, app, content_area),
       _ if HistoryUi::accepts(route) => HistoryUi::draw(f, app, content_area),
       _ if RootFoldersUi::accepts(route) => RootFoldersUi::draw(f, app, content_area),
+      _ if IndexersUi::accepts(route) => IndexersUi::draw(f, app, content_area),
       _ => (),
     }
   }

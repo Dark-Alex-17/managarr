@@ -56,7 +56,10 @@ impl DrawUi for BlocklistUi {
             .yes_no_value(app.data.sonarr_data.prompt_confirm);
 
           draw_blocklist_table(f, app, area);
-          f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+          f.render_widget(
+            Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+            f.area(),
+          );
         }
         ActiveSonarrBlock::BlocklistClearAllItemsPrompt => {
           let confirmation_prompt = ConfirmationPrompt::new()

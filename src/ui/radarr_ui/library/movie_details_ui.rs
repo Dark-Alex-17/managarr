@@ -61,7 +61,10 @@ impl DrawUi for MovieDetailsUi {
               .yes_no_value(app.data.radarr_data.prompt_confirm);
 
             draw_movie_info(f, app, content_area);
-            f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+            f.render_widget(
+              Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+              f.area(),
+            );
           }
           ActiveRadarrBlock::UpdateAndScanPrompt => {
             let prompt = format!(
@@ -73,7 +76,10 @@ impl DrawUi for MovieDetailsUi {
               .prompt(&prompt)
               .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-            f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+            f.render_widget(
+              Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+              f.area(),
+            );
           }
           ActiveRadarrBlock::ManualSearchConfirmPrompt => {
             draw_manual_search_confirm_prompt(f, app);
@@ -532,7 +538,10 @@ fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>) {
       .prompt(&prompt)
       .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-    f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+    f.render_widget(
+      Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+      f.area(),
+    );
   }
 }
 

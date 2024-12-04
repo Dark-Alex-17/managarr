@@ -44,7 +44,10 @@ impl DrawUi for DownloadsUi {
             .yes_no_value(app.data.radarr_data.prompt_confirm);
 
           draw_downloads(f, app, area);
-          f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+          f.render_widget(
+            Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+            f.area(),
+          );
         }
         ActiveRadarrBlock::UpdateDownloadsPrompt => {
           let confirmation_prompt = ConfirmationPrompt::new()
@@ -53,7 +56,10 @@ impl DrawUi for DownloadsUi {
             .yes_no_value(app.data.radarr_data.prompt_confirm);
 
           draw_downloads(f, app, area);
-          f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+          f.render_widget(
+            Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+            f.area(),
+          );
         }
         _ => (),
       }

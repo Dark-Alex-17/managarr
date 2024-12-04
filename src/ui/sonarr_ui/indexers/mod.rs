@@ -5,12 +5,12 @@ use ratatui::widgets::{Cell, Row};
 use ratatui::Frame;
 
 use crate::app::App;
-use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, INDEXERS_BLOCKS};
+use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, INDEXERS_BLOCKS};
 use crate::models::servarr_models::Indexer;
 use crate::models::Route;
-use crate::ui::radarr_ui::indexers::edit_indexer_ui::EditIndexerUi;
-use crate::ui::radarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
-use crate::ui::radarr_ui::indexers::test_all_indexers_ui::TestAllIndexersUi;
+use crate::ui::sonarr_ui::indexers::edit_indexer_ui::EditIndexerUi;
+use crate::ui::sonarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
+use crate::ui::sonarr_ui::indexers::test_all_indexers_ui::TestAllIndexersUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_block_top_border, title_block};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
@@ -32,11 +32,11 @@ pub(super) struct IndexersUi;
 
 impl DrawUi for IndexersUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
+    if let Route::Sonarr(active_sonarr_block, _) = route {
       return EditIndexerUi::accepts(route)
         || IndexerSettingsUi::accepts(route)
         || TestAllIndexersUi::accepts(route)
-        || INDEXERS_BLOCKS.contains(&active_radarr_block);
+        || INDEXERS_BLOCKS.contains(&active_sonarr_block);
     }
 
     false
@@ -44,11 +44,11 @@ impl DrawUi for IndexersUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = app.get_current_route();
-    let mut indexers_matchers = |active_radarr_block| match active_radarr_block {
-      ActiveRadarrBlock::Indexers => draw_indexers(f, app, area),
-      ActiveRadarrBlock::TestIndexer => {
+    let mut indexers_matchers = |active_sonarr_block| match active_sonarr_block {
+      ActiveSonarrBlock::Indexers => draw_indexers(f, app, area),
+      ActiveSonarrBlock::TestIndexer => {
         draw_indexers(f, app, area);
-        if app.is_loading {
+        if app.is_loading || app.is_routing {
           let loading_popup = Popup::new(LoadingBlock::new(
             app.is_loading,
             title_block("Testing Indexer"),
@@ -56,7 +56,7 @@ impl DrawUi for IndexersUi {
           .size(Size::LargeMessage);
           f.render_widget(loading_popup, f.area());
         } else {
-          let popup = if let Some(result) = app.data.radarr_data.indexer_test_error.as_ref() {
+          let popup = if let Some(result) = app.data.sonarr_data.indexer_test_error.as_ref() {
             Popup::new(Message::new(result.clone())).size(Size::LargeMessage)
           } else {
             let message = Message::new("Indexer test succeeded!")
@@ -68,12 +68,12 @@ impl DrawUi for IndexersUi {
           f.render_widget(popup, f.area());
         }
       }
-      ActiveRadarrBlock::DeleteIndexerPrompt => {
+      ActiveSonarrBlock::DeleteIndexerPrompt => {
         let prompt = format!(
           "Do you really want to delete this indexer: \n{}?",
           app
             .data
-            .radarr_data
+            .sonarr_data
             .indexers
             .current_selection()
             .name
@@ -83,7 +83,7 @@ impl DrawUi for IndexersUi {
         let confirmation_prompt = ConfirmationPrompt::new()
           .title("Delete Indexer")
           .prompt(&prompt)
-          .yes_no_value(app.data.radarr_data.prompt_confirm);
+          .yes_no_value(app.data.sonarr_data.prompt_confirm);
 
         draw_indexers(f, app, area);
         f.render_widget(
@@ -98,8 +98,8 @@ impl DrawUi for IndexersUi {
       _ if EditIndexerUi::accepts(route) => EditIndexerUi::draw(f, app, area),
       _ if IndexerSettingsUi::accepts(route) => IndexerSettingsUi::draw(f, app, area),
       _ if TestAllIndexersUi::accepts(route) => TestAllIndexersUi::draw(f, app, area),
-      Route::Radarr(active_radarr_block, _) if INDEXERS_BLOCKS.contains(&active_radarr_block) => {
-        indexers_matchers(active_radarr_block)
+      Route::Sonarr(active_sonarr_block, _) if INDEXERS_BLOCKS.contains(&active_sonarr_block) => {
+        indexers_matchers(active_sonarr_block)
       }
       _ => (),
     }
@@ -133,7 +133,7 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .map(|tag_id| {
         app
           .data
-          .radarr_data
+          .sonarr_data
           .tags_map
           .get_by_left(&tag_id.as_i64().unwrap())
           .unwrap()
@@ -154,11 +154,11 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   };
   let indexers_table_footer = app
     .data
-    .radarr_data
+    .sonarr_data
     .main_tabs
     .get_active_tab_contextual_help();
   let indexers_table = ManagarrTable::new(
-    Some(&mut app.data.radarr_data.indexers),
+    Some(&mut app.data.sonarr_data.indexers),
     indexers_row_mapping,
   )
   .block(layout_block_top_border())

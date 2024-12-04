@@ -51,7 +51,10 @@ impl DrawUi for DeleteSeriesUi {
         .yes_no_value(app.data.sonarr_data.prompt_confirm);
 
       draw_library(f, app, area);
-      f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+      f.render_widget(
+        Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+        f.area(),
+      );
     }
   }
 }

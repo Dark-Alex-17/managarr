@@ -44,7 +44,7 @@ impl DrawUi for IndexerSettingsUi {
       area,
       draw_indexers,
       draw_edit_indexer_settings_prompt,
-      Size::LargePrompt,
+      Size::WideLargePrompt,
     );
   }
 }
@@ -61,7 +61,8 @@ fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area:
   if indexer_settings_option.is_some() {
     let indexer_settings = indexer_settings_option.as_ref().unwrap();
 
-    let [settings_area, _, buttons_area, help_area] = Layout::vertical([
+    let [_, settings_area, _, buttons_area, help_area] = Layout::vertical([
+      Constraint::Fill(1),
       Constraint::Length(15),
       Constraint::Fill(1),
       Constraint::Length(3),

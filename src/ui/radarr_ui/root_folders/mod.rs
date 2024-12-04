@@ -52,7 +52,10 @@ impl DrawUi for RootFoldersUi {
             .yes_no_value(app.data.radarr_data.prompt_confirm);
 
           draw_root_folders(f, app, area);
-          f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+          f.render_widget(
+            Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+            f.area(),
+          );
         }
         _ => (),
       }

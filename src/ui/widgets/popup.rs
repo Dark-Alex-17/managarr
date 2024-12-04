@@ -11,8 +11,9 @@ mod popup_tests;
 
 pub enum Size {
   SmallPrompt,
-  Prompt,
+  MediumPrompt,
   LargePrompt,
+  WideLargePrompt,
   Message,
   NarrowMessage,
   LargeMessage,
@@ -28,8 +29,9 @@ impl Size {
   pub fn to_percent(&self) -> (u16, u16) {
     match self {
       Size::SmallPrompt => (20, 20),
-      Size::Prompt => (37, 37),
-      Size::LargePrompt => (70, 50),
+      Size::MediumPrompt => (37, 37),
+      Size::LargePrompt => (45, 45),
+      Size::WideLargePrompt => (70, 50),
       Size::Message => (25, 8),
       Size::NarrowMessage => (50, 20),
       Size::LargeMessage => (25, 25),
