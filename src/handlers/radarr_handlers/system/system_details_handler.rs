@@ -44,6 +44,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler
   fn is_ready(&self) -> bool {
     !self.app.is_loading
       && (!self.app.data.radarr_data.log_details.is_empty()
+        || !self.app.data.radarr_data.tasks.is_empty()
         || !self.app.data.radarr_data.updates.is_empty())
   }
 

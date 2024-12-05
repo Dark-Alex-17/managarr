@@ -944,7 +944,7 @@ mod tests {
   }
 
   #[test]
-  fn test_system_details_handler_not_ready_when_both_log_details_and_updates_are_empty() {
+  fn test_system_details_handler_not_ready_when_log_details_and_updates_and_tasks_are_empty() {
     let mut app = App::default();
     app.is_loading = false;
 
@@ -972,6 +972,26 @@ mod tests {
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::SystemUpdates,
+      None,
+    );
+
+    assert!(handler.is_ready());
+  }
+
+  #[test]
+  fn test_system_details_handler_ready_when_not_loading_and_tasks_is_not_empty() {
+    let mut app = App::default();
+    app.is_loading = false;
+    app
+      .data
+      .radarr_data
+      .tasks
+      .set_items(vec![RadarrTask::default()]);
+
+    let handler = SystemDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::SystemTasks,
       None,
     );
 

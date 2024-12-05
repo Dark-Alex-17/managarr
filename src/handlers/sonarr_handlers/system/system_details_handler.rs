@@ -44,6 +44,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemDetailsHandler
   fn is_ready(&self) -> bool {
     !self.app.is_loading
       && (!self.app.data.sonarr_data.log_details.is_empty()
+        || !self.app.data.sonarr_data.tasks.is_empty()
         || !self.app.data.sonarr_data.updates.is_empty())
   }
 
