@@ -207,6 +207,7 @@ mod tests {
       EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, EDIT_SERIES_BLOCKS,
       EDIT_SERIES_SELECTION_BLOCKS, HISTORY_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
       INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS, ROOT_FOLDERS_BLOCKS,
+      SYSTEM_DETAILS_BLOCKS,
     };
 
     #[test]
@@ -555,6 +556,16 @@ mod tests {
       assert!(INDEXERS_BLOCKS.contains(&ActiveSonarrBlock::DeleteIndexerPrompt));
       assert!(INDEXERS_BLOCKS.contains(&ActiveSonarrBlock::Indexers));
       assert!(INDEXERS_BLOCKS.contains(&ActiveSonarrBlock::TestIndexer));
+    }
+
+    #[test]
+    fn test_system_details_blocks_contents() {
+      assert_eq!(SYSTEM_DETAILS_BLOCKS.len(), 5);
+      assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SystemLogs));
+      assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SystemQueuedEvents));
+      assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SystemTasks));
+      assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SystemTaskStartConfirmPrompt));
+      assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SystemUpdates));
     }
   }
 }

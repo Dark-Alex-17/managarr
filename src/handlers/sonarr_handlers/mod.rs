@@ -4,6 +4,7 @@ use history::HistoryHandler;
 use indexers::IndexersHandler;
 use library::LibraryHandler;
 use root_folders::RootFoldersHandler;
+use system::SystemHandler;
 
 use crate::{
   app::{key_binding::DEFAULT_KEYBINDINGS, App},
@@ -19,6 +20,7 @@ mod history;
 mod indexers;
 mod library;
 mod root_folders;
+mod system;
 
 #[cfg(test)]
 #[path = "sonarr_handler_tests.rs"]
@@ -56,6 +58,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SonarrHandler<'a, 'b
       }
       _ if IndexersHandler::accepts(self.active_sonarr_block) => {
         IndexersHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle()
+      }
+      _ if SystemHandler::accepts(self.active_sonarr_block) => {
+        SystemHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle()
       }
       _ => self.handle_key_event(),
     }

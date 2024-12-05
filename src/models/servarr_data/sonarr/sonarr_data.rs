@@ -483,6 +483,14 @@ pub static INDEXERS_BLOCKS: [ActiveSonarrBlock; 3] = [
   ActiveSonarrBlock::TestIndexer,
 ];
 
+pub static SYSTEM_DETAILS_BLOCKS: [ActiveSonarrBlock; 5] = [
+  ActiveSonarrBlock::SystemLogs,
+  ActiveSonarrBlock::SystemQueuedEvents,
+  ActiveSonarrBlock::SystemTasks,
+  ActiveSonarrBlock::SystemTaskStartConfirmPrompt,
+  ActiveSonarrBlock::SystemUpdates,
+];
+
 impl From<ActiveSonarrBlock> for Route {
   fn from(active_sonarr_block: ActiveSonarrBlock) -> Route {
     Route::Sonarr(active_sonarr_block, None)
