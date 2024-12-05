@@ -1,16 +1,16 @@
 #[cfg(test)]
 mod test {
-  use pretty_assertions::assert_eq;
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use ratatui::layout::{Alignment, Rect};
-  use ratatui::style::{Color, Modifier, Style};
-  use ratatui::text::Span;
-  use ratatui::widgets::{Block, BorderType, Borders};
+  use ratatui::style::{Color, Modifier, Style, Stylize};
+  use ratatui::text::{Span, Text};
+  use ratatui::widgets::{Block, BorderType, Borders, ListItem};
 
   use crate::ui::utils::{
-    borderless_block, centered_rect, get_width_from_percentage, layout_block,
-    layout_block_bottom_border, layout_block_top_border, layout_block_top_border_with_title,
-    layout_block_with_title, logo_block, style_block_highlight, title_block, title_block_centered,
-    title_style,
+    borderless_block, centered_rect, convert_to_minutes_hours_days, get_width_from_percentage,
+    layout_block, layout_block_bottom_border, layout_block_top_border,
+    layout_block_top_border_with_title, layout_block_with_title, logo_block, style_block_highlight,
+    style_log_list_item, title_block, title_block_centered, title_style,
   };
 
   #[test]
@@ -172,6 +172,70 @@ mod test {
       ),
       30
     );
+  }
+
+  #[test]
+  fn test_determine_log_style_by_level() {
+    use crate::ui::styles::ManagarrStyle;
+    let list_item = ListItem::new(Text::from(Span::raw("test")));
+
+    assert_eq!(
+      style_log_list_item(list_item.clone(), "trace".to_string()),
+      list_item.clone().gray()
+    );
+    assert_eq!(
+      style_log_list_item(list_item.clone(), "debug".to_string()),
+      list_item.clone().blue()
+    );
+    assert_eq!(
+      style_log_list_item(list_item.clone(), "info".to_string()),
+      list_item.clone().style(Style::new().default())
+    );
+    assert_eq!(
+      style_log_list_item(list_item.clone(), "warn".to_string()),
+      list_item.clone().style(Style::new().secondary())
+    );
+    assert_eq!(
+      style_log_list_item(list_item.clone(), "error".to_string()),
+      list_item.clone().style(Style::new().failure())
+    );
+    assert_eq!(
+      style_log_list_item(list_item.clone(), "fatal".to_string()),
+      list_item.clone().style(Style::new().failure().bold())
+    );
+    assert_eq!(
+      style_log_list_item(list_item.clone(), "".to_string()),
+      list_item.style(Style::new().default())
+    );
+  }
+
+  #[test]
+  fn test_determine_log_style_by_level_case_insensitive() {
+    let list_item = ListItem::new(Text::from(Span::raw("test")));
+
+    assert_eq!(
+      style_log_list_item(list_item.clone(), "TrAcE".to_string()),
+      list_item.gray()
+    );
+  }
+
+  #[test]
+  fn test_convert_to_minutes_hours_days_minutes() {
+    assert_str_eq!(convert_to_minutes_hours_days(0), "now");
+    assert_str_eq!(convert_to_minutes_hours_days(1), "1 minute");
+    assert_str_eq!(convert_to_minutes_hours_days(2), "2 minutes");
+  }
+
+  #[test]
+  fn test_convert_to_minutes_hours_days_hours() {
+    assert_str_eq!(convert_to_minutes_hours_days(60), "1 hour");
+    assert_str_eq!(convert_to_minutes_hours_days(120), "2 hours");
+  }
+
+  #[test]
+  fn test_convert_to_minutes_hours_days_days() {
+    assert_str_eq!(convert_to_minutes_hours_days(1440), "1 day");
+    assert_str_eq!(convert_to_minutes_hours_days(2880), "2 days");
   }
 
   fn rect() -> Rect {

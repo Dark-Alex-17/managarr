@@ -9,6 +9,7 @@ mod tests {
       HISTORY_CONTEXT_CLUES, MANUAL_EPISODE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
       MANUAL_EPISODE_SEARCH_CONTEXT_CLUES, MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
       SEASON_DETAILS_CONTEXT_CLUES, SERIES_CONTEXT_CLUES, SERIES_DETAILS_CONTEXT_CLUES,
+      SYSTEM_TASKS_CONTEXT_CLUES,
     },
   };
 
@@ -265,5 +266,21 @@ mod tests {
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
     assert_str_eq!(*description, DEFAULT_KEYBINDINGS.esc.desc);
     assert_eq!(episode_details_context_clues_iter.next(), None);
+  }
+
+  #[test]
+  fn test_system_tasks_context_clues() {
+    let mut system_tasks_context_clues_iter = SYSTEM_TASKS_CONTEXT_CLUES.iter();
+
+    let (key_binding, description) = system_tasks_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
+    assert_str_eq!(*description, "start task");
+
+    let (key_binding, description) = system_tasks_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.esc.desc);
+    assert_eq!(system_tasks_context_clues_iter.next(), None);
   }
 }

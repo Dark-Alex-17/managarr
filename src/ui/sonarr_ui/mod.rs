@@ -14,6 +14,7 @@ use ratatui::{
   Frame,
 };
 use root_folders::RootFoldersUi;
+use system::SystemUi;
 
 use crate::{
   app::App,
@@ -43,6 +44,7 @@ mod history;
 mod indexers;
 mod library;
 mod root_folders;
+mod system;
 
 #[cfg(test)]
 #[path = "sonarr_ui_tests.rs"]
@@ -66,6 +68,7 @@ impl DrawUi for SonarrUi {
       _ if HistoryUi::accepts(route) => HistoryUi::draw(f, app, content_area),
       _ if RootFoldersUi::accepts(route) => RootFoldersUi::draw(f, app, content_area),
       _ if IndexersUi::accepts(route) => IndexersUi::draw(f, app, content_area),
+      _ if SystemUi::accepts(route) => SystemUi::draw(f, app, content_area),
       _ => (),
     }
   }

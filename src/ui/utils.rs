@@ -3,7 +3,7 @@ use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Color, Style, Stylize};
 use ratatui::symbols;
 use ratatui::text::{Line, Span, Text};
-use ratatui::widgets::{Block, BorderType, Borders, LineGauge, Paragraph, Wrap};
+use ratatui::widgets::{Block, BorderType, Borders, LineGauge, ListItem, Paragraph, Wrap};
 
 pub const COLOR_TEAL: Color = Color::Rgb(35, 50, 55);
 
@@ -115,4 +115,42 @@ pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge<'_> {
 
 pub fn get_width_from_percentage(area: Rect, percentage: u16) -> usize {
   (area.width as f64 * (percentage as f64 / 100.0)) as usize
+}
+
+pub(super) fn style_log_list_item(list_item: ListItem<'_>, level: String) -> ListItem<'_> {
+  match level.to_lowercase().as_str() {
+    "trace" => list_item.gray(),
+    "debug" => list_item.blue(),
+    "info" => list_item.style(Style::new().default()),
+    "warn" => list_item.style(Style::new().secondary()),
+    "error" => list_item.style(Style::new().failure()),
+    "fatal" => list_item.style(Style::new().failure().bold()),
+    _ => list_item.style(Style::new().default()),
+  }
+}
+
+pub(super) fn convert_to_minutes_hours_days(time: i64) -> String {
+  if time < 60 {
+    if time == 0 {
+      "now".to_owned()
+    } else if time == 1 {
+      format!("{time} minute")
+    } else {
+      format!("{time} minutes")
+    }
+  } else if time / 60 < 24 {
+    let hours = time / 60;
+    if hours == 1 {
+      format!("{hours} hour")
+    } else {
+      format!("{hours} hours")
+    }
+  } else {
+    let days = time / (60 * 24);
+    if days == 1 {
+      format!("{days} day")
+    } else {
+      format!("{days} days")
+    }
+  }
 }

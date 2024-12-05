@@ -90,3 +90,8 @@ pub static EPISODE_DETAILS_CONTEXT_CLUES: [ContextClue; 3] = [
   (DEFAULT_KEYBINDINGS.search, "auto search"),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
+
+pub static SYSTEM_TASKS_CONTEXT_CLUES: [ContextClue; 2] = [
+  (DEFAULT_KEYBINDINGS.submit, "start task"),
+  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
+];

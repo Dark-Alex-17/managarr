@@ -34,13 +34,8 @@ mod collections;
 mod downloads;
 mod indexers;
 mod library;
-mod radarr_ui_utils;
 mod root_folders;
 mod system;
-
-#[cfg(test)]
-#[path = "radarr_ui_tests.rs"]
-mod radarr_ui_tests;
 
 pub(super) struct RadarrUi;
 

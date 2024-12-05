@@ -12,10 +12,10 @@ use ratatui::{
 };
 
 use crate::app::App;
-use crate::models::radarr_models::RadarrTask;
-use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use crate::models::servarr_models::QueueEvent;
-use crate::ui::radarr_ui::system::system_details_ui::SystemDetailsUi;
+use crate::models::sonarr_models::SonarrTask;
+use crate::ui::sonarr_ui::system::system_details_ui::SystemDetailsUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   convert_to_minutes_hours_days, layout_block_top_border, style_log_list_item,
@@ -34,28 +34,22 @@ mod system_details_ui;
 #[path = "system_ui_tests.rs"]
 mod system_ui_tests;
 
-pub(super) const TASK_TABLE_HEADERS: [&str; 5] = [
-  "Name",
-  "Interval",
-  "Last Execution",
-  "Last Duration",
-  "Next Execution",
-];
+pub(super) const TASK_TABLE_HEADERS: [&str; 4] =
+  ["Name", "Interval", "Last Execution", "Next Execution"];
 
-pub(super) const TASK_TABLE_CONSTRAINTS: [Constraint; 5] = [
+pub(super) const TASK_TABLE_CONSTRAINTS: [Constraint; 4] = [
   Constraint::Percentage(30),
-  Constraint::Percentage(12),
-  Constraint::Percentage(18),
-  Constraint::Percentage(18),
-  Constraint::Percentage(22),
+  Constraint::Percentage(23),
+  Constraint::Percentage(23),
+  Constraint::Percentage(23),
 ];
 
 pub(super) struct SystemUi;
 
 impl DrawUi for SystemUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
-      return SystemDetailsUi::accepts(route) || active_radarr_block == ActiveRadarrBlock::System;
+    if let Route::Sonarr(active_sonarr_block, _) = route {
+      return SystemDetailsUi::accepts(route) || active_sonarr_block == ActiveSonarrBlock::System;
     }
 
     false
@@ -66,7 +60,7 @@ impl DrawUi for SystemUi {
 
     match route {
       _ if SystemDetailsUi::accepts(route) => SystemDetailsUi::draw(f, app, area),
-      _ if matches!(route, Route::Radarr(ActiveRadarrBlock::System, _)) => {
+      _ if matches!(route, Route::Sonarr(ActiveSonarrBlock::System, _)) => {
         draw_system_ui_layout(f, app, area)
       }
       _ => (),
@@ -92,19 +86,18 @@ pub(super) fn draw_system_ui_layout(f: &mut Frame<'_>, app: &mut App<'_>, area: 
 }
 
 fn draw_tasks(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let tasks_row_mapping = |task: &RadarrTask| {
+  let tasks_row_mapping = |task: &SonarrTask| {
     let task_props = extract_task_props(task);
 
     Row::new(vec![
       Cell::from(task_props.name),
       Cell::from(task_props.interval),
       Cell::from(task_props.last_execution),
-      Cell::from(task_props.last_duration),
       Cell::from(task_props.next_execution),
     ])
     .primary()
   };
-  let tasks_table = ManagarrTable::new(Some(&mut app.data.radarr_data.tasks), tasks_row_mapping)
+  let tasks_table = ManagarrTable::new(Some(&mut app.data.sonarr_data.tasks), tasks_row_mapping)
     .block(title_block("Tasks"))
     .loading(app.is_loading)
     .highlight_rows(false)
@@ -152,7 +145,7 @@ pub(super) fn draw_queued_events(f: &mut Frame<'_>, app: &mut App<'_>, area: Rec
     .primary()
   };
   let events_table = ManagarrTable::new(
-    Some(&mut app.data.radarr_data.queued_events),
+    Some(&mut app.data.sonarr_data.queued_events),
     events_row_mapping,
   )
   .block(title_block("Queued Events"))
@@ -174,12 +167,12 @@ pub(super) fn draw_queued_events(f: &mut Frame<'_>, app: &mut App<'_>, area: Rec
 fn draw_logs(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let block = title_block("Logs");
 
-  if app.data.radarr_data.logs.items.is_empty() {
+  if app.data.sonarr_data.logs.items.is_empty() {
     f.render_widget(LoadingBlock::new(app.is_loading, block), area);
     return;
   }
 
-  let logs_box = SelectableList::new(&mut app.data.radarr_data.logs, |log| {
+  let logs_box = SelectableList::new(&mut app.data.sonarr_data.logs, |log| {
     let log_line = log.to_string();
     let level = log_line.split('|').collect::<Vec<&str>>()[1].to_string();
 
@@ -197,7 +190,7 @@ fn draw_help(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       " {}",
       app
         .data
-        .radarr_data
+        .sonarr_data
         .main_tabs
         .get_active_tab_contextual_help()
         .unwrap()
@@ -215,13 +208,11 @@ pub(super) struct TaskProps {
   pub(super) name: String,
   pub(super) interval: String,
   pub(super) last_execution: String,
-  pub(super) last_duration: String,
   pub(super) next_execution: String,
 }
 
-pub(super) fn extract_task_props(task: &RadarrTask) -> TaskProps {
+pub(super) fn extract_task_props(task: &SonarrTask) -> TaskProps {
   let interval = convert_to_minutes_hours_days(task.interval);
-  let last_duration = &task.last_duration[..8];
   let next_execution =
     convert_to_minutes_hours_days((task.next_execution - Utc::now()).num_minutes());
   let last_execution =
@@ -236,7 +227,6 @@ pub(super) fn extract_task_props(task: &RadarrTask) -> TaskProps {
     name: task.name.clone(),
     interval,
     last_execution: last_execution_string,
-    last_duration: last_duration.to_owned(),
     next_execution,
   }
 }
