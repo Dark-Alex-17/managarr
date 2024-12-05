@@ -128,18 +128,23 @@ mod tests {
 
     let (key_binding, description) = series_details_context_clues_iter.next().unwrap();
 
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
+    assert_str_eq!(*description, "season details");
+
+    let (key_binding, description) = series_details_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.search);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.search.desc);
+
+    let (key_binding, description) = series_details_context_clues_iter.next().unwrap();
+
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.update);
     assert_str_eq!(*description, DEFAULT_KEYBINDINGS.update.desc);
 
     let (key_binding, description) = series_details_context_clues_iter.next().unwrap();
 
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
-    assert_str_eq!(*description, "details");
-
-    let (key_binding, description) = series_details_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.search);
-    assert_str_eq!(*description, "auto search");
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.auto_search);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.auto_search.desc);
 
     let (key_binding, description) = series_details_context_clues_iter.next().unwrap();
 

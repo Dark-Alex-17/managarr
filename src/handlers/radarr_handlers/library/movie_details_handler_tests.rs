@@ -1455,6 +1455,7 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use crate::handlers::radarr_handlers::library::movie_details_handler::releases_sorting_options;
+    use crate::models::radarr_models::RadarrRelease;
     use crate::models::radarr_models::{MinimumAvailability, Movie};
     use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
@@ -1467,7 +1468,7 @@ mod tests {
     use super::*;
 
     #[rstest]
-    fn test_search_key(
+    fn test_auto_search_key(
       #[values(
         ActiveRadarrBlock::MovieDetails,
         ActiveRadarrBlock::MovieHistory,
@@ -1478,8 +1479,6 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      use crate::models::radarr_models::RadarrRelease;
-
       let mut app = App::default();
       let mut modal = MovieDetailsModal {
         movie_details: ScrollableText::with_string("Test".to_owned()),
@@ -1496,7 +1495,7 @@ mod tests {
       app.data.radarr_data.movie_details_modal = Some(modal);
 
       MovieDetailsHandler::with(
-        DEFAULT_KEYBINDINGS.search.key,
+        DEFAULT_KEYBINDINGS.auto_search.key,
         &mut app,
         active_radarr_block,
         None,
@@ -1510,7 +1509,7 @@ mod tests {
     }
 
     #[rstest]
-    fn test_search_key_no_op_when_not_ready(
+    fn test_auto_search_key_no_op_when_not_ready(
       #[values(
         ActiveRadarrBlock::MovieDetails,
         ActiveRadarrBlock::MovieHistory,
@@ -1530,7 +1529,7 @@ mod tests {
       });
 
       MovieDetailsHandler::with(
-        DEFAULT_KEYBINDINGS.search.key,
+        DEFAULT_KEYBINDINGS.auto_search.key,
         &mut app,
         active_radarr_block,
         None,

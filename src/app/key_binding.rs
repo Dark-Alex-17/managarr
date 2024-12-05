@@ -19,6 +19,7 @@ generate_keybindings! {
   previous_servarr,
   clear,
   search,
+  auto_search,
   settings,
   filter,
   sort,
@@ -81,6 +82,10 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   clear: KeyBinding {
     key: Key::Char('c'),
     desc: "clear",
+  },
+  auto_search: KeyBinding {
+    key: Key::Char('S'),
+    desc: "auto search",
   },
   search: KeyBinding {
     key: Key::Char('s'),

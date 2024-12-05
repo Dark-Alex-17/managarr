@@ -16,6 +16,7 @@ mod test {
   #[case(DEFAULT_KEYBINDINGS.next_servarr, Key::Tab, "next servarr")]
   #[case(DEFAULT_KEYBINDINGS.previous_servarr, Key::BackTab, "previous servarr")]
   #[case(DEFAULT_KEYBINDINGS.clear, Key::Char('c'), "clear")]
+  #[case(DEFAULT_KEYBINDINGS.auto_search, Key::Char('S'), "auto search")]
   #[case(DEFAULT_KEYBINDINGS.search, Key::Char('s'), "search")]
   #[case(DEFAULT_KEYBINDINGS.settings, Key::Char('s'), "settings")]
   #[case(DEFAULT_KEYBINDINGS.filter, Key::Char('f'), "filter")]

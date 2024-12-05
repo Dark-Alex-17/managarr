@@ -133,8 +133,8 @@ mod tests {
 
     let (key_binding, description) = movie_details_context_clues_iter.next().unwrap();
 
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.search);
-    assert_str_eq!(*description, "auto search");
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.auto_search);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.auto_search.desc);
 
     let (key_binding, description) = movie_details_context_clues_iter.next().unwrap();
 
@@ -169,8 +169,8 @@ mod tests {
 
     let (key_binding, description) = manual_movie_search_context_clues_iter.next().unwrap();
 
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.search);
-    assert_str_eq!(*description, "auto search");
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.auto_search);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.auto_search.desc);
 
     let (key_binding, description) = manual_movie_search_context_clues_iter.next().unwrap();
 

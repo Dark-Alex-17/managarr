@@ -432,7 +432,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       | ActiveRadarrBlock::Cast
       | ActiveRadarrBlock::Crew
       | ActiveRadarrBlock::ManualSearch => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.search.key => {
+        _ if key == DEFAULT_KEYBINDINGS.auto_search.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::AutomaticallySearchMoviePrompt.into());

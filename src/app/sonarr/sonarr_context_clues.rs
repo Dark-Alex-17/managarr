@@ -25,6 +25,21 @@ pub static SERIES_CONTEXT_CLUES: [ContextClue; 10] = [
   (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
 ];
 
+pub static SERIES_DETAILS_CONTEXT_CLUES: [ContextClue; 6] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.submit, "season details"),
+  (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
+  (DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc),
+  (
+    DEFAULT_KEYBINDINGS.auto_search,
+    DEFAULT_KEYBINDINGS.auto_search.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
+];
+
 pub static HISTORY_CONTEXT_CLUES: [ContextClue; 5] = [
   (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
   (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
@@ -34,17 +49,6 @@ pub static HISTORY_CONTEXT_CLUES: [ContextClue; 5] = [
     DEFAULT_KEYBINDINGS.refresh.desc,
   ),
   (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
-];
-
-pub static SERIES_DETAILS_CONTEXT_CLUES: [ContextClue; 5] = [
-  (
-    DEFAULT_KEYBINDINGS.refresh,
-    DEFAULT_KEYBINDINGS.refresh.desc,
-  ),
-  (DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc),
-  (DEFAULT_KEYBINDINGS.submit, "details"),
-  (DEFAULT_KEYBINDINGS.search, "auto search"),
-  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
 pub static SEASON_DETAILS_CONTEXT_CLUES: [ContextClue; 5] = [

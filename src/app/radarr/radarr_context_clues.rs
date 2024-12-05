@@ -42,7 +42,10 @@ pub static MOVIE_DETAILS_CONTEXT_CLUES: [ContextClue; 5] = [
   ),
   (DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc),
   (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
-  (DEFAULT_KEYBINDINGS.search, "auto search"),
+  (
+    DEFAULT_KEYBINDINGS.auto_search,
+    DEFAULT_KEYBINDINGS.auto_search.desc,
+  ),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
@@ -54,7 +57,10 @@ pub static MANUAL_MOVIE_SEARCH_CONTEXT_CLUES: [ContextClue; 6] = [
   (DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc),
   (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
   (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
-  (DEFAULT_KEYBINDINGS.search, "auto search"),
+  (
+    DEFAULT_KEYBINDINGS.auto_search,
+    DEFAULT_KEYBINDINGS.auto_search.desc,
+  ),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
