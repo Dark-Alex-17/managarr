@@ -14,9 +14,8 @@ use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
-use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{draw_input_box_popup, draw_popup_over, DrawUi};
+use crate::ui::DrawUi;
 
 mod collection_details_ui;
 #[cfg(test)]
@@ -40,40 +39,12 @@ impl DrawUi for CollectionsUi {
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = app.get_current_route();
     let mut collections_ui_matcher = |active_radarr_block| match active_radarr_block {
-      ActiveRadarrBlock::Collections | ActiveRadarrBlock::CollectionsSortPrompt => {
-        draw_collections(f, app, area)
-      }
-      ActiveRadarrBlock::SearchCollection => draw_popup_over(
-        f,
-        app,
-        area,
-        draw_collections,
-        draw_collection_search_box,
-        Size::InputBox,
-      ),
-      ActiveRadarrBlock::SearchCollectionError => {
-        let popup = Popup::new(Message::new("Collection not found!")).size(Size::Message);
-
-        draw_collections(f, app, area);
-        f.render_widget(popup, f.area());
-      }
-      ActiveRadarrBlock::FilterCollections => draw_popup_over(
-        f,
-        app,
-        area,
-        draw_collections,
-        draw_filter_collections_box,
-        Size::InputBox,
-      ),
-      ActiveRadarrBlock::FilterCollectionsError => {
-        let popup = Popup::new(Message::new(
-          "No collections found matching the given filter!",
-        ))
-        .size(Size::Message);
-
-        draw_collections(f, app, area);
-        f.render_widget(popup, f.area());
-      }
+      ActiveRadarrBlock::Collections
+      | ActiveRadarrBlock::CollectionsSortPrompt
+      | ActiveRadarrBlock::SearchCollection
+      | ActiveRadarrBlock::SearchCollectionError
+      | ActiveRadarrBlock::FilterCollections
+      | ActiveRadarrBlock::FilterCollectionsError => draw_collections(f, app, area),
       ActiveRadarrBlock::UpdateAllCollectionsPrompt => {
         let confirmation_prompt = ConfirmationPrompt::new()
           .title("Update All Collections")
@@ -156,6 +127,14 @@ pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
       .footer(collections_table_footer)
       .block(layout_block_top_border())
       .sorting(active_radarr_block == ActiveRadarrBlock::CollectionsSortPrompt)
+      .searching(active_radarr_block == ActiveRadarrBlock::SearchCollection)
+      .search_produced_empty_results(
+        active_radarr_block == ActiveRadarrBlock::SearchCollectionError,
+      )
+      .filtering(active_radarr_block == ActiveRadarrBlock::FilterCollections)
+      .filter_produced_empty_results(
+        active_radarr_block == ActiveRadarrBlock::FilterCollectionsError,
+      )
       .headers([
         "Collection",
         "Number of Movies",
@@ -173,24 +152,15 @@ pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
         Constraint::Percentage(15),
       ]);
 
+    if [
+      ActiveRadarrBlock::SearchCollection,
+      ActiveRadarrBlock::FilterCollections,
+    ]
+    .contains(&active_radarr_block)
+    {
+      collections_table.show_cursor(f, area);
+    }
+
     f.render_widget(collections_table, area);
   }
-}
-
-fn draw_collection_search_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_input_box_popup(
-    f,
-    area,
-    "Search",
-    app.data.radarr_data.collections.search.as_ref().unwrap(),
-  );
-}
-
-fn draw_filter_collections_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_input_box_popup(
-    f,
-    area,
-    "Filter",
-    app.data.radarr_data.collections.filter.as_ref().unwrap(),
-  )
 }

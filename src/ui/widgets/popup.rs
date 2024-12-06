@@ -22,6 +22,7 @@ pub enum Size {
   Small,
   Medium,
   Large,
+  XXLarge,
   Long,
 }
 
@@ -40,6 +41,7 @@ impl Size {
       Size::Small => (40, 40),
       Size::Medium => (60, 60),
       Size::Large => (75, 75),
+      Size::XXLarge => (90, 90),
       Size::Long => (65, 75),
     }
   }
@@ -118,6 +120,6 @@ impl<'a, T: Widget> Popup<'a, T> {
 
 impl<'a, T: Widget> Widget for Popup<'a, T> {
   fn render(self, area: Rect, buf: &mut Buffer) {
-    self.render_popup(area, buf);
+      self.render_popup(area, buf);
   }
 }

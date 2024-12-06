@@ -1,15 +1,21 @@
 use crate::models::stateful_table::StatefulTable;
 use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::layout_block_top_border;
+use crate::ui::utils::{centered_rect, layout_block_top_border, title_block_centered};
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::popup::Popup;
 use crate::ui::widgets::selectable_list::SelectableList;
 use crate::ui::HIGHLIGHT_SYMBOL;
 use ratatui::buffer::Buffer;
-use ratatui::layout::{Alignment, Constraint, Layout, Rect};
+use ratatui::layout::{Alignment, Constraint, Layout, Position, Rect};
 use ratatui::prelude::{Style, Stylize, Text};
-use ratatui::widgets::{Block, ListItem, Paragraph, Row, StatefulWidget, Table, Widget};
+use ratatui::widgets::{Block, ListItem, Paragraph, Row, StatefulWidget, Table, Widget, WidgetRef};
+use ratatui::Frame;
 use std::fmt::Debug;
+use std::sync::atomic::Ordering;
+
+use super::input_box_popup::InputBoxPopup;
+use super::message::Message;
+use super::popup::Size;
 
 #[cfg(test)]
 #[path = "managarr_table_tests.rs"]
@@ -31,6 +37,14 @@ where
   is_loading: bool,
   highlight_rows: bool,
   is_sorting: bool,
+  is_searching: bool,
+  search_produced_empty_results: bool,
+  is_filtering: bool,
+  filter_produced_empty_results: bool,
+  search_box_content_length: usize,
+  search_box_offset: usize,
+  filter_box_content_length: usize,
+  filter_box_offset: usize,
 }
 
 impl<'a, T, F> ManagarrTable<'a, T, F>
@@ -39,8 +53,8 @@ where
   T: Clone + PartialEq + Eq + Debug,
 {
   pub fn new(content: Option<&'a mut StatefulTable<T>>, row_mapper: F) -> Self {
-    Self {
-      content,
+    let mut managarr_table = Self {
+      content: None,
       table_headers: Vec::new(),
       constraints: Vec::new(),
       row_mapper,
@@ -51,7 +65,28 @@ where
       is_loading: false,
       highlight_rows: true,
       is_sorting: false,
+      is_searching: false,
+      search_produced_empty_results: false,
+      is_filtering: false,
+      filter_produced_empty_results: false,
+      search_box_content_length: 0,
+      search_box_offset: 0,
+      filter_box_content_length: 0,
+      filter_box_offset: 0,
+    };
+
+    if let Some(content) = content.as_ref() {
+      if let Some(search) = content.search.as_ref() {
+        managarr_table.search_box_content_length = search.text.len();
+        managarr_table.search_box_offset = search.offset.load(Ordering::SeqCst);
+      } else if let Some(filter) = content.filter.as_ref() {
+        managarr_table.filter_box_content_length = filter.text.len();
+        managarr_table.filter_box_offset = filter.offset.load(Ordering::SeqCst);
+      }
     }
+
+    managarr_table.content = content;
+    managarr_table
   }
 
   pub fn headers<I>(mut self, headers: I) -> Self
@@ -104,6 +139,26 @@ where
 
   pub fn sorting(mut self, is_sorting: bool) -> Self {
     self.is_sorting = is_sorting;
+    self
+  }
+
+  pub fn searching(mut self, is_searching: bool) -> Self {
+    self.is_searching = is_searching;
+    self
+  }
+
+  pub fn search_produced_empty_results(mut self, no_search_results: bool) -> Self {
+    self.search_produced_empty_results = no_search_results;
+    self
+  }
+
+  pub fn filtering(mut self, is_filtering: bool) -> Self {
+    self.is_filtering = is_filtering;
+    self
+  }
+
+  pub fn filter_produced_empty_results(mut self, no_filter_results: bool) -> Self {
+    self.filter_produced_empty_results = no_filter_results;
     self
   }
 
@@ -160,6 +215,34 @@ where
             .dimensions(20, 50)
             .render(table_area, buf);
         }
+
+        if self.is_searching {
+          let box_content = &content.search.as_ref().unwrap();
+          InputBoxPopup::new(&box_content.text)
+            .offset(box_content.offset.load(Ordering::SeqCst))
+            .block(title_block_centered("Search"))
+            .render_ref(table_area, buf);
+        }
+
+        if self.is_filtering {
+          let box_content = &content.filter.as_ref().unwrap();
+          InputBoxPopup::new(&box_content.text)
+            .offset(box_content.offset.load(Ordering::SeqCst))
+            .block(title_block_centered("Filter"))
+            .render_ref(table_area, buf);
+        }
+
+        if self.search_produced_empty_results {
+          Popup::new(Message::new("No items found matching search"))
+            .size(Size::Message)
+            .render(table_area, buf);
+        }
+
+        if self.filter_produced_empty_results {
+          Popup::new(Message::new("The given filter produced empty results"))
+            .size(Size::Message)
+            .render(table_area, buf);
+        }
       } else {
         loading_block.render(table_area, buf);
       }
@@ -188,6 +271,36 @@ where
       .into_iter()
       .map(Text::from)
       .collect()
+  }
+
+  pub fn show_cursor(&self, f: &mut Frame<'_>, area: Rect) {
+    let mut draw_cursor = |length: usize, offset: usize| {
+      let table_area = if self.footer.is_some() {
+        let [content_area, _] = Layout::vertical([Constraint::Fill(0), Constraint::Length(2)])
+          .margin(self.margin)
+          .areas(area);
+        content_area
+      } else {
+        area
+      };
+      let popup_area = Rect {
+        height: 7,
+        ..centered_rect(30, 20, table_area)
+      };
+      let [text_box_area, _] = Layout::vertical([Constraint::Length(3), Constraint::Length(1)])
+        .margin(1)
+        .areas(popup_area);
+      f.set_cursor_position(Position {
+        x: text_box_area.x + (length - offset) as u16 + 1,
+        y: text_box_area.y + 1,
+      });
+    };
+
+    if self.is_searching {
+      draw_cursor(self.search_box_content_length, self.search_box_offset);
+    } else if self.is_filtering {
+      draw_cursor(self.filter_box_content_length, self.filter_box_offset);
+    }
   }
 }
 

@@ -2,7 +2,7 @@ use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Position, Rect};
 use ratatui::prelude::Text;
 use ratatui::style::{Style, Styled, Stylize};
-use ratatui::widgets::{Block, Paragraph, Widget};
+use ratatui::widgets::{Block, Paragraph, Widget, WidgetRef};
 use ratatui::Frame;
 
 use crate::ui::styles::ManagarrStyle;
@@ -12,6 +12,8 @@ use crate::ui::utils::{borderless_block, layout_block};
 #[path = "input_box_tests.rs"]
 mod input_box_tests;
 
+#[derive(Default)]
+#[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct InputBox<'a> {
   content: &'a str,
   offset: usize,
@@ -96,7 +98,7 @@ impl<'a> InputBox<'a> {
     }
   }
 
-  fn render_input_box(self, area: Rect, buf: &mut Buffer) {
+  fn render_input_box(&self, area: Rect, buf: &mut Buffer) {
     let style =
       if matches!(self.is_highlighted, Some(true)) && matches!(self.is_selected, Some(false)) {
         Style::new().system_function().bold()
@@ -106,7 +108,7 @@ impl<'a> InputBox<'a> {
 
     let input_box_paragraph = Paragraph::new(Text::from(self.content))
       .style(style)
-      .block(self.block);
+      .block(self.block.clone());
 
     if let Some(label) = self.label {
       let [label_area, text_box_area] =
@@ -129,6 +131,12 @@ impl<'a> Widget for InputBox<'a> {
   where
     Self: Sized,
   {
+    self.render_input_box(area, buf);
+  }
+}
+
+impl<'a> WidgetRef for InputBox<'a> {
+  fn render_ref(&self, area: Rect, buf: &mut Buffer) {
     self.render_input_box(area, buf);
   }
 }

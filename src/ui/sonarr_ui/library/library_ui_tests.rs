@@ -2,6 +2,7 @@
 mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
+    SERIES_DETAILS_BLOCKS,
   };
   use crate::models::{
     servarr_data::sonarr::sonarr_data::LIBRARY_BLOCKS, sonarr_models::SeriesStatus,
@@ -26,12 +27,13 @@ mod tests {
     library_ui_blocks.extend(ADD_SERIES_BLOCKS);
     library_ui_blocks.extend(DELETE_SERIES_BLOCKS);
     library_ui_blocks.extend(EDIT_SERIES_BLOCKS);
+    library_ui_blocks.extend(SERIES_DETAILS_BLOCKS);
 
-    ActiveSonarrBlock::iter().for_each(|active_radarr_block| {
-      if library_ui_blocks.contains(&active_radarr_block) {
-        assert!(LibraryUi::accepts(active_radarr_block.into()));
+    ActiveSonarrBlock::iter().for_each(|active_sonarr_block| {
+      if library_ui_blocks.contains(&active_sonarr_block) {
+        assert!(LibraryUi::accepts(active_sonarr_block.into()));
       } else {
-        assert!(!LibraryUi::accepts(active_radarr_block.into()));
+        assert!(!LibraryUi::accepts(active_sonarr_block.into()));
       }
     });
   }

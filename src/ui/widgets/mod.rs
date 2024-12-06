@@ -7,3 +7,4 @@ pub(super) mod managarr_table;
 pub(super) mod message;
 pub(super) mod popup;
 pub(super) mod selectable_list;
+mod input_box_popup;
