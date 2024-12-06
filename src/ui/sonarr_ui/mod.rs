@@ -44,6 +44,7 @@ mod history;
 mod indexers;
 mod library;
 mod root_folders;
+mod sonarr_ui_utils;
 mod system;
 
 #[cfg(test)]

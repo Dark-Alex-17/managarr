@@ -40,7 +40,8 @@ pub static SERIES_DETAILS_CONTEXT_CLUES: [ContextClue; 6] = [
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
-pub static HISTORY_CONTEXT_CLUES: [ContextClue; 5] = [
+pub static HISTORY_CONTEXT_CLUES: [ContextClue; 6] = [
+  (DEFAULT_KEYBINDINGS.submit, "details"),
   (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
   (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
   (DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc),

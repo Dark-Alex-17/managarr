@@ -207,7 +207,7 @@ mod tests {
       EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, EDIT_SERIES_BLOCKS,
       EDIT_SERIES_SELECTION_BLOCKS, HISTORY_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
       INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS, ROOT_FOLDERS_BLOCKS,
-      SYSTEM_DETAILS_BLOCKS,
+      SERIES_DETAILS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
     };
 
     #[test]
@@ -566,6 +566,22 @@ mod tests {
       assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SystemTasks));
       assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SystemTaskStartConfirmPrompt));
       assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SystemUpdates));
+    }
+
+    #[test]
+    fn test_series_details_blocks_contents() {
+      assert_eq!(SERIES_DETAILS_BLOCKS.len(), 11);
+      assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeriesDetails));
+      assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeriesHistory));
+      assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeason));
+      assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeasonError));
+      assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::UpdateAndScanSeriesPrompt));
+      assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeriesHistory));
+      assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeriesHistoryError));
+      assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::FilterSeriesHistory));
+      assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::FilterSeriesHistoryError));
+      assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeriesHistorySortPrompt));
+      assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeriesHistoryDetails));
     }
   }
 }

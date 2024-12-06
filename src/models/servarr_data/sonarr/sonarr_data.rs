@@ -278,6 +278,7 @@ pub enum ActiveSonarrBlock {
   Series,
   SeriesDetails,
   SeriesHistory,
+  SeriesHistoryDetails,
   SeriesHistorySortPrompt,
   SeriesSortPrompt,
   System,
@@ -301,6 +302,20 @@ pub static LIBRARY_BLOCKS: [ActiveSonarrBlock; 7] = [
   ActiveSonarrBlock::FilterSeries,
   ActiveSonarrBlock::FilterSeriesError,
   ActiveSonarrBlock::UpdateAllSeriesPrompt,
+];
+
+pub static SERIES_DETAILS_BLOCKS: [ActiveSonarrBlock; 11] = [
+  ActiveSonarrBlock::SeriesDetails,
+  ActiveSonarrBlock::SeriesHistory,
+  ActiveSonarrBlock::SearchSeason,
+  ActiveSonarrBlock::SearchSeasonError,
+  ActiveSonarrBlock::UpdateAndScanSeriesPrompt,
+  ActiveSonarrBlock::SearchSeriesHistory,
+  ActiveSonarrBlock::SearchSeriesHistoryError,
+  ActiveSonarrBlock::FilterSeriesHistory,
+  ActiveSonarrBlock::FilterSeriesHistoryError,
+  ActiveSonarrBlock::SeriesHistorySortPrompt,
+  ActiveSonarrBlock::SeriesHistoryDetails,
 ];
 
 pub static ADD_SERIES_BLOCKS: [ActiveSonarrBlock; 13] = [

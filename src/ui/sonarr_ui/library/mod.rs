@@ -6,10 +6,10 @@ use ratatui::{
   widgets::{Cell, Row},
   Frame,
 };
+use series_details_ui::SeriesDetailsUi;
 
 use crate::ui::widgets::{
   confirmation_prompt::ConfirmationPrompt,
-  message::Message,
   popup::{Popup, Size},
 };
 use crate::{
@@ -20,7 +20,6 @@ use crate::{
     EnumDisplayStyle, Route,
   },
   ui::{
-    draw_input_box_popup, draw_popup_over,
     styles::ManagarrStyle,
     utils::{get_width_from_percentage, layout_block_top_border},
     widgets::managarr_table::ManagarrTable,
@@ -31,6 +30,7 @@ use crate::{
 mod add_series_ui;
 mod delete_series_ui;
 mod edit_series_ui;
+mod series_details_ui;
 
 #[cfg(test)]
 #[path = "library_ui_tests.rs"]
@@ -44,6 +44,7 @@ impl DrawUi for LibraryUi {
       return AddSeriesUi::accepts(route)
         || DeleteSeriesUi::accepts(route)
         || EditSeriesUi::accepts(route)
+        || SeriesDetailsUi::accepts(route)
         || LIBRARY_BLOCKS.contains(&active_sonarr_block);
     }
 
@@ -54,36 +55,41 @@ impl DrawUi for LibraryUi {
     let route = app.get_current_route();
     let mut series_ui_matchers = |active_sonarr_block: ActiveSonarrBlock| match active_sonarr_block
     {
-      ActiveSonarrBlock::Series | ActiveSonarrBlock::SeriesSortPrompt => draw_library(f, app, area),
-      ActiveSonarrBlock::SearchSeries => draw_popup_over(
-        f,
-        app,
-        area,
-        draw_library,
-        draw_library_search_box,
-        Size::InputBox,
-      ),
-      ActiveSonarrBlock::SearchSeriesError => {
-        let popup = Popup::new(Message::new("Series not found!")).size(Size::Message);
+      ActiveSonarrBlock::Series
+      | ActiveSonarrBlock::SeriesSortPrompt
+      | ActiveSonarrBlock::SearchSeries
+      | ActiveSonarrBlock::SearchSeriesError
+      | ActiveSonarrBlock::FilterSeries
+      | ActiveSonarrBlock::FilterSeriesError => draw_library(f, app, area),
+      // ActiveSonarrBlock::SearchSeries => draw_popup_over(
+      //   f,
+      //   app,
+      //   area,
+      //   draw_library,
+      //   draw_library_search_box,
+      //   Size::InputBox,
+      // ),
+      // ActiveSonarrBlock::SearchSeriesError => {
+      //   let popup = Popup::new(Message::new("Series not found!")).size(Size::Message);
 
-        draw_library(f, app, area);
-        f.render_widget(popup, f.area());
-      }
-      ActiveSonarrBlock::FilterSeries => draw_popup_over(
-        f,
-        app,
-        area,
-        draw_library,
-        draw_filter_series_box,
-        Size::InputBox,
-      ),
-      ActiveSonarrBlock::FilterSeriesError => {
-        let popup = Popup::new(Message::new("No series found matching the given filter!"))
-          .size(Size::Message);
+      //   draw_library(f, app, area);
+      //   f.render_widget(popup, f.area());
+      // }
+      // ActiveSonarrBlock::FilterSeries => draw_popup_over(
+      //   f,
+      //   app,
+      //   area,
+      //   draw_library,
+      //   draw_filter_series_box,
+      //   Size::InputBox,
+      // ),
+      // ActiveSonarrBlock::FilterSeriesError => {
+      //   let popup = Popup::new(Message::new("No series found matching the given filter!"))
+      //     .size(Size::Message);
 
-        draw_library(f, app, area);
-        f.render_widget(popup, f.area());
-      }
+      //   draw_library(f, app, area);
+      //   f.render_widget(popup, f.area());
+      // }
       ActiveSonarrBlock::UpdateAllSeriesPrompt => {
         let confirmation_prompt = ConfirmationPrompt::new()
           .title("Update All Series")
@@ -103,6 +109,7 @@ impl DrawUi for LibraryUi {
       _ if AddSeriesUi::accepts(route) => AddSeriesUi::draw(f, app, area),
       _ if DeleteSeriesUi::accepts(route) => DeleteSeriesUi::draw(f, app, area),
       _ if EditSeriesUi::accepts(route) => EditSeriesUi::draw(f, app, area),
+      _ if SeriesDetailsUi::accepts(route) => SeriesDetailsUi::draw(f, app, area),
       Route::Sonarr(active_sonarr_block, _) if LIBRARY_BLOCKS.contains(&active_sonarr_block) => {
         series_ui_matchers(active_sonarr_block)
       }
@@ -182,6 +189,10 @@ pub(super) fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .loading(app.is_loading)
       .footer(help_footer)
       .sorting(active_sonarr_block == ActiveSonarrBlock::SeriesSortPrompt)
+      .searching(active_sonarr_block == ActiveSonarrBlock::SearchSeries)
+      .filtering(active_sonarr_block == ActiveSonarrBlock::FilterSeries)
+      .search_produced_empty_results(active_sonarr_block == ActiveSonarrBlock::SearchSeriesError)
+      .filter_produced_empty_results(active_sonarr_block == ActiveSonarrBlock::FilterSeriesError)
       .headers([
         "Title",
         "Year",
@@ -206,6 +217,15 @@ pub(super) fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Constraint::Percentage(6),
         Constraint::Percentage(12),
       ]);
+
+    if [
+      ActiveSonarrBlock::SearchSeries,
+      ActiveSonarrBlock::FilterSeries,
+    ]
+    .contains(&active_sonarr_block)
+    {
+      series_table.show_cursor(f, area);
+    }
 
     f.render_widget(series_table, area);
   }
@@ -234,22 +254,4 @@ fn decorate_series_row_with_style<'a>(series: &Series, row: Row<'a>) -> Row<'a> 
     SeriesStatus::Upcoming => row.unreleased(),
     _ => row.missing(),
   }
-}
-
-fn draw_library_search_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_input_box_popup(
-    f,
-    area,
-    "Search",
-    app.data.sonarr_data.series.search.as_ref().unwrap(),
-  );
-}
-
-fn draw_filter_series_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_input_box_popup(
-    f,
-    area,
-    "Filter",
-    app.data.sonarr_data.series.filter.as_ref().unwrap(),
-  )
 }
