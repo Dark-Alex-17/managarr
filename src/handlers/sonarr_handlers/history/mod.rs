@@ -1,3 +1,5 @@
+use log::debug;
+
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
@@ -250,7 +252,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, '
       ActiveSonarrBlock::HistoryItemDetails | ActiveSonarrBlock::HistorySortPrompt => {
         self.app.pop_navigation_stack();
       }
-      _ => handle_clear_errors(self.app),
+      _ => {
+        self.app.data.sonarr_data.history.reset_search();
+        self.app.data.sonarr_data.history.reset_filter();
+        handle_clear_errors(self.app);
+      }
     }
   }
 

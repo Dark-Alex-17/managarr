@@ -845,11 +845,23 @@ mod tests {
       app.error = "test error".to_owned().into();
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
+      app.data.sonarr_data = create_test_sonarr_data();
+      app.data.sonarr_data.history = StatefulTable {
+        search: Some("Test".into()),
+        filter: Some("Test".into()),
+        filtered_items: Some(Vec::new()),
+        filtered_state: Some(TableState::default()),
+        ..StatefulTable::default()
+      };
 
       HistoryHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::History, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::History.into());
       assert!(app.error.text.is_empty());
+      assert_eq!(app.data.sonarr_data.history.search, None);
+      assert_eq!(app.data.sonarr_data.history.filter, None);
+      assert_eq!(app.data.sonarr_data.history.filtered_items, None);
+      assert_eq!(app.data.sonarr_data.history.filtered_state, None);
     }
   }
 

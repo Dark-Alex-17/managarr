@@ -102,6 +102,7 @@ mod tests {
       ActiveSonarrBlock::SeriesSortPrompt,
       ActiveSonarrBlock::UpdateAllSeriesPrompt,
       // ActiveSonarrBlock::UpdateAndScanSeriesPrompt
+      // ActiveSonarrBlock::SeriesHistoryDetails,
     )]
     active_sonarr_block: ActiveSonarrBlock,
   ) {
