@@ -9,7 +9,9 @@ use ratatui::Frame;
 use crate::app::context_clues::{build_context_clue_string, CONFIRMATION_PROMPT_CONTEXT_CLUES};
 use crate::app::App;
 use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
-use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_SERIES_BLOCKS};
+use crate::models::servarr_data::sonarr::sonarr_data::{
+  ActiveSonarrBlock, EDIT_SERIES_BLOCKS, SERIES_DETAILS_BLOCKS,
+};
 use crate::models::{EnumDisplayStyle, Route};
 use crate::render_selectable_input_box;
 use crate::ui::sonarr_ui::library::draw_library;
@@ -21,7 +23,9 @@ use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup_over, DrawUi};
+use crate::ui::{draw_popup, draw_popup_over, draw_popup_over_ui, DrawUi};
+
+use super::series_details_ui::SeriesDetailsUi;
 
 #[cfg(test)]
 #[path = "edit_series_ui_tests.rs"]
@@ -76,10 +80,10 @@ impl DrawUi for EditSeriesUi {
               Size::Long,
             );
           }
-          // _ if SERIES_DETAILS_BLOCKS.contains(&context) => {
-          //   draw_popup_over_ui::<SeriesDetailsUi>(f, app, area, draw_library, Size::Large);
-          //   draw_popup(f, app, draw_edit_series_prompt, Size::Medium);
-          // }
+          _ if SERIES_DETAILS_BLOCKS.contains(&context) => {
+            draw_popup_over_ui::<SeriesDetailsUi>(f, app, area, draw_library, Size::Large);
+            draw_popup(f, app, draw_edit_series_prompt, Size::Medium);
+          }
           _ => (),
         }
       }

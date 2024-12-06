@@ -1,5 +1,3 @@
-use log::debug;
-
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
