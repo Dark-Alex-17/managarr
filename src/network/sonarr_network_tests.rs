@@ -3,7 +3,7 @@ mod test {
   use std::sync::Arc;
 
   use bimap::BiMap;
-  use chrono::{DateTime, Utc};
+  use chrono::DateTime;
   use indoc::formatdoc;
   use mockito::{Matcher, Server};
   use pretty_assertions::{assert_eq, assert_str_eq};
@@ -5237,8 +5237,7 @@ mod test {
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-    let date_time = DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap())
-      as DateTime<Utc>;
+    let date_time = DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap());
 
     if let SonarrSerdeable::SystemStatus(status) = network
       .handle_sonarr_event(SonarrEvent::GetStatus)
@@ -6874,6 +6873,7 @@ mod test {
 
   fn season() -> Season {
     Season {
+      title: None,
       season_number: 1,
       monitored: true,
       statistics: season_statistics(),

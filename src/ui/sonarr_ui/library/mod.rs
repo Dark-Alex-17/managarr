@@ -61,35 +61,6 @@ impl DrawUi for LibraryUi {
       | ActiveSonarrBlock::SearchSeriesError
       | ActiveSonarrBlock::FilterSeries
       | ActiveSonarrBlock::FilterSeriesError => draw_library(f, app, area),
-      // ActiveSonarrBlock::SearchSeries => draw_popup_over(
-      //   f,
-      //   app,
-      //   area,
-      //   draw_library,
-      //   draw_library_search_box,
-      //   Size::InputBox,
-      // ),
-      // ActiveSonarrBlock::SearchSeriesError => {
-      //   let popup = Popup::new(Message::new("Series not found!")).size(Size::Message);
-
-      //   draw_library(f, app, area);
-      //   f.render_widget(popup, f.area());
-      // }
-      // ActiveSonarrBlock::FilterSeries => draw_popup_over(
-      //   f,
-      //   app,
-      //   area,
-      //   draw_library,
-      //   draw_filter_series_box,
-      //   Size::InputBox,
-      // ),
-      // ActiveSonarrBlock::FilterSeriesError => {
-      //   let popup = Popup::new(Message::new("No series found matching the given filter!"))
-      //     .size(Size::Message);
-
-      //   draw_library(f, app, area);
-      //   f.render_widget(popup, f.area());
-      // }
       ActiveSonarrBlock::UpdateAllSeriesPrompt => {
         let confirmation_prompt = ConfirmationPrompt::new()
           .title("Update All Series")
@@ -234,24 +205,36 @@ pub(super) fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 fn decorate_series_row_with_style<'a>(series: &Series, row: Row<'a>) -> Row<'a> {
   match series.status {
     SeriesStatus::Ended => {
-      if let Some(ref stats) = series.statistics {
-        if stats.percent_of_episodes == 100.0 {
-          return row.downloaded();
+      if let Some(ref seasons) = series.seasons {
+        return if seasons
+          .iter()
+          .filter(|season| season.monitored)
+          .all(|season| season.statistics.episode_count == season.statistics.total_episode_count)
+        {
+          row.downloaded()
+        } else {
+          row.missing()
         }
-      }
-
-      row.missing()
+      } 
+        
+      row.indeterminate()
     }
     SeriesStatus::Continuing => {
-      if let Some(ref stats) = series.statistics {
-        if stats.percent_of_episodes == 100.0 {
-          return row.unreleased();
-        }
+      if let Some(ref seasons) = series.seasons {
+        return if seasons
+          .iter()
+          .filter(|season| season.monitored)
+          .all(|season| season.statistics.episode_count == season.statistics.total_episode_count)
+        {
+          row.unreleased()
+        } else {
+          row.missing()
+        };
       }
 
-      row.missing()
+      row.indeterminate()
     }
     SeriesStatus::Upcoming => row.unreleased(),
-    _ => row.missing(),
+    _ => row.indeterminate(),
   }
 }

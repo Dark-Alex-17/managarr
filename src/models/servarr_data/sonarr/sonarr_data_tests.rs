@@ -4,6 +4,9 @@ mod tests {
     use chrono::{DateTime, Utc};
     use pretty_assertions::{assert_eq, assert_str_eq};
 
+    use crate::app::sonarr::sonarr_context_clues::SERIES_HISTORY_CONTEXT_CLUES;
+    use crate::models::sonarr_models::{Season, SonarrHistoryItem};
+    use crate::models::stateful_table::StatefulTable;
     use crate::{
       app::{
         context_clues::{
@@ -54,6 +57,24 @@ mod tests {
 
       assert!(!sonarr_data.delete_series_files);
       assert!(!sonarr_data.add_list_exclusion);
+    }
+
+    #[test]
+    fn test_reset_series_info_tabs() {
+      let mut series_history = StatefulTable::default();
+      series_history.set_items(vec![SonarrHistoryItem::default()]);
+      let mut sonarr_data = SonarrData {
+        series_history: Some(series_history),
+        ..SonarrData::default()
+      };
+      sonarr_data.seasons.set_items(vec![Season::default()]);
+      sonarr_data.series_info_tabs.index = 1;
+
+      sonarr_data.reset_series_info_tabs();
+
+      assert!(sonarr_data.series_history.is_none());
+      assert!(sonarr_data.seasons.is_empty());
+      assert_eq!(sonarr_data.series_info_tabs.index, 0);
     }
 
     #[test]
@@ -195,7 +216,7 @@ mod tests {
       assert!(sonarr_data.series_info_tabs.tabs[1].help.is_empty());
       assert_eq!(
         sonarr_data.series_info_tabs.tabs[1].contextual_help,
-        Some(build_context_clue_string(&HISTORY_CONTEXT_CLUES))
+        Some(build_context_clue_string(&SERIES_HISTORY_CONTEXT_CLUES))
       );
     }
   }
@@ -570,12 +591,13 @@ mod tests {
 
     #[test]
     fn test_series_details_blocks_contents() {
-      assert_eq!(SERIES_DETAILS_BLOCKS.len(), 11);
+      assert_eq!(SERIES_DETAILS_BLOCKS.len(), 12);
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeriesDetails));
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeriesHistory));
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeason));
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeasonError));
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::UpdateAndScanSeriesPrompt));
+      assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::AutomaticallySearchSeriesPrompt));
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeriesHistory));
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeriesHistoryError));
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::FilterSeriesHistory));

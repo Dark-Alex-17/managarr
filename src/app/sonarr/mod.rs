@@ -196,7 +196,13 @@ impl<'a> App<'a> {
       .current_selection()
       .clone()
       .seasons
-      .unwrap_or_default();
+      .unwrap_or_default()
+      .into_iter()
+      .map(|mut season| {
+        season.title = Some(format!("Season {}", season.season_number));
+        season
+      })
+      .collect();
     self.data.sonarr_data.seasons.set_items(seasons);
   }
 }

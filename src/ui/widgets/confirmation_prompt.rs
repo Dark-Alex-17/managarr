@@ -8,15 +8,19 @@ use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::text::Text;
 use ratatui::widgets::{Paragraph, Widget};
 use std::iter;
+use derive_setters::Setters;
 
 #[cfg(test)]
 #[path = "confirmation_prompt_tests.rs"]
 mod confirmation_prompt_tests;
 
+#[derive(Setters)]
 pub struct ConfirmationPrompt<'a> {
   title: &'a str,
   prompt: &'a str,
+  #[setters(strip_option)]
   content: Option<Paragraph<'a>>,
+  #[setters(strip_option)]
   checkboxes: Option<Vec<Checkbox<'a>>>,
   yes_no_value: bool,
   yes_no_highlighted: bool,
@@ -32,36 +36,6 @@ impl<'a> ConfirmationPrompt<'a> {
       yes_no_value: false,
       yes_no_highlighted: true,
     }
-  }
-
-  pub fn title(mut self, title: &'a str) -> Self {
-    self.title = title;
-    self
-  }
-
-  pub fn prompt(mut self, prompt: &'a str) -> Self {
-    self.prompt = prompt;
-    self
-  }
-
-  pub fn content(mut self, content: Paragraph<'a>) -> Self {
-    self.content = Some(content);
-    self
-  }
-
-  pub fn checkboxes(mut self, checkboxes: Vec<Checkbox<'a>>) -> Self {
-    self.checkboxes = Some(checkboxes);
-    self
-  }
-
-  pub fn yes_no_value(mut self, yes_highlighted: bool) -> Self {
-    self.yes_no_value = yes_highlighted;
-    self
-  }
-
-  pub fn yes_no_highlighted(mut self, yes_highlighted: bool) -> Self {
-    self.yes_no_highlighted = yes_highlighted;
-    self
   }
 
   fn render_confirmation_prompt_with_checkboxes(self, area: Rect, buf: &mut Buffer) {

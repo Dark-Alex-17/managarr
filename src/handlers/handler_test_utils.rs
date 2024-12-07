@@ -323,6 +323,11 @@ mod test_utils {
   macro_rules! test_handler_delegation {
     ($handler:ident, $base:expr, $active_block:expr) => {
       let mut app = App::default();
+      let mut series_history = $crate::models::stateful_table::StatefulTable::default();
+      series_history.set_items(vec![
+        $crate::models::sonarr_models::SonarrHistoryItem::default(),
+      ]);
+      app.data.sonarr_data.series_history = Some(series_history);
       app.push_navigation_stack($base.into());
       app.push_navigation_stack($active_block.into());
 

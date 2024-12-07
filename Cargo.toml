@@ -50,6 +50,8 @@ async-trait = "0.1.83"
 dirs-next = "2.0.0"
 managarr-tree-widget = "0.24.0"
 indicatif = "0.17.9"
+derive_setters = "0.1.6"
+deunicode = "1.6.0"
 
 [dev-dependencies]
 assert_cmd = "2.0.16"

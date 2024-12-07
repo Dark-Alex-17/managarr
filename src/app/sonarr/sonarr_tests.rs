@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
   mod sonarr_tests {
-    use pretty_assertions::assert_eq;
+    use pretty_assertions::{assert_eq, assert_str_eq};
     use tokio::sync::mpsc;
 
     use crate::{
@@ -572,6 +572,13 @@ mod tests {
       app.populate_seasons_table().await;
 
       assert!(!app.data.sonarr_data.seasons.items.is_empty());
+      assert_str_eq!(
+        app.data.sonarr_data.seasons.items[0]
+          .title
+          .as_ref()
+          .unwrap(),
+        "Season 0"
+      );
     }
 
     #[tokio::test]
@@ -585,6 +592,13 @@ mod tests {
       app.populate_seasons_table().await;
 
       assert!(!app.data.sonarr_data.seasons.items.is_empty());
+      assert_str_eq!(
+        app.data.sonarr_data.seasons.items[0]
+          .title
+          .as_ref()
+          .unwrap(),
+        "Season 0"
+      );
     }
 
     fn construct_app_unit<'a>() -> (App<'a>, mpsc::Receiver<NetworkEvent>) {

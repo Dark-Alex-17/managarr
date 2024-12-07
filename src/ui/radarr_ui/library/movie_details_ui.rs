@@ -60,7 +60,6 @@ impl DrawUi for MovieDetailsUi {
               .prompt(&prompt)
               .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-            draw_movie_info(f, app, content_area);
             f.render_widget(
               Popup::new(confirmation_prompt).size(Size::MediumPrompt),
               f.area(),

@@ -11,9 +11,7 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::sonarr_handlers::library::{series_sorting_options, LibraryHandler};
   use crate::handlers::KeyEventHandler;
-  use crate::models::servarr_data::sonarr::sonarr_data::{
-    ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS, LIBRARY_BLOCKS,
-  };
+  use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS, LIBRARY_BLOCKS, SERIES_DETAILS_BLOCKS};
   use crate::models::sonarr_models::{Series, SeriesStatus, SeriesType};
   use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
@@ -615,6 +613,7 @@ mod tests {
     #[test]
     fn test_search_series_submit() {
       let mut app = App::default();
+      app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::SearchSeries.into());
       app
@@ -629,6 +628,7 @@ mod tests {
 
       LibraryHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SearchSeries, None).handle();
 
+      assert!(!app.should_ignore_quit_key);
       assert_str_eq!(
         app.data.sonarr_data.series.current_selection().title.text,
         "Test 2"
@@ -639,6 +639,7 @@ mod tests {
     #[test]
     fn test_search_series_submit_error_on_no_search_hits() {
       let mut app = App::default();
+      app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::SearchSeries.into());
       app
@@ -653,6 +654,7 @@ mod tests {
 
       LibraryHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SearchSeries, None).handle();
 
+      assert!(!app.should_ignore_quit_key);
       assert_str_eq!(
         app.data.sonarr_data.series.current_selection().title.text,
         "Test 1"
@@ -666,6 +668,7 @@ mod tests {
     #[test]
     fn test_search_filtered_series_submit() {
       let mut app = App::default();
+      app.should_ignore_quit_key = true;
       app
         .data
         .sonarr_data
@@ -685,6 +688,7 @@ mod tests {
 
       LibraryHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SearchSeries, None).handle();
 
+      assert!(!app.should_ignore_quit_key);
       assert_str_eq!(
         app.data.sonarr_data.series.current_selection().title.text,
         "Test 2"
@@ -695,6 +699,7 @@ mod tests {
     #[test]
     fn test_filter_series_submit() {
       let mut app = App::default();
+      app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::FilterSeries.into());
       app
@@ -732,6 +737,7 @@ mod tests {
     #[test]
     fn test_filter_series_submit_error_on_no_filter_matches() {
       let mut app = App::default();
+      app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::FilterSeries.into());
       app
@@ -946,7 +952,6 @@ mod tests {
   }
 
   mod test_handle_key_char {
-    use bimap::BiMap;
     use pretty_assertions::{assert_eq, assert_str_eq};
     use serde_json::Number;
     use strum::IntoEnumIterator;
@@ -1465,27 +1470,30 @@ mod tests {
     );
   }
 
-  // #[rstest]
-  // fn test_delegates_series_details_blocks_to_series_details_handler(
-  //   #[values(
-  //     ActiveSonarrBlock::SeriesDetails,
-  //     ActiveSonarrBlock::SeriesHistory,
-  //     ActiveSonarrBlock::FileInfo,
-  //     ActiveSonarrBlock::Cast,
-  //     ActiveSonarrBlock::Crew,
-  //     ActiveSonarrBlock::AutomaticallySearchSeriesPrompt,
-  //     ActiveSonarrBlock::UpdateAndScanPrompt,
-  //     ActiveSonarrBlock::ManualSearch,
-  //     ActiveSonarrBlock::ManualSearchConfirmPrompt
-  //   )]
-  //   active_sonarr_block: ActiveSonarrBlock,
-  // ) {
-  //   test_handler_delegation!(
-  //     LibraryHandler,
-  //     ActiveSonarrBlock::Series,
-  //     active_sonarr_block
-  //   );
-  // }
+  #[rstest]
+  fn test_delegates_series_details_blocks_to_series_details_handler(
+    #[values(
+      ActiveSonarrBlock::SeriesDetails,
+      ActiveSonarrBlock::SeriesHistory,
+      ActiveSonarrBlock::SearchSeason,
+      ActiveSonarrBlock::SearchSeasonError,
+      ActiveSonarrBlock::UpdateAndScanSeriesPrompt,
+      ActiveSonarrBlock::AutomaticallySearchSeriesPrompt,
+      ActiveSonarrBlock::SearchSeriesHistory,
+      ActiveSonarrBlock::SearchSeriesHistoryError,
+      ActiveSonarrBlock::FilterSeriesHistory,
+      ActiveSonarrBlock::FilterSeriesHistoryError,
+      ActiveSonarrBlock::SeriesHistorySortPrompt,
+      ActiveSonarrBlock::SeriesHistoryDetails
+    )]
+    active_sonarr_block: ActiveSonarrBlock,
+  ) {
+    test_handler_delegation!(
+      LibraryHandler,
+      ActiveSonarrBlock::Series,
+      active_sonarr_block
+    );
+  }
 
   #[rstest]
   fn test_delegates_edit_series_blocks_to_edit_series_handler(
@@ -1711,6 +1719,7 @@ mod tests {
     library_handler_blocks.extend(ADD_SERIES_BLOCKS);
     library_handler_blocks.extend(DELETE_SERIES_BLOCKS);
     library_handler_blocks.extend(EDIT_SERIES_BLOCKS);
+    library_handler_blocks.extend(SERIES_DETAILS_BLOCKS);
 
     ActiveSonarrBlock::iter().for_each(|active_sonarr_block| {
       if library_handler_blocks.contains(&active_sonarr_block) {

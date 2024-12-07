@@ -10,6 +10,7 @@ use crate::{
     },
     sonarr::sonarr_context_clues::{
       HISTORY_CONTEXT_CLUES, SERIES_CONTEXT_CLUES, SERIES_DETAILS_CONTEXT_CLUES,
+      SERIES_HISTORY_CONTEXT_CLUES,
     },
   },
   models::{
@@ -79,6 +80,12 @@ impl<'a> SonarrData<'a> {
   pub fn reset_delete_series_preferences(&mut self) {
     self.delete_series_files = false;
     self.add_list_exclusion = false;
+  }
+
+  pub fn reset_series_info_tabs(&mut self) {
+    self.series_history = None;
+    self.seasons = StatefulTable::default();
+    self.series_info_tabs.index = 0;
   }
 }
 
@@ -174,7 +181,7 @@ impl<'a> Default for SonarrData<'a> {
           title: "History",
           route: ActiveSonarrBlock::SeriesHistory.into(),
           help: String::new(),
-          contextual_help: Some(build_context_clue_string(&HISTORY_CONTEXT_CLUES)),
+          contextual_help: Some(build_context_clue_string(&SERIES_HISTORY_CONTEXT_CLUES)),
         },
       ]),
     }
@@ -304,12 +311,13 @@ pub static LIBRARY_BLOCKS: [ActiveSonarrBlock; 7] = [
   ActiveSonarrBlock::UpdateAllSeriesPrompt,
 ];
 
-pub static SERIES_DETAILS_BLOCKS: [ActiveSonarrBlock; 11] = [
+pub static SERIES_DETAILS_BLOCKS: [ActiveSonarrBlock; 12] = [
   ActiveSonarrBlock::SeriesDetails,
   ActiveSonarrBlock::SeriesHistory,
   ActiveSonarrBlock::SearchSeason,
   ActiveSonarrBlock::SearchSeasonError,
   ActiveSonarrBlock::UpdateAndScanSeriesPrompt,
+  ActiveSonarrBlock::AutomaticallySearchSeriesPrompt,
   ActiveSonarrBlock::SearchSeriesHistory,
   ActiveSonarrBlock::SearchSeriesHistoryError,
   ActiveSonarrBlock::FilterSeriesHistory,

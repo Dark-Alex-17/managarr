@@ -1,5 +1,6 @@
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::title_block_centered;
+use derive_setters::Setters;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Alignment, Rect};
 use ratatui::style::{Style, Stylize};
@@ -10,6 +11,7 @@ use ratatui::widgets::{Paragraph, Widget, Wrap};
 #[path = "message_tests.rs"]
 mod message_tests;
 
+#[derive(Setters)]
 pub struct Message<'a> {
   text: Text<'a>,
   title: &'a str,
@@ -28,21 +30,6 @@ impl<'a> Message<'a> {
       style: Style::new().failure().bold(),
       alignment: Alignment::Center,
     }
-  }
-
-  pub fn title(mut self, title: &'a str) -> Self {
-    self.title = title;
-    self
-  }
-
-  pub fn style(mut self, style: Style) -> Self {
-    self.style = style;
-    self
-  }
-
-  pub fn alignment(mut self, alignment: Alignment) -> Self {
-    self.alignment = alignment;
-    self
   }
 
   fn render_message(self, area: Rect, buf: &mut Buffer) {

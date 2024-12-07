@@ -19,6 +19,14 @@ mod test {
   }
 
   #[test]
+  fn test_style_indeterminate() {
+    assert_eq!(
+      Style::new().indeterminate(),
+      Style::new().fg(COLOR_ORANGE)
+    );
+  }
+
+  #[test]
   fn test_style_default() {
     assert_eq!(Style::new().default(), Style::new().white());
   }

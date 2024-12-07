@@ -1,8 +1,10 @@
+use deunicode::deunicode;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use ratatui::Frame;
+use regex::Regex;
 
 use crate::app::App;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SERIES_DETAILS_BLOCKS};
@@ -67,6 +69,20 @@ impl DrawUi for SeriesDetailsUi {
         draw_series_details(f, app, content_area);
 
         match active_sonarr_block {
+          ActiveSonarrBlock::AutomaticallySearchSeriesPrompt => {
+            let prompt = format!(
+              "Do you want to trigger an automatic search of your indexers for all monitored episode(s) for the series: {}", app.data.sonarr_data.series.current_selection().title
+            );
+            let confirmation_prompt = ConfirmationPrompt::new()
+              .title("Automatic Series Search")
+              .prompt(&prompt)
+              .yes_no_value(app.data.sonarr_data.prompt_confirm);
+
+            f.render_widget(
+              Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+              f.area(),
+            );
+          }
           ActiveSonarrBlock::UpdateAndScanSeriesPrompt => {
             let prompt = format!(
               "Do you want to trigger an update and disk scan for the series: {}?",
@@ -83,14 +99,7 @@ impl DrawUi for SeriesDetailsUi {
             );
           }
           ActiveSonarrBlock::SeriesHistoryDetails => {
-            draw_popup_over(
-              f,
-              app,
-              popup_area,
-              draw_series_history_table,
-              draw_history_item_details_popup,
-              Size::Small,
-            );
+            draw_history_item_details_popup(f, app, popup_area);
           }
           _ => (),
         };
@@ -129,19 +138,25 @@ pub fn draw_series_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
     .get_by_left(&current_selection.language_profile_id)
     .unwrap()
     .to_owned();
+  let overview = Regex::new(r"[\r\n\t]")
+    .unwrap()
+    .replace_all(
+      &deunicode(
+        current_selection
+          .overview
+          .as_ref()
+          .unwrap_or(&String::new()),
+      ),
+      "",
+    )
+    .to_string();
+
   let mut series_description = vec![
     Line::from(vec![
       "Title: ".primary().bold(),
       current_selection.title.text.clone().primary().bold(),
     ]),
-    Line::from(vec![
-      "Overview: ".primary().bold(),
-      current_selection
-        .overview
-        .clone()
-        .unwrap_or_default()
-        .default(),
-    ]),
+    Line::from(vec!["Overview: ".primary().bold(), overview.default()]),
     Line::from(vec![
       "Network: ".primary().bold(),
       current_selection
@@ -194,7 +209,7 @@ pub fn draw_series_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
 
   let description_paragraph = Paragraph::new(series_description)
     .block(borderless_block())
-    .wrap(Wrap { trim: false });
+    .wrap(Wrap { trim: true });
   f.render_widget(description_paragraph, area);
 }
 
@@ -220,9 +235,10 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .get_active_tab_contextual_help();
     let season_row_mapping = |season: &Season| {
       let Season {
-        season_number,
+        title,
         monitored,
         statistics,
+        ..
       } = season;
       let SeasonStatistics {
         episode_count,
@@ -235,7 +251,7 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
       let row = Row::new(vec![
         Cell::from(season_monitored.to_owned()),
-        Cell::from(format!("Season {}", season_number)),
+        Cell::from(title.clone().unwrap()),
         Cell::from(format!("{}/{}", episode_count, total_episode_count)),
         Cell::from(format!("{size:.2} GB")),
       ]);

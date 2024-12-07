@@ -32,6 +32,8 @@ pub mod utils {
 
     let mut seasons = StatefulTable::default();
     seasons.set_items(vec![Season::default()]);
+    let mut series_history = StatefulTable::default();
+    series_history.set_items(vec![SonarrHistoryItem::default()]);
 
     let mut sonarr_data = SonarrData {
       delete_series_files: true,
@@ -39,6 +41,7 @@ pub mod utils {
       add_series_search: Some("test search".into()),
       edit_root_folder: Some("test path".into()),
       seasons,
+      series_history: Some(series_history),
       season_details_modal: Some(season_details_modal),
       add_searched_series: Some(StatefulTable::default()),
       ..SonarrData::default()

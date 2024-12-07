@@ -1,3 +1,4 @@
+use derive_setters::Setters;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Position, Rect};
 use ratatui::prelude::Text;
@@ -12,16 +13,20 @@ use crate::ui::utils::{borderless_block, layout_block};
 #[path = "input_box_tests.rs"]
 mod input_box_tests;
 
-#[derive(Default)]
+#[derive(Default, Setters)]
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct InputBox<'a> {
   content: &'a str,
   offset: usize,
+  #[setters(into)]
   style: Style,
   block: Block<'a>,
+  #[setters(strip_option)]
   label: Option<&'a str>,
   cursor_after_string: bool,
+  #[setters(rename = "highlighted", strip_option)]
   is_highlighted: Option<bool>,
+  #[setters(rename = "selected", strip_option)]
   is_selected: Option<bool>,
 }
 
@@ -37,41 +42,6 @@ impl<'a> InputBox<'a> {
       is_highlighted: None,
       is_selected: None,
     }
-  }
-
-  pub fn style<S: Into<Style>>(mut self, style: S) -> InputBox<'a> {
-    self.style = style.into();
-    self
-  }
-
-  pub fn block(mut self, block: Block<'a>) -> InputBox<'a> {
-    self.block = block;
-    self
-  }
-
-  pub fn label(mut self, label: &'a str) -> InputBox<'a> {
-    self.label = Some(label);
-    self
-  }
-
-  pub fn offset(mut self, offset: usize) -> InputBox<'a> {
-    self.offset = offset;
-    self
-  }
-
-  pub fn cursor_after_string(mut self, cursor_after_string: bool) -> InputBox<'a> {
-    self.cursor_after_string = cursor_after_string;
-    self
-  }
-
-  pub fn highlighted(mut self, is_highlighted: bool) -> InputBox<'a> {
-    self.is_highlighted = Some(is_highlighted);
-    self
-  }
-
-  pub fn selected(mut self, is_selected: bool) -> InputBox<'a> {
-    self.is_selected = Some(is_selected);
-    self
   }
 
   pub fn is_selected(&self) -> bool {

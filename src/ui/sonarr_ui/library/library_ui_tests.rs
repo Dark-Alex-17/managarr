@@ -12,11 +12,11 @@ mod tests {
   use crate::ui::DrawUi;
   use pretty_assertions::assert_eq;
   use ratatui::widgets::{Cell, Row};
-  use rstest::rstest;
   use strum::IntoEnumIterator;
 
+  use crate::models::sonarr_models::{Season, SeasonStatistics};
   use crate::{
-    models::sonarr_models::{Series, SeriesStatistics},
+    models::sonarr_models::Series,
     ui::sonarr_ui::library::decorate_series_row_with_style,
   };
 
@@ -38,45 +38,193 @@ mod tests {
     });
   }
 
-  #[rstest]
-  #[case(SeriesStatus::Ended, None, RowStyle::Missing)]
-  #[case(SeriesStatus::Ended, Some(59.0), RowStyle::Missing)]
-  #[case(SeriesStatus::Ended, Some(100.0), RowStyle::Downloaded)]
-  #[case(SeriesStatus::Continuing, None, RowStyle::Missing)]
-  #[case(SeriesStatus::Continuing, Some(59.0), RowStyle::Missing)]
-  #[case(SeriesStatus::Continuing, Some(100.0), RowStyle::Unreleased)]
-  #[case(SeriesStatus::Upcoming, None, RowStyle::Unreleased)]
-  #[case(SeriesStatus::Deleted, None, RowStyle::Missing)]
-  fn test_decorate_series_row_with_style(
-    #[case] series_status: SeriesStatus,
-    #[case] percent_of_episodes: Option<f64>,
-    #[case] expected_row_style: RowStyle,
+  #[test]
+  fn test_decorate_row_with_style_downloaded_when_ended_and_all_monitored_episodes_are_present(
   ) {
-    let mut series = Series {
-      status: series_status,
+    let seasons = vec![
+      Season {
+        monitored: false,
+        statistics: SeasonStatistics {
+          episode_count: 1,
+          total_episode_count: 3,
+          ..SeasonStatistics::default()
+        },
+        ..Season::default()
+      },
+      Season {
+        monitored: true,
+        statistics: SeasonStatistics {
+          episode_count: 3,
+          total_episode_count: 3,
+          ..SeasonStatistics::default()
+        },
+        ..Season::default()
+      },
+    ];
+    let series = Series {
+      status: SeriesStatus::Ended,
+      seasons: Some(seasons),
       ..Series::default()
     };
-    if let Some(percentage) = percent_of_episodes {
-      series.statistics = Some(SeriesStatistics {
-        percent_of_episodes: percentage,
-        ..SeriesStatistics::default()
-      });
-    }
-
     let row = Row::new(vec![Cell::from("test".to_owned())]);
 
     let style = decorate_series_row_with_style(&series, row.clone());
 
-    match expected_row_style {
-      RowStyle::Downloaded => assert_eq!(style, row.downloaded()),
-      RowStyle::Missing => assert_eq!(style, row.missing()),
-      RowStyle::Unreleased => assert_eq!(style, row.unreleased()),
-    }
+    assert_eq!(style, row.downloaded());
   }
 
-  enum RowStyle {
-    Downloaded,
-    Missing,
-    Unreleased,
+  #[test]
+  fn test_decorate_row_with_style_missing_when_ended_and_episodes_are_missing() {
+    let seasons = vec![
+      Season {
+        monitored: true,
+        statistics: SeasonStatistics {
+          episode_count: 1,
+          total_episode_count: 3,
+          ..SeasonStatistics::default()
+        },
+        ..Season::default()
+      },
+      Season {
+        monitored: true,
+        statistics: SeasonStatistics {
+          episode_count: 3,
+          total_episode_count: 3,
+          ..SeasonStatistics::default()
+        },
+        ..Season::default()
+      },
+    ];
+    let series = Series {
+      status: SeriesStatus::Ended,
+      seasons: Some(seasons),
+      ..Series::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_series_row_with_style(&series, row.clone());
+
+    assert_eq!(style, row.missing());
+  }
+
+  #[test]
+  fn test_decorate_row_with_style_indeterminate_when_ended_and_seasons_is_empty() {
+    let series = Series {
+      status: SeriesStatus::Ended,
+      ..Series::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_series_row_with_style(&series, row.clone());
+
+    assert_eq!(style, row.indeterminate());
+  }
+
+  #[test]
+  fn test_decorate_row_with_style_unreleased_when_continuing_and_all_monitored_episodes_are_present(
+  ) {
+    let seasons = vec![
+      Season {
+        monitored: false,
+        statistics: SeasonStatistics {
+          episode_count: 1,
+          total_episode_count: 3,
+          ..SeasonStatistics::default()
+        },
+        ..Season::default()
+      },
+      Season {
+        monitored: true,
+        statistics: SeasonStatistics {
+          episode_count: 3,
+          total_episode_count: 3,
+          ..SeasonStatistics::default()
+        },
+        ..Season::default()
+      },
+    ];
+    let series = Series {
+      status: SeriesStatus::Continuing,
+      seasons: Some(seasons),
+      ..Series::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_series_row_with_style(&series, row.clone());
+
+    assert_eq!(style, row.unreleased());
+  }
+
+  #[test]
+  fn test_decorate_row_with_style_missing_when_continuing_and_episodes_are_missing() {
+    let seasons = vec![
+      Season {
+        monitored: true,
+        statistics: SeasonStatistics {
+          episode_count: 1,
+          total_episode_count: 3,
+          ..SeasonStatistics::default()
+        },
+        ..Season::default()
+      },
+      Season {
+        monitored: true,
+        statistics: SeasonStatistics {
+          episode_count: 3,
+          total_episode_count: 3,
+          ..SeasonStatistics::default()
+        },
+        ..Season::default()
+      },
+    ];
+    let series = Series {
+      status: SeriesStatus::Continuing,
+      seasons: Some(seasons),
+      ..Series::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_series_row_with_style(&series, row.clone());
+
+    assert_eq!(style, row.missing());
+  }
+
+  #[test]
+  fn test_decorate_row_with_style_indeterminate_when_continuing_and_seasons_is_empty() {
+    let series = Series {
+      status: SeriesStatus::Continuing,
+      ..Series::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_series_row_with_style(&series, row.clone());
+
+    assert_eq!(style, row.indeterminate());
+  }
+
+  #[test]
+  fn test_decorate_row_with_style_unreleased_when_upcoming() {
+    let series = Series {
+      status: SeriesStatus::Upcoming,
+      ..Series::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_series_row_with_style(&series, row.clone());
+
+    assert_eq!(style, row.unreleased());
+  }
+
+  #[test]
+  fn test_decorate_row_with_style_defaults_to_indeterminate() {
+    let series = Series {
+      status: SeriesStatus::Deleted,
+      ..Series::default()
+    };
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_series_row_with_style(&series, row.clone());
+
+    assert_eq!(style, row.indeterminate());
   }
 }

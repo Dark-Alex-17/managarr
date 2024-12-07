@@ -457,7 +457,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self
             .app
-            .pop_and_push_navigation_stack((self.active_radarr_block).into());
+            .pop_and_push_navigation_stack(self.active_radarr_block.into());
         }
         _ if key == DEFAULT_KEYBINDINGS.sort.key => {
           self

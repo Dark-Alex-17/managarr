@@ -82,7 +82,7 @@ impl DrawUi for EditSeriesUi {
           }
           _ if SERIES_DETAILS_BLOCKS.contains(&context) => {
             draw_popup_over_ui::<SeriesDetailsUi>(f, app, area, draw_library, Size::Large);
-            draw_popup(f, app, draw_edit_series_prompt, Size::Medium);
+            draw_popup(f, app, draw_edit_series_prompt, Size::Long);
           }
           _ => (),
         }

@@ -312,7 +312,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, '
   }
 }
 
-fn history_sorting_options() -> Vec<SortOption<SonarrHistoryItem>> {
+pub(in crate::handlers::sonarr_handlers) fn history_sorting_options() -> Vec<SortOption<SonarrHistoryItem>> {
   vec![
     SortOption {
       name: "Source Title",

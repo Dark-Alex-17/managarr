@@ -1785,6 +1785,7 @@ mod tests {
       let mut app = App::default();
       app.is_loading = true;
       app.push_navigation_stack(active_radarr_block.into());
+      app.is_routing = false;
       app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
         movie_details: ScrollableText::with_string("test".to_owned()),
         ..MovieDetailsModal::default()
@@ -1799,7 +1800,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), active_radarr_block.into());
-      assert!(app.is_routing);
+      assert!(!app.is_routing);
     }
 
     #[rstest]

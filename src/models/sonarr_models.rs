@@ -239,6 +239,7 @@ impl Eq for Rating {}
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Season {
+  pub title: Option<String>,
   #[serde(deserialize_with = "super::from_i64")]
   pub season_number: i64,
   pub monitored: bool,

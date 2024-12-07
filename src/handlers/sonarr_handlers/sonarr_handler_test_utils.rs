@@ -7,15 +7,15 @@ mod utils {
     ($handler:ident, $block:expr, $context:expr) => {
       let mut app = App::default();
       let mut sonarr_data = SonarrData {
-        quality_profile_map: BiMap::from_iter([
+        quality_profile_map: bimap::BiMap::from_iter([
           (2222, "HD - 1080p".to_owned()),
           (1111, "Any".to_owned()),
         ]),
-        language_profiles_map: BiMap::from_iter([
+        language_profiles_map: bimap::BiMap::from_iter([
           (2222, "English".to_owned()),
           (1111, "Any".to_owned()),
         ]),
-        tags_map: BiMap::from_iter([(1, "test".to_owned())]),
+        tags_map: bimap::BiMap::from_iter([(1, "test".to_owned())]),
         ..create_test_sonarr_data()
       };
       sonarr_data.series.set_items(vec![Series {

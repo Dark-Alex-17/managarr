@@ -12,7 +12,7 @@ use ratatui::widgets::{Block, ListItem, Paragraph, Row, StatefulWidget, Table, W
 use ratatui::Frame;
 use std::fmt::Debug;
 use std::sync::atomic::Ordering;
-
+use derive_setters::Setters;
 use super::input_box_popup::InputBoxPopup;
 use super::message::Message;
 use super::popup::Size;
@@ -21,24 +21,32 @@ use super::popup::Size;
 #[path = "managarr_table_tests.rs"]
 mod managarr_table_tests;
 
+#[derive(Setters)]
 pub struct ManagarrTable<'a, T, F>
 where
   F: Fn(&T) -> Row<'a>,
   T: Clone + PartialEq + Eq + Debug,
 {
+  #[setters(strip_option)]
   content: Option<&'a mut StatefulTable<T>>,
+  #[setters(skip)]
   table_headers: Vec<String>,
+  #[setters(skip)]
   constraints: Vec<Constraint>,
   row_mapper: F,
   footer: Option<String>,
   footer_alignment: Alignment,
   block: Block<'a>,
   margin: u16,
+  #[setters(rename = "loading")]
   is_loading: bool,
   highlight_rows: bool,
+  #[setters(rename = "sorting")]
   is_sorting: bool,
+  #[setters(rename = "searching")]
   is_searching: bool,
   search_produced_empty_results: bool,
+  #[setters(rename = "filtering")]
   is_filtering: bool,
   filter_produced_empty_results: bool,
   search_box_content_length: usize,
@@ -104,61 +112,6 @@ where
     I::Item: Into<Constraint>,
   {
     self.constraints = constraints.into_iter().map(Into::into).collect();
-    self
-  }
-
-  pub fn footer(mut self, footer: Option<String>) -> Self {
-    self.footer = footer;
-    self
-  }
-
-  pub fn footer_alignment(mut self, alignment: Alignment) -> Self {
-    self.footer_alignment = alignment;
-    self
-  }
-
-  pub fn block(mut self, block: Block<'a>) -> Self {
-    self.block = block;
-    self
-  }
-
-  pub fn margin(mut self, margin: u16) -> Self {
-    self.margin = margin;
-    self
-  }
-
-  pub fn loading(mut self, is_loading: bool) -> Self {
-    self.is_loading = is_loading;
-    self
-  }
-
-  pub fn highlight_rows(mut self, highlight_rows: bool) -> Self {
-    self.highlight_rows = highlight_rows;
-    self
-  }
-
-  pub fn sorting(mut self, is_sorting: bool) -> Self {
-    self.is_sorting = is_sorting;
-    self
-  }
-
-  pub fn searching(mut self, is_searching: bool) -> Self {
-    self.is_searching = is_searching;
-    self
-  }
-
-  pub fn search_produced_empty_results(mut self, no_search_results: bool) -> Self {
-    self.search_produced_empty_results = no_search_results;
-    self
-  }
-
-  pub fn filtering(mut self, is_filtering: bool) -> Self {
-    self.is_filtering = is_filtering;
-    self
-  }
-
-  pub fn filter_produced_empty_results(mut self, no_filter_results: bool) -> Self {
-    self.filter_produced_empty_results = no_filter_results;
     self
   }
 

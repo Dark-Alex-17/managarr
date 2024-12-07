@@ -22,6 +22,7 @@ use crate::{
 
 use super::handle_change_tab_left_right_keys;
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+use crate::handlers::sonarr_handlers::library::series_details_handler::SeriesDetailsHandler;
 
 mod add_series_handler;
 mod delete_series_handler;
@@ -29,6 +30,7 @@ mod delete_series_handler;
 #[cfg(test)]
 #[path = "library_handler_tests.rs"]
 mod library_handler_tests;
+mod series_details_handler;
 
 pub(super) struct LibraryHandler<'a, 'b> {
   key: Key,
@@ -51,6 +53,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
         EditSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
           .handle();
       }
+      _ if SeriesDetailsHandler::accepts(self.active_sonarr_block) => {
+        SeriesDetailsHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+          .handle();
+      }
       _ => self.handle_key_event(),
     }
   }
@@ -59,6 +65,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
     AddSeriesHandler::accepts(active_block)
       || DeleteSeriesHandler::accepts(active_block)
       || EditSeriesHandler::accepts(active_block)
+      || SeriesDetailsHandler::accepts(active_block)
       || LIBRARY_BLOCKS.contains(&active_block)
   }
 
