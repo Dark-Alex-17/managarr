@@ -123,6 +123,7 @@ mod tests {
     fn test_add_root_folder_prompt_home_end_keys() {
       let mut app = App::default();
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
+      app.push_navigation_stack(ActiveSonarrBlock::AddRootFolderPrompt.into());
       app
         .data
         .sonarr_data
