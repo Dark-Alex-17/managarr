@@ -1,15 +1,18 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
+use crate::handle_table_events;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::radarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
 use crate::handlers::radarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
 use crate::handlers::radarr_handlers::indexers::test_all_indexers_handler::TestAllIndexersHandler;
+use crate::handlers::table_handler::TableHandlingProps;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
   INDEXERS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS,
 };
+use crate::models::servarr_models::Indexer;
 use crate::models::BlockSelectionState;
 use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
@@ -29,22 +32,30 @@ pub(super) struct IndexersHandler<'a, 'b> {
   context: Option<ActiveRadarrBlock>,
 }
 
+impl<'a, 'b> IndexersHandler<'a, 'b> {
+  handle_table_events!(self, indexers, self.app.data.radarr_data.indexers, Indexer);
+}
+
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 'b> {
   fn handle(&mut self) {
-    match self.active_radarr_block {
-      _ if EditIndexerHandler::accepts(self.active_radarr_block) => {
-        EditIndexerHandler::with(self.key, self.app, self.active_radarr_block, self.context)
-          .handle()
+    let indexer_table_handling_props = TableHandlingProps::new(ActiveRadarrBlock::Indexers.into());
+
+    if !self.handle_indexers_table_events(indexer_table_handling_props) {
+      match self.active_radarr_block {
+        _ if EditIndexerHandler::accepts(self.active_radarr_block) => {
+          EditIndexerHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+            .handle()
+        }
+        _ if IndexerSettingsHandler::accepts(self.active_radarr_block) => {
+          IndexerSettingsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+            .handle()
+        }
+        _ if TestAllIndexersHandler::accepts(self.active_radarr_block) => {
+          TestAllIndexersHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+            .handle()
+        }
+        _ => self.handle_key_event(),
       }
-      _ if IndexerSettingsHandler::accepts(self.active_radarr_block) => {
-        IndexerSettingsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
-          .handle()
-      }
-      _ if TestAllIndexersHandler::accepts(self.active_radarr_block) => {
-        TestAllIndexersHandler::with(self.key, self.app, self.active_radarr_block, self.context)
-          .handle()
-      }
-      _ => self.handle_key_event(),
     }
   }
 
@@ -77,29 +88,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
     !self.app.is_loading && !self.app.data.radarr_data.indexers.is_empty()
   }
 
-  fn handle_scroll_up(&mut self) {
-    if self.active_radarr_block == ActiveRadarrBlock::Indexers {
-      self.app.data.radarr_data.indexers.scroll_up();
-    }
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-    if self.active_radarr_block == ActiveRadarrBlock::Indexers {
-      self.app.data.radarr_data.indexers.scroll_down();
-    }
-  }
+  fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-    if self.active_radarr_block == ActiveRadarrBlock::Indexers {
-      self.app.data.radarr_data.indexers.scroll_to_top();
-    }
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-    if self.active_radarr_block == ActiveRadarrBlock::Indexers {
-      self.app.data.radarr_data.indexers.scroll_to_bottom();
-    }
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {
     if self.active_radarr_block == ActiveRadarrBlock::Indexers {
