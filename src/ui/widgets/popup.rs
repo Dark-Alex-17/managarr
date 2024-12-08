@@ -90,7 +90,16 @@ impl<'a, T: Widget> Popup<'a, T> {
   }
 
   fn render_popup(self, area: Rect, buf: &mut Buffer) {
-    let popup_area = centered_rect(self.percent_x, self.percent_y, area);
+    let mut popup_area = centered_rect(self.percent_x, self.percent_y, area);
+    let height = if popup_area.height < 3 {
+      3
+    } else {
+      popup_area.height
+    };
+    popup_area = Rect {
+      height,
+      ..popup_area
+    };
     Clear.render(popup_area, buf);
     background_block().render(popup_area, buf);
 
@@ -120,6 +129,6 @@ impl<'a, T: Widget> Popup<'a, T> {
 
 impl<'a, T: Widget> Widget for Popup<'a, T> {
   fn render(self, area: Rect, buf: &mut Buffer) {
-      self.render_popup(area, buf);
+    self.render_popup(area, buf);
   }
 }
