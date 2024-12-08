@@ -1,4 +1,3 @@
-use crate::models::HorizontallyScrollableText;
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
@@ -7,15 +6,16 @@ use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::sonarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
 use crate::handlers::sonarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
 use crate::handlers::sonarr_handlers::indexers::test_all_indexers_handler::TestAllIndexersHandler;
-use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
   INDEXERS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS,
 };
-use crate::models::BlockSelectionState;
-use crate::models::Scrollable;
 use crate::models::servarr_models::Indexer;
+use crate::models::BlockSelectionState;
+use crate::models::HorizontallyScrollableText;
+use crate::models::Scrollable;
 use crate::network::sonarr_network::SonarrEvent;
 
 mod edit_indexer_handler;
@@ -40,7 +40,7 @@ impl<'a, 'b> IndexersHandler<'a, 'b> {
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexersHandler<'a, 'b> {
   fn handle(&mut self) {
     let indexers_table_handling_props = TableHandlingProps::new(ActiveSonarrBlock::Indexers.into());
-    
+
     if !self.handle_indexers_table_events(indexers_table_handling_props) {
       match self.active_sonarr_block {
         _ if EditIndexerHandler::accepts(self.active_sonarr_block) => {
@@ -89,29 +89,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexersHandler<'a, 
     !self.app.is_loading && !self.app.data.sonarr_data.indexers.is_empty()
   }
 
-  fn handle_scroll_up(&mut self) {
-    if self.active_sonarr_block == ActiveSonarrBlock::Indexers {
-      self.app.data.sonarr_data.indexers.scroll_up();
-    }
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-    if self.active_sonarr_block == ActiveSonarrBlock::Indexers {
-      self.app.data.sonarr_data.indexers.scroll_down();
-    }
-  }
+  fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-    if self.active_sonarr_block == ActiveSonarrBlock::Indexers {
-      self.app.data.sonarr_data.indexers.scroll_to_top();
-    }
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-    if self.active_sonarr_block == ActiveSonarrBlock::Indexers {
-      self.app.data.sonarr_data.indexers.scroll_to_bottom();
-    }
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {
     if self.active_sonarr_block == ActiveSonarrBlock::Indexers {
