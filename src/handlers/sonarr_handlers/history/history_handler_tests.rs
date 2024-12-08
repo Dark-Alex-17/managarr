@@ -205,6 +205,7 @@ mod tests {
     #[test]
     fn test_history_search_box_home_end_keys() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SearchHistory.into());
       app
         .data
         .sonarr_data
@@ -258,6 +259,7 @@ mod tests {
     #[test]
     fn test_history_filter_box_home_end_keys() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::FilterHistory.into());
       app
         .data
         .sonarr_data
@@ -413,6 +415,8 @@ mod tests {
     #[test]
     fn test_history_search_box_left_right_keys() {
       let mut app = App::default();
+      app.data.sonarr_data.history.set_items(vec![SonarrHistoryItem::default()]);
+      app.push_navigation_stack(ActiveSonarrBlock::SearchHistory.into());
       app.data.sonarr_data.history.search = Some("Test".into());
 
       HistoryHandler::with(
@@ -461,6 +465,8 @@ mod tests {
     #[test]
     fn test_history_filter_box_left_right_keys() {
       let mut app = App::default();
+      app.data.sonarr_data.history.set_items(vec![SonarrHistoryItem::default()]);
+      app.push_navigation_stack(ActiveSonarrBlock::FilterHistory.into());
       app.data.sonarr_data.history.filter = Some("Test".into());
 
       HistoryHandler::with(
@@ -766,6 +772,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
       app.push_navigation_stack(active_sonarr_block.into());
       app.data.sonarr_data = create_test_sonarr_data();
+      app.data.sonarr_data.history.set_items(vec![SonarrHistoryItem::default()]);
       app.data.sonarr_data.history.search = Some("Test".into());
 
       HistoryHandler::with(ESC_KEY, &mut app, active_sonarr_block, None).handle();
@@ -794,6 +801,7 @@ mod tests {
         filtered_state: Some(TableState::default()),
         ..StatefulTable::default()
       };
+      app.data.sonarr_data.history.set_items(vec![SonarrHistoryItem::default()]);
 
       HistoryHandler::with(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
@@ -807,6 +815,7 @@ mod tests {
     #[test]
     fn test_esc_history_item_details() {
       let mut app = App::default();
+      app.data.sonarr_data.history.set_items(vec![SonarrHistoryItem::default()]);
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
       app.push_navigation_stack(ActiveSonarrBlock::HistoryItemDetails.into());
 
@@ -824,6 +833,7 @@ mod tests {
     #[test]
     fn test_history_sort_prompt_block_esc() {
       let mut app = App::default();
+      app.data.sonarr_data.history.set_items(vec![SonarrHistoryItem::default()]);
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
       app.push_navigation_stack(ActiveSonarrBlock::HistorySortPrompt.into());
 
@@ -846,22 +856,12 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
       app.data.sonarr_data = create_test_sonarr_data();
-      app.data.sonarr_data.history = StatefulTable {
-        search: Some("Test".into()),
-        filter: Some("Test".into()),
-        filtered_items: Some(Vec::new()),
-        filtered_state: Some(TableState::default()),
-        ..StatefulTable::default()
-      };
+      app.data.sonarr_data.history.set_items(vec![SonarrHistoryItem::default()]);
 
       HistoryHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::History, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::History.into());
       assert!(app.error.text.is_empty());
-      assert_eq!(app.data.sonarr_data.history.search, None);
-      assert_eq!(app.data.sonarr_data.history.filter, None);
-      assert_eq!(app.data.sonarr_data.history.filtered_items, None);
-      assert_eq!(app.data.sonarr_data.history.filtered_state, None);
     }
   }
 
@@ -875,6 +875,7 @@ mod tests {
     #[test]
     fn test_search_history_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::History.into());
       app
         .data
         .sonarr_data
@@ -927,6 +928,7 @@ mod tests {
     #[test]
     fn test_filter_history_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::History.into());
       app
         .data
         .sonarr_data
@@ -1047,6 +1049,7 @@ mod tests {
     #[test]
     fn test_search_history_box_backspace_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SearchHistory.into());
       app.data.sonarr_data.history.search = Some("Test".into());
       app
         .data
@@ -1071,6 +1074,7 @@ mod tests {
     #[test]
     fn test_filter_history_box_backspace_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::FilterHistory.into());
       app
         .data
         .sonarr_data
@@ -1095,6 +1099,7 @@ mod tests {
     #[test]
     fn test_search_history_box_char_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SearchHistory.into());
       app
         .data
         .sonarr_data
@@ -1119,6 +1124,7 @@ mod tests {
     #[test]
     fn test_filter_history_box_char_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::FilterHistory.into());
       app
         .data
         .sonarr_data

@@ -2,12 +2,13 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
+use crate::handlers::table_handler::TableHandlingProps;
 use crate::handlers::{handle_clear_errors, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTORY_BLOCKS};
 use crate::models::sonarr_models::SonarrHistoryItem;
 use crate::models::stateful_table::SortOption;
 use crate::models::{HorizontallyScrollableText, Scrollable};
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::handle_table_events;
 
 #[cfg(test)]
 #[path = "history_handler_tests.rs"]
@@ -20,7 +21,33 @@ pub(super) struct HistoryHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
+impl<'a, 'b> HistoryHandler<'a, 'b> {
+  handle_table_events!(
+    self,
+    history,
+    self.app.data.sonarr_data.history,
+    SonarrHistoryItem
+  );
+}
+
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, 'b> {
+  fn handle(&mut self) {
+    let history_table_handling_props = TableHandlingProps::new(ActiveSonarrBlock::History.into())
+      .sorting_block(ActiveSonarrBlock::HistorySortPrompt.into())
+      .sort_by_fn(|a: &SonarrHistoryItem, b: &SonarrHistoryItem| a.id.cmp(&b.id))
+      .sort_options(history_sorting_options())
+      .searching_block(ActiveSonarrBlock::SearchHistory.into())
+      .search_error_block(ActiveSonarrBlock::SearchHistoryError.into())
+      .search_field_fn(|history| &history.source_title.text)
+      .filtering_block(ActiveSonarrBlock::FilterHistory.into())
+      .filter_error_block(ActiveSonarrBlock::FilterHistoryError.into())
+      .filter_field_fn(|history| &history.source_title.text);
+
+    if !self.handle_history_table_events(history_table_handling_props) {
+      self.handle_key_event();
+    }
+  }
+
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     HISTORY_BLOCKS.contains(&active_block)
   }
@@ -47,272 +74,54 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, '
     !self.app.is_loading && !self.app.data.sonarr_data.history.is_empty()
   }
 
-  fn handle_scroll_up(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::History => self.app.data.sonarr_data.history.scroll_up(),
-      ActiveSonarrBlock::HistorySortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .history
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_up(),
-      _ => (),
-    }
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::History => self.app.data.sonarr_data.history.scroll_down(),
-      ActiveSonarrBlock::HistorySortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .history
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_down(),
-      _ => (),
-    }
-  }
+  fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::History => self.app.data.sonarr_data.history.scroll_to_top(),
-      ActiveSonarrBlock::SearchHistory => {
-        self
-          .app
-          .data
-          .sonarr_data
-          .history
-          .search
-          .as_mut()
-          .unwrap()
-          .scroll_home();
-      }
-      ActiveSonarrBlock::FilterHistory => {
-        self
-          .app
-          .data
-          .sonarr_data
-          .history
-          .filter
-          .as_mut()
-          .unwrap()
-          .scroll_home();
-      }
-      ActiveSonarrBlock::HistorySortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .history
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_top(),
-      _ => (),
-    }
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::History => self.app.data.sonarr_data.history.scroll_to_bottom(),
-      ActiveSonarrBlock::SearchHistory => self
-        .app
-        .data
-        .sonarr_data
-        .history
-        .search
-        .as_mut()
-        .unwrap()
-        .reset_offset(),
-      ActiveSonarrBlock::FilterHistory => self
-        .app
-        .data
-        .sonarr_data
-        .history
-        .filter
-        .as_mut()
-        .unwrap()
-        .reset_offset(),
-      ActiveSonarrBlock::HistorySortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .history
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_bottom(),
-      _ => (),
-    }
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {}
 
   fn handle_left_right_action(&mut self) {
     match self.active_sonarr_block {
       ActiveSonarrBlock::History => handle_change_tab_left_right_keys(self.app, self.key),
-      ActiveSonarrBlock::SearchHistory => {
-        handle_text_box_left_right_keys!(
-          self,
-          self.key,
-          self.app.data.sonarr_data.history.search.as_mut().unwrap()
-        )
-      }
-      ActiveSonarrBlock::FilterHistory => {
-        handle_text_box_left_right_keys!(
-          self,
-          self.key,
-          self.app.data.sonarr_data.history.filter.as_mut().unwrap()
-        )
-      }
       _ => {}
     }
   }
 
   fn handle_submit(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::SearchHistory => {
-        self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
-
-        if self.app.data.sonarr_data.history.search.is_some() {
-          let has_match = self
-            .app
-            .data
-            .sonarr_data
-            .history
-            .apply_search(|history| &history.source_title.text);
-
-          if !has_match {
-            self
-              .app
-              .push_navigation_stack(ActiveSonarrBlock::SearchHistoryError.into());
-          }
-        }
-      }
-      ActiveSonarrBlock::FilterHistory => {
-        self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
-
-        if self.app.data.sonarr_data.history.filter.is_some() {
-          let has_matches = self
-            .app
-            .data
-            .sonarr_data
-            .history
-            .apply_filter(|history| &history.source_title.text);
-
-          if !has_matches {
-            self
-              .app
-              .push_navigation_stack(ActiveSonarrBlock::FilterHistoryError.into());
-          }
-        }
-      }
-      ActiveSonarrBlock::HistorySortPrompt => {
-        self
-          .app
-          .data
-          .sonarr_data
-          .history
-          .items
-          .sort_by(|a, b| a.id.cmp(&b.id));
-        self.app.data.sonarr_data.history.apply_sorting();
-
-        self.app.pop_navigation_stack();
-      }
-      ActiveSonarrBlock::History => {
-        self
-          .app
-          .push_navigation_stack(ActiveSonarrBlock::HistoryItemDetails.into());
-      }
-      _ => (),
+    if self.active_sonarr_block == ActiveSonarrBlock::History {
+      self
+        .app
+        .push_navigation_stack(ActiveSonarrBlock::HistoryItemDetails.into());
     }
   }
 
   fn handle_esc(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::FilterHistory | ActiveSonarrBlock::FilterHistoryError => {
-        self.app.pop_navigation_stack();
-        self.app.data.sonarr_data.history.reset_filter();
-        self.app.should_ignore_quit_key = false;
-      }
-      ActiveSonarrBlock::SearchHistory | ActiveSonarrBlock::SearchHistoryError => {
-        self.app.pop_navigation_stack();
-        self.app.data.sonarr_data.history.reset_search();
-        self.app.should_ignore_quit_key = false;
-      }
-      ActiveSonarrBlock::HistoryItemDetails | ActiveSonarrBlock::HistorySortPrompt => {
-        self.app.pop_navigation_stack();
-      }
-      _ => {
-        self.app.data.sonarr_data.history.reset_search();
-        self.app.data.sonarr_data.history.reset_filter();
-        handle_clear_errors(self.app);
-      }
+    if self.active_sonarr_block == ActiveSonarrBlock::HistoryItemDetails {
+      self.app.pop_navigation_stack();
+    } else {
+      handle_clear_errors(self.app);
     }
   }
 
   fn handle_char_key_event(&mut self) {
     let key = self.key;
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::History => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.search.key => {
-          self
-            .app
-            .push_navigation_stack(ActiveSonarrBlock::SearchHistory.into());
-          self.app.data.sonarr_data.history.search = Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
-        }
-        _ if key == DEFAULT_KEYBINDINGS.filter.key => {
-          self
-            .app
-            .push_navigation_stack(ActiveSonarrBlock::FilterHistory.into());
-          self.app.data.sonarr_data.history.reset_filter();
-          self.app.data.sonarr_data.history.filter = Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
-        }
+    if self.active_sonarr_block == ActiveSonarrBlock::History {
+      match self.key {
         _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
-        _ if key == DEFAULT_KEYBINDINGS.sort.key => {
-          self
-            .app
-            .data
-            .sonarr_data
-            .history
-            .sorting(history_sorting_options());
-          self
-            .app
-            .push_navigation_stack(ActiveSonarrBlock::HistorySortPrompt.into());
-        }
         _ => (),
-      },
-      ActiveSonarrBlock::SearchHistory => {
-        handle_text_box_keys!(
-          self,
-          key,
-          self.app.data.sonarr_data.history.search.as_mut().unwrap()
-        )
       }
-      ActiveSonarrBlock::FilterHistory => {
-        handle_text_box_keys!(
-          self,
-          key,
-          self.app.data.sonarr_data.history.filter.as_mut().unwrap()
-        )
-      }
-      _ => (),
     }
   }
 }
 
-pub(in crate::handlers::sonarr_handlers) fn history_sorting_options() -> Vec<SortOption<SonarrHistoryItem>> {
+pub(in crate::handlers::sonarr_handlers) fn history_sorting_options(
+) -> Vec<SortOption<SonarrHistoryItem>> {
   vec![
     SortOption {
       name: "Source Title",

@@ -331,6 +331,15 @@ mod test_utils {
   macro_rules! test_handler_delegation {
     ($handler:ident, $base:expr, $active_block:expr) => {
       let mut app = App::default();
+      app.data.sonarr_data.history.set_items(vec![$crate::models::sonarr_models::SonarrHistoryItem::default()]);
+      app.data.sonarr_data.root_folders.set_items(vec![$crate::models::servarr_models::RootFolder::default()]);
+      app.data.sonarr_data.indexers.set_items(vec![$crate::models::servarr_models::Indexer::default()]);
+      app.data.sonarr_data.blocklist.set_items(vec![$crate::models::sonarr_models::BlocklistItem::default()]);
+      app.data.radarr_data.movies.set_items(vec![$crate::models::radarr_models::Movie::default()]);
+      app.data.radarr_data.collections.set_items(vec![$crate::models::radarr_models::Collection::default()]);
+      app.data.radarr_data.collection_movies.set_items(vec![$crate::models::radarr_models::Movie::default()]);
+      app.data.radarr_data.indexers.set_items(vec![$crate::models::servarr_models::Indexer::default()]);
+      app.data.radarr_data.root_folders.set_items(vec![$crate::models::servarr_models::RootFolder::default()]);
       let mut series_history = $crate::models::stateful_table::StatefulTable::default();
       series_history.set_items(vec![
         $crate::models::sonarr_models::SonarrHistoryItem::default(),
