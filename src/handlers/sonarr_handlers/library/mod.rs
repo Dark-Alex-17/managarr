@@ -6,7 +6,7 @@ use edit_series_handler::EditSeriesHandler;
 use crate::{
   app::App,
   event::Key,
-  handle_text_box_keys, handle_text_box_left_right_keys,
+  handle_table_events,
   handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler},
   models::{
     servarr_data::sonarr::sonarr_data::{
@@ -23,6 +23,7 @@ use crate::{
 use super::handle_change_tab_left_right_keys;
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::handlers::sonarr_handlers::library::series_details_handler::SeriesDetailsHandler;
+use crate::handlers::table_handler::TableHandlingProps;
 
 mod add_series_handler;
 mod delete_series_handler;
@@ -39,25 +40,43 @@ pub(super) struct LibraryHandler<'a, 'b> {
   context: Option<ActiveSonarrBlock>,
 }
 
+impl<'a, 'b> LibraryHandler<'a, 'b> {
+  handle_table_events!(self, series, self.app.data.sonarr_data.series, Series);
+}
+
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, 'b> {
   fn handle(&mut self) {
-    match self.active_sonarr_block {
-      _ if AddSeriesHandler::accepts(self.active_sonarr_block) => {
-        AddSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle();
+    let series_table_handling_props = TableHandlingProps::new(ActiveSonarrBlock::Series.into())
+      .sorting_block(ActiveSonarrBlock::SeriesSortPrompt.into())
+      .sort_by_fn(|a: &Series, b: &Series| a.id.cmp(&b.id))
+      .sort_options(series_sorting_options())
+      .searching_block(ActiveSonarrBlock::SearchSeries.into())
+      .search_error_block(ActiveSonarrBlock::SearchSeriesError.into())
+      .search_field_fn(|series| &series.title.text)
+      .filtering_block(ActiveSonarrBlock::FilterSeries.into())
+      .filter_error_block(ActiveSonarrBlock::FilterSeriesError.into())
+      .filter_field_fn(|series| &series.title.text);
+
+    if !self.handle_series_table_events(series_table_handling_props) {
+      match self.active_sonarr_block {
+        _ if AddSeriesHandler::accepts(self.active_sonarr_block) => {
+          AddSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+            .handle();
+        }
+        _ if DeleteSeriesHandler::accepts(self.active_sonarr_block) => {
+          DeleteSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+            .handle();
+        }
+        _ if EditSeriesHandler::accepts(self.active_sonarr_block) => {
+          EditSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+            .handle();
+        }
+        _ if SeriesDetailsHandler::accepts(self.active_sonarr_block) => {
+          SeriesDetailsHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+            .handle();
+        }
+        _ => self.handle_key_event(),
       }
-      _ if DeleteSeriesHandler::accepts(self.active_sonarr_block) => {
-        DeleteSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
-          .handle();
-      }
-      _ if EditSeriesHandler::accepts(self.active_sonarr_block) => {
-        EditSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
-          .handle();
-      }
-      _ if SeriesDetailsHandler::accepts(self.active_sonarr_block) => {
-        SeriesDetailsHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
-          .handle();
-      }
-      _ => self.handle_key_event(),
     }
   }
 
@@ -91,109 +110,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
     !self.app.is_loading && !self.app.data.sonarr_data.series.is_empty()
   }
 
-  fn handle_scroll_up(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::Series => self.app.data.sonarr_data.series.scroll_up(),
-      ActiveSonarrBlock::SeriesSortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .series
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_up(),
-      _ => (),
-    }
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::Series => self.app.data.sonarr_data.series.scroll_down(),
-      ActiveSonarrBlock::SeriesSortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .series
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_down(),
-      _ => (),
-    }
-  }
+  fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::Series => self.app.data.sonarr_data.series.scroll_to_top(),
-      ActiveSonarrBlock::SearchSeries => {
-        self
-          .app
-          .data
-          .sonarr_data
-          .series
-          .search
-          .as_mut()
-          .unwrap()
-          .scroll_home();
-      }
-      ActiveSonarrBlock::FilterSeries => {
-        self
-          .app
-          .data
-          .sonarr_data
-          .series
-          .filter
-          .as_mut()
-          .unwrap()
-          .scroll_home();
-      }
-      ActiveSonarrBlock::SeriesSortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .series
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_top(),
-      _ => (),
-    }
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::Series => self.app.data.sonarr_data.series.scroll_to_bottom(),
-      ActiveSonarrBlock::SearchSeries => self
-        .app
-        .data
-        .sonarr_data
-        .series
-        .search
-        .as_mut()
-        .unwrap()
-        .reset_offset(),
-      ActiveSonarrBlock::FilterSeries => self
-        .app
-        .data
-        .sonarr_data
-        .series
-        .filter
-        .as_mut()
-        .unwrap()
-        .reset_offset(),
-      ActiveSonarrBlock::SeriesSortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .series
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_bottom(),
-      _ => (),
-    }
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {
     if self.active_sonarr_block == ActiveSonarrBlock::Series {
@@ -209,20 +132,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
     match self.active_sonarr_block {
       ActiveSonarrBlock::Series => handle_change_tab_left_right_keys(self.app, self.key),
       ActiveSonarrBlock::UpdateAllSeriesPrompt => handle_prompt_toggle(self.app, self.key),
-      ActiveSonarrBlock::SearchSeries => {
-        handle_text_box_left_right_keys!(
-          self,
-          self.key,
-          self.app.data.sonarr_data.series.search.as_mut().unwrap()
-        )
-      }
-      ActiveSonarrBlock::FilterSeries => {
-        handle_text_box_left_right_keys!(
-          self,
-          self.key,
-          self.app.data.sonarr_data.series.filter.as_mut().unwrap()
-        )
-      }
       _ => (),
     }
   }
@@ -232,60 +141,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
       ActiveSonarrBlock::Series => self
         .app
         .push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into()),
-      ActiveSonarrBlock::SearchSeries => {
-        self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
-
-        if self.app.data.sonarr_data.series.search.is_some() {
-          let has_match = self
-            .app
-            .data
-            .sonarr_data
-            .series
-            .apply_search(|series| &series.title.text);
-
-          if !has_match {
-            self
-              .app
-              .push_navigation_stack(ActiveSonarrBlock::SearchSeriesError.into());
-          }
-        }
-      }
-      ActiveSonarrBlock::FilterSeries => {
-        self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
-
-        if self.app.data.sonarr_data.series.filter.is_some() {
-          let has_matches = self
-            .app
-            .data
-            .sonarr_data
-            .series
-            .apply_filter(|series| &series.title.text);
-
-          if !has_matches {
-            self
-              .app
-              .push_navigation_stack(ActiveSonarrBlock::FilterSeriesError.into());
-          }
-        }
-      }
       ActiveSonarrBlock::UpdateAllSeriesPrompt => {
         if self.app.data.sonarr_data.prompt_confirm {
           self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::UpdateAllSeries);
         }
-
-        self.app.pop_navigation_stack();
-      }
-      ActiveSonarrBlock::SeriesSortPrompt => {
-        self
-          .app
-          .data
-          .sonarr_data
-          .series
-          .items
-          .sort_by(|a, b| a.id.cmp(&b.id));
-        self.app.data.sonarr_data.series.apply_sorting();
 
         self.app.pop_navigation_stack();
       }
@@ -295,26 +154,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
 
   fn handle_esc(&mut self) {
     match self.active_sonarr_block {
-      ActiveSonarrBlock::FilterSeries | ActiveSonarrBlock::FilterSeriesError => {
-        self.app.pop_navigation_stack();
-        self.app.data.sonarr_data.series.reset_filter();
-        self.app.should_ignore_quit_key = false;
-      }
-      ActiveSonarrBlock::SearchSeries | ActiveSonarrBlock::SearchSeriesError => {
-        self.app.pop_navigation_stack();
-        self.app.data.sonarr_data.series.reset_search();
-        self.app.should_ignore_quit_key = false;
-      }
       ActiveSonarrBlock::UpdateAllSeriesPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.sonarr_data.prompt_confirm = false;
       }
-      ActiveSonarrBlock::SeriesSortPrompt => {
-        self.app.pop_navigation_stack();
-      }
       _ => {
-        self.app.data.sonarr_data.series.reset_search();
-        self.app.data.sonarr_data.series.reset_filter();
         handle_clear_errors(self.app);
       }
     }
@@ -324,21 +168,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
     let key = self.key;
     match self.active_sonarr_block {
       ActiveSonarrBlock::Series => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.search.key => {
-          self
-            .app
-            .push_navigation_stack(ActiveSonarrBlock::SearchSeries.into());
-          self.app.data.sonarr_data.series.search = Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
-        }
-        _ if key == DEFAULT_KEYBINDINGS.filter.key => {
-          self
-            .app
-            .push_navigation_stack(ActiveSonarrBlock::FilterSeries.into());
-          self.app.data.sonarr_data.series.reset_filter();
-          self.app.data.sonarr_data.series.filter = Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
-        }
         _ if key == DEFAULT_KEYBINDINGS.edit.key => {
           self.app.push_navigation_stack(
             (
@@ -366,33 +195,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
         _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
-        _ if key == DEFAULT_KEYBINDINGS.sort.key => {
-          self
-            .app
-            .data
-            .sonarr_data
-            .series
-            .sorting(series_sorting_options());
-          self
-            .app
-            .push_navigation_stack(ActiveSonarrBlock::SeriesSortPrompt.into());
-        }
         _ => (),
       },
-      ActiveSonarrBlock::SearchSeries => {
-        handle_text_box_keys!(
-          self,
-          key,
-          self.app.data.sonarr_data.series.search.as_mut().unwrap()
-        )
-      }
-      ActiveSonarrBlock::FilterSeries => {
-        handle_text_box_keys!(
-          self,
-          key,
-          self.app.data.sonarr_data.series.filter.as_mut().unwrap()
-        )
-      }
       ActiveSonarrBlock::UpdateAllSeriesPrompt => {
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.sonarr_data.prompt_confirm = true;

@@ -103,6 +103,7 @@ mod test_utils {
       #[rstest]
       fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
         let mut app = App::default();
+        app.push_navigation_stack($block.into());
         app
           .data
           .$servarr_data
@@ -129,6 +130,7 @@ mod test_utils {
       #[rstest]
       fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
         let mut app = App::default();
+        app.push_navigation_stack($block.into());
         app
           .data
           .$servarr_data
@@ -155,6 +157,7 @@ mod test_utils {
       #[rstest]
       fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
         let mut app = App::default();
+        app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items($items);
 
         $handler::with(key, &mut app, $block, $context).handle();
@@ -177,6 +180,7 @@ mod test_utils {
       #[rstest]
       fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
         let mut app = App::default();
+        app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items($items);
 
         $handler::with(key, &mut app, $block, $context).handle();
@@ -214,6 +218,7 @@ mod test_utils {
       #[test]
       fn $func() {
         let mut app = App::default();
+        app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items(vec![
           "Test 1".to_owned(),
           "Test 2".to_owned(),
@@ -240,6 +245,7 @@ mod test_utils {
       #[test]
       fn $func() {
         let mut app = App::default();
+        app.push_navigation_stack($block.into());
         app
           .data
           .$servarr_data
@@ -266,6 +272,7 @@ mod test_utils {
       #[test]
       fn $func() {
         let mut app = App::default();
+        app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items($items);
 
         $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
@@ -288,6 +295,7 @@ mod test_utils {
       #[test]
       fn $func() {
         let mut app = App::default();
+        app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items($items);
 
         $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
@@ -328,6 +336,9 @@ mod test_utils {
         $crate::models::sonarr_models::SonarrHistoryItem::default(),
       ]);
       app.data.sonarr_data.series_history = Some(series_history);
+      app.data.sonarr_data.series.set_items(vec![
+        $crate::models::sonarr_models::Series::default(),
+      ]);
       app.push_navigation_stack($base.into());
       app.push_navigation_stack($active_block.into());
 

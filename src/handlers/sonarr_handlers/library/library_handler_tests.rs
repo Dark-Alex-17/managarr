@@ -195,6 +195,7 @@ mod tests {
     #[test]
     fn test_series_search_box_home_end_keys() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SearchSeries.into());
       app
         .data
         .sonarr_data
@@ -248,6 +249,7 @@ mod tests {
     #[test]
     fn test_series_filter_box_home_end_keys() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::FilterSeries.into());
       app
         .data
         .sonarr_data
@@ -473,6 +475,8 @@ mod tests {
     #[test]
     fn test_series_search_box_left_right_keys() {
       let mut app = App::default();
+      app.data.sonarr_data.series.set_items(vec![Series::default()]);
+      app.push_navigation_stack(ActiveSonarrBlock::SearchSeries.into());
       app.data.sonarr_data.series.search = Some("Test".into());
 
       LibraryHandler::with(
@@ -521,6 +525,8 @@ mod tests {
     #[test]
     fn test_series_filter_box_left_right_keys() {
       let mut app = App::default();
+      app.data.sonarr_data.series.set_items(vec![Series::default()]);
+      app.push_navigation_stack(ActiveSonarrBlock::FilterSeries.into());
       app.data.sonarr_data.series.filter = Some("Test".into());
 
       LibraryHandler::with(
@@ -860,6 +866,7 @@ mod tests {
       app.push_navigation_stack(active_sonarr_block.into());
       app.data.sonarr_data = create_test_sonarr_data();
       app.data.sonarr_data.series.search = Some("Test".into());
+      app.data.sonarr_data.series.set_items(vec![Series::default()]);
 
       LibraryHandler::with(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
@@ -868,15 +875,10 @@ mod tests {
       assert_eq!(app.data.sonarr_data.series.search, None);
     }
 
-    #[rstest]
-    fn test_filter_series_block_esc(
-      #[values(ActiveSonarrBlock::FilterSeries, ActiveSonarrBlock::FilterSeriesError)]
-      active_sonarr_block: ActiveSonarrBlock,
-    ) {
+    #[test]
+    fn test_series_block_esc_resets_filter_if_already_set() {
       let mut app = App::default();
-      app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
-      app.push_navigation_stack(active_sonarr_block.into());
       app.data.sonarr_data = create_test_sonarr_data();
       app.data.sonarr_data.series = StatefulTable {
         filter: Some("Test".into()),
@@ -884,8 +886,32 @@ mod tests {
         filtered_state: Some(TableState::default()),
         ..StatefulTable::default()
       };
+      app.data.sonarr_data.series.set_items(vec![Series::default()]);
 
-      LibraryHandler::with(ESC_KEY, &mut app, active_sonarr_block, None).handle();
+      LibraryHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::Series, None).handle();
+
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert_eq!(app.data.sonarr_data.series.filter, None);
+      assert_eq!(app.data.sonarr_data.series.filtered_items, None);
+      assert_eq!(app.data.sonarr_data.series.filtered_state, None);
+    }
+
+    #[test]
+    fn test_filter_series_error_block_esc() {
+      let mut app = App::default();
+      app.should_ignore_quit_key = true;
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
+      app.push_navigation_stack(ActiveSonarrBlock::FilterSeriesError.into());
+      app.data.sonarr_data = create_test_sonarr_data();
+      app.data.sonarr_data.series = StatefulTable {
+        filter: Some("Test".into()),
+        filtered_items: Some(Vec::new()),
+        filtered_state: Some(TableState::default()),
+        ..StatefulTable::default()
+      };
+      app.data.sonarr_data.series.set_items(vec![Series::default()]);
+
+      LibraryHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::FilterSeriesError, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
       assert!(!app.should_ignore_quit_key);
@@ -916,6 +942,7 @@ mod tests {
     #[test]
     fn test_series_sort_prompt_block_esc() {
       let mut app = App::default();
+      app.data.sonarr_data.series.set_items(vec![Series::default()]);
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::SeriesSortPrompt.into());
 
@@ -932,22 +959,11 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data = create_test_sonarr_data();
-      app.data.sonarr_data.series = StatefulTable {
-        search: Some("Test".into()),
-        filter: Some("Test".into()),
-        filtered_items: Some(Vec::new()),
-        filtered_state: Some(TableState::default()),
-        ..StatefulTable::default()
-      };
 
       LibraryHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::Series, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
       assert!(app.error.text.is_empty());
-      assert_eq!(app.data.sonarr_data.series.search, None);
-      assert_eq!(app.data.sonarr_data.series.filter, None);
-      assert_eq!(app.data.sonarr_data.series.filtered_items, None);
-      assert_eq!(app.data.sonarr_data.series.filtered_state, None);
     }
   }
 
@@ -968,6 +984,7 @@ mod tests {
     #[test]
     fn test_search_series_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app
         .data
         .sonarr_data
@@ -1020,6 +1037,7 @@ mod tests {
     #[test]
     fn test_filter_series_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app
         .data
         .sonarr_data
@@ -1274,6 +1292,7 @@ mod tests {
     #[test]
     fn test_search_series_box_backspace_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SearchSeries.into());
       app.data.sonarr_data.series.search = Some("Test".into());
       app
         .data
@@ -1298,6 +1317,7 @@ mod tests {
     #[test]
     fn test_filter_series_box_backspace_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::FilterSeries.into());
       app
         .data
         .sonarr_data
@@ -1322,6 +1342,7 @@ mod tests {
     #[test]
     fn test_search_series_box_char_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SearchSeries.into());
       app
         .data
         .sonarr_data
@@ -1346,6 +1367,7 @@ mod tests {
     #[test]
     fn test_filter_series_box_char_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::FilterSeries.into());
       app
         .data
         .sonarr_data
@@ -1370,6 +1392,7 @@ mod tests {
     #[test]
     fn test_sort_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app
         .data
         .sonarr_data

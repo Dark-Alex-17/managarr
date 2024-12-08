@@ -16,6 +16,7 @@ mod handlers_tests;
 #[cfg(test)]
 #[path = "handler_test_utils.rs"]
 pub mod handler_test_utils;
+mod table_handler;
 
 pub trait KeyEventHandler<'a, 'b, T: Into<Route> + Copy> {
   fn handle_key_event(&mut self) {

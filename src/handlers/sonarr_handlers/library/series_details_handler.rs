@@ -436,8 +436,24 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         self.app.pop_navigation_stack();
       }
       ActiveSonarrBlock::SeriesHistory => {
-        if self.app.data.sonarr_data.series_history.as_ref().expect("Series history is not populated").filtered_items.is_some() {
-          self.app.data.sonarr_data.series_history.as_mut().expect("Series history is not populated").reset_filter();
+        if self
+          .app
+          .data
+          .sonarr_data
+          .series_history
+          .as_ref()
+          .expect("Series history is not populated")
+          .filtered_items
+          .is_some()
+        {
+          self
+            .app
+            .data
+            .sonarr_data
+            .series_history
+            .as_mut()
+            .expect("Series history is not populated")
+            .reset_filter();
         } else {
           self.app.pop_navigation_stack();
           self.app.data.sonarr_data.reset_series_info_tabs();
@@ -577,14 +593,32 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         handle_text_box_keys!(
           self,
           key,
-          self.app.data.sonarr_data.series_history.as_mut().expect("Series history should be populated").search.as_mut().unwrap()
+          self
+            .app
+            .data
+            .sonarr_data
+            .series_history
+            .as_mut()
+            .expect("Series history should be populated")
+            .search
+            .as_mut()
+            .unwrap()
         )
       }
       ActiveSonarrBlock::FilterSeriesHistory => {
         handle_text_box_keys!(
           self,
           key,
-          self.app.data.sonarr_data.series_history.as_mut().expect("Series history should be populated").filter.as_mut().unwrap()
+          self
+            .app
+            .data
+            .sonarr_data
+            .series_history
+            .as_mut()
+            .expect("Series history should be populated")
+            .filter
+            .as_mut()
+            .unwrap()
         )
       }
       ActiveSonarrBlock::AutomaticallySearchSeriesPrompt => {

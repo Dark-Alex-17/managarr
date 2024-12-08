@@ -1,5 +1,7 @@
 #[cfg(test)]
 mod tests {
+  use crate::models::radarr_models::Movie;
+  use crate::models::sonarr_models::Series;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
 
@@ -30,6 +32,16 @@ mod tests {
     let mut app = App::default();
     app.push_navigation_stack(base_block);
     app.push_navigation_stack(top_block);
+    app
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series::default()]);
+    app
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![Movie::default()]);
 
     handle_events(DEFAULT_KEYBINDINGS.esc.key, &mut app);
 
