@@ -8,6 +8,8 @@ use crate::handlers::radarr_handlers::library::edit_movie_handler::EditMovieHand
 use crate::handlers::radarr_handlers::library::movie_details_handler::MovieDetailsHandler;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 
+use crate::handle_table_events;
+use crate::handlers::table_handler::TableHandlingProps;
 use crate::models::radarr_models::Movie;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, DELETE_MOVIE_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, LIBRARY_BLOCKS,
@@ -15,7 +17,6 @@ use crate::models::servarr_data::radarr::radarr_data::{
 use crate::models::stateful_table::SortOption;
 use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
 
 mod add_movie_handler;
 mod delete_movie_handler;
@@ -33,24 +34,43 @@ pub(super) struct LibraryHandler<'a, 'b> {
   context: Option<ActiveRadarrBlock>,
 }
 
+impl<'a, 'b> LibraryHandler<'a, 'b> {
+  handle_table_events!(self, movies, self.app.data.radarr_data.movies, Movie);
+}
+
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, 'b> {
   fn handle(&mut self) {
-    match self.active_radarr_block {
-      _ if AddMovieHandler::accepts(self.active_radarr_block) => {
-        AddMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context).handle();
+    let movie_table_handling_props = TableHandlingProps::new(ActiveRadarrBlock::Movies.into())
+      .sorting_block(ActiveRadarrBlock::MoviesSortPrompt.into())
+      .sort_by_fn(|a: &Movie, b: &Movie| a.id.cmp(&b.id))
+      .sort_options(movies_sorting_options())
+      .searching_block(ActiveRadarrBlock::SearchMovie.into())
+      .search_error_block(ActiveRadarrBlock::SearchMovieError.into())
+      .search_field_fn(|movie| &movie.title.text)
+      .filtering_block(ActiveRadarrBlock::FilterMovies.into())
+      .filter_error_block(ActiveRadarrBlock::FilterMoviesError.into())
+      .filter_field_fn(|movie| &movie.title.text);
+
+    if !self.handle_movies_table_events(movie_table_handling_props) {
+      match self.active_radarr_block {
+        _ if AddMovieHandler::accepts(self.active_radarr_block) => {
+          AddMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+            .handle();
+        }
+        _ if DeleteMovieHandler::accepts(self.active_radarr_block) => {
+          DeleteMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+            .handle();
+        }
+        _ if EditMovieHandler::accepts(self.active_radarr_block) => {
+          EditMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+            .handle();
+        }
+        _ if MovieDetailsHandler::accepts(self.active_radarr_block) => {
+          MovieDetailsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+            .handle();
+        }
+        _ => self.handle_key_event(),
       }
-      _ if DeleteMovieHandler::accepts(self.active_radarr_block) => {
-        DeleteMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context)
-          .handle();
-      }
-      _ if EditMovieHandler::accepts(self.active_radarr_block) => {
-        EditMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context).handle();
-      }
-      _ if MovieDetailsHandler::accepts(self.active_radarr_block) => {
-        MovieDetailsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
-          .handle();
-      }
-      _ => self.handle_key_event(),
     }
   }
 
@@ -84,109 +104,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
     !self.app.is_loading && !self.app.data.radarr_data.movies.is_empty()
   }
 
-  fn handle_scroll_up(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::Movies => self.app.data.radarr_data.movies.scroll_up(),
-      ActiveRadarrBlock::MoviesSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .movies
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_up(),
-      _ => (),
-    }
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::Movies => self.app.data.radarr_data.movies.scroll_down(),
-      ActiveRadarrBlock::MoviesSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .movies
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_down(),
-      _ => (),
-    }
-  }
+  fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::Movies => self.app.data.radarr_data.movies.scroll_to_top(),
-      ActiveRadarrBlock::SearchMovie => {
-        self
-          .app
-          .data
-          .radarr_data
-          .movies
-          .search
-          .as_mut()
-          .unwrap()
-          .scroll_home();
-      }
-      ActiveRadarrBlock::FilterMovies => {
-        self
-          .app
-          .data
-          .radarr_data
-          .movies
-          .filter
-          .as_mut()
-          .unwrap()
-          .scroll_home();
-      }
-      ActiveRadarrBlock::MoviesSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .movies
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_top(),
-      _ => (),
-    }
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::Movies => self.app.data.radarr_data.movies.scroll_to_bottom(),
-      ActiveRadarrBlock::SearchMovie => self
-        .app
-        .data
-        .radarr_data
-        .movies
-        .search
-        .as_mut()
-        .unwrap()
-        .reset_offset(),
-      ActiveRadarrBlock::FilterMovies => self
-        .app
-        .data
-        .radarr_data
-        .movies
-        .filter
-        .as_mut()
-        .unwrap()
-        .reset_offset(),
-      ActiveRadarrBlock::MoviesSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .movies
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_bottom(),
-      _ => (),
-    }
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {
     if self.active_radarr_block == ActiveRadarrBlock::Movies {
@@ -202,20 +126,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
     match self.active_radarr_block {
       ActiveRadarrBlock::Movies => handle_change_tab_left_right_keys(self.app, self.key),
       ActiveRadarrBlock::UpdateAllMoviesPrompt => handle_prompt_toggle(self.app, self.key),
-      ActiveRadarrBlock::SearchMovie => {
-        handle_text_box_left_right_keys!(
-          self,
-          self.key,
-          self.app.data.radarr_data.movies.search.as_mut().unwrap()
-        )
-      }
-      ActiveRadarrBlock::FilterMovies => {
-        handle_text_box_left_right_keys!(
-          self,
-          self.key,
-          self.app.data.radarr_data.movies.filter.as_mut().unwrap()
-        )
-      }
       _ => (),
     }
   }
@@ -225,60 +135,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
       ActiveRadarrBlock::Movies => self
         .app
         .push_navigation_stack(ActiveRadarrBlock::MovieDetails.into()),
-      ActiveRadarrBlock::SearchMovie => {
-        self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
-
-        if self.app.data.radarr_data.movies.search.is_some() {
-          let has_match = self
-            .app
-            .data
-            .radarr_data
-            .movies
-            .apply_search(|movie| &movie.title.text);
-
-          if !has_match {
-            self
-              .app
-              .push_navigation_stack(ActiveRadarrBlock::SearchMovieError.into());
-          }
-        }
-      }
-      ActiveRadarrBlock::FilterMovies => {
-        self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
-
-        if self.app.data.radarr_data.movies.filter.is_some() {
-          let has_matches = self
-            .app
-            .data
-            .radarr_data
-            .movies
-            .apply_filter(|movie| &movie.title.text);
-
-          if !has_matches {
-            self
-              .app
-              .push_navigation_stack(ActiveRadarrBlock::FilterMoviesError.into());
-          }
-        }
-      }
       ActiveRadarrBlock::UpdateAllMoviesPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAllMovies);
         }
-
-        self.app.pop_navigation_stack();
-      }
-      ActiveRadarrBlock::MoviesSortPrompt => {
-        self
-          .app
-          .data
-          .radarr_data
-          .movies
-          .items
-          .sort_by(|a, b| a.id.cmp(&b.id));
-        self.app.data.radarr_data.movies.apply_sorting();
 
         self.app.pop_navigation_stack();
       }
@@ -288,26 +148,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
 
   fn handle_esc(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::FilterMovies | ActiveRadarrBlock::FilterMoviesError => {
-        self.app.pop_navigation_stack();
-        self.app.data.radarr_data.movies.reset_filter();
-        self.app.should_ignore_quit_key = false;
-      }
-      ActiveRadarrBlock::SearchMovie | ActiveRadarrBlock::SearchMovieError => {
-        self.app.pop_navigation_stack();
-        self.app.data.radarr_data.movies.reset_search();
-        self.app.should_ignore_quit_key = false;
-      }
       ActiveRadarrBlock::UpdateAllMoviesPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.prompt_confirm = false;
       }
-      ActiveRadarrBlock::MoviesSortPrompt => {
-        self.app.pop_navigation_stack();
-      }
       _ => {
-        self.app.data.radarr_data.movies.reset_search();
-        self.app.data.radarr_data.movies.reset_filter();
         handle_clear_errors(self.app);
       }
     }
@@ -317,21 +162,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::Movies => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.search.key => {
-          self
-            .app
-            .push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
-          self.app.data.radarr_data.movies.search = Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
-        }
-        _ if key == DEFAULT_KEYBINDINGS.filter.key => {
-          self
-            .app
-            .push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
-          self.app.data.radarr_data.movies.reset_filter();
-          self.app.data.radarr_data.movies.filter = Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
-        }
         _ if key == DEFAULT_KEYBINDINGS.edit.key => {
           self.app.push_navigation_stack(
             (
@@ -359,33 +189,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
         _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
-        _ if key == DEFAULT_KEYBINDINGS.sort.key => {
-          self
-            .app
-            .data
-            .radarr_data
-            .movies
-            .sorting(movies_sorting_options());
-          self
-            .app
-            .push_navigation_stack(ActiveRadarrBlock::MoviesSortPrompt.into());
-        }
         _ => (),
       },
-      ActiveRadarrBlock::SearchMovie => {
-        handle_text_box_keys!(
-          self,
-          key,
-          self.app.data.radarr_data.movies.search.as_mut().unwrap()
-        )
-      }
-      ActiveRadarrBlock::FilterMovies => {
-        handle_text_box_keys!(
-          self,
-          key,
-          self.app.data.radarr_data.movies.filter.as_mut().unwrap()
-        )
-      }
       ActiveRadarrBlock::UpdateAllMoviesPrompt => {
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;

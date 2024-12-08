@@ -199,6 +199,7 @@ mod tests {
     #[test]
     fn test_movie_search_box_home_end_keys() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
       app
         .data
         .radarr_data
@@ -252,6 +253,7 @@ mod tests {
     #[test]
     fn test_movie_filter_box_home_end_keys() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
       app
         .data
         .radarr_data
@@ -479,6 +481,8 @@ mod tests {
     #[test]
     fn test_movie_search_box_left_right_keys() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
+      app.data.radarr_data.movies.set_items(vec![Movie::default()]);
       app.data.radarr_data.movies.search = Some("Test".into());
 
       LibraryHandler::with(
@@ -527,6 +531,8 @@ mod tests {
     #[test]
     fn test_movie_filter_box_left_right_keys() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
+      app.data.radarr_data.movies.set_items(vec![Movie::default()]);
       app.data.radarr_data.movies.filter = Some("Test".into());
 
       LibraryHandler::with(
@@ -882,6 +888,7 @@ mod tests {
         filtered_state: Some(TableState::default()),
         ..StatefulTable::default()
       };
+      app.data.radarr_data.movies.set_items(vec![Movie::default()]);
 
       LibraryHandler::with(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
@@ -914,6 +921,7 @@ mod tests {
     #[test]
     fn test_movies_sort_prompt_block_esc() {
       let mut app = App::default();
+      app.data.radarr_data.movies.set_items(movies_vec());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::MoviesSortPrompt.into());
 
@@ -942,10 +950,6 @@ mod tests {
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert!(app.error.text.is_empty());
-      assert_eq!(app.data.radarr_data.movies.search, None);
-      assert_eq!(app.data.radarr_data.movies.filter, None);
-      assert_eq!(app.data.radarr_data.movies.filtered_items, None);
-      assert_eq!(app.data.radarr_data.movies.filtered_state, None);
     }
   }
 
@@ -1275,6 +1279,7 @@ mod tests {
     #[test]
     fn test_search_movies_box_backspace_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
       app.data.radarr_data.movies.search = Some("Test".into());
       app
         .data
@@ -1299,6 +1304,7 @@ mod tests {
     #[test]
     fn test_filter_movies_box_backspace_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
       app
         .data
         .radarr_data
@@ -1323,6 +1329,7 @@ mod tests {
     #[test]
     fn test_search_movies_box_char_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
       app
         .data
         .radarr_data
@@ -1347,6 +1354,7 @@ mod tests {
     #[test]
     fn test_filter_movies_box_char_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
       app
         .data
         .radarr_data

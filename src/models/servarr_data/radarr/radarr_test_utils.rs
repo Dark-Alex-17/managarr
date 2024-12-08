@@ -1,12 +1,11 @@
 #[cfg(test)]
 pub mod utils {
-  use crate::models::radarr_models::{
-    AddMovieSearchResult, CollectionMovie, Credit, MovieHistoryItem, RadarrRelease,
-  };
+  use crate::models::radarr_models::{AddMovieSearchResult, BlocklistItem, Collection, CollectionMovie, Credit, DownloadRecord, Movie, MovieHistoryItem, RadarrRelease};
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_data::radarr::radarr_data::RadarrData;
   use crate::models::stateful_table::StatefulTable;
   use crate::models::{HorizontallyScrollableText, ScrollableText};
+  use crate::models::servarr_models::{Indexer, RootFolder};
 
   pub fn create_test_radarr_data<'a>() -> RadarrData<'a> {
     let mut movie_details_modal = MovieDetailsModal {
@@ -35,6 +34,13 @@ pub mod utils {
       add_searched_movies: Some(StatefulTable::default()),
       ..RadarrData::default()
     };
+    radarr_data.movies.set_items(vec![Movie::default()]);
+    radarr_data.collection_movies.set_items(vec![CollectionMovie::default()]);
+    radarr_data.collections.set_items(vec![Collection::default()]);
+    radarr_data.downloads.set_items(vec![DownloadRecord::default()]);
+    radarr_data.blocklist.set_items(vec![BlocklistItem::default()]);
+    radarr_data.root_folders.set_items(vec![RootFolder::default()]);
+    radarr_data.indexers.set_items(vec![Indexer::default()]);
     radarr_data.movie_info_tabs.index = 1;
     radarr_data
       .add_searched_movies
