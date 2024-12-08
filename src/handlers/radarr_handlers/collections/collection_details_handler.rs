@@ -68,34 +68,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
     !self.app.is_loading && !self.app.data.radarr_data.collection_movies.is_empty()
   }
 
-  fn handle_scroll_up(&mut self) {
-    if ActiveRadarrBlock::CollectionDetails == self.active_radarr_block {
-      self.app.data.radarr_data.collection_movies.scroll_up()
-    }
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-    if ActiveRadarrBlock::CollectionDetails == self.active_radarr_block {
-      self.app.data.radarr_data.collection_movies.scroll_down()
-    }
-  }
+  fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-    if ActiveRadarrBlock::CollectionDetails == self.active_radarr_block {
-      self.app.data.radarr_data.collection_movies.scroll_to_top();
-    }
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-    if ActiveRadarrBlock::CollectionDetails == self.active_radarr_block {
-      self
-        .app
-        .data
-        .radarr_data
-        .collection_movies
-        .scroll_to_bottom();
-    }
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {}
 

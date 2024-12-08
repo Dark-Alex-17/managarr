@@ -1,8 +1,11 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
+use crate::handle_table_events;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
+use crate::handlers::table_handler::TableHandlingProps;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
+use crate::models::radarr_models::DownloadRecord;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
 use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
@@ -18,7 +21,25 @@ pub(super) struct DownloadsHandler<'a, 'b> {
   _context: Option<ActiveRadarrBlock>,
 }
 
+impl<'a, 'b> DownloadsHandler<'a, 'b> {
+  handle_table_events!(
+    self,
+    downloads,
+    self.app.data.radarr_data.downloads,
+    DownloadRecord
+  );
+}
+
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a, 'b> {
+  fn handle(&mut self) {
+    let downloads_table_handling_props =
+      TableHandlingProps::new(ActiveRadarrBlock::Downloads.into());
+
+    if !self.handle_downloads_table_events(downloads_table_handling_props) {
+      self.handle_key_event();
+    }
+  }
+
   fn accepts(active_block: ActiveRadarrBlock) -> bool {
     DOWNLOADS_BLOCKS.contains(&active_block)
   }
@@ -45,29 +66,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
     !self.app.is_loading && !self.app.data.radarr_data.downloads.is_empty()
   }
 
-  fn handle_scroll_up(&mut self) {
-    if self.active_radarr_block == ActiveRadarrBlock::Downloads {
-      self.app.data.radarr_data.downloads.scroll_up()
-    }
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-    if self.active_radarr_block == ActiveRadarrBlock::Downloads {
-      self.app.data.radarr_data.downloads.scroll_down()
-    }
-  }
+  fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-    if self.active_radarr_block == ActiveRadarrBlock::Downloads {
-      self.app.data.radarr_data.downloads.scroll_to_top()
-    }
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-    if self.active_radarr_block == ActiveRadarrBlock::Downloads {
-      self.app.data.radarr_data.downloads.scroll_to_bottom()
-    }
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {
     if self.active_radarr_block == ActiveRadarrBlock::Downloads {
