@@ -1,12 +1,14 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
-use crate::handle_text_box_keys;
+use crate::handle_table_events;
 use crate::handlers::sonarr_handlers::history::history_sorting_options;
+use crate::handlers::table_handler::TableHandlingProps;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, EDIT_SERIES_SELECTION_BLOCKS, SERIES_DETAILS_BLOCKS,
 };
+use crate::models::sonarr_models::{Season, SonarrHistoryItem};
 use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
 use crate::network::sonarr_network::SonarrEvent;
 
@@ -21,7 +23,53 @@ pub(super) struct SeriesDetailsHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
+impl<'a, 'b> SeriesDetailsHandler<'a, 'b> {
+  handle_table_events!(self, season, self.app.data.sonarr_data.seasons, Season);
+  handle_table_events!(
+    self,
+    series_history,
+    self
+      .app
+      .data
+      .sonarr_data
+      .series_history
+      .as_mut()
+      .expect("Series history is undefined"),
+    SonarrHistoryItem
+  );
+}
+
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler<'a, 'b> {
+  fn handle(&mut self) {
+    let season_table_handling_props =
+      TableHandlingProps::new(ActiveSonarrBlock::SeriesDetails.into())
+        .searching_block(ActiveSonarrBlock::SearchSeason.into())
+        .search_error_block(ActiveSonarrBlock::SearchSeasonError.into())
+        .search_field_fn(|season: &Season| {
+          season
+            .title
+            .as_ref()
+            .expect("Season was not populated with title in handlers")
+        });
+    let series_history_table_handling_props =
+      TableHandlingProps::new(ActiveSonarrBlock::SeriesHistory.into())
+        .sorting_block(ActiveSonarrBlock::SeriesHistorySortPrompt.into())
+        .sort_options(history_sorting_options())
+        .sort_by_fn(|a: &SonarrHistoryItem, b: &SonarrHistoryItem| a.id.cmp(&b.id))
+        .searching_block(ActiveSonarrBlock::SearchSeriesHistory.into())
+        .search_error_block(ActiveSonarrBlock::SearchSeriesHistoryError.into())
+        .search_field_fn(|history_item: &SonarrHistoryItem| &history_item.source_title.text)
+        .filtering_block(ActiveSonarrBlock::FilterSeriesHistory.into())
+        .filter_error_block(ActiveSonarrBlock::FilterSeriesHistoryError.into())
+        .filter_field_fn(|history_item: &SonarrHistoryItem| &history_item.source_title.text);
+
+    if !self.handle_season_table_events(season_table_handling_props)
+      && !self.handle_series_history_table_events(series_history_table_handling_props)
+    {
+      self.handle_key_event();
+    }
+  }
+
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     SERIES_DETAILS_BLOCKS.contains(&active_block)
   }
@@ -52,171 +100,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
     }
   }
 
-  fn handle_scroll_up(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::SeriesDetails => self.app.data.sonarr_data.seasons.scroll_up(),
-      ActiveSonarrBlock::SeriesHistory => self
-        .app
-        .data
-        .sonarr_data
-        .series_history
-        .as_mut()
-        .unwrap()
-        .scroll_up(),
-      ActiveSonarrBlock::SeriesHistorySortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .series_history
-        .as_mut()
-        .unwrap()
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_up(),
-      _ => (),
-    }
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::SeriesDetails => self.app.data.sonarr_data.seasons.scroll_down(),
-      ActiveSonarrBlock::SeriesHistory => self
-        .app
-        .data
-        .sonarr_data
-        .series_history
-        .as_mut()
-        .unwrap()
-        .scroll_down(),
-      ActiveSonarrBlock::SeriesHistorySortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .series_history
-        .as_mut()
-        .unwrap()
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_down(),
-      _ => (),
-    }
-  }
+  fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::SeriesDetails => self.app.data.sonarr_data.seasons.scroll_to_top(),
-      ActiveSonarrBlock::SearchSeason => self
-        .app
-        .data
-        .sonarr_data
-        .seasons
-        .search
-        .as_mut()
-        .unwrap()
-        .scroll_home(),
-      ActiveSonarrBlock::SearchSeriesHistory => self
-        .app
-        .data
-        .sonarr_data
-        .series_history
-        .as_mut()
-        .unwrap()
-        .search
-        .as_mut()
-        .unwrap()
-        .scroll_home(),
-      ActiveSonarrBlock::FilterSeriesHistory => self
-        .app
-        .data
-        .sonarr_data
-        .series_history
-        .as_mut()
-        .unwrap()
-        .filter
-        .as_mut()
-        .unwrap()
-        .scroll_home(),
-      ActiveSonarrBlock::SeriesHistory => self
-        .app
-        .data
-        .sonarr_data
-        .series_history
-        .as_mut()
-        .unwrap()
-        .scroll_to_top(),
-      ActiveSonarrBlock::SeriesHistorySortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .series_history
-        .as_mut()
-        .unwrap()
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_top(),
-      _ => (),
-    }
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::SeriesDetails => self.app.data.sonarr_data.seasons.scroll_to_bottom(),
-      ActiveSonarrBlock::SearchSeason => self
-        .app
-        .data
-        .sonarr_data
-        .seasons
-        .search
-        .as_mut()
-        .unwrap()
-        .reset_offset(),
-      ActiveSonarrBlock::SearchSeriesHistory => self
-        .app
-        .data
-        .sonarr_data
-        .series_history
-        .as_mut()
-        .unwrap()
-        .search
-        .as_mut()
-        .unwrap()
-        .reset_offset(),
-      ActiveSonarrBlock::FilterSeriesHistory => self
-        .app
-        .data
-        .sonarr_data
-        .series_history
-        .as_mut()
-        .unwrap()
-        .filter
-        .as_mut()
-        .unwrap()
-        .reset_offset(),
-      ActiveSonarrBlock::SeriesHistory => self
-        .app
-        .data
-        .sonarr_data
-        .series_history
-        .as_mut()
-        .unwrap()
-        .scroll_to_bottom(),
-      ActiveSonarrBlock::SeriesHistorySortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .series_history
-        .as_mut()
-        .unwrap()
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_bottom(),
-      _ => (),
-    }
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {}
 
@@ -292,147 +182,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
 
         self.app.pop_navigation_stack();
       }
-      ActiveSonarrBlock::SearchSeason => {
-        self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
-
-        if self.app.data.sonarr_data.seasons.search.is_some() {
-          let has_match = self.app.data.sonarr_data.seasons.apply_search(|season| {
-            season
-              .title
-              .as_ref()
-              .expect("Season was not populated with title in handlers")
-          });
-
-          if !has_match {
-            self
-              .app
-              .push_navigation_stack(ActiveSonarrBlock::SearchSeasonError.into());
-          }
-        }
-      }
-      ActiveSonarrBlock::SearchSeriesHistory => {
-        self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
-
-        if self
-          .app
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .search
-          .is_some()
-        {
-          let has_match = self
-            .app
-            .data
-            .sonarr_data
-            .series_history
-            .as_mut()
-            .unwrap()
-            .apply_search(|history_item| &history_item.source_title.text);
-
-          if !has_match {
-            self
-              .app
-              .push_navigation_stack(ActiveSonarrBlock::SearchSeriesHistoryError.into());
-          }
-        }
-      }
-      ActiveSonarrBlock::FilterSeriesHistory => {
-        self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
-
-        if self
-          .app
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .filter
-          .is_some()
-        {
-          let has_matches = self
-            .app
-            .data
-            .sonarr_data
-            .series_history
-            .as_mut()
-            .unwrap()
-            .apply_filter(|history_item| &history_item.source_title.text);
-
-          if !has_matches {
-            self
-              .app
-              .push_navigation_stack(ActiveSonarrBlock::FilterSeriesHistoryError.into());
-          }
-        }
-      }
-      ActiveSonarrBlock::SeriesHistorySortPrompt => {
-        self
-          .app
-          .data
-          .sonarr_data
-          .series_history
-          .as_mut()
-          .unwrap()
-          .items
-          .sort_by(|a, b| a.id.cmp(&b.id));
-        self
-          .app
-          .data
-          .sonarr_data
-          .series_history
-          .as_mut()
-          .unwrap()
-          .apply_sorting();
-
-        self.app.pop_navigation_stack();
-      }
       _ => (),
     }
   }
 
   fn handle_esc(&mut self) {
     match self.active_sonarr_block {
-      ActiveSonarrBlock::SearchSeason | ActiveSonarrBlock::SearchSeasonError => {
-        self.app.pop_navigation_stack();
-        self.app.data.sonarr_data.seasons.reset_search();
-        self.app.should_ignore_quit_key = false;
-      }
-      ActiveSonarrBlock::SearchSeriesHistory | ActiveSonarrBlock::SearchSeriesHistoryError => {
-        self.app.pop_navigation_stack();
-        self
-          .app
-          .data
-          .sonarr_data
-          .series_history
-          .as_mut()
-          .unwrap()
-          .reset_search();
-        self.app.should_ignore_quit_key = false;
-      }
-      ActiveSonarrBlock::FilterSeriesHistory | ActiveSonarrBlock::FilterSeriesHistoryError => {
-        self.app.pop_navigation_stack();
-        self
-          .app
-          .data
-          .sonarr_data
-          .series_history
-          .as_mut()
-          .unwrap()
-          .reset_filter();
-        self.app.should_ignore_quit_key = false;
-      }
       ActiveSonarrBlock::UpdateAndScanSeriesPrompt
       | ActiveSonarrBlock::AutomaticallySearchSeriesPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.sonarr_data.prompt_confirm = false;
       }
-      ActiveSonarrBlock::SeriesHistoryDetails | ActiveSonarrBlock::SeriesHistorySortPrompt => {
+      ActiveSonarrBlock::SeriesHistoryDetails => {
         self.app.pop_navigation_stack();
       }
       ActiveSonarrBlock::SeriesHistory => {
@@ -474,13 +235,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         _ if key == DEFAULT_KEYBINDINGS.refresh.key => self
           .app
           .pop_and_push_navigation_stack(self.active_sonarr_block.into()),
-        _ if key == DEFAULT_KEYBINDINGS.search.key => {
-          self
-            .app
-            .push_navigation_stack(ActiveSonarrBlock::SearchSeason.into());
-          self.app.data.sonarr_data.seasons.search = Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
-        }
         _ if key == DEFAULT_KEYBINDINGS.auto_search.key => {
           self
             .app
@@ -514,55 +268,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
             .app
             .push_navigation_stack(ActiveSonarrBlock::AutomaticallySearchSeriesPrompt.into());
         }
-        _ if key == DEFAULT_KEYBINDINGS.search.key => {
-          self
-            .app
-            .push_navigation_stack(ActiveSonarrBlock::SearchSeriesHistory.into());
-          self
-            .app
-            .data
-            .sonarr_data
-            .series_history
-            .as_mut()
-            .expect("Series history should be populated")
-            .search = Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
-        }
-        _ if key == DEFAULT_KEYBINDINGS.filter.key => {
-          self
-            .app
-            .push_navigation_stack(ActiveSonarrBlock::FilterSeriesHistory.into());
-          self
-            .app
-            .data
-            .sonarr_data
-            .series_history
-            .as_mut()
-            .expect("Series history should be populated")
-            .reset_filter();
-          self
-            .app
-            .data
-            .sonarr_data
-            .series_history
-            .as_mut()
-            .expect("Series history should be populated")
-            .filter = Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
-        }
-        _ if key == DEFAULT_KEYBINDINGS.sort.key => {
-          self
-            .app
-            .data
-            .sonarr_data
-            .series_history
-            .as_mut()
-            .expect("Series history should be populated")
-            .sorting(history_sorting_options());
-          self
-            .app
-            .push_navigation_stack(ActiveSonarrBlock::SeriesHistorySortPrompt.into());
-        }
         _ if key == DEFAULT_KEYBINDINGS.edit.key => {
           self.app.push_navigation_stack(
             (
@@ -582,45 +287,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         }
         _ => (),
       },
-      ActiveSonarrBlock::SearchSeason => {
-        handle_text_box_keys!(
-          self,
-          key,
-          self.app.data.sonarr_data.seasons.search.as_mut().unwrap()
-        )
-      }
-      ActiveSonarrBlock::SearchSeriesHistory => {
-        handle_text_box_keys!(
-          self,
-          key,
-          self
-            .app
-            .data
-            .sonarr_data
-            .series_history
-            .as_mut()
-            .expect("Series history should be populated")
-            .search
-            .as_mut()
-            .unwrap()
-        )
-      }
-      ActiveSonarrBlock::FilterSeriesHistory => {
-        handle_text_box_keys!(
-          self,
-          key,
-          self
-            .app
-            .data
-            .sonarr_data
-            .series_history
-            .as_mut()
-            .expect("Series history should be populated")
-            .filter
-            .as_mut()
-            .unwrap()
-        )
-      }
       ActiveSonarrBlock::AutomaticallySearchSeriesPrompt => {
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.sonarr_data.prompt_confirm = true;

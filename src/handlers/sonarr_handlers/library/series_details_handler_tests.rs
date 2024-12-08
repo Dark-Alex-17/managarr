@@ -25,6 +25,7 @@ mod tests {
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.data.sonarr_data.seasons.set_items(vec![
         Season {
           season_number: 1,
@@ -66,6 +67,7 @@ mod tests {
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
       let mut series_history = StatefulTable::default();
       series_history.set_items(vec![
         SonarrHistoryItem {
@@ -184,6 +186,7 @@ mod tests {
     #[test]
     fn test_seasons_home_and_end() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.data.sonarr_data.seasons.set_items(vec![
         Season {
           season_number: 1,
@@ -239,6 +242,7 @@ mod tests {
     #[test]
     fn test_series_history_home_and_end() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
       let mut series_history = StatefulTable::default();
       series_history.set_items(vec![
         SonarrHistoryItem {
@@ -307,6 +311,8 @@ mod tests {
         .sonarr_data
         .seasons
         .set_items(vec![Season::default()]);
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
+      app.push_navigation_stack(ActiveSonarrBlock::SearchSeason.into());
       app.data.sonarr_data.seasons.search = Some("Test".into());
 
       SeriesDetailsHandler::with(
@@ -355,6 +361,8 @@ mod tests {
     #[test]
     fn test_series_history_search_box_home_end_keys() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
+      app.push_navigation_stack(ActiveSonarrBlock::SearchSeriesHistory.into());
       let mut series_history = StatefulTable::default();
       series_history.set_items(vec![SonarrHistoryItem::default()]);
       series_history.search = Some("Test".into());
@@ -410,6 +418,8 @@ mod tests {
     #[test]
     fn test_series_history_filter_box_home_end_keys() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
+      app.push_navigation_stack(ActiveSonarrBlock::FilterSeriesHistory.into());
       let mut series_history = StatefulTable::default();
       series_history.set_items(vec![SonarrHistoryItem::default()]);
       series_history.filter = Some("Test".into());
@@ -952,7 +962,7 @@ mod tests {
       let mut app = App::default();
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
-      app.push_navigation_stack(ActiveSonarrBlock::SearchSeriesHistory.into());
+      app.push_navigation_stack(ActiveSonarrBlock::FilterSeriesHistory.into());
       let mut series_history = StatefulTable::default();
       series_history.set_items(extended_stateful_iterable_vec!(
         SonarrHistoryItem,
@@ -1276,6 +1286,7 @@ mod tests {
     #[test]
     fn test_search_season_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app
         .data
         .sonarr_data
@@ -1331,6 +1342,7 @@ mod tests {
     #[test]
     fn test_search_series_history_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
       let mut series_history = StatefulTable::default();
       series_history.set_items(vec![SonarrHistoryItem::default()]);
       app.data.sonarr_data.series_history = Some(series_history);
@@ -1382,6 +1394,7 @@ mod tests {
     #[test]
     fn test_filter_series_history_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
       let mut series_history = StatefulTable::default();
       series_history.set_items(vec![SonarrHistoryItem::default()]);
       app.data.sonarr_data.series_history = Some(series_history);
