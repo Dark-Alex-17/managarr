@@ -344,6 +344,9 @@ mod test_utils {
       movie_details_modal
         .movie_history
         .set_items(vec![$crate::models::radarr_models::MovieHistoryItem::default()]);
+      movie_details_modal.movie_cast.set_items(vec![$crate::models::radarr_models::Credit::default()]);
+      movie_details_modal.movie_crew.set_items(vec![$crate::models::radarr_models::Credit::default()]);
+      movie_details_modal.movie_releases.set_items(vec![$crate::models::radarr_models::RadarrRelease::default()]);
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
       let mut series_history = $crate::models::stateful_table::StatefulTable::default();
       series_history.set_items(vec![

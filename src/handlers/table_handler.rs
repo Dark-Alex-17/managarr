@@ -216,9 +216,10 @@ macro_rules! handle_table_events {
           _ if props.sorting_block.is_some()
             && $self.app.get_current_route() == *props.sorting_block.as_ref().unwrap() =>
           {
-            let sort_by_fn = props.sort_by_fn.expect("Sort by function is required");
+            if let Some(sort_by_fn) = props.sort_by_fn {
+              $table.items.sort_by(sort_by_fn);
+            }
 
-            $table.items.sort_by(sort_by_fn);
             $table.apply_sorting();
             $self.app.pop_navigation_stack();
 

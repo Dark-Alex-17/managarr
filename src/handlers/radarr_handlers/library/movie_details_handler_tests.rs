@@ -135,6 +135,7 @@ mod tests {
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::MovieHistory.into());
       let mut movie_details_modal = MovieDetailsModal::default();
       movie_details_modal
         .movie_history
@@ -232,6 +233,7 @@ mod tests {
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Cast.into());
       let mut movie_details_modal = MovieDetailsModal::default();
       movie_details_modal
         .movie_cast
@@ -317,6 +319,7 @@ mod tests {
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Crew.into());
       let mut movie_details_modal = MovieDetailsModal::default();
       movie_details_modal
         .movie_crew
@@ -402,6 +405,7 @@ mod tests {
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::ManualSearch.into());
       let mut movie_details_modal = MovieDetailsModal::default();
       movie_details_modal
         .movie_releases
@@ -666,6 +670,7 @@ mod tests {
     #[test]
     fn test_movie_history_home_end() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::MovieHistory.into());
       let mut movie_details_modal = MovieDetailsModal::default();
       movie_details_modal
         .movie_history
@@ -783,6 +788,7 @@ mod tests {
     #[test]
     fn test_cast_home_end() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Cast.into());
       let mut movie_details_modal = MovieDetailsModal::default();
       movie_details_modal
         .movie_cast
@@ -888,6 +894,7 @@ mod tests {
     #[test]
     fn test_crew_home_end() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Crew.into());
       let mut movie_details_modal = MovieDetailsModal::default();
       movie_details_modal
         .movie_crew
@@ -993,6 +1000,7 @@ mod tests {
     #[test]
     fn test_manual_search_home_end() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::ManualSearch.into());
       let mut movie_details_modal = MovieDetailsModal::default();
       movie_details_modal
         .movie_releases
@@ -1430,12 +1438,12 @@ mod tests {
         ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
         ActiveRadarrBlock::UpdateAndScanPrompt,
         ActiveRadarrBlock::ManualSearchConfirmPrompt,
-        ActiveRadarrBlock::ManualSearchSortPrompt
       )]
       prompt_block: ActiveRadarrBlock,
       #[values(true, false)] is_ready: bool,
     ) {
       let mut app = App::default();
+      app.data.radarr_data = create_test_radarr_data();
       app.is_loading = is_ready;
       app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
@@ -1444,6 +1452,18 @@ mod tests {
       MovieDetailsHandler::with(ESC_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+    }
+
+    #[rstest]
+    fn test_manual_search_sort_prompt_esc() {
+      let mut app = App::default();
+      app.data.radarr_data = create_test_radarr_data();
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      app.push_navigation_stack(ActiveRadarrBlock::ManualSearchSortPrompt.into());
+
+      MovieDetailsHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::ManualSearchSortPrompt, None).handle();
+
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
     }
   }
@@ -1542,6 +1562,7 @@ mod tests {
     #[test]
     fn test_sort_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::ManualSearch.into());
       let mut modal = MovieDetailsModal::default();
       modal.movie_releases.set_items(release_vec());
       app.data.radarr_data.movie_details_modal = Some(modal);
