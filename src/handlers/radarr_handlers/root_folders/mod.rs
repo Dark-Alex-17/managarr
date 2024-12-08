@@ -2,11 +2,13 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
+use crate::handlers::table_handler::TableHandlingProps;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
+use crate::models::servarr_models::RootFolder;
 use crate::models::{HorizontallyScrollableText, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::{handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys};
 
 #[cfg(test)]
 #[path = "root_folders_handler_tests.rs"]
@@ -19,7 +21,25 @@ pub(super) struct RootFoldersHandler<'a, 'b> {
   _context: Option<ActiveRadarrBlock>,
 }
 
+impl<'a, 'b> RootFoldersHandler<'a, 'b> {
+  handle_table_events!(
+    self,
+    root_folders,
+    self.app.data.radarr_data.root_folders,
+    RootFolder
+  );
+}
+
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'a, 'b> {
+  fn handle(&mut self) {
+    let root_folder_table_handling_props =
+      TableHandlingProps::new(ActiveRadarrBlock::RootFolders.into());
+
+    if !self.handle_root_folders_table_events(root_folder_table_handling_props) {
+      self.handle_key_event();
+    }
+  }
+
   fn accepts(active_block: ActiveRadarrBlock) -> bool {
     ROOT_FOLDERS_BLOCKS.contains(&active_block)
   }
@@ -46,45 +66,33 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
     !self.app.is_loading && !self.app.data.radarr_data.root_folders.is_empty()
   }
 
-  fn handle_scroll_up(&mut self) {
-    if self.active_radarr_block == ActiveRadarrBlock::RootFolders {
-      self.app.data.radarr_data.root_folders.scroll_up()
-    }
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-    if self.active_radarr_block == ActiveRadarrBlock::RootFolders {
-      self.app.data.radarr_data.root_folders.scroll_down()
-    }
-  }
+  fn handle_scroll_down(&mut self) {}
 
   fn handle_home(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::RootFolders => self.app.data.radarr_data.root_folders.scroll_to_top(),
-      ActiveRadarrBlock::AddRootFolderPrompt => self
+    if self.active_radarr_block == ActiveRadarrBlock::AddRootFolderPrompt {
+      self
         .app
         .data
         .radarr_data
         .edit_root_folder
         .as_mut()
         .unwrap()
-        .scroll_home(),
-      _ => (),
+        .scroll_home()
     }
   }
 
   fn handle_end(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::RootFolders => self.app.data.radarr_data.root_folders.scroll_to_bottom(),
-      ActiveRadarrBlock::AddRootFolderPrompt => self
+    if self.active_radarr_block == ActiveRadarrBlock::AddRootFolderPrompt {
+      self
         .app
         .data
         .radarr_data
         .edit_root_folder
         .as_mut()
         .unwrap()
-        .reset_offset(),
-      _ => (),
+        .reset_offset()
     }
   }
 
