@@ -92,7 +92,7 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
     desc: "search",
   },
   settings: KeyBinding {
-    key: Key::Char('s'),
+    key: Key::Char('S'),
     desc: "settings",
   },
   filter: KeyBinding {

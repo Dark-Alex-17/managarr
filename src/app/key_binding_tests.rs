@@ -18,7 +18,7 @@ mod test {
   #[case(DEFAULT_KEYBINDINGS.clear, Key::Char('c'), "clear")]
   #[case(DEFAULT_KEYBINDINGS.auto_search, Key::Char('S'), "auto search")]
   #[case(DEFAULT_KEYBINDINGS.search, Key::Char('s'), "search")]
-  #[case(DEFAULT_KEYBINDINGS.settings, Key::Char('s'), "settings")]
+  #[case(DEFAULT_KEYBINDINGS.settings, Key::Char('S'), "settings")]
   #[case(DEFAULT_KEYBINDINGS.filter, Key::Char('f'), "filter")]
   #[case(DEFAULT_KEYBINDINGS.sort, Key::Char('o'), "sort")]
   #[case(DEFAULT_KEYBINDINGS.edit, Key::Char('e'), "edit")]

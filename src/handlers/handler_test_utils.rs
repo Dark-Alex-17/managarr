@@ -340,6 +340,11 @@ mod test_utils {
       app.data.radarr_data.collection_movies.set_items(vec![$crate::models::radarr_models::CollectionMovie::default()]);
       app.data.radarr_data.indexers.set_items(vec![$crate::models::servarr_models::Indexer::default()]);
       app.data.radarr_data.root_folders.set_items(vec![$crate::models::servarr_models::RootFolder::default()]);
+      let mut movie_details_modal = $crate::models::servarr_data::radarr::modals::MovieDetailsModal::default();
+      movie_details_modal
+        .movie_history
+        .set_items(vec![$crate::models::radarr_models::MovieHistoryItem::default()]);
+      app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
       let mut series_history = $crate::models::stateful_table::StatefulTable::default();
       series_history.set_items(vec![
         $crate::models::sonarr_models::SonarrHistoryItem::default(),

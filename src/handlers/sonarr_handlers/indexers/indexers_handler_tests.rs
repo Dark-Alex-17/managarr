@@ -515,6 +515,7 @@ mod tests {
     #[test]
     fn test_indexer_settings_key() {
       let mut app = App::default();
+      app.data.sonarr_data.indexers.set_items(vec![Indexer::default()]);
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data
