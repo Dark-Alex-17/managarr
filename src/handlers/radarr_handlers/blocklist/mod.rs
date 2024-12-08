@@ -1,7 +1,9 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
+use crate::handle_table_events;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
+use crate::handlers::table_handler::TableHandlingProps;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::radarr_models::BlocklistItem;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, BLOCKLIST_BLOCKS};
@@ -20,7 +22,28 @@ pub(super) struct BlocklistHandler<'a, 'b> {
   _context: Option<ActiveRadarrBlock>,
 }
 
+impl<'a, 'b> BlocklistHandler<'a, 'b> {
+  handle_table_events!(
+    self,
+    blocklist,
+    self.app.data.radarr_data.blocklist,
+    BlocklistItem
+  );
+}
+
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a, 'b> {
+  fn handle(&mut self) {
+    let blocklist_table_handling_props =
+      TableHandlingProps::new(ActiveRadarrBlock::Blocklist.into())
+        .sorting_block(ActiveRadarrBlock::BlocklistSortPrompt.into())
+        .sort_by_fn(|a: &BlocklistItem, b: &BlocklistItem| a.id.cmp(&b.id))
+        .sort_options(blocklist_sorting_options());
+
+    if !self.handle_blocklist_table_events(blocklist_table_handling_props) {
+      self.handle_key_event();
+    }
+  }
+
   fn accepts(active_block: ActiveRadarrBlock) -> bool {
     BLOCKLIST_BLOCKS.contains(&active_block)
   }
@@ -47,69 +70,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
     !self.app.is_loading && !self.app.data.radarr_data.blocklist.is_empty()
   }
 
-  fn handle_scroll_up(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::Blocklist => self.app.data.radarr_data.blocklist.scroll_up(),
-      ActiveRadarrBlock::BlocklistSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .blocklist
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_up(),
-      _ => (),
-    }
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::Blocklist => self.app.data.radarr_data.blocklist.scroll_down(),
-      ActiveRadarrBlock::BlocklistSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .blocklist
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_down(),
-      _ => (),
-    }
-  }
+  fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::Blocklist => self.app.data.radarr_data.blocklist.scroll_to_top(),
-      ActiveRadarrBlock::BlocklistSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .blocklist
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_top(),
-      _ => (),
-    }
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::Blocklist => self.app.data.radarr_data.blocklist.scroll_to_bottom(),
-      ActiveRadarrBlock::BlocklistSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .blocklist
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_bottom(),
-      _ => (),
-    }
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {
     if self.active_radarr_block == ActiveRadarrBlock::Blocklist {
@@ -145,18 +112,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
 
         self.app.pop_navigation_stack();
       }
-      ActiveRadarrBlock::BlocklistSortPrompt => {
-        self
-          .app
-          .data
-          .radarr_data
-          .blocklist
-          .items
-          .sort_by(|a, b| a.id.cmp(&b.id));
-        self.app.data.radarr_data.blocklist.apply_sorting();
-
-        self.app.pop_navigation_stack();
-      }
       ActiveRadarrBlock::Blocklist => {
         self
           .app
@@ -173,7 +128,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.prompt_confirm = false;
       }
-      ActiveRadarrBlock::BlocklistItemDetails | ActiveRadarrBlock::BlocklistSortPrompt => {
+      ActiveRadarrBlock::BlocklistItemDetails => {
         self.app.pop_navigation_stack();
       }
       _ => handle_clear_errors(self.app),
@@ -191,17 +146,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::BlocklistClearAllItemsPrompt.into());
-        }
-        _ if key == DEFAULT_KEYBINDINGS.sort.key => {
-          self
-            .app
-            .data
-            .radarr_data
-            .blocklist
-            .sorting(blocklist_sorting_options());
-          self
-            .app
-            .push_navigation_stack(ActiveRadarrBlock::BlocklistSortPrompt.into());
         }
         _ => (),
       },

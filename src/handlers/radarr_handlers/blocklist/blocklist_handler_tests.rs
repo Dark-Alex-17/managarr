@@ -520,6 +520,7 @@ mod tests {
     #[test]
     fn test_blocklist_sort_prompt_block_esc() {
       let mut app = App::default();
+      app.data.radarr_data.blocklist.set_items(vec![BlocklistItem::default()]);
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.push_navigation_stack(ActiveRadarrBlock::BlocklistSortPrompt.into());
 
@@ -634,6 +635,7 @@ mod tests {
     #[test]
     fn test_sort_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
 
       BlocklistHandler::with(
