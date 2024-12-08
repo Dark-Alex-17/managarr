@@ -14,7 +14,6 @@ use crate::models::servarr_data::sonarr::sonarr_data::{
 };
 use crate::models::servarr_models::Indexer;
 use crate::models::BlockSelectionState;
-use crate::models::HorizontallyScrollableText;
 use crate::models::Scrollable;
 use crate::network::sonarr_network::SonarrEvent;
 

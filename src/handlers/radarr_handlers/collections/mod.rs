@@ -1,6 +1,7 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
+use crate::handle_table_events;
 use crate::handlers::radarr_handlers::collections::collection_details_handler::CollectionDetailsHandler;
 use crate::handlers::radarr_handlers::collections::edit_collection_handler::EditCollectionHandler;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
@@ -11,9 +12,8 @@ use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTIONS_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
 };
 use crate::models::stateful_table::SortOption;
-use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
+use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
-use crate::handle_table_events;
 
 mod collection_details_handler;
 mod edit_collection_handler;
@@ -30,27 +30,38 @@ pub(super) struct CollectionsHandler<'a, 'b> {
 }
 
 impl<'a, 'b> CollectionsHandler<'a, 'b> {
-  handle_table_events!(self, collections, self.app.data.radarr_data.collections, Collection);
+  handle_table_events!(
+    self,
+    collections,
+    self.app.data.radarr_data.collections,
+    Collection
+  );
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'a, 'b> {
   fn handle(&mut self) {
-    let collections_table_handling_props = TableHandlingProps::new(ActiveRadarrBlock::Collections.into())
-      .sorting_block(ActiveRadarrBlock::CollectionsSortPrompt.into())
-      .sort_by_fn(|a: &Collection, b: &Collection| a.id.cmp(&b.id))
-      .sort_options(collections_sorting_options())
-      .searching_block(ActiveRadarrBlock::SearchCollection.into())
-      .search_error_block(ActiveRadarrBlock::SearchCollectionError.into())
-      .search_field_fn(|collection| &collection.title.text)
-      .filtering_block(ActiveRadarrBlock::FilterCollections.into())
-      .filter_error_block(ActiveRadarrBlock::FilterCollectionsError.into())
-      .filter_field_fn(|collection| &collection.title.text);
-    
+    let collections_table_handling_props =
+      TableHandlingProps::new(ActiveRadarrBlock::Collections.into())
+        .sorting_block(ActiveRadarrBlock::CollectionsSortPrompt.into())
+        .sort_by_fn(|a: &Collection, b: &Collection| a.id.cmp(&b.id))
+        .sort_options(collections_sorting_options())
+        .searching_block(ActiveRadarrBlock::SearchCollection.into())
+        .search_error_block(ActiveRadarrBlock::SearchCollectionError.into())
+        .search_field_fn(|collection| &collection.title.text)
+        .filtering_block(ActiveRadarrBlock::FilterCollections.into())
+        .filter_error_block(ActiveRadarrBlock::FilterCollectionsError.into())
+        .filter_field_fn(|collection| &collection.title.text);
+
     if !self.handle_collections_table_events(collections_table_handling_props) {
       match self.active_radarr_block {
         _ if CollectionDetailsHandler::accepts(self.active_radarr_block) => {
-          CollectionDetailsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
-            .handle();
+          CollectionDetailsHandler::with(
+            self.key,
+            self.app,
+            self.active_radarr_block,
+            self.context,
+          )
+          .handle();
         }
         _ if EditCollectionHandler::accepts(self.active_radarr_block) => {
           EditCollectionHandler::with(self.key, self.app, self.active_radarr_block, self.context)
@@ -89,17 +100,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
     !self.app.is_loading && !self.app.data.radarr_data.collections.is_empty()
   }
 
-  fn handle_scroll_up(&mut self) {
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-  }
+  fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {}
 

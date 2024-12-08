@@ -1,14 +1,13 @@
-use crate::models::HorizontallyScrollableText;
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handle_table_events;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
-use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DOWNLOADS_BLOCKS};
-use crate::models::Scrollable;
 use crate::models::sonarr_models::DownloadRecord;
+use crate::models::Scrollable;
 use crate::network::sonarr_network::SonarrEvent;
 
 #[cfg(test)]
@@ -23,18 +22,24 @@ pub(super) struct DownloadsHandler<'a, 'b> {
 }
 
 impl<'a, 'b> DownloadsHandler<'a, 'b> {
-  handle_table_events!(self, downloads, self.app.data.sonarr_data.downloads, DownloadRecord);
+  handle_table_events!(
+    self,
+    downloads,
+    self.app.data.sonarr_data.downloads,
+    DownloadRecord
+  );
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DownloadsHandler<'a, 'b> {
   fn handle(&mut self) {
-    let download_table_handling_props = TableHandlingProps::new(ActiveSonarrBlock::Downloads.into());
-    
+    let download_table_handling_props =
+      TableHandlingProps::new(ActiveSonarrBlock::Downloads.into());
+
     if !self.handle_downloads_table_events(download_table_handling_props) {
       self.handle_key_event();
     }
   }
-  
+
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     DOWNLOADS_BLOCKS.contains(&active_block)
   }
@@ -61,17 +66,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DownloadsHandler<'a,
     !self.app.is_loading && !self.app.data.sonarr_data.downloads.is_empty()
   }
 
-  fn handle_scroll_up(&mut self) {
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-  }
+  fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {
     if self.active_sonarr_block == ActiveSonarrBlock::Downloads {

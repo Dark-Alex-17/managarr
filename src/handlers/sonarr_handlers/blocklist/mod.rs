@@ -3,12 +3,12 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handle_table_events;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
-use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, BLOCKLIST_BLOCKS};
 use crate::models::sonarr_models::BlocklistItem;
 use crate::models::stateful_table::SortOption;
-use crate::models::{Scrollable, HorizontallyScrollableText};
+use crate::models::Scrollable;
 use crate::network::sonarr_network::SonarrEvent;
 
 #[cfg(test)]
@@ -23,21 +23,27 @@ pub(super) struct BlocklistHandler<'a, 'b> {
 }
 
 impl<'a, 'b> BlocklistHandler<'a, 'b> {
-  handle_table_events!(self, blocklist, self.app.data.sonarr_data.blocklist, BlocklistItem);
+  handle_table_events!(
+    self,
+    blocklist,
+    self.app.data.sonarr_data.blocklist,
+    BlocklistItem
+  );
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for BlocklistHandler<'a, 'b> {
   fn handle(&mut self) {
-    let blocklist_table_handling_props = TableHandlingProps::new(ActiveSonarrBlock::Blocklist.into())
-      .sorting_block(ActiveSonarrBlock::BlocklistSortPrompt.into())
-      .sort_by_fn(|a: &BlocklistItem, b: &BlocklistItem| a.id.cmp(&b.id))
-      .sort_options(blocklist_sorting_options());
-    
+    let blocklist_table_handling_props =
+      TableHandlingProps::new(ActiveSonarrBlock::Blocklist.into())
+        .sorting_block(ActiveSonarrBlock::BlocklistSortPrompt.into())
+        .sort_by_fn(|a: &BlocklistItem, b: &BlocklistItem| a.id.cmp(&b.id))
+        .sort_options(blocklist_sorting_options());
+
     if !self.handle_blocklist_table_events(blocklist_table_handling_props) {
       self.handle_key_event();
     }
   }
-  
+
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     BLOCKLIST_BLOCKS.contains(&active_block)
   }

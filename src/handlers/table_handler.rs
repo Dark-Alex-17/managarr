@@ -319,7 +319,7 @@ macro_rules! handle_table_events {
             .app
             .push_navigation_stack(props.filtering_block.expect("Filtering block is undefined").into());
           $table.reset_filter();
-          $table.filter = Some(HorizontallyScrollableText::default());
+          $table.filter = Some($crate::models::HorizontallyScrollableText::default());
           $self.app.should_ignore_quit_key = true;
 
           true
@@ -333,7 +333,7 @@ macro_rules! handle_table_events {
           $self
             .app
             .push_navigation_stack(props.searching_block.expect("Searching block is undefined"));
-          $table.search = Some(HorizontallyScrollableText::default());
+          $table.search = Some($crate::models::HorizontallyScrollableText::default());
           $self.app.should_ignore_quit_key = true;
 
           true

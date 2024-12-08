@@ -1,4 +1,3 @@
-use crate::models::HorizontallyScrollableText;
 use serde_json::Number;
 
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -54,8 +53,32 @@ impl<'a, 'b> MovieDetailsHandler<'a, 'b> {
       .movie_history,
     MovieHistoryItem
   );
-  handle_table_events!(self, movie_cast, self.app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_cast, Credit);
-  handle_table_events!(self, movie_crew, self.app.data.radarr_data.movie_details_modal.as_mut().unwrap().movie_crew, Credit);
+  handle_table_events!(
+    self,
+    movie_cast,
+    self
+      .app
+      .data
+      .radarr_data
+      .movie_details_modal
+      .as_mut()
+      .unwrap()
+      .movie_cast,
+    Credit
+  );
+  handle_table_events!(
+    self,
+    movie_crew,
+    self
+      .app
+      .data
+      .radarr_data
+      .movie_details_modal
+      .as_mut()
+      .unwrap()
+      .movie_crew,
+    Credit
+  );
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<'a, 'b> {
@@ -66,8 +89,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       TableHandlingProps::new(ActiveRadarrBlock::ManualSearch.into())
         .sorting_block(ActiveRadarrBlock::ManualSearchSortPrompt.into())
         .sort_options(releases_sorting_options());
-    let movie_cast_table_handling_props =
-      TableHandlingProps::new(ActiveRadarrBlock::Cast.into());
+    let movie_cast_table_handling_props = TableHandlingProps::new(ActiveRadarrBlock::Cast.into());
     let movie_crew_table_handling_props = TableHandlingProps::new(ActiveRadarrBlock::Crew.into());
 
     if !self.handle_movie_history_table_events(movie_history_table_handling_props)
@@ -127,8 +149,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
   }
 
   fn handle_scroll_up(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::MovieDetails => self
+    if self.active_radarr_block == ActiveRadarrBlock::MovieDetails {
+      self
         .app
         .data
         .radarr_data
@@ -136,14 +158,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         .as_mut()
         .unwrap()
         .movie_details
-        .scroll_up(),
-      _ => (),
+        .scroll_up()
     }
   }
 
   fn handle_scroll_down(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::MovieDetails => self
+    if self.active_radarr_block == ActiveRadarrBlock::MovieDetails {
+      self
         .app
         .data
         .radarr_data
@@ -151,14 +172,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         .as_mut()
         .unwrap()
         .movie_details
-        .scroll_down(),
-      _ => (),
+        .scroll_down()
     }
   }
 
   fn handle_home(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::MovieDetails => self
+    if self.active_radarr_block == ActiveRadarrBlock::MovieDetails {
+      self
         .app
         .data
         .radarr_data
@@ -166,14 +186,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         .as_mut()
         .unwrap()
         .movie_details
-        .scroll_to_top(),
-      _ => (),
+        .scroll_to_top()
     }
   }
 
   fn handle_end(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::MovieDetails => self
+    if let ActiveRadarrBlock::MovieDetails = self.active_radarr_block {
+      self
         .app
         .data
         .radarr_data
@@ -181,8 +200,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         .as_mut()
         .unwrap()
         .movie_details
-        .scroll_to_bottom(),
-      _ => (),
+        .scroll_to_bottom()
     }
   }
 

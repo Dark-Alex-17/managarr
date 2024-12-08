@@ -1,14 +1,14 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
+use crate::handle_table_events;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::TableHandlingProps;
 use crate::handlers::{handle_clear_errors, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTORY_BLOCKS};
 use crate::models::sonarr_models::SonarrHistoryItem;
 use crate::models::stateful_table::SortOption;
-use crate::models::{HorizontallyScrollableText, Scrollable};
-use crate::handle_table_events;
+use crate::models::Scrollable;
 
 #[cfg(test)]
 #[path = "history_handler_tests.rs"]
@@ -85,9 +85,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, '
   fn handle_delete(&mut self) {}
 
   fn handle_left_right_action(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::History => handle_change_tab_left_right_keys(self.app, self.key),
-      _ => {}
+    if self.active_sonarr_block == ActiveSonarrBlock::History {
+      handle_change_tab_left_right_keys(self.app, self.key)
     }
   }
 

@@ -1,7 +1,10 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
+use crate::handle_table_events;
+use crate::handlers::table_handler::TableHandlingProps;
 use crate::handlers::KeyEventHandler;
+use crate::models::radarr_models::CollectionMovie;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, ADD_MOVIE_SELECTION_BLOCKS, COLLECTION_DETAILS_BLOCKS,
   EDIT_COLLECTION_SELECTION_BLOCKS,
@@ -20,7 +23,25 @@ pub(super) struct CollectionDetailsHandler<'a, 'b> {
   _context: Option<ActiveRadarrBlock>,
 }
 
+impl<'a, 'b> CollectionDetailsHandler<'a, 'b> {
+  handle_table_events!(
+    self,
+    collection_movies,
+    self.app.data.radarr_data.collection_movies,
+    CollectionMovie
+  );
+}
+
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHandler<'a, 'b> {
+  fn handle(&mut self) {
+    let collection_movies_table_handling_props =
+      TableHandlingProps::new(ActiveRadarrBlock::CollectionDetails.into());
+
+    if !self.handle_collection_movies_table_events(collection_movies_table_handling_props) {
+      self.handle_key_event();
+    }
+  }
+
   fn accepts(active_block: ActiveRadarrBlock) -> bool {
     COLLECTION_DETAILS_BLOCKS.contains(&active_block)
   }

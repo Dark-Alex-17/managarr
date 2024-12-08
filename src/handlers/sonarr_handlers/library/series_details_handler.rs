@@ -9,7 +9,7 @@ use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, EDIT_SERIES_SELECTION_BLOCKS, SERIES_DETAILS_BLOCKS,
 };
 use crate::models::sonarr_models::{Season, SonarrHistoryItem};
-use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
+use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::sonarr_network::SonarrEvent;
 
 #[cfg(test)]
