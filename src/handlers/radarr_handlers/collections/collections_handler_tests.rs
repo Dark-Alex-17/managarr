@@ -218,6 +218,7 @@ mod tests {
     #[test]
     fn test_collection_search_box_home_end_keys() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
       app
         .data
         .radarr_data
@@ -271,6 +272,7 @@ mod tests {
     #[test]
     fn test_collection_filter_box_home_end_keys() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
       app
         .data
         .radarr_data
@@ -447,6 +449,8 @@ mod tests {
     #[test]
     fn test_collection_search_box_left_right_keys() {
       let mut app = App::default();
+      app.data.radarr_data.collections.set_items(vec![Collection::default()]);
+      app.push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
       app.data.radarr_data.collections.search = Some("Test".into());
 
       CollectionsHandler::with(
@@ -495,6 +499,8 @@ mod tests {
     #[test]
     fn test_collection_filter_box_left_right_keys() {
       let mut app = App::default();
+      app.data.radarr_data.collections.set_items(vec![Collection::default()]);
+      app.push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
       app.data.radarr_data.collections.filter = Some("Test".into());
 
       CollectionsHandler::with(
@@ -932,6 +938,7 @@ mod tests {
         filtered_state: Some(TableState::default()),
         ..StatefulTable::default()
       };
+      app.data.radarr_data.collections.set_items(vec![Collection::default()]);
 
       CollectionsHandler::with(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
@@ -970,6 +977,7 @@ mod tests {
     #[test]
     fn test_collections_sort_prompt_block_esc() {
       let mut app = App::default();
+      app.data.radarr_data.collections.set_items(vec![Collection::default()]);
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::CollectionsSortPrompt.into());
 
@@ -995,13 +1003,6 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.data.radarr_data = create_test_radarr_data();
-      app.data.radarr_data.collections = StatefulTable {
-        search: Some("Test".into()),
-        filter: Some("Test".into()),
-        filtered_items: Some(Vec::new()),
-        filtered_state: Some(TableState::default()),
-        ..StatefulTable::default()
-      };
 
       CollectionsHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::Collections, None).handle();
 
@@ -1010,10 +1011,6 @@ mod tests {
         ActiveRadarrBlock::Collections.into()
       );
       assert!(app.error.text.is_empty());
-      assert_eq!(app.data.radarr_data.collections.search, None);
-      assert_eq!(app.data.radarr_data.collections.filter, None);
-      assert_eq!(app.data.radarr_data.collections.filtered_items, None);
-      assert_eq!(app.data.radarr_data.collections.filtered_state, None);
     }
   }
 
@@ -1035,6 +1032,7 @@ mod tests {
     #[test]
     fn test_search_collections_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app
         .data
         .radarr_data
@@ -1090,6 +1088,7 @@ mod tests {
     #[test]
     fn test_filter_collections_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app
         .data
         .radarr_data
@@ -1315,6 +1314,7 @@ mod tests {
     #[test]
     fn test_search_collections_box_backspace_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
       app
         .data
         .radarr_data
@@ -1346,6 +1346,7 @@ mod tests {
     #[test]
     fn test_filter_collections_box_backspace_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
       app
         .data
         .radarr_data
@@ -1377,6 +1378,7 @@ mod tests {
     #[test]
     fn test_search_collections_box_char_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
       app
         .data
         .radarr_data
@@ -1408,6 +1410,7 @@ mod tests {
     #[test]
     fn test_filter_collections_box_char_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
       app
         .data
         .radarr_data
@@ -1439,6 +1442,7 @@ mod tests {
     #[test]
     fn test_sort_key() {
       let mut app = App::default();
+      app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app
         .data
         .radarr_data

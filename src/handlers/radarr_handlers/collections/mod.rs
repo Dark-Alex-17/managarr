@@ -4,6 +4,7 @@ use crate::event::Key;
 use crate::handlers::radarr_handlers::collections::collection_details_handler::CollectionDetailsHandler;
 use crate::handlers::radarr_handlers::collections::edit_collection_handler::EditCollectionHandler;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
+use crate::handlers::table_handler::TableHandlingProps;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::radarr_models::Collection;
 use crate::models::servarr_data::radarr::radarr_data::{
@@ -12,7 +13,7 @@ use crate::models::servarr_data::radarr::radarr_data::{
 use crate::models::stateful_table::SortOption;
 use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::handle_table_events;
 
 mod collection_details_handler;
 mod edit_collection_handler;
@@ -28,18 +29,35 @@ pub(super) struct CollectionsHandler<'a, 'b> {
   context: Option<ActiveRadarrBlock>,
 }
 
+impl<'a, 'b> CollectionsHandler<'a, 'b> {
+  handle_table_events!(self, collections, self.app.data.radarr_data.collections, Collection);
+}
+
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'a, 'b> {
   fn handle(&mut self) {
-    match self.active_radarr_block {
-      _ if CollectionDetailsHandler::accepts(self.active_radarr_block) => {
-        CollectionDetailsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
-          .handle();
+    let collections_table_handling_props = TableHandlingProps::new(ActiveRadarrBlock::Collections.into())
+      .sorting_block(ActiveRadarrBlock::CollectionsSortPrompt.into())
+      .sort_by_fn(|a: &Collection, b: &Collection| a.id.cmp(&b.id))
+      .sort_options(collections_sorting_options())
+      .searching_block(ActiveRadarrBlock::SearchCollection.into())
+      .search_error_block(ActiveRadarrBlock::SearchCollectionError.into())
+      .search_field_fn(|collection| &collection.title.text)
+      .filtering_block(ActiveRadarrBlock::FilterCollections.into())
+      .filter_error_block(ActiveRadarrBlock::FilterCollectionsError.into())
+      .filter_field_fn(|collection| &collection.title.text);
+    
+    if !self.handle_collections_table_events(collections_table_handling_props) {
+      match self.active_radarr_block {
+        _ if CollectionDetailsHandler::accepts(self.active_radarr_block) => {
+          CollectionDetailsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+            .handle();
+        }
+        _ if EditCollectionHandler::accepts(self.active_radarr_block) => {
+          EditCollectionHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+            .handle();
+        }
+        _ => self.handle_key_event(),
       }
-      _ if EditCollectionHandler::accepts(self.active_radarr_block) => {
-        EditCollectionHandler::with(self.key, self.app, self.active_radarr_block, self.context)
-          .handle();
-      }
-      _ => self.handle_key_event(),
     }
   }
 
@@ -72,103 +90,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
   }
 
   fn handle_scroll_up(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::Collections => self.app.data.radarr_data.collections.scroll_up(),
-      ActiveRadarrBlock::CollectionsSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .collections
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_up(),
-      _ => (),
-    }
   }
 
   fn handle_scroll_down(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::Collections => self.app.data.radarr_data.collections.scroll_down(),
-      ActiveRadarrBlock::CollectionsSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .collections
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_down(),
-      _ => (),
-    }
   }
 
   fn handle_home(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::Collections => self.app.data.radarr_data.collections.scroll_to_top(),
-      ActiveRadarrBlock::SearchCollection => self
-        .app
-        .data
-        .radarr_data
-        .collections
-        .search
-        .as_mut()
-        .unwrap()
-        .scroll_home(),
-      ActiveRadarrBlock::FilterCollections => self
-        .app
-        .data
-        .radarr_data
-        .collections
-        .filter
-        .as_mut()
-        .unwrap()
-        .scroll_home(),
-      ActiveRadarrBlock::CollectionsSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .collections
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_top(),
-      _ => (),
-    }
   }
 
   fn handle_end(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::Collections => self.app.data.radarr_data.collections.scroll_to_bottom(),
-      ActiveRadarrBlock::SearchCollection => self
-        .app
-        .data
-        .radarr_data
-        .collections
-        .search
-        .as_mut()
-        .unwrap()
-        .reset_offset(),
-      ActiveRadarrBlock::FilterCollections => self
-        .app
-        .data
-        .radarr_data
-        .collections
-        .filter
-        .as_mut()
-        .unwrap()
-        .reset_offset(),
-      ActiveRadarrBlock::CollectionsSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .collections
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_bottom(),
-      _ => (),
-    }
   }
 
   fn handle_delete(&mut self) {}
@@ -177,34 +107,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
     match self.active_radarr_block {
       ActiveRadarrBlock::Collections => handle_change_tab_left_right_keys(self.app, self.key),
       ActiveRadarrBlock::UpdateAllCollectionsPrompt => handle_prompt_toggle(self.app, self.key),
-      ActiveRadarrBlock::SearchCollection => {
-        handle_text_box_left_right_keys!(
-          self,
-          self.key,
-          self
-            .app
-            .data
-            .radarr_data
-            .collections
-            .search
-            .as_mut()
-            .unwrap()
-        )
-      }
-      ActiveRadarrBlock::FilterCollections => {
-        handle_text_box_left_right_keys!(
-          self,
-          self.key,
-          self
-            .app
-            .data
-            .radarr_data
-            .collections
-            .filter
-            .as_mut()
-            .unwrap()
-        )
-      }
       _ => (),
     }
   }
@@ -214,60 +116,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
       ActiveRadarrBlock::Collections => self
         .app
         .push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into()),
-      ActiveRadarrBlock::SearchCollection => {
-        self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
-
-        if self.app.data.radarr_data.collections.search.is_some() {
-          let has_match = self
-            .app
-            .data
-            .radarr_data
-            .collections
-            .apply_search(|collection| &collection.title.text);
-
-          if !has_match {
-            self
-              .app
-              .push_navigation_stack(ActiveRadarrBlock::SearchCollectionError.into());
-          }
-        }
-      }
-      ActiveRadarrBlock::FilterCollections => {
-        self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
-
-        if self.app.data.radarr_data.collections.filter.is_some() {
-          let has_matches = self
-            .app
-            .data
-            .radarr_data
-            .collections
-            .apply_filter(|collection| &collection.title.text);
-
-          if !has_matches {
-            self
-              .app
-              .push_navigation_stack(ActiveRadarrBlock::FilterCollectionsError.into());
-          }
-        }
-      }
       ActiveRadarrBlock::UpdateAllCollectionsPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateCollections);
         }
-
-        self.app.pop_navigation_stack();
-      }
-      ActiveRadarrBlock::CollectionsSortPrompt => {
-        self
-          .app
-          .data
-          .radarr_data
-          .collections
-          .items
-          .sort_by(|a, b| a.id.cmp(&b.id));
-        self.app.data.radarr_data.collections.apply_sorting();
 
         self.app.pop_navigation_stack();
       }
@@ -277,26 +129,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
 
   fn handle_esc(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::FilterCollections | ActiveRadarrBlock::FilterCollectionsError => {
-        self.app.pop_navigation_stack();
-        self.app.data.radarr_data.collections.reset_filter();
-        self.app.should_ignore_quit_key = false;
-      }
-      ActiveRadarrBlock::SearchCollection | ActiveRadarrBlock::SearchCollectionError => {
-        self.app.pop_navigation_stack();
-        self.app.data.radarr_data.collections.reset_search();
-        self.app.should_ignore_quit_key = false;
-      }
       ActiveRadarrBlock::UpdateAllCollectionsPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.prompt_confirm = false;
       }
-      ActiveRadarrBlock::CollectionsSortPrompt => {
-        self.app.pop_navigation_stack();
-      }
       _ => {
-        self.app.data.radarr_data.collections.reset_search();
-        self.app.data.radarr_data.collections.reset_filter();
         handle_clear_errors(self.app);
       }
     }
@@ -306,23 +143,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::Collections => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.search.key => {
-          self
-            .app
-            .push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
-          self.app.data.radarr_data.collections.search =
-            Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
-        }
-        _ if key == DEFAULT_KEYBINDINGS.filter.key => {
-          self
-            .app
-            .push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
-          self.app.data.radarr_data.collections.reset_filter();
-          self.app.data.radarr_data.collections.filter =
-            Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
-        }
         _ if key == DEFAULT_KEYBINDINGS.edit.key => {
           self.app.push_navigation_stack(
             (
@@ -344,47 +164,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
         _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
-        _ if key == DEFAULT_KEYBINDINGS.sort.key => {
-          self
-            .app
-            .data
-            .radarr_data
-            .collections
-            .sorting(collections_sorting_options());
-          self
-            .app
-            .push_navigation_stack(ActiveRadarrBlock::CollectionsSortPrompt.into());
-        }
         _ => (),
       },
-      ActiveRadarrBlock::SearchCollection => {
-        handle_text_box_keys!(
-          self,
-          key,
-          self
-            .app
-            .data
-            .radarr_data
-            .collections
-            .search
-            .as_mut()
-            .unwrap()
-        )
-      }
-      ActiveRadarrBlock::FilterCollections => {
-        handle_text_box_keys!(
-          self,
-          key,
-          self
-            .app
-            .data
-            .radarr_data
-            .collections
-            .filter
-            .as_mut()
-            .unwrap()
-        )
-      }
       ActiveRadarrBlock::UpdateAllCollectionsPrompt => {
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
