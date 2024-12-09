@@ -323,6 +323,7 @@ mod tests {
     assert!(season_details_modal.episodes.is_empty());
     assert!(season_details_modal.episode_details_modal.is_none());
     assert!(season_details_modal.season_releases.is_empty());
+    assert!(season_details_modal.season_history.is_empty());
 
     assert_eq!(season_details_modal.season_details_tabs.tabs.len(), 2);
 

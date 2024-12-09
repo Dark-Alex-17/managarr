@@ -225,6 +225,17 @@ mod test {
   }
 
   #[rstest]
+  fn test_resource_series_history(
+    #[values(
+      SonarrEvent::GetSeriesHistory(None),
+      SonarrEvent::GetSeasonHistory(None)
+    )]
+    event: SonarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/history/series");
+  }
+
+  #[rstest]
   fn test_resource_queue(
     #[values(SonarrEvent::GetDownloads, SonarrEvent::DeleteDownload(None))] event: SonarrEvent,
   ) {
@@ -261,7 +272,6 @@ mod test {
   #[case(SonarrEvent::HealthCheck, "/health")]
   #[case(SonarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(SonarrEvent::GetDiskSpace, "/diskspace")]
-  #[case(SonarrEvent::GetSeriesHistory(None), "/history/series")]
   #[case(SonarrEvent::GetLanguageProfiles, "/languageprofile")]
   #[case(SonarrEvent::GetLogs(Some(500)), "/log")]
   #[case(SonarrEvent::GetQualityProfiles, "/qualityprofile")]
@@ -4153,6 +4163,349 @@ mod test {
         vec![release()]
       );
       assert_eq!(releases_vec, vec![release()]);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_season_history_event() {
+    let history_json = json!({"records": [{
+      "id": 123,
+      "sourceTitle": "z episode",
+      "episodeId": 1007,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "language": { "id": 1, "name": "English" },
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    },
+    {
+      "id": 456,
+      "sourceTitle": "A Episode",
+      "episodeId": 2001,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "language": { "id": 1, "name": "English" },
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    }]});
+    let response: SonarrHistoryWrapper = serde_json::from_value(history_json.clone()).unwrap();
+    let expected_history_items = vec![
+      SonarrHistoryItem {
+        id: 123,
+        episode_id: 1007,
+        source_title: "z episode".into(),
+        ..history_item()
+      },
+      SonarrHistoryItem {
+        id: 456,
+        episode_id: 2001,
+        source_title: "A Episode".into(),
+        ..history_item()
+      },
+    ];
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(history_json),
+      None,
+      SonarrEvent::GetSeasonHistory(None),
+      None,
+      Some("seriesId=1&seasonNumber=1"),
+    )
+    .await;
+    app_arc.lock().await.data.sonarr_data.season_details_modal =
+      Some(SeasonDetailsModal::default());
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![series()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .seasons
+      .set_items(vec![season()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_mut()
+      .unwrap()
+      .season_history
+      .sort_asc = true;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
+      .handle_sonarr_event(SonarrEvent::GetSeasonHistory(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .items,
+        expected_history_items
+      );
+      assert!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .sort_asc
+      );
+      assert_eq!(history, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_season_history_event_uses_provided_series_id_and_season_number() {
+    let history_json = json!({"records": [{
+      "id": 123,
+      "sourceTitle": "z episode",
+      "episodeId": 1007,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "language": { "id": 1, "name": "English" },
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    },
+    {
+      "id": 456,
+      "sourceTitle": "A Episode",
+      "episodeId": 2001,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "language": { "id": 1, "name": "English" },
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    }]});
+    let response: SonarrHistoryWrapper = serde_json::from_value(history_json.clone()).unwrap();
+    let expected_history_items = vec![
+      SonarrHistoryItem {
+        id: 123,
+        episode_id: 1007,
+        source_title: "z episode".into(),
+        ..history_item()
+      },
+      SonarrHistoryItem {
+        id: 456,
+        episode_id: 2001,
+        source_title: "A Episode".into(),
+        ..history_item()
+      },
+    ];
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(history_json),
+      None,
+      SonarrEvent::GetSeasonHistory(Some((2, 2))),
+      None,
+      Some("seriesId=2&seasonNumber=2"),
+    )
+    .await;
+    app_arc.lock().await.data.sonarr_data.season_details_modal =
+      Some(SeasonDetailsModal::default());
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![series()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .seasons
+      .set_items(vec![season()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_mut()
+      .unwrap()
+      .season_history
+      .sort_asc = true;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
+      .handle_sonarr_event(SonarrEvent::GetSeasonHistory(Some((2, 2))))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .items,
+        expected_history_items
+      );
+      assert!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .sort_asc
+      );
+      assert_eq!(history, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_season_history_event_empty_season_details_modal() {
+    let history_json = json!({"records": [{
+      "id": 123,
+      "sourceTitle": "z episode",
+      "episodeId": 1007,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "language": { "id": 1, "name": "English" },
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    },
+    {
+      "id": 456,
+      "sourceTitle": "A Episode",
+      "episodeId": 2001,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "language": { "id": 1, "name": "English" },
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    }]});
+    let response: SonarrHistoryWrapper = serde_json::from_value(history_json.clone()).unwrap();
+    let expected_history_items = vec![
+      SonarrHistoryItem {
+        id: 123,
+        episode_id: 1007,
+        source_title: "z episode".into(),
+        ..history_item()
+      },
+      SonarrHistoryItem {
+        id: 456,
+        episode_id: 2001,
+        source_title: "A Episode".into(),
+        ..history_item()
+      },
+    ];
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(history_json),
+      None,
+      SonarrEvent::GetSeasonHistory(None),
+      None,
+      Some("seriesId=1&seasonNumber=1"),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![series()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .seasons
+      .set_items(vec![season()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
+      .handle_sonarr_event(SonarrEvent::GetSeasonHistory(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert!(app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .is_some());
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .items,
+        expected_history_items
+      );
+      assert!(
+        !app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .sort_asc
+      );
+      assert_eq!(history, response);
     }
   }
 

@@ -312,6 +312,7 @@ impl Default for EpisodeDetailsModal {
 pub struct SeasonDetailsModal {
   pub episodes: StatefulTable<Episode>,
   pub episode_details_modal: Option<EpisodeDetailsModal>,
+  pub season_history: StatefulTable<SonarrHistoryItem>,
   pub season_releases: StatefulTable<SonarrRelease>,
   pub season_details_tabs: TabState,
 }
@@ -322,6 +323,7 @@ impl Default for SeasonDetailsModal {
       episodes: StatefulTable::default(),
       episode_details_modal: None,
       season_releases: StatefulTable::default(),
+      season_history: StatefulTable::default(),
       season_details_tabs: TabState::new(vec![
         TabRoute {
           title: "Episodes",

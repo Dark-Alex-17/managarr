@@ -70,6 +70,7 @@ pub enum SonarrEvent {
   GetQueuedEvents,
   GetRootFolders,
   GetEpisodeReleases(Option<i64>),
+  GetSeasonHistory(Option<(i64, i64)>),
   GetSeasonReleases(Option<(i64, i64)>),
   GetSecurityConfig,
   GetSeriesDetails(Option<i64>),
@@ -128,7 +129,7 @@ impl NetworkResource for SonarrEvent {
       | SonarrEvent::DeleteRootFolder(_)
       | SonarrEvent::AddRootFolder(_) => "/rootfolder",
       SonarrEvent::GetSeasonReleases(_) | SonarrEvent::GetEpisodeReleases(_) => "/release",
-      SonarrEvent::GetSeriesHistory(_) => "/history/series",
+      SonarrEvent::GetSeriesHistory(_) | SonarrEvent::GetSeasonHistory(_) => "/history/series",
       SonarrEvent::GetStatus => "/system/status",
       SonarrEvent::GetTasks => "/system/task",
       SonarrEvent::GetUpdates => "/update",
@@ -264,6 +265,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::GetEpisodeReleases(params) => self
         .get_episode_releases(params)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::GetSeasonHistory(params) => self
+        .get_sonarr_season_history(params)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetSeasonReleases(params) => self
@@ -1883,6 +1888,56 @@ impl<'a, 'b> Network<'a, 'b> {
           .unwrap()
           .season_releases
           .set_items(season_releases_vec);
+      })
+      .await
+  }
+
+  async fn get_sonarr_season_history(
+    &mut self,
+    series_season_id_tuple: Option<(i64, i64)>,
+  ) -> Result<SonarrHistoryWrapper> {
+    let event = SonarrEvent::GetSeasonHistory(None);
+    let (series_id, season_number) =
+      if let Some((series_id, season_number)) = series_season_id_tuple {
+        (Some(series_id), Some(season_number))
+      } else {
+        (None, None)
+      };
+
+    let (series_id, series_id_param) = self.extract_series_id(series_id).await;
+    let (season_number, season_number_param) = self.extract_season_number(season_number).await;
+
+    info!("Fetching history for series with ID: {series_id} and season number: {season_number}");
+
+    let params = format!("{series_id_param}&{season_number_param}",);
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
+      .await;
+
+    self
+      .handle_request::<(), SonarrHistoryWrapper>(request_props, |history_response, mut app| {
+        if app.data.sonarr_data.season_details_modal.is_none() {
+          app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
+        }
+
+        let mut history_vec = history_response.records;
+        history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_mut()
+          .unwrap()
+          .season_history
+          .set_items(history_vec);
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_mut()
+          .unwrap()
+          .season_history
+          .apply_sorting_toggle(false);
       })
       .await
   }
