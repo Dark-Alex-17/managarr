@@ -5,11 +5,11 @@ mod tests {
   use crate::app::{
     key_binding::DEFAULT_KEYBINDINGS,
     sonarr::sonarr_context_clues::{
-      ADD_SERIES_SEARCH_RESULTS_CONTEXT_CLUES, EPISODE_DETAILS_CONTEXT_CLUES,
-      HISTORY_CONTEXT_CLUES, MANUAL_EPISODE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
-      MANUAL_EPISODE_SEARCH_CONTEXT_CLUES, MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
-      SEASON_DETAILS_CONTEXT_CLUES, SERIES_CONTEXT_CLUES, SERIES_DETAILS_CONTEXT_CLUES,
-      SERIES_HISTORY_CONTEXT_CLUES, SYSTEM_TASKS_CONTEXT_CLUES,
+      ADD_SERIES_SEARCH_RESULTS_CONTEXT_CLUES, DETAILS_CONTEXTUAL_CONTEXT_CLUES,
+      EPISODE_DETAILS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, MANUAL_EPISODE_SEARCH_CONTEXT_CLUES,
+      MANUAL_SEASON_SEARCH_CONTEXT_CLUES, SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES,
+      SEASON_DETAILS_CONTEXT_CLUES, SEASON_HISTORY_CONTEXT_CLUES, SERIES_CONTEXT_CLUES,
+      SERIES_DETAILS_CONTEXT_CLUES, SERIES_HISTORY_CONTEXT_CLUES, SYSTEM_TASKS_CONTEXT_CLUES,
     },
   };
 
@@ -225,24 +225,70 @@ mod tests {
 
     let (key_binding, description) = season_details_context_clues_iter.next().unwrap();
 
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
-    assert_str_eq!(*description, "details");
-
-    let (key_binding, description) = season_details_context_clues_iter.next().unwrap();
-
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.search);
-    assert_str_eq!(*description, "auto search");
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.search.desc);
 
     let (key_binding, description) = season_details_context_clues_iter.next().unwrap();
 
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.delete);
-    assert_str_eq!(*description, "delete episode");
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.auto_search);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.auto_search.desc);
 
     let (key_binding, description) = season_details_context_clues_iter.next().unwrap();
 
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
     assert_str_eq!(*description, DEFAULT_KEYBINDINGS.esc.desc);
     assert_eq!(season_details_context_clues_iter.next(), None);
+  }
+
+  #[test]
+  fn test_season_details_contextual_context_clues() {
+    let mut season_details_contextual_context_clues_iter =
+      SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES.iter();
+    let (key_binding, description) = season_details_contextual_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
+    assert_str_eq!(*description, "episode details");
+
+    let (key_binding, description) = season_details_contextual_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.delete);
+    assert_str_eq!(*description, "delete episode");
+    assert_eq!(season_details_contextual_context_clues_iter.next(), None);
+  }
+
+  #[test]
+  fn test_season_history_context_clues() {
+    let mut season_history_context_clues_iter = SEASON_HISTORY_CONTEXT_CLUES.iter();
+    let (key_binding, description) = season_history_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.refresh);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.refresh.desc);
+
+    let (key_binding, description) = season_history_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.sort);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.sort.desc);
+
+    let (key_binding, description) = season_history_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.search);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.search.desc);
+
+    let (key_binding, description) = season_history_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.filter);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.filter.desc);
+
+    let (key_binding, description) = season_history_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.auto_search);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.auto_search.desc);
+
+    let (key_binding, description) = season_history_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
+    assert_str_eq!(*description, "cancel filter/close");
+    assert_eq!(season_history_context_clues_iter.next(), None);
   }
 
   #[test]
@@ -256,18 +302,13 @@ mod tests {
 
     let (key_binding, description) = manual_season_search_context_clues_iter.next().unwrap();
 
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.search);
-    assert_str_eq!(*description, "auto search");
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.auto_search);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.auto_search.desc);
 
     let (key_binding, description) = manual_season_search_context_clues_iter.next().unwrap();
 
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.sort);
     assert_str_eq!(*description, DEFAULT_KEYBINDINGS.sort.desc);
-
-    let (key_binding, description) = manual_season_search_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
-    assert_str_eq!(*description, "details");
 
     let (key_binding, description) = manual_season_search_context_clues_iter.next().unwrap();
 
@@ -287,8 +328,8 @@ mod tests {
 
     let (key_binding, description) = manual_episode_search_context_clues_iter.next().unwrap();
 
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.search);
-    assert_str_eq!(*description, "auto search");
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.auto_search);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.auto_search.desc);
 
     let (key_binding, description) = manual_episode_search_context_clues_iter.next().unwrap();
 
@@ -303,9 +344,8 @@ mod tests {
   }
 
   #[test]
-  fn test_manual_episode_search_contextual_context_clues() {
-    let mut manual_search_contextual_context_clues_iter =
-      MANUAL_EPISODE_SEARCH_CONTEXTUAL_CONTEXT_CLUES.iter();
+  fn details_contextual_context_clues() {
+    let mut manual_search_contextual_context_clues_iter = DETAILS_CONTEXTUAL_CONTEXT_CLUES.iter();
     let (key_binding, description) = manual_search_contextual_context_clues_iter.next().unwrap();
 
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
@@ -324,8 +364,8 @@ mod tests {
 
     let (key_binding, description) = episode_details_context_clues_iter.next().unwrap();
 
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.search);
-    assert_str_eq!(*description, "auto search");
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.auto_search);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.auto_search.desc);
 
     let (key_binding, description) = episode_details_context_clues_iter.next().unwrap();
 

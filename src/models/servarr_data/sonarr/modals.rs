@@ -4,9 +4,10 @@ use crate::{
   app::{
     context_clues::build_context_clue_string,
     sonarr::sonarr_context_clues::{
-      EPISODE_DETAILS_CONTEXT_CLUES, MANUAL_EPISODE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
-      MANUAL_EPISODE_SEARCH_CONTEXT_CLUES, MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
-      SEASON_DETAILS_CONTEXT_CLUES,
+      DETAILS_CONTEXTUAL_CONTEXT_CLUES, EPISODE_DETAILS_CONTEXT_CLUES,
+      EPISODE_HISTORY_CONTEXT_CLUES, MANUAL_EPISODE_SEARCH_CONTEXT_CLUES,
+      MANUAL_SEASON_SEARCH_CONTEXT_CLUES, SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES,
+      SEASON_DETAILS_CONTEXT_CLUES, SEASON_HISTORY_CONTEXT_CLUES,
     },
   },
   models::{
@@ -287,8 +288,8 @@ impl Default for EpisodeDetailsModal {
         TabRoute {
           title: "History",
           route: ActiveSonarrBlock::EpisodeHistory.into(),
-          help: build_context_clue_string(&EPISODE_DETAILS_CONTEXT_CLUES),
-          contextual_help: None,
+          help: build_context_clue_string(&EPISODE_HISTORY_CONTEXT_CLUES),
+          contextual_help: Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES)),
         },
         TabRoute {
           title: "File",
@@ -300,9 +301,7 @@ impl Default for EpisodeDetailsModal {
           title: "Manual Search",
           route: ActiveSonarrBlock::ManualEpisodeSearch.into(),
           help: build_context_clue_string(&MANUAL_EPISODE_SEARCH_CONTEXT_CLUES),
-          contextual_help: Some(build_context_clue_string(
-            &MANUAL_EPISODE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
-          )),
+          contextual_help: Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES)),
         },
       ]),
     }
@@ -328,13 +327,19 @@ impl Default for SeasonDetailsModal {
         TabRoute {
           title: "Episodes",
           route: ActiveSonarrBlock::SeasonDetails.into(),
-          help: String::new(),
+          help: build_context_clue_string(&SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES),
           contextual_help: Some(build_context_clue_string(&SEASON_DETAILS_CONTEXT_CLUES)),
+        },
+        TabRoute {
+          title: "History",
+          route: ActiveSonarrBlock::SeasonHistory.into(),
+          help: build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES),
+          contextual_help: Some(build_context_clue_string(&SEASON_HISTORY_CONTEXT_CLUES)),
         },
         TabRoute {
           title: "Manual Search",
           route: ActiveSonarrBlock::ManualSeasonSearch.into(),
-          help: String::new(),
+          help: build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES),
           contextual_help: Some(build_context_clue_string(
             &MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
           )),

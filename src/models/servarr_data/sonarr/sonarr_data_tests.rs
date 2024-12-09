@@ -228,7 +228,7 @@ mod tests {
       EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, EDIT_SERIES_BLOCKS,
       EDIT_SERIES_SELECTION_BLOCKS, HISTORY_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
       INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS, ROOT_FOLDERS_BLOCKS,
-      SERIES_DETAILS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
+      SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
     };
 
     #[test]
@@ -604,6 +604,25 @@ mod tests {
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::FilterSeriesHistoryError));
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeriesHistorySortPrompt));
       assert!(SERIES_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeriesHistoryDetails));
+    }
+
+    #[test]
+    fn test_season_details_blocks_contents() {
+      assert_eq!(SEASON_DETAILS_BLOCKS.len(), 14);
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeasonDetails));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeasonHistory));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeason));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeasonError));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::AutomaticallySearchSeasonPrompt));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeasonHistory));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeasonHistoryError));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::FilterSeasonHistory));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::FilterSeasonHistoryError));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeasonHistorySortPrompt));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeasonHistoryDetails));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualSeasonSearch));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualSeasonSearchSortPrompt));
     }
   }
 }

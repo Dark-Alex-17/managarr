@@ -254,6 +254,8 @@ pub enum ActiveSonarrBlock {
   FilterSeriesError,
   FilterSeriesHistory,
   FilterSeriesHistoryError,
+  FilterSeasonHistory,
+  FilterSeasonHistoryError,
   History,
   HistoryItemDetails,
   HistorySortPrompt,
@@ -280,7 +282,12 @@ pub enum ActiveSonarrBlock {
   SearchSeriesError,
   SearchSeriesHistory,
   SearchSeriesHistoryError,
+  SearchSeasonHistory,
+  SearchSeasonHistoryError,
   SeasonDetails,
+  SeasonHistory,
+  SeasonHistoryDetails,
+  SeasonHistorySortPrompt,
   #[default]
   Series,
   SeriesDetails,
@@ -324,6 +331,23 @@ pub static SERIES_DETAILS_BLOCKS: [ActiveSonarrBlock; 12] = [
   ActiveSonarrBlock::FilterSeriesHistoryError,
   ActiveSonarrBlock::SeriesHistorySortPrompt,
   ActiveSonarrBlock::SeriesHistoryDetails,
+];
+
+pub static SEASON_DETAILS_BLOCKS: [ActiveSonarrBlock; 14] = [
+  ActiveSonarrBlock::SeasonDetails,
+  ActiveSonarrBlock::SeasonHistory,
+  ActiveSonarrBlock::SearchSeason,
+  ActiveSonarrBlock::SearchSeasonError,
+  ActiveSonarrBlock::AutomaticallySearchSeasonPrompt,
+  ActiveSonarrBlock::SearchSeasonHistory,
+  ActiveSonarrBlock::SearchSeasonHistoryError,
+  ActiveSonarrBlock::FilterSeasonHistory,
+  ActiveSonarrBlock::FilterSeasonHistoryError,
+  ActiveSonarrBlock::SeasonHistorySortPrompt,
+  ActiveSonarrBlock::SeasonHistoryDetails,
+  ActiveSonarrBlock::ManualSeasonSearch,
+  ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt,
+  ActiveSonarrBlock::ManualSeasonSearchSortPrompt,
 ];
 
 pub static ADD_SERIES_BLOCKS: [ActiveSonarrBlock; 13] = [

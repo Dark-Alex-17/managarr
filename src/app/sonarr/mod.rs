@@ -34,6 +34,11 @@ impl<'a> App<'a> {
           .dispatch_network_event(SonarrEvent::GetEpisodes(None).into())
           .await;
       }
+      ActiveSonarrBlock::SeasonHistory => {
+        self
+          .dispatch_network_event(SonarrEvent::GetSeasonHistory(None).into())
+          .await;
+      }
       ActiveSonarrBlock::ManualSeasonSearch => {
         self
           .dispatch_network_event(SonarrEvent::GetSeasonReleases(None).into())
