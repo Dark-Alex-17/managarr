@@ -67,6 +67,23 @@ pub enum SonarrListCommand {
   QueuedEvents,
   #[command(about = "List all root folders in Sonarr")]
   RootFolders,
+  #[command(
+    about = "Fetch all history events for the given season corresponding to the series with the given ID."
+  )]
+  SeasonHistory {
+    #[arg(
+      long,
+      help = "The Sonarr ID of the series whose history you wish to fetch and list",
+      required = true
+    )]
+    series_id: i64,
+    #[arg(
+      long,
+      help = "The season number to fetch history events for",
+      required = true
+    )]
+    season_number: i64,
+  },
   #[command(about = "List all series in your Sonarr library")]
   Series,
   #[command(about = "Fetch all history events for the series with the given ID")]
@@ -204,6 +221,18 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
         let resp = self
           .network
           .handle_network_event(SonarrEvent::GetRootFolders.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrListCommand::SeasonHistory {
+        series_id,
+        season_number,
+      } => {
+        let resp = self
+          .network
+          .handle_network_event(
+            SonarrEvent::GetSeasonHistory(Some((series_id, season_number))).into(),
+          )
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

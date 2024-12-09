@@ -1895,7 +1895,7 @@ impl<'a, 'b> Network<'a, 'b> {
   async fn get_sonarr_season_history(
     &mut self,
     series_season_id_tuple: Option<(i64, i64)>,
-  ) -> Result<SonarrHistoryWrapper> {
+  ) -> Result<Vec<SonarrHistoryItem>> {
     let event = SonarrEvent::GetSeasonHistory(None);
     let (series_id, season_number) =
       if let Some((series_id, season_number)) = series_season_id_tuple {
@@ -1915,12 +1915,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-      .handle_request::<(), SonarrHistoryWrapper>(request_props, |history_response, mut app| {
+      .handle_request::<(), Vec<SonarrHistoryItem>>(request_props, |history_items, mut app| {
         if app.data.sonarr_data.season_details_modal.is_none() {
           app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
         }
 
-        let mut history_vec = history_response.records;
+        let mut history_vec = history_items;
         history_vec.sort_by(|a, b| a.id.cmp(&b.id));
         app
           .data
