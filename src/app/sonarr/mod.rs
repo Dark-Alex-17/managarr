@@ -33,6 +33,12 @@ impl<'a> App<'a> {
         self
           .dispatch_network_event(SonarrEvent::GetEpisodes(None).into())
           .await;
+        self
+          .dispatch_network_event(SonarrEvent::GetEpisodeFiles(None).into())
+          .await;
+        self
+          .dispatch_network_event(SonarrEvent::GetDownloads.into())
+          .await;
       }
       ActiveSonarrBlock::SeasonHistory => {
         self

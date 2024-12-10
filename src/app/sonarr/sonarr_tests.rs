@@ -83,6 +83,14 @@ mod tests {
         sync_network_rx.recv().await.unwrap(),
         SonarrEvent::GetEpisodes(None).into()
       );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        SonarrEvent::GetEpisodeFiles(None).into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        SonarrEvent::GetDownloads.into()
+      );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
     }
