@@ -11,7 +11,7 @@ mod tests {
     },
     sonarr_models::{
       AddSeriesSearchResult, BlocklistItem, BlocklistResponse, DownloadRecord, DownloadsResponse,
-      Episode, IndexerSettings, Series, SeriesMonitor, SeriesStatus, SeriesType,
+      Episode, EpisodeFile, IndexerSettings, Series, SeriesMonitor, SeriesStatus, SeriesType,
       SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease, SonarrSerdeable, SonarrTask,
       SonarrTaskName, SystemStatus,
     },
@@ -234,6 +234,21 @@ mod tests {
     let sonarr_serdeable: SonarrSerdeable = episodes.clone().into();
 
     assert_eq!(sonarr_serdeable, SonarrSerdeable::Episodes(episodes));
+  }
+
+  #[test]
+  fn test_sonarr_serdeable_from_episode_files() {
+    let episode_files = vec![EpisodeFile {
+      id: 1,
+      ..EpisodeFile::default()
+    }];
+
+    let sonarr_serdeable: SonarrSerdeable = episode_files.clone().into();
+
+    assert_eq!(
+      sonarr_serdeable,
+      SonarrSerdeable::EpisodeFiles(episode_files)
+    );
   }
 
   #[test]

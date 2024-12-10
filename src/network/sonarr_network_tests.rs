@@ -108,6 +108,7 @@ mod test {
     "airDateUtc": "2024-02-10T07:28:45Z",
     "overview": "Okay so this one time at band camp...",
     "episodeFile": {
+        "id": 1,
         "relativePath": "/season 1/episode 1.mkv",
         "path": "/nfs/tv/series/season 1/episode 1.mkv",
         "size": 3543348019,
@@ -266,9 +267,19 @@ mod test {
   }
 
   #[rstest]
+  fn test_resource_episode_file(
+    #[values(
+      SonarrEvent::GetEpisodeFiles(None),
+      SonarrEvent::DeleteEpisodeFile(None)
+    )]
+    event: SonarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/episodefile");
+  }
+
+  #[rstest]
   #[case(SonarrEvent::ClearBlocklist, "/blocklist/bulk")]
   #[case(SonarrEvent::DeleteBlocklistItem(None), "/blocklist")]
-  #[case(SonarrEvent::DeleteEpisodeFile(None), "/episodefile")]
   #[case(SonarrEvent::HealthCheck, "/health")]
   #[case(SonarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(SonarrEvent::GetDiskSpace, "/diskspace")]
@@ -2586,6 +2597,162 @@ mod test {
           .sort_asc
       );
       assert_eq!(episodes, expected_episodes);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episode_files_event() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([episode_file()])),
+      None,
+      SonarrEvent::GetEpisodeFiles(None),
+      None,
+      Some("seriesId=1"),
+    )
+    .await;
+    app_arc.lock().await.data.sonarr_data.season_details_modal =
+      Some(SeasonDetailsModal::default());
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::EpisodeFiles(episode_files) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_files
+          .items,
+        vec![episode_file()]
+      );
+      assert_eq!(episode_files, vec![episode_file()]);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episode_files_event_empty_season_details_modal() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([episode_file()])),
+      None,
+      SonarrEvent::GetEpisodeFiles(None),
+      None,
+      Some("seriesId=1"),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::EpisodeFiles(episode_files) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert!(app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .is_some());
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_files
+          .items,
+        vec![episode_file()]
+      );
+      assert_eq!(episode_files, vec![episode_file()]);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episode_files_event_uses_provided_series_id() {
+    let episode_file = EpisodeFile {
+      id: 2,
+      ..episode_file()
+    };
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([episode_file.clone()])),
+      None,
+      SonarrEvent::GetEpisodeFiles(Some(2)),
+      None,
+      Some("seriesId=2"),
+    )
+    .await;
+    app_arc.lock().await.data.sonarr_data.season_details_modal =
+      Some(SeasonDetailsModal::default());
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::EpisodeFiles(episode_files) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(Some(2)))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_files
+          .items,
+        vec![episode_file.clone()]
+      );
+      assert_eq!(episode_files, vec![episode_file]);
     }
   }
 
@@ -7104,9 +7271,11 @@ mod test {
 
   fn episode_file() -> EpisodeFile {
     EpisodeFile {
+      id: 1,
       relative_path: "/season 1/episode 1.mkv".to_owned(),
       path: "/nfs/tv/series/season 1/episode 1.mkv".to_owned(),
       size: 3543348019,
+      quality: quality_wrapper(),
       language: language(),
       date_added: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
       media_info: Some(media_info()),

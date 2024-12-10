@@ -176,11 +176,14 @@ impl Display for Episode {
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct EpisodeFile {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
   pub relative_path: String,
   pub path: String,
   #[serde(deserialize_with = "super::from_i64")]
   pub size: i64,
   pub language: Language,
+  pub quality: QualityWrapper,
   pub date_added: DateTime<Utc>,
   pub media_info: Option<MediaInfo>,
 }
@@ -626,6 +629,7 @@ pub enum SonarrSerdeable {
   DiskSpaces(Vec<DiskSpace>),
   Episode(Episode),
   Episodes(Vec<Episode>),
+  EpisodeFiles(Vec<EpisodeFile>),
   HostConfig(HostConfig),
   IndexerSettings(IndexerSettings),
   Indexers(Vec<Indexer>),
@@ -669,6 +673,7 @@ serde_enum_from!(
     DiskSpaces(Vec<DiskSpace>),
     Episode(Episode),
     Episodes(Vec<Episode>),
+    EpisodeFiles(Vec<EpisodeFile>),
     HostConfig(HostConfig),
     IndexerSettings(IndexerSettings),
     Indexers(Vec<Indexer>),

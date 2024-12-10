@@ -21,9 +21,9 @@ use crate::{
     sonarr_models::{
       AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, BlocklistItem, BlocklistResponse,
       DeleteSeriesParams, DownloadRecord, DownloadsResponse, EditSeriesParams, Episode,
-      IndexerSettings, Series, SonarrCommandBody, SonarrHistoryItem, SonarrHistoryWrapper,
-      SonarrRelease, SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTask, SonarrTaskName,
-      SystemStatus,
+      EpisodeFile, IndexerSettings, Series, SonarrCommandBody, SonarrHistoryItem,
+      SonarrHistoryWrapper, SonarrRelease, SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTask,
+      SonarrTaskName, SystemStatus,
     },
     stateful_table::StatefulTable,
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
@@ -62,6 +62,7 @@ pub enum SonarrEvent {
   GetIndexers,
   GetEpisodeDetails(Option<i64>),
   GetEpisodes(Option<i64>),
+  GetEpisodeFiles(Option<i64>),
   GetEpisodeHistory(Option<i64>),
   GetLanguageProfiles,
   GetLogs(Option<u64>),
@@ -104,7 +105,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetAllIndexerSettings | SonarrEvent::EditAllIndexerSettings(_) => {
         "/config/indexer"
       }
-      SonarrEvent::DeleteEpisodeFile(_) => "/episodefile",
+      SonarrEvent::GetEpisodeFiles(_) | SonarrEvent::DeleteEpisodeFile(_) => "/episodefile",
       SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       SonarrEvent::GetDownloads | SonarrEvent::DeleteDownload(_) => "/queue",
       SonarrEvent::GetEpisodes(_) | SonarrEvent::GetEpisodeDetails(_) => "/episode",
@@ -223,6 +224,10 @@ impl<'a, 'b> Network<'a, 'b> {
       SonarrEvent::GetDownloads => self.get_sonarr_downloads().await.map(SonarrSerdeable::from),
       SonarrEvent::GetEpisodes(series_id) => self
         .get_episodes(series_id)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::GetEpisodeFiles(series_id) => self
+        .get_episode_files(series_id)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetEpisodeDetails(episode_id) => self
@@ -1416,6 +1421,39 @@ impl<'a, 'b> Network<'a, 'b> {
             .episodes
             .apply_sorting_toggle(false);
         }
+      })
+      .await
+  }
+
+  async fn get_episode_files(&mut self, series_id: Option<i64>) -> Result<Vec<EpisodeFile>> {
+    let event = SonarrEvent::GetEpisodeFiles(series_id);
+    let (id, series_id_param) = self.extract_series_id(series_id).await;
+    info!("Fetching episodes files for Sonarr series with ID: {id}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(series_id_param),
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<EpisodeFile>>(request_props, |episode_file_vec, mut app| {
+        if app.data.sonarr_data.season_details_modal.is_none() {
+          app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
+        }
+
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_mut()
+          .unwrap()
+          .episode_files
+          .set_items(episode_file_vec);
       })
       .await
   }

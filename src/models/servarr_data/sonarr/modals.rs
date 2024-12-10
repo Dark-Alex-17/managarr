@@ -19,7 +19,7 @@ use crate::{
     HorizontallyScrollableText, ScrollableText, TabRoute, TabState,
   },
 };
-
+use crate::models::sonarr_models::EpisodeFile;
 use super::sonarr_data::{ActiveSonarrBlock, SonarrData};
 
 #[cfg(test)]
@@ -310,6 +310,7 @@ impl Default for EpisodeDetailsModal {
 
 pub struct SeasonDetailsModal {
   pub episodes: StatefulTable<Episode>,
+  pub episode_files: StatefulTable<EpisodeFile>,
   pub episode_details_modal: Option<EpisodeDetailsModal>,
   pub season_history: StatefulTable<SonarrHistoryItem>,
   pub season_releases: StatefulTable<SonarrRelease>,
@@ -321,6 +322,7 @@ impl Default for SeasonDetailsModal {
     SeasonDetailsModal {
       episodes: StatefulTable::default(),
       episode_details_modal: None,
+      episode_files: StatefulTable::default(),
       season_releases: StatefulTable::default(),
       season_history: StatefulTable::default(),
       season_details_tabs: TabState::new(vec![
