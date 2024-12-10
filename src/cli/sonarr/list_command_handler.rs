@@ -33,6 +33,15 @@ pub enum SonarrListCommand {
     )]
     series_id: i64,
   },
+  #[command(about = "List the episode files for the series with the given ID")]
+  EpisodeFiles {
+    #[arg(
+      long,
+      help = "The Sonarr ID of the series whose episode files you wish to fetch",
+      required = true
+    )]
+    series_id: i64,
+  },
   #[command(about = "Fetch all history events for the episode with the given ID")]
   EpisodeHistory {
     #[arg(
@@ -155,6 +164,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
         let resp = self
           .network
           .handle_network_event(SonarrEvent::GetEpisodes(Some(series_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrListCommand::EpisodeFiles { series_id } => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::GetEpisodeFiles(Some(series_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
