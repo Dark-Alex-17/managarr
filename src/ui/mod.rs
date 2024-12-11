@@ -128,39 +128,6 @@ pub fn draw_popup(
   popup_fn(f, app, popup_area);
 }
 
-fn draw_popup_ui<T: DrawUi>(f: &mut Frame<'_>, app: &mut App<'_>, size: Size) {
-  let (percent_x, percent_y) = size.to_percent();
-  let popup_area = centered_rect(percent_x, percent_y, f.area());
-  f.render_widget(Clear, popup_area);
-  f.render_widget(background_block(), popup_area);
-  T::draw(f, app, popup_area);
-}
-
-pub fn draw_popup_over(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  area: Rect,
-  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  size: Size,
-) {
-  background_fn(f, app, area);
-
-  draw_popup(f, app, popup_fn, size);
-}
-
-pub fn draw_popup_over_ui<T: DrawUi>(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  area: Rect,
-  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  size: Size,
-) {
-  background_fn(f, app, area);
-
-  draw_popup_ui::<T>(f, app, size);
-}
-
 fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -> Rect {
   if title.is_empty() {
     f.render_widget(layout_block(), area);

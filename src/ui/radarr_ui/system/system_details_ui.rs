@@ -10,7 +10,7 @@ use crate::models::radarr_models::RadarrTask;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::system::{
-  draw_queued_events, draw_system_ui_layout, extract_task_props, TASK_TABLE_CONSTRAINTS,
+  draw_queued_events, extract_task_props, TASK_TABLE_CONSTRAINTS,
   TASK_TABLE_HEADERS,
 };
 use crate::ui::styles::ManagarrStyle;
@@ -20,7 +20,7 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup_over, DrawUi};
+use crate::ui::{draw_popup, DrawUi};
 
 #[cfg(test)]
 #[path = "system_details_ui_tests.rs"]
@@ -37,33 +37,27 @@ impl DrawUi for SystemDetailsUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
       match active_radarr_block {
         ActiveRadarrBlock::SystemLogs => {
-          draw_system_ui_layout(f, app, area);
           draw_logs_popup(f, app);
         }
         ActiveRadarrBlock::SystemTasks | ActiveRadarrBlock::SystemTaskStartConfirmPrompt => {
-          draw_popup_over(
+          draw_popup(
             f,
             app,
-            area,
-            draw_system_ui_layout,
             draw_tasks_popup,
             Size::Large,
           )
         }
-        ActiveRadarrBlock::SystemQueuedEvents => draw_popup_over(
+        ActiveRadarrBlock::SystemQueuedEvents => draw_popup(
           f,
           app,
-          area,
-          draw_system_ui_layout,
           draw_queued_events,
           Size::Medium,
         ),
         ActiveRadarrBlock::SystemUpdates => {
-          draw_system_ui_layout(f, app, area);
           draw_updates_popup(f, app);
         }
         _ => (),

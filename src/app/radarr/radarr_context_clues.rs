@@ -77,7 +77,8 @@ pub static SYSTEM_TASKS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
-pub static COLLECTION_DETAILS_CONTEXT_CLUES: [ContextClue; 2] = [
+pub static COLLECTION_DETAILS_CONTEXT_CLUES: [ContextClue; 3] = [
   (DEFAULT_KEYBINDINGS.submit, "show overview/add movie"),
+  (DEFAULT_KEYBINDINGS.edit, "edit collection"),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];

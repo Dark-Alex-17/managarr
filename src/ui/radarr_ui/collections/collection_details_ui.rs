@@ -12,7 +12,6 @@ use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS,
 };
 use crate::models::{EnumDisplayStyle, Route};
-use crate::ui::radarr_ui::collections::draw_collections;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_top_border_with_title, title_block,
@@ -20,7 +19,7 @@ use crate::ui::utils::{
 };
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::Size;
-use crate::ui::{draw_popup_over, DrawUi};
+use crate::ui::{draw_popup, DrawUi};
 use crate::utils::convert_runtime;
 
 #[cfg(test)]
@@ -31,41 +30,25 @@ pub(super) struct CollectionDetailsUi;
 
 impl DrawUi for CollectionDetailsUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
+    if let Route::Radarr(active_radarr_block, context_option) = route {
+      if let Some(context) = context_option {
+        return COLLECTION_DETAILS_BLOCKS.contains(&active_radarr_block)
+          && context == ActiveRadarrBlock::CollectionDetails;
+      }
+
       return COLLECTION_DETAILS_BLOCKS.contains(&active_radarr_block);
     }
 
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
-      let draw_collection_details_popup =
-        |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| match context_option
-          .unwrap_or(active_radarr_block)
-        {
-          ActiveRadarrBlock::ViewMovieOverview => {
-            draw_popup_over(
-              f,
-              app,
-              popup_area,
-              draw_collection_details,
-              draw_movie_overview,
-              Size::Small,
-            );
-          }
-          ActiveRadarrBlock::CollectionDetails => draw_collection_details(f, app, popup_area),
-          _ => (),
-        };
+      draw_popup(f, app, draw_collection_details, Size::Large);
 
-      draw_popup_over(
-        f,
-        app,
-        area,
-        draw_collections,
-        draw_collection_details_popup,
-        Size::Large,
-      );
+      if context_option.unwrap_or(active_radarr_block) == ActiveRadarrBlock::ViewMovieOverview {
+        draw_popup(f, app, draw_movie_overview, Size::Small);
+      }
     }
   }
 }

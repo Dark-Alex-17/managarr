@@ -369,7 +369,7 @@ mod tests {
       test_edit_collection_key!(
         CollectionDetailsHandler,
         ActiveRadarrBlock::CollectionDetails,
-        ActiveRadarrBlock::CollectionDetails
+        Some(ActiveRadarrBlock::CollectionDetails)
       );
     }
 

@@ -225,6 +225,14 @@ mod tests {
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetQualityProfiles.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
+      RadarrEvent::GetTags.into()
+    );
+    assert_eq!(
+      sync_network_rx.recv().await.unwrap(),
       RadarrEvent::GetMovies.into()
     );
     assert!(!app.is_routing);

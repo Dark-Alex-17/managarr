@@ -16,6 +16,8 @@ mod tests {
       } else {
         assert!(!EditCollectionUi::accepts(active_radarr_block.into()));
       }
-    })
+    });
+
+    assert!(EditCollectionUi::accepts((ActiveRadarrBlock::EditCollectionPrompt, Some(ActiveRadarrBlock::CollectionDetails)).into()));
   }
 }

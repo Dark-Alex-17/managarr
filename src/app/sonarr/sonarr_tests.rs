@@ -259,6 +259,18 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
+        SonarrEvent::GetQualityProfiles.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        SonarrEvent::GetLanguageProfiles.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        SonarrEvent::GetTags.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
         SonarrEvent::ListSeries.into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
@@ -274,6 +286,10 @@ mod tests {
         .await;
 
       assert!(app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        SonarrEvent::GetTags.into()
+      );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         SonarrEvent::GetIndexers.into()

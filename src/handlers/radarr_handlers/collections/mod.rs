@@ -151,13 +151,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
     match self.active_radarr_block {
       ActiveRadarrBlock::Collections => match self.key {
         _ if key == DEFAULT_KEYBINDINGS.edit.key => {
-          self.app.push_navigation_stack(
-            (
-              ActiveRadarrBlock::EditCollectionPrompt,
-              Some(ActiveRadarrBlock::Collections),
-            )
-              .into(),
-          );
+          self
+            .app
+            .push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
           self.app.data.radarr_data.edit_collection_modal =
             Some((&self.app.data.radarr_data).into());
           self.app.data.radarr_data.selected_block =

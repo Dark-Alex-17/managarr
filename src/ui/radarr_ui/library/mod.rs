@@ -44,43 +44,32 @@ impl DrawUi for LibraryUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = app.get_current_route();
-    let mut library_ui_matchers = |active_radarr_block: ActiveRadarrBlock| match active_radarr_block
-    {
-      ActiveRadarrBlock::Movies
-      | ActiveRadarrBlock::MoviesSortPrompt
-      | ActiveRadarrBlock::SearchMovie
-      | ActiveRadarrBlock::SearchMovieError
-      | ActiveRadarrBlock::FilterMovies
-      | ActiveRadarrBlock::FilterMoviesError => draw_library(f, app, area),
-      ActiveRadarrBlock::UpdateAllMoviesPrompt => {
+    if !matches!(route, Route::Radarr(_, Some(_))) {
+      draw_library(f, app, area);
+    }
+    
+    match route {
+      _ if MovieDetailsUi::accepts(route) => MovieDetailsUi::draw(f, app, area),
+      _ if AddMovieUi::accepts(route) => AddMovieUi::draw(f, app, area),
+      _ if EditMovieUi::accepts(route) => EditMovieUi::draw(f, app, area),
+      _ if DeleteMovieUi::accepts(route) => DeleteMovieUi::draw(f, app, area),
+      Route::Radarr(ActiveRadarrBlock::UpdateAllMoviesPrompt, _) => {
         let confirmation_prompt = ConfirmationPrompt::new()
           .title("Update All Movies")
           .prompt("Do you want to update info and scan your disks for all of your movies?")
           .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-        draw_library(f, app, area);
         f.render_widget(
           Popup::new(confirmation_prompt).size(Size::MediumPrompt),
           f.area(),
         );
       }
       _ => (),
-    };
-
-    match route {
-      _ if MovieDetailsUi::accepts(route) => MovieDetailsUi::draw(f, app, area),
-      _ if AddMovieUi::accepts(route) => AddMovieUi::draw(f, app, area),
-      _ if EditMovieUi::accepts(route) => EditMovieUi::draw(f, app, area),
-      _ if DeleteMovieUi::accepts(route) => DeleteMovieUi::draw(f, app, area),
-      Route::Radarr(active_radarr_block, _) if LIBRARY_BLOCKS.contains(&active_radarr_block) => {
-        library_ui_matchers(active_radarr_block)
-      }
-      _ => (),
     }
   }
 }
 
-pub(super) fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     let current_selection = if !app.data.radarr_data.movies.items.is_empty() {
       app.data.radarr_data.movies.current_selection().clone()

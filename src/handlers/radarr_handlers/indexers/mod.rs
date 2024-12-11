@@ -154,7 +154,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
       }
       ActiveRadarrBlock::TestIndexer => {
         self.app.pop_navigation_stack();
-        self.app.data.radarr_data.indexer_test_error = None;
+        self.app.data.radarr_data.indexer_test_errors = None;
       }
       _ => handle_clear_errors(self.app),
     }

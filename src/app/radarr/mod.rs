@@ -18,10 +18,22 @@ impl<'a> App<'a> {
       }
       ActiveRadarrBlock::Collections => {
         self
+          .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
+          .await;
+        self
           .dispatch_network_event(RadarrEvent::GetCollections.into())
+          .await;
+        self
+          .dispatch_network_event(RadarrEvent::GetMovies.into())
           .await;
       }
       ActiveRadarrBlock::CollectionDetails => {
+        self
+          .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
+          .await;
+        self
+          .dispatch_network_event(RadarrEvent::GetTags.into())
+          .await;
         self.is_loading = true;
         self.populate_movie_collection_table().await;
         self.is_loading = false;
@@ -38,6 +50,12 @@ impl<'a> App<'a> {
       }
       ActiveRadarrBlock::Movies => {
         self
+          .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
+          .await;
+        self
+          .dispatch_network_event(RadarrEvent::GetTags.into())
+          .await;
+        self
           .dispatch_network_event(RadarrEvent::GetMovies.into())
           .await;
         self
@@ -45,6 +63,9 @@ impl<'a> App<'a> {
           .await;
       }
       ActiveRadarrBlock::Indexers => {
+        self
+          .dispatch_network_event(RadarrEvent::GetTags.into())
+          .await;
         self
           .dispatch_network_event(RadarrEvent::GetIndexers.into())
           .await;

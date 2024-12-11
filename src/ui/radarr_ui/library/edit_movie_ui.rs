@@ -14,7 +14,6 @@ use crate::models::servarr_data::radarr::radarr_data::{
 };
 use crate::models::{EnumDisplayStyle, Route};
 use crate::render_selectable_input_box;
-use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::radarr_ui::library::movie_details_ui::MovieDetailsUi;
 
 use crate::ui::styles::ManagarrStyle;
@@ -24,7 +23,7 @@ use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup, draw_popup_over, draw_popup_over_ui, DrawUi};
+use crate::ui::{draw_popup, DrawUi};
 
 #[cfg(test)]
 #[path = "edit_movie_ui_tests.rs"]
@@ -41,45 +40,24 @@ impl DrawUi for EditMovieUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
-      let draw_edit_movie_prompt =
-        |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| match active_radarr_block {
-          ActiveRadarrBlock::EditMovieSelectMinimumAvailability => {
-            draw_edit_movie_confirmation_prompt(f, app, prompt_area);
-            draw_edit_movie_select_minimum_availability_popup(f, app);
-          }
-          ActiveRadarrBlock::EditMovieSelectQualityProfile => {
-            draw_edit_movie_confirmation_prompt(f, app, prompt_area);
-            draw_edit_movie_select_quality_profile_popup(f, app);
-          }
-          ActiveRadarrBlock::EditMoviePrompt
-          | ActiveRadarrBlock::EditMovieToggleMonitored
-          | ActiveRadarrBlock::EditMoviePathInput
-          | ActiveRadarrBlock::EditMovieTagsInput => {
-            draw_edit_movie_confirmation_prompt(f, app, prompt_area)
-          }
-          _ => (),
-        };
-
       if let Some(context) = context_option {
-        match context {
-          ActiveRadarrBlock::Movies => {
-            draw_popup_over(
-              f,
-              app,
-              area,
-              draw_library,
-              draw_edit_movie_prompt,
-              Size::Medium,
-            );
-          }
-          _ if MOVIE_DETAILS_BLOCKS.contains(&context) => {
-            draw_popup_over_ui::<MovieDetailsUi>(f, app, area, draw_library, Size::Large);
-            draw_popup(f, app, draw_edit_movie_prompt, Size::Medium);
-          }
-          _ => (),
+        if MOVIE_DETAILS_BLOCKS.contains(&context) {
+          draw_popup(f, app, MovieDetailsUi::draw, Size::Large);
         }
+      }
+      
+      draw_popup(f, app, draw_edit_movie_confirmation_prompt, Size::Medium);
+
+      match active_radarr_block {
+        ActiveRadarrBlock::EditMovieSelectMinimumAvailability => {
+          draw_edit_movie_select_minimum_availability_popup(f, app);
+        }
+        ActiveRadarrBlock::EditMovieSelectQualityProfile => {
+          draw_edit_movie_select_quality_profile_popup(f, app);
+        }
+        _ => (),
       }
     }
   }

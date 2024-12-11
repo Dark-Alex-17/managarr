@@ -12,6 +12,7 @@ use crate::models::sonarr_models::{
   Season, SeasonStatistics, SonarrHistoryEventType, SonarrHistoryItem,
 };
 use crate::models::{EnumDisplayStyle, Route};
+use crate::ui::sonarr_ui::library::season_details_ui::SeasonDetailsUi;
 use crate::ui::sonarr_ui::sonarr_ui_utils::{
   create_download_failed_history_event_details,
   create_download_folder_imported_history_event_details,
@@ -28,11 +29,8 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{draw_popup, draw_popup_over, draw_tabs, DrawUi};
-use crate::ui::sonarr_ui::library::season_details_ui::SeasonDetailsUi;
+use crate::ui::{draw_popup, draw_tabs, DrawUi};
 use crate::utils::convert_to_gb;
-
-use super::draw_library;
 
 #[cfg(test)]
 #[path = "series_details_ui_tests.rs"]
@@ -107,28 +105,16 @@ impl DrawUi for SeriesDetailsUi {
         };
       };
 
-      match route {
-        _ if SeasonDetailsUi::accepts(route) => {
-          draw_popup(f, app, draw_series_details_popup, Size::XXLarge);
-          SeasonDetailsUi::draw(f, app, area);
-        },
-        Route::Sonarr(active_sonarr_block, _) if SERIES_DETAILS_BLOCKS.contains(&active_sonarr_block) => {
-          draw_popup_over(
-            f,
-            app,
-            area,
-            draw_library,
-            draw_series_details_popup,
-            Size::XXLarge,
-          );
-        }
-        _ => (),
+      draw_popup(f, app, draw_series_details_popup, Size::XXLarge);
+      
+      if SeasonDetailsUi::accepts(route) {
+        SeasonDetailsUi::draw(f, app, area);
       }
     }
   }
 }
 
-pub fn draw_series_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+fn draw_series_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let current_selection = app.data.sonarr_data.series.current_selection();
   let monitored = if current_selection.monitored {
     "Yes"

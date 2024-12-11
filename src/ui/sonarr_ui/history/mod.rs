@@ -39,18 +39,10 @@ impl DrawUi for HistoryUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
-      match active_sonarr_block {
-        ActiveSonarrBlock::History
-        | ActiveSonarrBlock::HistorySortPrompt
-        | ActiveSonarrBlock::SearchHistory
-        | ActiveSonarrBlock::SearchHistoryError
-        | ActiveSonarrBlock::FilterHistory
-        | ActiveSonarrBlock::FilterHistoryError => draw_history_table(f, app, area),
-        ActiveSonarrBlock::HistoryItemDetails => {
-          draw_history_table(f, app, area);
-          draw_history_item_details_popup(f, app);
-        }
-        _ => (),
+      draw_history_table(f, app, area);
+      
+      if active_sonarr_block == ActiveSonarrBlock::HistoryItemDetails {
+        draw_history_item_details_popup(f, app);
       }
     }
   }

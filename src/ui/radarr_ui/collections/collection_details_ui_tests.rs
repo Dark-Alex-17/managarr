@@ -17,5 +17,7 @@ mod tests {
         assert!(!CollectionDetailsUi::accepts(active_radarr_block.into()));
       }
     });
+    
+    assert!(CollectionDetailsUi::accepts((ActiveRadarrBlock::CollectionDetails, Some(ActiveRadarrBlock::CollectionDetails)).into()));
   }
 }

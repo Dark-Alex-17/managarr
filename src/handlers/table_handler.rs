@@ -59,9 +59,12 @@ macro_rules! handle_table_events {
             {
               $self.[<handle_ $name _table_filter_box_input>]()
             }
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.filter.key => $self.[<handle_ $name _table_filter_key>](props),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.search.key => $self.[<handle_ $name _table_search_key>](props),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.sort.key => $self.[<handle_ $name _table_sort_key>](props),
+            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.filter.key
+              && props.filtering_block.is_some() => $self.[<handle_ $name _table_filter_key>](props),
+            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.search.key
+              && props.searching_block.is_some() => $self.[<handle_ $name _table_search_key>](props),
+            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.sort.key
+              && props.sorting_block.is_some() => $self.[<handle_ $name _table_sort_key>](props),
             _ => false,
           }
         } else {

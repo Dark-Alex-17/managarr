@@ -54,46 +54,30 @@ impl DrawUi for LibraryUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = app.get_current_route();
-    let mut series_ui_matchers = |active_sonarr_block: ActiveSonarrBlock| match active_sonarr_block
-    {
-      ActiveSonarrBlock::Series
-      | ActiveSonarrBlock::SeriesSortPrompt
-      | ActiveSonarrBlock::SearchSeries
-      | ActiveSonarrBlock::SearchSeriesError
-      | ActiveSonarrBlock::FilterSeries
-      | ActiveSonarrBlock::FilterSeriesError => draw_library(f, app, area),
-      ActiveSonarrBlock::UpdateAllSeriesPrompt => {
+    draw_library(f, app, area);
+
+    match route {
+      _ if AddSeriesUi::accepts(route) => AddSeriesUi::draw(f, app, area),
+      _ if DeleteSeriesUi::accepts(route) => DeleteSeriesUi::draw(f, app, area),
+      _ if EditSeriesUi::accepts(route) => EditSeriesUi::draw(f, app, area),
+      _ if SeriesDetailsUi::accepts(route) => SeriesDetailsUi::draw(f, app, area),
+      Route::Sonarr(ActiveSonarrBlock::UpdateAllSeriesPrompt, _) => {
         let confirmation_prompt = ConfirmationPrompt::new()
           .title("Update All Series")
           .prompt("Do you want to update info and scan your disks for all of your series?")
           .yes_no_value(app.data.sonarr_data.prompt_confirm);
 
-        draw_library(f, app, area);
         f.render_widget(
           Popup::new(confirmation_prompt).size(Size::MediumPrompt),
           f.area(),
         );
       }
       _ => (),
-    };
-
-    match route {
-      _ if AddSeriesUi::accepts(route) => AddSeriesUi::draw(f, app, area),
-      _ if DeleteSeriesUi::accepts(route) => DeleteSeriesUi::draw(f, app, area),
-      _ if EditSeriesUi::accepts(route) => EditSeriesUi::draw(f, app, area),
-      _ if SeriesDetailsUi::accepts(route) => {
-        draw_library(f, app, area);
-        SeriesDetailsUi::draw(f, app, area)
-      },
-      Route::Sonarr(active_sonarr_block, _) if LIBRARY_BLOCKS.contains(&active_sonarr_block) => {
-        series_ui_matchers(active_sonarr_block)
-      }
-      _ => (),
     }
   }
 }
 
-pub(super) fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
     let current_selection = if !app.data.sonarr_data.series.items.is_empty() {
       app.data.sonarr_data.series.current_selection().clone()

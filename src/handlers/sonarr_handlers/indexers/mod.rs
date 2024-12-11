@@ -154,7 +154,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexersHandler<'a, 
       }
       ActiveSonarrBlock::TestIndexer => {
         self.app.pop_navigation_stack();
-        self.app.data.sonarr_data.indexer_test_error = None;
+        self.app.data.sonarr_data.indexer_test_errors = None;
       }
       _ => handle_clear_errors(self.app),
     }

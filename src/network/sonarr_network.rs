@@ -2368,12 +2368,14 @@ impl<'a, 'b> Network<'a, 'b> {
     self
       .handle_request::<Value, Value>(request_props, |test_results, mut app| {
         if test_results.as_object().is_none() {
-          app.data.sonarr_data.indexer_test_error = Some(
+          app.data.sonarr_data.indexer_test_errors = Some(
             test_results.as_array().unwrap()[0]
               .get("errorMessage")
               .unwrap()
               .to_string(),
           );
+        } else {
+          app.data.sonarr_data.indexer_test_errors = Some(String::new());
         };
       })
       .await

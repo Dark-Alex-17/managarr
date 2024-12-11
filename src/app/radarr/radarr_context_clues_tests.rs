@@ -240,6 +240,11 @@ mod tests {
 
     let (key_binding, description) = collection_details_context_clues_iter.next().unwrap();
 
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.edit);
+    assert_str_eq!(*description, "edit collection");
+
+    let (key_binding, description) = collection_details_context_clues_iter.next().unwrap();
+
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
     assert_str_eq!(*description, DEFAULT_KEYBINDINGS.esc.desc);
     assert_eq!(collection_details_context_clues_iter.next(), None);

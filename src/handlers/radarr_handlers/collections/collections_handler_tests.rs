@@ -449,7 +449,11 @@ mod tests {
     #[test]
     fn test_collection_search_box_left_right_keys() {
       let mut app = App::default();
-      app.data.radarr_data.collections.set_items(vec![Collection::default()]);
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
       app.push_navigation_stack(ActiveRadarrBlock::SearchCollection.into());
       app.data.radarr_data.collections.search = Some("Test".into());
 
@@ -499,7 +503,11 @@ mod tests {
     #[test]
     fn test_collection_filter_box_left_right_keys() {
       let mut app = App::default();
-      app.data.radarr_data.collections.set_items(vec![Collection::default()]);
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
       app.push_navigation_stack(ActiveRadarrBlock::FilterCollections.into());
       app.data.radarr_data.collections.filter = Some("Test".into());
 
@@ -938,7 +946,11 @@ mod tests {
         filtered_state: Some(TableState::default()),
         ..StatefulTable::default()
       };
-      app.data.radarr_data.collections.set_items(vec![Collection::default()]);
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
 
       CollectionsHandler::with(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
@@ -977,7 +989,11 @@ mod tests {
     #[test]
     fn test_collections_sort_prompt_block_esc() {
       let mut app = App::default();
-      app.data.radarr_data.collections.set_items(vec![Collection::default()]);
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![Collection::default()]);
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::CollectionsSortPrompt.into());
 
@@ -1174,11 +1190,7 @@ mod tests {
 
     #[test]
     fn test_collection_edit_key() {
-      test_edit_collection_key!(
-        CollectionsHandler,
-        ActiveRadarrBlock::Collections,
-        ActiveRadarrBlock::Collections
-      );
+      test_edit_collection_key!(CollectionsHandler, ActiveRadarrBlock::Collections, None);
     }
 
     #[test]

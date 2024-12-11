@@ -13,7 +13,6 @@ use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ADD_SERIES_BLOCKS};
 use crate::models::sonarr_models::AddSeriesSearchResult;
 use crate::models::{EnumDisplayStyle, Route};
-use crate::ui::sonarr_ui::library::draw_library;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block, layout_paragraph_borderless,
@@ -26,7 +25,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup_over, DrawUi};
+use crate::ui::{draw_popup, DrawUi};
 use crate::{render_selectable_input_box, App};
 
 #[cfg(test)]
@@ -44,50 +43,26 @@ impl DrawUi for AddSeriesUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
-      let draw_add_series_search_popup =
-        |f: &mut Frame<'_>, app: &mut App<'_>, area: Rect| match active_sonarr_block {
-          ActiveSonarrBlock::AddSeriesSearchInput
-          | ActiveSonarrBlock::AddSeriesSearchResults
-          | ActiveSonarrBlock::AddSeriesEmptySearchResults => {
-            draw_add_series_search(f, app, area);
-          }
-          ActiveSonarrBlock::AddSeriesPrompt
-          | ActiveSonarrBlock::AddSeriesSelectMonitor
-          | ActiveSonarrBlock::AddSeriesSelectSeriesType
-          | ActiveSonarrBlock::AddSeriesSelectQualityProfile
-          | ActiveSonarrBlock::AddSeriesSelectLanguageProfile
-          | ActiveSonarrBlock::AddSeriesSelectRootFolder
-          | ActiveSonarrBlock::AddSeriesTagsInput => {
-            draw_popup_over(
-              f,
-              app,
-              area,
-              draw_add_series_search,
-              draw_confirmation_popup,
-              Size::Long,
-            );
-          }
-          ActiveSonarrBlock::AddSeriesAlreadyInLibrary => {
-            draw_add_series_search(f, app, area);
-            f.render_widget(
-              Popup::new(Message::new("This film is already in your library")).size(Size::Message),
-              f.area(),
-            );
-          }
-          _ => (),
-        };
-
+      draw_popup(f, app, draw_add_series_search, Size::Large);
+      
       match active_sonarr_block {
-        _ if ADD_SERIES_BLOCKS.contains(&active_sonarr_block) => draw_popup_over(
-          f,
-          app,
-          area,
-          draw_library,
-          draw_add_series_search_popup,
-          Size::Large,
-        ),
+        ActiveSonarrBlock::AddSeriesPrompt
+        | ActiveSonarrBlock::AddSeriesSelectMonitor
+        | ActiveSonarrBlock::AddSeriesSelectSeriesType
+        | ActiveSonarrBlock::AddSeriesSelectQualityProfile
+        | ActiveSonarrBlock::AddSeriesSelectLanguageProfile
+        | ActiveSonarrBlock::AddSeriesSelectRootFolder
+        | ActiveSonarrBlock::AddSeriesTagsInput => {
+          draw_popup(f, app, draw_confirmation_popup, Size::Long);
+        }
+        ActiveSonarrBlock::AddSeriesAlreadyInLibrary => {
+          f.render_widget(
+            Popup::new(Message::new("This series is already in your library")).size(Size::Message),
+            f.area(),
+          );
+        }
         _ => (),
       }
     }

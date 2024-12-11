@@ -424,14 +424,14 @@ mod tests {
     fn test_test_indexer_esc(#[values(true, false)] is_ready: bool) {
       let mut app = App::default();
       app.is_loading = is_ready;
-      app.data.radarr_data.indexer_test_error = Some("test result".to_owned());
+      app.data.radarr_data.indexer_test_errors = Some("test result".to_owned());
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::TestIndexer.into());
 
       IndexersHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::TestIndexer, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert_eq!(app.data.radarr_data.indexer_test_error, None);
+      assert_eq!(app.data.radarr_data.indexer_test_errors, None);
     }
 
     #[rstest]

@@ -2,8 +2,6 @@ use ratatui::layout::{Constraint, Rect};
 use ratatui::widgets::{Cell, Row};
 use ratatui::Frame;
 
-pub(super) use collection_details_ui::draw_collection_details;
-
 use crate::app::App;
 use crate::models::radarr_models::Collection;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, COLLECTIONS_BLOCKS};
@@ -38,35 +36,21 @@ impl DrawUi for CollectionsUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = app.get_current_route();
-    let mut collections_ui_matcher = |active_radarr_block| match active_radarr_block {
-      ActiveRadarrBlock::Collections
-      | ActiveRadarrBlock::CollectionsSortPrompt
-      | ActiveRadarrBlock::SearchCollection
-      | ActiveRadarrBlock::SearchCollectionError
-      | ActiveRadarrBlock::FilterCollections
-      | ActiveRadarrBlock::FilterCollectionsError => draw_collections(f, app, area),
-      ActiveRadarrBlock::UpdateAllCollectionsPrompt => {
+    draw_collections(f, app, area);
+
+    match route {
+      _ if CollectionDetailsUi::accepts(route) => CollectionDetailsUi::draw(f, app, area),
+      _ if EditCollectionUi::accepts(route) => EditCollectionUi::draw(f, app, area),
+      Route::Radarr(ActiveRadarrBlock::UpdateAllCollectionsPrompt, _) => {
         let confirmation_prompt = ConfirmationPrompt::new()
           .title("Update All Collections")
           .prompt("Do you want to update all of your collections?")
           .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-        draw_collections(f, app, area);
         f.render_widget(
           Popup::new(confirmation_prompt).size(Size::MediumPrompt),
           f.area(),
         );
-      }
-      _ => (),
-    };
-
-    match route {
-      _ if CollectionDetailsUi::accepts(route) => CollectionDetailsUi::draw(f, app, area),
-      _ if EditCollectionUi::accepts(route) => EditCollectionUi::draw(f, app, area),
-      Route::Radarr(active_radarr_block, _)
-        if COLLECTIONS_BLOCKS.contains(&active_radarr_block) =>
-      {
-        collections_ui_matcher(active_radarr_block)
       }
       _ => (),
     }
@@ -123,7 +107,11 @@ pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
       .primary()
     };
     let collections_table = ManagarrTable::new(content, collection_row_mapping)
-      .loading(app.is_loading)
+      .loading(
+        app.is_loading
+          || app.data.radarr_data.movies.is_empty()
+          || app.data.radarr_data.quality_profile_map.is_empty(),
+      )
       .footer(collections_table_footer)
       .block(layout_block_top_border())
       .sorting(active_radarr_block == ActiveRadarrBlock::CollectionsSortPrompt)

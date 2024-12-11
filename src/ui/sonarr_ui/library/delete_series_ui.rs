@@ -4,7 +4,6 @@ use ratatui::Frame;
 use crate::app::App;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DELETE_SERIES_BLOCKS};
 use crate::models::Route;
-use crate::ui::sonarr_ui::library::draw_library;
 use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::popup::{Popup, Size};
@@ -25,14 +24,14 @@ impl DrawUi for DeleteSeriesUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     if matches!(
       app.get_current_route(),
       Route::Sonarr(ActiveSonarrBlock::DeleteSeriesPrompt, _)
     ) {
       let selected_block = app.data.sonarr_data.selected_block.get_active_block();
       let prompt = format!(
-        "Do you really want to delete: \n{}?",
+        "Do you really want to delete the series: \n{}?",
         app.data.sonarr_data.series.current_selection().title.text
       );
       let checkboxes = vec![
@@ -50,7 +49,6 @@ impl DrawUi for DeleteSeriesUi {
         .yes_no_highlighted(selected_block == ActiveSonarrBlock::DeleteSeriesConfirmPrompt)
         .yes_no_value(app.data.sonarr_data.prompt_confirm);
 
-      draw_library(f, app, area);
       f.render_widget(
         Popup::new(confirmation_prompt).size(Size::MediumPrompt),
         f.area(),

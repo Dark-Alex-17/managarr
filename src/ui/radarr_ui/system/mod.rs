@@ -63,18 +63,15 @@ impl DrawUi for SystemUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = app.get_current_route();
-
-    match route {
-      _ if SystemDetailsUi::accepts(route) => SystemDetailsUi::draw(f, app, area),
-      _ if matches!(route, Route::Radarr(ActiveRadarrBlock::System, _)) => {
-        draw_system_ui_layout(f, app, area)
-      }
-      _ => (),
+    draw_system_ui_layout(f, app, area);
+    
+    if SystemDetailsUi::accepts(route) {
+      SystemDetailsUi::draw(f, app, area);
     }
   }
 }
 
-pub(super) fn draw_system_ui_layout(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+fn draw_system_ui_layout(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let [activities_area, logs_area, help_area] = Layout::vertical([
     Constraint::Ratio(1, 2),
     Constraint::Ratio(1, 2),

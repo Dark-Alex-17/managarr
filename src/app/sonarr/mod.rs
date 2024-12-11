@@ -16,6 +16,15 @@ impl<'a> App<'a> {
     match active_sonarr_block {
       ActiveSonarrBlock::Series => {
         self
+          .dispatch_network_event(SonarrEvent::GetQualityProfiles.into())
+          .await;
+        self
+          .dispatch_network_event(SonarrEvent::GetLanguageProfiles.into())
+          .await;
+        self
+          .dispatch_network_event(SonarrEvent::GetTags.into())
+          .await;
+        self
           .dispatch_network_event(SonarrEvent::ListSeries.into())
           .await;
       }
@@ -89,6 +98,9 @@ impl<'a> App<'a> {
           .await;
       }
       ActiveSonarrBlock::Indexers => {
+        self
+          .dispatch_network_event(SonarrEvent::GetTags.into())
+          .await;
         self
           .dispatch_network_event(SonarrEvent::GetIndexers.into())
           .await;

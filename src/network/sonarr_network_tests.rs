@@ -6302,7 +6302,7 @@ mod test {
       async_details_server.assert_async().await;
       async_test_server.assert_async().await;
       assert_eq!(
-        app_arc.lock().await.data.sonarr_data.indexer_test_error,
+        app_arc.lock().await.data.sonarr_data.indexer_test_errors,
         Some("\"test failure\"".to_owned())
       );
       assert_eq!(value, response_json)
@@ -6371,8 +6371,8 @@ mod test {
       async_details_server.assert_async().await;
       async_test_server.assert_async().await;
       assert_eq!(
-        app_arc.lock().await.data.sonarr_data.indexer_test_error,
-        None
+        app_arc.lock().await.data.sonarr_data.indexer_test_errors,
+        Some(String::new())
       );
       assert_eq!(value, json!({}));
     }

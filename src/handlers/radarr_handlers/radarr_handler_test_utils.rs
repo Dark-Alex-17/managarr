@@ -141,7 +141,7 @@ mod utils {
 
       assert_eq!(
         app.get_current_route(),
-        (ActiveRadarrBlock::EditCollectionPrompt, Some($context)).into()
+        (ActiveRadarrBlock::EditCollectionPrompt, $context).into()
       );
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),

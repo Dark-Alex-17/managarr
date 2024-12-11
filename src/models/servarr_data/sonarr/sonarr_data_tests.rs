@@ -95,7 +95,7 @@ mod tests {
       assert!(sonarr_data.history.is_empty());
       assert!(sonarr_data.indexers.is_empty());
       assert!(sonarr_data.indexer_settings.is_none());
-      assert!(sonarr_data.indexer_test_error.is_none());
+      assert!(sonarr_data.indexer_test_errors.is_none());
       assert!(sonarr_data.indexer_test_all_results.is_none());
       assert!(sonarr_data.language_profiles_map.is_empty());
       assert!(sonarr_data.logs.is_empty());

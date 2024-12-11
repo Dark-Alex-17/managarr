@@ -92,7 +92,7 @@ mod tests {
       assert!(radarr_data.edit_root_folder.is_none());
       assert!(radarr_data.edit_indexer_modal.is_none());
       assert!(radarr_data.indexer_settings.is_none());
-      assert!(radarr_data.indexer_test_error.is_none());
+      assert!(radarr_data.indexer_test_errors.is_none());
       assert!(radarr_data.indexer_test_all_results.is_none());
       assert!(radarr_data.movie_details_modal.is_none());
       assert!(radarr_data.prompt_confirm_action.is_none());

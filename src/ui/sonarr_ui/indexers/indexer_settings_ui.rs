@@ -10,14 +10,13 @@ use crate::models::servarr_data::sonarr::sonarr_data::{
 };
 use crate::models::Route;
 use crate::render_selectable_input_box;
-use crate::ui::sonarr_ui::indexers::draw_indexers;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::title_block_centered;
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::popup::Size;
-use crate::ui::{draw_popup_over, DrawUi};
+use crate::ui::{draw_popup, DrawUi};
 
 #[cfg(test)]
 #[path = "indexer_settings_ui_tests.rs"]
@@ -34,12 +33,10 @@ impl DrawUi for IndexerSettingsUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    draw_popup_over(
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
+    draw_popup(
       f,
       app,
-      area,
-      draw_indexers,
       draw_edit_indexer_settings_prompt,
       Size::LargePrompt,
     );

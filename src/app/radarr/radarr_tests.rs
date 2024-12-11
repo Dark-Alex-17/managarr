@@ -40,7 +40,15 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetQualityProfiles.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetCollections.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetMovies.into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -48,7 +56,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_dispatch_by_collection_details_block() {
-      let (mut app, _) = construct_app_unit();
+      let (mut app, mut sync_network_rx) = construct_app_unit();
 
       app.data.radarr_data.collections.set_items(vec![Collection {
         movies: Some(vec![CollectionMovie::default()]),
@@ -60,6 +68,14 @@ mod tests {
         .await;
 
       assert!(!app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetQualityProfiles.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetTags.into()
+      );
       assert!(!app.data.radarr_data.collection_movies.items.is_empty());
       assert_eq!(app.tick_count, 0);
       assert!(!app.data.radarr_data.prompt_confirm);
@@ -80,6 +96,14 @@ mod tests {
         .await;
 
       assert!(app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetQualityProfiles.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetTags.into()
+      );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::AddMovie(None).into()
@@ -134,6 +158,14 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetQualityProfiles.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetTags.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetMovies.into()
       );
       assert_eq!(
@@ -153,6 +185,10 @@ mod tests {
         .await;
 
       assert!(app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        RadarrEvent::GetTags.into()
+      );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         RadarrEvent::GetIndexers.into()

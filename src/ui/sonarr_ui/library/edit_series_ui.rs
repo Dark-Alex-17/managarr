@@ -14,7 +14,6 @@ use crate::models::servarr_data::sonarr::sonarr_data::{
 };
 use crate::models::{EnumDisplayStyle, Route};
 use crate::render_selectable_input_box;
-use crate::ui::sonarr_ui::library::draw_library;
 
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_paragraph_borderless, title_block_centered};
@@ -23,7 +22,7 @@ use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup, draw_popup_over, draw_popup_over_ui, DrawUi};
+use crate::ui::{draw_popup, DrawUi};
 
 use super::series_details_ui::SeriesDetailsUi;
 
@@ -42,51 +41,33 @@ impl DrawUi for EditSeriesUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     if let Route::Sonarr(active_sonarr_block, context_option) = app.get_current_route() {
-      let draw_edit_series_prompt =
-        |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| match active_sonarr_block {
-          ActiveSonarrBlock::EditSeriesSelectSeriesType => {
-            draw_edit_series_confirmation_prompt(f, app, prompt_area);
-            draw_edit_series_select_series_type_popup(f, app);
-          }
-          ActiveSonarrBlock::EditSeriesSelectQualityProfile => {
-            draw_edit_series_confirmation_prompt(f, app, prompt_area);
-            draw_edit_series_select_quality_profile_popup(f, app);
-          }
-          ActiveSonarrBlock::EditSeriesSelectLanguageProfile => {
-            draw_edit_series_confirmation_prompt(f, app, prompt_area);
-            draw_edit_series_select_language_profile_popup(f, app);
-          }
-          ActiveSonarrBlock::EditSeriesPrompt
-          | ActiveSonarrBlock::EditSeriesToggleMonitored
-          | ActiveSonarrBlock::EditSeriesToggleSeasonFolder
-          | ActiveSonarrBlock::EditSeriesPathInput
-          | ActiveSonarrBlock::EditSeriesTagsInput => {
-            draw_edit_series_confirmation_prompt(f, app, prompt_area)
-          }
-          _ => (),
-        };
-
       if let Some(context) = context_option {
-        match context {
-          ActiveSonarrBlock::Series => {
-            draw_popup_over(
-              f,
-              app,
-              area,
-              draw_library,
-              draw_edit_series_prompt,
-              Size::Long,
-            );
-          }
-          _ if SERIES_DETAILS_BLOCKS.contains(&context) => {
-            draw_popup_over_ui::<SeriesDetailsUi>(f, app, area, draw_library, Size::Large);
-            draw_popup(f, app, draw_edit_series_prompt, Size::Long);
-          }
-          _ => (),
+        if SERIES_DETAILS_BLOCKS.contains(&context) {
+          draw_popup(f, app, SeriesDetailsUi::draw, Size::Large);
         }
       }
+      
+      let draw_edit_series_prompt =
+        |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| {
+          draw_edit_series_confirmation_prompt(f, app, prompt_area);
+          
+          match active_sonarr_block {
+            ActiveSonarrBlock::EditSeriesSelectSeriesType => {
+              draw_edit_series_select_series_type_popup(f, app);
+            }
+            ActiveSonarrBlock::EditSeriesSelectQualityProfile => {
+              draw_edit_series_select_quality_profile_popup(f, app);
+            }
+            ActiveSonarrBlock::EditSeriesSelectLanguageProfile => {
+              draw_edit_series_select_language_profile_popup(f, app);
+            }
+            _ => (),
+          }
+        };
+
+      draw_popup(f, app, draw_edit_series_prompt, Size::Long);
     }
   }
 }

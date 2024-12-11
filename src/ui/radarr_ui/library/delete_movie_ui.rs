@@ -4,7 +4,6 @@ use ratatui::Frame;
 use crate::app::App;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 use crate::models::Route;
-use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::popup::{Popup, Size};
@@ -25,7 +24,7 @@ impl DrawUi for DeleteMovieUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     if matches!(
       app.get_current_route(),
       Route::Radarr(ActiveRadarrBlock::DeleteMoviePrompt, _)
@@ -50,7 +49,6 @@ impl DrawUi for DeleteMovieUi {
         .yes_no_highlighted(selected_block == ActiveRadarrBlock::DeleteMovieConfirmPrompt)
         .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-      draw_library(f, app, area);
       f.render_widget(
         Popup::new(confirmation_prompt).size(Size::MediumPrompt),
         f.area(),

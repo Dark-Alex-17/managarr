@@ -1,9 +1,8 @@
-use std::sync::atomic::Ordering;
-
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::Text;
 use ratatui::widgets::{ListItem, Paragraph};
 use ratatui::Frame;
+use std::sync::atomic::Ordering;
 
 use crate::app::context_clues::{build_context_clue_string, CONFIRMATION_PROMPT_CONTEXT_CLUES};
 use crate::app::App;
@@ -14,7 +13,6 @@ use crate::models::servarr_data::radarr::radarr_data::{
 use crate::models::{EnumDisplayStyle, Route};
 use crate::render_selectable_input_box;
 use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsUi;
-use crate::ui::radarr_ui::collections::draw_collections;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_paragraph_borderless, title_block_centered};
 use crate::ui::widgets::button::Button;
@@ -22,7 +20,7 @@ use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup, draw_popup_over, draw_popup_over_ui, DrawUi};
+use crate::ui::{draw_popup, DrawUi};
 
 #[cfg(test)]
 #[path = "edit_collection_ui_tests.rs"]
@@ -32,51 +30,42 @@ pub(super) struct EditCollectionUi;
 
 impl DrawUi for EditCollectionUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
+    if let Route::Radarr(active_radarr_block, context_option) = route {
+      if let Some(context) = context_option {
+        return EDIT_COLLECTION_BLOCKS.contains(&active_radarr_block)
+          && context == ActiveRadarrBlock::CollectionDetails;
+      }
+      
       return EDIT_COLLECTION_BLOCKS.contains(&active_radarr_block);
     }
 
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
-      let draw_edit_collection_prompt =
-        |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| match active_radarr_block {
-          ActiveRadarrBlock::EditCollectionSelectMinimumAvailability => {
-            draw_edit_collection_confirmation_prompt(f, app, prompt_area);
-            draw_edit_collection_select_minimum_availability_popup(f, app);
-          }
-          ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
-            draw_edit_collection_confirmation_prompt(f, app, prompt_area);
-            draw_edit_collection_select_quality_profile_popup(f, app);
-          }
-          ActiveRadarrBlock::EditCollectionPrompt
-          | ActiveRadarrBlock::EditCollectionToggleMonitored
-          | ActiveRadarrBlock::EditCollectionRootFolderPathInput
-          | ActiveRadarrBlock::EditCollectionToggleSearchOnAdd => {
-            draw_edit_collection_confirmation_prompt(f, app, prompt_area)
-          }
-          _ => (),
-        };
-
       if let Some(context) = context_option {
-        match context {
-          ActiveRadarrBlock::Collections => draw_popup_over(
-            f,
-            app,
-            area,
-            draw_collections,
-            draw_edit_collection_prompt,
-            Size::Medium,
-          ),
-          _ if COLLECTION_DETAILS_BLOCKS.contains(&context) => {
-            draw_popup_over_ui::<CollectionDetailsUi>(f, app, area, draw_collections, Size::Large);
-            draw_popup(f, app, draw_edit_collection_prompt, Size::Medium);
-          }
-          _ => (),
+        if COLLECTION_DETAILS_BLOCKS.contains(&context) {
+          draw_popup(f, app, CollectionDetailsUi::draw, Size::Large);
         }
       }
+
+      draw_popup(
+        f,
+        app,
+        draw_edit_collection_confirmation_prompt,
+        Size::Medium,
+      );
+
+      match active_radarr_block {
+        ActiveRadarrBlock::EditCollectionSelectMinimumAvailability => {
+          draw_edit_collection_select_minimum_availability_popup(f, app);
+        }
+        ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
+          draw_edit_collection_select_quality_profile_popup(f, app);
+        }
+        _ => (),
+      };
     }
   }
 }
