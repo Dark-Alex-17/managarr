@@ -5,13 +5,8 @@ mod test {
   use ratatui::style::{Color, Modifier, Style, Stylize};
   use ratatui::text::{Span, Text};
   use ratatui::widgets::{Block, BorderType, Borders, ListItem};
-
-  use crate::ui::utils::{
-    borderless_block, centered_rect, convert_to_minutes_hours_days, get_width_from_percentage,
-    layout_block, layout_block_bottom_border, layout_block_top_border,
-    layout_block_top_border_with_title, layout_block_with_title, logo_block, style_block_highlight,
-    style_log_list_item, title_block, title_block_centered, title_style,
-  };
+  use rstest::rstest;
+  use crate::ui::utils::{borderless_block, centered_rect, convert_to_minutes_hours_days, decorate_peer_style, get_width_from_percentage, layout_block, layout_block_bottom_border, layout_block_top_border, layout_block_top_border_with_title, layout_block_with_title, logo_block, style_block_highlight, style_log_list_item, title_block, title_block_centered, title_style};
 
   #[test]
   fn test_layout_block() {
@@ -236,6 +231,39 @@ mod test {
   fn test_convert_to_minutes_hours_days_days() {
     assert_str_eq!(convert_to_minutes_hours_days(1440), "1 day");
     assert_str_eq!(convert_to_minutes_hours_days(2880), "2 days");
+  }
+
+  #[rstest]
+  #[case(0, 0, PeerStyle::Failure)]
+  #[case(1, 2, PeerStyle::Warning)]
+  #[case(4, 2, PeerStyle::Success)]
+  fn test_decorate_peer_style(
+    #[case] seeders: u64,
+    #[case] leechers: u64,
+    #[case] expected_style: PeerStyle,
+  ) {
+    use crate::ui::styles::ManagarrStyle;
+    let text = Text::from("test");
+    match expected_style {
+      PeerStyle::Failure => assert_eq!(
+        decorate_peer_style(seeders, leechers, text.clone()),
+        text.failure()
+      ),
+      PeerStyle::Warning => assert_eq!(
+        decorate_peer_style(seeders, leechers, text.clone()),
+        text.warning()
+      ),
+      PeerStyle::Success => assert_eq!(
+        decorate_peer_style(seeders, leechers, text.clone()),
+        text.success()
+      ),
+    }
+  }
+
+  enum PeerStyle {
+    Failure,
+    Warning,
+    Success,
   }
 
   fn rect() -> Rect {

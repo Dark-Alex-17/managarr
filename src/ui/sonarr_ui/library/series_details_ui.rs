@@ -28,7 +28,8 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{draw_popup_over, draw_tabs, DrawUi};
+use crate::ui::{draw_popup, draw_popup_over, draw_tabs, DrawUi};
+use crate::ui::sonarr_ui::library::season_details_ui::SeasonDetailsUi;
 use crate::utils::convert_to_gb;
 
 use super::draw_library;
@@ -42,14 +43,15 @@ pub(super) struct SeriesDetailsUi;
 impl DrawUi for SeriesDetailsUi {
   fn accepts(route: Route) -> bool {
     if let Route::Sonarr(active_sonarr_block, _) = route {
-      return SERIES_DETAILS_BLOCKS.contains(&active_sonarr_block);
+      return SeasonDetailsUi::accepts(route) || SERIES_DETAILS_BLOCKS.contains(&active_sonarr_block);
     }
 
     false
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
+    let route = app.get_current_route();
+    if let Route::Sonarr(active_sonarr_block, _) = route {
       let draw_series_details_popup = |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| {
         f.render_widget(
           title_block(&app.data.sonarr_data.series.current_selection().title.text),
@@ -105,14 +107,23 @@ impl DrawUi for SeriesDetailsUi {
         };
       };
 
-      draw_popup_over(
-        f,
-        app,
-        area,
-        draw_library,
-        draw_series_details_popup,
-        Size::XXLarge,
-      );
+      match route {
+        _ if SeasonDetailsUi::accepts(route) => {
+          draw_popup(f, app, draw_series_details_popup, Size::XXLarge);
+          SeasonDetailsUi::draw(f, app, area);
+        },
+        Route::Sonarr(active_sonarr_block, _) if SERIES_DETAILS_BLOCKS.contains(&active_sonarr_block) => {
+          draw_popup_over(
+            f,
+            app,
+            area,
+            draw_library,
+            draw_series_details_popup,
+            Size::XXLarge,
+          );
+        }
+        _ => (),
+      }
     }
   }
 }
@@ -364,7 +375,7 @@ fn draw_series_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     }
     _ => f.render_widget(
       LoadingBlock::new(
-        app.is_loading || app.data.radarr_data.movie_details_modal.is_none(),
+        app.is_loading || app.data.sonarr_data.seasons.is_empty(),
         layout_block_top_border(),
       ),
       area,

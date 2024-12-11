@@ -2,7 +2,7 @@
 mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
-    SERIES_DETAILS_BLOCKS,
+    SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
   };
   use crate::models::{
     servarr_data::sonarr::sonarr_data::LIBRARY_BLOCKS, sonarr_models::SeriesStatus,
@@ -16,8 +16,7 @@ mod tests {
 
   use crate::models::sonarr_models::{Season, SeasonStatistics};
   use crate::{
-    models::sonarr_models::Series,
-    ui::sonarr_ui::library::decorate_series_row_with_style,
+    models::sonarr_models::Series, ui::sonarr_ui::library::decorate_series_row_with_style,
   };
 
   #[test]
@@ -28,6 +27,7 @@ mod tests {
     library_ui_blocks.extend(DELETE_SERIES_BLOCKS);
     library_ui_blocks.extend(EDIT_SERIES_BLOCKS);
     library_ui_blocks.extend(SERIES_DETAILS_BLOCKS);
+    library_ui_blocks.extend(SEASON_DETAILS_BLOCKS);
 
     ActiveSonarrBlock::iter().for_each(|active_sonarr_block| {
       if library_ui_blocks.contains(&active_sonarr_block) {
@@ -39,8 +39,7 @@ mod tests {
   }
 
   #[test]
-  fn test_decorate_row_with_style_downloaded_when_ended_and_all_monitored_episodes_are_present(
-  ) {
+  fn test_decorate_row_with_style_downloaded_when_ended_and_all_monitored_episodes_are_present() {
     let seasons = vec![
       Season {
         monitored: false,

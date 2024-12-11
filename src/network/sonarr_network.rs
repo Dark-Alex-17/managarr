@@ -31,7 +31,7 @@ use crate::{
   network::RequestMethod,
   utils::convert_to_gb,
 };
-
+use crate::models::sonarr_models::DownloadStatus;
 use super::{Network, NetworkEvent, NetworkResource};
 #[cfg(test)]
 #[path = "sonarr_network_tests.rs"]
@@ -2642,11 +2642,11 @@ fn get_episode_status(has_file: bool, downloads_vec: &[DownloadRecord], episode_
       .iter()
       .find(|&download| download.episode_id == episode_id)
     {
-      if download.status == "downloading" {
+      if download.status == DownloadStatus::Downloading {
         return "Downloading".to_owned();
       }
 
-      if download.status == "completed" {
+      if download.status == DownloadStatus::Completed {
         return "Awaiting Import".to_owned();
       }
     }

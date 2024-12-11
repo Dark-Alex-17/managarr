@@ -154,3 +154,13 @@ pub(super) fn convert_to_minutes_hours_days(time: i64) -> String {
     }
   }
 }
+
+pub(super) fn decorate_peer_style(seeders: u64, leechers: u64, text: Text<'_>) -> Text<'_> {
+  if seeders == 0 {
+    text.failure()
+  } else if seeders < leechers {
+    text.warning()
+  } else {
+    text.success()
+  }
+}

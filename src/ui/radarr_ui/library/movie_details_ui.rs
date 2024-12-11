@@ -13,9 +13,7 @@ use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_
 use crate::models::Route;
 use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::{
-  borderless_block, get_width_from_percentage, layout_block_bottom_border, layout_block_top_border,
-};
+use crate::ui::utils::{borderless_block, decorate_peer_style, get_width_from_percentage, layout_block_bottom_border, layout_block_top_border};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
@@ -553,15 +551,5 @@ fn style_from_download_status(download_status: &str, is_monitored: bool, status:
     _ if status != "released" && download_status == "Missing" => Style::new().unreleased(),
     "Missing" => Style::new().missing(),
     _ => Style::new().downloaded(),
-  }
-}
-
-fn decorate_peer_style(seeders: u64, leechers: u64, text: Text<'_>) -> Text<'_> {
-  if seeders == 0 {
-    text.failure()
-  } else if seeders < leechers {
-    text.warning()
-  } else {
-    text.success()
   }
 }

@@ -107,7 +107,7 @@ pub struct DeleteSeriesParams {
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {
   pub title: String,
-  pub status: String,
+  pub status: DownloadStatus,
   #[serde(deserialize_with = "super::from_i64")]
   pub id: i64,
   #[serde(deserialize_with = "super::from_i64")]
@@ -123,6 +123,57 @@ pub struct DownloadRecord {
 }
 
 impl Eq for DownloadRecord {}
+
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter)]
+#[serde(rename_all = "camelCase")]
+pub enum DownloadStatus {
+  #[default]
+  Unknown,
+  Queued,
+  Paused,
+  Downloading,
+  Completed,
+  Failed,
+  Warning,
+  Delay,
+  DownloadClientUnavailable,
+  Fallback,
+}
+
+impl Display for DownloadStatus {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    let download_status = match self {
+      DownloadStatus::Unknown => "unknown",
+      DownloadStatus::Queued => "queued",
+      DownloadStatus::Paused => "paused",
+      DownloadStatus::Downloading => "downloading",
+      DownloadStatus::Completed => "completed",
+      DownloadStatus::Failed => "failed",
+      DownloadStatus::Warning => "warning",
+      DownloadStatus::Delay => "delay",
+      DownloadStatus::DownloadClientUnavailable => "downloadClientUnavailable",
+      DownloadStatus::Fallback => "fallback",
+    };
+    write!(f, "{download_status}")
+  }
+}
+
+impl<'a> EnumDisplayStyle<'a> for DownloadStatus {
+  fn to_display_str(self) -> &'a str {
+    match self {
+      DownloadStatus::Unknown => "Unknown",
+      DownloadStatus::Queued => "Queued",
+      DownloadStatus::Paused => "Paused",
+      DownloadStatus::Downloading => "Downloading",
+      DownloadStatus::Completed => "Completed",
+      DownloadStatus::Failed => "Failed",
+      DownloadStatus::Warning => "Warning",
+      DownloadStatus::Delay => "Delay",
+      DownloadStatus::DownloadClientUnavailable => "Download Client Unavailable",
+      DownloadStatus::Fallback => "Fallback",
+    }
+  }
+}
 
 #[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

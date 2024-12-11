@@ -15,10 +15,7 @@ mod test {
   use tokio::sync::Mutex;
   use tokio_util::sync::CancellationToken;
 
-  use crate::models::sonarr_models::{
-    AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, AddSeriesSearchResultStatistics,
-    EditSeriesParams, IndexerSettings, SeriesMonitor, SonarrHistoryEventType,
-  };
+  use crate::models::sonarr_models::{AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, AddSeriesSearchResultStatistics, DownloadStatus, EditSeriesParams, IndexerSettings, SeriesMonitor, SonarrHistoryEventType};
 
   use crate::app::{App, ServarrConfig};
   use crate::models::radarr_models::IndexerTestResult;
@@ -7167,7 +7164,7 @@ mod test {
         false,
         &[DownloadRecord {
           episode_id: 1,
-          status: "downloading".to_owned(),
+          status: DownloadStatus::Downloading,
           ..DownloadRecord::default()
         }],
         1
@@ -7183,7 +7180,7 @@ mod test {
         false,
         &[DownloadRecord {
           episode_id: 1,
-          status: "completed".to_owned(),
+          status: DownloadStatus::Completed,
           ..DownloadRecord::default()
         }],
         1
@@ -7231,7 +7228,7 @@ mod test {
   fn download_record() -> DownloadRecord {
     DownloadRecord {
       title: "Test Download Title".to_owned(),
-      status: "downloading".to_owned(),
+      status: DownloadStatus::Downloading,
       id: 1,
       episode_id: 1,
       size: 3543348019f64,

@@ -35,6 +35,7 @@ mod series_details_ui;
 #[cfg(test)]
 #[path = "library_ui_tests.rs"]
 mod library_ui_tests;
+mod season_details_ui;
 
 pub(super) struct LibraryUi;
 
@@ -80,7 +81,10 @@ impl DrawUi for LibraryUi {
       _ if AddSeriesUi::accepts(route) => AddSeriesUi::draw(f, app, area),
       _ if DeleteSeriesUi::accepts(route) => DeleteSeriesUi::draw(f, app, area),
       _ if EditSeriesUi::accepts(route) => EditSeriesUi::draw(f, app, area),
-      _ if SeriesDetailsUi::accepts(route) => SeriesDetailsUi::draw(f, app, area),
+      _ if SeriesDetailsUi::accepts(route) => {
+        draw_library(f, app, area);
+        SeriesDetailsUi::draw(f, app, area)
+      },
       Route::Sonarr(active_sonarr_block, _) if LIBRARY_BLOCKS.contains(&active_sonarr_block) => {
         series_ui_matchers(active_sonarr_block)
       }
