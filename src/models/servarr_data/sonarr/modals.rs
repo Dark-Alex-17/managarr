@@ -5,7 +5,7 @@ use crate::{
     context_clues::build_context_clue_string,
     sonarr::sonarr_context_clues::{
       DETAILS_CONTEXTUAL_CONTEXT_CLUES, EPISODE_DETAILS_CONTEXT_CLUES,
-      EPISODE_HISTORY_CONTEXT_CLUES, MANUAL_EPISODE_SEARCH_CONTEXT_CLUES,
+      MANUAL_EPISODE_SEARCH_CONTEXT_CLUES,
       MANUAL_SEASON_SEARCH_CONTEXT_CLUES, SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES,
       SEASON_DETAILS_CONTEXT_CLUES, SEASON_HISTORY_CONTEXT_CLUES,
     },
@@ -288,7 +288,7 @@ impl Default for EpisodeDetailsModal {
         TabRoute {
           title: "History",
           route: ActiveSonarrBlock::EpisodeHistory.into(),
-          help: build_context_clue_string(&EPISODE_HISTORY_CONTEXT_CLUES),
+          help: build_context_clue_string(&EPISODE_DETAILS_CONTEXT_CLUES),
           contextual_help: Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES)),
         },
         TabRoute {

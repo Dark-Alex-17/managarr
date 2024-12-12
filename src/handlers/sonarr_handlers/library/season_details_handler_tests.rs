@@ -169,6 +169,58 @@ mod tests {
     const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
 
     #[test]
+    fn test_season_details_submit() {
+      let mut app = App::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
+      app.data.sonarr_data = create_test_sonarr_data();
+
+      SeasonDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
+        .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveSonarrBlock::EpisodeDetails.into()
+      );
+    }
+
+    #[test]
+    fn test_season_details_submit_no_op_on_empty_episodes_table() {
+      let mut app = App::default();
+      app.data.sonarr_data = create_test_sonarr_data();
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episodes = StatefulTable::default();
+      app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
+
+      SeasonDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
+        .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveSonarrBlock::SeasonDetails.into()
+      );
+    }
+
+    #[test]
+    fn test_season_details_submit_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
+
+      SeasonDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
+        .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveSonarrBlock::SeasonDetails.into()
+      );
+    }
+
+    #[test]
     fn test_season_history_submit() {
       let mut app = App::default();
       app.data.sonarr_data = create_test_sonarr_data();
@@ -418,7 +470,13 @@ mod tests {
         ..StatefulTable::default()
       };
       season_history.set_items(vec![SonarrHistoryItem::default()]);
-      app.data.sonarr_data.season_details_modal.as_mut().unwrap().season_history = season_history;
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .season_history = season_history;
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.push_navigation_stack(ActiveSonarrBlock::SeasonHistory.into());
 
@@ -457,22 +515,23 @@ mod tests {
         .filtered_state
         .is_none());
     }
-    
+
     #[rstest]
     fn test_season_details_tabs_esc(
       #[values(
-      ActiveSonarrBlock::SeasonDetails,
-      ActiveSonarrBlock::SeasonHistory,
-      ActiveSonarrBlock::ManualSeasonSearch
-      )] active_sonarr_block: ActiveSonarrBlock
+        ActiveSonarrBlock::SeasonDetails,
+        ActiveSonarrBlock::SeasonHistory,
+        ActiveSonarrBlock::ManualSeasonSearch
+      )]
+      active_sonarr_block: ActiveSonarrBlock,
     ) {
       let mut app = App::default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.push_navigation_stack(active_sonarr_block.into());
-      
+
       SeasonDetailsHandler::with(ESC_KEY, &mut app, active_sonarr_block, None).handle();
-      
+
       assert_eq!(
         app.get_current_route(),
         ActiveSonarrBlock::SeriesDetails.into()
@@ -489,7 +548,11 @@ mod tests {
 
     #[rstest]
     fn test_auto_search_key(
-      #[values(ActiveSonarrBlock::SeasonDetails, ActiveSonarrBlock::SeasonHistory, ActiveSonarrBlock::ManualSeasonSearch)]
+      #[values(
+        ActiveSonarrBlock::SeasonDetails,
+        ActiveSonarrBlock::SeasonHistory,
+        ActiveSonarrBlock::ManualSeasonSearch
+      )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
       let mut app = App::default();
@@ -502,7 +565,7 @@ mod tests {
         active_sonarr_block,
         None,
       )
-        .handle();
+      .handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -512,7 +575,11 @@ mod tests {
 
     #[rstest]
     fn test_auto_search_key_no_op_when_not_ready(
-      #[values(ActiveSonarrBlock::SeasonDetails, ActiveSonarrBlock::SeasonHistory, ActiveSonarrBlock::ManualSeasonSearch)]
+      #[values(
+        ActiveSonarrBlock::SeasonDetails,
+        ActiveSonarrBlock::SeasonHistory,
+        ActiveSonarrBlock::ManualSeasonSearch
+      )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
       let mut app = App::default();
@@ -525,14 +592,18 @@ mod tests {
         active_sonarr_block,
         None,
       )
-        .handle();
+      .handle();
 
       assert_eq!(app.get_current_route(), active_sonarr_block.into());
     }
 
     #[rstest]
     fn test_refresh_key(
-      #[values(ActiveSonarrBlock::SeasonDetails, ActiveSonarrBlock::SeasonHistory, ActiveSonarrBlock::ManualSeasonSearch)]
+      #[values(
+        ActiveSonarrBlock::SeasonDetails,
+        ActiveSonarrBlock::SeasonHistory,
+        ActiveSonarrBlock::ManualSeasonSearch
+      )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
       let mut app = App::default();
@@ -546,7 +617,7 @@ mod tests {
         active_sonarr_block,
         None,
       )
-        .handle();
+      .handle();
 
       assert_eq!(app.get_current_route(), active_sonarr_block.into());
       assert!(app.is_routing);
@@ -554,7 +625,11 @@ mod tests {
 
     #[rstest]
     fn test_refresh_key_no_op_when_not_ready(
-      #[values(ActiveSonarrBlock::SeasonDetails, ActiveSonarrBlock::SeasonHistory, ActiveSonarrBlock::ManualSeasonSearch)]
+      #[values(
+        ActiveSonarrBlock::SeasonDetails,
+        ActiveSonarrBlock::SeasonHistory,
+        ActiveSonarrBlock::ManualSeasonSearch
+      )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
       let mut app = App::default();
@@ -569,7 +644,7 @@ mod tests {
         active_sonarr_block,
         None,
       )
-        .handle();
+      .handle();
 
       assert_eq!(app.get_current_route(), active_sonarr_block.into());
       assert!(!app.is_routing);

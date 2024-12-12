@@ -145,21 +145,6 @@ pub static EPISODE_DETAILS_CONTEXT_CLUES: [ContextClue; 3] = [
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
-pub static EPISODE_HISTORY_CONTEXT_CLUES: [ContextClue; 6] = [
-  (
-    DEFAULT_KEYBINDINGS.refresh,
-    DEFAULT_KEYBINDINGS.refresh.desc,
-  ),
-  (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
-  (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
-  (DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc),
-  (
-    DEFAULT_KEYBINDINGS.auto_search,
-    DEFAULT_KEYBINDINGS.auto_search.desc,
-  ),
-  (DEFAULT_KEYBINDINGS.esc, "cancel filter/close"),
-];
-
 pub static SYSTEM_TASKS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.submit, "start task"),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),

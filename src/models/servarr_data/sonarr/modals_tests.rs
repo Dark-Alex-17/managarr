@@ -7,7 +7,7 @@ mod tests {
 
   use crate::app::context_clues::build_context_clue_string;
   use crate::app::sonarr::sonarr_context_clues::{
-    DETAILS_CONTEXTUAL_CONTEXT_CLUES, EPISODE_DETAILS_CONTEXT_CLUES, EPISODE_HISTORY_CONTEXT_CLUES,
+    DETAILS_CONTEXTUAL_CONTEXT_CLUES, EPISODE_DETAILS_CONTEXT_CLUES, 
     MANUAL_EPISODE_SEARCH_CONTEXT_CLUES, MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
     SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES, SEASON_DETAILS_CONTEXT_CLUES,
     SEASON_HISTORY_CONTEXT_CLUES,
@@ -275,7 +275,7 @@ mod tests {
     );
     assert_str_eq!(
       episode_details_modal.episode_details_tabs.tabs[1].help,
-      build_context_clue_string(&EPISODE_HISTORY_CONTEXT_CLUES)
+      build_context_clue_string(&EPISODE_DETAILS_CONTEXT_CLUES)
     );
     assert_eq!(
       episode_details_modal.episode_details_tabs.tabs[1].contextual_help,

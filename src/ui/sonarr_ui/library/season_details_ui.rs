@@ -27,6 +27,7 @@ use ratatui::layout::{Alignment, Constraint, Rect};
 use ratatui::prelude::{Line, Style, Stylize, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use ratatui::Frame;
+use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 
 #[cfg(test)]
 #[path = "season_details_ui_tests.rs"]
@@ -37,13 +38,14 @@ pub(super) struct SeasonDetailsUi;
 impl DrawUi for SeasonDetailsUi {
   fn accepts(route: Route) -> bool {
     if let Route::Sonarr(active_sonarr_block, _) = route {
-      return SEASON_DETAILS_BLOCKS.contains(&active_sonarr_block);
+      return EpisodeDetailsUi::accepts(route) || SEASON_DETAILS_BLOCKS.contains(&active_sonarr_block);
     }
 
     false
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
+    let route = app.get_current_route();
     if app.data.sonarr_data.season_details_modal.is_some() {
       if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
         let draw_season_details_popup = |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| {
@@ -111,6 +113,10 @@ impl DrawUi for SeasonDetailsUi {
         };
 
         draw_popup(f, app, draw_season_details_popup, Size::XLarge);
+        
+        if EpisodeDetailsUi::accepts(route) {
+          EpisodeDetailsUi::draw(f, app, _area);
+        }
       }
     }
   }
@@ -123,7 +129,7 @@ pub fn draw_season_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     {
       match active_sonarr_block {
         ActiveSonarrBlock::SeasonDetails => draw_episodes_table(f, app, area),
-        ActiveSonarrBlock::SeasonHistory => draw_episode_history_table(f, app, area),
+        ActiveSonarrBlock::SeasonHistory => draw_season_history_table(f, app, area),
         ActiveSonarrBlock::ManualSeasonSearch => draw_season_releases(f, app, area),
         _ => (),
       }
@@ -234,7 +240,7 @@ fn draw_episodes_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   }
 }
 
-fn draw_episode_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+fn draw_season_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   match app.data.sonarr_data.season_details_modal.as_ref() {
     Some(season_details_modal) if !app.is_loading => {
       let current_selection = if season_details_modal.season_history.is_empty() {

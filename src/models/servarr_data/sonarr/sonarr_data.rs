@@ -245,6 +245,7 @@ pub enum ActiveSonarrBlock {
   EpisodeDetails,
   EpisodeFile,
   EpisodeHistory,
+  EpisodeHistoryDetails,
   EpisodesSortPrompt,
   FilterEpisodes,
   FilterEpisodesError,
@@ -349,6 +350,17 @@ pub static SEASON_DETAILS_BLOCKS: [ActiveSonarrBlock; 15] = [
   ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt,
   ActiveSonarrBlock::ManualSeasonSearchSortPrompt,
   ActiveSonarrBlock::DeleteEpisodeFilePrompt,
+];
+
+pub static EPISODE_DETAILS_BLOCKS: [ActiveSonarrBlock; 8] = [
+  ActiveSonarrBlock::EpisodeDetails,
+  ActiveSonarrBlock::EpisodeHistory,
+  ActiveSonarrBlock::EpisodeHistoryDetails,
+  ActiveSonarrBlock::EpisodeFile,
+  ActiveSonarrBlock::ManualEpisodeSearch,
+  ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt,
+  ActiveSonarrBlock::ManualEpisodeSearchSortPrompt,
+  ActiveSonarrBlock::AutomaticallySearchEpisodePrompt,
 ];
 
 pub static ADD_SERIES_BLOCKS: [ActiveSonarrBlock; 13] = [

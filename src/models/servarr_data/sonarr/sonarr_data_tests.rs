@@ -222,14 +222,7 @@ mod tests {
   }
 
   mod active_sonarr_block_tests {
-    use crate::models::servarr_data::sonarr::sonarr_data::{
-      ActiveSonarrBlock, ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, BLOCKLIST_BLOCKS,
-      DELETE_SERIES_BLOCKS, DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_INDEXER_BLOCKS,
-      EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, EDIT_SERIES_BLOCKS,
-      EDIT_SERIES_SELECTION_BLOCKS, HISTORY_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
-      INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS, ROOT_FOLDERS_BLOCKS,
-      SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
-    };
+    use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, BLOCKLIST_BLOCKS, DELETE_SERIES_BLOCKS, DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_INDEXER_BLOCKS, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, EDIT_SERIES_BLOCKS, EDIT_SERIES_SELECTION_BLOCKS, EPISODE_DETAILS_BLOCKS, HISTORY_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS, ROOT_FOLDERS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS, SYSTEM_DETAILS_BLOCKS};
 
     #[test]
     fn test_library_blocks_contents() {
@@ -624,6 +617,19 @@ mod tests {
       assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt));
       assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualSeasonSearchSortPrompt));
       assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::DeleteEpisodeFilePrompt));
+    }
+
+    #[test]
+    fn test_episode_details_blocks_contents() {
+      assert_eq!(EPISODE_DETAILS_BLOCKS.len(), 8);
+      assert!(EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::EpisodeDetails));
+      assert!(EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::EpisodeHistory));
+      assert!(EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::EpisodeHistoryDetails));
+      assert!(EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::EpisodeFile));
+      assert!(EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualEpisodeSearch));
+      assert!(EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualEpisodeSearchSortPrompt));
+      assert!(EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt));
+      assert!(EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::AutomaticallySearchEpisodePrompt));
     }
   }
 }

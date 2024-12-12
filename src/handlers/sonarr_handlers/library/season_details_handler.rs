@@ -212,6 +212,22 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
 
   fn handle_submit(&mut self) {
     match self.active_sonarr_block {
+      ActiveSonarrBlock::SeasonDetails
+        if self.app.data.sonarr_data.season_details_modal.is_some()
+          && !self
+            .app
+            .data
+            .sonarr_data
+            .season_details_modal
+            .as_ref()
+            .unwrap()
+            .episodes
+            .is_empty() =>
+      {
+        self
+          .app
+          .push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into())
+      }
       ActiveSonarrBlock::SeasonHistory => self
         .app
         .push_navigation_stack(ActiveSonarrBlock::SeasonHistoryDetails.into()),

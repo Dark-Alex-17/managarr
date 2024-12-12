@@ -178,6 +178,14 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
+        SonarrEvent::GetEpisodes(None).into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        SonarrEvent::GetDownloads.into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
         SonarrEvent::GetEpisodeDetails(None).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
@@ -193,6 +201,14 @@ mod tests {
         .await;
 
       assert!(app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        SonarrEvent::GetEpisodes(None).into()
+      );
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        SonarrEvent::GetDownloads.into()
+      );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         SonarrEvent::GetEpisodeDetails(None).into()
@@ -221,8 +237,10 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_manual_episode_search_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
-      let mut season_details_modal = SeasonDetailsModal::default();
-      season_details_modal.episode_details_modal = Some(EpisodeDetailsModal::default());
+      let season_details_modal = SeasonDetailsModal {
+        episode_details_modal: Some(EpisodeDetailsModal::default()),
+        ..SeasonDetailsModal::default()
+      };
       app.data.sonarr_data.season_details_modal = Some(season_details_modal);
 
       app
@@ -261,8 +279,10 @@ mod tests {
       episode_details_modal
         .episode_releases
         .set_items(vec![SonarrRelease::default()]);
-      let mut season_details_modal = SeasonDetailsModal::default();
-      season_details_modal.episode_details_modal = Some(episode_details_modal);
+      let season_details_modal = SeasonDetailsModal {
+        episode_details_modal: Some(episode_details_modal),
+        ..SeasonDetailsModal::default()
+      };
       app.data.sonarr_data.season_details_modal = Some(season_details_modal);
 
       app

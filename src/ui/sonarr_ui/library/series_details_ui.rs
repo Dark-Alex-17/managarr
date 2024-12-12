@@ -30,6 +30,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{draw_popup, draw_tabs, DrawUi};
+use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -41,7 +42,7 @@ pub(super) struct SeriesDetailsUi;
 impl DrawUi for SeriesDetailsUi {
   fn accepts(route: Route) -> bool {
     if let Route::Sonarr(active_sonarr_block, _) = route {
-      return SeasonDetailsUi::accepts(route) || SERIES_DETAILS_BLOCKS.contains(&active_sonarr_block);
+      return SeasonDetailsUi::accepts(route) || EpisodeDetailsUi::accepts(route) || SERIES_DETAILS_BLOCKS.contains(&active_sonarr_block);
     }
 
     false
