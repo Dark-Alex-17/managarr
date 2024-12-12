@@ -2,11 +2,11 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
-use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ROOT_FOLDERS_BLOCKS};
 use crate::models::servarr_models::RootFolder;
-use crate::models::{HorizontallyScrollableText, Scrollable};
+use crate::models::HorizontallyScrollableText;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::{handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys};
 
@@ -32,10 +32,10 @@ impl<'a, 'b> RootFoldersHandler<'a, 'b> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for RootFoldersHandler<'a, 'b> {
   fn handle(&mut self) {
-    let root_folders_table_handling_props =
-      TableHandlingProps::new(ActiveSonarrBlock::RootFolders.into());
+    let root_folders_table_handling_config =
+      TableHandlingConfig::new(ActiveSonarrBlock::RootFolders.into());
 
-    if !self.handle_root_folders_table_events(root_folders_table_handling_props) {
+    if !self.handle_root_folders_table_events(root_folders_table_handling_config) {
       self.handle_key_event();
     }
   }

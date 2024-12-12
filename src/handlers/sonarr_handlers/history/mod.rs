@@ -3,12 +3,11 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handle_table_events;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
-use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_clear_errors, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTORY_BLOCKS};
 use crate::models::sonarr_models::SonarrHistoryItem;
 use crate::models::stateful_table::SortOption;
-use crate::models::Scrollable;
 
 #[cfg(test)]
 #[path = "history_handler_tests.rs"]
@@ -32,7 +31,7 @@ impl<'a, 'b> HistoryHandler<'a, 'b> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, 'b> {
   fn handle(&mut self) {
-    let history_table_handling_props = TableHandlingProps::new(ActiveSonarrBlock::History.into())
+    let history_table_handling_config = TableHandlingConfig::new(ActiveSonarrBlock::History.into())
       .sorting_block(ActiveSonarrBlock::HistorySortPrompt.into())
       .sort_by_fn(|a: &SonarrHistoryItem, b: &SonarrHistoryItem| a.id.cmp(&b.id))
       .sort_options(history_sorting_options())
@@ -43,7 +42,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, '
       .filter_error_block(ActiveSonarrBlock::FilterHistoryError.into())
       .filter_field_fn(|history| &history.source_title.text);
 
-    if !self.handle_history_table_events(history_table_handling_props) {
+    if !self.handle_history_table_events(history_table_handling_config) {
       self.handle_key_event();
     }
   }

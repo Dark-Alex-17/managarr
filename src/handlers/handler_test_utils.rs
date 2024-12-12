@@ -112,14 +112,14 @@ mod test_utils {
 
         $handler::with(&key, &mut app, &$block, &$context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection(),
           "Test 2"
         );
 
         $handler::with(&key, &mut app, &$block, &$context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection(),
           "Test 1"
         );
@@ -139,14 +139,14 @@ mod test_utils {
 
         $handler::with(key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
           "Test 2"
         );
 
         $handler::with(key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
           "Test 1"
         );
@@ -162,14 +162,14 @@ mod test_utils {
 
         $handler::with(key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
           "Test 2"
         );
 
         $handler::with(key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
           "Test 1"
         );
@@ -185,7 +185,7 @@ mod test_utils {
 
         $handler::with(key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app
             .data
             .$servarr_data
@@ -198,7 +198,7 @@ mod test_utils {
 
         $handler::with(key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app
             .data
             .$servarr_data
@@ -227,14 +227,14 @@ mod test_utils {
 
         $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection(),
           "Test 3"
         );
 
         $handler::with(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection(),
           "Test 1"
         );
@@ -254,14 +254,14 @@ mod test_utils {
 
         $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
           "Test 3"
         );
 
         $handler::with(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
           "Test 1"
         );
@@ -277,14 +277,14 @@ mod test_utils {
 
         $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
           "Test 3"
         );
 
         $handler::with(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
           "Test 1"
         );
@@ -300,7 +300,7 @@ mod test_utils {
 
         $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app
             .data
             .$servarr_data
@@ -313,7 +313,7 @@ mod test_utils {
 
         $handler::with(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
 
-        assert_str_eq!(
+        pretty_assertions::assert_str_eq!(
           app
             .data
             .$servarr_data
@@ -335,12 +335,14 @@ mod test_utils {
       app.data.sonarr_data.root_folders.set_items(vec![$crate::models::servarr_models::RootFolder::default()]);
       app.data.sonarr_data.indexers.set_items(vec![$crate::models::servarr_models::Indexer::default()]);
       app.data.sonarr_data.blocklist.set_items(vec![$crate::models::sonarr_models::BlocklistItem::default()]);
+      app.data.sonarr_data.add_searched_series = Some($crate::models::stateful_table::StatefulTable::default());
       app.data.radarr_data.movies.set_items(vec![$crate::models::radarr_models::Movie::default()]);
       app.data.radarr_data.collections.set_items(vec![$crate::models::radarr_models::Collection::default()]);
       app.data.radarr_data.collection_movies.set_items(vec![$crate::models::radarr_models::CollectionMovie::default()]);
       app.data.radarr_data.indexers.set_items(vec![$crate::models::servarr_models::Indexer::default()]);
       app.data.radarr_data.root_folders.set_items(vec![$crate::models::servarr_models::RootFolder::default()]);
       app.data.radarr_data.blocklist.set_items(vec![$crate::models::radarr_models::BlocklistItem::default()]);
+      app.data.radarr_data.add_searched_movies = Some($crate::models::stateful_table::StatefulTable::default());
       let mut movie_details_modal = $crate::models::servarr_data::radarr::modals::MovieDetailsModal::default();
       movie_details_modal
         .movie_history
@@ -362,7 +364,7 @@ mod test_utils {
 
       $handler::with(DEFAULT_KEYBINDINGS.esc.key, &mut app, $active_block, None).handle();
 
-      assert_eq!(app.get_current_route(), $base.into());
+      pretty_assertions::assert_eq!(app.get_current_route(), $base.into());
     };
   }
 
@@ -373,13 +375,13 @@ mod test_utils {
 
       $handler::with(DELETE_KEY, &mut app, $block, None).handle();
 
-      assert_eq!(app.get_current_route(), $expected_block.into());
+      pretty_assertions::assert_eq!(app.get_current_route(), $expected_block.into());
     };
 
     ($handler:ident, $app:expr, $block:expr, $expected_block:expr) => {
       $handler::with(DELETE_KEY, &mut $app, $block, None).handle();
 
-      assert_eq!($app.get_current_route(), $expected_block.into());
+      pretty_assertions::assert_eq!($app.get_current_route(), $expected_block.into());
     };
   }
 
@@ -391,7 +393,7 @@ mod test_utils {
 
       $handler::with(DEFAULT_KEYBINDINGS.refresh.key, &mut app, $block, None).handle();
 
-      assert_eq!(app.get_current_route(), $block.into());
+      pretty_assertions::assert_eq!(app.get_current_route(), $block.into());
       assert!(app.should_refresh);
     };
   }

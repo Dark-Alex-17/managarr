@@ -3,11 +3,10 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handle_table_events;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
-use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::radarr_models::DownloadRecord;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
-use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 
 #[cfg(test)]
@@ -32,10 +31,10 @@ impl<'a, 'b> DownloadsHandler<'a, 'b> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a, 'b> {
   fn handle(&mut self) {
-    let downloads_table_handling_props =
-      TableHandlingProps::new(ActiveRadarrBlock::Downloads.into());
+    let downloads_table_handling_config =
+      TableHandlingConfig::new(ActiveRadarrBlock::Downloads.into());
 
-    if !self.handle_downloads_table_events(downloads_table_handling_props) {
+    if !self.handle_downloads_table_events(downloads_table_handling_config) {
       self.handle_key_event();
     }
   }

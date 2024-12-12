@@ -2,7 +2,7 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handle_table_events;
-use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::KeyEventHandler;
 use crate::models::radarr_models::CollectionMovie;
 use crate::models::servarr_data::radarr::radarr_data::{
@@ -10,7 +10,7 @@ use crate::models::servarr_data::radarr::radarr_data::{
   EDIT_COLLECTION_SELECTION_BLOCKS,
 };
 use crate::models::stateful_table::StatefulTable;
-use crate::models::{BlockSelectionState, Scrollable};
+use crate::models::BlockSelectionState;
 
 #[cfg(test)]
 #[path = "collection_details_handler_tests.rs"]
@@ -34,10 +34,10 @@ impl<'a, 'b> CollectionDetailsHandler<'a, 'b> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHandler<'a, 'b> {
   fn handle(&mut self) {
-    let collection_movies_table_handling_props =
-      TableHandlingProps::new(ActiveRadarrBlock::CollectionDetails.into());
+    let collection_movies_table_handling_config =
+      TableHandlingConfig::new(ActiveRadarrBlock::CollectionDetails.into());
 
-    if !self.handle_collection_movies_table_events(collection_movies_table_handling_props) {
+    if !self.handle_collection_movies_table_events(collection_movies_table_handling_config) {
       self.handle_key_event();
     }
   }

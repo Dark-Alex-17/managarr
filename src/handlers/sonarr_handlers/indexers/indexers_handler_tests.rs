@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
@@ -14,111 +13,6 @@ mod tests {
   };
   use crate::models::servarr_models::Indexer;
   use crate::test_handler_delegation;
-
-  mod test_handle_scroll_up_and_down {
-    use rstest::rstest;
-
-    use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
-
-    use super::*;
-
-    test_iterable_scroll!(
-      test_indexers_scroll,
-      IndexersHandler,
-      sonarr_data,
-      indexers,
-      simple_stateful_iterable_vec!(Indexer, String, protocol),
-      ActiveSonarrBlock::Indexers,
-      None,
-      protocol
-    );
-
-    #[rstest]
-    fn test_indexers_scroll_no_op_when_not_ready(
-      #[values(
-			DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key
-		)]
-      key: Key,
-    ) {
-      let mut app = App::default();
-      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
-      app.is_loading = true;
-      app
-        .data
-        .sonarr_data
-        .indexers
-        .set_items(simple_stateful_iterable_vec!(Indexer, String, protocol));
-
-      IndexersHandler::with(key, &mut app, ActiveSonarrBlock::Indexers, None).handle();
-
-      assert_str_eq!(
-        app.data.sonarr_data.indexers.current_selection().protocol,
-        "Test 1"
-      );
-
-      IndexersHandler::with(key, &mut app, ActiveSonarrBlock::Indexers, None).handle();
-
-      assert_str_eq!(
-        app.data.sonarr_data.indexers.current_selection().protocol,
-        "Test 1"
-      );
-    }
-  }
-
-  mod test_handle_home_end {
-    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
-
-    use super::*;
-
-    test_iterable_home_and_end!(
-      test_indexers_home_end,
-      IndexersHandler,
-      sonarr_data,
-      indexers,
-      extended_stateful_iterable_vec!(Indexer, String, protocol),
-      ActiveSonarrBlock::Indexers,
-      None,
-      protocol
-    );
-
-    #[test]
-    fn test_indexers_home_end_no_op_when_not_ready() {
-      let mut app = App::default();
-      app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
-      app.is_loading = true;
-      app
-        .data
-        .sonarr_data
-        .indexers
-        .set_items(extended_stateful_iterable_vec!(Indexer, String, protocol));
-
-      IndexersHandler::with(
-        DEFAULT_KEYBINDINGS.end.key,
-        &mut app,
-        ActiveSonarrBlock::Indexers,
-        None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app.data.sonarr_data.indexers.current_selection().protocol,
-        "Test 1"
-      );
-
-      IndexersHandler::with(
-        DEFAULT_KEYBINDINGS.home.key,
-        &mut app,
-        ActiveSonarrBlock::Indexers,
-        None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app.data.sonarr_data.indexers.current_selection().protocol,
-        "Test 1"
-      );
-    }
-  }
 
   mod test_handle_delete {
     use pretty_assertions::assert_eq;
@@ -515,7 +409,11 @@ mod tests {
     #[test]
     fn test_indexer_settings_key() {
       let mut app = App::default();
-      app.data.sonarr_data.indexers.set_items(vec![Indexer::default()]);
+      app
+        .data
+        .sonarr_data
+        .indexers
+        .set_items(vec![Indexer::default()]);
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data

@@ -3,13 +3,13 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handle_table_events;
 use crate::handlers::sonarr_handlers::history::history_sorting_options;
-use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, EDIT_SERIES_SELECTION_BLOCKS, SERIES_DETAILS_BLOCKS,
 };
 use crate::models::sonarr_models::{Season, SonarrHistoryItem};
-use crate::models::{BlockSelectionState, Scrollable};
+use crate::models::BlockSelectionState;
 use crate::network::sonarr_network::SonarrEvent;
 
 #[cfg(test)]
@@ -41,8 +41,8 @@ impl<'a, 'b> SeriesDetailsHandler<'a, 'b> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler<'a, 'b> {
   fn handle(&mut self) {
-    let season_table_handling_props =
-      TableHandlingProps::new(ActiveSonarrBlock::SeriesDetails.into())
+    let season_table_handling_config =
+      TableHandlingConfig::new(ActiveSonarrBlock::SeriesDetails.into())
         .searching_block(ActiveSonarrBlock::SearchSeason.into())
         .search_error_block(ActiveSonarrBlock::SearchSeasonError.into())
         .search_field_fn(|season: &Season| {
@@ -51,8 +51,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
             .as_ref()
             .expect("Season was not populated with title in handlers")
         });
-    let series_history_table_handling_props =
-      TableHandlingProps::new(ActiveSonarrBlock::SeriesHistory.into())
+    let series_history_table_handling_config =
+      TableHandlingConfig::new(ActiveSonarrBlock::SeriesHistory.into())
         .sorting_block(ActiveSonarrBlock::SeriesHistorySortPrompt.into())
         .sort_options(history_sorting_options())
         .sort_by_fn(|a: &SonarrHistoryItem, b: &SonarrHistoryItem| a.id.cmp(&b.id))
@@ -63,8 +63,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         .filter_error_block(ActiveSonarrBlock::FilterSeriesHistoryError.into())
         .filter_field_fn(|history_item: &SonarrHistoryItem| &history_item.source_title.text);
 
-    if !self.handle_season_table_events(season_table_handling_props)
-      && !self.handle_series_history_table_events(series_history_table_handling_props)
+    if !self.handle_season_table_events(season_table_handling_config)
+      && !self.handle_series_history_table_events(series_history_table_handling_config)
     {
       self.handle_key_event();
     }

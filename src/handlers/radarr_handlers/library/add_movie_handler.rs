@@ -1,11 +1,13 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS,
 };
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
+use crate::{handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
 
 #[cfg(test)]
 #[path = "add_movie_handler_tests.rs"]
@@ -18,7 +20,31 @@ pub(super) struct AddMovieHandler<'a, 'b> {
   context: Option<ActiveRadarrBlock>,
 }
 
+impl<'a, 'b> AddMovieHandler<'a, 'b> {
+  handle_table_events!(
+    self,
+    add_movie_search_results,
+    self
+      .app
+      .data
+      .radarr_data
+      .add_searched_movies
+      .as_mut()
+      .unwrap(),
+    AddMovieSearchResult
+  );
+}
+
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 'b> {
+  fn handle(&mut self) {
+    let add_movie_table_handling_config =
+      TableHandlingConfig::new(ActiveRadarrBlock::AddMovieSearchResults.into());
+
+    if !self.handle_add_movie_search_results_table_events(add_movie_table_handling_config) {
+      self.handle_key_event();
+    }
+  }
+
   fn accepts(active_block: ActiveRadarrBlock) -> bool {
     ADD_MOVIE_BLOCKS.contains(&active_block)
   }
@@ -47,14 +73,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
 
   fn handle_scroll_up(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::AddMovieSearchResults => self
-        .app
-        .data
-        .radarr_data
-        .add_searched_movies
-        .as_mut()
-        .unwrap()
-        .scroll_up(),
       ActiveRadarrBlock::AddMovieSelectMonitor => self
         .app
         .data
@@ -98,14 +116,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
 
   fn handle_scroll_down(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::AddMovieSearchResults => self
-        .app
-        .data
-        .radarr_data
-        .add_searched_movies
-        .as_mut()
-        .unwrap()
-        .scroll_down(),
       ActiveRadarrBlock::AddMovieSelectMonitor => self
         .app
         .data
@@ -149,14 +159,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
 
   fn handle_home(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::AddMovieSearchResults => self
-        .app
-        .data
-        .radarr_data
-        .add_searched_movies
-        .as_mut()
-        .unwrap()
-        .scroll_to_top(),
       ActiveRadarrBlock::AddMovieSelectMonitor => self
         .app
         .data
@@ -216,14 +218,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
 
   fn handle_end(&mut self) {
     match self.active_radarr_block {
-      ActiveRadarrBlock::AddMovieSearchResults => self
-        .app
-        .data
-        .radarr_data
-        .add_searched_movies
-        .as_mut()
-        .unwrap()
-        .scroll_to_bottom(),
       ActiveRadarrBlock::AddMovieSelectMonitor => self
         .app
         .data

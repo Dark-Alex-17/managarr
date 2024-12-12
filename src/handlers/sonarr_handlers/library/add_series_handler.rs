@@ -1,11 +1,13 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS,
 };
+use crate::models::sonarr_models::AddSeriesSearchResult;
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::sonarr_network::SonarrEvent;
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
+use crate::{handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
 
 #[cfg(test)]
 #[path = "add_series_handler_tests.rs"]
@@ -18,7 +20,31 @@ pub(super) struct AddSeriesHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
+impl<'a, 'b> AddSeriesHandler<'a, 'b> {
+  handle_table_events!(
+    self,
+    add_searched_series,
+    self
+      .app
+      .data
+      .sonarr_data
+      .add_searched_series
+      .as_mut()
+      .unwrap(),
+    AddSeriesSearchResult
+  );
+}
+
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a, 'b> {
+  fn handle(&mut self) {
+    let add_series_table_handling_config =
+      TableHandlingConfig::new(ActiveSonarrBlock::AddSeriesSearchResults.into());
+
+    if !self.handle_add_searched_series_table_events(add_series_table_handling_config) {
+      self.handle_key_event();
+    }
+  }
+
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     ADD_SERIES_BLOCKS.contains(&active_block)
   }
@@ -47,14 +73,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
 
   fn handle_scroll_up(&mut self) {
     match self.active_sonarr_block {
-      ActiveSonarrBlock::AddSeriesSearchResults => self
-        .app
-        .data
-        .sonarr_data
-        .add_searched_series
-        .as_mut()
-        .unwrap()
-        .scroll_up(),
       ActiveSonarrBlock::AddSeriesSelectMonitor => self
         .app
         .data
@@ -107,14 +125,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
 
   fn handle_scroll_down(&mut self) {
     match self.active_sonarr_block {
-      ActiveSonarrBlock::AddSeriesSearchResults => self
-        .app
-        .data
-        .sonarr_data
-        .add_searched_series
-        .as_mut()
-        .unwrap()
-        .scroll_down(),
       ActiveSonarrBlock::AddSeriesSelectMonitor => self
         .app
         .data
@@ -167,14 +177,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
 
   fn handle_home(&mut self) {
     match self.active_sonarr_block {
-      ActiveSonarrBlock::AddSeriesSearchResults => self
-        .app
-        .data
-        .sonarr_data
-        .add_searched_series
-        .as_mut()
-        .unwrap()
-        .scroll_to_top(),
       ActiveSonarrBlock::AddSeriesSelectMonitor => self
         .app
         .data
@@ -243,14 +245,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
 
   fn handle_end(&mut self) {
     match self.active_sonarr_block {
-      ActiveSonarrBlock::AddSeriesSearchResults => self
-        .app
-        .data
-        .sonarr_data
-        .add_searched_series
-        .as_mut()
-        .unwrap()
-        .scroll_to_bottom(),
       ActiveSonarrBlock::AddSeriesSelectMonitor => self
         .app
         .data

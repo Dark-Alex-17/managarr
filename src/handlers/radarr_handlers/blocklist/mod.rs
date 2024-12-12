@@ -3,12 +3,11 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handle_table_events;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
-use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::radarr_models::BlocklistItem;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, BLOCKLIST_BLOCKS};
 use crate::models::stateful_table::SortOption;
-use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 
 #[cfg(test)]
@@ -33,13 +32,13 @@ impl<'a, 'b> BlocklistHandler<'a, 'b> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a, 'b> {
   fn handle(&mut self) {
-    let blocklist_table_handling_props =
-      TableHandlingProps::new(ActiveRadarrBlock::Blocklist.into())
+    let blocklist_table_handling_config =
+      TableHandlingConfig::new(ActiveRadarrBlock::Blocklist.into())
         .sorting_block(ActiveRadarrBlock::BlocklistSortPrompt.into())
         .sort_by_fn(|a: &BlocklistItem, b: &BlocklistItem| a.id.cmp(&b.id))
         .sort_options(blocklist_sorting_options());
 
-    if !self.handle_blocklist_table_events(blocklist_table_handling_props) {
+    if !self.handle_blocklist_table_events(blocklist_table_handling_config) {
       self.handle_key_event();
     }
   }

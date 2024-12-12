@@ -4,7 +4,7 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handle_table_events;
-use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::radarr_models::{Credit, MovieHistoryItem, RadarrRelease};
 use crate::models::servarr_data::radarr::radarr_data::{
@@ -83,19 +83,19 @@ impl<'a, 'b> MovieDetailsHandler<'a, 'b> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<'a, 'b> {
   fn handle(&mut self) {
-    let movie_history_table_handling_props =
-      TableHandlingProps::new(ActiveRadarrBlock::MovieHistory.into());
-    let movie_releases_table_handling_props =
-      TableHandlingProps::new(ActiveRadarrBlock::ManualSearch.into())
+    let movie_history_table_handling_config =
+      TableHandlingConfig::new(ActiveRadarrBlock::MovieHistory.into());
+    let movie_releases_table_handling_config =
+      TableHandlingConfig::new(ActiveRadarrBlock::ManualSearch.into())
         .sorting_block(ActiveRadarrBlock::ManualSearchSortPrompt.into())
         .sort_options(releases_sorting_options());
-    let movie_cast_table_handling_props = TableHandlingProps::new(ActiveRadarrBlock::Cast.into());
-    let movie_crew_table_handling_props = TableHandlingProps::new(ActiveRadarrBlock::Crew.into());
+    let movie_cast_table_handling_config = TableHandlingConfig::new(ActiveRadarrBlock::Cast.into());
+    let movie_crew_table_handling_config = TableHandlingConfig::new(ActiveRadarrBlock::Crew.into());
 
-    if !self.handle_movie_history_table_events(movie_history_table_handling_props)
-      && !self.handle_movie_releases_table_events(movie_releases_table_handling_props)
-      && !self.handle_movie_cast_table_events(movie_cast_table_handling_props)
-      && !self.handle_movie_crew_table_events(movie_crew_table_handling_props)
+    if !self.handle_movie_history_table_events(movie_history_table_handling_config)
+      && !self.handle_movie_releases_table_events(movie_releases_table_handling_config)
+      && !self.handle_movie_cast_table_events(movie_cast_table_handling_config)
+      && !self.handle_movie_crew_table_events(movie_crew_table_handling_config)
     {
       self.handle_key_event();
     }

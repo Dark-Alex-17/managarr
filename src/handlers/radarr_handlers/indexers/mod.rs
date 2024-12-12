@@ -6,7 +6,7 @@ use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::radarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
 use crate::handlers::radarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
 use crate::handlers::radarr_handlers::indexers::test_all_indexers_handler::TestAllIndexersHandler;
-use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
@@ -14,7 +14,6 @@ use crate::models::servarr_data::radarr::radarr_data::{
 };
 use crate::models::servarr_models::Indexer;
 use crate::models::BlockSelectionState;
-use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 
 mod edit_indexer_handler;
@@ -38,9 +37,10 @@ impl<'a, 'b> IndexersHandler<'a, 'b> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 'b> {
   fn handle(&mut self) {
-    let indexer_table_handling_props = TableHandlingProps::new(ActiveRadarrBlock::Indexers.into());
+    let indexer_table_handling_config =
+      TableHandlingConfig::new(ActiveRadarrBlock::Indexers.into());
 
-    if !self.handle_indexers_table_events(indexer_table_handling_props) {
+    if !self.handle_indexers_table_events(indexer_table_handling_config) {
       match self.active_radarr_block {
         _ if EditIndexerHandler::accepts(self.active_radarr_block) => {
           EditIndexerHandler::with(self.key, self.app, self.active_radarr_block, self.context)

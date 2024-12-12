@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::assert_str_eq;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -10,111 +9,6 @@ mod tests {
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::DownloadRecord;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
-
-  mod test_handle_scroll_up_and_down {
-    use rstest::rstest;
-
-    use crate::models::radarr_models::DownloadRecord;
-    use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
-
-    use super::*;
-
-    test_iterable_scroll!(
-      test_downloads_scroll,
-      DownloadsHandler,
-      radarr_data,
-      downloads,
-      DownloadRecord,
-      ActiveRadarrBlock::Downloads,
-      None,
-      title
-    );
-
-    #[rstest]
-    fn test_downloads_scroll_no_op_when_not_ready(
-      #[values(
-			DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key
-		)]
-      key: Key,
-    ) {
-      let mut app = App::default();
-      app.is_loading = true;
-      app
-        .data
-        .radarr_data
-        .downloads
-        .set_items(simple_stateful_iterable_vec!(DownloadRecord));
-
-      DownloadsHandler::with(key, &mut app, ActiveRadarrBlock::Downloads, None).handle();
-
-      assert_str_eq!(
-        app.data.radarr_data.downloads.current_selection().title,
-        "Test 1"
-      );
-
-      DownloadsHandler::with(key, &mut app, ActiveRadarrBlock::Downloads, None).handle();
-
-      assert_str_eq!(
-        app.data.radarr_data.downloads.current_selection().title,
-        "Test 1"
-      );
-    }
-  }
-
-  mod test_handle_home_end {
-    use crate::models::radarr_models::DownloadRecord;
-    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
-
-    use super::*;
-
-    test_iterable_home_and_end!(
-      test_downloads_home_end,
-      DownloadsHandler,
-      radarr_data,
-      downloads,
-      DownloadRecord,
-      ActiveRadarrBlock::Downloads,
-      None,
-      title
-    );
-
-    #[test]
-    fn test_downloads_home_end_no_op_when_not_ready() {
-      let mut app = App::default();
-      app.is_loading = true;
-      app
-        .data
-        .radarr_data
-        .downloads
-        .set_items(extended_stateful_iterable_vec!(DownloadRecord));
-
-      DownloadsHandler::with(
-        DEFAULT_KEYBINDINGS.end.key,
-        &mut app,
-        ActiveRadarrBlock::Downloads,
-        None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app.data.radarr_data.downloads.current_selection().title,
-        "Test 1"
-      );
-
-      DownloadsHandler::with(
-        DEFAULT_KEYBINDINGS.home.key,
-        &mut app,
-        ActiveRadarrBlock::Downloads,
-        None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app.data.radarr_data.downloads.current_selection().title,
-        "Test 1"
-      );
-    }
-  }
 
   mod test_handle_delete {
     use pretty_assertions::assert_eq;

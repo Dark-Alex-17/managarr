@@ -5,14 +5,14 @@ use crate::handle_table_events;
 use crate::handlers::radarr_handlers::collections::collection_details_handler::CollectionDetailsHandler;
 use crate::handlers::radarr_handlers::collections::edit_collection_handler::EditCollectionHandler;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
-use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::radarr_models::Collection;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTIONS_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
 };
 use crate::models::stateful_table::SortOption;
-use crate::models::{BlockSelectionState, Scrollable};
+use crate::models::BlockSelectionState;
 use crate::network::radarr_network::RadarrEvent;
 
 mod collection_details_handler;
@@ -40,8 +40,8 @@ impl<'a, 'b> CollectionsHandler<'a, 'b> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'a, 'b> {
   fn handle(&mut self) {
-    let collections_table_handling_props =
-      TableHandlingProps::new(ActiveRadarrBlock::Collections.into())
+    let collections_table_handling_config =
+      TableHandlingConfig::new(ActiveRadarrBlock::Collections.into())
         .sorting_block(ActiveRadarrBlock::CollectionsSortPrompt.into())
         .sort_by_fn(|a: &Collection, b: &Collection| a.id.cmp(&b.id))
         .sort_options(collections_sorting_options())
@@ -52,7 +52,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
         .filter_error_block(ActiveRadarrBlock::FilterCollectionsError.into())
         .filter_field_fn(|collection| &collection.title.text);
 
-    if !self.handle_collections_table_events(collections_table_handling_props) {
+    if !self.handle_collections_table_events(collections_table_handling_config) {
       match self.active_radarr_block {
         _ if CollectionDetailsHandler::accepts(self.active_radarr_block) => {
           CollectionDetailsHandler::with(

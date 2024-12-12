@@ -9,13 +9,13 @@ use crate::handlers::radarr_handlers::library::movie_details_handler::MovieDetai
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 
 use crate::handle_table_events;
-use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::models::radarr_models::Movie;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, DELETE_MOVIE_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, LIBRARY_BLOCKS,
 };
 use crate::models::stateful_table::SortOption;
-use crate::models::{BlockSelectionState, HorizontallyScrollableText, Scrollable};
+use crate::models::{BlockSelectionState, HorizontallyScrollableText};
 use crate::network::radarr_network::RadarrEvent;
 
 mod add_movie_handler;
@@ -40,7 +40,7 @@ impl<'a, 'b> LibraryHandler<'a, 'b> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, 'b> {
   fn handle(&mut self) {
-    let movie_table_handling_props = TableHandlingProps::new(ActiveRadarrBlock::Movies.into())
+    let movie_table_handling_config = TableHandlingConfig::new(ActiveRadarrBlock::Movies.into())
       .sorting_block(ActiveRadarrBlock::MoviesSortPrompt.into())
       .sort_by_fn(|a: &Movie, b: &Movie| a.id.cmp(&b.id))
       .sort_options(movies_sorting_options())
@@ -51,7 +51,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
       .filter_error_block(ActiveRadarrBlock::FilterMoviesError.into())
       .filter_field_fn(|movie| &movie.title.text);
 
-    if !self.handle_movies_table_events(movie_table_handling_props) {
+    if !self.handle_movies_table_events(movie_table_handling_config) {
       match self.active_radarr_block {
         _ if AddMovieHandler::accepts(self.active_radarr_block) => {
           AddMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context)

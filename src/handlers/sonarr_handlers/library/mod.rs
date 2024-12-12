@@ -15,7 +15,7 @@ use crate::{
     },
     sonarr_models::Series,
     stateful_table::SortOption,
-    BlockSelectionState, HorizontallyScrollableText, Scrollable,
+    BlockSelectionState, HorizontallyScrollableText,
   },
   network::sonarr_network::SonarrEvent,
 };
@@ -23,7 +23,7 @@ use crate::{
 use super::handle_change_tab_left_right_keys;
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::handlers::sonarr_handlers::library::series_details_handler::SeriesDetailsHandler;
-use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::table_handler::TableHandlingConfig;
 
 mod add_series_handler;
 mod delete_series_handler;
@@ -46,7 +46,7 @@ impl<'a, 'b> LibraryHandler<'a, 'b> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, 'b> {
   fn handle(&mut self) {
-    let series_table_handling_props = TableHandlingProps::new(ActiveSonarrBlock::Series.into())
+    let series_table_handling_config = TableHandlingConfig::new(ActiveSonarrBlock::Series.into())
       .sorting_block(ActiveSonarrBlock::SeriesSortPrompt.into())
       .sort_by_fn(|a: &Series, b: &Series| a.id.cmp(&b.id))
       .sort_options(series_sorting_options())
@@ -57,7 +57,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
       .filter_error_block(ActiveSonarrBlock::FilterSeriesError.into())
       .filter_field_fn(|series| &series.title.text);
 
-    if !self.handle_series_table_events(series_table_handling_props) {
+    if !self.handle_series_table_events(series_table_handling_config) {
       match self.active_sonarr_block {
         _ if AddSeriesHandler::accepts(self.active_sonarr_block) => {
           AddSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context)

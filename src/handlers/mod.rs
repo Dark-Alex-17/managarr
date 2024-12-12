@@ -132,10 +132,10 @@ fn handle_prompt_toggle(app: &mut App<'_>, key: Key) {
 macro_rules! handle_text_box_left_right_keys {
   ($self:expr, $key:expr, $input:expr) => {
     match $self.key {
-      _ if $key == DEFAULT_KEYBINDINGS.left.key => {
+      _ if $key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.left.key => {
         $input.scroll_left();
       }
-      _ if $key == DEFAULT_KEYBINDINGS.right.key => {
+      _ if $key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.right.key => {
         $input.scroll_right();
       }
       _ => (),
@@ -147,7 +147,7 @@ macro_rules! handle_text_box_left_right_keys {
 macro_rules! handle_text_box_keys {
   ($self:expr, $key:expr, $input:expr) => {
     match $self.key {
-      _ if $key == DEFAULT_KEYBINDINGS.backspace.key => {
+      _ if $key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.backspace.key => {
         $input.pop();
       }
       Key::Char(character) => {
@@ -163,7 +163,7 @@ macro_rules! handle_prompt_left_right_keys {
   ($self:expr, $confirm_prompt:expr, $data:ident) => {
     if $self.app.data.$data.selected_block.get_active_block() == $confirm_prompt {
       handle_prompt_toggle($self.app, $self.key);
-    } else if $self.key == DEFAULT_KEYBINDINGS.left.key {
+    } else if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.left.key {
       $self.app.data.$data.selected_block.left();
     } else {
       $self.app.data.$data.selected_block.right();

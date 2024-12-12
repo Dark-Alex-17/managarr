@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::assert_str_eq;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -10,113 +9,6 @@ mod tests {
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DOWNLOADS_BLOCKS};
   use crate::models::sonarr_models::DownloadRecord;
-
-  mod test_handle_scroll_up_and_down {
-    use rstest::rstest;
-
-    use crate::models::sonarr_models::DownloadRecord;
-    use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
-
-    use super::*;
-
-    test_iterable_scroll!(
-      test_downloads_scroll,
-      DownloadsHandler,
-      sonarr_data,
-      downloads,
-      DownloadRecord,
-      ActiveSonarrBlock::Downloads,
-      None,
-      title
-    );
-
-    #[rstest]
-    fn test_downloads_scroll_no_op_when_not_ready(
-      #[values(
-			DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key
-		)]
-      key: Key,
-    ) {
-      let mut app = App::default();
-      app.push_navigation_stack(ActiveSonarrBlock::Downloads.into());
-      app.is_loading = true;
-      app
-        .data
-        .sonarr_data
-        .downloads
-        .set_items(simple_stateful_iterable_vec!(DownloadRecord));
-
-      DownloadsHandler::with(key, &mut app, ActiveSonarrBlock::Downloads, None).handle();
-
-      assert_str_eq!(
-        app.data.sonarr_data.downloads.current_selection().title,
-        "Test 1"
-      );
-
-      DownloadsHandler::with(key, &mut app, ActiveSonarrBlock::Downloads, None).handle();
-
-      assert_str_eq!(
-        app.data.sonarr_data.downloads.current_selection().title,
-        "Test 1"
-      );
-    }
-  }
-
-  mod test_handle_home_end {
-    use crate::models::sonarr_models::DownloadRecord;
-    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
-
-    use super::*;
-
-    test_iterable_home_and_end!(
-      test_downloads_home_end,
-      DownloadsHandler,
-      sonarr_data,
-      downloads,
-      DownloadRecord,
-      ActiveSonarrBlock::Downloads,
-      None,
-      title
-    );
-
-    #[test]
-    fn test_downloads_home_end_no_op_when_not_ready() {
-      let mut app = App::default();
-      app.push_navigation_stack(ActiveSonarrBlock::Downloads.into());
-      app.is_loading = true;
-      app
-        .data
-        .sonarr_data
-        .downloads
-        .set_items(extended_stateful_iterable_vec!(DownloadRecord));
-
-      DownloadsHandler::with(
-        DEFAULT_KEYBINDINGS.end.key,
-        &mut app,
-        ActiveSonarrBlock::Downloads,
-        None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app.data.sonarr_data.downloads.current_selection().title,
-        "Test 1"
-      );
-
-      DownloadsHandler::with(
-        DEFAULT_KEYBINDINGS.home.key,
-        &mut app,
-        ActiveSonarrBlock::Downloads,
-        None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app.data.sonarr_data.downloads.current_selection().title,
-        "Test 1"
-      );
-    }
-  }
 
   mod test_handle_delete {
     use pretty_assertions::assert_eq;

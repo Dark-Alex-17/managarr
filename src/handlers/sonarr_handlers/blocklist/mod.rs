@@ -3,12 +3,11 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handle_table_events;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
-use crate::handlers::table_handler::TableHandlingProps;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, BLOCKLIST_BLOCKS};
 use crate::models::sonarr_models::BlocklistItem;
 use crate::models::stateful_table::SortOption;
-use crate::models::Scrollable;
 use crate::network::sonarr_network::SonarrEvent;
 
 #[cfg(test)]
@@ -33,13 +32,13 @@ impl<'a, 'b> BlocklistHandler<'a, 'b> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for BlocklistHandler<'a, 'b> {
   fn handle(&mut self) {
-    let blocklist_table_handling_props =
-      TableHandlingProps::new(ActiveSonarrBlock::Blocklist.into())
+    let blocklist_table_handling_config =
+      TableHandlingConfig::new(ActiveSonarrBlock::Blocklist.into())
         .sorting_block(ActiveSonarrBlock::BlocklistSortPrompt.into())
         .sort_by_fn(|a: &BlocklistItem, b: &BlocklistItem| a.id.cmp(&b.id))
         .sort_options(blocklist_sorting_options());
 
-    if !self.handle_blocklist_table_events(blocklist_table_handling_props) {
+    if !self.handle_blocklist_table_events(blocklist_table_handling_config) {
       self.handle_key_event();
     }
   }
@@ -70,69 +69,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for BlocklistHandler<'a,
     !self.app.is_loading && !self.app.data.sonarr_data.blocklist.is_empty()
   }
 
-  fn handle_scroll_up(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::Blocklist => self.app.data.sonarr_data.blocklist.scroll_up(),
-      ActiveSonarrBlock::BlocklistSortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .blocklist
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_up(),
-      _ => (),
-    }
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::Blocklist => self.app.data.sonarr_data.blocklist.scroll_down(),
-      ActiveSonarrBlock::BlocklistSortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .blocklist
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_down(),
-      _ => (),
-    }
-  }
+  fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::Blocklist => self.app.data.sonarr_data.blocklist.scroll_to_top(),
-      ActiveSonarrBlock::BlocklistSortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .blocklist
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_top(),
-      _ => (),
-    }
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-    match self.active_sonarr_block {
-      ActiveSonarrBlock::Blocklist => self.app.data.sonarr_data.blocklist.scroll_to_bottom(),
-      ActiveSonarrBlock::BlocklistSortPrompt => self
-        .app
-        .data
-        .sonarr_data
-        .blocklist
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_bottom(),
-      _ => (),
-    }
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {
     if self.active_sonarr_block == ActiveSonarrBlock::Blocklist {
@@ -165,18 +108,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for BlocklistHandler<'a,
         if self.app.data.sonarr_data.prompt_confirm {
           self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::ClearBlocklist);
         }
-
-        self.app.pop_navigation_stack();
-      }
-      ActiveSonarrBlock::BlocklistSortPrompt => {
-        self
-          .app
-          .data
-          .sonarr_data
-          .blocklist
-          .items
-          .sort_by(|a, b| a.id.cmp(&b.id));
-        self.app.data.sonarr_data.blocklist.apply_sorting();
 
         self.app.pop_navigation_stack();
       }
@@ -214,17 +145,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for BlocklistHandler<'a,
           self
             .app
             .push_navigation_stack(ActiveSonarrBlock::BlocklistClearAllItemsPrompt.into());
-        }
-        _ if key == DEFAULT_KEYBINDINGS.sort.key => {
-          self
-            .app
-            .data
-            .sonarr_data
-            .blocklist
-            .sorting(blocklist_sorting_options());
-          self
-            .app
-            .push_navigation_stack(ActiveSonarrBlock::BlocklistSortPrompt.into());
         }
         _ => (),
       },
