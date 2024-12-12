@@ -329,22 +329,22 @@ impl Default for SeasonDetailsModal {
         TabRoute {
           title: "Episodes",
           route: ActiveSonarrBlock::SeasonDetails.into(),
-          help: build_context_clue_string(&SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES),
-          contextual_help: Some(build_context_clue_string(&SEASON_DETAILS_CONTEXT_CLUES)),
+          help: build_context_clue_string(&SEASON_DETAILS_CONTEXT_CLUES),
+          contextual_help: Some(build_context_clue_string(&SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES)),
         },
         TabRoute {
           title: "History",
           route: ActiveSonarrBlock::SeasonHistory.into(),
-          help: build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES),
-          contextual_help: Some(build_context_clue_string(&SEASON_HISTORY_CONTEXT_CLUES)),
+          help: build_context_clue_string(&SEASON_HISTORY_CONTEXT_CLUES),
+          contextual_help: Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES)),
         },
         TabRoute {
           title: "Manual Search",
           route: ActiveSonarrBlock::ManualSeasonSearch.into(),
-          help: build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES),
-          contextual_help: Some(build_context_clue_string(
+          help: build_context_clue_string(
             &MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
-          )),
+          ),
+          contextual_help: Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES)),
         },
       ]),
     }

@@ -106,7 +106,7 @@ impl DrawUi for SeriesDetailsUi {
       };
 
       draw_popup(f, app, draw_series_details_popup, Size::XXLarge);
-      
+
       if SeasonDetailsUi::accepts(route) {
         SeasonDetailsUi::draw(f, app, area);
       }

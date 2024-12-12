@@ -338,11 +338,11 @@ mod tests {
     );
     assert_str_eq!(
       season_details_modal.season_details_tabs.tabs[0].help,
-      build_context_clue_string(&SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES)
+      build_context_clue_string(&SEASON_DETAILS_CONTEXT_CLUES)
     );
     assert_eq!(
       season_details_modal.season_details_tabs.tabs[0].contextual_help,
-      Some(build_context_clue_string(&SEASON_DETAILS_CONTEXT_CLUES))
+      Some(build_context_clue_string(&SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES))
     );
 
     assert_str_eq!(
@@ -355,11 +355,11 @@ mod tests {
     );
     assert_str_eq!(
       season_details_modal.season_details_tabs.tabs[1].help,
-      build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES)
+      build_context_clue_string(&SEASON_HISTORY_CONTEXT_CLUES)
     );
     assert_eq!(
       season_details_modal.season_details_tabs.tabs[1].contextual_help,
-      Some(build_context_clue_string(&SEASON_HISTORY_CONTEXT_CLUES))
+      Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES))
     );
 
     assert_str_eq!(
@@ -372,12 +372,12 @@ mod tests {
     );
     assert_str_eq!(
       season_details_modal.season_details_tabs.tabs[2].help,
-      build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES)
+      build_context_clue_string(&MANUAL_SEASON_SEARCH_CONTEXT_CLUES)
     );
     assert_eq!(
       season_details_modal.season_details_tabs.tabs[2].contextual_help,
       Some(build_context_clue_string(
-        &MANUAL_SEASON_SEARCH_CONTEXT_CLUES
+        &DETAILS_CONTEXTUAL_CONTEXT_CLUES
       ))
     );
   }

@@ -333,11 +333,11 @@ pub static SERIES_DETAILS_BLOCKS: [ActiveSonarrBlock; 12] = [
   ActiveSonarrBlock::SeriesHistoryDetails,
 ];
 
-pub static SEASON_DETAILS_BLOCKS: [ActiveSonarrBlock; 14] = [
+pub static SEASON_DETAILS_BLOCKS: [ActiveSonarrBlock; 15] = [
   ActiveSonarrBlock::SeasonDetails,
   ActiveSonarrBlock::SeasonHistory,
-  ActiveSonarrBlock::SearchSeason,
-  ActiveSonarrBlock::SearchSeasonError,
+  ActiveSonarrBlock::SearchEpisodes,
+  ActiveSonarrBlock::SearchEpisodesError,
   ActiveSonarrBlock::AutomaticallySearchSeasonPrompt,
   ActiveSonarrBlock::SearchSeasonHistory,
   ActiveSonarrBlock::SearchSeasonHistoryError,
@@ -348,6 +348,7 @@ pub static SEASON_DETAILS_BLOCKS: [ActiveSonarrBlock; 14] = [
   ActiveSonarrBlock::ManualSeasonSearch,
   ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt,
   ActiveSonarrBlock::ManualSeasonSearchSortPrompt,
+  ActiveSonarrBlock::DeleteEpisodeFilePrompt,
 ];
 
 pub static ADD_SERIES_BLOCKS: [ActiveSonarrBlock; 13] = [

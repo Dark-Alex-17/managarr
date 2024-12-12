@@ -1,9 +1,16 @@
 use crate::app::App;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SEASON_DETAILS_BLOCKS};
 use crate::models::sonarr_models::{
-  DownloadRecord, DownloadStatus, Episode, SonarrHistoryItem, SonarrRelease,
+  DownloadRecord, DownloadStatus, Episode, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
 };
 use crate::models::Route;
+use crate::ui::sonarr_ui::sonarr_ui_utils::{
+  create_download_failed_history_event_details,
+  create_download_folder_imported_history_event_details,
+  create_episode_file_deleted_history_event_details,
+  create_episode_file_renamed_history_event_details, create_grabbed_history_event_details,
+  create_no_data_history_event_details,
+};
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, decorate_peer_style, get_width_from_percentage, layout_block_top_border,
@@ -11,12 +18,13 @@ use crate::ui::utils::{
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{draw_popup, draw_tabs, DrawUi};
 use crate::utils::convert_to_gb;
 use chrono::Utc;
-use ratatui::layout::{Constraint, Rect};
-use ratatui::prelude::{Line, Stylize, Text};
+use ratatui::layout::{Alignment, Constraint, Rect};
+use ratatui::prelude::{Line, Style, Stylize, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use ratatui::Frame;
 
@@ -37,20 +45,12 @@ impl DrawUi for SeasonDetailsUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     if app.data.sonarr_data.season_details_modal.is_some() {
-      if let Route::Sonarr(active_sonarr_block, _) = app
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .unwrap()
-        .season_details_tabs
-        .get_active_route()
-      {
+      if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
         let draw_season_details_popup = |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| {
           let content_area = draw_tabs(
             f,
             popup_area,
-            "Season Details",
+            &format!("Season {} Details", app.data.sonarr_data.seasons.current_selection().season_number),
             &app
               .data
               .sonarr_data
@@ -64,8 +64,8 @@ impl DrawUi for SeasonDetailsUi {
           match active_sonarr_block {
             ActiveSonarrBlock::AutomaticallySearchSeasonPrompt => {
               let prompt = format!(
-                "Do you want to trigger an automatic search of your indexers for season packs for the season: Season {}",
-                app.data.sonarr_data.seasons.current_selection().season_number
+                "Do you want to trigger an automatic search of your indexers for season packs for: {}",
+                app.data.sonarr_data.seasons.current_selection().title.as_ref().unwrap()
               );
               let confirmation_prompt = ConfirmationPrompt::new()
                 .title("Automatic Season Search")
@@ -89,8 +89,6 @@ impl DrawUi for SeasonDetailsUi {
                   .episodes
                   .current_selection()
                   .title
-                  .as_ref()
-                  .unwrap_or(&String::new())
               );
               let confirmation_prompt = ConfirmationPrompt::new()
                 .title("Delete Episode")
@@ -105,11 +103,14 @@ impl DrawUi for SeasonDetailsUi {
             ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt => {
               draw_manual_season_search_confirm_prompt(f, app);
             }
+            ActiveSonarrBlock::SeasonHistoryDetails => {
+              draw_history_item_details_popup(f, app, popup_area);
+            }
             _ => (),
           }
         };
 
-        draw_popup(f, app, draw_season_details_popup, Size::Large);
+        draw_popup(f, app, draw_season_details_popup, Size::XLarge);
       }
     }
   }
@@ -194,20 +195,20 @@ fn draw_episodes_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Row::new(vec![
           Cell::from(episode_monitored.to_owned()),
           Cell::from(episode_number.to_string()),
-          Cell::from(title.clone().unwrap_or_default()),
+          Cell::from(title.clone()),
           Cell::from(air_date),
           Cell::from(format!("{size:.2} GB")),
           Cell::from(quality_profile),
         ]),
       )
     };
-    let is_searching = active_sonarr_block == ActiveSonarrBlock::SearchSeason;
+    let is_searching = active_sonarr_block == ActiveSonarrBlock::SearchEpisodes;
     let season_table = ManagarrTable::new(content, episode_row_mapping)
       .block(layout_block_top_border())
       .loading(app.is_loading)
       .footer(help_footer)
-      .searching(active_sonarr_block == ActiveSonarrBlock::SearchSeason)
-      .search_produced_empty_results(active_sonarr_block == ActiveSonarrBlock::SearchSeasonError)
+      .searching(is_searching)
+      .search_produced_empty_results(active_sonarr_block == ActiveSonarrBlock::SearchEpisodesError)
       .headers([
         "🏷",
         "#",
@@ -329,13 +330,14 @@ fn draw_episode_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) 
 fn draw_season_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   match app.data.sonarr_data.season_details_modal.as_ref() {
     Some(season_details_modal) if !app.is_loading => {
-      let current_selection = if season_details_modal.season_releases.is_empty() {
-        SonarrRelease::default()
+      let (current_selection, is_empty) = if season_details_modal.season_releases.is_empty() {
+        (SonarrRelease::default(), true)
       } else {
-        season_details_modal
+        (season_details_modal
           .season_releases
           .current_selection()
-          .clone()
+          .clone(),
+          season_details_modal.season_releases.is_empty())
       };
       let season_release_table_footer = season_details_modal
         .season_details_tabs
@@ -409,16 +411,22 @@ fn draw_season_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         let release_table =
           ManagarrTable::new(Some(&mut season_release_table), season_release_row_mapping)
             .block(layout_block_top_border())
-            .loading(app.is_loading)
+            .loading(app.is_loading || is_empty)
             .footer(season_release_table_footer)
             .sorting(active_sonarr_block == ActiveSonarrBlock::ManualSeasonSearchSortPrompt)
-            .headers(["Source Title", "Event Type", "Language", "Quality", "Date"])
+            .headers([
+              "Source", "Age", "⛔", "Title", "Indexer", "Size", "Peers", "Language", "Quality",
+            ])
             .constraints([
-              Constraint::Percentage(40),
-              Constraint::Percentage(15),
-              Constraint::Percentage(12),
-              Constraint::Percentage(13),
-              Constraint::Percentage(20),
+              Constraint::Length(9),
+              Constraint::Length(10),
+              Constraint::Length(5),
+              Constraint::Percentage(30),
+              Constraint::Percentage(18),
+              Constraint::Length(12),
+              Constraint::Length(12),
+              Constraint::Percentage(7),
+              Constraint::Percentage(10),
             ]);
 
         f.render_widget(release_table, area);
@@ -479,20 +487,61 @@ fn draw_manual_season_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>
       .title(title)
       .prompt(&prompt)
       .content(content_paragraph)
-      .yes_no_value(app.data.radarr_data.prompt_confirm);
+      .yes_no_value(app.data.sonarr_data.prompt_confirm);
 
     f.render_widget(Popup::new(confirmation_prompt).size(Size::Small), f.area());
   } else {
     let confirmation_prompt = ConfirmationPrompt::new()
       .title(title)
       .prompt(&prompt)
-      .yes_no_value(app.data.radarr_data.prompt_confirm);
+      .yes_no_value(app.data.sonarr_data.prompt_confirm);
 
     f.render_widget(
       Popup::new(confirmation_prompt).size(Size::MediumPrompt),
       f.area(),
     );
   }
+}
+
+fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  let current_selection =
+    if let Some(season_details_modal) = app.data.sonarr_data.season_details_modal.as_ref() {
+      if season_details_modal.season_history.is_empty() {
+        SonarrHistoryItem::default()
+      } else {
+        season_details_modal
+          .season_history
+          .current_selection()
+          .clone()
+      }
+    } else {
+      SonarrHistoryItem::default()
+    };
+
+  let line_vec = match current_selection.event_type {
+    SonarrHistoryEventType::Grabbed => create_grabbed_history_event_details(current_selection),
+    SonarrHistoryEventType::DownloadFolderImported => {
+      create_download_folder_imported_history_event_details(current_selection)
+    }
+    SonarrHistoryEventType::DownloadFailed => {
+      create_download_failed_history_event_details(current_selection)
+    }
+    SonarrHistoryEventType::EpisodeFileDeleted => {
+      create_episode_file_deleted_history_event_details(current_selection)
+    }
+    SonarrHistoryEventType::EpisodeFileRenamed => {
+      create_episode_file_renamed_history_event_details(current_selection)
+    }
+    _ => create_no_data_history_event_details(current_selection),
+  };
+  let text = Text::from(line_vec);
+
+  let message = Message::new(text)
+    .title("Details")
+    .style(Style::new().secondary())
+    .alignment(Alignment::Left);
+
+  f.render_widget(Popup::new(message).size(Size::NarrowMessage), area);
 }
 
 fn decorate_with_row_style<'a>(

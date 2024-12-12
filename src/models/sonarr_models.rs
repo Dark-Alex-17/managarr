@@ -210,7 +210,7 @@ pub struct Episode {
   pub season_number: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub episode_number: i64,
-  pub title: Option<String>,
+  pub title: String,
   pub air_date_utc: Option<DateTime<Utc>>,
   pub overview: Option<String>,
   pub has_file: bool,
@@ -220,7 +220,7 @@ pub struct Episode {
 
 impl Display for Episode {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    write!(f, "{}", self.title.as_ref().unwrap_or(&String::new()))
+    write!(f, "{}", self.title)
   }
 }
 

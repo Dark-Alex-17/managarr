@@ -7,8 +7,11 @@ mod tests {
     use crate::{
       app::App,
       models::{
-        servarr_data::sonarr::sonarr_data::ActiveSonarrBlock,
-        sonarr_models::{Season, Series},
+        servarr_data::sonarr::{
+          modals::{EpisodeDetailsModal, SeasonDetailsModal},
+          sonarr_data::ActiveSonarrBlock,
+        },
+        sonarr_models::{Season, Series, SonarrRelease},
       },
       network::{sonarr_network::SonarrEvent, NetworkEvent},
     };
@@ -115,6 +118,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_manual_season_search_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::ManualSeasonSearch)
@@ -125,6 +129,40 @@ mod tests {
         sync_network_rx.recv().await.unwrap(),
         SonarrEvent::GetSeasonReleases(None).into()
       );
+      assert!(!app.data.sonarr_data.prompt_confirm);
+      assert_eq!(app.tick_count, 0);
+    }
+
+    #[tokio::test]
+    async fn test_dispatch_by_manual_season_search_block_is_loading() {
+      let mut app = App {
+        is_loading: true,
+        ..App::default()
+      };
+
+      app
+        .dispatch_by_sonarr_block(&ActiveSonarrBlock::ManualSeasonSearch)
+        .await;
+
+      assert!(app.is_loading);
+      assert!(!app.data.sonarr_data.prompt_confirm);
+      assert_eq!(app.tick_count, 0);
+    }
+
+    #[tokio::test]
+    async fn test_dispatch_by_manual_season_search_block_season_releases_non_empty() {
+      let mut app = App::default();
+      let mut season_details_modal = SeasonDetailsModal::default();
+      season_details_modal
+        .season_releases
+        .set_items(vec![SonarrRelease::default()]);
+      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
+
+      app
+        .dispatch_by_sonarr_block(&ActiveSonarrBlock::ManualSeasonSearch)
+        .await;
+
+      assert!(!app.is_loading);
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
     }
@@ -183,6 +221,9 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_manual_episode_search_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      let mut season_details_modal = SeasonDetailsModal::default();
+      season_details_modal.episode_details_modal = Some(EpisodeDetailsModal::default());
+      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::ManualEpisodeSearch)
@@ -193,6 +234,42 @@ mod tests {
         sync_network_rx.recv().await.unwrap(),
         SonarrEvent::GetEpisodeReleases(None).into()
       );
+      assert!(!app.data.sonarr_data.prompt_confirm);
+      assert_eq!(app.tick_count, 0);
+    }
+
+    #[tokio::test]
+    async fn test_dispatch_by_manual_episode_search_block_is_loading() {
+      let mut app = App {
+        is_loading: true,
+        ..App::default()
+      };
+
+      app
+        .dispatch_by_sonarr_block(&ActiveSonarrBlock::ManualEpisodeSearch)
+        .await;
+
+      assert!(app.is_loading);
+      assert!(!app.data.sonarr_data.prompt_confirm);
+      assert_eq!(app.tick_count, 0);
+    }
+
+    #[tokio::test]
+    async fn test_dispatch_by_manual_episode_search_block_episode_releases_non_empty() {
+      let mut app = App::default();
+      let mut episode_details_modal = EpisodeDetailsModal::default();
+      episode_details_modal
+        .episode_releases
+        .set_items(vec![SonarrRelease::default()]);
+      let mut season_details_modal = SeasonDetailsModal::default();
+      season_details_modal.episode_details_modal = Some(episode_details_modal);
+      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
+
+      app
+        .dispatch_by_sonarr_block(&ActiveSonarrBlock::ManualEpisodeSearch)
+        .await;
+
+      assert!(!app.is_loading);
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
     }

@@ -4,6 +4,8 @@ use log::{debug, info, warn};
 use serde_json::{json, Value};
 use urlencoding::encode;
 
+use super::{Network, NetworkEvent, NetworkResource};
+use crate::models::sonarr_models::DownloadStatus;
 use crate::{
   models::{
     radarr_models::IndexerTestResult,
@@ -31,8 +33,6 @@ use crate::{
   network::RequestMethod,
   utils::convert_to_gb,
 };
-use crate::models::sonarr_models::DownloadStatus;
-use super::{Network, NetworkEvent, NetworkResource};
 #[cfg(test)]
 #[path = "sonarr_network_tests.rs"]
 mod sonarr_network_tests;
@@ -1568,7 +1568,7 @@ impl<'a, 'b> Network<'a, 'b> {
             Air Date: {air_date}
             Status: {status}
             Description: {}",
-            title.unwrap_or_default(),
+            title,
             overview.unwrap_or_default(),
           )),
           ..EpisodeDetailsModal::default()

@@ -608,11 +608,11 @@ mod tests {
 
     #[test]
     fn test_season_details_blocks_contents() {
-      assert_eq!(SEASON_DETAILS_BLOCKS.len(), 14);
+      assert_eq!(SEASON_DETAILS_BLOCKS.len(), 15);
       assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeasonDetails));
       assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SeasonHistory));
-      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeason));
-      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeasonError));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchEpisodes));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchEpisodesError));
       assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::AutomaticallySearchSeasonPrompt));
       assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeasonHistory));
       assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::SearchSeasonHistoryError));
@@ -623,6 +623,7 @@ mod tests {
       assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualSeasonSearch));
       assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt));
       assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualSeasonSearchSortPrompt));
+      assert!(SEASON_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::DeleteEpisodeFilePrompt));
     }
   }
 }

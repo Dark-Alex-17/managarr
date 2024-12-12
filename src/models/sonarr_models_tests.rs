@@ -21,7 +21,7 @@ mod tests {
   #[test]
   fn test_episode_display() {
     let episode = Episode {
-      title: Some("Test Title".to_owned()),
+      title: "Test Title".to_owned(),
       ..Episode::default()
     };
 

@@ -22,6 +22,7 @@ use crate::{
 
 use super::handle_change_tab_left_right_keys;
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+use crate::handlers::sonarr_handlers::library::season_details_handler::SeasonDetailsHandler;
 use crate::handlers::sonarr_handlers::library::series_details_handler::SeriesDetailsHandler;
 use crate::handlers::table_handler::TableHandlingConfig;
 
@@ -32,6 +33,7 @@ mod delete_series_handler;
 #[path = "library_handler_tests.rs"]
 mod library_handler_tests;
 mod series_details_handler;
+mod season_details_handler;
 
 pub(super) struct LibraryHandler<'a, 'b> {
   key: Key,
@@ -75,6 +77,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
           SeriesDetailsHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
             .handle();
         }
+        _ if SeasonDetailsHandler::accepts(self.active_sonarr_block) => {
+          SeasonDetailsHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+            .handle();
+        }
         _ => self.handle_key_event(),
       }
     }
@@ -85,6 +91,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
       || DeleteSeriesHandler::accepts(active_block)
       || EditSeriesHandler::accepts(active_block)
       || SeriesDetailsHandler::accepts(active_block)
+      || SeasonDetailsHandler::accepts(active_block)
       || LIBRARY_BLOCKS.contains(&active_block)
   }
 

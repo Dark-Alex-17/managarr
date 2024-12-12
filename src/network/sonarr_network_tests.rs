@@ -15,7 +15,10 @@ mod test {
   use tokio::sync::Mutex;
   use tokio_util::sync::CancellationToken;
 
-  use crate::models::sonarr_models::{AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, AddSeriesSearchResultStatistics, DownloadStatus, EditSeriesParams, IndexerSettings, SeriesMonitor, SonarrHistoryEventType};
+  use crate::models::sonarr_models::{
+    AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, AddSeriesSearchResultStatistics,
+    DownloadStatus, EditSeriesParams, IndexerSettings, SeriesMonitor, SonarrHistoryEventType,
+  };
 
   use crate::app::{App, ServarrConfig};
   use crate::models::radarr_models::IndexerTestResult;
@@ -2234,13 +2237,13 @@ mod test {
   #[tokio::test]
   async fn test_handle_get_episodes_event(#[values(true, false)] use_custom_sorting: bool) {
     let episode_1 = Episode {
-      title: Some("z test".to_owned()),
+      title: "z test".to_owned(),
       episode_file: None,
       ..episode()
     };
     let episode_2 = Episode {
       id: 2,
-      title: Some("A test".to_owned()),
+      title: "A test".to_owned(),
       episode_file_id: 2,
       season_number: 2,
       episode_number: 2,
@@ -2249,7 +2252,7 @@ mod test {
     };
     let episode_3 = Episode {
       id: 3,
-      title: Some("A test".to_owned()),
+      title: "A test".to_owned(),
       episode_file_id: 3,
       season_number: 1,
       episode_number: 2,
@@ -2271,13 +2274,7 @@ mod test {
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.sort_asc = true;
     if use_custom_sorting {
-      let cmp_fn = |a: &Episode, b: &Episode| {
-        a.title
-          .as_ref()
-          .unwrap()
-          .to_lowercase()
-          .cmp(&b.title.as_ref().unwrap().to_lowercase())
-      };
+      let cmp_fn = |a: &Episode, b: &Episode| a.title.to_lowercase().cmp(&b.title.to_lowercase());
       expected_sorted_episodes.sort_by(cmp_fn);
       let title_sort_option = SortOption {
         name: "Title",
@@ -2348,13 +2345,13 @@ mod test {
   #[tokio::test]
   async fn test_handle_get_episodes_event_empty_seasons_table_returns_all_episodes_by_default() {
     let episode_1 = Episode {
-      title: Some("z test".to_owned()),
+      title: "z test".to_owned(),
       episode_file: None,
       ..episode()
     };
     let episode_2 = Episode {
       id: 2,
-      title: Some("A test".to_owned()),
+      title: "A test".to_owned(),
       episode_file_id: 2,
       season_number: 2,
       episode_number: 2,
@@ -2363,7 +2360,7 @@ mod test {
     };
     let episode_3 = Episode {
       id: 3,
-      title: Some("A test".to_owned()),
+      title: "A test".to_owned(),
       episode_file_id: 3,
       season_number: 1,
       episode_number: 2,
@@ -2537,13 +2534,7 @@ mod test {
       .push_navigation_stack(ActiveSonarrBlock::EpisodesSortPrompt.into());
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.sort_asc = true;
-    let cmp_fn = |a: &Episode, b: &Episode| {
-      a.title
-        .as_ref()
-        .unwrap()
-        .to_lowercase()
-        .cmp(&b.title.as_ref().unwrap().to_lowercase())
-    };
+    let cmp_fn = |a: &Episode, b: &Episode| a.title.to_lowercase().cmp(&b.title.to_lowercase());
     expected_episodes.sort_by(cmp_fn);
     let title_sort_option = SortOption {
       name: "Title",
@@ -7255,7 +7246,7 @@ mod test {
       episode_file_id: 1,
       season_number: 1,
       episode_number: 1,
-      title: Some("Something cool".to_owned()),
+      title: "Something cool".to_owned(),
       air_date_utc: Some(DateTime::from(
         DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap(),
       )),

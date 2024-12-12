@@ -55,9 +55,14 @@ impl<'a> App<'a> {
           .await;
       }
       ActiveSonarrBlock::ManualSeasonSearch => {
-        self
-          .dispatch_network_event(SonarrEvent::GetSeasonReleases(None).into())
-          .await;
+        match self.data.sonarr_data.season_details_modal.as_ref() {
+          Some(season_details_modal) if season_details_modal.season_releases.is_empty() => {
+            self
+              .dispatch_network_event(SonarrEvent::GetSeasonReleases(None).into())
+              .await;
+          }
+          _ => (),
+        }
       }
       ActiveSonarrBlock::EpisodeDetails | ActiveSonarrBlock::EpisodeFile => {
         self
@@ -70,9 +75,15 @@ impl<'a> App<'a> {
           .await;
       }
       ActiveSonarrBlock::ManualEpisodeSearch => {
-        self
-          .dispatch_network_event(SonarrEvent::GetEpisodeReleases(None).into())
-          .await;
+        if let Some(season_details_modal) = self.data.sonarr_data.season_details_modal.as_ref() {
+          if let Some(episode_details_modal) = season_details_modal.episode_details_modal.as_ref() {
+            if episode_details_modal.episode_releases.is_empty() {
+              self
+                .dispatch_network_event(SonarrEvent::GetEpisodeReleases(None).into())
+                .await;
+            }
+          }
+        }
       }
       ActiveSonarrBlock::Downloads => {
         self

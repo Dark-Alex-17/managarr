@@ -351,6 +351,10 @@ mod test_utils {
       movie_details_modal.movie_crew.set_items(vec![$crate::models::radarr_models::Credit::default()]);
       movie_details_modal.movie_releases.set_items(vec![$crate::models::radarr_models::RadarrRelease::default()]);
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
+      let mut season_details_modal = $crate::models::servarr_data::sonarr::modals::SeasonDetailsModal::default();
+      season_details_modal.season_history.set_items(vec![$crate::models::sonarr_models::SonarrHistoryItem::default()]);
+      season_details_modal.episode_details_modal = Some($crate::models::servarr_data::sonarr::modals::EpisodeDetailsModal::default());
+      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
       let mut series_history = $crate::models::stateful_table::StatefulTable::default();
       series_history.set_items(vec![
         $crate::models::sonarr_models::SonarrHistoryItem::default(),

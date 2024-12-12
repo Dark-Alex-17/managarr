@@ -22,6 +22,7 @@ pub enum Size {
   Small,
   Medium,
   Large,
+  XLarge,
   XXLarge,
   Long,
 }
@@ -41,6 +42,7 @@ impl Size {
       Size::Small => (40, 40),
       Size::Medium => (60, 60),
       Size::Large => (75, 75),
+      Size::XLarge => (83, 83),
       Size::XXLarge => (90, 90),
       Size::Long => (65, 75),
     }

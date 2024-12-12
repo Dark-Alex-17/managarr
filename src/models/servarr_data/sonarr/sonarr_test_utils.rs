@@ -27,6 +27,7 @@ pub mod utils {
     season_details_modal
       .episodes
       .set_items(vec![Episode::default()]);
+    season_details_modal.season_history.set_items(vec![SonarrHistoryItem::default()]);
     season_details_modal
       .season_releases
       .set_items(vec![SonarrRelease::default()]);
