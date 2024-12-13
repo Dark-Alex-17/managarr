@@ -2538,7 +2538,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn toggle_sonarr_episode_monitoring(&mut self, episode_id: Option<i64>) -> Result<Value> {
+  async fn toggle_sonarr_episode_monitoring(&mut self, episode_id: Option<i64>) -> Result<()> {
     let event = SonarrEvent::ToggleEpisodeMonitoring(episode_id);
     let detail_event = SonarrEvent::GetEpisodeDetails(None);
 
@@ -2592,7 +2592,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await;
 
     self
-      .handle_request::<MonitorEpisodeBody, Value>(request_props, |_, _| ())
+      .handle_request::<MonitorEpisodeBody, ()>(request_props, |_, _| ())
       .await
   }
 

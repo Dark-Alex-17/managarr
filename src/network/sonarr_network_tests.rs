@@ -6653,7 +6653,7 @@ mod test {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Put,
       Some(json!(expected_body)),
-      Some(json!({})),
+      None,
       None,
       SonarrEvent::ToggleEpisodeMonitoring(None),
       None,
@@ -6682,10 +6682,7 @@ mod test {
       episode_ids: vec![2],
       monitored: false,
     };
-    let body = Episode {
-      id: 2,
-      ..episode()
-    };
+    let body = Episode { id: 2, ..episode() };
 
     let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
@@ -6696,7 +6693,7 @@ mod test {
       Some("/2"),
       None,
     )
-      .await;
+    .await;
     let async_toggle_server = server
       .mock(
         "PUT",
@@ -6704,7 +6701,7 @@ mod test {
           "/api/v3{}",
           SonarrEvent::ToggleEpisodeMonitoring(None).resource()
         )
-          .as_str(),
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
