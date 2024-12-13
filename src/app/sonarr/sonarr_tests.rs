@@ -178,14 +178,6 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetEpisodes(None).into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetDownloads.into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
         SonarrEvent::GetEpisodeDetails(None).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
@@ -201,14 +193,6 @@ mod tests {
         .await;
 
       assert!(app.is_loading);
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetEpisodes(None).into()
-      );
-      assert_eq!(
-        sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetDownloads.into()
-      );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
         SonarrEvent::GetEpisodeDetails(None).into()

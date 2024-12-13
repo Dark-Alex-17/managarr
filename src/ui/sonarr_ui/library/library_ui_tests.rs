@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS, EPISODE_DETAILS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS};
+  use crate::models::servarr_data::sonarr::sonarr_data::{
+    ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
+    EPISODE_DETAILS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
+  };
   use crate::models::{
     servarr_data::sonarr::sonarr_data::LIBRARY_BLOCKS, sonarr_models::SeriesStatus,
   };
@@ -37,13 +40,23 @@ mod tests {
   }
 
   #[test]
+  fn test_decorate_row_with_style_unmonitored() {
+    let series = Series::default();
+    let row = Row::new(vec![Cell::from("test".to_owned())]);
+
+    let style = decorate_series_row_with_style(&series, row.clone());
+
+    assert_eq!(style, row.unmonitored());
+  }
+
+  #[test]
   fn test_decorate_row_with_style_downloaded_when_ended_and_all_monitored_episodes_are_present() {
     let seasons = vec![
       Season {
         monitored: false,
         statistics: SeasonStatistics {
-          episode_count: 1,
-          total_episode_count: 3,
+          episode_file_count: 1,
+          episode_count: 3,
           ..SeasonStatistics::default()
         },
         ..Season::default()
@@ -51,14 +64,15 @@ mod tests {
       Season {
         monitored: true,
         statistics: SeasonStatistics {
+          episode_file_count: 3,
           episode_count: 3,
-          total_episode_count: 3,
           ..SeasonStatistics::default()
         },
         ..Season::default()
       },
     ];
     let series = Series {
+      monitored: true,
       status: SeriesStatus::Ended,
       seasons: Some(seasons),
       ..Series::default()
@@ -76,8 +90,8 @@ mod tests {
       Season {
         monitored: true,
         statistics: SeasonStatistics {
-          episode_count: 1,
-          total_episode_count: 3,
+          episode_file_count: 1,
+          episode_count: 3,
           ..SeasonStatistics::default()
         },
         ..Season::default()
@@ -85,14 +99,15 @@ mod tests {
       Season {
         monitored: true,
         statistics: SeasonStatistics {
+          episode_file_count: 3,
           episode_count: 3,
-          total_episode_count: 3,
           ..SeasonStatistics::default()
         },
         ..Season::default()
       },
     ];
     let series = Series {
+      monitored: true,
       status: SeriesStatus::Ended,
       seasons: Some(seasons),
       ..Series::default()
@@ -107,6 +122,7 @@ mod tests {
   #[test]
   fn test_decorate_row_with_style_indeterminate_when_ended_and_seasons_is_empty() {
     let series = Series {
+      monitored: true,
       status: SeriesStatus::Ended,
       ..Series::default()
     };
@@ -124,8 +140,8 @@ mod tests {
       Season {
         monitored: false,
         statistics: SeasonStatistics {
-          episode_count: 1,
-          total_episode_count: 3,
+          episode_file_count: 1,
+          episode_count: 3,
           ..SeasonStatistics::default()
         },
         ..Season::default()
@@ -133,14 +149,15 @@ mod tests {
       Season {
         monitored: true,
         statistics: SeasonStatistics {
+          episode_file_count: 3,
           episode_count: 3,
-          total_episode_count: 3,
           ..SeasonStatistics::default()
         },
         ..Season::default()
       },
     ];
     let series = Series {
+      monitored: true,
       status: SeriesStatus::Continuing,
       seasons: Some(seasons),
       ..Series::default()
@@ -158,8 +175,8 @@ mod tests {
       Season {
         monitored: true,
         statistics: SeasonStatistics {
-          episode_count: 1,
-          total_episode_count: 3,
+          episode_file_count: 1,
+          episode_count: 3,
           ..SeasonStatistics::default()
         },
         ..Season::default()
@@ -167,14 +184,15 @@ mod tests {
       Season {
         monitored: true,
         statistics: SeasonStatistics {
+          episode_file_count: 3,
           episode_count: 3,
-          total_episode_count: 3,
           ..SeasonStatistics::default()
         },
         ..Season::default()
       },
     ];
     let series = Series {
+      monitored: true,
       status: SeriesStatus::Continuing,
       seasons: Some(seasons),
       ..Series::default()
@@ -189,6 +207,7 @@ mod tests {
   #[test]
   fn test_decorate_row_with_style_indeterminate_when_continuing_and_seasons_is_empty() {
     let series = Series {
+      monitored: true,
       status: SeriesStatus::Continuing,
       ..Series::default()
     };
@@ -202,6 +221,7 @@ mod tests {
   #[test]
   fn test_decorate_row_with_style_unreleased_when_upcoming() {
     let series = Series {
+      monitored: true,
       status: SeriesStatus::Upcoming,
       ..Series::default()
     };
@@ -215,6 +235,7 @@ mod tests {
   #[test]
   fn test_decorate_row_with_style_defaults_to_indeterminate() {
     let series = Series {
+      monitored: true,
       status: SeriesStatus::Deleted,
       ..Series::default()
     };

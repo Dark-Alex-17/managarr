@@ -226,7 +226,7 @@ fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
         f.render_widget(video_details_title_paragraph, video_details_title_area);
         f.render_widget(video_details_paragraph, video_details_area);
       }
-      _ => (),
+      _ => f.render_widget(layout_block_top_border(), area),
     },
     _ => f.render_widget(
       LoadingBlock::new(app.is_loading, layout_block_top_border()),

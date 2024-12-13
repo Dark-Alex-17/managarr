@@ -32,11 +32,11 @@ mod delete_series_ui;
 mod edit_series_ui;
 mod series_details_ui;
 
+mod episode_details_ui;
 #[cfg(test)]
 #[path = "library_ui_tests.rs"]
 mod library_ui_tests;
 mod season_details_ui;
-mod episode_details_ui;
 
 pub(super) struct LibraryUi;
 
@@ -192,20 +192,24 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn decorate_series_row_with_style<'a>(series: &Series, row: Row<'a>) -> Row<'a> {
+  if !series.monitored {
+    return row.unmonitored();
+  }
+
   match series.status {
     SeriesStatus::Ended => {
       if let Some(ref seasons) = series.seasons {
         return if seasons
           .iter()
           .filter(|season| season.monitored)
-          .all(|season| season.statistics.episode_count == season.statistics.total_episode_count)
+          .all(|season| season.statistics.episode_file_count == season.statistics.episode_count)
         {
           row.downloaded()
         } else {
           row.missing()
-        }
-      } 
-        
+        };
+      }
+
       row.indeterminate()
     }
     SeriesStatus::Continuing => {
@@ -213,7 +217,7 @@ fn decorate_series_row_with_style<'a>(series: &Series, row: Row<'a>) -> Row<'a> 
         return if seasons
           .iter()
           .filter(|season| season.monitored)
-          .all(|season| season.statistics.episode_count == season.statistics.total_episode_count)
+          .all(|season| season.statistics.episode_file_count == season.statistics.episode_count)
         {
           row.unreleased()
         } else {

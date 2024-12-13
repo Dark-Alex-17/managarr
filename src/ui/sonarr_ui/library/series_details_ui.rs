@@ -1,3 +1,4 @@
+use chrono::Utc;
 use deunicode::deunicode;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
@@ -12,6 +13,7 @@ use crate::models::sonarr_models::{
   Season, SeasonStatistics, SonarrHistoryEventType, SonarrHistoryItem,
 };
 use crate::models::{EnumDisplayStyle, Route};
+use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::ui::sonarr_ui::library::season_details_ui::SeasonDetailsUi;
 use crate::ui::sonarr_ui::sonarr_ui_utils::{
   create_download_failed_history_event_details,
@@ -30,7 +32,6 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{draw_popup, draw_tabs, DrawUi};
-use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -42,7 +43,9 @@ pub(super) struct SeriesDetailsUi;
 impl DrawUi for SeriesDetailsUi {
   fn accepts(route: Route) -> bool {
     if let Route::Sonarr(active_sonarr_block, _) = route {
-      return SeasonDetailsUi::accepts(route) || EpisodeDetailsUi::accepts(route) || SERIES_DETAILS_BLOCKS.contains(&active_sonarr_block);
+      return SeasonDetailsUi::accepts(route)
+        || EpisodeDetailsUi::accepts(route)
+        || SERIES_DETAILS_BLOCKS.contains(&active_sonarr_block);
     }
 
     false
@@ -239,9 +242,10 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         ..
       } = season;
       let SeasonStatistics {
+        episode_file_count,
         episode_count,
-        total_episode_count,
         size_on_disk,
+        next_airing,
         ..
       } = statistics;
       let season_monitored = if season.monitored { "🏷" } else { "" };
@@ -250,13 +254,19 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let row = Row::new(vec![
         Cell::from(season_monitored.to_owned()),
         Cell::from(title.clone().unwrap()),
-        Cell::from(format!("{}/{}", episode_count, total_episode_count)),
+        Cell::from(format!("{}/{}", episode_file_count, episode_count)),
         Cell::from(format!("{size:.2} GB")),
       ]);
-      if episode_count == total_episode_count {
+      if episode_file_count == episode_count {
         row.downloaded()
       } else if !monitored {
         row.unmonitored()
+      } else if let Some(next_airing_utc) = next_airing.as_ref() {
+        if next_airing_utc > &Utc::now() {
+          return row.unreleased();
+        } else {
+          return row.missing();
+        }
       } else {
         row.missing()
       }

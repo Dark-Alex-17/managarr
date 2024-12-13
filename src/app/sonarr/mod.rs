@@ -66,12 +66,6 @@ impl<'a> App<'a> {
       }
       ActiveSonarrBlock::EpisodeDetails | ActiveSonarrBlock::EpisodeFile => {
         self
-          .dispatch_network_event(SonarrEvent::GetEpisodes(None).into())
-          .await;
-        self
-          .dispatch_network_event(SonarrEvent::GetDownloads.into())
-          .await;
-        self
           .dispatch_network_event(SonarrEvent::GetEpisodeDetails(None).into())
           .await;
       }
