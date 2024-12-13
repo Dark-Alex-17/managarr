@@ -279,6 +279,13 @@ pub struct MediaInfo {
   pub subtitles: Option<String>,
 }
 
+#[derive(Default, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct MonitorEpisodeBody {
+  pub episode_ids: Vec<i64>,
+  pub monitored: bool,
+}
+
 #[derive(Derivative, Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[derivative(Default)]
 pub struct Rating {

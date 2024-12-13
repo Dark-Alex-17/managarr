@@ -17,7 +17,8 @@ mod test {
 
   use crate::models::sonarr_models::{
     AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, AddSeriesSearchResultStatistics,
-    DownloadStatus, EditSeriesParams, IndexerSettings, SeriesMonitor, SonarrHistoryEventType,
+    DownloadStatus, EditSeriesParams, IndexerSettings, MonitorEpisodeBody, SeriesMonitor,
+    SonarrHistoryEventType,
   };
 
   use crate::app::{App, ServarrConfig};
@@ -294,6 +295,7 @@ mod test {
   #[case(SonarrEvent::SearchNewSeries(None), "/series/lookup")]
   #[case(SonarrEvent::TestIndexer(None), "/indexer/test")]
   #[case(SonarrEvent::TestAllIndexers, "/indexer/testall")]
+  #[case(SonarrEvent::ToggleEpisodeMonitoring(None), "/episode/monitor")]
   fn test_resource(#[case] event: SonarrEvent, #[case] expected_uri: String) {
     assert_str_eq!(event.resource(), expected_uri);
   }
@@ -6639,6 +6641,91 @@ mod test {
       );
       assert_eq!(results, response);
     }
+  }
+
+  #[tokio::test]
+  async fn test_handle_toggle_episode_monitoring_event() {
+    let expected_body = MonitorEpisodeBody {
+      episode_ids: vec![1],
+      monitored: false,
+    };
+
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Put,
+      Some(json!(expected_body)),
+      Some(json!({})),
+      None,
+      SonarrEvent::ToggleEpisodeMonitoring(None),
+      None,
+      None,
+    )
+    .await;
+    {
+      let mut app = app_arc.lock().await;
+      let mut season_details_modal = SeasonDetailsModal::default();
+      season_details_modal.episodes.set_items(vec![episode()]);
+      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::ToggleEpisodeMonitoring(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_toggle_episode_monitoring_event_uses_provided_episode_id() {
+    let expected_body = MonitorEpisodeBody {
+      episode_ids: vec![2],
+      monitored: false,
+    };
+    let body = Episode {
+      id: 2,
+      ..episode()
+    };
+
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!(body)),
+      None,
+      SonarrEvent::GetEpisodeDetails(None),
+      Some("/2"),
+      None,
+    )
+      .await;
+    let async_toggle_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v3{}",
+          SonarrEvent::ToggleEpisodeMonitoring(None).resource()
+        )
+          .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(json!(expected_body)))
+      .create_async()
+      .await;
+    {
+      let mut app = app_arc.lock().await;
+      let mut season_details_modal = SeasonDetailsModal::default();
+      season_details_modal.episodes.set_items(vec![episode()]);
+      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::ToggleEpisodeMonitoring(Some(2)))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_toggle_server.assert_async().await;
   }
 
   #[tokio::test]

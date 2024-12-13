@@ -5,7 +5,7 @@ use serde_json::{json, Value};
 use urlencoding::encode;
 
 use super::{Network, NetworkEvent, NetworkResource};
-use crate::models::sonarr_models::DownloadStatus;
+use crate::models::sonarr_models::{DownloadStatus, MonitorEpisodeBody};
 use crate::{
   models::{
     radarr_models::IndexerTestResult,
@@ -88,6 +88,7 @@ pub enum SonarrEvent {
   TestIndexer(Option<i64>),
   TestAllIndexers,
   ToggleSeasonMonitoring(Option<(i64, i64)>),
+  ToggleEpisodeMonitoring(Option<i64>),
   TriggerAutomaticEpisodeSearch(Option<i64>),
   TriggerAutomaticSeasonSearch(Option<(i64, i64)>),
   TriggerAutomaticSeriesSearch(Option<i64>),
@@ -146,6 +147,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
       SonarrEvent::TestIndexer(_) => "/indexer/test",
       SonarrEvent::TestAllIndexers => "/indexer/testall",
+      SonarrEvent::ToggleEpisodeMonitoring(_) => "/episode/monitor",
     }
   }
 }
@@ -321,6 +323,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::TestAllIndexers => self
         .test_all_sonarr_indexers()
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::ToggleEpisodeMonitoring(episode_id) => self
+        .toggle_sonarr_episode_monitoring(episode_id)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::ToggleSeasonMonitoring(params) => self
@@ -2529,6 +2535,64 @@ impl<'a, 'b> Network<'a, 'b> {
         test_all_indexer_results.set_items(modal_test_results);
         app.data.sonarr_data.indexer_test_all_results = Some(test_all_indexer_results);
       })
+      .await
+  }
+
+  async fn toggle_sonarr_episode_monitoring(&mut self, episode_id: Option<i64>) -> Result<Value> {
+    let event = SonarrEvent::ToggleEpisodeMonitoring(episode_id);
+    let detail_event = SonarrEvent::GetEpisodeDetails(None);
+
+    let (id, monitored) = if let Some(episode_id) = episode_id {
+      info!("Fetching episode details for episode id: {episode_id}");
+      let request_props = self
+        .request_props_from(
+          detail_event,
+          RequestMethod::Get,
+          None::<()>,
+          Some(format!("/{episode_id}")),
+          None,
+        )
+        .await;
+
+      let mut monitored = false;
+
+      self
+        .handle_request::<(), Value>(request_props, |detailed_episode_body, _| {
+          monitored = detailed_episode_body
+            .get("monitored")
+            .unwrap()
+            .as_bool()
+            .unwrap();
+        })
+        .await?;
+
+      (episode_id, monitored)
+    } else {
+      let app = self.app.lock().await;
+      let current_selection = app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episodes
+        .current_selection();
+      (current_selection.id, current_selection.monitored)
+    };
+
+    info!("Toggling monitoring for episode id: {id}");
+
+    let body = MonitorEpisodeBody {
+      episode_ids: vec![id],
+      monitored: !monitored,
+    };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Put, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<MonitorEpisodeBody, Value>(request_props, |_, _| ())
       .await
   }
 
