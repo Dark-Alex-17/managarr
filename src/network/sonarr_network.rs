@@ -87,6 +87,7 @@ pub enum SonarrEvent {
   StartTask(Option<SonarrTaskName>),
   TestIndexer(Option<i64>),
   TestAllIndexers,
+  ToggleSeasonMonitoring(Option<(i64, i64)>),
   TriggerAutomaticEpisodeSearch(Option<i64>),
   TriggerAutomaticSeasonSearch(Option<(i64, i64)>),
   TriggerAutomaticSeriesSearch(Option<i64>),
@@ -139,7 +140,8 @@ impl NetworkResource for SonarrEvent {
       | SonarrEvent::ListSeries
       | SonarrEvent::GetSeriesDetails(_)
       | SonarrEvent::DeleteSeries(_)
-      | SonarrEvent::EditSeries(_) => "/series",
+      | SonarrEvent::EditSeries(_)
+      | SonarrEvent::ToggleSeasonMonitoring(_) => "/series",
       SonarrEvent::SearchNewSeries(_) => "/series/lookup",
       SonarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
       SonarrEvent::TestIndexer(_) => "/indexer/test",
@@ -319,6 +321,10 @@ impl<'a, 'b> Network<'a, 'b> {
         .map(SonarrSerdeable::from),
       SonarrEvent::TestAllIndexers => self
         .test_all_sonarr_indexers()
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::ToggleSeasonMonitoring(params) => self
+        .toggle_sonarr_season_monitoring(params)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::TriggerAutomaticSeasonSearch(params) => self
@@ -1268,6 +1274,86 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
+  async fn toggle_sonarr_season_monitoring(
+    &mut self,
+    series_id_season_number_tuple: Option<(i64, i64)>,
+  ) -> Result<()> {
+    let detail_event = SonarrEvent::GetSeriesDetails(None);
+    let event = SonarrEvent::ToggleSeasonMonitoring(series_id_season_number_tuple);
+    let (series_id, season_number) =
+      if let Some((series_id, season_number)) = series_id_season_number_tuple {
+        (Some(series_id), Some(season_number))
+      } else {
+        (None, None)
+      };
+
+    let (series_id, _) = self.extract_series_id(series_id).await;
+    let (season_number, _) = self.extract_season_number(season_number).await;
+    info!("Toggling season monitoring for season {season_number} in series with ID: {series_id}");
+    info!("Fetching series details for series with ID: {series_id}");
+
+    let request_props = self
+      .request_props_from(
+        detail_event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{series_id}")),
+        None,
+      )
+      .await;
+
+    let mut response = String::new();
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_series_body, _| {
+        response = detailed_series_body.to_string()
+      })
+      .await?;
+
+    info!("Constructing toggle season monitoring body");
+
+    let mut detailed_series_body: Value = serde_json::from_str(&response).unwrap();
+    let monitored = detailed_series_body
+      .get("seasons")
+      .unwrap()
+      .as_array()
+      .unwrap()
+      .iter()
+      .find(|season| season["seasonNumber"] == season_number)
+      .unwrap()
+      .get("monitored")
+      .unwrap()
+      .as_bool()
+      .unwrap();
+
+    *detailed_series_body
+      .get_mut("seasons")
+      .unwrap()
+      .as_array_mut()
+      .unwrap()
+      .iter_mut()
+      .find(|season| season["seasonNumber"] == season_number)
+      .unwrap()
+      .get_mut("monitored")
+      .unwrap() = json!(!monitored);
+
+    debug!("Toggle season monitoring body: {detailed_series_body:?}");
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Put,
+        Some(detailed_series_body),
+        Some(format!("/{series_id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<Value, ()>(request_props, |_, _| ())
+      .await
+  }
+
   async fn get_all_sonarr_indexer_settings(&mut self) -> Result<IndexerSettings> {
     info!("Fetching Sonarr indexer settings");
     let event = SonarrEvent::GetAllIndexerSettings;
@@ -1563,7 +1649,7 @@ impl<'a, 'b> Network<'a, 'b> {
             .unwrap()
             .episode_details_modal = Some(EpisodeDetailsModal::default());
         }
-        
+
         let Episode {
           id,
           title,
@@ -1581,18 +1667,26 @@ impl<'a, 'b> Network<'a, 'b> {
         } else {
           String::new()
         };
-        let episode_details_modal = app.data.sonarr_data.season_details_modal.as_mut().unwrap().episode_details_modal.as_mut().unwrap();
-          episode_details_modal.episode_details = ScrollableText::with_string(formatdoc!(
-            "
+        let episode_details_modal = app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_mut()
+          .unwrap()
+          .episode_details_modal
+          .as_mut()
+          .unwrap();
+        episode_details_modal.episode_details = ScrollableText::with_string(formatdoc!(
+          "
             Title: {}
             Season: {season_number}
             Episode Number: {episode_number}
             Air Date: {air_date}
             Status: {status}
             Description: {}",
-            title,
-            overview.unwrap_or_default(),
-          ));
+          title,
+          overview.unwrap_or_default(),
+        ));
         if let Some(file) = episode_file {
           let size = convert_to_gb(file.size);
           episode_details_modal.file_details = formatdoc!(
