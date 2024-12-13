@@ -338,6 +338,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
   fn handle_char_key_event(&mut self) {
     let key = self.key;
     match self.active_sonarr_block {
+      ActiveSonarrBlock::SeasonDetails if self.key == DEFAULT_KEYBINDINGS.toggle_monitoring.key => {
+        self.app.data.sonarr_data.prompt_confirm = true;
+        self.app.data.sonarr_data.prompt_confirm_action =
+          Some(SonarrEvent::ToggleEpisodeMonitoring(None));
+        
+        self.app.pop_and_push_navigation_stack(self.active_sonarr_block.into());
+      }
       ActiveSonarrBlock::SeasonDetails
       | ActiveSonarrBlock::SeasonHistory
       | ActiveSonarrBlock::ManualSeasonSearch => match self.key {

@@ -378,9 +378,7 @@ mod tests {
     #[test]
     fn test_toggle_monitoring_key() {
       let mut app = App::default();
-      let mut series_history = StatefulTable::default();
-      series_history.set_items(vec![SonarrHistoryItem::default()]);
-      app.data.sonarr_data.series_history = Some(series_history);
+      app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.is_routing = false;
 

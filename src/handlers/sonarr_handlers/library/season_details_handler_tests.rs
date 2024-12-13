@@ -546,6 +546,54 @@ mod tests {
     use crate::network::sonarr_network::SonarrEvent;
     use pretty_assertions::assert_eq;
 
+    #[test]
+    fn test_toggle_monitoring_key() {
+      let mut app = App::default();
+      app.data.sonarr_data = create_test_sonarr_data();
+      app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
+      app.is_routing = false;
+
+      SeasonDetailsHandler::with(
+        DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+        &mut app,
+        ActiveSonarrBlock::SeasonDetails,
+        None,
+      )
+        .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveSonarrBlock::SeasonDetails.into()
+      );
+      assert!(app.data.sonarr_data.prompt_confirm);
+      assert!(app.is_routing);
+      assert_eq!(
+        app.data.sonarr_data.prompt_confirm_action,
+        Some(SonarrEvent::ToggleEpisodeMonitoring(None))
+      );
+    }
+
+    #[test]
+    fn test_toggle_monitoring_key_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
+      app.is_routing = false;
+
+      SeasonDetailsHandler::with(
+        DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+        &mut app,
+        ActiveSonarrBlock::SeasonDetails,
+        None,
+      )
+        .handle();
+
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::SeasonDetails.into());
+      assert!(!app.data.sonarr_data.prompt_confirm);
+      assert!(app.data.sonarr_data.prompt_confirm_action.is_none());
+      assert!(!app.is_routing);
+    }
+
     #[rstest]
     fn test_auto_search_key(
       #[values(
