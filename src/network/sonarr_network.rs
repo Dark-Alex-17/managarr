@@ -1542,6 +1542,28 @@ impl<'a, 'b> Network<'a, 'b> {
 
     self
       .handle_request::<(), Episode>(request_props, |episode_response, mut app| {
+        if app.cli_mode {
+          app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
+        }
+
+        if app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_mut()
+          .expect("Season details modal is empty")
+          .episode_details_modal
+          .is_none()
+        {
+          app
+            .data
+            .sonarr_data
+            .season_details_modal
+            .as_mut()
+            .unwrap()
+            .episode_details_modal = Some(EpisodeDetailsModal::default());
+        }
+        
         let Episode {
           id,
           title,
@@ -1559,8 +1581,8 @@ impl<'a, 'b> Network<'a, 'b> {
         } else {
           String::new()
         };
-        let mut episode_details_modal = EpisodeDetailsModal {
-          episode_details: ScrollableText::with_string(formatdoc!(
+        let episode_details_modal = app.data.sonarr_data.season_details_modal.as_mut().unwrap().episode_details_modal.as_mut().unwrap();
+          episode_details_modal.episode_details = ScrollableText::with_string(formatdoc!(
             "
             Title: {}
             Season: {season_number}
@@ -1570,9 +1592,7 @@ impl<'a, 'b> Network<'a, 'b> {
             Description: {}",
             title,
             overview.unwrap_or_default(),
-          )),
-          ..EpisodeDetailsModal::default()
-        };
+          ));
         if let Some(file) = episode_file {
           let size = convert_to_gb(file.size);
           episode_details_modal.file_details = formatdoc!(
@@ -1624,16 +1644,6 @@ impl<'a, 'b> Network<'a, 'b> {
             );
           }
         };
-
-        if !app.cli_mode {
-          app
-            .data
-            .sonarr_data
-            .season_details_modal
-            .as_mut()
-            .expect("Season details modal is empty")
-            .episode_details_modal = Some(episode_details_modal);
-        }
       })
       .await
   }

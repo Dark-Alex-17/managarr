@@ -409,7 +409,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
   }
 }
 
-fn releases_sorting_options() -> Vec<SortOption<SonarrRelease>> {
+pub(in crate::handlers::sonarr_handlers::library) fn releases_sorting_options() -> Vec<SortOption<SonarrRelease>> {
   vec![
     SortOption {
       name: "Source",

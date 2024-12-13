@@ -3158,6 +3158,122 @@ mod test {
       None,
     )
     .await;
+    let mut episode_details_modal = EpisodeDetailsModal::default();
+    episode_details_modal.episode_details_tabs.next();
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.set_items(vec![episode()]);
+    season_details_modal.episode_details_modal = Some(episode_details_modal);
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    app_arc
+      .lock()
+      .await
+      .push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Episode(episode) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert!(app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .is_some());
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_details_tabs
+          .get_active_route(),
+        ActiveSonarrBlock::EpisodeHistory.into()
+      );
+      assert_eq!(episode, response);
+
+      let app = app_arc.lock().await;
+      let episode_details_modal = app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .as_ref()
+        .unwrap();
+      assert_str_eq!(
+        episode_details_modal.episode_details.get_text(),
+        formatdoc!(
+          "Title: Something cool
+          Season: 1
+          Episode Number: 1
+          Air Date: 2024-02-10 07:28:45 UTC
+          Status: Downloaded
+          Description: Okay so this one time at band camp..."
+        )
+      );
+      assert_str_eq!(
+        episode_details_modal.file_details,
+        formatdoc!(
+          "Relative Path: /season 1/episode 1.mkv
+          Absolute Path: /nfs/tv/series/season 1/episode 1.mkv
+          Size: 3.30 GB
+          Language: English
+          Date Added: 2024-02-10 07:28:45 UTC"
+        )
+      );
+      assert_str_eq!(
+        episode_details_modal.audio_details,
+        formatdoc!(
+          "Bitrate: 0
+          Channels: 7.1
+          Codec: AAC
+          Languages: eng
+          Stream Count: 1"
+        )
+      );
+      assert_str_eq!(
+        episode_details_modal.video_details,
+        formatdoc!(
+          "Bit Depth: 10
+          Bitrate: 0
+          Codec: x265
+          FPS: 23.976
+          Resolution: 1920x1080
+          Scan Type: Progressive
+          Runtime: 23:51
+          Subtitles: English"
+        )
+      );
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episode_details_event_empty_episode_details_modal() {
+    let response: Episode = serde_json::from_str(EPISODE_JSON).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(EPISODE_JSON).unwrap()),
+      None,
+      SonarrEvent::GetEpisodeDetails(None),
+      Some("/1"),
+      None,
+    )
+    .await;
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.set_items(vec![episode()]);
     app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
