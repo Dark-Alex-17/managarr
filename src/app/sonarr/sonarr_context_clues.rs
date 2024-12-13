@@ -25,12 +25,13 @@ pub static SERIES_CONTEXT_CLUES: [ContextClue; 10] = [
   (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
 ];
 
-pub static SERIES_DETAILS_CONTEXT_CLUES: [ContextClue; 7] = [
+pub static SERIES_DETAILS_CONTEXT_CLUES: [ContextClue; 8] = [
   (
     DEFAULT_KEYBINDINGS.refresh,
     DEFAULT_KEYBINDINGS.refresh.desc,
   ),
   (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
+  (DEFAULT_KEYBINDINGS.toggle_monitoring, DEFAULT_KEYBINDINGS.toggle_monitoring.desc),
   (DEFAULT_KEYBINDINGS.submit, "season details"),
   (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
   (DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc),
@@ -76,11 +77,12 @@ pub static SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.delete, "delete episode"),
 ];
 
-pub static SEASON_DETAILS_CONTEXT_CLUES: [ContextClue; 4] = [
+pub static SEASON_DETAILS_CONTEXT_CLUES: [ContextClue; 5] = [
   (
     DEFAULT_KEYBINDINGS.refresh,
     DEFAULT_KEYBINDINGS.refresh.desc,
   ),
+  (DEFAULT_KEYBINDINGS.toggle_monitoring, DEFAULT_KEYBINDINGS.toggle_monitoring.desc),
   (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
   (
     DEFAULT_KEYBINDINGS.auto_search,

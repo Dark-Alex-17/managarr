@@ -27,6 +27,7 @@ mod test {
   #[case(DEFAULT_KEYBINDINGS.tasks, Key::Char('t'), "tasks")]
   #[case(DEFAULT_KEYBINDINGS.test, Key::Char('t'), "test")]
   #[case(DEFAULT_KEYBINDINGS.test_all, Key::Char('T'), "test all")]
+  #[case(DEFAULT_KEYBINDINGS.test_all, Key::Char('m'), "toggle monitoring")]
   #[case(DEFAULT_KEYBINDINGS.refresh, Key::Ctrl('r'), "refresh")]
   #[case(DEFAULT_KEYBINDINGS.update, Key::Char('u'), "update")]
   #[case(DEFAULT_KEYBINDINGS.home, Key::Home, "home")]
