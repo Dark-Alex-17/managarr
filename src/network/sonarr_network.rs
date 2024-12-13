@@ -879,7 +879,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
     info!("Constructing edit indexer body");
 
-    let mut detailed_indexer_body: Value = serde_json::from_str(&response).unwrap();
+    let mut detailed_indexer_body: Value = serde_json::from_str(&response)?;
 
     let (
       name,
@@ -1127,7 +1127,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
     info!("Constructing edit series body");
 
-    let mut detailed_series_body: Value = serde_json::from_str(&response).unwrap();
+    let mut detailed_series_body: Value = serde_json::from_str(&response)?;
     let (
       monitored,
       use_season_folders,
@@ -1294,70 +1294,75 @@ impl<'a, 'b> Network<'a, 'b> {
       };
 
     let (series_id, _) = self.extract_series_id(series_id).await;
-    let (season_number, _) = self.extract_season_number(season_number).await;
-    info!("Toggling season monitoring for season {season_number} in series with ID: {series_id}");
-    info!("Fetching series details for series with ID: {series_id}");
+    if let Ok((season_number, _)) = self.extract_season_number(season_number).await {
+      info!("Toggling season monitoring for season {season_number} in series with ID: {series_id}");
+      info!("Fetching series details for series with ID: {series_id}");
 
-    let request_props = self
-      .request_props_from(
-        detail_event,
-        RequestMethod::Get,
-        None::<()>,
-        Some(format!("/{series_id}")),
-        None,
-      )
-      .await;
+      let request_props = self
+        .request_props_from(
+          detail_event,
+          RequestMethod::Get,
+          None::<()>,
+          Some(format!("/{series_id}")),
+          None,
+        )
+        .await;
 
-    let mut response = String::new();
+      let mut response = String::new();
 
-    self
-      .handle_request::<(), Value>(request_props, |detailed_series_body, _| {
-        response = detailed_series_body.to_string()
-      })
-      .await?;
+      self
+        .handle_request::<(), Value>(request_props, |detailed_series_body, _| {
+          response = detailed_series_body.to_string()
+        })
+        .await?;
 
-    info!("Constructing toggle season monitoring body");
+      info!("Constructing toggle season monitoring body");
 
-    let mut detailed_series_body: Value = serde_json::from_str(&response).unwrap();
-    let monitored = detailed_series_body
-      .get("seasons")
-      .unwrap()
-      .as_array()
-      .unwrap()
-      .iter()
-      .find(|season| season["seasonNumber"] == season_number)
-      .unwrap()
-      .get("monitored")
-      .unwrap()
-      .as_bool()
-      .unwrap();
+      let mut detailed_series_body: Value =
+        serde_json::from_str(&response).expect("Request for detailed series body was interrupted");
+      let monitored = detailed_series_body
+        .get("seasons")
+        .unwrap()
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|season| season["seasonNumber"] == season_number)
+        .unwrap()
+        .get("monitored")
+        .unwrap()
+        .as_bool()
+        .unwrap();
 
-    *detailed_series_body
-      .get_mut("seasons")
-      .unwrap()
-      .as_array_mut()
-      .unwrap()
-      .iter_mut()
-      .find(|season| season["seasonNumber"] == season_number)
-      .unwrap()
-      .get_mut("monitored")
-      .unwrap() = json!(!monitored);
+      *detailed_series_body
+        .get_mut("seasons")
+        .unwrap()
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|season| season["seasonNumber"] == season_number)
+        .unwrap()
+        .get_mut("monitored")
+        .unwrap() = json!(!monitored);
 
-    debug!("Toggle season monitoring body: {detailed_series_body:?}");
+      debug!("Toggle season monitoring body: {detailed_series_body:?}");
 
-    let request_props = self
-      .request_props_from(
-        event,
-        RequestMethod::Put,
-        Some(detailed_series_body),
-        Some(format!("/{series_id}")),
-        None,
-      )
-      .await;
+      let request_props = self
+        .request_props_from(
+          event,
+          RequestMethod::Put,
+          Some(detailed_series_body),
+          Some(format!("/{series_id}")),
+          None,
+        )
+        .await;
 
-    self
-      .handle_request::<Value, ()>(request_props, |_, _| ())
-      .await
+      self
+        .handle_request::<Value, ()>(request_props, |_, _| ())
+        .await
+    } else {
+      warn!("Season number was not provided. Aborting...");
+      Ok(())
+    }
   }
 
   async fn get_all_sonarr_indexer_settings(&mut self) -> Result<IndexerSettings> {
@@ -2003,7 +2008,7 @@ impl<'a, 'b> Network<'a, 'b> {
       };
 
     let (series_id, series_id_param) = self.extract_series_id(series_id).await;
-    let (season_number, season_number_param) = self.extract_season_number(season_number).await;
+    let (season_number, season_number_param) = self.extract_season_number(season_number).await?;
 
     info!("Fetching releases for series with ID: {series_id} and season number: {season_number}");
 
@@ -2053,7 +2058,7 @@ impl<'a, 'b> Network<'a, 'b> {
       };
 
     let (series_id, series_id_param) = self.extract_series_id(series_id).await;
-    let (season_number, season_number_param) = self.extract_season_number(season_number).await;
+    let (season_number, season_number_param) = self.extract_season_number(season_number).await?;
 
     info!("Fetching history for series with ID: {series_id} and season number: {season_number}");
 
@@ -2629,7 +2634,7 @@ impl<'a, 'b> Network<'a, 'b> {
       };
 
     let (series_id, _) = self.extract_series_id(series_id).await;
-    let (season_number, _) = self.extract_season_number(season_number).await;
+    let (season_number, _) = self.extract_season_number(season_number).await?;
     info!("Searching indexers for series with ID: {series_id} and season number: {season_number}");
 
     let body = SonarrCommandBody {
@@ -2767,11 +2772,11 @@ impl<'a, 'b> Network<'a, 'b> {
     (series_id, format!("seriesId={series_id}"))
   }
 
-  async fn extract_season_number(&mut self, season_number: Option<i64>) -> (i64, String) {
-    let season_number = if let Some(number) = season_number {
-      number
-    } else {
-      self
+  async fn extract_season_number(&mut self, season_number: Option<i64>) -> Result<(i64, String)> {
+    if let Some(number) = season_number {
+      Ok((number, format!("seasonNumber={number}")))
+    } else if !self.app.lock().await.data.sonarr_data.seasons.is_empty() {
+      let season_number = self
         .app
         .lock()
         .await
@@ -2779,9 +2784,11 @@ impl<'a, 'b> Network<'a, 'b> {
         .sonarr_data
         .seasons
         .current_selection()
-        .season_number
-    };
-    (season_number, format!("seasonNumber={season_number}"))
+        .season_number;
+      Ok((season_number, format!("seasonNumber={season_number}")))
+    } else {
+      Err(anyhow!("No season number provided"))
+    }
   }
 
   async fn extract_episode_id(&mut self, episode_id: Option<i64>) -> i64 {

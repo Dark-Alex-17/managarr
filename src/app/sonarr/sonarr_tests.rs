@@ -56,7 +56,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_dispatch_by_series_details_block() {
-      let (mut app, _) = construct_app_unit();
+      let (mut app, mut sync_network_rx) = construct_app_unit();
 
       app.data.sonarr_data.series.set_items(vec![Series {
         seasons: Some(vec![Season::default()]),
@@ -68,6 +68,10 @@ mod tests {
         .await;
 
       assert!(!app.is_loading);
+      assert_eq!(
+        sync_network_rx.recv().await.unwrap(),
+        SonarrEvent::ListSeries.into()
+      );
       assert!(!app.data.sonarr_data.seasons.items.is_empty());
       assert_eq!(app.tick_count, 0);
       assert!(!app.data.sonarr_data.prompt_confirm);

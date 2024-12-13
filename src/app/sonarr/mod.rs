@@ -29,6 +29,9 @@ impl<'a> App<'a> {
           .await;
       }
       ActiveSonarrBlock::SeriesDetails => {
+        self
+          .dispatch_network_event(SonarrEvent::ListSeries.into())
+          .await;
         self.is_loading = true;
         self.populate_seasons_table().await;
         self.is_loading = false;

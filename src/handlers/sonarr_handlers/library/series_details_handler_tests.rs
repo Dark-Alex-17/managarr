@@ -375,6 +375,56 @@ mod tests {
       assert!(app.data.sonarr_data.edit_series_modal.is_none());
     }
 
+    #[test]
+    fn test_toggle_monitoring_key() {
+      let mut app = App::default();
+      let mut series_history = StatefulTable::default();
+      series_history.set_items(vec![SonarrHistoryItem::default()]);
+      app.data.sonarr_data.series_history = Some(series_history);
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
+      app.is_routing = false;
+
+      SeriesDetailsHandler::with(
+        DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesDetails,
+        None,
+      )
+        .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveSonarrBlock::SeriesDetails.into()
+      );
+      assert!(app.data.sonarr_data.prompt_confirm);
+      assert!(app.is_routing);
+      assert_eq!(
+        app.data.sonarr_data.prompt_confirm_action,
+        Some(SonarrEvent::ToggleSeasonMonitoring(None))
+      );
+    }
+
+    #[test]
+    fn test_toggle_monitoring_key_no_op_when_not_ready() {
+      let mut app = App::default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
+      app.is_routing = false;
+
+      SeriesDetailsHandler::with(
+        DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+        &mut app,
+        ActiveSonarrBlock::SeriesDetails,
+        None,
+      )
+        .handle();
+
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::SeriesDetails.into());
+      assert!(!app.data.sonarr_data.prompt_confirm);
+      assert!(app.data.sonarr_data.prompt_confirm_action.is_none());
+      assert!(!app.is_routing);
+    }
+
     #[rstest]
     fn test_auto_search_key(
       #[values(ActiveSonarrBlock::SeriesDetails, ActiveSonarrBlock::SeriesHistory)]

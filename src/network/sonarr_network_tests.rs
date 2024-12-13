@@ -5129,12 +5129,14 @@ mod test {
     )
     .await;
     let mut filtered_series = StatefulTable::default();
+    filtered_series.set_items(vec![Series::default()]);
     filtered_series.set_filtered_items(vec![Series {
       id: 1,
       ..Series::default()
     }]);
     app_arc.lock().await.data.sonarr_data.series = filtered_series;
     let mut filtered_seasons = StatefulTable::default();
+    filtered_seasons.set_items(vec![Season::default()]);
     filtered_seasons.set_filtered_items(vec![Season {
       season_number: 1,
       ..Season::default()
@@ -7024,12 +7026,14 @@ mod test {
     )
     .await;
     let mut filtered_series = StatefulTable::default();
+    filtered_series.set_items(vec![Series::default()]);
     filtered_series.set_filtered_items(vec![Series {
       id: 1,
       ..Series::default()
     }]);
     app_arc.lock().await.data.sonarr_data.series = filtered_series;
     let mut filtered_seasons = StatefulTable::default();
+    filtered_seasons.set_items(vec![Season::default()]);
     filtered_seasons.set_filtered_items(vec![Season {
       season_number: 1,
       ..Season::default()
@@ -7341,7 +7345,7 @@ mod test {
       }]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
-    let (id, season_number_param) = network.extract_season_number(None).await;
+    let (id, season_number_param) = network.extract_season_number(None).await.unwrap();
 
     assert_eq!(id, 1);
     assert_str_eq!(season_number_param, "seasonNumber=1");
@@ -7361,7 +7365,7 @@ mod test {
         ..Season::default()
       }]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-    let (id, season_number_param) = network.extract_season_number(Some(2)).await;
+    let (id, season_number_param) = network.extract_season_number(Some(2)).await.unwrap();
 
     assert_eq!(id, 2);
     assert_str_eq!(season_number_param, "seasonNumber=2");
@@ -7371,6 +7375,7 @@ mod test {
   async fn test_extract_season_number_filtered_seasons() {
     let app_arc = Arc::new(Mutex::new(App::default()));
     let mut filtered_seasons = StatefulTable::default();
+    filtered_seasons.set_items(vec![Season::default()]);
     filtered_seasons.set_filtered_items(vec![Season {
       season_number: 1,
       ..Season::default()
@@ -7378,10 +7383,19 @@ mod test {
     app_arc.lock().await.data.sonarr_data.seasons = filtered_seasons;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
-    let (id, season_number_param) = network.extract_season_number(None).await;
+    let (id, season_number_param) = network.extract_season_number(None).await.unwrap();
 
     assert_eq!(id, 1);
     assert_str_eq!(season_number_param, "seasonNumber=1");
+  }
+
+  #[tokio::test]
+  async fn test_extract_season_number_empty_seasons_table() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let season_number = network.extract_season_number(None).await;
+
+    assert!(season_number.is_err());
   }
 
   #[tokio::test]
