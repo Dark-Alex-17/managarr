@@ -257,10 +257,10 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Cell::from(format!("{}/{}", episode_file_count, episode_count)),
         Cell::from(format!("{size:.2} GB")),
       ]);
-      if episode_file_count == episode_count {
-        row.downloaded()
-      } else if !monitored {
+      if !monitored {
         row.unmonitored()
+      } else if episode_file_count == episode_count {
+        row.downloaded()
       } else if let Some(next_airing_utc) = next_airing.as_ref() {
         if next_airing_utc > &Utc::now() {
           return row.unreleased();

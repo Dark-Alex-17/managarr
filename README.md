@@ -88,22 +88,21 @@ Key:
 
 | TUI | CLI | Feature                                                                                                            |
 |-----|-----|--------------------------------------------------------------------------------------------------------------------|
-| 🕒  | ✅   | View your library, downloads, blocklist, episodes                                                                  |
-| 🕒  | ✅   | View details of a specific series, or episode including description, history, downloaded file info, or the credits |
-| 🕒  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings     |
-| 🕒  | ✅   | Search your library                                                                                                |
-| 🕒  | ✅   | Add series to your library                                                                                         |
-| 🕒  | ✅   | Delete series, downloads, indexers, root folders, and episode files                                                |
-| 🚫  | ✅   | Mark history events as failed                                                                                      |
-| 🕒  | ✅   | Trigger automatic searches for series, seasons, or episodes                                                        |
-| 🕒  | ✅   | Trigger refresh and disk scan for series and downloads                                                             |
-| 🕒  | ✅   | Manually search for series, seasons, or episodes                                                                   |
-| 🕒  | ✅   | Edit your series and indexers                                                                                      |
-| 🕒  | ✅   | Manage your tags                                                                                                   |
-| 🕒  | ✅   | Manage your root folders                                                                                           |
-| 🕒  | ✅   | Manage your blocklist                                                                                              |
-| 🕒  | ✅   | View and browse logs, tasks, events queues, and updates                                                            |
-| 🕒  | ✅   | Manually trigger scheduled tasks                                                                                   |
+| ✅  | ✅   | View your library, downloads, blocklist, episodes                                                                  |
+| ✅  | ✅   | View details of a specific series, or episode including description, history, downloaded file info, or the credits |
+| 🚫  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings     |
+| ✅  | ✅   | Search your library                                                                                                |
+| ✅  | ✅   | Add series to your library                                                                                         |
+| ✅  | ✅   | Delete series, downloads, indexers, root folders, and episode files                                                |
+| ✅  | ✅   | Trigger automatic searches for series, seasons, or episodes                                                        |
+| ✅  | ✅   | Trigger refresh and disk scan for series and downloads                                                             |
+| ✅  | ✅   | Manually search for series, seasons, or episodes                                                                   |
+| ✅  | ✅   | Edit your series and indexers                                                                                      |
+| ✅  | ✅   | Manage your tags                                                                                                   |
+| ✅  | ✅   | Manage your root folders                                                                                           |
+| ✅  | ✅   | Manage your blocklist                                                                                              |
+| ✅  | ✅   | View and browse logs, tasks, events queues, and updates                                                            |
+| ✅  | ✅   | Manually trigger scheduled tasks                                                                                   |
 
 ### Readarr
 
@@ -141,7 +140,7 @@ To see all available commands, simply run `managarr --help`:
 
 ```shell
 $ managarr --help
-managarr 0.3.0
+managarr 0.4.0
 Alex Clarke <alex.j.tusa@gmail.com>
 
 A TUI and CLI to manage your Servarrs
@@ -186,6 +185,8 @@ Commands:
   start-task                   Start the specified Sonarr task
   test-indexer                 Test the indexer with the given ID. Note that a successful test returns an empty JSON body; i.e. '{}'
   test-all-indexers            Test all Sonarr indexers
+  toggle-episode-monitoring    Toggle monitoring for the specified episode
+  toggle-season-monitoring     Toggle monitoring for the specified season that corresponds to the specified series ID
   help                         Print this message or the help of the given subcommand(s)
 
 Options:
@@ -282,13 +283,22 @@ with all items tagged `Beta`.
 
 ## Screenshots
 
-![library](screenshots/library.png)
-![manual_search](screenshots/manual_search.png)
-![logs](screenshots/logs.png)
-![new_movie_search](screenshots/new_movie_search.png)
-![add_new_movie](screenshots/add_new_movie.png)
-![collection_details](screenshots/collection_details.png)
-![indexers](screenshots/indexers.png)
+### Radarr
+![radarr_library](screenshots/radarr/radarr_library.png)
+![manual_search](screenshots/radarr/manual_search.png)
+![new_movie_search](screenshots/radarr/new_movie_search.png)
+![add_new_movie](screenshots/radarr/add_new_movie.png)
+![collection_details](screenshots/radarr/collection_details.png)
+
+### Sonarr
+![sonarr_library](screenshots/sonarr/sonarr_library.png)
+![series_details](screenshots/sonarr/series_details.png)
+![season_details](screenshots/sonarr/season_details.png)
+![manual_episode_search](screenshots/sonarr/manual_episode_search.png)
+
+### General
+![logs](screenshots/radarr/logs.png)
+![indexers](screenshots/radarr/indexers.png)
 
 ## Dependencies
 * [ratatui](https://github.com/tui-rs-revival/ratatui)
