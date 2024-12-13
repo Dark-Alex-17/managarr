@@ -487,7 +487,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_dispatch_by_add_movie_search_results_block() {
+    async fn test_dispatch_by_add_series_search_results_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
 
       app
