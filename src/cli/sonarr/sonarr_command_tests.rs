@@ -142,6 +142,55 @@ mod tests {
 
       assert!(result.is_ok());
     }
+
+    #[test]
+    fn test_toggle_season_monitoring_requires_series_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "toggle-season-monitoring",
+        "--season-number",
+        "1",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_toggle_season_monitoring_requires_season_number() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "toggle-season-monitoring",
+        "--series-id",
+        "1",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_toggle_season_monitoring_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "toggle-season-monitoring",
+        "--series-id",
+        "1",
+        "--season-number",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
+    }
   }
 
   mod handler {
@@ -613,6 +662,36 @@ mod tests {
       let result = SonarrCliHandler::with(&app_arc, test_all_indexers_command, &mut mock_network)
         .handle()
         .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_list_toggle_season_monitoring_command() {
+      let expected_series_id = 1;
+      let expected_season_number = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::ToggleSeasonMonitoring(Some((expected_series_id, expected_season_number))).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let toggle_season_monitoring_command = SonarrCommand::ToggleSeasonMonitoring {
+        series_id: 1,
+        season_number: 1,
+      };
+
+      let result =
+        SonarrCliHandler::with(&app_arc, toggle_season_monitoring_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert!(result.is_ok());
     }
