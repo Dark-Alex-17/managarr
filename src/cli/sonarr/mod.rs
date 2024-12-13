@@ -121,6 +121,17 @@ pub enum SonarrCommand {
   #[command(about = "Test all Sonarr indexers")]
   TestAllIndexers,
   #[command(
+    about = "Toggle monitoring for the specified episode"
+  )]
+  ToggleEpisodeMonitoring {
+    #[arg(
+      long,
+      help = "The Sonarr ID of the episode to toggle monitoring on",
+      required = true
+    )]
+    episode_id: i64,
+  },
+  #[command(
     about = "Toggle monitoring for the specified season that corresponds to the specified series ID"
   )]
   ToggleSeasonMonitoring {
@@ -259,6 +270,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
         let resp = self
           .network
           .handle_network_event(SonarrEvent::TestAllIndexers.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrCommand::ToggleEpisodeMonitoring { episode_id } => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::ToggleEpisodeMonitoring(Some(episode_id)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

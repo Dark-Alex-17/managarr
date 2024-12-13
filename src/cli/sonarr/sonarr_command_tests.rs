@@ -144,6 +144,34 @@ mod tests {
     }
 
     #[test]
+    fn test_toggle_episode_monitoring_requires_episode_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "toggle-episode-monitoring",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_toggle_episode_monitoring_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "toggle-episode-monitoring",
+        "--episode-id",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
+    }
+
+    #[test]
     fn test_toggle_season_monitoring_requires_series_id() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -662,6 +690,34 @@ mod tests {
       let result = SonarrCliHandler::with(&app_arc, test_all_indexers_command, &mut mock_network)
         .handle()
         .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_list_toggle_episode_monitoring_command() {
+      let expected_episode_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::ToggleEpisodeMonitoring(Some(expected_episode_id)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let toggle_episode_monitoring_command = SonarrCommand::ToggleEpisodeMonitoring {
+        episode_id: 1,
+      };
+
+      let result =
+        SonarrCliHandler::with(&app_arc, toggle_episode_monitoring_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert!(result.is_ok());
     }
