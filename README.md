@@ -5,7 +5,6 @@
 ![License](https://img.shields.io/badge/license-MIT-blueviolet.svg)
 ![LOC](https://tokei.rs/b1/github/Dark-Alex-17/managarr?category=code)
 [![crates.io link](https://img.shields.io/crates/v/managarr.svg)](https://crates.io/crates/managarr)
-![Docker Release](https://img.shields.io/docker/v/darkalex17/managarr?label=Docker%20version)
 ![Release](https://img.shields.io/github/v/release/Dark-Alex-17/managarr?color=%23c694ff)
 [![codecov](https://codecov.io/gh/Dark-Alex-17/managarr/graph/badge.svg?token=33G179TW67)](https://codecov.io/gh/Dark-Alex-17/managarr)
 ![Crate.io downloads](https://img.shields.io/crates/d/managarr?label=Crate%20downloads)
