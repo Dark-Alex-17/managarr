@@ -3,12 +3,12 @@ use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_paragraph_borderless, title_block_centered};
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
+use derive_setters::Setters;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::text::Text;
 use ratatui::widgets::{Paragraph, Widget};
 use std::iter;
-use derive_setters::Setters;
 
 #[cfg(test)]
 #[path = "confirmation_prompt_tests.rs"]

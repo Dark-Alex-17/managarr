@@ -47,7 +47,7 @@ impl DrawUi for EditMovieUi {
           draw_popup(f, app, MovieDetailsUi::draw, Size::Large);
         }
       }
-      
+
       draw_popup(f, app, draw_edit_movie_confirmation_prompt, Size::Medium);
 
       match active_radarr_block {

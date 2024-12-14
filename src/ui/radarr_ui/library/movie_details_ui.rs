@@ -12,7 +12,10 @@ use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
 use crate::models::Route;
 use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::{borderless_block, decorate_peer_style, get_width_from_percentage, layout_block_bottom_border, layout_block_top_border};
+use crate::ui::utils::{
+  borderless_block, decorate_peer_style, get_width_from_percentage, layout_block_bottom_border,
+  layout_block_top_border,
+};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
@@ -84,12 +87,7 @@ impl DrawUi for MovieDetailsUi {
         }
       };
 
-      draw_popup(
-        f,
-        app,
-        draw_movie_info_popup,
-        Size::Large,
-      );
+      draw_popup(f, app, draw_movie_info_popup, Size::Large);
     }
   }
 }

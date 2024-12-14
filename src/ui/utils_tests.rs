@@ -1,12 +1,17 @@
 #[cfg(test)]
 mod test {
+  use crate::ui::utils::{
+    borderless_block, centered_rect, convert_to_minutes_hours_days, decorate_peer_style,
+    get_width_from_percentage, layout_block, layout_block_bottom_border, layout_block_top_border,
+    layout_block_top_border_with_title, layout_block_with_title, logo_block, style_block_highlight,
+    style_log_list_item, title_block, title_block_centered, title_style,
+  };
   use pretty_assertions::{assert_eq, assert_str_eq};
   use ratatui::layout::{Alignment, Rect};
   use ratatui::style::{Color, Modifier, Style, Stylize};
   use ratatui::text::{Span, Text};
   use ratatui::widgets::{Block, BorderType, Borders, ListItem};
   use rstest::rstest;
-  use crate::ui::utils::{borderless_block, centered_rect, convert_to_minutes_hours_days, decorate_peer_style, get_width_from_percentage, layout_block, layout_block_bottom_border, layout_block_top_border, layout_block_top_border_with_title, layout_block_with_title, logo_block, style_block_highlight, style_log_list_item, title_block, title_block_centered, title_style};
 
   #[test]
   fn test_layout_block() {

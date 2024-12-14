@@ -48,24 +48,23 @@ impl DrawUi for EditSeriesUi {
           draw_popup(f, app, SeriesDetailsUi::draw, Size::Large);
         }
       }
-      
-      let draw_edit_series_prompt =
-        |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| {
-          draw_edit_series_confirmation_prompt(f, app, prompt_area);
-          
-          match active_sonarr_block {
-            ActiveSonarrBlock::EditSeriesSelectSeriesType => {
-              draw_edit_series_select_series_type_popup(f, app);
-            }
-            ActiveSonarrBlock::EditSeriesSelectQualityProfile => {
-              draw_edit_series_select_quality_profile_popup(f, app);
-            }
-            ActiveSonarrBlock::EditSeriesSelectLanguageProfile => {
-              draw_edit_series_select_language_profile_popup(f, app);
-            }
-            _ => (),
+
+      let draw_edit_series_prompt = |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| {
+        draw_edit_series_confirmation_prompt(f, app, prompt_area);
+
+        match active_sonarr_block {
+          ActiveSonarrBlock::EditSeriesSelectSeriesType => {
+            draw_edit_series_select_series_type_popup(f, app);
           }
-        };
+          ActiveSonarrBlock::EditSeriesSelectQualityProfile => {
+            draw_edit_series_select_quality_profile_popup(f, app);
+          }
+          ActiveSonarrBlock::EditSeriesSelectLanguageProfile => {
+            draw_edit_series_select_language_profile_popup(f, app);
+          }
+          _ => (),
+        }
+      };
 
       draw_popup(f, app, draw_edit_series_prompt, Size::Long);
     }

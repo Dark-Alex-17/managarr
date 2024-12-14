@@ -1,6 +1,6 @@
-use derive_setters::Setters;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, layout_block, style_block_highlight};
+use derive_setters::Setters;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Text;

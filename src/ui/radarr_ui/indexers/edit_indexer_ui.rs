@@ -34,12 +34,7 @@ impl DrawUi for EditIndexerUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
-    draw_popup(
-      f,
-      app,
-      draw_edit_indexer_prompt,
-      Size::WideLargePrompt,
-    );
+    draw_popup(f, app, draw_edit_indexer_prompt, Size::WideLargePrompt);
   }
 }
 

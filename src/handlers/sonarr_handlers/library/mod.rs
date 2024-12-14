@@ -30,12 +30,12 @@ use crate::handlers::table_handler::TableHandlingConfig;
 mod add_series_handler;
 mod delete_series_handler;
 
+mod episode_details_handler;
 #[cfg(test)]
 #[path = "library_handler_tests.rs"]
 mod library_handler_tests;
-mod series_details_handler;
 mod season_details_handler;
-mod episode_details_handler;
+mod series_details_handler;
 
 pub(super) struct LibraryHandler<'a, 'b> {
   key: Key,

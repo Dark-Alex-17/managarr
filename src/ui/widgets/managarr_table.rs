@@ -1,3 +1,6 @@
+use super::input_box_popup::InputBoxPopup;
+use super::message::Message;
+use super::popup::Size;
 use crate::models::stateful_table::StatefulTable;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{centered_rect, layout_block_top_border, title_block_centered};
@@ -5,6 +8,7 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::popup::Popup;
 use crate::ui::widgets::selectable_list::SelectableList;
 use crate::ui::HIGHLIGHT_SYMBOL;
+use derive_setters::Setters;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Alignment, Constraint, Layout, Position, Rect};
 use ratatui::prelude::{Style, Stylize, Text};
@@ -12,10 +16,6 @@ use ratatui::widgets::{Block, ListItem, Paragraph, Row, StatefulWidget, Table, W
 use ratatui::Frame;
 use std::fmt::Debug;
 use std::sync::atomic::Ordering;
-use derive_setters::Setters;
-use super::input_box_popup::InputBoxPopup;
-use super::message::Message;
-use super::popup::Size;
 
 #[cfg(test)]
 #[path = "managarr_table_tests.rs"]

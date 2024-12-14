@@ -20,10 +20,7 @@ mod test {
 
   #[test]
   fn test_style_indeterminate() {
-    assert_eq!(
-      Style::new().indeterminate(),
-      Style::new().fg(COLOR_ORANGE)
-    );
+    assert_eq!(Style::new().indeterminate(), Style::new().fg(COLOR_ORANGE));
   }
 
   #[test]

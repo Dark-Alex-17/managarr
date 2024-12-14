@@ -1,13 +1,15 @@
 use strum::IntoEnumIterator;
 
+use super::sonarr_data::{ActiveSonarrBlock, SonarrData};
+use crate::models::sonarr_models::EpisodeFile;
 use crate::{
   app::{
     context_clues::build_context_clue_string,
     sonarr::sonarr_context_clues::{
       DETAILS_CONTEXTUAL_CONTEXT_CLUES, EPISODE_DETAILS_CONTEXT_CLUES,
-      MANUAL_EPISODE_SEARCH_CONTEXT_CLUES,
-      MANUAL_SEASON_SEARCH_CONTEXT_CLUES, SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES,
-      SEASON_DETAILS_CONTEXT_CLUES, SEASON_HISTORY_CONTEXT_CLUES,
+      MANUAL_EPISODE_SEARCH_CONTEXT_CLUES, MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
+      SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES, SEASON_DETAILS_CONTEXT_CLUES,
+      SEASON_HISTORY_CONTEXT_CLUES,
     },
   },
   models::{
@@ -19,8 +21,6 @@ use crate::{
     HorizontallyScrollableText, ScrollableText, TabRoute, TabState,
   },
 };
-use crate::models::sonarr_models::EpisodeFile;
-use super::sonarr_data::{ActiveSonarrBlock, SonarrData};
 
 #[cfg(test)]
 #[path = "modals_tests.rs"]
@@ -330,7 +330,9 @@ impl Default for SeasonDetailsModal {
           title: "Episodes",
           route: ActiveSonarrBlock::SeasonDetails.into(),
           help: build_context_clue_string(&SEASON_DETAILS_CONTEXT_CLUES),
-          contextual_help: Some(build_context_clue_string(&SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES)),
+          contextual_help: Some(build_context_clue_string(
+            &SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES,
+          )),
         },
         TabRoute {
           title: "History",
@@ -341,9 +343,7 @@ impl Default for SeasonDetailsModal {
         TabRoute {
           title: "Manual Search",
           route: ActiveSonarrBlock::ManualSeasonSearch.into(),
-          help: build_context_clue_string(
-            &MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
-          ),
+          help: build_context_clue_string(&MANUAL_SEASON_SEARCH_CONTEXT_CLUES),
           contextual_help: Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES)),
         },
       ]),

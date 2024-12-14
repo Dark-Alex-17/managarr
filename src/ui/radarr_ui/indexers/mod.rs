@@ -61,8 +61,13 @@ impl DrawUi for IndexersUi {
             f.render_widget(loading_popup, f.area());
           } else {
             let popup = {
-              let result = app.data.radarr_data.indexer_test_errors.as_ref().expect("Test result is unpopulated");
-              
+              let result = app
+                .data
+                .radarr_data
+                .indexer_test_errors
+                .as_ref()
+                .expect("Test result is unpopulated");
+
               if !result.is_empty() {
                 Popup::new(Message::new(result.clone())).size(Size::LargeMessage)
               } else {

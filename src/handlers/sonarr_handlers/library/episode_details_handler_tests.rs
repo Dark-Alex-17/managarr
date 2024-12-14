@@ -577,7 +577,7 @@ mod tests {
         ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt,
         None,
       )
-        .handle();
+      .handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_eq!(

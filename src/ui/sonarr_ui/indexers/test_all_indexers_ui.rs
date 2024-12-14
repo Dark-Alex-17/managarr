@@ -28,12 +28,7 @@ impl DrawUi for TestAllIndexersUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
-    draw_popup(
-      f,
-      app,
-      draw_test_all_indexers_test_results,
-      Size::Large,
-    );
+    draw_popup(f, app, draw_test_all_indexers_test_results, Size::Large);
   }
 }
 

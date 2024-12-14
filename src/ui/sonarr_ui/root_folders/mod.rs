@@ -32,14 +32,11 @@ impl DrawUi for RootFoldersUi {
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
       draw_root_folders(f, app, area);
-      
+
       match active_sonarr_block {
-        ActiveSonarrBlock::AddRootFolderPrompt => draw_popup(
-          f,
-          app,
-          draw_add_root_folder_prompt_box,
-          Size::InputBox,
-        ),
+        ActiveSonarrBlock::AddRootFolderPrompt => {
+          draw_popup(f, app, draw_add_root_folder_prompt_box, Size::InputBox)
+        }
         ActiveSonarrBlock::DeleteRootFolderPrompt => {
           let prompt = format!(
             "Do you really want to delete this root folder: \n{}?",

@@ -46,7 +46,7 @@ impl DrawUi for AddSeriesUi {
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
       draw_popup(f, app, draw_add_series_search, Size::Large);
-      
+
       match active_sonarr_block {
         ActiveSonarrBlock::AddSeriesPrompt
         | ActiveSonarrBlock::AddSeriesSelectMonitor

@@ -1,5 +1,7 @@
 #[cfg(test)]
 pub mod utils {
+  use crate::models::servarr_models::{Indexer, RootFolder};
+  use crate::models::sonarr_models::{BlocklistItem, Series};
   use crate::models::{
     servarr_data::sonarr::{
       modals::{EpisodeDetailsModal, SeasonDetailsModal},
@@ -9,8 +11,6 @@ pub mod utils {
     stateful_table::StatefulTable,
     HorizontallyScrollableText, ScrollableText,
   };
-  use crate::models::servarr_models::{Indexer, RootFolder};
-  use crate::models::sonarr_models::{BlocklistItem, Series};
 
   pub fn create_test_sonarr_data<'a>() -> SonarrData<'a> {
     let mut episode_details_modal = EpisodeDetailsModal {
@@ -27,7 +27,9 @@ pub mod utils {
     season_details_modal
       .episodes
       .set_items(vec![Episode::default()]);
-    season_details_modal.season_history.set_items(vec![SonarrHistoryItem::default()]);
+    season_details_modal
+      .season_history
+      .set_items(vec![SonarrHistoryItem::default()]);
     season_details_modal
       .season_releases
       .set_items(vec![SonarrRelease::default()]);
@@ -50,9 +52,15 @@ pub mod utils {
       ..SonarrData::default()
     };
     sonarr_data.series.set_items(vec![Series::default()]);
-    sonarr_data.history.set_items(vec![SonarrHistoryItem::default()]);
-    sonarr_data.blocklist.set_items(vec![BlocklistItem::default()]);
-    sonarr_data.root_folders.set_items(vec![RootFolder::default()]);
+    sonarr_data
+      .history
+      .set_items(vec![SonarrHistoryItem::default()]);
+    sonarr_data
+      .blocklist
+      .set_items(vec![BlocklistItem::default()]);
+    sonarr_data
+      .root_folders
+      .set_items(vec![RootFolder::default()]);
     sonarr_data.indexers.set_items(vec![Indexer::default()]);
     sonarr_data.series_info_tabs.index = 1;
     sonarr_data

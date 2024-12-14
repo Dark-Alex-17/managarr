@@ -559,7 +559,7 @@ mod tests {
         ActiveSonarrBlock::SeasonDetails,
         None,
       )
-        .handle();
+      .handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -586,9 +586,12 @@ mod tests {
         ActiveSonarrBlock::SeasonDetails,
         None,
       )
-        .handle();
+      .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::SeasonDetails.into());
+      assert_eq!(
+        app.get_current_route(),
+        ActiveSonarrBlock::SeasonDetails.into()
+      );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert!(app.data.sonarr_data.prompt_confirm_action.is_none());
       assert!(!app.is_routing);

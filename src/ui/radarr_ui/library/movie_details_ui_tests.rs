@@ -6,7 +6,8 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
-  use crate::ui::radarr_ui::library::movie_details_ui::{style_from_download_status, MovieDetailsUi,
+  use crate::ui::radarr_ui::library::movie_details_ui::{
+    style_from_download_status, MovieDetailsUi,
   };
   use crate::ui::styles::ManagarrStyle;
   use crate::ui::DrawUi;

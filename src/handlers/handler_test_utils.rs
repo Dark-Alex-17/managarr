@@ -331,38 +331,89 @@ mod test_utils {
   macro_rules! test_handler_delegation {
     ($handler:ident, $base:expr, $active_block:expr) => {
       let mut app = App::default();
-      app.data.sonarr_data.history.set_items(vec![$crate::models::sonarr_models::SonarrHistoryItem::default()]);
-      app.data.sonarr_data.root_folders.set_items(vec![$crate::models::servarr_models::RootFolder::default()]);
-      app.data.sonarr_data.indexers.set_items(vec![$crate::models::servarr_models::Indexer::default()]);
-      app.data.sonarr_data.blocklist.set_items(vec![$crate::models::sonarr_models::BlocklistItem::default()]);
-      app.data.sonarr_data.add_searched_series = Some($crate::models::stateful_table::StatefulTable::default());
-      app.data.radarr_data.movies.set_items(vec![$crate::models::radarr_models::Movie::default()]);
-      app.data.radarr_data.collections.set_items(vec![$crate::models::radarr_models::Collection::default()]);
-      app.data.radarr_data.collection_movies.set_items(vec![$crate::models::radarr_models::CollectionMovie::default()]);
-      app.data.radarr_data.indexers.set_items(vec![$crate::models::servarr_models::Indexer::default()]);
-      app.data.radarr_data.root_folders.set_items(vec![$crate::models::servarr_models::RootFolder::default()]);
-      app.data.radarr_data.blocklist.set_items(vec![$crate::models::radarr_models::BlocklistItem::default()]);
-      app.data.radarr_data.add_searched_movies = Some($crate::models::stateful_table::StatefulTable::default());
-      let mut movie_details_modal = $crate::models::servarr_data::radarr::modals::MovieDetailsModal::default();
+      app.data.sonarr_data.history.set_items(vec![
+        $crate::models::sonarr_models::SonarrHistoryItem::default(),
+      ]);
+      app
+        .data
+        .sonarr_data
+        .root_folders
+        .set_items(vec![$crate::models::servarr_models::RootFolder::default()]);
+      app
+        .data
+        .sonarr_data
+        .indexers
+        .set_items(vec![$crate::models::servarr_models::Indexer::default()]);
+      app
+        .data
+        .sonarr_data
+        .blocklist
+        .set_items(vec![$crate::models::sonarr_models::BlocklistItem::default()]);
+      app.data.sonarr_data.add_searched_series =
+        Some($crate::models::stateful_table::StatefulTable::default());
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_items(vec![$crate::models::radarr_models::Movie::default()]);
+      app
+        .data
+        .radarr_data
+        .collections
+        .set_items(vec![$crate::models::radarr_models::Collection::default()]);
+      app.data.radarr_data.collection_movies.set_items(vec![
+        $crate::models::radarr_models::CollectionMovie::default(),
+      ]);
+      app
+        .data
+        .radarr_data
+        .indexers
+        .set_items(vec![$crate::models::servarr_models::Indexer::default()]);
+      app
+        .data
+        .radarr_data
+        .root_folders
+        .set_items(vec![$crate::models::servarr_models::RootFolder::default()]);
+      app
+        .data
+        .radarr_data
+        .blocklist
+        .set_items(vec![$crate::models::radarr_models::BlocklistItem::default()]);
+      app.data.radarr_data.add_searched_movies =
+        Some($crate::models::stateful_table::StatefulTable::default());
+      let mut movie_details_modal =
+        $crate::models::servarr_data::radarr::modals::MovieDetailsModal::default();
+      movie_details_modal.movie_history.set_items(vec![
+        $crate::models::radarr_models::MovieHistoryItem::default(),
+      ]);
       movie_details_modal
-        .movie_history
-        .set_items(vec![$crate::models::radarr_models::MovieHistoryItem::default()]);
-      movie_details_modal.movie_cast.set_items(vec![$crate::models::radarr_models::Credit::default()]);
-      movie_details_modal.movie_crew.set_items(vec![$crate::models::radarr_models::Credit::default()]);
-      movie_details_modal.movie_releases.set_items(vec![$crate::models::radarr_models::RadarrRelease::default()]);
+        .movie_cast
+        .set_items(vec![$crate::models::radarr_models::Credit::default()]);
+      movie_details_modal
+        .movie_crew
+        .set_items(vec![$crate::models::radarr_models::Credit::default()]);
+      movie_details_modal
+        .movie_releases
+        .set_items(vec![$crate::models::radarr_models::RadarrRelease::default()]);
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
-      let mut season_details_modal = $crate::models::servarr_data::sonarr::modals::SeasonDetailsModal::default();
-      season_details_modal.season_history.set_items(vec![$crate::models::sonarr_models::SonarrHistoryItem::default()]);
-      season_details_modal.episode_details_modal = Some($crate::models::servarr_data::sonarr::modals::EpisodeDetailsModal::default());
+      let mut season_details_modal =
+        $crate::models::servarr_data::sonarr::modals::SeasonDetailsModal::default();
+      season_details_modal.season_history.set_items(vec![
+        $crate::models::sonarr_models::SonarrHistoryItem::default(),
+      ]);
+      season_details_modal.episode_details_modal =
+        Some($crate::models::servarr_data::sonarr::modals::EpisodeDetailsModal::default());
       app.data.sonarr_data.season_details_modal = Some(season_details_modal);
       let mut series_history = $crate::models::stateful_table::StatefulTable::default();
       series_history.set_items(vec![
         $crate::models::sonarr_models::SonarrHistoryItem::default(),
       ]);
       app.data.sonarr_data.series_history = Some(series_history);
-      app.data.sonarr_data.series.set_items(vec![
-        $crate::models::sonarr_models::Series::default(),
-      ]);
+      app
+        .data
+        .sonarr_data
+        .series
+        .set_items(vec![$crate::models::sonarr_models::Series::default()]);
       app.push_navigation_stack($base.into());
       app.push_navigation_stack($active_block.into());
 

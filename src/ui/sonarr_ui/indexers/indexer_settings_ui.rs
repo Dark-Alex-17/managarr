@@ -34,12 +34,7 @@ impl DrawUi for IndexerSettingsUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
-    draw_popup(
-      f,
-      app,
-      draw_edit_indexer_settings_prompt,
-      Size::LargePrompt,
-    );
+    draw_popup(f, app, draw_edit_indexer_settings_prompt, Size::LargePrompt);
   }
 }
 

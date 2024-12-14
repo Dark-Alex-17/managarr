@@ -261,8 +261,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
           self.app.data.sonarr_data.prompt_confirm = true;
           self.app.data.sonarr_data.prompt_confirm_action =
             Some(SonarrEvent::ToggleSeasonMonitoring(None));
-          
-          self.app.pop_and_push_navigation_stack(self.active_sonarr_block.into());
+
+          self
+            .app
+            .pop_and_push_navigation_stack(self.active_sonarr_block.into());
         }
         _ => (),
       },

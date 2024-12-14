@@ -342,8 +342,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
         self.app.data.sonarr_data.prompt_confirm = true;
         self.app.data.sonarr_data.prompt_confirm_action =
           Some(SonarrEvent::ToggleEpisodeMonitoring(None));
-        
-        self.app.pop_and_push_navigation_stack(self.active_sonarr_block.into());
+
+        self
+          .app
+          .pop_and_push_navigation_stack(self.active_sonarr_block.into());
       }
       ActiveSonarrBlock::SeasonDetails
       | ActiveSonarrBlock::SeasonHistory
@@ -416,7 +418,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
   }
 }
 
-pub(in crate::handlers::sonarr_handlers::library) fn releases_sorting_options() -> Vec<SortOption<SonarrRelease>> {
+pub(in crate::handlers::sonarr_handlers::library) fn releases_sorting_options(
+) -> Vec<SortOption<SonarrRelease>> {
   vec![
     SortOption {
       name: "Source",

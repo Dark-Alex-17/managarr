@@ -58,7 +58,7 @@ impl DrawUi for SystemUi {
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = app.get_current_route();
     draw_system_ui_layout(f, app, area);
-    
+
     if SystemDetailsUi::accepts(route) {
       SystemDetailsUi::draw(f, app, area);
     }

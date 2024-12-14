@@ -18,6 +18,12 @@ mod tests {
       }
     });
 
-    assert!(EditCollectionUi::accepts((ActiveRadarrBlock::EditCollectionPrompt, Some(ActiveRadarrBlock::CollectionDetails)).into()));
+    assert!(EditCollectionUi::accepts(
+      (
+        ActiveRadarrBlock::EditCollectionPrompt,
+        Some(ActiveRadarrBlock::CollectionDetails)
+      )
+        .into()
+    ));
   }
 }

@@ -145,11 +145,8 @@ mod tests {
 
     #[test]
     fn test_toggle_episode_monitoring_requires_episode_id() {
-      let result = Cli::command().try_get_matches_from([
-        "managarr",
-        "sonarr",
-        "toggle-episode-monitoring",
-      ]);
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "toggle-episode-monitoring"]);
 
       assert!(result.is_err());
       assert_eq!(
@@ -710,14 +707,16 @@ mod tests {
           )))
         });
       let app_arc = Arc::new(Mutex::new(App::default()));
-      let toggle_episode_monitoring_command = SonarrCommand::ToggleEpisodeMonitoring {
-        episode_id: 1,
-      };
+      let toggle_episode_monitoring_command =
+        SonarrCommand::ToggleEpisodeMonitoring { episode_id: 1 };
 
-      let result =
-        SonarrCliHandler::with(&app_arc, toggle_episode_monitoring_command, &mut mock_network)
-          .handle()
-          .await;
+      let result = SonarrCliHandler::with(
+        &app_arc,
+        toggle_episode_monitoring_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
 
       assert!(result.is_ok());
     }
@@ -730,7 +729,8 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::ToggleSeasonMonitoring(Some((expected_series_id, expected_season_number))).into(),
+          SonarrEvent::ToggleSeasonMonitoring(Some((expected_series_id, expected_season_number)))
+            .into(),
         ))
         .times(1)
         .returning(|_| {
@@ -744,10 +744,13 @@ mod tests {
         season_number: 1,
       };
 
-      let result =
-        SonarrCliHandler::with(&app_arc, toggle_season_monitoring_command, &mut mock_network)
-          .handle()
-          .await;
+      let result = SonarrCliHandler::with(
+        &app_arc,
+        toggle_season_monitoring_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
 
       assert!(result.is_ok());
     }

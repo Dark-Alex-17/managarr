@@ -78,7 +78,7 @@ macro_rules! handle_table_events {
 
       fn [<handle_ $name _table_scroll_up>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
         use $crate::models::Scrollable;
-        
+
         match $self.app.get_current_route() {
           _ if config.table_block == $self.app.get_current_route() => {
             $table.scroll_up();
@@ -96,7 +96,7 @@ macro_rules! handle_table_events {
 
       fn [<handle_ $name _table_scroll_down>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
         use $crate::models::Scrollable;
-        
+
         match $self.app.get_current_route() {
           _ if config.table_block == $self.app.get_current_route() => {
             $table.scroll_down();
@@ -118,7 +118,7 @@ macro_rules! handle_table_events {
 
       fn [<handle_ $name _table_home>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
         use $crate::models::Scrollable;
-        
+
         match $self.app.get_current_route() {
           _ if config.table_block == $self.app.get_current_route() => {
             $table.scroll_to_top();
@@ -160,7 +160,7 @@ macro_rules! handle_table_events {
 
       fn [<handle_ $name _table_end>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
         use $crate::models::Scrollable;
-        
+
         match $self.app.get_current_route() {
           _ if config.table_block == $self.app.get_current_route() => {
             $table.scroll_to_bottom();

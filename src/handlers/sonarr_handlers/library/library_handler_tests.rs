@@ -10,7 +10,10 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::sonarr_handlers::library::{series_sorting_options, LibraryHandler};
   use crate::handlers::KeyEventHandler;
-  use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS, EPISODE_DETAILS_BLOCKS, LIBRARY_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS};
+  use crate::models::servarr_data::sonarr::sonarr_data::{
+    ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
+    EPISODE_DETAILS_BLOCKS, LIBRARY_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
+  };
   use crate::models::sonarr_models::{Series, SeriesStatus, SeriesType};
   use crate::test_handler_delegation;
 
@@ -556,7 +559,7 @@ mod tests {
       ActiveSonarrBlock::SeasonHistoryDetails,
       ActiveSonarrBlock::ManualSeasonSearch,
       ActiveSonarrBlock::ManualSeasonSearchSortPrompt,
-      ActiveSonarrBlock::DeleteEpisodeFilePrompt,
+      ActiveSonarrBlock::DeleteEpisodeFilePrompt
     )]
     active_sonarr_block: ActiveSonarrBlock,
   ) {
@@ -576,7 +579,7 @@ mod tests {
       ActiveSonarrBlock::EpisodeHistoryDetails,
       ActiveSonarrBlock::ManualEpisodeSearch,
       ActiveSonarrBlock::ManualEpisodeSearchSortPrompt,
-      ActiveSonarrBlock::DeleteEpisodeFilePrompt,
+      ActiveSonarrBlock::DeleteEpisodeFilePrompt
     )]
     active_sonarr_block: ActiveSonarrBlock,
   ) {

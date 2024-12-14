@@ -10,8 +10,7 @@ use crate::models::radarr_models::RadarrTask;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::Route;
 use crate::ui::radarr_ui::system::{
-  draw_queued_events, extract_task_props, TASK_TABLE_CONSTRAINTS,
-  TASK_TABLE_HEADERS,
+  draw_queued_events, extract_task_props, TASK_TABLE_CONSTRAINTS, TASK_TABLE_HEADERS,
 };
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, style_log_list_item, title_block};
@@ -44,19 +43,11 @@ impl DrawUi for SystemDetailsUi {
           draw_logs_popup(f, app);
         }
         ActiveRadarrBlock::SystemTasks | ActiveRadarrBlock::SystemTaskStartConfirmPrompt => {
-          draw_popup(
-            f,
-            app,
-            draw_tasks_popup,
-            Size::Large,
-          )
+          draw_popup(f, app, draw_tasks_popup, Size::Large)
         }
-        ActiveRadarrBlock::SystemQueuedEvents => draw_popup(
-          f,
-          app,
-          draw_queued_events,
-          Size::Medium,
-        ),
+        ActiveRadarrBlock::SystemQueuedEvents => {
+          draw_popup(f, app, draw_queued_events, Size::Medium)
+        }
         ActiveRadarrBlock::SystemUpdates => {
           draw_updates_popup(f, app);
         }

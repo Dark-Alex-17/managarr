@@ -33,7 +33,7 @@ impl DrawUi for BlocklistUi {
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
       draw_blocklist_table(f, app, area);
-      
+
       match active_radarr_block {
         ActiveRadarrBlock::BlocklistItemDetails => {
           draw_blocklist_item_details_popup(f, app);

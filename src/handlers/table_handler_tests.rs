@@ -37,10 +37,10 @@ mod tests {
       match self.active_radarr_block {
         ActiveRadarrBlock::MovieDetails => {
           self.handle_movies_table_events(minimal_movie_table_handling_config);
-        } 
+        }
         _ => {
           self.handle_movies_table_events(movie_table_handling_config);
-        },
+        }
       }
     }
 

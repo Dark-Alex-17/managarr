@@ -13,6 +13,7 @@ use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::servarr_data::radarr::modals::AddMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
 use crate::models::{EnumDisplayStyle, Route};
+use crate::ui::radarr_ui::collections::CollectionsUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block, layout_paragraph_borderless,
@@ -27,7 +28,6 @@ use crate::ui::widgets::selectable_list::SelectableList;
 use crate::ui::{draw_popup, DrawUi};
 use crate::utils::convert_runtime;
 use crate::{render_selectable_input_box, App};
-use crate::ui::radarr_ui::collections::CollectionsUi;
 
 #[cfg(test)]
 #[path = "add_movie_ui_tests.rs"]
@@ -59,12 +59,7 @@ impl DrawUi for AddMovieUi {
           | ActiveRadarrBlock::AddMovieSelectQualityProfile
           | ActiveRadarrBlock::AddMovieSelectRootFolder
           | ActiveRadarrBlock::AddMovieTagsInput => {
-              draw_popup(
-                f,
-                app,
-                draw_confirmation_popup,
-                Size::Medium,
-              );
+            draw_popup(f, app, draw_confirmation_popup, Size::Medium);
           }
           ActiveRadarrBlock::AddMovieAlreadyInLibrary => {
             f.render_widget(

@@ -35,7 +35,7 @@ impl DrawUi for EditCollectionUi {
         return EDIT_COLLECTION_BLOCKS.contains(&active_radarr_block)
           && context == ActiveRadarrBlock::CollectionDetails;
       }
-      
+
       return EDIT_COLLECTION_BLOCKS.contains(&active_radarr_block);
     }
 
