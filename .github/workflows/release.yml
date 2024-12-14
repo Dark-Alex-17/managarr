@@ -18,27 +18,8 @@ on:
           - major
 
 jobs:
-  create-artifacts-directory:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check if actor is repository owner
-        if: ${{ github.actor != github.repository_owner }}
-        run: |
-          echo "You are not authorized to run this workflow."
-          exit 1
-
-      - name: Create artifacts directory
-        run: mkdir artifacts
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: artifacts
-          path: artifacts
-
   build-release-artifacts:
     name: build-release
-    needs: [create-artifacts-directory]
     runs-on: ${{ matrix.job.os }}
     env:
       RUST_BACKTRACE: 1
@@ -62,6 +43,15 @@ jobs:
         rust: [stable]
 
     steps:
+      - name: Check if actor is repository owner
+        if: ${{ github.actor != github.repository_owner }}
+        run: |
+          echo "You are not authorized to run this workflow."
+          exit 1
+
+      - name: Create artifacts directory
+        run: mkdir artifacts
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
