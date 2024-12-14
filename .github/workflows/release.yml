@@ -112,6 +112,7 @@ jobs:
             strip $BINARY_NAME
           fi
           RELEASE_NAME=managarr-${{ matrix.job.artifact_suffix }}
+          mkdir -p artifacts
           tar czvf $RELEASE_NAME.tar.gz $BINARY_NAME
           # create sha checksum files
           certutil -hashfile $RELEASE_NAME.tar.gz sha256 | grep -E [A-Fa-f0-9]{64} > $RELEASE_NAME.sha256
@@ -137,9 +138,10 @@ jobs:
           shasum -a 256 $RELEASE_NAME.tar.gz > $RELEASE_NAME.sha256
           echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
 
-      - name: Add SHA to artifacts
+      - name: Add artifacts
         run: |
           mkdir -p artifacts
+          cp target/${{ matrix.job.target }}/release/${{ env.RELEASE_NAME }}.tar.gz artifacts/
           cp target/${{ matrix.job.target }}/release/${{ env.RELEASE_NAME }}.sha256 artifacts/
 
       - name: Upload artifacts
