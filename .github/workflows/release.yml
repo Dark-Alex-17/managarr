@@ -286,12 +286,6 @@ jobs:
           name: artifacts
           path: artifacts
 
-      - name: Set release version
-        shell: bash
-        run: |
-          release_version="$(cat ./artifacts/release-version)"
-          echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
-
       - name: Validate release environment variables
         run: |
           echo "Release version: ${{ env.version }}"
