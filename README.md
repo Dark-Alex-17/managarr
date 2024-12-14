@@ -313,7 +313,7 @@ with all items tagged `Beta`.
 
 ## Servarr Requirements
 * [Radarr >= 5.3.6.8612](https://radarr.video/docs/api/)
-* [Sonarr >= v3](https://sonarr.tv/docs/api/)
+* [Sonarr >= v4](https://sonarr.tv/docs/api/)
 * [Readarr v1](https://readarr.com/docs/api/)
 * [Lidarr v1](https://lidarr.audio/docs/api/)
 * [Whisparr >= v3](https://whisparr.com/docs/api/)

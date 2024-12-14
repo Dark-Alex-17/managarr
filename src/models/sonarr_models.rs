@@ -119,7 +119,7 @@ pub struct DownloadRecord {
   pub output_path: Option<HorizontallyScrollableText>,
   #[serde(default)]
   pub indexer: String,
-  pub download_client: String,
+  pub download_client: Option<String>,
 }
 
 impl Eq for DownloadRecord {}
@@ -233,7 +233,7 @@ pub struct EpisodeFile {
   pub path: String,
   #[serde(deserialize_with = "super::from_i64")]
   pub size: i64,
-  pub language: Language,
+  pub languages: Vec<Language>,
   pub quality: QualityWrapper,
   pub date_added: DateTime<Utc>,
   pub media_info: Option<MediaInfo>,
@@ -300,6 +300,7 @@ impl Eq for Rating {}
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Season {
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub title: Option<String>,
   #[serde(deserialize_with = "super::from_i64")]
   pub season_number: i64,
@@ -587,7 +588,7 @@ pub struct SonarrHistoryItem {
   #[serde(deserialize_with = "super::from_i64")]
   pub episode_id: i64,
   pub quality: QualityWrapper,
-  pub language: Language,
+  pub languages: Vec<Language>,
   pub date: DateTime<Utc>,
   pub event_type: SonarrHistoryEventType,
   pub data: SonarrHistoryData,

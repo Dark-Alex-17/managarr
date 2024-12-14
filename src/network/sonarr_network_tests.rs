@@ -114,7 +114,7 @@ mod test {
         "path": "/nfs/tv/series/season 1/episode 1.mkv",
         "size": 3543348019,
         "dateAdded": "2024-02-10T07:28:45Z",
-        "language": { "id": 1, "name": "English" },
+        "languages": [{ "id": 1, "name": "English" }],
         "quality": { "quality": { "name": "Bluray-1080p" } },
         "mediaInfo": {
             "audioBitrate": 0,
@@ -285,7 +285,7 @@ mod test {
   #[case(SonarrEvent::HealthCheck, "/health")]
   #[case(SonarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(SonarrEvent::GetDiskSpace, "/diskspace")]
-  #[case(SonarrEvent::GetLanguageProfiles, "/languageprofile")]
+  #[case(SonarrEvent::GetLanguageProfiles, "/language")]
   #[case(SonarrEvent::GetLogs(Some(500)), "/log")]
   #[case(SonarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(SonarrEvent::GetStatus, "/system/status")]
@@ -2791,7 +2791,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2804,7 +2804,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2883,7 +2883,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2896,7 +2896,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2954,7 +2954,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2967,7 +2967,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3396,7 +3396,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3409,7 +3409,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3526,7 +3526,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3539,7 +3539,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3656,7 +3656,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3669,7 +3669,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3764,7 +3764,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3777,7 +3777,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4447,7 +4447,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4460,7 +4460,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4563,7 +4563,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4576,7 +4576,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4679,7 +4679,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4692,7 +4692,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -5329,7 +5329,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -5342,7 +5342,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -5451,7 +5451,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -5464,7 +5464,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -5557,7 +5557,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -5570,7 +5570,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -5659,7 +5659,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -5672,7 +5672,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -7216,7 +7216,7 @@ mod test {
   #[tokio::test]
   async fn test_extract_and_add_sonarr_tag_ids_vec() {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let tags = "    test,hi ,, usenet ".to_owned();
+    let tags = "    test,HI ,, usenet ".to_owned();
     {
       let mut app = app_arc.lock().await;
       app.data.sonarr_data.tags_map = BiMap::from_iter([
@@ -7237,7 +7237,7 @@ mod test {
   async fn test_extract_and_add_sonarr_tag_ids_vec_add_missing_tags_first() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
-      Some(json!({ "label": "testing" })),
+      Some(json!({ "label": "TESTING" })),
       Some(json!({ "id": 3, "label": "testing" })),
       None,
       SonarrEvent::GetTags,
@@ -7245,7 +7245,7 @@ mod test {
       None,
     )
     .await;
-    let tags = "usenet, test, testing".to_owned();
+    let tags = "usenet, test, TESTING".to_owned();
     {
       let mut app = app_arc.lock().await;
       app.data.sonarr_data.add_series_modal = Some(AddSeriesModal {
@@ -7562,7 +7562,7 @@ mod test {
         "/nfs/tv/Test show/season 1/",
       )),
       indexer: "kickass torrents".to_owned(),
-      download_client: "transmission".to_owned(),
+      download_client: Some("transmission".to_owned()),
     }
   }
 
@@ -7598,7 +7598,7 @@ mod test {
       path: "/nfs/tv/series/season 1/episode 1.mkv".to_owned(),
       size: 3543348019,
       quality: quality_wrapper(),
-      language: language(),
+      languages: vec![language()],
       date_added: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
       media_info: Some(media_info()),
     }
@@ -7624,7 +7624,7 @@ mod test {
       source_title: "Test source".into(),
       episode_id: 1,
       quality: quality_wrapper(),
-      language: language(),
+      languages: vec![language()],
       date: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
       event_type: SonarrHistoryEventType::Grabbed,
       data: history_data(),

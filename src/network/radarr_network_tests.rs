@@ -4882,7 +4882,7 @@ mod test {
   #[tokio::test]
   async fn test_extract_and_add_radarr_tag_ids_vec() {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let tags = "    test,hi ,, usenet ".to_owned();
+    let tags = "    test,HI ,, usenet ".to_owned();
     {
       let mut app = app_arc.lock().await;
       app.data.radarr_data.tags_map = BiMap::from_iter([
@@ -4903,7 +4903,7 @@ mod test {
   async fn test_extract_and_add_radarr_tag_ids_vec_add_missing_tags_first() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
-      Some(json!({ "label": "testing" })),
+      Some(json!({ "label": "TESTING" })),
       Some(json!({ "id": 3, "label": "testing" })),
       None,
       RadarrEvent::GetTags,
@@ -4911,7 +4911,7 @@ mod test {
       None,
     )
     .await;
-    let tags = "usenet, test, testing".to_owned();
+    let tags = "usenet, test, TESTING".to_owned();
     {
       let mut app = app_arc.lock().await;
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {

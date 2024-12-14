@@ -4,6 +4,7 @@ use crate::models::sonarr_models::{
   DownloadRecord, DownloadStatus, Episode, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
 };
 use crate::models::Route;
+use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::ui::sonarr_ui::sonarr_ui_utils::{
   create_download_failed_history_event_details,
   create_download_folder_imported_history_event_details,
@@ -27,7 +28,6 @@ use ratatui::layout::{Alignment, Constraint, Rect};
 use ratatui::prelude::{Line, Style, Stylize, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use ratatui::Frame;
-use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 
 #[cfg(test)]
 #[path = "season_details_ui_tests.rs"]
@@ -38,7 +38,8 @@ pub(super) struct SeasonDetailsUi;
 impl DrawUi for SeasonDetailsUi {
   fn accepts(route: Route) -> bool {
     if let Route::Sonarr(active_sonarr_block, _) = route {
-      return EpisodeDetailsUi::accepts(route) || SEASON_DETAILS_BLOCKS.contains(&active_sonarr_block);
+      return EpisodeDetailsUi::accepts(route)
+        || SEASON_DETAILS_BLOCKS.contains(&active_sonarr_block);
     }
 
     false
@@ -52,7 +53,15 @@ impl DrawUi for SeasonDetailsUi {
           let content_area = draw_tabs(
             f,
             popup_area,
-            &format!("Season {} Details", app.data.sonarr_data.seasons.current_selection().season_number),
+            &format!(
+              "Season {} Details",
+              app
+                .data
+                .sonarr_data
+                .seasons
+                .current_selection()
+                .season_number
+            ),
             &app
               .data
               .sonarr_data
@@ -113,7 +122,7 @@ impl DrawUi for SeasonDetailsUi {
         };
 
         draw_popup(f, app, draw_season_details_popup, Size::XLarge);
-        
+
         if EpisodeDetailsUi::accepts(route) {
           EpisodeDetailsUi::draw(f, app, _area);
         }
@@ -259,7 +268,7 @@ fn draw_season_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         let history_row_mapping = |history_item: &SonarrHistoryItem| {
           let SonarrHistoryItem {
             source_title,
-            language,
+            languages,
             quality,
             event_type,
             date,
@@ -275,7 +284,13 @@ fn draw_season_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Row::new(vec![
             Cell::from(source_title.to_string()),
             Cell::from(event_type.to_string()),
-            Cell::from(language.name.to_owned()),
+            Cell::from(
+              languages
+                .iter()
+                .map(|language| language.name.to_owned())
+                .collect::<Vec<String>>()
+                .join(","),
+            ),
             Cell::from(quality.quality.name.to_owned()),
             Cell::from(date.to_string()),
           ])
@@ -339,11 +354,13 @@ fn draw_season_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let (current_selection, is_empty) = if season_details_modal.season_releases.is_empty() {
         (SonarrRelease::default(), true)
       } else {
-        (season_details_modal
-          .season_releases
-          .current_selection()
-          .clone(),
-          season_details_modal.season_releases.is_empty())
+        (
+          season_details_modal
+            .season_releases
+            .current_selection()
+            .clone(),
+          season_details_modal.season_releases.is_empty(),
+        )
       };
       let season_release_table_footer = season_details_modal
         .season_details_tabs

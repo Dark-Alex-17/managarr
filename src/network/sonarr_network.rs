@@ -116,7 +116,7 @@ impl NetworkResource for SonarrEvent {
       SonarrEvent::GetIndexers | SonarrEvent::DeleteIndexer(_) | SonarrEvent::EditIndexer(_) => {
         "/indexer"
       }
-      SonarrEvent::GetLanguageProfiles => "/languageprofile",
+      SonarrEvent::GetLanguageProfiles => "/language",
       SonarrEvent::GetLogs(_) => "/log",
       SonarrEvent::GetDiskSpace => "/diskspace",
       SonarrEvent::GetQualityProfiles => "/qualityprofile",
@@ -1709,7 +1709,7 @@ impl<'a, 'b> Network<'a, 'b> {
             Date Added: {}",
             file.relative_path,
             file.path,
-            file.language.name,
+            file.languages.first().unwrap_or(&Language::default()).name,
             file.date_added,
           );
 
@@ -2730,7 +2730,7 @@ impl<'a, 'b> Network<'a, 'b> {
     let tags = edit_tags.clone();
     let missing_tags_vec = edit_tags
       .split(',')
-      .filter(|&tag| !tag.is_empty() && tags_map.get_by_right(tag.trim()).is_none())
+      .filter(|&tag| !tag.is_empty() && tags_map.get_by_right(tag.to_lowercase().trim()).is_none())
       .collect::<Vec<&str>>();
 
     for tag in missing_tags_vec {
@@ -2749,7 +2749,7 @@ impl<'a, 'b> Network<'a, 'b> {
           .data
           .sonarr_data
           .tags_map
-          .get_by_right(tag.trim())
+          .get_by_right(tag.to_lowercase().trim())
           .unwrap()
       })
       .collect()

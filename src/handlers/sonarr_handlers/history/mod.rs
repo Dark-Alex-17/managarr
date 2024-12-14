@@ -6,6 +6,7 @@ use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_clear_errors, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTORY_BLOCKS};
+use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::SonarrHistoryItem;
 use crate::models::stateful_table::SortOption;
 
@@ -142,10 +143,14 @@ pub(in crate::handlers::sonarr_handlers) fn history_sorting_options(
     SortOption {
       name: "Language",
       cmp_fn: Some(|a, b| {
-        a.language
-          .name
-          .to_lowercase()
-          .cmp(&b.language.name.to_lowercase())
+        let default_language = Language {
+          id: 1,
+          name: "_".to_owned(),
+        };
+        let language_a = &a.languages.first().unwrap_or(&default_language);
+        let language_b = &b.languages.first().unwrap_or(&default_language);
+
+        language_a.cmp(language_b)
       }),
     },
     SortOption {

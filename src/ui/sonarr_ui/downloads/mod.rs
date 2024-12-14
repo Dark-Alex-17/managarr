@@ -32,7 +32,7 @@ impl DrawUi for DownloadsUi {
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
       draw_downloads(f, app, area);
-      
+
       match active_sonarr_block {
         ActiveSonarrBlock::DeleteDownloadPrompt => {
           let prompt = format!(
@@ -115,7 +115,12 @@ fn draw_downloads(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .to_string(),
       ),
       Cell::from(indexer.to_owned()),
-      Cell::from(download_client.to_owned()),
+      Cell::from(
+        download_client
+          .as_ref()
+          .unwrap_or(&String::new())
+          .to_owned(),
+      ),
     ])
     .primary()
   };

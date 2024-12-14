@@ -44,10 +44,8 @@ impl DrawUi for LibraryUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = app.get_current_route();
-    if !matches!(route, Route::Radarr(_, Some(_))) {
-      draw_library(f, app, area);
-    }
-    
+    draw_library(f, app, area);
+
     match route {
       _ if MovieDetailsUi::accepts(route) => MovieDetailsUi::draw(f, app, area),
       _ if AddMovieUi::accepts(route) => AddMovieUi::draw(f, app, area),

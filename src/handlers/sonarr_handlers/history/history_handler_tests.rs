@@ -240,10 +240,14 @@ mod tests {
   #[test]
   fn test_history_sorting_options_language() {
     let expected_cmp_fn: fn(&SonarrHistoryItem, &SonarrHistoryItem) -> Ordering = |a, b| {
-      a.language
-        .name
-        .to_lowercase()
-        .cmp(&b.language.name.to_lowercase())
+      let default_language = Language {
+        id: 1,
+        name: "_".to_owned(),
+      };
+      let language_a = &a.languages.first().unwrap_or(&default_language);
+      let language_b = &b.languages.first().unwrap_or(&default_language);
+
+      language_a.cmp(language_b)
     };
     let mut expected_history_vec = history_vec();
     expected_history_vec.sort_by(expected_cmp_fn);
@@ -361,10 +365,10 @@ mod tests {
         id: 3,
         source_title: "test 1".into(),
         event_type: SonarrHistoryEventType::Grabbed,
-        language: Language {
+        languages: vec![Language {
           id: 1,
           name: "telgu".to_owned(),
-        },
+        }],
         quality: QualityWrapper {
           quality: Quality {
             name: "HD - 1080p".to_owned(),
@@ -377,10 +381,10 @@ mod tests {
         id: 2,
         source_title: "test 2".into(),
         event_type: SonarrHistoryEventType::DownloadFolderImported,
-        language: Language {
+        languages: vec![Language {
           id: 3,
           name: "chinese".to_owned(),
-        },
+        }],
         quality: QualityWrapper {
           quality: Quality {
             name: "SD - 720p".to_owned(),
@@ -393,10 +397,10 @@ mod tests {
         id: 1,
         source_title: "test 3".into(),
         event_type: SonarrHistoryEventType::EpisodeFileDeleted,
-        language: Language {
+        languages: vec![Language {
           id: 1,
           name: "english".to_owned(),
-        },
+        }],
         quality: QualityWrapper {
           quality: Quality {
             name: "HD - 1080p".to_owned(),

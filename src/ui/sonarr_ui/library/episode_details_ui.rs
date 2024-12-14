@@ -254,7 +254,7 @@ fn draw_episode_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) 
         let history_row_mapping = |history_item: &SonarrHistoryItem| {
           let SonarrHistoryItem {
             source_title,
-            language,
+            languages,
             quality,
             event_type,
             date,
@@ -270,7 +270,13 @@ fn draw_episode_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) 
           Row::new(vec![
             Cell::from(source_title.to_string()),
             Cell::from(event_type.to_string()),
-            Cell::from(language.name.to_owned()),
+            Cell::from(
+              languages
+                .iter()
+                .map(|language| language.name.to_owned())
+                .collect::<Vec<String>>()
+                .join(","),
+            ),
             Cell::from(quality.quality.name.to_owned()),
             Cell::from(date.to_string()),
           ])

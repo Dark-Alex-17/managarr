@@ -2103,12 +2103,10 @@ impl<'a, 'b> Network<'a, 'b> {
       .handle_request::<Value, Value>(request_props, |test_results, mut app| {
         if test_results.as_object().is_none() {
           app.data.radarr_data.indexer_test_errors = Some(
-            test_results
-              .as_array()
-              .unwrap()[0]
+            test_results.as_array().unwrap()[0]
               .get("errorMessage")
               .unwrap()
-              .to_string()
+              .to_string(),
           );
         } else {
           app.data.radarr_data.indexer_test_errors = Some(String::new());
@@ -2254,7 +2252,7 @@ impl<'a, 'b> Network<'a, 'b> {
     let tags = edit_tags.clone();
     let missing_tags_vec = edit_tags
       .split(',')
-      .filter(|&tag| !tag.is_empty() && tags_map.get_by_right(tag.trim()).is_none())
+      .filter(|&tag| !tag.is_empty() && tags_map.get_by_right(tag.to_lowercase().trim()).is_none())
       .collect::<Vec<&str>>();
 
     for tag in missing_tags_vec {
@@ -2273,7 +2271,7 @@ impl<'a, 'b> Network<'a, 'b> {
           .data
           .radarr_data
           .tags_map
-          .get_by_right(tag.trim())
+          .get_by_right(tag.to_lowercase().trim())
           .unwrap()
       })
       .collect()
