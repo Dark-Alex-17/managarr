@@ -151,7 +151,7 @@ jobs:
   publish-github-release:
     name: publish-github-release
     needs: [build-release-artifacts]
-    runs-on: ${{ matrix.job.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Configure SSH for Git
         run: |
