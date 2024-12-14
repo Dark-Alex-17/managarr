@@ -18,8 +18,152 @@ on:
           - major
 
 jobs:
-  bump:
+  create-artifacts-directory:
     runs-on: ubuntu-latest
+    steps:
+      - name: Check if actor is repository owner
+        if: ${{ github.actor != github.repository_owner }}
+        run: |
+          echo "You are not authorized to run this workflow."
+          exit 1
+
+      - name: Create artifacts directory
+        run: mkdir artifacts
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: artifacts
+
+  build-release-artifacts:
+    name: build-release
+    needs: [create-artifacts-directory]
+    runs-on: ${{ matrix.job.os }}
+    env:
+      RUST_BACKTRACE: 1
+    strategy:
+      fail-fast: true
+      matrix:
+        # prettier-ignore
+        job:
+          - { name: "macOS-arm64",        os: "macOS-latest",   target: "aarch64-apple-darwin",           artifact_suffix: "macos-arm64",     use-cross: true                             }
+          - { name: "macOS-amd64",        os: "macOS-latest",   target: "x86_64-apple-darwin",            artifact_suffix: "macos"                                                        }
+          - { name: "windows-amd64",      os: "windows-latest", target: "x86_64-pc-windows-msvc",         artifact_suffix: "windows"                                                      }
+          - { name: "windows-aarch64",    os: "windows-latest", target: "aarch64-pc-windows-msvc",        artifact_suffix: "windows-aarch64", use-cross: true                             }
+          - { name: "linux-gnu",          os: "ubuntu-latest",  target: "x86_64-unknown-linux-gnu",       artifact_suffix: "linux"                                                        }
+          - { name: "linux-musl",         os: "ubuntu-latest",  target: "x86_64-unknown-linux-musl",      artifact_suffix: "linux-musl",      use-cross: true,                            }
+          - { name: "linux-aarch64-gnu",  os: "ubuntu-latest",  target: "aarch64-unknown-linux-gnu",      artifact_suffix: "aarch64-gnu",     use-cross: true, test-bin: "--bin managarr" }
+          - { name: "linux-aarch64-musl", os: "ubuntu-latest",  target: "aarch64-unknown-linux-musl",     artifact_suffix: "aarch64-musl",    use-cross: true, test-bin: "--bin managarr" }
+          - { name: "linux-arm-gnu",      os: "ubuntu-latest",  target: "arm-unknown-linux-gnueabi",      artifact_suffix: "armv6-gnu",       use-cross: true, test-bin: "--bin managarr" }
+          - { name: "linux-arm-musl",     os: "ubuntu-latest",  target: "arm-unknown-linux-musleabihf",   artifact_suffix: "armv6-musl",      use-cross: true, test-bin: "--bin managarr" }
+          - { name: "linux-armv7-gnu",    os: "ubuntu-latest",  target: "armv7-unknown-linux-gnueabihf",  artifact_suffix: "armv7-gnu",       use-cross: true, test-bin: "--bin managarr" }
+          - { name: "linux-armv7-musl",   os: "ubuntu-latest",  target: "armv7-unknown-linux-musleabihf", artifact_suffix: "armv7-musl",      use-cross: true, test-bin: "--bin managarr" }
+        rust: [stable]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/cache@v3
+        name: Cache Cargo registry
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('Cargo.lock') }}
+
+      - uses: actions/cache@v3
+        if: startsWith(matrix.job.name, 'linux-')
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('.github/workflows/release.yml') }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        name: Set Rust toolchain
+        with:
+          targets: ${{ matrix.job.target }}
+
+      - uses: taiki-e/setup-cross-toolchain-action@v1
+        with:
+          # NB: sets CARGO_BUILD_TARGET evar - do not need --target flag in build
+          target: ${{ matrix.job.target }}
+
+      - uses: taiki-e/install-action@cross
+        if: ${{ matrix.job.use-cross }}
+
+      - name: Installing needed Ubuntu dependencies
+        if: matrix.job.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          sudo apt-get -y update
+          case ${{ matrix.job.target }} in
+            arm*-linux-*) sudo apt-get -y install gcc-arm-linux-gnueabihf ;;
+            aarch64-*-linux-*) sudo apt-get -y install gcc-aarch64-linux-gnu ;;
+          esac
+
+      - name: Build
+        run: cargo build --release --verbose --target=${{ matrix.job.target }} --locked
+
+      - name: Verify file
+        shell: bash
+        run: |
+          file target/${{ matrix.job.target }}/release/managarr
+
+      - name: Test
+        if: matrix.job.target != 'aarch64-apple-darwin' && matrix.job.target != 'aarch64-pc-windows-msvc'
+        run: cargo test --release --verbose --target=${{ matrix.job.target }} ${{ matrix.job.test-bin }}
+
+      - name: Packaging final binary (Windows)
+        if: matrix.job.os == 'windows-latest'
+        shell: bash
+        run: |
+          cd target/${{ matrix.job.target }}/release
+          BINARY_NAME=managarr.exe
+          if [ "${{ matrix.job.target }}" != "aarch64-pc-windows-msvc" ]; then
+            # strip the binary
+            strip $BINARY_NAME
+          fi
+          RELEASE_NAME=managarr-${{ matrix.job.artifact_suffix }}
+          tar czvf $RELEASE_NAME.tar.gz $BINARY_NAME
+          # create sha checksum files
+          certutil -hashfile $RELEASE_NAME.tar.gz sha256 | grep -E [A-Fa-f0-9]{64} > $RELEASE_NAME.sha256
+          echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
+
+      - name: Packaging final binary (macOS and Linux)
+        if: matrix.job.os != 'windows-latest'
+        shell: bash
+        run: |
+          # set the right strip executable
+          STRIP="strip";
+          case ${{ matrix.job.target }} in 
+            arm*-linux-*) STRIP="arm-linux-gnueabihf-strip" ;; 
+            aarch64-*-linux-*)    STRIP="aarch64-linux-gnu-strip" ;;
+          esac;
+          cd target/${{ matrix.job.target }}/release
+          BINARY_NAME=managarr
+          # strip the binary
+          "$STRIP" "$BINARY_NAME"
+          RELEASE_NAME=managarr-${{ matrix.job.artifact_suffix }}
+          tar czvf $RELEASE_NAME.tar.gz $BINARY_NAME
+          # create sha checksum files
+          shasum -a 256 $RELEASE_NAME.tar.gz > $RELEASE_NAME.sha256
+          echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
+
+      - name: Add SHA to artifacts
+        run: |
+          cp target/${{ matrix.job.target }}/release/${{ env.RELEASE_NAME }}.sha256 artifacts/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: artifacts
+
+  publish-github-release:
+    name: publish-github-release
+    needs: [build-release-artifacts]
+    runs-on: ${{ matrix.job.os }}
     steps:
       - name: Configure SSH for Git
         run: |
@@ -33,6 +177,12 @@ jobs:
         with:
           ssh-key: ${{ secrets.RELEASE_BOT_SSH_KEY }}
           fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: artifacts
+          path: artifacts
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -73,6 +223,7 @@ jobs:
           NEW_TAG=$(cz version --project)
           echo "New version: $NEW_TAG"
           echo "version=$NEW_TAG" >> $GITHUB_ENV
+          echo "$NEW_TAG" > artifacts/release-version
 
       - name: Get the previous version tag
         id: prev_version
@@ -93,6 +244,31 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          files: |
+            target/aarch64-apple-darwin/managarr-macos-arm64.tar.gz
+            target/aarch64-apple-darwin/managarr-macos-arm64.sha256
+            target/x86_64-apple-darwin/managarr-macos.tar.gz
+            target/x86_64-apple-darwin/managarr-macos.sha256
+            target/x86_64-pc-windows-msvc/managarr-windows.tar.gz
+            target/x86_64-pc-windows-msvc/managarr-windows.sha256
+            target/aarch64-pc-windows-msvc/managarr-windows-aarch64.tar.gz
+            target/aarch64-pc-windows-msvc/managarr-windows-aarch64.sha256
+            target/x86_64-unknown-linux-gnu/managarr-linux.tar.gz
+            target/x86_64-unknown-linux-gnu/managarr-linux.sha256
+            target/x86_64-unknown-linux-musl/managarr-linux-musl.tar.gz
+            target/x86_64-unknown-linux-musl/managarr-linux-musl.sha256
+            target/aarch64-unknown-linux-gnu/managarr-aarch64-gnu.tar.gz
+            target/aarch64-unknown-linux-gnu/managarr-aarch64-gnu.sha256
+            target/aarch64-unknown-linux-musl/managarr-aarch64-musl.tar.gz
+            target/aarch64-unknown-linux-musl/managarr-aarch64-musl.sha256
+            target/arm-unknown-linux-gnueabi/managarr-armv6-gnu.tar.gz
+            target/arm-unknown-linux-gnueabi/managarr-armv6-gnu.sha256
+            target/arm-unknown-linux-musleabihf/managarr-armv6-musl.tar.gz
+            target/arm-unknown-linux-musleabihf/managarr-armv6-musl.sha256
+            target/armv7-unknown-linux-gnueabihf/managarr-armv7-gnu.tar.gz
+            target/armv7-unknown-linux-gnueabihf/managarr-armv7-gnu.sha256
+            target/armv7-unknown-linux-musleabihf/managarr-armv7-musl.tar.gz
+            target/armv7-unknown-linux-musleabihf/managarr-armv7-musl.sha256
           tag_name: v${{ env.version }}
           name: "v${{ env.version }}"
           body: ${{ env.changelog_body }}
@@ -105,9 +281,48 @@ jobs:
         run: |
           git push origin --follow-tags
 
-  release-crate:
-    needs: bump
-    name: Release Crate
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: artifacts
+
+  publish-docker-image:
+    needs: [build-release-artifacts]
+    name: Publishing Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get release artifacts
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: artifacts
+          path: artifacts
+
+      - name: Set release version
+        shell: bash
+        run: |
+          release_version="$(cat ./artifacts/release-version)"
+          echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
+
+      - name: Validate release environment variables
+        run: |
+          echo "Release version: ${{ env.version }}"
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          tags: darkalex17/managarr:latest, darkalex17/managarr:${{ env.version }}
+          push: true
+
+  publish-crate:
+    needs: publish-github-release
+    name: Publish Crate
     runs-on: ubuntu-latest
     steps:
       - name: Check if actor is repository owner
@@ -125,6 +340,17 @@ jobs:
         run: |
           git fetch --all
           git pull
+
+      - uses: actions/cache@v3
+        name: Cache Cargo registry
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('Cargo.lock') }}
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('.github/workflows/release.yml') }}
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable

@@ -11,8 +11,6 @@ name: Check
 env:
   CARGO_TERM_COLOR: always
 
-# ensure that the workflow is only triggered once per PR, subsequent pushes to the PR will cancel
-# and restart the workflow. See https://docs.github.com/en/actions/using-jobs/using-concurrency
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
@@ -24,14 +22,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
+
       - name: Run cargo fmt
         run: cargo fmt -- --check
+
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
+
   clippy:
     name: ${{ matrix.toolchain }} / clippy
     runs-on: ubuntu-latest
@@ -45,12 +47,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
+
       - name: Run clippy action
         uses: clechasseur/rs-clippy-check@v3
+
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
   doc:
@@ -61,8 +66,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
+
       - name: Run cargo doc
         run: cargo doc --no-deps --all-features
         env:
@@ -73,9 +80,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Install 1.82.0
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.82.0
+
       - name: cargo +1.82.0 check
         run: cargo check
