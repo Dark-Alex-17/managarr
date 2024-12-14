@@ -5,6 +5,99 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.4.0 (2024-12-14)
+
+### Feat
+
+- **docs**: Updated the README with new screeshots for the Sonarr release
+- **handler**: Support for toggling the monitoring status of a specified episode in the Sonarr UI
+- **handlers**: Support for toggling the monitoring status of a season in the Sonarr UI
+- **keybindings**: Added a new keybinding for toggling the monitoring of a highlighted table item
+- **cli**: Support for toggling monitoring on a specific episode in Sonarr
+- **network**: Support for toggling the monitoring status of an episode in Sonarr
+- **cli**: Support for toggling monitoring for a specific season in Sonarr
+- **network**: Support for toggling monitoring/unmonitoring a season
+- **handlers**: Support for the episode details popup
+- **ui**: Support for the episode details UI
+- **handler**: Full handler support for the Season details UI in Sonarr
+- **ui**: Sonarr support for viewing season details
+- **cli**: Sonarr support for fetching a list of all episode files for a given series ID
+- **app**: Dispatch support for Season Details to fetch both the current downloads as well as the episode files to match qualities to them
+- **network**: Support for fetching all episode files for a given series
+- **app**: Model and modal support for the season and episode details popups
+- **cli**: Sonarr support for fetching season history events
+- **network**: Sonarr support for fetching season history
+- **ui**: Sonarr support for the series details popup
+- **ui**: Sonarr support for editing a series from within the series details popup
+- **ui**: Sonarr Series details UI is now available
+- **ui**: Full Sonarr system tab support
+- **handler**: System handler support for Sonarr
+- **ui**: Full Sonarr support for the indexer tab
+- **ui**: Support for modifying the indexer priority in Radarr
+- **handler**: Full indexer tab handler support
+- **ui**: Root folder tab support
+- **handlers**: Support for root folder actions
+- **ui**: History tab support
+- **handler**: History tab support
+- **ui**: Blocklist UI support
+- **handler**: Wired in the blocklist handler to the main handlers
+- **handler**: Blocklist handler support
+- **ui**: Downloads tab support
+- **handler**: Download tab support
+- **ui**: Edit series support
+- **handler**: Edit series support
+- **ui**: Add series support Sonarr
+- **handler**: Add series support for Sonarr
+- **ui**: Delete a series
+- **handler**: Support for deleting a series in Sonarr
+- **ui**: Support for the Series table
+- **handlers**: Sonarr key support for the Series table
+- **models**: Added the necessary contextual help and tabs for the Sonarr UI
+- **ui**: Initial UI support for switching to Sonarr tabs
+- **app**: Dispatch support for all relevant Sonarr blocks
+
+### Fix
+
+- **blocklist_handler**: Fixed a breaking change between Sonarr v3 and v4
+- **style**: Addressed linter complaints on formatting
+- Implemented a handful of fixes that are breaking changes between Sonarr v3 and v4
+- **handler_tests**: Fixed all delegation tests to have initial conditions set properly
+- **ui**: Fixed a bug that requires a minimum height for all popups so all error messages and other simple popups appear
+- **handler**: Fixed a bug in the history handler that wouldn't reset the filter or search if a user hit 'esc' on the History tab
+- **ui**: Fix the System Details Tasks popup to be navigable in both Sonarr and Radarr
+- **ui**: Fixed a potential rare bug in the UI where the application would panic if the height of the downloads window is 0.
+
+### Refactor
+
+- **network**: Changed the toggle episode monitoring handler to simply return empty since the response is always empty from Sonarr
+- **ui**: Tweaked some of the color schemes in the series table
+- Fixed a couple of typos in some test function names
+- **handlers**: Refactored the handlers to all use the handle_table_events macro when appropriate and created tests for the macro so tests don't have to be duplicated across each handler
+- **ui**: Simplified the popup delegation so all future UI is easier to implement
+- **indexers_handler**: Use the new handle_table_events macro
+- **root_folders_handler**: Use the new handle_table_events macro
+- **blocklist_handler**: Use the new handle_table_events macro
+- **downloads_handler**: Use the new handle_table_events macro
+- **collection_details_handler**: use the new handle_table_events macro
+- **collections_handler**: Use the new handle_table_events macro
+- **movie_details_handler**: Use the new handle_table_events macro
+- **library_handler**: Radarr use the new handle_table_events macro
+- **indexers_handler**: Use the new handle_table_events macro
+- **indexers_handler**: Use the new handle_table_events macro
+- **root_folder_handler**: Use the new handle_table_events macro
+- **history_handler**: Use the new handle_table_event macro
+- **blocklist_handler**: Use the new handle_table_events macro
+- **downloads_handler**: Use the new handle_table_events macro
+- **series_details_handler**: Use the new handle_table_events macro
+- **handler**: Created a macro to handle all table key events to reduce code duplication and make future implementations faster; Only refactored the Sonarr library to use it thus far
+- **ui**: all table search and filter functionality is now available directly through the ManagarrTable widget to make life easier moving forward
+- **keys**: Created a auto search key instead of reusing the existing search key to make things easier
+- **BlockSelectionState**: Refactored so selection of blocks in 2x2 grids is more intuitive and added left() and right() methods to aid this effort.
+
+### Perf
+
+- Improved performance by optimizing API calls to only refresh when the tick prompts a refresh. All UI is now significantly faster
+
 ## v0.3.7 (2024-11-26)
 
 ### Fix
