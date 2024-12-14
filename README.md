@@ -14,7 +14,7 @@
 
 Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC). Built with 🤎 in Rust!
 
-![library](screenshots/library.png)
+![library](screenshots/sonarr/sonarr_library.png)
 
 ## What Servarrs are supported?
 
@@ -55,6 +55,30 @@ docker run --rm -it -v ~/.config/managarr/config.yml:/root/.config/managarr/conf
 You can also clone this repo and run `make docker` to build a docker image locally and run it using the above command.
 
 Please note that you will need to create and popular your configuration file first before starting the container. Otherwise, the container will fail to start.
+
+### Manual
+Binaries are available on the [releases](https://github.com/Dark-Alex-17/managarr/releases) page for the following platforms:
+
+| Platform       | Architecture(s)            |
+|----------------|----------------------------|
+| macOS          | x86_64, arm64              |
+| Linux GNU/MUSL | x86_64,armv6,armv7,aarch64 |
+| Windows        | x86_64,aarch64             |
+
+#### Windows Instructions
+To use a binary from the releases page on Windows, do the following:
+
+1. Download the latest binary [binary](https://github.com/Dark-Alex-17/managarr/releases) for your OS.
+2. Use 7-Zip or TarTool to unpack the Tar file.
+3. Run the executable `managarr.exe`!
+
+#### Linux/MacOS Instructions
+To use a binary from the releases page on Linux/MacOS, do the following:
+
+1. Download the latest binary [binary](https://github.com/Dark-Alex-17/managarr/releases) for your OS.
+2. `cd` to the directory where you downloaded the binary.
+3. Extract the binary with `tar -C /usr/local/bin -xzf managarr-<arch>.tar.gz` (NB: This may require `sudo`)
+4. Now you can run `managarr`!
 
 ## Features
 Key:
