@@ -49,9 +49,6 @@ jobs:
           echo "You are not authorized to run this workflow."
           exit 1
 
-      - name: Create artifacts directory
-        run: mkdir artifacts
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -142,6 +139,7 @@ jobs:
 
       - name: Add SHA to artifacts
         run: |
+          [[ -d artifacts ]] || mkdir artifacts
           cp target/${{ matrix.job.target }}/release/${{ env.RELEASE_NAME }}.sha256 artifacts/
 
       - name: Upload artifacts
