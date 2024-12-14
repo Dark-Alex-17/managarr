@@ -1,8 +1,9 @@
-FROM messense/rust-musl-cross:x86_64-musl AS builder
+FROM messense/rust-musl-cross:armv7-musleabihf AS builder
 WORKDIR /usr/src
 
 # Download and compile Rust dependencies in an empty project and cache as a separate Docker layer
 RUN USER=root cargo new --bin managarr-temp
+RUN apt update && apt install -y libssl-dev pkg-config
 
 WORKDIR /usr/src/managarr-temp
 COPY Cargo.* .
@@ -11,12 +12,12 @@ RUN cargo build --release
 RUN rm -r src
 COPY src ./src
 # remove previous deps
-RUN rm ./target/x86_64-unknown-linux-musl/release/deps/managarr*
+RUN rm ./target/armv7-unknown-linux-musleabihf/release/deps/managarr*
 
 RUN --mount=type=cache,target=/volume/target \
     --mount=type=cache,target=/root/.cargo/registry \
     cargo build --release --bin managarr
-RUN mv target/x86_64-unknown-linux-musl/release/managarr .
+RUN mv target/armv7-unknown-linux-musleabihf/release/managarr .
 
 FROM debian:stable-slim
 

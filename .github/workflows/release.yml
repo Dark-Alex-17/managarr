@@ -317,7 +317,14 @@ jobs:
       - name: Push to Docker Hub
         uses: docker/build-push-action@v5
         with:
-          tags: darkalex17/managarr:latest, darkalex17/managarr:${{ env.version }}
+          tags: darkalex17/managarr:latest, darkalex17/managarr:x86_64, darkalex17/managarr:x86_64-${{ env.version }}
+          push: true
+
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          file: Dockerfile.arm64
+          tags: darkalex17/managarr:arm64, darkalex17/managarr:arm64-${{ env.version }}
           push: true
 
   publish-crate:
