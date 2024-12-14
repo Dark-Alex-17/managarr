@@ -310,9 +310,8 @@ Managarr supports using environment variables on startup so you don't have to al
 | `MANAGARR_CONFIG_FILE`                  | Set the path to the config file                                                | `--config`                       |
 | `MANAGARR_DISABLE_SPINNER`              | Disable the CLI spinner (this can be useful when scripting and parsing output) | `--disable-spinner`              |
 
-## Track My Progress for the Beta release (With Sonarr Support!)
-Progress for the beta release can be followed on my [Wekan Board](https://wekan.alexjclarke.com/b/dHoGjBb44MHM9HSv4/managarr)
-with all items tagged `Beta`.
+## Track What I'm Currently Working On
+To see what feature(s) I'm currently working on, check out my [Wekan Board](https://wekan.alexjclarke.com/b/dHoGjBb44MHM9HSv4/managarr).
 
 ## Screenshots
 
