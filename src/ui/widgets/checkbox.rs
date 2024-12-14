@@ -1,19 +1,19 @@
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, layout_block, style_block_highlight};
+use derive_setters::Setters;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Text;
 use ratatui::style::Stylize;
 use ratatui::widgets::{Paragraph, Widget};
 
-#[cfg(test)]
-#[path = "checkbox_tests.rs"]
-mod checkbox_tests;
-
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(PartialEq, Debug, Copy, Clone, Setters)]
 pub struct Checkbox<'a> {
+  #[setters(skip)]
   label: &'a str,
+  #[setters(rename = "checked")]
   is_checked: bool,
+  #[setters(rename = "highlighted")]
   is_highlighted: bool,
 }
 
@@ -24,16 +24,6 @@ impl<'a> Checkbox<'a> {
       is_checked: false,
       is_highlighted: false,
     }
-  }
-
-  pub fn checked(mut self, is_checked: bool) -> Checkbox<'a> {
-    self.is_checked = is_checked;
-    self
-  }
-
-  pub fn highlighted(mut self, is_selected: bool) -> Checkbox<'a> {
-    self.is_highlighted = is_selected;
-    self
   }
 
   fn render_checkbox(self, area: Rect, buf: &mut Buffer) {

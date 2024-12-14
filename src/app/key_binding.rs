@@ -15,8 +15,11 @@ generate_keybindings! {
   left,
   right,
   backspace,
+  next_servarr,
+  previous_servarr,
   clear,
   search,
+  auto_search,
   settings,
   filter,
   sort,
@@ -25,12 +28,12 @@ generate_keybindings! {
   tasks,
   test,
   test_all,
+  toggle_monitoring,
   refresh,
   update,
   events,
   home,
   end,
-  tab,
   delete,
   submit,
   confirm,
@@ -69,16 +72,28 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
     key: Key::Backspace,
     desc: "backspace",
   },
+  next_servarr: KeyBinding {
+    key: Key::Tab,
+    desc: "next servarr",
+  },
+  previous_servarr: KeyBinding {
+    key: Key::BackTab,
+    desc: "previous servarr",
+  },
   clear: KeyBinding {
     key: Key::Char('c'),
     desc: "clear",
+  },
+  auto_search: KeyBinding {
+    key: Key::Char('S'),
+    desc: "auto search",
   },
   search: KeyBinding {
     key: Key::Char('s'),
     desc: "search",
   },
   settings: KeyBinding {
-    key: Key::Char('s'),
+    key: Key::Char('S'),
     desc: "settings",
   },
   filter: KeyBinding {
@@ -113,6 +128,10 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
     key: Key::Char('T'),
     desc: "test all",
   },
+  toggle_monitoring: KeyBinding {
+    key: Key::Char('m'),
+    desc: "toggle monitoring",
+  },
   refresh: KeyBinding {
     key: Key::Ctrl('r'),
     desc: "refresh",
@@ -128,10 +147,6 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   end: KeyBinding {
     key: Key::End,
     desc: "end",
-  },
-  tab: KeyBinding {
-    key: Key::Tab,
-    desc: "tab",
   },
   delete: KeyBinding {
     key: Key::Delete,

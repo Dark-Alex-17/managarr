@@ -7,8 +7,9 @@ mod tests {
   #[test]
   fn test_dimensions_to_percent() {
     assert_eq!(Size::SmallPrompt.to_percent(), (20, 20));
-    assert_eq!(Size::Prompt.to_percent(), (37, 37));
-    assert_eq!(Size::LargePrompt.to_percent(), (70, 45));
+    assert_eq!(Size::MediumPrompt.to_percent(), (37, 37));
+    assert_eq!(Size::LargePrompt.to_percent(), (45, 45));
+    assert_eq!(Size::WideLargePrompt.to_percent(), (70, 50));
     assert_eq!(Size::Message.to_percent(), (25, 8));
     assert_eq!(Size::NarrowMessage.to_percent(), (50, 20));
     assert_eq!(Size::LargeMessage.to_percent(), (25, 25));
@@ -17,6 +18,9 @@ mod tests {
     assert_eq!(Size::Small.to_percent(), (40, 40));
     assert_eq!(Size::Medium.to_percent(), (60, 60));
     assert_eq!(Size::Large.to_percent(), (75, 75));
+    assert_eq!(Size::XLarge.to_percent(), (83, 83));
+    assert_eq!(Size::XXLarge.to_percent(), (90, 90));
+    assert_eq!(Size::Long.to_percent(), (65, 75));
   }
 
   #[test]

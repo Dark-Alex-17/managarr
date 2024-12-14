@@ -1,8 +1,9 @@
+use derive_setters::Setters;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Position, Rect};
 use ratatui::prelude::Text;
 use ratatui::style::{Style, Styled, Stylize};
-use ratatui::widgets::{Block, Paragraph, Widget};
+use ratatui::widgets::{Block, Paragraph, Widget, WidgetRef};
 use ratatui::Frame;
 
 use crate::ui::styles::ManagarrStyle;
@@ -12,14 +13,20 @@ use crate::ui::utils::{borderless_block, layout_block};
 #[path = "input_box_tests.rs"]
 mod input_box_tests;
 
+#[derive(Default, Setters)]
+#[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct InputBox<'a> {
   content: &'a str,
   offset: usize,
+  #[setters(into)]
   style: Style,
   block: Block<'a>,
+  #[setters(strip_option)]
   label: Option<&'a str>,
   cursor_after_string: bool,
+  #[setters(rename = "highlighted", strip_option)]
   is_highlighted: Option<bool>,
+  #[setters(rename = "selected", strip_option)]
   is_selected: Option<bool>,
 }
 
@@ -35,41 +42,6 @@ impl<'a> InputBox<'a> {
       is_highlighted: None,
       is_selected: None,
     }
-  }
-
-  pub fn style<S: Into<Style>>(mut self, style: S) -> InputBox<'a> {
-    self.style = style.into();
-    self
-  }
-
-  pub fn block(mut self, block: Block<'a>) -> InputBox<'a> {
-    self.block = block;
-    self
-  }
-
-  pub fn label(mut self, label: &'a str) -> InputBox<'a> {
-    self.label = Some(label);
-    self
-  }
-
-  pub fn offset(mut self, offset: usize) -> InputBox<'a> {
-    self.offset = offset;
-    self
-  }
-
-  pub fn cursor_after_string(mut self, cursor_after_string: bool) -> InputBox<'a> {
-    self.cursor_after_string = cursor_after_string;
-    self
-  }
-
-  pub fn highlighted(mut self, is_highlighted: bool) -> InputBox<'a> {
-    self.is_highlighted = Some(is_highlighted);
-    self
-  }
-
-  pub fn selected(mut self, is_selected: bool) -> InputBox<'a> {
-    self.is_selected = Some(is_selected);
-    self
   }
 
   pub fn is_selected(&self) -> bool {
@@ -96,7 +68,7 @@ impl<'a> InputBox<'a> {
     }
   }
 
-  fn render_input_box(self, area: Rect, buf: &mut Buffer) {
+  fn render_input_box(&self, area: Rect, buf: &mut Buffer) {
     let style =
       if matches!(self.is_highlighted, Some(true)) && matches!(self.is_selected, Some(false)) {
         Style::new().system_function().bold()
@@ -106,7 +78,7 @@ impl<'a> InputBox<'a> {
 
     let input_box_paragraph = Paragraph::new(Text::from(self.content))
       .style(style)
-      .block(self.block);
+      .block(self.block.clone());
 
     if let Some(label) = self.label {
       let [label_area, text_box_area] =
@@ -129,6 +101,12 @@ impl<'a> Widget for InputBox<'a> {
   where
     Self: Sized,
   {
+    self.render_input_box(area, buf);
+  }
+}
+
+impl<'a> WidgetRef for InputBox<'a> {
+  fn render_ref(&self, area: Rect, buf: &mut Buffer) {
     self.render_input_box(area, buf);
   }
 }

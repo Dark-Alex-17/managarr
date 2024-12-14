@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
@@ -14,107 +13,6 @@ mod tests {
   };
   use crate::models::servarr_models::Indexer;
   use crate::test_handler_delegation;
-
-  mod test_handle_scroll_up_and_down {
-    use rstest::rstest;
-
-    use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
-
-    use super::*;
-
-    test_iterable_scroll!(
-      test_indexers_scroll,
-      IndexersHandler,
-      indexers,
-      simple_stateful_iterable_vec!(Indexer, String, protocol),
-      ActiveRadarrBlock::Indexers,
-      None,
-      protocol
-    );
-
-    #[rstest]
-    fn test_indexers_scroll_no_op_when_not_ready(
-      #[values(
-			DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key
-		)]
-      key: Key,
-    ) {
-      let mut app = App::default();
-      app.is_loading = true;
-      app
-        .data
-        .radarr_data
-        .indexers
-        .set_items(simple_stateful_iterable_vec!(Indexer, String, protocol));
-
-      IndexersHandler::with(&key, &mut app, &ActiveRadarrBlock::Indexers, &None).handle();
-
-      assert_str_eq!(
-        app.data.radarr_data.indexers.current_selection().protocol,
-        "Test 1"
-      );
-
-      IndexersHandler::with(&key, &mut app, &ActiveRadarrBlock::Indexers, &None).handle();
-
-      assert_str_eq!(
-        app.data.radarr_data.indexers.current_selection().protocol,
-        "Test 1"
-      );
-    }
-  }
-
-  mod test_handle_home_end {
-    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
-
-    use super::*;
-
-    test_iterable_home_and_end!(
-      test_indexers_home_end,
-      IndexersHandler,
-      indexers,
-      extended_stateful_iterable_vec!(Indexer, String, protocol),
-      ActiveRadarrBlock::Indexers,
-      None,
-      protocol
-    );
-
-    #[test]
-    fn test_indexers_home_end_no_op_when_not_ready() {
-      let mut app = App::default();
-      app.is_loading = true;
-      app
-        .data
-        .radarr_data
-        .indexers
-        .set_items(extended_stateful_iterable_vec!(Indexer, String, protocol));
-
-      IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
-        &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app.data.radarr_data.indexers.current_selection().protocol,
-        "Test 1"
-      );
-
-      IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
-        &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app.data.radarr_data.indexers.current_selection().protocol,
-        "Test 1"
-      );
-    }
-  }
 
   mod test_handle_delete {
     use pretty_assertions::assert_eq;
@@ -132,11 +30,11 @@ mod tests {
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(&DELETE_KEY, &mut app, &ActiveRadarrBlock::Indexers, &None).handle();
+      IndexersHandler::with(DELETE_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::DeleteIndexerPrompt.into()
+        ActiveRadarrBlock::DeleteIndexerPrompt.into()
       );
     }
 
@@ -151,9 +49,9 @@ mod tests {
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(&DELETE_KEY, &mut app, &ActiveRadarrBlock::Indexers, &None).handle();
+      IndexersHandler::with(DELETE_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
     }
   }
 
@@ -170,20 +68,20 @@ mod tests {
       app.data.radarr_data.main_tabs.set_index(5);
 
       IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
+        ActiveRadarrBlock::Indexers,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.data.radarr_data.main_tabs.get_active_route(),
-        &ActiveRadarrBlock::RootFolders.into()
+        ActiveRadarrBlock::RootFolders.into()
       );
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::RootFolders.into()
+        ActiveRadarrBlock::RootFolders.into()
       );
     }
 
@@ -194,18 +92,18 @@ mod tests {
       app.data.radarr_data.main_tabs.set_index(5);
 
       IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
+        ActiveRadarrBlock::Indexers,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.data.radarr_data.main_tabs.get_active_route(),
-        &ActiveRadarrBlock::System.into()
+        ActiveRadarrBlock::System.into()
       );
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
     }
 
     #[rstest]
@@ -214,23 +112,11 @@ mod tests {
     ) {
       let mut app = App::default();
 
-      IndexersHandler::with(
-        &key,
-        &mut app,
-        &ActiveRadarrBlock::DeleteIndexerPrompt,
-        &None,
-      )
-      .handle();
+      IndexersHandler::with(key, &mut app, ActiveRadarrBlock::DeleteIndexerPrompt, None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      IndexersHandler::with(
-        &key,
-        &mut app,
-        &ActiveRadarrBlock::DeleteIndexerPrompt,
-        &None,
-      )
-      .handle();
+      IndexersHandler::with(key, &mut app, ActiveRadarrBlock::DeleteIndexerPrompt, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
     }
@@ -306,11 +192,11 @@ mod tests {
       radarr_data.indexers.set_items(vec![indexer]);
       app.data.radarr_data = radarr_data;
 
-      IndexersHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::Indexers, &None).handle();
+      IndexersHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::EditIndexerPrompt.into()
+        ActiveRadarrBlock::EditIndexerPrompt.into()
       );
       assert_eq!(
         app.data.radarr_data.edit_indexer_modal,
@@ -323,12 +209,12 @@ mod tests {
       if torrent_protocol {
         assert_eq!(
           app.data.radarr_data.selected_block.blocks,
-          &EDIT_INDEXER_TORRENT_SELECTION_BLOCKS
+          EDIT_INDEXER_TORRENT_SELECTION_BLOCKS
         );
       } else {
         assert_eq!(
           app.data.radarr_data.selected_block.blocks,
-          &EDIT_INDEXER_NZB_SELECTION_BLOCKS
+          EDIT_INDEXER_NZB_SELECTION_BLOCKS
         );
       }
     }
@@ -344,9 +230,9 @@ mod tests {
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::Indexers, &None).handle();
+      IndexersHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert_eq!(app.data.radarr_data.edit_indexer_modal, None);
     }
 
@@ -363,10 +249,10 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into());
 
       IndexersHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::DeleteIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::DeleteIndexerPrompt,
+        None,
       )
       .handle();
 
@@ -375,7 +261,7 @@ mod tests {
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::DeleteIndexer(None))
       );
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
     }
 
     #[test]
@@ -390,16 +276,16 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into());
 
       IndexersHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::DeleteIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::DeleteIndexerPrompt,
+        None,
       )
       .handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
     }
   }
 
@@ -419,14 +305,14 @@ mod tests {
       app.data.radarr_data.prompt_confirm = true;
 
       IndexersHandler::with(
-        &ESC_KEY,
+        ESC_KEY,
         &mut app,
-        &ActiveRadarrBlock::DeleteIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::DeleteIndexerPrompt,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert!(!app.data.radarr_data.prompt_confirm);
     }
 
@@ -434,14 +320,14 @@ mod tests {
     fn test_test_indexer_esc(#[values(true, false)] is_ready: bool) {
       let mut app = App::default();
       app.is_loading = is_ready;
-      app.data.radarr_data.indexer_test_error = Some("test result".to_owned());
+      app.data.radarr_data.indexer_test_errors = Some("test result".to_owned());
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::TestIndexer.into());
 
-      IndexersHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::TestIndexer, &None).handle();
+      IndexersHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::TestIndexer, None).handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
-      assert_eq!(app.data.radarr_data.indexer_test_error, None);
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.data.radarr_data.indexer_test_errors, None);
     }
 
     #[rstest]
@@ -452,9 +338,9 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
 
-      IndexersHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::Indexers, &None).handle();
+      IndexersHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert!(app.error.text.is_empty());
     }
   }
@@ -470,51 +356,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_indexer_add() {
-      let mut app = App::default();
-      app
-        .data
-        .radarr_data
-        .indexers
-        .set_items(vec![Indexer::default()]);
-
-      IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.add.key,
-        &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::AddIndexer.into()
-      );
-    }
-
-    #[test]
-    fn test_indexer_add_no_op_when_not_ready() {
-      let mut app = App::default();
-      app.is_loading = true;
-      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-      app
-        .data
-        .radarr_data
-        .indexers
-        .set_items(vec![Indexer::default()]);
-
-      IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.add.key,
-        &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
-    }
-
-    #[test]
     fn test_refresh_indexers_key() {
       let mut app = App::default();
       app
@@ -525,14 +366,14 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
 
       IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.refresh.key,
+        DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
+        ActiveRadarrBlock::Indexers,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert!(app.should_refresh);
     }
 
@@ -548,14 +389,14 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
 
       IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.refresh.key,
+        DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
+        ActiveRadarrBlock::Indexers,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert!(!app.should_refresh);
     }
 
@@ -569,20 +410,20 @@ mod tests {
         .set_items(vec![Indexer::default()]);
 
       IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.settings.key,
+        DEFAULT_KEYBINDINGS.settings.key,
         &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
+        ActiveRadarrBlock::Indexers,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::AllIndexerSettingsPrompt.into()
+        ActiveRadarrBlock::AllIndexerSettingsPrompt.into()
       );
       assert_eq!(
         app.data.radarr_data.selected_block.blocks,
-        &INDEXER_SETTINGS_SELECTION_BLOCKS
+        INDEXER_SETTINGS_SELECTION_BLOCKS
       );
     }
 
@@ -598,14 +439,14 @@ mod tests {
         .set_items(vec![Indexer::default()]);
 
       IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.settings.key,
+        DEFAULT_KEYBINDINGS.settings.key,
         &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
+        ActiveRadarrBlock::Indexers,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
     }
 
     #[test]
@@ -618,16 +459,16 @@ mod tests {
         .set_items(vec![Indexer::default()]);
 
       IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.test.key,
+        DEFAULT_KEYBINDINGS.test.key,
         &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
+        ActiveRadarrBlock::Indexers,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::TestIndexer.into()
+        ActiveRadarrBlock::TestIndexer.into()
       );
     }
 
@@ -643,14 +484,14 @@ mod tests {
         .set_items(vec![Indexer::default()]);
 
       IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.test.key,
+        DEFAULT_KEYBINDINGS.test.key,
         &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
+        ActiveRadarrBlock::Indexers,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
     }
 
     #[test]
@@ -663,16 +504,16 @@ mod tests {
         .set_items(vec![Indexer::default()]);
 
       IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.test_all.key,
+        DEFAULT_KEYBINDINGS.test_all.key,
         &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
+        ActiveRadarrBlock::Indexers,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::TestAllIndexers.into()
+        ActiveRadarrBlock::TestAllIndexers.into()
       );
     }
 
@@ -688,14 +529,14 @@ mod tests {
         .set_items(vec![Indexer::default()]);
 
       IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.test_all.key,
+        DEFAULT_KEYBINDINGS.test_all.key,
         &mut app,
-        &ActiveRadarrBlock::Indexers,
-        &None,
+        ActiveRadarrBlock::Indexers,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
     }
 
     #[test]
@@ -710,10 +551,10 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into());
 
       IndexersHandler::with(
-        &DEFAULT_KEYBINDINGS.confirm.key,
+        DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
-        &ActiveRadarrBlock::DeleteIndexerPrompt,
-        &None,
+        ActiveRadarrBlock::DeleteIndexerPrompt,
+        None,
       )
       .handle();
 
@@ -722,7 +563,7 @@ mod tests {
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::DeleteIndexer(None))
       );
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
     }
   }
 
@@ -791,9 +632,9 @@ mod tests {
 
     ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
       if indexers_blocks.contains(&active_radarr_block) {
-        assert!(IndexersHandler::accepts(&active_radarr_block));
+        assert!(IndexersHandler::accepts(active_radarr_block));
       } else {
-        assert!(!IndexersHandler::accepts(&active_radarr_block));
+        assert!(!IndexersHandler::accepts(active_radarr_block));
       }
     })
   }
@@ -804,10 +645,10 @@ mod tests {
     app.is_loading = true;
 
     let handler = IndexersHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::Indexers,
-      &None,
+      ActiveRadarrBlock::Indexers,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -819,10 +660,10 @@ mod tests {
     app.is_loading = false;
 
     let handler = IndexersHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::Indexers,
-      &None,
+      ActiveRadarrBlock::Indexers,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -839,10 +680,10 @@ mod tests {
       .set_items(vec![Indexer::default()]);
 
     let handler = IndexersHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::Indexers,
-      &None,
+      ActiveRadarrBlock::Indexers,
+      None,
     );
 
     assert!(handler.is_ready());

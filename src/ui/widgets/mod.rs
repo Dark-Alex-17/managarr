@@ -2,6 +2,7 @@ pub(super) mod button;
 pub(super) mod checkbox;
 pub(super) mod confirmation_prompt;
 pub(super) mod input_box;
+mod input_box_popup;
 pub(super) mod loading_block;
 pub(super) mod managarr_table;
 pub(super) mod message;

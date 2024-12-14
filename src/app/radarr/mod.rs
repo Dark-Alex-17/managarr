@@ -18,10 +18,22 @@ impl<'a> App<'a> {
       }
       ActiveRadarrBlock::Collections => {
         self
+          .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
+          .await;
+        self
           .dispatch_network_event(RadarrEvent::GetCollections.into())
+          .await;
+        self
+          .dispatch_network_event(RadarrEvent::GetMovies.into())
           .await;
       }
       ActiveRadarrBlock::CollectionDetails => {
+        self
+          .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
+          .await;
+        self
+          .dispatch_network_event(RadarrEvent::GetTags.into())
+          .await;
         self.is_loading = true;
         self.populate_movie_collection_table().await;
         self.is_loading = false;
@@ -38,6 +50,12 @@ impl<'a> App<'a> {
       }
       ActiveRadarrBlock::Movies => {
         self
+          .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
+          .await;
+        self
+          .dispatch_network_event(RadarrEvent::GetTags.into())
+          .await;
+        self
           .dispatch_network_event(RadarrEvent::GetMovies.into())
           .await;
         self
@@ -45,6 +63,9 @@ impl<'a> App<'a> {
           .await;
       }
       ActiveRadarrBlock::Indexers => {
+        self
+          .dispatch_network_event(RadarrEvent::GetTags.into())
+          .await;
         self
           .dispatch_network_event(RadarrEvent::GetIndexers.into())
           .await;
@@ -119,11 +140,11 @@ impl<'a> App<'a> {
       _ => (),
     }
 
-    self.check_for_prompt_action().await;
+    self.check_for_radarr_prompt_action().await;
     self.reset_tick_count();
   }
 
-  async fn check_for_prompt_action(&mut self) {
+  async fn check_for_radarr_prompt_action(&mut self) {
     if self.data.radarr_data.prompt_confirm {
       self.data.radarr_data.prompt_confirm = false;
       if let Some(radarr_event) = &self.data.radarr_data.prompt_confirm_action {
@@ -136,19 +157,17 @@ impl<'a> App<'a> {
     }
   }
 
-  pub(super) async fn radarr_on_tick(
-    &mut self,
-    active_radarr_block: ActiveRadarrBlock,
-    is_first_render: bool,
-  ) {
-    if is_first_render {
-      self.refresh_metadata().await;
+  pub(super) async fn radarr_on_tick(&mut self, active_radarr_block: ActiveRadarrBlock) {
+    if self.is_first_render {
+      self.refresh_radarr_metadata().await;
       self.dispatch_by_radarr_block(&active_radarr_block).await;
+      self.is_first_render = false;
+      return;
     }
 
     if self.should_refresh {
       self.dispatch_by_radarr_block(&active_radarr_block).await;
-      self.refresh_metadata().await;
+      self.refresh_radarr_metadata().await;
     }
 
     if self.is_routing {
@@ -156,16 +175,15 @@ impl<'a> App<'a> {
         self.cancellation_token.cancel();
       } else {
         self.dispatch_by_radarr_block(&active_radarr_block).await;
-        self.refresh_metadata().await;
       }
     }
 
     if self.tick_count % self.tick_until_poll == 0 {
-      self.refresh_metadata().await;
+      self.refresh_radarr_metadata().await;
     }
   }
 
-  async fn refresh_metadata(&mut self) {
+  async fn refresh_radarr_metadata(&mut self) {
     self
       .dispatch_network_event(RadarrEvent::GetQualityProfiles.into())
       .await;

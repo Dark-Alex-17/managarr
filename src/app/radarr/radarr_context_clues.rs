@@ -35,60 +35,6 @@ pub static COLLECTIONS_CONTEXT_CLUES: [ContextClue; 8] = [
   (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
 ];
 
-pub static DOWNLOADS_CONTEXT_CLUES: [ContextClue; 2] = [
-  (
-    DEFAULT_KEYBINDINGS.refresh,
-    DEFAULT_KEYBINDINGS.refresh.desc,
-  ),
-  (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
-];
-
-pub static BLOCKLIST_CONTEXT_CLUES: [ContextClue; 5] = [
-  (
-    DEFAULT_KEYBINDINGS.refresh,
-    DEFAULT_KEYBINDINGS.refresh.desc,
-  ),
-  (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
-  (DEFAULT_KEYBINDINGS.submit, "details"),
-  (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
-  (DEFAULT_KEYBINDINGS.clear, "clear blocklist"),
-];
-
-pub static ROOT_FOLDERS_CONTEXT_CLUES: [ContextClue; 3] = [
-  (DEFAULT_KEYBINDINGS.add, DEFAULT_KEYBINDINGS.add.desc),
-  (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
-  (
-    DEFAULT_KEYBINDINGS.refresh,
-    DEFAULT_KEYBINDINGS.refresh.desc,
-  ),
-];
-
-pub static INDEXERS_CONTEXT_CLUES: [ContextClue; 6] = [
-  (DEFAULT_KEYBINDINGS.submit, "edit indexer"),
-  (
-    DEFAULT_KEYBINDINGS.settings,
-    DEFAULT_KEYBINDINGS.settings.desc,
-  ),
-  (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
-  (DEFAULT_KEYBINDINGS.test, "test indexer"),
-  (DEFAULT_KEYBINDINGS.test_all, "test all indexers"),
-  (
-    DEFAULT_KEYBINDINGS.refresh,
-    DEFAULT_KEYBINDINGS.refresh.desc,
-  ),
-];
-
-pub static SYSTEM_CONTEXT_CLUES: [ContextClue; 5] = [
-  (DEFAULT_KEYBINDINGS.tasks, "open tasks"),
-  (DEFAULT_KEYBINDINGS.events, "open events"),
-  (DEFAULT_KEYBINDINGS.logs, "open logs"),
-  (DEFAULT_KEYBINDINGS.update, "open updates"),
-  (
-    DEFAULT_KEYBINDINGS.refresh,
-    DEFAULT_KEYBINDINGS.refresh.desc,
-  ),
-];
-
 pub static MOVIE_DETAILS_CONTEXT_CLUES: [ContextClue; 5] = [
   (
     DEFAULT_KEYBINDINGS.refresh,
@@ -96,7 +42,10 @@ pub static MOVIE_DETAILS_CONTEXT_CLUES: [ContextClue; 5] = [
   ),
   (DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc),
   (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
-  (DEFAULT_KEYBINDINGS.search, "auto search"),
+  (
+    DEFAULT_KEYBINDINGS.auto_search,
+    DEFAULT_KEYBINDINGS.auto_search.desc,
+  ),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
@@ -108,7 +57,10 @@ pub static MANUAL_MOVIE_SEARCH_CONTEXT_CLUES: [ContextClue; 6] = [
   (DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc),
   (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
   (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
-  (DEFAULT_KEYBINDINGS.search, "auto search"),
+  (
+    DEFAULT_KEYBINDINGS.auto_search,
+    DEFAULT_KEYBINDINGS.auto_search.desc,
+  ),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
@@ -120,17 +72,13 @@ pub static ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.esc, "edit search"),
 ];
 
-pub static CONFIRMATION_PROMPT_CONTEXT_CLUES: [ContextClue; 2] = [
-  (DEFAULT_KEYBINDINGS.confirm, "submit"),
-  (DEFAULT_KEYBINDINGS.esc, "cancel"),
-];
-
 pub static SYSTEM_TASKS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.submit, "start task"),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 
-pub static COLLECTION_DETAILS_CONTEXT_CLUES: [ContextClue; 2] = [
+pub static COLLECTION_DETAILS_CONTEXT_CLUES: [ContextClue; 3] = [
   (DEFAULT_KEYBINDINGS.submit, "show overview/add movie"),
+  (DEFAULT_KEYBINDINGS.edit, "edit collection"),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];

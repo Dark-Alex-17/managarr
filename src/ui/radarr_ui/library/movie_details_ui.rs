@@ -11,16 +11,16 @@ use crate::models::radarr_models::{Credit, MovieHistoryItem, RadarrRelease};
 use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
 use crate::models::Route;
-use crate::ui::radarr_ui::library::draw_library;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
-  borderless_block, get_width_from_percentage, layout_block_bottom_border, layout_block_top_border,
+  borderless_block, decorate_peer_style, get_width_from_percentage, layout_block_bottom_border,
+  layout_block_top_border,
 };
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{draw_popup_over, draw_tabs, DrawUi};
+use crate::ui::{draw_popup, draw_tabs, DrawUi};
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -38,8 +38,8 @@ impl DrawUi for MovieDetailsUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
+    if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
       let draw_movie_info_popup = |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| {
         let content_area = draw_tabs(
           f,
@@ -60,8 +60,10 @@ impl DrawUi for MovieDetailsUi {
               .prompt(&prompt)
               .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-            draw_movie_info(f, app, content_area);
-            f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+            f.render_widget(
+              Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+              f.area(),
+            );
           }
           ActiveRadarrBlock::UpdateAndScanPrompt => {
             let prompt = format!(
@@ -73,7 +75,10 @@ impl DrawUi for MovieDetailsUi {
               .prompt(&prompt)
               .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-            f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+            f.render_widget(
+              Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+              f.area(),
+            );
           }
           ActiveRadarrBlock::ManualSearchConfirmPrompt => {
             draw_manual_search_confirm_prompt(f, app);
@@ -82,14 +87,7 @@ impl DrawUi for MovieDetailsUi {
         }
       };
 
-      draw_popup_over(
-        f,
-        app,
-        area,
-        draw_library,
-        draw_movie_info_popup,
-        Size::Large,
-      );
+      draw_popup(f, app, draw_movie_info_popup, Size::Large);
     }
   }
 }
@@ -371,7 +369,7 @@ fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     let (current_selection, is_empty) = match app.data.radarr_data.movie_details_modal.as_ref() {
       Some(movie_details_modal) if !movie_details_modal.movie_releases.items.is_empty() => (
         movie_details_modal
@@ -382,7 +380,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       ),
       _ => (RadarrRelease::default(), true),
     };
-    let current_route = *app.get_current_route();
+    let current_route = app.get_current_route();
     let mut default_movie_details_modal = MovieDetailsModal::default();
     let help_footer = app
       .data
@@ -532,7 +530,10 @@ fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>) {
       .prompt(&prompt)
       .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-    f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+    f.render_widget(
+      Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+      f.area(),
+    );
   }
 }
 
@@ -545,15 +546,5 @@ fn style_from_download_status(download_status: &str, is_monitored: bool, status:
     _ if status != "released" && download_status == "Missing" => Style::new().unreleased(),
     "Missing" => Style::new().missing(),
     _ => Style::new().downloaded(),
-  }
-}
-
-fn decorate_peer_style(seeders: u64, leechers: u64, text: Text<'_>) -> Text<'_> {
-  if seeders == 0 {
-    text.failure()
-  } else if seeders < leechers {
-    text.warning()
-  } else {
-    text.success()
   }
 }

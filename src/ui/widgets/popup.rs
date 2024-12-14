@@ -11,8 +11,9 @@ mod popup_tests;
 
 pub enum Size {
   SmallPrompt,
-  Prompt,
+  MediumPrompt,
   LargePrompt,
+  WideLargePrompt,
   Message,
   NarrowMessage,
   LargeMessage,
@@ -21,14 +22,18 @@ pub enum Size {
   Small,
   Medium,
   Large,
+  XLarge,
+  XXLarge,
+  Long,
 }
 
 impl Size {
   pub fn to_percent(&self) -> (u16, u16) {
     match self {
       Size::SmallPrompt => (20, 20),
-      Size::Prompt => (37, 37),
-      Size::LargePrompt => (70, 45),
+      Size::MediumPrompt => (37, 37),
+      Size::LargePrompt => (45, 45),
+      Size::WideLargePrompt => (70, 50),
       Size::Message => (25, 8),
       Size::NarrowMessage => (50, 20),
       Size::LargeMessage => (25, 25),
@@ -37,6 +42,9 @@ impl Size {
       Size::Small => (40, 40),
       Size::Medium => (60, 60),
       Size::Large => (75, 75),
+      Size::XLarge => (83, 83),
+      Size::XXLarge => (90, 90),
+      Size::Long => (65, 75),
     }
   }
 }
@@ -84,7 +92,16 @@ impl<'a, T: Widget> Popup<'a, T> {
   }
 
   fn render_popup(self, area: Rect, buf: &mut Buffer) {
-    let popup_area = centered_rect(self.percent_x, self.percent_y, area);
+    let mut popup_area = centered_rect(self.percent_x, self.percent_y, area);
+    let height = if popup_area.height < 3 {
+      3
+    } else {
+      popup_area.height
+    };
+    popup_area = Rect {
+      height,
+      ..popup_area
+    };
     Clear.render(popup_area, buf);
     background_block().render(popup_area, buf);
 

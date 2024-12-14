@@ -1,9 +1,10 @@
-use crate::app::context_clues::build_context_clue_string;
+use crate::app::context_clues::{
+  build_context_clue_string, BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
+  INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+};
 use crate::app::radarr::radarr_context_clues::{
-  BLOCKLIST_CONTEXT_CLUES, COLLECTIONS_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
-  INDEXERS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
-  MANUAL_MOVIE_SEARCH_CONTEXT_CLUES, MOVIE_DETAILS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
-  SYSTEM_CONTEXT_CLUES,
+  COLLECTIONS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
+  MANUAL_MOVIE_SEARCH_CONTEXT_CLUES, MOVIE_DETAILS_CONTEXT_CLUES,
 };
 use crate::models::radarr_models::{
   AddMovieSearchResult, BlocklistItem, Collection, CollectionMovie, DownloadRecord,
@@ -61,7 +62,7 @@ pub struct RadarrData<'a> {
   pub edit_indexer_modal: Option<EditIndexerModal>,
   pub edit_root_folder: Option<HorizontallyScrollableText>,
   pub indexer_settings: Option<IndexerSettings>,
-  pub indexer_test_error: Option<String>,
+  pub indexer_test_errors: Option<String>,
   pub indexer_test_all_results: Option<StatefulTable<IndexerTestResultModalItem>>,
   pub movie_details_modal: Option<MovieDetailsModal>,
   pub prompt_confirm: bool,
@@ -111,7 +112,7 @@ impl<'a> Default for RadarrData<'a> {
       edit_indexer_modal: None,
       edit_root_folder: None,
       indexer_settings: None,
-      indexer_test_error: None,
+      indexer_test_errors: None,
       indexer_test_all_results: None,
       movie_details_modal: None,
       prompt_confirm: false,
@@ -208,7 +209,6 @@ impl<'a> Default for RadarrData<'a> {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, EnumIter)]
 pub enum ActiveRadarrBlock {
-  AddIndexer,
   AddMovieAlreadyInLibrary,
   AddMovieSearchInput,
   AddMovieSearchResults,
@@ -255,6 +255,7 @@ pub enum ActiveRadarrBlock {
   EditIndexerToggleEnableRss,
   EditIndexerToggleEnableAutomaticSearch,
   EditIndexerToggleEnableInteractiveSearch,
+  EditIndexerPriorityInput,
   EditIndexerUrlInput,
   EditIndexerTagsInput,
   EditMoviePrompt,
@@ -326,8 +327,7 @@ pub static COLLECTIONS_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::FilterCollectionsError,
   ActiveRadarrBlock::UpdateAllCollectionsPrompt,
 ];
-pub static INDEXERS_BLOCKS: [ActiveRadarrBlock; 4] = [
-  ActiveRadarrBlock::AddIndexer,
+pub static INDEXERS_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::DeleteIndexerPrompt,
   ActiveRadarrBlock::Indexers,
   ActiveRadarrBlock::TestIndexer,
@@ -356,13 +356,13 @@ pub static ADD_MOVIE_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::AddMovieAlreadyInLibrary,
   ActiveRadarrBlock::AddMovieTagsInput,
 ];
-pub static ADD_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
-  ActiveRadarrBlock::AddMovieSelectRootFolder,
-  ActiveRadarrBlock::AddMovieSelectMonitor,
-  ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
-  ActiveRadarrBlock::AddMovieSelectQualityProfile,
-  ActiveRadarrBlock::AddMovieTagsInput,
-  ActiveRadarrBlock::AddMovieConfirmPrompt,
+pub const ADD_MOVIE_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[ActiveRadarrBlock::AddMovieSelectRootFolder],
+  &[ActiveRadarrBlock::AddMovieSelectMonitor],
+  &[ActiveRadarrBlock::AddMovieSelectMinimumAvailability],
+  &[ActiveRadarrBlock::AddMovieSelectQualityProfile],
+  &[ActiveRadarrBlock::AddMovieTagsInput],
+  &[ActiveRadarrBlock::AddMovieConfirmPrompt],
 ];
 pub static EDIT_COLLECTION_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditCollectionPrompt,
@@ -373,13 +373,13 @@ pub static EDIT_COLLECTION_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditCollectionToggleSearchOnAdd,
   ActiveRadarrBlock::EditCollectionToggleMonitored,
 ];
-pub static EDIT_COLLECTION_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
-  ActiveRadarrBlock::EditCollectionToggleMonitored,
-  ActiveRadarrBlock::EditCollectionSelectMinimumAvailability,
-  ActiveRadarrBlock::EditCollectionSelectQualityProfile,
-  ActiveRadarrBlock::EditCollectionRootFolderPathInput,
-  ActiveRadarrBlock::EditCollectionToggleSearchOnAdd,
-  ActiveRadarrBlock::EditCollectionConfirmPrompt,
+pub const EDIT_COLLECTION_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[ActiveRadarrBlock::EditCollectionToggleMonitored],
+  &[ActiveRadarrBlock::EditCollectionSelectMinimumAvailability],
+  &[ActiveRadarrBlock::EditCollectionSelectQualityProfile],
+  &[ActiveRadarrBlock::EditCollectionRootFolderPathInput],
+  &[ActiveRadarrBlock::EditCollectionToggleSearchOnAdd],
+  &[ActiveRadarrBlock::EditCollectionConfirmPrompt],
 ];
 pub static EDIT_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditMoviePrompt,
@@ -390,13 +390,13 @@ pub static EDIT_MOVIE_BLOCKS: [ActiveRadarrBlock; 7] = [
   ActiveRadarrBlock::EditMovieTagsInput,
   ActiveRadarrBlock::EditMovieToggleMonitored,
 ];
-pub static EDIT_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 6] = [
-  ActiveRadarrBlock::EditMovieToggleMonitored,
-  ActiveRadarrBlock::EditMovieSelectMinimumAvailability,
-  ActiveRadarrBlock::EditMovieSelectQualityProfile,
-  ActiveRadarrBlock::EditMoviePathInput,
-  ActiveRadarrBlock::EditMovieTagsInput,
-  ActiveRadarrBlock::EditMovieConfirmPrompt,
+pub const EDIT_MOVIE_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[ActiveRadarrBlock::EditMovieToggleMonitored],
+  &[ActiveRadarrBlock::EditMovieSelectMinimumAvailability],
+  &[ActiveRadarrBlock::EditMovieSelectQualityProfile],
+  &[ActiveRadarrBlock::EditMoviePathInput],
+  &[ActiveRadarrBlock::EditMovieTagsInput],
+  &[ActiveRadarrBlock::EditMovieConfirmPrompt],
 ];
 pub static DOWNLOADS_BLOCKS: [ActiveRadarrBlock; 3] = [
   ActiveRadarrBlock::Downloads,
@@ -425,12 +425,12 @@ pub static DELETE_MOVIE_BLOCKS: [ActiveRadarrBlock; 4] = [
   ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
   ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
 ];
-pub static DELETE_MOVIE_SELECTION_BLOCKS: [ActiveRadarrBlock; 3] = [
-  ActiveRadarrBlock::DeleteMovieToggleDeleteFile,
-  ActiveRadarrBlock::DeleteMovieToggleAddListExclusion,
-  ActiveRadarrBlock::DeleteMovieConfirmPrompt,
+pub const DELETE_MOVIE_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[ActiveRadarrBlock::DeleteMovieToggleDeleteFile],
+  &[ActiveRadarrBlock::DeleteMovieToggleAddListExclusion],
+  &[ActiveRadarrBlock::DeleteMovieConfirmPrompt],
 ];
-pub static EDIT_INDEXER_BLOCKS: [ActiveRadarrBlock; 10] = [
+pub static EDIT_INDEXER_BLOCKS: [ActiveRadarrBlock; 11] = [
   ActiveRadarrBlock::EditIndexerPrompt,
   ActiveRadarrBlock::EditIndexerConfirmPrompt,
   ActiveRadarrBlock::EditIndexerApiKeyInput,
@@ -439,32 +439,57 @@ pub static EDIT_INDEXER_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::EditIndexerToggleEnableRss,
   ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
   ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+  ActiveRadarrBlock::EditIndexerPriorityInput,
   ActiveRadarrBlock::EditIndexerUrlInput,
   ActiveRadarrBlock::EditIndexerTagsInput,
 ];
-pub static EDIT_INDEXER_TORRENT_SELECTION_BLOCKS: [ActiveRadarrBlock; 10] = [
-  ActiveRadarrBlock::EditIndexerNameInput,
-  ActiveRadarrBlock::EditIndexerToggleEnableRss,
-  ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
-  ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
-  ActiveRadarrBlock::EditIndexerConfirmPrompt,
-  ActiveRadarrBlock::EditIndexerUrlInput,
-  ActiveRadarrBlock::EditIndexerApiKeyInput,
-  ActiveRadarrBlock::EditIndexerSeedRatioInput,
-  ActiveRadarrBlock::EditIndexerTagsInput,
-  ActiveRadarrBlock::EditIndexerConfirmPrompt,
+pub const EDIT_INDEXER_TORRENT_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[
+    ActiveRadarrBlock::EditIndexerNameInput,
+    ActiveRadarrBlock::EditIndexerUrlInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerToggleEnableRss,
+    ActiveRadarrBlock::EditIndexerApiKeyInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
+    ActiveRadarrBlock::EditIndexerSeedRatioInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+    ActiveRadarrBlock::EditIndexerTagsInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerPriorityInput,
+    ActiveRadarrBlock::EditIndexerConfirmPrompt,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerConfirmPrompt,
+    ActiveRadarrBlock::EditIndexerConfirmPrompt,
+  ],
 ];
-pub static EDIT_INDEXER_NZB_SELECTION_BLOCKS: [ActiveRadarrBlock; 10] = [
-  ActiveRadarrBlock::EditIndexerNameInput,
-  ActiveRadarrBlock::EditIndexerToggleEnableRss,
-  ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
-  ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
-  ActiveRadarrBlock::EditIndexerConfirmPrompt,
-  ActiveRadarrBlock::EditIndexerUrlInput,
-  ActiveRadarrBlock::EditIndexerApiKeyInput,
-  ActiveRadarrBlock::EditIndexerTagsInput,
-  ActiveRadarrBlock::EditIndexerConfirmPrompt,
-  ActiveRadarrBlock::EditIndexerConfirmPrompt,
+pub const EDIT_INDEXER_NZB_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[
+    ActiveRadarrBlock::EditIndexerNameInput,
+    ActiveRadarrBlock::EditIndexerUrlInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerToggleEnableRss,
+    ActiveRadarrBlock::EditIndexerApiKeyInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
+    ActiveRadarrBlock::EditIndexerTagsInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+    ActiveRadarrBlock::EditIndexerPriorityInput,
+  ],
+  &[
+    ActiveRadarrBlock::EditIndexerConfirmPrompt,
+    ActiveRadarrBlock::EditIndexerConfirmPrompt,
+  ],
 ];
 pub static INDEXER_SETTINGS_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -478,17 +503,27 @@ pub static INDEXER_SETTINGS_BLOCKS: [ActiveRadarrBlock; 10] = [
   ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags,
   ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
 ];
-pub static INDEXER_SETTINGS_SELECTION_BLOCKS: [ActiveRadarrBlock; 10] = [
-  ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
-  ActiveRadarrBlock::IndexerSettingsRetentionInput,
-  ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
-  ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags,
-  ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
-  ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
-  ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
-  ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
-  ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs,
-  ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
+pub const INDEXER_SETTINGS_SELECTION_BLOCKS: &[&[ActiveRadarrBlock]] = &[
+  &[
+    ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
+    ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
+  ],
+  &[
+    ActiveRadarrBlock::IndexerSettingsRetentionInput,
+    ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
+  ],
+  &[
+    ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
+    ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
+  ],
+  &[
+    ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags,
+    ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs,
+  ],
+  &[
+    ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
+    ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
+  ],
 ];
 pub static SYSTEM_DETAILS_BLOCKS: [ActiveRadarrBlock; 5] = [
   ActiveRadarrBlock::SystemLogs,

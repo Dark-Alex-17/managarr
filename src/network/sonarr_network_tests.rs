@@ -3,7 +3,7 @@ mod test {
   use std::sync::Arc;
 
   use bimap::BiMap;
-  use chrono::{DateTime, Utc};
+  use chrono::DateTime;
   use indoc::formatdoc;
   use mockito::{Matcher, Server};
   use pretty_assertions::{assert_eq, assert_str_eq};
@@ -17,7 +17,8 @@ mod test {
 
   use crate::models::sonarr_models::{
     AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, AddSeriesSearchResultStatistics,
-    EditSeriesParams, IndexerSettings, SeriesMonitor,
+    DownloadStatus, EditSeriesParams, IndexerSettings, MonitorEpisodeBody, SeriesMonitor,
+    SonarrHistoryEventType,
   };
 
   use crate::app::{App, ServarrConfig};
@@ -108,11 +109,12 @@ mod test {
     "airDateUtc": "2024-02-10T07:28:45Z",
     "overview": "Okay so this one time at band camp...",
     "episodeFile": {
+        "id": 1,
         "relativePath": "/season 1/episode 1.mkv",
         "path": "/nfs/tv/series/season 1/episode 1.mkv",
         "size": 3543348019,
         "dateAdded": "2024-02-10T07:28:45Z",
-        "language": { "id": 1, "name": "English" },
+        "languages": [{ "id": 1, "name": "English" }],
         "quality": { "quality": { "name": "Bluray-1080p" } },
         "mediaInfo": {
             "audioBitrate": 0,
@@ -161,7 +163,8 @@ mod test {
       SonarrEvent::ListSeries,
       SonarrEvent::GetSeriesDetails(None),
       SonarrEvent::DeleteSeries(None),
-      SonarrEvent::EditSeries(None)
+      SonarrEvent::EditSeries(None),
+      SonarrEvent::ToggleSeasonMonitoring(None)
     )]
     event: SonarrEvent,
   ) {
@@ -225,6 +228,17 @@ mod test {
   }
 
   #[rstest]
+  fn test_resource_series_history(
+    #[values(
+      SonarrEvent::GetSeriesHistory(None),
+      SonarrEvent::GetSeasonHistory(None)
+    )]
+    event: SonarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/history/series");
+  }
+
+  #[rstest]
   fn test_resource_queue(
     #[values(SonarrEvent::GetDownloads, SonarrEvent::DeleteDownload(None))] event: SonarrEvent,
   ) {
@@ -255,14 +269,23 @@ mod test {
   }
 
   #[rstest]
+  fn test_resource_episode_file(
+    #[values(
+      SonarrEvent::GetEpisodeFiles(None),
+      SonarrEvent::DeleteEpisodeFile(None)
+    )]
+    event: SonarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/episodefile");
+  }
+
+  #[rstest]
   #[case(SonarrEvent::ClearBlocklist, "/blocklist/bulk")]
   #[case(SonarrEvent::DeleteBlocklistItem(None), "/blocklist")]
-  #[case(SonarrEvent::DeleteEpisodeFile(None), "/episodefile")]
   #[case(SonarrEvent::HealthCheck, "/health")]
   #[case(SonarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(SonarrEvent::GetDiskSpace, "/diskspace")]
-  #[case(SonarrEvent::GetSeriesHistory(None), "/history/series")]
-  #[case(SonarrEvent::GetLanguageProfiles, "/languageprofile")]
+  #[case(SonarrEvent::GetLanguageProfiles, "/language")]
   #[case(SonarrEvent::GetLogs(Some(500)), "/log")]
   #[case(SonarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(SonarrEvent::GetStatus, "/system/status")]
@@ -272,6 +295,7 @@ mod test {
   #[case(SonarrEvent::SearchNewSeries(None), "/series/lookup")]
   #[case(SonarrEvent::TestIndexer(None), "/indexer/test")]
   #[case(SonarrEvent::TestAllIndexers, "/indexer/testall")]
+  #[case(SonarrEvent::ToggleEpisodeMonitoring(None), "/episode/monitor")]
   fn test_resource(#[case] event: SonarrEvent, #[case] expected_uri: String) {
     assert_str_eq!(event.resource(), expected_uri);
   }
@@ -1162,7 +1186,7 @@ mod test {
         "enableAutomaticSearch": false,
         "enableInteractiveSearch": false,
         "name": "Test Update",
-        "priority": 1,
+        "priority": 0,
         "fields": [
             {
                 "name": "baseUrl",
@@ -1218,6 +1242,7 @@ mod test {
         api_key: "test1234".into(),
         seed_ratio: "1.3".into(),
         tags: "usenet, testing".into(),
+        priority: 0,
       };
       app.data.sonarr_data.edit_indexer_modal = Some(edit_indexer_modal);
       app.data.sonarr_data.indexers.set_items(vec![indexer()]);
@@ -1263,7 +1288,7 @@ mod test {
         "enableAutomaticSearch": false,
         "enableInteractiveSearch": false,
         "name": "Test Update",
-        "priority": 1,
+        "priority": 0,
         "fields": [
             {
                 "name": "baseUrl",
@@ -1315,6 +1340,7 @@ mod test {
         api_key: "test1234".into(),
         seed_ratio: "1.3".into(),
         tags: "usenet, testing".into(),
+        priority: 0,
       };
       app.data.sonarr_data.edit_indexer_modal = Some(edit_indexer_modal);
       let mut indexer = indexer();
@@ -1372,7 +1398,7 @@ mod test {
         "enableAutomaticSearch": false,
         "enableInteractiveSearch": false,
         "name": "Test Update",
-        "priority": 1,
+        "priority": 0,
         "fields": [
             {
                 "name": "baseUrl",
@@ -1428,6 +1454,7 @@ mod test {
         api_key: "test1234".into(),
         seed_ratio: "1.3".into(),
         tags: "usenet, testing".into(),
+        priority: 0,
       };
       app.data.sonarr_data.edit_indexer_modal = Some(edit_indexer_modal);
       let mut indexer = indexer();
@@ -1931,7 +1958,7 @@ mod test {
         "seriesId": 1007,
         "episodeIds": [42020],
         "sourceTitle": "z series",
-        "language": { "id": 1, "name": "English" },
+        "languages": [{ "id": 1, "name": "English" }],
         "quality": { "quality": { "name": "Bluray-1080p" }},
         "date": "2024-02-10T07:28:45Z",
         "protocol": "usenet",
@@ -1943,7 +1970,7 @@ mod test {
         "seriesId": 2001,
         "episodeIds": [42018],
         "sourceTitle": "A Series",
-        "language": { "id": 1, "name": "English" },
+        "languages": [{ "id": 1, "name": "English" }],
         "quality": { "quality": { "name": "Bluray-1080p" }},
         "date": "2024-02-10T07:28:45Z",
         "protocol": "usenet",
@@ -1956,6 +1983,7 @@ mod test {
       BlocklistItem {
         id: 123,
         series_id: 1007,
+        series_title: Some("Z Series".into()),
         source_title: "z series".into(),
         episode_ids: vec![Number::from(42020)],
         ..blocklist_item()
@@ -1978,6 +2006,17 @@ mod test {
       None,
     )
     .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1007,
+        title: "Z Series".into(),
+        ..series()
+      }]);
     app_arc.lock().await.data.sonarr_data.blocklist.sort_asc = true;
     if use_custom_sorting {
       let cmp_fn = |a: &BlocklistItem, b: &BlocklistItem| {
@@ -2022,7 +2061,7 @@ mod test {
         "seriesId": 1007,
         "episodeIds": [42020],
         "sourceTitle": "z series",
-        "language": { "id": 1, "name": "English" },
+        "languages": [{ "id": 1, "name": "English" }],
         "quality": { "quality": { "name": "Bluray-1080p" }},
         "date": "2024-02-10T07:28:45Z",
         "protocol": "usenet",
@@ -2034,7 +2073,7 @@ mod test {
         "seriesId": 2001,
         "episodeIds": [42018],
         "sourceTitle": "A Series",
-        "language": { "id": 1, "name": "English" },
+        "languages": [{ "id": 1, "name": "English" }],
         "quality": { "quality": { "name": "Bluray-1080p" }},
         "date": "2024-02-10T07:28:45Z",
         "protocol": "usenet",
@@ -2201,25 +2240,34 @@ mod test {
   #[tokio::test]
   async fn test_handle_get_episodes_event(#[values(true, false)] use_custom_sorting: bool) {
     let episode_1 = Episode {
-      title: Some("z test".to_owned()),
+      title: "z test".to_owned(),
       episode_file: None,
       ..episode()
     };
     let episode_2 = Episode {
       id: 2,
-      title: Some("A test".to_owned()),
+      title: "A test".to_owned(),
       episode_file_id: 2,
       season_number: 2,
       episode_number: 2,
       episode_file: None,
       ..episode()
     };
-    let expected_episodes = vec![episode_1.clone(), episode_2.clone()];
-    let mut expected_sorted_episodes = vec![episode_1.clone(), episode_2.clone()];
+    let episode_3 = Episode {
+      id: 3,
+      title: "A test".to_owned(),
+      episode_file_id: 3,
+      season_number: 1,
+      episode_number: 2,
+      episode_file: None,
+      ..episode()
+    };
+    let expected_episodes = vec![episode_1.clone(), episode_2.clone(), episode_3.clone()];
+    let mut expected_sorted_episodes = vec![episode_1.clone(), episode_3.clone()];
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
-      Some(json!([episode_1, episode_2])),
+      Some(json!([episode_1, episode_2, episode_3])),
       None,
       SonarrEvent::GetEpisodes(None),
       None,
@@ -2229,13 +2277,7 @@ mod test {
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.sort_asc = true;
     if use_custom_sorting {
-      let cmp_fn = |a: &Episode, b: &Episode| {
-        a.title
-          .as_ref()
-          .unwrap()
-          .to_lowercase()
-          .cmp(&b.title.as_ref().unwrap().to_lowercase())
-      };
+      let cmp_fn = |a: &Episode, b: &Episode| a.title.to_lowercase().cmp(&b.title.to_lowercase());
       expected_sorted_episodes.sort_by(cmp_fn);
       let title_sort_option = SortOption {
         name: "Title",
@@ -2245,6 +2287,102 @@ mod test {
         .episodes
         .sorting(vec![title_sort_option]);
     }
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .seasons
+      .set_items(vec![Season {
+        season_number: 1,
+        ..Season::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Episodes(episodes) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodes(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episodes
+          .items,
+        expected_sorted_episodes
+      );
+      assert!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episodes
+          .sort_asc
+      );
+      assert_eq!(episodes, expected_episodes);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episodes_event_empty_seasons_table_returns_all_episodes_by_default() {
+    let episode_1 = Episode {
+      title: "z test".to_owned(),
+      episode_file: None,
+      ..episode()
+    };
+    let episode_2 = Episode {
+      id: 2,
+      title: "A test".to_owned(),
+      episode_file_id: 2,
+      season_number: 2,
+      episode_number: 2,
+      episode_file: None,
+      ..episode()
+    };
+    let episode_3 = Episode {
+      id: 3,
+      title: "A test".to_owned(),
+      episode_file_id: 3,
+      season_number: 1,
+      episode_number: 2,
+      episode_file: None,
+      ..episode()
+    };
+    let expected_episodes = vec![episode_1.clone(), episode_2.clone(), episode_3.clone()];
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([episode_1, episode_2, episode_3])),
+      None,
+      SonarrEvent::GetEpisodes(None),
+      None,
+      Some("seriesId=1"),
+    )
+    .await;
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.sort_asc = true;
     app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
     app_arc
       .lock()
@@ -2275,7 +2413,7 @@ mod test {
           .unwrap()
           .episodes
           .items,
-        expected_sorted_episodes
+        expected_episodes
       );
       assert!(
         app_arc
@@ -2399,13 +2537,7 @@ mod test {
       .push_navigation_stack(ActiveSonarrBlock::EpisodesSortPrompt.into());
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.sort_asc = true;
-    let cmp_fn = |a: &Episode, b: &Episode| {
-      a.title
-        .as_ref()
-        .unwrap()
-        .to_lowercase()
-        .cmp(&b.title.as_ref().unwrap().to_lowercase())
-    };
+    let cmp_fn = |a: &Episode, b: &Episode| a.title.to_lowercase().cmp(&b.title.to_lowercase());
     expected_episodes.sort_by(cmp_fn);
     let title_sort_option = SortOption {
       name: "Title",
@@ -2460,6 +2592,162 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_get_episode_files_event() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([episode_file()])),
+      None,
+      SonarrEvent::GetEpisodeFiles(None),
+      None,
+      Some("seriesId=1"),
+    )
+    .await;
+    app_arc.lock().await.data.sonarr_data.season_details_modal =
+      Some(SeasonDetailsModal::default());
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::EpisodeFiles(episode_files) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_files
+          .items,
+        vec![episode_file()]
+      );
+      assert_eq!(episode_files, vec![episode_file()]);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episode_files_event_empty_season_details_modal() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([episode_file()])),
+      None,
+      SonarrEvent::GetEpisodeFiles(None),
+      None,
+      Some("seriesId=1"),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::EpisodeFiles(episode_files) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert!(app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .is_some());
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_files
+          .items,
+        vec![episode_file()]
+      );
+      assert_eq!(episode_files, vec![episode_file()]);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episode_files_event_uses_provided_series_id() {
+    let episode_file = EpisodeFile {
+      id: 2,
+      ..episode_file()
+    };
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!([episode_file.clone()])),
+      None,
+      SonarrEvent::GetEpisodeFiles(Some(2)),
+      None,
+      Some("seriesId=2"),
+    )
+    .await;
+    app_arc.lock().await.data.sonarr_data.season_details_modal =
+      Some(SeasonDetailsModal::default());
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::EpisodeFiles(episode_files) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(Some(2)))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_files
+          .items,
+        vec![episode_file.clone()]
+      );
+      assert_eq!(episode_files, vec![episode_file]);
+    }
+  }
+
+  #[tokio::test]
   async fn test_handle_get_sonarr_host_config_event() {
     let host_config_response = json!({
       "bindAddress": "*",
@@ -2503,7 +2791,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2516,7 +2804,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2595,7 +2883,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2608,7 +2896,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2666,7 +2954,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2679,7 +2967,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -2873,6 +3161,122 @@ mod test {
       None,
     )
     .await;
+    let mut episode_details_modal = EpisodeDetailsModal::default();
+    episode_details_modal.episode_details_tabs.next();
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.set_items(vec![episode()]);
+    season_details_modal.episode_details_modal = Some(episode_details_modal);
+    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    app_arc
+      .lock()
+      .await
+      .push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::Episode(episode) = network
+      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert!(app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .is_some());
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_details_tabs
+          .get_active_route(),
+        ActiveSonarrBlock::EpisodeHistory.into()
+      );
+      assert_eq!(episode, response);
+
+      let app = app_arc.lock().await;
+      let episode_details_modal = app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .as_ref()
+        .unwrap();
+      assert_str_eq!(
+        episode_details_modal.episode_details.get_text(),
+        formatdoc!(
+          "Title: Something cool
+          Season: 1
+          Episode Number: 1
+          Air Date: 2024-02-10 07:28:45 UTC
+          Status: Downloaded
+          Description: Okay so this one time at band camp..."
+        )
+      );
+      assert_str_eq!(
+        episode_details_modal.file_details,
+        formatdoc!(
+          "Relative Path: /season 1/episode 1.mkv
+          Absolute Path: /nfs/tv/series/season 1/episode 1.mkv
+          Size: 3.30 GB
+          Language: English
+          Date Added: 2024-02-10 07:28:45 UTC"
+        )
+      );
+      assert_str_eq!(
+        episode_details_modal.audio_details,
+        formatdoc!(
+          "Bitrate: 0
+          Channels: 7.1
+          Codec: AAC
+          Languages: eng
+          Stream Count: 1"
+        )
+      );
+      assert_str_eq!(
+        episode_details_modal.video_details,
+        formatdoc!(
+          "Bit Depth: 10
+          Bitrate: 0
+          Codec: x265
+          FPS: 23.976
+          Resolution: 1920x1080
+          Scan Type: Progressive
+          Runtime: 23:51
+          Subtitles: English"
+        )
+      );
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_episode_details_event_empty_episode_details_modal() {
+    let response: Episode = serde_json::from_str(EPISODE_JSON).unwrap();
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(EPISODE_JSON).unwrap()),
+      None,
+      SonarrEvent::GetEpisodeDetails(None),
+      Some("/1"),
+      None,
+    )
+    .await;
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.set_items(vec![episode()]);
     app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
@@ -2992,7 +3396,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3005,7 +3409,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3122,7 +3526,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3135,7 +3539,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3252,7 +3656,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3265,7 +3669,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3360,7 +3764,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -3373,7 +3777,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4037,6 +4441,349 @@ mod test {
   }
 
   #[tokio::test]
+  async fn test_handle_get_sonarr_season_history_event() {
+    let history_json = json!([{
+      "id": 123,
+      "sourceTitle": "z episode",
+      "episodeId": 1007,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "languages": [{ "id": 1, "name": "English" }],
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    },
+    {
+      "id": 456,
+      "sourceTitle": "A Episode",
+      "episodeId": 2001,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "languages": [{ "id": 1, "name": "English" }],
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    }]);
+    let response: Vec<SonarrHistoryItem> = serde_json::from_value(history_json.clone()).unwrap();
+    let expected_history_items = vec![
+      SonarrHistoryItem {
+        id: 123,
+        episode_id: 1007,
+        source_title: "z episode".into(),
+        ..history_item()
+      },
+      SonarrHistoryItem {
+        id: 456,
+        episode_id: 2001,
+        source_title: "A Episode".into(),
+        ..history_item()
+      },
+    ];
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(history_json),
+      None,
+      SonarrEvent::GetSeasonHistory(None),
+      None,
+      Some("seriesId=1&seasonNumber=1"),
+    )
+    .await;
+    app_arc.lock().await.data.sonarr_data.season_details_modal =
+      Some(SeasonDetailsModal::default());
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![series()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .seasons
+      .set_items(vec![season()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_mut()
+      .unwrap()
+      .season_history
+      .sort_asc = true;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::SonarrHistoryItems(history) = network
+      .handle_sonarr_event(SonarrEvent::GetSeasonHistory(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .items,
+        expected_history_items
+      );
+      assert!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .sort_asc
+      );
+      assert_eq!(history, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_season_history_event_uses_provided_series_id_and_season_number() {
+    let history_json = json!([{
+      "id": 123,
+      "sourceTitle": "z episode",
+      "episodeId": 1007,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "languages": [{ "id": 1, "name": "English" }],
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    },
+    {
+      "id": 456,
+      "sourceTitle": "A Episode",
+      "episodeId": 2001,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "languages": [{ "id": 1, "name": "English" }],
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    }]);
+    let response: Vec<SonarrHistoryItem> = serde_json::from_value(history_json.clone()).unwrap();
+    let expected_history_items = vec![
+      SonarrHistoryItem {
+        id: 123,
+        episode_id: 1007,
+        source_title: "z episode".into(),
+        ..history_item()
+      },
+      SonarrHistoryItem {
+        id: 456,
+        episode_id: 2001,
+        source_title: "A Episode".into(),
+        ..history_item()
+      },
+    ];
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(history_json),
+      None,
+      SonarrEvent::GetSeasonHistory(Some((2, 2))),
+      None,
+      Some("seriesId=2&seasonNumber=2"),
+    )
+    .await;
+    app_arc.lock().await.data.sonarr_data.season_details_modal =
+      Some(SeasonDetailsModal::default());
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![series()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .seasons
+      .set_items(vec![season()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_mut()
+      .unwrap()
+      .season_history
+      .sort_asc = true;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::SonarrHistoryItems(history) = network
+      .handle_sonarr_event(SonarrEvent::GetSeasonHistory(Some((2, 2))))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .items,
+        expected_history_items
+      );
+      assert!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .sort_asc
+      );
+      assert_eq!(history, response);
+    }
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_sonarr_season_history_event_empty_season_details_modal() {
+    let history_json = json!([{
+      "id": 123,
+      "sourceTitle": "z episode",
+      "episodeId": 1007,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "languages": [{ "id": 1, "name": "English" }],
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    },
+    {
+      "id": 456,
+      "sourceTitle": "A Episode",
+      "episodeId": 2001,
+      "quality": { "quality": { "name": "Bluray-1080p" } },
+      "languages": [{ "id": 1, "name": "English" }],
+      "date": "2024-02-10T07:28:45Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
+        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
+      }
+    }]);
+    let response: Vec<SonarrHistoryItem> = serde_json::from_value(history_json.clone()).unwrap();
+    let expected_history_items = vec![
+      SonarrHistoryItem {
+        id: 123,
+        episode_id: 1007,
+        source_title: "z episode".into(),
+        ..history_item()
+      },
+      SonarrHistoryItem {
+        id: 456,
+        episode_id: 2001,
+        source_title: "A Episode".into(),
+        ..history_item()
+      },
+    ];
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(history_json),
+      None,
+      SonarrEvent::GetSeasonHistory(None),
+      None,
+      Some("seriesId=1&seasonNumber=1"),
+    )
+    .await;
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .series
+      .set_items(vec![series()]);
+    app_arc
+      .lock()
+      .await
+      .data
+      .sonarr_data
+      .seasons
+      .set_items(vec![season()]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    if let SonarrSerdeable::SonarrHistoryItems(history) = network
+      .handle_sonarr_event(SonarrEvent::GetSeasonHistory(None))
+      .await
+      .unwrap()
+    {
+      async_server.assert_async().await;
+      assert!(app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .is_some());
+      assert_eq!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .items,
+        expected_history_items
+      );
+      assert!(
+        !app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .sort_asc
+      );
+      assert_eq!(history, response);
+    }
+  }
+
+  #[tokio::test]
   async fn test_handle_get_season_releases_event() {
     let release_json = json!([
       {
@@ -4382,12 +5129,14 @@ mod test {
     )
     .await;
     let mut filtered_series = StatefulTable::default();
+    filtered_series.set_items(vec![Series::default()]);
     filtered_series.set_filtered_items(vec![Series {
       id: 1,
       ..Series::default()
     }]);
     app_arc.lock().await.data.sonarr_data.series = filtered_series;
     let mut filtered_seasons = StatefulTable::default();
+    filtered_seasons.set_items(vec![Season::default()]);
     filtered_seasons.set_filtered_items(vec![Season {
       season_number: 1,
       ..Season::default()
@@ -4580,7 +5329,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4593,7 +5342,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4702,7 +5451,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4715,7 +5464,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4808,7 +5557,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4821,7 +5570,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4910,7 +5659,7 @@ mod test {
       "sourceTitle": "z episode",
       "episodeId": 1007,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -4923,7 +5672,7 @@ mod test {
       "sourceTitle": "A Episode",
       "episodeId": 2001,
       "quality": { "quality": { "name": "Bluray-1080p" } },
-      "language": { "id": 1, "name": "English" },
+      "languages": [{ "id": 1, "name": "English" }],
       "date": "2024-02-10T07:28:45Z",
       "eventType": "grabbed",
       "data": {
@@ -5117,8 +5866,7 @@ mod test {
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-    let date_time = DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap())
-      as DateTime<Utc>;
+    let date_time = DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap());
 
     if let SonarrSerdeable::SystemStatus(status) = network
       .handle_sonarr_event(SonarrEvent::GetStatus)
@@ -5474,7 +6222,7 @@ mod test {
       .is_none());
     assert_eq!(
       app_arc.lock().await.get_current_route(),
-      &ActiveSonarrBlock::AddSeriesEmptySearchResults.into()
+      ActiveSonarrBlock::AddSeriesEmptySearchResults.into()
     );
   }
 
@@ -5529,7 +6277,7 @@ mod test {
       .is_none());
     assert_eq!(
       app_arc.lock().await.get_current_route(),
-      &ActiveSonarrBlock::Series.into()
+      ActiveSonarrBlock::Series.into()
     );
   }
 
@@ -5666,7 +6414,7 @@ mod test {
       async_details_server.assert_async().await;
       async_test_server.assert_async().await;
       assert_eq!(
-        app_arc.lock().await.data.sonarr_data.indexer_test_error,
+        app_arc.lock().await.data.sonarr_data.indexer_test_errors,
         Some("\"test failure\"".to_owned())
       );
       assert_eq!(value, response_json)
@@ -5735,8 +6483,8 @@ mod test {
       async_details_server.assert_async().await;
       async_test_server.assert_async().await;
       assert_eq!(
-        app_arc.lock().await.data.sonarr_data.indexer_test_error,
-        None
+        app_arc.lock().await.data.sonarr_data.indexer_test_errors,
+        Some(String::new())
       );
       assert_eq!(value, json!({}));
     }
@@ -5895,6 +6643,207 @@ mod test {
       );
       assert_eq!(results, response);
     }
+  }
+
+  #[tokio::test]
+  async fn test_handle_toggle_episode_monitoring_event() {
+    let expected_body = MonitorEpisodeBody {
+      episode_ids: vec![1],
+      monitored: false,
+    };
+
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Put,
+      Some(json!(expected_body)),
+      None,
+      None,
+      SonarrEvent::ToggleEpisodeMonitoring(None),
+      None,
+      None,
+    )
+    .await;
+    {
+      let mut app = app_arc.lock().await;
+      let mut season_details_modal = SeasonDetailsModal::default();
+      season_details_modal.episodes.set_items(vec![episode()]);
+      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::ToggleEpisodeMonitoring(None))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_toggle_episode_monitoring_event_uses_provided_episode_id() {
+    let expected_body = MonitorEpisodeBody {
+      episode_ids: vec![2],
+      monitored: false,
+    };
+    let body = Episode { id: 2, ..episode() };
+
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(json!(body)),
+      None,
+      SonarrEvent::GetEpisodeDetails(None),
+      Some("/2"),
+      None,
+    )
+    .await;
+    let async_toggle_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v3{}",
+          SonarrEvent::ToggleEpisodeMonitoring(None).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(json!(expected_body)))
+      .create_async()
+      .await;
+    {
+      let mut app = app_arc.lock().await;
+      let mut season_details_modal = SeasonDetailsModal::default();
+      season_details_modal.episodes.set_items(vec![episode()]);
+      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::ToggleEpisodeMonitoring(Some(2)))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_toggle_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_toggle_season_monitoring_event() {
+    let mut expected_body: Value = serde_json::from_str(SERIES_JSON).unwrap();
+    *expected_body
+      .get_mut("seasons")
+      .unwrap()
+      .as_array_mut()
+      .unwrap()
+      .iter_mut()
+      .find(|season| season["seasonNumber"] == 1)
+      .unwrap()
+      .get_mut("monitored")
+      .unwrap() = json!(false);
+
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(SERIES_JSON).unwrap()),
+      None,
+      SonarrEvent::GetSeriesDetails(None),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let async_toggle_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v3{}/1",
+          SonarrEvent::ToggleSeasonMonitoring(None).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    {
+      let mut app = app_arc.lock().await;
+      app.data.sonarr_data.series.set_items(vec![series()]);
+      app.data.sonarr_data.seasons.set_items(vec![season()]);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::ToggleSeasonMonitoring(None))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_toggle_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_toggle_season_monitoring_event_uses_provided_series_id_and_season_number() {
+    let mut detailed_response: Value = serde_json::from_str(SERIES_JSON).unwrap();
+    *detailed_response
+      .get_mut("seasons")
+      .unwrap()
+      .as_array_mut()
+      .unwrap()
+      .iter_mut()
+      .find(|season| season["seasonNumber"] == 1)
+      .unwrap()
+      .get_mut("seasonNumber")
+      .unwrap() = json!(2);
+    let mut expected_body: Value = detailed_response.clone();
+    *expected_body
+      .get_mut("seasons")
+      .unwrap()
+      .as_array_mut()
+      .unwrap()
+      .iter_mut()
+      .find(|season| season["seasonNumber"] == 2)
+      .unwrap()
+      .get_mut("monitored")
+      .unwrap() = json!(false);
+
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(detailed_response),
+      None,
+      SonarrEvent::GetSeriesDetails(None),
+      Some("/2"),
+      None,
+    )
+    .await;
+    let async_toggle_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v3{}/2",
+          SonarrEvent::ToggleSeasonMonitoring(Some((2, 2))).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    {
+      let mut app = app_arc.lock().await;
+      app.data.sonarr_data.series.set_items(vec![series()]);
+      app.data.sonarr_data.seasons.set_items(vec![season()]);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::ToggleSeasonMonitoring(Some((2, 2))))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_toggle_server.assert_async().await;
   }
 
   #[tokio::test]
@@ -6077,12 +7026,14 @@ mod test {
     )
     .await;
     let mut filtered_series = StatefulTable::default();
+    filtered_series.set_items(vec![Series::default()]);
     filtered_series.set_filtered_items(vec![Series {
       id: 1,
       ..Series::default()
     }]);
     app_arc.lock().await.data.sonarr_data.series = filtered_series;
     let mut filtered_seasons = StatefulTable::default();
+    filtered_seasons.set_items(vec![Season::default()]);
     filtered_seasons.set_filtered_items(vec![Season {
       season_number: 1,
       ..Season::default()
@@ -6265,7 +7216,7 @@ mod test {
   #[tokio::test]
   async fn test_extract_and_add_sonarr_tag_ids_vec() {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let tags = "    test,hi ,, usenet ".to_owned();
+    let tags = "    test,HI ,, usenet ".to_owned();
     {
       let mut app = app_arc.lock().await;
       app.data.sonarr_data.tags_map = BiMap::from_iter([
@@ -6286,7 +7237,7 @@ mod test {
   async fn test_extract_and_add_sonarr_tag_ids_vec_add_missing_tags_first() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
-      Some(json!({ "label": "testing" })),
+      Some(json!({ "label": "TESTING" })),
       Some(json!({ "id": 3, "label": "testing" })),
       None,
       SonarrEvent::GetTags,
@@ -6294,7 +7245,7 @@ mod test {
       None,
     )
     .await;
-    let tags = "usenet, test, testing".to_owned();
+    let tags = "usenet, test, TESTING".to_owned();
     {
       let mut app = app_arc.lock().await;
       app.data.sonarr_data.add_series_modal = Some(AddSeriesModal {
@@ -6394,7 +7345,7 @@ mod test {
       }]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
-    let (id, season_number_param) = network.extract_season_number(None).await;
+    let (id, season_number_param) = network.extract_season_number(None).await.unwrap();
 
     assert_eq!(id, 1);
     assert_str_eq!(season_number_param, "seasonNumber=1");
@@ -6414,7 +7365,7 @@ mod test {
         ..Season::default()
       }]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-    let (id, season_number_param) = network.extract_season_number(Some(2)).await;
+    let (id, season_number_param) = network.extract_season_number(Some(2)).await.unwrap();
 
     assert_eq!(id, 2);
     assert_str_eq!(season_number_param, "seasonNumber=2");
@@ -6424,6 +7375,7 @@ mod test {
   async fn test_extract_season_number_filtered_seasons() {
     let app_arc = Arc::new(Mutex::new(App::default()));
     let mut filtered_seasons = StatefulTable::default();
+    filtered_seasons.set_items(vec![Season::default()]);
     filtered_seasons.set_filtered_items(vec![Season {
       season_number: 1,
       ..Season::default()
@@ -6431,10 +7383,19 @@ mod test {
     app_arc.lock().await.data.sonarr_data.seasons = filtered_seasons;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
-    let (id, season_number_param) = network.extract_season_number(None).await;
+    let (id, season_number_param) = network.extract_season_number(None).await.unwrap();
 
     assert_eq!(id, 1);
     assert_str_eq!(season_number_param, "seasonNumber=1");
+  }
+
+  #[tokio::test]
+  async fn test_extract_season_number_empty_seasons_table() {
+    let app_arc = Arc::new(Mutex::new(App::default()));
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let season_number = network.extract_season_number(None).await;
+
+    assert!(season_number.is_err());
   }
 
   #[tokio::test]
@@ -6528,7 +7489,7 @@ mod test {
         false,
         &[DownloadRecord {
           episode_id: 1,
-          status: "downloading".to_owned(),
+          status: DownloadStatus::Downloading,
           ..DownloadRecord::default()
         }],
         1
@@ -6544,7 +7505,7 @@ mod test {
         false,
         &[DownloadRecord {
           episode_id: 1,
-          status: "completed".to_owned(),
+          status: DownloadStatus::Completed,
           ..DownloadRecord::default()
         }],
         1
@@ -6577,9 +7538,10 @@ mod test {
     BlocklistItem {
       id: 1,
       series_id: 1,
+      series_title: None,
       episode_ids: vec![Number::from(1)],
       source_title: "Test Source Title".to_owned(),
-      language: language(),
+      languages: vec![language()],
       quality: quality_wrapper(),
       date: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
       protocol: "usenet".to_owned(),
@@ -6591,7 +7553,7 @@ mod test {
   fn download_record() -> DownloadRecord {
     DownloadRecord {
       title: "Test Download Title".to_owned(),
-      status: "downloading".to_owned(),
+      status: DownloadStatus::Downloading,
       id: 1,
       episode_id: 1,
       size: 3543348019f64,
@@ -6600,7 +7562,7 @@ mod test {
         "/nfs/tv/Test show/season 1/",
       )),
       indexer: "kickass torrents".to_owned(),
-      download_client: "transmission".to_owned(),
+      download_client: Some("transmission".to_owned()),
     }
   }
 
@@ -6618,7 +7580,7 @@ mod test {
       episode_file_id: 1,
       season_number: 1,
       episode_number: 1,
-      title: Some("Something cool".to_owned()),
+      title: "Something cool".to_owned(),
       air_date_utc: Some(DateTime::from(
         DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap(),
       )),
@@ -6631,10 +7593,12 @@ mod test {
 
   fn episode_file() -> EpisodeFile {
     EpisodeFile {
+      id: 1,
       relative_path: "/season 1/episode 1.mkv".to_owned(),
       path: "/nfs/tv/series/season 1/episode 1.mkv".to_owned(),
       size: 3543348019,
-      language: language(),
+      quality: quality_wrapper(),
+      languages: vec![language()],
       date_added: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
       media_info: Some(media_info()),
     }
@@ -6660,9 +7624,9 @@ mod test {
       source_title: "Test source".into(),
       episode_id: 1,
       quality: quality_wrapper(),
-      language: language(),
+      languages: vec![language()],
       date: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
-      event_type: "grabbed".into(),
+      event_type: SonarrHistoryEventType::Grabbed,
       data: history_data(),
     }
   }
@@ -6753,6 +7717,7 @@ mod test {
 
   fn season() -> Season {
     Season {
+      title: None,
       season_number: 1,
       monitored: true,
       statistics: season_statistics(),

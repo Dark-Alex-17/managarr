@@ -30,9 +30,10 @@ impl DrawUi for DownloadsUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+    if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
+      draw_downloads(f, app, area);
+
       match active_radarr_block {
-        ActiveRadarrBlock::Downloads => draw_downloads(f, app, area),
         ActiveRadarrBlock::DeleteDownloadPrompt => {
           let prompt = format!(
             "Do you really want to delete this download: \n{}?",
@@ -43,8 +44,10 @@ impl DrawUi for DownloadsUi {
             .prompt(&prompt)
             .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-          draw_downloads(f, app, area);
-          f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+          f.render_widget(
+            Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+            f.area(),
+          );
         }
         ActiveRadarrBlock::UpdateDownloadsPrompt => {
           let confirmation_prompt = ConfirmationPrompt::new()
@@ -52,8 +55,10 @@ impl DrawUi for DownloadsUi {
             .prompt("Do you want to update your downloads?")
             .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-          draw_downloads(f, app, area);
-          f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+          f.render_widget(
+            Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+            f.area(),
+          );
         }
         _ => (),
       }

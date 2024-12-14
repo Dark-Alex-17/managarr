@@ -5,16 +5,15 @@ use ratatui::text::Text;
 use ratatui::widgets::{Cell, ListItem, Paragraph, Row};
 use ratatui::Frame;
 
-use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
-use crate::app::radarr::radarr_context_clues::{
-  ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
+use crate::app::context_clues::{
+  build_context_clue_string, BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
 };
+use crate::app::radarr::radarr_context_clues::ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES;
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::servarr_data::radarr::modals::AddMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
 use crate::models::{EnumDisplayStyle, Route};
-use crate::ui::radarr_ui::collections::{draw_collection_details, draw_collections};
-use crate::ui::radarr_ui::library::draw_library;
+use crate::ui::radarr_ui::collections::CollectionsUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block, layout_paragraph_borderless,
@@ -26,7 +25,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup_over, DrawUi};
+use crate::ui::{draw_popup, DrawUi};
 use crate::utils::convert_runtime;
 use crate::{render_selectable_input_box, App};
 
@@ -46,73 +45,30 @@ impl DrawUi for AddMovieUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
-      let draw_add_movie_search_popup =
-        |f: &mut Frame<'_>, app: &mut App<'_>, area: Rect| match active_radarr_block {
-          ActiveRadarrBlock::AddMovieSearchInput
-          | ActiveRadarrBlock::AddMovieSearchResults
-          | ActiveRadarrBlock::AddMovieEmptySearchResults => {
-            draw_add_movie_search(f, app, area);
-          }
+    if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
+      if context_option.is_some() {
+        CollectionsUi::draw(f, app, area);
+        draw_popup(f, app, draw_confirmation_popup, Size::Medium);
+      } else {
+        draw_popup(f, app, draw_add_movie_search, Size::Large);
+
+        match active_radarr_block {
           ActiveRadarrBlock::AddMoviePrompt
           | ActiveRadarrBlock::AddMovieSelectMonitor
           | ActiveRadarrBlock::AddMovieSelectMinimumAvailability
           | ActiveRadarrBlock::AddMovieSelectQualityProfile
           | ActiveRadarrBlock::AddMovieSelectRootFolder
           | ActiveRadarrBlock::AddMovieTagsInput => {
-            if context_option.is_some() {
-              draw_popup_over(
-                f,
-                app,
-                area,
-                draw_collection_details,
-                draw_confirmation_popup,
-                Size::Medium,
-              );
-            } else {
-              draw_popup_over(
-                f,
-                app,
-                area,
-                draw_add_movie_search,
-                draw_confirmation_popup,
-                Size::Medium,
-              );
-            }
+            draw_popup(f, app, draw_confirmation_popup, Size::Medium);
           }
           ActiveRadarrBlock::AddMovieAlreadyInLibrary => {
-            draw_add_movie_search(f, app, area);
             f.render_widget(
               Popup::new(Message::new("This film is already in your library")).size(Size::Message),
               f.area(),
             );
           }
           _ => (),
-        };
-
-      match active_radarr_block {
-        _ if ADD_MOVIE_BLOCKS.contains(&active_radarr_block) => {
-          if context_option.is_some() {
-            draw_popup_over(
-              f,
-              app,
-              area,
-              draw_collections,
-              draw_add_movie_search_popup,
-              Size::Large,
-            )
-          } else {
-            draw_popup_over(
-              f,
-              app,
-              area,
-              draw_library,
-              draw_add_movie_search_popup,
-              Size::Large,
-            )
-          }
         }
-        _ => (),
       }
     }
   }
@@ -202,7 +158,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .primary()
   };
 
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSearchInput => {
         let search_box = InputBox::new(block_content)
@@ -284,26 +240,21 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_confirmation_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
+    draw_confirmation_prompt(f, app, area);
+
     match active_radarr_block {
       ActiveRadarrBlock::AddMovieSelectMonitor => {
-        draw_confirmation_prompt(f, app, area);
         draw_add_movie_select_monitor_popup(f, app);
       }
       ActiveRadarrBlock::AddMovieSelectMinimumAvailability => {
-        draw_confirmation_prompt(f, app, area);
         draw_add_movie_select_minimum_availability_popup(f, app);
       }
       ActiveRadarrBlock::AddMovieSelectQualityProfile => {
-        draw_confirmation_prompt(f, app, area);
         draw_add_movie_select_quality_profile_popup(f, app);
       }
       ActiveRadarrBlock::AddMovieSelectRootFolder => {
-        draw_confirmation_prompt(f, app, area);
         draw_add_movie_select_root_folder_popup(f, app);
-      }
-      ActiveRadarrBlock::AddMoviePrompt | ActiveRadarrBlock::AddMovieTagsInput => {
-        draw_confirmation_prompt(f, app, area)
       }
       _ => (),
     }
@@ -354,7 +305,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let prompt = movie_overview;
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();
-  let highlight_yes_no = selected_block == &ActiveRadarrBlock::AddMovieConfirmPrompt;
+  let highlight_yes_no = selected_block == ActiveRadarrBlock::AddMovieConfirmPrompt;
   let AddMovieModal {
     monitor_list,
     minimum_availability_list,
@@ -400,33 +351,33 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .title(&selected_root_folder.path)
     .label("Root Folder")
     .icon("▼")
-    .selected(selected_block == &ActiveRadarrBlock::AddMovieSelectRootFolder);
+    .selected(selected_block == ActiveRadarrBlock::AddMovieSelectRootFolder);
   let monitor_drop_down_button = Button::new()
     .title(selected_monitor.to_display_str())
     .label("Monitor")
     .icon("▼")
-    .selected(selected_block == &ActiveRadarrBlock::AddMovieSelectMonitor);
+    .selected(selected_block == ActiveRadarrBlock::AddMovieSelectMonitor);
   let min_availability_drop_down_button = Button::new()
     .title(selected_minimum_availability.to_display_str())
     .label("Minimum Availability")
     .icon("▼")
-    .selected(selected_block == &ActiveRadarrBlock::AddMovieSelectMinimumAvailability);
+    .selected(selected_block == ActiveRadarrBlock::AddMovieSelectMinimumAvailability);
   let quality_profile_drop_down_button = Button::new()
     .title(selected_quality_profile)
     .label("Quality Profile")
     .icon("▼")
-    .selected(selected_block == &ActiveRadarrBlock::AddMovieSelectQualityProfile);
+    .selected(selected_block == ActiveRadarrBlock::AddMovieSelectQualityProfile);
 
   f.render_widget(root_folder_drop_down_button, root_folder_area);
   f.render_widget(monitor_drop_down_button, monitor_area);
   f.render_widget(min_availability_drop_down_button, min_availability_area);
   f.render_widget(quality_profile_drop_down_button, quality_profile_area);
 
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     let tags_input_box = InputBox::new(&tags.text)
       .offset(tags.offset.load(Ordering::SeqCst))
       .label("Tags")
-      .highlighted(selected_block == &ActiveRadarrBlock::AddMovieTagsInput)
+      .highlighted(selected_block == ActiveRadarrBlock::AddMovieTagsInput)
       .selected(active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput);
     render_selectable_input_box!(tags_input_box, f, tags_area);
   }

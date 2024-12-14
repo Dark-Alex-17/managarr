@@ -43,61 +43,68 @@ impl DrawUi for IndexersUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    let route = *app.get_current_route();
-    let mut indexers_matchers = |active_radarr_block| match active_radarr_block {
-      ActiveRadarrBlock::Indexers => draw_indexers(f, app, area),
-      ActiveRadarrBlock::TestIndexer => {
-        draw_indexers(f, app, area);
-        if app.is_loading {
-          let loading_popup = Popup::new(LoadingBlock::new(
-            app.is_loading,
-            title_block("Testing Indexer"),
-          ))
-          .size(Size::LargeMessage);
-          f.render_widget(loading_popup, f.area());
-        } else {
-          let popup = if let Some(result) = app.data.radarr_data.indexer_test_error.as_ref() {
-            Popup::new(Message::new(result.clone())).size(Size::LargeMessage)
-          } else {
-            let message = Message::new("Indexer test succeeded!")
-              .title("Success")
-              .style(Style::new().success().bold());
-            Popup::new(message).size(Size::Message)
-          };
-
-          f.render_widget(popup, f.area());
-        }
-      }
-      ActiveRadarrBlock::DeleteIndexerPrompt => {
-        let prompt = format!(
-          "Do you really want to delete this indexer: \n{}?",
-          app
-            .data
-            .radarr_data
-            .indexers
-            .current_selection()
-            .name
-            .clone()
-            .unwrap_or_default()
-        );
-        let confirmation_prompt = ConfirmationPrompt::new()
-          .title("Delete Indexer")
-          .prompt(&prompt)
-          .yes_no_value(app.data.radarr_data.prompt_confirm);
-
-        draw_indexers(f, app, area);
-        f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
-      }
-      _ => (),
-    };
+    let route = app.get_current_route();
+    draw_indexers(f, app, area);
 
     match route {
       _ if EditIndexerUi::accepts(route) => EditIndexerUi::draw(f, app, area),
       _ if IndexerSettingsUi::accepts(route) => IndexerSettingsUi::draw(f, app, area),
       _ if TestAllIndexersUi::accepts(route) => TestAllIndexersUi::draw(f, app, area),
-      Route::Radarr(active_radarr_block, _) if INDEXERS_BLOCKS.contains(&active_radarr_block) => {
-        indexers_matchers(active_radarr_block)
-      }
+      Route::Radarr(active_radarr_block, _) => match active_radarr_block {
+        ActiveRadarrBlock::TestIndexer => {
+          if app.is_loading || app.data.radarr_data.indexer_test_errors.is_none() {
+            let loading_popup = Popup::new(LoadingBlock::new(
+              app.is_loading || app.data.radarr_data.indexer_test_errors.is_none(),
+              title_block("Testing Indexer"),
+            ))
+            .size(Size::LargeMessage);
+            f.render_widget(loading_popup, f.area());
+          } else {
+            let popup = {
+              let result = app
+                .data
+                .radarr_data
+                .indexer_test_errors
+                .as_ref()
+                .expect("Test result is unpopulated");
+
+              if !result.is_empty() {
+                Popup::new(Message::new(result.clone())).size(Size::LargeMessage)
+              } else {
+                let message = Message::new("Indexer test succeeded!")
+                  .title("Success")
+                  .style(Style::new().success().bold());
+                Popup::new(message).size(Size::Message)
+              }
+            };
+
+            f.render_widget(popup, f.area());
+          }
+        }
+        ActiveRadarrBlock::DeleteIndexerPrompt => {
+          let prompt = format!(
+            "Do you really want to delete this indexer: \n{}?",
+            app
+              .data
+              .radarr_data
+              .indexers
+              .current_selection()
+              .name
+              .clone()
+              .unwrap_or_default()
+          );
+          let confirmation_prompt = ConfirmationPrompt::new()
+            .title("Delete Indexer")
+            .prompt(&prompt)
+            .yes_no_value(app.data.radarr_data.prompt_confirm);
+
+          f.render_widget(
+            Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+            f.area(),
+          );
+        }
+        _ => (),
+      },
       _ => (),
     }
   }

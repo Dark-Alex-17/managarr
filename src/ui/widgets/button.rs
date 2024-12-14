@@ -1,50 +1,26 @@
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_block, style_block_highlight};
+use derive_setters::Setters;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::prelude::{Style, Text, Widget};
 use ratatui::style::Styled;
 use ratatui::widgets::Paragraph;
 
-#[cfg(test)]
-#[path = "button_tests.rs"]
-mod button_tests;
-
-#[derive(Default)]
+#[derive(Default, Setters)]
 pub struct Button<'a> {
   title: &'a str,
+  #[setters(strip_option)]
   label: Option<&'a str>,
+  #[setters(strip_option)]
   icon: Option<&'a str>,
+  #[setters(into)]
   style: Style,
+  #[setters(rename = "selected")]
   is_selected: bool,
 }
 
 impl<'a> Button<'a> {
-  pub fn title(mut self, title: &'a str) -> Button<'a> {
-    self.title = title;
-    self
-  }
-
-  pub fn label(mut self, label: &'a str) -> Button<'a> {
-    self.label = Some(label);
-    self
-  }
-
-  pub fn icon(mut self, icon: &'a str) -> Button<'a> {
-    self.icon = Some(icon);
-    self
-  }
-
-  pub fn style<S: Into<Style>>(mut self, style: S) -> Button<'a> {
-    self.style = style.into();
-    self
-  }
-
-  pub fn selected(mut self, is_selected: bool) -> Button<'a> {
-    self.is_selected = is_selected;
-    self
-  }
-
   fn render_button_with_icon(self, area: Rect, buf: &mut Buffer) {
     let [title_area, icon_area] = Layout::horizontal([
       Constraint::Length(self.title.len() as u16),

@@ -8,6 +8,8 @@ use ratatui::widgets::Paragraph;
 use ratatui::widgets::Tabs;
 use ratatui::widgets::Wrap;
 use ratatui::Frame;
+use sonarr_ui::SonarrUi;
+use utils::layout_block;
 
 use crate::app::App;
 use crate::models::{HorizontallyScrollableText, Route, TabState};
@@ -20,6 +22,7 @@ use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::popup::Size;
 
 mod radarr_ui;
+mod sonarr_ui;
 mod styles;
 mod utils;
 mod widgets;
@@ -57,9 +60,16 @@ pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
 
   draw_header_row(f, app, header_area);
 
-  if RadarrUi::accepts(*app.get_current_route()) {
-    RadarrUi::draw_context_row(f, app, context_area);
-    RadarrUi::draw(f, app, table_area);
+  match app.get_current_route() {
+    route if RadarrUi::accepts(route) => {
+      RadarrUi::draw_context_row(f, app, context_area);
+      RadarrUi::draw(f, app, table_area);
+    }
+    route if SonarrUi::accepts(route) => {
+      SonarrUi::draw_context_row(f, app, context_area);
+      SonarrUi::draw(f, app, table_area);
+    }
+    _ => (),
   }
 }
 
@@ -118,41 +128,12 @@ pub fn draw_popup(
   popup_fn(f, app, popup_area);
 }
 
-fn draw_popup_ui<T: DrawUi>(f: &mut Frame<'_>, app: &mut App<'_>, size: Size) {
-  let (percent_x, percent_y) = size.to_percent();
-  let popup_area = centered_rect(percent_x, percent_y, f.area());
-  f.render_widget(Clear, popup_area);
-  f.render_widget(background_block(), popup_area);
-  T::draw(f, app, popup_area);
-}
-
-pub fn draw_popup_over(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  area: Rect,
-  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  popup_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  size: Size,
-) {
-  background_fn(f, app, area);
-
-  draw_popup(f, app, popup_fn, size);
-}
-
-pub fn draw_popup_over_ui<T: DrawUi>(
-  f: &mut Frame<'_>,
-  app: &mut App<'_>,
-  area: Rect,
-  background_fn: impl Fn(&mut Frame<'_>, &mut App<'_>, Rect),
-  size: Size,
-) {
-  background_fn(f, app, area);
-
-  draw_popup_ui::<T>(f, app, size);
-}
-
 fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -> Rect {
-  f.render_widget(title_block(title), area);
+  if title.is_empty() {
+    f.render_widget(layout_block(), area);
+  } else {
+    f.render_widget(title_block(title), area);
+  }
 
   let [header_area, content_area] = Layout::vertical([Constraint::Length(1), Constraint::Fill(0)])
     .margin(1)

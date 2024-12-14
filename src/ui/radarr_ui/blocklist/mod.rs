@@ -31,13 +31,11 @@ impl DrawUi for BlocklistUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+    if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
+      draw_blocklist_table(f, app, area);
+
       match active_radarr_block {
-        ActiveRadarrBlock::Blocklist | ActiveRadarrBlock::BlocklistSortPrompt => {
-          draw_blocklist_table(f, app, area)
-        }
         ActiveRadarrBlock::BlocklistItemDetails => {
-          draw_blocklist_table(f, app, area);
           draw_blocklist_item_details_popup(f, app);
         }
         ActiveRadarrBlock::DeleteBlocklistItemPrompt => {
@@ -55,8 +53,10 @@ impl DrawUi for BlocklistUi {
             .prompt(&prompt)
             .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-          draw_blocklist_table(f, app, area);
-          f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+          f.render_widget(
+            Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+            f.area(),
+          );
         }
         ActiveRadarrBlock::BlocklistClearAllItemsPrompt => {
           let confirmation_prompt = ConfirmationPrompt::new()
@@ -64,7 +64,6 @@ impl DrawUi for BlocklistUi {
             .prompt("Do you want to clear your blocklist?")
             .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-          draw_blocklist_table(f, app, area);
           f.render_widget(
             Popup::new(confirmation_prompt).size(Size::SmallPrompt),
             f.area(),
@@ -77,7 +76,7 @@ impl DrawUi for BlocklistUi {
 }
 
 fn draw_blocklist_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     let current_selection = if app.data.radarr_data.blocklist.items.is_empty() {
       BlocklistItem::default()
     } else {

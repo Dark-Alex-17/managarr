@@ -12,22 +12,22 @@ use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
 mod edit_movie_handler_tests;
 
 pub(super) struct EditMovieHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    EDIT_MOVIE_BLOCKS.contains(active_block)
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    EDIT_MOVIE_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    context: Option<ActiveRadarrBlock>,
   ) -> EditMovieHandler<'a, 'b> {
     EditMovieHandler {
       key,
@@ -37,7 +37,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -65,7 +65,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
         .unwrap()
         .quality_profile_list
         .scroll_up(),
-      ActiveRadarrBlock::EditMoviePrompt => self.app.data.radarr_data.selected_block.previous(),
+      ActiveRadarrBlock::EditMoviePrompt => self.app.data.radarr_data.selected_block.up(),
       _ => (),
     }
   }
@@ -90,7 +90,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
         .unwrap()
         .quality_profile_list
         .scroll_down(),
-      ActiveRadarrBlock::EditMoviePrompt => self.app.data.radarr_data.selected_block.next(),
+      ActiveRadarrBlock::EditMoviePrompt => self.app.data.radarr_data.selected_block.down(),
       _ => (),
     }
   }
@@ -231,16 +231,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
           ActiveRadarrBlock::EditMovieSelectMinimumAvailability
           | ActiveRadarrBlock::EditMovieSelectQualityProfile => self.app.push_navigation_stack(
             (
-              *self.app.data.radarr_data.selected_block.get_active_block(),
-              *self.context,
+              self.app.data.radarr_data.selected_block.get_active_block(),
+              self.context,
             )
               .into(),
           ),
           ActiveRadarrBlock::EditMoviePathInput | ActiveRadarrBlock::EditMovieTagsInput => {
             self.app.push_navigation_stack(
               (
-                *self.app.data.radarr_data.selected_block.get_active_block(),
-                *self.context,
+                self.app.data.radarr_data.selected_block.get_active_block(),
+                self.context,
               )
                 .into(),
             );
@@ -329,8 +329,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
       }
       ActiveRadarrBlock::EditMoviePrompt => {
         if self.app.data.radarr_data.selected_block.get_active_block()
-          == &ActiveRadarrBlock::EditMovieConfirmPrompt
-          && *key == DEFAULT_KEYBINDINGS.confirm.key
+          == ActiveRadarrBlock::EditMovieConfirmPrompt
+          && key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditMovie(None));

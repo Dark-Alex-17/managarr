@@ -12,142 +12,6 @@ mod tests {
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS,
   };
-  use crate::models::HorizontallyScrollableText;
-
-  mod test_handle_scroll_up_and_down {
-    use rstest::rstest;
-
-    use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
-
-    use super::*;
-
-    test_iterable_scroll!(
-      test_collection_details_scroll,
-      CollectionDetailsHandler,
-      collection_movies,
-      simple_stateful_iterable_vec!(CollectionMovie, HorizontallyScrollableText),
-      ActiveRadarrBlock::CollectionDetails,
-      None,
-      title,
-      to_string
-    );
-
-    #[rstest]
-    fn test_collection_details_scroll_no_op_when_not_ready(
-      #[values(
-			DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key
-		)]
-      key: Key,
-    ) {
-      let mut app = App::default();
-      app.is_loading = true;
-      app
-        .data
-        .radarr_data
-        .collection_movies
-        .set_items(simple_stateful_iterable_vec!(
-          CollectionMovie,
-          HorizontallyScrollableText
-        ));
-
-      CollectionDetailsHandler::with(&key, &mut app, &ActiveRadarrBlock::CollectionDetails, &None)
-        .handle();
-
-      assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .collection_movies
-          .current_selection()
-          .title
-          .to_string(),
-        "Test 1"
-      );
-
-      CollectionDetailsHandler::with(&key, &mut app, &ActiveRadarrBlock::CollectionDetails, &None)
-        .handle();
-
-      assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .collection_movies
-          .current_selection()
-          .title
-          .to_string(),
-        "Test 1"
-      );
-    }
-  }
-
-  mod test_handle_home_end {
-    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
-
-    use super::*;
-
-    test_iterable_home_and_end!(
-      test_collection_details_home_end,
-      CollectionDetailsHandler,
-      collection_movies,
-      extended_stateful_iterable_vec!(CollectionMovie, HorizontallyScrollableText),
-      ActiveRadarrBlock::CollectionDetails,
-      None,
-      title,
-      to_string
-    );
-
-    #[test]
-    fn test_collection_details_home_end_no_op_when_not_ready() {
-      let mut app = App::default();
-      app.is_loading = true;
-      app
-        .data
-        .radarr_data
-        .collection_movies
-        .set_items(extended_stateful_iterable_vec!(
-          CollectionMovie,
-          HorizontallyScrollableText
-        ));
-
-      CollectionDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
-        &mut app,
-        &ActiveRadarrBlock::CollectionDetails,
-        &None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .collection_movies
-          .current_selection()
-          .title
-          .to_string(),
-        "Test 1"
-      );
-
-      CollectionDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
-        &mut app,
-        &ActiveRadarrBlock::CollectionDetails,
-        &None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .collection_movies
-          .current_selection()
-          .title
-          .to_string(),
-        "Test 1"
-      );
-    }
-  }
 
   mod test_handle_submit {
     use bimap::BiMap;
@@ -171,24 +35,24 @@ mod tests {
         .set_items(vec![CollectionMovie::default()]);
       app.data.radarr_data.quality_profile_map =
         BiMap::from_iter([(1, "B - Test 2".to_owned()), (0, "A - Test 1".to_owned())]);
-      app.data.radarr_data.selected_block = BlockSelectionState::new(&ADD_MOVIE_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block = BlockSelectionState::new(ADD_MOVIE_SELECTION_BLOCKS);
       app
         .data
         .radarr_data
         .selected_block
-        .set_index(ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
+        .set_index(0, ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
 
       CollectionDetailsHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::CollectionDetails,
-        &None,
+        ActiveRadarrBlock::CollectionDetails,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &(
+        (
           ActiveRadarrBlock::AddMoviePrompt,
           Some(ActiveRadarrBlock::CollectionDetails)
         )
@@ -205,7 +69,7 @@ mod tests {
         .is_empty());
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
-        &ActiveRadarrBlock::AddMovieSelectRootFolder
+        ActiveRadarrBlock::AddMovieSelectRootFolder
       );
       assert!(!app
         .data
@@ -250,16 +114,16 @@ mod tests {
         .set_items(vec![CollectionMovie::default()]);
 
       CollectionDetailsHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::CollectionDetails,
-        &None,
+        ActiveRadarrBlock::CollectionDetails,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::CollectionDetails.into()
+        ActiveRadarrBlock::CollectionDetails.into()
       );
       assert!(app.data.radarr_data.add_movie_modal.is_none());
     }
@@ -279,16 +143,16 @@ mod tests {
         .set_items(vec![Movie::default()]);
 
       CollectionDetailsHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::CollectionDetails,
-        &None,
+        ActiveRadarrBlock::CollectionDetails,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::ViewMovieOverview.into()
+        ActiveRadarrBlock::ViewMovieOverview.into()
       );
     }
   }
@@ -313,16 +177,16 @@ mod tests {
         .set_items(vec![CollectionMovie::default()]);
 
       CollectionDetailsHandler::with(
-        &ESC_KEY,
+        ESC_KEY,
         &mut app,
-        &ActiveRadarrBlock::CollectionDetails,
-        &None,
+        ActiveRadarrBlock::CollectionDetails,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::Collections.into()
+        ActiveRadarrBlock::Collections.into()
       );
       assert!(app.data.radarr_data.collection_movies.items.is_empty());
     }
@@ -334,16 +198,16 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::ViewMovieOverview.into());
 
       CollectionDetailsHandler::with(
-        &ESC_KEY,
+        ESC_KEY,
         &mut app,
-        &ActiveRadarrBlock::ViewMovieOverview,
-        &None,
+        ActiveRadarrBlock::ViewMovieOverview,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::CollectionDetails.into()
+        ActiveRadarrBlock::CollectionDetails.into()
       );
     }
   }
@@ -367,7 +231,7 @@ mod tests {
       test_edit_collection_key!(
         CollectionDetailsHandler,
         ActiveRadarrBlock::CollectionDetails,
-        ActiveRadarrBlock::CollectionDetails
+        Some(ActiveRadarrBlock::CollectionDetails)
       );
     }
 
@@ -388,16 +252,16 @@ mod tests {
       app.data.radarr_data = radarr_data;
 
       CollectionDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.edit.key,
+        DEFAULT_KEYBINDINGS.edit.key,
         &mut app,
-        &ActiveRadarrBlock::CollectionDetails,
-        &None,
+        ActiveRadarrBlock::CollectionDetails,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::CollectionDetails.into()
+        ActiveRadarrBlock::CollectionDetails.into()
       );
       assert!(app.data.radarr_data.edit_collection_modal.is_none());
     }
@@ -407,9 +271,9 @@ mod tests {
   fn test_collection_details_handler_accepts() {
     ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
       if COLLECTION_DETAILS_BLOCKS.contains(&active_radarr_block) {
-        assert!(CollectionDetailsHandler::accepts(&active_radarr_block));
+        assert!(CollectionDetailsHandler::accepts(active_radarr_block));
       } else {
-        assert!(!CollectionDetailsHandler::accepts(&active_radarr_block));
+        assert!(!CollectionDetailsHandler::accepts(active_radarr_block));
       }
     });
   }
@@ -420,10 +284,10 @@ mod tests {
     app.is_loading = true;
 
     let handler = CollectionDetailsHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::CollectionDetails,
-      &None,
+      ActiveRadarrBlock::CollectionDetails,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -435,10 +299,10 @@ mod tests {
     app.is_loading = false;
 
     let handler = CollectionDetailsHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::CollectionDetails,
-      &None,
+      ActiveRadarrBlock::CollectionDetails,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -455,10 +319,10 @@ mod tests {
       .set_items(vec![CollectionMovie::default()]);
 
     let handler = CollectionDetailsHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::CollectionDetails,
-      &None,
+      ActiveRadarrBlock::CollectionDetails,
+      None,
     );
 
     assert!(handler.is_ready());

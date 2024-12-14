@@ -3,12 +3,11 @@ use crate::app::App;
 use crate::models::servarr_data::modals::IndexerTestResultModalItem;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::Route;
-use crate::ui::radarr_ui::indexers::draw_indexers;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, get_width_from_percentage, title_block};
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::Size;
-use crate::ui::{draw_popup_over, DrawUi};
+use crate::ui::{draw_popup, DrawUi};
 use ratatui::layout::{Alignment, Constraint, Rect};
 use ratatui::widgets::{Cell, Row};
 use ratatui::Frame;
@@ -28,26 +27,22 @@ impl DrawUi for TestAllIndexersUi {
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    draw_popup_over(
-      f,
-      app,
-      area,
-      draw_indexers,
-      draw_test_all_indexers_test_results,
-      Size::Large,
-    );
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
+    draw_popup(f, app, draw_test_all_indexers_test_results, Size::Large);
   }
 }
 
 fn draw_test_all_indexers_test_results(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  let is_loading = app.is_loading || app.data.radarr_data.indexer_test_all_results.is_none();
+  let block = title_block("Test All Indexers");
+
   let current_selection =
     if let Some(test_all_results) = app.data.radarr_data.indexer_test_all_results.as_ref() {
       test_all_results.current_selection().clone()
     } else {
       IndexerTestResultModalItem::default()
     };
-  f.render_widget(title_block("Test All Indexers"), area);
+  f.render_widget(block, area);
   let help_footer = format!(
     "<↑↓> scroll | {}",
     build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES)
@@ -77,7 +72,7 @@ fn draw_test_all_indexers_test_results(f: &mut Frame<'_>, app: &mut App<'_>, are
     test_results_row_mapping,
   )
   .block(borderless_block())
-  .loading(app.is_loading)
+  .loading(is_loading)
   .footer(Some(help_footer))
   .footer_alignment(Alignment::Center)
   .margin(1)

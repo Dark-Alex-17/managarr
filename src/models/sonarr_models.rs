@@ -78,9 +78,11 @@ pub struct BlocklistItem {
   pub id: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub series_id: i64,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub series_title: Option<String>,
   pub episode_ids: Vec<Number>,
   pub source_title: String,
-  pub language: Language,
+  pub languages: Vec<Language>,
   pub quality: QualityWrapper,
   pub date: DateTime<Utc>,
   pub protocol: String,
@@ -105,7 +107,7 @@ pub struct DeleteSeriesParams {
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {
   pub title: String,
-  pub status: String,
+  pub status: DownloadStatus,
   #[serde(deserialize_with = "super::from_i64")]
   pub id: i64,
   #[serde(deserialize_with = "super::from_i64")]
@@ -117,10 +119,61 @@ pub struct DownloadRecord {
   pub output_path: Option<HorizontallyScrollableText>,
   #[serde(default)]
   pub indexer: String,
-  pub download_client: String,
+  pub download_client: Option<String>,
 }
 
 impl Eq for DownloadRecord {}
+
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter)]
+#[serde(rename_all = "camelCase")]
+pub enum DownloadStatus {
+  #[default]
+  Unknown,
+  Queued,
+  Paused,
+  Downloading,
+  Completed,
+  Failed,
+  Warning,
+  Delay,
+  DownloadClientUnavailable,
+  Fallback,
+}
+
+impl Display for DownloadStatus {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    let download_status = match self {
+      DownloadStatus::Unknown => "unknown",
+      DownloadStatus::Queued => "queued",
+      DownloadStatus::Paused => "paused",
+      DownloadStatus::Downloading => "downloading",
+      DownloadStatus::Completed => "completed",
+      DownloadStatus::Failed => "failed",
+      DownloadStatus::Warning => "warning",
+      DownloadStatus::Delay => "delay",
+      DownloadStatus::DownloadClientUnavailable => "downloadClientUnavailable",
+      DownloadStatus::Fallback => "fallback",
+    };
+    write!(f, "{download_status}")
+  }
+}
+
+impl<'a> EnumDisplayStyle<'a> for DownloadStatus {
+  fn to_display_str(self) -> &'a str {
+    match self {
+      DownloadStatus::Unknown => "Unknown",
+      DownloadStatus::Queued => "Queued",
+      DownloadStatus::Paused => "Paused",
+      DownloadStatus::Downloading => "Downloading",
+      DownloadStatus::Completed => "Completed",
+      DownloadStatus::Failed => "Failed",
+      DownloadStatus::Warning => "Warning",
+      DownloadStatus::Delay => "Delay",
+      DownloadStatus::DownloadClientUnavailable => "Download Client Unavailable",
+      DownloadStatus::Fallback => "Fallback",
+    }
+  }
+}
 
 #[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -157,7 +210,7 @@ pub struct Episode {
   pub season_number: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub episode_number: i64,
-  pub title: Option<String>,
+  pub title: String,
   pub air_date_utc: Option<DateTime<Utc>>,
   pub overview: Option<String>,
   pub has_file: bool,
@@ -167,18 +220,21 @@ pub struct Episode {
 
 impl Display for Episode {
   fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    write!(f, "{}", self.title.as_ref().unwrap_or(&String::new()))
+    write!(f, "{}", self.title)
   }
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct EpisodeFile {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
   pub relative_path: String,
   pub path: String,
   #[serde(deserialize_with = "super::from_i64")]
   pub size: i64,
-  pub language: Language,
+  pub languages: Vec<Language>,
+  pub quality: QualityWrapper,
   pub date_added: DateTime<Utc>,
   pub media_info: Option<MediaInfo>,
 }
@@ -223,6 +279,13 @@ pub struct MediaInfo {
   pub subtitles: Option<String>,
 }
 
+#[derive(Default, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct MonitorEpisodeBody {
+  pub episode_ids: Vec<i64>,
+  pub monitored: bool,
+}
+
 #[derive(Derivative, Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[derivative(Default)]
 pub struct Rating {
@@ -237,6 +300,8 @@ impl Eq for Rating {}
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Season {
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub title: Option<String>,
   #[serde(deserialize_with = "super::from_i64")]
   pub season_number: i64,
   pub monitored: bool,
@@ -463,6 +528,10 @@ pub struct SonarrHistoryData {
   pub published_date: Option<DateTime<Utc>>,
   pub message: Option<String>,
   pub reason: Option<String>,
+  pub source_path: Option<String>,
+  pub source_relative_path: Option<String>,
+  pub path: Option<String>,
+  pub relative_path: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
@@ -519,9 +588,9 @@ pub struct SonarrHistoryItem {
   #[serde(deserialize_with = "super::from_i64")]
   pub episode_id: i64,
   pub quality: QualityWrapper,
-  pub language: Language,
+  pub languages: Vec<Language>,
   pub date: DateTime<Utc>,
-  pub event_type: String,
+  pub event_type: SonarrHistoryEventType,
   pub data: SonarrHistoryData,
 }
 
@@ -619,6 +688,7 @@ pub enum SonarrSerdeable {
   DiskSpaces(Vec<DiskSpace>),
   Episode(Episode),
   Episodes(Vec<Episode>),
+  EpisodeFiles(Vec<EpisodeFile>),
   HostConfig(HostConfig),
   IndexerSettings(IndexerSettings),
   Indexers(Vec<Indexer>),
@@ -662,6 +732,7 @@ serde_enum_from!(
     DiskSpaces(Vec<DiskSpace>),
     Episode(Episode),
     Episodes(Vec<Episode>),
+    EpisodeFiles(Vec<EpisodeFile>),
     HostConfig(HostConfig),
     IndexerSettings(IndexerSettings),
     Indexers(Vec<Indexer>),

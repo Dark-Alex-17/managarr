@@ -58,6 +58,18 @@ mod tests {
     }
 
     #[test]
+    fn test_list_episode_files_requires_series_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "list", "episode-files"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
     fn test_list_episode_history_requires_series_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "list", "episode-history"]);
@@ -147,6 +159,79 @@ mod tests {
       {
         assert_eq!(episodes_command, expected_args);
       }
+    }
+
+    #[test]
+    fn test_list_episode_files_success() {
+      let expected_args = SonarrListCommand::EpisodeFiles { series_id: 1 };
+      let result = Cli::try_parse_from([
+        "managarr",
+        "sonarr",
+        "list",
+        "episode-files",
+        "--series-id",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
+
+      if let Some(Command::Sonarr(SonarrCommand::List(episode_files_command))) =
+        result.unwrap().command
+      {
+        assert_eq!(episode_files_command, expected_args);
+      }
+    }
+
+    #[test]
+    fn test_season_history_requires_series_id() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "list",
+        "season-history",
+        "--season-number",
+        "1",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_season_history_requires_season_number() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "list",
+        "season-history",
+        "--series-id",
+        "1",
+      ]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_season_history_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "list",
+        "season-history",
+        "--series-id",
+        "1",
+        "--season-number",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
     }
 
     #[test]
@@ -264,6 +349,32 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_handle_list_episode_files_command() {
+      let expected_series_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::GetEpisodeFiles(Some(expected_series_id)).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let list_episode_files_command = SonarrListCommand::EpisodeFiles { series_id: 1 };
+
+      let result =
+        SonarrListCommandHandler::with(&app_arc, list_episode_files_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
     async fn test_handle_list_history_command() {
       let expected_events = 1000;
       let mut mock_network = MockNetworkTrait::new();
@@ -363,6 +474,36 @@ mod tests {
 
       let result =
         SonarrListCommandHandler::with(&app_arc, list_episode_history_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_list_season_history_command() {
+      let expected_series_id = 1;
+      let expected_season_number = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::GetSeasonHistory(Some((expected_series_id, expected_season_number))).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let list_season_history_command = SonarrListCommand::SeasonHistory {
+        series_id: 1,
+        season_number: 1,
+      };
+
+      let result =
+        SonarrListCommandHandler::with(&app_arc, list_season_history_command, &mut mock_network)
           .handle()
           .await;
 

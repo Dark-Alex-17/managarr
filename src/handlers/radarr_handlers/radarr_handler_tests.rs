@@ -27,23 +27,23 @@ mod tests {
     let mut app = App::default();
     app.data.radarr_data.main_tabs.set_index(index);
 
-    handle_change_tab_left_right_keys(&mut app, &DEFAULT_KEYBINDINGS.left.key);
+    handle_change_tab_left_right_keys(&mut app, DEFAULT_KEYBINDINGS.left.key);
 
     assert_eq!(
       app.data.radarr_data.main_tabs.get_active_route(),
-      &left_block.into()
+      left_block.into()
     );
-    assert_eq!(app.get_current_route(), &left_block.into());
+    assert_eq!(app.get_current_route(), left_block.into());
 
     app.data.radarr_data.main_tabs.set_index(index);
 
-    handle_change_tab_left_right_keys(&mut app, &DEFAULT_KEYBINDINGS.right.key);
+    handle_change_tab_left_right_keys(&mut app, DEFAULT_KEYBINDINGS.right.key);
 
     assert_eq!(
       app.data.radarr_data.main_tabs.get_active_route(),
-      &right_block.into()
+      right_block.into()
     );
-    assert_eq!(app.get_current_route(), &right_block.into());
+    assert_eq!(app.get_current_route(), right_block.into());
   }
 
   #[rstest]
@@ -213,7 +213,7 @@ mod tests {
   #[test]
   fn test_radarr_handler_accepts() {
     ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
-      assert!(RadarrHandler::accepts(&active_radarr_block));
+      assert!(RadarrHandler::accepts(active_radarr_block));
     })
   }
 
@@ -223,10 +223,10 @@ mod tests {
     app.is_loading = true;
 
     let handler = RadarrHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::System,
-      &None,
+      ActiveRadarrBlock::System,
+      None,
     );
 
     assert!(handler.is_ready());

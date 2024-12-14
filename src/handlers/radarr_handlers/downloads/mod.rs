@@ -1,10 +1,12 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
+use crate::handle_table_events;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
+use crate::models::radarr_models::DownloadRecord;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
-use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 
 #[cfg(test)]
@@ -12,22 +14,40 @@ use crate::network::radarr_network::RadarrEvent;
 mod downloads_handler_tests;
 
 pub(super) struct DownloadsHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  _context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  _context: Option<ActiveRadarrBlock>,
+}
+
+impl<'a, 'b> DownloadsHandler<'a, 'b> {
+  handle_table_events!(
+    self,
+    downloads,
+    self.app.data.radarr_data.downloads,
+    DownloadRecord
+  );
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    DOWNLOADS_BLOCKS.contains(active_block)
+  fn handle(&mut self) {
+    let downloads_table_handling_config =
+      TableHandlingConfig::new(ActiveRadarrBlock::Downloads.into());
+
+    if !self.handle_downloads_table_events(downloads_table_handling_config) {
+      self.handle_key_event();
+    }
+  }
+
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    DOWNLOADS_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    _context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    _context: Option<ActiveRadarrBlock>,
   ) -> DownloadsHandler<'a, 'b> {
     DownloadsHandler {
       key,
@@ -37,7 +57,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -45,32 +65,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
     !self.app.is_loading && !self.app.data.radarr_data.downloads.is_empty()
   }
 
-  fn handle_scroll_up(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Downloads {
-      self.app.data.radarr_data.downloads.scroll_up()
-    }
-  }
+  fn handle_scroll_up(&mut self) {}
 
-  fn handle_scroll_down(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Downloads {
-      self.app.data.radarr_data.downloads.scroll_down()
-    }
-  }
+  fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Downloads {
-      self.app.data.radarr_data.downloads.scroll_to_top()
-    }
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Downloads {
-      self.app.data.radarr_data.downloads.scroll_to_bottom()
-    }
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::Downloads {
+    if self.active_radarr_block == ActiveRadarrBlock::Downloads {
       self
         .app
         .push_navigation_stack(ActiveRadarrBlock::DeleteDownloadPrompt.into())
@@ -121,18 +125,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::Downloads => match self.key {
-        _ if *key == DEFAULT_KEYBINDINGS.update.key => {
+        _ if key == DEFAULT_KEYBINDINGS.update.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::UpdateDownloadsPrompt.into());
         }
-        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self.app.should_refresh = true;
         }
         _ => (),
       },
       ActiveRadarrBlock::DeleteDownloadPrompt => {
-        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+        if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteDownload(None));
 
@@ -140,7 +144,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
         }
       }
       ActiveRadarrBlock::UpdateDownloadsPrompt => {
-        if *key == DEFAULT_KEYBINDINGS.confirm.key {
+        if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateDownloads);
 

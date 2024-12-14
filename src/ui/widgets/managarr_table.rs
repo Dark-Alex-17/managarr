@@ -1,36 +1,58 @@
+use super::input_box_popup::InputBoxPopup;
+use super::message::Message;
+use super::popup::Size;
 use crate::models::stateful_table::StatefulTable;
 use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::layout_block_top_border;
+use crate::ui::utils::{centered_rect, layout_block_top_border, title_block_centered};
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::popup::Popup;
 use crate::ui::widgets::selectable_list::SelectableList;
 use crate::ui::HIGHLIGHT_SYMBOL;
+use derive_setters::Setters;
 use ratatui::buffer::Buffer;
-use ratatui::layout::{Alignment, Constraint, Layout, Rect};
+use ratatui::layout::{Alignment, Constraint, Layout, Position, Rect};
 use ratatui::prelude::{Style, Stylize, Text};
-use ratatui::widgets::{Block, ListItem, Paragraph, Row, StatefulWidget, Table, Widget};
+use ratatui::widgets::{Block, ListItem, Paragraph, Row, StatefulWidget, Table, Widget, WidgetRef};
+use ratatui::Frame;
 use std::fmt::Debug;
+use std::sync::atomic::Ordering;
 
 #[cfg(test)]
 #[path = "managarr_table_tests.rs"]
 mod managarr_table_tests;
 
+#[derive(Setters)]
 pub struct ManagarrTable<'a, T, F>
 where
   F: Fn(&T) -> Row<'a>,
   T: Clone + PartialEq + Eq + Debug,
 {
+  #[setters(strip_option)]
   content: Option<&'a mut StatefulTable<T>>,
+  #[setters(skip)]
   table_headers: Vec<String>,
+  #[setters(skip)]
   constraints: Vec<Constraint>,
   row_mapper: F,
   footer: Option<String>,
   footer_alignment: Alignment,
   block: Block<'a>,
   margin: u16,
+  #[setters(rename = "loading")]
   is_loading: bool,
   highlight_rows: bool,
+  #[setters(rename = "sorting")]
   is_sorting: bool,
+  #[setters(rename = "searching")]
+  is_searching: bool,
+  search_produced_empty_results: bool,
+  #[setters(rename = "filtering")]
+  is_filtering: bool,
+  filter_produced_empty_results: bool,
+  search_box_content_length: usize,
+  search_box_offset: usize,
+  filter_box_content_length: usize,
+  filter_box_offset: usize,
 }
 
 impl<'a, T, F> ManagarrTable<'a, T, F>
@@ -39,8 +61,8 @@ where
   T: Clone + PartialEq + Eq + Debug,
 {
   pub fn new(content: Option<&'a mut StatefulTable<T>>, row_mapper: F) -> Self {
-    Self {
-      content,
+    let mut managarr_table = Self {
+      content: None,
       table_headers: Vec::new(),
       constraints: Vec::new(),
       row_mapper,
@@ -51,7 +73,28 @@ where
       is_loading: false,
       highlight_rows: true,
       is_sorting: false,
+      is_searching: false,
+      search_produced_empty_results: false,
+      is_filtering: false,
+      filter_produced_empty_results: false,
+      search_box_content_length: 0,
+      search_box_offset: 0,
+      filter_box_content_length: 0,
+      filter_box_offset: 0,
+    };
+
+    if let Some(content) = content.as_ref() {
+      if let Some(search) = content.search.as_ref() {
+        managarr_table.search_box_content_length = search.text.len();
+        managarr_table.search_box_offset = search.offset.load(Ordering::SeqCst);
+      } else if let Some(filter) = content.filter.as_ref() {
+        managarr_table.filter_box_content_length = filter.text.len();
+        managarr_table.filter_box_offset = filter.offset.load(Ordering::SeqCst);
+      }
     }
+
+    managarr_table.content = content;
+    managarr_table
   }
 
   pub fn headers<I>(mut self, headers: I) -> Self
@@ -69,41 +112,6 @@ where
     I::Item: Into<Constraint>,
   {
     self.constraints = constraints.into_iter().map(Into::into).collect();
-    self
-  }
-
-  pub fn footer(mut self, footer: Option<String>) -> Self {
-    self.footer = footer;
-    self
-  }
-
-  pub fn footer_alignment(mut self, alignment: Alignment) -> Self {
-    self.footer_alignment = alignment;
-    self
-  }
-
-  pub fn block(mut self, block: Block<'a>) -> Self {
-    self.block = block;
-    self
-  }
-
-  pub fn margin(mut self, margin: u16) -> Self {
-    self.margin = margin;
-    self
-  }
-
-  pub fn loading(mut self, is_loading: bool) -> Self {
-    self.is_loading = is_loading;
-    self
-  }
-
-  pub fn highlight_rows(mut self, highlight_rows: bool) -> Self {
-    self.highlight_rows = highlight_rows;
-    self
-  }
-
-  pub fn sorting(mut self, is_sorting: bool) -> Self {
-    self.is_sorting = is_sorting;
     self
   }
 
@@ -160,6 +168,34 @@ where
             .dimensions(20, 50)
             .render(table_area, buf);
         }
+
+        if self.is_searching {
+          let box_content = &content.search.as_ref().unwrap();
+          InputBoxPopup::new(&box_content.text)
+            .offset(box_content.offset.load(Ordering::SeqCst))
+            .block(title_block_centered("Search"))
+            .render_ref(table_area, buf);
+        }
+
+        if self.is_filtering {
+          let box_content = &content.filter.as_ref().unwrap();
+          InputBoxPopup::new(&box_content.text)
+            .offset(box_content.offset.load(Ordering::SeqCst))
+            .block(title_block_centered("Filter"))
+            .render_ref(table_area, buf);
+        }
+
+        if self.search_produced_empty_results {
+          Popup::new(Message::new("No items found matching search"))
+            .size(Size::Message)
+            .render(table_area, buf);
+        }
+
+        if self.filter_produced_empty_results {
+          Popup::new(Message::new("The given filter produced empty results"))
+            .size(Size::Message)
+            .render(table_area, buf);
+        }
       } else {
         loading_block.render(table_area, buf);
       }
@@ -188,6 +224,36 @@ where
       .into_iter()
       .map(Text::from)
       .collect()
+  }
+
+  pub fn show_cursor(&self, f: &mut Frame<'_>, area: Rect) {
+    let mut draw_cursor = |length: usize, offset: usize| {
+      let table_area = if self.footer.is_some() {
+        let [content_area, _] = Layout::vertical([Constraint::Fill(0), Constraint::Length(2)])
+          .margin(self.margin)
+          .areas(area);
+        content_area
+      } else {
+        area
+      };
+      let popup_area = Rect {
+        height: 7,
+        ..centered_rect(30, 20, table_area)
+      };
+      let [text_box_area, _] = Layout::vertical([Constraint::Length(3), Constraint::Length(1)])
+        .margin(1)
+        .areas(popup_area);
+      f.set_cursor_position(Position {
+        x: text_box_area.x + (length - offset) as u16 + 1,
+        y: text_box_area.y + 1,
+      });
+    };
+
+    if self.is_searching {
+      draw_cursor(self.search_box_content_length, self.search_box_offset);
+    } else if self.is_filtering {
+      draw_cursor(self.filter_box_content_length, self.filter_box_offset);
+    }
   }
 }
 

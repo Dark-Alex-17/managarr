@@ -1,4 +1,4 @@
-use std::iter;
+use std::{cmp, iter};
 
 use chrono::{Duration, Utc};
 use ratatui::layout::{Constraint, Layout, Rect};
@@ -34,13 +34,8 @@ mod collections;
 mod downloads;
 mod indexers;
 mod library;
-mod radarr_ui_utils;
 mod root_folders;
 mod system;
-
-#[cfg(test)]
-#[path = "radarr_ui_tests.rs"]
-mod radarr_ui_tests;
 
 pub(super) struct RadarrUi;
 
@@ -51,7 +46,7 @@ impl DrawUi for RadarrUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let content_area = draw_tabs(f, area, "Movies", &app.data.radarr_data.main_tabs);
-    let route = *app.get_current_route();
+    let route = app.get_current_route();
 
     match route {
       _ if LibraryUi::accepts(route) => LibraryUi::draw(f, app, content_area),
@@ -178,15 +173,17 @@ fn draw_downloads_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   if !downloads_vec.is_empty() {
     f.render_widget(block, area);
 
+    let max_items = ((((area.height as f32 / 2.0).floor() * 2.0) as i32) / 2) - 1;
+    let items = cmp::min(downloads_vec.len(), max_items.unsigned_abs() as usize);
     let download_item_areas = Layout::vertical(
       iter::repeat(Constraint::Length(2))
-        .take(downloads_vec.len())
+        .take(items)
         .collect::<Vec<Constraint>>(),
     )
     .margin(1)
     .split(area);
 
-    for i in 0..downloads_vec.len() {
+    for i in 0..items {
       let DownloadRecord {
         title,
         sizeleft,

@@ -1,12 +1,10 @@
-use std::sync::atomic::Ordering;
-
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::Text;
 use ratatui::widgets::{ListItem, Paragraph};
 use ratatui::Frame;
+use std::sync::atomic::Ordering;
 
-use crate::app::context_clues::build_context_clue_string;
-use crate::app::radarr::radarr_context_clues::CONFIRMATION_PROMPT_CONTEXT_CLUES;
+use crate::app::context_clues::{build_context_clue_string, CONFIRMATION_PROMPT_CONTEXT_CLUES};
 use crate::app::App;
 use crate::models::servarr_data::radarr::modals::EditCollectionModal;
 use crate::models::servarr_data::radarr::radarr_data::{
@@ -15,7 +13,6 @@ use crate::models::servarr_data::radarr::radarr_data::{
 use crate::models::{EnumDisplayStyle, Route};
 use crate::render_selectable_input_box;
 use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsUi;
-use crate::ui::radarr_ui::collections::draw_collections;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_paragraph_borderless, title_block_centered};
 use crate::ui::widgets::button::Button;
@@ -23,7 +20,7 @@ use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup, draw_popup_over, draw_popup_over_ui, DrawUi};
+use crate::ui::{draw_popup, DrawUi};
 
 #[cfg(test)]
 #[path = "edit_collection_ui_tests.rs"]
@@ -33,51 +30,42 @@ pub(super) struct EditCollectionUi;
 
 impl DrawUi for EditCollectionUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
+    if let Route::Radarr(active_radarr_block, context_option) = route {
+      if let Some(context) = context_option {
+        return EDIT_COLLECTION_BLOCKS.contains(&active_radarr_block)
+          && context == ActiveRadarrBlock::CollectionDetails;
+      }
+
       return EDIT_COLLECTION_BLOCKS.contains(&active_radarr_block);
     }
 
     false
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Radarr(active_radarr_block, context_option) = *app.get_current_route() {
-      let draw_edit_collection_prompt =
-        |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| match active_radarr_block {
-          ActiveRadarrBlock::EditCollectionSelectMinimumAvailability => {
-            draw_edit_collection_confirmation_prompt(f, app, prompt_area);
-            draw_edit_collection_select_minimum_availability_popup(f, app);
-          }
-          ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
-            draw_edit_collection_confirmation_prompt(f, app, prompt_area);
-            draw_edit_collection_select_quality_profile_popup(f, app);
-          }
-          ActiveRadarrBlock::EditCollectionPrompt
-          | ActiveRadarrBlock::EditCollectionToggleMonitored
-          | ActiveRadarrBlock::EditCollectionRootFolderPathInput
-          | ActiveRadarrBlock::EditCollectionToggleSearchOnAdd => {
-            draw_edit_collection_confirmation_prompt(f, app, prompt_area)
-          }
-          _ => (),
-        };
-
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
+    if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
       if let Some(context) = context_option {
-        match context {
-          ActiveRadarrBlock::Collections => draw_popup_over(
-            f,
-            app,
-            area,
-            draw_collections,
-            draw_edit_collection_prompt,
-            Size::Medium,
-          ),
-          _ if COLLECTION_DETAILS_BLOCKS.contains(&context) => {
-            draw_popup_over_ui::<CollectionDetailsUi>(f, app, area, draw_collections, Size::Large);
-            draw_popup(f, app, draw_edit_collection_prompt, Size::Medium);
-          }
-          _ => (),
+        if COLLECTION_DETAILS_BLOCKS.contains(&context) {
+          draw_popup(f, app, CollectionDetailsUi::draw, Size::Large);
         }
       }
+
+      draw_popup(
+        f,
+        app,
+        draw_edit_collection_confirmation_prompt,
+        Size::Medium,
+      );
+
+      match active_radarr_block {
+        ActiveRadarrBlock::EditCollectionSelectMinimumAvailability => {
+          draw_edit_collection_select_minimum_availability_popup(f, app);
+        }
+        ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
+          draw_edit_collection_select_quality_profile_popup(f, app);
+        }
+        _ => (),
+      };
     }
   }
 }
@@ -102,7 +90,7 @@ fn draw_edit_collection_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>
   let title = format!("Edit - {collection_title}");
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();
-  let highlight_yes_no = selected_block == &ActiveRadarrBlock::EditCollectionConfirmPrompt;
+  let highlight_yes_no = selected_block == ActiveRadarrBlock::EditCollectionConfirmPrompt;
   let EditCollectionModal {
     minimum_availability_list,
     quality_profile_list,
@@ -135,30 +123,30 @@ fn draw_edit_collection_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>
   let help_paragraph = Paragraph::new(help_text).centered();
   let prompt_paragraph = layout_paragraph_borderless(&collection_overview);
   let monitored_checkbox = Checkbox::new("Monitored")
-    .highlighted(selected_block == &ActiveRadarrBlock::EditCollectionToggleMonitored)
+    .highlighted(selected_block == ActiveRadarrBlock::EditCollectionToggleMonitored)
     .checked(monitored.unwrap_or_default());
   let min_availability_drop_down_button = Button::new()
     .title(selected_minimum_availability.to_display_str())
     .label("Minimum Availability")
     .icon("▼")
-    .selected(selected_block == &ActiveRadarrBlock::EditCollectionSelectMinimumAvailability);
+    .selected(selected_block == ActiveRadarrBlock::EditCollectionSelectMinimumAvailability);
   let quality_profile_drop_down_button = Button::new()
     .title(selected_quality_profile)
     .label("Quality Profile")
     .icon("▼")
-    .selected(selected_block == &ActiveRadarrBlock::EditCollectionSelectQualityProfile);
+    .selected(selected_block == ActiveRadarrBlock::EditCollectionSelectQualityProfile);
 
-  if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+  if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
     let root_folder_input_box = InputBox::new(&path.text)
       .offset(path.offset.load(Ordering::SeqCst))
       .label("Root Folder")
-      .highlighted(selected_block == &ActiveRadarrBlock::EditCollectionRootFolderPathInput)
+      .highlighted(selected_block == ActiveRadarrBlock::EditCollectionRootFolderPathInput)
       .selected(active_radarr_block == ActiveRadarrBlock::EditCollectionRootFolderPathInput);
     render_selectable_input_box!(root_folder_input_box, f, root_folder_area);
   }
 
   let search_on_add_checkbox = Checkbox::new("Search on Add")
-    .highlighted(selected_block == &ActiveRadarrBlock::EditCollectionToggleSearchOnAdd)
+    .highlighted(selected_block == ActiveRadarrBlock::EditCollectionToggleSearchOnAdd)
     .checked(search_on_add.unwrap_or_default());
   let save_button = Button::new()
     .title("Save")

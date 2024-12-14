@@ -10,22 +10,22 @@ use crate::network::radarr_network::RadarrEvent;
 mod delete_movie_handler_tests;
 
 pub(super) struct DeleteMovieHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  _context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  _context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    DELETE_MOVIE_BLOCKS.contains(active_block)
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    DELETE_MOVIE_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    _context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    _context: Option<ActiveRadarrBlock>,
   ) -> Self {
     DeleteMovieHandler {
       key,
@@ -35,7 +35,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -44,14 +44,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'
   }
 
   fn handle_scroll_up(&mut self) {
-    if *self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
-      self.app.data.radarr_data.selected_block.previous();
+    if self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
+      self.app.data.radarr_data.selected_block.up();
     }
   }
 
   fn handle_scroll_down(&mut self) {
-    if *self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
-      self.app.data.radarr_data.selected_block.next();
+    if self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
+      self.app.data.radarr_data.selected_block.down();
     }
   }
 
@@ -62,13 +62,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'
   fn handle_delete(&mut self) {}
 
   fn handle_left_right_action(&mut self) {
-    if *self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
+    if self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
       handle_prompt_toggle(self.app, self.key);
     }
   }
 
   fn handle_submit(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::DeleteMoviePrompt {
+    if self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
       match self.app.data.radarr_data.selected_block.get_active_block() {
         ActiveRadarrBlock::DeleteMovieConfirmPrompt => {
           if self.app.data.radarr_data.prompt_confirm {
@@ -94,7 +94,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'
   }
 
   fn handle_esc(&mut self) {
-    if *self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
+    if self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt {
       self.app.pop_navigation_stack();
       self.app.data.radarr_data.reset_delete_movie_preferences();
       self.app.data.radarr_data.prompt_confirm = false;
@@ -102,10 +102,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'
   }
 
   fn handle_char_key_event(&mut self) {
-    if self.active_radarr_block == &ActiveRadarrBlock::DeleteMoviePrompt
+    if self.active_radarr_block == ActiveRadarrBlock::DeleteMoviePrompt
       && self.app.data.radarr_data.selected_block.get_active_block()
-        == &ActiveRadarrBlock::DeleteMovieConfirmPrompt
-      && *self.key == DEFAULT_KEYBINDINGS.confirm.key
+        == ActiveRadarrBlock::DeleteMovieConfirmPrompt
+      && self.key == DEFAULT_KEYBINDINGS.confirm.key
     {
       self.app.data.radarr_data.prompt_confirm = true;
       self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteMovie(None));

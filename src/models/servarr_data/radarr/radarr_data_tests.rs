@@ -4,12 +4,14 @@ mod tests {
     use chrono::{DateTime, Utc};
     use pretty_assertions::{assert_eq, assert_str_eq};
 
-    use crate::app::context_clues::build_context_clue_string;
+    use crate::app::context_clues::{
+      build_context_clue_string, BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
+      INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+    };
     use crate::app::radarr::radarr_context_clues::{
-      BLOCKLIST_CONTEXT_CLUES, COLLECTIONS_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
-      INDEXERS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES,
-      MANUAL_MOVIE_SEARCH_CONTEXT_CLUES, MOVIE_DETAILS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
-      SYSTEM_CONTEXT_CLUES,
+      COLLECTIONS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES,
+      MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXT_CLUES,
+      MOVIE_DETAILS_CONTEXT_CLUES,
     };
 
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils;
@@ -90,7 +92,7 @@ mod tests {
       assert!(radarr_data.edit_root_folder.is_none());
       assert!(radarr_data.edit_indexer_modal.is_none());
       assert!(radarr_data.indexer_settings.is_none());
-      assert!(radarr_data.indexer_test_error.is_none());
+      assert!(radarr_data.indexer_test_errors.is_none());
       assert!(radarr_data.indexer_test_all_results.is_none());
       assert!(radarr_data.movie_details_modal.is_none());
       assert!(radarr_data.prompt_confirm_action.is_none());
@@ -301,8 +303,7 @@ mod tests {
 
     #[test]
     fn test_indexers_blocks_contents() {
-      assert_eq!(INDEXERS_BLOCKS.len(), 4);
-      assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::AddIndexer));
+      assert_eq!(INDEXERS_BLOCKS.len(), 3);
       assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::DeleteIndexerPrompt));
       assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::Indexers));
       assert!(INDEXERS_BLOCKS.contains(&ActiveRadarrBlock::TestIndexer));
@@ -411,7 +412,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_blocks_contents() {
-      assert_eq!(EDIT_INDEXER_BLOCKS.len(), 10);
+      assert_eq!(EDIT_INDEXER_BLOCKS.len(), 11);
       assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerPrompt));
       assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerConfirmPrompt));
       assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerApiKeyInput));
@@ -426,6 +427,7 @@ mod tests {
       );
       assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerUrlInput));
       assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerTagsInput));
+      assert!(EDIT_INDEXER_BLOCKS.contains(&ActiveRadarrBlock::EditIndexerPriorityInput));
     }
 
     #[test]
@@ -466,27 +468,27 @@ mod tests {
 
       assert_eq!(
         add_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::AddMovieSelectRootFolder
+        &[ActiveRadarrBlock::AddMovieSelectRootFolder]
       );
       assert_eq!(
         add_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::AddMovieSelectMonitor
+        &[ActiveRadarrBlock::AddMovieSelectMonitor]
       );
       assert_eq!(
         add_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::AddMovieSelectMinimumAvailability
+        &[ActiveRadarrBlock::AddMovieSelectMinimumAvailability]
       );
       assert_eq!(
         add_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::AddMovieSelectQualityProfile
+        &[ActiveRadarrBlock::AddMovieSelectQualityProfile]
       );
       assert_eq!(
         add_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::AddMovieTagsInput
+        &[ActiveRadarrBlock::AddMovieTagsInput]
       );
       assert_eq!(
         add_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::AddMovieConfirmPrompt
+        &[ActiveRadarrBlock::AddMovieConfirmPrompt]
       );
       assert_eq!(add_movie_block_iter.next(), None);
     }
@@ -497,27 +499,27 @@ mod tests {
 
       assert_eq!(
         edit_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditMovieToggleMonitored
+        &[ActiveRadarrBlock::EditMovieToggleMonitored]
       );
       assert_eq!(
         edit_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditMovieSelectMinimumAvailability
+        &[ActiveRadarrBlock::EditMovieSelectMinimumAvailability]
       );
       assert_eq!(
         edit_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditMovieSelectQualityProfile
+        &[ActiveRadarrBlock::EditMovieSelectQualityProfile]
       );
       assert_eq!(
         edit_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditMoviePathInput
+        &[ActiveRadarrBlock::EditMoviePathInput]
       );
       assert_eq!(
         edit_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditMovieTagsInput
+        &[ActiveRadarrBlock::EditMovieTagsInput]
       );
       assert_eq!(
         edit_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditMovieConfirmPrompt
+        &[ActiveRadarrBlock::EditMovieConfirmPrompt]
       );
       assert_eq!(edit_movie_block_iter.next(), None);
     }
@@ -528,27 +530,27 @@ mod tests {
 
       assert_eq!(
         edit_collection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditCollectionToggleMonitored
+        &[ActiveRadarrBlock::EditCollectionToggleMonitored]
       );
       assert_eq!(
         edit_collection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
+        &[ActiveRadarrBlock::EditCollectionSelectMinimumAvailability]
       );
       assert_eq!(
         edit_collection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditCollectionSelectQualityProfile
+        &[ActiveRadarrBlock::EditCollectionSelectQualityProfile]
       );
       assert_eq!(
         edit_collection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditCollectionRootFolderPathInput
+        &[ActiveRadarrBlock::EditCollectionRootFolderPathInput]
       );
       assert_eq!(
         edit_collection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditCollectionToggleSearchOnAdd
+        &[ActiveRadarrBlock::EditCollectionToggleSearchOnAdd]
       );
       assert_eq!(
         edit_collection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditCollectionConfirmPrompt
+        &[ActiveRadarrBlock::EditCollectionConfirmPrompt]
       );
       assert_eq!(edit_collection_block_iter.next(), None);
     }
@@ -559,15 +561,15 @@ mod tests {
 
       assert_eq!(
         delete_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::DeleteMovieToggleDeleteFile
+        &[ActiveRadarrBlock::DeleteMovieToggleDeleteFile]
       );
       assert_eq!(
         delete_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::DeleteMovieToggleAddListExclusion
+        &[ActiveRadarrBlock::DeleteMovieToggleAddListExclusion]
       );
       assert_eq!(
         delete_movie_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::DeleteMovieConfirmPrompt
+        &[ActiveRadarrBlock::DeleteMovieConfirmPrompt]
       );
       assert_eq!(delete_movie_block_iter.next(), None);
     }
@@ -579,43 +581,45 @@ mod tests {
 
       assert_eq!(
         edit_indexer_torrent_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerNameInput
+        &[
+          ActiveRadarrBlock::EditIndexerNameInput,
+          ActiveRadarrBlock::EditIndexerUrlInput,
+        ]
       );
       assert_eq!(
         edit_indexer_torrent_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerToggleEnableRss
+        &[
+          ActiveRadarrBlock::EditIndexerToggleEnableRss,
+          ActiveRadarrBlock::EditIndexerApiKeyInput,
+        ]
       );
       assert_eq!(
         edit_indexer_torrent_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch
+        &[
+          ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
+          ActiveRadarrBlock::EditIndexerSeedRatioInput,
+        ]
       );
       assert_eq!(
         edit_indexer_torrent_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch
+        &[
+          ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+          ActiveRadarrBlock::EditIndexerTagsInput,
+        ]
       );
       assert_eq!(
         edit_indexer_torrent_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerConfirmPrompt
+        &[
+          ActiveRadarrBlock::EditIndexerPriorityInput,
+          ActiveRadarrBlock::EditIndexerConfirmPrompt,
+        ]
       );
       assert_eq!(
         edit_indexer_torrent_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerUrlInput
-      );
-      assert_eq!(
-        edit_indexer_torrent_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerApiKeyInput
-      );
-      assert_eq!(
-        edit_indexer_torrent_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerSeedRatioInput
-      );
-      assert_eq!(
-        edit_indexer_torrent_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerTagsInput
-      );
-      assert_eq!(
-        edit_indexer_torrent_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerConfirmPrompt
+        &[
+          ActiveRadarrBlock::EditIndexerConfirmPrompt,
+          ActiveRadarrBlock::EditIndexerConfirmPrompt,
+        ]
       );
       assert_eq!(edit_indexer_torrent_selection_block_iter.next(), None);
     }
@@ -626,43 +630,38 @@ mod tests {
 
       assert_eq!(
         edit_indexer_nzb_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerNameInput
+        &[
+          ActiveRadarrBlock::EditIndexerNameInput,
+          ActiveRadarrBlock::EditIndexerUrlInput,
+        ]
       );
       assert_eq!(
         edit_indexer_nzb_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerToggleEnableRss
+        &[
+          ActiveRadarrBlock::EditIndexerToggleEnableRss,
+          ActiveRadarrBlock::EditIndexerApiKeyInput,
+        ]
       );
       assert_eq!(
         edit_indexer_nzb_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch
+        &[
+          ActiveRadarrBlock::EditIndexerToggleEnableAutomaticSearch,
+          ActiveRadarrBlock::EditIndexerTagsInput,
+        ]
       );
       assert_eq!(
         edit_indexer_nzb_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch
+        &[
+          ActiveRadarrBlock::EditIndexerToggleEnableInteractiveSearch,
+          ActiveRadarrBlock::EditIndexerPriorityInput,
+        ]
       );
       assert_eq!(
         edit_indexer_nzb_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerConfirmPrompt
-      );
-      assert_eq!(
-        edit_indexer_nzb_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerUrlInput
-      );
-      assert_eq!(
-        edit_indexer_nzb_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerApiKeyInput
-      );
-      assert_eq!(
-        edit_indexer_nzb_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerTagsInput
-      );
-      assert_eq!(
-        edit_indexer_nzb_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerConfirmPrompt
-      );
-      assert_eq!(
-        edit_indexer_nzb_selection_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::EditIndexerConfirmPrompt
+        &[
+          ActiveRadarrBlock::EditIndexerConfirmPrompt,
+          ActiveRadarrBlock::EditIndexerConfirmPrompt,
+        ]
       );
       assert_eq!(edit_indexer_nzb_selection_block_iter.next(), None);
     }
@@ -673,43 +672,38 @@ mod tests {
 
       assert_eq!(
         indexer_settings_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::IndexerSettingsMinimumAgeInput
+        &[
+          ActiveRadarrBlock::IndexerSettingsMinimumAgeInput,
+          ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput,
+        ]
       );
       assert_eq!(
         indexer_settings_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::IndexerSettingsRetentionInput
+        &[
+          ActiveRadarrBlock::IndexerSettingsRetentionInput,
+          ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput,
+        ]
       );
       assert_eq!(
         indexer_settings_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::IndexerSettingsMaximumSizeInput
+        &[
+          ActiveRadarrBlock::IndexerSettingsMaximumSizeInput,
+          ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
+        ]
       );
       assert_eq!(
         indexer_settings_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags
+        &[
+          ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags,
+          ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs,
+        ]
       );
       assert_eq!(
         indexer_settings_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::IndexerSettingsConfirmPrompt
-      );
-      assert_eq!(
-        indexer_settings_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput
-      );
-      assert_eq!(
-        indexer_settings_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput
-      );
-      assert_eq!(
-        indexer_settings_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput
-      );
-      assert_eq!(
-        indexer_settings_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs
-      );
-      assert_eq!(
-        indexer_settings_block_iter.next().unwrap(),
-        &ActiveRadarrBlock::IndexerSettingsConfirmPrompt
+        &[
+          ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
+          ActiveRadarrBlock::IndexerSettingsConfirmPrompt,
+        ]
       );
       assert_eq!(indexer_settings_block_iter.next(), None);
     }

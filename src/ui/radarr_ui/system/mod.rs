@@ -15,10 +15,11 @@ use crate::app::App;
 use crate::models::radarr_models::RadarrTask;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::QueueEvent;
-use crate::ui::radarr_ui::radarr_ui_utils::{convert_to_minutes_hours_days, style_log_list_item};
 use crate::ui::radarr_ui::system::system_details_ui::SystemDetailsUi;
 use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::layout_block_top_border;
+use crate::ui::utils::{
+  convert_to_minutes_hours_days, layout_block_top_border, style_log_list_item,
+};
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::selectable_list::SelectableList;
@@ -61,19 +62,16 @@ impl DrawUi for SystemUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    let route = *app.get_current_route();
+    let route = app.get_current_route();
+    draw_system_ui_layout(f, app, area);
 
-    match route {
-      _ if SystemDetailsUi::accepts(route) => SystemDetailsUi::draw(f, app, area),
-      _ if matches!(route, Route::Radarr(ActiveRadarrBlock::System, _)) => {
-        draw_system_ui_layout(f, app, area)
-      }
-      _ => (),
+    if SystemDetailsUi::accepts(route) {
+      SystemDetailsUi::draw(f, app, area);
     }
   }
 }
 
-pub(super) fn draw_system_ui_layout(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+fn draw_system_ui_layout(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let [activities_area, logs_area, help_area] = Layout::vertical([
     Constraint::Ratio(1, 2),
     Constraint::Ratio(1, 2),

@@ -780,7 +780,7 @@ mod test {
       .is_none());
     assert_eq!(
       app_arc.lock().await.get_current_route(),
-      &ActiveRadarrBlock::AddMovieEmptySearchResults.into()
+      ActiveRadarrBlock::AddMovieEmptySearchResults.into()
     );
   }
 
@@ -831,7 +831,7 @@ mod test {
       .is_none());
     assert_eq!(
       app_arc.lock().await.get_current_route(),
-      &ActiveRadarrBlock::Movies.into()
+      ActiveRadarrBlock::Movies.into()
     );
   }
 
@@ -931,7 +931,7 @@ mod test {
       async_details_server.assert_async().await;
       async_test_server.assert_async().await;
       assert_eq!(
-        app_arc.lock().await.data.radarr_data.indexer_test_error,
+        app_arc.lock().await.data.radarr_data.indexer_test_errors,
         Some("\"test failure\"".to_owned())
       );
       assert_eq!(value, response_json)
@@ -1000,8 +1000,8 @@ mod test {
       async_details_server.assert_async().await;
       async_test_server.assert_async().await;
       assert_eq!(
-        app_arc.lock().await.data.radarr_data.indexer_test_error,
-        None
+        app_arc.lock().await.data.radarr_data.indexer_test_errors,
+        Some(String::new())
       );
       assert_eq!(value, json!({}));
     }
@@ -4082,7 +4082,7 @@ mod test {
         "enableAutomaticSearch": false,
         "enableInteractiveSearch": false,
         "name": "Test Update",
-        "priority": 1,
+        "priority": 0,
         "fields": [
             {
                 "name": "baseUrl",
@@ -4134,6 +4134,7 @@ mod test {
         api_key: "test1234".into(),
         seed_ratio: "1.3".into(),
         tags: "usenet, testing".into(),
+        priority: 0,
       };
       app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
       app.data.radarr_data.indexers.set_items(vec![indexer()]);
@@ -4179,7 +4180,7 @@ mod test {
         "enableAutomaticSearch": false,
         "enableInteractiveSearch": false,
         "name": "Test Update",
-        "priority": 1,
+        "priority": 0,
         "fields": [
             {
                 "name": "baseUrl",
@@ -4227,6 +4228,7 @@ mod test {
         api_key: "test1234".into(),
         seed_ratio: "1.3".into(),
         tags: "usenet, testing".into(),
+        priority: 0,
       };
       app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
       let mut indexer = indexer();
@@ -4284,7 +4286,7 @@ mod test {
         "enableAutomaticSearch": false,
         "enableInteractiveSearch": false,
         "name": "Test Update",
-        "priority": 1,
+        "priority": 0,
         "fields": [
             {
                 "name": "baseUrl",
@@ -4336,6 +4338,7 @@ mod test {
         api_key: "test1234".into(),
         seed_ratio: "1.3".into(),
         tags: "usenet, testing".into(),
+        priority: 0,
       };
       app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
       let mut indexer = indexer();
@@ -4879,7 +4882,7 @@ mod test {
   #[tokio::test]
   async fn test_extract_and_add_radarr_tag_ids_vec() {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let tags = "    test,hi ,, usenet ".to_owned();
+    let tags = "    test,HI ,, usenet ".to_owned();
     {
       let mut app = app_arc.lock().await;
       app.data.radarr_data.tags_map = BiMap::from_iter([
@@ -4900,7 +4903,7 @@ mod test {
   async fn test_extract_and_add_radarr_tag_ids_vec_add_missing_tags_first() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
-      Some(json!({ "label": "testing" })),
+      Some(json!({ "label": "TESTING" })),
       Some(json!({ "id": 3, "label": "testing" })),
       None,
       RadarrEvent::GetTags,
@@ -4908,7 +4911,7 @@ mod test {
       None,
     )
     .await;
-    let tags = "usenet, test, testing".to_owned();
+    let tags = "usenet, test, TESTING".to_owned();
     {
       let mut app = app_arc.lock().await;
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {

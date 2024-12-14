@@ -11,7 +11,7 @@ use crate::ui::utils::layout_block_top_border;
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{draw_input_box_popup, draw_popup_over, DrawUi};
+use crate::ui::{draw_input_box_popup, draw_popup, DrawUi};
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -30,17 +30,13 @@ impl DrawUi for RootFoldersUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-    if let Route::Radarr(active_radarr_block, _) = *app.get_current_route() {
+    if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
+      draw_root_folders(f, app, area);
+
       match active_radarr_block {
-        ActiveRadarrBlock::RootFolders => draw_root_folders(f, app, area),
-        ActiveRadarrBlock::AddRootFolderPrompt => draw_popup_over(
-          f,
-          app,
-          area,
-          draw_root_folders,
-          draw_add_root_folder_prompt_box,
-          Size::InputBox,
-        ),
+        ActiveRadarrBlock::AddRootFolderPrompt => {
+          draw_popup(f, app, draw_add_root_folder_prompt_box, Size::InputBox)
+        }
         ActiveRadarrBlock::DeleteRootFolderPrompt => {
           let prompt = format!(
             "Do you really want to delete this root folder: \n{}?",
@@ -51,8 +47,10 @@ impl DrawUi for RootFoldersUi {
             .prompt(&prompt)
             .yes_no_value(app.data.radarr_data.prompt_confirm);
 
-          draw_root_folders(f, app, area);
-          f.render_widget(Popup::new(confirmation_prompt).size(Size::Prompt), f.area());
+          f.render_widget(
+            Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+            f.area(),
+          );
         }
         _ => (),
       }

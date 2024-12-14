@@ -14,6 +14,7 @@ where
   #[allow(clippy::new_ret_no_self)]
   fn new() -> T;
   fn awaiting_import(self) -> T;
+  fn indeterminate(self) -> T;
   fn default(self) -> T;
   fn downloaded(self) -> T;
   fn downloading(self) -> T;
@@ -41,6 +42,10 @@ where
   }
 
   fn awaiting_import(self) -> T {
+    self.fg(COLOR_ORANGE)
+  }
+
+  fn indeterminate(self) -> T {
     self.fg(COLOR_ORANGE)
   }
 

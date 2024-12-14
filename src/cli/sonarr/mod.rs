@@ -120,6 +120,32 @@ pub enum SonarrCommand {
   },
   #[command(about = "Test all Sonarr indexers")]
   TestAllIndexers,
+  #[command(about = "Toggle monitoring for the specified episode")]
+  ToggleEpisodeMonitoring {
+    #[arg(
+      long,
+      help = "The Sonarr ID of the episode to toggle monitoring on",
+      required = true
+    )]
+    episode_id: i64,
+  },
+  #[command(
+    about = "Toggle monitoring for the specified season that corresponds to the specified series ID"
+  )]
+  ToggleSeasonMonitoring {
+    #[arg(
+      long,
+      help = "The Sonarr ID of the series that the season belongs to",
+      required = true
+    )]
+    series_id: i64,
+    #[arg(
+      long,
+      help = "The season number to toggle monitoring for",
+      required = true
+    )]
+    season_number: i64,
+  },
 }
 
 impl From<SonarrCommand> for Command {
@@ -242,6 +268,25 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
         let resp = self
           .network
           .handle_network_event(SonarrEvent::TestAllIndexers.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrCommand::ToggleEpisodeMonitoring { episode_id } => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::ToggleEpisodeMonitoring(Some(episode_id)).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrCommand::ToggleSeasonMonitoring {
+        series_id,
+        season_number,
+      } => {
+        let resp = self
+          .network
+          .handle_network_event(
+            SonarrEvent::ToggleSeasonMonitoring(Some((series_id, season_number))).into(),
+          )
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

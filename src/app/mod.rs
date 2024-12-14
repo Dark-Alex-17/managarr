@@ -1,6 +1,6 @@
 use std::process;
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Error};
 use colored::Colorize;
 use log::{debug, error};
 use serde::{Deserialize, Serialize};
@@ -21,6 +21,7 @@ pub mod context_clues;
 pub mod key_binding;
 mod key_binding_tests;
 pub mod radarr;
+pub mod sonarr;
 
 const DEFAULT_ROUTE: Route = Route::Radarr(ActiveRadarrBlock::Movies, None);
 
@@ -28,6 +29,7 @@ pub struct App<'a> {
   navigation_stack: Vec<Route>,
   network_tx: Option<Sender<NetworkEvent>>,
   cancellation_token: CancellationToken,
+  pub is_first_render: bool,
   pub server_tabs: TabState,
   pub error: HorizontallyScrollableText,
   pub tick_until_poll: u64,
@@ -76,26 +78,26 @@ impl<'a> App<'a> {
     self.tick_count = 0;
   }
 
-  // Allowing this code for now since we'll eventually be implementing additional Servarr support and we'll need it then
   #[allow(dead_code)]
   pub fn reset(&mut self) {
     self.reset_tick_count();
     self.error = HorizontallyScrollableText::default();
+    self.is_first_render = true;
     self.data = Data::default();
   }
 
-  pub fn handle_error(&mut self, error: anyhow::Error) {
+  pub fn handle_error(&mut self, error: Error) {
     if self.error.text.is_empty() {
       self.error = error.to_string().into();
     }
   }
 
-  pub async fn on_tick(&mut self, is_first_render: bool) {
+  pub async fn on_tick(&mut self) {
     if self.tick_count % self.tick_until_poll == 0 || self.is_routing || self.should_refresh {
-      if let Route::Radarr(active_radarr_block, _) = self.get_current_route() {
-        self
-          .radarr_on_tick(*active_radarr_block, is_first_render)
-          .await;
+      match self.get_current_route() {
+        Route::Radarr(active_radarr_block, _) => self.radarr_on_tick(active_radarr_block).await,
+        Route::Sonarr(active_sonarr_block, _) => self.sonarr_on_tick(active_sonarr_block).await,
+        _ => (),
       }
 
       self.is_routing = false;
@@ -130,8 +132,8 @@ impl<'a> App<'a> {
     self.push_navigation_stack(route);
   }
 
-  pub fn get_current_route(&self) -> &Route {
-    self.navigation_stack.last().unwrap_or(&DEFAULT_ROUTE)
+  pub fn get_current_route(&self) -> Route {
+    *self.navigation_stack.last().unwrap_or(&DEFAULT_ROUTE)
   }
 }
 
@@ -142,6 +144,7 @@ impl<'a> Default for App<'a> {
       network_tx: None,
       cancellation_token: CancellationToken::new(),
       error: HorizontallyScrollableText::default(),
+      is_first_render: true,
       server_tabs: TabState::new(vec![
         TabRoute {
           title: "Radarr",
@@ -176,7 +179,7 @@ impl<'a> Default for App<'a> {
 #[derive(Default)]
 pub struct Data<'a> {
   pub radarr_data: RadarrData<'a>,
-  pub sonarr_data: SonarrData,
+  pub sonarr_data: SonarrData<'a>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]

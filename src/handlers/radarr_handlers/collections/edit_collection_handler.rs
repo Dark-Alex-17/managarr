@@ -12,22 +12,22 @@ use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
 mod edit_collection_handler_tests;
 
 pub(super) struct EditCollectionHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  context: Option<ActiveRadarrBlock>,
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    EDIT_COLLECTION_BLOCKS.contains(active_block)
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    EDIT_COLLECTION_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    context: Option<ActiveRadarrBlock>,
   ) -> EditCollectionHandler<'a, 'b> {
     EditCollectionHandler {
       key,
@@ -37,7 +37,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -65,9 +65,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
         .unwrap()
         .quality_profile_list
         .scroll_up(),
-      ActiveRadarrBlock::EditCollectionPrompt => {
-        self.app.data.radarr_data.selected_block.previous()
-      }
+      ActiveRadarrBlock::EditCollectionPrompt => self.app.data.radarr_data.selected_block.up(),
       _ => (),
     }
   }
@@ -92,7 +90,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
         .unwrap()
         .quality_profile_list
         .scroll_down(),
-      ActiveRadarrBlock::EditCollectionPrompt => self.app.data.radarr_data.selected_block.next(),
+      ActiveRadarrBlock::EditCollectionPrompt => self.app.data.radarr_data.selected_block.down(),
       _ => (),
     }
   }
@@ -203,8 +201,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
           | ActiveRadarrBlock::EditCollectionSelectQualityProfile => {
             self.app.push_navigation_stack(
               (
-                *self.app.data.radarr_data.selected_block.get_active_block(),
-                *self.context,
+                self.app.data.radarr_data.selected_block.get_active_block(),
+                self.context,
               )
                 .into(),
             )
@@ -212,8 +210,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
           ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
             self.app.push_navigation_stack(
               (
-                *self.app.data.radarr_data.selected_block.get_active_block(),
-                *self.context,
+                self.app.data.radarr_data.selected_block.get_active_block(),
+                self.context,
               )
                 .into(),
             );
@@ -308,8 +306,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
       }
       ActiveRadarrBlock::EditCollectionPrompt => {
         if self.app.data.radarr_data.selected_block.get_active_block()
-          == &ActiveRadarrBlock::EditCollectionConfirmPrompt
-          && *key == DEFAULT_KEYBINDINGS.confirm.key
+          == ActiveRadarrBlock::EditCollectionConfirmPrompt
+          && key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditCollection(None));

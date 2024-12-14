@@ -3,8 +3,10 @@ use serde_json::Number;
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
+use crate::handle_table_events;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
-use crate::models::radarr_models::RadarrRelease;
+use crate::models::radarr_models::{Credit, MovieHistoryItem, RadarrRelease};
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, EDIT_MOVIE_SELECTION_BLOCKS, MOVIE_DETAILS_BLOCKS,
 };
@@ -18,22 +20,96 @@ use crate::network::radarr_network::RadarrEvent;
 mod movie_details_handler_tests;
 
 pub(super) struct MovieDetailsHandler<'a, 'b> {
-  key: &'a Key,
+  key: Key,
   app: &'a mut App<'b>,
-  active_radarr_block: &'a ActiveRadarrBlock,
-  _context: &'a Option<ActiveRadarrBlock>,
+  active_radarr_block: ActiveRadarrBlock,
+  _context: Option<ActiveRadarrBlock>,
+}
+
+impl<'a, 'b> MovieDetailsHandler<'a, 'b> {
+  handle_table_events!(
+    self,
+    movie_releases,
+    self
+      .app
+      .data
+      .radarr_data
+      .movie_details_modal
+      .as_mut()
+      .unwrap()
+      .movie_releases,
+    RadarrRelease
+  );
+  handle_table_events!(
+    self,
+    movie_history,
+    self
+      .app
+      .data
+      .radarr_data
+      .movie_details_modal
+      .as_mut()
+      .unwrap()
+      .movie_history,
+    MovieHistoryItem
+  );
+  handle_table_events!(
+    self,
+    movie_cast,
+    self
+      .app
+      .data
+      .radarr_data
+      .movie_details_modal
+      .as_mut()
+      .unwrap()
+      .movie_cast,
+    Credit
+  );
+  handle_table_events!(
+    self,
+    movie_crew,
+    self
+      .app
+      .data
+      .radarr_data
+      .movie_details_modal
+      .as_mut()
+      .unwrap()
+      .movie_crew,
+    Credit
+  );
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<'a, 'b> {
-  fn accepts(active_block: &'a ActiveRadarrBlock) -> bool {
-    MOVIE_DETAILS_BLOCKS.contains(active_block)
+  fn handle(&mut self) {
+    let movie_history_table_handling_config =
+      TableHandlingConfig::new(ActiveRadarrBlock::MovieHistory.into());
+    let movie_releases_table_handling_config =
+      TableHandlingConfig::new(ActiveRadarrBlock::ManualSearch.into())
+        .sorting_block(ActiveRadarrBlock::ManualSearchSortPrompt.into())
+        .sort_options(releases_sorting_options());
+    let movie_cast_table_handling_config = TableHandlingConfig::new(ActiveRadarrBlock::Cast.into());
+    let movie_crew_table_handling_config = TableHandlingConfig::new(ActiveRadarrBlock::Crew.into());
+
+    if !self.handle_movie_history_table_events(movie_history_table_handling_config)
+      && !self.handle_movie_releases_table_events(movie_releases_table_handling_config)
+      && !self.handle_movie_cast_table_events(movie_cast_table_handling_config)
+      && !self.handle_movie_crew_table_events(movie_crew_table_handling_config)
+    {
+      self.handle_key_event();
+    }
+  }
+
+  fn accepts(active_block: ActiveRadarrBlock) -> bool {
+    MOVIE_DETAILS_BLOCKS.contains(&active_block)
   }
 
   fn with(
-    key: &'a Key,
+    key: Key,
     app: &'a mut App<'b>,
-    active_block: &'a ActiveRadarrBlock,
-    _context: &'a Option<ActiveRadarrBlock>,
+    active_block: ActiveRadarrBlock,
+    _context: Option<ActiveRadarrBlock>,
   ) -> MovieDetailsHandler<'a, 'b> {
     MovieDetailsHandler {
       key,
@@ -43,7 +119,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
     }
   }
 
-  fn get_key(&self) -> &Key {
+  fn get_key(&self) -> Key {
     self.key
   }
 
@@ -73,8 +149,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
   }
 
   fn handle_scroll_up(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::MovieDetails => self
+    if self.active_radarr_block == ActiveRadarrBlock::MovieDetails {
+      self
         .app
         .data
         .radarr_data
@@ -82,62 +158,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         .as_mut()
         .unwrap()
         .movie_details
-        .scroll_up(),
-      ActiveRadarrBlock::MovieHistory => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_history
-        .scroll_up(),
-      ActiveRadarrBlock::Cast => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_cast
-        .scroll_up(),
-      ActiveRadarrBlock::Crew => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_crew
-        .scroll_up(),
-      ActiveRadarrBlock::ManualSearch => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_releases
-        .scroll_up(),
-      ActiveRadarrBlock::ManualSearchSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_releases
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_up(),
-      _ => (),
+        .scroll_up()
     }
   }
 
   fn handle_scroll_down(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::MovieDetails => self
+    if self.active_radarr_block == ActiveRadarrBlock::MovieDetails {
+      self
         .app
         .data
         .radarr_data
@@ -145,62 +172,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         .as_mut()
         .unwrap()
         .movie_details
-        .scroll_down(),
-      ActiveRadarrBlock::MovieHistory => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_history
-        .scroll_down(),
-      ActiveRadarrBlock::Cast => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_cast
-        .scroll_down(),
-      ActiveRadarrBlock::Crew => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_crew
-        .scroll_down(),
-      ActiveRadarrBlock::ManualSearch => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_releases
-        .scroll_down(),
-      ActiveRadarrBlock::ManualSearchSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_releases
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_down(),
-      _ => (),
+        .scroll_down()
     }
   }
 
   fn handle_home(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::MovieDetails => self
+    if self.active_radarr_block == ActiveRadarrBlock::MovieDetails {
+      self
         .app
         .data
         .radarr_data
@@ -208,62 +186,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         .as_mut()
         .unwrap()
         .movie_details
-        .scroll_to_top(),
-      ActiveRadarrBlock::MovieHistory => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_history
-        .scroll_to_top(),
-      ActiveRadarrBlock::Cast => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_cast
-        .scroll_to_top(),
-      ActiveRadarrBlock::Crew => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_crew
-        .scroll_to_top(),
-      ActiveRadarrBlock::ManualSearch => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_releases
-        .scroll_to_top(),
-      ActiveRadarrBlock::ManualSearchSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_releases
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_top(),
-      _ => (),
+        .scroll_to_top()
     }
   }
 
   fn handle_end(&mut self) {
-    match self.active_radarr_block {
-      ActiveRadarrBlock::MovieDetails => self
+    if let ActiveRadarrBlock::MovieDetails = self.active_radarr_block {
+      self
         .app
         .data
         .radarr_data
@@ -271,56 +200,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
         .as_mut()
         .unwrap()
         .movie_details
-        .scroll_to_bottom(),
-      ActiveRadarrBlock::MovieHistory => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_history
-        .scroll_to_bottom(),
-      ActiveRadarrBlock::Cast => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_cast
-        .scroll_to_bottom(),
-      ActiveRadarrBlock::Crew => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_crew
-        .scroll_to_bottom(),
-      ActiveRadarrBlock::ManualSearch => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_releases
-        .scroll_to_bottom(),
-      ActiveRadarrBlock::ManualSearchSortPrompt => self
-        .app
-        .data
-        .radarr_data
-        .movie_details_modal
-        .as_mut()
-        .unwrap()
-        .movie_releases
-        .sort
-        .as_mut()
-        .unwrap()
-        .scroll_to_bottom(),
-      _ => (),
+        .scroll_to_bottom()
     }
   }
 
@@ -334,16 +214,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       | ActiveRadarrBlock::Cast
       | ActiveRadarrBlock::Crew
       | ActiveRadarrBlock::ManualSearch => match self.key {
-        _ if *self.key == DEFAULT_KEYBINDINGS.left.key => {
+        _ if self.key == DEFAULT_KEYBINDINGS.left.key => {
           self.app.data.radarr_data.movie_info_tabs.previous();
           self.app.pop_and_push_navigation_stack(
-            *self.app.data.radarr_data.movie_info_tabs.get_active_route(),
+            self.app.data.radarr_data.movie_info_tabs.get_active_route(),
           );
         }
-        _ if *self.key == DEFAULT_KEYBINDINGS.right.key => {
+        _ if self.key == DEFAULT_KEYBINDINGS.right.key => {
           self.app.data.radarr_data.movie_info_tabs.next();
           self.app.pop_and_push_navigation_stack(
-            *self.app.data.radarr_data.movie_info_tabs.get_active_route(),
+            self.app.data.radarr_data.movie_info_tabs.get_active_route(),
           );
         }
         _ => (),
@@ -385,18 +265,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
 
         self.app.pop_navigation_stack();
       }
-      ActiveRadarrBlock::ManualSearchSortPrompt => {
-        self
-          .app
-          .data
-          .radarr_data
-          .movie_details_modal
-          .as_mut()
-          .unwrap()
-          .movie_releases
-          .apply_sorting();
-        self.app.pop_navigation_stack();
-      }
       _ => (),
     }
   }
@@ -414,8 +282,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       }
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt
       | ActiveRadarrBlock::UpdateAndScanPrompt
-      | ActiveRadarrBlock::ManualSearchConfirmPrompt
-      | ActiveRadarrBlock::ManualSearchSortPrompt => {
+      | ActiveRadarrBlock::ManualSearchConfirmPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.prompt_confirm = false;
       }
@@ -425,81 +292,62 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
 
   fn handle_char_key_event(&mut self) {
     let key = self.key;
-    match *self.active_radarr_block {
+    match self.active_radarr_block {
       ActiveRadarrBlock::MovieDetails
       | ActiveRadarrBlock::MovieHistory
       | ActiveRadarrBlock::FileInfo
       | ActiveRadarrBlock::Cast
       | ActiveRadarrBlock::Crew
       | ActiveRadarrBlock::ManualSearch => match self.key {
-        _ if *key == DEFAULT_KEYBINDINGS.search.key => {
+        _ if key == DEFAULT_KEYBINDINGS.auto_search.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::AutomaticallySearchMoviePrompt.into());
         }
-        _ if *key == DEFAULT_KEYBINDINGS.edit.key => {
+        _ if key == DEFAULT_KEYBINDINGS.edit.key => {
           self.app.push_navigation_stack(
             (
               ActiveRadarrBlock::EditMoviePrompt,
-              Some(*self.active_radarr_block),
+              Some(self.active_radarr_block),
             )
               .into(),
           );
           self.app.data.radarr_data.edit_movie_modal = Some((&self.app.data.radarr_data).into());
           self.app.data.radarr_data.selected_block =
-            BlockSelectionState::new(&EDIT_MOVIE_SELECTION_BLOCKS);
+            BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
         }
-        _ if *key == DEFAULT_KEYBINDINGS.update.key => {
+        _ if key == DEFAULT_KEYBINDINGS.update.key => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::UpdateAndScanPrompt.into());
         }
-        _ if *key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
           self
             .app
-            .pop_and_push_navigation_stack((*self.active_radarr_block).into());
-        }
-        _ if *key == DEFAULT_KEYBINDINGS.sort.key => {
-          self
-            .app
-            .data
-            .radarr_data
-            .movie_details_modal
-            .as_mut()
-            .unwrap()
-            .movie_releases
-            .sorting(releases_sorting_options());
-          self
-            .app
-            .push_navigation_stack(ActiveRadarrBlock::ManualSearchSortPrompt.into());
+            .pop_and_push_navigation_stack(self.active_radarr_block.into());
         }
         _ => (),
       },
-      ActiveRadarrBlock::AutomaticallySearchMoviePrompt => {
-        if *key == DEFAULT_KEYBINDINGS.confirm.key {
-          self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::TriggerAutomaticSearch(None));
+      ActiveRadarrBlock::AutomaticallySearchMoviePrompt
+        if key == DEFAULT_KEYBINDINGS.confirm.key =>
+      {
+        self.app.data.radarr_data.prompt_confirm = true;
+        self.app.data.radarr_data.prompt_confirm_action =
+          Some(RadarrEvent::TriggerAutomaticSearch(None));
 
-          self.app.pop_navigation_stack();
-        }
+        self.app.pop_navigation_stack();
       }
-      ActiveRadarrBlock::UpdateAndScanPrompt => {
-        if *key == DEFAULT_KEYBINDINGS.confirm.key {
-          self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAndScan(None));
+      ActiveRadarrBlock::UpdateAndScanPrompt if key == DEFAULT_KEYBINDINGS.confirm.key => {
+        self.app.data.radarr_data.prompt_confirm = true;
+        self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAndScan(None));
 
-          self.app.pop_navigation_stack();
-        }
+        self.app.pop_navigation_stack();
       }
-      ActiveRadarrBlock::ManualSearchConfirmPrompt => {
-        if *key == DEFAULT_KEYBINDINGS.confirm.key {
-          self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::DownloadRelease(None));
+      ActiveRadarrBlock::ManualSearchConfirmPrompt if key == DEFAULT_KEYBINDINGS.confirm.key => {
+        self.app.data.radarr_data.prompt_confirm = true;
+        self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DownloadRelease(None));
 
-          self.app.pop_navigation_stack();
-        }
+        self.app.pop_navigation_stack();
       }
       _ => (),
     }

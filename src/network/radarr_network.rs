@@ -309,7 +309,7 @@ impl<'a, 'b> Network<'a, 'b> {
         quality_profile_list,
         ..
       } = app.data.radarr_data.add_movie_modal.as_ref().unwrap();
-      let (tmdb_id, title) = if let Route::Radarr(active_radarr_block, _) = *app.get_current_route()
+      let (tmdb_id, title) = if let Route::Radarr(active_radarr_block, _) = app.get_current_route()
       {
         if active_radarr_block == ActiveRadarrBlock::CollectionDetails {
           let CollectionMovie { tmdb_id, title, .. } = app
@@ -927,9 +927,6 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Constructing edit indexer body");
 
     let mut detailed_indexer_body: Value = serde_json::from_str(&response).unwrap();
-    let priority = detailed_indexer_body["priority"]
-      .as_i64()
-      .expect("Unable to deserialize 'priority'");
 
     let (
       name,
@@ -942,6 +939,9 @@ impl<'a, 'b> Network<'a, 'b> {
       tags,
       priority,
     ) = if let Some(params) = edit_indexer_params {
+      let priority = detailed_indexer_body["priority"]
+        .as_i64()
+        .expect("Unable to deserialize 'priority'");
       let seed_ratio_field_option = detailed_indexer_body["fields"]
         .as_array()
         .unwrap()
@@ -1056,6 +1056,7 @@ impl<'a, 'b> Network<'a, 'b> {
           url,
           api_key,
           seed_ratio,
+          priority,
           ..
         } = app.data.radarr_data.edit_indexer_modal.as_ref().unwrap();
 
@@ -1068,7 +1069,7 @@ impl<'a, 'b> Network<'a, 'b> {
           api_key.text.clone(),
           seed_ratio.text.clone(),
           tag_ids_vec,
-          priority,
+          *priority,
         )
       };
 
@@ -2101,12 +2102,14 @@ impl<'a, 'b> Network<'a, 'b> {
     self
       .handle_request::<Value, Value>(request_props, |test_results, mut app| {
         if test_results.as_object().is_none() {
-          app.data.radarr_data.indexer_test_error = Some(
+          app.data.radarr_data.indexer_test_errors = Some(
             test_results.as_array().unwrap()[0]
               .get("errorMessage")
               .unwrap()
               .to_string(),
           );
+        } else {
+          app.data.radarr_data.indexer_test_errors = Some(String::new());
         };
       })
       .await
@@ -2249,7 +2252,7 @@ impl<'a, 'b> Network<'a, 'b> {
     let tags = edit_tags.clone();
     let missing_tags_vec = edit_tags
       .split(',')
-      .filter(|&tag| !tag.is_empty() && tags_map.get_by_right(tag.trim()).is_none())
+      .filter(|&tag| !tag.is_empty() && tags_map.get_by_right(tag.to_lowercase().trim()).is_none())
       .collect::<Vec<&str>>();
 
     for tag in missing_tags_vec {
@@ -2268,7 +2271,7 @@ impl<'a, 'b> Network<'a, 'b> {
           .data
           .radarr_data
           .tags_map
-          .get_by_right(tag.trim())
+          .get_by_right(tag.to_lowercase().trim())
           .unwrap()
       })
       .collect()

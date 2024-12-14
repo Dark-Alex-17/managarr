@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::assert_eq;
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
@@ -28,18 +27,18 @@ mod tests {
       app.data.radarr_data.main_tabs.set_index(6);
 
       SystemHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &ActiveRadarrBlock::System,
-        &None,
+        ActiveRadarrBlock::System,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.data.radarr_data.main_tabs.get_active_route(),
-        &ActiveRadarrBlock::Indexers.into()
+        ActiveRadarrBlock::Indexers.into()
       );
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Indexers.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
     }
 
     #[rstest]
@@ -49,18 +48,18 @@ mod tests {
       app.data.radarr_data.main_tabs.set_index(6);
 
       SystemHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &ActiveRadarrBlock::System,
-        &None,
+        ActiveRadarrBlock::System,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.data.radarr_data.main_tabs.get_active_route(),
-        &ActiveRadarrBlock::Movies.into()
+        ActiveRadarrBlock::Movies.into()
       );
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::Movies.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
     }
   }
 
@@ -79,9 +78,9 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
 
-      SystemHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::System, &None).handle();
+      SystemHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::System, None).handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
       assert!(app.error.text.is_empty());
     }
   }
@@ -112,16 +111,16 @@ mod tests {
         .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
-        &DEFAULT_KEYBINDINGS.update.key,
+        DEFAULT_KEYBINDINGS.update.key,
         &mut app,
-        &ActiveRadarrBlock::System,
-        &None,
+        ActiveRadarrBlock::System,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::SystemUpdates.into()
+        ActiveRadarrBlock::SystemUpdates.into()
       );
     }
 
@@ -146,14 +145,14 @@ mod tests {
         .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
-        &DEFAULT_KEYBINDINGS.update.key,
+        DEFAULT_KEYBINDINGS.update.key,
         &mut app,
-        &ActiveRadarrBlock::System,
-        &None,
+        ActiveRadarrBlock::System,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
     }
 
     #[test]
@@ -175,16 +174,16 @@ mod tests {
         .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
-        &DEFAULT_KEYBINDINGS.events.key,
+        DEFAULT_KEYBINDINGS.events.key,
         &mut app,
-        &ActiveRadarrBlock::System,
-        &None,
+        ActiveRadarrBlock::System,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::SystemQueuedEvents.into()
+        ActiveRadarrBlock::SystemQueuedEvents.into()
       );
     }
 
@@ -209,14 +208,14 @@ mod tests {
         .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
-        &DEFAULT_KEYBINDINGS.events.key,
+        DEFAULT_KEYBINDINGS.events.key,
         &mut app,
-        &ActiveRadarrBlock::System,
-        &None,
+        ActiveRadarrBlock::System,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
     }
 
     #[test]
@@ -239,14 +238,14 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
 
       SystemHandler::with(
-        &DEFAULT_KEYBINDINGS.refresh.key,
+        DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
-        &ActiveRadarrBlock::System,
-        &None,
+        ActiveRadarrBlock::System,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
       assert!(app.should_refresh);
     }
 
@@ -272,14 +271,14 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
 
       SystemHandler::with(
-        &DEFAULT_KEYBINDINGS.refresh.key,
+        DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
-        &ActiveRadarrBlock::System,
-        &None,
+        ActiveRadarrBlock::System,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
       assert!(!app.should_refresh);
     }
 
@@ -302,16 +301,16 @@ mod tests {
         .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
-        &DEFAULT_KEYBINDINGS.logs.key,
+        DEFAULT_KEYBINDINGS.logs.key,
         &mut app,
-        &ActiveRadarrBlock::System,
-        &None,
+        ActiveRadarrBlock::System,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::SystemLogs.into()
+        ActiveRadarrBlock::SystemLogs.into()
       );
       assert_eq!(
         app.data.radarr_data.log_details.items,
@@ -344,14 +343,14 @@ mod tests {
         .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
-        &DEFAULT_KEYBINDINGS.logs.key,
+        DEFAULT_KEYBINDINGS.logs.key,
         &mut app,
-        &ActiveRadarrBlock::System,
-        &None,
+        ActiveRadarrBlock::System,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
       assert!(app.data.radarr_data.log_details.is_empty());
     }
 
@@ -374,16 +373,16 @@ mod tests {
         .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
-        &DEFAULT_KEYBINDINGS.tasks.key,
+        DEFAULT_KEYBINDINGS.tasks.key,
         &mut app,
-        &ActiveRadarrBlock::System,
-        &None,
+        ActiveRadarrBlock::System,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::SystemTasks.into()
+        ActiveRadarrBlock::SystemTasks.into()
       );
     }
 
@@ -408,14 +407,14 @@ mod tests {
         .set_items(vec![RadarrTask::default()]);
 
       SystemHandler::with(
-        &DEFAULT_KEYBINDINGS.tasks.key,
+        DEFAULT_KEYBINDINGS.tasks.key,
         &mut app,
-        &ActiveRadarrBlock::System,
-        &None,
+        ActiveRadarrBlock::System,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
     }
   }
 
@@ -444,9 +443,9 @@ mod tests {
 
     ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
       if system_blocks.contains(&active_radarr_block) {
-        assert!(SystemHandler::accepts(&active_radarr_block));
+        assert!(SystemHandler::accepts(active_radarr_block));
       } else {
-        assert!(!SystemHandler::accepts(&active_radarr_block));
+        assert!(!SystemHandler::accepts(active_radarr_block));
       }
     })
   }
@@ -457,10 +456,10 @@ mod tests {
     app.is_loading = true;
 
     let system_handler = SystemHandler::with(
-      &DEFAULT_KEYBINDINGS.update.key,
+      DEFAULT_KEYBINDINGS.update.key,
       &mut app,
-      &ActiveRadarrBlock::System,
-      &None,
+      ActiveRadarrBlock::System,
+      None,
     );
 
     assert!(!system_handler.is_ready());
@@ -482,10 +481,10 @@ mod tests {
       .set_items(vec![QueueEvent::default()]);
 
     let system_handler = SystemHandler::with(
-      &DEFAULT_KEYBINDINGS.update.key,
+      DEFAULT_KEYBINDINGS.update.key,
       &mut app,
-      &ActiveRadarrBlock::System,
-      &None,
+      ActiveRadarrBlock::System,
+      None,
     );
 
     assert!(!system_handler.is_ready());
@@ -503,10 +502,10 @@ mod tests {
       .set_items(vec![QueueEvent::default()]);
 
     let system_handler = SystemHandler::with(
-      &DEFAULT_KEYBINDINGS.update.key,
+      DEFAULT_KEYBINDINGS.update.key,
       &mut app,
-      &ActiveRadarrBlock::System,
-      &None,
+      ActiveRadarrBlock::System,
+      None,
     );
 
     assert!(!system_handler.is_ready());
@@ -524,10 +523,10 @@ mod tests {
       .set_items(vec![RadarrTask::default()]);
 
     let system_handler = SystemHandler::with(
-      &DEFAULT_KEYBINDINGS.update.key,
+      DEFAULT_KEYBINDINGS.update.key,
       &mut app,
-      &ActiveRadarrBlock::System,
-      &None,
+      ActiveRadarrBlock::System,
+      None,
     );
 
     assert!(!system_handler.is_ready());
@@ -550,10 +549,10 @@ mod tests {
       .set_items(vec![QueueEvent::default()]);
 
     let system_handler = SystemHandler::with(
-      &DEFAULT_KEYBINDINGS.update.key,
+      DEFAULT_KEYBINDINGS.update.key,
       &mut app,
-      &ActiveRadarrBlock::System,
-      &None,
+      ActiveRadarrBlock::System,
+      None,
     );
 
     assert!(system_handler.is_ready());

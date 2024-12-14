@@ -2,13 +2,13 @@
 mod tests {
   use crate::models::stateful_list::StatefulList;
   use crate::models::stateful_table::{SortOption, StatefulTable};
-  use crate::models::Scrollable;
-  use crate::ui::utils::layout_block;
+  use crate::models::{HorizontallyScrollableText, Scrollable};
   use crate::ui::widgets::managarr_table::ManagarrTable;
   use pretty_assertions::assert_eq;
   use ratatui::layout::{Alignment, Constraint};
   use ratatui::text::Text;
   use ratatui::widgets::{Block, Cell, Row};
+  use std::sync::atomic::AtomicUsize;
 
   #[test]
   fn test_managarr_table_new() {
@@ -31,6 +31,86 @@ mod tests {
     assert!(!managarr_table.is_loading);
     assert!(managarr_table.highlight_rows);
     assert!(!managarr_table.is_sorting);
+    assert!(!managarr_table.is_searching);
+    assert!(!managarr_table.search_produced_empty_results);
+    assert!(!managarr_table.is_filtering);
+    assert!(!managarr_table.filter_produced_empty_results);
+    assert_eq!(managarr_table.search_box_content_length, 0);
+    assert_eq!(managarr_table.search_box_offset, 0);
+    assert_eq!(managarr_table.filter_box_content_length, 0);
+    assert_eq!(managarr_table.filter_box_offset, 0);
+  }
+
+  #[test]
+  fn test_managarr_table_new_search_box_populated() {
+    let items = vec!["item1", "item2", "item3"];
+    let mut stateful_table = StatefulTable::default();
+    stateful_table.set_items(items.clone());
+    let horizontally_scrollable_test = HorizontallyScrollableText {
+      text: "test".to_owned(),
+      offset: AtomicUsize::new(3),
+    };
+    stateful_table.search = Some(horizontally_scrollable_test);
+
+    let managarr_table =
+      ManagarrTable::new(Some(&mut stateful_table), |&s| Row::new(vec![Cell::new(s)]));
+
+    let row_mapper = managarr_table.row_mapper;
+    assert_eq!(managarr_table.content.unwrap().items, items);
+    assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
+    assert_eq!(managarr_table.table_headers, Vec::<String>::new());
+    assert_eq!(managarr_table.constraints, Vec::new());
+    assert_eq!(managarr_table.footer, None);
+    assert_eq!(managarr_table.footer_alignment, Alignment::Left);
+    assert_eq!(managarr_table.block, Block::new());
+    assert_eq!(managarr_table.margin, 0);
+    assert!(!managarr_table.is_loading);
+    assert!(managarr_table.highlight_rows);
+    assert!(!managarr_table.is_sorting);
+    assert!(!managarr_table.is_searching);
+    assert!(!managarr_table.search_produced_empty_results);
+    assert!(!managarr_table.is_filtering);
+    assert!(!managarr_table.filter_produced_empty_results);
+    assert_eq!(managarr_table.search_box_content_length, 4);
+    assert_eq!(managarr_table.search_box_offset, 3);
+    assert_eq!(managarr_table.filter_box_content_length, 0);
+    assert_eq!(managarr_table.filter_box_offset, 0);
+  }
+
+  #[test]
+  fn test_managarr_table_new_filter_box_populated() {
+    let items = vec!["item1", "item2", "item3"];
+    let mut stateful_table = StatefulTable::default();
+    stateful_table.set_items(items.clone());
+    let horizontally_scrollable_test = HorizontallyScrollableText {
+      text: "test".to_owned(),
+      offset: AtomicUsize::new(3),
+    };
+    stateful_table.filter = Some(horizontally_scrollable_test);
+
+    let managarr_table =
+      ManagarrTable::new(Some(&mut stateful_table), |&s| Row::new(vec![Cell::new(s)]));
+
+    let row_mapper = managarr_table.row_mapper;
+    assert_eq!(managarr_table.content.unwrap().items, items);
+    assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
+    assert_eq!(managarr_table.table_headers, Vec::<String>::new());
+    assert_eq!(managarr_table.constraints, Vec::new());
+    assert_eq!(managarr_table.footer, None);
+    assert_eq!(managarr_table.footer_alignment, Alignment::Left);
+    assert_eq!(managarr_table.block, Block::new());
+    assert_eq!(managarr_table.margin, 0);
+    assert!(!managarr_table.is_loading);
+    assert!(managarr_table.highlight_rows);
+    assert!(!managarr_table.is_sorting);
+    assert!(!managarr_table.is_searching);
+    assert!(!managarr_table.search_produced_empty_results);
+    assert!(!managarr_table.is_filtering);
+    assert!(!managarr_table.filter_produced_empty_results);
+    assert_eq!(managarr_table.search_box_content_length, 0);
+    assert_eq!(managarr_table.search_box_offset, 0);
+    assert_eq!(managarr_table.filter_box_content_length, 4);
+    assert_eq!(managarr_table.filter_box_offset, 3);
   }
 
   #[test]
@@ -56,6 +136,14 @@ mod tests {
     assert!(!managarr_table.is_loading);
     assert!(managarr_table.highlight_rows);
     assert!(!managarr_table.is_sorting);
+    assert!(!managarr_table.is_searching);
+    assert!(!managarr_table.search_produced_empty_results);
+    assert!(!managarr_table.is_filtering);
+    assert!(!managarr_table.filter_produced_empty_results);
+    assert_eq!(managarr_table.search_box_content_length, 0);
+    assert_eq!(managarr_table.search_box_offset, 0);
+    assert_eq!(managarr_table.filter_box_content_length, 0);
+    assert_eq!(managarr_table.filter_box_offset, 0);
   }
 
   #[test]
@@ -81,174 +169,14 @@ mod tests {
     assert!(!managarr_table.is_loading);
     assert!(managarr_table.highlight_rows);
     assert!(!managarr_table.is_sorting);
-  }
-
-  #[test]
-  fn test_managarr_table_footer() {
-    let items = vec!["item1", "item2", "item3"];
-    let mut stateful_table = StatefulTable::default();
-    stateful_table.set_items(items.clone());
-    let footer = "footer".to_owned();
-
-    let managarr_table =
-      ManagarrTable::new(Some(&mut stateful_table), |&s| Row::new(vec![Cell::new(s)]))
-        .footer(Some(footer.clone()));
-
-    let row_mapper = managarr_table.row_mapper;
-    assert_eq!(managarr_table.footer, Some(footer));
-    assert_eq!(managarr_table.content.unwrap().items, items);
-    assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
-    assert_eq!(managarr_table.table_headers, Vec::<String>::new());
-    assert_eq!(managarr_table.constraints, Vec::new());
-    assert_eq!(managarr_table.footer_alignment, Alignment::Left);
-    assert_eq!(managarr_table.block, Block::new());
-    assert_eq!(managarr_table.margin, 0);
-    assert!(!managarr_table.is_loading);
-    assert!(managarr_table.highlight_rows);
-    assert!(!managarr_table.is_sorting);
-  }
-
-  #[test]
-  fn test_managarr_table_footer_alignment() {
-    let items = vec!["item1", "item2", "item3"];
-    let mut stateful_table = StatefulTable::default();
-    stateful_table.set_items(items.clone());
-
-    let managarr_table =
-      ManagarrTable::new(Some(&mut stateful_table), |&s| Row::new(vec![Cell::new(s)]))
-        .footer_alignment(Alignment::Center);
-
-    let row_mapper = managarr_table.row_mapper;
-    assert_eq!(managarr_table.footer_alignment, Alignment::Center);
-    assert_eq!(managarr_table.content.unwrap().items, items);
-    assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
-    assert_eq!(managarr_table.table_headers, Vec::<String>::new());
-    assert_eq!(managarr_table.constraints, Vec::new());
-    assert_eq!(managarr_table.footer, None);
-    assert_eq!(managarr_table.block, Block::new());
-    assert_eq!(managarr_table.margin, 0);
-    assert!(!managarr_table.is_loading);
-    assert!(managarr_table.highlight_rows);
-    assert!(!managarr_table.is_sorting);
-  }
-
-  #[test]
-  fn test_managarr_table_block() {
-    let items = vec!["item1", "item2", "item3"];
-    let mut stateful_table = StatefulTable::default();
-    stateful_table.set_items(items.clone());
-
-    let managarr_table =
-      ManagarrTable::new(Some(&mut stateful_table), |&s| Row::new(vec![Cell::new(s)]))
-        .block(layout_block());
-
-    let row_mapper = managarr_table.row_mapper;
-    assert_eq!(managarr_table.block, layout_block());
-    assert_eq!(managarr_table.content.unwrap().items, items);
-    assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
-    assert_eq!(managarr_table.table_headers, Vec::<String>::new());
-    assert_eq!(managarr_table.constraints, Vec::new());
-    assert_eq!(managarr_table.footer, None);
-    assert_eq!(managarr_table.footer_alignment, Alignment::Left);
-    assert_eq!(managarr_table.margin, 0);
-    assert!(!managarr_table.is_loading);
-    assert!(managarr_table.highlight_rows);
-    assert!(!managarr_table.is_sorting);
-  }
-
-  #[test]
-  fn test_managarr_table_margin() {
-    let items = vec!["item1", "item2", "item3"];
-    let mut stateful_table = StatefulTable::default();
-    stateful_table.set_items(items.clone());
-
-    let managarr_table =
-      ManagarrTable::new(Some(&mut stateful_table), |&s| Row::new(vec![Cell::new(s)])).margin(1);
-
-    let row_mapper = managarr_table.row_mapper;
-    assert_eq!(managarr_table.margin, 1);
-    assert_eq!(managarr_table.content.unwrap().items, items);
-    assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
-    assert_eq!(managarr_table.table_headers, Vec::<String>::new());
-    assert_eq!(managarr_table.constraints, Vec::new());
-    assert_eq!(managarr_table.footer, None);
-    assert_eq!(managarr_table.footer_alignment, Alignment::Left);
-    assert_eq!(managarr_table.block, Block::new());
-    assert!(!managarr_table.is_loading);
-    assert!(managarr_table.highlight_rows);
-    assert!(!managarr_table.is_sorting);
-  }
-
-  #[test]
-  fn test_managarr_table_loading() {
-    let items = vec!["item1", "item2", "item3"];
-    let mut stateful_table = StatefulTable::default();
-    stateful_table.set_items(items.clone());
-
-    let managarr_table =
-      ManagarrTable::new(Some(&mut stateful_table), |&s| Row::new(vec![Cell::new(s)]))
-        .loading(true);
-
-    let row_mapper = managarr_table.row_mapper;
-    assert!(managarr_table.is_loading);
-    assert_eq!(managarr_table.content.unwrap().items, items);
-    assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
-    assert_eq!(managarr_table.table_headers, Vec::<String>::new());
-    assert_eq!(managarr_table.constraints, Vec::new());
-    assert_eq!(managarr_table.footer, None);
-    assert_eq!(managarr_table.footer_alignment, Alignment::Left);
-    assert_eq!(managarr_table.block, Block::new());
-    assert_eq!(managarr_table.margin, 0);
-    assert!(managarr_table.highlight_rows);
-    assert!(!managarr_table.is_sorting);
-  }
-
-  #[test]
-  fn test_managarr_table_highlight_rows() {
-    let items = vec!["item1", "item2", "item3"];
-    let mut stateful_table = StatefulTable::default();
-    stateful_table.set_items(items.clone());
-
-    let managarr_table =
-      ManagarrTable::new(Some(&mut stateful_table), |&s| Row::new(vec![Cell::new(s)]))
-        .highlight_rows(false);
-
-    let row_mapper = managarr_table.row_mapper;
-    assert!(!managarr_table.highlight_rows);
-    assert_eq!(managarr_table.content.unwrap().items, items);
-    assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
-    assert_eq!(managarr_table.table_headers, Vec::<String>::new());
-    assert_eq!(managarr_table.constraints, Vec::new());
-    assert_eq!(managarr_table.footer, None);
-    assert_eq!(managarr_table.footer_alignment, Alignment::Left);
-    assert_eq!(managarr_table.block, Block::new());
-    assert_eq!(managarr_table.margin, 0);
-    assert!(!managarr_table.is_loading);
-    assert!(!managarr_table.is_sorting);
-  }
-
-  #[test]
-  fn test_managarr_table_sorting() {
-    let items = vec!["item1", "item2", "item3"];
-    let mut stateful_table = StatefulTable::default();
-    stateful_table.set_items(items.clone());
-
-    let managarr_table =
-      ManagarrTable::new(Some(&mut stateful_table), |&s| Row::new(vec![Cell::new(s)]))
-        .sorting(true);
-
-    let row_mapper = managarr_table.row_mapper;
-    assert!(managarr_table.is_sorting);
-    assert_eq!(managarr_table.content.unwrap().items, items);
-    assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
-    assert_eq!(managarr_table.table_headers, Vec::<String>::new());
-    assert_eq!(managarr_table.constraints, Vec::new());
-    assert_eq!(managarr_table.footer, None);
-    assert_eq!(managarr_table.footer_alignment, Alignment::Left);
-    assert_eq!(managarr_table.block, Block::new());
-    assert_eq!(managarr_table.margin, 0);
-    assert!(!managarr_table.is_loading);
-    assert!(managarr_table.highlight_rows);
+    assert!(!managarr_table.is_searching);
+    assert!(!managarr_table.search_produced_empty_results);
+    assert!(!managarr_table.is_filtering);
+    assert!(!managarr_table.filter_produced_empty_results);
+    assert_eq!(managarr_table.search_box_content_length, 0);
+    assert_eq!(managarr_table.search_box_offset, 0);
+    assert_eq!(managarr_table.filter_box_content_length, 0);
+    assert_eq!(managarr_table.filter_box_offset, 0);
   }
 
   #[test]

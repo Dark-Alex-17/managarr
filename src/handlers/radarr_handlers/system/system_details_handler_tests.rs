@@ -26,6 +26,7 @@ mod tests {
     test_iterable_scroll!(
       test_log_details_scroll,
       SystemDetailsHandler,
+      radarr_data,
       log_details,
       simple_stateful_iterable_vec!(HorizontallyScrollableText, String, text),
       ActiveRadarrBlock::SystemLogs,
@@ -49,14 +50,14 @@ mod tests {
           text
         ));
 
-      SystemDetailsHandler::with(&key, &mut app, &ActiveRadarrBlock::SystemLogs, &None).handle();
+      SystemDetailsHandler::with(key, &mut app, ActiveRadarrBlock::SystemLogs, None).handle();
 
       assert_str_eq!(
         app.data.radarr_data.log_details.current_selection().text,
         "Test 1"
       );
 
-      SystemDetailsHandler::with(&key, &mut app, &ActiveRadarrBlock::SystemLogs, &None).handle();
+      SystemDetailsHandler::with(key, &mut app, ActiveRadarrBlock::SystemLogs, None).handle();
 
       assert_str_eq!(
         app.data.radarr_data.log_details.current_selection().text,
@@ -76,14 +77,14 @@ mod tests {
         .tasks
         .set_items(simple_stateful_iterable_vec!(RadarrTask, String, name));
 
-      SystemDetailsHandler::with(&key, &mut app, &ActiveRadarrBlock::SystemTasks, &None).handle();
+      SystemDetailsHandler::with(key, &mut app, ActiveRadarrBlock::SystemTasks, None).handle();
 
       assert_str_eq!(
         app.data.radarr_data.tasks.current_selection().name,
         "Test 2"
       );
 
-      SystemDetailsHandler::with(&key, &mut app, &ActiveRadarrBlock::SystemTasks, &None).handle();
+      SystemDetailsHandler::with(key, &mut app, ActiveRadarrBlock::SystemTasks, None).handle();
 
       assert_str_eq!(
         app.data.radarr_data.tasks.current_selection().name,
@@ -104,14 +105,14 @@ mod tests {
         .tasks
         .set_items(simple_stateful_iterable_vec!(RadarrTask, String, name));
 
-      SystemDetailsHandler::with(&key, &mut app, &ActiveRadarrBlock::SystemTasks, &None).handle();
+      SystemDetailsHandler::with(key, &mut app, ActiveRadarrBlock::SystemTasks, None).handle();
 
       assert_str_eq!(
         app.data.radarr_data.tasks.current_selection().name,
         "Test 1"
       );
 
-      SystemDetailsHandler::with(&key, &mut app, &ActiveRadarrBlock::SystemTasks, &None).handle();
+      SystemDetailsHandler::with(key, &mut app, ActiveRadarrBlock::SystemTasks, None).handle();
 
       assert_str_eq!(
         app.data.radarr_data.tasks.current_selection().name,
@@ -131,26 +132,16 @@ mod tests {
         .queued_events
         .set_items(simple_stateful_iterable_vec!(QueueEvent, String, name));
 
-      SystemDetailsHandler::with(
-        &key,
-        &mut app,
-        &ActiveRadarrBlock::SystemQueuedEvents,
-        &None,
-      )
-      .handle();
+      SystemDetailsHandler::with(key, &mut app, ActiveRadarrBlock::SystemQueuedEvents, None)
+        .handle();
 
       assert_str_eq!(
         app.data.radarr_data.queued_events.current_selection().name,
         "Test 2"
       );
 
-      SystemDetailsHandler::with(
-        &key,
-        &mut app,
-        &ActiveRadarrBlock::SystemQueuedEvents,
-        &None,
-      )
-      .handle();
+      SystemDetailsHandler::with(key, &mut app, ActiveRadarrBlock::SystemQueuedEvents, None)
+        .handle();
 
       assert_str_eq!(
         app.data.radarr_data.queued_events.current_selection().name,
@@ -171,26 +162,16 @@ mod tests {
         .queued_events
         .set_items(simple_stateful_iterable_vec!(QueueEvent, String, name));
 
-      SystemDetailsHandler::with(
-        &key,
-        &mut app,
-        &ActiveRadarrBlock::SystemQueuedEvents,
-        &None,
-      )
-      .handle();
+      SystemDetailsHandler::with(key, &mut app, ActiveRadarrBlock::SystemQueuedEvents, None)
+        .handle();
 
       assert_str_eq!(
         app.data.radarr_data.queued_events.current_selection().name,
         "Test 1"
       );
 
-      SystemDetailsHandler::with(
-        &key,
-        &mut app,
-        &ActiveRadarrBlock::SystemQueuedEvents,
-        &None,
-      )
-      .handle();
+      SystemDetailsHandler::with(key, &mut app, ActiveRadarrBlock::SystemQueuedEvents, None)
+        .handle();
 
       assert_str_eq!(
         app.data.radarr_data.queued_events.current_selection().name,
@@ -204,20 +185,20 @@ mod tests {
       app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.up.key,
+        DEFAULT_KEYBINDINGS.up.key,
         &mut app,
-        &ActiveRadarrBlock::SystemUpdates,
-        &None,
+        ActiveRadarrBlock::SystemUpdates,
+        None,
       )
       .handle();
 
       assert_eq!(app.data.radarr_data.updates.offset, 0);
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.down.key,
+        DEFAULT_KEYBINDINGS.down.key,
         &mut app,
-        &ActiveRadarrBlock::SystemUpdates,
-        &None,
+        ActiveRadarrBlock::SystemUpdates,
+        None,
       )
       .handle();
 
@@ -231,20 +212,20 @@ mod tests {
       app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.up.key,
+        DEFAULT_KEYBINDINGS.up.key,
         &mut app,
-        &ActiveRadarrBlock::SystemUpdates,
-        &None,
+        ActiveRadarrBlock::SystemUpdates,
+        None,
       )
       .handle();
 
       assert_eq!(app.data.radarr_data.updates.offset, 0);
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.down.key,
+        DEFAULT_KEYBINDINGS.down.key,
         &mut app,
-        &ActiveRadarrBlock::SystemUpdates,
-        &None,
+        ActiveRadarrBlock::SystemUpdates,
+        None,
       )
       .handle();
 
@@ -261,6 +242,7 @@ mod tests {
     test_iterable_home_and_end!(
       test_log_details_home_end,
       SystemDetailsHandler,
+      radarr_data,
       log_details,
       extended_stateful_iterable_vec!(HorizontallyScrollableText, String, text),
       ActiveRadarrBlock::SystemLogs,
@@ -283,10 +265,10 @@ mod tests {
         ));
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::SystemLogs,
-        &None,
+        ActiveRadarrBlock::SystemLogs,
+        None,
       )
       .handle();
 
@@ -296,10 +278,10 @@ mod tests {
       );
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::SystemLogs,
-        &None,
+        ActiveRadarrBlock::SystemLogs,
+        None,
       )
       .handle();
 
@@ -321,10 +303,10 @@ mod tests {
         .set_items(extended_stateful_iterable_vec!(RadarrTask, String, name));
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::SystemTasks,
-        &None,
+        ActiveRadarrBlock::SystemTasks,
+        None,
       )
       .handle();
 
@@ -334,10 +316,10 @@ mod tests {
       );
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::SystemTasks,
-        &None,
+        ActiveRadarrBlock::SystemTasks,
+        None,
       )
       .handle();
 
@@ -360,10 +342,10 @@ mod tests {
         .set_items(extended_stateful_iterable_vec!(RadarrTask, String, name));
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::SystemTasks,
-        &None,
+        ActiveRadarrBlock::SystemTasks,
+        None,
       )
       .handle();
 
@@ -373,10 +355,10 @@ mod tests {
       );
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::SystemTasks,
-        &None,
+        ActiveRadarrBlock::SystemTasks,
+        None,
       )
       .handle();
 
@@ -398,10 +380,10 @@ mod tests {
         .set_items(extended_stateful_iterable_vec!(QueueEvent, String, name));
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::SystemQueuedEvents,
-        &None,
+        ActiveRadarrBlock::SystemQueuedEvents,
+        None,
       )
       .handle();
 
@@ -411,10 +393,10 @@ mod tests {
       );
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::SystemQueuedEvents,
-        &None,
+        ActiveRadarrBlock::SystemQueuedEvents,
+        None,
       )
       .handle();
 
@@ -437,10 +419,10 @@ mod tests {
         .set_items(extended_stateful_iterable_vec!(QueueEvent, String, name));
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::SystemQueuedEvents,
-        &None,
+        ActiveRadarrBlock::SystemQueuedEvents,
+        None,
       )
       .handle();
 
@@ -450,10 +432,10 @@ mod tests {
       );
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::SystemQueuedEvents,
-        &None,
+        ActiveRadarrBlock::SystemQueuedEvents,
+        None,
       )
       .handle();
 
@@ -469,20 +451,20 @@ mod tests {
       app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::SystemUpdates,
-        &None,
+        ActiveRadarrBlock::SystemUpdates,
+        None,
       )
       .handle();
 
       assert_eq!(app.data.radarr_data.updates.offset, 1);
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::SystemUpdates,
-        &None,
+        ActiveRadarrBlock::SystemUpdates,
+        None,
       )
       .handle();
 
@@ -496,20 +478,20 @@ mod tests {
       app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
+        DEFAULT_KEYBINDINGS.end.key,
         &mut app,
-        &ActiveRadarrBlock::SystemUpdates,
-        &None,
+        ActiveRadarrBlock::SystemUpdates,
+        None,
       )
       .handle();
 
       assert_eq!(app.data.radarr_data.updates.offset, 0);
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
+        DEFAULT_KEYBINDINGS.home.key,
         &mut app,
-        &ActiveRadarrBlock::SystemUpdates,
-        &None,
+        ActiveRadarrBlock::SystemUpdates,
+        None,
       )
       .handle();
 
@@ -534,10 +516,10 @@ mod tests {
         .set_items(vec!["t1".into(), "t22".into()]);
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &active_radarr_block,
-        &None,
+        active_radarr_block,
+        None,
       )
       .handle();
 
@@ -545,10 +527,10 @@ mod tests {
       assert_eq!(app.data.radarr_data.log_details.items[1].to_string(), "t22");
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &active_radarr_block,
-        &None,
+        active_radarr_block,
+        None,
       )
       .handle();
 
@@ -556,10 +538,10 @@ mod tests {
       assert_eq!(app.data.radarr_data.log_details.items[1].to_string(), "22");
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &active_radarr_block,
-        &None,
+        active_radarr_block,
+        None,
       )
       .handle();
 
@@ -567,10 +549,10 @@ mod tests {
       assert_eq!(app.data.radarr_data.log_details.items[1].to_string(), "2");
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &active_radarr_block,
-        &None,
+        active_radarr_block,
+        None,
       )
       .handle();
 
@@ -578,10 +560,10 @@ mod tests {
       assert_eq!(app.data.radarr_data.log_details.items[1].to_string(), "");
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &active_radarr_block,
-        &None,
+        active_radarr_block,
+        None,
       )
       .handle();
 
@@ -589,10 +571,10 @@ mod tests {
       assert_eq!(app.data.radarr_data.log_details.items[1].to_string(), "");
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &active_radarr_block,
-        &None,
+        active_radarr_block,
+        None,
       )
       .handle();
 
@@ -600,10 +582,10 @@ mod tests {
       assert_eq!(app.data.radarr_data.log_details.items[1].to_string(), "2");
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &active_radarr_block,
-        &None,
+        active_radarr_block,
+        None,
       )
       .handle();
 
@@ -611,10 +593,10 @@ mod tests {
       assert_eq!(app.data.radarr_data.log_details.items[1].to_string(), "22");
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &active_radarr_block,
-        &None,
+        active_radarr_block,
+        None,
       )
       .handle();
 
@@ -629,20 +611,20 @@ mod tests {
       let mut app = App::default();
 
       SystemDetailsHandler::with(
-        &key,
+        key,
         &mut app,
-        &ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
-        &None,
+        ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
+        None,
       )
       .handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
 
       SystemDetailsHandler::with(
-        &key,
+        key,
         &mut app,
-        &ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
-        &None,
+        ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
+        None,
       )
       .handle();
 
@@ -664,17 +646,12 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
 
-      SystemDetailsHandler::with(
-        &SUBMIT_KEY,
-        &mut app,
-        &ActiveRadarrBlock::SystemTasks,
-        &None,
-      )
-      .handle();
+      SystemDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::SystemTasks, None)
+        .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into()
+        ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into()
       );
     }
 
@@ -685,17 +662,12 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
       app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
 
-      SystemDetailsHandler::with(
-        &SUBMIT_KEY,
-        &mut app,
-        &ActiveRadarrBlock::SystemTasks,
-        &None,
-      )
-      .handle();
+      SystemDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::SystemTasks, None)
+        .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::SystemTasks.into()
+        ActiveRadarrBlock::SystemTasks.into()
       );
     }
 
@@ -708,10 +680,10 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into());
 
       SystemDetailsHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
-        &None,
+        ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
+        None,
       )
       .handle();
 
@@ -722,7 +694,7 @@ mod tests {
       );
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::SystemTasks.into()
+        ActiveRadarrBlock::SystemTasks.into()
       );
     }
 
@@ -734,10 +706,10 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into());
 
       SystemDetailsHandler::with(
-        &SUBMIT_KEY,
+        SUBMIT_KEY,
         &mut app,
-        &ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
-        &None,
+        ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
+        None,
       )
       .handle();
 
@@ -745,7 +717,7 @@ mod tests {
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::SystemTasks.into()
+        ActiveRadarrBlock::SystemTasks.into()
       );
     }
   }
@@ -776,10 +748,9 @@ mod tests {
         .log_details
         .set_items(vec![HorizontallyScrollableText::default()]);
 
-      SystemDetailsHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::SystemLogs, &None)
-        .handle();
+      SystemDetailsHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::SystemLogs, None).handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
       assert!(app.data.radarr_data.log_details.items.is_empty());
     }
 
@@ -795,10 +766,9 @@ mod tests {
         .tasks
         .set_items(vec![RadarrTask::default()]);
 
-      SystemDetailsHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::SystemTasks, &None)
-        .handle();
+      SystemDetailsHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::SystemTasks, None).handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
     }
 
     #[rstest]
@@ -814,14 +784,14 @@ mod tests {
         .set_items(vec![QueueEvent::default()]);
 
       SystemDetailsHandler::with(
-        &ESC_KEY,
+        ESC_KEY,
         &mut app,
-        &ActiveRadarrBlock::SystemQueuedEvents,
-        &None,
+        ActiveRadarrBlock::SystemQueuedEvents,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
     }
 
     #[rstest]
@@ -831,10 +801,10 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.push_navigation_stack(ActiveRadarrBlock::SystemUpdates.into());
 
-      SystemDetailsHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::SystemUpdates, &None)
+      SystemDetailsHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::SystemUpdates, None)
         .handle();
 
-      assert_eq!(app.get_current_route(), &ActiveRadarrBlock::System.into());
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
     }
 
     #[test]
@@ -845,16 +815,16 @@ mod tests {
       app.data.radarr_data.prompt_confirm = true;
 
       SystemDetailsHandler::with(
-        &ESC_KEY,
+        ESC_KEY,
         &mut app,
-        &ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
-        &None,
+        ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::SystemTasks.into()
+        ActiveRadarrBlock::SystemTasks.into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
     }
@@ -882,14 +852,14 @@ mod tests {
       app.push_navigation_stack(active_radarr_block.into());
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.refresh.key,
+        DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
-        &active_radarr_block,
-        &None,
+        active_radarr_block,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &active_radarr_block.into());
+      assert_eq!(app.get_current_route(), active_radarr_block.into());
       assert!(app.should_refresh);
     }
 
@@ -909,14 +879,14 @@ mod tests {
       app.push_navigation_stack(active_radarr_block.into());
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.refresh.key,
+        DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
-        &active_radarr_block,
-        &None,
+        active_radarr_block,
+        None,
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), &active_radarr_block.into());
+      assert_eq!(app.get_current_route(), active_radarr_block.into());
       assert!(!app.should_refresh);
     }
 
@@ -928,10 +898,10 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into());
 
       SystemDetailsHandler::with(
-        &DEFAULT_KEYBINDINGS.confirm.key,
+        DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
-        &ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
-        &None,
+        ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
+        None,
       )
       .handle();
 
@@ -942,7 +912,7 @@ mod tests {
       );
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::SystemTasks.into()
+        ActiveRadarrBlock::SystemTasks.into()
       );
     }
   }
@@ -951,9 +921,9 @@ mod tests {
   fn test_system_details_handler_accepts() {
     ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
       if SYSTEM_DETAILS_BLOCKS.contains(&active_radarr_block) {
-        assert!(SystemDetailsHandler::accepts(&active_radarr_block));
+        assert!(SystemDetailsHandler::accepts(active_radarr_block));
       } else {
-        assert!(!SystemDetailsHandler::accepts(&active_radarr_block));
+        assert!(!SystemDetailsHandler::accepts(active_radarr_block));
       }
     })
   }
@@ -964,25 +934,25 @@ mod tests {
     app.is_loading = true;
 
     let handler = SystemDetailsHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::SystemUpdates,
-      &None,
+      ActiveRadarrBlock::SystemUpdates,
+      None,
     );
 
     assert!(!handler.is_ready());
   }
 
   #[test]
-  fn test_system_details_handler_not_ready_when_both_log_details_and_updates_are_empty() {
+  fn test_system_details_handler_not_ready_when_log_details_and_updates_and_tasks_are_empty() {
     let mut app = App::default();
     app.is_loading = false;
 
     let handler = SystemDetailsHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::SystemUpdates,
-      &None,
+      ActiveRadarrBlock::SystemUpdates,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -999,10 +969,30 @@ mod tests {
       .set_items(vec![HorizontallyScrollableText::default()]);
 
     let handler = SystemDetailsHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::SystemUpdates,
-      &None,
+      ActiveRadarrBlock::SystemUpdates,
+      None,
+    );
+
+    assert!(handler.is_ready());
+  }
+
+  #[test]
+  fn test_system_details_handler_ready_when_not_loading_and_tasks_is_not_empty() {
+    let mut app = App::default();
+    app.is_loading = false;
+    app
+      .data
+      .radarr_data
+      .tasks
+      .set_items(vec![RadarrTask::default()]);
+
+    let handler = SystemDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::SystemTasks,
+      None,
     );
 
     assert!(handler.is_ready());
@@ -1015,10 +1005,10 @@ mod tests {
     app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
 
     let handler = SystemDetailsHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::SystemUpdates,
-      &None,
+      ActiveRadarrBlock::SystemUpdates,
+      None,
     );
 
     assert!(handler.is_ready());

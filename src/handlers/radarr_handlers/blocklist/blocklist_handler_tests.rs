@@ -14,246 +14,6 @@ mod tests {
   use crate::models::radarr_models::{BlocklistItem, BlocklistItemMovie};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, BLOCKLIST_BLOCKS};
   use crate::models::servarr_models::{Language, Quality, QualityWrapper};
-  use crate::models::stateful_table::SortOption;
-
-  mod test_handle_scroll_up_and_down {
-    use pretty_assertions::{assert_eq, assert_str_eq};
-    use rstest::rstest;
-
-    use crate::models::radarr_models::BlocklistItem;
-    use crate::{simple_stateful_iterable_vec, test_iterable_scroll};
-
-    use super::*;
-
-    test_iterable_scroll!(
-      test_blocklist_scroll,
-      BlocklistHandler,
-      blocklist,
-      simple_stateful_iterable_vec!(BlocklistItem, String, source_title),
-      ActiveRadarrBlock::Blocklist,
-      None,
-      source_title,
-      to_string
-    );
-
-    #[rstest]
-    fn test_blocklist_scroll_no_op_when_not_ready(
-      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
-    ) {
-      let mut app = App::default();
-      app.is_loading = true;
-      app
-        .data
-        .radarr_data
-        .blocklist
-        .set_items(simple_stateful_iterable_vec!(
-          BlocklistItem,
-          String,
-          source_title
-        ));
-
-      BlocklistHandler::with(&key, &mut app, &ActiveRadarrBlock::Blocklist, &None).handle();
-
-      assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .blocklist
-          .current_selection()
-          .source_title
-          .to_string(),
-        "Test 1"
-      );
-
-      BlocklistHandler::with(&key, &mut app, &ActiveRadarrBlock::Blocklist, &None).handle();
-
-      assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .blocklist
-          .current_selection()
-          .source_title
-          .to_string(),
-        "Test 1"
-      );
-    }
-
-    #[rstest]
-    fn test_blocklist_sort_scroll(
-      #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
-    ) {
-      let blocklist_field_vec = sort_options();
-      let mut app = App::default();
-      app.data.radarr_data.blocklist.sorting(sort_options());
-
-      if key == Key::Up {
-        for i in (0..blocklist_field_vec.len()).rev() {
-          BlocklistHandler::with(
-            &key,
-            &mut app,
-            &ActiveRadarrBlock::BlocklistSortPrompt,
-            &None,
-          )
-          .handle();
-
-          assert_eq!(
-            app
-              .data
-              .radarr_data
-              .blocklist
-              .sort
-              .as_ref()
-              .unwrap()
-              .current_selection(),
-            &blocklist_field_vec[i]
-          );
-        }
-      } else {
-        for i in 0..blocklist_field_vec.len() {
-          BlocklistHandler::with(
-            &key,
-            &mut app,
-            &ActiveRadarrBlock::BlocklistSortPrompt,
-            &None,
-          )
-          .handle();
-
-          assert_eq!(
-            app
-              .data
-              .radarr_data
-              .blocklist
-              .sort
-              .as_ref()
-              .unwrap()
-              .current_selection(),
-            &blocklist_field_vec[(i + 1) % blocklist_field_vec.len()]
-          );
-        }
-      }
-    }
-  }
-
-  mod test_handle_home_end {
-    use pretty_assertions::{assert_eq, assert_str_eq};
-
-    use crate::models::radarr_models::BlocklistItem;
-    use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
-
-    use super::*;
-
-    test_iterable_home_and_end!(
-      test_blocklist_home_and_end,
-      BlocklistHandler,
-      blocklist,
-      extended_stateful_iterable_vec!(BlocklistItem, String, source_title),
-      ActiveRadarrBlock::Blocklist,
-      None,
-      source_title,
-      to_string
-    );
-
-    #[test]
-    fn test_blocklist_home_and_end_no_op_when_not_ready() {
-      let mut app = App::default();
-      app.is_loading = true;
-      app
-        .data
-        .radarr_data
-        .blocklist
-        .set_items(extended_stateful_iterable_vec!(
-          BlocklistItem,
-          String,
-          source_title
-        ));
-
-      BlocklistHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
-        &mut app,
-        &ActiveRadarrBlock::Blocklist,
-        &None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .blocklist
-          .current_selection()
-          .source_title
-          .to_string(),
-        "Test 1"
-      );
-
-      BlocklistHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
-        &mut app,
-        &ActiveRadarrBlock::Blocklist,
-        &None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app
-          .data
-          .radarr_data
-          .blocklist
-          .current_selection()
-          .source_title
-          .to_string(),
-        "Test 1"
-      );
-    }
-
-    #[test]
-    fn test_blocklist_sort_home_end() {
-      let blocklist_field_vec = sort_options();
-      let mut app = App::default();
-      app.data.radarr_data.blocklist.sorting(sort_options());
-
-      BlocklistHandler::with(
-        &DEFAULT_KEYBINDINGS.end.key,
-        &mut app,
-        &ActiveRadarrBlock::BlocklistSortPrompt,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(
-        app
-          .data
-          .radarr_data
-          .blocklist
-          .sort
-          .as_ref()
-          .unwrap()
-          .current_selection(),
-        &blocklist_field_vec[blocklist_field_vec.len() - 1]
-      );
-
-      BlocklistHandler::with(
-        &DEFAULT_KEYBINDINGS.home.key,
-        &mut app,
-        &ActiveRadarrBlock::BlocklistSortPrompt,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(
-        app
-          .data
-          .radarr_data
-          .blocklist
-          .sort
-          .as_ref()
-          .unwrap()
-          .current_selection(),
-        &blocklist_field_vec[0]
-      );
-    }
-  }
 
   mod test_handle_delete {
     use pretty_assertions::assert_eq;
@@ -267,11 +27,11 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
 
-      BlocklistHandler::with(&DELETE_KEY, &mut app, &ActiveRadarrBlock::Blocklist, &None).handle();
+      BlocklistHandler::with(DELETE_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::DeleteBlocklistItemPrompt.into()
+        ActiveRadarrBlock::DeleteBlocklistItemPrompt.into()
       );
     }
 
@@ -282,12 +42,9 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
 
-      BlocklistHandler::with(&DELETE_KEY, &mut app, &ActiveRadarrBlock::Blocklist, &None).handle();
+      BlocklistHandler::with(DELETE_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::Blocklist.into()
-      );
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Blocklist.into());
     }
   }
 
@@ -304,21 +61,18 @@ mod tests {
       app.data.radarr_data.main_tabs.set_index(3);
 
       BlocklistHandler::with(
-        &DEFAULT_KEYBINDINGS.left.key,
+        DEFAULT_KEYBINDINGS.left.key,
         &mut app,
-        &ActiveRadarrBlock::Blocklist,
-        &None,
+        ActiveRadarrBlock::Blocklist,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.data.radarr_data.main_tabs.get_active_route(),
-        &ActiveRadarrBlock::Downloads.into()
+        ActiveRadarrBlock::Downloads.into()
       );
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::Downloads.into()
-      );
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Downloads.into());
     }
 
     #[rstest]
@@ -328,20 +82,20 @@ mod tests {
       app.data.radarr_data.main_tabs.set_index(3);
 
       BlocklistHandler::with(
-        &DEFAULT_KEYBINDINGS.right.key,
+        DEFAULT_KEYBINDINGS.right.key,
         &mut app,
-        &ActiveRadarrBlock::Blocklist,
-        &None,
+        ActiveRadarrBlock::Blocklist,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.data.radarr_data.main_tabs.get_active_route(),
-        &ActiveRadarrBlock::RootFolders.into()
+        ActiveRadarrBlock::RootFolders.into()
       );
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::RootFolders.into()
+        ActiveRadarrBlock::RootFolders.into()
       );
     }
 
@@ -356,11 +110,11 @@ mod tests {
     ) {
       let mut app = App::default();
 
-      BlocklistHandler::with(&key, &mut app, &active_radarr_block, &None).handle();
+      BlocklistHandler::with(key, &mut app, active_radarr_block, None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      BlocklistHandler::with(&key, &mut app, &active_radarr_block, &None).handle();
+      BlocklistHandler::with(key, &mut app, active_radarr_block, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
     }
@@ -382,11 +136,11 @@ mod tests {
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
 
-      BlocklistHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::Blocklist, &None).handle();
+      BlocklistHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::BlocklistItemDetails.into()
+        ActiveRadarrBlock::BlocklistItemDetails.into()
       );
     }
 
@@ -397,12 +151,9 @@ mod tests {
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
 
-      BlocklistHandler::with(&SUBMIT_KEY, &mut app, &ActiveRadarrBlock::Blocklist, &None).handle();
+      BlocklistHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::Blocklist.into()
-      );
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Blocklist.into());
     }
 
     #[rstest]
@@ -427,14 +178,14 @@ mod tests {
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
 
-      BlocklistHandler::with(&SUBMIT_KEY, &mut app, &prompt_block, &None).handle();
+      BlocklistHandler::with(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
         Some(expected_action)
       );
-      assert_eq!(app.get_current_route(), &base_route.into());
+      assert_eq!(app.get_current_route(), base_route.into());
     }
 
     #[rstest]
@@ -450,42 +201,11 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.push_navigation_stack(prompt_block.into());
 
-      BlocklistHandler::with(&SUBMIT_KEY, &mut app, &prompt_block, &None).handle();
+      BlocklistHandler::with(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::Blocklist.into()
-      );
-    }
-
-    #[test]
-    fn test_blocklist_sort_prompt_submit() {
-      let mut app = App::default();
-      app.data.radarr_data.blocklist.sort_asc = true;
-      app.data.radarr_data.blocklist.sorting(sort_options());
-      app.data.radarr_data.blocklist.set_items(blocklist_vec());
-      app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
-      app.push_navigation_stack(ActiveRadarrBlock::BlocklistSortPrompt.into());
-
-      let mut expected_vec = blocklist_vec();
-      expected_vec.sort_by(|a, b| a.id.cmp(&b.id));
-      expected_vec.reverse();
-
-      BlocklistHandler::with(
-        &SUBMIT_KEY,
-        &mut app,
-        &ActiveRadarrBlock::BlocklistSortPrompt,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::Blocklist.into()
-      );
-      assert_eq!(app.data.radarr_data.blocklist.items, expected_vec);
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Blocklist.into());
     }
   }
 
@@ -517,9 +237,9 @@ mod tests {
       app.push_navigation_stack(prompt_block.into());
       app.data.radarr_data.prompt_confirm = true;
 
-      BlocklistHandler::with(&ESC_KEY, &mut app, &prompt_block, &None).handle();
+      BlocklistHandler::with(ESC_KEY, &mut app, prompt_block, None).handle();
 
-      assert_eq!(app.get_current_route(), &base_block.into());
+      assert_eq!(app.get_current_route(), base_block.into());
       assert!(!app.data.radarr_data.prompt_confirm);
     }
 
@@ -530,37 +250,14 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::BlocklistItemDetails.into());
 
       BlocklistHandler::with(
-        &ESC_KEY,
+        ESC_KEY,
         &mut app,
-        &ActiveRadarrBlock::BlocklistItemDetails,
-        &None,
+        ActiveRadarrBlock::BlocklistItemDetails,
+        None,
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::Blocklist.into()
-      );
-    }
-
-    #[test]
-    fn test_blocklist_sort_prompt_block_esc() {
-      let mut app = App::default();
-      app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
-      app.push_navigation_stack(ActiveRadarrBlock::BlocklistSortPrompt.into());
-
-      BlocklistHandler::with(
-        &ESC_KEY,
-        &mut app,
-        &ActiveRadarrBlock::BlocklistSortPrompt,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::Blocklist.into()
-      );
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Blocklist.into());
     }
 
     #[rstest]
@@ -571,12 +268,9 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
 
-      DownloadsHandler::with(&ESC_KEY, &mut app, &ActiveRadarrBlock::Blocklist, &None).handle();
+      DownloadsHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::Blocklist.into()
-      );
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Blocklist.into());
       assert!(app.error.text.is_empty());
     }
   }
@@ -596,17 +290,14 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
 
       BlocklistHandler::with(
-        &DEFAULT_KEYBINDINGS.refresh.key,
+        DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
-        &ActiveRadarrBlock::Blocklist,
-        &None,
+        ActiveRadarrBlock::Blocklist,
+        None,
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::Blocklist.into()
-      );
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Blocklist.into());
       assert!(app.should_refresh);
     }
 
@@ -618,17 +309,14 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
 
       BlocklistHandler::with(
-        &DEFAULT_KEYBINDINGS.refresh.key,
+        DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
-        &ActiveRadarrBlock::Blocklist,
-        &None,
+        ActiveRadarrBlock::Blocklist,
+        None,
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::Blocklist.into()
-      );
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Blocklist.into());
       assert!(!app.should_refresh);
     }
 
@@ -638,16 +326,16 @@ mod tests {
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
 
       BlocklistHandler::with(
-        &DEFAULT_KEYBINDINGS.clear.key,
+        DEFAULT_KEYBINDINGS.clear.key,
         &mut app,
-        &ActiveRadarrBlock::Blocklist,
-        &None,
+        ActiveRadarrBlock::Blocklist,
+        None,
       )
       .handle();
 
       assert_eq!(
         app.get_current_route(),
-        &ActiveRadarrBlock::BlocklistClearAllItemsPrompt.into()
+        ActiveRadarrBlock::BlocklistClearAllItemsPrompt.into()
       );
     }
 
@@ -659,64 +347,14 @@ mod tests {
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
 
       BlocklistHandler::with(
-        &DEFAULT_KEYBINDINGS.clear.key,
+        DEFAULT_KEYBINDINGS.clear.key,
         &mut app,
-        &ActiveRadarrBlock::Blocklist,
-        &None,
+        ActiveRadarrBlock::Blocklist,
+        None,
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::Blocklist.into()
-      );
-    }
-
-    #[test]
-    fn test_sort_key() {
-      let mut app = App::default();
-      app.data.radarr_data.blocklist.set_items(blocklist_vec());
-
-      BlocklistHandler::with(
-        &DEFAULT_KEYBINDINGS.sort.key,
-        &mut app,
-        &ActiveRadarrBlock::Blocklist,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::BlocklistSortPrompt.into()
-      );
-      assert_eq!(
-        app.data.radarr_data.blocklist.sort.as_ref().unwrap().items,
-        blocklist_sorting_options()
-      );
-      assert!(!app.data.radarr_data.blocklist.sort_asc);
-    }
-
-    #[test]
-    fn test_sort_key_no_op_when_not_ready() {
-      let mut app = App::default();
-      app.is_loading = true;
-      app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
-      app.data.radarr_data.blocklist.set_items(blocklist_vec());
-
-      BlocklistHandler::with(
-        &DEFAULT_KEYBINDINGS.sort.key,
-        &mut app,
-        &ActiveRadarrBlock::Blocklist,
-        &None,
-      )
-      .handle();
-
-      assert_eq!(
-        app.get_current_route(),
-        &ActiveRadarrBlock::Blocklist.into()
-      );
-      assert!(app.data.radarr_data.blocklist.sort.is_none());
-      assert!(!app.data.radarr_data.blocklist.sort_asc);
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Blocklist.into());
     }
 
     #[rstest]
@@ -741,10 +379,10 @@ mod tests {
       app.push_navigation_stack(prompt_block.into());
 
       BlocklistHandler::with(
-        &DEFAULT_KEYBINDINGS.confirm.key,
+        DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
-        &prompt_block,
-        &None,
+        prompt_block,
+        None,
       )
       .handle();
 
@@ -753,7 +391,7 @@ mod tests {
         app.data.radarr_data.prompt_confirm_action,
         Some(expected_action)
       );
-      assert_eq!(app.get_current_route(), &base_route.into());
+      assert_eq!(app.get_current_route(), base_route.into());
     }
   }
 
@@ -896,9 +534,9 @@ mod tests {
   fn test_blocklist_handler_accepts() {
     ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
       if BLOCKLIST_BLOCKS.contains(&active_radarr_block) {
-        assert!(BlocklistHandler::accepts(&active_radarr_block));
+        assert!(BlocklistHandler::accepts(active_radarr_block));
       } else {
-        assert!(!BlocklistHandler::accepts(&active_radarr_block));
+        assert!(!BlocklistHandler::accepts(active_radarr_block));
       }
     })
   }
@@ -909,10 +547,10 @@ mod tests {
     app.is_loading = true;
 
     let handler = BlocklistHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::Blocklist,
-      &None,
+      ActiveRadarrBlock::Blocklist,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -924,10 +562,10 @@ mod tests {
     app.is_loading = false;
 
     let handler = BlocklistHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::Blocklist,
-      &None,
+      ActiveRadarrBlock::Blocklist,
+      None,
     );
 
     assert!(!handler.is_ready());
@@ -944,10 +582,10 @@ mod tests {
       .set_items(vec![BlocklistItem::default()]);
 
     let handler = BlocklistHandler::with(
-      &DEFAULT_KEYBINDINGS.esc.key,
+      DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
-      &ActiveRadarrBlock::Blocklist,
-      &None,
+      ActiveRadarrBlock::Blocklist,
+      None,
     );
 
     assert!(handler.is_ready());
@@ -1028,16 +666,5 @@ mod tests {
         ..BlocklistItem::default()
       },
     ]
-  }
-
-  fn sort_options() -> Vec<SortOption<BlocklistItem>> {
-    vec![SortOption {
-      name: "Test 1",
-      cmp_fn: Some(|a, b| {
-        b.source_title
-          .to_lowercase()
-          .cmp(&a.source_title.to_lowercase())
-      }),
-    }]
   }
 }

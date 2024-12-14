@@ -177,7 +177,6 @@ async fn start_ui(app: &Arc<Mutex<App<'_>>>) -> Result<()> {
   terminal.hide_cursor()?;
 
   let input_events = Events::new();
-  let mut is_first_render = true;
 
   loop {
     let mut app = app.lock().await;
@@ -193,10 +192,8 @@ async fn start_ui(app: &Arc<Mutex<App<'_>>>) -> Result<()> {
         handlers::handle_events(key, &mut app);
       }
 
-      InputEvent::Tick => app.on_tick(is_first_render).await,
+      InputEvent::Tick => app.on_tick().await,
     }
-
-    is_first_render = false;
   }
 
   terminal.show_cursor()?;

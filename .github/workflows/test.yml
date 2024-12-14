@@ -34,16 +34,20 @@ jobs:
         toolchain: [stable, beta]
     steps:
       - uses: actions/checkout@v4
+
       - name: Install ${{ matrix.toolchain }}
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
+
       # enable this ci template to run regardless of whether the lockfile is checked in or not
       - name: cargo generate-lockfile
         if: hashFiles('Cargo.lock') == ''
         run: cargo generate-lockfile
+
       - name: cargo test --locked
         run: cargo test --locked --all-features --all-targets
+
   minimal-versions:
     # This action chooses the oldest version of the dependencies permitted by Cargo.toml to ensure
     # that this crate is compatible with the minimal version that this crate and its dependencies
@@ -71,18 +75,25 @@ jobs:
     name: ubuntu / stable / minimal-versions
     steps:
       - uses: actions/checkout@v4
+
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
+
       - name: Install nightly for -Zdirect-minimal-versions
         uses: dtolnay/rust-toolchain@nightly
+
       - name: rustup default stable
         run: rustup default stable
+
       - name: cargo update -Zdirect-minimal-versions
         run: cargo +nightly update -Zdirect-minimal-versions
+
       - name: cargo test
         run: cargo test --locked --all-features --all-targets
+
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
+
   os-check:
     # run cargo test on mac and windows
     runs-on: ${{ matrix.os }}
@@ -100,15 +111,20 @@ jobs:
       #   if: runner.os == 'Windows'
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
+
       - name: cargo generate-lockfile
         if: hashFiles('Cargo.lock') == ''
         run: cargo generate-lockfile
+
       - name: cargo test
         run: cargo test --locked --all-features --all-targets
+
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
+
   coverage:
     # use llvm-cov to build and collect coverage and outputs in a format that
     # is compatible with codecov.io
@@ -136,21 +152,28 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           components: llvm-tools-preview
+
       - name: cargo install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
+
       - name: cargo generate-lockfile
         if: hashFiles('Cargo.lock') == ''
         run: cargo generate-lockfile
+
       - name: cargo llvm-cov
         run: cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
+
       - name: Record Rust version
         run: echo "RUST=$(rustc --version)" >> "$GITHUB_ENV"
+
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
+
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v4
         with:
