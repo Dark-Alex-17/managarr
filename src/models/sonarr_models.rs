@@ -82,7 +82,7 @@ pub struct BlocklistItem {
   pub series_title: Option<String>,
   pub episode_ids: Vec<Number>,
   pub source_title: String,
-  pub language: Language,
+  pub languages: Vec<Language>,
   pub quality: QualityWrapper,
   pub date: DateTime<Utc>,
   pub protocol: String,

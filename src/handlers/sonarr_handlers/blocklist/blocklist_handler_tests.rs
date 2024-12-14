@@ -441,10 +441,20 @@ mod tests {
   #[test]
   fn test_blocklist_sorting_options_language() {
     let expected_cmp_fn: fn(&BlocklistItem, &BlocklistItem) -> Ordering = |a, b| {
-      a.language
-        .name
-        .to_lowercase()
-        .cmp(&b.language.name.to_lowercase())
+      let a_languages = a
+        .languages
+        .iter()
+        .map(|lang| lang.name.to_lowercase())
+        .collect::<Vec<String>>()
+        .join(", ");
+      let b_languages = b
+        .languages
+        .iter()
+        .map(|lang| lang.name.to_lowercase())
+        .collect::<Vec<String>>()
+        .join(", ");
+
+      a_languages.cmp(&b_languages)
     };
     let mut expected_blocklist_vec = blocklist_vec();
     expected_blocklist_vec.sort_by(expected_cmp_fn);
@@ -561,10 +571,10 @@ mod tests {
       BlocklistItem {
         id: 3,
         source_title: "test 1".to_owned(),
-        language: Language {
+        languages: vec![Language {
           id: 1,
           name: "telgu".to_owned(),
-        },
+        }],
         quality: QualityWrapper {
           quality: Quality {
             name: "HD - 1080p".to_owned(),
@@ -577,10 +587,10 @@ mod tests {
       BlocklistItem {
         id: 2,
         source_title: "test 2".to_owned(),
-        language: Language {
+        languages: vec![Language {
           id: 3,
           name: "chinese".to_owned(),
-        },
+        }],
         quality: QualityWrapper {
           quality: Quality {
             name: "SD - 720p".to_owned(),
@@ -593,10 +603,10 @@ mod tests {
       BlocklistItem {
         id: 1,
         source_title: "test 3".to_owned(),
-        language: Language {
+        languages: vec![Language {
           id: 1,
           name: "english".to_owned(),
-        },
+        }],
         quality: QualityWrapper {
           quality: Quality {
             name: "HD - 1080p".to_owned(),

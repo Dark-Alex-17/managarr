@@ -87,18 +87,23 @@ fn draw_blocklist_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let BlocklistItem {
         source_title,
         series_title,
-        language,
+        languages,
         quality,
         date,
         ..
       } = blocklist_item;
 
       let title = series_title.as_ref().unwrap_or(&String::new()).to_owned();
+      let languages_string = languages
+        .iter()
+        .map(|lang| lang.name.to_owned())
+        .collect::<Vec<String>>()
+        .join(", ");
 
       Row::new(vec![
         Cell::from(title),
         Cell::from(source_title.to_owned()),
-        Cell::from(language.name.to_owned()),
+        Cell::from(languages_string),
         Cell::from(quality.quality.name.to_owned()),
         Cell::from(date.to_string()),
       ])

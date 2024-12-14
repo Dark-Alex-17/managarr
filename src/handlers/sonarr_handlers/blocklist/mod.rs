@@ -198,10 +198,20 @@ fn blocklist_sorting_options() -> Vec<SortOption<BlocklistItem>> {
     SortOption {
       name: "Language",
       cmp_fn: Some(|a, b| {
-        a.language
-          .name
-          .to_lowercase()
-          .cmp(&b.language.name.to_lowercase())
+        let a_languages = a
+          .languages
+          .iter()
+          .map(|lang| lang.name.to_lowercase())
+          .collect::<Vec<String>>()
+          .join(", ");
+        let b_languages = b
+          .languages
+          .iter()
+          .map(|lang| lang.name.to_lowercase())
+          .collect::<Vec<String>>()
+          .join(", ");
+
+        a_languages.cmp(&b_languages)
       }),
     },
     SortOption {
