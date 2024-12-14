@@ -139,7 +139,7 @@ jobs:
 
       - name: Add SHA to artifacts
         run: |
-          [[ -d artifacts ]] || mkdir artifacts
+          mkdir -p artifacts
           cp target/${{ matrix.job.target }}/release/${{ env.RELEASE_NAME }}.sha256 artifacts/
 
       - name: Upload artifacts
