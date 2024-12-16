@@ -6,7 +6,9 @@ mod tests {
 
     use crate::app::radarr::ActiveRadarrBlock;
     use crate::app::App;
-    use crate::models::radarr_models::{Collection, CollectionMovie, Credit, RadarrRelease};
+    use crate::models::radarr_models::{
+      AddMovieBody, AddMovieOptions, Collection, CollectionMovie, Credit, RadarrRelease,
+    };
     use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 
     use crate::network::radarr_network::RadarrEvent;
@@ -83,8 +85,23 @@ mod tests {
 
     #[tokio::test]
     async fn test_dispatch_by_collection_details_block_with_add_movie() {
+      let add_movie_body = AddMovieBody {
+        tmdb_id: 1234,
+        title: "Test".to_owned(),
+        root_folder_path: "/nfs2".to_owned(),
+        minimum_availability: "announced".to_owned(),
+        monitored: true,
+        quality_profile_id: 2222,
+        tags: vec![1, 2],
+        tag_input_string: String::new(),
+        add_options: AddMovieOptions {
+          monitor: "movieOnly".to_owned(),
+          search_for_movie: true,
+        },
+      };
       let (mut app, mut sync_network_rx) = construct_app_unit();
-      app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddMovie(None));
+      app.data.radarr_data.prompt_confirm_action =
+        Some(RadarrEvent::AddMovie(add_movie_body.clone()));
 
       app.data.radarr_data.collections.set_items(vec![Collection {
         movies: Some(vec![CollectionMovie::default()]),
@@ -106,7 +123,7 @@ mod tests {
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::AddMovie(None).into()
+        RadarrEvent::AddMovie(add_movie_body).into()
       );
       assert!(!app.data.radarr_data.collection_movies.items.is_empty());
       assert_eq!(app.tick_count, 0);

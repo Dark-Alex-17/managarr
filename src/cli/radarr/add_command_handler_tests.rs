@@ -381,6 +381,7 @@ mod tests {
         minimum_availability: "released".to_owned(),
         monitored: false,
         tags: vec![1, 2],
+        tag_input_string: String::new(),
         add_options: AddMovieOptions {
           monitor: "movieAndCollection".to_owned(),
           search_for_movie: false,
@@ -390,7 +391,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::AddMovie(Some(expected_add_movie_body)).into(),
+          RadarrEvent::AddMovie(expected_add_movie_body).into(),
         ))
         .times(1)
         .returning(|_| {

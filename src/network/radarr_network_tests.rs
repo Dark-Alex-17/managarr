@@ -15,8 +15,8 @@ mod test {
 
   use crate::app::ServarrConfig;
   use crate::models::radarr_models::{
-    BlocklistItem, BlocklistItemMovie, CollectionMovie, MediaInfo, MinimumAvailability,
-    MovieCollection, MovieFile, MovieMonitor, Rating, RatingsList,
+    AddMovieOptions, BlocklistItem, BlocklistItemMovie, CollectionMovie, MediaInfo,
+    MinimumAvailability, MovieCollection, MovieFile, Rating, RatingsList,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_models::{
@@ -117,7 +117,7 @@ mod test {
   #[rstest]
   fn test_resource_movie(
     #[values(
-      RadarrEvent::AddMovie(None),
+      RadarrEvent::AddMovie(AddMovieBody::default()),
       RadarrEvent::EditMovie(None),
       RadarrEvent::GetMovies,
       RadarrEvent::GetMovieDetails(None),
@@ -3396,9 +3396,8 @@ mod test {
     async_server.assert_async().await;
   }
 
-  #[rstest]
   #[tokio::test]
-  async fn test_handle_add_movie_event(#[values(true, false)] movie_details_context: bool) {
+  async fn test_handle_add_movie_event() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -3416,104 +3415,14 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::AddMovie(None),
+      RadarrEvent::AddMovie(AddMovieBody::default()),
       None,
       None,
     )
     .await;
-
-    {
-      let mut app = app_arc.lock().await;
-      let mut add_movie_modal = AddMovieModal {
-        tags: "usenet, testing".into(),
-        ..AddMovieModal::default()
-      };
-      add_movie_modal.root_folder_list.set_items(vec![
-        RootFolder {
-          id: 1,
-          path: "/nfs".to_owned(),
-          accessible: true,
-          free_space: 219902325555200,
-          unmapped_folders: None,
-        },
-        RootFolder {
-          id: 2,
-          path: "/nfs2".to_owned(),
-          accessible: true,
-          free_space: 21990232555520,
-          unmapped_folders: None,
-        },
-      ]);
-      add_movie_modal.root_folder_list.state.select(Some(1));
-      add_movie_modal
-        .quality_profile_list
-        .set_items(vec!["HD - 1080p".to_owned()]);
-      add_movie_modal
-        .monitor_list
-        .set_items(Vec::from_iter(MovieMonitor::iter()));
-      add_movie_modal
-        .minimum_availability_list
-        .set_items(Vec::from_iter(MinimumAvailability::iter()));
-      app.data.radarr_data.add_movie_modal = Some(add_movie_modal);
-      app.data.radarr_data.quality_profile_map =
-        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
-      app.data.radarr_data.tags_map =
-        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-      if movie_details_context {
-        app
-          .data
-          .radarr_data
-          .collection_movies
-          .set_items(vec![collection_movie()]);
-        app.push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into());
-      } else {
-        let mut add_searched_movies = StatefulTable::default();
-        add_searched_movies.set_items(vec![add_movie_search_result()]);
-        app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
-      }
-    }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::AddMovie(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .add_movie_modal
-      .is_none());
-  }
-
-  #[tokio::test]
-  async fn test_handle_add_movie_event_uses_provided_body() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "tmdbId": 1234,
-        "title": "Test",
-        "rootFolderPath": "/nfs2",
-        "minimumAvailability": "announced",
-        "monitored": true,
-        "qualityProfileId": 2222,
-        "tags": [1, 2],
-        "addOptions": {
-          "monitor": "movieOnly",
-          "searchForMovie": true
-        }
-      })),
-      Some(json!({})),
-      None,
-      RadarrEvent::AddMovie(None),
-      None,
-      None,
-    )
-    .await;
-    let body = AddMovieBody {
+    app_arc.lock().await.data.radarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    let add_movie_body = AddMovieBody {
       tmdb_id: 1234,
       title: "Test".to_owned(),
       root_folder_path: "/nfs2".to_owned(),
@@ -3521,6 +3430,7 @@ mod test {
       monitored: true,
       quality_profile_id: 2222,
       tags: vec![1, 2],
+      tag_input_string: "usenet, testing".into(),
       add_options: AddMovieOptions {
         monitor: "movieOnly".to_owned(),
         search_for_movie: true,
@@ -3530,119 +3440,11 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::AddMovie(Some(body)))
+      .handle_radarr_event(RadarrEvent::AddMovie(add_movie_body))
       .await
       .is_ok());
 
     async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .add_movie_modal
-      .is_none());
-  }
-
-  #[tokio::test]
-  async fn test_handle_add_movie_event_reuse_existing_table_if_search_already_performed() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "tmdbId": 5678,
-        "title": "Test",
-        "rootFolderPath": "/nfs2",
-        "minimumAvailability": "announced",
-        "monitored": true,
-        "qualityProfileId": 2222,
-        "tags": [1, 2],
-        "addOptions": {
-          "monitor": "movieOnly",
-          "searchForMovie": true
-        }
-      })),
-      Some(json!({})),
-      None,
-      RadarrEvent::AddMovie(None),
-      None,
-      None,
-    )
-    .await;
-
-    {
-      let mut app = app_arc.lock().await;
-      let mut add_movie_modal = AddMovieModal {
-        tags: "usenet, testing".into(),
-        ..AddMovieModal::default()
-      };
-      add_movie_modal.root_folder_list.set_items(vec![
-        RootFolder {
-          id: 1,
-          path: "/nfs".to_owned(),
-          accessible: true,
-          free_space: 219902325555200,
-          unmapped_folders: None,
-        },
-        RootFolder {
-          id: 2,
-          path: "/nfs2".to_owned(),
-          accessible: true,
-          free_space: 21990232555520,
-          unmapped_folders: None,
-        },
-      ]);
-      add_movie_modal.root_folder_list.state.select(Some(1));
-      add_movie_modal
-        .quality_profile_list
-        .set_items(vec!["HD - 1080p".to_owned()]);
-      add_movie_modal
-        .monitor_list
-        .set_items(Vec::from_iter(MovieMonitor::iter()));
-      add_movie_modal
-        .minimum_availability_list
-        .set_items(Vec::from_iter(MinimumAvailability::iter()));
-      app.data.radarr_data.add_movie_modal = Some(add_movie_modal);
-      app.data.radarr_data.quality_profile_map =
-        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
-      app.data.radarr_data.tags_map =
-        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-      let secondary_search_result = AddMovieSearchResult {
-        tmdb_id: 5678,
-        ..add_movie_search_result()
-      };
-      let mut add_searched_movies = StatefulTable::default();
-      add_searched_movies.set_items(vec![add_movie_search_result(), secondary_search_result]);
-      add_searched_movies.scroll_to_bottom();
-      app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
-    }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::AddMovie(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .add_movie_modal
-      .is_none());
-    assert_eq!(
-      app_arc
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .add_searched_movies
-        .as_ref()
-        .unwrap()
-        .current_selection()
-        .tmdb_id,
-      5678
-    );
   }
 
   #[tokio::test]

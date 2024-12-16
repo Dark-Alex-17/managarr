@@ -7,15 +7,15 @@ use serde_json::{json, Value};
 use urlencoding::encode;
 
 use crate::models::radarr_models::{
-  AddMovieBody, AddMovieOptions, AddMovieSearchResult, BlocklistResponse, Collection,
-  CollectionMovie, Credit, CreditType, DeleteMovieParams, DownloadRecord, DownloadsResponse,
+  AddMovieBody, AddMovieSearchResult, BlocklistResponse, Collection,
+  Credit, CreditType, DeleteMovieParams, DownloadRecord, DownloadsResponse,
   EditCollectionParams, EditMovieParams, IndexerSettings, IndexerTestResult, Movie,
   MovieCommandBody, MovieHistoryItem, RadarrRelease, RadarrReleaseDownloadBody, RadarrSerdeable,
   RadarrTask, RadarrTaskName, SystemStatus,
 };
 use crate::models::servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem};
 use crate::models::servarr_data::radarr::modals::{
-  AddMovieModal, EditCollectionModal, EditMovieModal, MovieDetailsModal,
+  EditCollectionModal, EditMovieModal, MovieDetailsModal,
 };
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::{
@@ -35,7 +35,7 @@ mod radarr_network_tests;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum RadarrEvent {
-  AddMovie(Option<AddMovieBody>),
+  AddMovie(AddMovieBody),
   AddRootFolder(Option<String>),
   AddTag(String),
   ClearBlocklist,
@@ -282,101 +282,18 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn add_movie(&mut self, add_movie_body_option: Option<AddMovieBody>) -> Result<Value> {
+  async fn add_movie(&mut self, mut add_movie_body: AddMovieBody) -> Result<Value> {
     info!("Adding new movie to Radarr");
-    let event = RadarrEvent::AddMovie(None);
-    let body = if let Some(add_movie_body) = add_movie_body_option {
-      add_movie_body
-    } else {
-      let tags = self
-        .app
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .add_movie_modal
-        .as_ref()
-        .unwrap()
-        .tags
-        .text
-        .clone();
-      let tag_ids_vec = self.extract_and_add_radarr_tag_ids_vec(tags).await;
-      let mut app = self.app.lock().await;
-      let AddMovieModal {
-        root_folder_list,
-        monitor_list,
-        minimum_availability_list,
-        quality_profile_list,
-        ..
-      } = app.data.radarr_data.add_movie_modal.as_ref().unwrap();
-      let (tmdb_id, title) = if let Route::Radarr(active_radarr_block, _) = app.get_current_route()
-      {
-        if active_radarr_block == ActiveRadarrBlock::CollectionDetails {
-          let CollectionMovie { tmdb_id, title, .. } = app
-            .data
-            .radarr_data
-            .collection_movies
-            .current_selection()
-            .clone();
-          (tmdb_id, title.text)
-        } else {
-          let AddMovieSearchResult { tmdb_id, title, .. } = app
-            .data
-            .radarr_data
-            .add_searched_movies
-            .as_ref()
-            .unwrap()
-            .current_selection()
-            .clone();
-          (tmdb_id, title.text)
-        }
-      } else {
-        let AddMovieSearchResult { tmdb_id, title, .. } = app
-          .data
-          .radarr_data
-          .add_searched_movies
-          .as_ref()
-          .unwrap()
-          .current_selection()
-          .clone();
-        (tmdb_id, title.text)
-      };
-      let quality_profile = quality_profile_list.current_selection();
-      let quality_profile_id = *app
-        .data
-        .radarr_data
-        .quality_profile_map
-        .iter()
-        .filter(|(_, value)| *value == quality_profile)
-        .map(|(key, _)| key)
-        .next()
-        .unwrap();
+    let event = RadarrEvent::AddMovie(add_movie_body.clone());
+    let tag_ids_vec = self
+      .extract_and_add_radarr_tag_ids_vec(add_movie_body.tag_input_string.clone())
+      .await;
+    add_movie_body.tags = tag_ids_vec;
 
-      let path = root_folder_list.current_selection().path.clone();
-      let monitor = monitor_list.current_selection().to_string();
-      let minimum_availability = minimum_availability_list.current_selection().to_string();
-
-      app.data.radarr_data.add_movie_modal = None;
-
-      AddMovieBody {
-        tmdb_id,
-        title,
-        root_folder_path: path,
-        minimum_availability,
-        monitored: true,
-        quality_profile_id,
-        tags: tag_ids_vec,
-        add_options: AddMovieOptions {
-          monitor,
-          search_for_movie: true,
-        },
-      }
-    };
-
-    debug!("Add movie body: {body:?}");
+    debug!("Add movie body: {add_movie_body:?}");
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .request_props_from(event, RequestMethod::Post, Some(add_movie_body), None, None)
       .await;
 
     self
@@ -782,7 +699,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
     info!("Constructing edit collection body");
 
-    let mut detailed_collection_body: Value = serde_json::from_str(&response).unwrap();
+    let mut detailed_collection_body: Value = serde_json::from_str(&response)?;
     let (monitored, minimum_availability, quality_profile_id, root_folder_path, search_on_add) =
       if let Some(params) = edit_collection_params {
         let monitored = params.monitored.unwrap_or_else(|| {
@@ -926,7 +843,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
     info!("Constructing edit indexer body");
 
-    let mut detailed_indexer_body: Value = serde_json::from_str(&response).unwrap();
+    let mut detailed_indexer_body: Value = serde_json::from_str(&response)?;
 
     let (
       name,
@@ -1171,7 +1088,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
     info!("Constructing edit movie body");
 
-    let mut detailed_movie_body: Value = serde_json::from_str(&response).unwrap();
+    let mut detailed_movie_body: Value = serde_json::from_str(&response)?;
     let (monitored, minimum_availability, quality_profile_id, root_folder_path, tags) =
       if let Some(params) = edit_movie_params {
         let monitored = params.monitored.unwrap_or(

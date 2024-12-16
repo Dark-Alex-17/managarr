@@ -125,6 +125,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHan
           minimum_availability: minimum_availability.to_string(),
           monitored: !disable_monitoring,
           tags,
+          tag_input_string: String::new(),
           add_options: AddMovieOptions {
             monitor: monitor.to_string(),
             search_for_movie: !no_search_for_movie,
@@ -132,7 +133,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHan
         };
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::AddMovie(Some(body)).into())
+          .handle_network_event(RadarrEvent::AddMovie(body).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
