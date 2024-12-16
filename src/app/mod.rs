@@ -23,8 +23,6 @@ mod key_binding_tests;
 pub mod radarr;
 pub mod sonarr;
 
-const DEFAULT_ROUTE: Route = Route::Radarr(ActiveRadarrBlock::Movies, None);
-
 pub struct App<'a> {
   navigation_stack: Vec<Route>,
   network_tx: Option<Sender<NetworkEvent>>,
@@ -50,10 +48,37 @@ impl<'a> App<'a> {
     config: AppConfig,
     cancellation_token: CancellationToken,
   ) -> Self {
+    let mut server_tabs = Vec::new();
+
+    if config.radarr.is_some() {
+      server_tabs.push(TabRoute {
+        title: "Radarr",
+        route: ActiveRadarrBlock::Movies.into(),
+        help: format!(
+          "<↑↓> scroll | ←→ change tab | {}  ",
+          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
+        ),
+        contextual_help: None,
+      });
+    }
+
+    if config.sonarr.is_some() {
+      server_tabs.push(TabRoute {
+        title: "Sonarr",
+        route: ActiveSonarrBlock::Series.into(),
+        help: format!(
+          "<↑↓> scroll | ←→ change tab | {}  ",
+          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
+        ),
+        contextual_help: None,
+      });
+    }
+
     App {
       network_tx: Some(network_tx),
       config,
       cancellation_token,
+      server_tabs: TabState::new(server_tabs),
       ..App::default()
     }
   }
@@ -114,7 +139,7 @@ impl<'a> App<'a> {
 
   pub fn pop_navigation_stack(&mut self) {
     self.is_routing = true;
-    if self.navigation_stack.len() > 1 {
+    if !self.navigation_stack.is_empty() {
       self.navigation_stack.pop();
     }
   }
@@ -133,14 +158,17 @@ impl<'a> App<'a> {
   }
 
   pub fn get_current_route(&self) -> Route {
-    *self.navigation_stack.last().unwrap_or(&DEFAULT_ROUTE)
+    *self
+      .navigation_stack
+      .last()
+      .unwrap_or(&self.server_tabs.tabs.first().unwrap().route)
   }
 }
 
 impl<'a> Default for App<'a> {
   fn default() -> Self {
     App {
-      navigation_stack: vec![DEFAULT_ROUTE],
+      navigation_stack: Vec::new(),
       network_tx: None,
       cancellation_token: CancellationToken::new(),
       error: HorizontallyScrollableText::default(),
@@ -158,7 +186,10 @@ impl<'a> Default for App<'a> {
         TabRoute {
           title: "Sonarr",
           route: ActiveSonarrBlock::Series.into(),
-          help: format!("{}  ", build_context_clue_string(&SERVARR_CONTEXT_CLUES)),
+          help: format!(
+            "<↑↓> scroll | ←→ change tab | {}  ",
+            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
+          ),
           contextual_help: None,
         },
       ]),
@@ -190,6 +221,13 @@ pub struct AppConfig {
 
 impl AppConfig {
   pub fn validate(&self) {
+    if self.radarr.is_none() && self.sonarr.is_none() {
+      log_and_print_error(
+        "No Servarr configuration provided in the specified configuration file".to_owned(),
+      );
+      process::exit(1);
+    }
+
     if let Some(radarr_config) = &self.radarr {
       radarr_config.validate();
     }

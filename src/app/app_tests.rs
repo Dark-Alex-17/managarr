@@ -1,22 +1,81 @@
 #[cfg(test)]
 mod tests {
+  use crate::models::Route;
   use anyhow::anyhow;
   use pretty_assertions::assert_eq;
+  use rstest::rstest;
   use tokio::sync::mpsc;
 
   use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
-  use crate::app::{App, AppConfig, Data, ServarrConfig, DEFAULT_ROUTE};
+  use crate::app::{App, AppConfig, Data, ServarrConfig};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
   use crate::models::{HorizontallyScrollableText, TabRoute};
   use crate::network::radarr_network::RadarrEvent;
   use crate::network::NetworkEvent;
+  use tokio_util::sync::CancellationToken;
+
+  #[rstest]
+  fn test_app_new(
+    #[values(ActiveRadarrBlock::default(), ActiveSonarrBlock::default())] servarr: impl Into<Route>
+      + Copy,
+  ) {
+    let (title, config) = match servarr.into() {
+      Route::Radarr(_, _) => (
+        "Radarr",
+        AppConfig {
+          radarr: Some(ServarrConfig::default()),
+          ..AppConfig::default()
+        },
+      ),
+      Route::Sonarr(_, _) => (
+        "Sonarr",
+        AppConfig {
+          sonarr: Some(ServarrConfig::default()),
+          ..AppConfig::default()
+        },
+      ),
+      _ => unreachable!(),
+    };
+    let tab_route = |title: &'static str| TabRoute {
+      title,
+      route: servarr.into(),
+      help: format!(
+        "<↑↓> scroll | ←→ change tab | {}  ",
+        build_context_clue_string(&SERVARR_CONTEXT_CLUES)
+      ),
+      contextual_help: None,
+    };
+
+    let app = App::new(
+      mpsc::channel::<NetworkEvent>(500).0,
+      config,
+      CancellationToken::new(),
+    );
+
+    assert!(app.navigation_stack.is_empty());
+    assert_eq!(app.get_current_route(), servarr.into());
+    assert!(app.network_tx.is_some());
+    assert!(!app.cancellation_token.is_cancelled());
+    assert!(app.is_first_render);
+    assert_eq!(app.error, HorizontallyScrollableText::default());
+    assert_eq!(app.server_tabs.index, 0);
+    assert_eq!(app.server_tabs.tabs, vec![tab_route(title)]);
+    assert_eq!(app.tick_until_poll, 400);
+    assert_eq!(app.ticks_until_scroll, 4);
+    assert_eq!(app.tick_count, 0);
+    assert!(!app.is_loading);
+    assert!(!app.is_routing);
+    assert!(!app.should_refresh);
+    assert!(!app.should_ignore_quit_key);
+    assert!(!app.cli_mode);
+  }
 
   #[test]
   fn test_app_default() {
     let app = App::default();
 
-    assert_eq!(app.navigation_stack, vec![DEFAULT_ROUTE]);
+    assert!(app.navigation_stack.is_empty());
     assert!(app.network_tx.is_none());
     assert!(!app.cancellation_token.is_cancelled());
     assert!(app.is_first_render);
@@ -37,7 +96,10 @@ mod tests {
         TabRoute {
           title: "Sonarr",
           route: ActiveSonarrBlock::Series.into(),
-          help: format!("{}  ", build_context_clue_string(&SERVARR_CONTEXT_CLUES)),
+          help: format!(
+            "<↑↓> scroll | ←→ change tab | {}  ",
+            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
+          ),
           contextual_help: None,
         },
       ]
@@ -55,8 +117,9 @@ mod tests {
   #[test]
   fn test_navigation_stack_methods() {
     let mut app = App::default();
+    let default_route = app.server_tabs.tabs.first().unwrap().route;
 
-    assert_eq!(app.get_current_route(), DEFAULT_ROUTE);
+    assert_eq!(app.get_current_route(), default_route);
 
     app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
 
@@ -75,13 +138,13 @@ mod tests {
     app.is_routing = false;
     app.pop_navigation_stack();
 
-    assert_eq!(app.get_current_route(), DEFAULT_ROUTE);
+    assert_eq!(app.get_current_route(), default_route);
     assert!(app.is_routing);
 
     app.is_routing = false;
     app.pop_navigation_stack();
 
-    assert_eq!(app.get_current_route(), DEFAULT_ROUTE);
+    assert_eq!(app.get_current_route(), default_route);
     assert!(app.is_routing);
   }
 
