@@ -584,7 +584,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::EditAllIndexerSettings(Some(expected_edit_all_indexer_settings)).into(),
+          RadarrEvent::EditAllIndexerSettings(expected_edit_all_indexer_settings).into(),
         ))
         .times(1)
         .returning(|_| {

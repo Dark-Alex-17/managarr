@@ -390,7 +390,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
           };
           self
             .network
-            .handle_network_event(RadarrEvent::EditAllIndexerSettings(Some(params)).into())
+            .handle_network_event(RadarrEvent::EditAllIndexerSettings(params).into())
             .await?;
           "All indexer settings updated".to_owned()
         } else {

@@ -15,8 +15,8 @@ mod test {
 
   use crate::app::ServarrConfig;
   use crate::models::radarr_models::{
-    AddMovieOptions, BlocklistItem, BlocklistItemMovie, CollectionMovie, MediaInfo,
-    MinimumAvailability, MovieCollection, MovieFile, Rating, RatingsList,
+    AddMovieOptions, BlocklistItem, BlocklistItemMovie, CollectionMovie, IndexerSettings,
+    MediaInfo, MinimumAvailability, MovieCollection, MovieFile, Rating, RatingsList
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_models::{
@@ -146,7 +146,7 @@ mod test {
   fn test_resource_all_indexer_settings(
     #[values(
       RadarrEvent::GetAllIndexerSettings,
-      RadarrEvent::EditAllIndexerSettings(None)
+      RadarrEvent::EditAllIndexerSettings(IndexerSettings::default())
     )]
     event: RadarrEvent,
   ) {
@@ -3341,60 +3341,15 @@ mod test {
       Some(indexer_settings_json),
       None,
       None,
-      RadarrEvent::EditAllIndexerSettings(None),
+      RadarrEvent::EditAllIndexerSettings(indexer_settings()),
       None,
       None,
     )
     .await;
-
-    app_arc.lock().await.data.radarr_data.indexer_settings = Some(indexer_settings());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::EditAllIndexerSettings(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .indexer_settings
-      .is_none());
-  }
-
-  #[tokio::test]
-  async fn test_handle_edit_all_radarr_indexer_settings_event_uses_provided_settings() {
-    let indexer_settings_json = json!({
-        "minimumAge": 0,
-        "maximumSize": 0,
-        "retention": 0,
-        "rssSyncInterval": 60,
-        "preferIndexerFlags": false,
-        "availabilityDelay": 0,
-        "allowHardcodedSubs": true,
-        "whitelistedHardcodedSubs": "",
-        "id": 1
-    });
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Put,
-      Some(indexer_settings_json),
-      None,
-      None,
-      RadarrEvent::EditAllIndexerSettings(None),
-      None,
-      None,
-    )
-    .await;
-
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::EditAllIndexerSettings(
-        Some(indexer_settings())
-      ))
+      .handle_radarr_event(RadarrEvent::EditAllIndexerSettings(indexer_settings()))
       .await
       .is_ok());
 

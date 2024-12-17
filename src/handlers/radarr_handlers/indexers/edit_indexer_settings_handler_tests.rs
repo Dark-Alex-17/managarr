@@ -1,11 +1,13 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::indexer_settings;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::IndexerSettings;
   use crate::models::servarr_data::radarr::radarr_data::{
@@ -472,7 +474,7 @@ mod tests {
         .radarr_data
         .selected_block
         .set_index(0, INDEXER_SETTINGS_SELECTION_BLOCKS.len() - 1);
-      app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
+      app.data.radarr_data.indexer_settings = Some(indexer_settings());
       app.data.radarr_data.prompt_confirm = true;
 
       IndexerSettingsHandler::with(
@@ -486,9 +488,9 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditAllIndexerSettings(None))
+        Some(RadarrEvent::EditAllIndexerSettings(indexer_settings()))
       );
-      assert!(app.data.radarr_data.indexer_settings.is_some());
+      assert!(app.data.radarr_data.indexer_settings.is_none());
       assert!(app.should_refresh);
     }
 
@@ -858,7 +860,7 @@ mod tests {
   }
 
   mod test_handle_key_char {
-    use pretty_assertions::assert_str_eq;
+    use pretty_assertions::{assert_eq, assert_str_eq};
 
     use crate::{
       models::{
@@ -937,7 +939,7 @@ mod tests {
         .radarr_data
         .selected_block
         .set_index(0, INDEXER_SETTINGS_SELECTION_BLOCKS.len() - 1);
-      app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
+      app.data.radarr_data.indexer_settings = Some(indexer_settings());
 
       IndexerSettingsHandler::with(
         DEFAULT_KEYBINDINGS.confirm.key,
@@ -950,9 +952,9 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditAllIndexerSettings(None))
+        Some(RadarrEvent::EditAllIndexerSettings(indexer_settings()))
       );
-      assert!(app.data.radarr_data.indexer_settings.is_some());
+      assert!(app.data.radarr_data.indexer_settings.is_none());
       assert!(app.should_refresh);
     }
   }
@@ -966,6 +968,22 @@ mod tests {
         assert!(!IndexerSettingsHandler::accepts(active_radarr_block));
       }
     })
+  }
+
+  #[test]
+  fn test_build_edit_indexer_settings_body() {
+    let mut app = App::default();
+    app.data.radarr_data.indexer_settings = Some(indexer_settings());
+
+    let body = IndexerSettingsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::AllIndexerSettingsPrompt,
+      None,
+    ).build_edit_indexer_settings_body();
+
+    assert_eq!(body, indexer_settings());
+    assert!(app.data.radarr_data.indexer_settings.is_none());
   }
 
   #[test]

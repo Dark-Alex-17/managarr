@@ -2,6 +2,7 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::models::radarr_models::IndexerSettings;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS,
 };
@@ -17,6 +18,14 @@ pub(super) struct IndexerSettingsHandler<'a, 'b> {
   app: &'a mut App<'b>,
   active_radarr_block: ActiveRadarrBlock,
   _context: Option<ActiveRadarrBlock>,
+}
+
+impl<'a, 'b> IndexerSettingsHandler<'a, 'b> {
+  fn build_edit_indexer_settings_body(&mut self) -> IndexerSettings {
+    let indexer_settings = self.app.data.radarr_data.indexer_settings.clone().unwrap();
+    self.app.data.radarr_data.indexer_settings = None;
+    indexer_settings
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandler<'a, 'b> {
@@ -166,12 +175,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
       ActiveRadarrBlock::AllIndexerSettingsPrompt => {
         match self.app.data.radarr_data.selected_block.get_active_block() {
           ActiveRadarrBlock::IndexerSettingsConfirmPrompt => {
-            let radarr_data = &mut self.app.data.radarr_data;
-            if radarr_data.prompt_confirm {
-              radarr_data.prompt_confirm_action = Some(RadarrEvent::EditAllIndexerSettings(None));
+            if self.app.data.radarr_data.prompt_confirm {
+              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditAllIndexerSettings(self.build_edit_indexer_settings_body()));
               self.app.should_refresh = true;
             } else {
-              radarr_data.indexer_settings = None;
+              self.app.data.radarr_data.indexer_settings = None;
             }
 
             self.app.pop_navigation_stack();
@@ -259,7 +267,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
         {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::EditAllIndexerSettings(None));
+            Some(RadarrEvent::EditAllIndexerSettings(self.build_edit_indexer_settings_body()));
           self.app.should_refresh = true;
 
           self.app.pop_navigation_stack();

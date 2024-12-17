@@ -46,7 +46,7 @@ pub enum RadarrEvent {
   DeleteRootFolder(i64),
   DeleteTag(i64),
   DownloadRelease(RadarrReleaseDownloadBody),
-  EditAllIndexerSettings(Option<IndexerSettings>),
+  EditAllIndexerSettings(IndexerSettings),
   EditCollection(Option<EditCollectionParams>),
   EditIndexer(Option<EditIndexerParams>),
   EditMovie(Option<EditMovieParams>),
@@ -506,37 +506,20 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn edit_all_radarr_indexer_settings(
     &mut self,
-    params: Option<IndexerSettings>,
+    params: IndexerSettings,
   ) -> Result<Value> {
     info!("Updating Radarr indexer settings");
-    let event = RadarrEvent::EditAllIndexerSettings(None);
+    let event = RadarrEvent::EditAllIndexerSettings(params.clone());
 
-    let body = if let Some(indexer_settings) = params {
-      indexer_settings
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .indexer_settings
-        .as_ref()
-        .unwrap()
-        .clone()
-    };
-
-    debug!("Indexer settings body: {body:?}");
+    debug!("Indexer settings body: {params:?}");
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Put, Some(body), None, None)
+      .request_props_from(event, RequestMethod::Put, Some(params), None, None)
       .await;
 
     let resp = self
       .handle_request::<IndexerSettings, Value>(request_props, |_, _| {})
       .await;
-
-    self.app.lock().await.data.radarr_data.indexer_settings = None;
 
     resp
   }
