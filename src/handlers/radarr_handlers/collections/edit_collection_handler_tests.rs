@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+  use bimap::BiMap;
   use pretty_assertions::assert_str_eq;
   use strum::IntoEnumIterator;
 
@@ -7,8 +8,9 @@ mod tests {
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::collections::edit_collection_handler::EditCollectionHandler;
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::collection;
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::MinimumAvailability;
+  use crate::models::radarr_models::{Collection, EditCollectionParams, MinimumAvailability};
   use crate::models::servarr_data::radarr::modals::EditCollectionModal;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, EDIT_COLLECTION_BLOCKS,
@@ -519,7 +521,34 @@ mod tests {
     #[test]
     fn test_edit_collection_confirm_prompt_prompt_confirmation_submit() {
       let mut app = App::default();
-      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
+      let mut edit_collection_modal = EditCollectionModal {
+        path: "/nfs/Test Path".into(),
+        monitored: Some(false),
+        search_on_add: Some(false),
+        ..EditCollectionModal::default()
+      };
+      edit_collection_modal
+        .quality_profile_list
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      edit_collection_modal
+        .minimum_availability_list
+        .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      app.data.radarr_data.edit_collection_modal = Some(edit_collection_modal);
+      app.data.radarr_data.collections.set_items(vec![Collection {
+        monitored: false,
+        search_on_add: false,
+        ..collection()
+      }]);
+      app.data.radarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+      let expected_edit_collection_params = EditCollectionParams {
+        collection_id: 123,
+        monitored: Some(false),
+        minimum_availability: Some(MinimumAvailability::Announced),
+        quality_profile_id: Some(1111),
+        root_folder_path: Some("/nfs/Test Path".to_owned()),
+        search_on_add: Some(false),
+      };
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
       app.data.radarr_data.prompt_confirm = true;
@@ -545,9 +574,10 @@ mod tests {
       );
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditCollection(None))
+        Some(RadarrEvent::EditCollection(expected_edit_collection_params))
       );
       assert!(app.should_refresh);
+      assert!(app.data.radarr_data.edit_collection_modal.is_none());
     }
 
     #[test]
@@ -919,7 +949,34 @@ mod tests {
     #[test]
     fn test_edit_collection_confirm_prompt_prompt_confirmation_confirm() {
       let mut app = App::default();
-      app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
+      let mut edit_collection_modal = EditCollectionModal {
+        path: "/nfs/Test Path".into(),
+        monitored: Some(false),
+        search_on_add: Some(false),
+        ..EditCollectionModal::default()
+      };
+      edit_collection_modal
+        .quality_profile_list
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      edit_collection_modal
+        .minimum_availability_list
+        .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      app.data.radarr_data.edit_collection_modal = Some(edit_collection_modal);
+      app.data.radarr_data.collections.set_items(vec![Collection {
+        monitored: false,
+        search_on_add: false,
+        ..collection()
+      }]);
+      app.data.radarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+      let expected_edit_collection_params = EditCollectionParams {
+        collection_id: 123,
+        monitored: Some(false),
+        minimum_availability: Some(MinimumAvailability::Announced),
+        quality_profile_id: Some(1111),
+        root_folder_path: Some("/nfs/Test Path".to_owned()),
+        search_on_add: Some(false),
+      };
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
       app.data.radarr_data.selected_block =
@@ -944,9 +1001,10 @@ mod tests {
       );
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditCollection(None))
+        Some(RadarrEvent::EditCollection(expected_edit_collection_params))
       );
       assert!(app.should_refresh);
+      assert!(app.data.radarr_data.edit_collection_modal.is_none());
     }
   }
 
@@ -959,6 +1017,49 @@ mod tests {
         assert!(!EditCollectionHandler::accepts(active_radarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_build_edit_collection_params() {
+    let mut app = App::default();
+    let mut edit_collection_modal = EditCollectionModal {
+      path: "/nfs/Test Path".into(),
+      monitored: Some(false),
+      search_on_add: Some(false),
+      ..EditCollectionModal::default()
+    };
+    edit_collection_modal
+      .quality_profile_list
+      .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+    edit_collection_modal
+      .minimum_availability_list
+      .set_items(Vec::from_iter(MinimumAvailability::iter()));
+    app.data.radarr_data.edit_collection_modal = Some(edit_collection_modal);
+    app.data.radarr_data.collections.set_items(vec![Collection {
+      monitored: false,
+      search_on_add: false,
+      ..collection()
+    }]);
+    app.data.radarr_data.quality_profile_map =
+      BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+    let expected_edit_collection_params = EditCollectionParams {
+      collection_id: 123,
+      monitored: Some(false),
+      minimum_availability: Some(MinimumAvailability::Announced),
+      quality_profile_id: Some(1111),
+      root_folder_path: Some("/nfs/Test Path".to_owned()),
+      search_on_add: Some(false),
+    };
+
+    let edit_collection_params = EditCollectionHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::EditCollectionPrompt,
+      None,
+    ).build_edit_collection_params();
+
+    assert_eq!(edit_collection_params, expected_edit_collection_params);
+    assert!(app.data.radarr_data.edit_collection_modal.is_none());
   }
 
   #[test]

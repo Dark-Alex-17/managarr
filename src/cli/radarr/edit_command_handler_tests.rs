@@ -1047,7 +1047,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::EditCollection(Some(expected_edit_collection_params)).into(),
+          RadarrEvent::EditCollection(expected_edit_collection_params).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -1089,7 +1089,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::EditCollection(Some(expected_edit_collection_params)).into(),
+          RadarrEvent::EditCollection(expected_edit_collection_params).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -1131,7 +1131,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::EditCollection(Some(expected_edit_collection_params)).into(),
+          RadarrEvent::EditCollection(expected_edit_collection_params).into(),
         ))
         .times(1)
         .returning(|_| {

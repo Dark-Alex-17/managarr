@@ -420,7 +420,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
         };
         self
           .network
-          .handle_network_event(RadarrEvent::EditCollection(Some(edit_collection_params)).into())
+          .handle_network_event(RadarrEvent::EditCollection(edit_collection_params).into())
           .await?;
         "Collection updated".to_owned()
       }

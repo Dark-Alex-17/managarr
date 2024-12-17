@@ -15,8 +15,8 @@ mod test {
 
   use crate::app::ServarrConfig;
   use crate::models::radarr_models::{
-    AddMovieOptions, BlocklistItem, BlocklistItemMovie, CollectionMovie, IndexerSettings,
-    MediaInfo, MinimumAvailability, MovieCollection, MovieFile, Rating, RatingsList
+    AddMovieOptions, BlocklistItem, BlocklistItemMovie, CollectionMovie, EditCollectionParams,
+    IndexerSettings, MediaInfo, MinimumAvailability, MovieCollection, MovieFile, Rating, RatingsList
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_models::{
@@ -130,7 +130,7 @@ mod test {
 
   #[rstest]
   fn test_resource_collection(
-    #[values(RadarrEvent::GetCollections, RadarrEvent::EditCollection(None))] event: RadarrEvent,
+    #[values(RadarrEvent::GetCollections, RadarrEvent::EditCollection(EditCollectionParams::default()))] event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/collection");
   }
@@ -3395,132 +3395,6 @@ mod test {
     *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
     *expected_body.get_mut("rootFolderPath").unwrap() = json!("/nfs/Test Path");
     *expected_body.get_mut("searchOnAdd").unwrap() = json!(false);
-
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(detailed_collection_body),
-      None,
-      RadarrEvent::GetCollections,
-      Some("/123"),
-      None,
-    )
-    .await;
-    let async_edit_server = server
-      .mock(
-        "PUT",
-        format!(
-          "/api/v3{}/123",
-          RadarrEvent::EditCollection(None).resource()
-        )
-        .as_str(),
-      )
-      .with_status(202)
-      .match_header("X-Api-Key", "test1234")
-      .match_body(Matcher::Json(expected_body))
-      .create_async()
-      .await;
-    {
-      let mut app = app_arc.lock().await;
-      let mut edit_collection_modal = EditCollectionModal {
-        path: "/nfs/Test Path".into(),
-        monitored: Some(false),
-        search_on_add: Some(false),
-        ..EditCollectionModal::default()
-      };
-      edit_collection_modal
-        .quality_profile_list
-        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
-      edit_collection_modal
-        .minimum_availability_list
-        .set_items(Vec::from_iter(MinimumAvailability::iter()));
-      app.data.radarr_data.edit_collection_modal = Some(edit_collection_modal);
-      app.data.radarr_data.collections.set_items(vec![Collection {
-        monitored: false,
-        search_on_add: false,
-        ..collection()
-      }]);
-      app.data.radarr_data.quality_profile_map =
-        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
-    }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::EditCollection(None))
-      .await
-      .is_ok());
-
-    async_details_server.assert_async().await;
-    async_edit_server.assert_async().await;
-
-    let app = app_arc.lock().await;
-    assert!(app.data.radarr_data.edit_collection_modal.is_none());
-  }
-
-  #[tokio::test]
-  async fn test_handle_edit_collection_event_uses_provided_parameters() {
-    let detailed_collection_body = json!({
-      "id": 123,
-      "title": "Test Collection",
-      "rootFolderPath": "/nfs/movies",
-      "searchOnAdd": true,
-      "monitored": true,
-      "minimumAvailability": "released",
-      "overview": "Collection blah blah blah",
-      "qualityProfileId": 2222,
-      "movies": [
-        {
-          "title": "Test",
-          "overview": "Collection blah blah blah",
-          "year": 2023,
-          "runtime": 120,
-          "tmdbId": 1234,
-          "genres": ["cool", "family", "fun"],
-          "ratings": {
-            "imdb": {
-              "value": 9.9
-            },
-            "tmdb": {
-              "value": 9.9
-            },
-            "rottenTomatoes": {
-              "value": 9.9
-            }
-          }
-        }
-      ]
-    });
-    let mut expected_body = detailed_collection_body.clone();
-    *expected_body.get_mut("monitored").unwrap() = json!(false);
-    *expected_body.get_mut("minimumAvailability").unwrap() = json!("announced");
-    *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
-    *expected_body.get_mut("rootFolderPath").unwrap() = json!("/nfs/Test Path");
-    *expected_body.get_mut("searchOnAdd").unwrap() = json!(false);
-
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(detailed_collection_body),
-      None,
-      RadarrEvent::GetCollections,
-      Some("/123"),
-      None,
-    )
-    .await;
-    let async_edit_server = server
-      .mock(
-        "PUT",
-        format!(
-          "/api/v3{}/123",
-          RadarrEvent::EditCollection(None).resource()
-        )
-        .as_str(),
-      )
-      .with_status(202)
-      .match_header("X-Api-Key", "test1234")
-      .match_body(Matcher::Json(expected_body))
-      .create_async()
-      .await;
     let edit_collection_params = EditCollectionParams {
       collection_id: 123,
       monitored: Some(false),
@@ -3529,10 +3403,35 @@ mod test {
       root_folder_path: Some("/nfs/Test Path".to_owned()),
       search_on_add: Some(false),
     };
+
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(detailed_collection_body),
+      None,
+      RadarrEvent::GetCollections,
+      Some("/123"),
+      None,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v3{}/123",
+          RadarrEvent::EditCollection(edit_collection_params.clone()).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::EditCollection(Some(edit_collection_params)))
+      .handle_radarr_event(RadarrEvent::EditCollection(edit_collection_params))
       .await
       .is_ok());
 
@@ -3541,7 +3440,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_collection_event_uses_provided_parameters_defaults_to_previous_values_when_none(
+  async fn test_handle_edit_collection_event_defaults_to_previous_values_when_no_params_are_provided(
   ) {
     let detailed_collection_body = json!({
       "id": 123,
@@ -3591,12 +3490,16 @@ mod test {
       None,
     )
     .await;
+    let edit_collection_params = EditCollectionParams {
+      collection_id: 123,
+      ..EditCollectionParams::default()
+    };
     let async_edit_server = server
       .mock(
         "PUT",
         format!(
           "/api/v3{}/123",
-          RadarrEvent::EditCollection(None).resource()
+          RadarrEvent::EditCollection(edit_collection_params).resource()
         )
         .as_str(),
       )
@@ -3612,7 +3515,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::EditCollection(Some(edit_collection_params)))
+      .handle_radarr_event(RadarrEvent::EditCollection(edit_collection_params))
       .await
       .is_ok());
 
@@ -4524,38 +4427,6 @@ mod test {
 
     assert_eq!(id, 1);
     assert_str_eq!(movie_id_param, "movieId=1");
-  }
-
-  #[tokio::test]
-  async fn test_extract_collection_id() {
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .collections
-      .set_items(vec![Collection {
-        id: 1,
-        ..Collection::default()
-      }]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert_eq!(network.extract_collection_id().await, 1);
-  }
-
-  #[tokio::test]
-  async fn test_extract_collection_id_filtered_collection() {
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    let mut filtered_collections = StatefulTable::default();
-    filtered_collections.set_filtered_items(vec![Collection {
-      id: 1,
-      ..Collection::default()
-    }]);
-    app_arc.lock().await.data.radarr_data.collections = filtered_collections;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert_eq!(network.extract_collection_id().await, 1);
   }
 
   #[test]

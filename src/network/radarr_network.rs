@@ -14,9 +14,7 @@ use crate::models::radarr_models::{
   RadarrTask, RadarrTaskName, SystemStatus,
 };
 use crate::models::servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem};
-use crate::models::servarr_data::radarr::modals::{
-  EditCollectionModal, EditMovieModal, MovieDetailsModal,
-};
+use crate::models::servarr_data::radarr::modals::{EditMovieModal, MovieDetailsModal};
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::{
   AddRootFolderBody, CommandBody, DiskSpace, EditIndexerParams, HostConfig, Indexer, LogResponse,
@@ -47,7 +45,7 @@ pub enum RadarrEvent {
   DeleteTag(i64),
   DownloadRelease(RadarrReleaseDownloadBody),
   EditAllIndexerSettings(IndexerSettings),
-  EditCollection(Option<EditCollectionParams>),
+  EditCollection(EditCollectionParams),
   EditIndexer(Option<EditIndexerParams>),
   EditMovie(Option<EditMovieParams>),
   GetBlocklist,
@@ -462,11 +460,9 @@ impl<'a, 'b> Network<'a, 'b> {
       )
       .await;
 
-    let resp = self
+    self
       .handle_request::<(), ()>(request_props, |_, _| ())
-      .await;
-
-    resp
+      .await
   }
 
   async fn delete_radarr_root_folder(&mut self, root_folder_id: i64) -> Result<()> {
@@ -517,27 +513,21 @@ impl<'a, 'b> Network<'a, 'b> {
       .request_props_from(event, RequestMethod::Put, Some(params), None, None)
       .await;
 
-    let resp = self
+    self
       .handle_request::<IndexerSettings, Value>(request_props, |_, _| {})
-      .await;
-
-    resp
+      .await
   }
 
   async fn edit_collection(
     &mut self,
-    edit_collection_params: Option<EditCollectionParams>,
+    edit_collection_params: EditCollectionParams,
   ) -> Result<()> {
     info!("Editing Radarr collection");
     let detail_event = RadarrEvent::GetCollections;
-    let event = RadarrEvent::EditCollection(None);
+    let event = RadarrEvent::EditCollection(edit_collection_params.clone());
     info!("Fetching collection details");
+    let collection_id = edit_collection_params.collection_id;
 
-    let collection_id = if let Some(ref params) = edit_collection_params {
-      params.collection_id
-    } else {
-      self.extract_collection_id().await
-    };
     let request_props = self
       .request_props_from(
         detail_event,
@@ -559,80 +549,46 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Constructing edit collection body");
 
     let mut detailed_collection_body: Value = serde_json::from_str(&response)?;
-    let (monitored, minimum_availability, quality_profile_id, root_folder_path, search_on_add) =
-      if let Some(params) = edit_collection_params {
-        let monitored = params.monitored.unwrap_or_else(|| {
-          detailed_collection_body["monitored"]
-            .as_bool()
-            .expect("Unable to deserialize 'monitored' bool")
-        });
-        let minimum_availability = params
-          .minimum_availability
-          .unwrap_or_else(|| {
-            serde_json::from_value(detailed_collection_body["minimumAvailability"].clone())
-              .expect("Unable to deserialize 'minimumAvailability'")
-          })
-          .to_string();
-        let quality_profile_id = params.quality_profile_id.unwrap_or_else(|| {
-          detailed_collection_body["qualityProfileId"]
-            .as_i64()
-            .expect("Unable to deserialize 'qualityProfileId'")
-        });
-        let root_folder_path = params.root_folder_path.unwrap_or_else(|| {
-          detailed_collection_body["rootFolderPath"]
-            .as_str()
-            .expect("Unable to deserialize 'rootFolderPath'")
-            .to_owned()
-        });
-        let search_on_add = params.search_on_add.unwrap_or_else(|| {
-          detailed_collection_body["searchOnAdd"]
-            .as_bool()
-            .expect("Unable to deserialize 'searchOnAdd'")
-        });
+    let (monitored, minimum_availability, quality_profile_id, root_folder_path, search_on_add) = {
+      let monitored = edit_collection_params.monitored.unwrap_or_else(|| {
+        detailed_collection_body["monitored"]
+          .as_bool()
+          .expect("Unable to deserialize 'monitored' bool")
+      });
+      let minimum_availability = edit_collection_params
+        .minimum_availability
+        .unwrap_or_else(|| {
+          serde_json::from_value(detailed_collection_body["minimumAvailability"].clone())
+            .expect("Unable to deserialize 'minimumAvailability'")
+        })
+        .to_string();
+      let quality_profile_id = edit_collection_params.quality_profile_id.unwrap_or_else(|| {
+        detailed_collection_body["qualityProfileId"]
+          .as_i64()
+          .expect("Unable to deserialize 'qualityProfileId'")
+      });
+      let root_folder_path = edit_collection_params.root_folder_path.unwrap_or_else(|| {
+        detailed_collection_body["rootFolderPath"]
+          .as_str()
+          .expect("Unable to deserialize 'rootFolderPath'")
+          .to_owned()
+      });
+      let search_on_add = edit_collection_params.search_on_add.unwrap_or_else(|| {
+        detailed_collection_body["searchOnAdd"]
+          .as_bool()
+          .expect("Unable to deserialize 'searchOnAdd'")
+      });
 
-        (
-          monitored,
-          minimum_availability,
-          quality_profile_id,
-          root_folder_path,
-          search_on_add,
-        )
-      } else {
-        let mut app = self.app.lock().await;
-        let EditCollectionModal {
-          path,
-          search_on_add,
-          minimum_availability_list,
-          monitored,
-          quality_profile_list,
-        } = app.data.radarr_data.edit_collection_modal.as_ref().unwrap();
-        let quality_profile = quality_profile_list.current_selection();
-        let quality_profile_id = *app
-          .data
-          .radarr_data
-          .quality_profile_map
-          .iter()
-          .filter(|(_, value)| *value == quality_profile)
-          .map(|(key, _)| key)
-          .next()
-          .unwrap();
+      (
+        monitored,
+        minimum_availability,
+        quality_profile_id,
+        root_folder_path,
+        search_on_add,
+      )
+    };
 
-        let root_folder_path: String = path.text.clone();
-        let monitored = monitored.unwrap_or_default();
-        let search_on_add = search_on_add.unwrap_or_default();
-        let minimum_availability = minimum_availability_list.current_selection().to_string();
-        app.data.radarr_data.edit_collection_modal = None;
-
-        (
-          monitored,
-          minimum_availability,
-          quality_profile_id,
-          root_folder_path,
-          search_on_add,
-        )
-      };
-
-    *detailed_collection_body.get_mut("monitored").unwrap() = json!(monitored);
+      * detailed_collection_body.get_mut("monitored").unwrap() = json!(monitored);
     *detailed_collection_body
       .get_mut("minimumAvailability")
       .unwrap() = json!(minimum_availability);
@@ -2068,18 +2024,6 @@ impl<'a, 'b> Network<'a, 'b> {
         .id
     };
     (movie_id, format!("movieId={movie_id}"))
-  }
-
-  async fn extract_collection_id(&mut self) -> i64 {
-    self
-      .app
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .collections
-      .current_selection()
-      .id
   }
 }
 
