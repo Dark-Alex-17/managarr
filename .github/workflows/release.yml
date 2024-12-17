@@ -288,6 +288,11 @@ jobs:
           name: artifacts
           path: artifacts
 
+      - name: Set version variable
+        run: |
+          version="$(cat artifacts/release-version)"
+          echo "version=$version" >> $GITHUB_ENV
+
       - name: Validate release environment variables
         run: |
           echo "Release version: ${{ env.version }}"
