@@ -278,7 +278,7 @@ jobs:
           path: artifacts
 
   publish-docker-image:
-    needs: [build-release-artifacts]
+    needs: [publish-github-release]
     name: Publishing Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:
