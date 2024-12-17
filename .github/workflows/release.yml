@@ -229,6 +229,12 @@ jobs:
           echo "$changelog" > changelog.md
           echo "changelog_body=$(cat changelog.md)" >> $GITHUB_ENV
 
+      - name: Push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin --follow-tags
+
       - name: Create a GitHub Release
         uses: softprops/action-gh-release@v1
         env:
@@ -265,12 +271,6 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Push changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git push origin --follow-tags
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -278,7 +278,7 @@ jobs:
           path: artifacts
 
   publish-docker-image:
-    needs: [build-release-artifacts]
+    needs: [publish-github-release]
     name: Publishing Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:
@@ -287,6 +287,11 @@ jobs:
         with:
           name: artifacts
           path: artifacts
+
+      - name: Set version variable
+        run: |
+          version="$(cat artifacts/release-version)"
+          echo "version=$version" >> $GITHUB_ENV
 
       - name: Validate release environment variables
         run: |
