@@ -43,6 +43,15 @@ impl<'a, 'b> RootFoldersHandler<'a, 'b> {
 
     AddRootFolderBody { path }
   }
+  
+  fn extract_root_folder_id(&mut self) -> i64 {
+    self.app
+      .data
+      .radarr_data
+      .root_folders
+      .current_selection()
+      .id
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'a, 'b> {
@@ -139,7 +148,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
       ActiveRadarrBlock::DeleteRootFolderPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
           self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::DeleteRootFolder(None));
+            Some(RadarrEvent::DeleteRootFolder(self.extract_root_folder_id()));
         }
 
         self.app.pop_navigation_stack();
@@ -207,7 +216,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::DeleteRootFolder(None));
+            Some(RadarrEvent::DeleteRootFolder(self.extract_root_folder_id()));
 
           self.app.pop_navigation_stack();
         }

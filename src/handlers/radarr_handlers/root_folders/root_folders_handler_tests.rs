@@ -1,10 +1,12 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::root_folder;
   use crate::handlers::radarr_handlers::root_folders::RootFoldersHandler;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
@@ -315,7 +317,7 @@ mod tests {
         .data
         .radarr_data
         .root_folders
-        .set_items(vec![RootFolder::default()]);
+        .set_items(vec![root_folder()]);
       app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteRootFolderPrompt.into());
@@ -331,7 +333,7 @@ mod tests {
       assert!(app.data.radarr_data.prompt_confirm);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteRootFolder(None))
+        Some(RadarrEvent::DeleteRootFolder(1))
       );
       assert_eq!(
         app.get_current_route(),
@@ -605,7 +607,7 @@ mod tests {
         .data
         .radarr_data
         .root_folders
-        .set_items(vec![RootFolder::default()]);
+        .set_items(vec![root_folder()]);
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteRootFolderPrompt.into());
 
@@ -620,7 +622,7 @@ mod tests {
       assert!(app.data.radarr_data.prompt_confirm);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteRootFolder(None))
+        Some(RadarrEvent::DeleteRootFolder(1))
       );
       assert_eq!(
         app.get_current_route(),
@@ -639,7 +641,7 @@ mod tests {
       }
     })
   }
-  
+
   #[test]
   fn test_build_add_root_folder_body() {
     let mut app = App::default();
@@ -659,6 +661,21 @@ mod tests {
       .radarr_data
       .edit_root_folder
       .is_none());
+  }
+
+  #[test]
+  fn test_extract_root_folder_id() {
+    let mut app = App::default();
+    app.data.radarr_data.root_folders.set_items(vec![root_folder()]);
+
+    let root_folder_id = RootFoldersHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::RootFolders,
+      None,
+    ).extract_root_folder_id();
+
+    assert_eq!(root_folder_id, 1);
   }
 
   #[test]

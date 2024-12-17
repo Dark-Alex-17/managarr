@@ -43,7 +43,7 @@ pub enum RadarrEvent {
   DeleteDownload(i64),
   DeleteIndexer(i64),
   DeleteMovie(DeleteMovieParams),
-  DeleteRootFolder(Option<i64>),
+  DeleteRootFolder(i64),
   DeleteTag(i64),
   DownloadRelease(Option<RadarrReleaseDownloadBody>),
   EditAllIndexerSettings(Option<IndexerSettings>),
@@ -469,30 +469,16 @@ impl<'a, 'b> Network<'a, 'b> {
     resp
   }
 
-  async fn delete_radarr_root_folder(&mut self, root_folder_id: Option<i64>) -> Result<()> {
-    let event = RadarrEvent::DeleteRootFolder(None);
-    let id = if let Some(rf_id) = root_folder_id {
-      rf_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .root_folders
-        .current_selection()
-        .id
-    };
-
-    info!("Deleting Radarr root folder for folder with id: {id}");
+  async fn delete_radarr_root_folder(&mut self, root_folder_id: i64) -> Result<()> {
+    let event = RadarrEvent::DeleteRootFolder(root_folder_id);
+    info!("Deleting Radarr root folder for folder with id: {root_folder_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{root_folder_id}")),
         None,
       )
       .await;

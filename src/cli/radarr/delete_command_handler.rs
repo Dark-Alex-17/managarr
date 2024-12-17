@@ -126,7 +126,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrDeleteCommand> for RadarrDeleteComm
       RadarrDeleteCommand::RootFolder { root_folder_id } => {
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::DeleteRootFolder(Some(root_folder_id)).into())
+          .handle_network_event(RadarrEvent::DeleteRootFolder(root_folder_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
