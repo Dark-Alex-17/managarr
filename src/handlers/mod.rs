@@ -88,10 +88,12 @@ pub fn handle_events(key: Key, app: &mut App<'_>) {
     app.reset();
     app.server_tabs.next();
     app.pop_and_push_navigation_stack(app.server_tabs.get_active_route());
+    app.cancellation_token.cancel();
   } else if key == DEFAULT_KEYBINDINGS.previous_servarr.key {
     app.reset();
     app.server_tabs.previous();
     app.pop_and_push_navigation_stack(app.server_tabs.get_active_route());
+    app.cancellation_token.cancel();
   } else {
     match app.get_current_route() {
       Route::Radarr(active_radarr_block, context) => {
