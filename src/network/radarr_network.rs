@@ -36,7 +36,7 @@ mod radarr_network_tests;
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum RadarrEvent {
   AddMovie(AddMovieBody),
-  AddRootFolder(Option<String>),
+  AddRootFolder(AddRootFolderBody),
   AddTag(String),
   ClearBlocklist,
   DeleteBlocklistItem(Option<i64>),
@@ -301,31 +301,14 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn add_radarr_root_folder(&mut self, root_folder: Option<String>) -> Result<Value> {
+  async fn add_radarr_root_folder(&mut self, add_root_folder_body: AddRootFolderBody) -> Result<Value> {
     info!("Adding new root folder to Radarr");
-    let event = RadarrEvent::AddRootFolder(None);
-    let body = if let Some(path) = root_folder {
-      AddRootFolderBody { path }
-    } else {
-      let mut app = self.app.lock().await;
-      let path = app
-        .data
-        .radarr_data
-        .edit_root_folder
-        .as_ref()
-        .unwrap()
-        .text
-        .clone();
-
-      app.data.radarr_data.edit_root_folder = None;
-
-      AddRootFolderBody { path }
-    };
-
-    debug!("Add root folder body: {body:?}");
+    let event = RadarrEvent::AddRootFolder(add_root_folder_body.clone());
+    
+    debug!("Add root folder body: {add_root_folder_body:?}");
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .request_props_from(event, RequestMethod::Post, Some(add_root_folder_body), None, None)
       .await;
 
     self

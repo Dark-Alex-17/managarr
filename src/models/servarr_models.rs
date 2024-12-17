@@ -11,7 +11,7 @@ use super::HorizontallyScrollableText;
 #[path = "servarr_models_tests.rs"]
 mod servarr_models_tests;
 
-#[derive(Default, Serialize, Debug)]
+#[derive(Default, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct AddRootFolderBody {
   pub path: String,
 }

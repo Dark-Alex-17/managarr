@@ -156,7 +156,7 @@ mod test {
   #[rstest]
   fn test_resource_root_folder(
     #[values(
-      RadarrEvent::AddRootFolder(None),
+      RadarrEvent::AddRootFolder(AddRootFolderBody::default()),
       RadarrEvent::GetRootFolders,
       RadarrEvent::DeleteRootFolder(None)
     )]
@@ -3456,60 +3456,20 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::AddRootFolder(None),
+      RadarrEvent::AddRootFolder(AddRootFolderBody::default()),
       None,
       None,
     )
     .await;
-
-    app_arc.lock().await.data.radarr_data.edit_root_folder = Some("/nfs/test".into());
+    let add_root_folder_body = AddRootFolderBody { path: "/nfs/test".to_owned() };
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::AddRootFolder(None))
+      .handle_radarr_event(RadarrEvent::AddRootFolder(add_root_folder_body))
       .await
       .is_ok());
 
     async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .edit_root_folder
-      .is_none());
-  }
-
-  #[tokio::test]
-  async fn test_handle_add_radarr_root_folder_event_uses_provided_path() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "path": "/test/test"
-      })),
-      Some(json!({})),
-      None,
-      RadarrEvent::AddRootFolder(None),
-      None,
-      None,
-    )
-    .await;
-
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::AddRootFolder(Some("/test/test".to_owned())))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .edit_root_folder
-      .is_none());
   }
 
   #[tokio::test]
