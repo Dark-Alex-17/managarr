@@ -1,11 +1,13 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::downloads::DownloadsHandler;
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::download_record;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::DownloadRecord;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
@@ -137,7 +139,7 @@ mod tests {
     #[case(
       ActiveRadarrBlock::Downloads,
       ActiveRadarrBlock::DeleteDownloadPrompt,
-      RadarrEvent::DeleteDownload(None)
+      RadarrEvent::DeleteDownload(1)
     )]
     #[case(
       ActiveRadarrBlock::Downloads,
@@ -154,7 +156,7 @@ mod tests {
         .data
         .radarr_data
         .downloads
-        .set_items(vec![DownloadRecord::default()]);
+        .set_items(vec![download_record()]);
       app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
@@ -336,7 +338,7 @@ mod tests {
     #[case(
       ActiveRadarrBlock::Downloads,
       ActiveRadarrBlock::DeleteDownloadPrompt,
-      RadarrEvent::DeleteDownload(None)
+      RadarrEvent::DeleteDownload(1)
     )]
     #[case(
       ActiveRadarrBlock::Downloads,
@@ -353,7 +355,7 @@ mod tests {
         .data
         .radarr_data
         .downloads
-        .set_items(vec![DownloadRecord::default()]);
+        .set_items(vec![download_record()]);
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
 
@@ -383,6 +385,21 @@ mod tests {
         assert!(!DownloadsHandler::accepts(active_radarr_block));
       }
     })
+  }
+
+  #[test]
+  fn test_extract_download_id() {
+    let mut app = App::default();
+    app.data.radarr_data.downloads.set_items(vec![download_record()]);
+
+    let download_id = DownloadsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::Downloads,
+      None,
+    ).extract_download_id();
+
+    assert_eq!(download_id, 1);
   }
 
   #[test]

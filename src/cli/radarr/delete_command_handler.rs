@@ -96,7 +96,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrDeleteCommand> for RadarrDeleteComm
       RadarrDeleteCommand::Download { download_id } => {
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::DeleteDownload(Some(download_id)).into())
+          .handle_network_event(RadarrEvent::DeleteDownload(download_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

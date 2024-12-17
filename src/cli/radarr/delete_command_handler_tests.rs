@@ -299,7 +299,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::DeleteDownload(Some(expected_download_id)).into(),
+          RadarrEvent::DeleteDownload(expected_download_id).into(),
         ))
         .times(1)
         .returning(|_| {

@@ -187,7 +187,7 @@ mod test {
 
   #[rstest]
   fn test_resource_queue(
-    #[values(RadarrEvent::GetDownloads, RadarrEvent::DeleteDownload(None))] event: RadarrEvent,
+    #[values(RadarrEvent::GetDownloads, RadarrEvent::DeleteDownload(0))] event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/queue");
   }
@@ -3221,36 +3221,7 @@ mod test {
       None,
       None,
       None,
-      RadarrEvent::DeleteDownload(None),
-      Some("/1"),
-      None,
-    )
-    .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .downloads
-      .set_items(vec![download_record()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::DeleteDownload(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-  }
-
-  #[tokio::test]
-  async fn test_handle_delete_radarr_download_event_uses_provided_id() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      RadarrEvent::DeleteDownload(None),
+      RadarrEvent::DeleteDownload(1),
       Some("/1"),
       None,
     )
@@ -3258,7 +3229,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::DeleteDownload(Some(1)))
+      .handle_radarr_event(RadarrEvent::DeleteDownload(1))
       .await
       .is_ok());
 
