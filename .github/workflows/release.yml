@@ -229,6 +229,12 @@ jobs:
           echo "$changelog" > changelog.md
           echo "changelog_body=$(cat changelog.md)" >> $GITHUB_ENV
 
+      - name: Push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin --follow-tags
+
       - name: Create a GitHub Release
         uses: softprops/action-gh-release@v1
         env:
@@ -264,12 +270,6 @@ jobs:
           body: ${{ env.changelog_body }}
           draft: false
           prerelease: false
-
-      - name: Push changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git push origin --follow-tags
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
