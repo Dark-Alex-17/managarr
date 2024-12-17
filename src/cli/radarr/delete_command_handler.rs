@@ -103,7 +103,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrDeleteCommand> for RadarrDeleteComm
       RadarrDeleteCommand::Indexer { indexer_id } => {
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::DeleteIndexer(Some(indexer_id)).into())
+          .handle_network_event(RadarrEvent::DeleteIndexer(indexer_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

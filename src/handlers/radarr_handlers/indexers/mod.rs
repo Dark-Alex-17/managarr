@@ -33,6 +33,16 @@ pub(super) struct IndexersHandler<'a, 'b> {
 
 impl<'a, 'b> IndexersHandler<'a, 'b> {
   handle_table_events!(self, indexers, self.app.data.radarr_data.indexers, Indexer);
+  
+  fn extract_indexer_id(&self) -> i64 {
+    self
+      .app
+      .data
+      .radarr_data
+      .indexers
+      .current_selection()
+      .id
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 'b> {
@@ -115,9 +125,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
   fn handle_submit(&mut self) {
     match self.active_radarr_block {
       ActiveRadarrBlock::DeleteIndexerPrompt => {
+        let indexer_id = self.extract_indexer_id();
         let radarr_data = &mut self.app.data.radarr_data;
         if radarr_data.prompt_confirm {
-          radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteIndexer(None));
+          radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteIndexer(indexer_id));
         }
 
         self.app.pop_navigation_stack();
@@ -189,7 +200,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
       ActiveRadarrBlock::DeleteIndexerPrompt => {
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteIndexer(None));
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteIndexer(self.extract_indexer_id()));
 
           self.app.pop_navigation_stack();
         }

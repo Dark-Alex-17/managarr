@@ -3,7 +3,7 @@ mod test {
   use std::sync::Arc;
 
   use bimap::BiMap;
-  use chrono::{DateTime, Utc};
+  use chrono::DateTime;
   use mockito::{Matcher, Server};
   use pretty_assertions::{assert_eq, assert_str_eq};
   use reqwest::Client;
@@ -137,7 +137,7 @@ mod test {
 
   #[rstest]
   fn test_resource_indexer(
-    #[values(RadarrEvent::GetIndexers, RadarrEvent::DeleteIndexer(None))] event: RadarrEvent,
+    #[values(RadarrEvent::GetIndexers, RadarrEvent::DeleteIndexer(0))] event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/indexer");
   }
@@ -325,8 +325,7 @@ mod test {
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-    let date_time = DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap())
-      as DateTime<Utc>;
+    let date_time = DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap());
 
     if let RadarrSerdeable::SystemStatus(status) = network
       .handle_radarr_event(RadarrEvent::GetStatus)
@@ -3243,36 +3242,7 @@ mod test {
       None,
       None,
       None,
-      RadarrEvent::DeleteIndexer(None),
-      Some("/1"),
-      None,
-    )
-    .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .indexers
-      .set_items(vec![indexer()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::DeleteIndexer(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-  }
-
-  #[tokio::test]
-  async fn test_handle_delete_radarr_indexer_event_uses_provided_id() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      RadarrEvent::DeleteIndexer(None),
+      RadarrEvent::DeleteIndexer(1),
       Some("/1"),
       None,
     )
@@ -3280,7 +3250,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::DeleteIndexer(Some(1)))
+      .handle_radarr_event(RadarrEvent::DeleteIndexer(1))
       .await
       .is_ok());
 

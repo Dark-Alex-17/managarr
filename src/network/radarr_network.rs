@@ -41,7 +41,7 @@ pub enum RadarrEvent {
   ClearBlocklist,
   DeleteBlocklistItem(i64),
   DeleteDownload(i64),
-  DeleteIndexer(Option<i64>),
+  DeleteIndexer(i64),
   DeleteMovie(Option<DeleteMovieParams>),
   DeleteRootFolder(Option<i64>),
   DeleteTag(i64),
@@ -426,30 +426,16 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_radarr_indexer(&mut self, indexer_id: Option<i64>) -> Result<()> {
-    let event = RadarrEvent::DeleteIndexer(None);
-    let id = if let Some(i_id) = indexer_id {
-      i_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .indexers
-        .current_selection()
-        .id
-    };
-
-    info!("Deleting Radarr indexer for indexer with id: {id}");
+  async fn delete_radarr_indexer(&mut self, indexer_id: i64) -> Result<()> {
+    let event = RadarrEvent::DeleteIndexer(indexer_id);
+    info!("Deleting Radarr indexer for indexer with id: {indexer_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{indexer_id}")),
         None,
       )
       .await;

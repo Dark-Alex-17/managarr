@@ -325,7 +325,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::DeleteIndexer(Some(expected_indexer_id)).into(),
+          RadarrEvent::DeleteIndexer(expected_indexer_id).into(),
         ))
         .times(1)
         .returning(|_| {
