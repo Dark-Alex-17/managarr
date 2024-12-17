@@ -179,7 +179,7 @@ mod test {
 
   #[rstest]
   fn test_resource_release(
-    #[values(RadarrEvent::GetReleases(None), RadarrEvent::DownloadRelease(None))]
+    #[values(RadarrEvent::GetReleases(None), RadarrEvent::DownloadRelease(RadarrReleaseDownloadBody::default()))]
     event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/release");
@@ -4425,67 +4425,29 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_download_radarr_release_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "guid": "1234",
-        "indexerId": 2,
-        "movieId": 1
-      })),
-      Some(json!({})),
-      None,
-      RadarrEvent::DownloadRelease(None),
-      None,
-      None,
-    )
-    .await;
-    let mut movie_details_modal = MovieDetailsModal::default();
-    movie_details_modal
-      .movie_releases
-      .set_items(vec![release()]);
-    app_arc.lock().await.data.radarr_data.movie_details_modal = Some(movie_details_modal);
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![movie()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::DownloadRelease(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-  }
-
-  #[tokio::test]
-  async fn test_handle_download_radarr_release_event_uses_provided_params() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "guid": "1234",
-        "indexerId": 2,
-        "movieId": 1
-      })),
-      Some(json!({})),
-      None,
-      RadarrEvent::DownloadRelease(None),
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-    let params = RadarrReleaseDownloadBody {
+    let expected_body = RadarrReleaseDownloadBody {
       guid: "1234".to_owned(),
       indexer_id: 2,
       movie_id: 1,
     };
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "guid": "1234",
+        "indexerId": 2,
+        "movieId": 1
+      })),
+      Some(json!({})),
+      None,
+      RadarrEvent::DownloadRelease(expected_body.clone()),
+      None,
+      None,
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::DownloadRelease(Some(params)))
+      .handle_radarr_event(RadarrEvent::DownloadRelease(expected_body))
       .await
       .is_ok());
 

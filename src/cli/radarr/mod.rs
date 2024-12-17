@@ -209,7 +209,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrCommand> for RadarrCliHandler<'a, '
         };
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::DownloadRelease(Some(params)).into())
+          .handle_network_event(RadarrEvent::DownloadRelease(params).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

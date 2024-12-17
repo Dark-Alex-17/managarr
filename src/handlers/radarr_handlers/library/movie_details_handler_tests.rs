@@ -2,7 +2,7 @@
 mod tests {
   use std::cmp::Ordering;
 
-  use pretty_assertions::assert_str_eq;
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use serde_json::Number;
   use strum::IntoEnumIterator;
@@ -13,9 +13,10 @@ mod tests {
   use crate::handlers::radarr_handlers::library::movie_details_handler::{
     releases_sorting_options, MovieDetailsHandler,
   };
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::{movie, release};
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::RadarrRelease;
   use crate::models::radarr_models::{Credit, MovieHistoryItem};
+  use crate::models::radarr_models::{RadarrRelease, RadarrReleaseDownloadBody};
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
   use crate::models::servarr_models::{Language, Quality, QualityWrapper};
@@ -130,6 +131,7 @@ mod tests {
 
   mod test_handle_home_end {
     use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
@@ -367,17 +369,30 @@ mod tests {
     )]
     #[case(
       ActiveRadarrBlock::ManualSearchConfirmPrompt,
-      RadarrEvent::DownloadRelease(None)
+      RadarrEvent::DownloadRelease(RadarrReleaseDownloadBody {
+        guid: "1234".to_owned(),
+        indexer_id: 2,
+        movie_id: 1,
+        })
     )]
     fn test_movie_info_prompt_confirm_submit(
       #[case] prompt_block: ActiveRadarrBlock,
       #[case] expected_action: RadarrEvent,
     ) {
       let mut app = App::default();
-      app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
+      let mut movie_details_modal = MovieDetailsModal {
         movie_details: ScrollableText::with_string("test".to_owned()),
         ..MovieDetailsModal::default()
-      });
+      };
+      movie_details_modal
+        .movie_releases
+        .set_items(vec![release()]);
+      app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_items(vec![movie()]);
       app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
       app.push_navigation_stack(prompt_block.into());
@@ -779,17 +794,31 @@ mod tests {
     )]
     #[case(
       ActiveRadarrBlock::ManualSearchConfirmPrompt,
-      RadarrEvent::DownloadRelease(None)
+      RadarrEvent::DownloadRelease(RadarrReleaseDownloadBody {
+        guid: "1234".to_owned(),
+        indexer_id: 2,
+        movie_id: 1,
+        })
     )]
     fn test_movie_info_prompt_confirm(
       #[case] prompt_block: ActiveRadarrBlock,
       #[case] expected_action: RadarrEvent,
     ) {
       let mut app = App::default();
-      app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
+      let mut movie_details_modal = MovieDetailsModal {
         movie_details: ScrollableText::with_string("test".to_owned()),
         ..MovieDetailsModal::default()
-      });
+      };
+      movie_details_modal
+        .movie_releases
+        .set_items(vec![release()]);
+      app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
+      app
+        .data
+        .radarr_data
+        .movies
+        .set_items(vec![movie()]);
+      app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
@@ -811,6 +840,35 @@ mod tests {
         Some(expected_action)
       );
     }
+  }
+
+  #[test]
+  fn test_build_radarr_release_download_body() {
+    let mut app = App::default();
+    let mut movie_details_modal = MovieDetailsModal::default();
+    movie_details_modal
+      .movie_releases
+      .set_items(vec![release()]);
+    app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
+    app
+      .data
+      .radarr_data
+      .movies
+      .set_items(vec![movie()]);
+    let expected_body = RadarrReleaseDownloadBody {
+      guid: "1234".to_owned(),
+      indexer_id: 2,
+      movie_id: 1,
+    };
+
+    let body = MovieDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::ManualSearchConfirmPrompt,
+      None,
+    ).build_radarr_release_download_body();
+
+    assert_eq!(body, expected_body);
   }
 
   #[test]

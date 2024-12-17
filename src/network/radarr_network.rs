@@ -45,7 +45,7 @@ pub enum RadarrEvent {
   DeleteMovie(DeleteMovieParams),
   DeleteRootFolder(i64),
   DeleteTag(i64),
-  DownloadRelease(Option<RadarrReleaseDownloadBody>),
+  DownloadRelease(RadarrReleaseDownloadBody),
   EditAllIndexerSettings(Option<IndexerSettings>),
   EditCollection(Option<EditCollectionParams>),
   EditIndexer(Option<EditIndexerParams>),
@@ -490,44 +490,13 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn download_radarr_release(
     &mut self,
-    params: Option<RadarrReleaseDownloadBody>,
+    params: RadarrReleaseDownloadBody,
   ) -> Result<Value> {
-    let event = RadarrEvent::DownloadRelease(None);
-    let body = if let Some(release_download_body) = params {
-      info!("Downloading Radarr release with params: {release_download_body:?}");
-      release_download_body
-    } else {
-      let (movie_id, _) = self.extract_movie_id(None).await;
-      let (guid, title, indexer_id) = {
-        let app = self.app.lock().await;
-        let RadarrRelease {
-          guid,
-          title,
-          indexer_id,
-          ..
-        } = app
-          .data
-          .radarr_data
-          .movie_details_modal
-          .as_ref()
-          .unwrap()
-          .movie_releases
-          .current_selection();
-
-        (guid.clone(), title.clone(), *indexer_id)
-      };
-
-      info!("Downloading release: {title}");
-
-      RadarrReleaseDownloadBody {
-        guid,
-        indexer_id,
-        movie_id,
-      }
-    };
+    let event = RadarrEvent::DownloadRelease(params.clone());
+    info!("Downloading Radarr release with params: {params:?}");
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .request_props_from(event, RequestMethod::Post, Some(params), None, None)
       .await;
 
     self
