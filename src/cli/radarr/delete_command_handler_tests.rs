@@ -355,7 +355,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::DeleteMovie(Some(expected_delete_movie_params)).into(),
+          RadarrEvent::DeleteMovie(expected_delete_movie_params).into(),
         ))
         .times(1)
         .returning(|_| {

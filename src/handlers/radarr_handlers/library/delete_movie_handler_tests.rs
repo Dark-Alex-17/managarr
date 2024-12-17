@@ -1,12 +1,15 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::library::delete_movie_handler::DeleteMovieHandler;
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::movie;
   use crate::handlers::KeyEventHandler;
+  use crate::models::radarr_models::DeleteMovieParams;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 
   mod test_handle_scroll_up_and_down {
@@ -119,8 +122,14 @@ mod tests {
     #[test]
     fn test_delete_movie_confirm_prompt_prompt_confirmation_submit() {
       let mut app = App::default();
+      let expected_delete_movie_params = DeleteMovieParams {
+        id: 1,
+        delete_movie_files: true,
+        add_list_exclusion: true,
+      };
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
+      app.data.radarr_data.movies.set_items(vec![movie()]);
       app.data.radarr_data.prompt_confirm = true;
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
@@ -142,12 +151,12 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteMovie(None))
+        Some(RadarrEvent::DeleteMovie(expected_delete_movie_params))
       );
       assert!(app.should_refresh);
       assert!(app.data.radarr_data.prompt_confirm);
-      assert!(app.data.radarr_data.delete_movie_files);
-      assert!(app.data.radarr_data.add_list_exclusion);
+      assert!(!app.data.radarr_data.delete_movie_files);
+      assert!(!app.data.radarr_data.add_list_exclusion);
     }
 
     #[test]
@@ -212,6 +221,7 @@ mod tests {
 
   mod test_handle_esc {
     use super::*;
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
@@ -248,14 +258,21 @@ mod tests {
       },
       network::radarr_network::RadarrEvent,
     };
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
     #[test]
     fn test_delete_movie_confirm_prompt_prompt_confirm() {
       let mut app = App::default();
+      let expected_delete_movie_params = DeleteMovieParams {
+        id: 1,
+        delete_movie_files: true,
+        add_list_exclusion: true,
+      };
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
+      app.data.radarr_data.movies.set_items(vec![movie()]);
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
       app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
@@ -276,12 +293,12 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteMovie(None))
+        Some(RadarrEvent::DeleteMovie(expected_delete_movie_params))
       );
       assert!(app.should_refresh);
       assert!(app.data.radarr_data.prompt_confirm);
-      assert!(app.data.radarr_data.delete_movie_files);
-      assert!(app.data.radarr_data.add_list_exclusion);
+      assert!(!app.data.radarr_data.delete_movie_files);
+      assert!(!app.data.radarr_data.add_list_exclusion);
     }
   }
 
@@ -294,6 +311,30 @@ mod tests {
         assert!(!DeleteMovieHandler::accepts(active_radarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_build_delete_movie_params() {
+    let mut app = App::default();
+    app.data.radarr_data.movies.set_items(vec![movie()]);
+    app.data.radarr_data.delete_movie_files = true;
+    app.data.radarr_data.add_list_exclusion = true;
+    let expected_delete_movie_params = DeleteMovieParams {
+      id: 1,
+      delete_movie_files: true,
+      add_list_exclusion: true,
+    };
+
+    let delete_movie_params = DeleteMovieHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::DeleteMoviePrompt,
+      None,
+    ).build_delete_movie_params();
+
+    assert_eq!(delete_movie_params, expected_delete_movie_params);
+    assert!(!app.data.radarr_data.delete_movie_files);
+    assert!(!app.data.radarr_data.add_list_exclusion);
   }
 
   #[test]

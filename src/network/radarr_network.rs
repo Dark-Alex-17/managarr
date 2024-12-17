@@ -42,7 +42,7 @@ pub enum RadarrEvent {
   DeleteBlocklistItem(i64),
   DeleteDownload(i64),
   DeleteIndexer(i64),
-  DeleteMovie(Option<DeleteMovieParams>),
+  DeleteMovie(DeleteMovieParams),
   DeleteRootFolder(Option<i64>),
   DeleteTag(i64),
   DownloadRelease(Option<RadarrReleaseDownloadBody>),
@@ -445,32 +445,19 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_movie(&mut self, delete_movie_params: Option<DeleteMovieParams>) -> Result<()> {
-    let event = RadarrEvent::DeleteMovie(None);
-    let (movie_id, delete_files, add_import_exclusion) = if let Some(params) = delete_movie_params {
-      (
-        params.id,
-        params.delete_movie_files,
-        params.add_list_exclusion,
-      )
-    } else {
-      let (movie_id, _) = self.extract_movie_id(None).await;
-      let delete_files = self.app.lock().await.data.radarr_data.delete_movie_files;
-      let add_import_exclusion = self.app.lock().await.data.radarr_data.add_list_exclusion;
-
-      (movie_id, delete_files, add_import_exclusion)
-    };
-
-    info!("Deleting Radarr movie with ID: {movie_id} with deleteFiles={delete_files} and addImportExclusion={add_import_exclusion}");
+  async fn delete_movie(&mut self, delete_movie_params: DeleteMovieParams) -> Result<()> {
+    let event = RadarrEvent::DeleteMovie(delete_movie_params.clone());
+    let DeleteMovieParams { id, delete_movie_files, add_list_exclusion } = delete_movie_params;
+    info!("Deleting Radarr movie with ID: {id} with deleteFiles={delete_movie_files} and addImportExclusion={add_list_exclusion}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{movie_id}")),
+        Some(format!("/{id}")),
         Some(format!(
-          "deleteFiles={delete_files}&addImportExclusion={add_import_exclusion}"
+          "deleteFiles={delete_movie_files}&addImportExclusion={add_list_exclusion}"
         )),
       )
       .await;
@@ -478,14 +465,6 @@ impl<'a, 'b> Network<'a, 'b> {
     let resp = self
       .handle_request::<(), ()>(request_props, |_, _| ())
       .await;
-
-    self
-      .app
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .reset_delete_movie_preferences();
 
     resp
   }

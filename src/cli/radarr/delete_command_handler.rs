@@ -119,7 +119,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrDeleteCommand> for RadarrDeleteComm
         };
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::DeleteMovie(Some(delete_movie_params)).into())
+          .handle_network_event(RadarrEvent::DeleteMovie(delete_movie_params).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

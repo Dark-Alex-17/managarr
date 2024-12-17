@@ -137,7 +137,7 @@ pub enum CreditType {
   Crew,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Default)]
 #[serde(rename_all = "lowercase")]
 pub struct DeleteMovieParams {
   pub id: i64,

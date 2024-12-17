@@ -121,7 +121,7 @@ mod test {
       RadarrEvent::EditMovie(None),
       RadarrEvent::GetMovies,
       RadarrEvent::GetMovieDetails(None),
-      RadarrEvent::DeleteMovie(None)
+      RadarrEvent::DeleteMovie(DeleteMovieParams::default())
     )]
     event: RadarrEvent,
   ) {
@@ -3090,61 +3090,29 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_movie_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      RadarrEvent::DeleteMovie(None),
-      Some("/1"),
-      Some("deleteFiles=true&addImportExclusion=true"),
-    )
-    .await;
-    {
-      let mut app = app_arc.lock().await;
-      app.data.radarr_data.movies.set_items(vec![movie()]);
-      app.data.radarr_data.delete_movie_files = true;
-      app.data.radarr_data.add_list_exclusion = true;
-    }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::DeleteMovie(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-    assert!(!app_arc.lock().await.data.radarr_data.delete_movie_files);
-    assert!(!app_arc.lock().await.data.radarr_data.add_list_exclusion);
-  }
-
-  #[tokio::test]
-  async fn test_handle_delete_movie_event_use_provided_params() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      RadarrEvent::DeleteMovie(None),
-      Some("/1"),
-      Some("deleteFiles=true&addImportExclusion=true"),
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
     let delete_movie_params = DeleteMovieParams {
       id: 1,
       delete_movie_files: true,
       add_list_exclusion: true,
     };
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      RadarrEvent::DeleteMovie(delete_movie_params.clone()),
+      Some("/1"),
+      Some("deleteFiles=true&addImportExclusion=true"),
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::DeleteMovie(Some(delete_movie_params)))
+      .handle_radarr_event(RadarrEvent::DeleteMovie(delete_movie_params))
       .await
       .is_ok());
 
     async_server.assert_async().await;
-    assert!(!app_arc.lock().await.data.radarr_data.delete_movie_files);
-    assert!(!app_arc.lock().await.data.radarr_data.add_list_exclusion);
   }
 
   #[tokio::test]
