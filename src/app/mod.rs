@@ -26,7 +26,7 @@ pub mod sonarr;
 pub struct App<'a> {
   navigation_stack: Vec<Route>,
   network_tx: Option<Sender<NetworkEvent>>,
-  cancellation_token: CancellationToken,
+  pub cancellation_token: CancellationToken,
   pub is_first_render: bool,
   pub server_tabs: TabState,
   pub error: HorizontallyScrollableText,

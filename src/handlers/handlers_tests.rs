@@ -4,6 +4,7 @@ mod tests {
   use crate::models::sonarr_models::Series;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
+  use tokio_util::sync::CancellationToken;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
@@ -65,10 +66,12 @@ mod tests {
     assert_eq!(app.get_current_route(), left_block.into());
     assert!(app.is_first_render);
     assert_eq!(app.error, HorizontallyScrollableText::default());
+    assert!(app.cancellation_token.is_cancelled());
 
     app.server_tabs.set_index(index);
     app.is_first_render = false;
     app.error = "Test".into();
+    app.cancellation_token = CancellationToken::new();
 
     handle_events(DEFAULT_KEYBINDINGS.next_servarr.key, &mut app);
 
@@ -76,6 +79,7 @@ mod tests {
     assert_eq!(app.get_current_route(), right_block.into());
     assert!(app.is_first_render);
     assert_eq!(app.error, HorizontallyScrollableText::default());
+    assert!(app.cancellation_token.is_cancelled());
   }
 
   #[rstest]
