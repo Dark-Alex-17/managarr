@@ -293,9 +293,9 @@ mod tests {
           )))
         });
       let app_arc = Arc::new(Mutex::new(App::default()));
-      let claer_blocklist_command = RadarrCommand::ClearBlocklist;
+      let clear_blocklist_command = RadarrCommand::ClearBlocklist;
 
-      let result = RadarrCliHandler::with(&app_arc, claer_blocklist_command, &mut mock_network)
+      let result = RadarrCliHandler::with(&app_arc, clear_blocklist_command, &mut mock_network)
         .handle()
         .await;
 
@@ -524,7 +524,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::DeleteBlocklistItem(Some(expected_blocklist_item_id)).into(),
+          RadarrEvent::DeleteBlocklistItem(expected_blocklist_item_id).into(),
         ))
         .times(1)
         .returning(|_| {

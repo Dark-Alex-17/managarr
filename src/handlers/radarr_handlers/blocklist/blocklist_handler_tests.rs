@@ -160,7 +160,7 @@ mod tests {
     #[case(
       ActiveRadarrBlock::Blocklist,
       ActiveRadarrBlock::DeleteBlocklistItemPrompt,
-      RadarrEvent::DeleteBlocklistItem(None)
+      RadarrEvent::DeleteBlocklistItem(3)
     )]
     #[case(
       ActiveRadarrBlock::Blocklist,
@@ -361,7 +361,7 @@ mod tests {
     #[case(
       ActiveRadarrBlock::Blocklist,
       ActiveRadarrBlock::DeleteBlocklistItemPrompt,
-      RadarrEvent::DeleteBlocklistItem(None)
+      RadarrEvent::DeleteBlocklistItem(3)
     )]
     #[case(
       ActiveRadarrBlock::Blocklist,
@@ -539,6 +539,21 @@ mod tests {
         assert!(!BlocklistHandler::accepts(active_radarr_block));
       }
     })
+  }
+  
+  #[test]
+  fn test_extract_blocklist_item_id() {
+    let mut app = App::default();
+    app.data.radarr_data.blocklist.set_items(blocklist_vec());
+    
+    let blocklist_item_id = BlocklistHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::Blocklist,
+      None,
+    ).extract_blocklist_item_id();
+    
+    assert_eq!(blocklist_item_id, 3);
   }
 
   #[test]

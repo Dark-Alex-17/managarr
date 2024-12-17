@@ -217,7 +217,7 @@ mod test {
 
   #[rstest]
   #[case(RadarrEvent::ClearBlocklist, "/blocklist/bulk")]
-  #[case(RadarrEvent::DeleteBlocklistItem(None), "/blocklist")]
+  #[case(RadarrEvent::DeleteBlocklistItem(1), "/blocklist")]
   #[case(RadarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(RadarrEvent::GetLogs(Some(500)), "/log")]
   #[case(RadarrEvent::SearchNewMovie(None), "/movie/lookup")]
@@ -3199,36 +3199,7 @@ mod test {
       None,
       None,
       None,
-      RadarrEvent::DeleteBlocklistItem(None),
-      Some("/1"),
-      None,
-    )
-    .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .blocklist
-      .set_items(vec![blocklist_item()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::DeleteBlocklistItem(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-  }
-
-  #[tokio::test]
-  async fn test_handle_delete_blocklist_item_event_uses_provided_id() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      RadarrEvent::DeleteBlocklistItem(None),
+      RadarrEvent::DeleteBlocklistItem(1),
       Some("/1"),
       None,
     )
@@ -3236,7 +3207,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::DeleteBlocklistItem(Some(1)))
+      .handle_radarr_event(RadarrEvent::DeleteBlocklistItem(1))
       .await
       .is_ok());
 

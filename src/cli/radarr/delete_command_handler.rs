@@ -89,7 +89,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrDeleteCommand> for RadarrDeleteComm
       RadarrDeleteCommand::BlocklistItem { blocklist_item_id } => {
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::DeleteBlocklistItem(Some(blocklist_item_id)).into())
+          .handle_network_event(RadarrEvent::DeleteBlocklistItem(blocklist_item_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

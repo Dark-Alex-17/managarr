@@ -39,7 +39,7 @@ pub enum RadarrEvent {
   AddRootFolder(AddRootFolderBody),
   AddTag(String),
   ClearBlocklist,
-  DeleteBlocklistItem(Option<i64>),
+  DeleteBlocklistItem(i64),
   DeleteDownload(Option<i64>),
   DeleteIndexer(Option<i64>),
   DeleteMovie(Option<DeleteMovieParams>),
@@ -387,30 +387,17 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_radarr_blocklist_item(&mut self, blocklist_item_id: Option<i64>) -> Result<()> {
-    let event = RadarrEvent::DeleteBlocklistItem(None);
-    let id = if let Some(b_id) = blocklist_item_id {
-      b_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .blocklist
-        .current_selection()
-        .id
-    };
+  async fn delete_radarr_blocklist_item(&mut self, blocklist_item_id: i64) -> Result<()> {
+    let event = RadarrEvent::DeleteBlocklistItem(blocklist_item_id);
 
-    info!("Deleting Radarr blocklist item for item with id: {id}");
+    info!("Deleting Radarr blocklist item for item with id: {blocklist_item_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{blocklist_item_id}")),
         None,
       )
       .await;

@@ -268,7 +268,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::DeleteBlocklistItem(Some(expected_blocklist_item_id)).into(),
+          RadarrEvent::DeleteBlocklistItem(expected_blocklist_item_id).into(),
         ))
         .times(1)
         .returning(|_| {
