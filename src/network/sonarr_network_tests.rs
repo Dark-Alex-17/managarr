@@ -141,7 +141,7 @@ mod test {
   fn test_resource_all_indexer_settings(
     #[values(
       SonarrEvent::GetAllIndexerSettings,
-      SonarrEvent::EditAllIndexerSettings(None)
+      SonarrEvent::EditAllIndexerSettings(IndexerSettings::default())
     )]
     event: SonarrEvent,
   ) {
@@ -758,45 +758,7 @@ mod test {
       Some(indexer_settings_json),
       None,
       None,
-      SonarrEvent::EditAllIndexerSettings(None),
-      None,
-      None,
-    )
-    .await;
-
-    app_arc.lock().await.data.sonarr_data.indexer_settings = Some(indexer_settings());
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditAllIndexerSettings(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .indexer_settings
-      .is_none());
-  }
-
-  #[tokio::test]
-  async fn test_handle_edit_all_indexer_settings_event_uses_provided_settings() {
-    let indexer_settings_json = json!({
-        "id": 1,
-        "minimumAge": 1,
-        "maximumSize": 12345,
-        "retention": 1,
-        "rssSyncInterval": 60
-    });
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Put,
-      Some(indexer_settings_json),
-      None,
-      None,
-      SonarrEvent::EditAllIndexerSettings(None),
+      SonarrEvent::EditAllIndexerSettings(indexer_settings()),
       None,
       None,
     )
@@ -805,9 +767,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::EditAllIndexerSettings(
-        Some(indexer_settings())
-      ))
+      .handle_sonarr_event(SonarrEvent::EditAllIndexerSettings(indexer_settings()))
       .await
       .is_ok());
 

@@ -6,6 +6,7 @@ use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, INDEXER_SETTINGS_BLOCKS,
 };
+use crate::models::sonarr_models::IndexerSettings;
 use crate::network::sonarr_network::SonarrEvent;
 
 #[cfg(test)]
@@ -17,6 +18,23 @@ pub(super) struct IndexerSettingsHandler<'a, 'b> {
   app: &'a mut App<'b>,
   active_sonarr_block: ActiveSonarrBlock,
   _context: Option<ActiveSonarrBlock>,
+}
+
+impl<'a, 'b> IndexerSettingsHandler<'a, 'b> {
+  fn build_edit_indexer_settings_params(&mut self) -> IndexerSettings {
+    let indexer_settings = self
+      .app
+      .data
+      .sonarr_data
+      .indexer_settings
+      .as_ref()
+      .unwrap()
+      .clone();
+
+    self.app.data.sonarr_data.indexer_settings = None;
+
+    indexer_settings
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexerSettingsHandler<'a, 'b> {
@@ -119,12 +137,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexerSettingsHandl
       ActiveSonarrBlock::AllIndexerSettingsPrompt => {
         match self.app.data.sonarr_data.selected_block.get_active_block() {
           ActiveSonarrBlock::IndexerSettingsConfirmPrompt => {
-            let sonarr_data = &mut self.app.data.sonarr_data;
-            if sonarr_data.prompt_confirm {
-              sonarr_data.prompt_confirm_action = Some(SonarrEvent::EditAllIndexerSettings(None));
+            if self.app.data.sonarr_data.prompt_confirm {
+              self.app.data.sonarr_data.prompt_confirm_action = Some(
+                SonarrEvent::EditAllIndexerSettings(self.build_edit_indexer_settings_params()),
+              );
               self.app.should_refresh = true;
             } else {
-              sonarr_data.indexer_settings = None;
+              self.app.data.sonarr_data.indexer_settings = None;
             }
 
             self.app.pop_navigation_stack();
@@ -172,8 +191,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexerSettingsHandl
       && self.key == DEFAULT_KEYBINDINGS.confirm.key
     {
       self.app.data.sonarr_data.prompt_confirm = true;
-      self.app.data.sonarr_data.prompt_confirm_action =
-        Some(SonarrEvent::EditAllIndexerSettings(None));
+      self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::EditAllIndexerSettings(
+        self.build_edit_indexer_settings_params(),
+      ));
       self.app.should_refresh = true;
 
       self.app.pop_navigation_stack();

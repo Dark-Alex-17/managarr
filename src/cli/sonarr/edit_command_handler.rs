@@ -274,7 +274,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrEditCommand> for SonarrEditCommandH
           };
           self
             .network
-            .handle_network_event(SonarrEvent::EditAllIndexerSettings(Some(params)).into())
+            .handle_network_event(SonarrEvent::EditAllIndexerSettings(params).into())
             .await?;
           "All indexer settings updated".to_owned()
         } else {

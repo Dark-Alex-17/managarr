@@ -50,7 +50,7 @@ pub enum SonarrEvent {
   DeleteSeries(DeleteSeriesParams),
   DeleteTag(i64),
   DownloadRelease(SonarrReleaseDownloadBody),
-  EditAllIndexerSettings(Option<IndexerSettings>),
+  EditAllIndexerSettings(IndexerSettings),
   EditIndexer(Option<EditIndexerParams>),
   EditSeries(Option<EditSeriesParams>),
   GetAllIndexerSettings,
@@ -622,41 +622,18 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn edit_all_sonarr_indexer_settings(
-    &mut self,
-    params: Option<IndexerSettings>,
-  ) -> Result<Value> {
+  async fn edit_all_sonarr_indexer_settings(&mut self, params: IndexerSettings) -> Result<Value> {
     info!("Updating Sonarr indexer settings");
-    let event = SonarrEvent::EditAllIndexerSettings(None);
-
-    let body = if let Some(indexer_settings) = params {
-      indexer_settings
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .indexer_settings
-        .as_ref()
-        .unwrap()
-        .clone()
-    };
-
-    debug!("Indexer settings body: {body:?}");
+    let event = SonarrEvent::EditAllIndexerSettings(params.clone());
+    debug!("Indexer settings body: {params:?}");
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Put, Some(body), None, None)
+      .request_props_from(event, RequestMethod::Put, Some(params), None, None)
       .await;
 
-    let resp = self
+    self
       .handle_request::<IndexerSettings, Value>(request_props, |_, _| {})
-      .await;
-
-    self.app.lock().await.data.sonarr_data.indexer_settings = None;
-
-    resp
+      .await
   }
 
   async fn edit_sonarr_indexer(
