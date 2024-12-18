@@ -12,11 +12,13 @@ mod test {
   use tokio::sync::Mutex;
   use tokio_util::sync::CancellationToken;
 
+  use super::super::*;
   use crate::app::ServarrConfig;
   use crate::models::radarr_models::{
     AddMovieOptions, BlocklistItem, BlocklistItemMovie, CollectionMovie, EditCollectionParams,
     EditMovieParams, IndexerSettings, MediaInfo, MinimumAvailability, MovieCollection, MovieFile, Rating, RatingsList
   };
+  use crate::models::servarr_data::radarr::modals::EditMovieModal;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_models::{
     EditIndexerParams,
@@ -26,8 +28,6 @@ mod test {
   use crate::models::HorizontallyScrollableText;
   use crate::network::network_tests::test_utils::mock_servarr_api;
   use crate::App;
-
-  use super::super::*;
 
   const MOVIE_JSON: &str = r#"{
         "id": 1,
@@ -219,7 +219,7 @@ mod test {
   #[case(RadarrEvent::ClearBlocklist, "/blocklist/bulk")]
   #[case(RadarrEvent::DeleteBlocklistItem(1), "/blocklist")]
   #[case(RadarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
-  #[case(RadarrEvent::GetLogs(Some(500)), "/log")]
+  #[case(RadarrEvent::GetLogs(500), "/log")]
   #[case(RadarrEvent::SearchNewMovie(None), "/movie/lookup")]
   #[case(RadarrEvent::GetMovieCredits(None), "/credit")]
   #[case(RadarrEvent::GetMovieHistory(None), "/history/movie")]
@@ -2501,7 +2501,7 @@ mod test {
       None,
       Some(logs_response_json),
       None,
-      RadarrEvent::GetLogs(None),
+      RadarrEvent::GetLogs(500),
       None,
       Some("pageSize=500&sortDirection=descending&sortKey=time"),
     )
@@ -2509,75 +2509,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::LogResponse(logs) = network
-      .handle_radarr_event(RadarrEvent::GetLogs(None))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.radarr_data.logs.items,
-        expected_logs
-      );
-      assert!(app_arc
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .logs
-        .current_selection()
-        .text
-        .contains("INFO"));
-      assert_eq!(logs, response);
-    }
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_radarr_logs_event_uses_provided_events() {
-    let expected_logs = vec![
-      HorizontallyScrollableText::from(
-        "2023-05-20 21:29:16 UTC|FATAL|RadarrError|Some.Big.Bad.Exception|test exception",
-      ),
-      HorizontallyScrollableText::from("2023-05-20 21:29:16 UTC|INFO|TestLogger|test message"),
-    ];
-    let logs_response_json = json!({
-      "page": 1,
-      "pageSize": 1000,
-      "sortKey": "time",
-      "sortDirection": "descending",
-      "totalRecords": 2,
-      "records": [
-          {
-              "time": "2023-05-20T21:29:16Z",
-              "level": "info",
-              "logger": "TestLogger",
-              "message": "test message",
-              "id": 1
-          },
-          {
-              "time": "2023-05-20T21:29:16Z",
-              "level": "fatal",
-              "logger": "RadarrError",
-              "exception": "test exception",
-              "exceptionType": "Some.Big.Bad.Exception",
-              "id": 2
-          }
-        ]
-    });
-    let response: LogResponse = serde_json::from_value(logs_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(logs_response_json),
-      None,
-      RadarrEvent::GetLogs(Some(1000)),
-      None,
-      Some("pageSize=1000&sortDirection=descending&sortKey=time"),
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let RadarrSerdeable::LogResponse(logs) = network
-      .handle_radarr_event(RadarrEvent::GetLogs(Some(1000)))
+      .handle_radarr_event(RadarrEvent::GetLogs(500))
       .await
       .unwrap()
     {

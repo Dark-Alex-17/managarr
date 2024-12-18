@@ -54,7 +54,7 @@ pub enum RadarrEvent {
   GetHostConfig,
   GetIndexers,
   GetAllIndexerSettings,
-  GetLogs(Option<u64>),
+  GetLogs(u64),
   GetMovieCredits(Option<i64>),
   GetMovieDetails(Option<i64>),
   GetMovieHistory(Option<i64>),
@@ -1118,13 +1118,13 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_radarr_logs(&mut self, events: Option<u64>) -> Result<LogResponse> {
+  async fn get_radarr_logs(&mut self, events: u64) -> Result<LogResponse> {
     info!("Fetching Radarr logs");
     let event = RadarrEvent::GetLogs(events);
 
     let params = format!(
       "pageSize={}&sortDirection=descending&sortKey=time",
-      events.unwrap_or(500)
+      events
     );
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))

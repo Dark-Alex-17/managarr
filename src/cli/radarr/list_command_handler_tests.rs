@@ -189,7 +189,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::GetLogs(Some(expected_events)).into(),
+          RadarrEvent::GetLogs(expected_events).into(),
         ))
         .times(1)
         .returning(|_| {

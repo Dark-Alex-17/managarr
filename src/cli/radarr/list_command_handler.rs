@@ -131,7 +131,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrListCommand> for RadarrListCommandH
       } => {
         let logs = self
           .network
-          .handle_network_event(RadarrEvent::GetLogs(Some(events)).into())
+          .handle_network_event(RadarrEvent::GetLogs(events).into())
           .await?;
 
         if output_in_log_format {

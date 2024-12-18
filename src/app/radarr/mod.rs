@@ -93,7 +93,7 @@ impl<'a> App<'a> {
           .dispatch_network_event(RadarrEvent::GetQueuedEvents.into())
           .await;
         self
-          .dispatch_network_event(RadarrEvent::GetLogs(None).into())
+          .dispatch_network_event(RadarrEvent::GetLogs(500).into())
           .await;
       }
       ActiveRadarrBlock::SystemUpdates => {
