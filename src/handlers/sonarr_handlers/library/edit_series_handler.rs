@@ -2,7 +2,9 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_SERIES_BLOCKS};
+use crate::models::sonarr_models::EditSeriesParams;
 use crate::models::Scrollable;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
@@ -16,6 +18,78 @@ pub(super) struct EditSeriesHandler<'a, 'b> {
   app: &'a mut App<'b>,
   active_sonarr_block: ActiveSonarrBlock,
   context: Option<ActiveSonarrBlock>,
+}
+
+impl<'a, 'b> EditSeriesHandler<'a, 'b> {
+  fn build_edit_series_params(&mut self) -> EditSeriesParams {
+    let series_id = self.app.data.sonarr_data.series.current_selection().id;
+    let tags = self
+      .app
+      .data
+      .sonarr_data
+      .edit_series_modal
+      .as_ref()
+      .unwrap()
+      .tags
+      .text
+      .clone();
+
+    let params = {
+      let EditSeriesModal {
+        monitored,
+        use_season_folders,
+        path,
+        series_type_list,
+        quality_profile_list,
+        language_profile_list,
+        ..
+      } = self
+        .app
+        .data
+        .sonarr_data
+        .edit_series_modal
+        .as_ref()
+        .unwrap();
+      let quality_profile = quality_profile_list.current_selection();
+      let quality_profile_id = *self
+        .app
+        .data
+        .sonarr_data
+        .quality_profile_map
+        .iter()
+        .filter(|(_, value)| *value == quality_profile)
+        .map(|(key, _)| key)
+        .next()
+        .unwrap();
+      let language_profile = language_profile_list.current_selection();
+      let language_profile_id = *self
+        .app
+        .data
+        .sonarr_data
+        .language_profiles_map
+        .iter()
+        .filter(|(_, value)| *value == language_profile)
+        .map(|(key, _)| key)
+        .next()
+        .unwrap();
+
+      EditSeriesParams {
+        series_id,
+        monitored: Some(monitored.unwrap_or_default()),
+        use_season_folders: Some(use_season_folders.unwrap_or_default()),
+        series_type: Some(*series_type_list.current_selection()),
+        quality_profile_id: Some(quality_profile_id),
+        language_profile_id: Some(language_profile_id),
+        root_folder_path: Some(path.text.clone()),
+        tag_input_string: Some(tags),
+        ..EditSeriesParams::default()
+      }
+    };
+
+    self.app.data.sonarr_data.edit_series_modal = None;
+
+    params
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditSeriesHandler<'a, 'b> {
@@ -258,7 +332,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditSeriesHandler<'a
         match self.app.data.sonarr_data.selected_block.get_active_block() {
           ActiveSonarrBlock::EditSeriesConfirmPrompt => {
             if self.app.data.sonarr_data.prompt_confirm {
-              self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::EditSeries(None));
+              self.app.data.sonarr_data.prompt_confirm_action =
+                Some(SonarrEvent::EditSeries(self.build_edit_series_params()));
               self.app.should_refresh = true;
             }
 
@@ -392,7 +467,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditSeriesHandler<'a
           && key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.sonarr_data.prompt_confirm = true;
-          self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::EditSeries(None));
+          self.app.data.sonarr_data.prompt_confirm_action =
+            Some(SonarrEvent::EditSeries(self.build_edit_series_params()));
           self.app.should_refresh = true;
 
           self.app.pop_navigation_stack();

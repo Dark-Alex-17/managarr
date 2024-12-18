@@ -12,7 +12,7 @@ use crate::{
     servarr_data::{
       modals::IndexerTestResultModalItem,
       sonarr::{
-        modals::{EditSeriesModal, EpisodeDetailsModal, SeasonDetailsModal},
+        modals::{EpisodeDetailsModal, SeasonDetailsModal},
         sonarr_data::ActiveSonarrBlock,
       },
     },
@@ -52,7 +52,7 @@ pub enum SonarrEvent {
   DownloadRelease(SonarrReleaseDownloadBody),
   EditAllIndexerSettings(IndexerSettings),
   EditIndexer(EditIndexerParams),
-  EditSeries(Option<EditSeriesParams>),
+  EditSeries(EditSeriesParams),
   GetAllIndexerSettings,
   GetBlocklist,
   GetDownloads,
@@ -840,19 +840,17 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn edit_sonarr_series(
-    &mut self,
-    edit_series_params: Option<EditSeriesParams>,
-  ) -> Result<()> {
+  async fn edit_sonarr_series(&mut self, mut edit_series_params: EditSeriesParams) -> Result<()> {
     info!("Editing Sonarr series");
+    if let Some(tag_input_string) = edit_series_params.tag_input_string.as_ref() {
+      let tag_ids_vec = self
+        .extract_and_add_sonarr_tag_ids_vec(tag_input_string.clone())
+        .await;
+      edit_series_params.tags = Some(tag_ids_vec);
+    }
     let detail_event = SonarrEvent::GetSeriesDetails(None);
-    let event = SonarrEvent::EditSeries(None);
-
-    let (series_id, _) = if let Some(ref params) = edit_series_params {
-      self.extract_series_id(Some(params.series_id)).await
-    } else {
-      self.extract_series_id(None).await
-    };
+    let event = SonarrEvent::EditSeries(edit_series_params.clone());
+    let series_id = edit_series_params.series_id;
     info!("Fetching series details for series with ID: {series_id}");
 
     let request_props = self
@@ -884,44 +882,44 @@ impl<'a, 'b> Network<'a, 'b> {
       language_profile_id,
       root_folder_path,
       tags,
-    ) = if let Some(params) = edit_series_params {
-      let monitored = params.monitored.unwrap_or(
+    ) = {
+      let monitored = edit_series_params.monitored.unwrap_or(
         detailed_series_body["monitored"]
           .as_bool()
           .expect("Unable to deserialize 'monitored'"),
       );
-      let use_season_folders = params.use_season_folders.unwrap_or(
+      let use_season_folders = edit_series_params.use_season_folders.unwrap_or(
         detailed_series_body["seasonFolder"]
           .as_bool()
           .expect("Unable to deserialize 'season_folder'"),
       );
-      let series_type = params
+      let series_type = edit_series_params
         .series_type
         .unwrap_or_else(|| {
           serde_json::from_value(detailed_series_body["seriesType"].clone())
             .expect("Unable to deserialize 'seriesType'")
         })
         .to_string();
-      let quality_profile_id = params.quality_profile_id.unwrap_or_else(|| {
+      let quality_profile_id = edit_series_params.quality_profile_id.unwrap_or_else(|| {
         detailed_series_body["qualityProfileId"]
           .as_i64()
           .expect("Unable to deserialize 'qualityProfileId'")
       });
-      let language_profile_id = params.language_profile_id.unwrap_or_else(|| {
+      let language_profile_id = edit_series_params.language_profile_id.unwrap_or_else(|| {
         detailed_series_body["languageProfileId"]
           .as_i64()
           .expect("Unable to deserialize 'languageProfileId'")
       });
-      let root_folder_path = params.root_folder_path.unwrap_or_else(|| {
+      let root_folder_path = edit_series_params.root_folder_path.unwrap_or_else(|| {
         detailed_series_body["path"]
           .as_str()
           .expect("Unable to deserialize 'path'")
           .to_owned()
       });
-      let tags = if params.clear_tags {
+      let tags = if edit_series_params.clear_tags {
         vec![]
       } else {
-        params.tags.unwrap_or(
+        edit_series_params.tags.unwrap_or(
           detailed_series_body["tags"]
             .as_array()
             .expect("Unable to deserialize 'tags'")
@@ -940,67 +938,6 @@ impl<'a, 'b> Network<'a, 'b> {
         root_folder_path,
         tags,
       )
-    } else {
-      let tags = self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .edit_series_modal
-        .as_ref()
-        .unwrap()
-        .tags
-        .text
-        .clone();
-      let tag_ids_vec = self.extract_and_add_sonarr_tag_ids_vec(tags).await;
-      let mut app = self.app.lock().await;
-
-      let params = {
-        let EditSeriesModal {
-          monitored,
-          use_season_folders,
-          path,
-          series_type_list,
-          quality_profile_list,
-          language_profile_list,
-          ..
-        } = app.data.sonarr_data.edit_series_modal.as_ref().unwrap();
-        let quality_profile = quality_profile_list.current_selection();
-        let quality_profile_id = *app
-          .data
-          .sonarr_data
-          .quality_profile_map
-          .iter()
-          .filter(|(_, value)| *value == quality_profile)
-          .map(|(key, _)| key)
-          .next()
-          .unwrap();
-        let language_profile = language_profile_list.current_selection();
-        let language_profile_id = *app
-          .data
-          .sonarr_data
-          .language_profiles_map
-          .iter()
-          .filter(|(_, value)| *value == language_profile)
-          .map(|(key, _)| key)
-          .next()
-          .unwrap();
-
-        (
-          monitored.unwrap_or_default(),
-          use_season_folders.unwrap_or_default(),
-          series_type_list.current_selection().to_string(),
-          quality_profile_id,
-          language_profile_id,
-          path.text.clone(),
-          tag_ids_vec,
-        )
-      };
-
-      app.data.sonarr_data.edit_series_modal = None;
-
-      params
     };
 
     *detailed_series_body.get_mut("monitored").unwrap() = json!(monitored);

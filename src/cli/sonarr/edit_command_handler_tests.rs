@@ -742,13 +742,14 @@ mod tests {
         language_profile_id: Some(1),
         root_folder_path: Some("/nfs/test".to_owned()),
         tags: Some(vec![1, 2]),
+        tag_input_string: None,
         clear_tags: false,
       };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::EditSeries(Some(expected_edit_series_params)).into(),
+          SonarrEvent::EditSeries(expected_edit_series_params).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -789,13 +790,14 @@ mod tests {
         language_profile_id: Some(1),
         root_folder_path: Some("/nfs/test".to_owned()),
         tags: Some(vec![1, 2]),
+        tag_input_string: None,
         clear_tags: false,
       };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::EditSeries(Some(expected_edit_series_params)).into(),
+          SonarrEvent::EditSeries(expected_edit_series_params).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -836,13 +838,14 @@ mod tests {
         language_profile_id: Some(1),
         root_folder_path: Some("/nfs/test".to_owned()),
         tags: Some(vec![1, 2]),
+        tag_input_string: None,
         clear_tags: false,
       };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::EditSeries(Some(expected_edit_series_params)).into(),
+          SonarrEvent::EditSeries(expected_edit_series_params).into(),
         ))
         .times(1)
         .returning(|_| {

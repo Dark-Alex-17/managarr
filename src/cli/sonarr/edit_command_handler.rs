@@ -348,12 +348,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrEditCommand> for SonarrEditCommandH
           language_profile_id,
           root_folder_path,
           tags: tag,
+          tag_input_string: None,
           clear_tags,
         };
 
         self
           .network
-          .handle_network_event(SonarrEvent::EditSeries(Some(edit_series_params)).into())
+          .handle_network_event(SonarrEvent::EditSeries(edit_series_params).into())
           .await?;
         "Series Updated".to_owned()
       }
