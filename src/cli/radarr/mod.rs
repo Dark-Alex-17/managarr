@@ -231,7 +231,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrCommand> for RadarrCliHandler<'a, '
       RadarrCommand::StartTask { task_name } => {
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::StartTask(Some(task_name)).into())
+          .handle_network_event(RadarrEvent::StartTask(task_name).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

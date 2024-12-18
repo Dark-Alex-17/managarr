@@ -394,7 +394,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::StartTask(Some(expected_task_name)).into(),
+          RadarrEvent::StartTask(expected_task_name).into(),
         ))
         .times(1)
         .returning(|_| {

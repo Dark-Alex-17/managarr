@@ -70,7 +70,7 @@ pub enum RadarrEvent {
   GetUpdates,
   HealthCheck,
   SearchNewMovie(String),
-  StartTask(Option<RadarrTaskName>),
+  StartTask(RadarrTaskName),
   TestIndexer(Option<i64>),
   TestAllIndexers,
   TriggerAutomaticSearch(Option<i64>),
@@ -1631,26 +1631,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn start_radarr_task(&mut self, task: Option<RadarrTaskName>) -> Result<Value> {
-    let event = RadarrEvent::StartTask(None);
-    let task_name = if let Some(t_name) = task {
-      t_name
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .tasks
-        .current_selection()
-        .task_name
-    }
-    .to_string();
+  async fn start_radarr_task(&mut self, task_name: RadarrTaskName) -> Result<Value> {
+    let event = RadarrEvent::StartTask(task_name.clone());
 
     info!("Starting Radarr task: {task_name}");
 
-    let body = CommandBody { name: task_name };
+    let body = CommandBody { name: task_name.to_string() };
 
     let request_props = self
       .request_props_from(event, RequestMethod::Post, Some(body), None, None)

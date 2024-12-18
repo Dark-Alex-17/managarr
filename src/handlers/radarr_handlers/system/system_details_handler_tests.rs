@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::assert_str_eq;
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -8,7 +8,7 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::radarr_handlers::system::system_details_handler::SystemDetailsHandler;
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::RadarrTask;
+  use crate::models::radarr_models::{RadarrTask, RadarrTaskName};
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS,
   };
@@ -16,6 +16,7 @@ mod tests {
   use crate::models::{HorizontallyScrollableText, ScrollableText};
 
   mod test_handle_scroll_up_and_down {
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use crate::models::{HorizontallyScrollableText, ScrollableText};
@@ -236,6 +237,7 @@ mod tests {
   mod test_handle_home_end {
     use crate::models::{HorizontallyScrollableText, ScrollableText};
     use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
@@ -676,6 +678,10 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
       app.data.radarr_data.prompt_confirm = true;
+      app.data.radarr_data.tasks.set_items(vec![RadarrTask {
+        task_name: RadarrTaskName::default(),
+        ..RadarrTask::default()
+      }]);
       app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
       app.push_navigation_stack(ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into());
 
@@ -690,7 +696,7 @@ mod tests {
       assert!(app.data.radarr_data.prompt_confirm);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::StartTask(None))
+        Some(RadarrEvent::StartTask(RadarrTaskName::default()))
       );
       assert_eq!(
         app.get_current_route(),
@@ -831,6 +837,7 @@ mod tests {
   }
 
   mod test_handle_key_char {
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use crate::network::radarr_network::RadarrEvent;
@@ -894,6 +901,10 @@ mod tests {
     fn test_system_tasks_start_task_prompt_confirm() {
       let mut app = App::default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
+      app.data.radarr_data.tasks.set_items(vec![RadarrTask {
+        task_name: RadarrTaskName::default(),
+        ..RadarrTask::default()
+      }]);
       app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
       app.push_navigation_stack(ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into());
 
@@ -908,7 +919,7 @@ mod tests {
       assert!(app.data.radarr_data.prompt_confirm);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::StartTask(None))
+        Some(RadarrEvent::StartTask(RadarrTaskName::default()))
       );
       assert_eq!(
         app.get_current_route(),
@@ -926,6 +937,24 @@ mod tests {
         assert!(!SystemDetailsHandler::accepts(active_radarr_block));
       }
     })
+  }
+
+  #[test]
+  fn test_extract_task_name() {
+    let mut app = App::default();
+    app.data.radarr_data.tasks.set_items(vec![RadarrTask {
+      task_name: RadarrTaskName::default(),
+      ..RadarrTask::default()
+    }]);
+
+    let task_name = SystemDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::SystemTasks,
+      None,
+    ).extract_task_name();
+
+    assert_eq!(task_name, RadarrTaskName::default());
   }
 
   #[test]

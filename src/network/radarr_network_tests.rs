@@ -14,8 +14,9 @@ mod test {
 
   use super::super::*;
   use crate::models::radarr_models::{
-    AddMovieOptions, BlocklistItem, BlocklistItemMovie, CollectionMovie, EditCollectionParams,
-    EditMovieParams, IndexerSettings, MediaInfo, MinimumAvailability, MovieCollection, MovieFile, Rating, RatingsList
+    AddMovieOptions,
+    BlocklistItem, BlocklistItemMovie, CollectionMovie, EditCollectionParams, EditMovieParams,
+    IndexerSettings, MediaInfo, MinimumAvailability, MovieCollection, MovieFile, RadarrTaskName, Rating, RatingsList
   };
   use crate::models::servarr_data::radarr::modals::EditMovieModal;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
@@ -201,7 +202,7 @@ mod test {
   #[rstest]
   fn test_resource_command(
     #[values(
-      RadarrEvent::StartTask(None),
+      RadarrEvent::StartTask(RadarrTaskName::default()),
       RadarrEvent::GetQueuedEvents,
       RadarrEvent::TriggerAutomaticSearch(None),
       RadarrEvent::UpdateAndScan(None),
@@ -661,25 +662,15 @@ mod test {
       })),
       Some(response.clone()),
       None,
-      RadarrEvent::StartTask(None),
+      RadarrEvent::StartTask(RadarrTaskName::ApplicationCheckUpdate),
       None,
       None,
     )
     .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .tasks
-      .set_items(vec![RadarrTask {
-        task_name: RadarrTaskName::default(),
-        ..RadarrTask::default()
-      }]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Value(value) = network
-      .handle_radarr_event(RadarrEvent::StartTask(None))
+      .handle_radarr_event(RadarrEvent::StartTask(RadarrTaskName::ApplicationCheckUpdate))
       .await
       .unwrap()
     {
@@ -719,33 +710,6 @@ mod test {
       app_arc.lock().await.get_current_route(),
       ActiveRadarrBlock::AddMovieEmptySearchResults.into()
     );
-  }
-
-  #[tokio::test]
-  async fn test_handle_start_radarr_task_event_uses_provided_task_name() {
-    let response = json!({ "test": "test"});
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "name": "ApplicationCheckUpdate"
-      })),
-      Some(response.clone()),
-      None,
-      RadarrEvent::StartTask(None),
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let RadarrSerdeable::Value(value) = network
-      .handle_radarr_event(RadarrEvent::StartTask(Some(RadarrTaskName::default())))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(value, response);
-    }
   }
 
   #[tokio::test]
