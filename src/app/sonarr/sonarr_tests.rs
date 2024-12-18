@@ -97,7 +97,7 @@ mod tests {
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetEpisodeFiles(None).into()
+        SonarrEvent::GetEpisodeFiles(1).into()
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),

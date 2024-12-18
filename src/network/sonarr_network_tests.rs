@@ -267,7 +267,7 @@ mod test {
 
   #[rstest]
   fn test_resource_episode_file(
-    #[values(SonarrEvent::GetEpisodeFiles(None), SonarrEvent::DeleteEpisodeFile(0))]
+    #[values(SonarrEvent::GetEpisodeFiles(0), SonarrEvent::DeleteEpisodeFile(0))]
     event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/episodefile");
@@ -2163,7 +2163,7 @@ mod test {
       None,
       Some(json!([episode_file()])),
       None,
-      SonarrEvent::GetEpisodeFiles(None),
+      SonarrEvent::GetEpisodeFiles(1),
       None,
       Some("seriesId=1"),
     )
@@ -2183,7 +2183,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::EpisodeFiles(episode_files) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(None))
+      .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(1))
       .await
       .unwrap()
     {
@@ -2212,7 +2212,7 @@ mod test {
       None,
       Some(json!([episode_file()])),
       None,
-      SonarrEvent::GetEpisodeFiles(None),
+      SonarrEvent::GetEpisodeFiles(1),
       None,
       Some("seriesId=1"),
     )
@@ -2230,7 +2230,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::EpisodeFiles(episode_files) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(None))
+      .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(1))
       .await
       .unwrap()
     {
@@ -2256,59 +2256,6 @@ mod test {
         vec![episode_file()]
       );
       assert_eq!(episode_files, vec![episode_file()]);
-    }
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_episode_files_event_uses_provided_series_id() {
-    let episode_file = EpisodeFile {
-      id: 2,
-      ..episode_file()
-    };
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!([episode_file.clone()])),
-      None,
-      SonarrEvent::GetEpisodeFiles(Some(2)),
-      None,
-      Some("seriesId=2"),
-    )
-    .await;
-    app_arc.lock().await.data.sonarr_data.season_details_modal =
-      Some(SeasonDetailsModal::default());
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .series
-      .set_items(vec![Series {
-        id: 1,
-        ..Series::default()
-      }]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let SonarrSerdeable::EpisodeFiles(episode_files) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(Some(2)))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_files
-          .items,
-        vec![episode_file.clone()]
-      );
-      assert_eq!(episode_files, vec![episode_file]);
     }
   }
 

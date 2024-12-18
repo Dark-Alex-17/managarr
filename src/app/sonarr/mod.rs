@@ -46,7 +46,9 @@ impl<'a> App<'a> {
           .dispatch_network_event(SonarrEvent::GetEpisodes(self.extract_series_id().await).into())
           .await;
         self
-          .dispatch_network_event(SonarrEvent::GetEpisodeFiles(None).into())
+          .dispatch_network_event(
+            SonarrEvent::GetEpisodeFiles(self.extract_series_id().await).into(),
+          )
           .await;
         self
           .dispatch_network_event(SonarrEvent::GetDownloads.into())
