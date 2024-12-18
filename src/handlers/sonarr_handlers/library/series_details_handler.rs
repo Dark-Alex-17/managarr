@@ -37,6 +37,7 @@ impl<'a, 'b> SeriesDetailsHandler<'a, 'b> {
       .expect("Series history is undefined"),
     SonarrHistoryItem
   );
+
   fn extract_series_id_season_number_tuple(&self) -> (i64, i64) {
     let series_id = self.app.data.sonarr_data.series.current_selection().id;
     let season_number = self
@@ -48,6 +49,10 @@ impl<'a, 'b> SeriesDetailsHandler<'a, 'b> {
       .season_number;
 
     (series_id, season_number)
+  }
+
+  fn extract_series_id(&self) -> i64 {
+    self.app.data.sonarr_data.series.current_selection().id
   }
 }
 
@@ -180,8 +185,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
       }
       ActiveSonarrBlock::AutomaticallySearchSeriesPrompt => {
         if self.app.data.sonarr_data.prompt_confirm {
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::TriggerAutomaticSeriesSearch(None));
+          self.app.data.sonarr_data.prompt_confirm_action = Some(
+            SonarrEvent::TriggerAutomaticSeriesSearch(self.extract_series_id()),
+          );
         }
 
         self.app.pop_navigation_stack();
@@ -312,8 +318,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
       ActiveSonarrBlock::AutomaticallySearchSeriesPrompt => {
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.sonarr_data.prompt_confirm = true;
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::TriggerAutomaticSeriesSearch(None));
+          self.app.data.sonarr_data.prompt_confirm_action = Some(
+            SonarrEvent::TriggerAutomaticSeriesSearch(self.extract_series_id()),
+          );
 
           self.app.pop_navigation_stack();
         }

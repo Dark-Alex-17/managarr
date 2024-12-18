@@ -183,7 +183,7 @@ mod tests {
     #[rstest]
     #[case(
       ActiveSonarrBlock::AutomaticallySearchSeriesPrompt,
-      SonarrEvent::TriggerAutomaticSeriesSearch(None)
+      SonarrEvent::TriggerAutomaticSeriesSearch(1)
     )]
     #[case(
       ActiveSonarrBlock::UpdateAndScanSeriesPrompt,
@@ -195,6 +195,7 @@ mod tests {
     ) {
       let mut app = App::default();
       app.data.sonarr_data.prompt_confirm = true;
+      app.data.sonarr_data.series.set_items(vec![series()]);
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
@@ -567,7 +568,7 @@ mod tests {
     #[rstest]
     #[case(
       ActiveSonarrBlock::AutomaticallySearchSeriesPrompt,
-      SonarrEvent::TriggerAutomaticSeriesSearch(None)
+      SonarrEvent::TriggerAutomaticSeriesSearch(1)
     )]
     #[case(
       ActiveSonarrBlock::UpdateAndScanSeriesPrompt,
@@ -581,6 +582,7 @@ mod tests {
     ) {
       let mut app = App::default();
       app.data.sonarr_data.prompt_confirm = true;
+      app.data.sonarr_data.series.set_items(vec![series()]);
       app.push_navigation_stack(active_sonarr_block.into());
       app.push_navigation_stack(prompt_block.into());
 
@@ -627,6 +629,22 @@ mod tests {
     .extract_series_id_season_number_tuple();
 
     assert_eq!(series_id_season_number_tuple, (1, 1));
+  }
+
+  #[test]
+  fn test_extract_series_id() {
+    let mut app = App::default();
+    app.data.sonarr_data.series.set_items(vec![series()]);
+
+    let series_id = SeriesDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::SeriesDetails,
+      None,
+    )
+    .extract_series_id();
+
+    assert_eq!(series_id, 1);
   }
 
   #[test]

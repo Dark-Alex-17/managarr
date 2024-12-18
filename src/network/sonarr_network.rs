@@ -90,7 +90,7 @@ pub enum SonarrEvent {
   ToggleEpisodeMonitoring(i64),
   TriggerAutomaticEpisodeSearch(i64),
   TriggerAutomaticSeasonSearch((i64, i64)),
-  TriggerAutomaticSeriesSearch(Option<i64>),
+  TriggerAutomaticSeriesSearch(i64),
   UpdateAllSeries,
   UpdateAndScanSeries(Option<i64>),
   UpdateDownloads,
@@ -2178,14 +2178,13 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn trigger_automatic_series_search(&mut self, series_id: Option<i64>) -> Result<Value> {
+  async fn trigger_automatic_series_search(&mut self, series_id: i64) -> Result<Value> {
     let event = SonarrEvent::TriggerAutomaticSeriesSearch(series_id);
-    let (id, _) = self.extract_series_id(series_id).await;
-    info!("Searching indexers for series with ID: {id}");
+    info!("Searching indexers for series with ID: {series_id}");
 
     let body = SonarrCommandBody {
       name: "SeriesSearch".to_owned(),
-      series_id: Some(id),
+      series_id: Some(series_id),
       ..SonarrCommandBody::default()
     };
 

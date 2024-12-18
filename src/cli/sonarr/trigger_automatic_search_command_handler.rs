@@ -83,7 +83,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrTriggerAutomaticSearchCommand>
       SonarrTriggerAutomaticSearchCommand::Series { series_id } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::TriggerAutomaticSeriesSearch(Some(series_id)).into())
+          .handle_network_event(SonarrEvent::TriggerAutomaticSeriesSearch(series_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

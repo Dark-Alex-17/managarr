@@ -195,7 +195,7 @@ mod test {
       SonarrEvent::StartTask(SonarrTaskName::default()),
       SonarrEvent::TriggerAutomaticEpisodeSearch(0),
       SonarrEvent::TriggerAutomaticSeasonSearch((0, 0)),
-      SonarrEvent::TriggerAutomaticSeriesSearch(None),
+      SonarrEvent::TriggerAutomaticSeriesSearch(0),
       SonarrEvent::UpdateAllSeries,
       SonarrEvent::UpdateAndScanSeries(None),
       SonarrEvent::UpdateDownloads
@@ -5192,39 +5192,7 @@ mod test {
       })),
       Some(json!({})),
       None,
-      SonarrEvent::TriggerAutomaticSeriesSearch(None),
-      None,
-      None,
-    )
-    .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .series
-      .set_items(vec![series()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeriesSearch(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-  }
-
-  #[tokio::test]
-  async fn test_handle_trigger_automatic_series_search_event_uses_provided_id() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "name": "SeriesSearch",
-        "seriesId": 1
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::TriggerAutomaticSeriesSearch(None),
+      SonarrEvent::TriggerAutomaticSeriesSearch(1),
       None,
       None,
     )
@@ -5232,7 +5200,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeriesSearch(Some(1)))
+      .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeriesSearch(1))
       .await
       .is_ok());
 
