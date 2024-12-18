@@ -46,7 +46,7 @@ pub enum SonarrEvent {
   DeleteDownload(i64),
   DeleteEpisodeFile(i64),
   DeleteIndexer(i64),
-  DeleteRootFolder(Option<i64>),
+  DeleteRootFolder(i64),
   DeleteSeries(Option<DeleteSeriesParams>),
   DeleteTag(i64),
   DownloadRelease(SonarrReleaseDownloadBody),
@@ -535,30 +535,16 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_sonarr_root_folder(&mut self, root_folder_id: Option<i64>) -> Result<()> {
-    let event = SonarrEvent::DeleteRootFolder(None);
-    let id = if let Some(rf_id) = root_folder_id {
-      rf_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .root_folders
-        .current_selection()
-        .id
-    };
-
-    info!("Deleting Sonarr root folder for folder with id: {id}");
+  async fn delete_sonarr_root_folder(&mut self, root_folder_id: i64) -> Result<()> {
+    let event = SonarrEvent::DeleteRootFolder(root_folder_id);
+    info!("Deleting Sonarr root folder for folder with id: {root_folder_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{root_folder_id}")),
         None,
       )
       .await;

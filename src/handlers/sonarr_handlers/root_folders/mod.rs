@@ -42,6 +42,16 @@ impl<'a, 'b> RootFoldersHandler<'a, 'b> {
     self.app.data.sonarr_data.edit_root_folder = None;
     AddRootFolderBody { path: root_folder }
   }
+
+  fn extract_root_folder_id(&self) -> i64 {
+    self
+      .app
+      .data
+      .sonarr_data
+      .root_folders
+      .current_selection()
+      .id
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for RootFoldersHandler<'a, 'b> {
@@ -138,7 +148,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for RootFoldersHandler<'
       ActiveSonarrBlock::DeleteRootFolderPrompt => {
         if self.app.data.sonarr_data.prompt_confirm {
           self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::DeleteRootFolder(None));
+            Some(SonarrEvent::DeleteRootFolder(self.extract_root_folder_id()));
         }
 
         self.app.pop_navigation_stack();
@@ -208,7 +218,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for RootFoldersHandler<'
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.sonarr_data.prompt_confirm = true;
           self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::DeleteRootFolder(None));
+            Some(SonarrEvent::DeleteRootFolder(self.extract_root_folder_id()));
 
           self.app.pop_navigation_stack();
         }

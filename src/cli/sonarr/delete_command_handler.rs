@@ -122,7 +122,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrDeleteCommand> for SonarrDeleteComm
       SonarrDeleteCommand::RootFolder { root_folder_id } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::DeleteRootFolder(Some(root_folder_id)).into())
+          .handle_network_event(SonarrEvent::DeleteRootFolder(root_folder_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

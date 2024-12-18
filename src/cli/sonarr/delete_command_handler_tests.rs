@@ -410,7 +410,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::DeleteRootFolder(Some(expected_root_folder_id)).into(),
+          SonarrEvent::DeleteRootFolder(expected_root_folder_id).into(),
         ))
         .times(1)
         .returning(|_| {

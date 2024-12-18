@@ -249,7 +249,7 @@ mod test {
   fn test_resource_root_folder(
     #[values(
       SonarrEvent::GetRootFolders,
-      SonarrEvent::DeleteRootFolder(None),
+      SonarrEvent::DeleteRootFolder(0),
       SonarrEvent::AddRootFolder(AddRootFolderBody::default())
     )]
     event: SonarrEvent,
@@ -648,36 +648,7 @@ mod test {
       None,
       None,
       None,
-      SonarrEvent::DeleteRootFolder(None),
-      Some("/1"),
-      None,
-    )
-    .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .root_folders
-      .set_items(vec![root_folder()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::DeleteRootFolder(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-  }
-
-  #[tokio::test]
-  async fn test_handle_delete_sonarr_root_folder_event_uses_provided_id() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      SonarrEvent::DeleteRootFolder(None),
+      SonarrEvent::DeleteRootFolder(1),
       Some("/1"),
       None,
     )
@@ -685,7 +656,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::DeleteRootFolder(Some(1)))
+      .handle_sonarr_event(SonarrEvent::DeleteRootFolder(1))
       .await
       .is_ok());
 
