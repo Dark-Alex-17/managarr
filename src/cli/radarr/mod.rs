@@ -224,7 +224,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrCommand> for RadarrCliHandler<'a, '
       RadarrCommand::SearchNewMovie { query } => {
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::SearchNewMovie(Some(query)).into())
+          .handle_network_event(RadarrEvent::SearchNewMovie(query).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

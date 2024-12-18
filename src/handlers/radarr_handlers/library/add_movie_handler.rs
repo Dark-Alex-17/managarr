@@ -6,6 +6,7 @@ use crate::models::servarr_data::radarr::modals::AddMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS,
 };
+use crate::models::stateful_table::StatefulTable;
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
@@ -31,7 +32,7 @@ impl<'a, 'b> AddMovieHandler<'a, 'b> {
       .radarr_data
       .add_searched_movies
       .as_mut()
-      .unwrap(),
+      .unwrap_or(&mut StatefulTable::default()),
     AddMovieSearchResult
   );
 

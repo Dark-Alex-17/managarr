@@ -305,6 +305,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_add_movie_search_results_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.radarr_data.add_movie_search = Some("test".into());
 
       app
         .dispatch_by_radarr_block(&ActiveRadarrBlock::AddMovieSearchResults)
@@ -313,7 +314,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::SearchNewMovie(None).into()
+        RadarrEvent::SearchNewMovie("test".into()).into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);

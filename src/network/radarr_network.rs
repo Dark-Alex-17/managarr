@@ -1,17 +1,16 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use std::fmt::Debug;
 
 use indoc::formatdoc;
-use log::{debug, info, warn};
+use log::{debug, info};
 use serde_json::{json, Value};
 use urlencoding::encode;
 
 use crate::models::radarr_models::{
-  AddMovieBody, AddMovieSearchResult, BlocklistResponse, Collection,
-  Credit, CreditType, DeleteMovieParams, DownloadRecord, DownloadsResponse,
-  EditCollectionParams, EditMovieParams, IndexerSettings, IndexerTestResult, Movie,
-  MovieCommandBody, MovieHistoryItem, RadarrRelease, RadarrReleaseDownloadBody, RadarrSerdeable,
-  RadarrTask, RadarrTaskName, SystemStatus,
+  AddMovieBody, AddMovieSearchResult, BlocklistResponse, Collection, Credit, CreditType,
+  DeleteMovieParams, DownloadRecord, DownloadsResponse, EditCollectionParams, EditMovieParams,
+  IndexerSettings, IndexerTestResult, Movie, MovieCommandBody, MovieHistoryItem, RadarrRelease,
+  RadarrReleaseDownloadBody, RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus,
 };
 use crate::models::servarr_data::modals::IndexerTestResultModalItem;
 use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
@@ -70,7 +69,7 @@ pub enum RadarrEvent {
   GetTasks,
   GetUpdates,
   HealthCheck,
-  SearchNewMovie(Option<String>),
+  SearchNewMovie(String),
   StartTask(Option<RadarrTaskName>),
   TestIndexer(Option<i64>),
   TestAllIndexers,
@@ -301,14 +300,23 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn add_radarr_root_folder(&mut self, add_root_folder_body: AddRootFolderBody) -> Result<Value> {
+  async fn add_radarr_root_folder(
+    &mut self,
+    add_root_folder_body: AddRootFolderBody,
+  ) -> Result<Value> {
     info!("Adding new root folder to Radarr");
     let event = RadarrEvent::AddRootFolder(add_root_folder_body.clone());
-    
+
     debug!("Add root folder body: {add_root_folder_body:?}");
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Post, Some(add_root_folder_body), None, None)
+      .request_props_from(
+        event,
+        RequestMethod::Post,
+        Some(add_root_folder_body),
+        None,
+        None,
+      )
       .await;
 
     self
@@ -447,7 +455,11 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn delete_movie(&mut self, delete_movie_params: DeleteMovieParams) -> Result<()> {
     let event = RadarrEvent::DeleteMovie(delete_movie_params.clone());
-    let DeleteMovieParams { id, delete_movie_files, add_list_exclusion } = delete_movie_params;
+    let DeleteMovieParams {
+      id,
+      delete_movie_files,
+      add_list_exclusion,
+    } = delete_movie_params;
     info!("Deleting Radarr movie with ID: {id} with deleteFiles={delete_movie_files} and addImportExclusion={add_list_exclusion}");
 
     let request_props = self
@@ -486,10 +498,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn download_radarr_release(
-    &mut self,
-    params: RadarrReleaseDownloadBody,
-  ) -> Result<Value> {
+  async fn download_radarr_release(&mut self, params: RadarrReleaseDownloadBody) -> Result<Value> {
     let event = RadarrEvent::DownloadRelease(params.clone());
     info!("Downloading Radarr release with params: {params:?}");
 
@@ -502,10 +511,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn edit_all_radarr_indexer_settings(
-    &mut self,
-    params: IndexerSettings,
-  ) -> Result<Value> {
+  async fn edit_all_radarr_indexer_settings(&mut self, params: IndexerSettings) -> Result<Value> {
     info!("Updating Radarr indexer settings");
     let event = RadarrEvent::EditAllIndexerSettings(params.clone());
 
@@ -520,10 +526,7 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn edit_collection(
-    &mut self,
-    edit_collection_params: EditCollectionParams,
-  ) -> Result<()> {
+  async fn edit_collection(&mut self, edit_collection_params: EditCollectionParams) -> Result<()> {
     info!("Editing Radarr collection");
     let detail_event = RadarrEvent::GetCollections;
     let event = RadarrEvent::EditCollection(edit_collection_params.clone());
@@ -564,11 +567,13 @@ impl<'a, 'b> Network<'a, 'b> {
             .expect("Unable to deserialize 'minimumAvailability'")
         })
         .to_string();
-      let quality_profile_id = edit_collection_params.quality_profile_id.unwrap_or_else(|| {
-        detailed_collection_body["qualityProfileId"]
-          .as_i64()
-          .expect("Unable to deserialize 'qualityProfileId'")
-      });
+      let quality_profile_id = edit_collection_params
+        .quality_profile_id
+        .unwrap_or_else(|| {
+          detailed_collection_body["qualityProfileId"]
+            .as_i64()
+            .expect("Unable to deserialize 'qualityProfileId'")
+        });
       let root_folder_path = edit_collection_params.root_folder_path.unwrap_or_else(|| {
         detailed_collection_body["rootFolderPath"]
           .as_str()
@@ -590,7 +595,7 @@ impl<'a, 'b> Network<'a, 'b> {
       )
     };
 
-      * detailed_collection_body.get_mut("monitored").unwrap() = json!(monitored);
+    *detailed_collection_body.get_mut("monitored").unwrap() = json!(monitored);
     *detailed_collection_body
       .get_mut("minimumAvailability")
       .unwrap() = json!(minimum_availability);
@@ -631,7 +636,7 @@ impl<'a, 'b> Network<'a, 'b> {
       edit_indexer_params.tags = Some(tag_ids_vec);
     }
     info!("Updating Radarr indexer with ID: {id}");
-    
+
     info!("Fetching indexer details for indexer with ID: {id}");
 
     let request_props = self
@@ -857,52 +862,51 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Constructing edit movie body");
 
     let mut detailed_movie_body: Value = serde_json::from_str(&response)?;
-    let (monitored, minimum_availability, quality_profile_id, root_folder_path, tags) =
-      {
-        let monitored = edit_movie_params.monitored.unwrap_or(
-          detailed_movie_body["monitored"]
-            .as_bool()
-            .expect("Unable to deserialize 'monitored'"),
-        );
-        let minimum_availability = edit_movie_params
-          .minimum_availability
-          .unwrap_or_else(|| {
-            serde_json::from_value(detailed_movie_body["minimumAvailability"].clone())
-              .expect("Unable to deserialize 'minimumAvailability'")
-          })
-          .to_string();
-        let quality_profile_id = edit_movie_params.quality_profile_id.unwrap_or_else(|| {
-          detailed_movie_body["qualityProfileId"]
-            .as_i64()
-            .expect("Unable to deserialize 'qualityProfileId'")
-        });
-        let root_folder_path = edit_movie_params.root_folder_path.unwrap_or_else(|| {
-          detailed_movie_body["path"]
-            .as_str()
-            .expect("Unable to deserialize 'path'")
-            .to_owned()
-        });
-        let tags = if edit_movie_params.clear_tags {
-          vec![]
-        } else {
-          edit_movie_params.tags.unwrap_or(
-            detailed_movie_body["tags"]
-              .as_array()
-              .expect("Unable to deserialize 'tags'")
-              .iter()
-              .map(|item| item.as_i64().expect("Unable to deserialize tag ID"))
-              .collect(),
-          )
-        };
-
-        (
-          monitored,
-          minimum_availability,
-          quality_profile_id,
-          root_folder_path,
-          tags,
+    let (monitored, minimum_availability, quality_profile_id, root_folder_path, tags) = {
+      let monitored = edit_movie_params.monitored.unwrap_or(
+        detailed_movie_body["monitored"]
+          .as_bool()
+          .expect("Unable to deserialize 'monitored'"),
+      );
+      let minimum_availability = edit_movie_params
+        .minimum_availability
+        .unwrap_or_else(|| {
+          serde_json::from_value(detailed_movie_body["minimumAvailability"].clone())
+            .expect("Unable to deserialize 'minimumAvailability'")
+        })
+        .to_string();
+      let quality_profile_id = edit_movie_params.quality_profile_id.unwrap_or_else(|| {
+        detailed_movie_body["qualityProfileId"]
+          .as_i64()
+          .expect("Unable to deserialize 'qualityProfileId'")
+      });
+      let root_folder_path = edit_movie_params.root_folder_path.unwrap_or_else(|| {
+        detailed_movie_body["path"]
+          .as_str()
+          .expect("Unable to deserialize 'path'")
+          .to_owned()
+      });
+      let tags = if edit_movie_params.clear_tags {
+        vec![]
+      } else {
+        edit_movie_params.tags.unwrap_or(
+          detailed_movie_body["tags"]
+            .as_array()
+            .expect("Unable to deserialize 'tags'")
+            .iter()
+            .map(|item| item.as_i64().expect("Unable to deserialize tag ID"))
+            .collect(),
         )
       };
+
+      (
+        monitored,
+        minimum_availability,
+        quality_profile_id,
+        root_folder_path,
+        tags,
+      )
+    };
 
     *detailed_movie_body.get_mut("monitored").unwrap() = json!(monitored);
     *detailed_movie_body.get_mut("minimumAvailability").unwrap() = json!(minimum_availability);
@@ -1121,10 +1125,7 @@ impl<'a, 'b> Network<'a, 'b> {
     info!("Fetching Radarr logs");
     let event = RadarrEvent::GetLogs(events);
 
-    let params = format!(
-      "pageSize={}&sortDirection=descending&sortKey=time",
-      events
-    );
+    let params = format!("pageSize={}&sortDirection=descending&sortKey=time", events);
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
       .await;
@@ -1600,62 +1601,34 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn search_movie(&mut self, query: Option<String>) -> Result<Vec<AddMovieSearchResult>> {
+  async fn search_movie(&mut self, query: String) -> Result<Vec<AddMovieSearchResult>> {
     info!("Searching for specific Radarr movie");
-    let event = RadarrEvent::SearchNewMovie(None);
-    let search = if let Some(search_query) = query {
-      Ok(search_query.into())
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .add_movie_search
-        .clone()
-        .ok_or(anyhow!("Encountered a race condition"))
-    };
+    let event = RadarrEvent::SearchNewMovie(query.clone());
 
-    match search {
-      Ok(search_string) => {
-        let request_props = self
-          .request_props_from(
-            event,
-            RequestMethod::Get,
-            None::<()>,
-            None,
-            Some(format!("term={}", encode(&search_string.text))),
-          )
-          .await;
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("term={}", encode(&query))),
+      )
+      .await;
 
-        self
-          .handle_request::<(), Vec<AddMovieSearchResult>>(request_props, |movie_vec, mut app| {
-            if movie_vec.is_empty() {
-              app.pop_and_push_navigation_stack(
-                ActiveRadarrBlock::AddMovieEmptySearchResults.into(),
-              );
-            } else if let Some(add_searched_movies) =
-              app.data.radarr_data.add_searched_movies.as_mut()
-            {
-              add_searched_movies.set_items(movie_vec);
-            } else {
-              let mut add_searched_movies = StatefulTable::default();
-              add_searched_movies.set_items(movie_vec);
-              app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
-            }
-          })
-          .await
-      }
-      Err(e) => {
-        warn!(
-          "Encountered a race condition: {e}\n \
-          This is most likely caused by the user trying to navigate between modals rapidly. \
-          Ignoring search request."
-        );
-        Ok(Vec::default())
-      }
-    }
+    self
+      .handle_request::<(), Vec<AddMovieSearchResult>>(request_props, |movie_vec, mut app| {
+        if movie_vec.is_empty() {
+          app.pop_and_push_navigation_stack(ActiveRadarrBlock::AddMovieEmptySearchResults.into());
+        } else if let Some(add_searched_movies) = app.data.radarr_data.add_searched_movies.as_mut()
+        {
+          add_searched_movies.set_items(movie_vec);
+        } else {
+          let mut add_searched_movies = StatefulTable::default();
+          add_searched_movies.set_items(movie_vec);
+          app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
+        }
+      })
+      .await
   }
 
   async fn start_radarr_task(&mut self, task: Option<RadarrTaskName>) -> Result<Value> {

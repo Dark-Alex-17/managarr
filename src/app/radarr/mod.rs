@@ -103,7 +103,7 @@ impl<'a> App<'a> {
       }
       ActiveRadarrBlock::AddMovieSearchResults => {
         self
-          .dispatch_network_event(RadarrEvent::SearchNewMovie(None).into())
+          .dispatch_network_event(RadarrEvent::SearchNewMovie(self.extract_movie_search_query().await).into())
           .await;
       }
       ActiveRadarrBlock::MovieDetails | ActiveRadarrBlock::FileInfo => {
@@ -219,7 +219,7 @@ impl<'a> App<'a> {
       .collection_movies
       .set_items(collection_movies);
   }
-  
+
   async fn extract_movie_id(&self) -> i64 {
     self
       .data
@@ -228,5 +228,9 @@ impl<'a> App<'a> {
       .current_selection()
       .clone()
       .id
+  }
+
+  async fn extract_movie_search_query(&self) -> String {
+    self.data.radarr_data.add_movie_search.as_ref().expect("Add movie search is empty").text.clone()
   }
 }

@@ -1522,6 +1522,20 @@ mod tests {
       }
     });
   }
+  
+  #[test]
+  fn test_add_movie_search_no_panic_on_none_search_result() {
+    let mut app = App::default();
+    app.data.radarr_data.add_searched_movies = None;
+
+    AddMovieHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::AddMovieSearchResults,
+      None,
+    )
+    .handle();
+  }
 
   #[rstest]
   fn test_build_add_movie_body(#[values(true, false)] movie_details_context: bool) {

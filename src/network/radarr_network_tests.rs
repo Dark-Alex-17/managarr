@@ -4,7 +4,7 @@ mod test {
 
   use bimap::BiMap;
   use chrono::DateTime;
-  use mockito::{Matcher, Server};
+  use mockito::Matcher;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use reqwest::Client;
   use rstest::rstest;
@@ -13,7 +13,6 @@ mod test {
   use tokio_util::sync::CancellationToken;
 
   use super::super::*;
-  use crate::app::ServarrConfig;
   use crate::models::radarr_models::{
     AddMovieOptions, BlocklistItem, BlocklistItemMovie, CollectionMovie, EditCollectionParams,
     EditMovieParams, IndexerSettings, MediaInfo, MinimumAvailability, MovieCollection, MovieFile, Rating, RatingsList
@@ -220,7 +219,7 @@ mod test {
   #[case(RadarrEvent::DeleteBlocklistItem(1), "/blocklist")]
   #[case(RadarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(RadarrEvent::GetLogs(500), "/log")]
-  #[case(RadarrEvent::SearchNewMovie(None), "/movie/lookup")]
+  #[case(RadarrEvent::SearchNewMovie(String::new()), "/movie/lookup")]
   #[case(RadarrEvent::GetMovieCredits(0), "/credit")]
   #[case(RadarrEvent::GetMovieHistory(0), "/history/movie")]
   #[case(RadarrEvent::GetDiskSpace, "/diskspace")]
@@ -616,16 +615,15 @@ mod test {
       None,
       Some(add_movie_search_result_json),
       None,
-      RadarrEvent::SearchNewMovie(None),
+      RadarrEvent::SearchNewMovie("test term".into()),
       None,
       Some("term=test%20term"),
     )
     .await;
-    app_arc.lock().await.data.radarr_data.add_movie_search = Some("test term".into());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::AddMovieSearchResults(add_movie_search_results) = network
-      .handle_radarr_event(RadarrEvent::SearchNewMovie(None))
+      .handle_radarr_event(RadarrEvent::SearchNewMovie("test term".into()))
       .await
       .unwrap()
     {
@@ -649,51 +647,6 @@ mod test {
           .items,
         vec![add_movie_search_result()]
       );
-      assert_eq!(add_movie_search_results, vec![add_movie_search_result()]);
-    }
-  }
-
-  #[tokio::test]
-  async fn test_handle_search_new_movie_event_uses_provided_query() {
-    let add_movie_search_result_json = json!([{
-      "tmdbId": 1234,
-      "title": "Test",
-      "originalLanguage": { "id": 1, "name": "English" },
-      "status": "released",
-      "overview": "New movie blah blah blah",
-      "genres": ["cool", "family", "fun"],
-      "year": 2023,
-      "runtime": 120,
-      "ratings": {
-        "imdb": {
-          "value": 9.9
-        },
-        "tmdb": {
-          "value": 9.9
-        },
-        "rottenTomatoes": {
-          "value": 9.9
-        }
-      }
-    }]);
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(add_movie_search_result_json),
-      None,
-      RadarrEvent::SearchNewMovie(None),
-      None,
-      Some("term=test%20term"),
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let RadarrSerdeable::AddMovieSearchResults(add_movie_search_results) = network
-      .handle_radarr_event(RadarrEvent::SearchNewMovie(Some("test term".into())))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
       assert_eq!(add_movie_search_results, vec![add_movie_search_result()]);
     }
   }
@@ -742,16 +695,15 @@ mod test {
       None,
       Some(json!([])),
       None,
-      RadarrEvent::SearchNewMovie(None),
+      RadarrEvent::SearchNewMovie("test term".into()),
       None,
       Some("term=test%20term"),
     )
     .await;
-    app_arc.lock().await.data.radarr_data.add_movie_search = Some("test term".into());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::SearchNewMovie(None))
+      .handle_radarr_event(RadarrEvent::SearchNewMovie("test term".into()))
       .await
       .is_ok());
 
@@ -766,57 +718,6 @@ mod test {
     assert_eq!(
       app_arc.lock().await.get_current_route(),
       ActiveRadarrBlock::AddMovieEmptySearchResults.into()
-    );
-  }
-
-  #[tokio::test]
-  async fn test_handle_search_new_movie_event_no_panic_on_race_condition() {
-    let resource = format!(
-      "{}?term=test%20term",
-      RadarrEvent::SearchNewMovie(None).resource()
-    );
-    let mut server = Server::new_async().await;
-    let mut async_server = server
-      .mock(
-        &RequestMethod::Get.to_string().to_uppercase(),
-        format!("/api/v3{resource}").as_str(),
-      )
-      .match_header("X-Api-Key", "test1234");
-    async_server = async_server.expect_at_most(0).create_async().await;
-
-    let host = Some(server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned());
-    let port = Some(
-      server.host_with_port().split(':').collect::<Vec<&str>>()[1]
-        .parse()
-        .unwrap(),
-    );
-    let mut app = App::default();
-    let radarr_config = ServarrConfig {
-      host,
-      port,
-      api_token: "test1234".to_owned(),
-      ..ServarrConfig::default()
-    };
-    app.config.radarr = Some(radarr_config);
-    let app_arc = Arc::new(Mutex::new(app));
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::SearchNewMovie(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .add_searched_movies
-      .is_none());
-    assert_eq!(
-      app_arc.lock().await.get_current_route(),
-      ActiveRadarrBlock::Movies.into()
     );
   }
 

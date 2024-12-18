@@ -367,7 +367,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::SearchNewMovie(Some(expected_search_query)).into(),
+          RadarrEvent::SearchNewMovie(expected_search_query).into(),
         ))
         .times(1)
         .returning(|_| {
