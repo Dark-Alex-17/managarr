@@ -233,7 +233,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::TriggerAutomaticEpisodeSearch(Some(expected_episode_id)).into(),
+          SonarrEvent::TriggerAutomaticEpisodeSearch(expected_episode_id).into(),
         ))
         .times(1)
         .returning(|_| {

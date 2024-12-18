@@ -53,6 +53,19 @@ impl<'a, 'b> EpisodeDetailsHandler<'a, 'b> {
       .episode_releases,
     SonarrRelease
   );
+
+  fn extract_episode_id(&self) -> i64 {
+    self
+      .app
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_ref()
+      .expect("Season details modal is undefined")
+      .episodes
+      .current_selection()
+      .id
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EpisodeDetailsHandler<'a, 'b> {
@@ -204,8 +217,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EpisodeDetailsHandle
       }
       ActiveSonarrBlock::AutomaticallySearchEpisodePrompt => {
         if self.app.data.sonarr_data.prompt_confirm {
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::TriggerAutomaticEpisodeSearch(None));
+          self.app.data.sonarr_data.prompt_confirm_action = Some(
+            SonarrEvent::TriggerAutomaticEpisodeSearch(self.extract_episode_id()),
+          );
         }
 
         self.app.pop_navigation_stack();
@@ -308,8 +322,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EpisodeDetailsHandle
         if key == DEFAULT_KEYBINDINGS.confirm.key =>
       {
         self.app.data.sonarr_data.prompt_confirm = true;
-        self.app.data.sonarr_data.prompt_confirm_action =
-          Some(SonarrEvent::TriggerAutomaticEpisodeSearch(None));
+        self.app.data.sonarr_data.prompt_confirm_action = Some(
+          SonarrEvent::TriggerAutomaticEpisodeSearch(self.extract_episode_id()),
+        );
 
         self.app.pop_navigation_stack();
       }

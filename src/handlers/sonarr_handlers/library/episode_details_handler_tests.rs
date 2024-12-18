@@ -3,14 +3,16 @@ mod tests {
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::handlers::sonarr_handlers::library::episode_details_handler::EpisodeDetailsHandler;
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::episode;
   use crate::handlers::KeyEventHandler;
-  use crate::models::servarr_data::sonarr::modals::EpisodeDetailsModal;
+  use crate::models::servarr_data::sonarr::modals::{EpisodeDetailsModal, SeasonDetailsModal};
   use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS,
   };
   use crate::models::sonarr_models::SonarrReleaseDownloadBody;
   use crate::models::stateful_table::StatefulTable;
+  use pretty_assertions::assert_eq;
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
@@ -206,7 +208,7 @@ mod tests {
     #[rstest]
     #[case(
       ActiveSonarrBlock::AutomaticallySearchEpisodePrompt,
-      SonarrEvent::TriggerAutomaticEpisodeSearch(None)
+      SonarrEvent::TriggerAutomaticEpisodeSearch(1)
     )]
     fn test_episode_details_prompt_confirm_submit(
       #[case] prompt_block: ActiveSonarrBlock,
@@ -221,6 +223,14 @@ mod tests {
     ) {
       let mut app = App::default();
       app.data.sonarr_data = create_test_sonarr_data();
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episodes
+        .set_items(vec![episode()]);
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(active_sonarr_block.into());
       app.push_navigation_stack(prompt_block.into());
@@ -543,6 +553,14 @@ mod tests {
     ) {
       let mut app = App::default();
       app.data.sonarr_data = create_test_sonarr_data();
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episodes
+        .set_items(vec![episode()]);
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(active_sonarr_block.into());
       app.push_navigation_stack(ActiveSonarrBlock::AutomaticallySearchEpisodePrompt.into());
@@ -559,7 +577,7 @@ mod tests {
       assert_eq!(app.get_current_route(), active_sonarr_block.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::TriggerAutomaticEpisodeSearch(None))
+        Some(SonarrEvent::TriggerAutomaticEpisodeSearch(1))
       );
     }
 
@@ -605,6 +623,38 @@ mod tests {
         assert!(!EpisodeDetailsHandler::accepts(active_sonarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_extract_episode_id() {
+    let mut app = App::default();
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.set_items(vec![episode()]);
+    app.data.sonarr_data.season_details_modal = Some(season_details_modal);
+
+    let episode_id = EpisodeDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::EpisodeDetails,
+      None,
+    )
+    .extract_episode_id();
+
+    assert_eq!(episode_id, 1);
+  }
+
+  #[test]
+  #[should_panic = "Season details modal is undefined"]
+  fn test_extract_episode_id_panics_when_season_details_modal_is_none() {
+    let mut app = App::default();
+
+    EpisodeDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::EpisodeDetails,
+      None,
+    )
+    .extract_episode_id();
   }
 
   #[test]

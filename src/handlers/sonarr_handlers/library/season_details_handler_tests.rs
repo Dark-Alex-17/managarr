@@ -841,6 +841,20 @@ mod tests {
   }
 
   #[test]
+  #[should_panic(expected = "Season details have not been loaded")]
+  fn test_extract_episode_id_panic_when_season_details_modal_is_none() {
+    let mut app = App::default();
+
+    SeasonDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::SeasonDetails,
+      None,
+    )
+    .extract_episode_id();
+  }
+
+  #[test]
   fn test_season_details_handler_is_not_ready_when_loading() {
     let mut app = App::default();
     app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());

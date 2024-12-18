@@ -102,7 +102,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrTriggerAutomaticSearchCommand>
       SonarrTriggerAutomaticSearchCommand::Episode { episode_id } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::TriggerAutomaticEpisodeSearch(Some(episode_id)).into())
+          .handle_network_event(SonarrEvent::TriggerAutomaticEpisodeSearch(episode_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
