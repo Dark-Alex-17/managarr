@@ -91,6 +91,18 @@ impl<'a, 'b> SeasonDetailsHandler<'a, 'b> {
       .current_selection()
       .id
   }
+
+  fn extract_series_id_season_number_tuple(&self) -> (i64, i64) {
+    let series_id = self.app.data.sonarr_data.series.current_selection().id;
+    let season_number = self
+      .app
+      .data
+      .sonarr_data
+      .seasons
+      .current_selection()
+      .season_number;
+    (series_id, season_number)
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler<'a, 'b> {
@@ -268,8 +280,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
       }
       ActiveSonarrBlock::AutomaticallySearchSeasonPrompt => {
         if self.app.data.sonarr_data.prompt_confirm {
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::TriggerAutomaticSeasonSearch(None));
+          self.app.data.sonarr_data.prompt_confirm_action = Some(
+            SonarrEvent::TriggerAutomaticSeasonSearch(self.extract_series_id_season_number_tuple()),
+          );
         }
 
         self.app.pop_navigation_stack();
@@ -394,8 +407,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
         if key == DEFAULT_KEYBINDINGS.confirm.key =>
       {
         self.app.data.sonarr_data.prompt_confirm = true;
-        self.app.data.sonarr_data.prompt_confirm_action =
-          Some(SonarrEvent::TriggerAutomaticSeasonSearch(None));
+        self.app.data.sonarr_data.prompt_confirm_action = Some(
+          SonarrEvent::TriggerAutomaticSeasonSearch(self.extract_series_id_season_number_tuple()),
+        );
 
         self.app.pop_navigation_stack();
       }

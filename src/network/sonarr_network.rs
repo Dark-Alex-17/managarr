@@ -89,7 +89,7 @@ pub enum SonarrEvent {
   ToggleSeasonMonitoring((i64, i64)),
   ToggleEpisodeMonitoring(i64),
   TriggerAutomaticEpisodeSearch(i64),
-  TriggerAutomaticSeasonSearch(Option<(i64, i64)>),
+  TriggerAutomaticSeasonSearch((i64, i64)),
   TriggerAutomaticSeriesSearch(Option<i64>),
   UpdateAllSeries,
   UpdateAndScanSeries(Option<i64>),
@@ -2200,18 +2200,10 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn trigger_automatic_season_search(
     &mut self,
-    series_season_id_tuple: Option<(i64, i64)>,
+    series_season_id_tuple: (i64, i64),
   ) -> Result<Value> {
     let event = SonarrEvent::TriggerAutomaticSeasonSearch(series_season_id_tuple);
-    let (series_id, season_number) =
-      if let Some((series_id, season_number)) = series_season_id_tuple {
-        (Some(series_id), Some(season_number))
-      } else {
-        (None, None)
-      };
-
-    let (series_id, _) = self.extract_series_id(series_id).await;
-    let (season_number, _) = self.extract_season_number(season_number).await?;
+    let (series_id, season_number) = series_season_id_tuple;
     info!("Searching indexers for series with ID: {series_id} and season number: {season_number}");
 
     let body = SonarrCommandBody {

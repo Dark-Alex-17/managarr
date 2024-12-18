@@ -194,7 +194,7 @@ mod test {
       SonarrEvent::GetQueuedEvents,
       SonarrEvent::StartTask(SonarrTaskName::default()),
       SonarrEvent::TriggerAutomaticEpisodeSearch(0),
-      SonarrEvent::TriggerAutomaticSeasonSearch(None),
+      SonarrEvent::TriggerAutomaticSeasonSearch((0, 0)),
       SonarrEvent::TriggerAutomaticSeriesSearch(None),
       SonarrEvent::UpdateAllSeries,
       SonarrEvent::UpdateAndScanSeries(None),
@@ -5167,117 +5167,15 @@ mod test {
       })),
       Some(json!({})),
       None,
-      SonarrEvent::TriggerAutomaticSeasonSearch(None),
+      SonarrEvent::TriggerAutomaticSeasonSearch((1, 1)),
       None,
       None,
     )
     .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .series
-      .set_items(vec![series()]);
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .seasons
-      .set_items(vec![season()]);
-    app_arc.lock().await.data.sonarr_data.season_details_modal =
-      Some(SeasonDetailsModal::default());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeasonSearch(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-  }
-
-  #[tokio::test]
-  async fn test_handle_trigger_automatic_season_search_event_uses_provided_series_id_and_season_number(
-  ) {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "name": "SeasonSearch",
-        "seriesId": 2,
-        "seasonNumber": 2
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::TriggerAutomaticSeasonSearch(None),
-      None,
-      None,
-    )
-    .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .series
-      .set_items(vec![series()]);
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .seasons
-      .set_items(vec![season()]);
-    app_arc.lock().await.data.sonarr_data.season_details_modal =
-      Some(SeasonDetailsModal::default());
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeasonSearch(Some((2, 2))))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-  }
-
-  #[tokio::test]
-  async fn test_handle_trigger_automatic_season_search_event_filtered_series_and_filtered_seasons()
-  {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "name": "SeasonSearch",
-        "seriesId": 1,
-        "seasonNumber": 1
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::TriggerAutomaticSeasonSearch(None),
-      None,
-      None,
-    )
-    .await;
-    let mut filtered_series = StatefulTable::default();
-    filtered_series.set_items(vec![Series::default()]);
-    filtered_series.set_filtered_items(vec![Series {
-      id: 1,
-      ..Series::default()
-    }]);
-    app_arc.lock().await.data.sonarr_data.series = filtered_series;
-    let mut filtered_seasons = StatefulTable::default();
-    filtered_seasons.set_items(vec![Season::default()]);
-    filtered_seasons.set_filtered_items(vec![Season {
-      season_number: 1,
-      ..Season::default()
-    }]);
-    app_arc.lock().await.data.sonarr_data.seasons = filtered_seasons;
-    app_arc.lock().await.data.sonarr_data.season_details_modal =
-      Some(SeasonDetailsModal::default());
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeasonSearch(None))
+      .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeasonSearch((1, 1)))
       .await
       .is_ok());
 

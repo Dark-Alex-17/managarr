@@ -276,7 +276,7 @@ mod tests {
     #[rstest]
     #[case(
       ActiveSonarrBlock::AutomaticallySearchSeasonPrompt,
-      SonarrEvent::TriggerAutomaticSeasonSearch(None)
+      SonarrEvent::TriggerAutomaticSeasonSearch((0, 0))
     )]
     #[case(
       ActiveSonarrBlock::DeleteEpisodeFilePrompt,
@@ -713,7 +713,7 @@ mod tests {
     #[rstest]
     #[case(
       ActiveSonarrBlock::AutomaticallySearchSeasonPrompt,
-      SonarrEvent::TriggerAutomaticSeasonSearch(None)
+      SonarrEvent::TriggerAutomaticSeasonSearch((0, 0))
     )]
     #[case(
       ActiveSonarrBlock::DeleteEpisodeFilePrompt,
@@ -852,6 +852,23 @@ mod tests {
       None,
     )
     .extract_episode_id();
+  }
+
+  #[test]
+  fn test_extract_series_id_season_number_tuple() {
+    let mut app = App::default();
+    app.data.sonarr_data = create_test_sonarr_data();
+
+    let (series_id, season_number) = SeasonDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::SeasonDetails,
+      None,
+    )
+    .extract_series_id_season_number_tuple();
+
+    assert_eq!(series_id, 0);
+    assert_eq!(season_number, 0);
   }
 
   #[test]
