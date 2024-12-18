@@ -208,7 +208,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
       } => {
         let logs = self
           .network
-          .handle_network_event(SonarrEvent::GetLogs(Some(events)).into())
+          .handle_network_event(SonarrEvent::GetLogs(events).into())
           .await?;
 
         if output_in_log_format {

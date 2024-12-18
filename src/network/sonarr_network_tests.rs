@@ -280,7 +280,7 @@ mod test {
   #[case(SonarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(SonarrEvent::GetDiskSpace, "/diskspace")]
   #[case(SonarrEvent::GetLanguageProfiles, "/language")]
-  #[case(SonarrEvent::GetLogs(Some(500)), "/log")]
+  #[case(SonarrEvent::GetLogs(500), "/log")]
   #[case(SonarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(SonarrEvent::GetStatus, "/system/status")]
   #[case(SonarrEvent::GetTasks, "/system/task")]
@@ -3188,7 +3188,7 @@ mod test {
       None,
       Some(logs_response_json),
       None,
-      SonarrEvent::GetLogs(None),
+      SonarrEvent::GetLogs(500),
       None,
       Some("pageSize=500&sortDirection=descending&sortKey=time"),
     )
@@ -3196,75 +3196,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::LogResponse(logs) = network
-      .handle_sonarr_event(SonarrEvent::GetLogs(None))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.logs.items,
-        expected_logs
-      );
-      assert!(app_arc
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .logs
-        .current_selection()
-        .text
-        .contains("INFO"));
-      assert_eq!(logs, response);
-    }
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_sonarr_logs_event_uses_provided_events() {
-    let expected_logs = vec![
-      HorizontallyScrollableText::from(
-        "2023-05-20 21:29:16 UTC|FATAL|SonarrError|Some.Big.Bad.Exception|test exception",
-      ),
-      HorizontallyScrollableText::from("2023-05-20 21:29:16 UTC|INFO|TestLogger|test message"),
-    ];
-    let logs_response_json = json!({
-      "page": 1,
-      "pageSize": 1000,
-      "sortKey": "time",
-      "sortDirection": "descending",
-      "totalRecords": 2,
-      "records": [
-          {
-              "time": "2023-05-20T21:29:16Z",
-              "level": "info",
-              "logger": "TestLogger",
-              "message": "test message",
-              "id": 1
-          },
-          {
-              "time": "2023-05-20T21:29:16Z",
-              "level": "fatal",
-              "logger": "SonarrError",
-              "exception": "test exception",
-              "exceptionType": "Some.Big.Bad.Exception",
-              "id": 2
-          }
-        ]
-    });
-    let response: LogResponse = serde_json::from_value(logs_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(logs_response_json),
-      None,
-      SonarrEvent::GetLogs(Some(1000)),
-      None,
-      Some("pageSize=1000&sortDirection=descending&sortKey=time"),
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let SonarrSerdeable::LogResponse(logs) = network
-      .handle_sonarr_event(SonarrEvent::GetLogs(Some(1000)))
+      .handle_sonarr_event(SonarrEvent::GetLogs(500))
       .await
       .unwrap()
     {

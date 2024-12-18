@@ -465,7 +465,7 @@ mod tests {
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetLogs(None).into()
+        SonarrEvent::GetLogs(500).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
