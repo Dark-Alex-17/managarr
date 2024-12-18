@@ -274,7 +274,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
       SonarrCommand::ToggleEpisodeMonitoring { episode_id } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::ToggleEpisodeMonitoring(Some(episode_id)).into())
+          .handle_network_event(SonarrEvent::ToggleEpisodeMonitoring(episode_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

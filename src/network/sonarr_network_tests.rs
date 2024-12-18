@@ -289,7 +289,7 @@ mod test {
   #[case(SonarrEvent::SearchNewSeries(String::new()), "/series/lookup")]
   #[case(SonarrEvent::TestIndexer(0), "/indexer/test")]
   #[case(SonarrEvent::TestAllIndexers, "/indexer/testall")]
-  #[case(SonarrEvent::ToggleEpisodeMonitoring(None), "/episode/monitor")]
+  #[case(SonarrEvent::ToggleEpisodeMonitoring(0), "/episode/monitor")]
   fn test_resource(#[case] event: SonarrEvent, #[case] expected_uri: String) {
     assert_str_eq!(event.resource(), expected_uri);
   }
@@ -5037,39 +5037,6 @@ mod test {
   #[tokio::test]
   async fn test_handle_toggle_episode_monitoring_event() {
     let expected_body = MonitorEpisodeBody {
-      episode_ids: vec![1],
-      monitored: false,
-    };
-
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Put,
-      Some(json!(expected_body)),
-      None,
-      None,
-      SonarrEvent::ToggleEpisodeMonitoring(None),
-      None,
-      None,
-    )
-    .await;
-    {
-      let mut app = app_arc.lock().await;
-      let mut season_details_modal = SeasonDetailsModal::default();
-      season_details_modal.episodes.set_items(vec![episode()]);
-      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
-    }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::ToggleEpisodeMonitoring(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-  }
-
-  #[tokio::test]
-  async fn test_handle_toggle_episode_monitoring_event_uses_provided_episode_id() {
-    let expected_body = MonitorEpisodeBody {
       episode_ids: vec![2],
       monitored: false,
     };
@@ -5090,7 +5057,7 @@ mod test {
         "PUT",
         format!(
           "/api/v3{}",
-          SonarrEvent::ToggleEpisodeMonitoring(None).resource()
+          SonarrEvent::ToggleEpisodeMonitoring(2).resource()
         )
         .as_str(),
       )
@@ -5099,16 +5066,10 @@ mod test {
       .match_body(Matcher::Json(json!(expected_body)))
       .create_async()
       .await;
-    {
-      let mut app = app_arc.lock().await;
-      let mut season_details_modal = SeasonDetailsModal::default();
-      season_details_modal.episodes.set_items(vec![episode()]);
-      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
-    }
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::ToggleEpisodeMonitoring(Some(2)))
+      .handle_sonarr_event(SonarrEvent::ToggleEpisodeMonitoring(2))
       .await
       .is_ok());
 

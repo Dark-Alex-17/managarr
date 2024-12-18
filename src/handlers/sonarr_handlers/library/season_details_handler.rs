@@ -78,6 +78,19 @@ impl<'a, 'b> SeasonDetailsHandler<'a, 'b> {
       .current_selection()
       .episode_file_id
   }
+
+  fn extract_episode_id(&self) -> i64 {
+    self
+      .app
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_ref()
+      .expect("Season details have not been loaded")
+      .episodes
+      .current_selection()
+      .id
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler<'a, 'b> {
@@ -354,8 +367,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
     match self.active_sonarr_block {
       ActiveSonarrBlock::SeasonDetails if self.key == DEFAULT_KEYBINDINGS.toggle_monitoring.key => {
         self.app.data.sonarr_data.prompt_confirm = true;
-        self.app.data.sonarr_data.prompt_confirm_action =
-          Some(SonarrEvent::ToggleEpisodeMonitoring(None));
+        self.app.data.sonarr_data.prompt_confirm_action = Some(
+          SonarrEvent::ToggleEpisodeMonitoring(self.extract_episode_id()),
+        );
 
         self
           .app

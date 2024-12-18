@@ -5,6 +5,7 @@ mod tests {
   use crate::handlers::sonarr_handlers::library::season_details_handler::{
     releases_sorting_options, SeasonDetailsHandler,
   };
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::episode;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
   use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
@@ -550,6 +551,14 @@ mod tests {
     fn test_toggle_monitoring_key() {
       let mut app = App::default();
       app.data.sonarr_data = create_test_sonarr_data();
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episodes
+        .set_items(vec![episode()]);
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.is_routing = false;
 
@@ -569,7 +578,7 @@ mod tests {
       assert!(app.is_routing);
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::ToggleEpisodeMonitoring(None))
+        Some(SonarrEvent::ToggleEpisodeMonitoring(1))
       );
     }
 
@@ -811,6 +820,24 @@ mod tests {
       None,
     )
     .extract_episode_file_id();
+  }
+
+  #[test]
+  fn test_extract_episode_id() {
+    let mut app = App::default();
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.set_items(vec![episode()]);
+    app.data.sonarr_data.season_details_modal = Some(season_details_modal);
+
+    let episode_id = SeasonDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::SeasonDetails,
+      None,
+    )
+    .extract_episode_id();
+
+    assert_eq!(episode_id, 1);
   }
 
   #[test]

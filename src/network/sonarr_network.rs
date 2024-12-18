@@ -87,7 +87,7 @@ pub enum SonarrEvent {
   TestIndexer(i64),
   TestAllIndexers,
   ToggleSeasonMonitoring((i64, i64)),
-  ToggleEpisodeMonitoring(Option<i64>),
+  ToggleEpisodeMonitoring(i64),
   TriggerAutomaticEpisodeSearch(Option<i64>),
   TriggerAutomaticSeasonSearch(Option<(i64, i64)>),
   TriggerAutomaticSeriesSearch(Option<i64>),
@@ -2131,11 +2131,11 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn toggle_sonarr_episode_monitoring(&mut self, episode_id: Option<i64>) -> Result<()> {
+  async fn toggle_sonarr_episode_monitoring(&mut self, episode_id: i64) -> Result<()> {
     let event = SonarrEvent::ToggleEpisodeMonitoring(episode_id);
     let detail_event = SonarrEvent::GetEpisodeDetails(0);
 
-    let (id, monitored) = if let Some(episode_id) = episode_id {
+    let monitored = {
       info!("Fetching episode details for episode id: {episode_id}");
       let request_props = self
         .request_props_from(
@@ -2159,24 +2159,13 @@ impl<'a, 'b> Network<'a, 'b> {
         })
         .await?;
 
-      (episode_id, monitored)
-    } else {
-      let app = self.app.lock().await;
-      let current_selection = app
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .unwrap()
-        .episodes
-        .current_selection();
-      (current_selection.id, current_selection.monitored)
+      monitored
     };
 
-    info!("Toggling monitoring for episode id: {id}");
+    info!("Toggling monitoring for episode id: {episode_id}");
 
     let body = MonitorEpisodeBody {
-      episode_ids: vec![id],
+      episode_ids: vec![episode_id],
       monitored: !monitored,
     };
 
