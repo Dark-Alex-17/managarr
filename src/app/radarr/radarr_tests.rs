@@ -1,20 +1,17 @@
 #[cfg(test)]
 mod tests {
-  mod radarr_tests {
-    use pretty_assertions::assert_eq;
-    use tokio::sync::mpsc;
+  use pretty_assertions::assert_eq;
+  use tokio::sync::mpsc;
 
-    use crate::app::radarr::ActiveRadarrBlock;
-    use crate::app::App;
-    use crate::models::radarr_models::{
-      AddMovieBody, AddMovieOptions, Collection, CollectionMovie, Credit, RadarrRelease,
-    };
-    use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
+  use crate::app::radarr::ActiveRadarrBlock;
+  use crate::app::App;
+  use crate::models::radarr_models::{AddMovieBody, AddMovieOptions, Collection, CollectionMovie, Credit, Movie, RadarrRelease};
+  use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 
-    use crate::network::radarr_network::RadarrEvent;
-    use crate::network::NetworkEvent;
+  use crate::network::radarr_network::RadarrEvent;
+  use crate::network::NetworkEvent;
 
-    #[tokio::test]
+  #[tokio::test]
     async fn test_dispatch_by_blocklist_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
 
@@ -376,6 +373,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_cast_crew_blocks() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.radarr_data.movies.set_items(vec![Movie { id: 1, ..Movie::default() }]);
 
       for active_radarr_block in &[ActiveRadarrBlock::Cast, ActiveRadarrBlock::Crew] {
         app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
@@ -384,7 +382,7 @@ mod tests {
         assert!(app.is_loading);
         assert_eq!(
           sync_network_rx.recv().await.unwrap(),
-          RadarrEvent::GetMovieCredits(None).into()
+          RadarrEvent::GetMovieCredits(1).into()
         );
         assert!(!app.data.radarr_data.prompt_confirm);
         assert_eq!(app.tick_count, 0);
@@ -394,6 +392,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_cast_crew_blocks_movie_cast_non_empty() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.radarr_data.movies.set_items(vec![Movie { id: 1, ..Movie::default() }]);
 
       for active_radarr_block in &[ActiveRadarrBlock::Cast, ActiveRadarrBlock::Crew] {
         let mut movie_details_modal = MovieDetailsModal::default();
@@ -407,7 +406,7 @@ mod tests {
         assert!(app.is_loading);
         assert_eq!(
           sync_network_rx.recv().await.unwrap(),
-          RadarrEvent::GetMovieCredits(None).into()
+          RadarrEvent::GetMovieCredits(1).into()
         );
         assert!(!app.data.radarr_data.prompt_confirm);
         assert_eq!(app.tick_count, 0);
@@ -417,6 +416,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_cast_crew_blocks_movie_crew_non_empty() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.radarr_data.movies.set_items(vec![Movie { id: 1, ..Movie::default() }]);
 
       for active_radarr_block in &[ActiveRadarrBlock::Cast, ActiveRadarrBlock::Crew] {
         let mut movie_details_modal = MovieDetailsModal::default();
@@ -430,7 +430,7 @@ mod tests {
         assert!(app.is_loading);
         assert_eq!(
           sync_network_rx.recv().await.unwrap(),
-          RadarrEvent::GetMovieCredits(None).into()
+          RadarrEvent::GetMovieCredits(1).into()
         );
         assert!(!app.data.radarr_data.prompt_confirm);
         assert_eq!(app.tick_count, 0);
@@ -725,6 +725,14 @@ mod tests {
       assert!(!app.data.radarr_data.collection_movies.items.is_empty());
     }
 
+    #[tokio::test]
+    async fn test_extract_movie_id() {
+      let mut app = App::default();
+      app.data.radarr_data.movies.set_items(vec![Movie { id: 1, ..Movie::default() }]);
+
+      assert_eq!(app.extract_movie_id().await, 1);
+    }
+
     fn construct_app_unit<'a>() -> (App<'a>, mpsc::Receiver<NetworkEvent>) {
       let (sync_network_tx, sync_network_rx) = mpsc::channel::<NetworkEvent>(500);
       let mut app = App {
@@ -737,5 +745,4 @@ mod tests {
 
       (app, sync_network_rx)
     }
-  }
 }

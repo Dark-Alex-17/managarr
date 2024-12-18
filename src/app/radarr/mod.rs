@@ -123,7 +123,7 @@ impl<'a> App<'a> {
               || movie_details_modal.movie_crew.items.is_empty() =>
           {
             self
-              .dispatch_network_event(RadarrEvent::GetMovieCredits(None).into())
+              .dispatch_network_event(RadarrEvent::GetMovieCredits(self.extract_movie_id().await).into())
               .await;
           }
           _ => (),
@@ -218,5 +218,15 @@ impl<'a> App<'a> {
       .radarr_data
       .collection_movies
       .set_items(collection_movies);
+  }
+  
+  async fn extract_movie_id(&self) -> i64 {
+    self
+      .data
+      .radarr_data
+      .movies
+      .current_selection()
+      .clone()
+      .id
   }
 }

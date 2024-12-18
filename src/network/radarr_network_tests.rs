@@ -221,7 +221,7 @@ mod test {
   #[case(RadarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(RadarrEvent::GetLogs(500), "/log")]
   #[case(RadarrEvent::SearchNewMovie(None), "/movie/lookup")]
-  #[case(RadarrEvent::GetMovieCredits(None), "/credit")]
+  #[case(RadarrEvent::GetMovieCredits(0), "/credit")]
   #[case(RadarrEvent::GetMovieHistory(None), "/history/movie")]
   #[case(RadarrEvent::GetDiskSpace, "/diskspace")]
   #[case(RadarrEvent::GetQualityProfiles, "/qualityprofile")]
@@ -2905,23 +2905,16 @@ mod test {
       None,
       Some(credits_json),
       None,
-      RadarrEvent::GetMovieCredits(None),
+      RadarrEvent::GetMovieCredits(1),
       None,
       Some("movieId=1"),
     )
     .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Credits(credits) = network
-      .handle_radarr_event(RadarrEvent::GetMovieCredits(None))
+      .handle_radarr_event(RadarrEvent::GetMovieCredits(1))
       .await
       .unwrap()
     {
@@ -2931,44 +2924,6 @@ mod test {
       async_server.assert_async().await;
       assert_eq!(movie_details_modal.movie_cast.items, vec![cast_credit()]);
       assert_eq!(movie_details_modal.movie_crew.items, vec![crew_credit()]);
-      assert_eq!(credits, response);
-    }
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_movie_credits_event_uses_provided_id() {
-    let credits_json = json!([
-        {
-          "personName": "Madison Clarke",
-          "character": "Johnny Blaze",
-          "type": "cast",
-        },
-        {
-          "personName": "Alex Clarke",
-          "department": "Music",
-          "job": "Composition",
-          "type": "crew",
-        }
-    ]);
-    let response: Vec<Credit> = serde_json::from_value(credits_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(credits_json),
-      None,
-      RadarrEvent::GetMovieCredits(None),
-      None,
-      Some("movieId=1"),
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let RadarrSerdeable::Credits(credits) = network
-      .handle_radarr_event(RadarrEvent::GetMovieCredits(Some(1)))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
       assert_eq!(credits, response);
     }
   }
@@ -2993,22 +2948,15 @@ mod test {
       None,
       Some(credits_json),
       None,
-      RadarrEvent::GetMovieCredits(None),
+      RadarrEvent::GetMovieCredits(1),
       None,
       Some("movieId=1"),
     )
     .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![movie()]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::GetMovieCredits(None))
+      .handle_radarr_event(RadarrEvent::GetMovieCredits(1))
       .await
       .is_ok());
 

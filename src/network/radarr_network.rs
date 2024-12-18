@@ -55,7 +55,7 @@ pub enum RadarrEvent {
   GetIndexers,
   GetAllIndexerSettings,
   GetLogs(u64),
-  GetMovieCredits(Option<i64>),
+  GetMovieCredits(i64),
   GetMovieDetails(Option<i64>),
   GetMovieHistory(Option<i64>),
   GetMovies,
@@ -972,10 +972,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_credits(&mut self, movie_id: Option<i64>) -> Result<Vec<Credit>> {
+  async fn get_credits(&mut self, movie_id: i64) -> Result<Vec<Credit>> {
     info!("Fetching Radarr movie credits");
-    let event = RadarrEvent::GetMovieCredits(None);
-    let (_, movie_id_param) = self.extract_movie_id(movie_id).await;
+    let event = RadarrEvent::GetMovieCredits(movie_id);
 
     let request_props = self
       .request_props_from(
@@ -983,7 +982,7 @@ impl<'a, 'b> Network<'a, 'b> {
         RequestMethod::Get,
         None::<()>,
         None,
-        Some(movie_id_param),
+        Some(format!("movieId={movie_id}")),
       )
       .await;
 
