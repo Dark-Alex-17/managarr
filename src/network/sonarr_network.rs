@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use indoc::formatdoc;
 use log::{debug, info, warn};
 use serde_json::{json, Value};
@@ -2319,63 +2319,6 @@ impl<'a, 'b> Network<'a, 'b> {
           .unwrap()
       })
       .collect()
-  }
-
-  async fn extract_series_id(&mut self, series_id: Option<i64>) -> (i64, String) {
-    let series_id = if let Some(id) = series_id {
-      id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .series
-        .current_selection()
-        .id
-    };
-    (series_id, format!("seriesId={series_id}"))
-  }
-
-  async fn extract_season_number(&mut self, season_number: Option<i64>) -> Result<(i64, String)> {
-    if let Some(number) = season_number {
-      Ok((number, format!("seasonNumber={number}")))
-    } else if !self.app.lock().await.data.sonarr_data.seasons.is_empty() {
-      let season_number = self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .seasons
-        .current_selection()
-        .season_number;
-      Ok((season_number, format!("seasonNumber={season_number}")))
-    } else {
-      Err(anyhow!("No season number provided"))
-    }
-  }
-
-  async fn extract_episode_id(&mut self, episode_id: Option<i64>) -> i64 {
-    let episode_id = if let Some(id) = episode_id {
-      id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .expect("Season details have not been loaded")
-        .episodes
-        .current_selection()
-        .id
-    };
-
-    episode_id
   }
 }
 

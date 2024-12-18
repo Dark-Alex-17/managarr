@@ -5,10 +5,9 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
   use crate::models::sonarr_models::{
-    AddSeriesSearchResult, AddSeriesSearchResultStatistics, BlocklistItem, DownloadRecord,
-    DownloadStatus, DownloadsResponse, Episode, EpisodeFile, IndexerSettings, MediaInfo, Rating,
-    Season, SeasonStatistics, Series, SeriesStatistics, SeriesStatus, SeriesType,
-    SonarrHistoryData, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
+    AddSeriesSearchResult, AddSeriesSearchResultStatistics, DownloadRecord, DownloadStatus,
+    Episode, EpisodeFile, IndexerSettings, MediaInfo, Rating, Season, SeasonStatistics, Series,
+    SeriesStatistics, SeriesStatus, SeriesType,
   };
   use crate::models::HorizontallyScrollableText;
   use chrono::DateTime;
@@ -187,22 +186,6 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     AddSeriesSearchResultStatistics { season_count: 3 }
   }
 
-  pub fn blocklist_item() -> BlocklistItem {
-    BlocklistItem {
-      id: 1,
-      series_id: 1,
-      series_title: None,
-      episode_ids: vec![Number::from(1)],
-      source_title: "Test Source Title".to_owned(),
-      languages: vec![language()],
-      quality: quality_wrapper(),
-      date: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
-      protocol: "usenet".to_owned(),
-      indexer: "NZBgeek (Prowlarr)".to_owned(),
-      message: "test message".to_owned(),
-    }
-  }
-
   pub fn download_record() -> DownloadRecord {
     DownloadRecord {
       title: "Test Download Title".to_owned(),
@@ -216,12 +199,6 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
       )),
       indexer: "kickass torrents".to_owned(),
       download_client: Some("transmission".to_owned()),
-    }
-  }
-
-  pub fn downloads_response() -> DownloadsResponse {
-    DownloadsResponse {
-      records: vec![download_record()],
     }
   }
 
@@ -259,29 +236,6 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
 
   pub fn genres() -> Vec<String> {
     vec!["cool".to_owned(), "family".to_owned(), "fun".to_owned()]
-  }
-
-  pub fn history_data() -> SonarrHistoryData {
-    SonarrHistoryData {
-      dropped_path: Some("/nfs/nzbget/completed/series/Coolness/something.cool.mkv".to_owned()),
-      imported_path: Some(
-        "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv".to_owned(),
-      ),
-      ..SonarrHistoryData::default()
-    }
-  }
-
-  pub fn history_item() -> SonarrHistoryItem {
-    SonarrHistoryItem {
-      id: 1,
-      source_title: "Test source".into(),
-      episode_id: 1,
-      quality: quality_wrapper(),
-      languages: vec![language()],
-      date: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
-      event_type: SonarrHistoryEventType::Grabbed,
-      data: history_data(),
-    }
   }
 
   pub fn indexer() -> Indexer {
@@ -425,32 +379,6 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
       total_episode_count: 50,
       size_on_disk: 63894022699,
       percent_of_episodes: 100.0,
-    }
-  }
-
-  pub fn rejections() -> Vec<String> {
-    vec![
-      "Unknown quality profile".to_owned(),
-      "Release is already mapped".to_owned(),
-    ]
-  }
-
-  pub fn release() -> SonarrRelease {
-    SonarrRelease {
-      guid: "1234".to_owned(),
-      protocol: "torrent".to_owned(),
-      age: 1,
-      title: HorizontallyScrollableText::from("Test Release"),
-      indexer: "kickass torrents".to_owned(),
-      indexer_id: 2,
-      size: 1234,
-      rejected: true,
-      rejections: Some(rejections()),
-      seeders: Some(Number::from(2)),
-      leechers: Some(Number::from(1)),
-      languages: Some(vec![language()]),
-      quality: quality_wrapper(),
-      full_season: false,
     }
   }
 
