@@ -165,7 +165,9 @@ impl<'a> App<'a> {
       }
       ActiveSonarrBlock::AddSeriesSearchResults => {
         self
-          .dispatch_network_event(SonarrEvent::SearchNewSeries(None).into())
+          .dispatch_network_event(
+            SonarrEvent::SearchNewSeries(self.extract_add_new_series_search_query().await).into(),
+          )
           .await;
       }
       ActiveSonarrBlock::SystemUpdates => {
@@ -286,5 +288,16 @@ impl<'a> App<'a> {
       .current_selection()
       .season_number;
     (series_id, season_number)
+  }
+
+  async fn extract_add_new_series_search_query(&self) -> String {
+    self
+      .data
+      .sonarr_data
+      .add_series_search
+      .as_ref()
+      .expect("Add series search is empty")
+      .text
+      .clone()
   }
 }

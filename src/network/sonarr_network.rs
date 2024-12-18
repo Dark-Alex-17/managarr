@@ -82,7 +82,7 @@ pub enum SonarrEvent {
   HealthCheck,
   ListSeries,
   MarkHistoryItemAsFailed(i64),
-  SearchNewSeries(Option<String>),
+  SearchNewSeries(String),
   StartTask(Option<SonarrTaskName>),
   TestIndexer(Option<i64>),
   TestAllIndexers,
@@ -1995,65 +1995,34 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn search_sonarr_series(
-    &mut self,
-    query: Option<String>,
-  ) -> Result<Vec<AddSeriesSearchResult>> {
+  async fn search_sonarr_series(&mut self, query: String) -> Result<Vec<AddSeriesSearchResult>> {
     info!("Searching for specific Sonarr series");
-    let event = SonarrEvent::SearchNewSeries(None);
-    let search = if let Some(search_query) = query {
-      Ok(search_query.into())
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .add_series_search
-        .clone()
-        .ok_or(anyhow!("Encountered a race condition"))
-    };
+    let event = SonarrEvent::SearchNewSeries(query.clone());
 
-    match search {
-      Ok(search_string) => {
-        let request_props = self
-          .request_props_from(
-            event,
-            RequestMethod::Get,
-            None::<()>,
-            None,
-            Some(format!("term={}", encode(&search_string.text))),
-          )
-          .await;
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("term={}", encode(&query))),
+      )
+      .await;
 
-        self
-          .handle_request::<(), Vec<AddSeriesSearchResult>>(request_props, |series_vec, mut app| {
-            if series_vec.is_empty() {
-              app.pop_and_push_navigation_stack(
-                ActiveSonarrBlock::AddSeriesEmptySearchResults.into(),
-              );
-            } else if let Some(add_searched_seriess) =
-              app.data.sonarr_data.add_searched_series.as_mut()
-            {
-              add_searched_seriess.set_items(series_vec);
-            } else {
-              let mut add_searched_seriess = StatefulTable::default();
-              add_searched_seriess.set_items(series_vec);
-              app.data.sonarr_data.add_searched_series = Some(add_searched_seriess);
-            }
-          })
-          .await
-      }
-      Err(e) => {
-        warn!(
-          "Encountered a race condition: {e}\n \
-          This is most likely caused by the user trying to navigate between modals rapidly. \
-          Ignoring search request."
-        );
-        Ok(Vec::default())
-      }
-    }
+    self
+      .handle_request::<(), Vec<AddSeriesSearchResult>>(request_props, |series_vec, mut app| {
+        if series_vec.is_empty() {
+          app.pop_and_push_navigation_stack(ActiveSonarrBlock::AddSeriesEmptySearchResults.into());
+        } else if let Some(add_searched_seriess) = app.data.sonarr_data.add_searched_series.as_mut()
+        {
+          add_searched_seriess.set_items(series_vec);
+        } else {
+          let mut add_searched_seriess = StatefulTable::default();
+          add_searched_seriess.set_items(series_vec);
+          app.data.sonarr_data.add_searched_series = Some(add_searched_seriess);
+        }
+      })
+      .await
   }
 
   async fn start_sonarr_task(&mut self, task: Option<SonarrTaskName>) -> Result<Value> {

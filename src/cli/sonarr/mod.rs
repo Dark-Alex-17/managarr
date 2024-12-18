@@ -245,7 +245,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
       SonarrCommand::SearchNewSeries { query } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::SearchNewSeries(Some(query)).into())
+          .handle_network_event(SonarrEvent::SearchNewSeries(query).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

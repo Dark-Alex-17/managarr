@@ -532,6 +532,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_add_series_search_results_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.sonarr_data.add_series_search = Some("test search".into());
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::AddSeriesSearchResults)
@@ -540,7 +541,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::SearchNewSeries(None).into()
+        SonarrEvent::SearchNewSeries("test search".into()).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -827,6 +828,25 @@ mod tests {
       }]);
 
       assert_eq!(app.extract_series_id_season_number_tuple().await, (1, 1));
+    }
+
+    #[tokio::test]
+    async fn test_extract_add_new_series_search_query() {
+      let mut app = App::default();
+      app.data.sonarr_data.add_series_search = Some("test search".into());
+
+      assert_str_eq!(
+        app.extract_add_new_series_search_query().await,
+        "test search"
+      );
+    }
+
+    #[tokio::test]
+    #[should_panic(expected = "Add series search is empty")]
+    async fn test_extract_add_new_series_search_query_panics_when_the_query_is_not_set() {
+      let app = App::default();
+
+      app.extract_add_new_series_search_query().await;
     }
 
     fn construct_app_unit<'a>() -> (App<'a>, mpsc::Receiver<NetworkEvent>) {

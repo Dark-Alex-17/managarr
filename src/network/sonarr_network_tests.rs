@@ -5,7 +5,7 @@ mod test {
   use bimap::BiMap;
   use chrono::DateTime;
   use indoc::formatdoc;
-  use mockito::{Matcher, Server};
+  use mockito::Matcher;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use reqwest::Client;
   use rstest::rstest;
@@ -19,7 +19,7 @@ mod test {
     DownloadStatus, EditSeriesParams, IndexerSettings, MonitorEpisodeBody, SonarrHistoryEventType,
   };
 
-  use crate::app::{App, ServarrConfig};
+  use crate::app::App;
   use crate::models::radarr_models::IndexerTestResult;
   use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_data::sonarr::modals::{
@@ -286,7 +286,7 @@ mod test {
   #[case(SonarrEvent::GetTasks, "/system/task")]
   #[case(SonarrEvent::GetUpdates, "/update")]
   #[case(SonarrEvent::MarkHistoryItemAsFailed(0), "/history/failed")]
-  #[case(SonarrEvent::SearchNewSeries(None), "/series/lookup")]
+  #[case(SonarrEvent::SearchNewSeries(String::new()), "/series/lookup")]
   #[case(SonarrEvent::TestIndexer(None), "/indexer/test")]
   #[case(SonarrEvent::TestAllIndexers, "/indexer/testall")]
   #[case(SonarrEvent::ToggleEpisodeMonitoring(None), "/episode/monitor")]
@@ -4682,7 +4682,7 @@ mod test {
       None,
       Some(add_series_search_result_json),
       None,
-      SonarrEvent::SearchNewSeries(None),
+      SonarrEvent::SearchNewSeries("test term".into()),
       None,
       Some("term=test%20term"),
     )
@@ -4691,7 +4691,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::AddSeriesSearchResults(add_series_search_results) = network
-      .handle_sonarr_event(SonarrEvent::SearchNewSeries(None))
+      .handle_sonarr_event(SonarrEvent::SearchNewSeries("test term".into()))
       .await
       .unwrap()
     {
@@ -4720,50 +4720,13 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_search_new_series_event_uses_provided_query() {
-    let add_series_search_result_json = json!([{
-      "tvdbId": 1234,
-      "title": "Test",
-      "status": "continuing",
-      "ended": false,
-      "overview": "New series blah blah blah",
-      "genres": ["cool", "family", "fun"],
-      "year": 2023,
-      "network": "Prime Video",
-      "runtime": 60,
-      "ratings": { "votes": 406744, "value": 8.4 },
-      "statistics": { "seasonCount": 3 }
-    }]);
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(add_series_search_result_json),
-      None,
-      SonarrEvent::SearchNewSeries(None),
-      None,
-      Some("term=test%20term"),
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let SonarrSerdeable::AddSeriesSearchResults(add_series_search_results) = network
-      .handle_sonarr_event(SonarrEvent::SearchNewSeries(Some("test term".into())))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(add_series_search_results, vec![add_series_search_result()]);
-    }
-  }
-
-  #[tokio::test]
   async fn test_handle_search_new_series_event_no_results() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Get,
       None,
       Some(json!([])),
       None,
-      SonarrEvent::SearchNewSeries(None),
+      SonarrEvent::SearchNewSeries("test term".into()),
       None,
       Some("term=test%20term"),
     )
@@ -4772,7 +4735,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::SearchNewSeries(None))
+      .handle_sonarr_event(SonarrEvent::SearchNewSeries("test term".into()))
       .await
       .is_ok());
 
@@ -4787,61 +4750,6 @@ mod test {
     assert_eq!(
       app_arc.lock().await.get_current_route(),
       ActiveSonarrBlock::AddSeriesEmptySearchResults.into()
-    );
-  }
-
-  #[tokio::test]
-  async fn test_handle_search_new_series_event_no_panic_on_race_condition() {
-    let resource = format!(
-      "{}?term=test%20term",
-      SonarrEvent::SearchNewSeries(None).resource()
-    );
-    let mut server = Server::new_async().await;
-    let mut async_server = server
-      .mock(
-        &RequestMethod::Get.to_string().to_uppercase(),
-        format!("/api/v3{resource}").as_str(),
-      )
-      .match_header("X-Api-Key", "test1234");
-    async_server = async_server.expect_at_most(0).create_async().await;
-
-    let host = Some(server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned());
-    let port = Some(
-      server.host_with_port().split(':').collect::<Vec<&str>>()[1]
-        .parse()
-        .unwrap(),
-    );
-    let mut app = App::default();
-    let sonarr_config = ServarrConfig {
-      host,
-      port,
-      api_token: "test1234".to_owned(),
-      ..ServarrConfig::default()
-    };
-    app.config.sonarr = Some(sonarr_config);
-    let app_arc = Arc::new(Mutex::new(app));
-    app_arc
-      .lock()
-      .await
-      .push_navigation_stack(ActiveSonarrBlock::Series.into());
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::SearchNewSeries(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .add_searched_series
-      .is_none());
-    assert_eq!(
-      app_arc.lock().await.get_current_route(),
-      ActiveSonarrBlock::Series.into()
     );
   }
 

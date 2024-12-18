@@ -597,7 +597,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::SearchNewSeries(Some(expected_search_query)).into(),
+          SonarrEvent::SearchNewSeries(expected_search_query).into(),
         ))
         .times(1)
         .returning(|_| {
