@@ -228,7 +228,7 @@ mod test {
   fn test_resource_series_history(
     #[values(
       SonarrEvent::GetSeriesHistory(None),
-      SonarrEvent::GetSeasonHistory(None)
+      SonarrEvent::GetSeasonHistory((0, 0))
     )]
     event: SonarrEvent,
   ) {
@@ -3511,7 +3511,7 @@ mod test {
       None,
       Some(history_json),
       None,
-      SonarrEvent::GetSeasonHistory(None),
+      SonarrEvent::GetSeasonHistory((1, 1)),
       None,
       Some("seriesId=1&seasonNumber=1"),
     )
@@ -3545,123 +3545,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryItems(history) = network
-      .handle_sonarr_event(SonarrEvent::GetSeasonHistory(None))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .season_history
-          .items,
-        expected_history_items
-      );
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .season_history
-          .sort_asc
-      );
-      assert_eq!(history, response);
-    }
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_sonarr_season_history_event_uses_provided_series_id_and_season_number() {
-    let history_json = json!([{
-      "id": 123,
-      "sourceTitle": "z episode",
-      "episodeId": 1007,
-      "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{ "id": 1, "name": "English" }],
-      "date": "2024-02-10T07:28:45Z",
-      "eventType": "grabbed",
-      "data": {
-        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
-        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
-      }
-    },
-    {
-      "id": 456,
-      "sourceTitle": "A Episode",
-      "episodeId": 2001,
-      "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{ "id": 1, "name": "English" }],
-      "date": "2024-02-10T07:28:45Z",
-      "eventType": "grabbed",
-      "data": {
-        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
-        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
-      }
-    }]);
-    let response: Vec<SonarrHistoryItem> = serde_json::from_value(history_json.clone()).unwrap();
-    let expected_history_items = vec![
-      SonarrHistoryItem {
-        id: 123,
-        episode_id: 1007,
-        source_title: "z episode".into(),
-        ..history_item()
-      },
-      SonarrHistoryItem {
-        id: 456,
-        episode_id: 2001,
-        source_title: "A Episode".into(),
-        ..history_item()
-      },
-    ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(history_json),
-      None,
-      SonarrEvent::GetSeasonHistory(Some((2, 2))),
-      None,
-      Some("seriesId=2&seasonNumber=2"),
-    )
-    .await;
-    app_arc.lock().await.data.sonarr_data.season_details_modal =
-      Some(SeasonDetailsModal::default());
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .series
-      .set_items(vec![series()]);
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .seasons
-      .set_items(vec![season()]);
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .season_details_modal
-      .as_mut()
-      .unwrap()
-      .season_history
-      .sort_asc = true;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let SonarrSerdeable::SonarrHistoryItems(history) = network
-      .handle_sonarr_event(SonarrEvent::GetSeasonHistory(Some((2, 2))))
+      .handle_sonarr_event(SonarrEvent::GetSeasonHistory((1, 1)))
       .await
       .unwrap()
     {
@@ -3743,7 +3627,7 @@ mod test {
       None,
       Some(history_json),
       None,
-      SonarrEvent::GetSeasonHistory(None),
+      SonarrEvent::GetSeasonHistory((1, 1)),
       None,
       Some("seriesId=1&seasonNumber=1"),
     )
@@ -3765,7 +3649,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryItems(history) = network
-      .handle_sonarr_event(SonarrEvent::GetSeasonHistory(None))
+      .handle_sonarr_event(SonarrEvent::GetSeasonHistory((1, 1)))
       .await
       .unwrap()
     {

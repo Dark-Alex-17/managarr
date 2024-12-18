@@ -70,7 +70,7 @@ pub enum SonarrEvent {
   GetQueuedEvents,
   GetRootFolders,
   GetEpisodeReleases(i64),
-  GetSeasonHistory(Option<(i64, i64)>),
+  GetSeasonHistory((i64, i64)),
   GetSeasonReleases(Option<(i64, i64)>),
   GetSecurityConfig,
   GetSeriesDetails(Option<i64>),
@@ -1718,22 +1718,13 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn get_sonarr_season_history(
     &mut self,
-    series_season_id_tuple: Option<(i64, i64)>,
+    series_season_id_tuple: (i64, i64),
   ) -> Result<Vec<SonarrHistoryItem>> {
-    let event = SonarrEvent::GetSeasonHistory(None);
-    let (series_id, season_number) =
-      if let Some((series_id, season_number)) = series_season_id_tuple {
-        (Some(series_id), Some(season_number))
-      } else {
-        (None, None)
-      };
-
-    let (series_id, series_id_param) = self.extract_series_id(series_id).await;
-    let (season_number, season_number_param) = self.extract_season_number(season_number).await?;
-
+    let event = SonarrEvent::GetSeasonHistory(series_season_id_tuple);
+    let (series_id, season_number) = series_season_id_tuple;
     info!("Fetching history for series with ID: {series_id} and season number: {season_number}");
 
-    let params = format!("{series_id_param}&{season_number_param}",);
+    let params = format!("seriesId={series_id}&seasonNumber={season_number}",);
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
       .await;

@@ -55,9 +55,14 @@ impl<'a> App<'a> {
           .await;
       }
       ActiveSonarrBlock::SeasonHistory => {
-        self
-          .dispatch_network_event(SonarrEvent::GetSeasonHistory(None).into())
-          .await;
+        if !self.data.sonarr_data.seasons.is_empty() {
+          self
+            .dispatch_network_event(
+              SonarrEvent::GetSeasonHistory(self.extract_series_id_season_number_tuple().await)
+                .into(),
+            )
+            .await;
+        }
       }
       ActiveSonarrBlock::ManualSeasonSearch => {
         match self.data.sonarr_data.season_details_modal.as_ref() {
@@ -265,5 +270,16 @@ impl<'a> App<'a> {
 
   async fn extract_series_id(&self) -> i64 {
     self.data.sonarr_data.series.current_selection().id
+  }
+
+  async fn extract_series_id_season_number_tuple(&self) -> (i64, i64) {
+    let series_id = self.data.sonarr_data.series.current_selection().id;
+    let season_number = self
+      .data
+      .sonarr_data
+      .seasons
+      .current_selection()
+      .season_number;
+    (series_id, season_number)
   }
 }
