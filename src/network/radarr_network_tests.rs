@@ -120,7 +120,7 @@ mod test {
       RadarrEvent::AddMovie(AddMovieBody::default()),
       RadarrEvent::EditMovie(EditMovieParams::default()),
       RadarrEvent::GetMovies,
-      RadarrEvent::GetMovieDetails(None),
+      RadarrEvent::GetMovieDetails(0),
       RadarrEvent::DeleteMovie(DeleteMovieParams::default())
     )]
     event: RadarrEvent,
@@ -1356,24 +1356,17 @@ mod test {
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
       None,
-      RadarrEvent::GetMovieDetails(None),
+      RadarrEvent::GetMovieDetails(1),
       Some("/1"),
       None,
     )
     .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.quality_profile_map =
       BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Movie(movie) = network
-      .handle_radarr_event(RadarrEvent::GetMovieDetails(None))
+      .handle_radarr_event(RadarrEvent::GetMovieDetails(1))
       .await
       .unwrap()
     {
@@ -1444,31 +1437,6 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_movie_details_event_uses_provided_id() {
-    let response: Movie = serde_json::from_str(MOVIE_JSON).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(MOVIE_JSON).unwrap()),
-      None,
-      RadarrEvent::GetMovieDetails(None),
-      Some("/1"),
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let RadarrSerdeable::Movie(movie) = network
-      .handle_radarr_event(RadarrEvent::GetMovieDetails(Some(1)))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(movie, response);
-    }
-  }
-
-  #[tokio::test]
   async fn test_handle_get_movie_details_event_empty_options_give_correct_defaults() {
     let movie_json_with_missing_fields = json!({
       "id": 1,
@@ -1498,24 +1466,17 @@ mod test {
       None,
       Some(movie_json_with_missing_fields),
       None,
-      RadarrEvent::GetMovieDetails(None),
+      RadarrEvent::GetMovieDetails(1),
       Some("/1"),
       None,
     )
     .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.quality_profile_map =
       BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::GetMovieDetails(None))
+      .handle_radarr_event(RadarrEvent::GetMovieDetails(1))
       .await
       .is_ok());
 
@@ -3993,7 +3954,7 @@ mod test {
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
       None,
-      RadarrEvent::GetMovieDetails(None),
+      RadarrEvent::GetMovieDetails(1),
       Some("/1"),
       None,
     )
@@ -4043,7 +4004,7 @@ mod test {
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
       None,
-      RadarrEvent::GetMovieDetails(None),
+      RadarrEvent::GetMovieDetails(1),
       Some("/1"),
       None,
     )
@@ -4079,7 +4040,7 @@ mod test {
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
       None,
-      RadarrEvent::GetMovieDetails(None),
+      RadarrEvent::GetMovieDetails(1),
       Some("/1"),
       None,
     )
@@ -4119,7 +4080,7 @@ mod test {
       None,
       Some(serde_json::from_str(MOVIE_JSON).unwrap()),
       None,
-      RadarrEvent::GetMovieDetails(None),
+      RadarrEvent::GetMovieDetails(1),
       Some("/1"),
       None,
     )

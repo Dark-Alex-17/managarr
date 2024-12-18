@@ -182,7 +182,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::GetMovieDetails(Some(expected_movie_id)).into(),
+          RadarrEvent::GetMovieDetails(expected_movie_id).into(),
         ))
         .times(1)
         .returning(|_| {

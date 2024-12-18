@@ -56,7 +56,7 @@ pub enum RadarrEvent {
   GetAllIndexerSettings,
   GetLogs(u64),
   GetMovieCredits(i64),
-  GetMovieDetails(Option<i64>),
+  GetMovieDetails(i64),
   GetMovieHistory(Option<i64>),
   GetMovies,
   GetDiskSpace,
@@ -824,9 +824,9 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn edit_movie(&mut self, mut edit_movie_params: EditMovieParams) -> Result<()> {
     info!("Editing Radarr movie");
-    let detail_event = RadarrEvent::GetMovieDetails(None);
-    let event = RadarrEvent::EditMovie(edit_movie_params.clone());
     let movie_id = edit_movie_params.movie_id;
+    let detail_event = RadarrEvent::GetMovieDetails(movie_id);
+    let event = RadarrEvent::EditMovie(edit_movie_params.clone());
     if let Some(tag_input_string) = edit_movie_params.tag_input_string.as_ref() {
       let tag_ids_vec = self
         .extract_and_add_radarr_tag_ids_vec(tag_input_string.clone())
@@ -1164,19 +1164,18 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_movie_details(&mut self, movie_id: Option<i64>) -> Result<Movie> {
+  async fn get_movie_details(&mut self, movie_id: i64) -> Result<Movie> {
     info!("Fetching Radarr movie details");
-    let event = RadarrEvent::GetMovieDetails(None);
-    let (id, _) = self.extract_movie_id(movie_id).await;
+    let event = RadarrEvent::GetMovieDetails(movie_id);
 
-    info!("Fetching movie details for movie with ID: {id}");
+    info!("Fetching movie details for movie with ID: {movie_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Get,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{movie_id}")),
         None,
       )
       .await;

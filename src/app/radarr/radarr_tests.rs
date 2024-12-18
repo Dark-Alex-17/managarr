@@ -322,6 +322,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_movie_details_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.radarr_data.movies.set_items(vec![Movie { id: 1, ..Movie::default() }]);
 
       app
         .dispatch_by_radarr_block(&ActiveRadarrBlock::MovieDetails)
@@ -330,7 +331,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetMovieDetails(None).into()
+        RadarrEvent::GetMovieDetails(1).into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -339,6 +340,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_file_info_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.radarr_data.movies.set_items(vec![Movie { id: 1, ..Movie::default() }]);
 
       app
         .dispatch_by_radarr_block(&ActiveRadarrBlock::FileInfo)
@@ -347,7 +349,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetMovieDetails(None).into()
+        RadarrEvent::GetMovieDetails(1).into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);

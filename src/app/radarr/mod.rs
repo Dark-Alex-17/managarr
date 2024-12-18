@@ -108,7 +108,7 @@ impl<'a> App<'a> {
       }
       ActiveRadarrBlock::MovieDetails | ActiveRadarrBlock::FileInfo => {
         self
-          .dispatch_network_event(RadarrEvent::GetMovieDetails(None).into())
+          .dispatch_network_event(RadarrEvent::GetMovieDetails(self.extract_movie_id().await).into())
           .await;
       }
       ActiveRadarrBlock::MovieHistory => {
