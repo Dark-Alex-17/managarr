@@ -138,7 +138,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrDeleteCommand> for SonarrDeleteComm
         };
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::DeleteSeries(Some(delete_series_params)).into())
+          .handle_network_event(SonarrEvent::DeleteSeries(delete_series_params).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

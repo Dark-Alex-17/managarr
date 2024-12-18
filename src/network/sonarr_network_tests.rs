@@ -162,7 +162,7 @@ mod test {
       SonarrEvent::AddSeries(AddSeriesBody::default()),
       SonarrEvent::ListSeries,
       SonarrEvent::GetSeriesDetails(None),
-      SonarrEvent::DeleteSeries(None),
+      SonarrEvent::DeleteSeries(DeleteSeriesParams::default()),
       SonarrEvent::EditSeries(None),
       SonarrEvent::ToggleSeasonMonitoring(None)
     )]
@@ -665,61 +665,29 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_delete_series_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      SonarrEvent::DeleteSeries(None),
-      Some("/1"),
-      Some("deleteFiles=true&addImportExclusion=true"),
-    )
-    .await;
-    {
-      let mut app = app_arc.lock().await;
-      app.data.sonarr_data.series.set_items(vec![series()]);
-      app.data.sonarr_data.delete_series_files = true;
-      app.data.sonarr_data.add_list_exclusion = true;
-    }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::DeleteSeries(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-    assert!(!app_arc.lock().await.data.sonarr_data.delete_series_files);
-    assert!(!app_arc.lock().await.data.sonarr_data.add_list_exclusion);
-  }
-
-  #[tokio::test]
-  async fn test_handle_delete_series_event_use_provided_params() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      SonarrEvent::DeleteSeries(None),
-      Some("/1"),
-      Some("deleteFiles=true&addImportExclusion=true"),
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
     let delete_series_params = DeleteSeriesParams {
       id: 1,
       delete_series_files: true,
       add_list_exclusion: true,
     };
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Delete,
+      None,
+      None,
+      None,
+      SonarrEvent::DeleteSeries(delete_series_params.clone()),
+      Some("/1"),
+      Some("deleteFiles=true&addImportExclusion=true"),
+    )
+    .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::DeleteSeries(Some(delete_series_params)))
+      .handle_sonarr_event(SonarrEvent::DeleteSeries(delete_series_params))
       .await
       .is_ok());
 
     async_server.assert_async().await;
-    assert!(!app_arc.lock().await.data.sonarr_data.delete_series_files);
-    assert!(!app_arc.lock().await.data.sonarr_data.add_list_exclusion);
   }
 
   #[tokio::test]

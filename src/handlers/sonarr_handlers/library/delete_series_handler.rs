@@ -1,9 +1,10 @@
+use crate::models::sonarr_models::DeleteSeriesParams;
+use crate::network::sonarr_network::SonarrEvent;
 use crate::{
   app::{key_binding::DEFAULT_KEYBINDINGS, App},
   event::Key,
   handlers::{handle_prompt_toggle, KeyEventHandler},
   models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DELETE_SERIES_BLOCKS},
-  network::sonarr_network::SonarrEvent,
 };
 
 #[cfg(test)]
@@ -15,6 +16,21 @@ pub(super) struct DeleteSeriesHandler<'a, 'b> {
   app: &'a mut App<'b>,
   active_sonarr_block: ActiveSonarrBlock,
   _context: Option<ActiveSonarrBlock>,
+}
+
+impl<'a, 'b> DeleteSeriesHandler<'a, 'b> {
+  fn build_delete_series_params(&mut self) -> DeleteSeriesParams {
+    let id = self.app.data.sonarr_data.series.current_selection().id;
+    let delete_series_files = self.app.data.sonarr_data.delete_series_files;
+    let add_list_exclusion = self.app.data.sonarr_data.add_list_exclusion;
+    self.app.data.sonarr_data.reset_delete_series_preferences();
+
+    DeleteSeriesParams {
+      id,
+      delete_series_files,
+      add_list_exclusion,
+    }
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DeleteSeriesHandler<'a, 'b> {
@@ -73,7 +89,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DeleteSeriesHandler<
       match self.app.data.sonarr_data.selected_block.get_active_block() {
         ActiveSonarrBlock::DeleteSeriesConfirmPrompt => {
           if self.app.data.sonarr_data.prompt_confirm {
-            self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::DeleteSeries(None));
+            self.app.data.sonarr_data.prompt_confirm_action =
+              Some(SonarrEvent::DeleteSeries(self.build_delete_series_params()));
             self.app.should_refresh = true;
           } else {
             self.app.data.sonarr_data.reset_delete_series_preferences();
@@ -109,7 +126,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DeleteSeriesHandler<
       && self.key == DEFAULT_KEYBINDINGS.confirm.key
     {
       self.app.data.sonarr_data.prompt_confirm = true;
-      self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::DeleteSeries(None));
+      self.app.data.sonarr_data.prompt_confirm_action =
+        Some(SonarrEvent::DeleteSeries(self.build_delete_series_params()));
       self.app.should_refresh = true;
 
       self.app.pop_navigation_stack();

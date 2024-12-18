@@ -47,7 +47,7 @@ pub enum SonarrEvent {
   DeleteEpisodeFile(i64),
   DeleteIndexer(i64),
   DeleteRootFolder(i64),
-  DeleteSeries(Option<DeleteSeriesParams>),
+  DeleteSeries(DeleteSeriesParams),
   DeleteTag(i64),
   DownloadRelease(SonarrReleaseDownloadBody),
   EditAllIndexerSettings(Option<IndexerSettings>),
@@ -554,53 +554,31 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_series(
-    &mut self,
-    delete_series_params: Option<DeleteSeriesParams>,
-  ) -> Result<()> {
-    let event = SonarrEvent::DeleteSeries(None);
-    let (series_id, delete_files, add_import_exclusion) = if let Some(params) = delete_series_params
-    {
-      (
-        params.id,
-        params.delete_series_files,
-        params.add_list_exclusion,
-      )
-    } else {
-      let (series_id, _) = self.extract_series_id(None).await;
-      let delete_files = self.app.lock().await.data.sonarr_data.delete_series_files;
-      let add_import_exclusion = self.app.lock().await.data.sonarr_data.add_list_exclusion;
+  async fn delete_series(&mut self, delete_series_params: DeleteSeriesParams) -> Result<()> {
+    let event = SonarrEvent::DeleteSeries(delete_series_params.clone());
+    let DeleteSeriesParams {
+      id,
+      delete_series_files,
+      add_list_exclusion,
+    } = delete_series_params;
 
-      (series_id, delete_files, add_import_exclusion)
-    };
-
-    info!("Deleting Sonarr series with ID: {series_id} with deleteFiles={delete_files} and addImportExclusion={add_import_exclusion}");
+    info!("Deleting Sonarr series with ID: {id} with deleteFiles={delete_series_files} and addImportExclusion={add_list_exclusion}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{series_id}")),
+        Some(format!("/{id}")),
         Some(format!(
-          "deleteFiles={delete_files}&addImportExclusion={add_import_exclusion}"
+          "deleteFiles={delete_series_files}&addImportExclusion={add_list_exclusion}"
         )),
       )
       .await;
 
-    let resp = self
-      .handle_request::<(), ()>(request_props, |_, _| ())
-      .await;
-
     self
-      .app
-      .lock()
+      .handle_request::<(), ()>(request_props, |_, _| ())
       .await
-      .data
-      .sonarr_data
-      .reset_delete_series_preferences();
-
-    resp
   }
 
   async fn delete_sonarr_tag(&mut self, id: i64) -> Result<()> {

@@ -1,13 +1,16 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::sonarr_handlers::library::delete_series_handler::DeleteSeriesHandler;
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DELETE_SERIES_BLOCKS};
+  use crate::models::sonarr_models::DeleteSeriesParams;
 
   mod test_handle_scroll_up_and_down {
     use pretty_assertions::assert_eq;
@@ -132,6 +135,12 @@ mod tests {
       app.data.sonarr_data.prompt_confirm = true;
       app.data.sonarr_data.delete_series_files = true;
       app.data.sonarr_data.add_list_exclusion = true;
+      app.data.sonarr_data.series.set_items(vec![series()]);
+      let expected_delete_series_params = DeleteSeriesParams {
+        id: 1,
+        delete_series_files: true,
+        add_list_exclusion: true,
+      };
       app.data.sonarr_data.selected_block =
         BlockSelectionState::new(DELETE_SERIES_SELECTION_BLOCKS);
       app
@@ -151,12 +160,12 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::DeleteSeries(None))
+        Some(SonarrEvent::DeleteSeries(expected_delete_series_params))
       );
       assert!(app.should_refresh);
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert!(app.data.sonarr_data.delete_series_files);
-      assert!(app.data.sonarr_data.add_list_exclusion);
+      assert!(!app.data.sonarr_data.delete_series_files);
+      assert!(!app.data.sonarr_data.add_list_exclusion);
     }
 
     #[test]
@@ -222,6 +231,7 @@ mod tests {
 
   mod test_handle_esc {
     use super::*;
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
@@ -258,6 +268,7 @@ mod tests {
       },
       network::sonarr_network::SonarrEvent,
     };
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
@@ -268,6 +279,12 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
       app.data.sonarr_data.delete_series_files = true;
       app.data.sonarr_data.add_list_exclusion = true;
+      app.data.sonarr_data.series.set_items(vec![series()]);
+      let expected_delete_series_params = DeleteSeriesParams {
+        id: 1,
+        delete_series_files: true,
+        add_list_exclusion: true,
+      };
       app.data.sonarr_data.selected_block =
         BlockSelectionState::new(DELETE_SERIES_SELECTION_BLOCKS);
       app
@@ -287,12 +304,12 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::DeleteSeries(None))
+        Some(SonarrEvent::DeleteSeries(expected_delete_series_params))
       );
       assert!(app.should_refresh);
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert!(app.data.sonarr_data.delete_series_files);
-      assert!(app.data.sonarr_data.add_list_exclusion);
+      assert!(!app.data.sonarr_data.delete_series_files);
+      assert!(!app.data.sonarr_data.add_list_exclusion);
     }
   }
 
@@ -305,6 +322,31 @@ mod tests {
         assert!(!DeleteSeriesHandler::accepts(active_sonarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_build_delete_series_params() {
+    let mut app = App::default();
+    app.data.sonarr_data.series.set_items(vec![series()]);
+    app.data.sonarr_data.delete_series_files = true;
+    app.data.sonarr_data.add_list_exclusion = true;
+    let expected_delete_series_params = DeleteSeriesParams {
+      id: 1,
+      delete_series_files: true,
+      add_list_exclusion: true,
+    };
+
+    let delete_series_params = DeleteSeriesHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::DeleteSeriesPrompt,
+      None,
+    )
+    .build_delete_series_params();
+
+    assert_eq!(delete_series_params, expected_delete_series_params);
+    assert!(!app.data.sonarr_data.delete_series_files);
+    assert!(!app.data.sonarr_data.add_list_exclusion);
   }
 
   #[test]

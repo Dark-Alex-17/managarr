@@ -440,7 +440,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::DeleteSeries(Some(expected_delete_series_params)).into(),
+          SonarrEvent::DeleteSeries(expected_delete_series_params).into(),
         ))
         .times(1)
         .returning(|_| {

@@ -97,7 +97,7 @@ pub struct BlocklistResponse {
   pub records: Vec<BlocklistItem>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub struct DeleteSeriesParams {
   pub id: i64,
