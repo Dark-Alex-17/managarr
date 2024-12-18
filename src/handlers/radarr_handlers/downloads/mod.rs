@@ -27,15 +27,9 @@ impl<'a, 'b> DownloadsHandler<'a, 'b> {
     self.app.data.radarr_data.downloads,
     DownloadRecord
   );
-  
+
   fn extract_download_id(&self) -> i64 {
-    self
-      .app
-      .data
-      .radarr_data
-      .downloads
-      .current_selection()
-      .id
+    self.app.data.radarr_data.downloads.current_selection().id
   }
 }
 
@@ -105,7 +99,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
     match self.active_radarr_block {
       ActiveRadarrBlock::DeleteDownloadPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteDownload(self.extract_download_id()));
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::DeleteDownload(self.extract_download_id()));
         }
 
         self.app.pop_navigation_stack();
@@ -148,7 +143,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
       ActiveRadarrBlock::DeleteDownloadPrompt => {
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteDownload(self.extract_download_id()));
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::DeleteDownload(self.extract_download_id()));
 
           self.app.pop_navigation_stack();
         }

@@ -775,7 +775,7 @@ mod tests {
       id: 1,
       ..Indexer::default()
     }]);
-    
+
     assert_eq!(app.extract_indexer_id().await, 1);
   }
 

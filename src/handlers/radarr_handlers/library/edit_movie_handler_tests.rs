@@ -1185,7 +1185,8 @@ mod tests {
       &mut app,
       ActiveRadarrBlock::EditMoviePrompt,
       None,
-    ).build_edit_movie_params();
+    )
+    .build_edit_movie_params();
 
     assert_eq!(edit_movie_params, expected_edit_movie_params);
     assert!(app.data.radarr_data.edit_movie_modal.is_none());

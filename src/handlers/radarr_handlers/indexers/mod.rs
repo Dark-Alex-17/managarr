@@ -33,15 +33,9 @@ pub(super) struct IndexersHandler<'a, 'b> {
 
 impl<'a, 'b> IndexersHandler<'a, 'b> {
   handle_table_events!(self, indexers, self.app.data.radarr_data.indexers, Indexer);
-  
+
   fn extract_indexer_id(&self) -> i64 {
-    self
-      .app
-      .data
-      .radarr_data
-      .indexers
-      .current_selection()
-      .id
+    self.app.data.radarr_data.indexers.current_selection().id
   }
 }
 
@@ -200,7 +194,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
       ActiveRadarrBlock::DeleteIndexerPrompt => {
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteIndexer(self.extract_indexer_id()));
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::DeleteIndexer(self.extract_indexer_id()));
 
           self.app.pop_navigation_stack();
         }

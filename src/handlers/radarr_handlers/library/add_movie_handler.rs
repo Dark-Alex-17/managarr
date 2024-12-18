@@ -1,7 +1,9 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
-use crate::models::radarr_models::{AddMovieBody, AddMovieOptions, AddMovieSearchResult, CollectionMovie};
+use crate::models::radarr_models::{
+  AddMovieBody, AddMovieOptions, AddMovieSearchResult, CollectionMovie,
+};
 use crate::models::servarr_data::radarr::modals::AddMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS,
@@ -54,10 +56,10 @@ impl<'a, 'b> AddMovieHandler<'a, 'b> {
       quality_profile_list,
       ..
     } = self.app.data.radarr_data.add_movie_modal.as_ref().unwrap();
-    let (tmdb_id, title) = if let Some(context) = self.context
-    {
+    let (tmdb_id, title) = if let Some(context) = self.context {
       if context == ActiveRadarrBlock::CollectionDetails {
-        let CollectionMovie { tmdb_id, title, .. } = self.app
+        let CollectionMovie { tmdb_id, title, .. } = self
+          .app
           .data
           .radarr_data
           .collection_movies
@@ -65,7 +67,8 @@ impl<'a, 'b> AddMovieHandler<'a, 'b> {
           .clone();
         (tmdb_id, title.text)
       } else {
-        let AddMovieSearchResult { tmdb_id, title, .. } = self.app
+        let AddMovieSearchResult { tmdb_id, title, .. } = self
+          .app
           .data
           .radarr_data
           .add_searched_movies
@@ -76,7 +79,8 @@ impl<'a, 'b> AddMovieHandler<'a, 'b> {
         (tmdb_id, title.text)
       }
     } else {
-      let AddMovieSearchResult { tmdb_id, title, .. } = self.app
+      let AddMovieSearchResult { tmdb_id, title, .. } = self
+        .app
         .data
         .radarr_data
         .add_searched_movies
@@ -87,7 +91,8 @@ impl<'a, 'b> AddMovieHandler<'a, 'b> {
       (tmdb_id, title.text)
     };
     let quality_profile = quality_profile_list.current_selection();
-    let quality_profile_id = *self.app
+    let quality_profile_id = *self
+      .app
       .data
       .radarr_data
       .quality_profile_map
@@ -446,7 +451,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         match self.app.data.radarr_data.selected_block.get_active_block() {
           ActiveRadarrBlock::AddMovieConfirmPrompt => {
             if self.app.data.radarr_data.prompt_confirm {
-              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddMovie(self.build_add_movie_body()));
+              self.app.data.radarr_data.prompt_confirm_action =
+                Some(RadarrEvent::AddMovie(self.build_add_movie_body()));
             }
 
             self.app.pop_navigation_stack();
@@ -546,7 +552,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
           && key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddMovie(self.build_add_movie_body()));
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::AddMovie(self.build_add_movie_body()));
           self.app.pop_navigation_stack();
         }
       }

@@ -14,15 +14,14 @@ mod test {
 
   use super::super::*;
   use crate::models::radarr_models::{
-    AddMovieOptions,
-    BlocklistItem, BlocklistItemMovie, CollectionMovie, EditCollectionParams, EditMovieParams,
-    IndexerSettings, MediaInfo, MinimumAvailability, MovieCollection, MovieFile, RadarrTaskName, Rating, RatingsList
+    AddMovieOptions, BlocklistItem, BlocklistItemMovie, CollectionMovie, EditCollectionParams,
+    EditMovieParams, IndexerSettings, MediaInfo, MinimumAvailability, MovieCollection, MovieFile,
+    RadarrTaskName, Rating, RatingsList,
   };
   use crate::models::servarr_data::radarr::modals::EditMovieModal;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_models::{
-    EditIndexerParams,
-    HostConfig, IndexerField, Language, Quality, QualityWrapper,
+    EditIndexerParams, HostConfig, IndexerField, Language, Quality, QualityWrapper,
   };
   use crate::models::stateful_table::SortOption;
   use crate::models::HorizontallyScrollableText;
@@ -130,14 +129,23 @@ mod test {
 
   #[rstest]
   fn test_resource_collection(
-    #[values(RadarrEvent::GetCollections, RadarrEvent::EditCollection(EditCollectionParams::default()))] event: RadarrEvent,
+    #[values(
+      RadarrEvent::GetCollections,
+      RadarrEvent::EditCollection(EditCollectionParams::default())
+    )]
+    event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/collection");
   }
 
   #[rstest]
   fn test_resource_indexer(
-    #[values(RadarrEvent::GetIndexers, RadarrEvent::DeleteIndexer(0), RadarrEvent::EditIndexer(EditIndexerParams::default()))] event: RadarrEvent,
+    #[values(
+      RadarrEvent::GetIndexers,
+      RadarrEvent::DeleteIndexer(0),
+      RadarrEvent::EditIndexer(EditIndexerParams::default())
+    )]
+    event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/indexer");
   }
@@ -179,7 +187,10 @@ mod test {
 
   #[rstest]
   fn test_resource_release(
-    #[values(RadarrEvent::GetReleases(0), RadarrEvent::DownloadRelease(RadarrReleaseDownloadBody::default()))]
+    #[values(
+      RadarrEvent::GetReleases(0),
+      RadarrEvent::DownloadRelease(RadarrReleaseDownloadBody::default())
+    )]
     event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/release");
@@ -204,7 +215,7 @@ mod test {
     #[values(
       RadarrEvent::StartTask(RadarrTaskName::default()),
       RadarrEvent::GetQueuedEvents,
-      RadarrEvent::TriggerAutomaticSearch(None),
+      RadarrEvent::TriggerAutomaticSearch(0),
       RadarrEvent::UpdateAndScan(None),
       RadarrEvent::UpdateAllMovies,
       RadarrEvent::UpdateDownloads,
@@ -670,7 +681,9 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Value(value) = network
-      .handle_radarr_event(RadarrEvent::StartTask(RadarrTaskName::ApplicationCheckUpdate))
+      .handle_radarr_event(RadarrEvent::StartTask(
+        RadarrTaskName::ApplicationCheckUpdate,
+      ))
       .await
       .unwrap()
     {
@@ -950,39 +963,7 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::TriggerAutomaticSearch(None),
-      None,
-      None,
-    )
-    .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![movie()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::TriggerAutomaticSearch(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-  }
-
-  #[tokio::test]
-  async fn test_handle_trigger_automatic_movie_search_event_uses_provided_id() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "name": "MoviesSearch",
-        "movieIds": [ 1 ]
-      })),
-      Some(json!({})),
-      None,
-      RadarrEvent::TriggerAutomaticSearch(None),
+      RadarrEvent::TriggerAutomaticSearch(1),
       None,
       None,
     )
@@ -990,7 +971,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::TriggerAutomaticSearch(Some(1)))
+      .handle_radarr_event(RadarrEvent::TriggerAutomaticSearch(1))
       .await
       .is_ok());
 
@@ -2894,7 +2875,7 @@ mod test {
       None,
       None,
     )
-      .await;
+    .await;
     app_arc.lock().await.data.radarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
     let add_movie_body = AddMovieBody {
@@ -2935,7 +2916,9 @@ mod test {
       None,
     )
     .await;
-    let add_root_folder_body = AddRootFolderBody { path: "/nfs/test".to_owned() };
+    let add_root_folder_body = AddRootFolderBody {
+      path: "/nfs/test".to_owned(),
+    };
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -3220,7 +3203,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1?forceSave=true", RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()).as_str(),
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -3241,7 +3228,8 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_radarr_indexer_event_does_not_overwrite_tags_vec_if_tag_input_string_is_none() {
+  async fn test_handle_edit_radarr_indexer_event_does_not_overwrite_tags_vec_if_tag_input_string_is_none(
+  ) {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -3310,11 +3298,15 @@ mod test {
       Some("/1"),
       None,
     )
-      .await;
+    .await;
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1?forceSave=true", RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()).as_str(),
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -3401,7 +3393,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1?forceSave=true", RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()).as_str(),
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -3495,7 +3491,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1?forceSave=true", RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()).as_str(),
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -3516,8 +3516,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_radarr_indexer_event_defaults_to_previous_values(
-  ) {
+  async fn test_handle_edit_radarr_indexer_event_defaults_to_previous_values() {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -3559,7 +3558,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1?forceSave=true", RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()).as_str(),
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -3578,8 +3581,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_radarr_indexer_event_clears_tags_when_clear_tags_is_true(
-  ) {
+  async fn test_handle_edit_radarr_indexer_event_clears_tags_when_clear_tags_is_true() {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -3645,7 +3647,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1?forceSave=true", RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()).as_str(),
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -3694,7 +3700,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditMovie(edit_movie_params.clone()).resource()).as_str(),
+        format!(
+          "/api/v3{}/1",
+          RadarrEvent::EditMovie(edit_movie_params.clone()).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -3740,11 +3750,15 @@ mod test {
       Some("/1"),
       None,
     )
-      .await;
+    .await;
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditMovie(edit_movie_params.clone()).resource()).as_str(),
+        format!(
+          "/api/v3{}/1",
+          RadarrEvent::EditMovie(edit_movie_params.clone()).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -3784,7 +3798,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditMovie(edit_movie_params.clone()).resource()).as_str(),
+        format!(
+          "/api/v3{}/1",
+          RadarrEvent::EditMovie(edit_movie_params.clone()).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -3825,7 +3843,11 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditMovie(edit_movie_params.clone()).resource()).as_str(),
+        format!(
+          "/api/v3{}/1",
+          RadarrEvent::EditMovie(edit_movie_params.clone()).resource()
+        )
+        .as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")

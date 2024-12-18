@@ -138,7 +138,9 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHan
         serde_json::to_string_pretty(&resp)?
       }
       RadarrAddCommand::RootFolder { root_folder_path } => {
-        let add_root_folder_body = AddRootFolderBody { path: root_folder_path };
+        let add_root_folder_body = AddRootFolderBody {
+          path: root_folder_path,
+        };
         let resp = self
           .network
           .handle_network_event(RadarrEvent::AddRootFolder(add_root_folder_body).into())

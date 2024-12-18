@@ -1056,7 +1056,8 @@ mod tests {
       &mut app,
       ActiveRadarrBlock::EditCollectionPrompt,
       None,
-    ).build_edit_collection_params();
+    )
+    .build_edit_collection_params();
 
     assert_eq!(edit_collection_params, expected_edit_collection_params);
     assert!(app.data.radarr_data.edit_collection_modal.is_none());

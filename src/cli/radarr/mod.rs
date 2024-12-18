@@ -253,7 +253,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrCommand> for RadarrCliHandler<'a, '
       RadarrCommand::TriggerAutomaticSearch { movie_id } => {
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::TriggerAutomaticSearch(Some(movie_id)).into())
+          .handle_network_event(RadarrEvent::TriggerAutomaticSearch(movie_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

@@ -1822,13 +1822,14 @@ mod tests {
       priority: Some(25),
       ..EditIndexerParams::default()
     };
-    
+
     let edit_indexer_params = EditIndexerHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::EditIndexerPrompt,
       None,
-    ).build_edit_indexer_params();
+    )
+    .build_edit_indexer_params();
 
     assert_eq!(edit_indexer_params, expected_edit_indexer_params);
     assert!(app.data.radarr_data.edit_indexer_modal.is_none());

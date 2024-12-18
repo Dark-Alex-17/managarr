@@ -1522,7 +1522,7 @@ mod tests {
       }
     });
   }
-  
+
   #[test]
   fn test_add_movie_search_no_panic_on_none_search_result() {
     let mut app = App::default();

@@ -6,7 +6,9 @@ use crate::event::Key;
 use crate::handle_table_events;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
-use crate::models::radarr_models::{Credit, MovieHistoryItem, RadarrRelease, RadarrReleaseDownloadBody};
+use crate::models::radarr_models::{
+  Credit, MovieHistoryItem, RadarrRelease, RadarrReleaseDownloadBody,
+};
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, EDIT_MOVIE_SELECTION_BLOCKS, MOVIE_DETAILS_BLOCKS,
 };
@@ -79,15 +81,14 @@ impl<'a, 'b> MovieDetailsHandler<'a, 'b> {
       .movie_crew,
     Credit
   );
-  
+
   fn build_radarr_release_download_body(&self) -> RadarrReleaseDownloadBody {
     let movie_id = self.app.data.radarr_data.movies.current_selection().id;
     let (guid, indexer_id) = {
       let RadarrRelease {
-        guid,
-        indexer_id,
-        ..
-      } = self.app
+        guid, indexer_id, ..
+      } = self
+        .app
         .data
         .radarr_data
         .movie_details_modal
@@ -104,6 +105,10 @@ impl<'a, 'b> MovieDetailsHandler<'a, 'b> {
       indexer_id,
       movie_id,
     }
+  }
+
+  fn extract_movie_id(&self) -> i64 {
+    self.app.data.radarr_data.movies.current_selection().id
   }
 }
 
@@ -266,7 +271,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt => {
         if self.app.data.radarr_data.prompt_confirm {
           self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::TriggerAutomaticSearch(None));
+            Some(RadarrEvent::TriggerAutomaticSearch(self.extract_movie_id()));
         }
 
         self.app.pop_navigation_stack();
@@ -285,8 +290,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       }
       ActiveRadarrBlock::ManualSearchConfirmPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::DownloadRelease(self.build_radarr_release_download_body()));
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DownloadRelease(
+            self.build_radarr_release_download_body(),
+          ));
         }
 
         self.app.pop_navigation_stack();
@@ -359,7 +365,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       {
         self.app.data.radarr_data.prompt_confirm = true;
         self.app.data.radarr_data.prompt_confirm_action =
-          Some(RadarrEvent::TriggerAutomaticSearch(None));
+          Some(RadarrEvent::TriggerAutomaticSearch(self.extract_movie_id()));
 
         self.app.pop_navigation_stack();
       }
@@ -371,7 +377,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       }
       ActiveRadarrBlock::ManualSearchConfirmPrompt if key == DEFAULT_KEYBINDINGS.confirm.key => {
         self.app.data.radarr_data.prompt_confirm = true;
-        self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DownloadRelease(self.build_radarr_release_download_body()));
+        self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DownloadRelease(
+          self.build_radarr_release_download_body(),
+        ));
 
         self.app.pop_navigation_stack();
       }

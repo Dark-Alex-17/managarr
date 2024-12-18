@@ -73,7 +73,7 @@ pub enum RadarrEvent {
   StartTask(RadarrTaskName),
   TestIndexer(i64),
   TestAllIndexers,
-  TriggerAutomaticSearch(Option<i64>),
+  TriggerAutomaticSearch(i64),
   UpdateAllMovies,
   UpdateAndScan(Option<i64>),
   UpdateCollections,
@@ -1636,7 +1636,9 @@ impl<'a, 'b> Network<'a, 'b> {
 
     info!("Starting Radarr task: {task_name}");
 
-    let body = CommandBody { name: task_name.to_string() };
+    let body = CommandBody {
+      name: task_name.to_string(),
+    };
 
     let request_props = self
       .request_props_from(event, RequestMethod::Post, Some(body), None, None)
@@ -1742,13 +1744,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn trigger_automatic_movie_search(&mut self, movie_id: Option<i64>) -> Result<Value> {
+  async fn trigger_automatic_movie_search(&mut self, movie_id: i64) -> Result<Value> {
     let event = RadarrEvent::TriggerAutomaticSearch(movie_id);
-    let (id, _) = self.extract_movie_id(movie_id).await;
-    info!("Searching indexers for movie with ID: {id}");
+    info!("Searching indexers for movie with ID: {movie_id}");
     let body = MovieCommandBody {
       name: "MoviesSearch".to_owned(),
-      movie_ids: vec![id],
+      movie_ids: vec![movie_id],
     };
 
     let request_props = self

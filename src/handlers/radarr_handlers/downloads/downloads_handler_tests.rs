@@ -390,14 +390,19 @@ mod tests {
   #[test]
   fn test_extract_download_id() {
     let mut app = App::default();
-    app.data.radarr_data.downloads.set_items(vec![download_record()]);
+    app
+      .data
+      .radarr_data
+      .downloads
+      .set_items(vec![download_record()]);
 
     let download_id = DownloadsHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Downloads,
       None,
-    ).extract_download_id();
+    )
+    .extract_download_id();
 
     assert_eq!(download_id, 1);
   }

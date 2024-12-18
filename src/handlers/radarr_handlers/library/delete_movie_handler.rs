@@ -22,12 +22,8 @@ impl<'a, 'b> DeleteMovieHandler<'a, 'b> {
     let id = self.app.data.radarr_data.movies.current_selection().id;
     let delete_movie_files = self.app.data.radarr_data.delete_movie_files;
     let add_list_exclusion = self.app.data.radarr_data.add_list_exclusion;
-    self
-      .app
-      .data
-      .radarr_data
-      .reset_delete_movie_preferences();
-    
+    self.app.data.radarr_data.reset_delete_movie_preferences();
+
     DeleteMovieParams {
       id,
       delete_movie_files,
@@ -92,7 +88,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'
       match self.app.data.radarr_data.selected_block.get_active_block() {
         ActiveRadarrBlock::DeleteMovieConfirmPrompt => {
           if self.app.data.radarr_data.prompt_confirm {
-            self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteMovie(self.build_delete_movie_params()));
+            self.app.data.radarr_data.prompt_confirm_action =
+              Some(RadarrEvent::DeleteMovie(self.build_delete_movie_params()));
             self.app.should_refresh = true;
           } else {
             self.app.data.radarr_data.reset_delete_movie_preferences();
@@ -128,7 +125,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'
       && self.key == DEFAULT_KEYBINDINGS.confirm.key
     {
       self.app.data.radarr_data.prompt_confirm = true;
-      self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteMovie(self.build_delete_movie_params()));
+      self.app.data.radarr_data.prompt_confirm_action =
+        Some(RadarrEvent::DeleteMovie(self.build_delete_movie_params()));
       self.app.should_refresh = true;
 
       self.app.pop_navigation_stack();

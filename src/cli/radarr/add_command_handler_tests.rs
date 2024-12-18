@@ -422,7 +422,9 @@ mod tests {
     #[tokio::test]
     async fn test_handle_add_root_folder_command() {
       let expected_root_folder_path = "/nfs/test".to_owned();
-      let expected_add_root_folder_body = AddRootFolderBody { path: expected_root_folder_path.clone() };
+      let expected_add_root_folder_body = AddRootFolderBody {
+        path: expected_root_folder_path.clone(),
+      };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()

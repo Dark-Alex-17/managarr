@@ -23,7 +23,16 @@ pub(super) struct EditMovieHandler<'a, 'b> {
 impl<'a, 'b> EditMovieHandler<'a, 'b> {
   fn build_edit_movie_params(&mut self) -> EditMovieParams {
     let movie_id = self.app.data.radarr_data.movies.current_selection().id;
-    let tags = self.app.data.radarr_data.edit_movie_modal.as_ref().unwrap().tags.text.clone();
+    let tags = self
+      .app
+      .data
+      .radarr_data
+      .edit_movie_modal
+      .as_ref()
+      .unwrap()
+      .tags
+      .text
+      .clone();
     let params = {
       let EditMovieModal {
         monitored,
@@ -33,7 +42,8 @@ impl<'a, 'b> EditMovieHandler<'a, 'b> {
         ..
       } = self.app.data.radarr_data.edit_movie_modal.as_ref().unwrap();
       let quality_profile = quality_profile_list.current_selection();
-      let quality_profile_id = *self.app
+      let quality_profile_id = *self
+        .app
         .data
         .radarr_data
         .quality_profile_map
@@ -265,7 +275,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
         match self.app.data.radarr_data.selected_block.get_active_block() {
           ActiveRadarrBlock::EditMovieConfirmPrompt => {
             if self.app.data.radarr_data.prompt_confirm {
-              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditMovie(self.build_edit_movie_params()));
+              self.app.data.radarr_data.prompt_confirm_action =
+                Some(RadarrEvent::EditMovie(self.build_edit_movie_params()));
               self.app.should_refresh = true;
             }
 
@@ -376,7 +387,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
           && key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditMovie(self.build_edit_movie_params()));
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::EditMovie(self.build_edit_movie_params()));
           self.app.should_refresh = true;
 
           self.app.pop_navigation_stack();

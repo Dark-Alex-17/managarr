@@ -21,7 +21,13 @@ pub(super) struct SystemDetailsHandler<'a, 'b> {
 
 impl<'a, 'b> SystemDetailsHandler<'a, 'b> {
   fn extract_task_name(&self) -> RadarrTaskName {
-    self.app.data.radarr_data.tasks.current_selection().task_name
+    self
+      .app
+      .data
+      .radarr_data
+      .tasks
+      .current_selection()
+      .task_name
   }
 }
 
@@ -144,7 +150,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler
       }
       ActiveRadarrBlock::SystemTaskStartConfirmPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::StartTask(self.extract_task_name()));
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::StartTask(self.extract_task_name()));
         }
 
         self.app.pop_navigation_stack();
@@ -181,7 +188,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler
       && self.key == DEFAULT_KEYBINDINGS.confirm.key
     {
       self.app.data.radarr_data.prompt_confirm = true;
-      self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::StartTask(self.extract_task_name()));
+      self.app.data.radarr_data.prompt_confirm_action =
+        Some(RadarrEvent::StartTask(self.extract_task_name()));
       self.app.pop_navigation_stack();
     }
   }

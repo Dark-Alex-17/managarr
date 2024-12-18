@@ -176,7 +176,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
         match self.app.data.radarr_data.selected_block.get_active_block() {
           ActiveRadarrBlock::IndexerSettingsConfirmPrompt => {
             if self.app.data.radarr_data.prompt_confirm {
-              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditAllIndexerSettings(self.build_edit_indexer_settings_body()));
+              self.app.data.radarr_data.prompt_confirm_action = Some(
+                RadarrEvent::EditAllIndexerSettings(self.build_edit_indexer_settings_body()),
+              );
               self.app.should_refresh = true;
             } else {
               self.app.data.radarr_data.indexer_settings = None;
@@ -266,8 +268,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
           && self.key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::EditAllIndexerSettings(self.build_edit_indexer_settings_body()));
+          self.app.data.radarr_data.prompt_confirm_action = Some(
+            RadarrEvent::EditAllIndexerSettings(self.build_edit_indexer_settings_body()),
+          );
           self.app.should_refresh = true;
 
           self.app.pop_navigation_stack();

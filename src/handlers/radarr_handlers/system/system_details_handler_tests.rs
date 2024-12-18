@@ -952,7 +952,8 @@ mod tests {
       &mut app,
       ActiveRadarrBlock::SystemTasks,
       None,
-    ).extract_task_name();
+    )
+    .extract_task_name();
 
     assert_eq!(task_name, RadarrTaskName::default());
   }

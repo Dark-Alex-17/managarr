@@ -103,17 +103,23 @@ impl<'a> App<'a> {
       }
       ActiveRadarrBlock::AddMovieSearchResults => {
         self
-          .dispatch_network_event(RadarrEvent::SearchNewMovie(self.extract_movie_search_query().await).into())
+          .dispatch_network_event(
+            RadarrEvent::SearchNewMovie(self.extract_movie_search_query().await).into(),
+          )
           .await;
       }
       ActiveRadarrBlock::MovieDetails | ActiveRadarrBlock::FileInfo => {
         self
-          .dispatch_network_event(RadarrEvent::GetMovieDetails(self.extract_movie_id().await).into())
+          .dispatch_network_event(
+            RadarrEvent::GetMovieDetails(self.extract_movie_id().await).into(),
+          )
           .await;
       }
       ActiveRadarrBlock::MovieHistory => {
         self
-          .dispatch_network_event(RadarrEvent::GetMovieHistory(self.extract_movie_id().await).into())
+          .dispatch_network_event(
+            RadarrEvent::GetMovieHistory(self.extract_movie_id().await).into(),
+          )
           .await;
       }
       ActiveRadarrBlock::Cast | ActiveRadarrBlock::Crew => {
@@ -123,7 +129,9 @@ impl<'a> App<'a> {
               || movie_details_modal.movie_crew.items.is_empty() =>
           {
             self
-              .dispatch_network_event(RadarrEvent::GetMovieCredits(self.extract_movie_id().await).into())
+              .dispatch_network_event(
+                RadarrEvent::GetMovieCredits(self.extract_movie_id().await).into(),
+              )
               .await;
           }
           _ => (),
@@ -221,19 +229,20 @@ impl<'a> App<'a> {
   }
 
   async fn extract_movie_id(&self) -> i64 {
-    self
-      .data
-      .radarr_data
-      .movies
-      .current_selection()
-      .clone()
-      .id
+    self.data.radarr_data.movies.current_selection().clone().id
   }
 
   async fn extract_movie_search_query(&self) -> String {
-    self.data.radarr_data.add_movie_search.as_ref().expect("Add movie search is empty").text.clone()
+    self
+      .data
+      .radarr_data
+      .add_movie_search
+      .as_ref()
+      .expect("Add movie search is empty")
+      .text
+      .clone()
   }
-  
+
   async fn extract_indexer_id(&self) -> i64 {
     self
       .data

@@ -44,7 +44,13 @@ impl<'a, 'b> EditIndexerHandler<'a, 'b> {
         seed_ratio,
         priority,
         ..
-      } = self.app.data.radarr_data.edit_indexer_modal.as_ref().unwrap();
+      } = self
+        .app
+        .data
+        .radarr_data
+        .edit_indexer_modal
+        .as_ref()
+        .unwrap();
 
       EditIndexerParams {
         indexer_id,
@@ -349,7 +355,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
         match selected_block {
           ActiveRadarrBlock::EditIndexerConfirmPrompt => {
             if self.app.data.radarr_data.prompt_confirm {
-              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditIndexer(self.build_edit_indexer_params()));
+              self.app.data.radarr_data.prompt_confirm_action =
+                Some(RadarrEvent::EditIndexer(self.build_edit_indexer_params()));
               self.app.should_refresh = true;
             } else {
               self.app.data.radarr_data.edit_indexer_modal = None;
@@ -514,7 +521,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
           && self.key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditIndexer(self.build_edit_indexer_params()));
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::EditIndexer(self.build_edit_indexer_params()));
           self.app.should_refresh = true;
 
           self.app.pop_navigation_stack();

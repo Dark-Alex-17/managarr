@@ -980,7 +980,8 @@ mod tests {
       &mut app,
       ActiveRadarrBlock::AllIndexerSettingsPrompt,
       None,
-    ).build_edit_indexer_settings_body();
+    )
+    .build_edit_indexer_settings_body();
 
     assert_eq!(body, indexer_settings());
     assert!(app.data.radarr_data.indexer_settings.is_none());

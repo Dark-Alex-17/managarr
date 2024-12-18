@@ -330,7 +330,8 @@ mod tests {
       &mut app,
       ActiveRadarrBlock::DeleteMoviePrompt,
       None,
-    ).build_delete_movie_params();
+    )
+    .build_delete_movie_params();
 
     assert_eq!(delete_movie_params, expected_delete_movie_params);
     assert!(!app.data.radarr_data.delete_movie_files);

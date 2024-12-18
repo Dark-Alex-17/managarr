@@ -252,7 +252,9 @@ mod tests {
     #[test]
     fn test_add_root_folder_prompt_confirm_submit() {
       let mut app = App::default();
-      let expected_add_root_folder_body = AddRootFolderBody { path: "Test".to_owned() };
+      let expected_add_root_folder_body = AddRootFolderBody {
+        path: "Test".to_owned(),
+      };
       app
         .data
         .radarr_data
@@ -646,34 +648,38 @@ mod tests {
   fn test_build_add_root_folder_body() {
     let mut app = App::default();
     app.data.radarr_data.edit_root_folder = Some("/nfs/test".into());
-    let expected_add_root_folder_body = AddRootFolderBody { path: "/nfs/test".to_owned() };
+    let expected_add_root_folder_body = AddRootFolderBody {
+      path: "/nfs/test".to_owned(),
+    };
 
     let actual_add_root_folder_body = RootFoldersHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::RootFolders,
       None,
-    ).build_add_root_folder_body();
+    )
+    .build_add_root_folder_body();
 
     assert_eq!(actual_add_root_folder_body, expected_add_root_folder_body);
-    assert!(app
-      .data
-      .radarr_data
-      .edit_root_folder
-      .is_none());
+    assert!(app.data.radarr_data.edit_root_folder.is_none());
   }
 
   #[test]
   fn test_extract_root_folder_id() {
     let mut app = App::default();
-    app.data.radarr_data.root_folders.set_items(vec![root_folder()]);
+    app
+      .data
+      .radarr_data
+      .root_folders
+      .set_items(vec![root_folder()]);
 
     let root_folder_id = RootFoldersHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::RootFolders,
       None,
-    ).extract_root_folder_id();
+    )
+    .extract_root_folder_id();
 
     assert_eq!(root_folder_id, 1);
   }

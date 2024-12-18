@@ -361,7 +361,7 @@ mod tests {
     #[rstest]
     #[case(
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
-      RadarrEvent::TriggerAutomaticSearch(None)
+      RadarrEvent::TriggerAutomaticSearch(1)
     )]
     #[case(
       ActiveRadarrBlock::UpdateAndScanPrompt,
@@ -388,11 +388,7 @@ mod tests {
         .movie_releases
         .set_items(vec![release()]);
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
-      app
-        .data
-        .radarr_data
-        .movies
-        .set_items(vec![movie()]);
+      app.data.radarr_data.movies.set_items(vec![movie()]);
       app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
       app.push_navigation_stack(prompt_block.into());
@@ -786,7 +782,7 @@ mod tests {
     #[rstest]
     #[case(
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
-      RadarrEvent::TriggerAutomaticSearch(None)
+      RadarrEvent::TriggerAutomaticSearch(1)
     )]
     #[case(
       ActiveRadarrBlock::UpdateAndScanPrompt,
@@ -813,11 +809,7 @@ mod tests {
         .movie_releases
         .set_items(vec![release()]);
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
-      app
-        .data
-        .radarr_data
-        .movies
-        .set_items(vec![movie()]);
+      app.data.radarr_data.movies.set_items(vec![movie()]);
       app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
       app.push_navigation_stack(prompt_block.into());
@@ -850,11 +842,7 @@ mod tests {
       .movie_releases
       .set_items(vec![release()]);
     app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
-    app
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![movie()]);
+    app.data.radarr_data.movies.set_items(vec![movie()]);
     let expected_body = RadarrReleaseDownloadBody {
       guid: "1234".to_owned(),
       indexer_id: 2,
@@ -866,9 +854,26 @@ mod tests {
       &mut app,
       ActiveRadarrBlock::ManualSearchConfirmPrompt,
       None,
-    ).build_radarr_release_download_body();
+    )
+    .build_radarr_release_download_body();
 
     assert_eq!(body, expected_body);
+  }
+
+  #[test]
+  fn test_extract_movie_id() {
+    let mut app = App::default();
+    app.data.radarr_data.movies.set_items(vec![movie()]);
+
+    let movie_id = MovieDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
+      None,
+    )
+    .extract_movie_id();
+
+    assert_eq!(movie_id, 1);
   }
 
   #[test]

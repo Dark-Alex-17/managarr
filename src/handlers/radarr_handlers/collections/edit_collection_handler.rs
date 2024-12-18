@@ -29,9 +29,16 @@ impl<'a, 'b> EditCollectionHandler<'a, 'b> {
       minimum_availability_list,
       monitored,
       quality_profile_list,
-    } = self.app.data.radarr_data.edit_collection_modal.as_ref().unwrap();
+    } = self
+      .app
+      .data
+      .radarr_data
+      .edit_collection_modal
+      .as_ref()
+      .unwrap();
     let quality_profile = quality_profile_list.current_selection();
-    let quality_profile_id = *self.app
+    let quality_profile_id = *self
+      .app
       .data
       .radarr_data
       .quality_profile_map
@@ -47,14 +54,13 @@ impl<'a, 'b> EditCollectionHandler<'a, 'b> {
     let minimum_availability = *minimum_availability_list.current_selection();
     self.app.data.radarr_data.edit_collection_modal = None;
 
-
     EditCollectionParams {
       collection_id,
       monitored: Some(monitored),
       minimum_availability: Some(minimum_availability),
       quality_profile_id: Some(quality_profile_id),
       root_folder_path: Some(root_folder_path),
-      search_on_add: Some(search_on_add)
+      search_on_add: Some(search_on_add),
     }
   }
 }
@@ -231,8 +237,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
         match self.app.data.radarr_data.selected_block.get_active_block() {
           ActiveRadarrBlock::EditCollectionConfirmPrompt => {
             if self.app.data.radarr_data.prompt_confirm {
-              self.app.data.radarr_data.prompt_confirm_action =
-                Some(RadarrEvent::EditCollection(self.build_edit_collection_params()));
+              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditCollection(
+                self.build_edit_collection_params(),
+              ));
               self.app.should_refresh = true;
             }
 
@@ -351,7 +358,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
           && key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditCollection(self.build_edit_collection_params()));
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditCollection(
+            self.build_edit_collection_params(),
+          ));
           self.app.should_refresh = true;
 
           self.app.pop_navigation_stack();

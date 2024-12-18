@@ -28,9 +28,10 @@ impl<'a, 'b> RootFoldersHandler<'a, 'b> {
     self.app.data.radarr_data.root_folders,
     RootFolder
   );
-  
+
   fn build_add_root_folder_body(&mut self) -> AddRootFolderBody {
-    let path = self.app
+    let path = self
+      .app
       .data
       .radarr_data
       .edit_root_folder
@@ -43,9 +44,10 @@ impl<'a, 'b> RootFoldersHandler<'a, 'b> {
 
     AddRootFolderBody { path }
   }
-  
+
   fn extract_root_folder_id(&mut self) -> i64 {
-    self.app
+    self
+      .app
       .data
       .radarr_data
       .root_folders
@@ -164,7 +166,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
           .text
           .is_empty() =>
       {
-        self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddRootFolder(self.build_add_root_folder_body()));
+        self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddRootFolder(
+          self.build_add_root_folder_body(),
+        ));
         self.app.data.radarr_data.prompt_confirm = true;
         self.app.should_ignore_quit_key = false;
         self.app.pop_navigation_stack();
