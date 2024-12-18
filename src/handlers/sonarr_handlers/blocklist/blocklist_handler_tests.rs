@@ -512,19 +512,20 @@ mod tests {
       }
     })
   }
-  
+
   #[test]
   fn test_extract_blocklist_item_id() {
     let mut app = App::default();
     app.data.sonarr_data.blocklist.set_items(blocklist_vec());
-    
+
     let blocklist_item_id = BlocklistHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::Blocklist,
       None,
-    ).extract_blocklist_item_id();
-    
+    )
+    .extract_blocklist_item_id();
+
     assert_eq!(blocklist_item_id, 3);
   }
 

@@ -101,7 +101,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrDeleteCommand> for SonarrDeleteComm
       SonarrDeleteCommand::Download { download_id } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::DeleteDownload(Some(download_id)).into())
+          .handle_network_event(SonarrEvent::DeleteDownload(download_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

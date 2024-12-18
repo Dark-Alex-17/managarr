@@ -332,7 +332,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::DeleteDownload(Some(expected_download_id)).into(),
+          SonarrEvent::DeleteDownload(expected_download_id).into(),
         ))
         .times(1)
         .returning(|_| {

@@ -43,7 +43,7 @@ pub enum SonarrEvent {
   AddTag(String),
   ClearBlocklist,
   DeleteBlocklistItem(i64),
-  DeleteDownload(Option<i64>),
+  DeleteDownload(i64),
   DeleteEpisodeFile(Option<i64>),
   DeleteIndexer(Option<i64>),
   DeleteRootFolder(Option<i64>),
@@ -514,30 +514,16 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_sonarr_download(&mut self, download_id: Option<i64>) -> Result<()> {
-    let event = SonarrEvent::DeleteDownload(None);
-    let id = if let Some(dl_id) = download_id {
-      dl_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .downloads
-        .current_selection()
-        .id
-    };
-
-    info!("Deleting Sonarr download for download with id: {id}");
+  async fn delete_sonarr_download(&mut self, download_id: i64) -> Result<()> {
+    let event = SonarrEvent::DeleteDownload(download_id);
+    info!("Deleting Sonarr download for download with id: {download_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{download_id}")),
         None,
       )
       .await;

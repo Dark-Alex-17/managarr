@@ -28,15 +28,9 @@ impl<'a, 'b> BlocklistHandler<'a, 'b> {
     self.app.data.sonarr_data.blocklist,
     BlocklistItem
   );
-  
+
   fn extract_blocklist_item_id(&self) -> i64 {
-    self
-      .app
-      .data
-      .sonarr_data
-      .blocklist
-      .current_selection()
-      .id
+    self.app.data.sonarr_data.blocklist.current_selection().id
   }
 }
 
@@ -108,8 +102,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for BlocklistHandler<'a,
     match self.active_sonarr_block {
       ActiveSonarrBlock::DeleteBlocklistItemPrompt => {
         if self.app.data.sonarr_data.prompt_confirm {
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::DeleteBlocklistItem(self.extract_blocklist_item_id()));
+          self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::DeleteBlocklistItem(
+            self.extract_blocklist_item_id(),
+          ));
         }
 
         self.app.pop_navigation_stack();
@@ -161,8 +156,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for BlocklistHandler<'a,
       ActiveSonarrBlock::DeleteBlocklistItemPrompt => {
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.sonarr_data.prompt_confirm = true;
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::DeleteBlocklistItem(self.extract_blocklist_item_id()));
+          self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::DeleteBlocklistItem(
+            self.extract_blocklist_item_id(),
+          ));
 
           self.app.pop_navigation_stack();
         }

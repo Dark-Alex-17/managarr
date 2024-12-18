@@ -27,6 +27,10 @@ impl<'a, 'b> DownloadsHandler<'a, 'b> {
     self.app.data.sonarr_data.downloads,
     DownloadRecord
   );
+
+  fn extract_download_id(&self) -> i64 {
+    self.app.data.sonarr_data.downloads.current_selection().id
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DownloadsHandler<'a, 'b> {
@@ -95,7 +99,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DownloadsHandler<'a,
     match self.active_sonarr_block {
       ActiveSonarrBlock::DeleteDownloadPrompt => {
         if self.app.data.sonarr_data.prompt_confirm {
-          self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::DeleteDownload(None));
+          self.app.data.sonarr_data.prompt_confirm_action =
+            Some(SonarrEvent::DeleteDownload(self.extract_download_id()));
         }
 
         self.app.pop_navigation_stack();
@@ -138,7 +143,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DownloadsHandler<'a,
       ActiveSonarrBlock::DeleteDownloadPrompt => {
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.sonarr_data.prompt_confirm = true;
-          self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::DeleteDownload(None));
+          self.app.data.sonarr_data.prompt_confirm_action =
+            Some(SonarrEvent::DeleteDownload(self.extract_download_id()));
 
           self.app.pop_navigation_stack();
         }
