@@ -60,7 +60,7 @@ pub enum SonarrEvent {
   GetHostConfig,
   GetIndexers,
   GetEpisodeDetails(i64),
-  GetEpisodes(Option<i64>),
+  GetEpisodes(i64),
   GetEpisodeFiles(Option<i64>),
   GetEpisodeHistory(Option<i64>),
   GetLanguageProfiles,
@@ -1144,10 +1144,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_episodes(&mut self, series_id: Option<i64>) -> Result<Vec<Episode>> {
+  async fn get_episodes(&mut self, series_id: i64) -> Result<Vec<Episode>> {
     let event = SonarrEvent::GetEpisodes(series_id);
-    let (id, series_id_param) = self.extract_series_id(series_id).await;
-    info!("Fetching episodes for Sonarr series with ID: {id}");
+    info!("Fetching episodes for Sonarr series with ID: {series_id}");
 
     let request_props = self
       .request_props_from(
@@ -1155,7 +1154,7 @@ impl<'a, 'b> Network<'a, 'b> {
         RequestMethod::Get,
         None::<()>,
         None,
-        Some(series_id_param),
+        Some(format!("seriesId={series_id}")),
       )
       .await;
 

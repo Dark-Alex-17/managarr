@@ -149,7 +149,7 @@ mod test {
 
   #[rstest]
   fn test_resource_episode(
-    #[values(SonarrEvent::GetEpisodes(None), SonarrEvent::GetEpisodeDetails(0))] event: SonarrEvent,
+    #[values(SonarrEvent::GetEpisodes(0), SonarrEvent::GetEpisodeDetails(0))] event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/episode");
   }
@@ -1834,7 +1834,7 @@ mod test {
       None,
       Some(json!([episode_1, episode_2, episode_3])),
       None,
-      SonarrEvent::GetEpisodes(None),
+      SonarrEvent::GetEpisodes(1),
       None,
       Some("seriesId=1"),
     )
@@ -1876,7 +1876,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episodes(episodes) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodes(None))
+      .handle_sonarr_event(SonarrEvent::GetEpisodes(1))
       .await
       .unwrap()
     {
@@ -1941,7 +1941,7 @@ mod test {
       None,
       Some(json!([episode_1, episode_2, episode_3])),
       None,
-      SonarrEvent::GetEpisodes(None),
+      SonarrEvent::GetEpisodes(1),
       None,
       Some("seriesId=1"),
     )
@@ -1962,7 +1962,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episodes(episodes) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodes(None))
+      .handle_sonarr_event(SonarrEvent::GetEpisodes(1))
       .await
       .unwrap()
     {
@@ -2003,7 +2003,7 @@ mod test {
       None,
       Some(json!([episode()])),
       None,
-      SonarrEvent::GetEpisodes(None),
+      SonarrEvent::GetEpisodes(1),
       None,
       Some("seriesId=1"),
     )
@@ -2021,7 +2021,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episodes(episodes) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodes(None))
+      .handle_sonarr_event(SonarrEvent::GetEpisodes(1))
       .await
       .unwrap()
     {
@@ -2091,7 +2091,7 @@ mod test {
       None,
       Some(episodes_json),
       None,
-      SonarrEvent::GetEpisodes(None),
+      SonarrEvent::GetEpisodes(1),
       None,
       Some("seriesId=1"),
     )
@@ -2125,7 +2125,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episodes(episodes) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodes(None))
+      .handle_sonarr_event(SonarrEvent::GetEpisodes(1))
       .await
       .unwrap()
     {
@@ -2572,73 +2572,6 @@ mod test {
         vec![indexer()]
       );
       assert_eq!(indexers, response);
-    }
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_episodes_event_uses_provided_series_id() {
-    let episodes_json = json!([
-      {
-          "id": 2,
-          "seriesId": 2,
-          "tvdbId": 1234,
-          "episodeFileId": 2,
-          "seasonNumber": 2,
-          "episodeNumber": 2,
-          "title": "Something cool",
-          "airDateUtc": "2024-02-10T07:28:45Z",
-          "overview": "Okay so this one time at band camp...",
-          "hasFile": true,
-          "monitored": true
-      },
-      {
-          "id": 1,
-          "seriesId": 2,
-          "tvdbId": 1234,
-          "episodeFileId": 1,
-          "seasonNumber": 1,
-          "episodeNumber": 1,
-          "title": "Something cool",
-          "airDateUtc": "2024-02-10T07:28:45Z",
-          "overview": "Okay so this one time at band camp...",
-          "hasFile": true,
-          "monitored": true
-      }
-    ]);
-    let episode_1 = Episode {
-      series_id: 2,
-      episode_file: None,
-      ..episode()
-    };
-    let episode_2 = Episode {
-      id: 2,
-      episode_file_id: 2,
-      season_number: 2,
-      episode_number: 2,
-      series_id: 2,
-      episode_file: None,
-      ..episode()
-    };
-    let expected_episodes = vec![episode_2.clone(), episode_1.clone()];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(episodes_json),
-      None,
-      SonarrEvent::GetEpisodes(None),
-      None,
-      Some("seriesId=2"),
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let SonarrSerdeable::Episodes(episodes) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodes(Some(2)))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(episodes, expected_episodes);
     }
   }
 

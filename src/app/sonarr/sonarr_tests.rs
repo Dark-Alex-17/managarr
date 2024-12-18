@@ -81,6 +81,10 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_season_details_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.sonarr_data.series.set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::SeasonDetails)
@@ -89,7 +93,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetEpisodes(None).into()
+        SonarrEvent::GetEpisodes(1).into()
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
@@ -744,6 +748,17 @@ mod tests {
       let app = App::default();
 
       assert_eq!(app.extract_episode_id().await, 0);
+    }
+
+    #[tokio::test]
+    async fn test_extract_series_id() {
+      let mut app = App::default();
+      app.data.sonarr_data.series.set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+
+      assert_eq!(app.extract_series_id().await, 1);
     }
 
     fn construct_app_unit<'a>() -> (App<'a>, mpsc::Receiver<NetworkEvent>) {

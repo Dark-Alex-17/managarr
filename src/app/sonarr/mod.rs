@@ -43,7 +43,7 @@ impl<'a> App<'a> {
       }
       ActiveSonarrBlock::SeasonDetails => {
         self
-          .dispatch_network_event(SonarrEvent::GetEpisodes(None).into())
+          .dispatch_network_event(SonarrEvent::GetEpisodes(self.extract_series_id().await).into())
           .await;
         self
           .dispatch_network_event(SonarrEvent::GetEpisodeFiles(None).into())
@@ -255,5 +255,9 @@ impl<'a> App<'a> {
       .episodes
       .current_selection()
       .id
+  }
+
+  async fn extract_series_id(&self) -> i64 {
+    self.data.sonarr_data.series.current_selection().id
   }
 }
