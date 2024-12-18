@@ -10,7 +10,7 @@ use crate::{
   models::{
     radarr_models::IndexerTestResult,
     servarr_data::{
-      modals::{EditIndexerModal, IndexerTestResultModalItem},
+      modals::IndexerTestResultModalItem,
       sonarr::{
         modals::{EditSeriesModal, EpisodeDetailsModal, SeasonDetailsModal},
         sonarr_data::ActiveSonarrBlock,
@@ -51,7 +51,7 @@ pub enum SonarrEvent {
   DeleteTag(i64),
   DownloadRelease(SonarrReleaseDownloadBody),
   EditAllIndexerSettings(IndexerSettings),
-  EditIndexer(Option<EditIndexerParams>),
+  EditIndexer(EditIndexerParams),
   EditSeries(Option<EditSeriesParams>),
   GetAllIndexerSettings,
   GetBlocklist,
@@ -638,25 +638,18 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn edit_sonarr_indexer(
     &mut self,
-    edit_indexer_params: Option<EditIndexerParams>,
+    mut edit_indexer_params: EditIndexerParams,
   ) -> Result<()> {
+    if let Some(tag_input_string) = edit_indexer_params.tag_input_string.as_ref() {
+      let tag_ids_vec = self
+        .extract_and_add_sonarr_tag_ids_vec(tag_input_string.clone())
+        .await;
+      edit_indexer_params.tags = Some(tag_ids_vec);
+    }
     let detail_event = SonarrEvent::GetIndexers;
-    let event = SonarrEvent::EditIndexer(None);
-    let id = if let Some(ref params) = edit_indexer_params {
-      params.indexer_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .indexers
-        .current_selection()
-        .id
-    };
+    let event = SonarrEvent::EditIndexer(edit_indexer_params.clone());
+    let id = edit_indexer_params.indexer_id;
     info!("Updating Sonarr indexer with ID: {id}");
-
     info!("Fetching indexer details for indexer with ID: {id}");
 
     let request_props = self
@@ -691,7 +684,7 @@ impl<'a, 'b> Network<'a, 'b> {
       seed_ratio,
       tags,
       priority,
-    ) = if let Some(params) = edit_indexer_params {
+    ) = {
       let priority = detailed_indexer_body["priority"]
         .as_i64()
         .expect("Unable to deserialize 'priority'");
@@ -700,28 +693,28 @@ impl<'a, 'b> Network<'a, 'b> {
         .unwrap()
         .iter()
         .find(|field| field["name"] == "seedCriteria.seedRatio");
-      let name = params.name.unwrap_or(
+      let name = edit_indexer_params.name.unwrap_or(
         detailed_indexer_body["name"]
           .as_str()
           .expect("Unable to deserialize 'name'")
           .to_owned(),
       );
-      let enable_rss = params.enable_rss.unwrap_or(
+      let enable_rss = edit_indexer_params.enable_rss.unwrap_or(
         detailed_indexer_body["enableRss"]
           .as_bool()
           .expect("Unable to deserialize 'enableRss'"),
       );
-      let enable_automatic_search = params.enable_automatic_search.unwrap_or(
+      let enable_automatic_search = edit_indexer_params.enable_automatic_search.unwrap_or(
         detailed_indexer_body["enableAutomaticSearch"]
           .as_bool()
           .expect("Unable to deserialize 'enableAutomaticSearch"),
       );
-      let enable_interactive_search = params.enable_interactive_search.unwrap_or(
+      let enable_interactive_search = edit_indexer_params.enable_interactive_search.unwrap_or(
         detailed_indexer_body["enableInteractiveSearch"]
           .as_bool()
           .expect("Unable to deserialize 'enableInteractiveSearch'"),
       );
-      let url = params.url.unwrap_or(
+      let url = edit_indexer_params.url.unwrap_or(
         detailed_indexer_body["fields"]
           .as_array()
           .expect("Unable to deserialize 'fields'")
@@ -734,7 +727,7 @@ impl<'a, 'b> Network<'a, 'b> {
           .expect("Unable to deserialize 'baseUrl value'")
           .to_owned(),
       );
-      let api_key = params.api_key.unwrap_or(
+      let api_key = edit_indexer_params.api_key.unwrap_or(
         detailed_indexer_body["fields"]
           .as_array()
           .expect("Unable to deserialize 'fields'")
@@ -747,7 +740,7 @@ impl<'a, 'b> Network<'a, 'b> {
           .expect("Unable to deserialize 'apiKey value'")
           .to_owned(),
       );
-      let seed_ratio = params.seed_ratio.unwrap_or_else(|| {
+      let seed_ratio = edit_indexer_params.seed_ratio.unwrap_or_else(|| {
         if let Some(seed_ratio_field) = seed_ratio_field_option {
           return seed_ratio_field
             .get("value")
@@ -759,10 +752,10 @@ impl<'a, 'b> Network<'a, 'b> {
 
         String::new()
       });
-      let tags = if params.clear_tags {
+      let tags = if edit_indexer_params.clear_tags {
         vec![]
       } else {
-        params.tags.unwrap_or(
+        edit_indexer_params.tags.unwrap_or(
           detailed_indexer_body["tags"]
             .as_array()
             .expect("Unable to deserialize 'tags'")
@@ -771,7 +764,7 @@ impl<'a, 'b> Network<'a, 'b> {
             .collect(),
         )
       };
-      let priority = params.priority.unwrap_or(priority);
+      let priority = edit_indexer_params.priority.unwrap_or(priority);
 
       (
         name,
@@ -784,51 +777,6 @@ impl<'a, 'b> Network<'a, 'b> {
         tags,
         priority,
       )
-    } else {
-      let tags = self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap()
-        .tags
-        .text
-        .clone();
-      let tag_ids_vec = self.extract_and_add_sonarr_tag_ids_vec(tags).await;
-      let mut app = self.app.lock().await;
-
-      let params = {
-        let EditIndexerModal {
-          name,
-          enable_rss,
-          enable_automatic_search,
-          enable_interactive_search,
-          url,
-          api_key,
-          seed_ratio,
-          priority,
-          ..
-        } = app.data.sonarr_data.edit_indexer_modal.as_ref().unwrap();
-
-        (
-          name.text.clone(),
-          enable_rss.unwrap_or_default(),
-          enable_automatic_search.unwrap_or_default(),
-          enable_interactive_search.unwrap_or_default(),
-          url.text.clone(),
-          api_key.text.clone(),
-          seed_ratio.text.clone(),
-          tag_ids_vec,
-          *priority,
-        )
-      };
-
-      app.data.sonarr_data.edit_indexer_modal = None;
-
-      params
     };
 
     *detailed_indexer_body.get_mut("name").unwrap() = json!(name);

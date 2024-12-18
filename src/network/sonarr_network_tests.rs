@@ -22,7 +22,7 @@ mod test {
 
   use crate::app::{App, ServarrConfig};
   use crate::models::radarr_models::IndexerTestResult;
-  use crate::models::servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem};
+  use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_data::sonarr::modals::{
     AddSeriesModal, EditSeriesModal, EpisodeDetailsModal, SeasonDetailsModal,
   };
@@ -212,7 +212,7 @@ mod test {
     #[values(
       SonarrEvent::GetIndexers,
       SonarrEvent::DeleteIndexer(0),
-      SonarrEvent::EditIndexer(None)
+      SonarrEvent::EditIndexer(EditIndexerParams::default())
     )]
     event: SonarrEvent,
   ) {
@@ -776,6 +776,19 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_edit_sonarr_indexer_event() {
+    let expected_edit_indexer_params = EditIndexerParams {
+      indexer_id: 1,
+      name: Some("Test Update".to_owned()),
+      enable_rss: Some(false),
+      enable_automatic_search: Some(false),
+      enable_interactive_search: Some(false),
+      url: Some("https://localhost:9696/1/".to_owned()),
+      api_key: Some("test1234".to_owned()),
+      seed_ratio: Some("1.3".to_owned()),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      priority: Some(0),
+      ..EditIndexerParams::default()
+    };
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -822,7 +835,6 @@ mod test {
         "tags": [1, 2],
         "id": 1
     });
-
     let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
@@ -838,7 +850,7 @@ mod test {
         "PUT",
         format!(
           "/api/v3{}/1?forceSave=true",
-          SonarrEvent::EditIndexer(None).resource()
+          SonarrEvent::EditIndexer(expected_edit_indexer_params.clone()).resource()
         )
         .as_str(),
       )
@@ -847,315 +859,23 @@ mod test {
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
-    {
-      let mut app = app_arc.lock().await;
-      app.data.sonarr_data.tags_map =
-        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-      let edit_indexer_modal = EditIndexerModal {
-        name: "Test Update".into(),
-        enable_rss: Some(false),
-        enable_automatic_search: Some(false),
-        enable_interactive_search: Some(false),
-        url: "https://localhost:9696/1/".into(),
-        api_key: "test1234".into(),
-        seed_ratio: "1.3".into(),
-        tags: "usenet, testing".into(),
-        priority: 0,
-      };
-      app.data.sonarr_data.edit_indexer_modal = Some(edit_indexer_modal);
-      app.data.sonarr_data.indexers.set_items(vec![indexer()]);
-    }
+    app_arc.lock().await.data.sonarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::EditIndexer(None))
+      .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
       .await
       .is_ok());
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
-
-    let app = app_arc.lock().await;
-    assert!(app.data.sonarr_data.edit_indexer_modal.is_none());
   }
 
   #[tokio::test]
-  async fn test_handle_edit_sonarr_indexer_event_does_not_add_seed_ratio_when_seed_ratio_field_is_none_in_details(
+  async fn test_handle_edit_sonarr_indexer_event_does_not_overwrite_tags_vec_if_tag_input_string_is_none(
   ) {
-    let indexer_details_json = json!({
-        "enableRss": true,
-        "enableAutomaticSearch": true,
-        "enableInteractiveSearch": true,
-        "name": "Test Indexer",
-        "priority": 1,
-        "fields": [
-            {
-                "name": "baseUrl",
-                "value": "https://test.com",
-            },
-            {
-                "name": "apiKey",
-                "value": "",
-            },
-        ],
-        "tags": [1],
-        "id": 1
-    });
-    let expected_indexer_edit_body_json = json!({
-        "enableRss": false,
-        "enableAutomaticSearch": false,
-        "enableInteractiveSearch": false,
-        "name": "Test Update",
-        "priority": 0,
-        "fields": [
-            {
-                "name": "baseUrl",
-                "value": "https://localhost:9696/1/",
-            },
-            {
-                "name": "apiKey",
-                "value": "test1234",
-            },
-        ],
-        "tags": [1, 2],
-        "id": 1
-    });
-
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json),
-      None,
-      SonarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
-    let async_edit_server = server
-      .mock(
-        "PUT",
-        format!(
-          "/api/v3{}/1?forceSave=true",
-          SonarrEvent::EditIndexer(None).resource()
-        )
-        .as_str(),
-      )
-      .with_status(202)
-      .match_header("X-Api-Key", "test1234")
-      .match_body(Matcher::Json(expected_indexer_edit_body_json))
-      .create_async()
-      .await;
-    {
-      let mut app = app_arc.lock().await;
-      app.data.sonarr_data.tags_map =
-        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-      let edit_indexer_modal = EditIndexerModal {
-        name: "Test Update".into(),
-        enable_rss: Some(false),
-        enable_automatic_search: Some(false),
-        enable_interactive_search: Some(false),
-        url: "https://localhost:9696/1/".into(),
-        api_key: "test1234".into(),
-        seed_ratio: "1.3".into(),
-        tags: "usenet, testing".into(),
-        priority: 0,
-      };
-      app.data.sonarr_data.edit_indexer_modal = Some(edit_indexer_modal);
-      let mut indexer = indexer();
-      indexer.fields = Some(
-        indexer
-          .fields
-          .unwrap()
-          .into_iter()
-          .filter(|field| field.name != Some("seedCriteria.seedRatio".to_string()))
-          .collect(),
-      );
-      app.data.sonarr_data.indexers.set_items(vec![indexer]);
-    }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditIndexer(None))
-      .await
-      .is_ok());
-
-    async_details_server.assert_async().await;
-    async_edit_server.assert_async().await;
-
-    let app = app_arc.lock().await;
-    assert!(app.data.sonarr_data.edit_indexer_modal.is_none());
-  }
-
-  #[tokio::test]
-  async fn test_handle_edit_sonarr_indexer_event_populates_the_seed_ratio_value_when_seed_ratio_field_is_present_in_details(
-  ) {
-    let indexer_details_json = json!({
-        "enableRss": true,
-        "enableAutomaticSearch": true,
-        "enableInteractiveSearch": true,
-        "name": "Test Indexer",
-        "priority": 1,
-        "fields": [
-            {
-                "name": "baseUrl",
-                "value": "https://test.com",
-            },
-            {
-                "name": "apiKey",
-                "value": "",
-            },
-            {
-                "name": "seedCriteria.seedRatio",
-            },
-        ],
-        "tags": [1],
-        "id": 1
-    });
-    let expected_indexer_edit_body_json = json!({
-        "enableRss": false,
-        "enableAutomaticSearch": false,
-        "enableInteractiveSearch": false,
-        "name": "Test Update",
-        "priority": 0,
-        "fields": [
-            {
-                "name": "baseUrl",
-                "value": "https://localhost:9696/1/",
-            },
-            {
-                "name": "apiKey",
-                "value": "test1234",
-            },
-            {
-                "name": "seedCriteria.seedRatio",
-                "value": "1.3",
-            },
-        ],
-        "tags": [1, 2],
-        "id": 1
-    });
-
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json),
-      None,
-      SonarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
-    let async_edit_server = server
-      .mock(
-        "PUT",
-        format!(
-          "/api/v3{}/1?forceSave=true",
-          SonarrEvent::EditIndexer(None).resource()
-        )
-        .as_str(),
-      )
-      .with_status(202)
-      .match_header("X-Api-Key", "test1234")
-      .match_body(Matcher::Json(expected_indexer_edit_body_json))
-      .create_async()
-      .await;
-    {
-      let mut app = app_arc.lock().await;
-      app.data.sonarr_data.tags_map =
-        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-      let edit_indexer_modal = EditIndexerModal {
-        name: "Test Update".into(),
-        enable_rss: Some(false),
-        enable_automatic_search: Some(false),
-        enable_interactive_search: Some(false),
-        url: "https://localhost:9696/1/".into(),
-        api_key: "test1234".into(),
-        seed_ratio: "1.3".into(),
-        tags: "usenet, testing".into(),
-        priority: 0,
-      };
-      app.data.sonarr_data.edit_indexer_modal = Some(edit_indexer_modal);
-      let mut indexer = indexer();
-      indexer.fields = Some(
-        indexer
-          .fields
-          .unwrap()
-          .into_iter()
-          .map(|mut field| {
-            if field.name == Some("seedCriteria.seedRatio".to_string()) {
-              field.value = None;
-              field
-            } else {
-              field
-            }
-          })
-          .collect(),
-      );
-      app.data.sonarr_data.indexers.set_items(vec![indexer]);
-    }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditIndexer(None))
-      .await
-      .is_ok());
-
-    async_details_server.assert_async().await;
-    async_edit_server.assert_async().await;
-
-    let app = app_arc.lock().await;
-    assert!(app.data.sonarr_data.edit_indexer_modal.is_none());
-  }
-
-  #[tokio::test]
-  async fn test_handle_edit_sonarr_indexer_event_uses_provided_parameters() {
-    let indexer_details_json = json!({
-        "enableRss": true,
-        "enableAutomaticSearch": true,
-        "enableInteractiveSearch": true,
-        "name": "Test Indexer",
-        "priority": 1,
-        "fields": [
-            {
-                "name": "baseUrl",
-                "value": "https://test.com",
-            },
-            {
-                "name": "apiKey",
-                "value": "",
-            },
-            {
-                "name": "seedCriteria.seedRatio",
-                "value": "1.2",
-            },
-        ],
-        "tags": [1],
-        "id": 1
-    });
-    let expected_indexer_edit_body_json = json!({
-        "enableRss": false,
-        "enableAutomaticSearch": false,
-        "enableInteractiveSearch": false,
-        "name": "Test Update",
-        "priority": 25,
-        "fields": [
-            {
-                "name": "baseUrl",
-                "value": "https://localhost:9696/1/",
-            },
-            {
-                "name": "apiKey",
-                "value": "test1234",
-            },
-            {
-                "name": "seedCriteria.seedRatio",
-                "value": "1.3",
-            },
-        ],
-        "tags": [1, 2],
-        "id": 1
-    });
-    let edit_indexer_params = EditIndexerParams {
+    let expected_edit_indexer_params = EditIndexerParams {
       indexer_id: 1,
       name: Some("Test Update".to_owned()),
       enable_rss: Some(false),
@@ -1165,9 +885,144 @@ mod test {
       api_key: Some("test1234".to_owned()),
       seed_ratio: Some("1.3".to_owned()),
       tags: Some(vec![1, 2]),
-      priority: Some(25),
+      priority: Some(0),
       ..EditIndexerParams::default()
     };
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "priority": 1,
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let expected_indexer_edit_body_json = json!({
+        "enableRss": false,
+        "enableAutomaticSearch": false,
+        "enableInteractiveSearch": false,
+        "name": "Test Update",
+        "priority": 0,
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://localhost:9696/1/",
+            },
+            {
+                "name": "apiKey",
+                "value": "test1234",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.3",
+            },
+        ],
+        "tags": [1, 2],
+        "id": 1
+    });
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json),
+      None,
+      SonarrEvent::GetIndexers,
+      Some("/1"),
+      None,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          SonarrEvent::EditIndexer(expected_edit_indexer_params.clone()).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_indexer_edit_body_json))
+      .create_async()
+      .await;
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_sonarr_indexer_event_does_not_add_seed_ratio_when_seed_ratio_field_is_none_in_details(
+  ) {
+    let expected_edit_indexer_params = EditIndexerParams {
+      indexer_id: 1,
+      name: Some("Test Update".to_owned()),
+      enable_rss: Some(false),
+      enable_automatic_search: Some(false),
+      enable_interactive_search: Some(false),
+      url: Some("https://localhost:9696/1/".to_owned()),
+      api_key: Some("test1234".to_owned()),
+      seed_ratio: Some("1.3".to_owned()),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      priority: Some(0),
+      ..EditIndexerParams::default()
+    };
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "priority": 1,
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let expected_indexer_edit_body_json = json!({
+        "enableRss": false,
+        "enableAutomaticSearch": false,
+        "enableInteractiveSearch": false,
+        "name": "Test Update",
+        "priority": 0,
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://localhost:9696/1/",
+            },
+            {
+                "name": "apiKey",
+                "value": "test1234",
+            },
+        ],
+        "tags": [1, 2],
+        "id": 1
+    });
 
     let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
@@ -1184,7 +1039,7 @@ mod test {
         "PUT",
         format!(
           "/api/v3{}/1?forceSave=true",
-          SonarrEvent::EditIndexer(None).resource()
+          SonarrEvent::EditIndexer(expected_edit_indexer_params.clone()).resource()
         )
         .as_str(),
       )
@@ -1193,10 +1048,12 @@ mod test {
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
+    app_arc.lock().await.data.sonarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::EditIndexer(Some(edit_indexer_params)))
+      .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
       .await
       .is_ok());
 
@@ -1205,8 +1062,106 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_sonarr_indexer_event_uses_provided_parameters_defaults_to_previous_values(
+  async fn test_handle_edit_sonarr_indexer_event_populates_the_seed_ratio_value_when_seed_ratio_field_is_present_in_details(
   ) {
+    let expected_edit_indexer_params = EditIndexerParams {
+      indexer_id: 1,
+      name: Some("Test Update".to_owned()),
+      enable_rss: Some(false),
+      enable_automatic_search: Some(false),
+      enable_interactive_search: Some(false),
+      url: Some("https://localhost:9696/1/".to_owned()),
+      api_key: Some("test1234".to_owned()),
+      seed_ratio: Some("1.3".to_owned()),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      priority: Some(0),
+      ..EditIndexerParams::default()
+    };
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "priority": 1,
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let expected_indexer_edit_body_json = json!({
+        "enableRss": false,
+        "enableAutomaticSearch": false,
+        "enableInteractiveSearch": false,
+        "name": "Test Update",
+        "priority": 0,
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://localhost:9696/1/",
+            },
+            {
+                "name": "apiKey",
+                "value": "test1234",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.3",
+            },
+        ],
+        "tags": [1, 2],
+        "id": 1
+    });
+
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json),
+      None,
+      SonarrEvent::GetIndexers,
+      Some("/1"),
+      None,
+    )
+    .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v3{}/1?forceSave=true",
+          SonarrEvent::EditIndexer(expected_edit_indexer_params.clone()).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_indexer_edit_body_json))
+      .create_async()
+      .await;
+    app_arc.lock().await.data.sonarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_sonarr_indexer_event_defaults_to_previous_values() {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -1234,7 +1189,6 @@ mod test {
       indexer_id: 1,
       ..EditIndexerParams::default()
     };
-
     let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
@@ -1250,7 +1204,7 @@ mod test {
         "PUT",
         format!(
           "/api/v3{}/1?forceSave=true",
-          SonarrEvent::EditIndexer(None).resource()
+          SonarrEvent::EditIndexer(edit_indexer_params.clone()).resource()
         )
         .as_str(),
       )
@@ -1262,7 +1216,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::EditIndexer(Some(edit_indexer_params)))
+      .handle_sonarr_event(SonarrEvent::EditIndexer(edit_indexer_params))
       .await
       .is_ok());
 
@@ -1271,8 +1225,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_sonarr_indexer_event_uses_provided_parameters_clears_tags_when_clear_tags_is_true(
-  ) {
+  async fn test_handle_edit_sonarr_indexer_event_clears_tags_when_clear_tags_is_true() {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -1340,7 +1293,7 @@ mod test {
         "PUT",
         format!(
           "/api/v3{}/1?forceSave=true",
-          SonarrEvent::EditIndexer(None).resource()
+          SonarrEvent::EditIndexer(edit_indexer_params.clone()).resource()
         )
         .as_str(),
       )
@@ -1352,7 +1305,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::EditIndexer(Some(edit_indexer_params)))
+      .handle_sonarr_event(SonarrEvent::EditIndexer(edit_indexer_params))
       .await
       .is_ok());
 

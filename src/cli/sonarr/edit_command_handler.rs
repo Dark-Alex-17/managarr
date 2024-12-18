@@ -319,7 +319,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrEditCommand> for SonarrEditCommandH
 
         self
           .network
-          .handle_network_event(SonarrEvent::EditIndexer(Some(edit_indexer_params)).into())
+          .handle_network_event(SonarrEvent::EditIndexer(edit_indexer_params).into())
           .await?;
         "Indexer updated".to_owned()
       }
