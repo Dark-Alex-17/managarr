@@ -381,7 +381,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::GetHistory(Some(expected_events)).into(),
+          SonarrEvent::GetHistory(expected_events).into(),
         ))
         .times(1)
         .returning(|_| {

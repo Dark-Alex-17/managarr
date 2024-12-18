@@ -103,7 +103,7 @@ impl<'a> App<'a> {
       }
       ActiveSonarrBlock::History => {
         self
-          .dispatch_network_event(SonarrEvent::GetHistory(None).into())
+          .dispatch_network_event(SonarrEvent::GetHistory(500).into())
           .await;
       }
       ActiveSonarrBlock::RootFolders => {

@@ -220,8 +220,7 @@ mod test {
 
   #[rstest]
   fn test_resource_history(
-    #[values(SonarrEvent::GetHistory(None), SonarrEvent::GetEpisodeHistory(None))]
-    event: SonarrEvent,
+    #[values(SonarrEvent::GetHistory(0), SonarrEvent::GetEpisodeHistory(None))] event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/history");
   }
@@ -2399,7 +2398,7 @@ mod test {
       None,
       Some(history_json),
       None,
-      SonarrEvent::GetHistory(None),
+      SonarrEvent::GetHistory(500),
       None,
       Some("pageSize=500&sortDirection=descending&sortKey=date"),
     )
@@ -2429,78 +2428,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
-      .handle_sonarr_event(SonarrEvent::GetHistory(None))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.history.items,
-        expected_history_items
-      );
-      assert!(app_arc.lock().await.data.sonarr_data.history.sort_asc);
-      assert_eq!(history, response);
-    }
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_sonarr_history_event_uses_provided_items() {
-    let history_json = json!({"records": [{
-      "id": 123,
-      "sourceTitle": "z episode",
-      "episodeId": 1007,
-      "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{ "id": 1, "name": "English" }],
-      "date": "2024-02-10T07:28:45Z",
-      "eventType": "grabbed",
-      "data": {
-        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
-        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
-      }
-    },
-    {
-      "id": 456,
-      "sourceTitle": "A Episode",
-      "episodeId": 2001,
-      "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{ "id": 1, "name": "English" }],
-      "date": "2024-02-10T07:28:45Z",
-      "eventType": "grabbed",
-      "data": {
-        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
-        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
-      }
-    }]});
-    let response: SonarrHistoryWrapper = serde_json::from_value(history_json.clone()).unwrap();
-    let expected_history_items = vec![
-      SonarrHistoryItem {
-        id: 123,
-        episode_id: 1007,
-        source_title: "z episode".into(),
-        ..history_item()
-      },
-      SonarrHistoryItem {
-        id: 456,
-        episode_id: 2001,
-        source_title: "A Episode".into(),
-        ..history_item()
-      },
-    ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(history_json),
-      None,
-      SonarrEvent::GetHistory(Some(1000)),
-      None,
-      Some("pageSize=1000&sortDirection=descending&sortKey=date"),
-    )
-    .await;
-    app_arc.lock().await.data.sonarr_data.history.sort_asc = true;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
-      .handle_sonarr_event(SonarrEvent::GetHistory(Some(1000)))
+      .handle_sonarr_event(SonarrEvent::GetHistory(500))
       .await
       .unwrap()
     {
@@ -2548,7 +2476,7 @@ mod test {
       None,
       Some(history_json),
       None,
-      SonarrEvent::GetHistory(None),
+      SonarrEvent::GetHistory(500),
       None,
       Some("pageSize=500&sortDirection=descending&sortKey=date"),
     )
@@ -2578,7 +2506,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
-      .handle_sonarr_event(SonarrEvent::GetHistory(None))
+      .handle_sonarr_event(SonarrEvent::GetHistory(500))
       .await
       .unwrap()
     {

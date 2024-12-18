@@ -56,7 +56,7 @@ pub enum SonarrEvent {
   GetAllIndexerSettings,
   GetBlocklist,
   GetDownloads,
-  GetHistory(Option<u64>),
+  GetHistory(u64),
   GetHostConfig,
   GetIndexers,
   GetEpisodeDetails(Option<i64>),
@@ -1451,14 +1451,11 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_sonarr_history(&mut self, events: Option<u64>) -> Result<SonarrHistoryWrapper> {
+  async fn get_sonarr_history(&mut self, events: u64) -> Result<SonarrHistoryWrapper> {
     info!("Fetching all Sonarr history events");
     let event = SonarrEvent::GetHistory(events);
 
-    let params = format!(
-      "pageSize={}&sortDirection=descending&sortKey=date",
-      events.unwrap_or(500)
-    );
+    let params = format!("pageSize={}&sortDirection=descending&sortKey=date", events);
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
       .await;
