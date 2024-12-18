@@ -238,7 +238,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrCommand> for RadarrCliHandler<'a, '
       RadarrCommand::TestIndexer { indexer_id } => {
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::TestIndexer(Some(indexer_id)).into())
+          .handle_network_event(RadarrEvent::TestIndexer(indexer_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

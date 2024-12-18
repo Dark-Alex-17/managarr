@@ -71,7 +71,7 @@ pub enum RadarrEvent {
   HealthCheck,
   SearchNewMovie(String),
   StartTask(RadarrTaskName),
-  TestIndexer(Option<i64>),
+  TestIndexer(i64),
   TestAllIndexers,
   TriggerAutomaticSearch(Option<i64>),
   UpdateAllMovies,
@@ -1632,7 +1632,7 @@ impl<'a, 'b> Network<'a, 'b> {
   }
 
   async fn start_radarr_task(&mut self, task_name: RadarrTaskName) -> Result<Value> {
-    let event = RadarrEvent::StartTask(task_name.clone());
+    let event = RadarrEvent::StartTask(task_name);
 
     info!("Starting Radarr task: {task_name}");
 
@@ -1647,32 +1647,19 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn test_radarr_indexer(&mut self, indexer_id: Option<i64>) -> Result<Value> {
+  async fn test_radarr_indexer(&mut self, indexer_id: i64) -> Result<Value> {
     let detail_event = RadarrEvent::GetIndexers;
-    let event = RadarrEvent::TestIndexer(None);
-    let id = if let Some(i_id) = indexer_id {
-      i_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .indexers
-        .current_selection()
-        .id
-    };
-    info!("Testing Radarr indexer with ID: {id}");
+    let event = RadarrEvent::TestIndexer(indexer_id);
+    info!("Testing Radarr indexer with ID: {indexer_id}");
 
-    info!("Fetching indexer details for indexer with ID: {id}");
+    info!("Fetching indexer details for indexer with ID: {indexer_id}");
 
     let request_props = self
       .request_props_from(
         detail_event,
         RequestMethod::Get,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{indexer_id}")),
         None,
       )
       .await;

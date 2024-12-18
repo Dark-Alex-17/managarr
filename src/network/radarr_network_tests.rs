@@ -228,7 +228,7 @@ mod test {
   #[case(RadarrEvent::GetStatus, "/system/status")]
   #[case(RadarrEvent::GetTasks, "/system/task")]
   #[case(RadarrEvent::GetUpdates, "/update")]
-  #[case(RadarrEvent::TestIndexer(None), "/indexer/test")]
+  #[case(RadarrEvent::TestIndexer(0), "/indexer/test")]
   #[case(RadarrEvent::TestAllIndexers, "/indexer/testall")]
   #[case(RadarrEvent::HealthCheck, "/health")]
   fn test_resource(#[case] event: RadarrEvent, #[case] expected_uri: String) {
@@ -756,7 +756,7 @@ mod test {
     let async_test_server = server
       .mock(
         "POST",
-        format!("/api/v3{}", RadarrEvent::TestIndexer(None).resource()).as_str(),
+        format!("/api/v3{}", RadarrEvent::TestIndexer(1).resource()).as_str(),
       )
       .with_status(400)
       .match_header("X-Api-Key", "test1234")
@@ -764,17 +764,10 @@ mod test {
       .with_body(response_json.to_string())
       .create_async()
       .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .indexers
-      .set_items(vec![indexer()]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Value(value) = network
-      .handle_radarr_event(RadarrEvent::TestIndexer(None))
+      .handle_radarr_event(RadarrEvent::TestIndexer(1))
       .await
       .unwrap()
     {
@@ -825,7 +818,7 @@ mod test {
     let async_test_server = server
       .mock(
         "POST",
-        format!("/api/v3{}", RadarrEvent::TestIndexer(None).resource()).as_str(),
+        format!("/api/v3{}", RadarrEvent::TestIndexer(1).resource()).as_str(),
       )
       .with_status(200)
       .match_header("X-Api-Key", "test1234")
@@ -833,17 +826,10 @@ mod test {
       .with_body("{}")
       .create_async()
       .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .indexers
-      .set_items(vec![indexer()]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Value(value) = network
-      .handle_radarr_event(RadarrEvent::TestIndexer(None))
+      .handle_radarr_event(RadarrEvent::TestIndexer(1))
       .await
       .unwrap()
     {
@@ -853,64 +839,6 @@ mod test {
         app_arc.lock().await.data.radarr_data.indexer_test_errors,
         Some(String::new())
       );
-      assert_eq!(value, json!({}));
-    }
-  }
-
-  #[tokio::test]
-  async fn test_handle_test_radarr_indexer_event_success_uses_provided_id() {
-    let indexer_details_json = json!({
-        "enableRss": true,
-        "enableAutomaticSearch": true,
-        "enableInteractiveSearch": true,
-        "name": "Test Indexer",
-        "fields": [
-            {
-                "name": "baseUrl",
-                "value": "https://test.com",
-            },
-            {
-                "name": "apiKey",
-                "value": "",
-            },
-            {
-                "name": "seedCriteria.seedRatio",
-                "value": "1.2",
-            },
-        ],
-        "tags": [1],
-        "id": 1
-    });
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json.clone()),
-      None,
-      RadarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
-    let async_test_server = server
-      .mock(
-        "POST",
-        format!("/api/v3{}", RadarrEvent::TestIndexer(None).resource()).as_str(),
-      )
-      .with_status(200)
-      .match_header("X-Api-Key", "test1234")
-      .match_body(Matcher::Json(indexer_details_json.clone()))
-      .with_body("{}")
-      .create_async()
-      .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let RadarrSerdeable::Value(value) = network
-      .handle_radarr_event(RadarrEvent::TestIndexer(Some(1)))
-      .await
-      .unwrap()
-    {
-      async_details_server.assert_async().await;
-      async_test_server.assert_async().await;
       assert_eq!(value, json!({}));
     }
   }

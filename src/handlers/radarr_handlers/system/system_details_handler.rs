@@ -21,7 +21,7 @@ pub(super) struct SystemDetailsHandler<'a, 'b> {
 
 impl<'a, 'b> SystemDetailsHandler<'a, 'b> {
   fn extract_task_name(&self) -> RadarrTaskName {
-    self.app.data.radarr_data.tasks.current_selection().task_name.clone()
+    self.app.data.radarr_data.tasks.current_selection().task_name
   }
 }
 

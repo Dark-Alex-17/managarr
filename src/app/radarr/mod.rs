@@ -77,7 +77,7 @@ impl<'a> App<'a> {
       }
       ActiveRadarrBlock::TestIndexer => {
         self
-          .dispatch_network_event(RadarrEvent::TestIndexer(None).into())
+          .dispatch_network_event(RadarrEvent::TestIndexer(self.extract_indexer_id().await).into())
           .await;
       }
       ActiveRadarrBlock::TestAllIndexers => {
@@ -232,5 +232,15 @@ impl<'a> App<'a> {
 
   async fn extract_movie_search_query(&self) -> String {
     self.data.radarr_data.add_movie_search.as_ref().expect("Add movie search is empty").text.clone()
+  }
+  
+  async fn extract_indexer_id(&self) -> i64 {
+    self
+      .data
+      .radarr_data
+      .indexers
+      .current_selection()
+      .clone()
+      .id
   }
 }
