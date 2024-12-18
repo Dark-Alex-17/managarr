@@ -17,8 +17,7 @@ mod test {
 
   use crate::models::sonarr_models::{
     AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, AddSeriesSearchResultStatistics,
-    DownloadStatus, EditSeriesParams, IndexerSettings, MonitorEpisodeBody, SeriesMonitor,
-    SonarrHistoryEventType
+    DownloadStatus, EditSeriesParams, IndexerSettings, MonitorEpisodeBody, SonarrHistoryEventType,
   };
 
   use crate::app::{App, ServarrConfig};
@@ -28,7 +27,11 @@ mod test {
     AddSeriesModal, EditSeriesModal, EpisodeDetailsModal, SeasonDetailsModal,
   };
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
-  use crate::models::servarr_models::{AddRootFolderBody, DiskSpace, EditIndexerParams, HostConfig, Indexer, IndexerField, Language, LogResponse, Quality, QualityProfile, QualityWrapper, QueueEvent, RootFolder, SecurityConfig, Tag, Update};
+  use crate::models::servarr_models::{
+    AddRootFolderBody, DiskSpace, EditIndexerParams, HostConfig, Indexer, IndexerField, Language,
+    LogResponse, Quality, QualityProfile, QualityWrapper, QueueEvent, RootFolder, SecurityConfig,
+    Tag, Update,
+  };
   use crate::models::sonarr_models::{
     BlocklistItem, DeleteSeriesParams, DownloadRecord, DownloadsResponse, Episode, EpisodeFile,
     MediaInfo, SonarrRelease, SonarrReleaseDownloadBody, SonarrTaskName,
@@ -39,7 +42,7 @@ mod test {
   use crate::models::sonarr_models::{SonarrTask, SystemStatus};
   use crate::models::stateful_table::StatefulTable;
   use crate::models::{sonarr_models::SonarrSerdeable, stateful_table::SortOption};
-  use crate::models::{HorizontallyScrollableText, Scrollable, ScrollableText};
+  use crate::models::{HorizontallyScrollableText, ScrollableText};
 
   use crate::network::sonarr_network::get_episode_status;
   use crate::{
@@ -156,7 +159,7 @@ mod test {
   #[rstest]
   fn test_resource_series(
     #[values(
-      SonarrEvent::AddSeries(None),
+      SonarrEvent::AddSeries(AddSeriesBody::default()),
       SonarrEvent::ListSeries,
       SonarrEvent::GetSeriesDetails(None),
       SonarrEvent::DeleteSeries(None),
@@ -307,7 +310,9 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_add_sonarr_root_folder_event() {
-    let expected_add_root_folder_body = AddRootFolderBody { path: "/nfs/test".to_owned() };
+    let expected_add_root_folder_body = AddRootFolderBody {
+      path: "/nfs/test".to_owned(),
+    };
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -339,6 +344,23 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_add_sonarr_series_event() {
+    let expected_add_series_body = AddSeriesBody {
+      tvdb_id: 1234,
+      title: "Test".to_owned(),
+      monitored: true,
+      root_folder_path: "/nfs2".to_owned(),
+      quality_profile_id: 2222,
+      language_profile_id: 2222,
+      series_type: "standard".to_owned(),
+      season_folder: true,
+      tags: Vec::new(),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      add_options: AddSeriesOptions {
+        monitor: "all".to_owned(),
+        search_for_cutoff_unmet_episodes: true,
+        search_for_missing_episodes: true,
+      },
+    };
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -359,103 +381,27 @@ mod test {
       })),
       Some(json!({})),
       None,
-      SonarrEvent::AddSeries(None),
+      SonarrEvent::AddSeries(expected_add_series_body.clone()),
       None,
       None,
     )
     .await;
-
-    {
-      let mut app = app_arc.lock().await;
-      let mut add_series_modal = AddSeriesModal {
-        use_season_folder: true,
-        tags: "usenet, testing".into(),
-        ..AddSeriesModal::default()
-      };
-      add_series_modal.root_folder_list.set_items(vec![
-        RootFolder {
-          id: 1,
-          path: "/nfs".to_owned(),
-          accessible: true,
-          free_space: 219902325555200,
-          unmapped_folders: None,
-        },
-        RootFolder {
-          id: 2,
-          path: "/nfs2".to_owned(),
-          accessible: true,
-          free_space: 21990232555520,
-          unmapped_folders: None,
-        },
-      ]);
-      add_series_modal.root_folder_list.state.select(Some(1));
-      add_series_modal
-        .quality_profile_list
-        .set_items(vec!["HD - 1080p".to_owned()]);
-      add_series_modal
-        .language_profile_list
-        .set_items(vec!["English".to_owned()]);
-      add_series_modal
-        .monitor_list
-        .set_items(Vec::from_iter(SeriesMonitor::iter()));
-      add_series_modal
-        .series_type_list
-        .set_items(Vec::from_iter(SeriesType::iter()));
-      app.data.sonarr_data.add_series_modal = Some(add_series_modal);
-      app.data.sonarr_data.quality_profile_map =
-        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
-      app.data.sonarr_data.language_profiles_map = BiMap::from_iter([(2222, "English".to_owned())]);
-      app.data.sonarr_data.tags_map =
-        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-      let mut add_searched_series = StatefulTable::default();
-      add_searched_series.set_items(vec![add_series_search_result()]);
-      app.data.sonarr_data.add_searched_series = Some(add_searched_series);
-    }
+    app_arc.lock().await.data.sonarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::AddSeries(None))
+      .handle_sonarr_event(SonarrEvent::AddSeries(expected_add_series_body))
       .await
       .is_ok());
 
     async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .add_series_modal
-      .is_none());
   }
 
   #[tokio::test]
-  async fn test_handle_add_sonarr_series_event_uses_provided_body() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "tvdbId": 1234,
-        "title": "Test",
-        "monitored": true,
-        "rootFolderPath": "/nfs2",
-        "qualityProfileId": 2222,
-        "languageProfileId": 2222,
-        "seriesType": "standard",
-        "seasonFolder": true,
-        "tags": [1, 2],
-        "addOptions": {
-          "monitor": "standard",
-          "searchForCutoffUnmetEpisodes": true,
-          "searchForMissingEpisodes": true
-        }
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::AddSeries(None),
-      None,
-      None,
-    )
-    .await;
-    let body = AddSeriesBody {
+  async fn test_handle_add_sonarr_series_event_does_not_overwrite_tags_vec_when_tag_input_string_is_none(
+  ) {
+    let expected_add_series_body = AddSeriesBody {
       tvdb_id: 1234,
       title: "Test".to_owned(),
       monitored: true,
@@ -465,36 +411,17 @@ mod test {
       series_type: "standard".to_owned(),
       season_folder: true,
       tags: vec![1, 2],
+      tag_input_string: None,
       add_options: AddSeriesOptions {
-        monitor: "standard".to_owned(),
+        monitor: "all".to_owned(),
         search_for_cutoff_unmet_episodes: true,
         search_for_missing_episodes: true,
       },
     };
-
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::AddSeries(Some(body)))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .add_series_modal
-      .is_none());
-  }
-
-  #[tokio::test]
-  async fn test_handle_add_sonarr_series_event_reuse_existing_table_if_search_already_performed() {
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
-        "tvdbId": 5678,
+        "tvdbId": 1234,
         "title": "Test",
         "monitored": true,
         "rootFolderPath": "/nfs2",
@@ -511,91 +438,19 @@ mod test {
       })),
       Some(json!({})),
       None,
-      SonarrEvent::AddSeries(None),
+      SonarrEvent::AddSeries(expected_add_series_body.clone()),
       None,
       None,
     )
     .await;
-
-    {
-      let mut app = app_arc.lock().await;
-      let mut add_series_modal = AddSeriesModal {
-        use_season_folder: true,
-        tags: "usenet, testing".into(),
-        ..AddSeriesModal::default()
-      };
-      add_series_modal.root_folder_list.set_items(vec![
-        RootFolder {
-          id: 1,
-          path: "/nfs".to_owned(),
-          accessible: true,
-          free_space: 219902325555200,
-          unmapped_folders: None,
-        },
-        RootFolder {
-          id: 2,
-          path: "/nfs2".to_owned(),
-          accessible: true,
-          free_space: 21990232555520,
-          unmapped_folders: None,
-        },
-      ]);
-      add_series_modal.root_folder_list.state.select(Some(1));
-      add_series_modal
-        .quality_profile_list
-        .set_items(vec!["HD - 1080p".to_owned()]);
-      add_series_modal
-        .language_profile_list
-        .set_items(vec!["English".to_owned()]);
-      add_series_modal
-        .monitor_list
-        .set_items(Vec::from_iter(SeriesMonitor::iter()));
-      add_series_modal
-        .series_type_list
-        .set_items(Vec::from_iter(SeriesType::iter()));
-      app.data.sonarr_data.add_series_modal = Some(add_series_modal);
-      app.data.sonarr_data.quality_profile_map =
-        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
-      app.data.sonarr_data.language_profiles_map = BiMap::from_iter([(2222, "English".to_owned())]);
-      app.data.sonarr_data.tags_map =
-        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-      let secondary_search_result = AddSeriesSearchResult {
-        tvdb_id: 5678,
-        ..add_series_search_result()
-      };
-      let mut add_searched_series = StatefulTable::default();
-      add_searched_series.set_items(vec![add_series_search_result(), secondary_search_result]);
-      add_searched_series.scroll_to_bottom();
-      app.data.sonarr_data.add_searched_series = Some(add_searched_series);
-    }
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::AddSeries(None))
+      .handle_sonarr_event(SonarrEvent::AddSeries(expected_add_series_body))
       .await
       .is_ok());
 
     async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .add_series_modal
-      .is_none());
-    assert_eq!(
-      app_arc
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .add_searched_series
-        .as_ref()
-        .unwrap()
-        .current_selection()
-        .tvdb_id,
-      5678
-    );
   }
 
   #[tokio::test]

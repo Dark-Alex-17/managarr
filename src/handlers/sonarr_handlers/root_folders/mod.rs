@@ -28,9 +28,17 @@ impl<'a, 'b> RootFoldersHandler<'a, 'b> {
     self.app.data.sonarr_data.root_folders,
     RootFolder
   );
-  
+
   fn build_add_root_folder_body(&mut self) -> AddRootFolderBody {
-    let root_folder = self.app.data.sonarr_data.edit_root_folder.as_ref().unwrap().text.clone();
+    let root_folder = self
+      .app
+      .data
+      .sonarr_data
+      .edit_root_folder
+      .as_ref()
+      .unwrap()
+      .text
+      .clone();
     self.app.data.sonarr_data.edit_root_folder = None;
     AddRootFolderBody { path: root_folder }
   }
@@ -146,7 +154,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for RootFoldersHandler<'
           .text
           .is_empty() =>
       {
-        self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::AddRootFolder(self.build_add_root_folder_body()));
+        self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::AddRootFolder(
+          self.build_add_root_folder_body(),
+        ));
         self.app.data.sonarr_data.prompt_confirm = true;
         self.app.should_ignore_quit_key = false;
         self.app.pop_navigation_stack();

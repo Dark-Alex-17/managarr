@@ -1,8 +1,15 @@
 #[cfg(test)]
 #[macro_use]
 pub(in crate::handlers::sonarr_handlers) mod utils {
-  use crate::models::servarr_models::{Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder};
-  use crate::models::sonarr_models::{AddSeriesSearchResult, AddSeriesSearchResultStatistics, BlocklistItem, DownloadRecord, DownloadStatus, DownloadsResponse, Episode, EpisodeFile, IndexerSettings, MediaInfo, Rating, Season, SeasonStatistics, Series, SeriesStatistics, SeriesStatus, SeriesType, SonarrHistoryData, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease};
+  use crate::models::servarr_models::{
+    Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
+  };
+  use crate::models::sonarr_models::{
+    AddSeriesSearchResult, AddSeriesSearchResultStatistics, BlocklistItem, DownloadRecord,
+    DownloadStatus, DownloadsResponse, Episode, EpisodeFile, IndexerSettings, MediaInfo, Rating,
+    Season, SeasonStatistics, Series, SeriesStatistics, SeriesStatus, SeriesType,
+    SonarrHistoryData, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
+  };
   use crate::models::HorizontallyScrollableText;
   use chrono::DateTime;
   use serde_json::{json, Number};
@@ -160,7 +167,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     };
   }
 
-  fn add_series_search_result() -> AddSeriesSearchResult {
+  pub fn add_series_search_result() -> AddSeriesSearchResult {
     AddSeriesSearchResult {
       tvdb_id: 1234,
       title: HorizontallyScrollableText::from("Test"),
@@ -176,11 +183,11 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn add_series_search_result_statistics() -> AddSeriesSearchResultStatistics {
+  pub fn add_series_search_result_statistics() -> AddSeriesSearchResultStatistics {
     AddSeriesSearchResultStatistics { season_count: 3 }
   }
 
-  fn blocklist_item() -> BlocklistItem {
+  pub fn blocklist_item() -> BlocklistItem {
     BlocklistItem {
       id: 1,
       series_id: 1,
@@ -196,7 +203,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn download_record() -> DownloadRecord {
+  pub fn download_record() -> DownloadRecord {
     DownloadRecord {
       title: "Test Download Title".to_owned(),
       status: DownloadStatus::Downloading,
@@ -212,13 +219,13 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn downloads_response() -> DownloadsResponse {
+  pub fn downloads_response() -> DownloadsResponse {
     DownloadsResponse {
       records: vec![download_record()],
     }
   }
 
-  fn episode() -> Episode {
+  pub fn episode() -> Episode {
     Episode {
       id: 1,
       series_id: 1,
@@ -237,7 +244,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn episode_file() -> EpisodeFile {
+  pub fn episode_file() -> EpisodeFile {
     EpisodeFile {
       id: 1,
       relative_path: "/season 1/episode 1.mkv".to_owned(),
@@ -250,11 +257,11 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn genres() -> Vec<String> {
+  pub fn genres() -> Vec<String> {
     vec!["cool".to_owned(), "family".to_owned(), "fun".to_owned()]
   }
 
-  fn history_data() -> SonarrHistoryData {
+  pub fn history_data() -> SonarrHistoryData {
     SonarrHistoryData {
       dropped_path: Some("/nfs/nzbget/completed/series/Coolness/something.cool.mkv".to_owned()),
       imported_path: Some(
@@ -264,7 +271,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn history_item() -> SonarrHistoryItem {
+  pub fn history_item() -> SonarrHistoryItem {
     SonarrHistoryItem {
       id: 1,
       source_title: "Test source".into(),
@@ -277,7 +284,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn indexer() -> Indexer {
+  pub fn indexer() -> Indexer {
     Indexer {
       enable_rss: true,
       enable_automatic_search: true,
@@ -310,7 +317,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn indexer_settings() -> IndexerSettings {
+  pub fn indexer_settings() -> IndexerSettings {
     IndexerSettings {
       id: 1,
       minimum_age: 1,
@@ -320,14 +327,14 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn language() -> Language {
+  pub fn language() -> Language {
     Language {
       id: 1,
       name: "English".to_owned(),
     }
   }
 
-  fn media_info() -> MediaInfo {
+  pub fn media_info() -> MediaInfo {
     MediaInfo {
       audio_bitrate: 0,
       audio_channels: Number::from_f64(7.1).unwrap(),
@@ -344,24 +351,24 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
       subtitles: Some("English".to_owned()),
     }
   }
-  fn quality() -> Quality {
+  pub fn quality() -> Quality {
     Quality {
       name: "Bluray-1080p".to_owned(),
     }
   }
 
-  fn quality_wrapper() -> QualityWrapper {
+  pub fn quality_wrapper() -> QualityWrapper {
     QualityWrapper { quality: quality() }
   }
 
-  fn rating() -> Rating {
+  pub fn rating() -> Rating {
     Rating {
       votes: 406744,
       value: 8.4,
     }
   }
 
-  fn season() -> Season {
+  pub fn season() -> Season {
     Season {
       title: None,
       season_number: 1,
@@ -370,7 +377,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn season_statistics() -> SeasonStatistics {
+  pub fn season_statistics() -> SeasonStatistics {
     SeasonStatistics {
       previous_airing: Some(DateTime::from(
         DateTime::parse_from_rfc3339("2022-10-24T01:00:00Z").unwrap(),
@@ -384,7 +391,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn series() -> Series {
+  pub fn series() -> Series {
     Series {
       title: "Test".to_owned().into(),
       status: SeriesStatus::Continuing,
@@ -410,7 +417,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn series_statistics() -> SeriesStatistics {
+  pub fn series_statistics() -> SeriesStatistics {
     SeriesStatistics {
       season_count: 2,
       episode_file_count: 18,
@@ -421,14 +428,14 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn rejections() -> Vec<String> {
+  pub fn rejections() -> Vec<String> {
     vec![
       "Unknown quality profile".to_owned(),
       "Release is already mapped".to_owned(),
     ]
   }
 
-  fn release() -> SonarrRelease {
+  pub fn release() -> SonarrRelease {
     SonarrRelease {
       guid: "1234".to_owned(),
       protocol: "torrent".to_owned(),
@@ -447,7 +454,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     }
   }
 
-  fn root_folder() -> RootFolder {
+  pub fn root_folder() -> RootFolder {
     RootFolder {
       id: 1,
       path: "/nfs".to_owned(),

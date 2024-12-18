@@ -12,7 +12,7 @@ use crate::{
     servarr_data::{
       modals::{EditIndexerModal, IndexerTestResultModalItem},
       sonarr::{
-        modals::{AddSeriesModal, EditSeriesModal, EpisodeDetailsModal, SeasonDetailsModal},
+        modals::{EditSeriesModal, EpisodeDetailsModal, SeasonDetailsModal},
         sonarr_data::ActiveSonarrBlock,
       },
     },
@@ -21,11 +21,10 @@ use crate::{
       LogResponse, QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
-      AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, BlocklistItem, BlocklistResponse,
-      DeleteSeriesParams, DownloadRecord, DownloadsResponse, EditSeriesParams, Episode,
-      EpisodeFile, IndexerSettings, Series, SonarrCommandBody, SonarrHistoryItem,
-      SonarrHistoryWrapper, SonarrRelease, SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTask,
-      SonarrTaskName, SystemStatus,
+      AddSeriesBody, AddSeriesSearchResult, BlocklistItem, BlocklistResponse, DeleteSeriesParams,
+      DownloadRecord, DownloadsResponse, EditSeriesParams, Episode, EpisodeFile, IndexerSettings,
+      Series, SonarrCommandBody, SonarrHistoryItem, SonarrHistoryWrapper, SonarrRelease,
+      SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
     },
     stateful_table::StatefulTable,
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
@@ -40,7 +39,7 @@ mod sonarr_network_tests;
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum SonarrEvent {
   AddRootFolder(AddRootFolderBody),
-  AddSeries(Option<AddSeriesBody>),
+  AddSeries(AddSeriesBody),
   AddTag(String),
   ClearBlocklist,
   DeleteBlocklistItem(Option<i64>),
@@ -357,14 +356,23 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn add_sonarr_root_folder(&mut self, add_root_folder_body: AddRootFolderBody) -> Result<Value> {
+  async fn add_sonarr_root_folder(
+    &mut self,
+    add_root_folder_body: AddRootFolderBody,
+  ) -> Result<Value> {
     info!("Adding new root folder to Sonarr");
     let event = SonarrEvent::AddRootFolder(add_root_folder_body.clone());
 
     debug!("Add root folder body: {add_root_folder_body:?}");
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Post, Some(add_root_folder_body), None, None)
+      .request_props_from(
+        event,
+        RequestMethod::Post,
+        Some(add_root_folder_body),
+        None,
+        None,
+      )
       .await;
 
     self
@@ -372,99 +380,26 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn add_sonarr_series(
-    &mut self,
-    add_series_body_option: Option<AddSeriesBody>,
-  ) -> Result<Value> {
+  async fn add_sonarr_series(&mut self, mut add_series_body: AddSeriesBody) -> Result<Value> {
     info!("Adding new series to Sonarr");
-    let event = SonarrEvent::AddSeries(None);
-    let body = if let Some(add_series_body) = add_series_body_option {
-      add_series_body
-    } else {
-      let tags = self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .add_series_modal
-        .as_ref()
-        .unwrap()
-        .tags
-        .text
-        .clone();
-      let tag_ids_vec = self.extract_and_add_sonarr_tag_ids_vec(tags).await;
-      let mut app = self.app.lock().await;
-      let AddSeriesModal {
-        root_folder_list,
-        monitor_list,
-        quality_profile_list,
-        language_profile_list,
-        series_type_list,
-        use_season_folder,
-        ..
-      } = app.data.sonarr_data.add_series_modal.as_ref().unwrap();
-      let season_folder = *use_season_folder;
-      let (tvdb_id, title) = {
-        let AddSeriesSearchResult { tvdb_id, title, .. } = app
-          .data
-          .sonarr_data
-          .add_searched_series
-          .as_ref()
-          .unwrap()
-          .current_selection()
-          .clone();
-        (tvdb_id, title.text)
-      };
-      let quality_profile = quality_profile_list.current_selection();
-      let quality_profile_id = *app
-        .data
-        .sonarr_data
-        .quality_profile_map
-        .iter()
-        .filter(|(_, value)| *value == quality_profile)
-        .map(|(key, _)| key)
-        .next()
-        .unwrap();
-      let language_profile = language_profile_list.current_selection();
-      let language_profile_id = *app
-        .data
-        .sonarr_data
-        .language_profiles_map
-        .iter()
-        .filter(|(_, value)| *value == language_profile)
-        .map(|(key, _)| key)
-        .next()
-        .unwrap();
+    let event = SonarrEvent::AddSeries(add_series_body.clone());
+    if let Some(tag_input_string) = add_series_body.tag_input_string.as_ref() {
+      let tag_ids_vec = self
+        .extract_and_add_sonarr_tag_ids_vec(tag_input_string.clone())
+        .await;
+      add_series_body.tags = tag_ids_vec;
+    }
 
-      let path = root_folder_list.current_selection().path.clone();
-      let monitor = monitor_list.current_selection().to_string();
-      let series_type = series_type_list.current_selection().to_string();
-
-      app.data.sonarr_data.add_series_modal = None;
-
-      AddSeriesBody {
-        tvdb_id,
-        title,
-        monitored: true,
-        root_folder_path: path,
-        quality_profile_id,
-        language_profile_id,
-        series_type,
-        season_folder,
-        tags: tag_ids_vec,
-        add_options: AddSeriesOptions {
-          monitor,
-          search_for_cutoff_unmet_episodes: true,
-          search_for_missing_episodes: true,
-        },
-      }
-    };
-
-    debug!("Add series body: {body:?}");
+    debug!("Add series body: {add_series_body:?}");
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .request_props_from(
+        event,
+        RequestMethod::Post,
+        Some(add_series_body),
+        None,
+        None,
+      )
       .await;
 
     self

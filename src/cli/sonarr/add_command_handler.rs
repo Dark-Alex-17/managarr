@@ -140,6 +140,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrAddCommand> for SonarrAddCommandHan
           series_type: series_type.to_string(),
           season_folder: !disable_season_folders,
           tags,
+          tag_input_string: None,
           add_options: AddSeriesOptions {
             monitor: monitor.to_string(),
             search_for_cutoff_unmet_episodes: !no_search_for_series,
@@ -148,12 +149,14 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrAddCommand> for SonarrAddCommandHan
         };
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::AddSeries(Some(body)).into())
+          .handle_network_event(SonarrEvent::AddSeries(body).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrAddCommand::RootFolder { root_folder_path } => {
-        let add_root_folder_body = AddRootFolderBody { path: root_folder_path };
+        let add_root_folder_body = AddRootFolderBody {
+          path: root_folder_path,
+        };
         let resp = self
           .network
           .handle_network_event(SonarrEvent::AddRootFolder(add_root_folder_body).into())

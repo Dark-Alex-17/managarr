@@ -1,16 +1,22 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::assert_str_eq;
+  use bimap::BiMap;
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::sonarr_handlers::library::add_series_handler::AddSeriesHandler;
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::add_series_search_result;
   use crate::handlers::KeyEventHandler;
+  use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ADD_SERIES_BLOCKS};
   use crate::models::servarr_models::RootFolder;
-  use crate::models::sonarr_models::{AddSeriesSearchResult, SeriesMonitor, SeriesType};
+  use crate::models::sonarr_models::{
+    AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, SeriesMonitor, SeriesType,
+  };
+  use crate::models::stateful_table::StatefulTable;
   use crate::models::HorizontallyScrollableText;
 
   mod test_handle_scroll_up_and_down {
@@ -366,6 +372,7 @@ mod tests {
   }
 
   mod test_handle_home_end {
+    use pretty_assertions::assert_eq;
     use std::sync::atomic::Ordering;
 
     use strum::IntoEnumIterator;
@@ -763,6 +770,7 @@ mod tests {
   }
 
   mod test_handle_left_right_action {
+    use pretty_assertions::assert_eq;
     use std::sync::atomic::Ordering;
 
     use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
@@ -1109,10 +1117,67 @@ mod tests {
     #[test]
     fn test_add_series_confirm_prompt_prompt_confirmation_submit() {
       let mut app = App::default();
-      app.data.sonarr_data.add_series_modal = Some(AddSeriesModal::default());
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesPrompt.into());
       app.data.sonarr_data.prompt_confirm = true;
+      let mut add_series_modal = AddSeriesModal {
+        use_season_folder: true,
+        tags: "usenet, testing".into(),
+        ..AddSeriesModal::default()
+      };
+      add_series_modal.root_folder_list.set_items(vec![
+        RootFolder {
+          id: 1,
+          path: "/nfs".to_owned(),
+          accessible: true,
+          free_space: 219902325555200,
+          unmapped_folders: None,
+        },
+        RootFolder {
+          id: 2,
+          path: "/nfs2".to_owned(),
+          accessible: true,
+          free_space: 21990232555520,
+          unmapped_folders: None,
+        },
+      ]);
+      add_series_modal.root_folder_list.state.select(Some(1));
+      add_series_modal
+        .quality_profile_list
+        .set_items(vec!["HD - 1080p".to_owned()]);
+      add_series_modal
+        .language_profile_list
+        .set_items(vec!["English".to_owned()]);
+      add_series_modal
+        .monitor_list
+        .set_items(Vec::from_iter(SeriesMonitor::iter()));
+      add_series_modal
+        .series_type_list
+        .set_items(Vec::from_iter(SeriesType::iter()));
+      app.data.sonarr_data.add_series_modal = Some(add_series_modal);
+      app.data.sonarr_data.quality_profile_map =
+        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
+      app.data.sonarr_data.language_profiles_map = BiMap::from_iter([(2222, "English".to_owned())]);
+      let mut add_searched_series = StatefulTable::default();
+      add_searched_series.set_items(vec![add_series_search_result()]);
+      app.data.sonarr_data.add_searched_series = Some(add_searched_series);
+      let expected_add_series_body = AddSeriesBody {
+        tvdb_id: 1234,
+        title: "Test".to_owned(),
+        monitored: true,
+        root_folder_path: "/nfs2".to_owned(),
+        quality_profile_id: 2222,
+        language_profile_id: 2222,
+        series_type: "standard".to_owned(),
+        season_folder: true,
+        tags: Vec::default(),
+        tag_input_string: Some("usenet, testing".to_owned()),
+        add_options: AddSeriesOptions {
+          monitor: "all".to_owned(),
+          search_for_cutoff_unmet_episodes: true,
+          search_for_missing_episodes: true,
+        },
+      };
       app.data.sonarr_data.selected_block = BlockSelectionState::new(ADD_SERIES_SELECTION_BLOCKS);
       app
         .data
@@ -1131,9 +1196,9 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::AddSeries(None))
+        Some(SonarrEvent::AddSeries(expected_add_series_body))
       );
-      assert!(app.data.sonarr_data.add_series_modal.is_some());
+      assert!(app.data.sonarr_data.add_series_modal.is_none());
     }
 
     #[rstest]
@@ -1440,6 +1505,7 @@ mod tests {
       },
       network::sonarr_network::SonarrEvent,
     };
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_add_series_search_input_backspace() {
@@ -1553,7 +1619,64 @@ mod tests {
     #[test]
     fn test_add_series_confirm_prompt_prompt_confirmation_confirm() {
       let mut app = App::default();
-      app.data.sonarr_data.add_series_modal = Some(AddSeriesModal::default());
+      let mut add_series_modal = AddSeriesModal {
+        use_season_folder: true,
+        tags: "usenet, testing".into(),
+        ..AddSeriesModal::default()
+      };
+      add_series_modal.root_folder_list.set_items(vec![
+        RootFolder {
+          id: 1,
+          path: "/nfs".to_owned(),
+          accessible: true,
+          free_space: 219902325555200,
+          unmapped_folders: None,
+        },
+        RootFolder {
+          id: 2,
+          path: "/nfs2".to_owned(),
+          accessible: true,
+          free_space: 21990232555520,
+          unmapped_folders: None,
+        },
+      ]);
+      add_series_modal.root_folder_list.state.select(Some(1));
+      add_series_modal
+        .quality_profile_list
+        .set_items(vec!["HD - 1080p".to_owned()]);
+      add_series_modal
+        .language_profile_list
+        .set_items(vec!["English".to_owned()]);
+      add_series_modal
+        .monitor_list
+        .set_items(Vec::from_iter(SeriesMonitor::iter()));
+      add_series_modal
+        .series_type_list
+        .set_items(Vec::from_iter(SeriesType::iter()));
+      app.data.sonarr_data.add_series_modal = Some(add_series_modal);
+      app.data.sonarr_data.quality_profile_map =
+        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
+      app.data.sonarr_data.language_profiles_map = BiMap::from_iter([(2222, "English".to_owned())]);
+      let mut add_searched_series = StatefulTable::default();
+      add_searched_series.set_items(vec![add_series_search_result()]);
+      app.data.sonarr_data.add_searched_series = Some(add_searched_series);
+      let expected_add_series_body = AddSeriesBody {
+        tvdb_id: 1234,
+        title: "Test".to_owned(),
+        monitored: true,
+        root_folder_path: "/nfs2".to_owned(),
+        quality_profile_id: 2222,
+        language_profile_id: 2222,
+        series_type: "standard".to_owned(),
+        season_folder: true,
+        tags: Vec::default(),
+        tag_input_string: Some("usenet, testing".to_owned()),
+        add_options: AddSeriesOptions {
+          monitor: "all".to_owned(),
+          search_for_cutoff_unmet_episodes: true,
+          search_for_missing_episodes: true,
+        },
+      };
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesPrompt.into());
       app.data.sonarr_data.selected_block = BlockSelectionState::new(ADD_SERIES_SELECTION_BLOCKS);
@@ -1574,9 +1697,9 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::AddSeries(None))
+        Some(SonarrEvent::AddSeries(expected_add_series_body))
       );
-      assert!(app.data.sonarr_data.add_series_modal.is_some());
+      assert!(app.data.sonarr_data.add_series_modal.is_none());
     }
   }
 
@@ -1589,6 +1712,79 @@ mod tests {
         assert!(!AddSeriesHandler::accepts(active_sonarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_build_add_series_body() {
+    let mut app = App::default();
+    let mut add_series_modal = AddSeriesModal {
+      use_season_folder: true,
+      tags: "usenet, testing".into(),
+      ..AddSeriesModal::default()
+    };
+    add_series_modal.root_folder_list.set_items(vec![
+      RootFolder {
+        id: 1,
+        path: "/nfs".to_owned(),
+        accessible: true,
+        free_space: 219902325555200,
+        unmapped_folders: None,
+      },
+      RootFolder {
+        id: 2,
+        path: "/nfs2".to_owned(),
+        accessible: true,
+        free_space: 21990232555520,
+        unmapped_folders: None,
+      },
+    ]);
+    add_series_modal.root_folder_list.state.select(Some(1));
+    add_series_modal
+      .quality_profile_list
+      .set_items(vec!["HD - 1080p".to_owned()]);
+    add_series_modal
+      .language_profile_list
+      .set_items(vec!["English".to_owned()]);
+    add_series_modal
+      .monitor_list
+      .set_items(Vec::from_iter(SeriesMonitor::iter()));
+    add_series_modal
+      .series_type_list
+      .set_items(Vec::from_iter(SeriesType::iter()));
+    app.data.sonarr_data.add_series_modal = Some(add_series_modal);
+    app.data.sonarr_data.quality_profile_map = BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
+    app.data.sonarr_data.language_profiles_map = BiMap::from_iter([(2222, "English".to_owned())]);
+    let mut add_searched_series = StatefulTable::default();
+    add_searched_series.set_items(vec![add_series_search_result()]);
+    app.data.sonarr_data.add_searched_series = Some(add_searched_series);
+    let expected_add_series_body = AddSeriesBody {
+      tvdb_id: 1234,
+      title: "Test".to_owned(),
+      monitored: true,
+      root_folder_path: "/nfs2".to_owned(),
+      quality_profile_id: 2222,
+      language_profile_id: 2222,
+      series_type: "standard".to_owned(),
+      season_folder: true,
+      tags: Vec::default(),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      add_options: AddSeriesOptions {
+        monitor: "all".to_owned(),
+        search_for_cutoff_unmet_episodes: true,
+        search_for_missing_episodes: true,
+      },
+    };
+
+    let add_series_body = AddSeriesHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::AddSeriesPrompt,
+      None,
+    )
+    .build_add_series_body();
+
+    assert_eq!(add_series_body, expected_add_series_body);
+    assert!(app.data.sonarr_data.add_series_modal.is_none());
   }
 
   #[test]

@@ -258,7 +258,9 @@ mod tests {
     #[test]
     fn test_add_root_folder_prompt_confirm_submit() {
       let mut app = App::default();
-      let expected_add_root_folder_body = AddRootFolderBody { path: "Test".to_owned() };
+      let expected_add_root_folder_body = AddRootFolderBody {
+        path: "Test".to_owned(),
+      };
       app
         .data
         .sonarr_data
@@ -656,14 +658,17 @@ mod tests {
   fn test_build_add_root_folder_body() {
     let mut app = App::default();
     app.data.sonarr_data.edit_root_folder = Some("/nfs/test".into());
-    let expected_add_root_folder_body = AddRootFolderBody { path: "/nfs/test".to_owned() };
+    let expected_add_root_folder_body = AddRootFolderBody {
+      path: "/nfs/test".to_owned(),
+    };
 
     let root_folder = RootFoldersHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::AddRootFolderPrompt,
       None,
-    ).build_add_root_folder_body();
+    )
+    .build_add_root_folder_body();
 
     assert_eq!(root_folder, expected_add_root_folder_body);
     assert!(app.data.sonarr_data.edit_root_folder.is_none());

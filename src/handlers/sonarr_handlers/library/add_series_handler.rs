@@ -1,10 +1,11 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS,
 };
-use crate::models::sonarr_models::AddSeriesSearchResult;
+use crate::models::sonarr_models::{AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult};
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::sonarr_network::SonarrEvent;
 use crate::{handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
@@ -33,6 +34,87 @@ impl<'a, 'b> AddSeriesHandler<'a, 'b> {
       .unwrap(),
     AddSeriesSearchResult
   );
+
+  fn build_add_series_body(&mut self) -> AddSeriesBody {
+    let tags = self
+      .app
+      .data
+      .sonarr_data
+      .add_series_modal
+      .as_ref()
+      .unwrap()
+      .tags
+      .text
+      .clone();
+    let AddSeriesModal {
+      root_folder_list,
+      monitor_list,
+      quality_profile_list,
+      language_profile_list,
+      series_type_list,
+      use_season_folder,
+      ..
+    } = self.app.data.sonarr_data.add_series_modal.as_ref().unwrap();
+    let season_folder = *use_season_folder;
+    let (tvdb_id, title) = {
+      let AddSeriesSearchResult { tvdb_id, title, .. } = self
+        .app
+        .data
+        .sonarr_data
+        .add_searched_series
+        .as_ref()
+        .unwrap()
+        .current_selection()
+        .clone();
+      (tvdb_id, title.text)
+    };
+    let quality_profile = quality_profile_list.current_selection();
+    let quality_profile_id = *self
+      .app
+      .data
+      .sonarr_data
+      .quality_profile_map
+      .iter()
+      .filter(|(_, value)| *value == quality_profile)
+      .map(|(key, _)| key)
+      .next()
+      .unwrap();
+    let language_profile = language_profile_list.current_selection();
+    let language_profile_id = *self
+      .app
+      .data
+      .sonarr_data
+      .language_profiles_map
+      .iter()
+      .filter(|(_, value)| *value == language_profile)
+      .map(|(key, _)| key)
+      .next()
+      .unwrap();
+
+    let path = root_folder_list.current_selection().path.clone();
+    let monitor = monitor_list.current_selection().to_string();
+    let series_type = series_type_list.current_selection().to_string();
+
+    self.app.data.sonarr_data.add_series_modal = None;
+
+    AddSeriesBody {
+      tvdb_id,
+      title,
+      monitored: true,
+      root_folder_path: path,
+      quality_profile_id,
+      language_profile_id,
+      series_type,
+      season_folder,
+      tags: Vec::new(),
+      tag_input_string: Some(tags),
+      add_options: AddSeriesOptions {
+        monitor,
+        search_for_cutoff_unmet_episodes: true,
+        search_for_missing_episodes: true,
+      },
+    }
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a, 'b> {
@@ -403,7 +485,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
         match self.app.data.sonarr_data.selected_block.get_active_block() {
           ActiveSonarrBlock::AddSeriesConfirmPrompt => {
             if self.app.data.sonarr_data.prompt_confirm {
-              self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::AddSeries(None));
+              self.app.data.sonarr_data.prompt_confirm_action =
+                Some(SonarrEvent::AddSeries(self.build_add_series_body()));
             }
 
             self.app.pop_navigation_stack();
@@ -534,7 +617,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
           && key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.sonarr_data.prompt_confirm = true;
-          self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::AddSeries(None));
+          self.app.data.sonarr_data.prompt_confirm_action =
+            Some(SonarrEvent::AddSeries(self.build_add_series_body()));
           self.app.pop_navigation_stack();
         }
       }
