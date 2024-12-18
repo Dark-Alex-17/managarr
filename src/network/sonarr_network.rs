@@ -83,7 +83,7 @@ pub enum SonarrEvent {
   ListSeries,
   MarkHistoryItemAsFailed(i64),
   SearchNewSeries(String),
-  StartTask(Option<SonarrTaskName>),
+  StartTask(SonarrTaskName),
   TestIndexer(Option<i64>),
   TestAllIndexers,
   ToggleSeasonMonitoring(Option<(i64, i64)>),
@@ -2025,23 +2025,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn start_sonarr_task(&mut self, task: Option<SonarrTaskName>) -> Result<Value> {
-    let event = SonarrEvent::StartTask(None);
-    let task_name = if let Some(t_name) = task {
-      t_name
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .tasks
-        .current_selection()
-        .task_name
-    }
-    .to_string();
-
+  async fn start_sonarr_task(&mut self, task: SonarrTaskName) -> Result<Value> {
+    let event = SonarrEvent::StartTask(task);
+    let task_name = task.to_string();
     info!("Starting Sonarr task: {task_name}");
 
     let body = CommandBody { name: task_name };

@@ -624,7 +624,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::StartTask(Some(expected_task_name)).into(),
+          SonarrEvent::StartTask(expected_task_name).into(),
         ))
         .times(1)
         .returning(|_| {

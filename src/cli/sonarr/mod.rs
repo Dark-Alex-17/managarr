@@ -252,7 +252,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
       SonarrCommand::StartTask { task_name } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::StartTask(Some(task_name)).into())
+          .handle_network_event(SonarrEvent::StartTask(task_name).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

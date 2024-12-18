@@ -3,6 +3,7 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SYSTEM_DETAILS_BLOCKS};
+use crate::models::sonarr_models::SonarrTaskName;
 use crate::models::stateful_list::StatefulList;
 use crate::models::Scrollable;
 use crate::network::sonarr_network::SonarrEvent;
@@ -16,6 +17,18 @@ pub(super) struct SystemDetailsHandler<'a, 'b> {
   app: &'a mut App<'b>,
   active_sonarr_block: ActiveSonarrBlock,
   _context: Option<ActiveSonarrBlock>,
+}
+
+impl<'a, 'b> SystemDetailsHandler<'a, 'b> {
+  fn extract_task_name(&self) -> SonarrTaskName {
+    self
+      .app
+      .data
+      .sonarr_data
+      .tasks
+      .current_selection()
+      .task_name
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemDetailsHandler<'a, 'b> {
@@ -137,7 +150,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemDetailsHandler
       }
       ActiveSonarrBlock::SystemTaskStartConfirmPrompt => {
         if self.app.data.sonarr_data.prompt_confirm {
-          self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::StartTask(None));
+          self.app.data.sonarr_data.prompt_confirm_action =
+            Some(SonarrEvent::StartTask(self.extract_task_name()));
         }
 
         self.app.pop_navigation_stack();
@@ -174,7 +188,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemDetailsHandler
       && self.key == DEFAULT_KEYBINDINGS.confirm.key
     {
       self.app.data.sonarr_data.prompt_confirm = true;
-      self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::StartTask(None));
+      self.app.data.sonarr_data.prompt_confirm_action =
+        Some(SonarrEvent::StartTask(self.extract_task_name()));
       self.app.pop_navigation_stack();
     }
   }
