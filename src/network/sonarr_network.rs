@@ -74,7 +74,7 @@ pub enum SonarrEvent {
   GetSeasonReleases((i64, i64)),
   GetSecurityConfig,
   GetSeriesDetails(i64),
-  GetSeriesHistory(Option<i64>),
+  GetSeriesHistory(i64),
   GetStatus,
   GetUpdates,
   GetTags,
@@ -1783,12 +1783,8 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_sonarr_series_history(
-    &mut self,
-    series_id: Option<i64>,
-  ) -> Result<Vec<SonarrHistoryItem>> {
-    let (id, series_id_param) = self.extract_series_id(series_id).await;
-    info!("Fetching Sonarr series history for series with ID: {id}");
+  async fn get_sonarr_series_history(&mut self, series_id: i64) -> Result<Vec<SonarrHistoryItem>> {
+    info!("Fetching Sonarr series history for series with ID: {series_id}");
     let event = SonarrEvent::GetSeriesHistory(series_id);
 
     let request_props = self
@@ -1797,7 +1793,7 @@ impl<'a, 'b> Network<'a, 'b> {
         RequestMethod::Get,
         None::<()>,
         None,
-        Some(series_id_param),
+        Some(format!("seriesId={series_id}")),
       )
       .await;
 

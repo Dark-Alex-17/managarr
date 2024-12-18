@@ -38,7 +38,9 @@ impl<'a> App<'a> {
       }
       ActiveSonarrBlock::SeriesHistory => {
         self
-          .dispatch_network_event(SonarrEvent::GetSeriesHistory(None).into())
+          .dispatch_network_event(
+            SonarrEvent::GetSeriesHistory(self.extract_series_id().await).into(),
+          )
           .await;
       }
       ActiveSonarrBlock::SeasonDetails => {

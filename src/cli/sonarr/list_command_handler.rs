@@ -260,7 +260,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
       SonarrListCommand::SeriesHistory { series_id } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::GetSeriesHistory(Some(series_id)).into())
+          .handle_network_event(SonarrEvent::GetSeriesHistory(series_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
