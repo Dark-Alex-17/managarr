@@ -769,14 +769,14 @@ mod tests {
   }
 
   #[tokio::test]
-  async fn test_extract_indexer_id() {
+  async fn test_extract_radarr_indexer_id() {
     let mut app = App::default();
     app.data.radarr_data.indexers.set_items(vec![Indexer {
       id: 1,
       ..Indexer::default()
     }]);
 
-    assert_eq!(app.extract_indexer_id().await, 1);
+    assert_eq!(app.extract_radarr_indexer_id().await, 1);
   }
 
   fn construct_app_unit<'a>() -> (App<'a>, mpsc::Receiver<NetworkEvent>) {

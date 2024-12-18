@@ -144,7 +144,9 @@ impl<'a> App<'a> {
       }
       ActiveSonarrBlock::TestIndexer => {
         self
-          .dispatch_network_event(SonarrEvent::TestIndexer(None).into())
+          .dispatch_network_event(
+            SonarrEvent::TestIndexer(self.extract_sonarr_indexer_id().await).into(),
+          )
           .await;
       }
       ActiveSonarrBlock::TestAllIndexers => {
@@ -299,5 +301,9 @@ impl<'a> App<'a> {
       .expect("Add series search is empty")
       .text
       .clone()
+  }
+
+  async fn extract_sonarr_indexer_id(&self) -> i64 {
+    self.data.sonarr_data.indexers.current_selection().id
   }
 }

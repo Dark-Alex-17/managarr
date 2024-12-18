@@ -651,7 +651,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::TestIndexer(Some(expected_indexer_id)).into(),
+          SonarrEvent::TestIndexer(expected_indexer_id).into(),
         ))
         .times(1)
         .returning(|_| {

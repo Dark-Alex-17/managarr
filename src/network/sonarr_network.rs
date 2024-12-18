@@ -84,7 +84,7 @@ pub enum SonarrEvent {
   MarkHistoryItemAsFailed(i64),
   SearchNewSeries(String),
   StartTask(SonarrTaskName),
-  TestIndexer(Option<i64>),
+  TestIndexer(i64),
   TestAllIndexers,
   ToggleSeasonMonitoring(Option<(i64, i64)>),
   ToggleEpisodeMonitoring(Option<i64>),
@@ -2041,32 +2041,19 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn test_sonarr_indexer(&mut self, indexer_id: Option<i64>) -> Result<Value> {
+  async fn test_sonarr_indexer(&mut self, indexer_id: i64) -> Result<Value> {
     let detail_event = SonarrEvent::GetIndexers;
-    let event = SonarrEvent::TestIndexer(None);
-    let id = if let Some(i_id) = indexer_id {
-      i_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .indexers
-        .current_selection()
-        .id
-    };
-    info!("Testing Sonarr indexer with ID: {id}");
+    let event = SonarrEvent::TestIndexer(indexer_id);
+    info!("Testing Sonarr indexer with ID: {indexer_id}");
 
-    info!("Fetching indexer details for indexer with ID: {id}");
+    info!("Fetching indexer details for indexer with ID: {indexer_id}");
 
     let request_props = self
       .request_props_from(
         detail_event,
         RequestMethod::Get,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{indexer_id}")),
         None,
       )
       .await;

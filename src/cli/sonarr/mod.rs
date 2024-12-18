@@ -259,7 +259,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
       SonarrCommand::TestIndexer { indexer_id } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::TestIndexer(Some(indexer_id)).into())
+          .handle_network_event(SonarrEvent::TestIndexer(indexer_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

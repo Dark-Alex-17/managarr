@@ -5,6 +5,7 @@ mod tests {
     use tokio::sync::mpsc;
 
     use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
+    use crate::models::servarr_models::Indexer;
     use crate::models::sonarr_models::Episode;
     use crate::{
       app::App,
@@ -458,6 +459,10 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_test_indexer_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.sonarr_data.indexers.set_items(vec![Indexer {
+        id: 1,
+        ..Indexer::default()
+      }]);
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::TestIndexer)
@@ -466,7 +471,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::TestIndexer(None).into()
+        SonarrEvent::TestIndexer(1).into()
       );
       assert_eq!(app.tick_count, 0);
     }
@@ -847,6 +852,17 @@ mod tests {
       let app = App::default();
 
       app.extract_add_new_series_search_query().await;
+    }
+
+    #[tokio::test]
+    async fn test_extract_sonarr_indexer_id() {
+      let mut app = App::default();
+      app.data.sonarr_data.indexers.set_items(vec![Indexer {
+        id: 1,
+        ..Indexer::default()
+      }]);
+
+      assert_eq!(app.extract_sonarr_indexer_id().await, 1);
     }
 
     fn construct_app_unit<'a>() -> (App<'a>, mpsc::Receiver<NetworkEvent>) {

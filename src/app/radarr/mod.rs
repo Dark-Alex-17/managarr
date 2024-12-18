@@ -77,7 +77,9 @@ impl<'a> App<'a> {
       }
       ActiveRadarrBlock::TestIndexer => {
         self
-          .dispatch_network_event(RadarrEvent::TestIndexer(self.extract_indexer_id().await).into())
+          .dispatch_network_event(
+            RadarrEvent::TestIndexer(self.extract_radarr_indexer_id().await).into(),
+          )
           .await;
       }
       ActiveRadarrBlock::TestAllIndexers => {
@@ -243,7 +245,7 @@ impl<'a> App<'a> {
       .clone()
   }
 
-  async fn extract_indexer_id(&self) -> i64 {
+  async fn extract_radarr_indexer_id(&self) -> i64 {
     self
       .data
       .radarr_data
