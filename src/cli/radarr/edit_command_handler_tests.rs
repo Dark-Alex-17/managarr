@@ -1330,13 +1330,14 @@ mod tests {
         quality_profile_id: Some(1),
         root_folder_path: Some("/nfs/test".to_owned()),
         tags: Some(vec![1, 2]),
+        tag_input_string: None,
         clear_tags: false,
       };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::EditMovie(Some(expected_edit_movie_params)).into(),
+          RadarrEvent::EditMovie(expected_edit_movie_params).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -1372,13 +1373,14 @@ mod tests {
         quality_profile_id: Some(1),
         root_folder_path: Some("/nfs/test".to_owned()),
         tags: Some(vec![1, 2]),
+        tag_input_string: None,
         clear_tags: false,
       };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::EditMovie(Some(expected_edit_movie_params)).into(),
+          RadarrEvent::EditMovie(expected_edit_movie_params).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -1414,13 +1416,14 @@ mod tests {
         quality_profile_id: Some(1),
         root_folder_path: Some("/nfs/test".to_owned()),
         tags: Some(vec![1, 2]),
+        tag_input_string: None,
         clear_tags: false,
       };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::EditMovie(Some(expected_edit_movie_params)).into(),
+          RadarrEvent::EditMovie(expected_edit_movie_params).into(),
         ))
         .times(1)
         .returning(|_| {

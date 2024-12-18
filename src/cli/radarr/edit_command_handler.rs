@@ -484,12 +484,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
           quality_profile_id,
           root_folder_path,
           tags: tag,
+          tag_input_string: None,
           clear_tags,
         };
 
         self
           .network
-          .handle_network_event(RadarrEvent::EditMovie(Some(edit_movie_params)).into())
+          .handle_network_event(RadarrEvent::EditMovie(edit_movie_params).into())
           .await?;
         "Movie Updated".to_owned()
       }

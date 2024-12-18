@@ -14,7 +14,7 @@ use crate::models::radarr_models::{
   RadarrTask, RadarrTaskName, SystemStatus,
 };
 use crate::models::servarr_data::modals::IndexerTestResultModalItem;
-use crate::models::servarr_data::radarr::modals::{EditMovieModal, MovieDetailsModal};
+use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::{
   AddRootFolderBody, CommandBody, DiskSpace, EditIndexerParams, HostConfig, Indexer, LogResponse,
@@ -47,7 +47,7 @@ pub enum RadarrEvent {
   EditAllIndexerSettings(IndexerSettings),
   EditCollection(EditCollectionParams),
   EditIndexer(EditIndexerParams),
-  EditMovie(Option<EditMovieParams>),
+  EditMovie(EditMovieParams),
   GetBlocklist,
   GetCollections,
   GetDownloads,
@@ -822,16 +822,18 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn edit_movie(&mut self, edit_movie_params: Option<EditMovieParams>) -> Result<()> {
+  async fn edit_movie(&mut self, mut edit_movie_params: EditMovieParams) -> Result<()> {
     info!("Editing Radarr movie");
     let detail_event = RadarrEvent::GetMovieDetails(None);
-    let event = RadarrEvent::EditMovie(None);
+    let event = RadarrEvent::EditMovie(edit_movie_params.clone());
+    let movie_id = edit_movie_params.movie_id;
+    if let Some(tag_input_string) = edit_movie_params.tag_input_string.as_ref() {
+      let tag_ids_vec = self
+        .extract_and_add_radarr_tag_ids_vec(tag_input_string.clone())
+        .await;
+      edit_movie_params.tags = Some(tag_ids_vec);
+    }
 
-    let (movie_id, _) = if let Some(ref params) = edit_movie_params {
-      self.extract_movie_id(Some(params.movie_id)).await
-    } else {
-      self.extract_movie_id(None).await
-    };
     info!("Fetching movie details for movie with ID: {movie_id}");
 
     let request_props = self
@@ -856,34 +858,34 @@ impl<'a, 'b> Network<'a, 'b> {
 
     let mut detailed_movie_body: Value = serde_json::from_str(&response)?;
     let (monitored, minimum_availability, quality_profile_id, root_folder_path, tags) =
-      if let Some(params) = edit_movie_params {
-        let monitored = params.monitored.unwrap_or(
+      {
+        let monitored = edit_movie_params.monitored.unwrap_or(
           detailed_movie_body["monitored"]
             .as_bool()
             .expect("Unable to deserialize 'monitored'"),
         );
-        let minimum_availability = params
+        let minimum_availability = edit_movie_params
           .minimum_availability
           .unwrap_or_else(|| {
             serde_json::from_value(detailed_movie_body["minimumAvailability"].clone())
               .expect("Unable to deserialize 'minimumAvailability'")
           })
           .to_string();
-        let quality_profile_id = params.quality_profile_id.unwrap_or_else(|| {
+        let quality_profile_id = edit_movie_params.quality_profile_id.unwrap_or_else(|| {
           detailed_movie_body["qualityProfileId"]
             .as_i64()
             .expect("Unable to deserialize 'qualityProfileId'")
         });
-        let root_folder_path = params.root_folder_path.unwrap_or_else(|| {
+        let root_folder_path = edit_movie_params.root_folder_path.unwrap_or_else(|| {
           detailed_movie_body["path"]
             .as_str()
             .expect("Unable to deserialize 'path'")
             .to_owned()
         });
-        let tags = if params.clear_tags {
+        let tags = if edit_movie_params.clear_tags {
           vec![]
         } else {
-          params.tags.unwrap_or(
+          edit_movie_params.tags.unwrap_or(
             detailed_movie_body["tags"]
               .as_array()
               .expect("Unable to deserialize 'tags'")
@@ -900,53 +902,6 @@ impl<'a, 'b> Network<'a, 'b> {
           root_folder_path,
           tags,
         )
-      } else {
-        let tags = self
-          .app
-          .lock()
-          .await
-          .data
-          .radarr_data
-          .edit_movie_modal
-          .as_ref()
-          .unwrap()
-          .tags
-          .text
-          .clone();
-        let tag_ids_vec = self.extract_and_add_radarr_tag_ids_vec(tags).await;
-        let mut app = self.app.lock().await;
-
-        let params = {
-          let EditMovieModal {
-            monitored,
-            path,
-            minimum_availability_list,
-            quality_profile_list,
-            ..
-          } = app.data.radarr_data.edit_movie_modal.as_ref().unwrap();
-          let quality_profile = quality_profile_list.current_selection();
-          let quality_profile_id = *app
-            .data
-            .radarr_data
-            .quality_profile_map
-            .iter()
-            .filter(|(_, value)| *value == quality_profile)
-            .map(|(key, _)| key)
-            .next()
-            .unwrap();
-
-          (
-            monitored.unwrap_or_default(),
-            minimum_availability_list.current_selection().to_string(),
-            quality_profile_id,
-            path.text.clone(),
-            tag_ids_vec,
-          )
-        };
-
-        app.data.radarr_data.edit_movie_modal = None;
-
-        params
       };
 
     *detailed_movie_body.get_mut("monitored").unwrap() = json!(monitored);

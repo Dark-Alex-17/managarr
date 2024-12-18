@@ -190,6 +190,8 @@ pub struct EditMovieParams {
   pub quality_profile_id: Option<i64>,
   pub root_folder_path: Option<String>,
   pub tags: Option<Vec<i64>>,
+  #[serde(skip_serializing, skip_deserializing)]
+  pub tag_input_string: Option<String>,
   pub clear_tags: bool,
 }
 
