@@ -42,7 +42,7 @@ pub enum SonarrEvent {
   AddSeries(AddSeriesBody),
   AddTag(String),
   ClearBlocklist,
-  DeleteBlocklistItem(Option<i64>),
+  DeleteBlocklistItem(i64),
   DeleteDownload(Option<i64>),
   DeleteEpisodeFile(Option<i64>),
   DeleteIndexer(Option<i64>),
@@ -459,30 +459,16 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_sonarr_blocklist_item(&mut self, blocklist_item_id: Option<i64>) -> Result<()> {
-    let event = SonarrEvent::DeleteBlocklistItem(None);
-    let id = if let Some(b_id) = blocklist_item_id {
-      b_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .blocklist
-        .current_selection()
-        .id
-    };
-
-    info!("Deleting Sonarr blocklist item for item with id: {id}");
+  async fn delete_sonarr_blocklist_item(&mut self, blocklist_item_id: i64) -> Result<()> {
+    let event = SonarrEvent::DeleteBlocklistItem(blocklist_item_id);
+    info!("Deleting Sonarr blocklist item for item with id: {blocklist_item_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{blocklist_item_id}")),
         None,
       )
       .await;

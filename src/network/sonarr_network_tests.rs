@@ -281,7 +281,7 @@ mod test {
 
   #[rstest]
   #[case(SonarrEvent::ClearBlocklist, "/blocklist/bulk")]
-  #[case(SonarrEvent::DeleteBlocklistItem(None), "/blocklist")]
+  #[case(SonarrEvent::DeleteBlocklistItem(0), "/blocklist")]
   #[case(SonarrEvent::HealthCheck, "/health")]
   #[case(SonarrEvent::GetBlocklist, "/blocklist?page=1&pageSize=10000")]
   #[case(SonarrEvent::GetDiskSpace, "/diskspace")]
@@ -540,7 +540,7 @@ mod test {
       None,
       None,
       None,
-      SonarrEvent::DeleteBlocklistItem(None),
+      SonarrEvent::DeleteBlocklistItem(1),
       Some("/1"),
       None,
     )
@@ -555,7 +555,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::DeleteBlocklistItem(None))
+      .handle_sonarr_event(SonarrEvent::DeleteBlocklistItem(1))
       .await
       .is_ok());
 
