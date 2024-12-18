@@ -92,7 +92,7 @@ pub enum SonarrEvent {
   TriggerAutomaticSeasonSearch((i64, i64)),
   TriggerAutomaticSeriesSearch(i64),
   UpdateAllSeries,
-  UpdateAndScanSeries(Option<i64>),
+  UpdateAndScanSeries(i64),
   UpdateDownloads,
 }
 
@@ -2257,13 +2257,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn update_and_scan_series(&mut self, series_id: Option<i64>) -> Result<Value> {
-    let (id, _) = self.extract_series_id(series_id).await;
-    let event = SonarrEvent::UpdateAndScanSeries(None);
-    info!("Updating and scanning series with ID: {id}");
+  async fn update_and_scan_series(&mut self, series_id: i64) -> Result<Value> {
+    let event = SonarrEvent::UpdateAndScanSeries(series_id);
+    info!("Updating and scanning series with ID: {series_id}");
     let body = SonarrCommandBody {
       name: "RefreshSeries".to_owned(),
-      series_id: Some(id),
+      series_id: Some(series_id),
       ..SonarrCommandBody::default()
     };
 

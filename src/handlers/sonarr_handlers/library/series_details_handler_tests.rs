@@ -187,7 +187,7 @@ mod tests {
     )]
     #[case(
       ActiveSonarrBlock::UpdateAndScanSeriesPrompt,
-      SonarrEvent::UpdateAndScanSeries(None)
+      SonarrEvent::UpdateAndScanSeries(1)
     )]
     fn test_series_details_prompt_confirm_submit(
       #[case] prompt_block: ActiveSonarrBlock,
@@ -572,7 +572,7 @@ mod tests {
     )]
     #[case(
       ActiveSonarrBlock::UpdateAndScanSeriesPrompt,
-      SonarrEvent::UpdateAndScanSeries(None)
+      SonarrEvent::UpdateAndScanSeries(1)
     )]
     fn test_series_details_prompt_confirm_confirm_key(
       #[case] prompt_block: ActiveSonarrBlock,
