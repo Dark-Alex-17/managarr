@@ -1715,6 +1715,20 @@ mod tests {
   }
 
   #[test]
+  fn test_add_series_search_no_panic_on_none_search_result() {
+    let mut app = App::default();
+    app.data.sonarr_data.add_series_search = None;
+
+    AddSeriesHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::AddSeriesSearchResults,
+      None,
+    )
+    .handle();
+  }
+
+  #[test]
   fn test_build_add_series_body() {
     let mut app = App::default();
     let mut add_series_modal = AddSeriesModal {
