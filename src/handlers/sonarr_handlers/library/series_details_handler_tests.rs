@@ -4,6 +4,7 @@ mod tests {
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::sonarr_handlers::library::series_details_handler::SeriesDetailsHandler;
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::{season, series};
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, SERIES_DETAILS_BLOCKS,
@@ -11,6 +12,7 @@ mod tests {
   use crate::models::sonarr_models::Season;
   use crate::models::sonarr_models::SonarrHistoryItem;
   use crate::models::stateful_table::StatefulTable;
+  use pretty_assertions::assert_eq;
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
@@ -398,7 +400,7 @@ mod tests {
       assert!(app.is_routing);
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::ToggleSeasonMonitoring(None))
+        Some(SonarrEvent::ToggleSeasonMonitoring((0, 0)))
       );
     }
 
@@ -608,6 +610,23 @@ mod tests {
         assert!(!SeriesDetailsHandler::accepts(active_sonarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_extract_series_id_season_number_tuple() {
+    let mut app = App::default();
+    app.data.sonarr_data.series.set_items(vec![series()]);
+    app.data.sonarr_data.seasons.set_items(vec![season()]);
+
+    let series_id_season_number_tuple = SeriesDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::SeriesDetails,
+      None,
+    )
+    .extract_series_id_season_number_tuple();
+
+    assert_eq!(series_id_season_number_tuple, (1, 1));
   }
 
   #[test]

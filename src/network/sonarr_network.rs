@@ -86,7 +86,7 @@ pub enum SonarrEvent {
   StartTask(SonarrTaskName),
   TestIndexer(i64),
   TestAllIndexers,
-  ToggleSeasonMonitoring(Option<(i64, i64)>),
+  ToggleSeasonMonitoring((i64, i64)),
   ToggleEpisodeMonitoring(Option<i64>),
   TriggerAutomaticEpisodeSearch(Option<i64>),
   TriggerAutomaticSeasonSearch(Option<(i64, i64)>),
@@ -967,86 +967,81 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn toggle_sonarr_season_monitoring(
     &mut self,
-    series_id_season_number_tuple: Option<(i64, i64)>,
+    series_id_season_number_tuple: (i64, i64),
   ) -> Result<()> {
     let event = SonarrEvent::ToggleSeasonMonitoring(series_id_season_number_tuple);
-    let (series_id, season_number) =
-      if let Some((series_id, season_number)) = series_id_season_number_tuple {
-        (Some(series_id), Some(season_number))
-      } else {
-        (None, None)
-      };
+    let (series_id, season_number) = series_id_season_number_tuple;
 
-    let (series_id, _) = self.extract_series_id(series_id).await;
     let detail_event = SonarrEvent::GetSeriesDetails(series_id);
-    if let Ok((season_number, _)) = self.extract_season_number(season_number).await {
-      info!("Toggling season monitoring for season {season_number} in series with ID: {series_id}");
-      info!("Fetching series details for series with ID: {series_id}");
+    info!("Toggling season monitoring for season {season_number} in series with ID: {series_id}");
+    info!("Fetching series details for series with ID: {series_id}");
 
-      let request_props = self
-        .request_props_from(
-          detail_event,
-          RequestMethod::Get,
-          None::<()>,
-          Some(format!("/{series_id}")),
-          None,
-        )
-        .await;
+    let request_props = self
+      .request_props_from(
+        detail_event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{series_id}")),
+        None,
+      )
+      .await;
 
-      let mut response = String::new();
+    let mut response = String::new();
 
-      self
-        .handle_request::<(), Value>(request_props, |detailed_series_body, _| {
-          response = detailed_series_body.to_string()
-        })
-        .await?;
+    self
+      .handle_request::<(), Value>(request_props, |detailed_series_body, _| {
+        response = detailed_series_body.to_string()
+      })
+      .await?;
 
-      info!("Constructing toggle season monitoring body");
+    info!("Constructing toggle season monitoring body");
 
-      let mut detailed_series_body: Value =
-        serde_json::from_str(&response).expect("Request for detailed series body was interrupted");
-      let monitored = detailed_series_body
-        .get("seasons")
-        .unwrap()
-        .as_array()
-        .unwrap()
-        .iter()
-        .find(|season| season["seasonNumber"] == season_number)
-        .unwrap()
-        .get("monitored")
-        .unwrap()
-        .as_bool()
-        .unwrap();
+    match serde_json::from_str::<Value>(&response) {
+      Ok(mut detailed_series_body) => {
+        let monitored = detailed_series_body
+          .get("seasons")
+          .unwrap()
+          .as_array()
+          .unwrap()
+          .iter()
+          .find(|season| season["seasonNumber"] == season_number)
+          .unwrap()
+          .get("monitored")
+          .unwrap()
+          .as_bool()
+          .unwrap();
 
-      *detailed_series_body
-        .get_mut("seasons")
-        .unwrap()
-        .as_array_mut()
-        .unwrap()
-        .iter_mut()
-        .find(|season| season["seasonNumber"] == season_number)
-        .unwrap()
-        .get_mut("monitored")
-        .unwrap() = json!(!monitored);
+        *detailed_series_body
+          .get_mut("seasons")
+          .unwrap()
+          .as_array_mut()
+          .unwrap()
+          .iter_mut()
+          .find(|season| season["seasonNumber"] == season_number)
+          .unwrap()
+          .get_mut("monitored")
+          .unwrap() = json!(!monitored);
 
-      debug!("Toggle season monitoring body: {detailed_series_body:?}");
+        debug!("Toggle season monitoring body: {detailed_series_body:?}");
 
-      let request_props = self
-        .request_props_from(
-          event,
-          RequestMethod::Put,
-          Some(detailed_series_body),
-          Some(format!("/{series_id}")),
-          None,
-        )
-        .await;
+        let request_props = self
+          .request_props_from(
+            event,
+            RequestMethod::Put,
+            Some(detailed_series_body),
+            Some(format!("/{series_id}")),
+            None,
+          )
+          .await;
 
-      self
-        .handle_request::<Value, ()>(request_props, |_, _| ())
-        .await
-    } else {
-      warn!("Season number was not provided. Aborting...");
-      Ok(())
+        self
+          .handle_request::<Value, ()>(request_props, |_, _| ())
+          .await
+      }
+      Err(_) => {
+        warn!("Request for detailed series body was interrupted");
+        Ok(())
+      }
     }
   }
 

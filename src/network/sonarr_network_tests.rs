@@ -162,7 +162,7 @@ mod test {
       SonarrEvent::GetSeriesDetails(0),
       SonarrEvent::DeleteSeries(DeleteSeriesParams::default()),
       SonarrEvent::EditSeries(EditSeriesParams::default()),
-      SonarrEvent::ToggleSeasonMonitoring(None)
+      SonarrEvent::ToggleSeasonMonitoring((0, 0))
     )]
     event: SonarrEvent,
   ) {
@@ -5145,7 +5145,7 @@ mod test {
         "PUT",
         format!(
           "/api/v3{}/1",
-          SonarrEvent::ToggleSeasonMonitoring(None).resource()
+          SonarrEvent::ToggleSeasonMonitoring((1, 1)).resource()
         )
         .as_str(),
       )
@@ -5162,72 +5162,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::ToggleSeasonMonitoring(None))
-      .await
-      .is_ok());
-
-    async_details_server.assert_async().await;
-    async_toggle_server.assert_async().await;
-  }
-
-  #[tokio::test]
-  async fn test_handle_toggle_season_monitoring_event_uses_provided_series_id_and_season_number() {
-    let mut detailed_response: Value = serde_json::from_str(SERIES_JSON).unwrap();
-    *detailed_response
-      .get_mut("seasons")
-      .unwrap()
-      .as_array_mut()
-      .unwrap()
-      .iter_mut()
-      .find(|season| season["seasonNumber"] == 1)
-      .unwrap()
-      .get_mut("seasonNumber")
-      .unwrap() = json!(2);
-    let mut expected_body: Value = detailed_response.clone();
-    *expected_body
-      .get_mut("seasons")
-      .unwrap()
-      .as_array_mut()
-      .unwrap()
-      .iter_mut()
-      .find(|season| season["seasonNumber"] == 2)
-      .unwrap()
-      .get_mut("monitored")
-      .unwrap() = json!(false);
-
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(detailed_response),
-      None,
-      SonarrEvent::GetSeriesDetails(2),
-      Some("/2"),
-      None,
-    )
-    .await;
-    let async_toggle_server = server
-      .mock(
-        "PUT",
-        format!(
-          "/api/v3{}/2",
-          SonarrEvent::ToggleSeasonMonitoring(Some((2, 2))).resource()
-        )
-        .as_str(),
-      )
-      .with_status(202)
-      .match_header("X-Api-Key", "test1234")
-      .match_body(Matcher::Json(expected_body))
-      .create_async()
-      .await;
-    {
-      let mut app = app_arc.lock().await;
-      app.data.sonarr_data.series.set_items(vec![series()]);
-      app.data.sonarr_data.seasons.set_items(vec![season()]);
-    }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::ToggleSeasonMonitoring(Some((2, 2))))
+      .handle_sonarr_event(SonarrEvent::ToggleSeasonMonitoring((1, 1)))
       .await
       .is_ok());
 

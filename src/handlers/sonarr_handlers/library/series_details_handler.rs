@@ -37,6 +37,18 @@ impl<'a, 'b> SeriesDetailsHandler<'a, 'b> {
       .expect("Series history is undefined"),
     SonarrHistoryItem
   );
+  fn extract_series_id_season_number_tuple(&self) -> (i64, i64) {
+    let series_id = self.app.data.sonarr_data.series.current_selection().id;
+    let season_number = self
+      .app
+      .data
+      .sonarr_data
+      .seasons
+      .current_selection()
+      .season_number;
+
+    (series_id, season_number)
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler<'a, 'b> {
@@ -259,8 +271,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         }
         _ if key == DEFAULT_KEYBINDINGS.toggle_monitoring.key => {
           self.app.data.sonarr_data.prompt_confirm = true;
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::ToggleSeasonMonitoring(None));
+          self.app.data.sonarr_data.prompt_confirm_action = Some(
+            SonarrEvent::ToggleSeasonMonitoring(self.extract_series_id_season_number_tuple()),
+          );
 
           self
             .app
