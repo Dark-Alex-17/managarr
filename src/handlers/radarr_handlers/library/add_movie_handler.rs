@@ -110,7 +110,7 @@ impl<'a, 'b> AddMovieHandler<'a, 'b> {
       monitored: true,
       quality_profile_id,
       tags: Vec::new(),
-      tag_input_string: tags,
+      tag_input_string: Some(tags),
       add_options: AddMovieOptions {
         monitor,
         search_for_movie: true,

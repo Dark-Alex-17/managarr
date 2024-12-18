@@ -30,7 +30,7 @@ pub struct AddMovieBody {
   pub monitored: bool,
   pub tags: Vec<i64>,
   #[serde(skip_serializing, skip_deserializing)]
-  pub tag_input_string: String,
+  pub tag_input_string: Option<String>,
   pub add_options: AddMovieOptions,
 }
 

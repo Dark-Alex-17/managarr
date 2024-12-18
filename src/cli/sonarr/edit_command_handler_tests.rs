@@ -689,6 +689,7 @@ mod tests {
         api_key: Some("testKey".to_owned()),
         seed_ratio: Some("1.2".to_owned()),
         tags: Some(vec![1, 2]),
+        tag_input_string: None,
         priority: Some(25),
         clear_tags: false,
       };

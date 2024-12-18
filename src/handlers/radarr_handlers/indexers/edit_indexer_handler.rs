@@ -2,7 +2,9 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::models::servarr_data::modals::EditIndexerModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
+use crate::models::servarr_models::EditIndexerParams;
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_prompt_left_right_keys, handle_text_box_keys, handle_text_box_left_right_keys};
 
@@ -15,6 +17,55 @@ pub(super) struct EditIndexerHandler<'a, 'b> {
   app: &'a mut App<'b>,
   active_radarr_block: ActiveRadarrBlock,
   _context: Option<ActiveRadarrBlock>,
+}
+
+impl<'a, 'b> EditIndexerHandler<'a, 'b> {
+  fn build_edit_indexer_params(&mut self) -> EditIndexerParams {
+    let indexer_id = self.app.data.radarr_data.indexers.current_selection().id;
+    let tags = self
+      .app
+      .data
+      .radarr_data
+      .edit_indexer_modal
+      .as_ref()
+      .unwrap()
+      .tags
+      .text
+      .clone();
+
+    let params = {
+      let EditIndexerModal {
+        name,
+        enable_rss,
+        enable_automatic_search,
+        enable_interactive_search,
+        url,
+        api_key,
+        seed_ratio,
+        priority,
+        ..
+      } = self.app.data.radarr_data.edit_indexer_modal.as_ref().unwrap();
+
+      EditIndexerParams {
+        indexer_id,
+        name: Some(name.text.clone()),
+        enable_rss: Some(enable_rss.unwrap_or_default()),
+        enable_automatic_search: Some(enable_automatic_search.unwrap_or_default()),
+        enable_interactive_search: Some(enable_interactive_search.unwrap_or_default()),
+        url: Some(url.text.clone()),
+        api_key: Some(api_key.text.clone()),
+        seed_ratio: Some(seed_ratio.text.clone()),
+        tags: None,
+        tag_input_string: Some(tags),
+        priority: Some(*priority),
+        clear_tags: false,
+      }
+    };
+
+    self.app.data.radarr_data.edit_indexer_modal = None;
+
+    params
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'a, 'b> {
@@ -297,12 +348,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
         let selected_block = self.app.data.radarr_data.selected_block.get_active_block();
         match selected_block {
           ActiveRadarrBlock::EditIndexerConfirmPrompt => {
-            let radarr_data = &mut self.app.data.radarr_data;
-            if radarr_data.prompt_confirm {
-              radarr_data.prompt_confirm_action = Some(RadarrEvent::EditIndexer(None));
+            if self.app.data.radarr_data.prompt_confirm {
+              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditIndexer(self.build_edit_indexer_params()));
               self.app.should_refresh = true;
             } else {
-              radarr_data.edit_indexer_modal = None;
+              self.app.data.radarr_data.edit_indexer_modal = None;
             }
 
             self.app.pop_navigation_stack();
@@ -464,7 +514,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
           && self.key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditIndexer(None));
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditIndexer(self.build_edit_indexer_params()));
           self.app.should_refresh = true;
 
           self.app.pop_navigation_stack();

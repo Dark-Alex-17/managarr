@@ -125,7 +125,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHan
           minimum_availability: minimum_availability.to_string(),
           monitored: !disable_monitoring,
           tags,
-          tag_input_string: String::new(),
+          tag_input_string: None,
           add_options: AddMovieOptions {
             monitor: monitor.to_string(),
             search_for_movie: !no_search_for_movie,

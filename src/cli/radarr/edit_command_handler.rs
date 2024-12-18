@@ -455,13 +455,14 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
           api_key,
           seed_ratio,
           tags: tag,
+          tag_input_string: None,
           priority,
           clear_tags,
         };
 
         self
           .network
-          .handle_network_event(RadarrEvent::EditIndexer(Some(edit_indexer_params)).into())
+          .handle_network_event(RadarrEvent::EditIndexer(edit_indexer_params).into())
           .await?;
         "Indexer updated".to_owned()
       }

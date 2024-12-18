@@ -20,6 +20,7 @@ mod test {
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_models::{
+    EditIndexerParams,
     HostConfig, IndexerField, Language, Quality, QualityWrapper,
   };
   use crate::models::stateful_table::SortOption;
@@ -137,7 +138,7 @@ mod test {
 
   #[rstest]
   fn test_resource_indexer(
-    #[values(RadarrEvent::GetIndexers, RadarrEvent::DeleteIndexer(0))] event: RadarrEvent,
+    #[values(RadarrEvent::GetIndexers, RadarrEvent::DeleteIndexer(0), RadarrEvent::EditIndexer(EditIndexerParams::default()))] event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/indexer");
   }
@@ -3281,13 +3282,63 @@ mod test {
       monitored: true,
       quality_profile_id: 2222,
       tags: vec![1, 2],
-      tag_input_string: "usenet, testing".into(),
+      tag_input_string: Some("usenet, testing".into()),
       add_options: AddMovieOptions {
         monitor: "movieOnly".to_owned(),
         search_for_movie: true,
       },
     };
 
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::AddMovie(add_movie_body))
+      .await
+      .is_ok());
+
+    async_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_movie_event_does_not_overwrite_tags_field_if_tag_input_string_is_none() {
+    let (async_server, app_arc, _server) = mock_servarr_api(
+      RequestMethod::Post,
+      Some(json!({
+        "tmdbId": 1234,
+        "title": "Test",
+        "rootFolderPath": "/nfs2",
+        "minimumAvailability": "announced",
+        "monitored": true,
+        "qualityProfileId": 2222,
+        "tags": [1, 2],
+        "addOptions": {
+          "monitor": "movieOnly",
+          "searchForMovie": true
+        }
+      })),
+      Some(json!({})),
+      None,
+      RadarrEvent::AddMovie(AddMovieBody::default()),
+      None,
+      None,
+    )
+      .await;
+    app_arc.lock().await.data.radarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    let add_movie_body = AddMovieBody {
+      tmdb_id: 1234,
+      title: "Test".to_owned(),
+      root_folder_path: "/nfs2".to_owned(),
+      minimum_availability: "announced".to_owned(),
+      monitored: true,
+      quality_profile_id: 2222,
+      tags: vec![1, 2],
+      tag_input_string: None,
+      add_options: AddMovieOptions {
+        monitor: "movieOnly".to_owned(),
+        search_for_movie: true,
+      },
+    };
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -3571,7 +3622,19 @@ mod test {
         "tags": [1, 2],
         "id": 1
     });
-
+    let edit_indexer_params = EditIndexerParams {
+      indexer_id: 1,
+      name: Some("Test Update".to_owned()),
+      enable_rss: Some(false),
+      enable_automatic_search: Some(false),
+      enable_interactive_search: Some(false),
+      url: Some("https://localhost:9696/1/".to_owned()),
+      api_key: Some("test1234".to_owned()),
+      seed_ratio: Some("1.3".to_owned()),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      priority: Some(0),
+      ..EditIndexerParams::default()
+    };
     let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
@@ -3585,43 +3648,118 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditIndexer(None).resource()).as_str(),
+        format!("/api/v3{}/1?forceSave=true", RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()).as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
-    {
-      let mut app = app_arc.lock().await;
-      app.data.radarr_data.tags_map =
-        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-      let edit_indexer_modal = EditIndexerModal {
-        name: "Test Update".into(),
-        enable_rss: Some(false),
-        enable_automatic_search: Some(false),
-        enable_interactive_search: Some(false),
-        url: "https://localhost:9696/1/".into(),
-        api_key: "test1234".into(),
-        seed_ratio: "1.3".into(),
-        tags: "usenet, testing".into(),
-        priority: 0,
-      };
-      app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
-      app.data.radarr_data.indexers.set_items(vec![indexer()]);
-    }
+    app_arc.lock().await.data.radarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::EditIndexer(None))
+      .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
       .await
       .is_ok());
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
+  }
 
-    let app = app_arc.lock().await;
-    assert!(app.data.radarr_data.edit_indexer_modal.is_none());
+  #[tokio::test]
+  async fn test_handle_edit_radarr_indexer_event_does_not_overwrite_tags_vec_if_tag_input_string_is_none() {
+    let indexer_details_json = json!({
+        "enableRss": true,
+        "enableAutomaticSearch": true,
+        "enableInteractiveSearch": true,
+        "name": "Test Indexer",
+        "priority": 1,
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://test.com",
+            },
+            {
+                "name": "apiKey",
+                "value": "",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.2",
+            },
+        ],
+        "tags": [1],
+        "id": 1
+    });
+    let expected_indexer_edit_body_json = json!({
+        "enableRss": false,
+        "enableAutomaticSearch": false,
+        "enableInteractiveSearch": false,
+        "name": "Test Update",
+        "priority": 0,
+        "fields": [
+            {
+                "name": "baseUrl",
+                "value": "https://localhost:9696/1/",
+            },
+            {
+                "name": "apiKey",
+                "value": "test1234",
+            },
+            {
+                "name": "seedCriteria.seedRatio",
+                "value": "1.3",
+            },
+        ],
+        "tags": [1, 2],
+        "id": 1
+    });
+    let edit_indexer_params = EditIndexerParams {
+      indexer_id: 1,
+      name: Some("Test Update".to_owned()),
+      enable_rss: Some(false),
+      enable_automatic_search: Some(false),
+      enable_interactive_search: Some(false),
+      url: Some("https://localhost:9696/1/".to_owned()),
+      api_key: Some("test1234".to_owned()),
+      seed_ratio: Some("1.3".to_owned()),
+      tags: Some(vec![1, 2]),
+      priority: Some(0),
+      ..EditIndexerParams::default()
+    };
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(indexer_details_json),
+      None,
+      RadarrEvent::GetIndexers,
+      Some("/1"),
+      None,
+    )
+      .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!("/api/v3{}/1?forceSave=true", RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()).as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_indexer_edit_body_json))
+      .create_async()
+      .await;
+    app_arc.lock().await.data.radarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
   }
 
   #[tokio::test]
@@ -3665,7 +3803,19 @@ mod test {
         "tags": [1, 2],
         "id": 1
     });
-
+    let edit_indexer_params = EditIndexerParams {
+      indexer_id: 1,
+      name: Some("Test Update".to_owned()),
+      enable_rss: Some(false),
+      enable_automatic_search: Some(false),
+      enable_interactive_search: Some(false),
+      url: Some("https://localhost:9696/1/".to_owned()),
+      api_key: Some("test1234".to_owned()),
+      seed_ratio: Some("1.3".to_owned()),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      priority: Some(0),
+      ..EditIndexerParams::default()
+    };
     let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
@@ -3679,52 +3829,24 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditIndexer(None).resource()).as_str(),
+        format!("/api/v3{}/1?forceSave=true", RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()).as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
-    {
-      let mut app = app_arc.lock().await;
-      app.data.radarr_data.tags_map =
-        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-      let edit_indexer_modal = EditIndexerModal {
-        name: "Test Update".into(),
-        enable_rss: Some(false),
-        enable_automatic_search: Some(false),
-        enable_interactive_search: Some(false),
-        url: "https://localhost:9696/1/".into(),
-        api_key: "test1234".into(),
-        seed_ratio: "1.3".into(),
-        tags: "usenet, testing".into(),
-        priority: 0,
-      };
-      app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
-      let mut indexer = indexer();
-      indexer.fields = Some(
-        indexer
-          .fields
-          .unwrap()
-          .into_iter()
-          .filter(|field| field.name != Some("seedCriteria.seedRatio".to_string()))
-          .collect(),
-      );
-      app.data.radarr_data.indexers.set_items(vec![indexer]);
-    }
+    app_arc.lock().await.data.radarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::EditIndexer(None))
+      .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
       .await
       .is_ok());
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
-
-    let app = app_arc.lock().await;
-    assert!(app.data.radarr_data.edit_indexer_modal.is_none());
   }
 
   #[tokio::test]
@@ -3775,123 +3897,6 @@ mod test {
         "tags": [1, 2],
         "id": 1
     });
-
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json),
-      None,
-      RadarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
-    let async_edit_server = server
-      .mock(
-        "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditIndexer(None).resource()).as_str(),
-      )
-      .with_status(202)
-      .match_header("X-Api-Key", "test1234")
-      .match_body(Matcher::Json(expected_indexer_edit_body_json))
-      .create_async()
-      .await;
-    {
-      let mut app = app_arc.lock().await;
-      app.data.radarr_data.tags_map =
-        BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-      let edit_indexer_modal = EditIndexerModal {
-        name: "Test Update".into(),
-        enable_rss: Some(false),
-        enable_automatic_search: Some(false),
-        enable_interactive_search: Some(false),
-        url: "https://localhost:9696/1/".into(),
-        api_key: "test1234".into(),
-        seed_ratio: "1.3".into(),
-        tags: "usenet, testing".into(),
-        priority: 0,
-      };
-      app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
-      let mut indexer = indexer();
-      indexer.fields = Some(
-        indexer
-          .fields
-          .unwrap()
-          .into_iter()
-          .map(|mut field| {
-            if field.name == Some("seedCriteria.seedRatio".to_string()) {
-              field.value = None;
-              field
-            } else {
-              field
-            }
-          })
-          .collect(),
-      );
-      app.data.radarr_data.indexers.set_items(vec![indexer]);
-    }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::EditIndexer(None))
-      .await
-      .is_ok());
-
-    async_details_server.assert_async().await;
-    async_edit_server.assert_async().await;
-
-    let app = app_arc.lock().await;
-    assert!(app.data.radarr_data.edit_indexer_modal.is_none());
-  }
-
-  #[tokio::test]
-  async fn test_handle_edit_radarr_indexer_event_uses_provided_parameters() {
-    let indexer_details_json = json!({
-        "enableRss": true,
-        "enableAutomaticSearch": true,
-        "enableInteractiveSearch": true,
-        "name": "Test Indexer",
-        "priority": 1,
-        "fields": [
-            {
-                "name": "baseUrl",
-                "value": "https://test.com",
-            },
-            {
-                "name": "apiKey",
-                "value": "",
-            },
-            {
-                "name": "seedCriteria.seedRatio",
-                "value": "1.2",
-            },
-        ],
-        "tags": [1],
-        "id": 1
-    });
-    let expected_indexer_edit_body_json = json!({
-        "enableRss": false,
-        "enableAutomaticSearch": false,
-        "enableInteractiveSearch": false,
-        "name": "Test Update",
-        "priority": 25,
-        "fields": [
-            {
-                "name": "baseUrl",
-                "value": "https://localhost:9696/1/",
-            },
-            {
-                "name": "apiKey",
-                "value": "test1234",
-            },
-            {
-                "name": "seedCriteria.seedRatio",
-                "value": "1.3",
-            },
-        ],
-        "tags": [1, 2],
-        "id": 1
-    });
     let edit_indexer_params = EditIndexerParams {
       indexer_id: 1,
       name: Some("Test Update".to_owned()),
@@ -3901,11 +3906,10 @@ mod test {
       url: Some("https://localhost:9696/1/".to_owned()),
       api_key: Some("test1234".to_owned()),
       seed_ratio: Some("1.3".to_owned()),
-      tags: Some(vec![1, 2]),
-      priority: Some(25),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      priority: Some(0),
       ..EditIndexerParams::default()
     };
-
     let (async_details_server, app_arc, mut server) = mock_servarr_api(
       RequestMethod::Get,
       None,
@@ -3919,17 +3923,19 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditIndexer(None).resource()).as_str(),
+        format!("/api/v3{}/1?forceSave=true", RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()).as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
+    app_arc.lock().await.data.radarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::EditIndexer(Some(edit_indexer_params)))
+      .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
       .await
       .is_ok());
 
@@ -3938,7 +3944,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_radarr_indexer_event_uses_provided_parameters_defaults_to_previous_values(
+  async fn test_handle_edit_radarr_indexer_event_defaults_to_previous_values(
   ) {
     let indexer_details_json = json!({
         "enableRss": true,
@@ -3981,7 +3987,7 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditIndexer(None).resource()).as_str(),
+        format!("/api/v3{}/1?forceSave=true", RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()).as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -3991,7 +3997,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::EditIndexer(Some(edit_indexer_params)))
+      .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
       .await
       .is_ok());
 
@@ -4000,7 +4006,7 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_edit_radarr_indexer_event_uses_provided_parameters_clears_tags_when_clear_tags_is_true(
+  async fn test_handle_edit_radarr_indexer_event_clears_tags_when_clear_tags_is_true(
   ) {
     let indexer_details_json = json!({
         "enableRss": true,
@@ -4067,7 +4073,7 @@ mod test {
     let async_edit_server = server
       .mock(
         "PUT",
-        format!("/api/v3{}/1", RadarrEvent::EditIndexer(None).resource()).as_str(),
+        format!("/api/v3{}/1?forceSave=true", RadarrEvent::EditIndexer(edit_indexer_params.clone()).resource()).as_str(),
       )
       .with_status(202)
       .match_header("X-Api-Key", "test1234")
@@ -4077,7 +4083,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::EditIndexer(Some(edit_indexer_params)))
+      .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
       .await
       .is_ok());
 

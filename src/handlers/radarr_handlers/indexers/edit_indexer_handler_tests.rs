@@ -4,9 +4,12 @@ mod tests {
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::indexer;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::modals::EditIndexerModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
+  use crate::models::servarr_models::EditIndexerParams;
+  use pretty_assertions::assert_eq;
   use strum::IntoEnumIterator;
 
   mod test_handle_scroll_up_and_down {
@@ -896,7 +899,32 @@ mod tests {
         .radarr_data
         .selected_block
         .set_index(0, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      let edit_indexer_modal = EditIndexerModal {
+        name: "Test Update".into(),
+        enable_rss: Some(false),
+        enable_automatic_search: Some(false),
+        enable_interactive_search: Some(false),
+        url: "https://localhost:9696/1/".into(),
+        api_key: "test1234".into(),
+        seed_ratio: "1.3".into(),
+        tags: "usenet, testing".into(),
+        priority: 25,
+      };
+      app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
+      app.data.radarr_data.indexers.set_items(vec![indexer()]);
+      let expected_edit_indexer_params = EditIndexerParams {
+        indexer_id: 1,
+        name: Some("Test Update".to_owned()),
+        enable_rss: Some(false),
+        enable_automatic_search: Some(false),
+        enable_interactive_search: Some(false),
+        url: Some("https://localhost:9696/1/".to_owned()),
+        api_key: Some("test1234".to_owned()),
+        seed_ratio: Some("1.3".to_owned()),
+        tag_input_string: Some("usenet, testing".to_owned()),
+        priority: Some(25),
+        ..EditIndexerParams::default()
+      };
       app.data.radarr_data.prompt_confirm = true;
 
       EditIndexerHandler::with(
@@ -908,11 +936,11 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert!(app.data.radarr_data.edit_indexer_modal.is_some());
+      assert!(app.data.radarr_data.edit_indexer_modal.is_none());
       assert!(app.should_refresh);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditIndexer(None))
+        Some(RadarrEvent::EditIndexer(expected_edit_indexer_params))
       );
     }
 
@@ -1408,7 +1436,7 @@ mod tests {
     use crate::models::servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
     use crate::network::radarr_network::RadarrEvent;
-    use pretty_assertions::assert_str_eq;
+    use pretty_assertions::{assert_eq, assert_str_eq};
 
     use super::*;
 
@@ -1709,7 +1737,32 @@ mod tests {
         .radarr_data
         .selected_block
         .set_index(0, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS.len() - 1);
-      app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
+      let edit_indexer_modal = EditIndexerModal {
+        name: "Test Update".into(),
+        enable_rss: Some(false),
+        enable_automatic_search: Some(false),
+        enable_interactive_search: Some(false),
+        url: "https://localhost:9696/1/".into(),
+        api_key: "test1234".into(),
+        seed_ratio: "1.3".into(),
+        tags: "usenet, testing".into(),
+        priority: 25,
+      };
+      app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
+      app.data.radarr_data.indexers.set_items(vec![indexer()]);
+      let expected_edit_indexer_params = EditIndexerParams {
+        indexer_id: 1,
+        name: Some("Test Update".to_owned()),
+        enable_rss: Some(false),
+        enable_automatic_search: Some(false),
+        enable_interactive_search: Some(false),
+        url: Some("https://localhost:9696/1/".to_owned()),
+        api_key: Some("test1234".to_owned()),
+        seed_ratio: Some("1.3".to_owned()),
+        tag_input_string: Some("usenet, testing".to_owned()),
+        priority: Some(25),
+        ..EditIndexerParams::default()
+      };
 
       EditIndexerHandler::with(
         DEFAULT_KEYBINDINGS.confirm.key,
@@ -1720,11 +1773,11 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert!(app.data.radarr_data.edit_indexer_modal.is_some());
+      assert!(app.data.radarr_data.edit_indexer_modal.is_none());
       assert!(app.should_refresh);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditIndexer(None))
+        Some(RadarrEvent::EditIndexer(expected_edit_indexer_params))
       );
     }
   }
@@ -1738,6 +1791,47 @@ mod tests {
         assert!(!EditIndexerHandler::accepts(active_radarr_block));
       }
     })
+  }
+
+  #[test]
+  fn test_build_edit_indexer_params() {
+    let mut app = App::default();
+    let edit_indexer_modal = EditIndexerModal {
+      name: "Test Update".into(),
+      enable_rss: Some(false),
+      enable_automatic_search: Some(false),
+      enable_interactive_search: Some(false),
+      url: "https://localhost:9696/1/".into(),
+      api_key: "test1234".into(),
+      seed_ratio: "1.3".into(),
+      tags: "usenet, testing".into(),
+      priority: 25,
+    };
+    app.data.radarr_data.edit_indexer_modal = Some(edit_indexer_modal);
+    app.data.radarr_data.indexers.set_items(vec![indexer()]);
+    let expected_edit_indexer_params = EditIndexerParams {
+      indexer_id: 1,
+      name: Some("Test Update".to_owned()),
+      enable_rss: Some(false),
+      enable_automatic_search: Some(false),
+      enable_interactive_search: Some(false),
+      url: Some("https://localhost:9696/1/".to_owned()),
+      api_key: Some("test1234".to_owned()),
+      seed_ratio: Some("1.3".to_owned()),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      priority: Some(25),
+      ..EditIndexerParams::default()
+    };
+    
+    let edit_indexer_params = EditIndexerHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::EditIndexerPrompt,
+      None,
+    ).build_edit_indexer_params();
+
+    assert_eq!(edit_indexer_params, expected_edit_indexer_params);
+    assert!(app.data.radarr_data.edit_indexer_modal.is_none());
   }
 
   #[test]

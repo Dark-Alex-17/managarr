@@ -93,7 +93,7 @@ mod tests {
         monitored: true,
         quality_profile_id: 2222,
         tags: vec![1, 2],
-        tag_input_string: String::new(),
+        tag_input_string: None,
         add_options: AddMovieOptions {
           monitor: "movieOnly".to_owned(),
           search_for_movie: true,

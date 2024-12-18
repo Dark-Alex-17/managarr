@@ -382,7 +382,7 @@ mod tests {
         minimum_availability: "released".to_owned(),
         monitored: false,
         tags: vec![1, 2],
-        tag_input_string: String::new(),
+        tag_input_string: None,
         add_options: AddMovieOptions {
           monitor: "movieAndCollection".to_owned(),
           search_for_movie: false,

@@ -312,6 +312,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrEditCommand> for SonarrEditCommandH
           api_key,
           seed_ratio,
           tags: tag,
+          tag_input_string: None,
           priority,
           clear_tags,
         };

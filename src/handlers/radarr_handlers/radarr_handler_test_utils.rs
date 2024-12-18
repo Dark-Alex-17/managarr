@@ -533,7 +533,7 @@ pub(in crate::handlers::radarr_handlers) mod utils {
       monitored: true,
       quality_profile_id: 2222,
       tags: Vec::new(),
-      tag_input_string: "usenet, testing".into(),
+      tag_input_string: Some("usenet, testing".into()),
       add_options: AddMovieOptions {
         monitor: "movieOnly".to_owned(),
         search_for_movie: true,

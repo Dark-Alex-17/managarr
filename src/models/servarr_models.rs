@@ -101,6 +101,8 @@ pub struct EditIndexerParams {
   pub api_key: Option<String>,
   pub seed_ratio: Option<String>,
   pub tags: Option<Vec<i64>>,
+  #[serde(skip_serializing, skip_deserializing)]
+  pub tag_input_string: Option<String>,
   pub priority: Option<i64>,
   pub clear_tags: bool,
 }
