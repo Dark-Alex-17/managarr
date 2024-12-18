@@ -4,6 +4,7 @@ mod tests {
     use pretty_assertions::{assert_eq, assert_str_eq};
     use tokio::sync::mpsc;
 
+    use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
     use crate::{
       app::App,
       models::{
@@ -174,6 +175,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_episode_details_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.sonarr_data = create_test_sonarr_data();
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::EpisodeDetails)
@@ -182,7 +184,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetEpisodeDetails(None).into()
+        SonarrEvent::GetEpisodeDetails(0).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -191,6 +193,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_episode_file_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.sonarr_data = create_test_sonarr_data();
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::EpisodeFile)
@@ -199,7 +202,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetEpisodeDetails(None).into()
+        SonarrEvent::GetEpisodeDetails(0).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -725,6 +728,22 @@ mod tests {
           .unwrap(),
         "Season 0"
       );
+    }
+
+    #[tokio::test]
+    async fn test_extract_episode_id() {
+      let mut app = App::default();
+      app.data.sonarr_data = create_test_sonarr_data();
+
+      assert_eq!(app.extract_episode_id().await, 0);
+    }
+
+    #[tokio::test]
+    #[should_panic(expected = "Season details have not been loaded")]
+    async fn test_extract_episode_id_requires_season_details_modal_to_be_some() {
+      let app = App::default();
+
+      assert_eq!(app.extract_episode_id().await, 0);
     }
 
     fn construct_app_unit<'a>() -> (App<'a>, mpsc::Receiver<NetworkEvent>) {

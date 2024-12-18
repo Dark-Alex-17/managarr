@@ -59,7 +59,7 @@ pub enum SonarrEvent {
   GetHistory(u64),
   GetHostConfig,
   GetIndexers,
-  GetEpisodeDetails(Option<i64>),
+  GetEpisodeDetails(i64),
   GetEpisodes(Option<i64>),
   GetEpisodeFiles(Option<i64>),
   GetEpisodeHistory(Option<i64>),
@@ -1305,19 +1305,18 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_episode_details(&mut self, episode_id: Option<i64>) -> Result<Episode> {
+  async fn get_episode_details(&mut self, episode_id: i64) -> Result<Episode> {
     info!("Fetching Sonarr episode details");
-    let event = SonarrEvent::GetEpisodeDetails(None);
-    let id = self.extract_episode_id(episode_id).await;
+    let event = SonarrEvent::GetEpisodeDetails(episode_id);
 
-    info!("Fetching episode details for episode with ID: {id}");
+    info!("Fetching episode details for episode with ID: {episode_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Get,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{episode_id}")),
         None,
       )
       .await;
@@ -2227,7 +2226,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn toggle_sonarr_episode_monitoring(&mut self, episode_id: Option<i64>) -> Result<()> {
     let event = SonarrEvent::ToggleEpisodeMonitoring(episode_id);
-    let detail_event = SonarrEvent::GetEpisodeDetails(None);
+    let detail_event = SonarrEvent::GetEpisodeDetails(0);
 
     let (id, monitored) = if let Some(episode_id) = episode_id {
       info!("Fetching episode details for episode id: {episode_id}");

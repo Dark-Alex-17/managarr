@@ -149,8 +149,7 @@ mod test {
 
   #[rstest]
   fn test_resource_episode(
-    #[values(SonarrEvent::GetEpisodes(None), SonarrEvent::GetEpisodeDetails(None))]
-    event: SonarrEvent,
+    #[values(SonarrEvent::GetEpisodes(None), SonarrEvent::GetEpisodeDetails(0))] event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/episode");
   }
@@ -2651,7 +2650,7 @@ mod test {
       None,
       Some(serde_json::from_str(EPISODE_JSON).unwrap()),
       None,
-      SonarrEvent::GetEpisodeDetails(None),
+      SonarrEvent::GetEpisodeDetails(1),
       Some("/1"),
       None,
     )
@@ -2669,7 +2668,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episode(episode) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(None))
+      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(1))
       .await
       .unwrap()
     {
@@ -2767,7 +2766,7 @@ mod test {
       None,
       Some(serde_json::from_str(EPISODE_JSON).unwrap()),
       None,
-      SonarrEvent::GetEpisodeDetails(None),
+      SonarrEvent::GetEpisodeDetails(1),
       Some("/1"),
       None,
     )
@@ -2782,7 +2781,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episode(episode) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(None))
+      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(1))
       .await
       .unwrap()
     {
@@ -2853,34 +2852,6 @@ mod test {
           Subtitles: English"
         )
       );
-    }
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_episode_details_event_uses_provided_id() {
-    let response: Episode = serde_json::from_str(EPISODE_JSON).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(EPISODE_JSON).unwrap()),
-      None,
-      SonarrEvent::GetEpisodeDetails(None),
-      Some("/1"),
-      None,
-    )
-    .await;
-    let mut season_details_modal = SeasonDetailsModal::default();
-    season_details_modal.episodes.set_items(vec![episode()]);
-    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let SonarrSerdeable::Episode(episode) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(Some(1)))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(episode, response);
     }
   }
 
@@ -3356,7 +3327,7 @@ mod test {
       None,
       Some(serde_json::from_str(EPISODE_JSON).unwrap()),
       None,
-      SonarrEvent::GetEpisodeDetails(None),
+      SonarrEvent::GetEpisodeDetails(1),
       Some("/1"),
       None,
     )
@@ -3365,35 +3336,13 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episode(episode) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(Some(1)))
+      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(1))
       .await
       .unwrap()
     {
       async_server.assert_async().await;
       assert_eq!(episode, response);
     }
-  }
-
-  #[tokio::test]
-  #[should_panic(expected = "Season details have not been loaded")]
-  async fn test_handle_get_episode_details_event_requires_season_details_modal_to_be_some_when_no_parameter_is_passed(
-  ) {
-    let (_async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(EPISODE_JSON).unwrap()),
-      None,
-      SonarrEvent::GetEpisodeDetails(None),
-      Some("/1"),
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(None))
-      .await
-      .unwrap();
   }
 
   #[tokio::test]
@@ -3405,7 +3354,7 @@ mod test {
       None,
       Some(serde_json::from_str(EPISODE_JSON).unwrap()),
       None,
-      SonarrEvent::GetEpisodeDetails(None),
+      SonarrEvent::GetEpisodeDetails(1),
       Some("/1"),
       None,
     )
@@ -3413,7 +3362,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(Some(1)))
+      .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(1))
       .await
       .unwrap();
   }
@@ -6186,7 +6135,7 @@ mod test {
       None,
       Some(json!(body)),
       None,
-      SonarrEvent::GetEpisodeDetails(None),
+      SonarrEvent::GetEpisodeDetails(2),
       Some("/2"),
       None,
     )

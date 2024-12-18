@@ -69,7 +69,9 @@ impl<'a> App<'a> {
       }
       ActiveSonarrBlock::EpisodeDetails | ActiveSonarrBlock::EpisodeFile => {
         self
-          .dispatch_network_event(SonarrEvent::GetEpisodeDetails(None).into())
+          .dispatch_network_event(
+            SonarrEvent::GetEpisodeDetails(self.extract_episode_id().await).into(),
+          )
           .await;
       }
       ActiveSonarrBlock::EpisodeHistory => {
@@ -241,5 +243,17 @@ impl<'a> App<'a> {
       })
       .collect();
     self.data.sonarr_data.seasons.set_items(seasons);
+  }
+
+  async fn extract_episode_id(&self) -> i64 {
+    self
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_ref()
+      .expect("Season details have not been loaded")
+      .episodes
+      .current_selection()
+      .id
   }
 }
