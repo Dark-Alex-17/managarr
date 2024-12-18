@@ -5,6 +5,7 @@ mod tests {
     use tokio::sync::mpsc;
 
     use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
+    use crate::models::sonarr_models::Episode;
     use crate::{
       app::App,
       models::{
@@ -215,6 +216,12 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_episode_history_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      let mut season_details_modal = SeasonDetailsModal::default();
+      season_details_modal.episodes.set_items(vec![Episode {
+        id: 1,
+        ..Episode::default()
+      }]);
+      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::EpisodeHistory)
@@ -223,7 +230,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetEpisodeHistory(None).into()
+        SonarrEvent::GetEpisodeHistory(1).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -737,9 +744,14 @@ mod tests {
     #[tokio::test]
     async fn test_extract_episode_id() {
       let mut app = App::default();
-      app.data.sonarr_data = create_test_sonarr_data();
+      let mut season_details_modal = SeasonDetailsModal::default();
+      season_details_modal.episodes.set_items(vec![Episode {
+        id: 1,
+        ..Episode::default()
+      }]);
+      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
 
-      assert_eq!(app.extract_episode_id().await, 0);
+      assert_eq!(app.extract_episode_id().await, 1);
     }
 
     #[tokio::test]

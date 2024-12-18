@@ -219,7 +219,7 @@ mod test {
 
   #[rstest]
   fn test_resource_history(
-    #[values(SonarrEvent::GetHistory(0), SonarrEvent::GetEpisodeHistory(None))] event: SonarrEvent,
+    #[values(SonarrEvent::GetHistory(0), SonarrEvent::GetEpisodeHistory(0))] event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/history");
   }
@@ -2783,7 +2783,7 @@ mod test {
       None,
       Some(history_json),
       None,
-      SonarrEvent::GetEpisodeHistory(None),
+      SonarrEvent::GetEpisodeHistory(1),
       None,
       Some("episodeId=1&pageSize=1000&sortDirection=descending&sortKey=date"),
     )
@@ -2825,137 +2825,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeHistory(None))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_history
-          .items,
-        expected_history_items
-      );
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_history
-          .sort_asc
-      );
-      assert_eq!(history, response);
-    }
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_sonarr_episode_history_event_uses_provided_episode_id() {
-    let history_json = json!({"records": [{
-      "id": 123,
-      "sourceTitle": "z episode",
-      "episodeId": 1007,
-      "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{ "id": 1, "name": "English" }],
-      "date": "2024-02-10T07:28:45Z",
-      "eventType": "grabbed",
-      "data": {
-        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
-        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
-      }
-    },
-    {
-      "id": 456,
-      "sourceTitle": "A Episode",
-      "episodeId": 2001,
-      "quality": { "quality": { "name": "Bluray-1080p" } },
-      "languages": [{ "id": 1, "name": "English" }],
-      "date": "2024-02-10T07:28:45Z",
-      "eventType": "grabbed",
-      "data": {
-        "droppedPath": "/nfs/nzbget/completed/series/Coolness/something.cool.mkv",
-        "importedPath": "/nfs/tv/Coolness/Season 1/Coolness - S01E01 - Something Cool Bluray-1080p.mkv"
-      }
-    }]});
-    let response: SonarrHistoryWrapper = serde_json::from_value(history_json.clone()).unwrap();
-    let expected_history_items = vec![
-      SonarrHistoryItem {
-        id: 123,
-        episode_id: 1007,
-        source_title: "z episode".into(),
-        ..history_item()
-      },
-      SonarrHistoryItem {
-        id: 456,
-        episode_id: 2001,
-        source_title: "A Episode".into(),
-        ..history_item()
-      },
-    ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(history_json),
-      None,
-      SonarrEvent::GetEpisodeHistory(Some(2)),
-      None,
-      Some("episodeId=2&pageSize=1000&sortDirection=descending&sortKey=date"),
-    )
-    .await;
-    app_arc.lock().await.data.sonarr_data.season_details_modal =
-      Some(SeasonDetailsModal::default());
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .season_details_modal
-      .as_mut()
-      .unwrap()
-      .episodes
-      .set_items(vec![episode()]);
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .season_details_modal
-      .as_mut()
-      .unwrap()
-      .episode_details_modal = Some(EpisodeDetailsModal::default());
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .season_details_modal
-      .as_mut()
-      .unwrap()
-      .episode_details_modal
-      .as_mut()
-      .unwrap()
-      .episode_history
-      .sort_asc = true;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeHistory(Some(2)))
+      .handle_sonarr_event(SonarrEvent::GetEpisodeHistory(1))
       .await
       .unwrap()
     {
@@ -3043,7 +2913,7 @@ mod test {
       None,
       Some(history_json),
       None,
-      SonarrEvent::GetEpisodeHistory(None),
+      SonarrEvent::GetEpisodeHistory(1),
       None,
       Some("episodeId=1&pageSize=1000&sortDirection=descending&sortKey=date"),
     )
@@ -3063,7 +2933,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeHistory(None))
+      .handle_sonarr_event(SonarrEvent::GetEpisodeHistory(1))
       .await
       .unwrap()
     {
@@ -3151,7 +3021,7 @@ mod test {
       None,
       Some(history_json),
       None,
-      SonarrEvent::GetEpisodeHistory(Some(1)),
+      SonarrEvent::GetEpisodeHistory(1),
       None,
       Some("episodeId=1&pageSize=1000&sortDirection=descending&sortKey=date"),
     )
@@ -3159,7 +3029,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeHistory(Some(1)))
+      .handle_sonarr_event(SonarrEvent::GetEpisodeHistory(1))
       .await
       .unwrap()
     {

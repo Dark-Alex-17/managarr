@@ -78,7 +78,9 @@ impl<'a> App<'a> {
       }
       ActiveSonarrBlock::EpisodeHistory => {
         self
-          .dispatch_network_event(SonarrEvent::GetEpisodeHistory(None).into())
+          .dispatch_network_event(
+            SonarrEvent::GetEpisodeHistory(self.extract_episode_id().await).into(),
+          )
           .await;
       }
       ActiveSonarrBlock::ManualEpisodeSearch => {

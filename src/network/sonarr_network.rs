@@ -62,7 +62,7 @@ pub enum SonarrEvent {
   GetEpisodeDetails(i64),
   GetEpisodes(i64),
   GetEpisodeFiles(i64),
-  GetEpisodeHistory(Option<i64>),
+  GetEpisodeHistory(i64),
   GetLanguageProfiles,
   GetLogs(Option<u64>),
   GetDiskSpace,
@@ -1238,15 +1238,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_sonarr_episode_history(
-    &mut self,
-    episode_id: Option<i64>,
-  ) -> Result<SonarrHistoryWrapper> {
-    let id = self.extract_episode_id(episode_id).await;
-    info!("Fetching Sonarr history for episode with ID: {id}");
+  async fn get_sonarr_episode_history(&mut self, episode_id: i64) -> Result<SonarrHistoryWrapper> {
+    info!("Fetching Sonarr history for episode with ID: {episode_id}");
     let event = SonarrEvent::GetEpisodeHistory(episode_id);
 
-    let params = format!("episodeId={id}&pageSize=1000&sortDirection=descending&sortKey=date",);
+    let params =
+      format!("episodeId={episode_id}&pageSize=1000&sortDirection=descending&sortKey=date");
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
       .await;
