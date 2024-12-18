@@ -97,7 +97,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrGetCommand> for RadarrGetCommandHan
       RadarrGetCommand::MovieHistory { movie_id } => {
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::GetMovieHistory(Some(movie_id)).into())
+          .handle_network_event(RadarrEvent::GetMovieHistory(movie_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

@@ -208,7 +208,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::GetMovieHistory(Some(expected_movie_id)).into(),
+          RadarrEvent::GetMovieHistory(expected_movie_id).into(),
         ))
         .times(1)
         .returning(|_| {

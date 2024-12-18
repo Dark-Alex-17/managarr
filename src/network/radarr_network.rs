@@ -57,7 +57,7 @@ pub enum RadarrEvent {
   GetLogs(u64),
   GetMovieCredits(i64),
   GetMovieDetails(i64),
-  GetMovieHistory(Option<i64>),
+  GetMovieHistory(i64),
   GetMovies,
   GetDiskSpace,
   GetQualityProfiles,
@@ -1319,18 +1319,17 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_movie_history(&mut self, movie_id: Option<i64>) -> Result<Vec<MovieHistoryItem>> {
+  async fn get_movie_history(&mut self, movie_id: i64) -> Result<Vec<MovieHistoryItem>> {
     info!("Fetching Radarr movie history");
-    let event = RadarrEvent::GetMovieHistory(None);
+    let event = RadarrEvent::GetMovieHistory(movie_id);
 
-    let (_, movie_id_param) = self.extract_movie_id(movie_id).await;
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Get,
         None::<()>,
         None,
-        Some(movie_id_param),
+        Some(format!("movieId={movie_id}")),
       )
       .await;
 

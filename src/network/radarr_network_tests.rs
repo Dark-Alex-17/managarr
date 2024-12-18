@@ -222,7 +222,7 @@ mod test {
   #[case(RadarrEvent::GetLogs(500), "/log")]
   #[case(RadarrEvent::SearchNewMovie(None), "/movie/lookup")]
   #[case(RadarrEvent::GetMovieCredits(0), "/credit")]
-  #[case(RadarrEvent::GetMovieHistory(None), "/history/movie")]
+  #[case(RadarrEvent::GetMovieHistory(0), "/history/movie")]
   #[case(RadarrEvent::GetDiskSpace, "/diskspace")]
   #[case(RadarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(RadarrEvent::GetStatus, "/system/status")]
@@ -1532,23 +1532,16 @@ mod test {
       None,
       Some(movie_history_item_json),
       None,
-      RadarrEvent::GetMovieHistory(None),
+      RadarrEvent::GetMovieHistory(1),
       None,
       Some("movieId=1"),
     )
     .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::MovieHistoryItems(history) = network
-      .handle_radarr_event(RadarrEvent::GetMovieHistory(None))
+      .handle_radarr_event(RadarrEvent::GetMovieHistory(1))
       .await
       .unwrap()
     {
@@ -1571,39 +1564,6 @@ mod test {
   }
 
   #[tokio::test]
-  async fn test_handle_get_movie_history_event_uses_provided_id() {
-    let movie_history_item_json = json!([{
-      "sourceTitle": "Test",
-      "quality": { "quality": { "name": "HD - 1080p" }},
-      "languages": [ { "id": 1, "name": "English" } ],
-      "date": "2022-12-30T07:37:56Z",
-      "eventType": "grabbed"
-    }]);
-    let response: Vec<MovieHistoryItem> =
-      serde_json::from_value(movie_history_item_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(movie_history_item_json),
-      None,
-      RadarrEvent::GetMovieHistory(None),
-      None,
-      Some("movieId=1"),
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let RadarrSerdeable::MovieHistoryItems(history) = network
-      .handle_radarr_event(RadarrEvent::GetMovieHistory(Some(1)))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(history, response);
-    }
-  }
-
-  #[tokio::test]
   async fn test_handle_get_movie_history_event_empty_movie_details_modal() {
     let movie_history_item_json = json!([{
       "sourceTitle": "Test",
@@ -1617,22 +1577,15 @@ mod test {
       None,
       Some(movie_history_item_json),
       None,
-      RadarrEvent::GetMovieHistory(None),
+      RadarrEvent::GetMovieHistory(1),
       None,
       Some("movieId=1"),
     )
     .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![movie()]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::GetMovieHistory(None))
+      .handle_radarr_event(RadarrEvent::GetMovieHistory(1))
       .await
       .is_ok());
 

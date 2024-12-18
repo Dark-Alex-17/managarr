@@ -113,7 +113,7 @@ impl<'a> App<'a> {
       }
       ActiveRadarrBlock::MovieHistory => {
         self
-          .dispatch_network_event(RadarrEvent::GetMovieHistory(None).into())
+          .dispatch_network_event(RadarrEvent::GetMovieHistory(self.extract_movie_id().await).into())
           .await;
       }
       ActiveRadarrBlock::Cast | ActiveRadarrBlock::Crew => {
