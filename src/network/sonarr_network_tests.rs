@@ -258,7 +258,7 @@ mod test {
   fn test_resource_release(
     #[values(
       SonarrEvent::GetSeasonReleases(None),
-      SonarrEvent::GetEpisodeReleases(None)
+      SonarrEvent::GetEpisodeReleases(0)
     )]
     event: SonarrEvent,
   ) {
@@ -3360,7 +3360,7 @@ mod test {
       None,
       Some(release_json),
       None,
-      SonarrEvent::GetEpisodeReleases(None),
+      SonarrEvent::GetEpisodeReleases(1),
       None,
       Some("episodeId=1"),
     )
@@ -3380,7 +3380,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Releases(releases_vec) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(None))
+      .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(1))
       .await
       .unwrap()
     {
@@ -3427,7 +3427,7 @@ mod test {
       None,
       Some(release_json),
       None,
-      SonarrEvent::GetEpisodeReleases(None),
+      SonarrEvent::GetEpisodeReleases(1),
       None,
       Some("episodeId=1"),
     )
@@ -3438,110 +3438,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Releases(releases_vec) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(None))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_releases
-          .items,
-        vec![release()]
-      );
-      assert_eq!(releases_vec, vec![release()]);
-    }
-  }
-
-  #[tokio::test]
-  #[should_panic(expected = "Season details have not been loaded")]
-  async fn test_handle_get_episode_releases_event_empty_season_details_modal_panics() {
-    let release_json = json!([{
-      "guid": "1234",
-      "protocol": "torrent",
-      "age": 1,
-      "title": "Test Release",
-      "indexer": "kickass torrents",
-      "indexerId": 2,
-      "size": 1234,
-      "rejected": true,
-      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
-      "seeders": 2,
-      "leechers": 1,
-      "languages": [ { "id": 1, "name": "English" } ],
-      "quality": { "quality": { "name": "Bluray-1080p" }}
-    }]);
-    let (_async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(release_json),
-      None,
-      SonarrEvent::GetEpisodeReleases(None),
-      None,
-      Some("episodeId=1"),
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(None))
-      .await
-      .unwrap();
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_episode_releases_event_uses_provided_series_id() {
-    let release_json = json!([{
-      "guid": "1234",
-      "protocol": "torrent",
-      "age": 1,
-      "title": "Test Release",
-      "indexer": "kickass torrents",
-      "indexerId": 2,
-      "size": 1234,
-      "rejected": true,
-      "rejections": [ "Unknown quality profile", "Release is already mapped" ],
-      "seeders": 2,
-      "leechers": 1,
-      "languages": [ { "id": 1, "name": "English" } ],
-      "quality": { "quality": { "name": "Bluray-1080p" }}
-    }]);
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(release_json),
-      None,
-      SonarrEvent::GetEpisodeReleases(None),
-      None,
-      Some("episodeId=2"),
-    )
-    .await;
-    let mut season_details_modal = SeasonDetailsModal::default();
-    season_details_modal.episodes.set_items(vec![episode()]);
-    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .season_details_modal
-      .as_mut()
-      .unwrap()
-      .episode_details_modal = Some(EpisodeDetailsModal::default());
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let SonarrSerdeable::Releases(releases_vec) = network
-      .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(Some(2)))
+      .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(1))
       .await
       .unwrap()
     {

@@ -69,7 +69,7 @@ pub enum SonarrEvent {
   GetQualityProfiles,
   GetQueuedEvents,
   GetRootFolders,
-  GetEpisodeReleases(Option<i64>),
+  GetEpisodeReleases(i64),
   GetSeasonHistory(Option<(i64, i64)>),
   GetSeasonReleases(Option<(i64, i64)>),
   GetSecurityConfig,
@@ -1613,11 +1613,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_episode_releases(&mut self, episode_id: Option<i64>) -> Result<Vec<SonarrRelease>> {
-    let event = SonarrEvent::GetEpisodeReleases(None);
-    let id = self.extract_episode_id(episode_id).await;
-
-    info!("Fetching releases for episode with ID: {id}");
+  async fn get_episode_releases(&mut self, episode_id: i64) -> Result<Vec<SonarrRelease>> {
+    let event = SonarrEvent::GetEpisodeReleases(episode_id);
+    info!("Fetching releases for episode with ID: {episode_id}");
 
     let request_props = self
       .request_props_from(
@@ -1625,7 +1623,7 @@ impl<'a, 'b> Network<'a, 'b> {
         RequestMethod::Get,
         None::<()>,
         None,
-        Some(format!("episodeId={id}")),
+        Some(format!("episodeId={episode_id}")),
       )
       .await;
 

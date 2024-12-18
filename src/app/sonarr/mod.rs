@@ -88,7 +88,9 @@ impl<'a> App<'a> {
           if let Some(episode_details_modal) = season_details_modal.episode_details_modal.as_ref() {
             if episode_details_modal.episode_releases.is_empty() {
               self
-                .dispatch_network_event(SonarrEvent::GetEpisodeReleases(None).into())
+                .dispatch_network_event(
+                  SonarrEvent::GetEpisodeReleases(self.extract_episode_id().await).into(),
+                )
                 .await;
             }
           }
