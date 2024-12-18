@@ -179,7 +179,7 @@ mod test {
 
   #[rstest]
   fn test_resource_release(
-    #[values(RadarrEvent::GetReleases(None), RadarrEvent::DownloadRelease(RadarrReleaseDownloadBody::default()))]
+    #[values(RadarrEvent::GetReleases(0), RadarrEvent::DownloadRelease(RadarrReleaseDownloadBody::default()))]
     event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/release");
@@ -507,23 +507,16 @@ mod test {
       None,
       Some(release_json),
       None,
-      RadarrEvent::GetReleases(None),
+      RadarrEvent::GetReleases(1),
       None,
       Some("movieId=1"),
     )
     .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![movie()]);
     app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::Releases(releases_vec) = network
-      .handle_radarr_event(RadarrEvent::GetReleases(None))
+      .handle_radarr_event(RadarrEvent::GetReleases(1))
       .await
       .unwrap()
     {
@@ -567,22 +560,15 @@ mod test {
       None,
       Some(release_json),
       None,
-      RadarrEvent::GetReleases(None),
+      RadarrEvent::GetReleases(1),
       None,
       Some("movieId=1"),
     )
     .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![movie()]);
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::GetReleases(None))
+      .handle_radarr_event(RadarrEvent::GetReleases(1))
       .await
       .is_ok());
 

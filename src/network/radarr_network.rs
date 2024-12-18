@@ -62,7 +62,7 @@ pub enum RadarrEvent {
   GetDiskSpace,
   GetQualityProfiles,
   GetQueuedEvents,
-  GetReleases(Option<i64>),
+  GetReleases(i64),
   GetRootFolders,
   GetSecurityConfig,
   GetStatus,
@@ -1413,10 +1413,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_movie_releases(&mut self, movie_id: Option<i64>) -> Result<Vec<RadarrRelease>> {
-    let (id, movie_id_param) = self.extract_movie_id(movie_id).await;
-    info!("Fetching releases for movie with ID: {id}");
-    let event = RadarrEvent::GetReleases(None);
+  async fn get_movie_releases(&mut self, movie_id: i64) -> Result<Vec<RadarrRelease>> {
+    info!("Fetching releases for movie with ID: {movie_id}");
+    let event = RadarrEvent::GetReleases(movie_id);
 
     let request_props = self
       .request_props_from(
@@ -1424,7 +1423,7 @@ impl<'a, 'b> Network<'a, 'b> {
         RequestMethod::Get,
         None::<()>,
         None,
-        Some(movie_id_param),
+        Some(format!("movieId={movie_id}")),
       )
       .await;
 

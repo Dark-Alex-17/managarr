@@ -217,7 +217,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrCommand> for RadarrCliHandler<'a, '
         println!("Searching for releases. This may take a minute...");
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::GetReleases(Some(movie_id)).into())
+          .handle_network_event(RadarrEvent::GetReleases(movie_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

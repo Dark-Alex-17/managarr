@@ -465,6 +465,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_manual_search_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.radarr_data.movies.set_items(vec![Movie { id: 1, ..Movie::default() }]);
       app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
 
       app
@@ -474,7 +475,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        RadarrEvent::GetReleases(None).into()
+        RadarrEvent::GetReleases(1).into()
       );
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);

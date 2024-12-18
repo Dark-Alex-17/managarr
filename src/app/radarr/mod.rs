@@ -132,7 +132,7 @@ impl<'a> App<'a> {
       ActiveRadarrBlock::ManualSearch => match self.data.radarr_data.movie_details_modal.as_ref() {
         Some(movie_details_modal) if movie_details_modal.movie_releases.items.is_empty() => {
           self
-            .dispatch_network_event(RadarrEvent::GetReleases(None).into())
+            .dispatch_network_event(RadarrEvent::GetReleases(self.extract_movie_id().await).into())
             .await;
         }
         _ => (),
