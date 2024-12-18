@@ -18,7 +18,7 @@ mod test {
   use crate::models::sonarr_models::{
     AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, AddSeriesSearchResultStatistics,
     DownloadStatus, EditSeriesParams, IndexerSettings, MonitorEpisodeBody, SeriesMonitor,
-    SonarrHistoryEventType,
+    SonarrHistoryEventType
   };
 
   use crate::app::{App, ServarrConfig};
@@ -28,10 +28,7 @@ mod test {
     AddSeriesModal, EditSeriesModal, EpisodeDetailsModal, SeasonDetailsModal,
   };
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
-  use crate::models::servarr_models::{
-    DiskSpace, EditIndexerParams, HostConfig, Indexer, IndexerField, Language, LogResponse,
-    Quality, QualityProfile, QualityWrapper, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
-  };
+  use crate::models::servarr_models::{AddRootFolderBody, DiskSpace, EditIndexerParams, HostConfig, Indexer, IndexerField, Language, LogResponse, Quality, QualityProfile, QualityWrapper, QueueEvent, RootFolder, SecurityConfig, Tag, Update};
   use crate::models::sonarr_models::{
     BlocklistItem, DeleteSeriesParams, DownloadRecord, DownloadsResponse, Episode, EpisodeFile,
     MediaInfo, SonarrRelease, SonarrReleaseDownloadBody, SonarrTaskName,
@@ -250,7 +247,7 @@ mod test {
     #[values(
       SonarrEvent::GetRootFolders,
       SonarrEvent::DeleteRootFolder(None),
-      SonarrEvent::AddRootFolder(None)
+      SonarrEvent::AddRootFolder(AddRootFolderBody::default())
     )]
     event: SonarrEvent,
   ) {
@@ -310,6 +307,7 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_add_sonarr_root_folder_event() {
+    let expected_add_root_folder_body = AddRootFolderBody { path: "/nfs/test".to_owned() };
     let (async_server, app_arc, _server) = mock_servarr_api(
       RequestMethod::Post,
       Some(json!({
@@ -317,49 +315,15 @@ mod test {
       })),
       Some(json!({})),
       None,
-      SonarrEvent::AddRootFolder(None),
+      SonarrEvent::AddRootFolder(expected_add_root_folder_body.clone()),
       None,
       None,
     )
     .await;
-
-    app_arc.lock().await.data.sonarr_data.edit_root_folder = Some("/nfs/test".into());
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::AddRootFolder(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .edit_root_folder
-      .is_none());
-  }
-
-  #[tokio::test]
-  async fn test_handle_add_sonarr_root_folder_event_uses_provided_path() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "path": "/test/test"
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::AddRootFolder(None),
-      None,
-      None,
-    )
-    .await;
-
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::AddRootFolder(Some("/test/test".to_owned())))
+      .handle_sonarr_event(SonarrEvent::AddRootFolder(expected_add_root_folder_body))
       .await
       .is_ok());
 

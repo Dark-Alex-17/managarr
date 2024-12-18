@@ -39,7 +39,7 @@ mod sonarr_network_tests;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum SonarrEvent {
-  AddRootFolder(Option<String>),
+  AddRootFolder(AddRootFolderBody),
   AddSeries(Option<AddSeriesBody>),
   AddTag(String),
   ClearBlocklist,
@@ -357,31 +357,14 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn add_sonarr_root_folder(&mut self, root_folder: Option<String>) -> Result<Value> {
+  async fn add_sonarr_root_folder(&mut self, add_root_folder_body: AddRootFolderBody) -> Result<Value> {
     info!("Adding new root folder to Sonarr");
-    let event = SonarrEvent::AddRootFolder(None);
-    let body = if let Some(path) = root_folder {
-      AddRootFolderBody { path }
-    } else {
-      let mut app = self.app.lock().await;
-      let path = app
-        .data
-        .sonarr_data
-        .edit_root_folder
-        .as_ref()
-        .unwrap()
-        .text
-        .clone();
+    let event = SonarrEvent::AddRootFolder(add_root_folder_body.clone());
 
-      app.data.sonarr_data.edit_root_folder = None;
-
-      AddRootFolderBody { path }
-    };
-
-    debug!("Add root folder body: {body:?}");
+    debug!("Add root folder body: {add_root_folder_body:?}");
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .request_props_from(event, RequestMethod::Post, Some(add_root_folder_body), None, None)
       .await;
 
     self

@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -8,7 +9,7 @@ mod tests {
   use crate::handlers::sonarr_handlers::root_folders::RootFoldersHandler;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ROOT_FOLDERS_BLOCKS};
-  use crate::models::servarr_models::RootFolder;
+  use crate::models::servarr_models::{AddRootFolderBody, RootFolder};
   use crate::models::HorizontallyScrollableText;
 
   mod test_handle_home_end {
@@ -257,6 +258,7 @@ mod tests {
     #[test]
     fn test_add_root_folder_prompt_confirm_submit() {
       let mut app = App::default();
+      let expected_add_root_folder_body = AddRootFolderBody { path: "Test".to_owned() };
       app
         .data
         .sonarr_data
@@ -280,12 +282,13 @@ mod tests {
       assert!(!app.should_ignore_quit_key);
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::AddRootFolder(None))
+        Some(SonarrEvent::AddRootFolder(expected_add_root_folder_body))
       );
       assert_eq!(
         app.get_current_route(),
         ActiveSonarrBlock::RootFolders.into()
       );
+      assert!(app.data.sonarr_data.edit_root_folder.is_none());
     }
 
     #[test]
@@ -647,6 +650,23 @@ mod tests {
         assert!(!RootFoldersHandler::accepts(active_sonarr_block));
       }
     })
+  }
+
+  #[test]
+  fn test_build_add_root_folder_body() {
+    let mut app = App::default();
+    app.data.sonarr_data.edit_root_folder = Some("/nfs/test".into());
+    let expected_add_root_folder_body = AddRootFolderBody { path: "/nfs/test".to_owned() };
+
+    let root_folder = RootFoldersHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::AddRootFolderPrompt,
+      None,
+    ).build_add_root_folder_body();
+
+    assert_eq!(root_folder, expected_add_root_folder_body);
+    assert!(app.data.sonarr_data.edit_root_folder.is_none());
   }
 
   #[test]
