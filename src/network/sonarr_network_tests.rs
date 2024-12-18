@@ -257,7 +257,7 @@ mod test {
   #[rstest]
   fn test_resource_release(
     #[values(
-      SonarrEvent::GetSeasonReleases(None),
+      SonarrEvent::GetSeasonReleases((0, 0)),
       SonarrEvent::GetEpisodeReleases(0)
     )]
     event: SonarrEvent,
@@ -3744,7 +3744,7 @@ mod test {
       None,
       Some(release_json),
       None,
-      SonarrEvent::GetSeasonReleases(None),
+      SonarrEvent::GetSeasonReleases((1, 1)),
       None,
       Some("seriesId=1&seasonNumber=1"),
     )
@@ -3768,7 +3768,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Releases(releases_vec) = network
-      .handle_sonarr_event(SonarrEvent::GetSeasonReleases(None))
+      .handle_sonarr_event(SonarrEvent::GetSeasonReleases((1, 1)))
       .await
       .unwrap()
     {
@@ -3834,7 +3834,7 @@ mod test {
       None,
       Some(release_json),
       None,
-      SonarrEvent::GetSeasonReleases(None),
+      SonarrEvent::GetSeasonReleases((1, 1)),
       None,
       Some("seriesId=1&seasonNumber=1"),
     )
@@ -3856,7 +3856,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::GetSeasonReleases(None))
+      .handle_sonarr_event(SonarrEvent::GetSeasonReleases((1, 1)))
       .await
       .is_ok());
 
@@ -3874,206 +3874,6 @@ mod test {
         .items,
       vec![expected_sonarr_release]
     );
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_season_releases_event_uses_provided_series_id_and_season_number() {
-    let release_json = json!([
-      {
-        "guid": "1234",
-        "protocol": "torrent",
-        "age": 1,
-        "title": "Test Release",
-        "indexer": "kickass torrents",
-        "indexerId": 2,
-        "size": 1234,
-        "rejected": true,
-        "rejections": [ "Unknown quality profile", "Release is already mapped" ],
-        "seeders": 2,
-        "leechers": 1,
-        "languages": [ { "id": 1, "name": "English" } ],
-        "quality": { "quality": { "name": "Bluray-1080p" }},
-        "fullSeason": true
-      },
-      {
-        "guid": "4567",
-        "protocol": "torrent",
-        "age": 1,
-        "title": "Test Release",
-        "indexer": "kickass torrents",
-        "indexerId": 2,
-        "size": 1234,
-        "rejected": true,
-        "rejections": [ "Unknown quality profile", "Release is already mapped" ],
-        "seeders": 2,
-        "leechers": 1,
-        "languages": [ { "id": 1, "name": "English" } ],
-        "quality": { "quality": { "name": "Bluray-1080p" }},
-      }
-    ]);
-    let expected_filtered_sonarr_release = SonarrRelease {
-      full_season: true,
-      ..release()
-    };
-    let expected_raw_sonarr_releases = vec![
-      SonarrRelease {
-        full_season: true,
-        ..release()
-      },
-      SonarrRelease {
-        guid: "4567".to_owned(),
-        ..release()
-      },
-    ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(release_json),
-      None,
-      SonarrEvent::GetSeasonReleases(None),
-      None,
-      Some("seriesId=2&seasonNumber=2"),
-    )
-    .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .series
-      .set_items(vec![series()]);
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .seasons
-      .set_items(vec![season()]);
-    app_arc.lock().await.data.sonarr_data.season_details_modal =
-      Some(SeasonDetailsModal::default());
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let SonarrSerdeable::Releases(releases_vec) = network
-      .handle_sonarr_event(SonarrEvent::GetSeasonReleases(Some((2, 2))))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .season_releases
-          .items,
-        vec![expected_filtered_sonarr_release]
-      );
-      assert_eq!(releases_vec, expected_raw_sonarr_releases);
-    }
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_season_releases_event_filtered_series_and_filtered_seasons() {
-    let release_json = json!([
-      {
-        "guid": "1234",
-        "protocol": "torrent",
-        "age": 1,
-        "title": "Test Release",
-        "indexer": "kickass torrents",
-        "indexerId": 2,
-        "size": 1234,
-        "rejected": true,
-        "rejections": [ "Unknown quality profile", "Release is already mapped" ],
-        "seeders": 2,
-        "leechers": 1,
-        "languages": [ { "id": 1, "name": "English" } ],
-        "quality": { "quality": { "name": "Bluray-1080p" }},
-        "fullSeason": true
-      },
-      {
-        "guid": "4567",
-        "protocol": "torrent",
-        "age": 1,
-        "title": "Test Release",
-        "indexer": "kickass torrents",
-        "indexerId": 2,
-        "size": 1234,
-        "rejected": true,
-        "rejections": [ "Unknown quality profile", "Release is already mapped" ],
-        "seeders": 2,
-        "leechers": 1,
-        "languages": [ { "id": 1, "name": "English" } ],
-        "quality": { "quality": { "name": "Bluray-1080p" }},
-      }
-    ]);
-    let expected_filtered_sonarr_release = SonarrRelease {
-      full_season: true,
-      ..release()
-    };
-    let expected_raw_sonarr_releases = vec![
-      SonarrRelease {
-        full_season: true,
-        ..release()
-      },
-      SonarrRelease {
-        guid: "4567".to_owned(),
-        ..release()
-      },
-    ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(release_json),
-      None,
-      SonarrEvent::GetSeasonReleases(None),
-      None,
-      Some("seriesId=1&seasonNumber=1"),
-    )
-    .await;
-    let mut filtered_series = StatefulTable::default();
-    filtered_series.set_items(vec![Series::default()]);
-    filtered_series.set_filtered_items(vec![Series {
-      id: 1,
-      ..Series::default()
-    }]);
-    app_arc.lock().await.data.sonarr_data.series = filtered_series;
-    let mut filtered_seasons = StatefulTable::default();
-    filtered_seasons.set_items(vec![Season::default()]);
-    filtered_seasons.set_filtered_items(vec![Season {
-      season_number: 1,
-      ..Season::default()
-    }]);
-    app_arc.lock().await.data.sonarr_data.seasons = filtered_seasons;
-    app_arc.lock().await.data.sonarr_data.season_details_modal =
-      Some(SeasonDetailsModal::default());
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let SonarrSerdeable::Releases(releases_vec) = network
-      .handle_sonarr_event(SonarrEvent::GetSeasonReleases(None))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .season_releases
-          .items,
-        vec![expected_filtered_sonarr_release]
-      );
-      assert_eq!(releases_vec, expected_raw_sonarr_releases);
-    }
   }
 
   #[rstest]

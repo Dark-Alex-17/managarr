@@ -68,7 +68,10 @@ impl<'a> App<'a> {
         match self.data.sonarr_data.season_details_modal.as_ref() {
           Some(season_details_modal) if season_details_modal.season_releases.is_empty() => {
             self
-              .dispatch_network_event(SonarrEvent::GetSeasonReleases(None).into())
+              .dispatch_network_event(
+                SonarrEvent::GetSeasonReleases(self.extract_series_id_season_number_tuple().await)
+                  .into(),
+              )
               .await;
           }
           _ => (),

@@ -71,7 +71,7 @@ pub enum SonarrEvent {
   GetRootFolders,
   GetEpisodeReleases(i64),
   GetSeasonHistory((i64, i64)),
-  GetSeasonReleases(Option<(i64, i64)>),
+  GetSeasonReleases((i64, i64)),
   GetSecurityConfig,
   GetSeriesDetails(Option<i64>),
   GetSeriesHistory(Option<i64>),
@@ -1668,19 +1668,10 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn get_season_releases(
     &mut self,
-    series_season_id_tuple: Option<(i64, i64)>,
+    series_season_id_tuple: (i64, i64),
   ) -> Result<Vec<SonarrRelease>> {
-    let event = SonarrEvent::GetSeasonReleases(None);
-    let (series_id, season_number) =
-      if let Some((series_id, season_number)) = series_season_id_tuple {
-        (Some(series_id), Some(season_number))
-      } else {
-        (None, None)
-      };
-
-    let (series_id, series_id_param) = self.extract_series_id(series_id).await;
-    let (season_number, season_number_param) = self.extract_season_number(season_number).await?;
-
+    let event = SonarrEvent::GetSeasonReleases(series_season_id_tuple);
+    let (series_id, season_number) = series_season_id_tuple;
     info!("Fetching releases for series with ID: {series_id} and season number: {season_number}");
 
     let request_props = self
@@ -1689,7 +1680,10 @@ impl<'a, 'b> Network<'a, 'b> {
         RequestMethod::Get,
         None::<()>,
         None,
-        Some(format!("{}&{}", series_id_param, season_number_param)),
+        Some(format!(
+          "seriesId={}&seasonNumber={}",
+          series_id, season_number
+        )),
       )
       .await;
 

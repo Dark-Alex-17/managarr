@@ -86,9 +86,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrManualSearchCommand>
         println!("Searching for season releases. This may take a minute...");
         let resp = self
           .network
-          .handle_network_event(
-            SonarrEvent::GetSeasonReleases(Some((series_id, season_number))).into(),
-          )
+          .handle_network_event(SonarrEvent::GetSeasonReleases((series_id, season_number)).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
