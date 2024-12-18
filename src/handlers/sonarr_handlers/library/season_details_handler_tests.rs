@@ -14,7 +14,7 @@ mod tests {
   use crate::models::servarr_models::{Language, Quality, QualityWrapper};
   use crate::models::sonarr_models::{SonarrRelease, SonarrReleaseDownloadBody};
   use crate::models::HorizontallyScrollableText;
-  use pretty_assertions::{assert_str_eq, assert_eq};
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use serde_json::Number;
   use std::cmp::Ordering;
@@ -782,19 +782,20 @@ mod tests {
       }
     });
   }
-  
+
   #[test]
   fn test_extract_episode_file_id() {
     let mut app = App::default();
     app.data.sonarr_data = create_test_sonarr_data();
-    
+
     let episode_file_id = SeasonDetailsHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SeasonDetails,
       None,
-    ).extract_episode_file_id();
-    
+    )
+    .extract_episode_file_id();
+
     assert_eq!(episode_file_id, 0);
   }
 
@@ -803,12 +804,13 @@ mod tests {
   fn test_extract_episode_file_id_empty_season_details_modal_panics() {
     let mut app = App::default();
 
-    let episode_file_id = SeasonDetailsHandler::with(
+    SeasonDetailsHandler::with(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SeasonDetails,
       None,
-    ).extract_episode_file_id();
+    )
+    .extract_episode_file_id();
   }
 
   #[test]

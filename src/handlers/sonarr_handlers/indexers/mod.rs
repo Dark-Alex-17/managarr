@@ -33,6 +33,10 @@ pub(super) struct IndexersHandler<'a, 'b> {
 
 impl<'a, 'b> IndexersHandler<'a, 'b> {
   handle_table_events!(self, indexers, self.app.data.sonarr_data.indexers, Indexer);
+
+  fn extract_indexer_id(&self) -> i64 {
+    self.app.data.sonarr_data.indexers.current_selection().id
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexersHandler<'a, 'b> {
@@ -115,9 +119,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexersHandler<'a, 
   fn handle_submit(&mut self) {
     match self.active_sonarr_block {
       ActiveSonarrBlock::DeleteIndexerPrompt => {
-        let sonarr_data = &mut self.app.data.sonarr_data;
-        if sonarr_data.prompt_confirm {
-          sonarr_data.prompt_confirm_action = Some(SonarrEvent::DeleteIndexer(None));
+        if self.app.data.sonarr_data.prompt_confirm {
+          self.app.data.sonarr_data.prompt_confirm_action =
+            Some(SonarrEvent::DeleteIndexer(self.extract_indexer_id()));
         }
 
         self.app.pop_navigation_stack();
@@ -189,7 +193,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexersHandler<'a, 
       ActiveSonarrBlock::DeleteIndexerPrompt => {
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.sonarr_data.prompt_confirm = true;
-          self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::DeleteIndexer(None));
+          self.app.data.sonarr_data.prompt_confirm_action =
+            Some(SonarrEvent::DeleteIndexer(self.extract_indexer_id()));
 
           self.app.pop_navigation_stack();
         }

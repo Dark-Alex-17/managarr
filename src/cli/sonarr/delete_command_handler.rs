@@ -115,7 +115,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrDeleteCommand> for SonarrDeleteComm
       SonarrDeleteCommand::Indexer { indexer_id } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::DeleteIndexer(Some(indexer_id)).into())
+          .handle_network_event(SonarrEvent::DeleteIndexer(indexer_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

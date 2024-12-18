@@ -367,17 +367,12 @@ mod tests {
           )))
         });
       let app_arc = Arc::new(Mutex::new(App::default()));
-      let delete_episode_file_command = SonarrDeleteCommand::EpisodeFile {
-        episode_file_id: 1,
-      };
+      let delete_episode_file_command = SonarrDeleteCommand::EpisodeFile { episode_file_id: 1 };
 
-      let result = SonarrDeleteCommandHandler::with(
-        &app_arc,
-        delete_episode_file_command,
-        &mut mock_network,
-      )
-        .handle()
-        .await;
+      let result =
+        SonarrDeleteCommandHandler::with(&app_arc, delete_episode_file_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert!(result.is_ok());
     }
@@ -389,7 +384,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::DeleteIndexer(Some(expected_indexer_id)).into(),
+          SonarrEvent::DeleteIndexer(expected_indexer_id).into(),
         ))
         .times(1)
         .returning(|_| {

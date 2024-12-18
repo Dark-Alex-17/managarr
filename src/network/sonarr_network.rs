@@ -45,7 +45,7 @@ pub enum SonarrEvent {
   DeleteBlocklistItem(i64),
   DeleteDownload(i64),
   DeleteEpisodeFile(i64),
-  DeleteIndexer(Option<i64>),
+  DeleteIndexer(i64),
   DeleteRootFolder(Option<i64>),
   DeleteSeries(Option<DeleteSeriesParams>),
   DeleteTag(i64),
@@ -516,30 +516,16 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_sonarr_indexer(&mut self, indexer_id: Option<i64>) -> Result<()> {
-    let event = SonarrEvent::DeleteIndexer(None);
-    let id = if let Some(i_id) = indexer_id {
-      i_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .indexers
-        .current_selection()
-        .id
-    };
-
-    info!("Deleting Sonarr indexer for indexer with id: {id}");
+  async fn delete_sonarr_indexer(&mut self, indexer_id: i64) -> Result<()> {
+    let event = SonarrEvent::DeleteIndexer(indexer_id);
+    info!("Deleting Sonarr indexer for indexer with id: {indexer_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{indexer_id}")),
         None,
       )
       .await;

@@ -211,7 +211,7 @@ mod test {
   fn test_resource_indexer(
     #[values(
       SonarrEvent::GetIndexers,
-      SonarrEvent::DeleteIndexer(None),
+      SonarrEvent::DeleteIndexer(0),
       SonarrEvent::EditIndexer(None)
     )]
     event: SonarrEvent,
@@ -270,10 +270,7 @@ mod test {
 
   #[rstest]
   fn test_resource_episode_file(
-    #[values(
-      SonarrEvent::GetEpisodeFiles(None),
-      SonarrEvent::DeleteEpisodeFile(0)
-    )]
+    #[values(SonarrEvent::GetEpisodeFiles(None), SonarrEvent::DeleteEpisodeFile(0))]
     event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/episodefile");
@@ -622,7 +619,7 @@ mod test {
       None,
       None,
       None,
-      SonarrEvent::DeleteIndexer(None),
+      SonarrEvent::DeleteIndexer(1),
       Some("/1"),
       None,
     )
@@ -637,29 +634,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_sonarr_event(SonarrEvent::DeleteIndexer(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-  }
-
-  #[tokio::test]
-  async fn test_handle_delete_sonarr_indexer_event_uses_provided_id() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      SonarrEvent::DeleteIndexer(None),
-      Some("/1"),
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::DeleteIndexer(Some(1)))
+      .handle_sonarr_event(SonarrEvent::DeleteIndexer(1))
       .await
       .is_ok());
 
