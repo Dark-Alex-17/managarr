@@ -159,7 +159,7 @@ mod test {
     #[values(
       SonarrEvent::AddSeries(AddSeriesBody::default()),
       SonarrEvent::ListSeries,
-      SonarrEvent::GetSeriesDetails(None),
+      SonarrEvent::GetSeriesDetails(0),
       SonarrEvent::DeleteSeries(DeleteSeriesParams::default()),
       SonarrEvent::EditSeries(EditSeriesParams::default()),
       SonarrEvent::ToggleSeasonMonitoring(None)
@@ -1337,7 +1337,7 @@ mod test {
       None,
       Some(serde_json::from_str(SERIES_JSON).unwrap()),
       None,
-      SonarrEvent::GetSeriesDetails(None),
+      SonarrEvent::GetSeriesDetails(1),
       Some("/1"),
       None,
     )
@@ -1397,7 +1397,7 @@ mod test {
       None,
       Some(serde_json::from_str(SERIES_JSON).unwrap()),
       None,
-      SonarrEvent::GetSeriesDetails(None),
+      SonarrEvent::GetSeriesDetails(1),
       Some("/1"),
       None,
     )
@@ -1441,7 +1441,7 @@ mod test {
       None,
       Some(serde_json::from_str(SERIES_JSON).unwrap()),
       None,
-      SonarrEvent::GetSeriesDetails(None),
+      SonarrEvent::GetSeriesDetails(1),
       Some("/1"),
       None,
     )
@@ -1481,7 +1481,7 @@ mod test {
       None,
       Some(serde_json::from_str(SERIES_JSON).unwrap()),
       None,
-      SonarrEvent::GetSeriesDetails(None),
+      SonarrEvent::GetSeriesDetails(1),
       Some("/1"),
       None,
     )
@@ -3965,7 +3965,7 @@ mod test {
       None,
       Some(serde_json::from_str(SERIES_JSON).unwrap()),
       None,
-      SonarrEvent::GetSeriesDetails(None),
+      SonarrEvent::GetSeriesDetails(1),
       Some("/1"),
       None,
     )
@@ -3980,44 +3980,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Series(series) = network
-      .handle_sonarr_event(SonarrEvent::GetSeriesDetails(None))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(series, expected_series);
-    }
-  }
-
-  #[tokio::test]
-  async fn test_handle_get_series_details_event_uses_provided_series_id() {
-    let expected_series: Series = Series {
-      id: 2,
-      ..serde_json::from_str(SERIES_JSON).unwrap()
-    };
-    let mut response: Value = serde_json::from_str(SERIES_JSON).unwrap();
-    *response.get_mut("id").unwrap() = json!(2);
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(response),
-      None,
-      SonarrEvent::GetSeriesDetails(Some(2)),
-      Some("/2"),
-      None,
-    )
-    .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .series
-      .set_items(vec![series()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let SonarrSerdeable::Series(series) = network
-      .handle_sonarr_event(SonarrEvent::GetSeriesDetails(Some(2)))
+      .handle_sonarr_event(SonarrEvent::GetSeriesDetails(1))
       .await
       .unwrap()
     {
@@ -5453,7 +5416,7 @@ mod test {
       None,
       Some(serde_json::from_str(SERIES_JSON).unwrap()),
       None,
-      SonarrEvent::GetSeriesDetails(None),
+      SonarrEvent::GetSeriesDetails(1),
       Some("/1"),
       None,
     )
@@ -5518,7 +5481,7 @@ mod test {
       None,
       Some(detailed_response),
       None,
-      SonarrEvent::GetSeriesDetails(None),
+      SonarrEvent::GetSeriesDetails(2),
       Some("/2"),
       None,
     )

@@ -73,7 +73,7 @@ pub enum SonarrEvent {
   GetSeasonHistory((i64, i64)),
   GetSeasonReleases((i64, i64)),
   GetSecurityConfig,
-  GetSeriesDetails(Option<i64>),
+  GetSeriesDetails(i64),
   GetSeriesHistory(Option<i64>),
   GetStatus,
   GetUpdates,
@@ -848,9 +848,9 @@ impl<'a, 'b> Network<'a, 'b> {
         .await;
       edit_series_params.tags = Some(tag_ids_vec);
     }
-    let detail_event = SonarrEvent::GetSeriesDetails(None);
-    let event = SonarrEvent::EditSeries(edit_series_params.clone());
     let series_id = edit_series_params.series_id;
+    let detail_event = SonarrEvent::GetSeriesDetails(series_id);
+    let event = SonarrEvent::EditSeries(edit_series_params.clone());
     info!("Fetching series details for series with ID: {series_id}");
 
     let request_props = self
@@ -969,7 +969,6 @@ impl<'a, 'b> Network<'a, 'b> {
     &mut self,
     series_id_season_number_tuple: Option<(i64, i64)>,
   ) -> Result<()> {
-    let detail_event = SonarrEvent::GetSeriesDetails(None);
     let event = SonarrEvent::ToggleSeasonMonitoring(series_id_season_number_tuple);
     let (series_id, season_number) =
       if let Some((series_id, season_number)) = series_id_season_number_tuple {
@@ -979,6 +978,7 @@ impl<'a, 'b> Network<'a, 'b> {
       };
 
     let (series_id, _) = self.extract_series_id(series_id).await;
+    let detail_event = SonarrEvent::GetSeriesDetails(series_id);
     if let Ok((season_number, _)) = self.extract_season_number(season_number).await {
       info!("Toggling season monitoring for season {season_number} in series with ID: {series_id}");
       info!("Fetching series details for series with ID: {series_id}");
@@ -1764,9 +1764,8 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_series_details(&mut self, series_id: Option<i64>) -> Result<Series> {
-    let (id, _) = self.extract_series_id(series_id).await;
-    info!("Fetching details for Sonarr series with ID: {id}");
+  async fn get_series_details(&mut self, series_id: i64) -> Result<Series> {
+    info!("Fetching details for Sonarr series with ID: {series_id}");
     let event = SonarrEvent::GetSeriesDetails(series_id);
 
     let request_props = self
@@ -1774,7 +1773,7 @@ impl<'a, 'b> Network<'a, 'b> {
         event,
         RequestMethod::Get,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{series_id}")),
         None,
       )
       .await;
