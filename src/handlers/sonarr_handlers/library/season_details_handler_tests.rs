@@ -14,7 +14,7 @@ mod tests {
   use crate::models::servarr_models::{Language, Quality, QualityWrapper};
   use crate::models::sonarr_models::{SonarrRelease, SonarrReleaseDownloadBody};
   use crate::models::HorizontallyScrollableText;
-  use pretty_assertions::assert_str_eq;
+  use pretty_assertions::{assert_str_eq, assert_eq};
   use rstest::rstest;
   use serde_json::Number;
   use std::cmp::Ordering;
@@ -279,7 +279,7 @@ mod tests {
     )]
     #[case(
       ActiveSonarrBlock::DeleteEpisodeFilePrompt,
-      SonarrEvent::DeleteEpisodeFile(None)
+      SonarrEvent::DeleteEpisodeFile(0)
     )]
     fn test_season_details_prompt_confirm_submit(
       #[case] prompt_block: ActiveSonarrBlock,
@@ -708,7 +708,7 @@ mod tests {
     )]
     #[case(
       ActiveSonarrBlock::DeleteEpisodeFilePrompt,
-      SonarrEvent::DeleteEpisodeFile(None)
+      SonarrEvent::DeleteEpisodeFile(0)
     )]
     fn test_season_details_prompt_confirm_confirm_key(
       #[case] prompt_block: ActiveSonarrBlock,
@@ -781,6 +781,34 @@ mod tests {
         assert!(!SeasonDetailsHandler::accepts(active_sonarr_block));
       }
     });
+  }
+  
+  #[test]
+  fn test_extract_episode_file_id() {
+    let mut app = App::default();
+    app.data.sonarr_data = create_test_sonarr_data();
+    
+    let episode_file_id = SeasonDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::SeasonDetails,
+      None,
+    ).extract_episode_file_id();
+    
+    assert_eq!(episode_file_id, 0);
+  }
+
+  #[test]
+  #[should_panic(expected = "Season details have not been loaded")]
+  fn test_extract_episode_file_id_empty_season_details_modal_panics() {
+    let mut app = App::default();
+
+    let episode_file_id = SeasonDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::SeasonDetails,
+      None,
+    ).extract_episode_file_id();
   }
 
   #[test]

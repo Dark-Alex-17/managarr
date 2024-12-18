@@ -44,7 +44,7 @@ pub enum SonarrEvent {
   ClearBlocklist,
   DeleteBlocklistItem(i64),
   DeleteDownload(i64),
-  DeleteEpisodeFile(Option<i64>),
+  DeleteEpisodeFile(i64),
   DeleteIndexer(Option<i64>),
   DeleteRootFolder(Option<i64>),
   DeleteSeries(Option<DeleteSeriesParams>),
@@ -478,33 +478,16 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_sonarr_episode_file(&mut self, episode_file_id: Option<i64>) -> Result<()> {
-    let event = SonarrEvent::DeleteEpisodeFile(None);
-    let id = if let Some(ep_id) = episode_file_id {
-      ep_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .expect("Season details have not been loaded")
-        .episodes
-        .current_selection()
-        .episode_file_id
-    };
-
-    info!("Deleting Sonarr episode file for episode file with id: {id}");
+  async fn delete_sonarr_episode_file(&mut self, episode_file_id: i64) -> Result<()> {
+    let event = SonarrEvent::DeleteEpisodeFile(episode_file_id);
+    info!("Deleting Sonarr episode file for episode file with id: {episode_file_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{episode_file_id}")),
         None,
       )
       .await;
