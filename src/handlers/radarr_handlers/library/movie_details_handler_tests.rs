@@ -363,10 +363,7 @@ mod tests {
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
       RadarrEvent::TriggerAutomaticSearch(1)
     )]
-    #[case(
-      ActiveRadarrBlock::UpdateAndScanPrompt,
-      RadarrEvent::UpdateAndScan(None)
-    )]
+    #[case(ActiveRadarrBlock::UpdateAndScanPrompt, RadarrEvent::UpdateAndScan(1))]
     #[case(
       ActiveRadarrBlock::ManualSearchConfirmPrompt,
       RadarrEvent::DownloadRelease(RadarrReleaseDownloadBody {
@@ -784,10 +781,7 @@ mod tests {
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
       RadarrEvent::TriggerAutomaticSearch(1)
     )]
-    #[case(
-      ActiveRadarrBlock::UpdateAndScanPrompt,
-      RadarrEvent::UpdateAndScan(None)
-    )]
+    #[case(ActiveRadarrBlock::UpdateAndScanPrompt, RadarrEvent::UpdateAndScan(1))]
     #[case(
       ActiveRadarrBlock::ManualSearchConfirmPrompt,
       RadarrEvent::DownloadRelease(RadarrReleaseDownloadBody {

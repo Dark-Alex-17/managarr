@@ -75,7 +75,7 @@ pub enum RadarrEvent {
   TestAllIndexers,
   TriggerAutomaticSearch(i64),
   UpdateAllMovies,
-  UpdateAndScan(Option<i64>),
+  UpdateAndScan(i64),
   UpdateCollections,
   UpdateDownloads,
 }
@@ -1778,13 +1778,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn update_and_scan_movie(&mut self, movie_id: Option<i64>) -> Result<Value> {
-    let (id, _) = self.extract_movie_id(movie_id).await;
-    let event = RadarrEvent::UpdateAndScan(None);
-    info!("Updating and scanning movie with ID: {id}");
+  async fn update_and_scan_movie(&mut self, movie_id: i64) -> Result<Value> {
+    let event = RadarrEvent::UpdateAndScan(movie_id);
+    info!("Updating and scanning movie with ID: {movie_id}");
     let body = MovieCommandBody {
       name: "RefreshMovie".to_owned(),
-      movie_ids: vec![id],
+      movie_ids: vec![movie_id],
     };
 
     let request_props = self
@@ -1856,23 +1855,6 @@ impl<'a, 'b> Network<'a, 'b> {
           .unwrap()
       })
       .collect()
-  }
-
-  async fn extract_movie_id(&mut self, movie_id: Option<i64>) -> (i64, String) {
-    let movie_id = if let Some(id) = movie_id {
-      id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .movies
-        .current_selection()
-        .id
-    };
-    (movie_id, format!("movieId={movie_id}"))
   }
 }
 

@@ -2,10 +2,9 @@
 #[macro_use]
 pub(in crate::handlers::radarr_handlers) mod utils {
   use crate::models::radarr_models::{
-    AddMovieBody, AddMovieOptions, AddMovieSearchResult, BlocklistItem, BlocklistItemMovie,
-    Collection, CollectionMovie, Credit, CreditType, DownloadRecord, DownloadsResponse,
-    IndexerSettings, MediaInfo, MinimumAvailability, Movie, MovieCollection, MovieFile,
-    MovieHistoryItem, RadarrRelease, Rating, RatingsList,
+    AddMovieBody, AddMovieOptions, AddMovieSearchResult, Collection, CollectionMovie,
+    DownloadRecord, IndexerSettings, MediaInfo, MinimumAvailability, Movie, MovieCollection,
+    MovieFile, RadarrRelease, Rating, RatingsList,
   };
   use crate::models::servarr_models::{
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
@@ -305,28 +304,6 @@ pub(in crate::handlers::radarr_handlers) mod utils {
     }
   }
 
-  pub fn blocklist_item() -> BlocklistItem {
-    BlocklistItem {
-      id: 1,
-      movie_id: 1,
-      source_title: "z movie".to_owned(),
-      languages: vec![language()],
-      quality: quality_wrapper(),
-      custom_formats: Some(vec![language()]),
-      date: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
-      protocol: "usenet".to_owned(),
-      indexer: "DrunkenSlug (Prowlarr)".to_owned(),
-      message: "test message".to_owned(),
-      movie: blocklist_item_movie(),
-    }
-  }
-
-  pub fn blocklist_item_movie() -> BlocklistItemMovie {
-    BlocklistItemMovie {
-      title: "Test".into(),
-    }
-  }
-
   pub fn collection() -> Collection {
     Collection {
       id: 123,
@@ -422,16 +399,6 @@ pub(in crate::handlers::radarr_handlers) mod utils {
     }
   }
 
-  pub fn movie_history_item() -> MovieHistoryItem {
-    MovieHistoryItem {
-      source_title: HorizontallyScrollableText::from("Test"),
-      quality: quality_wrapper(),
-      languages: vec![language()],
-      date: DateTime::from(DateTime::parse_from_rfc3339("2022-12-30T07:37:56Z").unwrap()),
-      event_type: "grabbed".to_owned(),
-    }
-  }
-
   pub fn download_record() -> DownloadRecord {
     DownloadRecord {
       title: "Test Download Title".to_owned(),
@@ -446,12 +413,6 @@ pub(in crate::handlers::radarr_handlers) mod utils {
     }
   }
 
-  pub fn downloads_response() -> DownloadsResponse {
-    DownloadsResponse {
-      records: vec![download_record()],
-    }
-  }
-
   pub fn root_folder() -> RootFolder {
     RootFolder {
       id: 1,
@@ -459,26 +420,6 @@ pub(in crate::handlers::radarr_handlers) mod utils {
       accessible: true,
       free_space: 219902325555200,
       unmapped_folders: None,
-    }
-  }
-
-  pub fn cast_credit() -> Credit {
-    Credit {
-      person_name: "Madison Clarke".to_owned(),
-      character: Some("Johnny Blaze".to_owned()),
-      department: None,
-      job: None,
-      credit_type: CreditType::Cast,
-    }
-  }
-
-  pub fn crew_credit() -> Credit {
-    Credit {
-      person_name: "Alex Clarke".to_owned(),
-      character: None,
-      department: Some("Music".to_owned()),
-      job: Some("Composition".to_owned()),
-      credit_type: CreditType::Crew,
     }
   }
 

@@ -4,6 +4,9 @@ set -e
 
 echo "Running pre-push hook:"
 
+echo "Executing: cargo fmt --check"
+cargo fmt --check
+
 echo "Executing: make lint"
 make lint
 

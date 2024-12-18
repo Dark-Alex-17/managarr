@@ -278,7 +278,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       }
       ActiveRadarrBlock::UpdateAndScanPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAndScan(None));
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::UpdateAndScan(self.extract_movie_id()));
         }
 
         self.app.pop_navigation_stack();
@@ -371,7 +372,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       }
       ActiveRadarrBlock::UpdateAndScanPrompt if key == DEFAULT_KEYBINDINGS.confirm.key => {
         self.app.data.radarr_data.prompt_confirm = true;
-        self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAndScan(None));
+        self.app.data.radarr_data.prompt_confirm_action =
+          Some(RadarrEvent::UpdateAndScan(self.extract_movie_id()));
 
         self.app.pop_navigation_stack();
       }

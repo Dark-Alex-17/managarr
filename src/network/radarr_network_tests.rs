@@ -216,7 +216,7 @@ mod test {
       RadarrEvent::StartTask(RadarrTaskName::default()),
       RadarrEvent::GetQueuedEvents,
       RadarrEvent::TriggerAutomaticSearch(0),
-      RadarrEvent::UpdateAndScan(None),
+      RadarrEvent::UpdateAndScan(0),
       RadarrEvent::UpdateAllMovies,
       RadarrEvent::UpdateDownloads,
       RadarrEvent::UpdateCollections
@@ -988,39 +988,7 @@ mod test {
       })),
       Some(json!({})),
       None,
-      RadarrEvent::UpdateAndScan(None),
-      None,
-      None,
-    )
-    .await;
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![movie()]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_radarr_event(RadarrEvent::UpdateAndScan(None))
-      .await
-      .is_ok());
-
-    async_server.assert_async().await;
-  }
-
-  #[tokio::test]
-  async fn test_handle_update_and_scan_movie_event_uses_provied_movie_id() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "name": "RefreshMovie",
-        "movieIds": [ 1 ]
-      })),
-      Some(json!({})),
-      None,
-      RadarrEvent::UpdateAndScan(None),
+      RadarrEvent::UpdateAndScan(1),
       None,
       None,
     )
@@ -1028,7 +996,7 @@ mod test {
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
-      .handle_radarr_event(RadarrEvent::UpdateAndScan(Some(1)))
+      .handle_radarr_event(RadarrEvent::UpdateAndScan(1))
       .await
       .is_ok());
 
@@ -3952,65 +3920,6 @@ mod test {
         (3, "testing".to_owned())
       ])
     );
-  }
-
-  #[tokio::test]
-  async fn test_extract_movie_id() {
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![Movie {
-        id: 1,
-        ..Movie::default()
-      }]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    let (id, movie_id_param) = network.extract_movie_id(None).await;
-
-    assert_eq!(id, 1);
-    assert_str_eq!(movie_id_param, "movieId=1");
-  }
-
-  #[tokio::test]
-  async fn test_extract_movie_id_uses_provided_id() {
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .movies
-      .set_items(vec![Movie {
-        id: 1,
-        ..Movie::default()
-      }]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    let (id, movie_id_param) = network.extract_movie_id(Some(2)).await;
-
-    assert_eq!(id, 2);
-    assert_str_eq!(movie_id_param, "movieId=2");
-  }
-
-  #[tokio::test]
-  async fn test_extract_movie_id_filtered_movies() {
-    let app_arc = Arc::new(Mutex::new(App::default()));
-    let mut filtered_movies = StatefulTable::default();
-    filtered_movies.set_filtered_items(vec![Movie {
-      id: 1,
-      ..Movie::default()
-    }]);
-    app_arc.lock().await.data.radarr_data.movies = filtered_movies;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    let (id, movie_id_param) = network.extract_movie_id(None).await;
-
-    assert_eq!(id, 1);
-    assert_str_eq!(movie_id_param, "movieId=1");
   }
 
   #[test]
