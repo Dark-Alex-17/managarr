@@ -1,4 +1,4 @@
-FROM messense/rust-musl-cross:x86_64-musl AS builder
+FROM rust:1.82 AS builder
 WORKDIR /usr/src
 
 # Download and compile Rust dependencies in an empty project and cache as a separate Docker layer
@@ -11,12 +11,12 @@ RUN cargo build --release
 RUN rm -r src
 COPY src ./src
 # remove previous deps
-RUN rm ./target/x86_64-unknown-linux-musl/release/deps/managarr*
+RUN rm ./target/release/deps/managarr*
 
 RUN --mount=type=cache,target=/volume/target \
     --mount=type=cache,target=/root/.cargo/registry \
     cargo build --release --bin managarr
-RUN mv target/x86_64-unknown-linux-musl/release/managarr .
+RUN mv target/release/managarr .
 
 FROM debian:stable-slim
 
