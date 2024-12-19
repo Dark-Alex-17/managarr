@@ -1,0 +1,56 @@
+name: Test release Managarr to Chocolatey
+
+permissions:
+  pull-requests: write
+  contents: write
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-chocolatey-package:
+    needs: [publish-github-release]
+    name: Publish Chocolatey Package
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Get release artifacts
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: artifacts
+          path: artifacts
+
+      - name: Set release assets and version
+        shell: pwsh
+        run: |
+          # Read the first column from the SHA256 file
+          $windows_sha = Get-Content ./artifacts/managarr-windows.sha256 | ForEach-Object { $_.Split(' ')[0] }
+          Add-Content -Path $env:GITHUB_ENV -Value "WINDOWS_SHA=$windows_sha"
+
+          # Read the release version from the release-version file
+          $release_version = Get-Content ./artifacts/release-version
+          Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=$release_version"
+
+      - name: Validate release environment variables
+        run: |
+          echo "Release SHA windows: ${{ env.WINDOWS_SHA }}"
+          echo "Release version: ${{ env.RELEASE_VERSION }}"
+
+      - name: Package and Publish package to Chocolatey
+        run: |
+          mkdir ./deployment/chocolatey/tools
+          # Run packaging script
+          python "./deployment/chocolatey/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/chocolatey/managarr.nuspec.template" "./deployment/chocolatey/managarr.nuspec" ${{ env.WINDOWS_SHA }}
+          python "./deployment/chocolatey/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/chocolatey/chocolateyinstall.ps1.template" "./deployment/chocolatey/tools/chocolateyinstall.ps1" ${{ env.WINDOWS_SHA }}
+
+          # Publish to Chocolatey
+          cd ./deployment/chocolatey
+          choco pack
+          echo y | choco install managarr -dv -s .
+          $version = managarr --version
+          $version = $version -replace " ", "."
+          choco push $version.nupkg -s https://push.chocolatey.org/ --api-key ${{ secrets.CHOCOLATEY_API_KEY }};
