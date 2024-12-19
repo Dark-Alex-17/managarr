@@ -37,8 +37,8 @@ jobs:
         run: |
           mkdir ./deployment/chocolatey/tools
           # Run packaging script
-          python "./deployment/chocolatey/packager.py" "0.4.0" "./deployment/chocolatey/managarr.nuspec.template" "./deployment/chocolatey/managarr.nuspec" ${{ env.WINDOWS_SHA }}
-          python "./deployment/chocolatey/packager.py" "0.4.0" "./deployment/chocolatey/chocolateyinstall.ps1.template" "./deployment/chocolatey/tools/chocolateyinstall.ps1" ${{ env.WINDOWS_SHA }}
+          python "./deployment/chocolatey/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/chocolatey/managarr.nuspec.template" "./deployment/chocolatey/managarr.nuspec" ${{ env.WINDOWS_SHA }}
+          python "./deployment/chocolatey/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/chocolatey/chocolateyinstall.ps1.template" "./deployment/chocolatey/tools/chocolateyinstall.ps1" ${{ env.WINDOWS_SHA }}
 
           # Publish to Chocolatey
           cd ./deployment/chocolatey
