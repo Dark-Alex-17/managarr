@@ -34,6 +34,8 @@ Simply run the following command to start a demo:
 curl https://raw.githubusercontent.com/Dark-Alex-17/managarr-demo/main/managarr-demo.sh > /tmp/managarr-demo.sh && bash /tmp/managarr-demo.sh
 ```
 
+Alternatively, you can try out the demo container without downloading anything. Just check out the [Managarr Demo site](https://managarr-demo.alexjclarke.com).
+
 ## Installation
 ### Cargo
 If you have Cargo installed, then you can install Managarr from Crates.io:
@@ -49,11 +51,6 @@ cargo install --locked managarr
 Run Managarr as a docker container by mounting your `config.yml` file to `/root/.config/managarr/config.yml`. For example:
 ```shell
 docker run --rm -it -v /home/aclarke/.config/managarr/config.yml:/root/.config/managarr/config.yml darkalex17/managarr:latest
-```
-
-For ARM64 users, you can use the `arm64` tag:
-```shell
-docker run --rm -it -v /home/aclarke/.config/managarr/config.yml:/root/.config/managarr/config.yml darkalex17/managarr:arm64
 ```
 
 You can also clone this repo and run `make docker` to build a docker image locally and run it using the above command.
