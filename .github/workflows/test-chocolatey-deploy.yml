@@ -9,7 +9,6 @@ on:
 
 jobs:
   publish-chocolatey-package:
-    needs: [publish-github-release]
     name: Publish Chocolatey Package
     runs-on: windows-latest
     steps:
