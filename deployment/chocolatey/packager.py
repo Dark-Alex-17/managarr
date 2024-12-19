@@ -2,6 +2,7 @@ import hashlib
 import sys
 from string import Template
 
+sys.stdout.reconfigure(encoding='utf-8')
 args = sys.argv
 version = args[1].replace("v", "")
 template_file_path = args[2]
