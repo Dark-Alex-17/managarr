@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::assert_str_eq;
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -12,10 +12,11 @@ mod tests {
     ActiveSonarrBlock, SYSTEM_DETAILS_BLOCKS,
   };
   use crate::models::servarr_models::QueueEvent;
-  use crate::models::sonarr_models::SonarrTask;
+  use crate::models::sonarr_models::{SonarrTask, SonarrTaskName};
   use crate::models::{HorizontallyScrollableText, ScrollableText};
 
   mod test_handle_scroll_up_and_down {
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use crate::models::{HorizontallyScrollableText, ScrollableText};
@@ -245,6 +246,7 @@ mod tests {
     use crate::{extended_stateful_iterable_vec, test_iterable_home_and_end};
 
     use super::*;
+    use pretty_assertions::assert_eq;
 
     test_iterable_home_and_end!(
       test_log_details_home_end,
@@ -693,6 +695,11 @@ mod tests {
       let mut app = App::default();
       app.data.sonarr_data.updates = ScrollableText::with_string("Test".to_owned());
       app.data.sonarr_data.prompt_confirm = true;
+      app
+        .data
+        .sonarr_data
+        .tasks
+        .set_items(vec![SonarrTask::default()]);
       app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
       app.push_navigation_stack(ActiveSonarrBlock::SystemTaskStartConfirmPrompt.into());
 
@@ -707,7 +714,7 @@ mod tests {
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::StartTask(None))
+        Some(SonarrEvent::StartTask(SonarrTaskName::default()))
       );
       assert_eq!(
         app.get_current_route(),
@@ -848,6 +855,7 @@ mod tests {
   }
 
   mod test_handle_key_char {
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use crate::network::sonarr_network::SonarrEvent;
@@ -914,6 +922,11 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveSonarrBlock::System.into());
       app.data.sonarr_data.updates = ScrollableText::with_string("Test".to_owned());
+      app
+        .data
+        .sonarr_data
+        .tasks
+        .set_items(vec![SonarrTask::default()]);
       app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
       app.push_navigation_stack(ActiveSonarrBlock::SystemTaskStartConfirmPrompt.into());
 
@@ -928,7 +941,7 @@ mod tests {
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::StartTask(None))
+        Some(SonarrEvent::StartTask(SonarrTaskName::default()))
       );
       assert_eq!(
         app.get_current_route(),
@@ -946,6 +959,26 @@ mod tests {
         assert!(!SystemDetailsHandler::accepts(active_sonarr_block));
       }
     })
+  }
+
+  #[test]
+  fn test_extract_task_name() {
+    let mut app = App::default();
+    app
+      .data
+      .sonarr_data
+      .tasks
+      .set_items(vec![SonarrTask::default()]);
+
+    let task_name = SystemDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::SystemTasks,
+      None,
+    )
+    .extract_task_name();
+
+    assert_eq!(task_name, SonarrTaskName::default());
   }
 
   #[test]

@@ -650,7 +650,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::EditAllIndexerSettings(Some(expected_edit_all_indexer_settings)).into(),
+          SonarrEvent::EditAllIndexerSettings(expected_edit_all_indexer_settings).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -689,6 +689,7 @@ mod tests {
         api_key: Some("testKey".to_owned()),
         seed_ratio: Some("1.2".to_owned()),
         tags: Some(vec![1, 2]),
+        tag_input_string: None,
         priority: Some(25),
         clear_tags: false,
       };
@@ -696,7 +697,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::EditIndexer(Some(expected_edit_indexer_params)).into(),
+          SonarrEvent::EditIndexer(expected_edit_indexer_params).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -741,13 +742,14 @@ mod tests {
         language_profile_id: Some(1),
         root_folder_path: Some("/nfs/test".to_owned()),
         tags: Some(vec![1, 2]),
+        tag_input_string: None,
         clear_tags: false,
       };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::EditSeries(Some(expected_edit_series_params)).into(),
+          SonarrEvent::EditSeries(expected_edit_series_params).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -788,13 +790,14 @@ mod tests {
         language_profile_id: Some(1),
         root_folder_path: Some("/nfs/test".to_owned()),
         tags: Some(vec![1, 2]),
+        tag_input_string: None,
         clear_tags: false,
       };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::EditSeries(Some(expected_edit_series_params)).into(),
+          SonarrEvent::EditSeries(expected_edit_series_params).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -835,13 +838,14 @@ mod tests {
         language_profile_id: Some(1),
         root_folder_path: Some("/nfs/test".to_owned()),
         tags: Some(vec![1, 2]),
+        tag_input_string: None,
         clear_tags: false,
       };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::EditSeries(Some(expected_edit_series_params)).into(),
+          SonarrEvent::EditSeries(expected_edit_series_params).into(),
         ))
         .times(1)
         .returning(|_| {

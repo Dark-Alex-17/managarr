@@ -5,6 +5,7 @@ mod tests {
   use crate::handlers::sonarr_handlers::library::season_details_handler::{
     releases_sorting_options, SeasonDetailsHandler,
   };
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::episode;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
   use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
@@ -14,7 +15,7 @@ mod tests {
   use crate::models::servarr_models::{Language, Quality, QualityWrapper};
   use crate::models::sonarr_models::{SonarrRelease, SonarrReleaseDownloadBody};
   use crate::models::HorizontallyScrollableText;
-  use pretty_assertions::assert_str_eq;
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use serde_json::Number;
   use std::cmp::Ordering;
@@ -275,11 +276,11 @@ mod tests {
     #[rstest]
     #[case(
       ActiveSonarrBlock::AutomaticallySearchSeasonPrompt,
-      SonarrEvent::TriggerAutomaticSeasonSearch(None)
+      SonarrEvent::TriggerAutomaticSeasonSearch((0, 0))
     )]
     #[case(
       ActiveSonarrBlock::DeleteEpisodeFilePrompt,
-      SonarrEvent::DeleteEpisodeFile(None)
+      SonarrEvent::DeleteEpisodeFile(0)
     )]
     fn test_season_details_prompt_confirm_submit(
       #[case] prompt_block: ActiveSonarrBlock,
@@ -550,6 +551,14 @@ mod tests {
     fn test_toggle_monitoring_key() {
       let mut app = App::default();
       app.data.sonarr_data = create_test_sonarr_data();
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .episodes
+        .set_items(vec![episode()]);
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.is_routing = false;
 
@@ -569,7 +578,7 @@ mod tests {
       assert!(app.is_routing);
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::ToggleEpisodeMonitoring(None))
+        Some(SonarrEvent::ToggleEpisodeMonitoring(1))
       );
     }
 
@@ -704,11 +713,11 @@ mod tests {
     #[rstest]
     #[case(
       ActiveSonarrBlock::AutomaticallySearchSeasonPrompt,
-      SonarrEvent::TriggerAutomaticSeasonSearch(None)
+      SonarrEvent::TriggerAutomaticSeasonSearch((0, 0))
     )]
     #[case(
       ActiveSonarrBlock::DeleteEpisodeFilePrompt,
-      SonarrEvent::DeleteEpisodeFile(None)
+      SonarrEvent::DeleteEpisodeFile(0)
     )]
     fn test_season_details_prompt_confirm_confirm_key(
       #[case] prompt_block: ActiveSonarrBlock,
@@ -781,6 +790,85 @@ mod tests {
         assert!(!SeasonDetailsHandler::accepts(active_sonarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_extract_episode_file_id() {
+    let mut app = App::default();
+    app.data.sonarr_data = create_test_sonarr_data();
+
+    let episode_file_id = SeasonDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::SeasonDetails,
+      None,
+    )
+    .extract_episode_file_id();
+
+    assert_eq!(episode_file_id, 0);
+  }
+
+  #[test]
+  #[should_panic(expected = "Season details have not been loaded")]
+  fn test_extract_episode_file_id_empty_season_details_modal_panics() {
+    let mut app = App::default();
+
+    SeasonDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::SeasonDetails,
+      None,
+    )
+    .extract_episode_file_id();
+  }
+
+  #[test]
+  fn test_extract_episode_id() {
+    let mut app = App::default();
+    let mut season_details_modal = SeasonDetailsModal::default();
+    season_details_modal.episodes.set_items(vec![episode()]);
+    app.data.sonarr_data.season_details_modal = Some(season_details_modal);
+
+    let episode_id = SeasonDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::SeasonDetails,
+      None,
+    )
+    .extract_episode_id();
+
+    assert_eq!(episode_id, 1);
+  }
+
+  #[test]
+  #[should_panic(expected = "Season details have not been loaded")]
+  fn test_extract_episode_id_panic_when_season_details_modal_is_none() {
+    let mut app = App::default();
+
+    SeasonDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::SeasonDetails,
+      None,
+    )
+    .extract_episode_id();
+  }
+
+  #[test]
+  fn test_extract_series_id_season_number_tuple() {
+    let mut app = App::default();
+    app.data.sonarr_data = create_test_sonarr_data();
+
+    let (series_id, season_number) = SeasonDetailsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::SeasonDetails,
+      None,
+    )
+    .extract_series_id_season_number_tuple();
+
+    assert_eq!(series_id, 0);
+    assert_eq!(season_number, 0);
   }
 
   #[test]

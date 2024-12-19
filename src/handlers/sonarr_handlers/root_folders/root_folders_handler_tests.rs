@@ -1,14 +1,16 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::sonarr_handlers::root_folders::RootFoldersHandler;
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::root_folder;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ROOT_FOLDERS_BLOCKS};
-  use crate::models::servarr_models::RootFolder;
+  use crate::models::servarr_models::{AddRootFolderBody, RootFolder};
   use crate::models::HorizontallyScrollableText;
 
   mod test_handle_home_end {
@@ -257,6 +259,9 @@ mod tests {
     #[test]
     fn test_add_root_folder_prompt_confirm_submit() {
       let mut app = App::default();
+      let expected_add_root_folder_body = AddRootFolderBody {
+        path: "Test".to_owned(),
+      };
       app
         .data
         .sonarr_data
@@ -280,12 +285,13 @@ mod tests {
       assert!(!app.should_ignore_quit_key);
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::AddRootFolder(None))
+        Some(SonarrEvent::AddRootFolder(expected_add_root_folder_body))
       );
       assert_eq!(
         app.get_current_route(),
         ActiveSonarrBlock::RootFolders.into()
       );
+      assert!(app.data.sonarr_data.edit_root_folder.is_none());
     }
 
     #[test]
@@ -321,7 +327,7 @@ mod tests {
         .data
         .sonarr_data
         .root_folders
-        .set_items(vec![RootFolder::default()]);
+        .set_items(vec![root_folder()]);
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteRootFolderPrompt.into());
@@ -337,7 +343,7 @@ mod tests {
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::DeleteRootFolder(None))
+        Some(SonarrEvent::DeleteRootFolder(1))
       );
       assert_eq!(
         app.get_current_route(),
@@ -614,7 +620,7 @@ mod tests {
         .data
         .sonarr_data
         .root_folders
-        .set_items(vec![RootFolder::default()]);
+        .set_items(vec![root_folder()]);
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteRootFolderPrompt.into());
 
@@ -629,7 +635,7 @@ mod tests {
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::DeleteRootFolder(None))
+        Some(SonarrEvent::DeleteRootFolder(1))
       );
       assert_eq!(
         app.get_current_route(),
@@ -647,6 +653,46 @@ mod tests {
         assert!(!RootFoldersHandler::accepts(active_sonarr_block));
       }
     })
+  }
+
+  #[test]
+  fn test_extract_root_folder_id() {
+    let mut app = App::default();
+    app
+      .data
+      .sonarr_data
+      .root_folders
+      .set_items(vec![root_folder()]);
+
+    let root_folder_id = RootFoldersHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::DeleteRootFolderPrompt,
+      None,
+    )
+    .extract_root_folder_id();
+
+    assert_eq!(root_folder_id, 1);
+  }
+
+  #[test]
+  fn test_build_add_root_folder_body() {
+    let mut app = App::default();
+    app.data.sonarr_data.edit_root_folder = Some("/nfs/test".into());
+    let expected_add_root_folder_body = AddRootFolderBody {
+      path: "/nfs/test".to_owned(),
+    };
+
+    let root_folder = RootFoldersHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::AddRootFolderPrompt,
+      None,
+    )
+    .build_add_root_folder_body();
+
+    assert_eq!(root_folder, expected_add_root_folder_body);
+    assert!(app.data.sonarr_data.edit_root_folder.is_none());
   }
 
   #[test]

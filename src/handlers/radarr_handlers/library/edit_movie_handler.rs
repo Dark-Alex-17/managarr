@@ -2,6 +2,8 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::models::radarr_models::EditMovieParams;
+use crate::models::servarr_data::radarr::modals::EditMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_MOVIE_BLOCKS};
 use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
@@ -16,6 +18,57 @@ pub(super) struct EditMovieHandler<'a, 'b> {
   app: &'a mut App<'b>,
   active_radarr_block: ActiveRadarrBlock,
   context: Option<ActiveRadarrBlock>,
+}
+
+impl<'a, 'b> EditMovieHandler<'a, 'b> {
+  fn build_edit_movie_params(&mut self) -> EditMovieParams {
+    let movie_id = self.app.data.radarr_data.movies.current_selection().id;
+    let tags = self
+      .app
+      .data
+      .radarr_data
+      .edit_movie_modal
+      .as_ref()
+      .unwrap()
+      .tags
+      .text
+      .clone();
+    let params = {
+      let EditMovieModal {
+        monitored,
+        path,
+        minimum_availability_list,
+        quality_profile_list,
+        ..
+      } = self.app.data.radarr_data.edit_movie_modal.as_ref().unwrap();
+      let quality_profile = quality_profile_list.current_selection();
+      let quality_profile_id = *self
+        .app
+        .data
+        .radarr_data
+        .quality_profile_map
+        .iter()
+        .filter(|(_, value)| *value == quality_profile)
+        .map(|(key, _)| key)
+        .next()
+        .unwrap();
+
+      EditMovieParams {
+        movie_id,
+        monitored: *monitored,
+        minimum_availability: Some(*minimum_availability_list.current_selection()),
+        quality_profile_id: Some(quality_profile_id),
+        root_folder_path: Some(path.text.clone()),
+        tags: None,
+        tag_input_string: Some(tags),
+        clear_tags: false,
+      }
+    };
+
+    self.app.data.radarr_data.edit_movie_modal = None;
+
+    params
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a, 'b> {
@@ -222,7 +275,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
         match self.app.data.radarr_data.selected_block.get_active_block() {
           ActiveRadarrBlock::EditMovieConfirmPrompt => {
             if self.app.data.radarr_data.prompt_confirm {
-              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditMovie(None));
+              self.app.data.radarr_data.prompt_confirm_action =
+                Some(RadarrEvent::EditMovie(self.build_edit_movie_params()));
               self.app.should_refresh = true;
             }
 
@@ -333,7 +387,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
           && key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditMovie(None));
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::EditMovie(self.build_edit_movie_params()));
           self.app.should_refresh = true;
 
           self.app.pop_navigation_stack();

@@ -4,14 +4,14 @@ use anyhow::Result;
 use clap::{arg, command, ArgAction, Subcommand};
 use tokio::sync::Mutex;
 
+use super::RadarrCommand;
+use crate::models::servarr_models::AddRootFolderBody;
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
   models::radarr_models::{AddMovieBody, AddMovieOptions, MinimumAvailability, MovieMonitor},
   network::{radarr_network::RadarrEvent, NetworkTrait},
 };
-
-use super::RadarrCommand;
 
 #[cfg(test)]
 #[path = "add_command_handler_tests.rs"]
@@ -125,6 +125,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHan
           minimum_availability: minimum_availability.to_string(),
           monitored: !disable_monitoring,
           tags,
+          tag_input_string: None,
           add_options: AddMovieOptions {
             monitor: monitor.to_string(),
             search_for_movie: !no_search_for_movie,
@@ -132,14 +133,17 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHan
         };
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::AddMovie(Some(body)).into())
+          .handle_network_event(RadarrEvent::AddMovie(body).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       RadarrAddCommand::RootFolder { root_folder_path } => {
+        let add_root_folder_body = AddRootFolderBody {
+          path: root_folder_path,
+        };
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::AddRootFolder(Some(root_folder_path)).into())
+          .handle_network_event(RadarrEvent::AddRootFolder(add_root_folder_body).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

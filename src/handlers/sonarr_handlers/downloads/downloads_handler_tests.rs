@@ -1,11 +1,13 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::sonarr_handlers::downloads::DownloadsHandler;
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::download_record;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DOWNLOADS_BLOCKS};
   use crate::models::sonarr_models::DownloadRecord;
@@ -138,7 +140,7 @@ mod tests {
     #[case(
       ActiveSonarrBlock::Downloads,
       ActiveSonarrBlock::DeleteDownloadPrompt,
-      SonarrEvent::DeleteDownload(None)
+      SonarrEvent::DeleteDownload(1)
     )]
     #[case(
       ActiveSonarrBlock::Downloads,
@@ -155,7 +157,7 @@ mod tests {
         .data
         .sonarr_data
         .downloads
-        .set_items(vec![DownloadRecord::default()]);
+        .set_items(vec![download_record()]);
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
@@ -338,7 +340,7 @@ mod tests {
     #[case(
       ActiveSonarrBlock::Downloads,
       ActiveSonarrBlock::DeleteDownloadPrompt,
-      SonarrEvent::DeleteDownload(None)
+      SonarrEvent::DeleteDownload(1)
     )]
     #[case(
       ActiveSonarrBlock::Downloads,
@@ -355,7 +357,7 @@ mod tests {
         .data
         .sonarr_data
         .downloads
-        .set_items(vec![DownloadRecord::default()]);
+        .set_items(vec![download_record()]);
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
 
@@ -385,6 +387,26 @@ mod tests {
         assert!(!DownloadsHandler::accepts(active_sonarr_block));
       }
     })
+  }
+
+  #[test]
+  fn test_extract_download_id() {
+    let mut app = App::default();
+    app
+      .data
+      .sonarr_data
+      .downloads
+      .set_items(vec![download_record()]);
+
+    let download_id = DownloadsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::Downloads,
+      None,
+    )
+    .extract_download_id();
+
+    assert_eq!(download_id, 1);
   }
 
   #[test]

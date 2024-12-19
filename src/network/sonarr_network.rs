@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use indoc::formatdoc;
 use log::{debug, info, warn};
 use serde_json::{json, Value};
@@ -10,9 +10,9 @@ use crate::{
   models::{
     radarr_models::IndexerTestResult,
     servarr_data::{
-      modals::{EditIndexerModal, IndexerTestResultModalItem},
+      modals::IndexerTestResultModalItem,
       sonarr::{
-        modals::{AddSeriesModal, EditSeriesModal, EpisodeDetailsModal, SeasonDetailsModal},
+        modals::{EpisodeDetailsModal, SeasonDetailsModal},
         sonarr_data::ActiveSonarrBlock,
       },
     },
@@ -21,11 +21,10 @@ use crate::{
       LogResponse, QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
-      AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, BlocklistItem, BlocklistResponse,
-      DeleteSeriesParams, DownloadRecord, DownloadsResponse, EditSeriesParams, Episode,
-      EpisodeFile, IndexerSettings, Series, SonarrCommandBody, SonarrHistoryItem,
-      SonarrHistoryWrapper, SonarrRelease, SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTask,
-      SonarrTaskName, SystemStatus,
+      AddSeriesBody, AddSeriesSearchResult, BlocklistItem, BlocklistResponse, DeleteSeriesParams,
+      DownloadRecord, DownloadsResponse, EditSeriesParams, Episode, EpisodeFile, IndexerSettings,
+      Series, SonarrCommandBody, SonarrHistoryItem, SonarrHistoryWrapper, SonarrRelease,
+      SonarrReleaseDownloadBody, SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
     },
     stateful_table::StatefulTable,
     HorizontallyScrollableText, Route, Scrollable, ScrollableText,
@@ -39,43 +38,43 @@ mod sonarr_network_tests;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum SonarrEvent {
-  AddRootFolder(Option<String>),
-  AddSeries(Option<AddSeriesBody>),
+  AddRootFolder(AddRootFolderBody),
+  AddSeries(AddSeriesBody),
   AddTag(String),
   ClearBlocklist,
-  DeleteBlocklistItem(Option<i64>),
-  DeleteDownload(Option<i64>),
-  DeleteEpisodeFile(Option<i64>),
-  DeleteIndexer(Option<i64>),
-  DeleteRootFolder(Option<i64>),
-  DeleteSeries(Option<DeleteSeriesParams>),
+  DeleteBlocklistItem(i64),
+  DeleteDownload(i64),
+  DeleteEpisodeFile(i64),
+  DeleteIndexer(i64),
+  DeleteRootFolder(i64),
+  DeleteSeries(DeleteSeriesParams),
   DeleteTag(i64),
   DownloadRelease(SonarrReleaseDownloadBody),
-  EditAllIndexerSettings(Option<IndexerSettings>),
-  EditIndexer(Option<EditIndexerParams>),
-  EditSeries(Option<EditSeriesParams>),
+  EditAllIndexerSettings(IndexerSettings),
+  EditIndexer(EditIndexerParams),
+  EditSeries(EditSeriesParams),
   GetAllIndexerSettings,
   GetBlocklist,
   GetDownloads,
-  GetHistory(Option<u64>),
+  GetHistory(u64),
   GetHostConfig,
   GetIndexers,
-  GetEpisodeDetails(Option<i64>),
-  GetEpisodes(Option<i64>),
-  GetEpisodeFiles(Option<i64>),
-  GetEpisodeHistory(Option<i64>),
+  GetEpisodeDetails(i64),
+  GetEpisodes(i64),
+  GetEpisodeFiles(i64),
+  GetEpisodeHistory(i64),
   GetLanguageProfiles,
-  GetLogs(Option<u64>),
+  GetLogs(u64),
   GetDiskSpace,
   GetQualityProfiles,
   GetQueuedEvents,
   GetRootFolders,
-  GetEpisodeReleases(Option<i64>),
-  GetSeasonHistory(Option<(i64, i64)>),
-  GetSeasonReleases(Option<(i64, i64)>),
+  GetEpisodeReleases(i64),
+  GetSeasonHistory((i64, i64)),
+  GetSeasonReleases((i64, i64)),
   GetSecurityConfig,
-  GetSeriesDetails(Option<i64>),
-  GetSeriesHistory(Option<i64>),
+  GetSeriesDetails(i64),
+  GetSeriesHistory(i64),
   GetStatus,
   GetUpdates,
   GetTags,
@@ -83,17 +82,17 @@ pub enum SonarrEvent {
   HealthCheck,
   ListSeries,
   MarkHistoryItemAsFailed(i64),
-  SearchNewSeries(Option<String>),
-  StartTask(Option<SonarrTaskName>),
-  TestIndexer(Option<i64>),
+  SearchNewSeries(String),
+  StartTask(SonarrTaskName),
+  TestIndexer(i64),
   TestAllIndexers,
-  ToggleSeasonMonitoring(Option<(i64, i64)>),
-  ToggleEpisodeMonitoring(Option<i64>),
-  TriggerAutomaticEpisodeSearch(Option<i64>),
-  TriggerAutomaticSeasonSearch(Option<(i64, i64)>),
-  TriggerAutomaticSeriesSearch(Option<i64>),
+  ToggleSeasonMonitoring((i64, i64)),
+  ToggleEpisodeMonitoring(i64),
+  TriggerAutomaticEpisodeSearch(i64),
+  TriggerAutomaticSeasonSearch((i64, i64)),
+  TriggerAutomaticSeriesSearch(i64),
   UpdateAllSeries,
-  UpdateAndScanSeries(Option<i64>),
+  UpdateAndScanSeries(i64),
   UpdateDownloads,
 }
 
@@ -357,31 +356,23 @@ impl<'a, 'b> Network<'a, 'b> {
     }
   }
 
-  async fn add_sonarr_root_folder(&mut self, root_folder: Option<String>) -> Result<Value> {
+  async fn add_sonarr_root_folder(
+    &mut self,
+    add_root_folder_body: AddRootFolderBody,
+  ) -> Result<Value> {
     info!("Adding new root folder to Sonarr");
-    let event = SonarrEvent::AddRootFolder(None);
-    let body = if let Some(path) = root_folder {
-      AddRootFolderBody { path }
-    } else {
-      let mut app = self.app.lock().await;
-      let path = app
-        .data
-        .sonarr_data
-        .edit_root_folder
-        .as_ref()
-        .unwrap()
-        .text
-        .clone();
+    let event = SonarrEvent::AddRootFolder(add_root_folder_body.clone());
 
-      app.data.sonarr_data.edit_root_folder = None;
-
-      AddRootFolderBody { path }
-    };
-
-    debug!("Add root folder body: {body:?}");
+    debug!("Add root folder body: {add_root_folder_body:?}");
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .request_props_from(
+        event,
+        RequestMethod::Post,
+        Some(add_root_folder_body),
+        None,
+        None,
+      )
       .await;
 
     self
@@ -389,99 +380,26 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn add_sonarr_series(
-    &mut self,
-    add_series_body_option: Option<AddSeriesBody>,
-  ) -> Result<Value> {
+  async fn add_sonarr_series(&mut self, mut add_series_body: AddSeriesBody) -> Result<Value> {
     info!("Adding new series to Sonarr");
-    let event = SonarrEvent::AddSeries(None);
-    let body = if let Some(add_series_body) = add_series_body_option {
-      add_series_body
-    } else {
-      let tags = self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .add_series_modal
-        .as_ref()
-        .unwrap()
-        .tags
-        .text
-        .clone();
-      let tag_ids_vec = self.extract_and_add_sonarr_tag_ids_vec(tags).await;
-      let mut app = self.app.lock().await;
-      let AddSeriesModal {
-        root_folder_list,
-        monitor_list,
-        quality_profile_list,
-        language_profile_list,
-        series_type_list,
-        use_season_folder,
-        ..
-      } = app.data.sonarr_data.add_series_modal.as_ref().unwrap();
-      let season_folder = *use_season_folder;
-      let (tvdb_id, title) = {
-        let AddSeriesSearchResult { tvdb_id, title, .. } = app
-          .data
-          .sonarr_data
-          .add_searched_series
-          .as_ref()
-          .unwrap()
-          .current_selection()
-          .clone();
-        (tvdb_id, title.text)
-      };
-      let quality_profile = quality_profile_list.current_selection();
-      let quality_profile_id = *app
-        .data
-        .sonarr_data
-        .quality_profile_map
-        .iter()
-        .filter(|(_, value)| *value == quality_profile)
-        .map(|(key, _)| key)
-        .next()
-        .unwrap();
-      let language_profile = language_profile_list.current_selection();
-      let language_profile_id = *app
-        .data
-        .sonarr_data
-        .language_profiles_map
-        .iter()
-        .filter(|(_, value)| *value == language_profile)
-        .map(|(key, _)| key)
-        .next()
-        .unwrap();
+    let event = SonarrEvent::AddSeries(add_series_body.clone());
+    if let Some(tag_input_string) = add_series_body.tag_input_string.as_ref() {
+      let tag_ids_vec = self
+        .extract_and_add_sonarr_tag_ids_vec(tag_input_string.clone())
+        .await;
+      add_series_body.tags = tag_ids_vec;
+    }
 
-      let path = root_folder_list.current_selection().path.clone();
-      let monitor = monitor_list.current_selection().to_string();
-      let series_type = series_type_list.current_selection().to_string();
-
-      app.data.sonarr_data.add_series_modal = None;
-
-      AddSeriesBody {
-        tvdb_id,
-        title,
-        monitored: true,
-        root_folder_path: path,
-        quality_profile_id,
-        language_profile_id,
-        series_type,
-        season_folder,
-        tags: tag_ids_vec,
-        add_options: AddSeriesOptions {
-          monitor,
-          search_for_cutoff_unmet_episodes: true,
-          search_for_missing_episodes: true,
-        },
-      }
-    };
-
-    debug!("Add series body: {body:?}");
+    debug!("Add series body: {add_series_body:?}");
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .request_props_from(
+        event,
+        RequestMethod::Post,
+        Some(add_series_body),
+        None,
+        None,
+      )
       .await;
 
     self
@@ -541,30 +459,16 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_sonarr_blocklist_item(&mut self, blocklist_item_id: Option<i64>) -> Result<()> {
-    let event = SonarrEvent::DeleteBlocklistItem(None);
-    let id = if let Some(b_id) = blocklist_item_id {
-      b_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .blocklist
-        .current_selection()
-        .id
-    };
-
-    info!("Deleting Sonarr blocklist item for item with id: {id}");
+  async fn delete_sonarr_blocklist_item(&mut self, blocklist_item_id: i64) -> Result<()> {
+    let event = SonarrEvent::DeleteBlocklistItem(blocklist_item_id);
+    info!("Deleting Sonarr blocklist item for item with id: {blocklist_item_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{blocklist_item_id}")),
         None,
       )
       .await;
@@ -574,33 +478,16 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_sonarr_episode_file(&mut self, episode_file_id: Option<i64>) -> Result<()> {
-    let event = SonarrEvent::DeleteEpisodeFile(None);
-    let id = if let Some(ep_id) = episode_file_id {
-      ep_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .expect("Season details have not been loaded")
-        .episodes
-        .current_selection()
-        .episode_file_id
-    };
-
-    info!("Deleting Sonarr episode file for episode file with id: {id}");
+  async fn delete_sonarr_episode_file(&mut self, episode_file_id: i64) -> Result<()> {
+    let event = SonarrEvent::DeleteEpisodeFile(episode_file_id);
+    info!("Deleting Sonarr episode file for episode file with id: {episode_file_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{episode_file_id}")),
         None,
       )
       .await;
@@ -610,30 +497,16 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_sonarr_download(&mut self, download_id: Option<i64>) -> Result<()> {
-    let event = SonarrEvent::DeleteDownload(None);
-    let id = if let Some(dl_id) = download_id {
-      dl_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .downloads
-        .current_selection()
-        .id
-    };
-
-    info!("Deleting Sonarr download for download with id: {id}");
+  async fn delete_sonarr_download(&mut self, download_id: i64) -> Result<()> {
+    let event = SonarrEvent::DeleteDownload(download_id);
+    info!("Deleting Sonarr download for download with id: {download_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{download_id}")),
         None,
       )
       .await;
@@ -643,30 +516,16 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_sonarr_indexer(&mut self, indexer_id: Option<i64>) -> Result<()> {
-    let event = SonarrEvent::DeleteIndexer(None);
-    let id = if let Some(i_id) = indexer_id {
-      i_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .indexers
-        .current_selection()
-        .id
-    };
-
-    info!("Deleting Sonarr indexer for indexer with id: {id}");
+  async fn delete_sonarr_indexer(&mut self, indexer_id: i64) -> Result<()> {
+    let event = SonarrEvent::DeleteIndexer(indexer_id);
+    info!("Deleting Sonarr indexer for indexer with id: {indexer_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{indexer_id}")),
         None,
       )
       .await;
@@ -676,30 +535,16 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_sonarr_root_folder(&mut self, root_folder_id: Option<i64>) -> Result<()> {
-    let event = SonarrEvent::DeleteRootFolder(None);
-    let id = if let Some(rf_id) = root_folder_id {
-      rf_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .root_folders
-        .current_selection()
-        .id
-    };
-
-    info!("Deleting Sonarr root folder for folder with id: {id}");
+  async fn delete_sonarr_root_folder(&mut self, root_folder_id: i64) -> Result<()> {
+    let event = SonarrEvent::DeleteRootFolder(root_folder_id);
+    info!("Deleting Sonarr root folder for folder with id: {root_folder_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{root_folder_id}")),
         None,
       )
       .await;
@@ -709,53 +554,31 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn delete_series(
-    &mut self,
-    delete_series_params: Option<DeleteSeriesParams>,
-  ) -> Result<()> {
-    let event = SonarrEvent::DeleteSeries(None);
-    let (series_id, delete_files, add_import_exclusion) = if let Some(params) = delete_series_params
-    {
-      (
-        params.id,
-        params.delete_series_files,
-        params.add_list_exclusion,
-      )
-    } else {
-      let (series_id, _) = self.extract_series_id(None).await;
-      let delete_files = self.app.lock().await.data.sonarr_data.delete_series_files;
-      let add_import_exclusion = self.app.lock().await.data.sonarr_data.add_list_exclusion;
+  async fn delete_series(&mut self, delete_series_params: DeleteSeriesParams) -> Result<()> {
+    let event = SonarrEvent::DeleteSeries(delete_series_params.clone());
+    let DeleteSeriesParams {
+      id,
+      delete_series_files,
+      add_list_exclusion,
+    } = delete_series_params;
 
-      (series_id, delete_files, add_import_exclusion)
-    };
-
-    info!("Deleting Sonarr series with ID: {series_id} with deleteFiles={delete_files} and addImportExclusion={add_import_exclusion}");
+    info!("Deleting Sonarr series with ID: {id} with deleteFiles={delete_series_files} and addImportExclusion={add_list_exclusion}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Delete,
         None::<()>,
-        Some(format!("/{series_id}")),
+        Some(format!("/{id}")),
         Some(format!(
-          "deleteFiles={delete_files}&addImportExclusion={add_import_exclusion}"
+          "deleteFiles={delete_series_files}&addImportExclusion={add_list_exclusion}"
         )),
       )
       .await;
 
-    let resp = self
-      .handle_request::<(), ()>(request_props, |_, _| ())
-      .await;
-
     self
-      .app
-      .lock()
+      .handle_request::<(), ()>(request_props, |_, _| ())
       .await
-      .data
-      .sonarr_data
-      .reset_delete_series_preferences();
-
-    resp
   }
 
   async fn delete_sonarr_tag(&mut self, id: i64) -> Result<()> {
@@ -799,64 +622,34 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn edit_all_sonarr_indexer_settings(
-    &mut self,
-    params: Option<IndexerSettings>,
-  ) -> Result<Value> {
+  async fn edit_all_sonarr_indexer_settings(&mut self, params: IndexerSettings) -> Result<Value> {
     info!("Updating Sonarr indexer settings");
-    let event = SonarrEvent::EditAllIndexerSettings(None);
-
-    let body = if let Some(indexer_settings) = params {
-      indexer_settings
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .indexer_settings
-        .as_ref()
-        .unwrap()
-        .clone()
-    };
-
-    debug!("Indexer settings body: {body:?}");
+    let event = SonarrEvent::EditAllIndexerSettings(params.clone());
+    debug!("Indexer settings body: {params:?}");
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Put, Some(body), None, None)
+      .request_props_from(event, RequestMethod::Put, Some(params), None, None)
       .await;
 
-    let resp = self
+    self
       .handle_request::<IndexerSettings, Value>(request_props, |_, _| {})
-      .await;
-
-    self.app.lock().await.data.sonarr_data.indexer_settings = None;
-
-    resp
+      .await
   }
 
   async fn edit_sonarr_indexer(
     &mut self,
-    edit_indexer_params: Option<EditIndexerParams>,
+    mut edit_indexer_params: EditIndexerParams,
   ) -> Result<()> {
+    if let Some(tag_input_string) = edit_indexer_params.tag_input_string.as_ref() {
+      let tag_ids_vec = self
+        .extract_and_add_sonarr_tag_ids_vec(tag_input_string.clone())
+        .await;
+      edit_indexer_params.tags = Some(tag_ids_vec);
+    }
     let detail_event = SonarrEvent::GetIndexers;
-    let event = SonarrEvent::EditIndexer(None);
-    let id = if let Some(ref params) = edit_indexer_params {
-      params.indexer_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .indexers
-        .current_selection()
-        .id
-    };
+    let event = SonarrEvent::EditIndexer(edit_indexer_params.clone());
+    let id = edit_indexer_params.indexer_id;
     info!("Updating Sonarr indexer with ID: {id}");
-
     info!("Fetching indexer details for indexer with ID: {id}");
 
     let request_props = self
@@ -891,7 +684,7 @@ impl<'a, 'b> Network<'a, 'b> {
       seed_ratio,
       tags,
       priority,
-    ) = if let Some(params) = edit_indexer_params {
+    ) = {
       let priority = detailed_indexer_body["priority"]
         .as_i64()
         .expect("Unable to deserialize 'priority'");
@@ -900,28 +693,28 @@ impl<'a, 'b> Network<'a, 'b> {
         .unwrap()
         .iter()
         .find(|field| field["name"] == "seedCriteria.seedRatio");
-      let name = params.name.unwrap_or(
+      let name = edit_indexer_params.name.unwrap_or(
         detailed_indexer_body["name"]
           .as_str()
           .expect("Unable to deserialize 'name'")
           .to_owned(),
       );
-      let enable_rss = params.enable_rss.unwrap_or(
+      let enable_rss = edit_indexer_params.enable_rss.unwrap_or(
         detailed_indexer_body["enableRss"]
           .as_bool()
           .expect("Unable to deserialize 'enableRss'"),
       );
-      let enable_automatic_search = params.enable_automatic_search.unwrap_or(
+      let enable_automatic_search = edit_indexer_params.enable_automatic_search.unwrap_or(
         detailed_indexer_body["enableAutomaticSearch"]
           .as_bool()
           .expect("Unable to deserialize 'enableAutomaticSearch"),
       );
-      let enable_interactive_search = params.enable_interactive_search.unwrap_or(
+      let enable_interactive_search = edit_indexer_params.enable_interactive_search.unwrap_or(
         detailed_indexer_body["enableInteractiveSearch"]
           .as_bool()
           .expect("Unable to deserialize 'enableInteractiveSearch'"),
       );
-      let url = params.url.unwrap_or(
+      let url = edit_indexer_params.url.unwrap_or(
         detailed_indexer_body["fields"]
           .as_array()
           .expect("Unable to deserialize 'fields'")
@@ -934,7 +727,7 @@ impl<'a, 'b> Network<'a, 'b> {
           .expect("Unable to deserialize 'baseUrl value'")
           .to_owned(),
       );
-      let api_key = params.api_key.unwrap_or(
+      let api_key = edit_indexer_params.api_key.unwrap_or(
         detailed_indexer_body["fields"]
           .as_array()
           .expect("Unable to deserialize 'fields'")
@@ -947,7 +740,7 @@ impl<'a, 'b> Network<'a, 'b> {
           .expect("Unable to deserialize 'apiKey value'")
           .to_owned(),
       );
-      let seed_ratio = params.seed_ratio.unwrap_or_else(|| {
+      let seed_ratio = edit_indexer_params.seed_ratio.unwrap_or_else(|| {
         if let Some(seed_ratio_field) = seed_ratio_field_option {
           return seed_ratio_field
             .get("value")
@@ -959,10 +752,10 @@ impl<'a, 'b> Network<'a, 'b> {
 
         String::new()
       });
-      let tags = if params.clear_tags {
+      let tags = if edit_indexer_params.clear_tags {
         vec![]
       } else {
-        params.tags.unwrap_or(
+        edit_indexer_params.tags.unwrap_or(
           detailed_indexer_body["tags"]
             .as_array()
             .expect("Unable to deserialize 'tags'")
@@ -971,7 +764,7 @@ impl<'a, 'b> Network<'a, 'b> {
             .collect(),
         )
       };
-      let priority = params.priority.unwrap_or(priority);
+      let priority = edit_indexer_params.priority.unwrap_or(priority);
 
       (
         name,
@@ -984,51 +777,6 @@ impl<'a, 'b> Network<'a, 'b> {
         tags,
         priority,
       )
-    } else {
-      let tags = self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap()
-        .tags
-        .text
-        .clone();
-      let tag_ids_vec = self.extract_and_add_sonarr_tag_ids_vec(tags).await;
-      let mut app = self.app.lock().await;
-
-      let params = {
-        let EditIndexerModal {
-          name,
-          enable_rss,
-          enable_automatic_search,
-          enable_interactive_search,
-          url,
-          api_key,
-          seed_ratio,
-          priority,
-          ..
-        } = app.data.sonarr_data.edit_indexer_modal.as_ref().unwrap();
-
-        (
-          name.text.clone(),
-          enable_rss.unwrap_or_default(),
-          enable_automatic_search.unwrap_or_default(),
-          enable_interactive_search.unwrap_or_default(),
-          url.text.clone(),
-          api_key.text.clone(),
-          seed_ratio.text.clone(),
-          tag_ids_vec,
-          *priority,
-        )
-      };
-
-      app.data.sonarr_data.edit_indexer_modal = None;
-
-      params
     };
 
     *detailed_indexer_body.get_mut("name").unwrap() = json!(name);
@@ -1092,19 +840,17 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn edit_sonarr_series(
-    &mut self,
-    edit_series_params: Option<EditSeriesParams>,
-  ) -> Result<()> {
+  async fn edit_sonarr_series(&mut self, mut edit_series_params: EditSeriesParams) -> Result<()> {
     info!("Editing Sonarr series");
-    let detail_event = SonarrEvent::GetSeriesDetails(None);
-    let event = SonarrEvent::EditSeries(None);
-
-    let (series_id, _) = if let Some(ref params) = edit_series_params {
-      self.extract_series_id(Some(params.series_id)).await
-    } else {
-      self.extract_series_id(None).await
-    };
+    if let Some(tag_input_string) = edit_series_params.tag_input_string.as_ref() {
+      let tag_ids_vec = self
+        .extract_and_add_sonarr_tag_ids_vec(tag_input_string.clone())
+        .await;
+      edit_series_params.tags = Some(tag_ids_vec);
+    }
+    let series_id = edit_series_params.series_id;
+    let detail_event = SonarrEvent::GetSeriesDetails(series_id);
+    let event = SonarrEvent::EditSeries(edit_series_params.clone());
     info!("Fetching series details for series with ID: {series_id}");
 
     let request_props = self
@@ -1136,44 +882,44 @@ impl<'a, 'b> Network<'a, 'b> {
       language_profile_id,
       root_folder_path,
       tags,
-    ) = if let Some(params) = edit_series_params {
-      let monitored = params.monitored.unwrap_or(
+    ) = {
+      let monitored = edit_series_params.monitored.unwrap_or(
         detailed_series_body["monitored"]
           .as_bool()
           .expect("Unable to deserialize 'monitored'"),
       );
-      let use_season_folders = params.use_season_folders.unwrap_or(
+      let use_season_folders = edit_series_params.use_season_folders.unwrap_or(
         detailed_series_body["seasonFolder"]
           .as_bool()
           .expect("Unable to deserialize 'season_folder'"),
       );
-      let series_type = params
+      let series_type = edit_series_params
         .series_type
         .unwrap_or_else(|| {
           serde_json::from_value(detailed_series_body["seriesType"].clone())
             .expect("Unable to deserialize 'seriesType'")
         })
         .to_string();
-      let quality_profile_id = params.quality_profile_id.unwrap_or_else(|| {
+      let quality_profile_id = edit_series_params.quality_profile_id.unwrap_or_else(|| {
         detailed_series_body["qualityProfileId"]
           .as_i64()
           .expect("Unable to deserialize 'qualityProfileId'")
       });
-      let language_profile_id = params.language_profile_id.unwrap_or_else(|| {
+      let language_profile_id = edit_series_params.language_profile_id.unwrap_or_else(|| {
         detailed_series_body["languageProfileId"]
           .as_i64()
           .expect("Unable to deserialize 'languageProfileId'")
       });
-      let root_folder_path = params.root_folder_path.unwrap_or_else(|| {
+      let root_folder_path = edit_series_params.root_folder_path.unwrap_or_else(|| {
         detailed_series_body["path"]
           .as_str()
           .expect("Unable to deserialize 'path'")
           .to_owned()
       });
-      let tags = if params.clear_tags {
+      let tags = if edit_series_params.clear_tags {
         vec![]
       } else {
-        params.tags.unwrap_or(
+        edit_series_params.tags.unwrap_or(
           detailed_series_body["tags"]
             .as_array()
             .expect("Unable to deserialize 'tags'")
@@ -1192,67 +938,6 @@ impl<'a, 'b> Network<'a, 'b> {
         root_folder_path,
         tags,
       )
-    } else {
-      let tags = self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .edit_series_modal
-        .as_ref()
-        .unwrap()
-        .tags
-        .text
-        .clone();
-      let tag_ids_vec = self.extract_and_add_sonarr_tag_ids_vec(tags).await;
-      let mut app = self.app.lock().await;
-
-      let params = {
-        let EditSeriesModal {
-          monitored,
-          use_season_folders,
-          path,
-          series_type_list,
-          quality_profile_list,
-          language_profile_list,
-          ..
-        } = app.data.sonarr_data.edit_series_modal.as_ref().unwrap();
-        let quality_profile = quality_profile_list.current_selection();
-        let quality_profile_id = *app
-          .data
-          .sonarr_data
-          .quality_profile_map
-          .iter()
-          .filter(|(_, value)| *value == quality_profile)
-          .map(|(key, _)| key)
-          .next()
-          .unwrap();
-        let language_profile = language_profile_list.current_selection();
-        let language_profile_id = *app
-          .data
-          .sonarr_data
-          .language_profiles_map
-          .iter()
-          .filter(|(_, value)| *value == language_profile)
-          .map(|(key, _)| key)
-          .next()
-          .unwrap();
-
-        (
-          monitored.unwrap_or_default(),
-          use_season_folders.unwrap_or_default(),
-          series_type_list.current_selection().to_string(),
-          quality_profile_id,
-          language_profile_id,
-          path.text.clone(),
-          tag_ids_vec,
-        )
-      };
-
-      app.data.sonarr_data.edit_series_modal = None;
-
-      params
     };
 
     *detailed_series_body.get_mut("monitored").unwrap() = json!(monitored);
@@ -1282,86 +967,81 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn toggle_sonarr_season_monitoring(
     &mut self,
-    series_id_season_number_tuple: Option<(i64, i64)>,
+    series_id_season_number_tuple: (i64, i64),
   ) -> Result<()> {
-    let detail_event = SonarrEvent::GetSeriesDetails(None);
     let event = SonarrEvent::ToggleSeasonMonitoring(series_id_season_number_tuple);
-    let (series_id, season_number) =
-      if let Some((series_id, season_number)) = series_id_season_number_tuple {
-        (Some(series_id), Some(season_number))
-      } else {
-        (None, None)
-      };
+    let (series_id, season_number) = series_id_season_number_tuple;
 
-    let (series_id, _) = self.extract_series_id(series_id).await;
-    if let Ok((season_number, _)) = self.extract_season_number(season_number).await {
-      info!("Toggling season monitoring for season {season_number} in series with ID: {series_id}");
-      info!("Fetching series details for series with ID: {series_id}");
+    let detail_event = SonarrEvent::GetSeriesDetails(series_id);
+    info!("Toggling season monitoring for season {season_number} in series with ID: {series_id}");
+    info!("Fetching series details for series with ID: {series_id}");
 
-      let request_props = self
-        .request_props_from(
-          detail_event,
-          RequestMethod::Get,
-          None::<()>,
-          Some(format!("/{series_id}")),
-          None,
-        )
-        .await;
+    let request_props = self
+      .request_props_from(
+        detail_event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{series_id}")),
+        None,
+      )
+      .await;
 
-      let mut response = String::new();
+    let mut response = String::new();
 
-      self
-        .handle_request::<(), Value>(request_props, |detailed_series_body, _| {
-          response = detailed_series_body.to_string()
-        })
-        .await?;
+    self
+      .handle_request::<(), Value>(request_props, |detailed_series_body, _| {
+        response = detailed_series_body.to_string()
+      })
+      .await?;
 
-      info!("Constructing toggle season monitoring body");
+    info!("Constructing toggle season monitoring body");
 
-      let mut detailed_series_body: Value =
-        serde_json::from_str(&response).expect("Request for detailed series body was interrupted");
-      let monitored = detailed_series_body
-        .get("seasons")
-        .unwrap()
-        .as_array()
-        .unwrap()
-        .iter()
-        .find(|season| season["seasonNumber"] == season_number)
-        .unwrap()
-        .get("monitored")
-        .unwrap()
-        .as_bool()
-        .unwrap();
+    match serde_json::from_str::<Value>(&response) {
+      Ok(mut detailed_series_body) => {
+        let monitored = detailed_series_body
+          .get("seasons")
+          .unwrap()
+          .as_array()
+          .unwrap()
+          .iter()
+          .find(|season| season["seasonNumber"] == season_number)
+          .unwrap()
+          .get("monitored")
+          .unwrap()
+          .as_bool()
+          .unwrap();
 
-      *detailed_series_body
-        .get_mut("seasons")
-        .unwrap()
-        .as_array_mut()
-        .unwrap()
-        .iter_mut()
-        .find(|season| season["seasonNumber"] == season_number)
-        .unwrap()
-        .get_mut("monitored")
-        .unwrap() = json!(!monitored);
+        *detailed_series_body
+          .get_mut("seasons")
+          .unwrap()
+          .as_array_mut()
+          .unwrap()
+          .iter_mut()
+          .find(|season| season["seasonNumber"] == season_number)
+          .unwrap()
+          .get_mut("monitored")
+          .unwrap() = json!(!monitored);
 
-      debug!("Toggle season monitoring body: {detailed_series_body:?}");
+        debug!("Toggle season monitoring body: {detailed_series_body:?}");
 
-      let request_props = self
-        .request_props_from(
-          event,
-          RequestMethod::Put,
-          Some(detailed_series_body),
-          Some(format!("/{series_id}")),
-          None,
-        )
-        .await;
+        let request_props = self
+          .request_props_from(
+            event,
+            RequestMethod::Put,
+            Some(detailed_series_body),
+            Some(format!("/{series_id}")),
+            None,
+          )
+          .await;
 
-      self
-        .handle_request::<Value, ()>(request_props, |_, _| ())
-        .await
-    } else {
-      warn!("Season number was not provided. Aborting...");
-      Ok(())
+        self
+          .handle_request::<Value, ()>(request_props, |_, _| ())
+          .await
+      }
+      Err(_) => {
+        warn!("Request for detailed series body was interrupted");
+        Ok(())
+      }
     }
   }
 
@@ -1459,10 +1139,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_episodes(&mut self, series_id: Option<i64>) -> Result<Vec<Episode>> {
+  async fn get_episodes(&mut self, series_id: i64) -> Result<Vec<Episode>> {
     let event = SonarrEvent::GetEpisodes(series_id);
-    let (id, series_id_param) = self.extract_series_id(series_id).await;
-    info!("Fetching episodes for Sonarr series with ID: {id}");
+    info!("Fetching episodes for Sonarr series with ID: {series_id}");
 
     let request_props = self
       .request_props_from(
@@ -1470,7 +1149,7 @@ impl<'a, 'b> Network<'a, 'b> {
         RequestMethod::Get,
         None::<()>,
         None,
-        Some(series_id_param),
+        Some(format!("seriesId={series_id}")),
       )
       .await;
 
@@ -1522,10 +1201,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_episode_files(&mut self, series_id: Option<i64>) -> Result<Vec<EpisodeFile>> {
+  async fn get_episode_files(&mut self, series_id: i64) -> Result<Vec<EpisodeFile>> {
     let event = SonarrEvent::GetEpisodeFiles(series_id);
-    let (id, series_id_param) = self.extract_series_id(series_id).await;
-    info!("Fetching episodes files for Sonarr series with ID: {id}");
+    info!("Fetching episodes files for Sonarr series with ID: {series_id}");
 
     let request_props = self
       .request_props_from(
@@ -1533,7 +1211,7 @@ impl<'a, 'b> Network<'a, 'b> {
         RequestMethod::Get,
         None::<()>,
         None,
-        Some(series_id_param),
+        Some(format!("seriesId={series_id}")),
       )
       .await;
 
@@ -1555,15 +1233,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_sonarr_episode_history(
-    &mut self,
-    episode_id: Option<i64>,
-  ) -> Result<SonarrHistoryWrapper> {
-    let id = self.extract_episode_id(episode_id).await;
-    info!("Fetching Sonarr history for episode with ID: {id}");
+  async fn get_sonarr_episode_history(&mut self, episode_id: i64) -> Result<SonarrHistoryWrapper> {
+    info!("Fetching Sonarr history for episode with ID: {episode_id}");
     let event = SonarrEvent::GetEpisodeHistory(episode_id);
 
-    let params = format!("episodeId={id}&pageSize=1000&sortDirection=descending&sortKey=date",);
+    let params =
+      format!("episodeId={episode_id}&pageSize=1000&sortDirection=descending&sortKey=date");
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
       .await;
@@ -1620,19 +1295,18 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_episode_details(&mut self, episode_id: Option<i64>) -> Result<Episode> {
+  async fn get_episode_details(&mut self, episode_id: i64) -> Result<Episode> {
     info!("Fetching Sonarr episode details");
-    let event = SonarrEvent::GetEpisodeDetails(None);
-    let id = self.extract_episode_id(episode_id).await;
+    let event = SonarrEvent::GetEpisodeDetails(episode_id);
 
-    info!("Fetching episode details for episode with ID: {id}");
+    info!("Fetching episode details for episode with ID: {episode_id}");
 
     let request_props = self
       .request_props_from(
         event,
         RequestMethod::Get,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{episode_id}")),
         None,
       )
       .await;
@@ -1766,14 +1440,11 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_sonarr_history(&mut self, events: Option<u64>) -> Result<SonarrHistoryWrapper> {
+  async fn get_sonarr_history(&mut self, events: u64) -> Result<SonarrHistoryWrapper> {
     info!("Fetching all Sonarr history events");
     let event = SonarrEvent::GetHistory(events);
 
-    let params = format!(
-      "pageSize={}&sortDirection=descending&sortKey=date",
-      events.unwrap_or(500)
-    );
+    let params = format!("pageSize={}&sortDirection=descending&sortKey=date", events);
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
       .await;
@@ -1826,14 +1497,11 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_sonarr_logs(&mut self, events: Option<u64>) -> Result<LogResponse> {
+  async fn get_sonarr_logs(&mut self, events: u64) -> Result<LogResponse> {
     info!("Fetching Sonarr logs");
     let event = SonarrEvent::GetLogs(events);
 
-    let params = format!(
-      "pageSize={}&sortDirection=descending&sortKey=time",
-      events.unwrap_or(500)
-    );
+    let params = format!("pageSize={}&sortDirection=descending&sortKey=time", events);
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
       .await;
@@ -1940,11 +1608,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_episode_releases(&mut self, episode_id: Option<i64>) -> Result<Vec<SonarrRelease>> {
-    let event = SonarrEvent::GetEpisodeReleases(None);
-    let id = self.extract_episode_id(episode_id).await;
-
-    info!("Fetching releases for episode with ID: {id}");
+  async fn get_episode_releases(&mut self, episode_id: i64) -> Result<Vec<SonarrRelease>> {
+    let event = SonarrEvent::GetEpisodeReleases(episode_id);
+    info!("Fetching releases for episode with ID: {episode_id}");
 
     let request_props = self
       .request_props_from(
@@ -1952,7 +1618,7 @@ impl<'a, 'b> Network<'a, 'b> {
         RequestMethod::Get,
         None::<()>,
         None,
-        Some(format!("episodeId={id}")),
+        Some(format!("episodeId={episode_id}")),
       )
       .await;
 
@@ -1997,19 +1663,10 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn get_season_releases(
     &mut self,
-    series_season_id_tuple: Option<(i64, i64)>,
+    series_season_id_tuple: (i64, i64),
   ) -> Result<Vec<SonarrRelease>> {
-    let event = SonarrEvent::GetSeasonReleases(None);
-    let (series_id, season_number) =
-      if let Some((series_id, season_number)) = series_season_id_tuple {
-        (Some(series_id), Some(season_number))
-      } else {
-        (None, None)
-      };
-
-    let (series_id, series_id_param) = self.extract_series_id(series_id).await;
-    let (season_number, season_number_param) = self.extract_season_number(season_number).await?;
-
+    let event = SonarrEvent::GetSeasonReleases(series_season_id_tuple);
+    let (series_id, season_number) = series_season_id_tuple;
     info!("Fetching releases for series with ID: {series_id} and season number: {season_number}");
 
     let request_props = self
@@ -2018,7 +1675,10 @@ impl<'a, 'b> Network<'a, 'b> {
         RequestMethod::Get,
         None::<()>,
         None,
-        Some(format!("{}&{}", series_id_param, season_number_param)),
+        Some(format!(
+          "seriesId={}&seasonNumber={}",
+          series_id, season_number
+        )),
       )
       .await;
 
@@ -2047,22 +1707,13 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn get_sonarr_season_history(
     &mut self,
-    series_season_id_tuple: Option<(i64, i64)>,
+    series_season_id_tuple: (i64, i64),
   ) -> Result<Vec<SonarrHistoryItem>> {
-    let event = SonarrEvent::GetSeasonHistory(None);
-    let (series_id, season_number) =
-      if let Some((series_id, season_number)) = series_season_id_tuple {
-        (Some(series_id), Some(season_number))
-      } else {
-        (None, None)
-      };
-
-    let (series_id, series_id_param) = self.extract_series_id(series_id).await;
-    let (season_number, season_number_param) = self.extract_season_number(season_number).await?;
-
+    let event = SonarrEvent::GetSeasonHistory(series_season_id_tuple);
+    let (series_id, season_number) = series_season_id_tuple;
     info!("Fetching history for series with ID: {series_id} and season number: {season_number}");
 
-    let params = format!("{series_id_param}&{season_number_param}",);
+    let params = format!("seriesId={series_id}&seasonNumber={season_number}",);
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
       .await;
@@ -2108,9 +1759,8 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_series_details(&mut self, series_id: Option<i64>) -> Result<Series> {
-    let (id, _) = self.extract_series_id(series_id).await;
-    info!("Fetching details for Sonarr series with ID: {id}");
+  async fn get_series_details(&mut self, series_id: i64) -> Result<Series> {
+    info!("Fetching details for Sonarr series with ID: {series_id}");
     let event = SonarrEvent::GetSeriesDetails(series_id);
 
     let request_props = self
@@ -2118,7 +1768,7 @@ impl<'a, 'b> Network<'a, 'b> {
         event,
         RequestMethod::Get,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{series_id}")),
         None,
       )
       .await;
@@ -2128,12 +1778,8 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn get_sonarr_series_history(
-    &mut self,
-    series_id: Option<i64>,
-  ) -> Result<Vec<SonarrHistoryItem>> {
-    let (id, series_id_param) = self.extract_series_id(series_id).await;
-    info!("Fetching Sonarr series history for series with ID: {id}");
+  async fn get_sonarr_series_history(&mut self, series_id: i64) -> Result<Vec<SonarrHistoryItem>> {
+    info!("Fetching Sonarr series history for series with ID: {series_id}");
     let event = SonarrEvent::GetSeriesHistory(series_id);
 
     let request_props = self
@@ -2142,7 +1788,7 @@ impl<'a, 'b> Network<'a, 'b> {
         RequestMethod::Get,
         None::<()>,
         None,
-        Some(series_id_param),
+        Some(format!("seriesId={series_id}")),
       )
       .await;
 
@@ -2344,84 +1990,39 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn search_sonarr_series(
-    &mut self,
-    query: Option<String>,
-  ) -> Result<Vec<AddSeriesSearchResult>> {
+  async fn search_sonarr_series(&mut self, query: String) -> Result<Vec<AddSeriesSearchResult>> {
     info!("Searching for specific Sonarr series");
-    let event = SonarrEvent::SearchNewSeries(None);
-    let search = if let Some(search_query) = query {
-      Ok(search_query.into())
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .add_series_search
-        .clone()
-        .ok_or(anyhow!("Encountered a race condition"))
-    };
+    let event = SonarrEvent::SearchNewSeries(query.clone());
 
-    match search {
-      Ok(search_string) => {
-        let request_props = self
-          .request_props_from(
-            event,
-            RequestMethod::Get,
-            None::<()>,
-            None,
-            Some(format!("term={}", encode(&search_string.text))),
-          )
-          .await;
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("term={}", encode(&query))),
+      )
+      .await;
 
-        self
-          .handle_request::<(), Vec<AddSeriesSearchResult>>(request_props, |series_vec, mut app| {
-            if series_vec.is_empty() {
-              app.pop_and_push_navigation_stack(
-                ActiveSonarrBlock::AddSeriesEmptySearchResults.into(),
-              );
-            } else if let Some(add_searched_seriess) =
-              app.data.sonarr_data.add_searched_series.as_mut()
-            {
-              add_searched_seriess.set_items(series_vec);
-            } else {
-              let mut add_searched_seriess = StatefulTable::default();
-              add_searched_seriess.set_items(series_vec);
-              app.data.sonarr_data.add_searched_series = Some(add_searched_seriess);
-            }
-          })
-          .await
-      }
-      Err(e) => {
-        warn!(
-          "Encountered a race condition: {e}\n \
-          This is most likely caused by the user trying to navigate between modals rapidly. \
-          Ignoring search request."
-        );
-        Ok(Vec::default())
-      }
-    }
+    self
+      .handle_request::<(), Vec<AddSeriesSearchResult>>(request_props, |series_vec, mut app| {
+        if series_vec.is_empty() {
+          app.pop_and_push_navigation_stack(ActiveSonarrBlock::AddSeriesEmptySearchResults.into());
+        } else if let Some(add_searched_seriess) = app.data.sonarr_data.add_searched_series.as_mut()
+        {
+          add_searched_seriess.set_items(series_vec);
+        } else {
+          let mut add_searched_seriess = StatefulTable::default();
+          add_searched_seriess.set_items(series_vec);
+          app.data.sonarr_data.add_searched_series = Some(add_searched_seriess);
+        }
+      })
+      .await
   }
 
-  async fn start_sonarr_task(&mut self, task: Option<SonarrTaskName>) -> Result<Value> {
-    let event = SonarrEvent::StartTask(None);
-    let task_name = if let Some(t_name) = task {
-      t_name
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .tasks
-        .current_selection()
-        .task_name
-    }
-    .to_string();
-
+  async fn start_sonarr_task(&mut self, task: SonarrTaskName) -> Result<Value> {
+    let event = SonarrEvent::StartTask(task);
+    let task_name = task.to_string();
     info!("Starting Sonarr task: {task_name}");
 
     let body = CommandBody { name: task_name };
@@ -2435,32 +2036,19 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn test_sonarr_indexer(&mut self, indexer_id: Option<i64>) -> Result<Value> {
+  async fn test_sonarr_indexer(&mut self, indexer_id: i64) -> Result<Value> {
     let detail_event = SonarrEvent::GetIndexers;
-    let event = SonarrEvent::TestIndexer(None);
-    let id = if let Some(i_id) = indexer_id {
-      i_id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .indexers
-        .current_selection()
-        .id
-    };
-    info!("Testing Sonarr indexer with ID: {id}");
+    let event = SonarrEvent::TestIndexer(indexer_id);
+    info!("Testing Sonarr indexer with ID: {indexer_id}");
 
-    info!("Fetching indexer details for indexer with ID: {id}");
+    info!("Fetching indexer details for indexer with ID: {indexer_id}");
 
     let request_props = self
       .request_props_from(
         detail_event,
         RequestMethod::Get,
         None::<()>,
-        Some(format!("/{id}")),
+        Some(format!("/{indexer_id}")),
         None,
       )
       .await;
@@ -2543,11 +2131,11 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn toggle_sonarr_episode_monitoring(&mut self, episode_id: Option<i64>) -> Result<()> {
+  async fn toggle_sonarr_episode_monitoring(&mut self, episode_id: i64) -> Result<()> {
     let event = SonarrEvent::ToggleEpisodeMonitoring(episode_id);
-    let detail_event = SonarrEvent::GetEpisodeDetails(None);
+    let detail_event = SonarrEvent::GetEpisodeDetails(0);
 
-    let (id, monitored) = if let Some(episode_id) = episode_id {
+    let monitored = {
       info!("Fetching episode details for episode id: {episode_id}");
       let request_props = self
         .request_props_from(
@@ -2571,24 +2159,13 @@ impl<'a, 'b> Network<'a, 'b> {
         })
         .await?;
 
-      (episode_id, monitored)
-    } else {
-      let app = self.app.lock().await;
-      let current_selection = app
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .unwrap()
-        .episodes
-        .current_selection();
-      (current_selection.id, current_selection.monitored)
+      monitored
     };
 
-    info!("Toggling monitoring for episode id: {id}");
+    info!("Toggling monitoring for episode id: {episode_id}");
 
     let body = MonitorEpisodeBody {
-      episode_ids: vec![id],
+      episode_ids: vec![episode_id],
       monitored: !monitored,
     };
 
@@ -2601,14 +2178,13 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn trigger_automatic_series_search(&mut self, series_id: Option<i64>) -> Result<Value> {
+  async fn trigger_automatic_series_search(&mut self, series_id: i64) -> Result<Value> {
     let event = SonarrEvent::TriggerAutomaticSeriesSearch(series_id);
-    let (id, _) = self.extract_series_id(series_id).await;
-    info!("Searching indexers for series with ID: {id}");
+    info!("Searching indexers for series with ID: {series_id}");
 
     let body = SonarrCommandBody {
       name: "SeriesSearch".to_owned(),
-      series_id: Some(id),
+      series_id: Some(series_id),
       ..SonarrCommandBody::default()
     };
 
@@ -2623,18 +2199,10 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn trigger_automatic_season_search(
     &mut self,
-    series_season_id_tuple: Option<(i64, i64)>,
+    series_season_id_tuple: (i64, i64),
   ) -> Result<Value> {
     let event = SonarrEvent::TriggerAutomaticSeasonSearch(series_season_id_tuple);
-    let (series_id, season_number) =
-      if let Some((series_id, season_number)) = series_season_id_tuple {
-        (Some(series_id), Some(season_number))
-      } else {
-        (None, None)
-      };
-
-    let (series_id, _) = self.extract_series_id(series_id).await;
-    let (season_number, _) = self.extract_season_number(season_number).await?;
+    let (series_id, season_number) = series_season_id_tuple;
     info!("Searching indexers for series with ID: {series_id} and season number: {season_number}");
 
     let body = SonarrCommandBody {
@@ -2653,14 +2221,13 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn trigger_automatic_episode_search(&mut self, episode_id: Option<i64>) -> Result<Value> {
+  async fn trigger_automatic_episode_search(&mut self, episode_id: i64) -> Result<Value> {
     let event = SonarrEvent::TriggerAutomaticEpisodeSearch(episode_id);
-    let id = self.extract_episode_id(episode_id).await;
-    info!("Searching indexers for episode with ID: {id}");
+    info!("Searching indexers for episode with ID: {episode_id}");
 
     let body = SonarrCommandBody {
       name: "EpisodeSearch".to_owned(),
-      episode_ids: Some(vec![id]),
+      episode_ids: Some(vec![episode_id]),
       ..SonarrCommandBody::default()
     };
 
@@ -2690,13 +2257,12 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn update_and_scan_series(&mut self, series_id: Option<i64>) -> Result<Value> {
-    let (id, _) = self.extract_series_id(series_id).await;
-    let event = SonarrEvent::UpdateAndScanSeries(None);
-    info!("Updating and scanning series with ID: {id}");
+  async fn update_and_scan_series(&mut self, series_id: i64) -> Result<Value> {
+    let event = SonarrEvent::UpdateAndScanSeries(series_id);
+    info!("Updating and scanning series with ID: {series_id}");
     let body = SonarrCommandBody {
       name: "RefreshSeries".to_owned(),
-      series_id: Some(id),
+      series_id: Some(series_id),
       ..SonarrCommandBody::default()
     };
 
@@ -2753,63 +2319,6 @@ impl<'a, 'b> Network<'a, 'b> {
           .unwrap()
       })
       .collect()
-  }
-
-  async fn extract_series_id(&mut self, series_id: Option<i64>) -> (i64, String) {
-    let series_id = if let Some(id) = series_id {
-      id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .series
-        .current_selection()
-        .id
-    };
-    (series_id, format!("seriesId={series_id}"))
-  }
-
-  async fn extract_season_number(&mut self, season_number: Option<i64>) -> Result<(i64, String)> {
-    if let Some(number) = season_number {
-      Ok((number, format!("seasonNumber={number}")))
-    } else if !self.app.lock().await.data.sonarr_data.seasons.is_empty() {
-      let season_number = self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .seasons
-        .current_selection()
-        .season_number;
-      Ok((season_number, format!("seasonNumber={season_number}")))
-    } else {
-      Err(anyhow!("No season number provided"))
-    }
-  }
-
-  async fn extract_episode_id(&mut self, episode_id: Option<i64>) -> i64 {
-    let episode_id = if let Some(id) = episode_id {
-      id
-    } else {
-      self
-        .app
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .expect("Season details have not been loaded")
-        .episodes
-        .current_selection()
-        .id
-    };
-
-    episode_id
   }
 }
 

@@ -5,7 +5,7 @@ use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
-use crate::models::servarr_models::RootFolder;
+use crate::models::servarr_models::{AddRootFolderBody, RootFolder};
 use crate::models::HorizontallyScrollableText;
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys};
@@ -28,6 +28,32 @@ impl<'a, 'b> RootFoldersHandler<'a, 'b> {
     self.app.data.radarr_data.root_folders,
     RootFolder
   );
+
+  fn build_add_root_folder_body(&mut self) -> AddRootFolderBody {
+    let path = self
+      .app
+      .data
+      .radarr_data
+      .edit_root_folder
+      .as_ref()
+      .unwrap()
+      .text
+      .clone();
+
+    self.app.data.radarr_data.edit_root_folder = None;
+
+    AddRootFolderBody { path }
+  }
+
+  fn extract_root_folder_id(&mut self) -> i64 {
+    self
+      .app
+      .data
+      .radarr_data
+      .root_folders
+      .current_selection()
+      .id
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'a, 'b> {
@@ -124,7 +150,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
       ActiveRadarrBlock::DeleteRootFolderPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
           self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::DeleteRootFolder(None));
+            Some(RadarrEvent::DeleteRootFolder(self.extract_root_folder_id()));
         }
 
         self.app.pop_navigation_stack();
@@ -140,7 +166,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
           .text
           .is_empty() =>
       {
-        self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddRootFolder(None));
+        self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddRootFolder(
+          self.build_add_root_folder_body(),
+        ));
         self.app.data.radarr_data.prompt_confirm = true;
         self.app.should_ignore_quit_key = false;
         self.app.pop_navigation_stack();
@@ -192,7 +220,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::DeleteRootFolder(None));
+            Some(RadarrEvent::DeleteRootFolder(self.extract_root_folder_id()));
 
           self.app.pop_navigation_stack();
         }

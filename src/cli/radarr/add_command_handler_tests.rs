@@ -368,6 +368,7 @@ mod tests {
     use super::*;
     use mockall::predicate::eq;
 
+    use crate::models::servarr_models::AddRootFolderBody;
     use serde_json::json;
     use tokio::sync::Mutex;
 
@@ -381,6 +382,7 @@ mod tests {
         minimum_availability: "released".to_owned(),
         monitored: false,
         tags: vec![1, 2],
+        tag_input_string: None,
         add_options: AddMovieOptions {
           monitor: "movieAndCollection".to_owned(),
           search_for_movie: false,
@@ -390,7 +392,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::AddMovie(Some(expected_add_movie_body)).into(),
+          RadarrEvent::AddMovie(expected_add_movie_body).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -420,11 +422,14 @@ mod tests {
     #[tokio::test]
     async fn test_handle_add_root_folder_command() {
       let expected_root_folder_path = "/nfs/test".to_owned();
+      let expected_add_root_folder_body = AddRootFolderBody {
+        path: expected_root_folder_path.clone(),
+      };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::AddRootFolder(Some(expected_root_folder_path.clone())).into(),
+          RadarrEvent::AddRootFolder(expected_add_root_folder_body).into(),
         ))
         .times(1)
         .returning(|_| {

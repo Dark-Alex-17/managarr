@@ -329,7 +329,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::GetEpisodes(Some(expected_series_id)).into(),
+          SonarrEvent::GetEpisodes(expected_series_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -355,7 +355,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::GetEpisodeFiles(Some(expected_series_id)).into(),
+          SonarrEvent::GetEpisodeFiles(expected_series_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -381,7 +381,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::GetHistory(Some(expected_events)).into(),
+          SonarrEvent::GetHistory(expected_events).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -407,7 +407,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::GetLogs(Some(expected_events)).into(),
+          SonarrEvent::GetLogs(expected_events).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -435,7 +435,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::GetSeriesHistory(Some(expected_series_id)).into(),
+          SonarrEvent::GetSeriesHistory(expected_series_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -461,7 +461,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::GetEpisodeHistory(Some(expected_episode_id)).into(),
+          SonarrEvent::GetEpisodeHistory(expected_episode_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -488,7 +488,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::GetSeasonHistory(Some((expected_series_id, expected_season_number))).into(),
+          SonarrEvent::GetSeasonHistory((expected_series_id, expected_season_number)).into(),
         ))
         .times(1)
         .returning(|_| {

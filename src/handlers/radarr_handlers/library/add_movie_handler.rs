@@ -1,10 +1,14 @@
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
-use crate::models::radarr_models::AddMovieSearchResult;
+use crate::models::radarr_models::{
+  AddMovieBody, AddMovieOptions, AddMovieSearchResult, CollectionMovie,
+};
+use crate::models::servarr_data::radarr::modals::AddMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS,
 };
+use crate::models::stateful_table::StatefulTable;
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
@@ -30,9 +34,95 @@ impl<'a, 'b> AddMovieHandler<'a, 'b> {
       .radarr_data
       .add_searched_movies
       .as_mut()
-      .unwrap(),
+      .unwrap_or(&mut StatefulTable::default()),
     AddMovieSearchResult
   );
+
+  fn build_add_movie_body(&mut self) -> AddMovieBody {
+    let tags = self
+      .app
+      .data
+      .radarr_data
+      .add_movie_modal
+      .as_ref()
+      .unwrap()
+      .tags
+      .text
+      .clone();
+    let AddMovieModal {
+      root_folder_list,
+      monitor_list,
+      minimum_availability_list,
+      quality_profile_list,
+      ..
+    } = self.app.data.radarr_data.add_movie_modal.as_ref().unwrap();
+    let (tmdb_id, title) = if let Some(context) = self.context {
+      if context == ActiveRadarrBlock::CollectionDetails {
+        let CollectionMovie { tmdb_id, title, .. } = self
+          .app
+          .data
+          .radarr_data
+          .collection_movies
+          .current_selection()
+          .clone();
+        (tmdb_id, title.text)
+      } else {
+        let AddMovieSearchResult { tmdb_id, title, .. } = self
+          .app
+          .data
+          .radarr_data
+          .add_searched_movies
+          .as_ref()
+          .unwrap()
+          .current_selection()
+          .clone();
+        (tmdb_id, title.text)
+      }
+    } else {
+      let AddMovieSearchResult { tmdb_id, title, .. } = self
+        .app
+        .data
+        .radarr_data
+        .add_searched_movies
+        .as_ref()
+        .unwrap()
+        .current_selection()
+        .clone();
+      (tmdb_id, title.text)
+    };
+    let quality_profile = quality_profile_list.current_selection();
+    let quality_profile_id = *self
+      .app
+      .data
+      .radarr_data
+      .quality_profile_map
+      .iter()
+      .filter(|(_, value)| *value == quality_profile)
+      .map(|(key, _)| key)
+      .next()
+      .unwrap();
+
+    let path = root_folder_list.current_selection().path.clone();
+    let monitor = monitor_list.current_selection().to_string();
+    let minimum_availability = minimum_availability_list.current_selection().to_string();
+
+    self.app.data.radarr_data.add_movie_modal = None;
+
+    AddMovieBody {
+      tmdb_id,
+      title,
+      root_folder_path: path,
+      minimum_availability,
+      monitored: true,
+      quality_profile_id,
+      tags: Vec::new(),
+      tag_input_string: Some(tags),
+      add_options: AddMovieOptions {
+        monitor,
+        search_for_movie: true,
+      },
+    }
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 'b> {
@@ -361,7 +451,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         match self.app.data.radarr_data.selected_block.get_active_block() {
           ActiveRadarrBlock::AddMovieConfirmPrompt => {
             if self.app.data.radarr_data.prompt_confirm {
-              self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddMovie(None));
+              self.app.data.radarr_data.prompt_confirm_action =
+                Some(RadarrEvent::AddMovie(self.build_add_movie_body()));
             }
 
             self.app.pop_navigation_stack();
@@ -461,7 +552,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
           && key == DEFAULT_KEYBINDINGS.confirm.key
         {
           self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::AddMovie(None));
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::AddMovie(self.build_add_movie_body()));
           self.app.pop_navigation_stack();
         }
       }

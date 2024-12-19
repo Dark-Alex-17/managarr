@@ -1,11 +1,13 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::sonarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::indexer_settings;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, INDEXER_SETTINGS_BLOCKS,
@@ -285,7 +287,7 @@ mod tests {
         .sonarr_data
         .selected_block
         .set_index(0, INDEXER_SETTINGS_SELECTION_BLOCKS.len() - 1);
-      app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
+      app.data.sonarr_data.indexer_settings = Some(indexer_settings());
       app.data.sonarr_data.prompt_confirm = true;
 
       IndexerSettingsHandler::with(
@@ -299,9 +301,9 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::EditAllIndexerSettings(None))
+        Some(SonarrEvent::EditAllIndexerSettings(indexer_settings()))
       );
-      assert!(app.data.sonarr_data.indexer_settings.is_some());
+      assert!(app.data.sonarr_data.indexer_settings.is_none());
       assert!(app.should_refresh);
     }
 
@@ -468,11 +470,11 @@ mod tests {
   mod test_handle_key_char {
     use crate::{
       models::{
-        servarr_data::sonarr::sonarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS,
-        sonarr_models::IndexerSettings, BlockSelectionState,
+        servarr_data::sonarr::sonarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS, BlockSelectionState,
       },
       network::sonarr_network::SonarrEvent,
     };
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
@@ -488,7 +490,7 @@ mod tests {
         .sonarr_data
         .selected_block
         .set_index(0, INDEXER_SETTINGS_SELECTION_BLOCKS.len() - 1);
-      app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
+      app.data.sonarr_data.indexer_settings = Some(indexer_settings());
 
       IndexerSettingsHandler::with(
         DEFAULT_KEYBINDINGS.confirm.key,
@@ -501,9 +503,9 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::EditAllIndexerSettings(None))
+        Some(SonarrEvent::EditAllIndexerSettings(indexer_settings()))
       );
-      assert!(app.data.sonarr_data.indexer_settings.is_some());
+      assert!(app.data.sonarr_data.indexer_settings.is_none());
       assert!(app.should_refresh);
     }
   }
@@ -517,6 +519,23 @@ mod tests {
         assert!(!IndexerSettingsHandler::accepts(active_sonarr_block));
       }
     })
+  }
+
+  #[test]
+  fn test_build_edit_indexer_settings_params() {
+    let mut app = App::default();
+    app.data.sonarr_data.indexer_settings = Some(indexer_settings());
+
+    let actual_indexer_settings = IndexerSettingsHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::AllIndexerSettingsPrompt,
+      None,
+    )
+    .build_edit_indexer_settings_params();
+
+    assert_eq!(actual_indexer_settings, indexer_settings());
+    assert!(app.data.sonarr_data.indexer_settings.is_none());
   }
 
   #[test]

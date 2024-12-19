@@ -130,7 +130,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::GetEpisodeReleases(Some(expected_episode_id)).into(),
+          SonarrEvent::GetEpisodeReleases(expected_episode_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -160,7 +160,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::GetSeasonReleases(Some((expected_series_id, expected_season_number))).into(),
+          SonarrEvent::GetSeasonReleases((expected_series_id, expected_season_number)).into(),
         ))
         .times(1)
         .returning(|_| {

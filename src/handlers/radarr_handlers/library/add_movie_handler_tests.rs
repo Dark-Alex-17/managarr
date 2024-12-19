@@ -1,17 +1,24 @@
 #[cfg(test)]
 mod tests {
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::add_movie_search_result;
+  use crate::models::stateful_table::StatefulTable;
   use pretty_assertions::assert_str_eq;
+  use rstest::rstest;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::library::add_movie_handler::AddMovieHandler;
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::add_movie_body;
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::collection_movie;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::{AddMovieSearchResult, MinimumAvailability, MovieMonitor};
+  use crate::models::servarr_data::radarr::modals::AddMovieModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
   use crate::models::servarr_models::RootFolder;
   use crate::models::HorizontallyScrollableText;
+  use bimap::BiMap;
 
   mod test_handle_scroll_up_and_down {
     use pretty_assertions::assert_eq;
@@ -758,6 +765,9 @@ mod tests {
     use pretty_assertions::{assert_eq, assert_str_eq};
     use rstest::rstest;
 
+    use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::{
+      add_movie_body, add_movie_search_result, collection_movie,
+    };
     use crate::models::radarr_models::Movie;
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
@@ -969,8 +979,10 @@ mod tests {
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
     }
 
-    #[test]
-    fn test_add_movie_confirm_prompt_prompt_confirmation_submit() {
+    #[rstest]
+    fn test_add_movie_confirm_prompt_prompt_confirmation_submit(
+      #[values(true, false)] movie_details_context: bool,
+    ) {
       let mut app = App::default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
@@ -982,21 +994,67 @@ mod tests {
         .radarr_data
         .selected_block
         .set_index(0, ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
+      let mut add_movie_modal = AddMovieModal {
+        tags: "usenet, testing".into(),
+        ..AddMovieModal::default()
+      };
+      add_movie_modal.root_folder_list.set_items(vec![
+        RootFolder {
+          id: 1,
+          path: "/nfs".to_owned(),
+          accessible: true,
+          free_space: 219902325555200,
+          unmapped_folders: None,
+        },
+        RootFolder {
+          id: 2,
+          path: "/nfs2".to_owned(),
+          accessible: true,
+          free_space: 21990232555520,
+          unmapped_folders: None,
+        },
+      ]);
+      add_movie_modal.root_folder_list.state.select(Some(1));
+      add_movie_modal
+        .quality_profile_list
+        .set_items(vec!["HD - 1080p".to_owned()]);
+      add_movie_modal
+        .monitor_list
+        .set_items(Vec::from_iter(MovieMonitor::iter()));
+      add_movie_modal
+        .minimum_availability_list
+        .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      app.data.radarr_data.add_movie_modal = Some(add_movie_modal);
+      app.data.radarr_data.quality_profile_map =
+        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
+      let context = if movie_details_context {
+        app
+          .data
+          .radarr_data
+          .collection_movies
+          .set_items(vec![collection_movie()]);
+        Some(ActiveRadarrBlock::CollectionDetails)
+      } else {
+        let mut add_searched_movies = StatefulTable::default();
+        add_searched_movies.set_items(vec![add_movie_search_result()]);
+        app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
+        None
+      };
 
       AddMovieHandler::with(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::AddMoviePrompt,
-        None,
+        context,
       )
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::AddMovie(None))
+        Some(RadarrEvent::AddMovie(add_movie_body()))
       );
-      assert!(app.data.radarr_data.add_movie_modal.is_some());
+      assert!(app.data.radarr_data.add_movie_modal.is_none());
     }
 
     #[rstest]
@@ -1266,10 +1324,18 @@ mod tests {
   }
 
   mod test_handle_key_char {
+    use bimap::BiMap;
+    use pretty_assertions::assert_eq;
+    use rstest::rstest;
+
     use super::*;
     use crate::{
+      handlers::radarr_handlers::radarr_handler_test_utils::utils::{
+        add_movie_body, add_movie_search_result, collection_movie,
+      },
       models::{
         servarr_data::radarr::{modals::AddMovieModal, radarr_data::ADD_MOVIE_SELECTION_BLOCKS},
+        stateful_table::StatefulTable,
         BlockSelectionState,
       },
       network::radarr_network::RadarrEvent,
@@ -1368,8 +1434,10 @@ mod tests {
       );
     }
 
-    #[test]
-    fn test_add_movie_confirm_prompt_prompt_confirmation_confirm() {
+    #[rstest]
+    fn test_add_movie_confirm_prompt_prompt_confirmation_confirm(
+      #[values(true, false)] movie_details_context: bool,
+    ) {
       let mut app = App::default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
@@ -1380,21 +1448,67 @@ mod tests {
         .radarr_data
         .selected_block
         .set_index(0, ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
+      let mut add_movie_modal = AddMovieModal {
+        tags: "usenet, testing".into(),
+        ..AddMovieModal::default()
+      };
+      add_movie_modal.root_folder_list.set_items(vec![
+        RootFolder {
+          id: 1,
+          path: "/nfs".to_owned(),
+          accessible: true,
+          free_space: 219902325555200,
+          unmapped_folders: None,
+        },
+        RootFolder {
+          id: 2,
+          path: "/nfs2".to_owned(),
+          accessible: true,
+          free_space: 21990232555520,
+          unmapped_folders: None,
+        },
+      ]);
+      add_movie_modal.root_folder_list.state.select(Some(1));
+      add_movie_modal
+        .quality_profile_list
+        .set_items(vec!["HD - 1080p".to_owned()]);
+      add_movie_modal
+        .monitor_list
+        .set_items(Vec::from_iter(MovieMonitor::iter()));
+      add_movie_modal
+        .minimum_availability_list
+        .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      app.data.radarr_data.add_movie_modal = Some(add_movie_modal);
+      app.data.radarr_data.quality_profile_map =
+        BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
+      let context = if movie_details_context {
+        app
+          .data
+          .radarr_data
+          .collection_movies
+          .set_items(vec![collection_movie()]);
+        Some(ActiveRadarrBlock::CollectionDetails)
+      } else {
+        let mut add_searched_movies = StatefulTable::default();
+        add_searched_movies.set_items(vec![add_movie_search_result()]);
+        app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
+        None
+      };
 
       AddMovieHandler::with(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveRadarrBlock::AddMoviePrompt,
-        None,
+        context,
       )
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::AddMovie(None))
+        Some(RadarrEvent::AddMovie(add_movie_body()))
       );
-      assert!(app.data.radarr_data.add_movie_modal.is_some());
+      assert!(app.data.radarr_data.add_movie_modal.is_none());
     }
   }
 
@@ -1407,6 +1521,80 @@ mod tests {
         assert!(!AddMovieHandler::accepts(active_radarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_add_movie_search_no_panic_on_none_search_result() {
+    let mut app = App::default();
+    app.data.radarr_data.add_searched_movies = None;
+
+    AddMovieHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::AddMovieSearchResults,
+      None,
+    )
+    .handle();
+  }
+
+  #[rstest]
+  fn test_build_add_movie_body(#[values(true, false)] movie_details_context: bool) {
+    let mut app = App::default();
+    let mut add_movie_modal = AddMovieModal {
+      tags: "usenet, testing".into(),
+      ..AddMovieModal::default()
+    };
+    add_movie_modal.root_folder_list.set_items(vec![
+      RootFolder {
+        id: 1,
+        path: "/nfs".to_owned(),
+        accessible: true,
+        free_space: 219902325555200,
+        unmapped_folders: None,
+      },
+      RootFolder {
+        id: 2,
+        path: "/nfs2".to_owned(),
+        accessible: true,
+        free_space: 21990232555520,
+        unmapped_folders: None,
+      },
+    ]);
+    add_movie_modal.root_folder_list.state.select(Some(1));
+    add_movie_modal
+      .quality_profile_list
+      .set_items(vec!["HD - 1080p".to_owned()]);
+    add_movie_modal
+      .monitor_list
+      .set_items(Vec::from_iter(MovieMonitor::iter()));
+    add_movie_modal
+      .minimum_availability_list
+      .set_items(Vec::from_iter(MinimumAvailability::iter()));
+    app.data.radarr_data.add_movie_modal = Some(add_movie_modal);
+    app.data.radarr_data.quality_profile_map = BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
+    let context = if movie_details_context {
+      app
+        .data
+        .radarr_data
+        .collection_movies
+        .set_items(vec![collection_movie()]);
+      Some(ActiveRadarrBlock::CollectionDetails)
+    } else {
+      let mut add_searched_movies = StatefulTable::default();
+      add_searched_movies.set_items(vec![add_movie_search_result()]);
+      app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
+      None
+    };
+
+    let actual_add_movie_body = AddMovieHandler::with(
+      DEFAULT_KEYBINDINGS.confirm.key,
+      &mut app,
+      ActiveRadarrBlock::AddMoviePrompt,
+      context,
+    )
+    .build_add_movie_body();
+
+    assert_eq!(actual_add_movie_body, add_movie_body());
   }
 
   #[test]

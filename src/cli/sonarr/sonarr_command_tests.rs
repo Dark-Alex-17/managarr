@@ -346,7 +346,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::DeleteBlocklistItem(Some(expected_blocklist_item_id)).into(),
+          SonarrEvent::DeleteBlocklistItem(expected_blocklist_item_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -434,7 +434,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::EditAllIndexerSettings(Some(expected_edit_all_indexer_settings)).into(),
+          SonarrEvent::EditAllIndexerSettings(expected_edit_all_indexer_settings).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -470,7 +470,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::GetEpisodeReleases(Some(expected_episode_id)).into(),
+          SonarrEvent::GetEpisodeReleases(expected_episode_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -498,7 +498,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::TriggerAutomaticEpisodeSearch(Some(expected_episode_id)).into(),
+          SonarrEvent::TriggerAutomaticEpisodeSearch(expected_episode_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -571,7 +571,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::UpdateAndScanSeries(Some(expected_series_id)).into(),
+          SonarrEvent::UpdateAndScanSeries(expected_series_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -597,7 +597,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::SearchNewSeries(Some(expected_search_query)).into(),
+          SonarrEvent::SearchNewSeries(expected_search_query).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -624,7 +624,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::StartTask(Some(expected_task_name)).into(),
+          SonarrEvent::StartTask(expected_task_name).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -651,7 +651,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::TestIndexer(Some(expected_indexer_id)).into(),
+          SonarrEvent::TestIndexer(expected_indexer_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -698,7 +698,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::ToggleEpisodeMonitoring(Some(expected_episode_id)).into(),
+          SonarrEvent::ToggleEpisodeMonitoring(expected_episode_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -729,8 +729,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::ToggleSeasonMonitoring(Some((expected_series_id, expected_season_number)))
-            .into(),
+          SonarrEvent::ToggleSeasonMonitoring((expected_series_id, expected_season_number)).into(),
         ))
         .times(1)
         .returning(|_| {

@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+  use bimap::BiMap;
   use pretty_assertions::assert_str_eq;
   use strum::IntoEnumIterator;
 
@@ -7,8 +8,9 @@ mod tests {
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::library::edit_movie_handler::EditMovieHandler;
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::movie;
   use crate::handlers::KeyEventHandler;
-  use crate::models::radarr_models::MinimumAvailability;
+  use crate::models::radarr_models::{EditMovieParams, MinimumAvailability, Movie};
   use crate::models::servarr_data::radarr::modals::EditMovieModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_MOVIE_BLOCKS};
 
@@ -641,7 +643,34 @@ mod tests {
     #[test]
     fn test_edit_movie_confirm_prompt_prompt_confirmation_submit() {
       let mut app = App::default();
-      app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
+      let mut edit_movie = EditMovieModal {
+        tags: "usenet, testing".to_owned().into(),
+        path: "/nfs/Test Path".to_owned().into(),
+        monitored: Some(false),
+        ..EditMovieModal::default()
+      };
+      edit_movie
+        .quality_profile_list
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      edit_movie
+        .minimum_availability_list
+        .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      app.data.radarr_data.edit_movie_modal = Some(edit_movie);
+      app.data.radarr_data.movies.set_items(vec![Movie {
+        monitored: false,
+        ..movie()
+      }]);
+      app.data.radarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+      let expected_edit_movie_params = EditMovieParams {
+        movie_id: 1,
+        monitored: Some(false),
+        minimum_availability: Some(MinimumAvailability::Announced),
+        quality_profile_id: Some(1111),
+        root_folder_path: Some("/nfs/Test Path".to_owned()),
+        tag_input_string: Some("usenet, testing".into()),
+        ..EditMovieParams::default()
+      };
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
       app.data.radarr_data.prompt_confirm = true;
@@ -663,9 +692,9 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditMovie(None))
+        Some(RadarrEvent::EditMovie(expected_edit_movie_params))
       );
-      assert!(app.data.radarr_data.edit_movie_modal.is_some());
+      assert!(app.data.radarr_data.edit_movie_modal.is_none());
       assert!(app.should_refresh);
     }
 
@@ -1053,7 +1082,34 @@ mod tests {
     #[test]
     fn test_edit_movie_confirm_prompt_prompt_confirm() {
       let mut app = App::default();
-      app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
+      let mut edit_movie = EditMovieModal {
+        tags: "usenet, testing".to_owned().into(),
+        path: "/nfs/Test Path".to_owned().into(),
+        monitored: Some(false),
+        ..EditMovieModal::default()
+      };
+      edit_movie
+        .quality_profile_list
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      edit_movie
+        .minimum_availability_list
+        .set_items(Vec::from_iter(MinimumAvailability::iter()));
+      app.data.radarr_data.edit_movie_modal = Some(edit_movie);
+      app.data.radarr_data.movies.set_items(vec![Movie {
+        monitored: false,
+        ..movie()
+      }]);
+      app.data.radarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+      let expected_edit_movie_params = EditMovieParams {
+        movie_id: 1,
+        monitored: Some(false),
+        minimum_availability: Some(MinimumAvailability::Announced),
+        quality_profile_id: Some(1111),
+        root_folder_path: Some("/nfs/Test Path".to_owned()),
+        tag_input_string: Some("usenet, testing".into()),
+        ..EditMovieParams::default()
+      };
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
       app.data.radarr_data.selected_block = BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
@@ -1074,9 +1130,9 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::EditMovie(None))
+        Some(RadarrEvent::EditMovie(expected_edit_movie_params))
       );
-      assert!(app.data.radarr_data.edit_movie_modal.is_some());
+      assert!(app.data.radarr_data.edit_movie_modal.is_none());
       assert!(app.should_refresh);
     }
   }
@@ -1090,6 +1146,50 @@ mod tests {
         assert!(!EditMovieHandler::accepts(active_radarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_build_edit_movie_params() {
+    let mut app = App::default();
+    let mut edit_movie = EditMovieModal {
+      tags: "usenet, testing".to_owned().into(),
+      path: "/nfs/Test Path".to_owned().into(),
+      monitored: Some(false),
+      ..EditMovieModal::default()
+    };
+    edit_movie
+      .quality_profile_list
+      .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+    edit_movie
+      .minimum_availability_list
+      .set_items(Vec::from_iter(MinimumAvailability::iter()));
+    app.data.radarr_data.edit_movie_modal = Some(edit_movie);
+    app.data.radarr_data.movies.set_items(vec![Movie {
+      monitored: false,
+      ..movie()
+    }]);
+    app.data.radarr_data.quality_profile_map =
+      BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+    let expected_edit_movie_params = EditMovieParams {
+      movie_id: 1,
+      monitored: Some(false),
+      minimum_availability: Some(MinimumAvailability::Announced),
+      quality_profile_id: Some(1111),
+      root_folder_path: Some("/nfs/Test Path".to_owned()),
+      tag_input_string: Some("usenet, testing".into()),
+      ..EditMovieParams::default()
+    };
+
+    let edit_movie_params = EditMovieHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::EditMoviePrompt,
+      None,
+    )
+    .build_edit_movie_params();
+
+    assert_eq!(edit_movie_params, expected_edit_movie_params);
+    assert!(app.data.radarr_data.edit_movie_modal.is_none());
   }
 
   #[test]

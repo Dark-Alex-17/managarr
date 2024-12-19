@@ -34,6 +34,8 @@ pub struct AddSeriesBody {
   pub series_type: String,
   pub season_folder: bool,
   pub tags: Vec<i64>,
+  #[serde(skip_serializing, skip_deserializing)]
+  pub tag_input_string: Option<String>,
   pub add_options: AddSeriesOptions,
 }
 
@@ -95,7 +97,7 @@ pub struct BlocklistResponse {
   pub records: Vec<BlocklistItem>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub struct DeleteSeriesParams {
   pub id: i64,
@@ -192,6 +194,8 @@ pub struct EditSeriesParams {
   pub series_type: Option<SeriesType>,
   pub root_folder_path: Option<String>,
   pub tags: Option<Vec<i64>>,
+  #[serde(skip_serializing, skip_deserializing)]
+  pub tag_input_string: Option<String>,
   pub clear_tags: bool,
 }
 

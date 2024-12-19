@@ -1,16 +1,18 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::assert_str_eq;
+  use bimap::BiMap;
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::sonarr_handlers::library::edit_series_handler::EditSeriesHandler;
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_SERIES_BLOCKS};
-  use crate::models::sonarr_models::SeriesType;
+  use crate::models::sonarr_models::{EditSeriesParams, Series, SeriesType};
 
   mod test_handle_scroll_up_and_down {
     use pretty_assertions::assert_eq;
@@ -243,6 +245,7 @@ mod tests {
   }
 
   mod test_handle_home_end {
+    use pretty_assertions::assert_eq;
     use std::sync::atomic::Ordering;
 
     use strum::IntoEnumIterator;
@@ -531,6 +534,7 @@ mod tests {
   }
 
   mod test_handle_left_right_action {
+    use pretty_assertions::assert_eq;
     use std::sync::atomic::Ordering;
 
     use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
@@ -770,7 +774,43 @@ mod tests {
     #[test]
     fn test_edit_series_confirm_prompt_prompt_confirmation_submit() {
       let mut app = App::default();
-      app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
+      let mut edit_series = EditSeriesModal {
+        tags: "usenet, testing".to_owned().into(),
+        path: "/nfs/Test Path".to_owned().into(),
+        monitored: Some(false),
+        use_season_folders: Some(false),
+        ..EditSeriesModal::default()
+      };
+      edit_series
+        .quality_profile_list
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      edit_series
+        .language_profile_list
+        .set_items(vec!["Any".to_owned(), "English".to_owned()]);
+      edit_series
+        .series_type_list
+        .set_items(Vec::from_iter(SeriesType::iter()));
+      app.data.sonarr_data.edit_series_modal = Some(edit_series);
+      app.data.sonarr_data.series.set_items(vec![Series {
+        monitored: false,
+        season_folder: false,
+        ..series()
+      }]);
+      app.data.sonarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+      app.data.sonarr_data.language_profiles_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "English".to_owned())]);
+      let expected_edit_series_params = EditSeriesParams {
+        series_id: 1,
+        monitored: Some(false),
+        use_season_folders: Some(false),
+        series_type: Some(SeriesType::Standard),
+        quality_profile_id: Some(1111),
+        language_profile_id: Some(1111),
+        root_folder_path: Some("/nfs/Test Path".to_owned()),
+        tag_input_string: Some("usenet, testing".to_owned()),
+        ..EditSeriesParams::default()
+      };
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
       app.data.sonarr_data.prompt_confirm = true;
@@ -792,9 +832,9 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::EditSeries(None))
+        Some(SonarrEvent::EditSeries(expected_edit_series_params))
       );
-      assert!(app.data.sonarr_data.edit_series_modal.is_some());
+      assert!(app.data.sonarr_data.edit_series_modal.is_none());
       assert!(app.should_refresh);
     }
 
@@ -1135,6 +1175,7 @@ mod tests {
       },
       network::sonarr_network::SonarrEvent,
     };
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_edit_series_path_input_backspace() {
@@ -1253,7 +1294,43 @@ mod tests {
     #[test]
     fn test_edit_series_confirm_prompt_prompt_confirm() {
       let mut app = App::default();
-      app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
+      let mut edit_series = EditSeriesModal {
+        tags: "usenet, testing".to_owned().into(),
+        path: "/nfs/Test Path".to_owned().into(),
+        monitored: Some(false),
+        use_season_folders: Some(false),
+        ..EditSeriesModal::default()
+      };
+      edit_series
+        .quality_profile_list
+        .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+      edit_series
+        .language_profile_list
+        .set_items(vec!["Any".to_owned(), "English".to_owned()]);
+      edit_series
+        .series_type_list
+        .set_items(Vec::from_iter(SeriesType::iter()));
+      app.data.sonarr_data.edit_series_modal = Some(edit_series);
+      app.data.sonarr_data.series.set_items(vec![Series {
+        monitored: false,
+        season_folder: false,
+        ..series()
+      }]);
+      app.data.sonarr_data.quality_profile_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+      app.data.sonarr_data.language_profiles_map =
+        BiMap::from_iter([(1111, "Any".to_owned()), (2222, "English".to_owned())]);
+      let expected_edit_series_params = EditSeriesParams {
+        series_id: 1,
+        monitored: Some(false),
+        use_season_folders: Some(false),
+        series_type: Some(SeriesType::Standard),
+        quality_profile_id: Some(1111),
+        language_profile_id: Some(1111),
+        root_folder_path: Some("/nfs/Test Path".to_owned()),
+        tag_input_string: Some("usenet, testing".to_owned()),
+        ..EditSeriesParams::default()
+      };
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
       app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
@@ -1274,9 +1351,9 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::EditSeries(None))
+        Some(SonarrEvent::EditSeries(expected_edit_series_params))
       );
-      assert!(app.data.sonarr_data.edit_series_modal.is_some());
+      assert!(app.data.sonarr_data.edit_series_modal.is_none());
       assert!(app.should_refresh);
     }
   }
@@ -1290,6 +1367,59 @@ mod tests {
         assert!(!EditSeriesHandler::accepts(active_sonarr_block));
       }
     });
+  }
+
+  #[test]
+  fn test_build_edit_series_params() {
+    let mut app = App::default();
+    let mut edit_series = EditSeriesModal {
+      tags: "usenet, testing".to_owned().into(),
+      path: "/nfs/Test Path".to_owned().into(),
+      monitored: Some(false),
+      use_season_folders: Some(false),
+      ..EditSeriesModal::default()
+    };
+    edit_series
+      .quality_profile_list
+      .set_items(vec!["Any".to_owned(), "HD - 1080p".to_owned()]);
+    edit_series
+      .language_profile_list
+      .set_items(vec!["Any".to_owned(), "English".to_owned()]);
+    edit_series
+      .series_type_list
+      .set_items(Vec::from_iter(SeriesType::iter()));
+    app.data.sonarr_data.edit_series_modal = Some(edit_series);
+    app.data.sonarr_data.series.set_items(vec![Series {
+      monitored: false,
+      season_folder: false,
+      ..series()
+    }]);
+    app.data.sonarr_data.quality_profile_map =
+      BiMap::from_iter([(1111, "Any".to_owned()), (2222, "HD - 1080p".to_owned())]);
+    app.data.sonarr_data.language_profiles_map =
+      BiMap::from_iter([(1111, "Any".to_owned()), (2222, "English".to_owned())]);
+    let expected_edit_series_params = EditSeriesParams {
+      series_id: 1,
+      monitored: Some(false),
+      use_season_folders: Some(false),
+      series_type: Some(SeriesType::Standard),
+      quality_profile_id: Some(1111),
+      language_profile_id: Some(1111),
+      root_folder_path: Some("/nfs/Test Path".to_owned()),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      ..EditSeriesParams::default()
+    };
+
+    let edit_series_params = EditSeriesHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::EditSeriesPrompt,
+      None,
+    )
+    .build_edit_series_params();
+
+    assert_eq!(edit_series_params, expected_edit_series_params);
+    assert!(app.data.sonarr_data.edit_series_modal.is_none());
   }
 
   #[test]

@@ -245,21 +245,21 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
       SonarrCommand::SearchNewSeries { query } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::SearchNewSeries(Some(query)).into())
+          .handle_network_event(SonarrEvent::SearchNewSeries(query).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrCommand::StartTask { task_name } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::StartTask(Some(task_name)).into())
+          .handle_network_event(SonarrEvent::StartTask(task_name).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
       SonarrCommand::TestIndexer { indexer_id } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::TestIndexer(Some(indexer_id)).into())
+          .handle_network_event(SonarrEvent::TestIndexer(indexer_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
@@ -274,7 +274,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
       SonarrCommand::ToggleEpisodeMonitoring { episode_id } => {
         let resp = self
           .network
-          .handle_network_event(SonarrEvent::ToggleEpisodeMonitoring(Some(episode_id)).into())
+          .handle_network_event(SonarrEvent::ToggleEpisodeMonitoring(episode_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
@@ -285,7 +285,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
         let resp = self
           .network
           .handle_network_event(
-            SonarrEvent::ToggleSeasonMonitoring(Some((series_id, season_number))).into(),
+            SonarrEvent::ToggleSeasonMonitoring((series_id, season_number)).into(),
           )
           .await?;
         serde_json::to_string_pretty(&resp)?

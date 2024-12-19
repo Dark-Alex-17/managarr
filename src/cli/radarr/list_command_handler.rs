@@ -131,7 +131,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrListCommand> for RadarrListCommandH
       } => {
         let logs = self
           .network
-          .handle_network_event(RadarrEvent::GetLogs(Some(events)).into())
+          .handle_network_event(RadarrEvent::GetLogs(events).into())
           .await?;
 
         if output_in_log_format {
@@ -152,7 +152,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrListCommand> for RadarrListCommandH
       RadarrListCommand::MovieCredits { movie_id } => {
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::GetMovieCredits(Some(movie_id)).into())
+          .handle_network_event(RadarrEvent::GetMovieCredits(movie_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

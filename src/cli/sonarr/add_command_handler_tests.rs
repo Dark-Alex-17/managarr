@@ -469,17 +469,21 @@ mod tests {
     use super::*;
     use mockall::predicate::eq;
 
+    use crate::models::servarr_models::AddRootFolderBody;
     use serde_json::json;
     use tokio::sync::Mutex;
 
     #[tokio::test]
     async fn test_handle_add_root_folder_command() {
       let expected_root_folder_path = "/nfs/test".to_owned();
+      let expected_add_root_folder_body = AddRootFolderBody {
+        path: expected_root_folder_path.clone(),
+      };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::AddRootFolder(Some(expected_root_folder_path.clone())).into(),
+          SonarrEvent::AddRootFolder(expected_add_root_folder_body.clone()).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -511,6 +515,7 @@ mod tests {
         series_type: "anime".to_owned(),
         monitored: false,
         tags: vec![1, 2],
+        tag_input_string: None,
         season_folder: false,
         add_options: AddSeriesOptions {
           monitor: "future".to_owned(),
@@ -522,7 +527,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::AddSeries(Some(expected_add_series_body)).into(),
+          SonarrEvent::AddSeries(expected_add_series_body).into(),
         ))
         .times(1)
         .returning(|_| {

@@ -293,9 +293,9 @@ mod tests {
           )))
         });
       let app_arc = Arc::new(Mutex::new(App::default()));
-      let claer_blocklist_command = RadarrCommand::ClearBlocklist;
+      let clear_blocklist_command = RadarrCommand::ClearBlocklist;
 
-      let result = RadarrCliHandler::with(&app_arc, claer_blocklist_command, &mut mock_network)
+      let result = RadarrCliHandler::with(&app_arc, clear_blocklist_command, &mut mock_network)
         .handle()
         .await;
 
@@ -313,7 +313,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::DownloadRelease(Some(expected_release_download_body)).into(),
+          RadarrEvent::DownloadRelease(expected_release_download_body).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -342,7 +342,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::GetReleases(Some(expected_movie_id)).into(),
+          RadarrEvent::GetReleases(expected_movie_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -367,7 +367,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::SearchNewMovie(Some(expected_search_query)).into(),
+          RadarrEvent::SearchNewMovie(expected_search_query).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -394,7 +394,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::StartTask(Some(expected_task_name)).into(),
+          RadarrEvent::StartTask(expected_task_name).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -421,7 +421,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::TestIndexer(Some(expected_indexer_id)).into(),
+          RadarrEvent::TestIndexer(expected_indexer_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -468,7 +468,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::TriggerAutomaticSearch(Some(expected_movie_id)).into(),
+          RadarrEvent::TriggerAutomaticSearch(expected_movie_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -524,7 +524,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::DeleteBlocklistItem(Some(expected_blocklist_item_id)).into(),
+          RadarrEvent::DeleteBlocklistItem(expected_blocklist_item_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -584,7 +584,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::EditAllIndexerSettings(Some(expected_edit_all_indexer_settings)).into(),
+          RadarrEvent::EditAllIndexerSettings(expected_edit_all_indexer_settings).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -654,7 +654,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::GetMovieCredits(Some(expected_movie_id)).into(),
+          RadarrEvent::GetMovieCredits(expected_movie_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -680,7 +680,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::UpdateAndScan(Some(expected_movie_id)).into(),
+          RadarrEvent::UpdateAndScan(expected_movie_id).into(),
         ))
         .times(1)
         .returning(|_| {

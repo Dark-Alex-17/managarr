@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
@@ -7,6 +8,7 @@ mod tests {
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::sonarr_handlers::indexers::IndexersHandler;
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::indexer;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, EDIT_INDEXER_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
@@ -245,11 +247,7 @@ mod tests {
     #[test]
     fn test_delete_indexer_prompt_confirm_submit() {
       let mut app = App::default();
-      app
-        .data
-        .sonarr_data
-        .indexers
-        .set_items(vec![Indexer::default()]);
+      app.data.sonarr_data.indexers.set_items(vec![indexer()]);
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
@@ -265,7 +263,7 @@ mod tests {
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::DeleteIndexer(None))
+        Some(SonarrEvent::DeleteIndexer(1))
       );
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
     }
@@ -556,11 +554,7 @@ mod tests {
     #[test]
     fn test_delete_indexer_prompt_confirm() {
       let mut app = App::default();
-      app
-        .data
-        .sonarr_data
-        .indexers
-        .set_items(vec![Indexer::default()]);
+      app.data.sonarr_data.indexers.set_items(vec![indexer()]);
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
 
@@ -575,7 +569,7 @@ mod tests {
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::DeleteIndexer(None))
+        Some(SonarrEvent::DeleteIndexer(1))
       );
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
     }
@@ -647,6 +641,22 @@ mod tests {
         assert!(!IndexersHandler::accepts(active_sonarr_block));
       }
     })
+  }
+
+  #[test]
+  fn test_extract_indexer_id() {
+    let mut app = App::default();
+    app.data.sonarr_data.indexers.set_items(vec![indexer()]);
+
+    let indexer_id = IndexersHandler::with(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::Indexers,
+      None,
+    )
+    .extract_indexer_id();
+
+    assert_eq!(indexer_id, 1);
   }
 
   #[test]

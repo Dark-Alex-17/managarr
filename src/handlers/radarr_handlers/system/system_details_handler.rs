@@ -2,6 +2,7 @@ use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::models::radarr_models::RadarrTaskName;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::stateful_list::StatefulList;
 use crate::models::Scrollable;
@@ -16,6 +17,18 @@ pub(super) struct SystemDetailsHandler<'a, 'b> {
   app: &'a mut App<'b>,
   active_radarr_block: ActiveRadarrBlock,
   _context: Option<ActiveRadarrBlock>,
+}
+
+impl<'a, 'b> SystemDetailsHandler<'a, 'b> {
+  fn extract_task_name(&self) -> RadarrTaskName {
+    self
+      .app
+      .data
+      .radarr_data
+      .tasks
+      .current_selection()
+      .task_name
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler<'a, 'b> {
@@ -137,7 +150,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler
       }
       ActiveRadarrBlock::SystemTaskStartConfirmPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::StartTask(None));
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::StartTask(self.extract_task_name()));
         }
 
         self.app.pop_navigation_stack();
@@ -174,7 +188,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemDetailsHandler
       && self.key == DEFAULT_KEYBINDINGS.confirm.key
     {
       self.app.data.radarr_data.prompt_confirm = true;
-      self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::StartTask(None));
+      self.app.data.radarr_data.prompt_confirm_action =
+        Some(RadarrEvent::StartTask(self.extract_task_name()));
       self.app.pop_navigation_stack();
     }
   }

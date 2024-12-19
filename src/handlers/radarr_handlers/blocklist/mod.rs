@@ -28,6 +28,10 @@ impl<'a, 'b> BlocklistHandler<'a, 'b> {
     self.app.data.radarr_data.blocklist,
     BlocklistItem
   );
+
+  fn extract_blocklist_item_id(&self) -> i64 {
+    self.app.data.radarr_data.blocklist.current_selection().id
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a, 'b> {
@@ -98,8 +102,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
     match self.active_radarr_block {
       ActiveRadarrBlock::DeleteBlocklistItemPrompt => {
         if self.app.data.radarr_data.prompt_confirm {
-          self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::DeleteBlocklistItem(None));
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteBlocklistItem(
+            self.extract_blocklist_item_id(),
+          ));
         }
 
         self.app.pop_navigation_stack();
@@ -151,8 +156,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
       ActiveRadarrBlock::DeleteBlocklistItemPrompt => {
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.radarr_data.prompt_confirm = true;
-          self.app.data.radarr_data.prompt_confirm_action =
-            Some(RadarrEvent::DeleteBlocklistItem(None));
+          self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteBlocklistItem(
+            self.extract_blocklist_item_id(),
+          ));
 
           self.app.pop_navigation_stack();
         }

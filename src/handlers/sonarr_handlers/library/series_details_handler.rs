@@ -37,6 +37,23 @@ impl<'a, 'b> SeriesDetailsHandler<'a, 'b> {
       .expect("Series history is undefined"),
     SonarrHistoryItem
   );
+
+  fn extract_series_id_season_number_tuple(&self) -> (i64, i64) {
+    let series_id = self.app.data.sonarr_data.series.current_selection().id;
+    let season_number = self
+      .app
+      .data
+      .sonarr_data
+      .seasons
+      .current_selection()
+      .season_number;
+
+    (series_id, season_number)
+  }
+
+  fn extract_series_id(&self) -> i64 {
+    self.app.data.sonarr_data.series.current_selection().id
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler<'a, 'b> {
@@ -168,8 +185,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
       }
       ActiveSonarrBlock::AutomaticallySearchSeriesPrompt => {
         if self.app.data.sonarr_data.prompt_confirm {
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::TriggerAutomaticSeriesSearch(None));
+          self.app.data.sonarr_data.prompt_confirm_action = Some(
+            SonarrEvent::TriggerAutomaticSeriesSearch(self.extract_series_id()),
+          );
         }
 
         self.app.pop_navigation_stack();
@@ -177,7 +195,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
       ActiveSonarrBlock::UpdateAndScanSeriesPrompt => {
         if self.app.data.sonarr_data.prompt_confirm {
           self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::UpdateAndScanSeries(None));
+            Some(SonarrEvent::UpdateAndScanSeries(self.extract_series_id()));
         }
 
         self.app.pop_navigation_stack();
@@ -259,8 +277,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         }
         _ if key == DEFAULT_KEYBINDINGS.toggle_monitoring.key => {
           self.app.data.sonarr_data.prompt_confirm = true;
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::ToggleSeasonMonitoring(None));
+          self.app.data.sonarr_data.prompt_confirm_action = Some(
+            SonarrEvent::ToggleSeasonMonitoring(self.extract_series_id_season_number_tuple()),
+          );
 
           self
             .app
@@ -299,8 +318,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
       ActiveSonarrBlock::AutomaticallySearchSeriesPrompt => {
         if key == DEFAULT_KEYBINDINGS.confirm.key {
           self.app.data.sonarr_data.prompt_confirm = true;
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::TriggerAutomaticSeriesSearch(None));
+          self.app.data.sonarr_data.prompt_confirm_action = Some(
+            SonarrEvent::TriggerAutomaticSeriesSearch(self.extract_series_id()),
+          );
 
           self.app.pop_navigation_stack();
         }
@@ -308,7 +328,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
       ActiveSonarrBlock::UpdateAndScanSeriesPrompt => {
         if self.app.data.sonarr_data.prompt_confirm {
           self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::UpdateAndScanSeries(None));
+            Some(SonarrEvent::UpdateAndScanSeries(self.extract_series_id()));
         }
 
         self.app.pop_navigation_stack();

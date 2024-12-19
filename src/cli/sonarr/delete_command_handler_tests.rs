@@ -301,7 +301,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::DeleteBlocklistItem(Some(expected_blocklist_item_id)).into(),
+          SonarrEvent::DeleteBlocklistItem(expected_blocklist_item_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -332,7 +332,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::DeleteDownload(Some(expected_download_id)).into(),
+          SonarrEvent::DeleteDownload(expected_download_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -352,13 +352,39 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_handle_delete_episode_file_command() {
+      let expected_episode_file_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::DeleteEpisodeFile(expected_episode_file_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::default()));
+      let delete_episode_file_command = SonarrDeleteCommand::EpisodeFile { episode_file_id: 1 };
+
+      let result =
+        SonarrDeleteCommandHandler::with(&app_arc, delete_episode_file_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
     async fn test_handle_delete_indexer_command() {
       let expected_indexer_id = 1;
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::DeleteIndexer(Some(expected_indexer_id)).into(),
+          SonarrEvent::DeleteIndexer(expected_indexer_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -384,7 +410,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::DeleteRootFolder(Some(expected_root_folder_id)).into(),
+          SonarrEvent::DeleteRootFolder(expected_root_folder_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -414,7 +440,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          SonarrEvent::DeleteSeries(Some(expected_delete_series_params)).into(),
+          SonarrEvent::DeleteSeries(expected_delete_series_params).into(),
         ))
         .times(1)
         .returning(|_| {

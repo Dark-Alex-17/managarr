@@ -4,6 +4,9 @@ mod tests {
     use pretty_assertions::{assert_eq, assert_str_eq};
     use tokio::sync::mpsc;
 
+    use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
+    use crate::models::servarr_models::Indexer;
+    use crate::models::sonarr_models::Episode;
     use crate::{
       app::App,
       models::{
@@ -40,6 +43,10 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_series_history_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.sonarr_data.series.set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::SeriesHistory)
@@ -48,7 +55,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetSeriesHistory(None).into()
+        SonarrEvent::GetSeriesHistory(1).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -80,6 +87,10 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_season_details_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.sonarr_data.series.set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::SeasonDetails)
@@ -88,11 +99,11 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetEpisodes(None).into()
+        SonarrEvent::GetEpisodes(1).into()
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetEpisodeFiles(None).into()
+        SonarrEvent::GetEpisodeFiles(1).into()
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
@@ -105,6 +116,14 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_season_history_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.sonarr_data.series.set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+      app.data.sonarr_data.seasons.set_items(vec![Season {
+        season_number: 1,
+        ..Season::default()
+      }]);
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::SeasonHistory)
@@ -113,8 +132,25 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetSeasonHistory(None).into()
+        SonarrEvent::GetSeasonHistory((1, 1)).into()
       );
+      assert!(!app.data.sonarr_data.prompt_confirm);
+      assert_eq!(app.tick_count, 0);
+    }
+
+    #[tokio::test]
+    async fn test_dispatch_by_season_history_block_no_op_when_seasons_table_is_empty() {
+      let (mut app, _) = construct_app_unit();
+      app.data.sonarr_data.series.set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+
+      app
+        .dispatch_by_sonarr_block(&ActiveSonarrBlock::SeasonHistory)
+        .await;
+
+      assert!(!app.is_loading);
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
     }
@@ -123,6 +159,14 @@ mod tests {
     async fn test_dispatch_by_manual_season_search_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
       app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
+      app.data.sonarr_data.series.set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+      app.data.sonarr_data.seasons.set_items(vec![Season {
+        season_number: 1,
+        ..Season::default()
+      }]);
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::ManualSeasonSearch)
@@ -131,7 +175,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetSeasonReleases(None).into()
+        SonarrEvent::GetSeasonReleases((1, 1)).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -174,6 +218,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_episode_details_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.sonarr_data = create_test_sonarr_data();
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::EpisodeDetails)
@@ -182,7 +227,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetEpisodeDetails(None).into()
+        SonarrEvent::GetEpisodeDetails(0).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -191,6 +236,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_episode_file_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.sonarr_data = create_test_sonarr_data();
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::EpisodeFile)
@@ -199,7 +245,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetEpisodeDetails(None).into()
+        SonarrEvent::GetEpisodeDetails(0).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -208,6 +254,12 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_episode_history_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      let mut season_details_modal = SeasonDetailsModal::default();
+      season_details_modal.episodes.set_items(vec![Episode {
+        id: 1,
+        ..Episode::default()
+      }]);
+      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::EpisodeHistory)
@@ -216,7 +268,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetEpisodeHistory(None).into()
+        SonarrEvent::GetEpisodeHistory(1).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -225,10 +277,14 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_manual_episode_search_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
-      let season_details_modal = SeasonDetailsModal {
+      let mut season_details_modal = SeasonDetailsModal {
         episode_details_modal: Some(EpisodeDetailsModal::default()),
         ..SeasonDetailsModal::default()
       };
+      season_details_modal.episodes.set_items(vec![Episode {
+        id: 1,
+        ..Episode::default()
+      }]);
       app.data.sonarr_data.season_details_modal = Some(season_details_modal);
 
       app
@@ -238,7 +294,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetEpisodeReleases(None).into()
+        SonarrEvent::GetEpisodeReleases(1).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -293,7 +349,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetHistory(None).into()
+        SonarrEvent::GetHistory(500).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -403,6 +459,10 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_test_indexer_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.sonarr_data.indexers.set_items(vec![Indexer {
+        id: 1,
+        ..Indexer::default()
+      }]);
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::TestIndexer)
@@ -411,7 +471,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::TestIndexer(None).into()
+        SonarrEvent::TestIndexer(1).into()
       );
       assert_eq!(app.tick_count, 0);
     }
@@ -451,7 +511,7 @@ mod tests {
       );
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::GetLogs(None).into()
+        SonarrEvent::GetLogs(500).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -477,6 +537,7 @@ mod tests {
     #[tokio::test]
     async fn test_dispatch_by_add_series_search_results_block() {
       let (mut app, mut sync_network_rx) = construct_app_unit();
+      app.data.sonarr_data.add_series_search = Some("test search".into());
 
       app
         .dispatch_by_sonarr_block(&ActiveSonarrBlock::AddSeriesSearchResults)
@@ -485,7 +546,7 @@ mod tests {
       assert!(app.is_loading);
       assert_eq!(
         sync_network_rx.recv().await.unwrap(),
-        SonarrEvent::SearchNewSeries(None).into()
+        SonarrEvent::SearchNewSeries("test search".into()).into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.tick_count, 0);
@@ -725,6 +786,83 @@ mod tests {
           .unwrap(),
         "Season 0"
       );
+    }
+
+    #[tokio::test]
+    async fn test_extract_episode_id() {
+      let mut app = App::default();
+      let mut season_details_modal = SeasonDetailsModal::default();
+      season_details_modal.episodes.set_items(vec![Episode {
+        id: 1,
+        ..Episode::default()
+      }]);
+      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
+
+      assert_eq!(app.extract_episode_id().await, 1);
+    }
+
+    #[tokio::test]
+    #[should_panic(expected = "Season details have not been loaded")]
+    async fn test_extract_episode_id_requires_season_details_modal_to_be_some() {
+      let app = App::default();
+
+      assert_eq!(app.extract_episode_id().await, 0);
+    }
+
+    #[tokio::test]
+    async fn test_extract_series_id() {
+      let mut app = App::default();
+      app.data.sonarr_data.series.set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+
+      assert_eq!(app.extract_series_id().await, 1);
+    }
+
+    #[tokio::test]
+    async fn test_extract_series_id_season_number_tuple() {
+      let mut app = App::default();
+      app.data.sonarr_data.series.set_items(vec![Series {
+        id: 1,
+        ..Series::default()
+      }]);
+      app.data.sonarr_data.seasons.set_items(vec![Season {
+        season_number: 1,
+        ..Season::default()
+      }]);
+
+      assert_eq!(app.extract_series_id_season_number_tuple().await, (1, 1));
+    }
+
+    #[tokio::test]
+    async fn test_extract_add_new_series_search_query() {
+      let mut app = App::default();
+      app.data.sonarr_data.add_series_search = Some("test search".into());
+
+      assert_str_eq!(
+        app.extract_add_new_series_search_query().await,
+        "test search"
+      );
+    }
+
+    #[tokio::test]
+    #[should_panic(expected = "Add series search is empty")]
+    async fn test_extract_add_new_series_search_query_panics_when_the_query_is_not_set() {
+      let app = App::default();
+
+      app.extract_add_new_series_search_query().await;
+    }
+
+    #[tokio::test]
+    async fn test_extract_sonarr_indexer_id() {
+      let mut app = App::default();
+      app.data.sonarr_data.indexers.set_items(vec![Indexer {
+        id: 1,
+        ..Indexer::default()
+      }]);
+
+      assert_eq!(app.extract_sonarr_indexer_id().await, 1);
     }
 
     fn construct_app_unit<'a>() -> (App<'a>, mpsc::Receiver<NetworkEvent>) {

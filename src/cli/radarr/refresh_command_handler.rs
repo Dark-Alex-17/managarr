@@ -88,7 +88,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrRefreshCommand>
       RadarrRefreshCommand::Movie { movie_id } => {
         let resp = self
           .network
-          .handle_network_event(RadarrEvent::UpdateAndScan(Some(movie_id)).into())
+          .handle_network_event(RadarrEvent::UpdateAndScan(movie_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

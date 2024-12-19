@@ -38,30 +38,42 @@ impl<'a> App<'a> {
       }
       ActiveSonarrBlock::SeriesHistory => {
         self
-          .dispatch_network_event(SonarrEvent::GetSeriesHistory(None).into())
+          .dispatch_network_event(
+            SonarrEvent::GetSeriesHistory(self.extract_series_id().await).into(),
+          )
           .await;
       }
       ActiveSonarrBlock::SeasonDetails => {
         self
-          .dispatch_network_event(SonarrEvent::GetEpisodes(None).into())
+          .dispatch_network_event(SonarrEvent::GetEpisodes(self.extract_series_id().await).into())
           .await;
         self
-          .dispatch_network_event(SonarrEvent::GetEpisodeFiles(None).into())
+          .dispatch_network_event(
+            SonarrEvent::GetEpisodeFiles(self.extract_series_id().await).into(),
+          )
           .await;
         self
           .dispatch_network_event(SonarrEvent::GetDownloads.into())
           .await;
       }
       ActiveSonarrBlock::SeasonHistory => {
-        self
-          .dispatch_network_event(SonarrEvent::GetSeasonHistory(None).into())
-          .await;
+        if !self.data.sonarr_data.seasons.is_empty() {
+          self
+            .dispatch_network_event(
+              SonarrEvent::GetSeasonHistory(self.extract_series_id_season_number_tuple().await)
+                .into(),
+            )
+            .await;
+        }
       }
       ActiveSonarrBlock::ManualSeasonSearch => {
         match self.data.sonarr_data.season_details_modal.as_ref() {
           Some(season_details_modal) if season_details_modal.season_releases.is_empty() => {
             self
-              .dispatch_network_event(SonarrEvent::GetSeasonReleases(None).into())
+              .dispatch_network_event(
+                SonarrEvent::GetSeasonReleases(self.extract_series_id_season_number_tuple().await)
+                  .into(),
+              )
               .await;
           }
           _ => (),
@@ -69,12 +81,16 @@ impl<'a> App<'a> {
       }
       ActiveSonarrBlock::EpisodeDetails | ActiveSonarrBlock::EpisodeFile => {
         self
-          .dispatch_network_event(SonarrEvent::GetEpisodeDetails(None).into())
+          .dispatch_network_event(
+            SonarrEvent::GetEpisodeDetails(self.extract_episode_id().await).into(),
+          )
           .await;
       }
       ActiveSonarrBlock::EpisodeHistory => {
         self
-          .dispatch_network_event(SonarrEvent::GetEpisodeHistory(None).into())
+          .dispatch_network_event(
+            SonarrEvent::GetEpisodeHistory(self.extract_episode_id().await).into(),
+          )
           .await;
       }
       ActiveSonarrBlock::ManualEpisodeSearch => {
@@ -82,7 +98,9 @@ impl<'a> App<'a> {
           if let Some(episode_details_modal) = season_details_modal.episode_details_modal.as_ref() {
             if episode_details_modal.episode_releases.is_empty() {
               self
-                .dispatch_network_event(SonarrEvent::GetEpisodeReleases(None).into())
+                .dispatch_network_event(
+                  SonarrEvent::GetEpisodeReleases(self.extract_episode_id().await).into(),
+                )
                 .await;
             }
           }
@@ -103,7 +121,7 @@ impl<'a> App<'a> {
       }
       ActiveSonarrBlock::History => {
         self
-          .dispatch_network_event(SonarrEvent::GetHistory(None).into())
+          .dispatch_network_event(SonarrEvent::GetHistory(500).into())
           .await;
       }
       ActiveSonarrBlock::RootFolders => {
@@ -126,7 +144,9 @@ impl<'a> App<'a> {
       }
       ActiveSonarrBlock::TestIndexer => {
         self
-          .dispatch_network_event(SonarrEvent::TestIndexer(None).into())
+          .dispatch_network_event(
+            SonarrEvent::TestIndexer(self.extract_sonarr_indexer_id().await).into(),
+          )
           .await;
       }
       ActiveSonarrBlock::TestAllIndexers => {
@@ -142,12 +162,14 @@ impl<'a> App<'a> {
           .dispatch_network_event(SonarrEvent::GetQueuedEvents.into())
           .await;
         self
-          .dispatch_network_event(SonarrEvent::GetLogs(None).into())
+          .dispatch_network_event(SonarrEvent::GetLogs(500).into())
           .await;
       }
       ActiveSonarrBlock::AddSeriesSearchResults => {
         self
-          .dispatch_network_event(SonarrEvent::SearchNewSeries(None).into())
+          .dispatch_network_event(
+            SonarrEvent::SearchNewSeries(self.extract_add_new_series_search_query().await).into(),
+          )
           .await;
       }
       ActiveSonarrBlock::SystemUpdates => {
@@ -241,5 +263,47 @@ impl<'a> App<'a> {
       })
       .collect();
     self.data.sonarr_data.seasons.set_items(seasons);
+  }
+
+  async fn extract_episode_id(&self) -> i64 {
+    self
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_ref()
+      .expect("Season details have not been loaded")
+      .episodes
+      .current_selection()
+      .id
+  }
+
+  async fn extract_series_id(&self) -> i64 {
+    self.data.sonarr_data.series.current_selection().id
+  }
+
+  async fn extract_series_id_season_number_tuple(&self) -> (i64, i64) {
+    let series_id = self.data.sonarr_data.series.current_selection().id;
+    let season_number = self
+      .data
+      .sonarr_data
+      .seasons
+      .current_selection()
+      .season_number;
+    (series_id, season_number)
+  }
+
+  async fn extract_add_new_series_search_query(&self) -> String {
+    self
+      .data
+      .sonarr_data
+      .add_series_search
+      .as_ref()
+      .expect("Add series search is empty")
+      .text
+      .clone()
+  }
+
+  async fn extract_sonarr_indexer_id(&self) -> i64 {
+    self.data.sonarr_data.indexers.current_selection().id
   }
 }

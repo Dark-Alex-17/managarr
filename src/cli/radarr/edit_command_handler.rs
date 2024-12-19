@@ -390,7 +390,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
           };
           self
             .network
-            .handle_network_event(RadarrEvent::EditAllIndexerSettings(Some(params)).into())
+            .handle_network_event(RadarrEvent::EditAllIndexerSettings(params).into())
             .await?;
           "All indexer settings updated".to_owned()
         } else {
@@ -420,7 +420,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
         };
         self
           .network
-          .handle_network_event(RadarrEvent::EditCollection(Some(edit_collection_params)).into())
+          .handle_network_event(RadarrEvent::EditCollection(edit_collection_params).into())
           .await?;
         "Collection updated".to_owned()
       }
@@ -455,13 +455,14 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
           api_key,
           seed_ratio,
           tags: tag,
+          tag_input_string: None,
           priority,
           clear_tags,
         };
 
         self
           .network
-          .handle_network_event(RadarrEvent::EditIndexer(Some(edit_indexer_params)).into())
+          .handle_network_event(RadarrEvent::EditIndexer(edit_indexer_params).into())
           .await?;
         "Indexer updated".to_owned()
       }
@@ -483,12 +484,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
           quality_profile_id,
           root_folder_path,
           tags: tag,
+          tag_input_string: None,
           clear_tags,
         };
 
         self
           .network
-          .handle_network_event(RadarrEvent::EditMovie(Some(edit_movie_params)).into())
+          .handle_network_event(RadarrEvent::EditMovie(edit_movie_params).into())
           .await?;
         "Movie Updated".to_owned()
       }

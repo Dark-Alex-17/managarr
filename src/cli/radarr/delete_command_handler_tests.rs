@@ -268,7 +268,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::DeleteBlocklistItem(Some(expected_blocklist_item_id)).into(),
+          RadarrEvent::DeleteBlocklistItem(expected_blocklist_item_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -299,7 +299,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::DeleteDownload(Some(expected_download_id)).into(),
+          RadarrEvent::DeleteDownload(expected_download_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -325,7 +325,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::DeleteIndexer(Some(expected_indexer_id)).into(),
+          RadarrEvent::DeleteIndexer(expected_indexer_id).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -355,7 +355,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::DeleteMovie(Some(expected_delete_movie_params)).into(),
+          RadarrEvent::DeleteMovie(expected_delete_movie_params).into(),
         ))
         .times(1)
         .returning(|_| {
@@ -385,7 +385,7 @@ mod tests {
       mock_network
         .expect_handle_network_event()
         .with(eq::<NetworkEvent>(
-          RadarrEvent::DeleteRootFolder(Some(expected_root_folder_id)).into(),
+          RadarrEvent::DeleteRootFolder(expected_root_folder_id).into(),
         ))
         .times(1)
         .returning(|_| {
