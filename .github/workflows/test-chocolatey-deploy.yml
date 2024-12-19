@@ -44,6 +44,7 @@ jobs:
           cd ./deployment/chocolatey
           choco pack
           echo y | choco install managarr -dv -s .
+          refreshenv
           $version = managarr --version
           $version = $version -replace " ", "."
           choco push $version.nupkg -s https://push.chocolatey.org/ --api-key ${{ secrets.CHOCOLATEY_API_KEY }};
