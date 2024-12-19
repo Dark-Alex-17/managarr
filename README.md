@@ -37,6 +37,27 @@ curl https://raw.githubusercontent.com/Dark-Alex-17/managarr-demo/main/managarr-
 Alternatively, you can try out the demo container without downloading anything by visiting the [Managarr Demo site](https://managarr-demo.alexjclarke.com).
 
 ## Installation
+
+### Chocolatey (Windows)
+The Managarr Chocolatey package is located [here](https://community.chocolatey.org/packages/managarr). Please note that validation
+of Chocolatey packages take quite some time, and thus the package may not be available immediately after a new release. If you want the 
+latest version and don't want to wait, use the Scoop installation method instead.
+
+```powershell
+choco install managarr
+
+# Some newer releases may require a version number, so you can specify it like so:
+choco install managarr --version=0.4.1
+```
+
+To upgrade to the latest and greatest version of Managarr:
+```powershell
+choco upgrade managarr
+
+# To upgrade to a specific version:
+choco upgrade managarr --version=0.4.2
+```
+
 ### Cargo
 If you have Cargo installed, then you can install Managarr from Crates.io:
 
