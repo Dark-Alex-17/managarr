@@ -292,6 +292,12 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Get release artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: artifacts
+          path: artifacts
+
       - name: Set version variable
         run: |
           version="$(cat artifacts/release-version)"
