@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop';
 
-$PackageName = 'kdash'
+$PackageName = 'managarr'
 $toolsDir    = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 $url64       = 'https://github.com/Dark-Alex-17/managarr/releases/download/v$version/managarr-windows.tar.gz'
 $checksum64  = '$hash_64'
