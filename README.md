@@ -34,7 +34,7 @@ Simply run the following command to start a demo:
 curl https://raw.githubusercontent.com/Dark-Alex-17/managarr-demo/main/managarr-demo.sh > /tmp/managarr-demo.sh && bash /tmp/managarr-demo.sh
 ```
 
-Alternatively, you can try out the demo container without downloading anything. Just check out the [Managarr Demo site](https://managarr-demo.alexjclarke.com).
+Alternatively, you can try out the demo container without downloading anything by visiting the [Managarr Demo site](https://managarr-demo.alexjclarke.com).
 
 ## Installation
 ### Cargo
