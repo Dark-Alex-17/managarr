@@ -38,25 +38,6 @@ Alternatively, you can try out the demo container without downloading anything b
 
 ## Installation
 
-### Chocolatey (Windows)
-The Managarr Chocolatey package is located [here](https://community.chocolatey.org/packages/managarr). Please note that validation
-of Chocolatey packages take quite some time, and thus the package may not be available immediately after a new release.
-
-```powershell
-choco install managarr
-
-# Some newer releases may require a version number, so you can specify it like so:
-choco install managarr --version=0.4.1
-```
-
-To upgrade to the latest and greatest version of Managarr:
-```powershell
-choco upgrade managarr
-
-# To upgrade to a specific version:
-choco upgrade managarr --version=0.4.2
-```
-
 ### Cargo
 If you have Cargo installed, then you can install Managarr from Crates.io:
 
@@ -78,6 +59,41 @@ You can also clone this repo and run `make docker` to build a docker image local
 Please note that you will need to create and popular your configuration file first before starting the container. Otherwise, the container will fail to start.
 
 **Note:** If you run into errors using relative file paths when mounting the volume with the configuration file, try using an absolute path.
+
+### Homebrew (Mac and Linux)
+To install Managarr from Homebrew, install the Managarr tap and then you'll be able to install Managarr:
+
+```shell
+brew tap Dark-Alex-17/managarr
+brew install managarr
+
+# If you need to be more specific, use the following:
+brew install Dark-Alex-17/managarr/managarr
+```
+
+To upgrade to a newer version of Managarr:
+```shell
+brew upgrade managarr
+```
+
+### Chocolatey (Windows)
+The Managarr Chocolatey package is located [here](https://community.chocolatey.org/packages/managarr). Please note that validation
+of Chocolatey packages take quite some time, and thus the package may not be available immediately after a new release.
+
+```powershell
+choco install managarr
+
+# Some newer releases may require a version number, so you can specify it like so:
+choco install managarr --version=0.4.1
+```
+
+To upgrade to the latest and greatest version of Managarr:
+```powershell
+choco upgrade managarr
+
+# To upgrade to a specific version:
+choco upgrade managarr --version=0.4.2
+```
 
 ### Manual
 Binaries are available on the [releases](https://github.com/Dark-Alex-17/managarr/releases) page for the following platforms:
