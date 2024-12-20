@@ -1,0 +1,25 @@
+{
+  "homepage": "https://github.com/Dark-Alex-17/managarr",
+  "description": "A fast and simple dashboard for Kubernetes",
+  "version": "$version",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/Dark-Alex-17/managarr/releases/download/v$version/managarr-windows.tar.gz",
+      "hash": "$hash_64"
+    }
+  },
+  "bin": "managarr.exe",
+  "checkver": "github",
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/Dark-Alex-17/managarr/releases/download/v$version/managarr-windows.tar.gz",
+        "hash": {
+          "url": "https://github.com/Dark-Alex-17/managarr/releases/download/v$version/managarr-windows.sha256",
+          "regex": "$sha256"
+        }
+      }
+    }
+  }
+}

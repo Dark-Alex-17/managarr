@@ -1,0 +1,59 @@
+name: Test publish Managarr scoop bucket
+
+permissions:
+  pull-requests: write
+  contents: write
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-scoop-bucket:
+    name: Publish Scoop Bucket
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set release assets and version
+        shell: pwsh
+        run: |
+          # mock artifact data
+          mkdir artifacts
+          'c27e191f4290501287ca16268d9c2029e1f5cd01f7c2ac2be3cdfee80395f719' | Set-Content -Path artifacts/managarr-windows.sha256
+          '0.4.1' | Set-Content -Path artifacts/release-version
+
+          # Read the first column from the SHA256 file
+          $windows_sha = Get-Content ./artifacts/managarr-windows.sha256 | ForEach-Object { $_.Split(' ')[0] }
+          Add-Content -Path $env:GITHUB_ENV -Value "WINDOWS_SHA=$windows_sha"
+
+          # Read the release version from the release-version file
+          $release_version = Get-Content ./artifacts/release-version
+          Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=$release_version"
+
+      - name: Install Scoop
+        uses: MinoruSekine/setup-scoop@main
+
+      - name: Package and Publish package to Scoop
+        run: |
+          # Clean up previous version
+          rm -Force ./deployment/scoop/managarr.json
+
+          # Run packaging script
+          python "./deployment/scoop/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/scoop/managarr.json.template" "./managarr.json" ${{ env.WINDOWS_SHA }}
+
+          # Publish to Scoop
+          cd ./deployment/scoop/
+          scoop bucket add managarr-bucket https://github.com/Dark-Alex-17/deployment/scoop
+          scoop install managarr
+          managarr --help
+
+          # Persist the scoop bucket changes into repo
+          # cd ../../
+          # git config user.name "github-actions[bot]"
+          # git config user.email "github-actions[bot]@users.noreply.github.com"
+          # git add ./deployment/scoop/managarr.json
+          # git commit -m "chore: Update Scoop bucket for version ${{ env.RELEASE_VERSION }} [skip ci]"
+          # git push origin main
