@@ -36,7 +36,7 @@ jobs:
       - name: Install Scoop
         uses: MinoruSekine/setup-scoop@main
 
-      - name: Package and Publish package to Scoop
+      - name: Update and Publish Scoop Bucket
         run: |
           # Clean up previous version
           Remove-Item -Path './deployment/scoop/managarr.json' -ErrorAction SilentlyContinue
@@ -44,16 +44,15 @@ jobs:
           # Run packaging script
           python "./deployment/scoop/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/scoop/managarr.json.template" "./managarr.json" ${{ env.WINDOWS_SHA }}
 
+          # Persist the scoop bucket changes into repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ./deployment/scoop/managarr.json
+          git commit -m "chore: Update Scoop bucket for version ${{ env.RELEASE_VERSION }} [skip ci]"
+          git push origin main
+
           # Publish to Scoop
           cd ./deployment/scoop/
-          scoop bucket add managarr-bucket https://github.com/Dark-Alex-17/deployment/scoop
+          scoop bucket add managarr-bucket https://github.com/Dark-Alex-17/managarr/tree/main/deployment/scoop
           scoop install managarr
           managarr --help
-
-          # Persist the scoop bucket changes into repo
-          # cd ../../
-          # git config user.name "github-actions[bot]"
-          # git config user.email "github-actions[bot]@users.noreply.github.com"
-          # git add ./deployment/scoop/managarr.json
-          # git commit -m "chore: Update Scoop bucket for version ${{ env.RELEASE_VERSION }} [skip ci]"
-          # git push origin main
