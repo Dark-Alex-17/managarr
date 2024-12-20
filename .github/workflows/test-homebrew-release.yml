@@ -12,17 +12,9 @@ jobs:
     name: Update Homebrew formulas
     runs-on: ubuntu-latest
     steps:
-      - name: Configure SSH for Git
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.RELEASE_BOT_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ssh-key: ${{ secrets.RELEASE_BOT_SSH_KEY }}
           fetch-depth: 1
 
       - name: Set release assets and version
@@ -57,13 +49,20 @@ jobs:
           # run packaging script
           python "./deployment/homebrew/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/homebrew/managarr.rb.template" "./managarr.rb" ${{ env.MACOS_SHA }} ${{ env.MACOS_SHA_ARM }} ${{ env.LINUX_SHA }}
 
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Push changes to Homebrew tap
+        env:
+          TOKEN: R{{ secrets.MANAGARR_GITHUB_TOKEN }}
+        run: |
           # push to Git
-          git config --global user.name "Dark-Alex-17"
-          git config --global user.email "alex.j.tusa@gmail.com"
-          git clone git@github.com:Dark-Alex-17/homebrew-managarr.git --branch=main brew
-          rm brew/Formula/managarr.rb
-          cp managarr.rb brew/Formula
-          cd brew
+          git clone https://github.com/Dark-Alex-17/homebrew-managarr.git
+          rm homebrew-managarr/Formula/managarr.rb
+          cp managarr.rb homebrew-managarr/Formula
+          cd homebrew-managarr
           git add .
           git diff-index --quiet HEAD || git commit -am "Update formula for Managarr release ${{ env.RELEASE_VERSION }}"
-          git push origin main
+          git push https://$TOKEN@github.com/Dark-Alex-17/homebrew-managarr.git
