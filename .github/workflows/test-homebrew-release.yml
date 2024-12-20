@@ -53,8 +53,6 @@ jobs:
           echo "Release version: ${{ env.RELEASE_VERSION }}"
 
       - name: Execute Homebrew packaging script
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # run packaging script
           python "./deployment/homebrew/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/homebrew/managarr.rb.template" "./managarr.rb" ${{ env.MACOS_SHA }} ${{ env.MACOS_SHA_ARM }} ${{ env.LINUX_SHA }}
