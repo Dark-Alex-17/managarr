@@ -49,16 +49,13 @@ jobs:
           # run packaging script
           python "./deployment/homebrew/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/homebrew/managarr.rb.template" "./managarr.rb" ${{ env.MACOS_SHA }} ${{ env.MACOS_SHA_ARM }} ${{ env.LINUX_SHA }}
 
-      - name: Configure Git user
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
       - name: Push changes to Homebrew tap
         env:
           TOKEN: ${{ secrets.MANAGARR_GITHUB_TOKEN }}
         run: |
           # push to Git
+          git config user.name "Dark-Alex-17"
+          git config user.email "alex.j.tusa@gmail.com"
           git clone https://github.com/Dark-Alex-17/homebrew-managarr.git
           rm homebrew-managarr/Formula/managarr.rb
           cp managarr.rb homebrew-managarr/Formula
