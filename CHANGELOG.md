@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fix
 
-- Revert failed release [skip ci]
 - **sonarr**: Pass the series ID alongside all UpdateAndScan events when publishing to the networking channel
 - **sonarr**: pass the series ID alongside all TriggerAutomaticSeriesSearch events when publishing to the networking channel
 - **sonarr**: Pass the series ID and season number alongside all TriggerAutomaticSeasonSearch events when publishing to the networking channel
