@@ -60,8 +60,8 @@ jobs:
           python "./deployment/homebrew/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/homebrew/managarr.rb.template" "./managarr.rb" ${{ env.MACOS_SHA }} ${{ env.MACOS_SHA_ARM }} ${{ env.LINUX_SHA }}
 
           # push to Git
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "Dark-Alex-17"
+          git config --global user.email "alex.j.tusa@gmail.com"
           git clone https://github.com/Dark-Alex-17/homebrew-managarr.git --branch=main brew
           rm brew/Formula/managarr.rb
           cp managarr.rb brew/Formula
