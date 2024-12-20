@@ -1,0 +1,69 @@
+name: Test release Managarr to Homebrew
+
+permissions:
+  pull-requests: write
+  contents: write
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-homebrew-formula:
+    name: Update Homebrew formulas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure SSH for Git
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.RELEASE_BOT_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.RELEASE_BOT_SSH_KEY }}
+          fetch-depth: 1
+
+      - name: Set release assets and version
+        shell: bash
+        run: |
+          # mock release artifacts
+          mkdir artifacts
+          echo 'ca55feb77e2bc0e03a2344e75c67fbfa14b7d3dc8e80a0ccfb1e0fea263ce4ed  managarr-macos.tar.gz' > artifacts/managarr-macos.sha256
+          echo '754623934d5f6ffb631f3cc41c4aed29ce6a6c323f7f4022befab806ff4cbe4c  managarr-macos-arm64.tar.gz' > artifacts/managarr-macos-arm64.sha256
+          echo '45cf1e06daf56bfc055876b51bd837716b2ea788898b5accc2f6847af4275011  managarr-linux-musl.tar.gz' > artifacts/managarr-linux-musl.sha256
+          echo '0.4.1' > artifacts/release-version
+
+          # Set environment variables
+          macos_sha="$(cat ./artifacts/managarr-macos.sha256 | awk '{print $1}')"
+          echo "MACOS_SHA=$macos_sha" >> $GITHUB_ENV
+          macos_sha_arm="$(cat ./artifacts/managarr-macos-arm64.sha256 | awk '{print $1}')"
+          echo "MACOS_SHA_ARM=$macos_sha_arm" >> $GITHUB_ENV
+          linux_sha="$(cat ./artifacts/managarr-linux-musl.sha256 | awk '{print $1}')"
+          echo "LINUX_SHA=$linux_sha" >> $GITHUB_ENV          
+          release_version="$(cat ./artifacts/release-version)"
+          echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
+
+      - name: Validate release environment variables
+        run: |
+          echo "Release SHA macos: ${{ env.MACOS_SHA }}"
+          echo "Release SHA macos-arm: ${{ env.MACOS_SHA_ARM }}"
+          echo "Release SHA linux musl: ${{ env.LINUX_SHA }}"
+          echo "Release version: ${{ env.RELEASE_VERSION }}"
+
+      - name: Execute Homebrew packaging script
+        run: |
+          # run packaging script
+          python "./deployment/homebrew/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/homebrew/managarr.rb.template" "./managarr.rb" ${{ env.MACOS_SHA }} ${{ env.MACOS_SHA_ARM }} ${{ env.LINUX_SHA }}
+
+          # push to Git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git clone https://Dark-Alex-17:${{ secrets.RELEASE_BOT_SSH_KEY }}@github.com/Dark-Alex-17/homebrew-managarr.git --branch=main brew
+          rm brew/Formula/managarr.rb
+          cp managarr.rb brew/Formula
+          cd brew
+          git add .
+          git diff-index --quiet HEAD || git commit -am "Update formula for Managarr release ${{ env.RELEASE_VERSION }}"
+          git push origin main
