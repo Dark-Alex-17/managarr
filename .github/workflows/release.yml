@@ -287,13 +287,6 @@ jobs:
     name: Publish Chocolatey Package
     runs-on: windows-latest
     steps:
-      - name: Configure SSH for Git
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.RELEASE_BOT_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -323,13 +316,7 @@ jobs:
 
       - name: Package and Publish package to Chocolatey
         run: |
-          # Cleanup old package files
-          if (-not (Test-Path -Path './deployment/chocolatey/tools' -PathType Container)) {
-              New-Item -Path './deployment/chocolatey/tools' -ItemType Directory
-          }
-          rm -Force ./deployment/chocolatey/tools/chocolateyinstall.ps1
-          rm -Force ./deployment/chocolatey/managarr.nuspec
-
+          mkdir ./deployment/chocolatey/tools
           # Run packaging script
           python "./deployment/chocolatey/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/chocolatey/managarr.nuspec.template" "./deployment/chocolatey/managarr.nuspec" ${{ env.WINDOWS_SHA }}
           python "./deployment/chocolatey/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/chocolatey/chocolateyinstall.ps1.template" "./deployment/chocolatey/tools/chocolateyinstall.ps1" ${{ env.WINDOWS_SHA }}
@@ -341,14 +328,6 @@ jobs:
           $version = managarr --version
           $version = $version -replace " ", "."
           choco push $version.nupkg -s https://push.chocolatey.org/ --api-key ${{ secrets.CHOCOLATEY_API_KEY }};
-
-          # Persist changes into repo
-          cd ../../
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add ./deployment/chocolatey/tools/chocolateyinstall.ps1 ./deployment/chocolatey/managarr.nuspec
-          git commit -m "chore: Update Chocolatey package for version ${{ env.RELEASE_VERSION }} [skip ci]"
-          git push origin main
 
   publish-docker-image:
     needs: [publish-github-release]

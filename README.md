@@ -40,8 +40,7 @@ Alternatively, you can try out the demo container without downloading anything b
 
 ### Chocolatey (Windows)
 The Managarr Chocolatey package is located [here](https://community.chocolatey.org/packages/managarr). Please note that validation
-of Chocolatey packages take quite some time, and thus the package may not be available immediately after a new release. If you want the 
-latest version and don't want to wait, use the Scoop installation method instead.
+of Chocolatey packages take quite some time, and thus the package may not be available immediately after a new release.
 
 ```powershell
 choco install managarr
