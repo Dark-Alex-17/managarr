@@ -62,7 +62,7 @@ jobs:
           # push to Git
           git config --global user.name "Dark-Alex-17"
           git config --global user.email "alex.j.tusa@gmail.com"
-          git clone https://github.com/Dark-Alex-17/homebrew-managarr.git --branch=main brew
+          git clone git@github.com:Dark-Alex-17/homebrew-managarr.git --branch=main brew
           rm brew/Formula/managarr.rb
           cp managarr.rb brew/Formula
           cd brew
