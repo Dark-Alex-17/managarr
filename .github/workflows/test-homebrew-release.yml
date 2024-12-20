@@ -56,7 +56,7 @@ jobs:
           # push to Git
           git config user.name "Dark-Alex-17"
           git config user.email "alex.j.tusa@gmail.com"
-          git clone https://Dark-Alex-17:${{ secrets.MANAGARR_GITHUB_TOKEN }}github.com/Dark-Alex-17/homebrew-managarr.git
+          git clone https://Dark-Alex-17:${{ secrets.MANAGARR_GITHUB_TOKEN }}@github.com/Dark-Alex-17/homebrew-managarr.git
           rm homebrew-managarr/Formula/managarr.rb
           cp managarr.rb homebrew-managarr/Formula
           cd homebrew-managarr
