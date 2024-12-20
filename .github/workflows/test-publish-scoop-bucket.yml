@@ -12,9 +12,17 @@ jobs:
     name: Publish Scoop Bucket
     runs-on: windows-latest
     steps:
+      - name: Configure SSH for Git
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.RELEASE_BOT_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ssh-key: ${{ secrets.RELEASE_BOT_SSH_KEY }}
           fetch-depth: 1
 
       - name: Set release assets and version
@@ -55,7 +63,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add ./deployment/scoop/managarr.json
           git commit -m "chore: Update Scoop bucket for version ${{ env.RELEASE_VERSION }} [skip ci]"
-          git push origin main
+          git push origin
 
       - name: Publish the updated bucket
         shell: pwsh
