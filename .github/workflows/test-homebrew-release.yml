@@ -56,7 +56,7 @@ jobs:
 
       - name: Push changes to Homebrew tap
         env:
-          TOKEN: R{{ secrets.MANAGARR_GITHUB_TOKEN }}
+          TOKEN: ${{ secrets.MANAGARR_GITHUB_TOKEN }}
         run: |
           # push to Git
           git clone https://github.com/Dark-Alex-17/homebrew-managarr.git
