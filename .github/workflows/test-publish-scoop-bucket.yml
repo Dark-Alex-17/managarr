@@ -42,7 +42,7 @@ jobs:
           Remove-Item -Path './deployment/scoop/managarr.json' -ErrorAction SilentlyContinue
 
           # Run packaging script
-          python "./deployment/scoop/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/scoop/managarr.json.template" "./deployment/scoop/managarr.json" ${{ env.WINDOWS_SHA }}
+          python "./deployment/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/scoop/managarr.json.template" "./deployment/scoop/managarr.json" ${{ env.WINDOWS_SHA }}
 
           # Persist the scoop bucket changes into repo
           git config user.name "github-actions[bot]"
