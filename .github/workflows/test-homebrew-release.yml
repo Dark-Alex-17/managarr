@@ -54,8 +54,8 @@ jobs:
           TOKEN: ${{ secrets.MANAGARR_GITHUB_TOKEN }}
         run: |
           # push to Git
-          git config user.name "Dark-Alex-17"
-          git config user.email "alex.j.tusa@gmail.com"
+          git config --global user.name "Dark-Alex-17"
+          git config --global user.email "alex.j.tusa@gmail.com"
           git clone https://Dark-Alex-17:${{ secrets.MANAGARR_GITHUB_TOKEN }}@github.com/Dark-Alex-17/homebrew-managarr.git
           rm homebrew-managarr/Formula/managarr.rb
           cp managarr.rb homebrew-managarr/Formula
