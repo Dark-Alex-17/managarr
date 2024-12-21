@@ -5,69 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v0.4.2 (2024-12-20)
-
-### Fix
-
-- **sonarr**: Pass the series ID alongside all UpdateAndScan events when publishing to the networking channel
-- **sonarr**: pass the series ID alongside all TriggerAutomaticSeriesSearch events when publishing to the networking channel
-- **sonarr**: Pass the series ID and season number alongside all TriggerAutomaticSeasonSearch events when publishing to the networking channel
-- **sonarr**: Pass the episode ID alongside all TriggerAutomaticEpisodeSearch events when publishing to the networking channel
-- **sonarr**: Pass the episode ID alongside all ToggleEpisodeMonitoring events when publishing to the networking channel
-- **sonarr**: Pass the series ID and season number alongside all toggle season monitoring events when publishing to the networking channel
-- **sonarr**: Pass the indexer ID directly alongside all TestIndexer events when publishing to the networking channel
-- **sonarr**: Provide the task name directly alongside all StartTask events when publishing to the networking channel
-- **sonarr**: Pass the search query directly to the networking channel when searching for a new series
-- **sonarr**: Pass the series ID alongside all GetSeriesHistory events when publishing to the networking channel
-- **sonarr**: Pass the series ID alongside all GetSeriesDetails events when publishing to the networking channel
-- **sonarr**: Pass series ID and season number alongside all ManualSeasonSearch events when publishing to the networking channel
-- **sonarr**: Provide the series ID and season number alongside all GetSeasonHistory events when publishing to the networking channel
-- **sonarr**: Pass the episode ID alongside all ManualEpisodeSearch events when publishing to the networking channel
-- **sonarr**: Pass events alongside all GetLogs events when publishing to the networking channel
-- **sonarr**: Pass the episode ID alongside all GetEpisodeHistory events when publishing to the networking channel
-- **sonarr**: Pass series ID alongside all GetEpisodeFiles events when publishing to the networking channel
-- **sonarr**: Pass series ID alognside all GetEpisodes events when publishing to the networking channel
-- **sonarr**: Pass the episode ID alongside all GetEpisodeDetails events when publishing to the networking channel
-- **sonarr**: Pass history events alongside all GetHistory events when publishing to the networking channel
-- **sonarr**: Construct and pass edit series parameters alongside all EditSeries events when publishing to the networking channel
-- **sonarr**: Construct and pass edit indexer parameters alongside all EditIndexer events when publishing to the networking channel
-- **sonarr**: Construct and pass edit all indexer settings alongside all EditAllIndexerSettings events when publishing to the networking channel
-- **sonarr**: Construct and pass delete series params alongside all DeleteSeries events when publishing to the networking channel
-- **sonarr**: Corrected a bug that would cause a crash if a user spams the ESC key while searching for a new series and the search results are still loading
-- **sonarr**: Pass the root folder ID alongside all DeleteRootFolder events when publishing to the networking channel
-- **sonarr**: Pass the indexer ID alongside all DeleteIndexer events when publishing to the networking channel
-- **sonarr**: Pass the episode file ID alongside all DeleteEpisodeFile events when publishing to the networking channel
-- **sonarr**: Pass the download ID alongside all DeleteDownload events published to the networking channel
-- **sonarr**: Pass the blocklist item ID alongside the DeleteBlocklistItem event when publishing to the networking channel
-- **sonarr**: Construct and pass the add series body alongside AddSeries events when publishing to the networking channel
-- **sonarr**: Construct and pass the AddRootFolderBody alongside all AddRootFolder events when publishing to the networking channel
-- **radarr**: Pass the movie ID alongside all UpdateAndScan events published to the networking channel
-- **radarr**: Provide the movie ID alongside all TriggerAutomaticMovieSearch events when publishing to the networking channel
-- **radarr**: Pass in the indexer id with all TestIndexer events when publishing to the networking channel
-- **radarr**: Pass in the task name alongside the StartTask event when publishing to the networking channel
-- **radarr**: Pass in the search query for the SearchNewMovie event when publishing to the networking channel
-- **radarr**: Pass in the movie ID alongside the GetReleases event when publishing to the networking channel
-- **radarr**: Pass in the movie ID alongside the GetMovieHistory event when publishing to the networking channel
-- **radarr**: Pass the movie ID in alongside the GetMovieDetaisl event when publishing to the networking channel
-- **radarr**: Provide the movie id alongside the GetMovieCredits event when publishing to the networking channel
-- **radarr**: Pass the number of log events to fetch in with the GetLogs event when publishing to the networking channel
-- **radarr**: Construct and pass the edit movie parameters alongside the EditMovie event when publishing to the networking channel
-- **radarr**: Construct and pass params when publishing the EditIndexer event to the networking channel
-- **radarr**: Construct and pass edit collection parameters alongside the EditCollection event when publishing to the networking channel
-- **radarr**: Build and pass the edit indexer settings body with the EditAllIndexerSettings event when publishing to the networking channel
-- **radarr**: Send the parameters alongside the DownloadRelease event when publishing to the networking channel
-- **radarr**: Pass the root folder ID in with the DeleteRootFolder event when publishing to the networking channel
-- Pass the delete movie params in with the DeleteMovie event when publishing to the networking channel
-- Pass the indexer ID in with the DeleteIndexer event when sending to the networking channel
-- Pass the download ID directly in the DeleteDownload event when publishing into the networking channel
-- Blocklist Item ID passed in the DeleteBlocklistItem event when sent to the networking channel
-- AddRootFolderBody now constructed prior to AddRootFolder event being sent down the network channel
-- Cancel all requests when switching Servarr tabs to both improve performance and fix issue #15
-- **add_movie_handler_tests**: Added in a forgotten test for the build_add_movie_body function
-- Missing tagged version of docker builds in release flow
-- AddMovie Radarr event is now populated in the dispatch thread before being sent to the network thread
-- dynamically load servarrs in UI based on what configs are provided
-
 ## v0.4.1 (2024-12-14)
 
 ### Feat
