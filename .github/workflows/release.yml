@@ -238,7 +238,7 @@ jobs:
 
   publish-github-release:
     name: publish-github-release
-    needs: [bump-version]
+    needs: [build-release-artifacts]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
