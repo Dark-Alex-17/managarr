@@ -452,7 +452,7 @@ jobs:
   #         file: Dockerfile
   #         platforms: linux/amd64,linux/arm64
   #         push: true
-  #         tags: darkalex17/testing:latest, darkalex17/testing:${{ env.version }}
+  #         tags: darkalex17/managarr:latest, darkalex17/managarr:${{ env.version }}
 
   # publish-crate:
   #   needs: publish-github-release
