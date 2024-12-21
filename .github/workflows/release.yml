@@ -311,190 +311,190 @@ jobs:
           name: artifacts
           path: artifacts
 
-  # publish-chocolatey-package:
-  #   needs: [publish-github-release]
-  #   name: Publish Chocolatey Package
-  #   runs-on: windows-latest
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 1
+  publish-chocolatey-package:
+    needs: [publish-github-release]
+    name: Publish Chocolatey Package
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-  #     - name: Get release artifacts
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: artifacts
-  #         path: artifacts
+      - name: Get release artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: artifacts
+          path: artifacts
 
-  #     - name: Set release assets and version
-  #       shell: pwsh
-  #       run: |
-  #         # Read the first column from the SHA256 file
-  #         $windows_sha = Get-Content ./artifacts/managarr-windows.sha256 | ForEach-Object { $_.Split(' ')[0] }
-  #         Add-Content -Path $env:GITHUB_ENV -Value "WINDOWS_SHA=$windows_sha"
+      - name: Set release assets and version
+        shell: pwsh
+        run: |
+          # Read the first column from the SHA256 file
+          $windows_sha = Get-Content ./artifacts/managarr-windows.sha256 | ForEach-Object { $_.Split(' ')[0] }
+          Add-Content -Path $env:GITHUB_ENV -Value "WINDOWS_SHA=$windows_sha"
 
-  #         # Read the release version from the release-version file
-  #         $release_version = Get-Content ./artifacts/release-version
-  #         Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=$release_version"
+          # Read the release version from the release-version file
+          $release_version = Get-Content ./artifacts/release-version
+          Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=$release_version"
 
-  #     - name: Validate release environment variables
-  #       run: |
-  #         echo "Release SHA windows: ${{ env.WINDOWS_SHA }}"
-  #         echo "Release version: ${{ env.RELEASE_VERSION }}"
+      - name: Validate release environment variables
+        run: |
+          echo "Release SHA windows: ${{ env.WINDOWS_SHA }}"
+          echo "Release version: ${{ env.RELEASE_VERSION }}"
 
-  #     - name: Package and Publish package to Chocolatey
-  #       run: |
-  #         mkdir ./deployment/chocolatey/tools
-  #         # Run packaging script
-  #         python "./deployment/chocolatey/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/chocolatey/managarr.nuspec.template" "./deployment/chocolatey/managarr.nuspec" ${{ env.WINDOWS_SHA }}
-  #         python "./deployment/chocolatey/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/chocolatey/chocolateyinstall.ps1.template" "./deployment/chocolatey/tools/chocolateyinstall.ps1" ${{ env.WINDOWS_SHA }}
+      - name: Package and Publish package to Chocolatey
+        run: |
+          mkdir ./deployment/chocolatey/tools
+          # Run packaging script
+          python "./deployment/chocolatey/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/chocolatey/managarr.nuspec.template" "./deployment/chocolatey/managarr.nuspec" ${{ env.WINDOWS_SHA }}
+          python "./deployment/chocolatey/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/chocolatey/chocolateyinstall.ps1.template" "./deployment/chocolatey/tools/chocolateyinstall.ps1" ${{ env.WINDOWS_SHA }}
 
-  #         # Publish to Chocolatey
-  #         cd ./deployment/chocolatey
-  #         choco pack
-  #         echo y | choco install managarr -dv -s .
-  #         $version = managarr --version
-  #         $version = $version -replace " ", "."
-  #         choco push $version.nupkg -s https://push.chocolatey.org/ --api-key ${{ secrets.CHOCOLATEY_API_KEY }};
+          # Publish to Chocolatey
+          cd ./deployment/chocolatey
+          choco pack
+          echo y | choco install managarr -dv -s .
+          $version = managarr --version
+          $version = $version -replace " ", "."
+          choco push $version.nupkg -s https://push.chocolatey.org/ --api-key ${{ secrets.CHOCOLATEY_API_KEY }};
 
-  # publish-homebrew-formula:
-  #   needs: [publish-github-release]
-  #   name: Update Homebrew formulas
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 1
+  publish-homebrew-formula:
+    needs: [publish-github-release]
+    name: Update Homebrew formulas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-  #     - name: Get release artifacts
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: artifacts
-  #         path: artifacts
+      - name: Get release artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: artifacts
+          path: artifacts
 
-  #     - name: Set release assets and version
-  #       shell: bash
-  #       run: |
-  #         # Set environment variables
-  #         macos_sha="$(cat ./artifacts/managarr-macos.sha256 | awk '{print $1}')"
-  #         echo "MACOS_SHA=$macos_sha" >> $GITHUB_ENV
-  #         macos_sha_arm="$(cat ./artifacts/managarr-macos-arm64.sha256 | awk '{print $1}')"
-  #         echo "MACOS_SHA_ARM=$macos_sha_arm" >> $GITHUB_ENV
-  #         linux_sha="$(cat ./artifacts/managarr-linux-musl.sha256 | awk '{print $1}')"
-  #         echo "LINUX_SHA=$linux_sha" >> $GITHUB_ENV
-  #         release_version="$(cat ./artifacts/release-version)"
-  #         echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
+      - name: Set release assets and version
+        shell: bash
+        run: |
+          # Set environment variables
+          macos_sha="$(cat ./artifacts/managarr-macos.sha256 | awk '{print $1}')"
+          echo "MACOS_SHA=$macos_sha" >> $GITHUB_ENV
+          macos_sha_arm="$(cat ./artifacts/managarr-macos-arm64.sha256 | awk '{print $1}')"
+          echo "MACOS_SHA_ARM=$macos_sha_arm" >> $GITHUB_ENV
+          linux_sha="$(cat ./artifacts/managarr-linux-musl.sha256 | awk '{print $1}')"
+          echo "LINUX_SHA=$linux_sha" >> $GITHUB_ENV
+          release_version="$(cat ./artifacts/release-version)"
+          echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
 
-  #     - name: Validate release environment variables
-  #       run: |
-  #         echo "Release SHA macos: ${{ env.MACOS_SHA }}"
-  #         echo "Release SHA macos-arm: ${{ env.MACOS_SHA_ARM }}"
-  #         echo "Release SHA linux musl: ${{ env.LINUX_SHA }}"
-  #         echo "Release version: ${{ env.RELEASE_VERSION }}"
+      - name: Validate release environment variables
+        run: |
+          echo "Release SHA macos: ${{ env.MACOS_SHA }}"
+          echo "Release SHA macos-arm: ${{ env.MACOS_SHA_ARM }}"
+          echo "Release SHA linux musl: ${{ env.LINUX_SHA }}"
+          echo "Release version: ${{ env.RELEASE_VERSION }}"
 
-  #     - name: Execute Homebrew packaging script
-  #       run: |
-  #         # run packaging script
-  #         python "./deployment/homebrew/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/homebrew/managarr.rb.template" "./managarr.rb" ${{ env.MACOS_SHA }} ${{ env.MACOS_SHA_ARM }} ${{ env.LINUX_SHA }}
+      - name: Execute Homebrew packaging script
+        run: |
+          # run packaging script
+          python "./deployment/homebrew/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/homebrew/managarr.rb.template" "./managarr.rb" ${{ env.MACOS_SHA }} ${{ env.MACOS_SHA_ARM }} ${{ env.LINUX_SHA }}
 
-  #     - name: Push changes to Homebrew tap
-  #       env:
-  #         TOKEN: ${{ secrets.MANAGARR_GITHUB_TOKEN }}
-  #       run: |
-  #         # push to Git
-  #         git config --global user.name "Dark-Alex-17"
-  #         git config --global user.email "alex.j.tusa@gmail.com"
-  #         git clone https://Dark-Alex-17:${{ secrets.MANAGARR_GITHUB_TOKEN }}@github.com/Dark-Alex-17/homebrew-managarr.git
-  #         rm homebrew-managarr/Formula/managarr.rb
-  #         cp managarr.rb homebrew-managarr/Formula
-  #         cd homebrew-managarr
-  #         git add .
-  #         git diff-index --quiet HEAD || git commit -am "Update formula for Managarr release ${{ env.RELEASE_VERSION }}"
-  #         git push https://$TOKEN@github.com/Dark-Alex-17/homebrew-managarr.git
+      - name: Push changes to Homebrew tap
+        env:
+          TOKEN: ${{ secrets.MANAGARR_GITHUB_TOKEN }}
+        run: |
+          # push to Git
+          git config --global user.name "Dark-Alex-17"
+          git config --global user.email "alex.j.tusa@gmail.com"
+          git clone https://Dark-Alex-17:${{ secrets.MANAGARR_GITHUB_TOKEN }}@github.com/Dark-Alex-17/homebrew-managarr.git
+          rm homebrew-managarr/Formula/managarr.rb
+          cp managarr.rb homebrew-managarr/Formula
+          cd homebrew-managarr
+          git add .
+          git diff-index --quiet HEAD || git commit -am "Update formula for Managarr release ${{ env.RELEASE_VERSION }}"
+          git push https://$TOKEN@github.com/Dark-Alex-17/homebrew-managarr.git
 
-  # publish-docker-image:
-  #   needs: [publish-github-release]
-  #   name: Publishing Docker image to Docker Hub
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 1
+  publish-docker-image:
+    needs: [publish-github-release]
+    name: Publishing Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-  #     - name: Get release artifacts
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: artifacts
-  #         path: artifacts
+      - name: Get release artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: artifacts
+          path: artifacts
 
-  #     - name: Set version variable
-  #       run: |
-  #         version="$(cat artifacts/release-version)"
-  #         echo "version=$version" >> $GITHUB_ENV
+      - name: Set version variable
+        run: |
+          version="$(cat artifacts/release-version)"
+          echo "version=$version" >> $GITHUB_ENV
 
-  #     - name: Validate release environment variables
-  #       run: |
-  #         echo "Release version: ${{ env.version }}"
+      - name: Validate release environment variables
+        run: |
+          echo "Release version: ${{ env.version }}"
 
-  #     - name: Set up QEMU
-  #       uses: docker/setup-qemu-action@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-  #     - name: Login to Docker Hub
-  #       uses: docker/login-action@v3
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-  #     - name: Push to Docker Hub
-  #       uses: docker/build-push-action@v5
-  #       with:
-  #         context: .
-  #         file: Dockerfile
-  #         platforms: linux/amd64,linux/arm64
-  #         push: true
-  #         tags: darkalex17/managarr:latest, darkalex17/managarr:${{ env.version }}
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: darkalex17/managarr:latest, darkalex17/managarr:${{ env.version }}
 
-  # publish-crate:
-  #   needs: publish-github-release
-  #   name: Publish Crate
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Check if actor is repository owner
-  #       if: ${{ github.actor != github.repository_owner }}
-  #       run: |
-  #         echo "You are not authorized to run this workflow."
-  #         exit 1
+  publish-crate:
+    needs: publish-github-release
+    name: Publish Crate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if actor is repository owner
+        if: ${{ github.actor != github.repository_owner }}
+        run: |
+          echo "You are not authorized to run this workflow."
+          exit 1
 
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     - name: Ensure repository is up-to-date
-  #       run: |
-  #         git fetch --all
-  #         git pull
+      - name: Ensure repository is up-to-date
+        run: |
+          git fetch --all
+          git pull
 
-  #     - uses: actions/cache@v3
-  #       name: Cache Cargo registry
-  #       with:
-  #         path: ~/.cargo/registry
-  #         key: ${{ runner.os }}-cargo-registry-${{ hashFiles('Cargo.lock') }}
+      - uses: actions/cache@v3
+        name: Cache Cargo registry
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('Cargo.lock') }}
 
-  #     - uses: actions/cache@v3
-  #       with:
-  #         path: ~/.cargo/bin
-  #         key: ${{ runner.os }}-cargo-bin-${{ hashFiles('.github/workflows/release.yml') }}
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('.github/workflows/release.yml') }}
 
-  #     - name: Install Rust stable
-  #       uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
 
-  #     - uses: katyo/publish-crates@v2
-  #       with:
-  #         registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - uses: katyo/publish-crates@v2
+        with:
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
