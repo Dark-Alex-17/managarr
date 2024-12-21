@@ -140,6 +140,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Ensure repository is up-to-date
+        run: |
+          git fetch --all
+          git pull
+
       - uses: actions/cache@v3
         name: Cache Cargo registry
         with:
