@@ -35,7 +35,7 @@ This is a nuspec. It mostly adheres to https://docs.nuget.org/create/Nuspec-Refe
     <tags>cli cross-platform terminal servarr tui sonarr radarr rust</tags>
     <summary>A TUI and CLI for managing *arr servers.</summary>
     <description>
-    A TUI and CLI for managing *arr servers. Build with love in Rust!
+    A TUI and CLI for managing *arr servers. Built with love in Rust!
 
     **Usage**
     To use, run `managarr` in a terminal.
