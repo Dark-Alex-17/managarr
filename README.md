@@ -76,6 +76,16 @@ To upgrade to a newer version of Managarr:
 brew upgrade managarr
 ```
 
+### Nix (Externally Maintained)
+To install Managarr on NixOS, you can use the following command:
+
+```shell
+nix-env --install managarr
+
+# Alternatively, for non-NixOS users, you can spawn a temporary shell with Managarr available like so:
+nix-shell -p managarr
+```
+
 ### Chocolatey (Windows)
 The Managarr Chocolatey package is located [here](https://community.chocolatey.org/packages/managarr). Please note that validation
 of Chocolatey packages take quite some time, and thus the package may not be available immediately after a new release.
@@ -94,6 +104,20 @@ choco upgrade managarr
 # To upgrade to a specific version:
 choco upgrade managarr --version=0.4.2
 ```
+
+### Unraid CA Template (Externally Maintained and a note)
+The [Managarr Unraid CA Template](https://unraid.net/community/apps?q=managarr#r) is maintained exterally and by a third party. There's currently an [issue open](https://github.com/Dark-Alex-17/managarr/issues/13)
+where the Managarr Unraid CA Template cannot start and errors out with the following message:
+
+```
+  Error: No such device or address (os error 6)
+```
+
+This happens because the Unraid template does not allocate a pseudo-tty when starting the Managarr container. 
+
+To correct this, add `-it` to the `Extra Parameters` in the template config.
+
+Since I don't know who created the template nor how to contact them, I can't directly tell the maintainer to fix this. So, until this is fixed, this note will remain here in the `README`, and issue #13 will remain open until I can confirm the template is updated and the issue is fixed.
 
 ### Manual
 Binaries are available on the [releases](https://github.com/Dark-Alex-17/managarr/releases) page for the following platforms:
