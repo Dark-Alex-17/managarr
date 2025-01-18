@@ -37,7 +37,7 @@ mod tests {
         ..MovieDetailsModal::default()
       });
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.up.key,
         &mut app,
         ActiveRadarrBlock::MovieDetails,
@@ -57,7 +57,7 @@ mod tests {
         0
       );
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.down.key,
         &mut app,
         ActiveRadarrBlock::MovieDetails,
@@ -87,7 +87,7 @@ mod tests {
         ..MovieDetailsModal::default()
       });
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.up.key,
         &mut app,
         ActiveRadarrBlock::MovieDetails,
@@ -107,7 +107,7 @@ mod tests {
         0
       );
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.down.key,
         &mut app,
         ActiveRadarrBlock::MovieDetails,
@@ -144,7 +144,7 @@ mod tests {
       };
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveRadarrBlock::MovieDetails,
@@ -164,7 +164,7 @@ mod tests {
         1
       );
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveRadarrBlock::MovieDetails,
@@ -195,7 +195,7 @@ mod tests {
       };
       app.data.radarr_data.movie_details_modal = Some(movie_details_modal);
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveRadarrBlock::MovieDetails,
@@ -215,7 +215,7 @@ mod tests {
         0
       );
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveRadarrBlock::MovieDetails,
@@ -255,11 +255,11 @@ mod tests {
     ) {
       let mut app = App::default();
 
-      MovieDetailsHandler::with(key, &mut app, active_radarr_block, None).handle();
+      MovieDetailsHandler::new(key, &mut app, active_radarr_block, None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      MovieDetailsHandler::with(key, &mut app, active_radarr_block, None).handle();
+      MovieDetailsHandler::new(key, &mut app, active_radarr_block, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
     }
@@ -288,7 +288,7 @@ mod tests {
         .position(|tab_route| tab_route.route == right_block.into())
         .unwrap_or_default();
 
-      MovieDetailsHandler::with(DEFAULT_KEYBINDINGS.left.key, &mut app, right_block, None).handle();
+      MovieDetailsHandler::new(DEFAULT_KEYBINDINGS.left.key, &mut app, right_block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -296,7 +296,7 @@ mod tests {
       );
       assert_eq!(app.get_current_route(), left_block.into());
 
-      MovieDetailsHandler::with(DEFAULT_KEYBINDINGS.right.key, &mut app, left_block, None).handle();
+      MovieDetailsHandler::new(DEFAULT_KEYBINDINGS.right.key, &mut app, left_block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -330,7 +330,7 @@ mod tests {
       app.data.radarr_data.movie_details_modal = Some(modal);
       app.push_navigation_stack(ActiveRadarrBlock::ManualSearch.into());
 
-      MovieDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::ManualSearch, None)
+      MovieDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::ManualSearch, None)
         .handle();
 
       assert_eq!(
@@ -349,7 +349,7 @@ mod tests {
       });
       app.push_navigation_stack(ActiveRadarrBlock::ManualSearch.into());
 
-      MovieDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::ManualSearch, None)
+      MovieDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::ManualSearch, None)
         .handle();
 
       assert_eq!(
@@ -390,7 +390,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
-      MovieDetailsHandler::with(SUBMIT_KEY, &mut app, prompt_block, None).handle();
+      MovieDetailsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
       assert_eq!(
@@ -420,7 +420,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
-      MovieDetailsHandler::with(SUBMIT_KEY, &mut app, prompt_block, None).handle();
+      MovieDetailsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(
@@ -461,7 +461,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(active_radarr_block.into());
 
-      MovieDetailsHandler::with(ESC_KEY, &mut app, active_radarr_block, None).handle();
+      MovieDetailsHandler::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert_movie_info_tabs_reset!(app.data.radarr_data);
@@ -484,7 +484,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(prompt_block.into());
 
-      MovieDetailsHandler::with(ESC_KEY, &mut app, prompt_block, None).handle();
+      MovieDetailsHandler::new(ESC_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
@@ -536,7 +536,7 @@ mod tests {
         .set_items(vec![RadarrRelease::default()]);
       app.data.radarr_data.movie_details_modal = Some(modal);
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.auto_search.key,
         &mut app,
         active_radarr_block,
@@ -570,7 +570,7 @@ mod tests {
         ..MovieDetailsModal::default()
       });
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.auto_search.key,
         &mut app,
         active_radarr_block,
@@ -620,7 +620,7 @@ mod tests {
         ..MovieDetailsModal::default()
       });
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.edit.key,
         &mut app,
         active_radarr_block,
@@ -659,7 +659,7 @@ mod tests {
         .set_items(vec![RadarrRelease::default()]);
       app.data.radarr_data.movie_details_modal = Some(modal);
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.update.key,
         &mut app,
         active_radarr_block,
@@ -693,7 +693,7 @@ mod tests {
         ..MovieDetailsModal::default()
       });
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.update.key,
         &mut app,
         active_radarr_block,
@@ -731,7 +731,7 @@ mod tests {
         .set_items(vec![RadarrRelease::default()]);
       app.data.radarr_data.movie_details_modal = Some(modal);
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         active_radarr_block,
@@ -764,7 +764,7 @@ mod tests {
         ..MovieDetailsModal::default()
       });
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         active_radarr_block,
@@ -808,7 +808,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::MovieDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
-      MovieDetailsHandler::with(
+      MovieDetailsHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         prompt_block,
@@ -843,7 +843,7 @@ mod tests {
       movie_id: 1,
     };
 
-    let body = MovieDetailsHandler::with(
+    let body = MovieDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::ManualSearchConfirmPrompt,
@@ -859,7 +859,7 @@ mod tests {
     let mut app = App::default();
     app.data.radarr_data.movies.set_items(vec![movie()]);
 
-    let movie_id = MovieDetailsHandler::with(
+    let movie_id = MovieDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::AutomaticallySearchMoviePrompt,
@@ -1071,7 +1071,7 @@ mod tests {
       .set_items(vec![RadarrRelease::default()]);
     app.data.radarr_data.movie_details_modal = Some(modal);
 
-    let handler = MovieDetailsHandler::with(
+    let handler = MovieDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       movie_details_block,
@@ -1087,7 +1087,7 @@ mod tests {
     app.is_loading = false;
     app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
 
-    let handler = MovieDetailsHandler::with(
+    let handler = MovieDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::MovieDetails,
@@ -1106,7 +1106,7 @@ mod tests {
       ..MovieDetailsModal::default()
     });
 
-    let handler = MovieDetailsHandler::with(
+    let handler = MovieDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::MovieDetails,
@@ -1126,7 +1126,7 @@ mod tests {
       .set_items(vec![MovieHistoryItem::default()]);
     app.data.radarr_data.movie_details_modal = Some(modal);
 
-    let handler = MovieDetailsHandler::with(
+    let handler = MovieDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::MovieHistory,
@@ -1144,7 +1144,7 @@ mod tests {
     modal.movie_cast.set_items(vec![Credit::default()]);
     app.data.radarr_data.movie_details_modal = Some(modal);
 
-    let handler = MovieDetailsHandler::with(
+    let handler = MovieDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Cast,
@@ -1162,7 +1162,7 @@ mod tests {
     modal.movie_crew.set_items(vec![Credit::default()]);
     app.data.radarr_data.movie_details_modal = Some(modal);
 
-    let handler = MovieDetailsHandler::with(
+    let handler = MovieDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Crew,
@@ -1182,7 +1182,7 @@ mod tests {
       .set_items(vec![RadarrRelease::default()]);
     app.data.radarr_data.movie_details_modal = Some(modal);
 
-    let handler = MovieDetailsHandler::with(
+    let handler = MovieDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::ManualSearch,

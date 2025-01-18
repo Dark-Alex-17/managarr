@@ -48,7 +48,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for TestAllIndexersHandl
     active_block == ActiveSonarrBlock::TestAllIndexers
   }
 
-  fn with(
+  fn new(
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveSonarrBlock,

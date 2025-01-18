@@ -52,14 +52,14 @@ mod tests {
           text
         ));
 
-      SystemDetailsHandler::with(key, &mut app, ActiveSonarrBlock::SystemLogs, None).handle();
+      SystemDetailsHandler::new(key, &mut app, ActiveSonarrBlock::SystemLogs, None).handle();
 
       assert_str_eq!(
         app.data.sonarr_data.log_details.current_selection().text,
         "Test 1"
       );
 
-      SystemDetailsHandler::with(key, &mut app, ActiveSonarrBlock::SystemLogs, None).handle();
+      SystemDetailsHandler::new(key, &mut app, ActiveSonarrBlock::SystemLogs, None).handle();
 
       assert_str_eq!(
         app.data.sonarr_data.log_details.current_selection().text,
@@ -80,14 +80,14 @@ mod tests {
         .tasks
         .set_items(simple_stateful_iterable_vec!(SonarrTask, String, name));
 
-      SystemDetailsHandler::with(key, &mut app, ActiveSonarrBlock::SystemTasks, None).handle();
+      SystemDetailsHandler::new(key, &mut app, ActiveSonarrBlock::SystemTasks, None).handle();
 
       assert_str_eq!(
         app.data.sonarr_data.tasks.current_selection().name,
         "Test 2"
       );
 
-      SystemDetailsHandler::with(key, &mut app, ActiveSonarrBlock::SystemTasks, None).handle();
+      SystemDetailsHandler::new(key, &mut app, ActiveSonarrBlock::SystemTasks, None).handle();
 
       assert_str_eq!(
         app.data.sonarr_data.tasks.current_selection().name,
@@ -109,14 +109,14 @@ mod tests {
         .tasks
         .set_items(simple_stateful_iterable_vec!(SonarrTask, String, name));
 
-      SystemDetailsHandler::with(key, &mut app, ActiveSonarrBlock::SystemTasks, None).handle();
+      SystemDetailsHandler::new(key, &mut app, ActiveSonarrBlock::SystemTasks, None).handle();
 
       assert_str_eq!(
         app.data.sonarr_data.tasks.current_selection().name,
         "Test 1"
       );
 
-      SystemDetailsHandler::with(key, &mut app, ActiveSonarrBlock::SystemTasks, None).handle();
+      SystemDetailsHandler::new(key, &mut app, ActiveSonarrBlock::SystemTasks, None).handle();
 
       assert_str_eq!(
         app.data.sonarr_data.tasks.current_selection().name,
@@ -137,7 +137,7 @@ mod tests {
         .queued_events
         .set_items(simple_stateful_iterable_vec!(QueueEvent, String, name));
 
-      SystemDetailsHandler::with(key, &mut app, ActiveSonarrBlock::SystemQueuedEvents, None)
+      SystemDetailsHandler::new(key, &mut app, ActiveSonarrBlock::SystemQueuedEvents, None)
         .handle();
 
       assert_str_eq!(
@@ -145,7 +145,7 @@ mod tests {
         "Test 2"
       );
 
-      SystemDetailsHandler::with(key, &mut app, ActiveSonarrBlock::SystemQueuedEvents, None)
+      SystemDetailsHandler::new(key, &mut app, ActiveSonarrBlock::SystemQueuedEvents, None)
         .handle();
 
       assert_str_eq!(
@@ -168,7 +168,7 @@ mod tests {
         .queued_events
         .set_items(simple_stateful_iterable_vec!(QueueEvent, String, name));
 
-      SystemDetailsHandler::with(key, &mut app, ActiveSonarrBlock::SystemQueuedEvents, None)
+      SystemDetailsHandler::new(key, &mut app, ActiveSonarrBlock::SystemQueuedEvents, None)
         .handle();
 
       assert_str_eq!(
@@ -176,7 +176,7 @@ mod tests {
         "Test 1"
       );
 
-      SystemDetailsHandler::with(key, &mut app, ActiveSonarrBlock::SystemQueuedEvents, None)
+      SystemDetailsHandler::new(key, &mut app, ActiveSonarrBlock::SystemQueuedEvents, None)
         .handle();
 
       assert_str_eq!(
@@ -191,7 +191,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::System.into());
       app.data.sonarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.up.key,
         &mut app,
         ActiveSonarrBlock::SystemUpdates,
@@ -201,7 +201,7 @@ mod tests {
 
       assert_eq!(app.data.sonarr_data.updates.offset, 0);
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.down.key,
         &mut app,
         ActiveSonarrBlock::SystemUpdates,
@@ -219,7 +219,7 @@ mod tests {
       app.is_loading = true;
       app.data.sonarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.up.key,
         &mut app,
         ActiveSonarrBlock::SystemUpdates,
@@ -229,7 +229,7 @@ mod tests {
 
       assert_eq!(app.data.sonarr_data.updates.offset, 0);
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.down.key,
         &mut app,
         ActiveSonarrBlock::SystemUpdates,
@@ -274,7 +274,7 @@ mod tests {
           text
         ));
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::SystemLogs,
@@ -287,7 +287,7 @@ mod tests {
         "Test 1"
       );
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::SystemLogs,
@@ -313,7 +313,7 @@ mod tests {
         .tasks
         .set_items(extended_stateful_iterable_vec!(SonarrTask, String, name));
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::SystemTasks,
@@ -326,7 +326,7 @@ mod tests {
         "Test 3"
       );
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::SystemTasks,
@@ -353,7 +353,7 @@ mod tests {
         .tasks
         .set_items(extended_stateful_iterable_vec!(SonarrTask, String, name));
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::SystemTasks,
@@ -366,7 +366,7 @@ mod tests {
         "Test 1"
       );
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::SystemTasks,
@@ -392,7 +392,7 @@ mod tests {
         .queued_events
         .set_items(extended_stateful_iterable_vec!(QueueEvent, String, name));
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::SystemQueuedEvents,
@@ -405,7 +405,7 @@ mod tests {
         "Test 3"
       );
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::SystemQueuedEvents,
@@ -432,7 +432,7 @@ mod tests {
         .queued_events
         .set_items(extended_stateful_iterable_vec!(QueueEvent, String, name));
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::SystemQueuedEvents,
@@ -445,7 +445,7 @@ mod tests {
         "Test 1"
       );
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::SystemQueuedEvents,
@@ -465,7 +465,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::System.into());
       app.data.sonarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::SystemUpdates,
@@ -475,7 +475,7 @@ mod tests {
 
       assert_eq!(app.data.sonarr_data.updates.offset, 1);
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::SystemUpdates,
@@ -493,7 +493,7 @@ mod tests {
       app.is_loading = true;
       app.data.sonarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::SystemUpdates,
@@ -503,7 +503,7 @@ mod tests {
 
       assert_eq!(app.data.sonarr_data.updates.offset, 0);
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::SystemUpdates,
@@ -532,7 +532,7 @@ mod tests {
         .log_details
         .set_items(vec!["t1".into(), "t22".into()]);
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         active_sonarr_block,
@@ -543,7 +543,7 @@ mod tests {
       assert_eq!(app.data.sonarr_data.log_details.items[0].to_string(), "t1");
       assert_eq!(app.data.sonarr_data.log_details.items[1].to_string(), "t22");
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         active_sonarr_block,
@@ -554,7 +554,7 @@ mod tests {
       assert_eq!(app.data.sonarr_data.log_details.items[0].to_string(), "1");
       assert_eq!(app.data.sonarr_data.log_details.items[1].to_string(), "22");
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         active_sonarr_block,
@@ -565,7 +565,7 @@ mod tests {
       assert_eq!(app.data.sonarr_data.log_details.items[0].to_string(), "");
       assert_eq!(app.data.sonarr_data.log_details.items[1].to_string(), "2");
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         active_sonarr_block,
@@ -576,7 +576,7 @@ mod tests {
       assert_eq!(app.data.sonarr_data.log_details.items[0].to_string(), "");
       assert_eq!(app.data.sonarr_data.log_details.items[1].to_string(), "");
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         active_sonarr_block,
@@ -587,7 +587,7 @@ mod tests {
       assert_eq!(app.data.sonarr_data.log_details.items[0].to_string(), "");
       assert_eq!(app.data.sonarr_data.log_details.items[1].to_string(), "");
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         active_sonarr_block,
@@ -598,7 +598,7 @@ mod tests {
       assert_eq!(app.data.sonarr_data.log_details.items[0].to_string(), "1");
       assert_eq!(app.data.sonarr_data.log_details.items[1].to_string(), "2");
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         active_sonarr_block,
@@ -609,7 +609,7 @@ mod tests {
       assert_eq!(app.data.sonarr_data.log_details.items[0].to_string(), "t1");
       assert_eq!(app.data.sonarr_data.log_details.items[1].to_string(), "22");
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         active_sonarr_block,
@@ -628,7 +628,7 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveSonarrBlock::System.into());
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::SystemTaskStartConfirmPrompt,
@@ -638,7 +638,7 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::SystemTaskStartConfirmPrompt,
@@ -665,7 +665,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::System.into());
       app.data.sonarr_data.updates = ScrollableText::with_string("Test".to_owned());
 
-      SystemDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SystemTasks, None)
+      SystemDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SystemTasks, None)
         .handle();
 
       assert_eq!(
@@ -681,7 +681,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
       app.data.sonarr_data.updates = ScrollableText::with_string("Test".to_owned());
 
-      SystemDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SystemTasks, None)
+      SystemDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SystemTasks, None)
         .handle();
 
       assert_eq!(
@@ -703,7 +703,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
       app.push_navigation_stack(ActiveSonarrBlock::SystemTaskStartConfirmPrompt.into());
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::SystemTaskStartConfirmPrompt,
@@ -729,7 +729,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
       app.push_navigation_stack(ActiveSonarrBlock::SystemTaskStartConfirmPrompt.into());
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::SystemTaskStartConfirmPrompt,
@@ -772,7 +772,7 @@ mod tests {
         .log_details
         .set_items(vec![HorizontallyScrollableText::default()]);
 
-      SystemDetailsHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::SystemLogs, None).handle();
+      SystemDetailsHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::SystemLogs, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::System.into());
       assert!(app.data.sonarr_data.log_details.items.is_empty());
@@ -790,7 +790,7 @@ mod tests {
         .tasks
         .set_items(vec![SonarrTask::default()]);
 
-      SystemDetailsHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::SystemTasks, None).handle();
+      SystemDetailsHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::SystemTasks, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::System.into());
     }
@@ -807,7 +807,7 @@ mod tests {
         .queued_events
         .set_items(vec![QueueEvent::default()]);
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::SystemQueuedEvents,
@@ -825,7 +825,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::System.into());
       app.push_navigation_stack(ActiveSonarrBlock::SystemUpdates.into());
 
-      SystemDetailsHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::SystemUpdates, None)
+      SystemDetailsHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::SystemUpdates, None)
         .handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::System.into());
@@ -838,7 +838,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SystemTaskStartConfirmPrompt.into());
       app.data.sonarr_data.prompt_confirm = true;
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::SystemTaskStartConfirmPrompt,
@@ -877,7 +877,7 @@ mod tests {
       app.data.sonarr_data.updates = ScrollableText::with_string("Test".to_owned());
       app.push_navigation_stack(active_sonarr_block.into());
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         active_sonarr_block,
@@ -905,7 +905,7 @@ mod tests {
       app.data.sonarr_data.updates = ScrollableText::with_string("Test".to_owned());
       app.push_navigation_stack(active_sonarr_block.into());
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         active_sonarr_block,
@@ -930,7 +930,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
       app.push_navigation_stack(ActiveSonarrBlock::SystemTaskStartConfirmPrompt.into());
 
-      SystemDetailsHandler::with(
+      SystemDetailsHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveSonarrBlock::SystemTaskStartConfirmPrompt,
@@ -970,7 +970,7 @@ mod tests {
       .tasks
       .set_items(vec![SonarrTask::default()]);
 
-    let task_name = SystemDetailsHandler::with(
+    let task_name = SystemDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SystemTasks,
@@ -987,7 +987,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::System.into());
     app.is_loading = true;
 
-    let handler = SystemDetailsHandler::with(
+    let handler = SystemDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SystemUpdates,
@@ -1003,7 +1003,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::System.into());
     app.is_loading = false;
 
-    let handler = SystemDetailsHandler::with(
+    let handler = SystemDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SystemUpdates,
@@ -1024,7 +1024,7 @@ mod tests {
       .log_details
       .set_items(vec![HorizontallyScrollableText::default()]);
 
-    let handler = SystemDetailsHandler::with(
+    let handler = SystemDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SystemUpdates,
@@ -1045,7 +1045,7 @@ mod tests {
       .tasks
       .set_items(vec![SonarrTask::default()]);
 
-    let handler = SystemDetailsHandler::with(
+    let handler = SystemDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SystemTasks,
@@ -1062,7 +1062,7 @@ mod tests {
     app.is_loading = false;
     app.data.sonarr_data.updates = ScrollableText::with_string("Test".to_owned());
 
-    let handler = SystemDetailsHandler::with(
+    let handler = SystemDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SystemUpdates,

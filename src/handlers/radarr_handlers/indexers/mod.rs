@@ -47,15 +47,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
     if !self.handle_indexers_table_events(indexer_table_handling_config) {
       match self.active_radarr_block {
         _ if EditIndexerHandler::accepts(self.active_radarr_block) => {
-          EditIndexerHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+          EditIndexerHandler::new(self.key, self.app, self.active_radarr_block, self.context)
             .handle()
         }
         _ if IndexerSettingsHandler::accepts(self.active_radarr_block) => {
-          IndexerSettingsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+          IndexerSettingsHandler::new(self.key, self.app, self.active_radarr_block, self.context)
             .handle()
         }
         _ if TestAllIndexersHandler::accepts(self.active_radarr_block) => {
-          TestAllIndexersHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+          TestAllIndexersHandler::new(self.key, self.app, self.active_radarr_block, self.context)
             .handle()
         }
         _ => self.handle_key_event(),
@@ -70,7 +70,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
       || INDEXERS_BLOCKS.contains(&active_block)
   }
 
-  fn with(
+  fn new(
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveRadarrBlock,

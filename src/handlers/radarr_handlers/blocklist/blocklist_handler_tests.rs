@@ -27,7 +27,7 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
 
-      BlocklistHandler::with(DELETE_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
+      BlocklistHandler::new(DELETE_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -42,7 +42,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
 
-      BlocklistHandler::with(DELETE_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
+      BlocklistHandler::new(DELETE_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Blocklist.into());
     }
@@ -60,7 +60,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(3);
 
-      BlocklistHandler::with(
+      BlocklistHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveRadarrBlock::Blocklist,
@@ -81,7 +81,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(3);
 
-      BlocklistHandler::with(
+      BlocklistHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveRadarrBlock::Blocklist,
@@ -110,11 +110,11 @@ mod tests {
     ) {
       let mut app = App::default();
 
-      BlocklistHandler::with(key, &mut app, active_radarr_block, None).handle();
+      BlocklistHandler::new(key, &mut app, active_radarr_block, None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      BlocklistHandler::with(key, &mut app, active_radarr_block, None).handle();
+      BlocklistHandler::new(key, &mut app, active_radarr_block, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
     }
@@ -136,7 +136,7 @@ mod tests {
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
 
-      BlocklistHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
+      BlocklistHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -151,7 +151,7 @@ mod tests {
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
 
-      BlocklistHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
+      BlocklistHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Blocklist.into());
     }
@@ -178,7 +178,7 @@ mod tests {
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
 
-      BlocklistHandler::with(SUBMIT_KEY, &mut app, prompt_block, None).handle();
+      BlocklistHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
       assert_eq!(
@@ -201,7 +201,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.push_navigation_stack(prompt_block.into());
 
-      BlocklistHandler::with(SUBMIT_KEY, &mut app, prompt_block, None).handle();
+      BlocklistHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
@@ -237,7 +237,7 @@ mod tests {
       app.push_navigation_stack(prompt_block.into());
       app.data.radarr_data.prompt_confirm = true;
 
-      BlocklistHandler::with(ESC_KEY, &mut app, prompt_block, None).handle();
+      BlocklistHandler::new(ESC_KEY, &mut app, prompt_block, None).handle();
 
       assert_eq!(app.get_current_route(), base_block.into());
       assert!(!app.data.radarr_data.prompt_confirm);
@@ -249,7 +249,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.push_navigation_stack(ActiveRadarrBlock::BlocklistItemDetails.into());
 
-      BlocklistHandler::with(
+      BlocklistHandler::new(
         ESC_KEY,
         &mut app,
         ActiveRadarrBlock::BlocklistItemDetails,
@@ -268,7 +268,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
 
-      DownloadsHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
+      DownloadsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Blocklist.into());
       assert!(app.error.text.is_empty());
@@ -289,7 +289,7 @@ mod tests {
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
 
-      BlocklistHandler::with(
+      BlocklistHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveRadarrBlock::Blocklist,
@@ -308,7 +308,7 @@ mod tests {
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
 
-      BlocklistHandler::with(
+      BlocklistHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveRadarrBlock::Blocklist,
@@ -325,7 +325,7 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
 
-      BlocklistHandler::with(
+      BlocklistHandler::new(
         DEFAULT_KEYBINDINGS.clear.key,
         &mut app,
         ActiveRadarrBlock::Blocklist,
@@ -346,7 +346,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
 
-      BlocklistHandler::with(
+      BlocklistHandler::new(
         DEFAULT_KEYBINDINGS.clear.key,
         &mut app,
         ActiveRadarrBlock::Blocklist,
@@ -378,7 +378,7 @@ mod tests {
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
 
-      BlocklistHandler::with(
+      BlocklistHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         prompt_block,
@@ -546,7 +546,7 @@ mod tests {
     let mut app = App::default();
     app.data.radarr_data.blocklist.set_items(blocklist_vec());
 
-    let blocklist_item_id = BlocklistHandler::with(
+    let blocklist_item_id = BlocklistHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Blocklist,
@@ -562,7 +562,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = true;
 
-    let handler = BlocklistHandler::with(
+    let handler = BlocklistHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Blocklist,
@@ -577,7 +577,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = false;
 
-    let handler = BlocklistHandler::with(
+    let handler = BlocklistHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Blocklist,
@@ -597,7 +597,7 @@ mod tests {
       .blocklist
       .set_items(vec![BlocklistItem::default()]);
 
-    let handler = BlocklistHandler::with(
+    let handler = BlocklistHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Blocklist,

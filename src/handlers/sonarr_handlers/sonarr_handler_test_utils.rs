@@ -41,7 +41,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
       }]);
       app.data.sonarr_data = sonarr_data;
 
-      $handler::with(DEFAULT_KEYBINDINGS.edit.key, &mut app, $block, None).handle();
+      $handler::new(DEFAULT_KEYBINDINGS.edit.key, &mut app, $block, None).handle();
 
       assert_eq!(
         app.get_current_route(),

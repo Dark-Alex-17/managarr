@@ -222,7 +222,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = true;
 
-    let handler = RadarrHandler::with(
+    let handler = RadarrHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::System,

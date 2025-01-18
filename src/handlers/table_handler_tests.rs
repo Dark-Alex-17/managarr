@@ -48,7 +48,7 @@ mod tests {
       true
     }
 
-    fn with(
+    fn new(
       key: Key,
       app: &'a mut App<'b>,
       active_block: ActiveRadarrBlock,
@@ -126,7 +126,7 @@ mod tests {
           HorizontallyScrollableText
         ));
 
-      TableHandlerUnit::with(key, &mut app, ActiveRadarrBlock::Movies, None).handle();
+      TableHandlerUnit::new(key, &mut app, ActiveRadarrBlock::Movies, None).handle();
 
       assert_str_eq!(
         app
@@ -139,7 +139,7 @@ mod tests {
         "Test 1"
       );
 
-      TableHandlerUnit::with(key, &mut app, ActiveRadarrBlock::Movies, None).handle();
+      TableHandlerUnit::new(key, &mut app, ActiveRadarrBlock::Movies, None).handle();
 
       assert_eq!(
         app
@@ -163,7 +163,7 @@ mod tests {
 
       if key == Key::Up {
         for i in (0..movie_field_vec.len()).rev() {
-          TableHandlerUnit::with(key, &mut app, ActiveRadarrBlock::MoviesSortPrompt, None).handle();
+          TableHandlerUnit::new(key, &mut app, ActiveRadarrBlock::MoviesSortPrompt, None).handle();
 
           assert_eq!(
             app
@@ -179,7 +179,7 @@ mod tests {
         }
       } else {
         for i in 0..movie_field_vec.len() {
-          TableHandlerUnit::with(key, &mut app, ActiveRadarrBlock::MoviesSortPrompt, None).handle();
+          TableHandlerUnit::new(key, &mut app, ActiveRadarrBlock::MoviesSortPrompt, None).handle();
 
           assert_eq!(
             app
@@ -230,7 +230,7 @@ mod tests {
           HorizontallyScrollableText
         ));
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -249,7 +249,7 @@ mod tests {
         "Test 1"
       );
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -280,7 +280,7 @@ mod tests {
         .set_items(vec![Movie::default()]);
       app.data.radarr_data.movies.search = Some("Test".into());
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveRadarrBlock::SearchMovie,
@@ -301,7 +301,7 @@ mod tests {
         4
       );
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveRadarrBlock::SearchMovie,
@@ -334,7 +334,7 @@ mod tests {
         .set_items(vec![Movie::default()]);
       app.data.radarr_data.movies.filter = Some("Test".into());
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveRadarrBlock::FilterMovies,
@@ -355,7 +355,7 @@ mod tests {
         4
       );
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveRadarrBlock::FilterMovies,
@@ -383,7 +383,7 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.movies.sorting(sort_options());
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveRadarrBlock::MoviesSortPrompt,
@@ -403,7 +403,7 @@ mod tests {
         &movie_field_vec[movie_field_vec.len() - 1]
       );
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveRadarrBlock::MoviesSortPrompt,
@@ -442,7 +442,7 @@ mod tests {
         .set_items(vec![Movie::default()]);
       app.data.radarr_data.movies.search = Some("Test".into());
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveRadarrBlock::SearchMovie,
@@ -463,7 +463,7 @@ mod tests {
         1
       );
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveRadarrBlock::SearchMovie,
@@ -496,7 +496,7 @@ mod tests {
         .set_items(vec![Movie::default()]);
       app.data.radarr_data.movies.filter = Some("Test".into());
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveRadarrBlock::FilterMovies,
@@ -517,7 +517,7 @@ mod tests {
         1
       );
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveRadarrBlock::FilterMovies,
@@ -565,7 +565,7 @@ mod tests {
         ));
       app.data.radarr_data.movies.search = Some("Test 2".into());
 
-      TableHandlerUnit::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::SearchMovie, None).handle();
+      TableHandlerUnit::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::SearchMovie, None).handle();
 
       assert_str_eq!(
         app.data.radarr_data.movies.current_selection().title.text,
@@ -589,7 +589,7 @@ mod tests {
         ));
       app.data.radarr_data.movies.search = Some("Test 5".into());
 
-      TableHandlerUnit::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::SearchMovie, None).handle();
+      TableHandlerUnit::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::SearchMovie, None).handle();
 
       assert_str_eq!(
         app.data.radarr_data.movies.current_selection().title.text,
@@ -621,7 +621,7 @@ mod tests {
         ));
       app.data.radarr_data.movies.search = Some("Test 2".into());
 
-      TableHandlerUnit::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::SearchMovie, None).handle();
+      TableHandlerUnit::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::SearchMovie, None).handle();
 
       assert_str_eq!(
         app.data.radarr_data.movies.current_selection().title.text,
@@ -645,7 +645,7 @@ mod tests {
         ));
       app.data.radarr_data.movies.filter = Some("Test".into());
 
-      TableHandlerUnit::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::FilterMovies, None).handle();
+      TableHandlerUnit::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::FilterMovies, None).handle();
 
       assert!(app.data.radarr_data.movies.filtered_items.is_some());
       assert!(!app.should_ignore_quit_key);
@@ -682,7 +682,7 @@ mod tests {
         ));
       app.data.radarr_data.movies.filter = Some("Test 5".into());
 
-      TableHandlerUnit::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::FilterMovies, None).handle();
+      TableHandlerUnit::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::FilterMovies, None).handle();
 
       assert!(!app.should_ignore_quit_key);
       assert!(app.data.radarr_data.movies.filtered_items.is_none());
@@ -705,7 +705,7 @@ mod tests {
       expected_vec.sort_by(|a, b| a.id.cmp(&b.id));
       expected_vec.reverse();
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::MoviesSortPrompt,
@@ -741,7 +741,7 @@ mod tests {
       app.data.radarr_data = create_test_radarr_data();
       app.data.radarr_data.movies.search = Some("Test".into());
 
-      TableHandlerUnit::with(ESC_KEY, &mut app, active_radarr_block, None).handle();
+      TableHandlerUnit::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert!(!app.should_ignore_quit_key);
@@ -770,7 +770,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      TableHandlerUnit::with(ESC_KEY, &mut app, active_radarr_block, None).handle();
+      TableHandlerUnit::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert!(!app.should_ignore_quit_key);
@@ -786,7 +786,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::MoviesSortPrompt.into());
 
-      TableHandlerUnit::with(ESC_KEY, &mut app, ActiveRadarrBlock::MoviesSortPrompt, None).handle();
+      TableHandlerUnit::new(ESC_KEY, &mut app, ActiveRadarrBlock::MoviesSortPrompt, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
     }
@@ -808,7 +808,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.search.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -838,7 +838,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.search.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -860,7 +860,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.search.key,
         &mut app,
         ActiveRadarrBlock::MovieDetails,
@@ -882,7 +882,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.filter.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -909,7 +909,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.filter.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -935,7 +935,7 @@ mod tests {
         .set_items(vec![Movie::default()]);
       app.data.radarr_data.movies.filter = Some("Test".into());
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.filter.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -965,7 +965,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.filter.key,
         &mut app,
         ActiveRadarrBlock::MovieDetails,
@@ -989,7 +989,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
         ActiveRadarrBlock::SearchMovie,
@@ -1014,7 +1014,7 @@ mod tests {
         .set_items(vec![Movie::default()]);
       app.data.radarr_data.movies.filter = Some("Test".into());
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
         ActiveRadarrBlock::FilterMovies,
@@ -1039,7 +1039,7 @@ mod tests {
         .set_items(vec![Movie::default()]);
       app.data.radarr_data.movies.search = Some(HorizontallyScrollableText::default());
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         Key::Char('h'),
         &mut app,
         ActiveRadarrBlock::SearchMovie,
@@ -1064,7 +1064,7 @@ mod tests {
         .set_items(vec![Movie::default()]);
       app.data.radarr_data.movies.filter = Some(HorizontallyScrollableText::default());
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         Key::Char('h'),
         &mut app,
         ActiveRadarrBlock::FilterMovies,
@@ -1087,7 +1087,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.sort.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -1117,7 +1117,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.sort.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -1138,7 +1138,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      TableHandlerUnit::with(
+      TableHandlerUnit::new(
         DEFAULT_KEYBINDINGS.sort.key,
         &mut app,
         ActiveRadarrBlock::MovieDetails,

@@ -50,7 +50,7 @@ mod tests {
 
       if key == Key::Up {
         for i in (0..monitor_vec.len()).rev() {
-          AddSeriesHandler::with(
+          AddSeriesHandler::new(
             key,
             &mut app,
             ActiveSonarrBlock::AddSeriesSelectMonitor,
@@ -72,7 +72,7 @@ mod tests {
         }
       } else {
         for i in 0..monitor_vec.len() {
-          AddSeriesHandler::with(
+          AddSeriesHandler::new(
             key,
             &mut app,
             ActiveSonarrBlock::AddSeriesSelectMonitor,
@@ -114,7 +114,7 @@ mod tests {
 
       if key == Key::Up {
         for i in (0..series_type_vec.len()).rev() {
-          AddSeriesHandler::with(
+          AddSeriesHandler::new(
             key,
             &mut app,
             ActiveSonarrBlock::AddSeriesSelectSeriesType,
@@ -136,7 +136,7 @@ mod tests {
         }
       } else {
         for i in 0..series_type_vec.len() {
-          AddSeriesHandler::with(
+          AddSeriesHandler::new(
             key,
             &mut app,
             ActiveSonarrBlock::AddSeriesSelectSeriesType,
@@ -175,7 +175,7 @@ mod tests {
         .quality_profile_list
         .set_items(vec!["Test 1".to_owned(), "Test 2".to_owned()]);
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectQualityProfile,
@@ -195,7 +195,7 @@ mod tests {
         "Test 2"
       );
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectQualityProfile,
@@ -232,7 +232,7 @@ mod tests {
         .language_profile_list
         .set_items(vec!["Test 1".to_owned(), "Test 2".to_owned()]);
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectLanguageProfile,
@@ -252,7 +252,7 @@ mod tests {
         "Test 2"
       );
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectLanguageProfile,
@@ -289,7 +289,7 @@ mod tests {
         .root_folder_list
         .set_items(simple_stateful_iterable_vec!(RootFolder, String, path));
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectRootFolder,
@@ -310,7 +310,7 @@ mod tests {
         "Test 2"
       );
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectRootFolder,
@@ -339,7 +339,7 @@ mod tests {
       app.data.sonarr_data.selected_block = BlockSelectionState::new(ADD_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.down();
 
-      AddSeriesHandler::with(key, &mut app, ActiveSonarrBlock::AddSeriesPrompt, None).handle();
+      AddSeriesHandler::new(key, &mut app, ActiveSonarrBlock::AddSeriesPrompt, None).handle();
 
       if key == Key::Up {
         assert_eq!(
@@ -362,7 +362,7 @@ mod tests {
       app.data.sonarr_data.selected_block = BlockSelectionState::new(ADD_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.down();
 
-      AddSeriesHandler::with(key, &mut app, ActiveSonarrBlock::AddSeriesPrompt, None).handle();
+      AddSeriesHandler::new(key, &mut app, ActiveSonarrBlock::AddSeriesPrompt, None).handle();
 
       assert_eq!(
         app.data.sonarr_data.selected_block.get_active_block(),
@@ -397,7 +397,7 @@ mod tests {
         .monitor_list
         .set_items(monitor_vec.clone());
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectMonitor,
@@ -417,7 +417,7 @@ mod tests {
         &monitor_vec[monitor_vec.len() - 1]
       );
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectMonitor,
@@ -453,7 +453,7 @@ mod tests {
         .series_type_list
         .set_items(series_type_vec.clone());
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectSeriesType,
@@ -473,7 +473,7 @@ mod tests {
         &series_type_vec[series_type_vec.len() - 1]
       );
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectSeriesType,
@@ -512,7 +512,7 @@ mod tests {
           "Test 3".to_owned(),
         ]);
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectQualityProfile,
@@ -532,7 +532,7 @@ mod tests {
         "Test 3"
       );
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectQualityProfile,
@@ -571,7 +571,7 @@ mod tests {
           "Test 3".to_owned(),
         ]);
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectLanguageProfile,
@@ -591,7 +591,7 @@ mod tests {
         "Test 3"
       );
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectLanguageProfile,
@@ -626,7 +626,7 @@ mod tests {
         .root_folder_list
         .set_items(extended_stateful_iterable_vec!(RootFolder, String, path));
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectRootFolder,
@@ -647,7 +647,7 @@ mod tests {
         "Test 3"
       );
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSelectRootFolder,
@@ -675,7 +675,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.add_series_search = Some("Test".into());
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchInput,
@@ -695,7 +695,7 @@ mod tests {
         4
       );
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchInput,
@@ -725,7 +725,7 @@ mod tests {
         ..AddSeriesModal::default()
       });
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesTagsInput,
@@ -746,7 +746,7 @@ mod tests {
         4
       );
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesTagsInput,
@@ -783,11 +783,11 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
-      AddSeriesHandler::with(key, &mut app, ActiveSonarrBlock::AddSeriesPrompt, None).handle();
+      AddSeriesHandler::new(key, &mut app, ActiveSonarrBlock::AddSeriesPrompt, None).handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
 
-      AddSeriesHandler::with(key, &mut app, ActiveSonarrBlock::AddSeriesPrompt, None).handle();
+      AddSeriesHandler::new(key, &mut app, ActiveSonarrBlock::AddSeriesPrompt, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
     }
@@ -798,7 +798,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.add_series_search = Some("Test".into());
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchInput,
@@ -818,7 +818,7 @@ mod tests {
         1
       );
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchInput,
@@ -848,7 +848,7 @@ mod tests {
         ..AddSeriesModal::default()
       });
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesTagsInput,
@@ -869,7 +869,7 @@ mod tests {
         1
       );
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesTagsInput,
@@ -915,7 +915,7 @@ mod tests {
       app.should_ignore_quit_key = true;
       app.data.sonarr_data.add_series_search = Some("test".into());
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchInput,
@@ -938,7 +938,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchInput.into());
       app.should_ignore_quit_key = true;
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchInput,
@@ -963,7 +963,7 @@ mod tests {
       app.data.sonarr_data.quality_profile_map =
         BiMap::from_iter([(1, "B - Test 2".to_owned()), (0, "A - Test 1".to_owned())]);
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchResults,
@@ -1029,7 +1029,7 @@ mod tests {
       let mut add_searched_series = StatefulTable::default();
       add_searched_series.set_items(vec![AddSeriesSearchResult::default()]);
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchResults,
@@ -1049,7 +1049,7 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchResults.into());
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchResults,
@@ -1076,7 +1076,7 @@ mod tests {
         .series
         .set_items(vec![Series::default()]);
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchResults,
@@ -1102,7 +1102,7 @@ mod tests {
         .selected_block
         .set_index(0, ADD_SERIES_SELECTION_BLOCKS.len() - 1);
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesPrompt,
@@ -1185,7 +1185,7 @@ mod tests {
         .selected_block
         .set_index(0, ADD_SERIES_SELECTION_BLOCKS.len() - 1);
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesPrompt,
@@ -1218,7 +1218,7 @@ mod tests {
       app.data.sonarr_data.selected_block = BlockSelectionState::new(ADD_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.set_index(0, y_index);
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesPrompt,
@@ -1251,7 +1251,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesPrompt.into());
       app.push_navigation_stack(active_sonarr_block.into());
 
-      AddSeriesHandler::with(SUBMIT_KEY, &mut app, active_sonarr_block, None).handle();
+      AddSeriesHandler::new(SUBMIT_KEY, &mut app, active_sonarr_block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -1272,7 +1272,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesPrompt.into());
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesPrompt,
@@ -1294,7 +1294,7 @@ mod tests {
           .use_season_folder
       );
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesPrompt,
@@ -1340,7 +1340,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchInput.into());
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchInput,
@@ -1362,7 +1362,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesPrompt.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesTagsInput.into());
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesTagsInput,
@@ -1396,7 +1396,7 @@ mod tests {
       ));
       app.data.sonarr_data.add_searched_series = Some(add_searched_series);
 
-      AddSeriesHandler::with(ESC_KEY, &mut app, active_sonarr_block, None).handle();
+      AddSeriesHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -1414,7 +1414,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchResults.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesAlreadyInLibrary.into());
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesAlreadyInLibrary,
@@ -1437,7 +1437,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchResults.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesPrompt.into());
 
-      AddSeriesHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::AddSeriesPrompt, None).handle();
+      AddSeriesHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::AddSeriesPrompt, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(
@@ -1456,7 +1456,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesPrompt.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesTagsInput.into());
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::AddSeriesTagsInput,
@@ -1487,7 +1487,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesPrompt.into());
       app.push_navigation_stack(active_sonarr_block.into());
 
-      AddSeriesHandler::with(ESC_KEY, &mut app, active_sonarr_block, None).handle();
+      AddSeriesHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -1513,7 +1513,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.add_series_search = Some("Test".into());
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchInput,
@@ -1542,7 +1542,7 @@ mod tests {
         ..AddSeriesModal::default()
       });
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesTagsInput,
@@ -1569,7 +1569,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.add_series_search = Some(HorizontallyScrollableText::default());
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         Key::Char('h'),
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchInput,
@@ -1595,7 +1595,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.add_series_modal = Some(AddSeriesModal::default());
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         Key::Char('h'),
         &mut app,
         ActiveSonarrBlock::AddSeriesTagsInput,
@@ -1686,7 +1686,7 @@ mod tests {
         .selected_block
         .set_index(0, ADD_SERIES_SELECTION_BLOCKS.len() - 1);
 
-      AddSeriesHandler::with(
+      AddSeriesHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveSonarrBlock::AddSeriesPrompt,
@@ -1719,7 +1719,7 @@ mod tests {
     let mut app = App::default();
     app.data.sonarr_data.add_series_search = None;
 
-    AddSeriesHandler::with(
+    AddSeriesHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::AddSeriesSearchResults,
@@ -1789,7 +1789,7 @@ mod tests {
       },
     };
 
-    let add_series_body = AddSeriesHandler::with(
+    let add_series_body = AddSeriesHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::AddSeriesPrompt,
@@ -1807,7 +1807,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::Series.into());
     app.is_loading = true;
 
-    let handler = AddSeriesHandler::with(
+    let handler = AddSeriesHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::AddSeriesPrompt,
@@ -1823,7 +1823,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::Series.into());
     app.is_loading = false;
 
-    let handler = AddSeriesHandler::with(
+    let handler = AddSeriesHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::AddSeriesPrompt,

@@ -23,7 +23,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::TestAllIndexers.into());
       app.data.sonarr_data.indexer_test_all_results = Some(StatefulTable::default());
 
-      TestAllIndexersHandler::with(
+      TestAllIndexersHandler::new(
         DEFAULT_KEYBINDINGS.esc.key,
         &mut app,
         ActiveSonarrBlock::TestAllIndexers,
@@ -54,7 +54,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = true;
 
-    let handler = TestAllIndexersHandler::with(
+    let handler = TestAllIndexersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::TestAllIndexers,
@@ -70,7 +70,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = false;
 
-    let handler = TestAllIndexersHandler::with(
+    let handler = TestAllIndexersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::TestAllIndexers,
@@ -87,7 +87,7 @@ mod tests {
     app.is_loading = false;
     app.data.sonarr_data.indexer_test_all_results = Some(StatefulTable::default());
 
-    let handler = TestAllIndexersHandler::with(
+    let handler = TestAllIndexersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::TestAllIndexers,
@@ -106,7 +106,7 @@ mod tests {
     indexer_test_results.set_items(vec![IndexerTestResultModalItem::default()]);
     app.data.sonarr_data.indexer_test_all_results = Some(indexer_test_results);
 
-    let handler = TestAllIndexersHandler::with(
+    let handler = TestAllIndexersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::TestAllIndexers,

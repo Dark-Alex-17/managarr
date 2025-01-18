@@ -41,26 +41,26 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SonarrHandler<'a, 'b
   fn handle(&mut self) {
     match self.active_sonarr_block {
       _ if LibraryHandler::accepts(self.active_sonarr_block) => {
-        LibraryHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle();
+        LibraryHandler::new(self.key, self.app, self.active_sonarr_block, self.context).handle();
       }
       _ if DownloadsHandler::accepts(self.active_sonarr_block) => {
-        DownloadsHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle()
+        DownloadsHandler::new(self.key, self.app, self.active_sonarr_block, self.context).handle()
       }
       _ if BlocklistHandler::accepts(self.active_sonarr_block) => {
-        BlocklistHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle()
+        BlocklistHandler::new(self.key, self.app, self.active_sonarr_block, self.context).handle()
       }
       _ if HistoryHandler::accepts(self.active_sonarr_block) => {
-        HistoryHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle()
+        HistoryHandler::new(self.key, self.app, self.active_sonarr_block, self.context).handle()
       }
       _ if RootFoldersHandler::accepts(self.active_sonarr_block) => {
-        RootFoldersHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+        RootFoldersHandler::new(self.key, self.app, self.active_sonarr_block, self.context)
           .handle()
       }
       _ if IndexersHandler::accepts(self.active_sonarr_block) => {
-        IndexersHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle()
+        IndexersHandler::new(self.key, self.app, self.active_sonarr_block, self.context).handle()
       }
       _ if SystemHandler::accepts(self.active_sonarr_block) => {
-        SystemHandler::with(self.key, self.app, self.active_sonarr_block, self.context).handle()
+        SystemHandler::new(self.key, self.app, self.active_sonarr_block, self.context).handle()
       }
       _ => self.handle_key_event(),
     }
@@ -70,7 +70,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SonarrHandler<'a, 'b
     true
   }
 
-  fn with(
+  fn new(
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveSonarrBlock,

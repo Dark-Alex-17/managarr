@@ -32,7 +32,7 @@ mod tests {
         .set_items(vec![RootFolder::default()]);
       app.data.sonarr_data.edit_root_folder = Some("Test".into());
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::AddRootFolderPrompt,
@@ -52,7 +52,7 @@ mod tests {
         4
       );
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::AddRootFolderPrompt,
@@ -91,7 +91,7 @@ mod tests {
         .root_folders
         .set_items(vec![RootFolder::default()]);
 
-      RootFoldersHandler::with(DELETE_KEY, &mut app, ActiveSonarrBlock::RootFolders, None).handle();
+      RootFoldersHandler::new(DELETE_KEY, &mut app, ActiveSonarrBlock::RootFolders, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -110,7 +110,7 @@ mod tests {
         .root_folders
         .set_items(vec![RootFolder::default()]);
 
-      RootFoldersHandler::with(DELETE_KEY, &mut app, ActiveSonarrBlock::RootFolders, None).handle();
+      RootFoldersHandler::new(DELETE_KEY, &mut app, ActiveSonarrBlock::RootFolders, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -134,7 +134,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(4);
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveSonarrBlock::RootFolders,
@@ -156,7 +156,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(4);
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveSonarrBlock::RootFolders,
@@ -178,7 +178,7 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::DeleteRootFolderPrompt,
@@ -188,7 +188,7 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::DeleteRootFolderPrompt,
@@ -205,7 +205,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
       app.data.sonarr_data.edit_root_folder = Some("Test".into());
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveSonarrBlock::AddRootFolderPrompt,
@@ -225,7 +225,7 @@ mod tests {
         1
       );
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveSonarrBlock::AddRootFolderPrompt,
@@ -273,7 +273,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddRootFolderPrompt.into());
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AddRootFolderPrompt,
@@ -303,7 +303,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddRootFolderPrompt.into());
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AddRootFolderPrompt,
@@ -332,7 +332,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteRootFolderPrompt.into());
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::DeleteRootFolderPrompt,
@@ -362,7 +362,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteRootFolderPrompt.into());
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::DeleteRootFolderPrompt,
@@ -393,7 +393,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::DeleteRootFolderPrompt.into());
       app.data.sonarr_data.prompt_confirm = true;
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::DeleteRootFolderPrompt,
@@ -416,7 +416,7 @@ mod tests {
       app.data.sonarr_data.edit_root_folder = Some("/nfs/test".into());
       app.should_ignore_quit_key = true;
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::AddRootFolderPrompt,
@@ -442,7 +442,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
 
-      RootFoldersHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::RootFolders, None).handle();
+      RootFoldersHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::RootFolders, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -469,7 +469,7 @@ mod tests {
         .root_folders
         .set_items(vec![RootFolder::default()]);
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.add.key,
         &mut app,
         ActiveSonarrBlock::RootFolders,
@@ -496,7 +496,7 @@ mod tests {
         .root_folders
         .set_items(vec![RootFolder::default()]);
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.add.key,
         &mut app,
         ActiveSonarrBlock::RootFolders,
@@ -522,7 +522,7 @@ mod tests {
         .set_items(vec![RootFolder::default()]);
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveSonarrBlock::RootFolders,
@@ -548,7 +548,7 @@ mod tests {
         .set_items(vec![RootFolder::default()]);
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveSonarrBlock::RootFolders,
@@ -574,7 +574,7 @@ mod tests {
         .set_items(vec![RootFolder::default()]);
       app.data.sonarr_data.edit_root_folder = Some("/nfs/test".into());
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
         ActiveSonarrBlock::AddRootFolderPrompt,
@@ -599,7 +599,7 @@ mod tests {
         .set_items(vec![RootFolder::default()]);
       app.data.sonarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         Key::Char('h'),
         &mut app,
         ActiveSonarrBlock::AddRootFolderPrompt,
@@ -624,7 +624,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteRootFolderPrompt.into());
 
-      RootFoldersHandler::with(
+      RootFoldersHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveSonarrBlock::DeleteRootFolderPrompt,
@@ -664,7 +664,7 @@ mod tests {
       .root_folders
       .set_items(vec![root_folder()]);
 
-    let root_folder_id = RootFoldersHandler::with(
+    let root_folder_id = RootFoldersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::DeleteRootFolderPrompt,
@@ -683,7 +683,7 @@ mod tests {
       path: "/nfs/test".to_owned(),
     };
 
-    let root_folder = RootFoldersHandler::with(
+    let root_folder = RootFoldersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::AddRootFolderPrompt,
@@ -701,7 +701,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
     app.is_loading = true;
 
-    let handler = RootFoldersHandler::with(
+    let handler = RootFoldersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::RootFolders,
@@ -717,7 +717,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
     app.is_loading = false;
 
-    let handler = RootFoldersHandler::with(
+    let handler = RootFoldersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::RootFolders,
@@ -738,7 +738,7 @@ mod tests {
       .sonarr_data
       .root_folders
       .set_items(vec![RootFolder::default()]);
-    let handler = RootFoldersHandler::with(
+    let handler = RootFoldersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::RootFolders,

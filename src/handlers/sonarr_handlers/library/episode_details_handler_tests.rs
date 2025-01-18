@@ -34,11 +34,11 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
 
-      EpisodeDetailsHandler::with(key, &mut app, active_sonarr_block, None).handle();
+      EpisodeDetailsHandler::new(key, &mut app, active_sonarr_block, None).handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
 
-      EpisodeDetailsHandler::with(key, &mut app, active_sonarr_block, None).handle();
+      EpisodeDetailsHandler::new(key, &mut app, active_sonarr_block, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
     }
@@ -86,7 +86,7 @@ mod tests {
         .position(|tab_route| tab_route.route == right_block.into())
         .unwrap_or_default();
 
-      EpisodeDetailsHandler::with(DEFAULT_KEYBINDINGS.left.key, &mut app, right_block, None)
+      EpisodeDetailsHandler::new(DEFAULT_KEYBINDINGS.left.key, &mut app, right_block, None)
         .handle();
 
       assert_eq!(
@@ -105,7 +105,7 @@ mod tests {
       );
       assert_eq!(app.get_current_route(), left_block.into());
 
-      EpisodeDetailsHandler::with(DEFAULT_KEYBINDINGS.right.key, &mut app, left_block, None)
+      EpisodeDetailsHandler::new(DEFAULT_KEYBINDINGS.right.key, &mut app, left_block, None)
         .handle();
 
       assert_eq!(
@@ -140,7 +140,7 @@ mod tests {
       let mut app = App::default();
       app.data.sonarr_data = create_test_sonarr_data();
 
-      EpisodeDetailsHandler::with(
+      EpisodeDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EpisodeHistory,
@@ -170,7 +170,7 @@ mod tests {
         .episode_history = StatefulTable::default();
       app.push_navigation_stack(ActiveSonarrBlock::EpisodeHistory.into());
 
-      EpisodeDetailsHandler::with(
+      EpisodeDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EpisodeHistory,
@@ -191,7 +191,7 @@ mod tests {
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::EpisodeHistory.into());
 
-      EpisodeDetailsHandler::with(
+      EpisodeDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EpisodeHistory,
@@ -235,7 +235,7 @@ mod tests {
       app.push_navigation_stack(active_sonarr_block.into());
       app.push_navigation_stack(prompt_block.into());
 
-      EpisodeDetailsHandler::with(SUBMIT_KEY, &mut app, prompt_block, None).handle();
+      EpisodeDetailsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.get_current_route(), active_sonarr_block.into());
@@ -253,7 +253,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearch.into());
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt.into());
 
-      EpisodeDetailsHandler::with(
+      EpisodeDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt,
@@ -290,7 +290,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
-      EpisodeDetailsHandler::with(SUBMIT_KEY, &mut app, prompt_block, None).handle();
+      EpisodeDetailsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(
@@ -306,7 +306,7 @@ mod tests {
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearch.into());
 
-      EpisodeDetailsHandler::with(
+      EpisodeDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::ManualEpisodeSearch,
@@ -327,7 +327,7 @@ mod tests {
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearch.into());
 
-      EpisodeDetailsHandler::with(
+      EpisodeDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::ManualEpisodeSearch,
@@ -356,7 +356,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::EpisodeHistory.into());
       app.push_navigation_stack(ActiveSonarrBlock::EpisodeHistoryDetails.into());
 
-      EpisodeDetailsHandler::with(
+      EpisodeDetailsHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::EpisodeHistoryDetails,
@@ -386,7 +386,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
-      EpisodeDetailsHandler::with(ESC_KEY, &mut app, prompt_block, None).handle();
+      EpisodeDetailsHandler::new(ESC_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(
@@ -410,7 +410,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.push_navigation_stack(active_sonarr_block.into());
 
-      EpisodeDetailsHandler::with(ESC_KEY, &mut app, active_sonarr_block, None).handle();
+      EpisodeDetailsHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -447,7 +447,7 @@ mod tests {
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(active_sonarr_block.into());
 
-      EpisodeDetailsHandler::with(
+      EpisodeDetailsHandler::new(
         DEFAULT_KEYBINDINGS.auto_search.key,
         &mut app,
         active_sonarr_block,
@@ -475,7 +475,7 @@ mod tests {
       app.is_loading = true;
       app.push_navigation_stack(active_sonarr_block.into());
 
-      EpisodeDetailsHandler::with(
+      EpisodeDetailsHandler::new(
         DEFAULT_KEYBINDINGS.auto_search.key,
         &mut app,
         active_sonarr_block,
@@ -501,7 +501,7 @@ mod tests {
       app.push_navigation_stack(active_sonarr_block.into());
       app.is_routing = false;
 
-      EpisodeDetailsHandler::with(
+      EpisodeDetailsHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         active_sonarr_block,
@@ -529,7 +529,7 @@ mod tests {
       app.push_navigation_stack(active_sonarr_block.into());
       app.is_routing = false;
 
-      EpisodeDetailsHandler::with(
+      EpisodeDetailsHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         active_sonarr_block,
@@ -565,7 +565,7 @@ mod tests {
       app.push_navigation_stack(active_sonarr_block.into());
       app.push_navigation_stack(ActiveSonarrBlock::AutomaticallySearchEpisodePrompt.into());
 
-      EpisodeDetailsHandler::with(
+      EpisodeDetailsHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveSonarrBlock::AutomaticallySearchEpisodePrompt,
@@ -589,7 +589,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearch.into());
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt.into());
 
-      EpisodeDetailsHandler::with(
+      EpisodeDetailsHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt,
@@ -632,7 +632,7 @@ mod tests {
     season_details_modal.episodes.set_items(vec![episode()]);
     app.data.sonarr_data.season_details_modal = Some(season_details_modal);
 
-    let episode_id = EpisodeDetailsHandler::with(
+    let episode_id = EpisodeDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::EpisodeDetails,
@@ -648,7 +648,7 @@ mod tests {
   fn test_extract_episode_id_panics_when_season_details_modal_is_none() {
     let mut app = App::default();
 
-    EpisodeDetailsHandler::with(
+    EpisodeDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::EpisodeDetails,
@@ -663,7 +663,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
     app.is_loading = true;
 
-    let handler = EpisodeDetailsHandler::with(
+    let handler = EpisodeDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::EpisodeDetails,
@@ -679,7 +679,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
     app.is_loading = false;
 
-    let handler = EpisodeDetailsHandler::with(
+    let handler = EpisodeDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::EpisodeDetails,
@@ -703,7 +703,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
     app.is_loading = false;
 
-    let handler = EpisodeDetailsHandler::with(
+    let handler = EpisodeDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::EpisodeDetails,
@@ -730,7 +730,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::EpisodeHistory.into());
     app.is_loading = false;
 
-    let handler = EpisodeDetailsHandler::with(
+    let handler = EpisodeDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::EpisodeHistory,
@@ -757,7 +757,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearch.into());
     app.is_loading = false;
 
-    let handler = EpisodeDetailsHandler::with(
+    let handler = EpisodeDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::ManualEpisodeSearch,
@@ -784,7 +784,7 @@ mod tests {
     app.push_navigation_stack(active_sonarr_block.into());
     app.is_loading = false;
 
-    let handler = EpisodeDetailsHandler::with(
+    let handler = EpisodeDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       active_sonarr_block,
@@ -809,7 +809,7 @@ mod tests {
     app.push_navigation_stack(active_sonarr_block.into());
     app.is_loading = false;
 
-    let handler = EpisodeDetailsHandler::with(
+    let handler = EpisodeDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       active_sonarr_block,

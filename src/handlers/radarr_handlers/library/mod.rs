@@ -54,19 +54,19 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
     if !self.handle_movies_table_events(movie_table_handling_config) {
       match self.active_radarr_block {
         _ if AddMovieHandler::accepts(self.active_radarr_block) => {
-          AddMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+          AddMovieHandler::new(self.key, self.app, self.active_radarr_block, self.context)
             .handle();
         }
         _ if DeleteMovieHandler::accepts(self.active_radarr_block) => {
-          DeleteMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+          DeleteMovieHandler::new(self.key, self.app, self.active_radarr_block, self.context)
             .handle();
         }
         _ if EditMovieHandler::accepts(self.active_radarr_block) => {
-          EditMovieHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+          EditMovieHandler::new(self.key, self.app, self.active_radarr_block, self.context)
             .handle();
         }
         _ if MovieDetailsHandler::accepts(self.active_radarr_block) => {
-          MovieDetailsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+          MovieDetailsHandler::new(self.key, self.app, self.active_radarr_block, self.context)
             .handle();
         }
         _ => self.handle_key_event(),
@@ -82,7 +82,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
       || LIBRARY_BLOCKS.contains(&active_block)
   }
 
-  fn with(
+  fn new(
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveRadarrBlock,

@@ -26,7 +26,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(6);
 
-      SystemHandler::with(
+      SystemHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveRadarrBlock::System,
@@ -47,7 +47,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(6);
 
-      SystemHandler::with(
+      SystemHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveRadarrBlock::System,
@@ -78,7 +78,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
 
-      SystemHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::System, None).handle();
+      SystemHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::System, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
       assert!(app.error.text.is_empty());
@@ -110,7 +110,7 @@ mod tests {
         .tasks
         .set_items(vec![RadarrTask::default()]);
 
-      SystemHandler::with(
+      SystemHandler::new(
         DEFAULT_KEYBINDINGS.update.key,
         &mut app,
         ActiveRadarrBlock::System,
@@ -144,7 +144,7 @@ mod tests {
         .tasks
         .set_items(vec![RadarrTask::default()]);
 
-      SystemHandler::with(
+      SystemHandler::new(
         DEFAULT_KEYBINDINGS.update.key,
         &mut app,
         ActiveRadarrBlock::System,
@@ -173,7 +173,7 @@ mod tests {
         .tasks
         .set_items(vec![RadarrTask::default()]);
 
-      SystemHandler::with(
+      SystemHandler::new(
         DEFAULT_KEYBINDINGS.events.key,
         &mut app,
         ActiveRadarrBlock::System,
@@ -207,7 +207,7 @@ mod tests {
         .tasks
         .set_items(vec![RadarrTask::default()]);
 
-      SystemHandler::with(
+      SystemHandler::new(
         DEFAULT_KEYBINDINGS.events.key,
         &mut app,
         ActiveRadarrBlock::System,
@@ -237,7 +237,7 @@ mod tests {
         .set_items(vec![RadarrTask::default()]);
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
 
-      SystemHandler::with(
+      SystemHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveRadarrBlock::System,
@@ -270,7 +270,7 @@ mod tests {
         .set_items(vec![RadarrTask::default()]);
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
 
-      SystemHandler::with(
+      SystemHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveRadarrBlock::System,
@@ -300,7 +300,7 @@ mod tests {
         .tasks
         .set_items(vec![RadarrTask::default()]);
 
-      SystemHandler::with(
+      SystemHandler::new(
         DEFAULT_KEYBINDINGS.logs.key,
         &mut app,
         ActiveRadarrBlock::System,
@@ -342,7 +342,7 @@ mod tests {
         .tasks
         .set_items(vec![RadarrTask::default()]);
 
-      SystemHandler::with(
+      SystemHandler::new(
         DEFAULT_KEYBINDINGS.logs.key,
         &mut app,
         ActiveRadarrBlock::System,
@@ -372,7 +372,7 @@ mod tests {
         .tasks
         .set_items(vec![RadarrTask::default()]);
 
-      SystemHandler::with(
+      SystemHandler::new(
         DEFAULT_KEYBINDINGS.tasks.key,
         &mut app,
         ActiveRadarrBlock::System,
@@ -406,7 +406,7 @@ mod tests {
         .tasks
         .set_items(vec![RadarrTask::default()]);
 
-      SystemHandler::with(
+      SystemHandler::new(
         DEFAULT_KEYBINDINGS.tasks.key,
         &mut app,
         ActiveRadarrBlock::System,
@@ -455,7 +455,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = true;
 
-    let system_handler = SystemHandler::with(
+    let system_handler = SystemHandler::new(
       DEFAULT_KEYBINDINGS.update.key,
       &mut app,
       ActiveRadarrBlock::System,
@@ -480,7 +480,7 @@ mod tests {
       .queued_events
       .set_items(vec![QueueEvent::default()]);
 
-    let system_handler = SystemHandler::with(
+    let system_handler = SystemHandler::new(
       DEFAULT_KEYBINDINGS.update.key,
       &mut app,
       ActiveRadarrBlock::System,
@@ -501,7 +501,7 @@ mod tests {
       .queued_events
       .set_items(vec![QueueEvent::default()]);
 
-    let system_handler = SystemHandler::with(
+    let system_handler = SystemHandler::new(
       DEFAULT_KEYBINDINGS.update.key,
       &mut app,
       ActiveRadarrBlock::System,
@@ -522,7 +522,7 @@ mod tests {
       .tasks
       .set_items(vec![RadarrTask::default()]);
 
-    let system_handler = SystemHandler::with(
+    let system_handler = SystemHandler::new(
       DEFAULT_KEYBINDINGS.update.key,
       &mut app,
       ActiveRadarrBlock::System,
@@ -548,7 +548,7 @@ mod tests {
       .queued_events
       .set_items(vec![QueueEvent::default()]);
 
-    let system_handler = SystemHandler::with(
+    let system_handler = SystemHandler::new(
       DEFAULT_KEYBINDINGS.update.key,
       &mut app,
       ActiveRadarrBlock::System,

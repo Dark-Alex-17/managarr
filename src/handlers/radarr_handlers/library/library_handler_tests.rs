@@ -60,7 +60,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      LibraryHandler::with(DELETE_KEY, &mut app, ActiveRadarrBlock::Movies, None).handle();
+      LibraryHandler::new(DELETE_KEY, &mut app, ActiveRadarrBlock::Movies, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
     }
@@ -78,7 +78,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(0);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -99,7 +99,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(0);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -123,7 +123,7 @@ mod tests {
     ) {
       let mut app = App::default();
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         key,
         &mut app,
         ActiveRadarrBlock::UpdateAllMoviesPrompt,
@@ -133,7 +133,7 @@ mod tests {
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         key,
         &mut app,
         ActiveRadarrBlock::UpdateAllMoviesPrompt,
@@ -163,7 +163,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      LibraryHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Movies, None).handle();
+      LibraryHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Movies, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -182,7 +182,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      LibraryHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Movies, None).handle();
+      LibraryHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Movies, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
     }
@@ -199,7 +199,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::UpdateAllMoviesPrompt.into());
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::UpdateAllMoviesPrompt,
@@ -226,7 +226,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::UpdateAllMoviesPrompt.into());
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::UpdateAllMoviesPrompt,
@@ -258,7 +258,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::UpdateAllMoviesPrompt.into());
       app.data.radarr_data.prompt_confirm = true;
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         ESC_KEY,
         &mut app,
         ActiveRadarrBlock::UpdateAllMoviesPrompt,
@@ -286,7 +286,7 @@ mod tests {
         ..StatefulTable::default()
       };
 
-      LibraryHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::Movies, None).handle();
+      LibraryHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::Movies, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert!(app.error.text.is_empty());
@@ -319,7 +319,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.add.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -346,7 +346,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.add.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -379,7 +379,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.edit.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -400,7 +400,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.update.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -425,7 +425,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.update.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -446,7 +446,7 @@ mod tests {
         .set_items(vec![Movie::default()]);
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -469,7 +469,7 @@ mod tests {
         .set_items(vec![Movie::default()]);
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveRadarrBlock::Movies,
@@ -492,7 +492,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::UpdateAllMoviesPrompt.into());
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveRadarrBlock::UpdateAllMoviesPrompt,
@@ -782,7 +782,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = true;
 
-    let handler = LibraryHandler::with(
+    let handler = LibraryHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Movies,
@@ -797,7 +797,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = false;
 
-    let handler = LibraryHandler::with(
+    let handler = LibraryHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Movies,
@@ -817,7 +817,7 @@ mod tests {
       .movies
       .set_items(vec![Movie::default()]);
 
-    let handler = LibraryHandler::with(
+    let handler = LibraryHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Movies,

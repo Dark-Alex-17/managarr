@@ -27,7 +27,7 @@ mod tests {
       app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.down();
 
-      DeleteMovieHandler::with(key, &mut app, ActiveRadarrBlock::DeleteMoviePrompt, None).handle();
+      DeleteMovieHandler::new(key, &mut app, ActiveRadarrBlock::DeleteMoviePrompt, None).handle();
 
       if key == Key::Up {
         assert_eq!(
@@ -51,7 +51,7 @@ mod tests {
       app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.down();
 
-      DeleteMovieHandler::with(key, &mut app, ActiveRadarrBlock::DeleteMoviePrompt, None).handle();
+      DeleteMovieHandler::new(key, &mut app, ActiveRadarrBlock::DeleteMoviePrompt, None).handle();
 
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
@@ -69,11 +69,11 @@ mod tests {
     fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
       let mut app = App::default();
 
-      DeleteMovieHandler::with(key, &mut app, ActiveRadarrBlock::DeleteMoviePrompt, None).handle();
+      DeleteMovieHandler::new(key, &mut app, ActiveRadarrBlock::DeleteMoviePrompt, None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      DeleteMovieHandler::with(key, &mut app, ActiveRadarrBlock::DeleteMoviePrompt, None).handle();
+      DeleteMovieHandler::new(key, &mut app, ActiveRadarrBlock::DeleteMoviePrompt, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
     }
@@ -104,7 +104,7 @@ mod tests {
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
 
-      DeleteMovieHandler::with(
+      DeleteMovieHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::DeleteMoviePrompt,
@@ -140,7 +140,7 @@ mod tests {
         .selected_block
         .set_index(0, DELETE_MOVIE_SELECTION_BLOCKS.len() - 1);
 
-      DeleteMovieHandler::with(
+      DeleteMovieHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::DeleteMoviePrompt,
@@ -169,7 +169,7 @@ mod tests {
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
 
-      DeleteMovieHandler::with(
+      DeleteMovieHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::DeleteMoviePrompt,
@@ -195,7 +195,7 @@ mod tests {
       app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
 
-      DeleteMovieHandler::with(
+      DeleteMovieHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::DeleteMoviePrompt,
@@ -206,7 +206,7 @@ mod tests {
       assert_eq!(app.get_current_route(), current_route);
       assert_eq!(app.data.radarr_data.delete_movie_files, true);
 
-      DeleteMovieHandler::with(
+      DeleteMovieHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::DeleteMoviePrompt,
@@ -236,7 +236,7 @@ mod tests {
       app.data.radarr_data.delete_movie_files = true;
       app.data.radarr_data.add_list_exclusion = true;
 
-      DeleteMovieHandler::with(
+      DeleteMovieHandler::new(
         ESC_KEY,
         &mut app,
         ActiveRadarrBlock::DeleteMoviePrompt,
@@ -282,7 +282,7 @@ mod tests {
         .selected_block
         .set_index(0, DELETE_MOVIE_SELECTION_BLOCKS.len() - 1);
 
-      DeleteMovieHandler::with(
+      DeleteMovieHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveRadarrBlock::DeleteMoviePrompt,
@@ -325,7 +325,7 @@ mod tests {
       add_list_exclusion: true,
     };
 
-    let delete_movie_params = DeleteMovieHandler::with(
+    let delete_movie_params = DeleteMovieHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::DeleteMoviePrompt,
@@ -343,7 +343,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = true;
 
-    let handler = DeleteMovieHandler::with(
+    let handler = DeleteMovieHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::DeleteMoviePrompt,
@@ -358,7 +358,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = false;
 
-    let handler = DeleteMovieHandler::with(
+    let handler = DeleteMovieHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::DeleteMoviePrompt,

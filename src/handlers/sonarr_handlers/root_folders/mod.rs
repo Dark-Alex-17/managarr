@@ -68,7 +68,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for RootFoldersHandler<'
     ROOT_FOLDERS_BLOCKS.contains(&active_block)
   }
 
-  fn with(
+  fn new(
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveSonarrBlock,

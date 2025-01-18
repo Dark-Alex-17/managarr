@@ -42,7 +42,7 @@ mod tests {
         .selected_block
         .set_index(0, ADD_MOVIE_SELECTION_BLOCKS.len() - 1);
 
-      CollectionDetailsHandler::with(
+      CollectionDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::CollectionDetails,
@@ -113,7 +113,7 @@ mod tests {
         .collection_movies
         .set_items(vec![CollectionMovie::default()]);
 
-      CollectionDetailsHandler::with(
+      CollectionDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::CollectionDetails,
@@ -142,7 +142,7 @@ mod tests {
         .movies
         .set_items(vec![Movie::default()]);
 
-      CollectionDetailsHandler::with(
+      CollectionDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::CollectionDetails,
@@ -176,7 +176,7 @@ mod tests {
         .collection_movies
         .set_items(vec![CollectionMovie::default()]);
 
-      CollectionDetailsHandler::with(
+      CollectionDetailsHandler::new(
         ESC_KEY,
         &mut app,
         ActiveRadarrBlock::CollectionDetails,
@@ -197,7 +197,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into());
       app.push_navigation_stack(ActiveRadarrBlock::ViewMovieOverview.into());
 
-      CollectionDetailsHandler::with(
+      CollectionDetailsHandler::new(
         ESC_KEY,
         &mut app,
         ActiveRadarrBlock::ViewMovieOverview,
@@ -251,7 +251,7 @@ mod tests {
       }]);
       app.data.radarr_data = radarr_data;
 
-      CollectionDetailsHandler::with(
+      CollectionDetailsHandler::new(
         DEFAULT_KEYBINDINGS.edit.key,
         &mut app,
         ActiveRadarrBlock::CollectionDetails,
@@ -283,7 +283,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = true;
 
-    let handler = CollectionDetailsHandler::with(
+    let handler = CollectionDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::CollectionDetails,
@@ -298,7 +298,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = false;
 
-    let handler = CollectionDetailsHandler::with(
+    let handler = CollectionDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::CollectionDetails,
@@ -318,7 +318,7 @@ mod tests {
       .collection_movies
       .set_items(vec![CollectionMovie::default()]);
 
-    let handler = CollectionDetailsHandler::with(
+    let handler = CollectionDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::CollectionDetails,

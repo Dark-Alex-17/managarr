@@ -70,7 +70,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
     EDIT_COLLECTION_BLOCKS.contains(&active_block)
   }
 
-  fn with(
+  fn new(
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveRadarrBlock,

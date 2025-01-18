@@ -24,7 +24,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemHandler<'a, 'b
   fn handle(&mut self) {
     match self.active_radarr_block {
       _ if SystemDetailsHandler::accepts(self.active_radarr_block) => {
-        SystemDetailsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+        SystemDetailsHandler::new(self.key, self.app, self.active_radarr_block, self.context)
           .handle()
       }
       _ => self.handle_key_event(),
@@ -35,7 +35,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemHandler<'a, 'b
     SystemDetailsHandler::accepts(active_block) || active_block == ActiveRadarrBlock::System
   }
 
-  fn with(
+  fn new(
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveRadarrBlock,

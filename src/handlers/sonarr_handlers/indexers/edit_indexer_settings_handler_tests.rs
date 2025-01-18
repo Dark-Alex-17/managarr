@@ -30,7 +30,7 @@ mod tests {
         app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
         app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
 
-        IndexerSettingsHandler::with($key, &mut app, $block, None).handle();
+        IndexerSettingsHandler::new($key, &mut app, $block, None).handle();
 
         if $key == Key::Up {
           assert_eq!(
@@ -67,7 +67,7 @@ mod tests {
               0
             );
 
-            IndexerSettingsHandler::with(Key::Up, &mut app, $block, None).handle();
+            IndexerSettingsHandler::new(Key::Up, &mut app, $block, None).handle();
 
             assert_eq!(
               app
@@ -80,7 +80,7 @@ mod tests {
               1
             );
 
-            IndexerSettingsHandler::with($key, &mut app, $block, None).handle();
+            IndexerSettingsHandler::new($key, &mut app, $block, None).handle();
             assert_eq!(
               app
                 .data
@@ -105,7 +105,7 @@ mod tests {
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.down();
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -138,7 +138,7 @@ mod tests {
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.down();
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -209,7 +209,7 @@ mod tests {
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.y = INDEXER_SETTINGS_SELECTION_BLOCKS.len() - 1;
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -219,7 +219,7 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -261,7 +261,7 @@ mod tests {
         .set_index(0, INDEXER_SETTINGS_SELECTION_BLOCKS.len() - 1);
       app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -290,7 +290,7 @@ mod tests {
       app.data.sonarr_data.indexer_settings = Some(indexer_settings());
       app.data.sonarr_data.prompt_confirm = true;
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -316,7 +316,7 @@ mod tests {
       app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
       app.data.sonarr_data.prompt_confirm = true;
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -348,7 +348,7 @@ mod tests {
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.set_index(0, y_index);
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -372,7 +372,7 @@ mod tests {
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.set_index(0, y_index);
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -402,7 +402,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::AllIndexerSettingsPrompt.into());
       app.push_navigation_stack(active_sonarr_block.into());
 
-      IndexerSettingsHandler::with(SUBMIT_KEY, &mut app, active_sonarr_block, None).handle();
+      IndexerSettingsHandler::new(SUBMIT_KEY, &mut app, active_sonarr_block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -429,7 +429,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::AllIndexerSettingsPrompt.into());
       app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -457,7 +457,7 @@ mod tests {
       app.push_navigation_stack(active_sonarr_block.into());
       app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
 
-      IndexerSettingsHandler::with(ESC_KEY, &mut app, active_sonarr_block, None).handle();
+      IndexerSettingsHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
       assert_eq!(
@@ -492,7 +492,7 @@ mod tests {
         .set_index(0, INDEXER_SETTINGS_SELECTION_BLOCKS.len() - 1);
       app.data.sonarr_data.indexer_settings = Some(indexer_settings());
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -526,7 +526,7 @@ mod tests {
     let mut app = App::default();
     app.data.sonarr_data.indexer_settings = Some(indexer_settings());
 
-    let actual_indexer_settings = IndexerSettingsHandler::with(
+    let actual_indexer_settings = IndexerSettingsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -544,7 +544,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = true;
 
-    let handler = IndexerSettingsHandler::with(
+    let handler = IndexerSettingsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -560,7 +560,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = false;
 
-    let handler = IndexerSettingsHandler::with(
+    let handler = IndexerSettingsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::AllIndexerSettingsPrompt,
@@ -577,7 +577,7 @@ mod tests {
     app.is_loading = false;
     app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
 
-    let handler = IndexerSettingsHandler::with(
+    let handler = IndexerSettingsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::AllIndexerSettingsPrompt,

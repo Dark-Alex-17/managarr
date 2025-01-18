@@ -28,7 +28,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(3);
 
-      HistoryHandler::with(
+      HistoryHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveSonarrBlock::History,
@@ -50,7 +50,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(3);
 
-      HistoryHandler::with(
+      HistoryHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveSonarrBlock::History,
@@ -82,7 +82,7 @@ mod tests {
       app.data.sonarr_data.history.set_items(history_vec());
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
 
-      HistoryHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::History, None).handle();
+      HistoryHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::History, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -97,7 +97,7 @@ mod tests {
       app.data.sonarr_data.history.set_items(history_vec());
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
 
-      HistoryHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::History, None).handle();
+      HistoryHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::History, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::History.into());
     }
@@ -124,7 +124,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
       app.push_navigation_stack(ActiveSonarrBlock::HistoryItemDetails.into());
 
-      HistoryHandler::with(
+      HistoryHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::HistoryItemDetails,
@@ -149,7 +149,7 @@ mod tests {
         .history
         .set_items(vec![SonarrHistoryItem::default()]);
 
-      HistoryHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::History, None).handle();
+      HistoryHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::History, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::History.into());
       assert!(app.error.text.is_empty());
@@ -167,7 +167,7 @@ mod tests {
       app.data.sonarr_data.history.set_items(history_vec());
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
 
-      HistoryHandler::with(
+      HistoryHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveSonarrBlock::History,
@@ -186,7 +186,7 @@ mod tests {
       app.data.sonarr_data.history.set_items(history_vec());
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
 
-      HistoryHandler::with(
+      HistoryHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveSonarrBlock::History,
@@ -312,7 +312,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::History.into());
     app.is_loading = true;
 
-    let handler = HistoryHandler::with(
+    let handler = HistoryHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::History,
@@ -328,7 +328,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::History.into());
     app.is_loading = false;
 
-    let handler = HistoryHandler::with(
+    let handler = HistoryHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::History,
@@ -349,7 +349,7 @@ mod tests {
       .history
       .set_items(vec![SonarrHistoryItem::default()]);
 
-    let handler = HistoryHandler::with(
+    let handler = HistoryHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::History,

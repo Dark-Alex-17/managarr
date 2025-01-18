@@ -59,7 +59,7 @@ mod tests {
         .series
         .set_items(vec![Series::default()]);
 
-      LibraryHandler::with(DELETE_KEY, &mut app, ActiveSonarrBlock::Series, None).handle();
+      LibraryHandler::new(DELETE_KEY, &mut app, ActiveSonarrBlock::Series, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
     }
@@ -77,7 +77,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(0);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveSonarrBlock::Series,
@@ -98,7 +98,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(0);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveSonarrBlock::Series,
@@ -120,7 +120,7 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::UpdateAllSeriesPrompt,
@@ -130,7 +130,7 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::UpdateAllSeriesPrompt,
@@ -160,7 +160,7 @@ mod tests {
         .series
         .set_items(vec![Series::default()]);
 
-      LibraryHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::Series, None).handle();
+      LibraryHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::Series, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -179,7 +179,7 @@ mod tests {
         .series
         .set_items(vec![Series::default()]);
 
-      LibraryHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::Series, None).handle();
+      LibraryHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::Series, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
     }
@@ -196,7 +196,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::UpdateAllSeriesPrompt.into());
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::UpdateAllSeriesPrompt,
@@ -223,7 +223,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::UpdateAllSeriesPrompt.into());
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::UpdateAllSeriesPrompt,
@@ -253,7 +253,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::UpdateAllSeriesPrompt.into());
       app.data.sonarr_data.prompt_confirm = true;
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::UpdateAllSeriesPrompt,
@@ -274,7 +274,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data = create_test_sonarr_data();
 
-      LibraryHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::Series, None).handle();
+      LibraryHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::Series, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
       assert!(app.error.text.is_empty());
@@ -304,7 +304,7 @@ mod tests {
         .series
         .set_items(vec![Series::default()]);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.add.key,
         &mut app,
         ActiveSonarrBlock::Series,
@@ -331,7 +331,7 @@ mod tests {
         .series
         .set_items(vec![Series::default()]);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.add.key,
         &mut app,
         ActiveSonarrBlock::Series,
@@ -364,7 +364,7 @@ mod tests {
         .series
         .set_items(vec![Series::default()]);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.edit.key,
         &mut app,
         ActiveSonarrBlock::Series,
@@ -385,7 +385,7 @@ mod tests {
         .series
         .set_items(vec![Series::default()]);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.update.key,
         &mut app,
         ActiveSonarrBlock::Series,
@@ -410,7 +410,7 @@ mod tests {
         .series
         .set_items(vec![Series::default()]);
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.update.key,
         &mut app,
         ActiveSonarrBlock::Series,
@@ -431,7 +431,7 @@ mod tests {
         .set_items(vec![Series::default()]);
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveSonarrBlock::Series,
@@ -454,7 +454,7 @@ mod tests {
         .set_items(vec![Series::default()]);
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveSonarrBlock::Series,
@@ -477,7 +477,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::UpdateAllSeriesPrompt.into());
 
-      LibraryHandler::with(
+      LibraryHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveSonarrBlock::UpdateAllSeriesPrompt,
@@ -832,7 +832,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = true;
 
-    let handler = LibraryHandler::with(
+    let handler = LibraryHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::Series,
@@ -847,7 +847,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = false;
 
-    let handler = LibraryHandler::with(
+    let handler = LibraryHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::Series,
@@ -867,7 +867,7 @@ mod tests {
       .series
       .set_items(vec![Series::default()]);
 
-    let handler = LibraryHandler::with(
+    let handler = LibraryHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::Series,

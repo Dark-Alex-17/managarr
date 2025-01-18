@@ -35,7 +35,7 @@ pub(in crate::handlers::radarr_handlers) mod utils {
       }]);
       app.data.radarr_data = radarr_data;
 
-      $handler::with(DEFAULT_KEYBINDINGS.edit.key, &mut app, $block, None).handle();
+      $handler::new(DEFAULT_KEYBINDINGS.edit.key, &mut app, $block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -149,7 +149,7 @@ pub(in crate::handlers::radarr_handlers) mod utils {
       }]);
       app.data.radarr_data = radarr_data;
 
-      $handler::with(DEFAULT_KEYBINDINGS.edit.key, &mut app, $block, None).handle();
+      $handler::new(DEFAULT_KEYBINDINGS.edit.key, &mut app, $block, None).handle();
 
       assert_eq!(
         app.get_current_route(),

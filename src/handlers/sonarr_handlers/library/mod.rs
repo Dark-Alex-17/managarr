@@ -64,27 +64,27 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
     if !self.handle_series_table_events(series_table_handling_config) {
       match self.active_sonarr_block {
         _ if AddSeriesHandler::accepts(self.active_sonarr_block) => {
-          AddSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+          AddSeriesHandler::new(self.key, self.app, self.active_sonarr_block, self.context)
             .handle();
         }
         _ if DeleteSeriesHandler::accepts(self.active_sonarr_block) => {
-          DeleteSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+          DeleteSeriesHandler::new(self.key, self.app, self.active_sonarr_block, self.context)
             .handle();
         }
         _ if EditSeriesHandler::accepts(self.active_sonarr_block) => {
-          EditSeriesHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+          EditSeriesHandler::new(self.key, self.app, self.active_sonarr_block, self.context)
             .handle();
         }
         _ if SeriesDetailsHandler::accepts(self.active_sonarr_block) => {
-          SeriesDetailsHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+          SeriesDetailsHandler::new(self.key, self.app, self.active_sonarr_block, self.context)
             .handle();
         }
         _ if SeasonDetailsHandler::accepts(self.active_sonarr_block) => {
-          SeasonDetailsHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+          SeasonDetailsHandler::new(self.key, self.app, self.active_sonarr_block, self.context)
             .handle();
         }
         _ if EpisodeDetailsHandler::accepts(self.active_sonarr_block) => {
-          EpisodeDetailsHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+          EpisodeDetailsHandler::new(self.key, self.app, self.active_sonarr_block, self.context)
             .handle();
         }
         _ => self.handle_key_event(),
@@ -102,7 +102,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
       || LIBRARY_BLOCKS.contains(&active_block)
   }
 
-  fn with(
+  fn new(
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveSonarrBlock,

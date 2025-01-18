@@ -34,7 +34,7 @@ mod tests {
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
 
-      SeasonDetailsHandler::with(DELETE_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
+      SeasonDetailsHandler::new(DELETE_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
         .handle();
 
       assert_eq!(
@@ -49,7 +49,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.is_loading = true;
 
-      SeasonDetailsHandler::with(DELETE_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
+      SeasonDetailsHandler::new(DELETE_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
         .handle();
 
       assert_eq!(
@@ -78,11 +78,11 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
 
-      SeasonDetailsHandler::with(key, &mut app, active_sonarr_block, None).handle();
+      SeasonDetailsHandler::new(key, &mut app, active_sonarr_block, None).handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
 
-      SeasonDetailsHandler::with(key, &mut app, active_sonarr_block, None).handle();
+      SeasonDetailsHandler::new(key, &mut app, active_sonarr_block, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
     }
@@ -126,7 +126,7 @@ mod tests {
         .position(|tab_route| tab_route.route == right_block.into())
         .unwrap_or_default();
 
-      SeasonDetailsHandler::with(DEFAULT_KEYBINDINGS.left.key, &mut app, right_block, None)
+      SeasonDetailsHandler::new(DEFAULT_KEYBINDINGS.left.key, &mut app, right_block, None)
         .handle();
 
       assert_eq!(
@@ -142,7 +142,7 @@ mod tests {
       );
       assert_eq!(app.get_current_route(), left_block.into());
 
-      SeasonDetailsHandler::with(DEFAULT_KEYBINDINGS.right.key, &mut app, left_block, None)
+      SeasonDetailsHandler::new(DEFAULT_KEYBINDINGS.right.key, &mut app, left_block, None)
         .handle();
 
       assert_eq!(
@@ -175,7 +175,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.data.sonarr_data = create_test_sonarr_data();
 
-      SeasonDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
+      SeasonDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
         .handle();
 
       assert_eq!(
@@ -197,7 +197,7 @@ mod tests {
         .episodes = StatefulTable::default();
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
 
-      SeasonDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
+      SeasonDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
         .handle();
 
       assert_eq!(
@@ -212,7 +212,7 @@ mod tests {
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
 
-      SeasonDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
+      SeasonDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
         .handle();
 
       assert_eq!(
@@ -226,7 +226,7 @@ mod tests {
       let mut app = App::default();
       app.data.sonarr_data = create_test_sonarr_data();
 
-      SeasonDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonHistory, None)
+      SeasonDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonHistory, None)
         .handle();
 
       assert_eq!(
@@ -248,7 +248,7 @@ mod tests {
         .season_history = StatefulTable::default();
       app.push_navigation_stack(ActiveSonarrBlock::SeasonHistory.into());
 
-      SeasonDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonHistory, None)
+      SeasonDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonHistory, None)
         .handle();
 
       assert_eq!(
@@ -264,7 +264,7 @@ mod tests {
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::SeasonHistory.into());
 
-      SeasonDetailsHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonHistory, None)
+      SeasonDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonHistory, None)
         .handle();
 
       assert_eq!(
@@ -294,7 +294,7 @@ mod tests {
       app.push_navigation_stack(active_sonarr_block.into());
       app.push_navigation_stack(prompt_block.into());
 
-      SeasonDetailsHandler::with(SUBMIT_KEY, &mut app, prompt_block, None).handle();
+      SeasonDetailsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.get_current_route(), active_sonarr_block.into());
@@ -312,7 +312,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::ManualSeasonSearch.into());
       app.push_navigation_stack(ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt.into());
 
-      SeasonDetailsHandler::with(
+      SeasonDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt,
@@ -351,7 +351,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
-      SeasonDetailsHandler::with(SUBMIT_KEY, &mut app, prompt_block, None).handle();
+      SeasonDetailsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(
@@ -367,7 +367,7 @@ mod tests {
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::ManualSeasonSearch.into());
 
-      SeasonDetailsHandler::with(
+      SeasonDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::ManualSeasonSearch,
@@ -388,7 +388,7 @@ mod tests {
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::ManualSeasonSearch.into());
 
-      SeasonDetailsHandler::with(
+      SeasonDetailsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::ManualSeasonSearch,
@@ -420,7 +420,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SeasonHistory.into());
       app.push_navigation_stack(ActiveSonarrBlock::SeasonHistoryDetails.into());
 
-      SeasonDetailsHandler::with(
+      SeasonDetailsHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::SeasonHistoryDetails,
@@ -451,7 +451,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
-      SeasonDetailsHandler::with(ESC_KEY, &mut app, prompt_block, None).handle();
+      SeasonDetailsHandler::new(ESC_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(
@@ -481,7 +481,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.push_navigation_stack(ActiveSonarrBlock::SeasonHistory.into());
 
-      SeasonDetailsHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::SeasonHistory, None)
+      SeasonDetailsHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::SeasonHistory, None)
         .handle();
 
       assert_eq!(
@@ -531,7 +531,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.push_navigation_stack(active_sonarr_block.into());
 
-      SeasonDetailsHandler::with(ESC_KEY, &mut app, active_sonarr_block, None).handle();
+      SeasonDetailsHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -562,7 +562,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.is_routing = false;
 
-      SeasonDetailsHandler::with(
+      SeasonDetailsHandler::new(
         DEFAULT_KEYBINDINGS.toggle_monitoring.key,
         &mut app,
         ActiveSonarrBlock::SeasonDetails,
@@ -589,7 +589,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.is_routing = false;
 
-      SeasonDetailsHandler::with(
+      SeasonDetailsHandler::new(
         DEFAULT_KEYBINDINGS.toggle_monitoring.key,
         &mut app,
         ActiveSonarrBlock::SeasonDetails,
@@ -619,7 +619,7 @@ mod tests {
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(active_sonarr_block.into());
 
-      SeasonDetailsHandler::with(
+      SeasonDetailsHandler::new(
         DEFAULT_KEYBINDINGS.auto_search.key,
         &mut app,
         active_sonarr_block,
@@ -646,7 +646,7 @@ mod tests {
       app.is_loading = true;
       app.push_navigation_stack(active_sonarr_block.into());
 
-      SeasonDetailsHandler::with(
+      SeasonDetailsHandler::new(
         DEFAULT_KEYBINDINGS.auto_search.key,
         &mut app,
         active_sonarr_block,
@@ -671,7 +671,7 @@ mod tests {
       app.push_navigation_stack(active_sonarr_block.into());
       app.is_routing = false;
 
-      SeasonDetailsHandler::with(
+      SeasonDetailsHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         active_sonarr_block,
@@ -698,7 +698,7 @@ mod tests {
       app.push_navigation_stack(active_sonarr_block.into());
       app.is_routing = false;
 
-      SeasonDetailsHandler::with(
+      SeasonDetailsHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         active_sonarr_block,
@@ -731,7 +731,7 @@ mod tests {
       app.push_navigation_stack(active_sonarr_block.into());
       app.push_navigation_stack(prompt_block.into());
 
-      SeasonDetailsHandler::with(
+      SeasonDetailsHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         prompt_block,
@@ -755,7 +755,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::ManualSeasonSearch.into());
       app.push_navigation_stack(ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt.into());
 
-      SeasonDetailsHandler::with(
+      SeasonDetailsHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt,
@@ -797,7 +797,7 @@ mod tests {
     let mut app = App::default();
     app.data.sonarr_data = create_test_sonarr_data();
 
-    let episode_file_id = SeasonDetailsHandler::with(
+    let episode_file_id = SeasonDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SeasonDetails,
@@ -813,7 +813,7 @@ mod tests {
   fn test_extract_episode_file_id_empty_season_details_modal_panics() {
     let mut app = App::default();
 
-    SeasonDetailsHandler::with(
+    SeasonDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SeasonDetails,
@@ -829,7 +829,7 @@ mod tests {
     season_details_modal.episodes.set_items(vec![episode()]);
     app.data.sonarr_data.season_details_modal = Some(season_details_modal);
 
-    let episode_id = SeasonDetailsHandler::with(
+    let episode_id = SeasonDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SeasonDetails,
@@ -845,7 +845,7 @@ mod tests {
   fn test_extract_episode_id_panic_when_season_details_modal_is_none() {
     let mut app = App::default();
 
-    SeasonDetailsHandler::with(
+    SeasonDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SeasonDetails,
@@ -859,7 +859,7 @@ mod tests {
     let mut app = App::default();
     app.data.sonarr_data = create_test_sonarr_data();
 
-    let (series_id, season_number) = SeasonDetailsHandler::with(
+    let (series_id, season_number) = SeasonDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SeasonDetails,
@@ -877,7 +877,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
     app.is_loading = true;
 
-    let handler = SeasonDetailsHandler::with(
+    let handler = SeasonDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SeasonDetails,
@@ -892,7 +892,7 @@ mod tests {
     let mut app = App::default();
     app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
 
-    let handler = SeasonDetailsHandler::with(
+    let handler = SeasonDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SeasonDetails,
@@ -908,7 +908,7 @@ mod tests {
     app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
     app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
 
-    let handler = SeasonDetailsHandler::with(
+    let handler = SeasonDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SeasonDetails,
@@ -924,7 +924,7 @@ mod tests {
     app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
     app.push_navigation_stack(ActiveSonarrBlock::SeasonHistory.into());
 
-    let handler = SeasonDetailsHandler::with(
+    let handler = SeasonDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::SeasonHistory,
@@ -940,7 +940,7 @@ mod tests {
     app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
     app.push_navigation_stack(ActiveSonarrBlock::ManualSeasonSearch.into());
 
-    let handler = SeasonDetailsHandler::with(
+    let handler = SeasonDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::ManualSeasonSearch,
@@ -964,7 +964,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
     app.push_navigation_stack(active_sonarr_block.into());
 
-    let handler = SeasonDetailsHandler::with(
+    let handler = SeasonDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       active_sonarr_block,

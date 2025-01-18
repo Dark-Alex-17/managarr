@@ -29,7 +29,7 @@ mod tests {
         let mut app = App::default();
         app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
 
-        IndexerSettingsHandler::with($key, &mut app, $block, None).handle();
+        IndexerSettingsHandler::new($key, &mut app, $block, None).handle();
 
         if $key == Key::Up {
           assert_eq!(
@@ -66,7 +66,7 @@ mod tests {
               0
             );
 
-            IndexerSettingsHandler::with(Key::Up, &mut app, $block, None).handle();
+            IndexerSettingsHandler::new(Key::Up, &mut app, $block, None).handle();
 
             assert_eq!(
               app
@@ -79,7 +79,7 @@ mod tests {
               1
             );
 
-            IndexerSettingsHandler::with($key, &mut app, $block, None).handle();
+            IndexerSettingsHandler::new($key, &mut app, $block, None).handle();
             assert_eq!(
               app
                 .data
@@ -103,7 +103,7 @@ mod tests {
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.down();
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         key,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -135,7 +135,7 @@ mod tests {
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.down();
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         key,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -219,7 +219,7 @@ mod tests {
         ..IndexerSettings::default()
       });
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
@@ -240,7 +240,7 @@ mod tests {
         4
       );
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
@@ -281,7 +281,7 @@ mod tests {
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.y = INDEXER_SETTINGS_SELECTION_BLOCKS.len() - 1;
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         key,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -291,7 +291,7 @@ mod tests {
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         key,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -339,7 +339,7 @@ mod tests {
         left_block
       );
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         key,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -352,7 +352,7 @@ mod tests {
         right_block
       );
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         key,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -374,7 +374,7 @@ mod tests {
         ..IndexerSettings::default()
       });
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
@@ -395,7 +395,7 @@ mod tests {
         1
       );
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
@@ -448,7 +448,7 @@ mod tests {
         .set_index(0, INDEXER_SETTINGS_SELECTION_BLOCKS.len() - 1);
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -477,7 +477,7 @@ mod tests {
       app.data.radarr_data.indexer_settings = Some(indexer_settings());
       app.data.radarr_data.prompt_confirm = true;
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -503,7 +503,7 @@ mod tests {
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.data.radarr_data.prompt_confirm = true;
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -540,7 +540,7 @@ mod tests {
         .selected_block
         .set_index(x_index, y_index);
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -567,7 +567,7 @@ mod tests {
         .selected_block
         .set_index(index.1, index.0);
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -590,7 +590,7 @@ mod tests {
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.set_index(1, 2);
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -614,7 +614,7 @@ mod tests {
       app.data.radarr_data.selected_block.set_index(0, 3);
       app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -636,7 +636,7 @@ mod tests {
           .prefer_indexer_flags
       );
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -668,7 +668,7 @@ mod tests {
       app.data.radarr_data.selected_block.set_index(1, 3);
       app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -690,7 +690,7 @@ mod tests {
           .allow_hardcoded_subs
       );
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -726,7 +726,7 @@ mod tests {
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput.into(),
       );
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
@@ -766,7 +766,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.push_navigation_stack(active_radarr_block.into());
 
-      IndexerSettingsHandler::with(SUBMIT_KEY, &mut app, active_radarr_block, None).handle();
+      IndexerSettingsHandler::new(SUBMIT_KEY, &mut app, active_radarr_block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -793,7 +793,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         ESC_KEY,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -816,7 +816,7 @@ mod tests {
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.should_ignore_quit_key = true;
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         ESC_KEY,
         &mut app,
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
@@ -849,7 +849,7 @@ mod tests {
       app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
 
-      IndexerSettingsHandler::with(ESC_KEY, &mut app, active_radarr_block, None).handle();
+      IndexerSettingsHandler::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
       assert_eq!(
@@ -880,7 +880,7 @@ mod tests {
         ..IndexerSettings::default()
       });
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
@@ -906,7 +906,7 @@ mod tests {
       let mut app = App::default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         Key::Char('h'),
         &mut app,
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
@@ -941,7 +941,7 @@ mod tests {
         .set_index(0, INDEXER_SETTINGS_SELECTION_BLOCKS.len() - 1);
       app.data.radarr_data.indexer_settings = Some(indexer_settings());
 
-      IndexerSettingsHandler::with(
+      IndexerSettingsHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -975,7 +975,7 @@ mod tests {
     let mut app = App::default();
     app.data.radarr_data.indexer_settings = Some(indexer_settings());
 
-    let body = IndexerSettingsHandler::with(
+    let body = IndexerSettingsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -992,7 +992,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = true;
 
-    let handler = IndexerSettingsHandler::with(
+    let handler = IndexerSettingsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -1007,7 +1007,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = false;
 
-    let handler = IndexerSettingsHandler::with(
+    let handler = IndexerSettingsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::AllIndexerSettingsPrompt,
@@ -1023,7 +1023,7 @@ mod tests {
     app.is_loading = false;
     app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
 
-    let handler = IndexerSettingsHandler::with(
+    let handler = IndexerSettingsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::AllIndexerSettingsPrompt,

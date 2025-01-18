@@ -69,7 +69,7 @@ pub trait KeyEventHandler<'a, 'b, T: Into<Route> + Copy> {
   }
 
   fn accepts(active_block: T) -> bool;
-  fn with(key: Key, app: &'a mut App<'b>, active_block: T, context: Option<T>) -> Self;
+  fn new(key: Key, app: &'a mut App<'b>, active_block: T, context: Option<T>) -> Self;
   fn get_key(&self) -> Key;
   fn is_ready(&self) -> bool;
   fn handle_scroll_up(&mut self);
@@ -97,10 +97,10 @@ pub fn handle_events(key: Key, app: &mut App<'_>) {
   } else {
     match app.get_current_route() {
       Route::Radarr(active_radarr_block, context) => {
-        RadarrHandler::with(key, app, active_radarr_block, context).handle()
+        RadarrHandler::new(key, app, active_radarr_block, context).handle()
       }
       Route::Sonarr(active_sonarr_block, context) => {
-        SonarrHandler::with(key, app, active_sonarr_block, context).handle()
+        SonarrHandler::new(key, app, active_sonarr_block, context).handle()
       }
       _ => (),
     }

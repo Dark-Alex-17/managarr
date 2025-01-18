@@ -23,7 +23,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::TestAllIndexers.into());
       app.data.radarr_data.indexer_test_all_results = Some(StatefulTable::default());
 
-      TestAllIndexersHandler::with(
+      TestAllIndexersHandler::new(
         DEFAULT_KEYBINDINGS.esc.key,
         &mut app,
         ActiveRadarrBlock::TestAllIndexers,
@@ -53,7 +53,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = true;
 
-    let handler = TestAllIndexersHandler::with(
+    let handler = TestAllIndexersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::TestAllIndexers,
@@ -68,7 +68,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = false;
 
-    let handler = TestAllIndexersHandler::with(
+    let handler = TestAllIndexersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::TestAllIndexers,
@@ -84,7 +84,7 @@ mod tests {
     app.is_loading = false;
     app.data.radarr_data.indexer_test_all_results = Some(StatefulTable::default());
 
-    let handler = TestAllIndexersHandler::with(
+    let handler = TestAllIndexersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::TestAllIndexers,
@@ -102,7 +102,7 @@ mod tests {
     indexer_test_results.set_items(vec![IndexerTestResultModalItem::default()]);
     app.data.radarr_data.indexer_test_all_results = Some(indexer_test_results);
 
-    let handler = TestAllIndexersHandler::with(
+    let handler = TestAllIndexersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::TestAllIndexers,

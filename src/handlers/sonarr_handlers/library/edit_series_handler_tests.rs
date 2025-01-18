@@ -44,7 +44,7 @@ mod tests {
 
       if key == Key::Up {
         for i in (0..series_type_vec.len()).rev() {
-          EditSeriesHandler::with(
+          EditSeriesHandler::new(
             key,
             &mut app,
             ActiveSonarrBlock::EditSeriesSelectSeriesType,
@@ -66,7 +66,7 @@ mod tests {
         }
       } else {
         for i in 0..series_type_vec.len() {
-          EditSeriesHandler::with(
+          EditSeriesHandler::new(
             key,
             &mut app,
             ActiveSonarrBlock::EditSeriesSelectSeriesType,
@@ -105,7 +105,7 @@ mod tests {
         .quality_profile_list
         .set_items(vec!["Test 1".to_owned(), "Test 2".to_owned()]);
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::EditSeriesSelectQualityProfile,
@@ -125,7 +125,7 @@ mod tests {
         "Test 2"
       );
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::EditSeriesSelectQualityProfile,
@@ -162,7 +162,7 @@ mod tests {
         .language_profile_list
         .set_items(vec!["Test 1".to_owned(), "Test 2".to_owned()]);
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::EditSeriesSelectLanguageProfile,
@@ -182,7 +182,7 @@ mod tests {
         "Test 2"
       );
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         key,
         &mut app,
         ActiveSonarrBlock::EditSeriesSelectLanguageProfile,
@@ -211,7 +211,7 @@ mod tests {
       app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.down();
 
-      EditSeriesHandler::with(key, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None).handle();
+      EditSeriesHandler::new(key, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None).handle();
 
       if key == Key::Up {
         assert_eq!(
@@ -235,7 +235,7 @@ mod tests {
       app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.down();
 
-      EditSeriesHandler::with(key, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None).handle();
+      EditSeriesHandler::new(key, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None).handle();
 
       assert_eq!(
         app.data.sonarr_data.selected_block.get_active_block(),
@@ -269,7 +269,7 @@ mod tests {
         .series_type_list
         .set_items(series_type_vec.clone());
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesSelectSeriesType,
@@ -289,7 +289,7 @@ mod tests {
         &series_type_vec[series_type_vec.len() - 1]
       );
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesSelectSeriesType,
@@ -328,7 +328,7 @@ mod tests {
           "Test 3".to_owned(),
         ]);
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesSelectQualityProfile,
@@ -348,7 +348,7 @@ mod tests {
         "Test 3"
       );
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesSelectQualityProfile,
@@ -387,7 +387,7 @@ mod tests {
           "Test 3".to_owned(),
         ]);
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesSelectLanguageProfile,
@@ -407,7 +407,7 @@ mod tests {
         "Test 3"
       );
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesSelectLanguageProfile,
@@ -437,7 +437,7 @@ mod tests {
         ..EditSeriesModal::default()
       });
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesPathInput,
@@ -458,7 +458,7 @@ mod tests {
         4
       );
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesPathInput,
@@ -489,7 +489,7 @@ mod tests {
         ..EditSeriesModal::default()
       });
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.home.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesTagsInput,
@@ -510,7 +510,7 @@ mod tests {
         4
       );
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.end.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesTagsInput,
@@ -547,11 +547,11 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
-      EditSeriesHandler::with(key, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None).handle();
+      EditSeriesHandler::new(key, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None).handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
 
-      EditSeriesHandler::with(key, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None).handle();
+      EditSeriesHandler::new(key, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
     }
@@ -565,7 +565,7 @@ mod tests {
         ..EditSeriesModal::default()
       });
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesPathInput,
@@ -586,7 +586,7 @@ mod tests {
         1
       );
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesPathInput,
@@ -617,7 +617,7 @@ mod tests {
         ..EditSeriesModal::default()
       });
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesTagsInput,
@@ -638,7 +638,7 @@ mod tests {
         1
       );
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesTagsInput,
@@ -686,7 +686,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPathInput.into());
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPathInput,
@@ -722,7 +722,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPathInput.into());
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesTagsInput,
@@ -759,7 +759,7 @@ mod tests {
         .selected_block
         .set_index(0, EDIT_SERIES_SELECTION_BLOCKS.len() - 1);
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
@@ -821,7 +821,7 @@ mod tests {
         .selected_block
         .set_index(0, EDIT_SERIES_SELECTION_BLOCKS.len() - 1);
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
@@ -847,7 +847,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
       app.data.sonarr_data.prompt_confirm = true;
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
@@ -875,7 +875,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(current_route);
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
@@ -895,7 +895,7 @@ mod tests {
         Some(true)
       );
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
@@ -929,7 +929,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(current_route);
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
@@ -949,7 +949,7 @@ mod tests {
         Some(true)
       );
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
@@ -993,7 +993,7 @@ mod tests {
       app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.set_index(0, y_index);
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
@@ -1032,7 +1032,7 @@ mod tests {
       app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.set_index(0, y_index);
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
@@ -1069,7 +1069,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
       app.push_navigation_stack(active_sonarr_block.into());
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         active_sonarr_block,
@@ -1116,7 +1116,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
       app.push_navigation_stack(active_sonarr_block.into());
 
-      EditSeriesHandler::with(ESC_KEY, &mut app, active_sonarr_block, None).handle();
+      EditSeriesHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
       assert!(!app.should_ignore_quit_key);
       assert_eq!(
@@ -1133,7 +1133,7 @@ mod tests {
       app.data.sonarr_data = create_test_sonarr_data();
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
 
-      EditSeriesHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None)
+      EditSeriesHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None)
         .handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
@@ -1158,7 +1158,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(active_sonarr_block.into());
 
-      EditSeriesHandler::with(ESC_KEY, &mut app, active_sonarr_block, None).handle();
+      EditSeriesHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
     }
@@ -1186,7 +1186,7 @@ mod tests {
         ..EditSeriesModal::default()
       });
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesPathInput,
@@ -1216,7 +1216,7 @@ mod tests {
         ..EditSeriesModal::default()
       });
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.backspace.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesTagsInput,
@@ -1243,7 +1243,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         Key::Char('h'),
         &mut app,
         ActiveSonarrBlock::EditSeriesPathInput,
@@ -1270,7 +1270,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         Key::Char('h'),
         &mut app,
         ActiveSonarrBlock::EditSeriesTagsInput,
@@ -1340,7 +1340,7 @@ mod tests {
         .selected_block
         .set_index(0, EDIT_SERIES_SELECTION_BLOCKS.len() - 1);
 
-      EditSeriesHandler::with(
+      EditSeriesHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveSonarrBlock::EditSeriesPrompt,
@@ -1410,7 +1410,7 @@ mod tests {
       ..EditSeriesParams::default()
     };
 
-    let edit_series_params = EditSeriesHandler::with(
+    let edit_series_params = EditSeriesHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::EditSeriesPrompt,
@@ -1428,7 +1428,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::Series.into());
     app.is_loading = true;
 
-    let handler = EditSeriesHandler::with(
+    let handler = EditSeriesHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::EditSeriesPrompt,
@@ -1444,7 +1444,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::Series.into());
     app.is_loading = false;
 
-    let handler = EditSeriesHandler::with(
+    let handler = EditSeriesHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::EditSeriesPrompt,
@@ -1461,7 +1461,7 @@ mod tests {
     app.is_loading = false;
     app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
 
-    let handler = EditSeriesHandler::with(
+    let handler = EditSeriesHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::EditSeriesPrompt,

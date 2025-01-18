@@ -24,7 +24,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemHandler<'a, 'b
   fn handle(&mut self) {
     match self.active_sonarr_block {
       _ if SystemDetailsHandler::accepts(self.active_sonarr_block) => {
-        SystemDetailsHandler::with(self.key, self.app, self.active_sonarr_block, self.context)
+        SystemDetailsHandler::new(self.key, self.app, self.active_sonarr_block, self.context)
           .handle()
       }
       _ => self.handle_key_event(),
@@ -35,7 +35,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemHandler<'a, 'b
     SystemDetailsHandler::accepts(active_block) || active_block == ActiveSonarrBlock::System
   }
 
-  fn with(
+  fn new(
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveSonarrBlock,

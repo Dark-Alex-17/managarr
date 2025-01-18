@@ -32,7 +32,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(1);
 
-      CollectionsHandler::with(
+      CollectionsHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveRadarrBlock::Collections,
@@ -53,7 +53,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(1);
 
-      CollectionsHandler::with(
+      CollectionsHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveRadarrBlock::Collections,
@@ -74,7 +74,7 @@ mod tests {
     ) {
       let mut app = App::default();
 
-      CollectionsHandler::with(
+      CollectionsHandler::new(
         key,
         &mut app,
         ActiveRadarrBlock::UpdateAllCollectionsPrompt,
@@ -84,7 +84,7 @@ mod tests {
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      CollectionsHandler::with(
+      CollectionsHandler::new(
         key,
         &mut app,
         ActiveRadarrBlock::UpdateAllCollectionsPrompt,
@@ -114,7 +114,7 @@ mod tests {
         .collections
         .set_items(vec![Collection::default()]);
 
-      CollectionsHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Collections, None).handle();
+      CollectionsHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Collections, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -133,7 +133,7 @@ mod tests {
         .collections
         .set_items(vec![Collection::default()]);
 
-      CollectionsHandler::with(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Collections, None).handle();
+      CollectionsHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Collections, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -153,7 +153,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::UpdateAllCollectionsPrompt.into());
 
-      CollectionsHandler::with(
+      CollectionsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::UpdateAllCollectionsPrompt,
@@ -183,7 +183,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::UpdateAllCollectionsPrompt.into());
 
-      CollectionsHandler::with(
+      CollectionsHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveRadarrBlock::UpdateAllCollectionsPrompt,
@@ -216,7 +216,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::UpdateAllCollectionsPrompt.into());
       app.data.radarr_data.prompt_confirm = true;
 
-      CollectionsHandler::with(
+      CollectionsHandler::new(
         ESC_KEY,
         &mut app,
         ActiveRadarrBlock::UpdateAllCollectionsPrompt,
@@ -240,7 +240,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.data.radarr_data = create_test_radarr_data();
 
-      CollectionsHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::Collections, None).handle();
+      CollectionsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::Collections, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -286,7 +286,7 @@ mod tests {
       }]);
       app.data.radarr_data = radarr_data;
 
-      CollectionsHandler::with(
+      CollectionsHandler::new(
         DEFAULT_KEYBINDINGS.edit.key,
         &mut app,
         ActiveRadarrBlock::Collections,
@@ -310,7 +310,7 @@ mod tests {
         .collections
         .set_items(vec![Collection::default()]);
 
-      CollectionsHandler::with(
+      CollectionsHandler::new(
         DEFAULT_KEYBINDINGS.update.key,
         &mut app,
         ActiveRadarrBlock::Collections,
@@ -335,7 +335,7 @@ mod tests {
         .collections
         .set_items(vec![Collection::default()]);
 
-      CollectionsHandler::with(
+      CollectionsHandler::new(
         DEFAULT_KEYBINDINGS.update.key,
         &mut app,
         ActiveRadarrBlock::Collections,
@@ -359,7 +359,7 @@ mod tests {
         .collections
         .set_items(vec![Collection::default()]);
 
-      CollectionsHandler::with(
+      CollectionsHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveRadarrBlock::Collections,
@@ -385,7 +385,7 @@ mod tests {
         .collections
         .set_items(vec![Collection::default()]);
 
-      CollectionsHandler::with(
+      CollectionsHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveRadarrBlock::Collections,
@@ -411,7 +411,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::UpdateAllCollectionsPrompt.into());
 
-      CollectionsHandler::with(
+      CollectionsHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveRadarrBlock::UpdateAllCollectionsPrompt,
@@ -594,7 +594,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = true;
 
-    let handler = CollectionsHandler::with(
+    let handler = CollectionsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Collections,
@@ -609,7 +609,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = false;
 
-    let handler = CollectionsHandler::with(
+    let handler = CollectionsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Collections,
@@ -629,7 +629,7 @@ mod tests {
       .collections
       .set_items(vec![Collection::default()]);
 
-    let handler = CollectionsHandler::with(
+    let handler = CollectionsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Collections,

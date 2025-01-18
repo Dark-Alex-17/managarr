@@ -33,7 +33,7 @@ mod tests {
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(DELETE_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
+      IndexersHandler::new(DELETE_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -52,7 +52,7 @@ mod tests {
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(DELETE_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
+      IndexersHandler::new(DELETE_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
     }
@@ -71,7 +71,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(5);
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveSonarrBlock::Indexers,
@@ -96,7 +96,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(5);
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveSonarrBlock::Indexers,
@@ -118,11 +118,11 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
 
-      IndexersHandler::with(key, &mut app, ActiveSonarrBlock::DeleteIndexerPrompt, None).handle();
+      IndexersHandler::new(key, &mut app, ActiveSonarrBlock::DeleteIndexerPrompt, None).handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
 
-      IndexersHandler::with(key, &mut app, ActiveSonarrBlock::DeleteIndexerPrompt, None).handle();
+      IndexersHandler::new(key, &mut app, ActiveSonarrBlock::DeleteIndexerPrompt, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
     }
@@ -199,7 +199,7 @@ mod tests {
       sonarr_data.indexers.set_items(vec![indexer]);
       app.data.sonarr_data = sonarr_data;
 
-      IndexersHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
+      IndexersHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -238,7 +238,7 @@ mod tests {
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(SUBMIT_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
+      IndexersHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
       assert_eq!(app.data.sonarr_data.edit_indexer_modal, None);
@@ -252,7 +252,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::DeleteIndexerPrompt,
@@ -279,7 +279,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::DeleteIndexerPrompt,
@@ -308,7 +308,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
       app.data.sonarr_data.prompt_confirm = true;
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::DeleteIndexerPrompt,
@@ -328,7 +328,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::TestIndexer.into());
 
-      IndexersHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::TestIndexer, None).handle();
+      IndexersHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::TestIndexer, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
       assert_eq!(app.data.sonarr_data.indexer_test_errors, None);
@@ -342,7 +342,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
 
-      IndexersHandler::with(ESC_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
+      IndexersHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
       assert!(app.error.text.is_empty());
@@ -369,7 +369,7 @@ mod tests {
         .set_items(vec![Indexer::default()]);
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveSonarrBlock::Indexers,
@@ -392,7 +392,7 @@ mod tests {
         .set_items(vec![Indexer::default()]);
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveSonarrBlock::Indexers,
@@ -419,7 +419,7 @@ mod tests {
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         DEFAULT_KEYBINDINGS.settings.key,
         &mut app,
         ActiveSonarrBlock::Indexers,
@@ -448,7 +448,7 @@ mod tests {
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         DEFAULT_KEYBINDINGS.settings.key,
         &mut app,
         ActiveSonarrBlock::Indexers,
@@ -469,7 +469,7 @@ mod tests {
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         DEFAULT_KEYBINDINGS.test.key,
         &mut app,
         ActiveSonarrBlock::Indexers,
@@ -494,7 +494,7 @@ mod tests {
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         DEFAULT_KEYBINDINGS.test.key,
         &mut app,
         ActiveSonarrBlock::Indexers,
@@ -515,7 +515,7 @@ mod tests {
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         DEFAULT_KEYBINDINGS.test_all.key,
         &mut app,
         ActiveSonarrBlock::Indexers,
@@ -540,7 +540,7 @@ mod tests {
         .indexers
         .set_items(vec![Indexer::default()]);
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         DEFAULT_KEYBINDINGS.test_all.key,
         &mut app,
         ActiveSonarrBlock::Indexers,
@@ -558,7 +558,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
 
-      IndexersHandler::with(
+      IndexersHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveSonarrBlock::DeleteIndexerPrompt,
@@ -648,7 +648,7 @@ mod tests {
     let mut app = App::default();
     app.data.sonarr_data.indexers.set_items(vec![indexer()]);
 
-    let indexer_id = IndexersHandler::with(
+    let indexer_id = IndexersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::Indexers,
@@ -665,7 +665,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = true;
 
-    let handler = IndexersHandler::with(
+    let handler = IndexersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::Indexers,
@@ -681,7 +681,7 @@ mod tests {
     app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = false;
 
-    let handler = IndexersHandler::with(
+    let handler = IndexersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::Indexers,
@@ -702,7 +702,7 @@ mod tests {
       .indexers
       .set_items(vec![Indexer::default()]);
 
-    let handler = IndexersHandler::with(
+    let handler = IndexersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::Indexers,

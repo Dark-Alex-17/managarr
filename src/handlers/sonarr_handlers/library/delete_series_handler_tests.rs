@@ -28,7 +28,7 @@ mod tests {
         BlockSelectionState::new(DELETE_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.down();
 
-      DeleteSeriesHandler::with(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None)
+      DeleteSeriesHandler::new(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None)
         .handle();
 
       if key == Key::Up {
@@ -54,7 +54,7 @@ mod tests {
         BlockSelectionState::new(DELETE_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.down();
 
-      DeleteSeriesHandler::with(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None)
+      DeleteSeriesHandler::new(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None)
         .handle();
 
       assert_eq!(
@@ -74,12 +74,12 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
 
-      DeleteSeriesHandler::with(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None)
+      DeleteSeriesHandler::new(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None)
         .handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
 
-      DeleteSeriesHandler::with(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None)
+      DeleteSeriesHandler::new(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None)
         .handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
@@ -112,7 +112,7 @@ mod tests {
       app.data.sonarr_data.delete_series_files = true;
       app.data.sonarr_data.add_list_exclusion = true;
 
-      DeleteSeriesHandler::with(
+      DeleteSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::DeleteSeriesPrompt,
@@ -149,7 +149,7 @@ mod tests {
         .selected_block
         .set_index(0, DELETE_SERIES_SELECTION_BLOCKS.len() - 1);
 
-      DeleteSeriesHandler::with(
+      DeleteSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::DeleteSeriesPrompt,
@@ -178,7 +178,7 @@ mod tests {
       app.data.sonarr_data.delete_series_files = true;
       app.data.sonarr_data.add_list_exclusion = true;
 
-      DeleteSeriesHandler::with(
+      DeleteSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::DeleteSeriesPrompt,
@@ -205,7 +205,7 @@ mod tests {
         BlockSelectionState::new(DELETE_SERIES_SELECTION_BLOCKS);
       app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
 
-      DeleteSeriesHandler::with(
+      DeleteSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::DeleteSeriesPrompt,
@@ -216,7 +216,7 @@ mod tests {
       assert_eq!(app.get_current_route(), current_route);
       assert_eq!(app.data.sonarr_data.delete_series_files, true);
 
-      DeleteSeriesHandler::with(
+      DeleteSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
         ActiveSonarrBlock::DeleteSeriesPrompt,
@@ -246,7 +246,7 @@ mod tests {
       app.data.sonarr_data.delete_series_files = true;
       app.data.sonarr_data.add_list_exclusion = true;
 
-      DeleteSeriesHandler::with(
+      DeleteSeriesHandler::new(
         ESC_KEY,
         &mut app,
         ActiveSonarrBlock::DeleteSeriesPrompt,
@@ -293,7 +293,7 @@ mod tests {
         .selected_block
         .set_index(0, DELETE_SERIES_SELECTION_BLOCKS.len() - 1);
 
-      DeleteSeriesHandler::with(
+      DeleteSeriesHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         ActiveSonarrBlock::DeleteSeriesPrompt,
@@ -336,7 +336,7 @@ mod tests {
       add_list_exclusion: true,
     };
 
-    let delete_series_params = DeleteSeriesHandler::with(
+    let delete_series_params = DeleteSeriesHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::DeleteSeriesPrompt,
@@ -354,7 +354,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = true;
 
-    let handler = DeleteSeriesHandler::with(
+    let handler = DeleteSeriesHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::DeleteSeriesPrompt,
@@ -369,7 +369,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = false;
 
-    let handler = DeleteSeriesHandler::with(
+    let handler = DeleteSeriesHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveSonarrBlock::DeleteSeriesPrompt,

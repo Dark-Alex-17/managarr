@@ -37,27 +37,27 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
   fn handle(&mut self) {
     match self.active_radarr_block {
       _ if LibraryHandler::accepts(self.active_radarr_block) => {
-        LibraryHandler::with(self.key, self.app, self.active_radarr_block, self.context).handle();
+        LibraryHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle();
       }
       _ if CollectionsHandler::accepts(self.active_radarr_block) => {
-        CollectionsHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+        CollectionsHandler::new(self.key, self.app, self.active_radarr_block, self.context)
           .handle()
       }
       _ if IndexersHandler::accepts(self.active_radarr_block) => {
-        IndexersHandler::with(self.key, self.app, self.active_radarr_block, self.context).handle()
+        IndexersHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle()
       }
       _ if SystemHandler::accepts(self.active_radarr_block) => {
-        SystemHandler::with(self.key, self.app, self.active_radarr_block, self.context).handle()
+        SystemHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle()
       }
       _ if DownloadsHandler::accepts(self.active_radarr_block) => {
-        DownloadsHandler::with(self.key, self.app, self.active_radarr_block, self.context).handle()
+        DownloadsHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle()
       }
       _ if RootFoldersHandler::accepts(self.active_radarr_block) => {
-        RootFoldersHandler::with(self.key, self.app, self.active_radarr_block, self.context)
+        RootFoldersHandler::new(self.key, self.app, self.active_radarr_block, self.context)
           .handle()
       }
       _ if BlocklistHandler::accepts(self.active_radarr_block) => {
-        BlocklistHandler::with(self.key, self.app, self.active_radarr_block, self.context).handle()
+        BlocklistHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle()
       }
       _ => self.handle_key_event(),
     }
@@ -67,7 +67,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
     true
   }
 
-  fn with(
+  fn new(
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveRadarrBlock,

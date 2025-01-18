@@ -110,14 +110,14 @@ mod test_utils {
           .$data_ref
           .set_items(vec!["Test 1".to_owned(), "Test 2".to_owned()]);
 
-        $handler::with(&key, &mut app, &$block, &$context).handle();
+        $handler::new(&key, &mut app, &$block, &$context).handle();
 
         pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection(),
           "Test 2"
         );
 
-        $handler::with(&key, &mut app, &$block, &$context).handle();
+        $handler::new(&key, &mut app, &$block, &$context).handle();
 
         pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection(),
@@ -137,14 +137,14 @@ mod test_utils {
           .$data_ref
           .set_items(simple_stateful_iterable_vec!($items));
 
-        $handler::with(key, &mut app, $block, $context).handle();
+        $handler::new(key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
           "Test 2"
         );
 
-        $handler::with(key, &mut app, $block, $context).handle();
+        $handler::new(key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
@@ -160,14 +160,14 @@ mod test_utils {
         app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items($items);
 
-        $handler::with(key, &mut app, $block, $context).handle();
+        $handler::new(key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
           "Test 2"
         );
 
-        $handler::with(key, &mut app, $block, $context).handle();
+        $handler::new(key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
@@ -183,7 +183,7 @@ mod test_utils {
         app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items($items);
 
-        $handler::with(key, &mut app, $block, $context).handle();
+        $handler::new(key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app
@@ -196,7 +196,7 @@ mod test_utils {
           "Test 2"
         );
 
-        $handler::with(key, &mut app, $block, $context).handle();
+        $handler::new(key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app
@@ -225,14 +225,14 @@ mod test_utils {
           "Test 3".to_owned(),
         ]);
 
-        $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
+        $handler::new(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection(),
           "Test 3"
         );
 
-        $handler::with(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
+        $handler::new(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection(),
@@ -252,14 +252,14 @@ mod test_utils {
           .$data_ref
           .set_items(extended_stateful_iterable_vec!($items));
 
-        $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
+        $handler::new(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
           "Test 3"
         );
 
-        $handler::with(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
+        $handler::new(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
@@ -275,14 +275,14 @@ mod test_utils {
         app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items($items);
 
-        $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
+        $handler::new(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
           "Test 3"
         );
 
-        $handler::with(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
+        $handler::new(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app.data.$servarr_data.$data_ref.current_selection().$field,
@@ -298,7 +298,7 @@ mod test_utils {
         app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items($items);
 
-        $handler::with(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
+        $handler::new(DEFAULT_KEYBINDINGS.end.key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app
@@ -311,7 +311,7 @@ mod test_utils {
           "Test 3"
         );
 
-        $handler::with(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
+        $handler::new(DEFAULT_KEYBINDINGS.home.key, &mut app, $block, $context).handle();
 
         pretty_assertions::assert_str_eq!(
           app
@@ -417,7 +417,7 @@ mod test_utils {
       app.push_navigation_stack($base.into());
       app.push_navigation_stack($active_block.into());
 
-      $handler::with(DEFAULT_KEYBINDINGS.esc.key, &mut app, $active_block, None).handle();
+      $handler::new(DEFAULT_KEYBINDINGS.esc.key, &mut app, $active_block, None).handle();
 
       pretty_assertions::assert_eq!(app.get_current_route(), $base.into());
     };
@@ -428,13 +428,13 @@ mod test_utils {
     ($handler:ident, $block:expr, $expected_block:expr) => {
       let mut app = App::default();
 
-      $handler::with(DELETE_KEY, &mut app, $block, None).handle();
+      $handler::new(DELETE_KEY, &mut app, $block, None).handle();
 
       pretty_assertions::assert_eq!(app.get_current_route(), $expected_block.into());
     };
 
     ($handler:ident, $app:expr, $block:expr, $expected_block:expr) => {
-      $handler::with(DELETE_KEY, &mut $app, $block, None).handle();
+      $handler::new(DELETE_KEY, &mut $app, $block, None).handle();
 
       pretty_assertions::assert_eq!($app.get_current_route(), $expected_block.into());
     };
@@ -446,7 +446,7 @@ mod test_utils {
       let mut app = App::default();
       app.push_navigation_stack($block.into());
 
-      $handler::with(DEFAULT_KEYBINDINGS.refresh.key, &mut app, $block, None).handle();
+      $handler::new(DEFAULT_KEYBINDINGS.refresh.key, &mut app, $block, None).handle();
 
       pretty_assertions::assert_eq!(app.get_current_route(), $block.into());
       assert!(app.should_refresh);

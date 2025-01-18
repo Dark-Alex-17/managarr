@@ -28,7 +28,7 @@ mod tests {
         .downloads
         .set_items(vec![DownloadRecord::default()]);
 
-      DownloadsHandler::with(DELETE_KEY, &mut app, ActiveRadarrBlock::Downloads, None).handle();
+      DownloadsHandler::new(DELETE_KEY, &mut app, ActiveRadarrBlock::Downloads, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -47,7 +47,7 @@ mod tests {
         .downloads
         .set_items(vec![DownloadRecord::default()]);
 
-      DownloadsHandler::with(DELETE_KEY, &mut app, ActiveRadarrBlock::Downloads, None).handle();
+      DownloadsHandler::new(DELETE_KEY, &mut app, ActiveRadarrBlock::Downloads, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Downloads.into());
     }
@@ -65,7 +65,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(2);
 
-      DownloadsHandler::with(
+      DownloadsHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
         &mut app,
         ActiveRadarrBlock::Downloads,
@@ -89,7 +89,7 @@ mod tests {
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(2);
 
-      DownloadsHandler::with(
+      DownloadsHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
         &mut app,
         ActiveRadarrBlock::Downloads,
@@ -115,11 +115,11 @@ mod tests {
     ) {
       let mut app = App::default();
 
-      DownloadsHandler::with(key, &mut app, active_radarr_block, None).handle();
+      DownloadsHandler::new(key, &mut app, active_radarr_block, None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
 
-      DownloadsHandler::with(key, &mut app, active_radarr_block, None).handle();
+      DownloadsHandler::new(key, &mut app, active_radarr_block, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
     }
@@ -161,7 +161,7 @@ mod tests {
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
 
-      DownloadsHandler::with(SUBMIT_KEY, &mut app, prompt_block, None).handle();
+      DownloadsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
       assert_eq!(
@@ -187,7 +187,7 @@ mod tests {
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
 
-      DownloadsHandler::with(SUBMIT_KEY, &mut app, prompt_block, None).handle();
+      DownloadsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
@@ -215,7 +215,7 @@ mod tests {
       app.push_navigation_stack(prompt_block.into());
       app.data.radarr_data.prompt_confirm = true;
 
-      DownloadsHandler::with(ESC_KEY, &mut app, prompt_block, None).handle();
+      DownloadsHandler::new(ESC_KEY, &mut app, prompt_block, None).handle();
 
       assert_eq!(app.get_current_route(), base_block.into());
       assert!(!app.data.radarr_data.prompt_confirm);
@@ -229,7 +229,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
       app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
 
-      DownloadsHandler::with(ESC_KEY, &mut app, ActiveRadarrBlock::Downloads, None).handle();
+      DownloadsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::Downloads, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Downloads.into());
       assert!(app.error.text.is_empty());
@@ -253,7 +253,7 @@ mod tests {
         .downloads
         .set_items(vec![DownloadRecord::default()]);
 
-      DownloadsHandler::with(
+      DownloadsHandler::new(
         DEFAULT_KEYBINDINGS.update.key,
         &mut app,
         ActiveRadarrBlock::Downloads,
@@ -278,7 +278,7 @@ mod tests {
         .downloads
         .set_items(vec![DownloadRecord::default()]);
 
-      DownloadsHandler::with(
+      DownloadsHandler::new(
         DEFAULT_KEYBINDINGS.update.key,
         &mut app,
         ActiveRadarrBlock::Downloads,
@@ -299,7 +299,7 @@ mod tests {
         .set_items(vec![DownloadRecord::default()]);
       app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
 
-      DownloadsHandler::with(
+      DownloadsHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveRadarrBlock::Downloads,
@@ -322,7 +322,7 @@ mod tests {
         .downloads
         .set_items(vec![DownloadRecord::default()]);
 
-      DownloadsHandler::with(
+      DownloadsHandler::new(
         DEFAULT_KEYBINDINGS.refresh.key,
         &mut app,
         ActiveRadarrBlock::Downloads,
@@ -359,7 +359,7 @@ mod tests {
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
 
-      DownloadsHandler::with(
+      DownloadsHandler::new(
         DEFAULT_KEYBINDINGS.confirm.key,
         &mut app,
         prompt_block,
@@ -396,7 +396,7 @@ mod tests {
       .downloads
       .set_items(vec![download_record()]);
 
-    let download_id = DownloadsHandler::with(
+    let download_id = DownloadsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Downloads,
@@ -412,7 +412,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = true;
 
-    let handler = DownloadsHandler::with(
+    let handler = DownloadsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Downloads,
@@ -427,7 +427,7 @@ mod tests {
     let mut app = App::default();
     app.is_loading = false;
 
-    let handler = DownloadsHandler::with(
+    let handler = DownloadsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Downloads,
@@ -447,7 +447,7 @@ mod tests {
       .radarr_data
       .downloads
       .set_items(vec![DownloadRecord::default()]);
-    let handler = DownloadsHandler::with(
+    let handler = DownloadsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveRadarrBlock::Downloads,

@@ -88,7 +88,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EpisodeDetailsHandle
     EPISODE_DETAILS_BLOCKS.contains(&active_block)
   }
 
-  fn with(
+  fn new(
     key: Key,
     app: &'a mut App<'b>,
     active_sonarr_block: ActiveSonarrBlock,
