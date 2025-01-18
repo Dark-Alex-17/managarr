@@ -22,18 +22,13 @@ pub(super) struct IndexerSettingsHandler<'a, 'b> {
 
 impl<'a, 'b> IndexerSettingsHandler<'a, 'b> {
   fn build_edit_indexer_settings_params(&mut self) -> IndexerSettings {
-    let indexer_settings = self
+    self
       .app
       .data
       .sonarr_data
       .indexer_settings
-      .as_ref()
-      .unwrap()
-      .clone();
-
-    self.app.data.sonarr_data.indexer_settings = None;
-
-    indexer_settings
+      .take()
+      .expect("IndexerSettings is None")
   }
 }
 

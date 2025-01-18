@@ -35,11 +35,9 @@ impl<'a, 'b> RootFoldersHandler<'a, 'b> {
       .data
       .sonarr_data
       .edit_root_folder
-      .as_ref()
-      .unwrap()
-      .text
-      .clone();
-    self.app.data.sonarr_data.edit_root_folder = None;
+      .take()
+      .expect("EditRootFolder is None")
+      .text;
     AddRootFolderBody { path: root_folder }
   }
 

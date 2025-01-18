@@ -21,55 +21,41 @@ pub(super) struct EditIndexerHandler<'a, 'b> {
 
 impl<'a, 'b> EditIndexerHandler<'a, 'b> {
   fn build_edit_indexer_params(&mut self) -> EditIndexerParams {
-    let indexer_id = self.app.data.sonarr_data.indexers.current_selection().id;
-    let tags = self
+    let edit_indexer_modal = self
       .app
       .data
       .sonarr_data
       .edit_indexer_modal
-      .as_ref()
-      .unwrap()
-      .tags
-      .text
-      .clone();
-    let params = {
-      let EditIndexerModal {
-        name,
-        enable_rss,
-        enable_automatic_search,
-        enable_interactive_search,
-        url,
-        api_key,
-        seed_ratio,
-        priority,
-        ..
-      } = self
-        .app
-        .data
-        .sonarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap();
+      .take()
+      .expect("EditIndexerModal is None");
+    let indexer_id = self.app.data.sonarr_data.indexers.current_selection().id;
+    let tags = edit_indexer_modal.tags.text;
+    let EditIndexerModal {
+      name,
+      enable_rss,
+      enable_automatic_search,
+      enable_interactive_search,
+      url,
+      api_key,
+      seed_ratio,
+      priority,
+      ..
+    } = edit_indexer_modal;
 
-      EditIndexerParams {
-        indexer_id,
-        name: Some(name.text.clone()),
-        enable_rss: Some(enable_rss.unwrap_or_default()),
-        enable_automatic_search: Some(enable_automatic_search.unwrap_or_default()),
-        enable_interactive_search: Some(enable_interactive_search.unwrap_or_default()),
-        url: Some(url.text.clone()),
-        api_key: Some(api_key.text.clone()),
-        seed_ratio: Some(seed_ratio.text.clone()),
-        tags: None,
-        tag_input_string: Some(tags),
-        priority: Some(*priority),
-        clear_tags: false,
-      }
-    };
-
-    self.app.data.sonarr_data.edit_indexer_modal = None;
-
-    params
+    EditIndexerParams {
+      indexer_id,
+      name: Some(name.text),
+      enable_rss,
+      enable_automatic_search,
+      enable_interactive_search,
+      url: Some(url.text),
+      api_key: Some(api_key.text),
+      seed_ratio: Some(seed_ratio.text),
+      tags: None,
+      tag_input_string: Some(tags),
+      priority: Some(priority),
+      clear_tags: false,
+    }
   }
 }
 

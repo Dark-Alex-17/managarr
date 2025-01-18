@@ -30,19 +30,17 @@ impl<'a, 'b> RootFoldersHandler<'a, 'b> {
   );
 
   fn build_add_root_folder_body(&mut self) -> AddRootFolderBody {
-    let path = self
+    let edit_root_folder = self
       .app
       .data
       .radarr_data
       .edit_root_folder
-      .as_ref()
-      .unwrap()
-      .text
-      .clone();
+      .take()
+      .expect("AddRootFolder is None");
 
-    self.app.data.radarr_data.edit_root_folder = None;
-
-    AddRootFolderBody { path }
+    AddRootFolderBody {
+      path: edit_root_folder.text,
+    }
   }
 
   fn extract_root_folder_id(&mut self) -> i64 {

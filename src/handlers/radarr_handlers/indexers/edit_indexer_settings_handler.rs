@@ -22,9 +22,13 @@ pub(super) struct IndexerSettingsHandler<'a, 'b> {
 
 impl<'a, 'b> IndexerSettingsHandler<'a, 'b> {
   fn build_edit_indexer_settings_body(&mut self) -> IndexerSettings {
-    let indexer_settings = self.app.data.radarr_data.indexer_settings.clone().unwrap();
-    self.app.data.radarr_data.indexer_settings = None;
-    indexer_settings
+    self
+      .app
+      .data
+      .radarr_data
+      .indexer_settings
+      .take()
+      .expect("Indexer settings not found")
   }
 }
 

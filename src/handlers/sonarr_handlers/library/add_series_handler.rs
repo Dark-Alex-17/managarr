@@ -37,16 +37,14 @@ impl<'a, 'b> AddSeriesHandler<'a, 'b> {
   );
 
   fn build_add_series_body(&mut self) -> AddSeriesBody {
-    let tags = self
+    let add_series_modal = self
       .app
       .data
       .sonarr_data
       .add_series_modal
-      .as_ref()
-      .unwrap()
-      .tags
-      .text
-      .clone();
+      .take()
+      .expect("AddSeriesModal is None");
+    let tags = add_series_modal.tags.text;
     let AddSeriesModal {
       root_folder_list,
       monitor_list,
@@ -55,8 +53,7 @@ impl<'a, 'b> AddSeriesHandler<'a, 'b> {
       series_type_list,
       use_season_folder,
       ..
-    } = self.app.data.sonarr_data.add_series_modal.as_ref().unwrap();
-    let season_folder = *use_season_folder;
+    } = add_series_modal;
     let (tvdb_id, title) = {
       let AddSeriesSearchResult { tvdb_id, title, .. } = self
         .app
@@ -65,9 +62,8 @@ impl<'a, 'b> AddSeriesHandler<'a, 'b> {
         .add_searched_series
         .as_ref()
         .unwrap()
-        .current_selection()
-        .clone();
-      (tvdb_id, title.text)
+        .current_selection();
+      (*tvdb_id, title.clone().text)
     };
     let quality_profile = quality_profile_list.current_selection();
     let quality_profile_id = *self
@@ -96,8 +92,6 @@ impl<'a, 'b> AddSeriesHandler<'a, 'b> {
     let monitor = monitor_list.current_selection().to_string();
     let series_type = series_type_list.current_selection().to_string();
 
-    self.app.data.sonarr_data.add_series_modal = None;
-
     AddSeriesBody {
       tvdb_id,
       title,
@@ -106,7 +100,7 @@ impl<'a, 'b> AddSeriesHandler<'a, 'b> {
       quality_profile_id,
       language_profile_id,
       series_type,
-      season_folder,
+      season_folder: use_season_folder,
       tags: Vec::new(),
       tag_input_string: Some(tags),
       add_options: AddSeriesOptions {

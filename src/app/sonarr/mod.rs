@@ -187,12 +187,11 @@ impl<'a> App<'a> {
   async fn check_for_sonarr_prompt_action(&mut self) {
     if self.data.sonarr_data.prompt_confirm {
       self.data.sonarr_data.prompt_confirm = false;
-      if let Some(sonarr_event) = &self.data.sonarr_data.prompt_confirm_action {
+      if let Some(sonarr_event) = self.data.sonarr_data.prompt_confirm_action.take() {
         self
-          .dispatch_network_event(sonarr_event.clone().into())
+          .dispatch_network_event(sonarr_event.into())
           .await;
         self.should_refresh = true;
-        self.data.sonarr_data.prompt_confirm_action = None;
       }
     }
   }

@@ -235,9 +235,9 @@ where
   }
 
   pub fn apply_filter(&mut self, filter_field: fn(&T) -> &str) -> bool {
-    let filter_matches = match self.filter {
-      Some(ref filter) if !filter.text.is_empty() => {
-        let scrubbed_filter = strip_non_search_characters(&filter.text.clone());
+    let filter_matches = match self.filter.take() {
+      Some(filter) if !filter.text.is_empty() => {
+        let scrubbed_filter = strip_non_search_characters(&filter.text);
 
         self
           .items
@@ -248,8 +248,6 @@ where
       }
       _ => Vec::new(),
     };
-
-    self.filter = None;
 
     if filter_matches.is_empty() {
       return false;
@@ -266,20 +264,19 @@ where
   }
 
   pub fn apply_search(&mut self, search_field: fn(&T) -> &str) -> bool {
-    let search_index = if let Some(search) = self.search.as_ref() {
-      let search_string = search.text.clone().to_lowercase();
+    let search_index = match self.search.take() {
+      Some(search) => {
+        let search_string = search.text.to_lowercase();
 
-      self
-        .filtered_items
-        .as_ref()
-        .unwrap_or(&self.items)
-        .iter()
-        .position(|item| strip_non_search_characters(search_field(item)).contains(&search_string))
-    } else {
-      None
+        self
+          .filtered_items
+          .as_ref()
+          .unwrap_or(&self.items)
+          .iter()
+          .position(|item| strip_non_search_characters(search_field(item)).contains(&search_string))
+      }
+      _ => None,
     };
-
-    self.search = None;
 
     if search_index.is_none() {
       return false;

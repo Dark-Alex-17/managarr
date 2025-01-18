@@ -39,23 +39,21 @@ impl<'a, 'b> AddMovieHandler<'a, 'b> {
   );
 
   fn build_add_movie_body(&mut self) -> AddMovieBody {
-    let tags = self
+    let add_movie_modal = self
       .app
       .data
       .radarr_data
       .add_movie_modal
-      .as_ref()
-      .unwrap()
-      .tags
-      .text
-      .clone();
+      .take()
+      .expect("AddMovieModal is None");
+    let tags = add_movie_modal.tags.text;
     let AddMovieModal {
       root_folder_list,
       monitor_list,
       minimum_availability_list,
       quality_profile_list,
       ..
-    } = self.app.data.radarr_data.add_movie_modal.as_ref().unwrap();
+    } = add_movie_modal;
     let (tmdb_id, title) = if let Some(context) = self.context {
       if context == ActiveRadarrBlock::CollectionDetails {
         let CollectionMovie { tmdb_id, title, .. } = self
@@ -63,9 +61,8 @@ impl<'a, 'b> AddMovieHandler<'a, 'b> {
           .data
           .radarr_data
           .collection_movies
-          .current_selection()
-          .clone();
-        (tmdb_id, title.text)
+          .current_selection();
+        (*tmdb_id, title.clone().text)
       } else {
         let AddMovieSearchResult { tmdb_id, title, .. } = self
           .app
@@ -74,9 +71,8 @@ impl<'a, 'b> AddMovieHandler<'a, 'b> {
           .add_searched_movies
           .as_ref()
           .unwrap()
-          .current_selection()
-          .clone();
-        (tmdb_id, title.text)
+          .current_selection();
+        (*tmdb_id, title.clone().text)
       }
     } else {
       let AddMovieSearchResult { tmdb_id, title, .. } = self
@@ -86,9 +82,8 @@ impl<'a, 'b> AddMovieHandler<'a, 'b> {
         .add_searched_movies
         .as_ref()
         .unwrap()
-        .current_selection()
-        .clone();
-      (tmdb_id, title.text)
+        .current_selection();
+      (*tmdb_id, title.clone().text)
     };
     let quality_profile = quality_profile_list.current_selection();
     let quality_profile_id = *self
@@ -105,8 +100,6 @@ impl<'a, 'b> AddMovieHandler<'a, 'b> {
     let path = root_folder_list.current_selection().path.clone();
     let monitor = monitor_list.current_selection().to_string();
     let minimum_availability = minimum_availability_list.current_selection().to_string();
-
-    self.app.data.radarr_data.add_movie_modal = None;
 
     AddMovieBody {
       tmdb_id,

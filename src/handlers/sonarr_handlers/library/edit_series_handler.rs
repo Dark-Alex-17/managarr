@@ -22,73 +22,59 @@ pub(super) struct EditSeriesHandler<'a, 'b> {
 
 impl<'a, 'b> EditSeriesHandler<'a, 'b> {
   fn build_edit_series_params(&mut self) -> EditSeriesParams {
-    let series_id = self.app.data.sonarr_data.series.current_selection().id;
-    let tags = self
+    let edit_series_modal = self
       .app
       .data
       .sonarr_data
       .edit_series_modal
-      .as_ref()
-      .unwrap()
-      .tags
-      .text
-      .clone();
+      .take()
+      .expect("EditSeriesModal is None");
+    let series_id = self.app.data.sonarr_data.series.current_selection().id;
+    let tags = edit_series_modal.tags.text;
 
-    let params = {
-      let EditSeriesModal {
-        monitored,
-        use_season_folders,
-        path,
-        series_type_list,
-        quality_profile_list,
-        language_profile_list,
-        ..
-      } = self
-        .app
-        .data
-        .sonarr_data
-        .edit_series_modal
-        .as_ref()
-        .unwrap();
-      let quality_profile = quality_profile_list.current_selection();
-      let quality_profile_id = *self
-        .app
-        .data
-        .sonarr_data
-        .quality_profile_map
-        .iter()
-        .filter(|(_, value)| *value == quality_profile)
-        .map(|(key, _)| key)
-        .next()
-        .unwrap();
-      let language_profile = language_profile_list.current_selection();
-      let language_profile_id = *self
-        .app
-        .data
-        .sonarr_data
-        .language_profiles_map
-        .iter()
-        .filter(|(_, value)| *value == language_profile)
-        .map(|(key, _)| key)
-        .next()
-        .unwrap();
+    let EditSeriesModal {
+      monitored,
+      use_season_folders,
+      path,
+      series_type_list,
+      quality_profile_list,
+      language_profile_list,
+      ..
+    } = edit_series_modal;
+    let quality_profile = quality_profile_list.current_selection();
+    let quality_profile_id = *self
+      .app
+      .data
+      .sonarr_data
+      .quality_profile_map
+      .iter()
+      .filter(|(_, value)| *value == quality_profile)
+      .map(|(key, _)| key)
+      .next()
+      .unwrap();
+    let language_profile = language_profile_list.current_selection();
+    let language_profile_id = *self
+      .app
+      .data
+      .sonarr_data
+      .language_profiles_map
+      .iter()
+      .filter(|(_, value)| *value == language_profile)
+      .map(|(key, _)| key)
+      .next()
+      .unwrap();
 
-      EditSeriesParams {
-        series_id,
-        monitored: Some(monitored.unwrap_or_default()),
-        use_season_folders: Some(use_season_folders.unwrap_or_default()),
-        series_type: Some(*series_type_list.current_selection()),
-        quality_profile_id: Some(quality_profile_id),
-        language_profile_id: Some(language_profile_id),
-        root_folder_path: Some(path.text.clone()),
-        tag_input_string: Some(tags),
-        ..EditSeriesParams::default()
-      }
-    };
-
-    self.app.data.sonarr_data.edit_series_modal = None;
-
-    params
+    EditSeriesParams {
+      series_id,
+      monitored,
+      use_season_folders,
+      series_type: Some(*series_type_list.current_selection()),
+      quality_profile_id: Some(quality_profile_id),
+      language_profile_id: Some(language_profile_id),
+      root_folder_path: Some(path.text),
+      tag_input_string: Some(tags),
+      ..EditSeriesParams::default()
+    }
   }
 }
 

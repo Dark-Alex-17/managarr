@@ -23,51 +23,43 @@ pub(super) struct EditMovieHandler<'a, 'b> {
 impl<'a, 'b> EditMovieHandler<'a, 'b> {
   fn build_edit_movie_params(&mut self) -> EditMovieParams {
     let movie_id = self.app.data.radarr_data.movies.current_selection().id;
-    let tags = self
+    let edit_movie_modal = self
       .app
       .data
       .radarr_data
       .edit_movie_modal
-      .as_ref()
-      .unwrap()
-      .tags
-      .text
-      .clone();
-    let params = {
-      let EditMovieModal {
-        monitored,
-        path,
-        minimum_availability_list,
-        quality_profile_list,
-        ..
-      } = self.app.data.radarr_data.edit_movie_modal.as_ref().unwrap();
-      let quality_profile = quality_profile_list.current_selection();
-      let quality_profile_id = *self
-        .app
-        .data
-        .radarr_data
-        .quality_profile_map
-        .iter()
-        .filter(|(_, value)| *value == quality_profile)
-        .map(|(key, _)| key)
-        .next()
-        .unwrap();
+      .take()
+      .expect("Edit movie modal is None");
+    let tags = edit_movie_modal.tags.text;
+    let EditMovieModal {
+      monitored,
+      path,
+      minimum_availability_list,
+      quality_profile_list,
+      ..
+    } = edit_movie_modal;
+    let quality_profile = quality_profile_list.current_selection();
+    let quality_profile_id = *self
+      .app
+      .data
+      .radarr_data
+      .quality_profile_map
+      .iter()
+      .filter(|(_, value)| *value == quality_profile)
+      .map(|(key, _)| key)
+      .next()
+      .unwrap();
 
-      EditMovieParams {
-        movie_id,
-        monitored: *monitored,
-        minimum_availability: Some(*minimum_availability_list.current_selection()),
-        quality_profile_id: Some(quality_profile_id),
-        root_folder_path: Some(path.text.clone()),
-        tags: None,
-        tag_input_string: Some(tags),
-        clear_tags: false,
-      }
-    };
-
-    self.app.data.radarr_data.edit_movie_modal = None;
-
-    params
+    EditMovieParams {
+      movie_id,
+      monitored,
+      minimum_availability: Some(*minimum_availability_list.current_selection()),
+      quality_profile_id: Some(quality_profile_id),
+      root_folder_path: Some(path.text),
+      tags: None,
+      tag_input_string: Some(tags),
+      clear_tags: false,
+    }
   }
 }
 

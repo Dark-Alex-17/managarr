@@ -22,6 +22,13 @@ pub(super) struct EditCollectionHandler<'a, 'b> {
 
 impl<'a, 'b> EditCollectionHandler<'a, 'b> {
   fn build_edit_collection_params(&mut self) -> EditCollectionParams {
+    let edit_collection_modal = self
+      .app
+      .data
+      .radarr_data
+      .edit_collection_modal
+      .take()
+      .expect("EditCollectionModal is None");
     let collection_id = self.app.data.radarr_data.collections.current_selection().id;
     let EditCollectionModal {
       path,
@@ -29,13 +36,7 @@ impl<'a, 'b> EditCollectionHandler<'a, 'b> {
       minimum_availability_list,
       monitored,
       quality_profile_list,
-    } = self
-      .app
-      .data
-      .radarr_data
-      .edit_collection_modal
-      .as_ref()
-      .unwrap();
+    } = edit_collection_modal;
     let quality_profile = quality_profile_list.current_selection();
     let quality_profile_id = *self
       .app
@@ -48,15 +49,13 @@ impl<'a, 'b> EditCollectionHandler<'a, 'b> {
       .next()
       .unwrap();
 
-    let root_folder_path: String = path.text.clone();
-    let monitored = monitored.unwrap_or_default();
+    let root_folder_path = path.text;
     let search_on_add = search_on_add.unwrap_or_default();
     let minimum_availability = *minimum_availability_list.current_selection();
-    self.app.data.radarr_data.edit_collection_modal = None;
 
     EditCollectionParams {
       collection_id,
-      monitored: Some(monitored),
+      monitored,
       minimum_availability: Some(minimum_availability),
       quality_profile_id: Some(quality_profile_id),
       root_folder_path: Some(root_folder_path),
