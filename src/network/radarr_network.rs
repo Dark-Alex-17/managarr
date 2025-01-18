@@ -282,10 +282,8 @@ impl<'a, 'b> Network<'a, 'b> {
   async fn add_movie(&mut self, mut add_movie_body: AddMovieBody) -> Result<Value> {
     info!("Adding new movie to Radarr");
     let event = RadarrEvent::AddMovie(add_movie_body.clone());
-    if let Some(tag_input_string) = add_movie_body.tag_input_string.as_ref() {
-      let tag_ids_vec = self
-        .extract_and_add_radarr_tag_ids_vec(tag_input_string.clone())
-        .await;
+    if let Some(tag_input_str) = add_movie_body.tag_input_string.as_ref() {
+      let tag_ids_vec = self.extract_and_add_radarr_tag_ids_vec(tag_input_str).await;
       add_movie_body.tags = tag_ids_vec;
     }
 
@@ -629,10 +627,8 @@ impl<'a, 'b> Network<'a, 'b> {
     let detail_event = RadarrEvent::GetIndexers;
     let event = RadarrEvent::EditIndexer(edit_indexer_params.clone());
     let id = edit_indexer_params.indexer_id;
-    if let Some(tag_input_string) = edit_indexer_params.tag_input_string.as_ref() {
-      let tag_ids_vec = self
-        .extract_and_add_radarr_tag_ids_vec(tag_input_string.clone())
-        .await;
+    if let Some(tag_input_str) = edit_indexer_params.tag_input_string.as_ref() {
+      let tag_ids_vec = self.extract_and_add_radarr_tag_ids_vec(tag_input_str).await;
       edit_indexer_params.tags = Some(tag_ids_vec);
     }
     info!("Updating Radarr indexer with ID: {id}");
@@ -832,10 +828,8 @@ impl<'a, 'b> Network<'a, 'b> {
     let movie_id = edit_movie_params.movie_id;
     let detail_event = RadarrEvent::GetMovieDetails(movie_id);
     let event = RadarrEvent::EditMovie(edit_movie_params.clone());
-    if let Some(tag_input_string) = edit_movie_params.tag_input_string.as_ref() {
-      let tag_ids_vec = self
-        .extract_and_add_radarr_tag_ids_vec(tag_input_string.clone())
-        .await;
+    if let Some(tag_input_str) = edit_movie_params.tag_input_string.as_ref() {
+      let tag_ids_vec = self.extract_and_add_radarr_tag_ids_vec(tag_input_str).await;
       edit_movie_params.tags = Some(tag_ids_vec);
     }
 
@@ -1827,9 +1821,8 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn extract_and_add_radarr_tag_ids_vec(&mut self, edit_tags: String) -> Vec<i64> {
+  async fn extract_and_add_radarr_tag_ids_vec(&mut self, edit_tags: &str) -> Vec<i64> {
     let tags_map = self.app.lock().await.data.radarr_data.tags_map.clone();
-    let tags = edit_tags.clone();
     let missing_tags_vec = edit_tags
       .split(',')
       .filter(|&tag| !tag.is_empty() && tags_map.get_by_right(tag.to_lowercase().trim()).is_none())
@@ -1843,7 +1836,7 @@ impl<'a, 'b> Network<'a, 'b> {
     }
 
     let app = self.app.lock().await;
-    tags
+    edit_tags
       .split(',')
       .filter(|tag| !tag.is_empty())
       .map(|tag| {

@@ -383,10 +383,8 @@ impl<'a, 'b> Network<'a, 'b> {
   async fn add_sonarr_series(&mut self, mut add_series_body: AddSeriesBody) -> Result<Value> {
     info!("Adding new series to Sonarr");
     let event = SonarrEvent::AddSeries(add_series_body.clone());
-    if let Some(tag_input_string) = add_series_body.tag_input_string.as_ref() {
-      let tag_ids_vec = self
-        .extract_and_add_sonarr_tag_ids_vec(tag_input_string.clone())
-        .await;
+    if let Some(tag_input_str) = add_series_body.tag_input_string.as_ref() {
+      let tag_ids_vec = self.extract_and_add_sonarr_tag_ids_vec(tag_input_str).await;
       add_series_body.tags = tag_ids_vec;
     }
 
@@ -640,10 +638,8 @@ impl<'a, 'b> Network<'a, 'b> {
     &mut self,
     mut edit_indexer_params: EditIndexerParams,
   ) -> Result<()> {
-    if let Some(tag_input_string) = edit_indexer_params.tag_input_string.as_ref() {
-      let tag_ids_vec = self
-        .extract_and_add_sonarr_tag_ids_vec(tag_input_string.clone())
-        .await;
+    if let Some(tag_input_str) = edit_indexer_params.tag_input_string.as_ref() {
+      let tag_ids_vec = self.extract_and_add_sonarr_tag_ids_vec(tag_input_str).await;
       edit_indexer_params.tags = Some(tag_ids_vec);
     }
     let detail_event = SonarrEvent::GetIndexers;
@@ -842,10 +838,8 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn edit_sonarr_series(&mut self, mut edit_series_params: EditSeriesParams) -> Result<()> {
     info!("Editing Sonarr series");
-    if let Some(tag_input_string) = edit_series_params.tag_input_string.as_ref() {
-      let tag_ids_vec = self
-        .extract_and_add_sonarr_tag_ids_vec(tag_input_string.clone())
-        .await;
+    if let Some(tag_input_str) = edit_series_params.tag_input_string.as_ref() {
+      let tag_ids_vec = self.extract_and_add_sonarr_tag_ids_vec(tag_input_str).await;
       edit_series_params.tags = Some(tag_ids_vec);
     }
     let series_id = edit_series_params.series_id;
@@ -2291,9 +2285,8 @@ impl<'a, 'b> Network<'a, 'b> {
       .await
   }
 
-  async fn extract_and_add_sonarr_tag_ids_vec(&mut self, edit_tags: String) -> Vec<i64> {
+  async fn extract_and_add_sonarr_tag_ids_vec(&mut self, edit_tags: &str) -> Vec<i64> {
     let tags_map = self.app.lock().await.data.sonarr_data.tags_map.clone();
-    let tags = edit_tags.clone();
     let missing_tags_vec = edit_tags
       .split(',')
       .filter(|&tag| !tag.is_empty() && tags_map.get_by_right(tag.to_lowercase().trim()).is_none())
@@ -2307,7 +2300,7 @@ impl<'a, 'b> Network<'a, 'b> {
     }
 
     let app = self.app.lock().await;
-    tags
+    edit_tags
       .split(',')
       .filter(|tag| !tag.is_empty())
       .map(|tag| {

@@ -5290,7 +5290,7 @@ mod test {
   #[tokio::test]
   async fn test_extract_and_add_sonarr_tag_ids_vec() {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let tags = "    test,HI ,, usenet ".to_owned();
+    let tags = "    test,HI ,, usenet ";
     {
       let mut app = app_arc.lock().await;
       app.data.sonarr_data.tags_map = BiMap::from_iter([
@@ -5319,11 +5319,11 @@ mod test {
       None,
     )
     .await;
-    let tags = "usenet, test, TESTING".to_owned();
+    let tags = "usenet, test, TESTING";
     {
       let mut app = app_arc.lock().await;
       app.data.sonarr_data.add_series_modal = Some(AddSeriesModal {
-        tags: tags.clone().into(),
+        tags: tags.into(),
         ..AddSeriesModal::default()
       });
       app.data.sonarr_data.tags_map =

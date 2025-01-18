@@ -3867,7 +3867,7 @@ mod test {
   #[tokio::test]
   async fn test_extract_and_add_radarr_tag_ids_vec() {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let tags = "    test,HI ,, usenet ".to_owned();
+    let tags = "    test,HI ,, usenet ";
     {
       let mut app = app_arc.lock().await;
       app.data.radarr_data.tags_map = BiMap::from_iter([
@@ -3896,11 +3896,11 @@ mod test {
       None,
     )
     .await;
-    let tags = "usenet, test, TESTING".to_owned();
+    let tags = "usenet, test, TESTING";
     {
       let mut app = app_arc.lock().await;
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
-        tags: tags.clone().into(),
+        tags: tags.into(),
         ..EditMovieModal::default()
       });
       app.data.radarr_data.tags_map =
