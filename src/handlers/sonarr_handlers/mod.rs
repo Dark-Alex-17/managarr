@@ -53,8 +53,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SonarrHandler<'a, 'b
         HistoryHandler::new(self.key, self.app, self.active_sonarr_block, self.context).handle()
       }
       _ if RootFoldersHandler::accepts(self.active_sonarr_block) => {
-        RootFoldersHandler::new(self.key, self.app, self.active_sonarr_block, self.context)
-          .handle()
+        RootFoldersHandler::new(self.key, self.app, self.active_sonarr_block, self.context).handle()
       }
       _ if IndexersHandler::accepts(self.active_sonarr_block) => {
         IndexersHandler::new(self.key, self.app, self.active_sonarr_block, self.context).handle()

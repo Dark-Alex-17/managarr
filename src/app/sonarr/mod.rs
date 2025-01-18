@@ -188,9 +188,7 @@ impl<'a> App<'a> {
     if self.data.sonarr_data.prompt_confirm {
       self.data.sonarr_data.prompt_confirm = false;
       if let Some(sonarr_event) = self.data.sonarr_data.prompt_confirm_action.take() {
-        self
-          .dispatch_network_event(sonarr_event.into())
-          .await;
+        self.dispatch_network_event(sonarr_event.into()).await;
         self.should_refresh = true;
       }
     }

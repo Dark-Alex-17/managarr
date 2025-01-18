@@ -54,8 +54,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
     if !self.handle_movies_table_events(movie_table_handling_config) {
       match self.active_radarr_block {
         _ if AddMovieHandler::accepts(self.active_radarr_block) => {
-          AddMovieHandler::new(self.key, self.app, self.active_radarr_block, self.context)
-            .handle();
+          AddMovieHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle();
         }
         _ if DeleteMovieHandler::accepts(self.active_radarr_block) => {
           DeleteMovieHandler::new(self.key, self.app, self.active_radarr_block, self.context)

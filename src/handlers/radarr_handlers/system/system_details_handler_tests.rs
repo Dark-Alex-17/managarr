@@ -807,8 +807,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.push_navigation_stack(ActiveRadarrBlock::SystemUpdates.into());
 
-      SystemDetailsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::SystemUpdates, None)
-        .handle();
+      SystemDetailsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::SystemUpdates, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
     }

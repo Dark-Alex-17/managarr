@@ -825,8 +825,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::System.into());
       app.push_navigation_stack(ActiveSonarrBlock::SystemUpdates.into());
 
-      SystemDetailsHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::SystemUpdates, None)
-        .handle();
+      SystemDetailsHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::SystemUpdates, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::System.into());
     }

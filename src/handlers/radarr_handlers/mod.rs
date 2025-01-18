@@ -40,8 +40,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
         LibraryHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle();
       }
       _ if CollectionsHandler::accepts(self.active_radarr_block) => {
-        CollectionsHandler::new(self.key, self.app, self.active_radarr_block, self.context)
-          .handle()
+        CollectionsHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle()
       }
       _ if IndexersHandler::accepts(self.active_radarr_block) => {
         IndexersHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle()
@@ -53,8 +52,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
         DownloadsHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle()
       }
       _ if RootFoldersHandler::accepts(self.active_radarr_block) => {
-        RootFoldersHandler::new(self.key, self.app, self.active_radarr_block, self.context)
-          .handle()
+        RootFoldersHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle()
       }
       _ if BlocklistHandler::accepts(self.active_radarr_block) => {
         BlocklistHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle()

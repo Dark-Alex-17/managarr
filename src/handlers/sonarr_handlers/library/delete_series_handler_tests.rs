@@ -28,8 +28,7 @@ mod tests {
         BlockSelectionState::new(DELETE_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.down();
 
-      DeleteSeriesHandler::new(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None)
-        .handle();
+      DeleteSeriesHandler::new(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None).handle();
 
       if key == Key::Up {
         assert_eq!(
@@ -54,8 +53,7 @@ mod tests {
         BlockSelectionState::new(DELETE_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.down();
 
-      DeleteSeriesHandler::new(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None)
-        .handle();
+      DeleteSeriesHandler::new(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None).handle();
 
       assert_eq!(
         app.data.sonarr_data.selected_block.get_active_block(),
@@ -74,13 +72,11 @@ mod tests {
       let mut app = App::default();
       app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
 
-      DeleteSeriesHandler::new(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None)
-        .handle();
+      DeleteSeriesHandler::new(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None).handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
 
-      DeleteSeriesHandler::new(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None)
-        .handle();
+      DeleteSeriesHandler::new(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
     }

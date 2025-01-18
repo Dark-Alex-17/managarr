@@ -63,8 +63,7 @@ mod tests {
         .position(|tab_route| tab_route.route == right_block.into())
         .unwrap_or_default();
 
-      SeriesDetailsHandler::new(DEFAULT_KEYBINDINGS.left.key, &mut app, right_block, None)
-        .handle();
+      SeriesDetailsHandler::new(DEFAULT_KEYBINDINGS.left.key, &mut app, right_block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -72,8 +71,7 @@ mod tests {
       );
       assert_eq!(app.get_current_route(), left_block.into());
 
-      SeriesDetailsHandler::new(DEFAULT_KEYBINDINGS.right.key, &mut app, left_block, None)
-        .handle();
+      SeriesDetailsHandler::new(DEFAULT_KEYBINDINGS.right.key, &mut app, left_block, None).handle();
 
       assert_eq!(
         app.get_current_route(),
@@ -300,8 +298,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
 
-      SeriesDetailsHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::SeriesHistory, None)
-        .handle();
+      SeriesDetailsHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::SeriesHistory, None).handle();
 
       assert_eq!(
         app.get_current_route(),

@@ -1133,8 +1133,7 @@ mod tests {
       app.data.sonarr_data = create_test_sonarr_data();
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
 
-      EditSeriesHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None)
-        .handle();
+      EditSeriesHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
 

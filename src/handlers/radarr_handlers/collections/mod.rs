@@ -55,13 +55,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
     if !self.handle_collections_table_events(collections_table_handling_config) {
       match self.active_radarr_block {
         _ if CollectionDetailsHandler::accepts(self.active_radarr_block) => {
-          CollectionDetailsHandler::new(
-            self.key,
-            self.app,
-            self.active_radarr_block,
-            self.context,
-          )
-          .handle();
+          CollectionDetailsHandler::new(self.key, self.app, self.active_radarr_block, self.context)
+            .handle();
         }
         _ if EditCollectionHandler::accepts(self.active_radarr_block) => {
           EditCollectionHandler::new(self.key, self.app, self.active_radarr_block, self.context)
