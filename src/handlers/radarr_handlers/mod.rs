@@ -126,10 +126,8 @@ pub fn handle_change_tab_left_right_keys(app: &mut App<'_>, key: Key) {
 #[macro_export]
 macro_rules! search_table {
   ($app:expr, $data_ref:ident, $error_block:expr) => {
-    let search_index = if let Some(search_str) = $app.data.radarr_data.search.as_ref() {
-      let search_string = search_str.text.clone().to_lowercase();
-
-      $app.data.radarr_data.search = None;
+    let search_index = if let Some(search_str) = $app.data.radarr_data.search.take() {
+      let search_string = search_str.text.to_lowercase();
 
       $app
         .data
@@ -153,10 +151,8 @@ macro_rules! search_table {
     }
   };
   ($app:expr, $data_ref:ident, $error_block:expr, $option:ident) => {
-    let search_index = if let Some(search_str) = $app.data.radarr_data.search.as_ref() {
-      let search_string = search_str.text.clone().to_lowercase();
-
-      $app.data.radarr_data.search = None;
+    let search_index = if let Some(search_str) = $app.data.radarr_data.search.take() {
+      let search_string = search_str.text.to_lowercase();
 
       $app
         .data

@@ -157,12 +157,11 @@ impl<'a> App<'a> {
   async fn check_for_radarr_prompt_action(&mut self) {
     if self.data.radarr_data.prompt_confirm {
       self.data.radarr_data.prompt_confirm = false;
-      if let Some(radarr_event) = &self.data.radarr_data.prompt_confirm_action {
+      if let Some(radarr_event) = self.data.radarr_data.prompt_confirm_action.take() {
         self
-          .dispatch_network_event(radarr_event.clone().into())
+          .dispatch_network_event(radarr_event.into())
           .await;
         self.should_refresh = true;
-        self.data.radarr_data.prompt_confirm_action = None;
       }
     }
   }
