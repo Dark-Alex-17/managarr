@@ -226,7 +226,7 @@ where
         }
 
         if self.filtered_items.is_some() {
-          self.set_filtered_items(items.clone());
+          self.set_filtered_items(items);
         } else {
           self.set_items(items);
         }
