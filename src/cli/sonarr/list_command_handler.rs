@@ -212,9 +212,9 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrListCommand> for SonarrListCommandH
           .await?;
 
         if output_in_log_format {
-          let log_lines = self.app.lock().await.data.sonarr_data.logs.items.clone();
+          let log_lines = &self.app.lock().await.data.sonarr_data.logs.items;
 
-          serde_json::to_string_pretty(&log_lines)?
+          serde_json::to_string_pretty(log_lines)?
         } else {
           serde_json::to_string_pretty(&logs)?
         }

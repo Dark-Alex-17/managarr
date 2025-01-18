@@ -158,9 +158,7 @@ impl<'a> App<'a> {
     if self.data.radarr_data.prompt_confirm {
       self.data.radarr_data.prompt_confirm = false;
       if let Some(radarr_event) = self.data.radarr_data.prompt_confirm_action.take() {
-        self
-          .dispatch_network_event(radarr_event.into())
-          .await;
+        self.dispatch_network_event(radarr_event.into()).await;
         self.should_refresh = true;
       }
     }
@@ -230,7 +228,7 @@ impl<'a> App<'a> {
   }
 
   async fn extract_movie_id(&self) -> i64 {
-    self.data.radarr_data.movies.current_selection().clone().id
+    self.data.radarr_data.movies.current_selection().id
   }
 
   async fn extract_movie_search_query(&self) -> String {
@@ -245,12 +243,6 @@ impl<'a> App<'a> {
   }
 
   async fn extract_radarr_indexer_id(&self) -> i64 {
-    self
-      .data
-      .radarr_data
-      .indexers
-      .current_selection()
-      .clone()
-      .id
+    self.data.radarr_data.indexers.current_selection().id
   }
 }

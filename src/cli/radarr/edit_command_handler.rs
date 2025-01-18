@@ -379,13 +379,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrEditCommand> for RadarrEditCommandH
             rss_sync_interval: rss_sync_interval
               .unwrap_or(previous_indexer_settings.rss_sync_interval),
             whitelisted_hardcoded_subs: whitelisted_subtitle_tags
-              .clone()
-              .unwrap_or_else(|| {
-                previous_indexer_settings
-                  .whitelisted_hardcoded_subs
-                  .text
-                  .clone()
-              })
+              .unwrap_or(previous_indexer_settings.whitelisted_hardcoded_subs.text)
               .into(),
           };
           self
