@@ -361,7 +361,7 @@ impl<'a, 'b> Network<'a, 'b> {
     add_root_folder_body: AddRootFolderBody,
   ) -> Result<Value> {
     info!("Adding new root folder to Sonarr");
-    let event = SonarrEvent::AddRootFolder(add_root_folder_body.clone());
+    let event = SonarrEvent::AddRootFolder(AddRootFolderBody::default());
 
     debug!("Add root folder body: {add_root_folder_body:?}");
 
@@ -382,7 +382,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn add_sonarr_series(&mut self, mut add_series_body: AddSeriesBody) -> Result<Value> {
     info!("Adding new series to Sonarr");
-    let event = SonarrEvent::AddSeries(add_series_body.clone());
+    let event = SonarrEvent::AddSeries(AddSeriesBody::default());
     if let Some(tag_input_str) = add_series_body.tag_input_string.as_ref() {
       let tag_ids_vec = self.extract_and_add_sonarr_tag_ids_vec(tag_input_str).await;
       add_series_body.tags = tag_ids_vec;
@@ -553,7 +553,7 @@ impl<'a, 'b> Network<'a, 'b> {
   }
 
   async fn delete_series(&mut self, delete_series_params: DeleteSeriesParams) -> Result<()> {
-    let event = SonarrEvent::DeleteSeries(delete_series_params.clone());
+    let event = SonarrEvent::DeleteSeries(DeleteSeriesParams::default());
     let DeleteSeriesParams {
       id,
       delete_series_files,
@@ -602,7 +602,7 @@ impl<'a, 'b> Network<'a, 'b> {
     &mut self,
     sonarr_release_download_body: SonarrReleaseDownloadBody,
   ) -> Result<Value> {
-    let event = SonarrEvent::DownloadRelease(sonarr_release_download_body.clone());
+    let event = SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody::default());
     info!("Downloading Sonarr release with params: {sonarr_release_download_body:?}");
 
     let request_props = self
@@ -622,7 +622,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn edit_all_sonarr_indexer_settings(&mut self, params: IndexerSettings) -> Result<Value> {
     info!("Updating Sonarr indexer settings");
-    let event = SonarrEvent::EditAllIndexerSettings(params.clone());
+    let event = SonarrEvent::EditAllIndexerSettings(IndexerSettings::default());
     debug!("Indexer settings body: {params:?}");
 
     let request_props = self
@@ -643,7 +643,7 @@ impl<'a, 'b> Network<'a, 'b> {
       edit_indexer_params.tags = Some(tag_ids_vec);
     }
     let detail_event = SonarrEvent::GetIndexers;
-    let event = SonarrEvent::EditIndexer(edit_indexer_params.clone());
+    let event = SonarrEvent::EditIndexer(EditIndexerParams::default());
     let id = edit_indexer_params.indexer_id;
     info!("Updating Sonarr indexer with ID: {id}");
     info!("Fetching indexer details for indexer with ID: {id}");
@@ -844,7 +844,7 @@ impl<'a, 'b> Network<'a, 'b> {
     }
     let series_id = edit_series_params.series_id;
     let detail_event = SonarrEvent::GetSeriesDetails(series_id);
-    let event = SonarrEvent::EditSeries(edit_series_params.clone());
+    let event = SonarrEvent::EditSeries(EditSeriesParams::default());
     info!("Fetching series details for series with ID: {series_id}");
 
     let request_props = self
@@ -1986,7 +1986,7 @@ impl<'a, 'b> Network<'a, 'b> {
 
   async fn search_sonarr_series(&mut self, query: String) -> Result<Vec<AddSeriesSearchResult>> {
     info!("Searching for specific Sonarr series");
-    let event = SonarrEvent::SearchNewSeries(query.clone());
+    let event = SonarrEvent::SearchNewSeries(String::new());
 
     let request_props = self
       .request_props_from(
@@ -2286,11 +2286,15 @@ impl<'a, 'b> Network<'a, 'b> {
   }
 
   async fn extract_and_add_sonarr_tag_ids_vec(&mut self, edit_tags: &str) -> Vec<i64> {
-    let tags_map = self.app.lock().await.data.sonarr_data.tags_map.clone();
-    let missing_tags_vec = edit_tags
-      .split(',')
-      .filter(|&tag| !tag.is_empty() && tags_map.get_by_right(tag.to_lowercase().trim()).is_none())
-      .collect::<Vec<&str>>();
+    let missing_tags_vec = {
+      let tags_map = &self.app.lock().await.data.sonarr_data.tags_map;
+      edit_tags
+        .split(',')
+        .filter(|&tag| {
+          !tag.is_empty() && tags_map.get_by_right(tag.to_lowercase().trim()).is_none()
+        })
+        .collect::<Vec<&str>>()
+    };
 
     for tag in missing_tags_vec {
       self
