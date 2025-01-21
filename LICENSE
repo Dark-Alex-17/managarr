@@ -9,14 +9,16 @@ copy, modify, merge, publish, and distribute the Software solely for
 non-commercial purposes, subject to the following conditions:
 
 1. Attribution:
-   The above copyright notice, this permission notice, and a prominent notice 
-   stating that the Software is part of the "Managarr" project shall be included 
-   in all copies or substantial portions of the Software.
-
-   When redistributing the Software, whether modified or unmodified, you must 
-   include the following attribution in any associated documentation or 
-   distribution materials:
-      "This software is part of Managarr, created by Alexander J. Clarke (Dark-Alex-17)."
+   - The above copyright notice, this permission notice, and a prominent notice stating 
+     that the Software is part of the "Managarr" project shall be included in all copies or 
+     substantial portions of the Software **when the Software is forked and redistributed separately** from the original project.
+   - If you fork the software and **distribute it separately** without merging it back into the original base project (the Managarr repository), you must provide attribution to the original author.
+     You may use any of the following forms of attribution:
+     - "Thanks to Alexander J. Clarke (Dark-Alex-17) for creating the original Managarr project!"
+     - "Forked from the Managarr project, created by Alexander J. Clarke (Dark-Alex-17)"
+     - "This software is based on the original Managarr project by Alexander J. Clarke (Dark-Alex-17)"
+     - "Inspired by Alexander J. Clarke (Dark-Alex-17)'s Managarr project"
+   - If you modify the software, the attribution must also note that changes were made and describe those modifications, if feasible.
 
 2. Non-Commercial Use Only:
    The use of this Software for commercial purposes, including but not limited 
