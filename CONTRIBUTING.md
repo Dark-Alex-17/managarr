@@ -1,6 +1,23 @@
 # Contributing
 Contributors are very welcome! **No contribution is too small and all contributions are valued.**
 
+## License and Attribution
+
+#### _If you plan on contributing to the base project, no attribution is needed!_ Feel free to proceed to the [next steps](CONTRIBUTING.md#Rust).
+
+Otherwise, below are key points to understand from the [Managarr License, Version 1.0](LICENSE):
+1. **Non-Commercial Use**:
+   - Managarr is licensed solely for non-commercial purposes. Any commercial use of Managarr (e.g., selling or offering as a paid service) requires separate permission.
+
+2. **Attribution when Forking and Redistributing Without Contributing back to Main Project**:
+   - **If you fork the project and distribute it separately** (e.g., publish or _publicly_ host it independently from the original project), you are required to provide attribution. 
+   - You may credit the original author by using any of the following phrasing:
+     - "Thanks to Alexander J. Clarke (Dark-Alex-17) for creating the original Managarr project!"
+     - "Forked from the Managarr project, created by Alexander J. Clarke (Dark-Alex-17)"
+     - "This software is based on the original Managarr project by Alexander J. Clarke (Dark-Alex-17)"
+     - "Inspired by Alexander J. Clarke (Dark-Alex-17)'s Managarr project"
+   - If changes are made to the base Managarr project, please note those modifications and provide the new attribution accordingly.
+
 ## Rust
 You'll need to have the stable Rust toolchain installed in order to develop Managarr.
 
