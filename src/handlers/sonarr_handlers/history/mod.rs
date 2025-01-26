@@ -21,7 +21,7 @@ pub(super) struct HistoryHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> HistoryHandler<'a, 'b> {
+impl HistoryHandler<'_, '_> {
   handle_table_events!(
     self,
     history,

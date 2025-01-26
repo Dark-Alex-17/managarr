@@ -44,7 +44,7 @@ pub(super) struct LibraryHandler<'a, 'b> {
   context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> LibraryHandler<'a, 'b> {
+impl LibraryHandler<'_, '_> {
   handle_table_events!(self, series, self.app.data.sonarr_data.series, Series);
 }
 

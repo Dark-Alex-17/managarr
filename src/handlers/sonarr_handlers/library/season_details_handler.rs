@@ -25,7 +25,7 @@ pub(super) struct SeasonDetailsHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> SeasonDetailsHandler<'a, 'b> {
+impl SeasonDetailsHandler<'_, '_> {
   handle_table_events!(
     self,
     episodes,

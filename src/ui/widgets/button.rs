@@ -20,7 +20,7 @@ pub struct Button<'a> {
   is_selected: bool,
 }
 
-impl<'a> Button<'a> {
+impl Button<'_> {
   fn render_button_with_icon(self, area: Rect, buf: &mut Buffer) {
     let [title_area, icon_area] = Layout::horizontal([
       Constraint::Length(self.title.len() as u16),
@@ -69,7 +69,7 @@ impl<'a> Button<'a> {
   }
 }
 
-impl<'a> Widget for Button<'a> {
+impl Widget for Button<'_> {
   fn render(self, area: Rect, buf: &mut Buffer)
   where
     Self: Sized,

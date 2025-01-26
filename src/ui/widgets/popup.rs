@@ -129,7 +129,7 @@ impl<'a, T: Widget> Popup<'a, T> {
   }
 }
 
-impl<'a, T: Widget> Widget for Popup<'a, T> {
+impl<T: Widget> Widget for Popup<'_, T> {
   fn render(self, area: Rect, buf: &mut Buffer) {
     self.render_popup(area, buf);
   }

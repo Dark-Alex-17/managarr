@@ -7,6 +7,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
 use tokio_util::sync::CancellationToken;
+use veil::Redact;
 
 use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
 use crate::cli::Command;
@@ -43,7 +44,7 @@ pub struct App<'a> {
   pub data: Data<'a>,
 }
 
-impl<'a> App<'a> {
+impl App<'_> {
   pub fn new(
     network_tx: Sender<NetworkEvent>,
     config: AppConfig,
@@ -166,7 +167,7 @@ impl<'a> App<'a> {
   }
 }
 
-impl<'a> Default for App<'a> {
+impl Default for App<'_> {
   fn default() -> Self {
     App {
       navigation_stack: Vec::new(),
@@ -259,7 +260,7 @@ impl AppConfig {
   }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Redact, Deserialize, Serialize, Clone)]
 pub struct ServarrConfig {
   #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub host: Option<String>,
@@ -268,6 +269,7 @@ pub struct ServarrConfig {
   #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub uri: Option<String>,
   #[serde(default, deserialize_with = "deserialize_env_var")]
+  #[redact]
   pub api_token: String,
   #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub ssl_cert_path: Option<String>,

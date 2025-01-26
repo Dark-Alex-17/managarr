@@ -31,7 +31,7 @@ pub(super) struct IndexersHandler<'a, 'b> {
   context: Option<ActiveRadarrBlock>,
 }
 
-impl<'a, 'b> IndexersHandler<'a, 'b> {
+impl IndexersHandler<'_, '_> {
   handle_table_events!(self, indexers, self.app.data.radarr_data.indexers, Indexer);
 
   fn extract_indexer_id(&self) -> i64 {

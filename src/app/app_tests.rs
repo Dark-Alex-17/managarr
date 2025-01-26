@@ -409,4 +409,23 @@ mod tests {
       "https://dontdo:this@testing.com/query?test=%20query#results"
     );
   }
+
+  fn test_servarr_config_redacted_debug() {
+    let host = "localhost".to_owned();
+    let port = 1234;
+    let uri = "http://localhost:1234".to_owned();
+    let api_token = "thisisatest".to_owned();
+    let ssl_cert_path = "/some/path".to_owned();
+    let expected_str = format!("ServarrConfig {{ host: Some(\"{}\"), port: Some({}), uri: Some(\"{}\"), api_token: \"***********\", ssl_cert_path: Some(\"{}\") }}",
+    host, port, uri, ssl_cert_path);
+    let servarr_config = ServarrConfig {
+      host: Some(host),
+      port: Some(port),
+      uri: Some(uri),
+      api_token,
+      ssl_cert_path: Some(ssl_cert_path),
+    };
+
+    assert_str_eq!(format!("{servarr_config:?}"), expected_str);
+  }
 }

@@ -363,7 +363,7 @@ where
 }
 
 #[cfg(test)]
-impl<'a, T> BlockSelectionState<'a, T>
+impl<T> BlockSelectionState<'_, T>
 where
   T: Sized + Clone + Copy + Default,
 {

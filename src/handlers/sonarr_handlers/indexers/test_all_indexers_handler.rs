@@ -17,7 +17,7 @@ pub(super) struct TestAllIndexersHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> TestAllIndexersHandler<'a, 'b> {
+impl TestAllIndexersHandler<'_, '_> {
   handle_table_events!(
     self,
     indexer_test_all_results,

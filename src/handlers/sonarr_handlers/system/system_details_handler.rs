@@ -19,7 +19,7 @@ pub(super) struct SystemDetailsHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> SystemDetailsHandler<'a, 'b> {
+impl SystemDetailsHandler<'_, '_> {
   fn extract_task_name(&self) -> SonarrTaskName {
     self
       .app

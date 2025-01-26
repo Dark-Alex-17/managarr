@@ -32,7 +32,7 @@ where
   fn warning(self) -> T;
 }
 
-impl<'a, T, U> ManagarrStyle<'a, T> for U
+impl<T, U> ManagarrStyle<'_, T> for U
 where
   U: Styled<Item = T>,
   T: Default,

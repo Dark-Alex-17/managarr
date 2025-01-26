@@ -23,7 +23,7 @@ pub(super) struct SeriesDetailsHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> SeriesDetailsHandler<'a, 'b> {
+impl SeriesDetailsHandler<'_, '_> {
   handle_table_events!(self, season, self.app.data.sonarr_data.seasons, Season);
   handle_table_events!(
     self,

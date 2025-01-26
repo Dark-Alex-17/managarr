@@ -42,7 +42,7 @@ impl<'a> Message<'a> {
   }
 }
 
-impl<'a> Widget for Message<'a> {
+impl Widget for Message<'_> {
   fn render(self, area: Rect, buf: &mut Buffer) {
     self.render_message(area, buf);
   }

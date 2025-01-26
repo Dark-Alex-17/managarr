@@ -24,7 +24,7 @@ pub(super) struct AddMovieHandler<'a, 'b> {
   context: Option<ActiveRadarrBlock>,
 }
 
-impl<'a, 'b> AddMovieHandler<'a, 'b> {
+impl AddMovieHandler<'_, '_> {
   handle_table_events!(
     self,
     add_movie_search_results,

@@ -134,7 +134,7 @@ impl From<RadarrEvent> for NetworkEvent {
   }
 }
 
-impl<'a, 'b> Network<'a, 'b> {
+impl Network<'_, '_> {
   pub async fn handle_radarr_event(
     &mut self,
     radarr_event: RadarrEvent,

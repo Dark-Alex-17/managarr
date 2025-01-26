@@ -71,7 +71,7 @@ pub struct RadarrData<'a> {
   pub add_list_exclusion: bool,
 }
 
-impl<'a> RadarrData<'a> {
+impl RadarrData<'_> {
   pub fn reset_delete_movie_preferences(&mut self) {
     self.delete_movie_files = false;
     self.add_list_exclusion = false;

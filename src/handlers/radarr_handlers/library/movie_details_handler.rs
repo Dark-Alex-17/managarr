@@ -28,7 +28,7 @@ pub(super) struct MovieDetailsHandler<'a, 'b> {
   _context: Option<ActiveRadarrBlock>,
 }
 
-impl<'a, 'b> MovieDetailsHandler<'a, 'b> {
+impl MovieDetailsHandler<'_, '_> {
   handle_table_events!(
     self,
     movie_releases,

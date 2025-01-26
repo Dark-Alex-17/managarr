@@ -30,7 +30,7 @@ impl<'a> LoadingBlock<'a> {
   }
 }
 
-impl<'a> Widget for LoadingBlock<'a> {
+impl Widget for LoadingBlock<'_> {
   fn render(self, area: Rect, buf: &mut Buffer) {
     self.render_loading_block(area, buf);
   }

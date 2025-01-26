@@ -76,7 +76,7 @@ pub struct SonarrData<'a> {
   pub version: String,
 }
 
-impl<'a> SonarrData<'a> {
+impl SonarrData<'_> {
   pub fn reset_delete_series_preferences(&mut self) {
     self.delete_series_files = false;
     self.add_list_exclusion = false;

@@ -53,7 +53,7 @@ impl<'a> InputBoxPopup<'a> {
   }
 }
 
-impl<'a> WidgetRef for InputBoxPopup<'a> {
+impl WidgetRef for InputBoxPopup<'_> {
   fn render_ref(&self, area: Rect, buf: &mut Buffer) {
     self.render_popup(area, buf);
   }

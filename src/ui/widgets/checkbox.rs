@@ -49,7 +49,7 @@ impl<'a> Checkbox<'a> {
   }
 }
 
-impl<'a> Widget for Checkbox<'a> {
+impl Widget for Checkbox<'_> {
   fn render(self, area: Rect, buf: &mut Buffer) {
     self.render_checkbox(area, buf);
   }

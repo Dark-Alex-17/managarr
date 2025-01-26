@@ -21,7 +21,7 @@ pub(super) struct RootFoldersHandler<'a, 'b> {
   _context: Option<ActiveRadarrBlock>,
 }
 
-impl<'a, 'b> RootFoldersHandler<'a, 'b> {
+impl RootFoldersHandler<'_, '_> {
   handle_table_events!(
     self,
     root_folders,

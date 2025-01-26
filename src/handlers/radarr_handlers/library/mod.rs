@@ -34,7 +34,7 @@ pub(super) struct LibraryHandler<'a, 'b> {
   context: Option<ActiveRadarrBlock>,
 }
 
-impl<'a, 'b> LibraryHandler<'a, 'b> {
+impl LibraryHandler<'_, '_> {
   handle_table_events!(self, movies, self.app.data.radarr_data.movies, Movie);
 }
 

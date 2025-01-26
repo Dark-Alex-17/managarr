@@ -19,7 +19,7 @@ pub(super) struct SystemDetailsHandler<'a, 'b> {
   _context: Option<ActiveRadarrBlock>,
 }
 
-impl<'a, 'b> SystemDetailsHandler<'a, 'b> {
+impl SystemDetailsHandler<'_, '_> {
   fn extract_task_name(&self) -> RadarrTaskName {
     self
       .app

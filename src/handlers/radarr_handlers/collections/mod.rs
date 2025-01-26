@@ -29,7 +29,7 @@ pub(super) struct CollectionsHandler<'a, 'b> {
   context: Option<ActiveRadarrBlock>,
 }
 
-impl<'a, 'b> CollectionsHandler<'a, 'b> {
+impl CollectionsHandler<'_, '_> {
   handle_table_events!(
     self,
     collections,

@@ -20,7 +20,7 @@ pub(super) struct IndexerSettingsHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> IndexerSettingsHandler<'a, 'b> {
+impl IndexerSettingsHandler<'_, '_> {
   fn build_edit_indexer_settings_params(&mut self) -> IndexerSettings {
     self
       .app
