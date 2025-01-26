@@ -213,6 +213,71 @@ pub struct Data<'a> {
   pub sonarr_data: SonarrData<'a>,
 }
 
+fn deserialize_env_var<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+  D: serde::Deserializer<'de>,
+{
+  let s: String = String::deserialize(deserializer)?;
+  let interpolated = interpolate_env_vars(&s);
+  Ok(interpolated)
+}
+
+fn deserialize_optional_env_var<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+  D: serde::Deserializer<'de>,
+{
+  let s: Option<String> = Option::deserialize(deserializer)?;
+  match s {
+    Some(value) => {
+      let interpolated = interpolate_env_vars(&value);
+      Ok(Some(interpolated))
+    }
+    None => Ok(None),
+  }
+}
+
+fn deserialize_u16_env_var<'de, D>(deserializer: D) -> Result<Option<u16>, D::Error>
+where
+  D: serde::Deserializer<'de>,
+{
+  let s: Option<String> = Option::deserialize(deserializer)?;
+  match s {
+    Some(value) => {
+      let interpolated = interpolate_env_vars(&value);
+      interpolated
+        .parse::<u16>()
+        .map(Some)
+        .map_err(serde::de::Error::custom)
+    }
+    None => Ok(None),
+  }
+}
+
+fn interpolate_env_vars(s: &str) -> String {
+  let mut result = s.to_string();
+  let start = "${";
+  let end = "}";
+
+  while let Some(start_index) = result.find(start) {
+    let end_index = result[start_index..]
+      .find(end)
+      .map(|i| start_index + i + end.len());
+    if let Some(end_index) = end_index {
+      let var_name = &result[start_index + start.len()..end_index - end.len()];
+      if let Ok(value) = std::env::var(var_name) {
+        // Match found; interpolate
+        result.replace_range(start_index..end_index, &value);
+      } else {
+        break; // No var match found; interpret it literally
+      }
+    } else {
+      break; // No closing brace found
+    }
+  }
+
+  result
+}
+
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct AppConfig {
   pub radarr: Option<ServarrConfig>,
@@ -260,10 +325,15 @@ impl AppConfig {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ServarrConfig {
+  #[serde(deserialize_with = "deserialize_optional_env_var")]
   pub host: Option<String>,
+  #[serde(deserialize_with = "deserialize_u16_env_var")]
   pub port: Option<u16>,
+  #[serde(deserialize_with = "deserialize_optional_env_var")]
   pub uri: Option<String>,
+  #[serde(deserialize_with = "deserialize_env_var")]
   pub api_token: String,
+  #[serde(deserialize_with = "deserialize_optional_env_var")]
   pub ssl_cert_path: Option<String>,
 }
 
