@@ -2,7 +2,7 @@
 mod tests {
   use crate::models::Route;
   use anyhow::anyhow;
-  use pretty_assertions::assert_eq;
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use tokio::sync::mpsc;
 
@@ -346,5 +346,25 @@ mod tests {
     assert_eq!(servarr_config.uri, None);
     assert!(servarr_config.api_token.is_empty());
     assert_eq!(servarr_config.ssl_cert_path, None);
+  }
+
+  #[test]
+  fn test_servarr_config_redacted_debug() {
+    let host = "localhost".to_owned();
+    let port = 1234;
+    let uri = "http://localhost:1234".to_owned();
+    let api_token = "thisisatest".to_owned();
+    let ssl_cert_path = "/some/path".to_owned();
+    let expected_str = format!("ServarrConfig {{ host: Some(\"{}\"), port: Some({}), uri: Some(\"{}\"), api_token: \"***********\", ssl_cert_path: Some(\"{}\") }}",
+    host, port, uri, ssl_cert_path);
+    let servarr_config = ServarrConfig {
+      host: Some(host),
+      port: Some(port),
+      uri: Some(uri),
+      api_token,
+      ssl_cert_path: Some(ssl_cert_path),
+    };
+
+    assert_str_eq!(format!("{servarr_config:?}"), expected_str);
   }
 }

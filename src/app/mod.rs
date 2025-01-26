@@ -6,6 +6,7 @@ use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
 use tokio_util::sync::CancellationToken;
+use veil::Redact;
 
 use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
 use crate::cli::Command;
@@ -258,11 +259,12 @@ impl AppConfig {
   }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Redact, Deserialize, Serialize, Clone)]
 pub struct ServarrConfig {
   pub host: Option<String>,
   pub port: Option<u16>,
   pub uri: Option<String>,
+  #[redact]
   pub api_token: String,
   pub ssl_cert_path: Option<String>,
 }

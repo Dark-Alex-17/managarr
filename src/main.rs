@@ -13,7 +13,7 @@ use crossterm::execute;
 use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
-use log::{error, warn};
+use log::{debug, error, warn};
 use network::NetworkTrait;
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
@@ -93,6 +93,7 @@ async fn main() -> Result<()> {
     confy::load("managarr", "config")?
   };
   let spinner_disabled = args.disable_spinner;
+  debug!("Managarr loaded using config: {config:?}");
   config.validate();
   let reqwest_client = build_network_client(&config);
   let (sync_network_tx, sync_network_rx) = mpsc::channel(500);
