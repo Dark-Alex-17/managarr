@@ -18,7 +18,7 @@ pub(super) struct DeleteSeriesHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> DeleteSeriesHandler<'a, 'b> {
+impl DeleteSeriesHandler<'_, '_> {
   fn build_delete_series_params(&mut self) -> DeleteSeriesParams {
     let id = self.app.data.sonarr_data.series.current_selection().id;
     let delete_series_files = self.app.data.sonarr_data.delete_series_files;

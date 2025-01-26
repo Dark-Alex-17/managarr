@@ -31,7 +31,7 @@ pub(super) struct IndexersHandler<'a, 'b> {
   context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> IndexersHandler<'a, 'b> {
+impl IndexersHandler<'_, '_> {
   handle_table_events!(self, indexers, self.app.data.sonarr_data.indexers, Indexer);
 
   fn extract_indexer_id(&self) -> i64 {

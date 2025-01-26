@@ -20,7 +20,7 @@ pub(super) struct IndexerSettingsHandler<'a, 'b> {
   _context: Option<ActiveRadarrBlock>,
 }
 
-impl<'a, 'b> IndexerSettingsHandler<'a, 'b> {
+impl IndexerSettingsHandler<'_, '_> {
   fn build_edit_indexer_settings_body(&mut self) -> IndexerSettings {
     self
       .app

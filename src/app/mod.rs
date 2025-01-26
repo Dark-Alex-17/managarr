@@ -42,7 +42,7 @@ pub struct App<'a> {
   pub data: Data<'a>,
 }
 
-impl<'a> App<'a> {
+impl App<'_> {
   pub fn new(
     network_tx: Sender<NetworkEvent>,
     config: AppConfig,
@@ -165,7 +165,7 @@ impl<'a> App<'a> {
   }
 }
 
-impl<'a> Default for App<'a> {
+impl Default for App<'_> {
   fn default() -> Self {
     App {
       navigation_stack: Vec::new(),

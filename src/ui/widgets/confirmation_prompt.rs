@@ -26,7 +26,7 @@ pub struct ConfirmationPrompt<'a> {
   yes_no_highlighted: bool,
 }
 
-impl<'a> ConfirmationPrompt<'a> {
+impl ConfirmationPrompt<'_> {
   pub fn new() -> Self {
     Self {
       title: "",
@@ -135,7 +135,7 @@ impl<'a> ConfirmationPrompt<'a> {
   }
 }
 
-impl<'a> Widget for ConfirmationPrompt<'a> {
+impl Widget for ConfirmationPrompt<'_> {
   fn render(self, area: Rect, buf: &mut Buffer) {
     if self.checkboxes.is_some() {
       self.render_confirmation_prompt_with_checkboxes(area, buf);

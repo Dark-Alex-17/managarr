@@ -89,7 +89,7 @@ mod tests {
     fn handle_char_key_event(&mut self) {}
   }
 
-  impl<'a, 'b> TableHandlerUnit<'a, 'b> {
+  impl TableHandlerUnit<'_, '_> {
     handle_table_events!(self, movies, self.app.data.radarr_data.movies, Movie);
   }
 

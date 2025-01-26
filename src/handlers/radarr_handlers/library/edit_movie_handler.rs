@@ -20,7 +20,7 @@ pub(super) struct EditMovieHandler<'a, 'b> {
   context: Option<ActiveRadarrBlock>,
 }
 
-impl<'a, 'b> EditMovieHandler<'a, 'b> {
+impl EditMovieHandler<'_, '_> {
   fn build_edit_movie_params(&mut self) -> EditMovieParams {
     let movie_id = self.app.data.radarr_data.movies.current_selection().id;
     let edit_movie_modal = self

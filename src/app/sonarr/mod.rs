@@ -11,7 +11,7 @@ pub mod sonarr_context_clues;
 #[path = "sonarr_tests.rs"]
 mod sonarr_tests;
 
-impl<'a> App<'a> {
+impl App<'_> {
   pub(super) async fn dispatch_by_sonarr_block(&mut self, active_sonarr_block: &ActiveSonarrBlock) {
     match active_sonarr_block {
       ActiveSonarrBlock::Series => {

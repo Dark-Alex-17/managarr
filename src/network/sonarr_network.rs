@@ -157,7 +157,7 @@ impl From<SonarrEvent> for NetworkEvent {
   }
 }
 
-impl<'a, 'b> Network<'a, 'b> {
+impl Network<'_, '_> {
   pub async fn handle_sonarr_event(
     &mut self,
     sonarr_event: SonarrEvent,

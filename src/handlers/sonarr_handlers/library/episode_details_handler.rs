@@ -20,7 +20,7 @@ pub(super) struct EpisodeDetailsHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> EpisodeDetailsHandler<'a, 'b> {
+impl EpisodeDetailsHandler<'_, '_> {
   handle_table_events!(
     self,
     episode_history,

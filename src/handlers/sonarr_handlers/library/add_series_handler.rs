@@ -22,7 +22,7 @@ pub(super) struct AddSeriesHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> AddSeriesHandler<'a, 'b> {
+impl AddSeriesHandler<'_, '_> {
   handle_table_events!(
     self,
     add_searched_series,

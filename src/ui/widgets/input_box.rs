@@ -96,7 +96,7 @@ impl<'a> InputBox<'a> {
   }
 }
 
-impl<'a> Widget for InputBox<'a> {
+impl Widget for InputBox<'_> {
   fn render(self, area: Rect, buf: &mut Buffer)
   where
     Self: Sized,
@@ -105,7 +105,7 @@ impl<'a> Widget for InputBox<'a> {
   }
 }
 
-impl<'a> WidgetRef for InputBox<'a> {
+impl WidgetRef for InputBox<'_> {
   fn render_ref(&self, area: Rect, buf: &mut Buffer) {
     self.render_input_box(area, buf);
   }

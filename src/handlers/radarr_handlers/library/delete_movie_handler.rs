@@ -17,7 +17,7 @@ pub(super) struct DeleteMovieHandler<'a, 'b> {
   _context: Option<ActiveRadarrBlock>,
 }
 
-impl<'a, 'b> DeleteMovieHandler<'a, 'b> {
+impl DeleteMovieHandler<'_, '_> {
   fn build_delete_movie_params(&mut self) -> DeleteMovieParams {
     let id = self.app.data.radarr_data.movies.current_selection().id;
     let delete_movie_files = self.app.data.radarr_data.delete_movie_files;

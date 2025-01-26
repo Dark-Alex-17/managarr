@@ -21,7 +21,7 @@ pub(super) struct BlocklistHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> BlocklistHandler<'a, 'b> {
+impl BlocklistHandler<'_, '_> {
   handle_table_events!(
     self,
     blocklist,

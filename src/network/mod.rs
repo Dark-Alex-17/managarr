@@ -52,7 +52,7 @@ pub struct Network<'a, 'b> {
 }
 
 #[async_trait]
-impl<'a, 'b> NetworkTrait for Network<'a, 'b> {
+impl NetworkTrait for Network<'_, '_> {
   async fn handle_network_event(&mut self, network_event: NetworkEvent) -> Result<Serdeable> {
     let resp = match network_event {
       NetworkEvent::Radarr(radarr_event) => self

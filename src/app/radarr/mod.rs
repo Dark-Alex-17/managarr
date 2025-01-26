@@ -8,7 +8,7 @@ pub mod radarr_context_clues;
 #[path = "radarr_tests.rs"]
 mod radarr_tests;
 
-impl<'a> App<'a> {
+impl App<'_> {
   pub(super) async fn dispatch_by_radarr_block(&mut self, active_radarr_block: &ActiveRadarrBlock) {
     match active_radarr_block {
       ActiveRadarrBlock::Blocklist => {

@@ -20,7 +20,7 @@ pub(super) struct EditSeriesHandler<'a, 'b> {
   context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> EditSeriesHandler<'a, 'b> {
+impl EditSeriesHandler<'_, '_> {
   fn build_edit_series_params(&mut self) -> EditSeriesParams {
     let edit_series_modal = self
       .app

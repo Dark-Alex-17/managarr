@@ -20,7 +20,7 @@ pub(super) struct EditCollectionHandler<'a, 'b> {
   context: Option<ActiveRadarrBlock>,
 }
 
-impl<'a, 'b> EditCollectionHandler<'a, 'b> {
+impl EditCollectionHandler<'_, '_> {
   fn build_edit_collection_params(&mut self) -> EditCollectionParams {
     let edit_collection_modal = self
       .app

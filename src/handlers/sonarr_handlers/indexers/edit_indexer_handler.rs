@@ -19,7 +19,7 @@ pub(super) struct EditIndexerHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
-impl<'a, 'b> EditIndexerHandler<'a, 'b> {
+impl EditIndexerHandler<'_, '_> {
   fn build_edit_indexer_params(&mut self) -> EditIndexerParams {
     let edit_indexer_modal = self
       .app

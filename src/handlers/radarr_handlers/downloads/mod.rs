@@ -20,7 +20,7 @@ pub(super) struct DownloadsHandler<'a, 'b> {
   _context: Option<ActiveRadarrBlock>,
 }
 
-impl<'a, 'b> DownloadsHandler<'a, 'b> {
+impl DownloadsHandler<'_, '_> {
   handle_table_events!(
     self,
     downloads,
