@@ -2,12 +2,16 @@
 mod tests {
   use crate::models::Route;
   use anyhow::anyhow;
-  use pretty_assertions::assert_eq;
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
+  use serde::de::value::StringDeserializer;
+  use serde::de::IntoDeserializer;
   use tokio::sync::mpsc;
 
   use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
-  use crate::app::{App, AppConfig, Data, ServarrConfig};
+  use crate::app::{
+    deserialize_env_var, interpolate_env_vars, App, AppConfig, Data, ServarrConfig,
+  };
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
   use crate::models::{HorizontallyScrollableText, TabRoute};
@@ -346,5 +350,63 @@ mod tests {
     assert_eq!(servarr_config.uri, None);
     assert!(servarr_config.api_token.is_empty());
     assert_eq!(servarr_config.ssl_cert_path, None);
+  }
+
+  #[test]
+  fn test_deserialize_env_var() {
+    std::env::set_var("TEST_VAR_DESERIALIZE", "testing");
+    let deserializer: StringDeserializer<serde_yaml::Error> =
+      "${TEST_VAR_DESERIALIZE}".to_owned().into_deserializer();
+
+    let env_var: Result<String, serde_yaml::Error> = deserialize_env_var(deserializer);
+
+    assert!(env_var.is_ok());
+    assert_str_eq!(env_var.unwrap(), "testing");
+    std::env::remove_var("TEST_VAR_DESERIALIZE");
+  }
+
+  #[test]
+  fn test_interpolate_env_vars() {
+    std::env::set_var("TEST_VAR_INTERPOLATION", "testing");
+
+    let var = interpolate_env_vars("${TEST_VAR_INTERPOLATION}");
+
+    assert_str_eq!(var, "testing");
+    std::env::remove_var("TEST_VAR_INTERPOLATION");
+  }
+
+  #[test]
+  fn test_interpolate_env_vars_defaults_to_original_string_if_not_in_yaml_interpolation_format() {
+    let var = interpolate_env_vars("TEST_VAR_INTERPOLATION");
+
+    assert_str_eq!(var, "TEST_VAR_INTERPOLATION");
+  }
+
+  #[test]
+  fn test_interpolate_env_vars_scrubs_all_unnecessary_characters() {
+    std::env::set_var(
+      "TEST_VAR_INTERPOLATION_UNNECESSARY_CHARACTERS",
+      r#"""
+	        `"'https://dontdo:this@testing.com/query?test=%20query#results'"` {([\|$!])}
+      """#,
+    );
+
+    let var = interpolate_env_vars("${TEST_VAR_INTERPOLATION_UNNECESSARY_CHARACTERS}");
+
+    assert_str_eq!(
+      var,
+      "https://dontdo:this@testing.com/query?test=%20query#results"
+    );
+    std::env::remove_var("TEST_VAR_INTERPOLATION_UNNECESSARY_CHARACTERS");
+  }
+
+  #[test]
+  fn test_interpolate_env_vars_scrubs_all_unnecessary_characters_from_non_environment_variable() {
+    let var = interpolate_env_vars("https://dontdo:this@testing.com/query?test=%20query#results");
+
+    assert_str_eq!(
+      var,
+      "https://dontdo:this@testing.com/query?test=%20query#results"
+    );
   }
 }
