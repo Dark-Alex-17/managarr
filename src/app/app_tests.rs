@@ -420,7 +420,7 @@ mod tests {
 
   #[test]
   fn test_deserialize_optional_u16_env_var_does_not_overwrite_non_env_value() {
-    std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_U16", "1");
+    std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_U16_UNUSED", "1");
     let yaml_data = r#"
       port: 1234
       api_token: "test123"
@@ -429,7 +429,7 @@ mod tests {
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
     assert_eq!(config.port, Some(1234));
-    std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_U16");
+    std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_U16_UNUSED");
   }
 
   #[test]
