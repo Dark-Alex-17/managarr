@@ -366,6 +366,97 @@ mod tests {
   }
 
   #[test]
+  fn test_deserialize_optional_env_var_is_present() {
+    std::env::set_var("TEST_VAR_DESERIALIZE_OPTION", "localhost");
+    let yaml_data = r#"
+      host: ${TEST_VAR_DESERIALIZE_OPTION}
+      api_token: "test123"
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_eq!(config.host, Some("localhost".to_string()));
+    std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION");
+  }
+
+  #[test]
+  fn test_deserialize_optional_env_var_does_not_overwrite_non_env_value() {
+    std::env::set_var("TEST_VAR_DESERIALIZE_OPTION", "localhost");
+    let yaml_data = r#"
+      host: www.example.com
+      api_token: "test123"
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_eq!(config.host, Some("www.example.com".to_string()));
+    std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION");
+  }
+
+  #[test]
+  fn test_deserialize_optional_env_var_empty() {
+    let yaml_data = r#"
+      api_token: "test123"
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_eq!(config.port, None);
+  }
+
+  #[test]
+  fn test_deserialize_optional_u16_env_var_is_present() {
+    std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_U16", "1");
+    let yaml_data = r#"
+      port: ${TEST_VAR_DESERIALIZE_OPTION_U16}
+      api_token: "test123"
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_eq!(config.port, Some(1));
+    std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_U16");
+  }
+
+  #[test]
+  fn test_deserialize_optional_u16_env_var_does_not_overwrite_non_env_value() {
+    std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_U16", "1");
+    let yaml_data = r#"
+      port: 1234
+      api_token: "test123"
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_eq!(config.port, Some(1234));
+    std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_U16");
+  }
+
+  #[test]
+  fn test_deserialize_optional_u16_env_var_invalid_number() {
+    let yaml_data = r#"
+      port: "hi"
+      api_token: "test123"
+    "#;
+    let result: Result<ServarrConfig, _> = serde_yaml::from_str(yaml_data);
+
+    assert!(result.is_err());
+    let err = result.unwrap_err().to_string();
+    assert!(err.contains("invalid digit found in string"));
+  }
+
+  #[test]
+  fn test_deserialize_optional_u16_env_var_empty() {
+    let yaml_data = r#"
+      api_token: "test123"
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_eq!(config.port, None);
+  }
+
+  #[test]
   fn test_interpolate_env_vars() {
     std::env::set_var("TEST_VAR_INTERPOLATION", "testing");
 
@@ -410,6 +501,7 @@ mod tests {
     );
   }
 
+  #[test]
   fn test_servarr_config_redacted_debug() {
     let host = "localhost".to_owned();
     let port = 1234;
