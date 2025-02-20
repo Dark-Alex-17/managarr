@@ -3,6 +3,7 @@ use std::process;
 use anyhow::{anyhow, Error};
 use colored::Colorize;
 use log::{debug, error};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::Sender;
 use tokio_util::sync::CancellationToken;
@@ -261,11 +262,16 @@ impl AppConfig {
 
 #[derive(Redact, Deserialize, Serialize, Clone)]
 pub struct ServarrConfig {
+  #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub host: Option<String>,
+  #[serde(default, deserialize_with = "deserialize_u16_env_var")]
   pub port: Option<u16>,
+  #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub uri: Option<String>,
+  #[serde(default, deserialize_with = "deserialize_env_var")]
   #[redact]
   pub api_token: String,
+  #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub ssl_cert_path: Option<String>,
 }
 
@@ -293,4 +299,62 @@ impl Default for ServarrConfig {
 pub fn log_and_print_error(error: String) {
   error!("{}", error);
   eprintln!("error: {}", error.red());
+}
+
+fn deserialize_env_var<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+  D: serde::Deserializer<'de>,
+{
+  let s: String = String::deserialize(deserializer)?;
+  let interpolated = interpolate_env_vars(&s);
+  Ok(interpolated)
+}
+
+fn deserialize_optional_env_var<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+  D: serde::Deserializer<'de>,
+{
+  let s: Option<String> = Option::deserialize(deserializer)?;
+  match s {
+    Some(value) => {
+      let interpolated = interpolate_env_vars(&value);
+      Ok(Some(interpolated))
+    }
+    None => Ok(None),
+  }
+}
+
+fn deserialize_u16_env_var<'de, D>(deserializer: D) -> Result<Option<u16>, D::Error>
+where
+  D: serde::Deserializer<'de>,
+{
+  let s: Option<String> = Option::deserialize(deserializer)?;
+  match s {
+    Some(value) => {
+      let interpolated = interpolate_env_vars(&value);
+      interpolated
+        .parse::<u16>()
+        .map(Some)
+        .map_err(serde::de::Error::custom)
+    }
+    None => Ok(None),
+  }
+}
+
+fn interpolate_env_vars(s: &str) -> String {
+  let result = s.to_string();
+  let scrubbing_regex = Regex::new(r#"[\s\{\}!\$^\(\)\[\]\\\|`'"]+"#).unwrap();
+  let var_regex = Regex::new(r"\$\{(.*?)\}").unwrap();
+
+  var_regex
+    .replace_all(s, |caps: &regex::Captures<'_>| {
+      if let Some(mat) = caps.get(1) {
+        if let Ok(value) = std::env::var(mat.as_str()) {
+          return scrubbing_regex.replace_all(&value, "").to_string();
+        }
+      }
+
+      scrubbing_regex.replace_all(&result, "").to_string()
+    })
+    .to_string()
 }
