@@ -381,7 +381,7 @@ mod tests {
 
   #[test]
   fn test_deserialize_optional_env_var_does_not_overwrite_non_env_value() {
-    std::env::set_var("TEST_VAR_DESERIALIZE_OPTION", "localhost");
+    std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_NO_OVERWRITE", "localhost");
     let yaml_data = r#"
       host: www.example.com
       api_token: "test123"
@@ -390,7 +390,7 @@ mod tests {
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
     assert_eq!(config.host, Some("www.example.com".to_string()));
-    std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION");
+    std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_NO_OVERWRITE");
   }
 
   #[test]
@@ -468,9 +468,9 @@ mod tests {
 
   #[test]
   fn test_interpolate_env_vars_defaults_to_original_string_if_not_in_yaml_interpolation_format() {
-    let var = interpolate_env_vars("TEST_VAR_INTERPOLATION");
+    let var = interpolate_env_vars("TEST_VAR_INTERPOLATION_NON_YAML");
 
-    assert_str_eq!(var, "TEST_VAR_INTERPOLATION");
+    assert_str_eq!(var, "TEST_VAR_INTERPOLATION_NON_YAML");
   }
 
   #[test]
