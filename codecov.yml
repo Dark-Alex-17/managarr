@@ -1,5 +1,14 @@
 coverage:
   range: "80..100"
+  status:
+    project:
+      default:
+        threshold: 0
+        target: 80%
+    patch:
+      default:
+        threshold: 0
+        target: 80%
 
 ignore:
   - "**/*_tests.rs"
