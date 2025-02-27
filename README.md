@@ -319,13 +319,13 @@ sonarr:
   uri: http://htpc.local/sonarr # Example of using the 'uri' key instead of 'host' and 'port'
   api_token: someApiToken1234567890
 readarr:
-  host: 192.168.0.87
+  host: 192.168.0.87 
   port: 8787
-  api_token: someApiToken1234567890
+  api_token_file: /root/.config/readarr_api_token # Example of loading the API token from a file instead of hardcoding it in the configuration file
 lidarr:
   host: 192.168.0.86
   port: 8686
-  api_token: someApiToken1234567890
+  api_token: ${MY_LIDARR_API_TOKEN} # Example of configuring using environment variables
 whisparr:
   host: 192.168.0.69
   port: 6969

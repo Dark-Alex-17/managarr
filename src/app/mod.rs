@@ -1,6 +1,6 @@
-use std::process;
-
-use anyhow::{anyhow, Error};
+use std::{fs, process};
+use std::path::PathBuf;
+use anyhow::{anyhow, Error, Result};
 use colored::Colorize;
 use log::{debug, error};
 use regex::Regex;
@@ -258,6 +258,28 @@ impl AppConfig {
       _ => (),
     }
   }
+
+  pub fn post_process_initialization(&mut self) {
+    let fetch_token = |config: &mut ServarrConfig, name: &'static str| {
+      if let Some(api_token_file) = config.api_token_file.as_ref() {
+        if !PathBuf::from(api_token_file).exists() {
+          log_and_print_error(format!("The specified {} API token file", name));
+          process::exit(1);
+        }
+
+        let api_token = fs::read_to_string(api_token_file).map_err(|e| anyhow!(e)).unwrap();
+        config.api_token = Some(api_token.trim().to_owned());
+      }
+    };
+
+    if let Some(radarr_config) = self.radarr.as_mut() {
+      fetch_token(radarr_config, "Radarr");
+    }
+
+    if let Some(sonarr_config) = self.sonarr.as_mut() {
+      fetch_token(sonarr_config, "Sonarr");
+    }
+  }
 }
 
 #[derive(Redact, Deserialize, Serialize, Clone)]
@@ -268,9 +290,11 @@ pub struct ServarrConfig {
   pub port: Option<u16>,
   #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub uri: Option<String>,
-  #[serde(default, deserialize_with = "deserialize_env_var")]
+  #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   #[redact]
-  pub api_token: String,
+  pub api_token: Option<String>,
+  #[serde(default, deserialize_with = "deserialize_optional_env_var")]
+  pub api_token_file: Option<String>,
   #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub ssl_cert_path: Option<String>,
 }
@@ -279,6 +303,13 @@ impl ServarrConfig {
   fn validate(&self) {
     if self.host.is_none() && self.uri.is_none() {
       log_and_print_error("'host' or 'uri' is required for configuration".to_owned());
+      process::exit(1);
+    }
+
+    if self.api_token_file.is_none() && self.api_token.is_none() {
+      log_and_print_error(
+        "'api_token' or 'api_token_path' is required for configuration".to_owned(),
+      );
       process::exit(1);
     }
   }
@@ -290,7 +321,8 @@ impl Default for ServarrConfig {
       host: Some("localhost".to_string()),
       port: None,
       uri: None,
-      api_token: "".to_string(),
+      api_token: Some(String::new()),
+      api_token_file: None,
       ssl_cert_path: None,
     }
   }

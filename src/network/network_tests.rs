@@ -38,7 +38,7 @@ mod tests {
     app.is_loading = true;
     let radarr_config = ServarrConfig {
       host,
-      api_token: String::new(),
+      api_token: Some(String::new()),
       port,
       ssl_cert_path: None,
       ..ServarrConfig::default()
@@ -472,7 +472,7 @@ mod tests {
     let servarr_config = ServarrConfig {
       host: Some("192.168.0.123".to_owned()),
       port: Some(8080),
-      api_token: api_token.clone(),
+      api_token: Some(api_token.clone()),
       ssl_cert_path: Some("/test/cert.crt".to_owned()),
       ..ServarrConfig::default()
     };
@@ -507,7 +507,7 @@ mod tests {
     let resource = network_event.resource();
     let servarr_config = ServarrConfig {
       uri: Some("https://192.168.0.123:8080".to_owned()),
-      api_token: api_token.clone(),
+      api_token: Some(api_token.clone()),
       ..ServarrConfig::default()
     };
     {
@@ -577,7 +577,7 @@ mod tests {
     let servarr_config = ServarrConfig {
       host: Some("192.168.0.123".to_owned()),
       port: Some(8080),
-      api_token: api_token.clone(),
+      api_token: Some(api_token.clone()),
       ssl_cert_path: Some("/test/cert.crt".to_owned()),
       ..ServarrConfig::default()
     };
@@ -618,7 +618,7 @@ mod tests {
     let resource = network_event.resource();
     let servarr_config = ServarrConfig {
       uri: Some("https://192.168.0.123:8080".to_owned()),
-      api_token: api_token.clone(),
+      api_token: Some(api_token.clone()),
       ..ServarrConfig::default()
     };
     {
@@ -738,7 +738,7 @@ pub(in crate::network) mod test_utils {
     let servarr_config = ServarrConfig {
       host,
       port,
-      api_token: "test1234".to_owned(),
+      api_token: Some("test1234".to_owned()),
       ..ServarrConfig::default()
     };
 

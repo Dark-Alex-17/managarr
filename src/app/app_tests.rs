@@ -348,7 +348,7 @@ mod tests {
     assert_eq!(servarr_config.host, Some("localhost".to_string()));
     assert_eq!(servarr_config.port, None);
     assert_eq!(servarr_config.uri, None);
-    assert!(servarr_config.api_token.is_empty());
+    assert_eq!(servarr_config.api_token, Some(String::new()));
     assert_eq!(servarr_config.ssl_cert_path, None);
   }
 
@@ -507,14 +507,16 @@ mod tests {
     let port = 1234;
     let uri = "http://localhost:1234".to_owned();
     let api_token = "thisisatest".to_owned();
+    let api_token_file = "/root/.config/api_token".to_owned();
     let ssl_cert_path = "/some/path".to_owned();
-    let expected_str = format!("ServarrConfig {{ host: Some(\"{}\"), port: Some({}), uri: Some(\"{}\"), api_token: \"***********\", ssl_cert_path: Some(\"{}\") }}",
-    host, port, uri, ssl_cert_path);
+    let expected_str = format!("ServarrConfig {{ host: Some(\"{}\"), port: Some({}), uri: Some(\"{}\"), api_token: Some(\"***********\"), api_token_file: Some(\"{}\"), ssl_cert_path: Some(\"{}\") }}",
+    host, port, uri, api_token_file, ssl_cert_path);
     let servarr_config = ServarrConfig {
       host: Some(host),
       port: Some(port),
       uri: Some(uri),
-      api_token,
+      api_token: Some(api_token),
+      api_token_file: Some(api_token_file),
       ssl_cert_path: Some(ssl_cert_path),
     };
 

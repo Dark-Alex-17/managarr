@@ -213,6 +213,7 @@ impl<'a, 'b> Network<'a, 'b> {
         uri,
         api_token,
         ssl_cert_path,
+        ..
       },
       default_port,
     ) = match network_event.into() {
@@ -252,7 +253,7 @@ impl<'a, 'b> Network<'a, 'b> {
       uri,
       method,
       body,
-      api_token: api_token.to_owned(),
+      api_token: api_token.as_ref().expect("API token not found").clone(),
       ignore_status_code: false,
     }
   }

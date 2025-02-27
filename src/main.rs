@@ -87,7 +87,7 @@ async fn main() -> Result<()> {
   let running = Arc::new(AtomicBool::new(true));
   let r = running.clone();
   let args = Cli::parse();
-  let config = if let Some(ref config_file) = args.config {
+  let mut config = if let Some(ref config_file) = args.config {
     load_config(config_file.to_str().expect("Invalid config file specified"))?
   } else {
     confy::load("managarr", "config")?
@@ -95,6 +95,7 @@ async fn main() -> Result<()> {
   let spinner_disabled = args.disable_spinner;
   debug!("Managarr loaded using config: {config:?}");
   config.validate();
+  config.post_process_initialization();
   let reqwest_client = build_network_client(&config);
   let (sync_network_tx, sync_network_rx) = mpsc::channel(500);
   let cancellation_token = CancellationToken::new();
