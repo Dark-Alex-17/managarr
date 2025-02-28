@@ -31,7 +31,7 @@ mod tests {
 
     #[test]
     fn test_movie_details_scroll() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
         movie_details: ScrollableText::with_string("Test 1\nTest 2".to_owned()),
         ..MovieDetailsModal::default()
@@ -80,7 +80,7 @@ mod tests {
 
     #[test]
     fn test_movie_details_scroll_no_op_if_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
         movie_details: ScrollableText::with_string("Test 1\nTest 2".to_owned()),
@@ -137,7 +137,7 @@ mod tests {
 
     #[test]
     fn test_movie_details_home_end() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let movie_details_modal = MovieDetailsModal {
         movie_details: ScrollableText::with_string("Test 1\nTest 2".to_owned()),
         ..MovieDetailsModal::default()
@@ -187,7 +187,7 @@ mod tests {
 
     #[test]
     fn test_movie_details_home_end_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       let movie_details_modal = MovieDetailsModal {
         movie_details: ScrollableText::with_string("Test 1\nTest 2".to_owned()),
@@ -253,7 +253,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
       #[values(Key::Left, Key::Right)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
 
       MovieDetailsHandler::new(key, &mut app, active_radarr_block, None).handle();
 
@@ -276,7 +276,7 @@ mod tests {
       #[case] right_block: ActiveRadarrBlock,
       #[values(true, false)] is_ready: bool,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.push_navigation_stack(right_block.into());
       app.data.radarr_data.movie_info_tabs.index = app
@@ -319,7 +319,7 @@ mod tests {
 
     #[test]
     fn test_manual_search_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut modal = MovieDetailsModal {
         movie_details: ScrollableText::with_string("test".to_owned()),
         ..MovieDetailsModal::default()
@@ -341,7 +341,7 @@ mod tests {
 
     #[test]
     fn test_manual_search_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
         movie_details: ScrollableText::with_string("test".to_owned()),
@@ -376,7 +376,7 @@ mod tests {
       #[case] prompt_block: ActiveRadarrBlock,
       #[case] expected_action: RadarrEvent,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut movie_details_modal = MovieDetailsModal {
         movie_details: ScrollableText::with_string("test".to_owned()),
         ..MovieDetailsModal::default()
@@ -412,7 +412,7 @@ mod tests {
       )]
       prompt_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
         movie_details: ScrollableText::with_string("test".to_owned()),
         ..MovieDetailsModal::default()
@@ -455,7 +455,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
       #[values(true, false)] is_ready: bool,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.radarr_data = create_test_radarr_data();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
@@ -477,7 +477,7 @@ mod tests {
       prompt_block: ActiveRadarrBlock,
       #[values(true, false)] is_ready: bool,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data = create_test_radarr_data();
       app.is_loading = is_ready;
       app.data.radarr_data.prompt_confirm = true;
@@ -521,7 +521,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut modal = MovieDetailsModal {
         movie_details: ScrollableText::with_string("Test".to_owned()),
         ..MovieDetailsModal::default()
@@ -562,7 +562,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
@@ -612,7 +612,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
@@ -644,7 +644,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut modal = MovieDetailsModal {
         movie_details: ScrollableText::with_string("Test".to_owned()),
         ..MovieDetailsModal::default()
@@ -685,7 +685,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
@@ -716,7 +716,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut modal = MovieDetailsModal {
         movie_details: ScrollableText::with_string("Test".to_owned()),
         ..MovieDetailsModal::default()
@@ -755,7 +755,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(active_radarr_block.into());
       app.is_routing = false;
@@ -794,7 +794,7 @@ mod tests {
       #[case] prompt_block: ActiveRadarrBlock,
       #[case] expected_action: RadarrEvent,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut movie_details_modal = MovieDetailsModal {
         movie_details: ScrollableText::with_string("test".to_owned()),
         ..MovieDetailsModal::default()
@@ -830,7 +830,7 @@ mod tests {
 
   #[test]
   fn test_build_radarr_release_download_body() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     let mut movie_details_modal = MovieDetailsModal::default();
     movie_details_modal
       .movie_releases
@@ -856,7 +856,7 @@ mod tests {
 
   #[test]
   fn test_extract_movie_id() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.radarr_data.movies.set_items(vec![movie()]);
 
     let movie_id = MovieDetailsHandler::new(
@@ -1055,7 +1055,7 @@ mod tests {
     )]
     movie_details_block: ActiveRadarrBlock,
   ) {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
     let mut modal = MovieDetailsModal {
       movie_details: ScrollableText::with_string("Test".to_owned()),
@@ -1083,7 +1083,7 @@ mod tests {
 
   #[test]
   fn test_movie_details_handler_is_not_ready_when_no_movie_details_are_in_modal() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
 
@@ -1099,7 +1099,7 @@ mod tests {
 
   #[test]
   fn test_movie_details_handler_is_ready_when_movie_details_are_in_modal() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal {
       movie_details: ScrollableText::with_string("Test".to_owned()),
@@ -1118,7 +1118,7 @@ mod tests {
 
   #[test]
   fn test_movie_details_handler_is_ready_when_movie_history_is_in_modal() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     let mut modal = MovieDetailsModal::default();
     modal
@@ -1138,7 +1138,7 @@ mod tests {
 
   #[test]
   fn test_movie_details_handler_is_ready_when_movie_cast_is_in_modal() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     let mut modal = MovieDetailsModal::default();
     modal.movie_cast.set_items(vec![Credit::default()]);
@@ -1156,7 +1156,7 @@ mod tests {
 
   #[test]
   fn test_movie_details_handler_is_ready_when_movie_crew_is_in_modal() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     let mut modal = MovieDetailsModal::default();
     modal.movie_crew.set_items(vec![Credit::default()]);
@@ -1174,7 +1174,7 @@ mod tests {
 
   #[test]
   fn test_movie_details_handler_is_ready_when_movie_releases_is_in_modal() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     let mut modal = MovieDetailsModal::default();
     modal

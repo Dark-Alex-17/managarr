@@ -16,7 +16,7 @@ pub(in crate::handlers::radarr_handlers) mod utils {
   #[macro_export]
   macro_rules! test_edit_movie_key {
     ($handler:ident, $block:expr, $context:expr) => {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut radarr_data = RadarrData {
         quality_profile_map: BiMap::from_iter([
           (2222, "HD - 1080p".to_owned()),
@@ -131,7 +131,7 @@ pub(in crate::handlers::radarr_handlers) mod utils {
   #[macro_export]
   macro_rules! test_edit_collection_key {
     ($handler:ident, $block:expr, $context:expr) => {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut radarr_data = RadarrData {
         quality_profile_map: BiMap::from_iter([
           (2222, "HD - 1080p".to_owned()),

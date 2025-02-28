@@ -128,6 +128,7 @@ mod tests {
         sonarr_data.main_tabs.tabs[0].contextual_help,
         Some(build_context_clue_string(&SERIES_CONTEXT_CLUES))
       );
+      assert_eq!(sonarr_data.main_tabs.tabs[0].config, None);
 
       assert_str_eq!(sonarr_data.main_tabs.tabs[1].title, "Downloads");
       assert_eq!(
@@ -139,6 +140,7 @@ mod tests {
         sonarr_data.main_tabs.tabs[1].contextual_help,
         Some(build_context_clue_string(&DOWNLOADS_CONTEXT_CLUES))
       );
+      assert_eq!(sonarr_data.main_tabs.tabs[1].config, None);
 
       assert_str_eq!(sonarr_data.main_tabs.tabs[2].title, "Blocklist");
       assert_eq!(
@@ -150,6 +152,7 @@ mod tests {
         sonarr_data.main_tabs.tabs[2].contextual_help,
         Some(build_context_clue_string(&BLOCKLIST_CONTEXT_CLUES))
       );
+      assert_eq!(sonarr_data.main_tabs.tabs[2].config, None);
 
       assert_str_eq!(sonarr_data.main_tabs.tabs[3].title, "History");
       assert_eq!(
@@ -161,6 +164,7 @@ mod tests {
         sonarr_data.main_tabs.tabs[3].contextual_help,
         Some(build_context_clue_string(&HISTORY_CONTEXT_CLUES))
       );
+      assert_eq!(sonarr_data.main_tabs.tabs[3].config, None);
 
       assert_str_eq!(sonarr_data.main_tabs.tabs[4].title, "Root Folders");
       assert_eq!(
@@ -172,6 +176,7 @@ mod tests {
         sonarr_data.main_tabs.tabs[4].contextual_help,
         Some(build_context_clue_string(&ROOT_FOLDERS_CONTEXT_CLUES))
       );
+      assert_eq!(sonarr_data.main_tabs.tabs[4].config, None);
 
       assert_str_eq!(sonarr_data.main_tabs.tabs[5].title, "Indexers");
       assert_eq!(
@@ -183,6 +188,7 @@ mod tests {
         sonarr_data.main_tabs.tabs[5].contextual_help,
         Some(build_context_clue_string(&INDEXERS_CONTEXT_CLUES))
       );
+      assert_eq!(sonarr_data.main_tabs.tabs[5].config, None);
 
       assert_str_eq!(sonarr_data.main_tabs.tabs[6].title, "System");
       assert_eq!(
@@ -194,6 +200,7 @@ mod tests {
         sonarr_data.main_tabs.tabs[6].contextual_help,
         Some(build_context_clue_string(&SYSTEM_CONTEXT_CLUES))
       );
+      assert_eq!(sonarr_data.main_tabs.tabs[6].config, None);
 
       assert_eq!(sonarr_data.series_info_tabs.tabs.len(), 2);
 
@@ -207,6 +214,7 @@ mod tests {
         sonarr_data.series_info_tabs.tabs[0].contextual_help,
         Some(build_context_clue_string(&SERIES_DETAILS_CONTEXT_CLUES))
       );
+      assert_eq!(sonarr_data.series_info_tabs.tabs[0].config, None);
 
       assert_str_eq!(sonarr_data.series_info_tabs.tabs[1].title, "History");
       assert_eq!(
@@ -218,6 +226,7 @@ mod tests {
         sonarr_data.series_info_tabs.tabs[1].contextual_help,
         Some(build_context_clue_string(&SERIES_HISTORY_CONTEXT_CLUES))
       );
+      assert_eq!(sonarr_data.series_info_tabs.tabs[1].config, None);
     }
   }
 

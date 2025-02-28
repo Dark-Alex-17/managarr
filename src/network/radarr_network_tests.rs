@@ -3866,7 +3866,7 @@ mod test {
 
   #[tokio::test]
   async fn test_extract_and_add_radarr_tag_ids_vec() {
-    let app_arc = Arc::new(Mutex::new(App::default()));
+    let app_arc = Arc::new(Mutex::new(App::test_default()));
     let tags = "    test,HI ,, usenet ";
     {
       let mut app = app_arc.lock().await;

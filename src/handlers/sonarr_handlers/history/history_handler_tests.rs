@@ -23,7 +23,7 @@ mod tests {
 
     #[rstest]
     fn test_history_tab_left(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(3);
@@ -45,7 +45,7 @@ mod tests {
 
     #[rstest]
     fn test_history_tab_right(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(3);
@@ -78,7 +78,7 @@ mod tests {
 
     #[test]
     fn test_history_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.history.set_items(history_vec());
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
 
@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_history_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.sonarr_data.history.set_items(history_vec());
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
@@ -115,7 +115,7 @@ mod tests {
 
     #[test]
     fn test_esc_history_item_details() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .sonarr_data
@@ -137,7 +137,7 @@ mod tests {
 
     #[rstest]
     fn test_default_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.error = "test error".to_owned().into();
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
@@ -163,7 +163,7 @@ mod tests {
 
     #[test]
     fn test_refresh_history_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.history.set_items(history_vec());
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
 
@@ -181,7 +181,7 @@ mod tests {
 
     #[test]
     fn test_refresh_history_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.sonarr_data.history.set_items(history_vec());
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
@@ -308,7 +308,7 @@ mod tests {
 
   #[test]
   fn test_history_handler_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::History.into());
     app.is_loading = true;
 
@@ -324,7 +324,7 @@ mod tests {
 
   #[test]
   fn test_history_handler_not_ready_when_history_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::History.into());
     app.is_loading = false;
 
@@ -340,7 +340,7 @@ mod tests {
 
   #[test]
   fn test_history_handler_ready_when_not_loading_and_history_is_not_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::History.into());
     app.is_loading = false;
     app

@@ -24,7 +24,7 @@ mod tests {
     #[case] left_block: ActiveRadarrBlock,
     #[case] right_block: ActiveRadarrBlock,
   ) {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.radarr_data.main_tabs.set_index(index);
 
     handle_change_tab_left_right_keys(&mut app, DEFAULT_KEYBINDINGS.left.key);
@@ -219,7 +219,7 @@ mod tests {
 
   #[test]
   fn test_radarr_handler_is_ready() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let handler = RadarrHandler::new(

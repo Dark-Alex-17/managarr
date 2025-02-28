@@ -25,7 +25,7 @@ mod tests {
 
     #[test]
     fn test_delete_indexer_prompt() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data
@@ -43,7 +43,7 @@ mod tests {
 
     #[test]
     fn test_delete_indexer_prompt_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
@@ -66,7 +66,7 @@ mod tests {
 
     #[rstest]
     fn test_indexers_tab_left(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(5);
@@ -91,7 +91,7 @@ mod tests {
 
     #[rstest]
     fn test_indexers_tab_right(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(5);
@@ -115,7 +115,7 @@ mod tests {
     fn test_left_right_delete_indexer_prompt_toggle(
       #[values(DEFAULT_KEYBINDINGS.left.key, DEFAULT_KEYBINDINGS.right.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
 
       IndexersHandler::new(key, &mut app, ActiveSonarrBlock::DeleteIndexerPrompt, None).handle();
@@ -146,7 +146,7 @@ mod tests {
 
     #[rstest]
     fn test_edit_indexer_submit(#[values(true, false)] torrent_protocol: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       let protocol = if torrent_protocol {
         "torrent".to_owned()
@@ -228,7 +228,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
@@ -246,7 +246,7 @@ mod tests {
 
     #[test]
     fn test_delete_indexer_prompt_confirm_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.indexers.set_items(vec![indexer()]);
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
@@ -270,7 +270,7 @@ mod tests {
 
     #[test]
     fn test_prompt_decline_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .sonarr_data
@@ -302,7 +302,7 @@ mod tests {
 
     #[rstest]
     fn test_delete_indexer_prompt_block_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
@@ -322,7 +322,7 @@ mod tests {
 
     #[rstest]
     fn test_test_indexer_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.sonarr_data.indexer_test_errors = Some("test result".to_owned());
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
@@ -336,7 +336,7 @@ mod tests {
 
     #[rstest]
     fn test_default_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.error = "test error".to_owned().into();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
@@ -361,7 +361,7 @@ mod tests {
 
     #[test]
     fn test_refresh_indexers_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .sonarr_data
@@ -383,7 +383,7 @@ mod tests {
 
     #[test]
     fn test_refresh_indexers_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app
         .data
@@ -406,7 +406,7 @@ mod tests {
 
     #[test]
     fn test_indexer_settings_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .sonarr_data
@@ -439,7 +439,7 @@ mod tests {
 
     #[test]
     fn test_indexer_settings_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
@@ -461,7 +461,7 @@ mod tests {
 
     #[test]
     fn test_test_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data
@@ -485,7 +485,7 @@ mod tests {
 
     #[test]
     fn test_test_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
@@ -507,7 +507,7 @@ mod tests {
 
     #[test]
     fn test_test_all_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
         .data
@@ -531,7 +531,7 @@ mod tests {
 
     #[test]
     fn test_test_all_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app
@@ -553,7 +553,7 @@ mod tests {
 
     #[test]
     fn test_delete_indexer_prompt_confirm() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.indexers.set_items(vec![indexer()]);
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteIndexerPrompt.into());
@@ -645,7 +645,7 @@ mod tests {
 
   #[test]
   fn test_extract_indexer_id() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data.indexers.set_items(vec![indexer()]);
 
     let indexer_id = IndexersHandler::new(
@@ -661,7 +661,7 @@ mod tests {
 
   #[test]
   fn test_indexers_handler_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = true;
 
@@ -677,7 +677,7 @@ mod tests {
 
   #[test]
   fn test_indexers_handler_not_ready_when_indexers_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = false;
 
@@ -693,7 +693,7 @@ mod tests {
 
   #[test]
   fn test_indexers_handler_ready_when_not_loading_and_indexers_is_not_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = false;
     app

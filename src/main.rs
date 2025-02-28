@@ -1,5 +1,3 @@
-#![warn(rust_2021_compatibility)]
-
 use anyhow::Result;
 use std::panic::PanicHookInfo;
 use std::path::PathBuf;

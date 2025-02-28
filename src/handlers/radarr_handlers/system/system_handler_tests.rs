@@ -22,7 +22,7 @@ mod tests {
 
     #[rstest]
     fn test_system_tab_left(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(6);
 
@@ -43,7 +43,7 @@ mod tests {
 
     #[rstest]
     fn test_system_tab_right(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(6);
 
@@ -72,7 +72,7 @@ mod tests {
 
     #[rstest]
     fn test_default_esc(#[values(true, false)] is_loading: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_loading;
       app.error = "test error".to_owned().into();
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn test_update_system_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.logs.set_items(vec![
         HorizontallyScrollableText::from("test 1"),
         HorizontallyScrollableText::from("test 2"),
@@ -126,7 +126,7 @@ mod tests {
 
     #[test]
     fn test_update_system_key_no_op_if_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.data.radarr_data.logs.set_items(vec![
@@ -157,7 +157,7 @@ mod tests {
 
     #[test]
     fn test_queued_events_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.logs.set_items(vec![
         HorizontallyScrollableText::from("test 1"),
         HorizontallyScrollableText::from("test 2"),
@@ -189,7 +189,7 @@ mod tests {
 
     #[test]
     fn test_queued_events_key_no_op_if_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.data.radarr_data.logs.set_items(vec![
@@ -220,7 +220,7 @@ mod tests {
 
     #[test]
     fn test_refresh_system_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.logs.set_items(vec![
         HorizontallyScrollableText::from("test 1"),
         HorizontallyScrollableText::from("test 2"),
@@ -251,7 +251,7 @@ mod tests {
 
     #[test]
     fn test_refresh_system_key_no_op_if_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.data.radarr_data.logs.set_items(vec![
@@ -284,7 +284,7 @@ mod tests {
 
     #[test]
     fn test_logs_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.logs.set_items(vec![
         HorizontallyScrollableText::from("test 1"),
         HorizontallyScrollableText::from("test 2"),
@@ -324,7 +324,7 @@ mod tests {
 
     #[test]
     fn test_logs_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.data.radarr_data.logs.set_items(vec![
@@ -356,7 +356,7 @@ mod tests {
 
     #[test]
     fn test_tasks_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.logs.set_items(vec![
         HorizontallyScrollableText::from("test 1"),
         HorizontallyScrollableText::from("test 2"),
@@ -388,7 +388,7 @@ mod tests {
 
     #[test]
     fn test_tasks_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.data.radarr_data.logs.set_items(vec![
@@ -452,7 +452,7 @@ mod tests {
 
   #[test]
   fn test_system_handler_is_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let system_handler = SystemHandler::new(
@@ -467,7 +467,7 @@ mod tests {
 
   #[test]
   fn test_system_handler_is_not_ready_when_logs_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app
       .data
@@ -492,7 +492,7 @@ mod tests {
 
   #[test]
   fn test_system_handler_is_not_ready_when_tasks_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app.data.radarr_data.logs.set_items(vec!["test".into()]);
     app
@@ -513,7 +513,7 @@ mod tests {
 
   #[test]
   fn test_system_handler_is_not_ready_when_queued_events_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app.data.radarr_data.logs.set_items(vec!["test".into()]);
     app
@@ -534,7 +534,7 @@ mod tests {
 
   #[test]
   fn test_system_handler_is_ready_when_all_required_tables_are_not_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app.data.radarr_data.logs.set_items(vec!["test".into()]);
     app

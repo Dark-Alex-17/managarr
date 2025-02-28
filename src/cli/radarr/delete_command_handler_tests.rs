@@ -276,7 +276,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_blocklist_item_command = RadarrDeleteCommand::BlocklistItem {
         blocklist_item_id: 1,
       };
@@ -307,7 +307,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_download_command = RadarrDeleteCommand::Download { download_id: 1 };
 
       let result =
@@ -333,7 +333,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_indexer_command = RadarrDeleteCommand::Indexer { indexer_id: 1 };
 
       let result =
@@ -363,7 +363,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_movie_command = RadarrDeleteCommand::Movie {
         movie_id: 1,
         delete_files_from_disk: true,
@@ -393,7 +393,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_root_folder_command = RadarrDeleteCommand::RootFolder { root_folder_id: 1 };
 
       let result =
@@ -419,7 +419,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_tag_command = RadarrDeleteCommand::Tag { tag_id: 1 };
 
       let result =

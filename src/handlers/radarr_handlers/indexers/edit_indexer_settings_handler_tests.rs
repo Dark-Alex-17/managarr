@@ -26,7 +26,7 @@ mod tests {
 
     macro_rules! test_i64_counter_scroll_value {
       ($block:expr, $key:expr, $data_ref:ident, $negatives:literal) => {
-        let mut app = App::default();
+        let mut app = App::test_default();
         app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
 
         IndexerSettingsHandler::new($key, &mut app, $block, None).handle();
@@ -97,7 +97,7 @@ mod tests {
 
     #[rstest]
     fn test_edit_indexer_settings_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
@@ -128,7 +128,7 @@ mod tests {
     fn test_edit_indexer_settings_prompt_scroll_no_op_when_not_ready(
       #[values(Key::Up, Key::Down)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.data.radarr_data.selected_block =
@@ -213,7 +213,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_whiteliested_subtitle_tags_input_home_end() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings {
         whitelisted_hardcoded_subs: "Test".into(),
         ..IndexerSettings::default()
@@ -276,7 +276,7 @@ mod tests {
 
     #[rstest]
     fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.y = INDEXER_SETTINGS_SELECTION_BLOCKS.len() - 1;
@@ -329,7 +329,7 @@ mod tests {
       #[case] left_block: ActiveRadarrBlock,
       #[case] right_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.y = starting_y_index;
@@ -368,7 +368,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_whitelisted_subtitle_tags_input_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings {
         whitelisted_hardcoded_subs: "Test".into(),
         ..IndexerSettings::default()
@@ -436,7 +436,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_prompt_prompt_decline_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.data.radarr_data.selected_block =
@@ -464,7 +464,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_prompt_prompt_confirmation_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.data.radarr_data.selected_block =
@@ -496,7 +496,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
@@ -529,7 +529,7 @@ mod tests {
       #[case] y_index: usize,
       #[case] x_index: usize,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.data.radarr_data.selected_block =
@@ -555,7 +555,7 @@ mod tests {
     fn test_edit_indexer_settings_prompt_submit_selected_block_no_op_when_not_ready(
       #[values((0, 0), (1, 0), (2, 0), (0, 1), (1, 1))] index: (usize, usize),
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
@@ -583,7 +583,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_prompt_submit_whitelisted_subtitle_tags_input() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.data.radarr_data.selected_block =
@@ -607,7 +607,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_toggle_prefer_indexer_flags_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
@@ -661,7 +661,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_toggle_allow_hardcoded_subs_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
@@ -715,7 +715,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_whitelisted_subtitle_tags_input_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.should_ignore_quit_key = true;
       app.data.radarr_data.indexer_settings = Some(IndexerSettings {
         whitelisted_hardcoded_subs: "Test tags".into(),
@@ -761,7 +761,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
       app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.push_navigation_stack(active_radarr_block.into());
@@ -787,7 +787,7 @@ mod tests {
 
     #[rstest]
     fn test_edit_indexer_settings_prompt_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
@@ -808,7 +808,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_whitelisted_subtitle_tags_input_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput.into(),
@@ -844,7 +844,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
@@ -874,7 +874,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_whitelisted_subtitle_tags_input_backspace() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings {
         whitelisted_hardcoded_subs: "Test".into(),
         ..IndexerSettings::default()
@@ -903,7 +903,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_whitelisted_subtitle_tags_input_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
 
       IndexerSettingsHandler::new(
@@ -929,7 +929,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_prompt_prompt_confirmation_confirm() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
       app.data.radarr_data.selected_block =
@@ -972,7 +972,7 @@ mod tests {
 
   #[test]
   fn test_build_edit_indexer_settings_body() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.radarr_data.indexer_settings = Some(indexer_settings());
 
     let body = IndexerSettingsHandler::new(
@@ -989,7 +989,7 @@ mod tests {
 
   #[test]
   fn test_edit_indexer_settings_handler_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let handler = IndexerSettingsHandler::new(
@@ -1004,7 +1004,7 @@ mod tests {
 
   #[test]
   fn test_edit_indexer_settings_handler_not_ready_when_indexer_settings_is_none() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     let handler = IndexerSettingsHandler::new(
@@ -1019,7 +1019,7 @@ mod tests {
 
   #[test]
   fn test_edit_indexer_settings_handler_ready_when_not_loading_and_indexer_settings_is_some() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
 

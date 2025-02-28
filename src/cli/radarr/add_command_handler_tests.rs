@@ -400,7 +400,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let add_movie_command = RadarrAddCommand::Movie {
         tmdb_id: 1,
         root_folder_path: "/test".to_owned(),
@@ -437,7 +437,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let add_root_folder_command = RadarrAddCommand::RootFolder {
         root_folder_path: expected_root_folder_path,
       };
@@ -465,7 +465,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let add_tag_command = RadarrAddCommand::Tag {
         name: expected_tag_name,
       };

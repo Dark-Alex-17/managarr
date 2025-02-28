@@ -37,7 +37,7 @@ mod tests {
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
       let monitor_vec = Vec::from_iter(MovieMonitor::iter());
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app
         .data
@@ -100,7 +100,7 @@ mod tests {
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
       let minimum_availability_vec = Vec::from_iter(MinimumAvailability::iter());
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app
         .data
@@ -162,7 +162,7 @@ mod tests {
     fn test_add_movie_select_quality_profile_scroll(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app
         .data
@@ -218,7 +218,7 @@ mod tests {
     fn test_add_movie_select_root_folder_scroll(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app
         .data
@@ -274,7 +274,7 @@ mod tests {
 
     #[rstest]
     fn test_add_movie_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.selected_block = BlockSelectionState::new(ADD_MOVIE_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.down();
 
@@ -295,7 +295,7 @@ mod tests {
 
     #[rstest]
     fn test_add_movie_prompt_scroll_no_op_when_not_ready(#[values(Key::Up, Key::Down)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.selected_block = BlockSelectionState::new(ADD_MOVIE_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.down();
@@ -322,7 +322,7 @@ mod tests {
     #[test]
     fn test_add_movie_select_monitor_home_end() {
       let monitor_vec = Vec::from_iter(MovieMonitor::iter());
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app
         .data
@@ -377,7 +377,7 @@ mod tests {
     #[test]
     fn test_add_movie_select_minimum_availability_home_end() {
       let minimum_availability_vec = Vec::from_iter(MinimumAvailability::iter());
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app
         .data
@@ -431,7 +431,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_select_quality_profile_home_end() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app
         .data
@@ -489,7 +489,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_select_root_folder_home_end() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app
         .data
@@ -545,7 +545,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_search_input_home_end_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_search = Some("Test".into());
 
       AddMovieHandler::new(
@@ -591,7 +591,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_tags_input_home_end_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal {
         tags: "Test".into(),
         ..AddMovieModal::default()
@@ -651,7 +651,7 @@ mod tests {
 
     #[rstest]
     fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
 
       AddMovieHandler::new(key, &mut app, ActiveRadarrBlock::AddMoviePrompt, None).handle();
 
@@ -664,7 +664,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_search_input_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_search = Some("Test".into());
 
       AddMovieHandler::new(
@@ -710,7 +710,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_tags_input_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal {
         tags: "Test".into(),
         ..AddMovieModal::default()
@@ -781,7 +781,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_search_input_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.should_ignore_quit_key = true;
       app.data.radarr_data.add_movie_search = Some("test".into());
 
@@ -802,7 +802,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_search_input_submit_noop_on_empty_search() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_search = Some(HorizontallyScrollableText::default());
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
       app.should_ignore_quit_key = true;
@@ -824,7 +824,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_search_results_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut add_searched_movies = StatefulTable::default();
       add_searched_movies.set_items(vec![AddMovieSearchResult::default()]);
       app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
@@ -890,7 +890,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_search_results_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
       let mut add_searched_movies = StatefulTable::default();
@@ -913,7 +913,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_search_results_submit_does_nothing_on_empty_table() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
       AddMovieHandler::new(
         SUBMIT_KEY,
@@ -931,7 +931,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_search_results_submit_movie_already_in_library() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut add_searched_movies = StatefulTable::default();
       add_searched_movies.set_items(vec![AddMovieSearchResult::default()]);
       app.data.radarr_data.add_searched_movies = Some(add_searched_movies);
@@ -957,7 +957,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_prompt_prompt_decline_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
       app.data.radarr_data.selected_block = BlockSelectionState::new(ADD_MOVIE_SELECTION_BLOCKS);
@@ -983,7 +983,7 @@ mod tests {
     fn test_add_movie_confirm_prompt_prompt_confirmation_submit(
       #[values(true, false)] movie_details_context: bool,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
@@ -1067,7 +1067,7 @@ mod tests {
       #[case] selected_block: ActiveRadarrBlock,
       #[case] y_index: usize,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(
         (
           ActiveRadarrBlock::AddMoviePrompt,
@@ -1108,7 +1108,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
       app.push_navigation_stack(active_radarr_block.into());
 
@@ -1146,7 +1146,7 @@ mod tests {
 
     #[rstest]
     fn test_add_movie_search_input_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.radarr_data = create_test_radarr_data();
       app.should_ignore_quit_key = true;
@@ -1167,7 +1167,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_input_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data = create_test_radarr_data();
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
@@ -1196,7 +1196,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
       app.push_navigation_stack(active_radarr_block.into());
       let mut add_searched_movies = StatefulTable::default();
@@ -1218,7 +1218,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_already_in_library_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data = create_test_radarr_data();
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieAlreadyInLibrary.into());
@@ -1239,7 +1239,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_prompt_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app.data.radarr_data = create_test_radarr_data();
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
@@ -1257,7 +1257,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_tags_input_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data = create_test_radarr_data();
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
@@ -1288,7 +1288,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(
         (
           ActiveRadarrBlock::AddMoviePrompt,
@@ -1343,7 +1343,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_search_input_backspace() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_search = Some("Test".into());
 
       AddMovieHandler::new(
@@ -1362,7 +1362,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_tags_input_backspace() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal {
         tags: "Test".into(),
         ..AddMovieModal::default()
@@ -1391,7 +1391,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_search_input_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_search = Some(HorizontallyScrollableText::default());
 
       AddMovieHandler::new(
@@ -1410,7 +1410,7 @@ mod tests {
 
     #[test]
     fn test_add_movie_tags_input_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
 
       AddMovieHandler::new(
@@ -1438,7 +1438,7 @@ mod tests {
     fn test_add_movie_confirm_prompt_prompt_confirmation_confirm(
       #[values(true, false)] movie_details_context: bool,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
@@ -1525,7 +1525,7 @@ mod tests {
 
   #[test]
   fn test_add_movie_search_no_panic_on_none_search_result() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.radarr_data.add_searched_movies = None;
 
     AddMovieHandler::new(
@@ -1539,7 +1539,7 @@ mod tests {
 
   #[rstest]
   fn test_build_add_movie_body(#[values(true, false)] movie_details_context: bool) {
-    let mut app = App::default();
+    let mut app = App::test_default();
     let mut add_movie_modal = AddMovieModal {
       tags: "usenet, testing".into(),
       ..AddMovieModal::default()
@@ -1599,7 +1599,7 @@ mod tests {
 
   #[test]
   fn test_add_movie_handler_is_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let handler = AddMovieHandler::new(
@@ -1614,7 +1614,7 @@ mod tests {
 
   #[test]
   fn test_add_movie_handler_is_ready_when_not_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     let handler = AddMovieHandler::new(

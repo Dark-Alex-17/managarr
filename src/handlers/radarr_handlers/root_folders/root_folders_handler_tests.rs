@@ -22,7 +22,7 @@ mod tests {
 
     #[test]
     fn test_add_root_folder_prompt_home_end_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -81,7 +81,7 @@ mod tests {
 
     #[test]
     fn test_delete_root_folder_prompt() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -98,7 +98,7 @@ mod tests {
 
     #[test]
     fn test_delete_root_folder_prompt_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
       app
@@ -126,7 +126,7 @@ mod tests {
 
     #[rstest]
     fn test_root_folders_tab_left(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(4);
 
@@ -147,7 +147,7 @@ mod tests {
 
     #[rstest]
     fn test_root_folders_tab_right(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(4);
 
@@ -170,7 +170,7 @@ mod tests {
     fn test_left_right_delete_root_folder_prompt_toggle(
       #[values(DEFAULT_KEYBINDINGS.left.key, DEFAULT_KEYBINDINGS.right.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
 
       RootFoldersHandler::new(
         key,
@@ -195,7 +195,7 @@ mod tests {
 
     #[test]
     fn test_add_root_folder_prompt_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_root_folder = Some("Test".into());
 
       RootFoldersHandler::new(
@@ -251,7 +251,7 @@ mod tests {
 
     #[test]
     fn test_add_root_folder_prompt_confirm_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let expected_add_root_folder_body = AddRootFolderBody {
         path: "Test".to_owned(),
       };
@@ -288,7 +288,7 @@ mod tests {
 
     #[test]
     fn test_add_root_folder_prompt_confirm_submit_noop_on_empty_folder() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
       app.data.radarr_data.prompt_confirm = false;
       app.should_ignore_quit_key = true;
@@ -314,7 +314,7 @@ mod tests {
 
     #[test]
     fn test_delete_root_folder_prompt_confirm_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -345,7 +345,7 @@ mod tests {
 
     #[test]
     fn test_delete_root_folder_prompt_decline_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -380,7 +380,7 @@ mod tests {
 
     #[test]
     fn test_delete_root_folder_prompt_block_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteRootFolderPrompt.into());
       app.data.radarr_data.prompt_confirm = true;
@@ -402,7 +402,7 @@ mod tests {
 
     #[test]
     fn test_add_root_folder_prompt_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
       app.data.radarr_data.edit_root_folder = Some("/nfs/test".into());
@@ -428,7 +428,7 @@ mod tests {
 
     #[rstest]
     fn test_default_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.error = "test error".to_owned().into();
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
@@ -453,7 +453,7 @@ mod tests {
 
     #[test]
     fn test_root_folder_add() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -478,7 +478,7 @@ mod tests {
 
     #[test]
     fn test_root_folder_add_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
       app
@@ -505,7 +505,7 @@ mod tests {
 
     #[test]
     fn test_refresh_root_folders_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -530,7 +530,7 @@ mod tests {
 
     #[test]
     fn test_refresh_root_folders_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app
         .data
@@ -556,7 +556,7 @@ mod tests {
 
     #[test]
     fn test_add_root_folder_prompt_backspace_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -580,7 +580,7 @@ mod tests {
 
     #[test]
     fn test_add_root_folder_prompt_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -604,7 +604,7 @@ mod tests {
 
     #[test]
     fn test_delete_root_folder_prompt_confirm() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -646,7 +646,7 @@ mod tests {
 
   #[test]
   fn test_build_add_root_folder_body() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.radarr_data.edit_root_folder = Some("/nfs/test".into());
     let expected_add_root_folder_body = AddRootFolderBody {
       path: "/nfs/test".to_owned(),
@@ -666,7 +666,7 @@ mod tests {
 
   #[test]
   fn test_extract_root_folder_id() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app
       .data
       .radarr_data
@@ -686,7 +686,7 @@ mod tests {
 
   #[test]
   fn test_root_folders_handler_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let handler = RootFoldersHandler::new(
@@ -701,7 +701,7 @@ mod tests {
 
   #[test]
   fn test_root_folders_handler_not_ready_when_root_folders_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     let handler = RootFoldersHandler::new(
@@ -716,7 +716,7 @@ mod tests {
 
   #[test]
   fn test_root_folders_handler_ready_when_not_loading_and_root_folders_is_not_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     app

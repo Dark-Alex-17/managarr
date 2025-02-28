@@ -136,7 +136,7 @@ mod tests {
           json!({"testResponse": "response"}),
         )))
       });
-    let app_arc = Arc::new(Mutex::new(App::default()));
+    let app_arc = Arc::new(Mutex::new(App::test_default()));
     let clear_blocklist_command = RadarrCommand::ClearBlocklist.into();
 
     let result = handle_command(&app_arc, clear_blocklist_command, &mut mock_network).await;
@@ -167,7 +167,7 @@ mod tests {
           json!({"testResponse": "response"}),
         )))
       });
-    let app_arc = Arc::new(Mutex::new(App::default()));
+    let app_arc = Arc::new(Mutex::new(App::test_default()));
     let clear_blocklist_command = SonarrCommand::ClearBlocklist.into();
 
     let result = handle_command(&app_arc, clear_blocklist_command, &mut mock_network).await;

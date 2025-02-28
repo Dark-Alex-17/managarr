@@ -185,7 +185,7 @@ mod tests {
     async fn test_dispatch_by_manual_season_search_block_is_loading() {
       let mut app = App {
         is_loading: true,
-        ..App::default()
+        ..App::test_default()
       };
 
       app
@@ -199,7 +199,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_dispatch_by_manual_season_search_block_season_releases_non_empty() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut season_details_modal = SeasonDetailsModal::default();
       season_details_modal
         .season_releases
@@ -304,7 +304,7 @@ mod tests {
     async fn test_dispatch_by_manual_episode_search_block_is_loading() {
       let mut app = App {
         is_loading: true,
-        ..App::default()
+        ..App::test_default()
       };
 
       app
@@ -318,7 +318,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_dispatch_by_manual_episode_search_block_episode_releases_non_empty() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut episode_details_modal = EpisodeDetailsModal::default();
       episode_details_modal
         .episode_releases
@@ -554,7 +554,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_check_for_sonarr_prompt_action_no_prompt_confirm() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.prompt_confirm = false;
 
       app.check_for_sonarr_prompt_action().await;
@@ -750,7 +750,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_populate_seasons_table_unfiltered() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.series.set_items(vec![Series {
         seasons: Some(vec![Season::default()]),
         ..Series::default()
@@ -770,7 +770,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_populate_seasons_table_filtered() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.series.set_filtered_items(vec![Series {
         seasons: Some(vec![Season::default()]),
         ..Series::default()
@@ -790,7 +790,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_extract_episode_id() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut season_details_modal = SeasonDetailsModal::default();
       season_details_modal.episodes.set_items(vec![Episode {
         id: 1,
@@ -804,14 +804,14 @@ mod tests {
     #[tokio::test]
     #[should_panic(expected = "Season details have not been loaded")]
     async fn test_extract_episode_id_requires_season_details_modal_to_be_some() {
-      let app = App::default();
+      let app = App::test_default();
 
       assert_eq!(app.extract_episode_id().await, 0);
     }
 
     #[tokio::test]
     async fn test_extract_series_id() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.series.set_items(vec![Series {
         id: 1,
         ..Series::default()
@@ -822,7 +822,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_extract_series_id_season_number_tuple() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.series.set_items(vec![Series {
         id: 1,
         ..Series::default()
@@ -837,7 +837,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_extract_add_new_series_search_query() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.add_series_search = Some("test search".into());
 
       assert_str_eq!(
@@ -849,14 +849,14 @@ mod tests {
     #[tokio::test]
     #[should_panic(expected = "Add series search is empty")]
     async fn test_extract_add_new_series_search_query_panics_when_the_query_is_not_set() {
-      let app = App::default();
+      let app = App::test_default();
 
       app.extract_add_new_series_search_query().await;
     }
 
     #[tokio::test]
     async fn test_extract_sonarr_indexer_id() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.indexers.set_items(vec![Indexer {
         id: 1,
         ..Indexer::default()
@@ -871,7 +871,7 @@ mod tests {
         network_tx: Some(sync_network_tx),
         tick_count: 1,
         is_first_render: false,
-        ..App::default()
+        ..App::test_default()
       };
       app.data.sonarr_data.prompt_confirm = true;
 

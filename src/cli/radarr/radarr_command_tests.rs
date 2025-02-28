@@ -292,7 +292,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let clear_blocklist_command = RadarrCommand::ClearBlocklist;
 
       let result = RadarrCliHandler::with(&app_arc, clear_blocklist_command, &mut mock_network)
@@ -321,7 +321,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let download_release_command = RadarrCommand::DownloadRelease {
         guid: "guid".to_owned(),
         indexer_id: 1,
@@ -350,7 +350,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let manual_search_command = RadarrCommand::ManualSearch { movie_id: 1 };
 
       let result = RadarrCliHandler::with(&app_arc, manual_search_command, &mut mock_network)
@@ -375,7 +375,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let search_new_movie_command = RadarrCommand::SearchNewMovie {
         query: "halo".to_owned(),
       };
@@ -402,7 +402,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let start_task_command = RadarrCommand::StartTask {
         task_name: RadarrTaskName::ApplicationCheckUpdate,
       };
@@ -429,7 +429,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let test_indexer_command = RadarrCommand::TestIndexer { indexer_id: 1 };
 
       let result = RadarrCliHandler::with(&app_arc, test_indexer_command, &mut mock_network)
@@ -451,7 +451,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let test_all_indexers_command = RadarrCommand::TestAllIndexers;
 
       let result = RadarrCliHandler::with(&app_arc, test_all_indexers_command, &mut mock_network)
@@ -476,7 +476,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let trigger_automatic_search_command = RadarrCommand::TriggerAutomaticSearch { movie_id: 1 };
 
       let result = RadarrCliHandler::with(
@@ -505,7 +505,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let add_tag_command = RadarrCommand::Add(RadarrAddCommand::Tag {
         name: expected_tag_name,
       });
@@ -532,7 +532,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_blocklist_item_command =
         RadarrCommand::Delete(RadarrDeleteCommand::BlocklistItem {
           blocklist_item_id: 1,
@@ -592,7 +592,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_all_indexer_settings_command =
         RadarrCommand::Edit(RadarrEditCommand::AllIndexerSettings {
           allow_hardcoded_subs: true,
@@ -632,7 +632,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_all_indexer_settings_command =
         RadarrCommand::Get(RadarrGetCommand::AllIndexerSettings);
 
@@ -662,7 +662,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let list_movie_credits_command =
         RadarrCommand::List(RadarrListCommand::MovieCredits { movie_id: 1 });
 
@@ -688,7 +688,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let refresh_movie_command =
         RadarrCommand::Refresh(RadarrRefreshCommand::Movie { movie_id: 1 });
 

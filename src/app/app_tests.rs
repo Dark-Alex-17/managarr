@@ -1,16 +1,13 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::Route;
   use anyhow::anyhow;
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use rstest::rstest;
-  use serde::de::value::StringDeserializer;
-  use serde::de::IntoDeserializer;
+  use serial_test::serial;
   use tokio::sync::mpsc;
 
   use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
   use crate::app::{
-    deserialize_env_var, interpolate_env_vars, App, AppConfig, Data, ServarrConfig,
+    interpolate_env_vars, App, AppConfig, Data, ServarrConfig,
   };
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
@@ -19,37 +16,68 @@ mod tests {
   use crate::network::NetworkEvent;
   use tokio_util::sync::CancellationToken;
 
-  #[rstest]
-  fn test_app_new(
-    #[values(ActiveRadarrBlock::default(), ActiveSonarrBlock::default())] servarr: impl Into<Route>
-      + Copy,
-  ) {
-    let (title, config) = match servarr.into() {
-      Route::Radarr(_, _) => (
-        "Radarr",
-        AppConfig {
-          radarr: Some(ServarrConfig::default()),
-          ..AppConfig::default()
-        },
-      ),
-      Route::Sonarr(_, _) => (
-        "Sonarr",
-        AppConfig {
-          sonarr: Some(ServarrConfig::default()),
-          ..AppConfig::default()
-        },
-      ),
-      _ => unreachable!(),
+  #[test]
+  fn test_app_new() {
+    let radarr_config_1 = ServarrConfig {
+      name: Some("Radarr Test".to_owned()),
+      ..ServarrConfig::default()
     };
-    let tab_route = |title: &'static str| TabRoute {
-      title,
-      route: servarr.into(),
-      help: format!(
-        "<↑↓> scroll | ←→ change tab | {}  ",
-        build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-      ),
-      contextual_help: None,
+    let radarr_config_2 = ServarrConfig {
+      weight: Some(3),
+      ..ServarrConfig::default()
     };
+    let sonarr_config_1 = ServarrConfig {
+      name: Some("Sonarr Test".to_owned()),
+      weight: Some(1),
+      ..ServarrConfig::default()
+    };
+    let sonarr_config_2 = ServarrConfig::default();
+    let config = AppConfig {
+      radarr: Some(vec![radarr_config_1.clone(), radarr_config_2.clone()]),
+      sonarr: Some(vec![sonarr_config_1.clone(), sonarr_config_2.clone()]),
+    };
+    let expected_tab_routes = vec![
+      TabRoute {
+        title: "Sonarr Test".to_owned(),
+        route: ActiveSonarrBlock::default().into(),
+        help: format!(
+          "<↑↓> scroll | ←→ change tab | {}  ",
+          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
+        ),
+        contextual_help: None,
+        config: Some(sonarr_config_1),
+      },
+      TabRoute {
+        title: "Radarr 1".to_owned(),
+        route: ActiveRadarrBlock::default().into(),
+        help: format!(
+          "<↑↓> scroll | ←→ change tab | {}  ",
+          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
+        ),
+        contextual_help: None,
+        config: Some(radarr_config_2),
+      },
+      TabRoute {
+        title: "Radarr Test".to_owned(),
+        route: ActiveRadarrBlock::default().into(),
+        help: format!(
+          "<↑↓> scroll | ←→ change tab | {}  ",
+          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
+        ),
+        contextual_help: None,
+        config: Some(radarr_config_1),
+      },
+      TabRoute {
+        title: "Sonarr 1".to_owned(),
+        route: ActiveSonarrBlock::default().into(),
+        help: format!(
+          "<↑↓> scroll | ←→ change tab | {}  ",
+          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
+        ),
+        contextual_help: None,
+        config: Some(sonarr_config_2),
+      },
+    ];
 
     let app = App::new(
       mpsc::channel::<NetworkEvent>(500).0,
@@ -58,13 +86,13 @@ mod tests {
     );
 
     assert!(app.navigation_stack.is_empty());
-    assert_eq!(app.get_current_route(), servarr.into());
+    assert_eq!(app.get_current_route(), ActiveSonarrBlock::default().into());
     assert!(app.network_tx.is_some());
     assert!(!app.cancellation_token.is_cancelled());
     assert!(app.is_first_render);
     assert_eq!(app.error, HorizontallyScrollableText::default());
     assert_eq!(app.server_tabs.index, 0);
-    assert_eq!(app.server_tabs.tabs, vec![tab_route(title)]);
+    assert_eq!(app.server_tabs.tabs, expected_tab_routes);
     assert_eq!(app.tick_until_poll, 400);
     assert_eq!(app.ticks_until_scroll, 4);
     assert_eq!(app.tick_count, 0);
@@ -85,29 +113,6 @@ mod tests {
     assert!(app.is_first_render);
     assert_eq!(app.error, HorizontallyScrollableText::default());
     assert_eq!(app.server_tabs.index, 0);
-    assert_eq!(
-      app.server_tabs.tabs,
-      vec![
-        TabRoute {
-          title: "Radarr",
-          route: ActiveRadarrBlock::Movies.into(),
-          help: format!(
-            "<↑↓> scroll | ←→ change tab | {}  ",
-            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-          ),
-          contextual_help: None,
-        },
-        TabRoute {
-          title: "Sonarr",
-          route: ActiveSonarrBlock::Series.into(),
-          help: format!(
-            "<↑↓> scroll | ←→ change tab | {}  ",
-            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-          ),
-          contextual_help: None,
-        },
-      ]
-    );
     assert_eq!(app.tick_until_poll, 400);
     assert_eq!(app.ticks_until_scroll, 4);
     assert_eq!(app.tick_count, 0);
@@ -120,7 +125,7 @@ mod tests {
 
   #[test]
   fn test_navigation_stack_methods() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     let default_route = app.server_tabs.tabs.first().unwrap().route;
 
     assert_eq!(app.get_current_route(), default_route);
@@ -157,7 +162,7 @@ mod tests {
     let mut app = App {
       is_loading: true,
       should_refresh: false,
-      ..App::default()
+      ..App::test_default()
     };
     app.cancellation_token.cancel();
 
@@ -175,7 +180,7 @@ mod tests {
   fn test_reset_tick_count() {
     let mut app = App {
       tick_count: 2,
-      ..App::default()
+      ..App::test_default()
     };
 
     app.reset_tick_count();
@@ -202,7 +207,7 @@ mod tests {
       error: "Test error".to_owned().into(),
       is_first_render: false,
       data,
-      ..App::default()
+      ..App::test_default()
     };
 
     app.reset();
@@ -216,7 +221,7 @@ mod tests {
 
   #[test]
   fn test_handle_error() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     let test_string = "Testing";
 
     app.handle_error(anyhow!(test_string));
@@ -235,7 +240,7 @@ mod tests {
     let mut app = App {
       tick_until_poll: 2,
       network_tx: Some(sync_network_tx),
-      ..App::default()
+      ..App::test_default()
     };
 
     assert_eq!(app.tick_count, 0);
@@ -259,7 +264,7 @@ mod tests {
       tick_until_poll: 2,
       network_tx: Some(sync_network_tx),
       is_first_render: true,
-      ..App::default()
+      ..App::test_default()
     };
 
     assert_eq!(app.tick_count, 0);
@@ -313,7 +318,7 @@ mod tests {
       tick_until_poll: 2,
       tick_count: 2,
       is_routing: true,
-      ..App::default()
+      ..App::test_default()
     };
 
     app.on_tick().await;
@@ -326,7 +331,7 @@ mod tests {
       tick_until_poll: 2,
       tick_count: 2,
       should_refresh: true,
-      ..App::default()
+      ..App::test_default()
     };
 
     app.on_tick().await;
@@ -345,7 +350,7 @@ mod tests {
   fn test_servarr_config_default() {
     let servarr_config = ServarrConfig::default();
 
-    assert!(servarr_config.name.is_empty());
+    assert_eq!(servarr_config.name, None);
     assert_eq!(servarr_config.host, Some("localhost".to_string()));
     assert_eq!(servarr_config.port, None);
     assert_eq!(servarr_config.uri, None);
@@ -356,21 +361,9 @@ mod tests {
   }
 
   #[test]
-  fn test_deserialize_env_var() {
-    std::env::set_var("TEST_VAR_DESERIALIZE", "testing");
-    let deserializer: StringDeserializer<serde_yaml::Error> =
-      "${TEST_VAR_DESERIALIZE}".to_owned().into_deserializer();
-
-    let env_var: Result<String, serde_yaml::Error> = deserialize_env_var(deserializer);
-
-    assert!(env_var.is_ok());
-    assert_str_eq!(env_var.unwrap(), "testing");
-    std::env::remove_var("TEST_VAR_DESERIALIZE");
-  }
-
-  #[test]
+  #[serial]
   fn test_deserialize_optional_env_var_is_present() {
-    std::env::set_var("TEST_VAR_DESERIALIZE_OPTION", "localhost");
+    unsafe { std::env::set_var("TEST_VAR_DESERIALIZE_OPTION", "localhost") };
     let yaml_data = r#"
       host: ${TEST_VAR_DESERIALIZE_OPTION}
       api_token: "test123"
@@ -379,12 +372,13 @@ mod tests {
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
     assert_eq!(config.host, Some("localhost".to_string()));
-    std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION");
+    unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION") };
   }
 
   #[test]
+  #[serial]
   fn test_deserialize_optional_env_var_does_not_overwrite_non_env_value() {
-    std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_NO_OVERWRITE", "localhost");
+    unsafe { std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_NO_OVERWRITE", "localhost") };
     let yaml_data = r#"
       host: www.example.com
       api_token: "test123"
@@ -393,7 +387,7 @@ mod tests {
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
     assert_eq!(config.host, Some("www.example.com".to_string()));
-    std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_NO_OVERWRITE");
+    unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_NO_OVERWRITE") };
   }
 
   #[test]
@@ -408,8 +402,9 @@ mod tests {
   }
 
   #[test]
+  #[serial]
   fn test_deserialize_optional_u16_env_var_is_present() {
-    std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_U16", "1");
+    unsafe { std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_U16", "1") };
     let yaml_data = r#"
       port: ${TEST_VAR_DESERIALIZE_OPTION_U16}
       api_token: "test123"
@@ -418,12 +413,13 @@ mod tests {
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
     assert_eq!(config.port, Some(1));
-    std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_U16");
+    unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_U16") };
   }
 
   #[test]
+  #[serial]
   fn test_deserialize_optional_u16_env_var_does_not_overwrite_non_env_value() {
-    std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_U16_UNUSED", "1");
+    unsafe { std::env::set_var("TEST_VAR_DESERIALIZE_OPTION_U16_UNUSED", "1") };
     let yaml_data = r#"
       port: 1234
       api_token: "test123"
@@ -432,7 +428,7 @@ mod tests {
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
     assert_eq!(config.port, Some(1234));
-    std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_U16_UNUSED");
+    unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_U16_UNUSED") };
   }
 
   #[test]
@@ -460,13 +456,14 @@ mod tests {
   }
 
   #[test]
+  #[serial]
   fn test_interpolate_env_vars() {
-    std::env::set_var("TEST_VAR_INTERPOLATION", "testing");
+    unsafe { std::env::set_var("TEST_VAR_INTERPOLATION", "testing") };
 
     let var = interpolate_env_vars("${TEST_VAR_INTERPOLATION}");
 
     assert_str_eq!(var, "testing");
-    std::env::remove_var("TEST_VAR_INTERPOLATION");
+    unsafe { std::env::remove_var("TEST_VAR_INTERPOLATION") };
   }
 
   #[test]
@@ -477,13 +474,16 @@ mod tests {
   }
 
   #[test]
+  #[serial]
   fn test_interpolate_env_vars_scrubs_all_unnecessary_characters() {
-    std::env::set_var(
-      "TEST_VAR_INTERPOLATION_UNNECESSARY_CHARACTERS",
-      r#"""
+    unsafe {
+      std::env::set_var(
+        "TEST_VAR_INTERPOLATION_UNNECESSARY_CHARACTERS",
+        r#"""
 	        `"'https://dontdo:this@testing.com/query?test=%20query#results'"` {([\|$!])}
       """#,
-    );
+      )
+    };
 
     let var = interpolate_env_vars("${TEST_VAR_INTERPOLATION_UNNECESSARY_CHARACTERS}");
 
@@ -491,7 +491,7 @@ mod tests {
       var,
       "https://dontdo:this@testing.com/query?test=%20query#results"
     );
-    std::env::remove_var("TEST_VAR_INTERPOLATION_UNNECESSARY_CHARACTERS");
+    unsafe { std::env::remove_var("TEST_VAR_INTERPOLATION_UNNECESSARY_CHARACTERS") };
   }
 
   #[test]
@@ -514,10 +514,10 @@ mod tests {
     let api_token = "thisisatest".to_owned();
     let api_token_file = "/root/.config/api_token".to_owned();
     let ssl_cert_path = "/some/path".to_owned();
-    let expected_str = format!("ServarrConfig {{ name: \"{}\", host: Some(\"{}\"), port: Some({}), uri: Some(\"{}\"), weight: Some(\"{}\"), api_token: Some(\"***********\"), api_token_file: Some(\"{}\"), ssl_cert_path: Some(\"{}\") }}",
+    let expected_str = format!("ServarrConfig {{ name: Some(\"{}\"), host: Some(\"{}\"), port: Some({}), uri: Some(\"{}\"), weight: Some({}), api_token: Some(\"***********\"), api_token_file: Some(\"{}\"), ssl_cert_path: Some(\"{}\") }}",
     name, host, port, uri, weight, api_token_file, ssl_cert_path);
     let servarr_config = ServarrConfig {
-      name,
+      name: Some(name),
       host: Some(host),
       port: Some(port),
       uri: Some(uri),

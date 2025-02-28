@@ -115,7 +115,7 @@ mod tests {
     fn test_table_scroll_no_op_when_not_ready(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app
         .data
@@ -158,7 +158,7 @@ mod tests {
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
       let movie_field_vec = sort_options();
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.movies.sorting(sort_options());
 
       if key == Key::Up {
@@ -219,7 +219,7 @@ mod tests {
 
     #[test]
     fn test_table_home_end_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app
         .data
@@ -271,7 +271,7 @@ mod tests {
 
     #[test]
     fn test_movie_search_box_home_end_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
       app
         .data
@@ -325,7 +325,7 @@ mod tests {
 
     #[test]
     fn test_movie_filter_box_home_end_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
       app
         .data
@@ -380,7 +380,7 @@ mod tests {
     #[test]
     fn test_table_sort_home_end() {
       let movie_field_vec = sort_options();
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.movies.sorting(sort_options());
 
       TableHandlerUnit::new(
@@ -433,7 +433,7 @@ mod tests {
 
     #[test]
     fn test_movie_search_box_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
       app
         .data
@@ -487,7 +487,7 @@ mod tests {
 
     #[test]
     fn test_movie_filter_box_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
       app
         .data
@@ -552,7 +552,7 @@ mod tests {
 
     #[test]
     fn test_search_movie_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
       app
@@ -576,7 +576,7 @@ mod tests {
 
     #[test]
     fn test_search_movie_submit_error_on_no_search_hits() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
       app
@@ -603,7 +603,7 @@ mod tests {
 
     #[test]
     fn test_search_filtered_table_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -632,7 +632,7 @@ mod tests {
 
     #[test]
     fn test_filter_table_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
       app
@@ -669,7 +669,7 @@ mod tests {
 
     #[test]
     fn test_filter_table_submit_error_on_no_filter_matches() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
       app
@@ -694,7 +694,7 @@ mod tests {
 
     #[test]
     fn test_table_sort_prompt_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.movies.sort_asc = true;
       app.data.radarr_data.movies.sorting(sort_options());
       app.data.radarr_data.movies.set_items(movies_vec());
@@ -734,7 +734,7 @@ mod tests {
       #[values(ActiveRadarrBlock::SearchMovie, ActiveRadarrBlock::SearchMovieError)]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(active_radarr_block.into());
@@ -753,7 +753,7 @@ mod tests {
       #[values(ActiveRadarrBlock::FilterMovies, ActiveRadarrBlock::FilterMoviesError)]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(active_radarr_block.into());
@@ -781,7 +781,7 @@ mod tests {
 
     #[test]
     fn test_table_sort_prompt_block_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.movies.set_items(movies_vec());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::MoviesSortPrompt.into());
@@ -801,7 +801,7 @@ mod tests {
 
     #[test]
     fn test_search_table_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -829,7 +829,7 @@ mod tests {
 
     #[test]
     fn test_search_table_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app
@@ -853,7 +853,7 @@ mod tests {
 
     #[test]
     fn test_search_table_key_no_op_when_search_table_block_is_not_defined() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -875,7 +875,7 @@ mod tests {
 
     #[test]
     fn test_filter_table_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -900,7 +900,7 @@ mod tests {
 
     #[test]
     fn test_filter_table_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app
@@ -924,7 +924,7 @@ mod tests {
 
     #[test]
     fn test_filter_table_key_resets_previous_filter() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.data.radarr_data = create_test_radarr_data();
@@ -958,7 +958,7 @@ mod tests {
 
     #[test]
     fn test_filter_table_key_no_op_when_filter_table_block_is_not_defined() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -980,7 +980,7 @@ mod tests {
 
     #[test]
     fn test_search_table_box_backspace_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
       app.data.radarr_data.movies.search = Some("Test".into());
       app
@@ -1005,7 +1005,7 @@ mod tests {
 
     #[test]
     fn test_filter_table_box_backspace_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
       app
         .data
@@ -1030,7 +1030,7 @@ mod tests {
 
     #[test]
     fn test_search_table_box_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::SearchMovie.into());
       app
         .data
@@ -1055,7 +1055,7 @@ mod tests {
 
     #[test]
     fn test_filter_table_box_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::FilterMovies.into());
       app
         .data
@@ -1080,7 +1080,7 @@ mod tests {
 
     #[test]
     fn test_sort_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -1108,7 +1108,7 @@ mod tests {
 
     #[test]
     fn test_sort_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app
@@ -1131,7 +1131,7 @@ mod tests {
 
     #[test]
     fn test_sort_key_no_op_when_sort_table_block_is_undefined() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data

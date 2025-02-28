@@ -26,7 +26,7 @@ mod tests {
 
     macro_rules! test_i64_counter_scroll_value {
       ($block:expr, $key:expr, $data_ref:ident, $negatives:literal) => {
-        let mut app = App::default();
+        let mut app = App::test_default();
         app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
         app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
 
@@ -98,7 +98,7 @@ mod tests {
 
     #[rstest]
     fn test_edit_indexer_settings_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
       app.data.sonarr_data.selected_block =
@@ -130,7 +130,7 @@ mod tests {
     fn test_edit_indexer_settings_prompt_scroll_no_op_when_not_ready(
       #[values(Key::Up, Key::Down)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.is_loading = true;
       app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
@@ -203,7 +203,7 @@ mod tests {
 
     #[rstest]
     fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.data.sonarr_data.selected_block =
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
@@ -249,7 +249,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_prompt_prompt_decline_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::AllIndexerSettingsPrompt.into());
       app.data.sonarr_data.selected_block =
@@ -277,7 +277,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_prompt_prompt_confirmation_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::AllIndexerSettingsPrompt.into());
       app.data.sonarr_data.selected_block =
@@ -309,7 +309,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::AllIndexerSettingsPrompt.into());
@@ -340,7 +340,7 @@ mod tests {
       #[case] selected_block: ActiveSonarrBlock,
       #[case] y_index: usize,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
       app.push_navigation_stack(ActiveSonarrBlock::AllIndexerSettingsPrompt.into());
@@ -363,7 +363,7 @@ mod tests {
     fn test_edit_indexer_settings_prompt_submit_selected_block_no_op_when_not_ready(
       #[values(0, 1, 2, 3, 4)] y_index: usize,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.is_loading = true;
       app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
@@ -396,7 +396,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
       app.push_navigation_stack(ActiveSonarrBlock::AllIndexerSettingsPrompt.into());
@@ -423,7 +423,7 @@ mod tests {
 
     #[rstest]
     fn test_edit_indexer_settings_prompt_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::AllIndexerSettingsPrompt.into());
@@ -452,7 +452,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(active_sonarr_block.into());
       app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
@@ -480,7 +480,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_settings_prompt_prompt_confirmation_confirm() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveSonarrBlock::AllIndexerSettingsPrompt.into());
       app.data.sonarr_data.selected_block =
@@ -523,7 +523,7 @@ mod tests {
 
   #[test]
   fn test_build_edit_indexer_settings_params() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data.indexer_settings = Some(indexer_settings());
 
     let actual_indexer_settings = IndexerSettingsHandler::new(
@@ -540,7 +540,7 @@ mod tests {
 
   #[test]
   fn test_edit_indexer_settings_handler_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = true;
 
@@ -556,7 +556,7 @@ mod tests {
 
   #[test]
   fn test_edit_indexer_settings_handler_not_ready_when_indexer_settings_is_none() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = false;
 
@@ -572,7 +572,7 @@ mod tests {
 
   #[test]
   fn test_edit_indexer_settings_handler_ready_when_not_loading_and_indexer_settings_is_some() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
     app.is_loading = false;
     app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());

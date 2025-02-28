@@ -272,7 +272,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let claer_blocklist_command = SonarrCommand::ClearBlocklist;
 
       let result = SonarrCliHandler::with(&app_arc, claer_blocklist_command, &mut mock_network)
@@ -297,7 +297,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let mark_history_item_as_failed_command =
         SonarrCommand::MarkHistoryItemAsFailed { history_item_id: 1 };
 
@@ -327,7 +327,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let add_tag_command = SonarrCommand::Add(SonarrAddCommand::Tag {
         name: expected_tag_name,
       });
@@ -354,7 +354,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_blocklist_item_command =
         SonarrCommand::Delete(SonarrDeleteCommand::BlocklistItem {
           blocklist_item_id: 1,
@@ -388,7 +388,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let download_series_release_command =
         SonarrCommand::Download(SonarrDownloadCommand::Series {
           guid: "1234".to_owned(),
@@ -442,7 +442,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_all_indexer_settings_command =
         SonarrCommand::Edit(SonarrEditCommand::AllIndexerSettings {
           maximum_size: Some(1),
@@ -478,7 +478,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let manual_episode_search_command =
         SonarrCommand::ManualSearch(SonarrManualSearchCommand::Episode { episode_id: 1 });
 
@@ -506,7 +506,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let manual_episode_search_command =
         SonarrCommand::TriggerAutomaticSearch(SonarrTriggerAutomaticSearchCommand::Episode {
           episode_id: 1,
@@ -532,7 +532,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_system_status_command = SonarrCommand::Get(SonarrGetCommand::SystemStatus);
 
       let result = SonarrCliHandler::with(&app_arc, get_system_status_command, &mut mock_network)
@@ -554,7 +554,7 @@ mod tests {
             Series::default(),
           ])))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let list_series_command = SonarrCommand::List(SonarrListCommand::Series);
 
       let result = SonarrCliHandler::with(&app_arc, list_series_command, &mut mock_network)
@@ -579,7 +579,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let refresh_series_command =
         SonarrCommand::Refresh(SonarrRefreshCommand::Series { series_id: 1 });
 
@@ -605,7 +605,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let search_new_series_command = SonarrCommand::SearchNewSeries {
         query: "halo".to_owned(),
       };
@@ -632,7 +632,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let start_task_command = SonarrCommand::StartTask {
         task_name: SonarrTaskName::ApplicationUpdateCheck,
       };
@@ -659,7 +659,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let test_indexer_command = SonarrCommand::TestIndexer { indexer_id: 1 };
 
       let result = SonarrCliHandler::with(&app_arc, test_indexer_command, &mut mock_network)
@@ -681,7 +681,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let test_all_indexers_command = SonarrCommand::TestAllIndexers;
 
       let result = SonarrCliHandler::with(&app_arc, test_all_indexers_command, &mut mock_network)
@@ -706,7 +706,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let toggle_episode_monitoring_command =
         SonarrCommand::ToggleEpisodeMonitoring { episode_id: 1 };
 
@@ -737,7 +737,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let toggle_season_monitoring_command = SonarrCommand::ToggleSeasonMonitoring {
         series_id: 1,
         season_number: 1,

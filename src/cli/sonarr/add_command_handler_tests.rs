@@ -491,7 +491,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let add_root_folder_command = SonarrAddCommand::RootFolder {
         root_folder_path: expected_root_folder_path,
       };
@@ -535,7 +535,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let add_series_command = SonarrAddCommand::Series {
         tvdb_id: 1,
         title: "test".to_owned(),
@@ -572,7 +572,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let add_tag_command = SonarrAddCommand::Tag {
         name: expected_tag_name,
       };

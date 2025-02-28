@@ -319,6 +319,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -382,6 +383,7 @@ mod test {
     .await;
     app_arc.lock().await.data.sonarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -437,6 +439,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -463,6 +466,7 @@ mod test {
     .await;
     app_arc.lock().await.data.sonarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Tag(tag) = network
@@ -517,6 +521,7 @@ mod test {
       .sonarr_data
       .blocklist
       .set_items(blocklist_items);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -546,6 +551,7 @@ mod test {
       .sonarr_data
       .blocklist
       .set_items(vec![blocklist_item()]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -570,6 +576,7 @@ mod test {
     .await;
     app_arc.lock().await.data.sonarr_data.season_details_modal =
       Some(SeasonDetailsModal::default());
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -599,6 +606,7 @@ mod test {
       .sonarr_data
       .downloads
       .set_items(vec![download_record()]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -628,6 +636,7 @@ mod test {
       .sonarr_data
       .indexers
       .set_items(vec![indexer()]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -650,6 +659,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -677,6 +687,7 @@ mod test {
       Some("deleteFiles=true&addImportExclusion=true"),
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -699,6 +710,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -731,6 +743,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -761,6 +774,7 @@ mod test {
     )
     .await;
 
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -858,6 +872,7 @@ mod test {
       .await;
     app_arc.lock().await.data.sonarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -955,6 +970,7 @@ mod test {
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -1047,6 +1063,7 @@ mod test {
       .await;
     app_arc.lock().await.data.sonarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -1146,6 +1163,7 @@ mod test {
       .await;
     app_arc.lock().await.data.sonarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -1210,6 +1228,7 @@ mod test {
       .match_body(Matcher::Json(indexer_details_json))
       .create_async()
       .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -1299,6 +1318,7 @@ mod test {
       .match_body(Matcher::Json(expected_edit_indexer_body))
       .create_async()
       .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -1358,6 +1378,7 @@ mod test {
       .await;
     app_arc.lock().await.data.sonarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -1418,6 +1439,7 @@ mod test {
       .await;
     app_arc.lock().await.data.sonarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -1460,6 +1482,7 @@ mod test {
       .match_body(Matcher::Json(expected_body))
       .create_async()
       .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -1505,6 +1528,7 @@ mod test {
       .match_body(Matcher::Json(expected_body))
       .create_async()
       .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -1603,6 +1627,7 @@ mod test {
         .blocklist
         .sorting(vec![blocklist_sort_option]);
     }
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::BlocklistResponse(blocklist) = network
@@ -1678,6 +1703,7 @@ mod test {
       .sonarr_data
       .blocklist
       .sorting(vec![blocklist_sort_option]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::BlocklistResponse(blocklist) = network
@@ -1719,6 +1745,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::DownloadsResponse(downloads) = network
@@ -1756,6 +1783,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
     let disk_space_vec = vec![
       DiskSpace {
@@ -1794,6 +1822,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let _ = network.handle_sonarr_event(SonarrEvent::HealthCheck).await;
@@ -1873,6 +1902,7 @@ mod test {
         season_number: 1,
         ..Season::default()
       }]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episodes(episodes) = network
@@ -1959,6 +1989,7 @@ mod test {
         id: 1,
         ..Series::default()
       }]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episodes(episodes) = network
@@ -2018,6 +2049,7 @@ mod test {
         id: 1,
         ..Series::default()
       }]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episodes(episodes) = network
@@ -2122,6 +2154,7 @@ mod test {
         ..Series::default()
       }]);
     app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episodes(episodes) = network
@@ -2180,6 +2213,7 @@ mod test {
         id: 1,
         ..Series::default()
       }]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::EpisodeFiles(episode_files) = network
@@ -2227,6 +2261,7 @@ mod test {
         id: 1,
         ..Series::default()
       }]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::EpisodeFiles(episode_files) = network
@@ -2283,6 +2318,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::HostConfig(host_config) = network
@@ -2371,6 +2407,7 @@ mod test {
         .history
         .sorting(vec![history_sort_option]);
     }
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
@@ -2449,6 +2486,7 @@ mod test {
       .sonarr_data
       .history
       .sorting(vec![history_sort_option]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
@@ -2506,6 +2544,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Indexers(indexers) = network
@@ -2545,6 +2584,7 @@ mod test {
       .lock()
       .await
       .push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episode(episode) = network
@@ -2658,6 +2698,7 @@ mod test {
       .lock()
       .await
       .push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episode(episode) = network
@@ -2822,6 +2863,7 @@ mod test {
       .unwrap()
       .episode_history
       .sort_asc = true;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
@@ -2930,6 +2972,7 @@ mod test {
       .unwrap()
       .episodes
       .set_items(vec![episode()]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
@@ -3026,6 +3069,7 @@ mod test {
       Some("episodeId=1&pageSize=1000&sortDirection=descending&sortKey=date"),
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
@@ -3083,6 +3127,7 @@ mod test {
     )
     .await;
     app_arc.lock().await.cli_mode = true;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Episode(episode) = network
@@ -3109,6 +3154,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     network
@@ -3134,6 +3180,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::LanguageProfiles(language_profiles) = network
@@ -3193,6 +3240,7 @@ mod test {
       Some("pageSize=500&sortDirection=descending&sortKey=time"),
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::LogResponse(logs) = network
@@ -3236,6 +3284,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::QualityProfiles(quality_profiles) = network
@@ -3287,6 +3336,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::QueueEvents(events) = network
@@ -3322,6 +3372,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::RootFolders(root_folders) = network
@@ -3377,6 +3428,7 @@ mod test {
       .as_mut()
       .unwrap()
       .episode_details_modal = Some(EpisodeDetailsModal::default());
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Releases(releases_vec) = network
@@ -3435,6 +3487,7 @@ mod test {
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.set_items(vec![episode()]);
     app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Releases(releases_vec) = network
@@ -3542,6 +3595,7 @@ mod test {
       .unwrap()
       .season_history
       .sort_asc = true;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryItems(history) = network
@@ -3646,6 +3700,7 @@ mod test {
       .sonarr_data
       .seasons
       .set_items(vec![season()]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryItems(history) = network
@@ -3765,6 +3820,7 @@ mod test {
       .set_items(vec![season()]);
     app_arc.lock().await.data.sonarr_data.season_details_modal =
       Some(SeasonDetailsModal::default());
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Releases(releases_vec) = network
@@ -3853,6 +3909,7 @@ mod test {
       .sonarr_data
       .seasons
       .set_items(vec![season()]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -3940,6 +3997,7 @@ mod test {
         .series
         .sorting(vec![title_sort_option]);
     }
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SeriesVec(series) = network
@@ -3977,6 +4035,7 @@ mod test {
       .sonarr_data
       .series
       .set_items(vec![series()]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Series(series) = network
@@ -4072,6 +4131,7 @@ mod test {
       .series
       .set_items(vec![series()]);
     app_arc.lock().await.data.sonarr_data.series_history = Some(series_history_table);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryItems(history_items) = network
@@ -4174,6 +4234,7 @@ mod test {
       .sonarr_data
       .series
       .set_items(vec![series()]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryItems(history_items) = network
@@ -4282,6 +4343,7 @@ mod test {
       .lock()
       .await
       .push_navigation_stack(ActiveSonarrBlock::SeriesHistorySortPrompt.into());
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SonarrHistoryItems(history_items) = network
@@ -4361,6 +4423,7 @@ mod test {
       .sonarr_data
       .series
       .sorting(vec![title_sort_option]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -4402,6 +4465,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::SecurityConfig(security_config) = network
@@ -4429,6 +4493,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
     let date_time = DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap());
 
@@ -4467,6 +4532,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Tags(tags) = network
@@ -4527,6 +4593,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Tasks(tasks) = network
@@ -4622,6 +4689,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Updates(updates) = network
@@ -4651,6 +4719,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -4688,6 +4757,7 @@ mod test {
     )
     .await;
     app_arc.lock().await.data.sonarr_data.add_series_search = Some("test term".into());
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::AddSeriesSearchResults(add_series_search_results) = network
@@ -4732,6 +4802,7 @@ mod test {
     )
     .await;
     app_arc.lock().await.data.sonarr_data.add_series_search = Some("test term".into());
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -4778,6 +4849,7 @@ mod test {
         task_name: SonarrTaskName::default(),
         ..SonarrTask::default()
       }]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Value(value) = network
@@ -4851,6 +4923,7 @@ mod test {
       .sonarr_data
       .indexers
       .set_items(vec![indexer()]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Value(value) = network
@@ -4920,6 +4993,7 @@ mod test {
       .sonarr_data
       .indexers
       .set_items(vec![indexer()]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::Value(value) = network
@@ -5003,6 +5077,7 @@ mod test {
       .sonarr_data
       .indexers
       .set_items(indexers);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::IndexerTestResults(results) = network
@@ -5066,6 +5141,7 @@ mod test {
       .match_body(Matcher::Json(json!(expected_body)))
       .create_async()
       .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -5120,6 +5196,7 @@ mod test {
       app.data.sonarr_data.series.set_items(vec![series()]);
       app.data.sonarr_data.seasons.set_items(vec![season()]);
     }
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -5146,6 +5223,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -5172,6 +5250,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -5197,6 +5276,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -5221,6 +5301,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -5253,6 +5334,7 @@ mod test {
       .sonarr_data
       .series
       .set_items(vec![series()]);
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -5277,6 +5359,7 @@ mod test {
       None,
     )
     .await;
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert!(network
@@ -5289,7 +5372,7 @@ mod test {
 
   #[tokio::test]
   async fn test_extract_and_add_sonarr_tag_ids_vec() {
-    let app_arc = Arc::new(Mutex::new(App::default()));
+    let app_arc = Arc::new(Mutex::new(App::test_default()));
     let tags = "    test,HI ,, usenet ";
     {
       let mut app = app_arc.lock().await;
@@ -5299,6 +5382,7 @@ mod test {
         (3, "hi".to_owned()),
       ]);
     }
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     assert_eq!(
@@ -5329,6 +5413,7 @@ mod test {
       app.data.sonarr_data.tags_map =
         BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
     }
+    app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     let tag_ids_vec = network.extract_and_add_sonarr_tag_ids_vec(tags).await;

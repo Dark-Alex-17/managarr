@@ -21,7 +21,7 @@ mod tests {
 
     #[test]
     fn test_delete_download_prompt() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -38,7 +38,7 @@ mod tests {
 
     #[test]
     fn test_delete_download_prompt_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
       app
@@ -61,7 +61,7 @@ mod tests {
 
     #[rstest]
     fn test_downloads_tab_left(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(2);
 
@@ -85,7 +85,7 @@ mod tests {
 
     #[rstest]
     fn test_downloads_tab_right(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(2);
 
@@ -113,7 +113,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
       #[values(DEFAULT_KEYBINDINGS.left.key, DEFAULT_KEYBINDINGS.right.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
 
       DownloadsHandler::new(key, &mut app, active_radarr_block, None).handle();
 
@@ -151,7 +151,7 @@ mod tests {
       #[case] prompt_block: ActiveRadarrBlock,
       #[case] expected_action: RadarrEvent,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -178,7 +178,7 @@ mod tests {
       #[case] base_route: ActiveRadarrBlock,
       #[case] prompt_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -210,7 +210,7 @@ mod tests {
       #[case] base_block: ActiveRadarrBlock,
       #[case] prompt_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(base_block.into());
       app.push_navigation_stack(prompt_block.into());
       app.data.radarr_data.prompt_confirm = true;
@@ -223,7 +223,7 @@ mod tests {
 
     #[rstest]
     fn test_default_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.error = "test error".to_owned().into();
       app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
@@ -246,7 +246,7 @@ mod tests {
 
     #[test]
     fn test_update_downloads_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -269,7 +269,7 @@ mod tests {
 
     #[test]
     fn test_update_downloads_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
       app
@@ -291,7 +291,7 @@ mod tests {
 
     #[test]
     fn test_refresh_downloads_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -313,7 +313,7 @@ mod tests {
 
     #[test]
     fn test_refresh_downloads_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::Downloads.into());
       app
@@ -350,7 +350,7 @@ mod tests {
       #[case] prompt_block: ActiveRadarrBlock,
       #[case] expected_action: RadarrEvent,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -389,7 +389,7 @@ mod tests {
 
   #[test]
   fn test_extract_download_id() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app
       .data
       .radarr_data
@@ -409,7 +409,7 @@ mod tests {
 
   #[test]
   fn test_downloads_handler_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let handler = DownloadsHandler::new(
@@ -424,7 +424,7 @@ mod tests {
 
   #[test]
   fn test_downloads_handler_not_ready_when_downloads_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     let handler = DownloadsHandler::new(
@@ -439,7 +439,7 @@ mod tests {
 
   #[test]
   fn test_downloads_handler_ready_when_not_loading_and_downloads_is_not_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     app

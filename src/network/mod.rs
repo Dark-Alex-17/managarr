@@ -15,7 +15,7 @@ use tokio::sync::{Mutex, MutexGuard};
 use tokio_util::sync::CancellationToken;
 
 use crate::app::{App, ServarrConfig};
-use crate::models::{Route, Serdeable};
+use crate::models::Serdeable;
 use crate::network::radarr_network::RadarrEvent;
 #[cfg(test)]
 use mockall::automock;
@@ -218,10 +218,9 @@ impl<'a, 'b> Network<'a, 'b> {
       .get_active_config()
       .as_ref()
       .expect("Servarr config is undefined");
-    let default_port = match app.get_current_route() {
-      Route::Radarr(_, _) => 7878,
-      Route::Sonarr(_, _) => 8989,
-      _ => 0,
+    let default_port = match network_event.into() {
+      NetworkEvent::Radarr(_) => 7878,
+      NetworkEvent::Sonarr(_) => 8989,
     };
     let mut uri = if let Some(servarr_uri) = uri {
       format!("{servarr_uri}/api/v3{resource}")

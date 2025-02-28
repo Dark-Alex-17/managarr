@@ -333,7 +333,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let download_release_command = SonarrDownloadCommand::Series {
         guid: "guid".to_owned(),
         indexer_id: 1,
@@ -369,7 +369,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let download_release_command = SonarrDownloadCommand::Season {
         guid: "guid".to_owned(),
         indexer_id: 1,
@@ -405,7 +405,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let download_release_command = SonarrDownloadCommand::Episode {
         guid: "guid".to_owned(),
         indexer_id: 1,

@@ -30,7 +30,7 @@ mod tests {
       active_sonarr_block: ActiveSonarrBlock,
       #[values(Key::Left, Key::Right)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
       SeriesDetailsHandler::new(key, &mut app, active_sonarr_block, None).handle();
@@ -50,7 +50,7 @@ mod tests {
       #[case] right_block: ActiveSonarrBlock,
       #[values(true, false)] is_ready: bool,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.is_loading = is_ready;
       app.push_navigation_stack(right_block.into());
@@ -93,7 +93,7 @@ mod tests {
 
     #[test]
     fn test_series_details_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .sonarr_data
@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_series_details_submit_no_op_on_empty_seasons_table() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
 
       SeriesDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeriesDetails, None)
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn test_series_details_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
@@ -137,7 +137,7 @@ mod tests {
 
     #[test]
     fn test_series_history_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut series_history = StatefulTable::default();
       series_history.set_items(vec![SonarrHistoryItem::default()]);
       app.data.sonarr_data.series_history = Some(series_history);
@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn test_series_history_submit_no_op_when_series_history_is_empty() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
       app.data.sonarr_data.series_history = Some(StatefulTable::default());
 
@@ -168,7 +168,7 @@ mod tests {
 
     #[test]
     fn test_series_history_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
@@ -191,7 +191,7 @@ mod tests {
       #[case] prompt_block: ActiveSonarrBlock,
       #[case] expected_action: SonarrEvent,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.prompt_confirm = true;
       app.data.sonarr_data.series.set_items(vec![series()]);
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
@@ -218,7 +218,7 @@ mod tests {
       )]
       prompt_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.push_navigation_stack(prompt_block.into());
 
@@ -243,7 +243,7 @@ mod tests {
 
     #[test]
     fn test_series_history_details_block_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::SeriesHistory.into());
       app.push_navigation_stack(ActiveSonarrBlock::SeriesHistoryDetails.into());
 
@@ -270,7 +270,7 @@ mod tests {
       prompt_block: ActiveSonarrBlock,
       #[values(true, false)] is_ready: bool,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
@@ -287,7 +287,7 @@ mod tests {
 
     #[test]
     fn test_series_history_esc_resets_filter_if_one_is_set_instead_of_closing_the_window() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let series_history = StatefulTable {
         filter: Some("Test".into()),
         filtered_items: Some(vec![SonarrHistoryItem::default()]),
@@ -359,7 +359,7 @@ mod tests {
       #[values(ActiveSonarrBlock::SeriesDetails, ActiveSonarrBlock::SeriesHistory)]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(active_sonarr_block.into());
 
@@ -377,7 +377,7 @@ mod tests {
 
     #[test]
     fn test_toggle_monitoring_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.is_routing = false;
@@ -404,7 +404,7 @@ mod tests {
 
     #[test]
     fn test_toggle_monitoring_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.is_routing = false;
@@ -431,7 +431,7 @@ mod tests {
       #[values(ActiveSonarrBlock::SeriesDetails, ActiveSonarrBlock::SeriesHistory)]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut series_history = StatefulTable::default();
       series_history.set_items(vec![SonarrHistoryItem::default()]);
       app.data.sonarr_data.series_history = Some(series_history);
@@ -456,7 +456,7 @@ mod tests {
       #[values(ActiveSonarrBlock::SeriesDetails, ActiveSonarrBlock::SeriesHistory)]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(active_sonarr_block.into());
 
@@ -476,7 +476,7 @@ mod tests {
       #[values(ActiveSonarrBlock::SeriesDetails, ActiveSonarrBlock::SeriesHistory)]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut series_history = StatefulTable::default();
       series_history.set_items(vec![SonarrHistoryItem::default()]);
       app.data.sonarr_data.series_history = Some(series_history);
@@ -501,7 +501,7 @@ mod tests {
       #[values(ActiveSonarrBlock::SeriesDetails, ActiveSonarrBlock::SeriesHistory)]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(active_sonarr_block.into());
 
@@ -521,7 +521,7 @@ mod tests {
       #[values(ActiveSonarrBlock::SeriesDetails, ActiveSonarrBlock::SeriesHistory)]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut series_history = StatefulTable::default();
       series_history.set_items(vec![SonarrHistoryItem::default()]);
       app.data.sonarr_data.series_history = Some(series_history);
@@ -545,7 +545,7 @@ mod tests {
       #[values(ActiveSonarrBlock::SeriesDetails, ActiveSonarrBlock::SeriesHistory)]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(active_sonarr_block.into());
       app.is_routing = false;
@@ -577,7 +577,7 @@ mod tests {
       #[values(ActiveSonarrBlock::SeriesDetails, ActiveSonarrBlock::SeriesHistory)]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.prompt_confirm = true;
       app.data.sonarr_data.series.set_items(vec![series()]);
       app.push_navigation_stack(active_sonarr_block.into());
@@ -613,7 +613,7 @@ mod tests {
 
   #[test]
   fn test_extract_series_id_season_number_tuple() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data.series.set_items(vec![series()]);
     app.data.sonarr_data.seasons.set_items(vec![season()]);
 
@@ -630,7 +630,7 @@ mod tests {
 
   #[test]
   fn test_extract_series_id() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data.series.set_items(vec![series()]);
 
     let series_id = SeriesDetailsHandler::new(
@@ -646,7 +646,7 @@ mod tests {
 
   #[test]
   fn test_series_details_handler_is_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Series.into());
     app.is_loading = true;
 
@@ -662,7 +662,7 @@ mod tests {
 
   #[test]
   fn test_series_details_handler_is_not_ready_when_not_loading_and_series_history_is_none() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
     let handler = SeriesDetailsHandler::new(
@@ -677,7 +677,7 @@ mod tests {
 
   #[test]
   fn test_series_details_handler_ready_when_not_loading_and_series_history_is_some() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Series.into());
     app.data.sonarr_data.series_history = Some(StatefulTable::default());
 
@@ -693,7 +693,7 @@ mod tests {
 
   #[test]
   fn test_series_details_handler_ready_when_not_loading_for_series_details() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
     let handler = SeriesDetailsHandler::new(

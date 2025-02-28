@@ -31,7 +31,7 @@ mod tests {
       active_sonarr_block: ActiveSonarrBlock,
       #[values(Key::Left, Key::Right)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
 
       EpisodeDetailsHandler::new(key, &mut app, active_sonarr_block, None).handle();
@@ -56,7 +56,7 @@ mod tests {
       #[case] right_block: ActiveSonarrBlock,
       #[values(true, false)] is_ready: bool,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.is_loading = is_ready;
@@ -137,7 +137,7 @@ mod tests {
 
     #[test]
     fn test_episode_history_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
 
       EpisodeDetailsHandler::new(
@@ -156,7 +156,7 @@ mod tests {
 
     #[test]
     fn test_episode_history_submit_no_op_when_episode_history_is_empty() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app
         .data
@@ -186,7 +186,7 @@ mod tests {
 
     #[test]
     fn test_episode_history_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::EpisodeHistory.into());
@@ -221,7 +221,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app
         .data
@@ -247,7 +247,7 @@ mod tests {
 
     #[test]
     fn test_manual_episode_search_confirm_prompt_confirm_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearch.into());
@@ -285,7 +285,7 @@ mod tests {
       )]
       prompt_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
       app.push_navigation_stack(prompt_block.into());
@@ -302,7 +302,7 @@ mod tests {
 
     #[test]
     fn test_manual_episode_search_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearch.into());
 
@@ -322,7 +322,7 @@ mod tests {
 
     #[test]
     fn test_manual_episode_search_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearch.into());
@@ -351,7 +351,7 @@ mod tests {
 
     #[test]
     fn test_episode_history_details_block_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::EpisodeHistory.into());
       app.push_navigation_stack(ActiveSonarrBlock::EpisodeHistoryDetails.into());
@@ -379,7 +379,7 @@ mod tests {
       prompt_block: ActiveSonarrBlock,
       #[values(true, false)] is_ready: bool,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.is_loading = is_ready;
       app.data.sonarr_data.prompt_confirm = true;
@@ -405,7 +405,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.push_navigation_stack(active_sonarr_block.into());
@@ -443,7 +443,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(active_sonarr_block.into());
 
@@ -471,7 +471,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(active_sonarr_block.into());
 
@@ -496,7 +496,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(active_sonarr_block.into());
       app.is_routing = false;
@@ -523,7 +523,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.is_loading = true;
       app.push_navigation_stack(active_sonarr_block.into());
@@ -551,7 +551,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app
         .data
@@ -583,7 +583,7 @@ mod tests {
 
     #[test]
     fn test_episode_details_manual_search_confirm_prompt_confirm_confirm_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveSonarrBlock::ManualEpisodeSearch.into());
@@ -627,7 +627,7 @@ mod tests {
 
   #[test]
   fn test_extract_episode_id() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.set_items(vec![episode()]);
     app.data.sonarr_data.season_details_modal = Some(season_details_modal);
@@ -646,7 +646,7 @@ mod tests {
   #[test]
   #[should_panic = "Season details modal is undefined"]
   fn test_extract_episode_id_panics_when_season_details_modal_is_none() {
-    let mut app = App::default();
+    let mut app = App::test_default();
 
     EpisodeDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
@@ -659,7 +659,7 @@ mod tests {
 
   #[test]
   fn test_episode_details_handler_is_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
     app.is_loading = true;
 
@@ -675,7 +675,7 @@ mod tests {
 
   #[test]
   fn test_episode_details_handler_is_not_ready_when_season_details_modal_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
     app.is_loading = false;
 
@@ -691,7 +691,7 @@ mod tests {
 
   #[test]
   fn test_episode_details_handler_is_not_ready_when_episode_details_modal_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data = create_test_sonarr_data();
     app
       .data
@@ -715,7 +715,7 @@ mod tests {
 
   #[test]
   fn test_episode_details_handler_is_not_ready_when_episode_history_table_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data = create_test_sonarr_data();
     app
       .data
@@ -742,7 +742,7 @@ mod tests {
 
   #[test]
   fn test_episode_details_handler_is_not_ready_when_episode_releases_table_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data = create_test_sonarr_data();
     app
       .data
@@ -772,7 +772,7 @@ mod tests {
     #[values(ActiveSonarrBlock::EpisodeDetails, ActiveSonarrBlock::EpisodeFile)]
     active_sonarr_block: ActiveSonarrBlock,
   ) {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data = create_test_sonarr_data();
     app
       .data
@@ -804,7 +804,7 @@ mod tests {
     )]
     active_sonarr_block: ActiveSonarrBlock,
   ) {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data = create_test_sonarr_data();
     app.push_navigation_stack(active_sonarr_block.into());
     app.is_loading = false;

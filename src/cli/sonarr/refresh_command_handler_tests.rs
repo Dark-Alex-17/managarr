@@ -103,7 +103,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
 
       let result = SonarrRefreshCommandHandler::with(&app_arc, refresh_command, &mut mock_network)
         .handle()
@@ -127,7 +127,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let refresh_series_command = SonarrRefreshCommand::Series { series_id: 1 };
 
       let result =

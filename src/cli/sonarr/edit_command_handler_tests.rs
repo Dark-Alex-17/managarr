@@ -658,7 +658,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_all_indexer_settings_command = SonarrEditCommand::AllIndexerSettings {
         maximum_size: Some(1),
         minimum_age: Some(1),
@@ -705,7 +705,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_indexer_command = SonarrEditCommand::Indexer {
         indexer_id: 1,
         name: Some("Test".to_owned()),
@@ -757,7 +757,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_series_command = SonarrEditCommand::Series {
         series_id: 1,
         enable_monitoring: true,
@@ -805,7 +805,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_series_command = SonarrEditCommand::Series {
         series_id: 1,
         enable_monitoring: false,
@@ -853,7 +853,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_series_command = SonarrEditCommand::Series {
         series_id: 1,
         enable_monitoring: false,

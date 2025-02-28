@@ -18,7 +18,7 @@ mod tests {
 
   #[test]
   fn test_handle_clear_errors() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.error = "test error".to_owned().into();
 
     handle_clear_errors(&mut app);
@@ -30,7 +30,7 @@ mod tests {
   #[case(ActiveRadarrBlock::Movies.into(), ActiveRadarrBlock::SearchMovie.into())]
   #[case(ActiveSonarrBlock::Series.into(), ActiveSonarrBlock::SearchSeries.into())]
   fn test_handle_events(#[case] base_block: Route, #[case] top_block: Route) {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(base_block);
     app.push_navigation_stack(top_block);
     app
@@ -56,7 +56,7 @@ mod tests {
   where
     T: Into<Route> + Copy,
   {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.error = "Test".into();
     app.server_tabs.set_index(index);
 
@@ -84,7 +84,7 @@ mod tests {
 
   #[rstest]
   fn test_handle_prompt_toggle_left_right_radarr(#[values(Key::Left, Key::Right)] key: Key) {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
 
     assert!(!app.data.radarr_data.prompt_confirm);
@@ -100,7 +100,7 @@ mod tests {
 
   #[rstest]
   fn test_handle_prompt_toggle_left_right_sonarr(#[values(Key::Left, Key::Right)] key: Key) {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
     assert!(!app.data.sonarr_data.prompt_confirm);

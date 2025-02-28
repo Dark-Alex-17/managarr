@@ -102,7 +102,7 @@ mod test_utils {
     ($func:ident, $handler:ident, $servarr_data:ident, $data_ref:ident, $block:expr, $context:expr) => {
       #[rstest]
       fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
-        let mut app = App::default();
+        let mut app = App::test_default();
         app.push_navigation_stack($block.into());
         app
           .data
@@ -129,7 +129,7 @@ mod test_utils {
     ($func:ident, $handler:ident, $servarr_data:ident, $data_ref:ident, $items:ident, $block:expr, $context:expr, $field:ident) => {
       #[rstest]
       fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
-        let mut app = App::default();
+        let mut app = App::test_default();
         app.push_navigation_stack($block.into());
         app
           .data
@@ -156,7 +156,7 @@ mod test_utils {
     ($func:ident, $handler:ident, $servarr_data:ident, $data_ref:ident, $items:expr, $block:expr, $context:expr, $field:ident) => {
       #[rstest]
       fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
-        let mut app = App::default();
+        let mut app = App::test_default();
         app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items($items);
 
@@ -179,7 +179,7 @@ mod test_utils {
     ($func:ident, $handler:ident, $servarr_data:ident, $data_ref:ident, $items:expr, $block:expr, $context:expr, $field:ident, $conversion_fn:ident) => {
       #[rstest]
       fn $func(#[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key) {
-        let mut app = App::default();
+        let mut app = App::test_default();
         app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items($items);
 
@@ -217,7 +217,7 @@ mod test_utils {
     ($func:ident, $handler:ident, $servarr_data:ident, $data_ref:ident, $block:expr, $context:expr) => {
       #[test]
       fn $func() {
-        let mut app = App::default();
+        let mut app = App::test_default();
         app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items(vec![
           "Test 1".to_owned(),
@@ -244,7 +244,7 @@ mod test_utils {
     ($func:ident, $handler:ident, $servarr_data:ident, $data_ref:ident, $items:ident, $block:expr, $context:expr, $field:ident) => {
       #[test]
       fn $func() {
-        let mut app = App::default();
+        let mut app = App::test_default();
         app.push_navigation_stack($block.into());
         app
           .data
@@ -271,7 +271,7 @@ mod test_utils {
     ($func:ident, $handler:ident, $servarr_data:ident, $data_ref:ident, $items:expr, $block:expr, $context:expr, $field:ident) => {
       #[test]
       fn $func() {
-        let mut app = App::default();
+        let mut app = App::test_default();
         app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items($items);
 
@@ -294,7 +294,7 @@ mod test_utils {
     ($func:ident, $handler:ident, $servarr_data:ident, $data_ref:ident, $items:expr, $block:expr, $context:expr, $field:ident, $conversion_fn:ident) => {
       #[test]
       fn $func() {
-        let mut app = App::default();
+        let mut app = App::test_default();
         app.push_navigation_stack($block.into());
         app.data.$servarr_data.$data_ref.set_items($items);
 
@@ -330,7 +330,7 @@ mod test_utils {
   #[macro_export]
   macro_rules! test_handler_delegation {
     ($handler:ident, $base:expr, $active_block:expr) => {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.history.set_items(vec![
         $crate::models::sonarr_models::SonarrHistoryItem::default(),
       ]);
@@ -426,7 +426,7 @@ mod test_utils {
   #[macro_export]
   macro_rules! assert_delete_prompt {
     ($handler:ident, $block:expr, $expected_block:expr) => {
-      let mut app = App::default();
+      let mut app = App::test_default();
 
       $handler::new(DELETE_KEY, &mut app, $block, None).handle();
 
@@ -443,7 +443,7 @@ mod test_utils {
   #[macro_export]
   macro_rules! assert_refresh_key {
     ($handler:ident, $block:expr) => {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack($block.into());
 
       $handler::new(DEFAULT_KEYBINDINGS.refresh.key, &mut app, $block, None).handle();

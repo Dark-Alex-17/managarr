@@ -139,7 +139,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_all_indexer_settings_command = SonarrGetCommand::AllIndexerSettings;
 
       let result = SonarrGetCommandHandler::with(
@@ -168,7 +168,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_episode_details_command = SonarrGetCommand::EpisodeDetails { episode_id: 1 };
 
       let result =
@@ -191,7 +191,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_host_config_command = SonarrGetCommand::HostConfig;
 
       let result =
@@ -214,7 +214,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_security_config_command = SonarrGetCommand::SecurityConfig;
 
       let result =
@@ -240,7 +240,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_series_details_command = SonarrGetCommand::SeriesDetails { series_id: 1 };
 
       let result =
@@ -263,7 +263,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_system_status_command = SonarrGetCommand::SystemStatus;
 
       let result =

@@ -138,7 +138,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let manual_episode_search_command = SonarrManualSearchCommand::Episode { episode_id: 1 };
 
       let result = SonarrManualSearchCommandHandler::with(
@@ -168,7 +168,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let manual_season_search_command = SonarrManualSearchCommand::Season {
         series_id: 1,
         season_number: 1,

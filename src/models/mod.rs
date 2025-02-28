@@ -297,6 +297,10 @@ impl TabState {
   }
 
   pub fn get_active_config(&self) -> &Option<ServarrConfig> {
+    if self.tabs.is_empty() {
+      return &None;
+    }
+    
     &self.tabs[self.index].config
   }
 

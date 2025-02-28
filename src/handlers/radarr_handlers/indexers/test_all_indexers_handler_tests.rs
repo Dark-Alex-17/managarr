@@ -17,7 +17,7 @@ mod tests {
 
     #[rstest]
     fn test_test_all_indexers_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::TestAllIndexers.into());
@@ -50,7 +50,7 @@ mod tests {
 
   #[test]
   fn test_test_all_indexers_handler_is_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let handler = TestAllIndexersHandler::new(
@@ -65,7 +65,7 @@ mod tests {
 
   #[test]
   fn test_test_all_indexers_handler_is_not_ready_when_results_is_none() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     let handler = TestAllIndexersHandler::new(
@@ -80,7 +80,7 @@ mod tests {
 
   #[test]
   fn test_test_all_indexers_handler_is_not_ready_when_results_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app.data.radarr_data.indexer_test_all_results = Some(StatefulTable::default());
 
@@ -96,7 +96,7 @@ mod tests {
 
   #[test]
   fn test_test_all_indexers_handler_is_ready_when_results_is_not_empty_and_is_loaded() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     let mut indexer_test_results = StatefulTable::default();
     indexer_test_results.set_items(vec![IndexerTestResultModalItem::default()]);

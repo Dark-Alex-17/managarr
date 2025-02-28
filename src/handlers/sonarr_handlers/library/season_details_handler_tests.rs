@@ -30,7 +30,7 @@ mod tests {
 
     #[test]
     fn test_delete_episode_prompt() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
 
@@ -45,7 +45,7 @@ mod tests {
 
     #[test]
     fn test_delete_episode_prompt_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.is_loading = true;
 
@@ -75,7 +75,7 @@ mod tests {
       active_sonarr_block: ActiveSonarrBlock,
       #[values(Key::Left, Key::Right)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
 
       SeasonDetailsHandler::new(key, &mut app, active_sonarr_block, None).handle();
@@ -102,7 +102,7 @@ mod tests {
       #[case] right_block: ActiveSonarrBlock,
       #[values(true, false)] is_ready: bool,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.is_loading = is_ready;
@@ -169,7 +169,7 @@ mod tests {
 
     #[test]
     fn test_season_details_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.data.sonarr_data = create_test_sonarr_data();
 
@@ -184,7 +184,7 @@ mod tests {
 
     #[test]
     fn test_season_details_submit_no_op_on_empty_episodes_table() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app
         .data
@@ -206,7 +206,7 @@ mod tests {
 
     #[test]
     fn test_season_details_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
 
@@ -221,7 +221,7 @@ mod tests {
 
     #[test]
     fn test_season_history_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
 
       SeasonDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonHistory, None)
@@ -235,7 +235,7 @@ mod tests {
 
     #[test]
     fn test_season_history_submit_no_op_when_season_history_is_empty() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app
         .data
@@ -257,7 +257,7 @@ mod tests {
 
     #[test]
     fn test_season_history_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::SeasonHistory.into());
@@ -286,7 +286,7 @@ mod tests {
       #[values(ActiveSonarrBlock::SeasonDetails, ActiveSonarrBlock::SeasonHistory)]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(active_sonarr_block.into());
@@ -304,7 +304,7 @@ mod tests {
 
     #[test]
     fn test_season_details_manual_search_confirm_prompt_confirm_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveSonarrBlock::ManualSeasonSearch.into());
@@ -344,7 +344,7 @@ mod tests {
       )]
       prompt_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.push_navigation_stack(prompt_block.into());
@@ -361,7 +361,7 @@ mod tests {
 
     #[test]
     fn test_manual_season_search_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::ManualSeasonSearch.into());
 
@@ -381,7 +381,7 @@ mod tests {
 
     #[test]
     fn test_manual_season_search_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::ManualSeasonSearch.into());
@@ -413,7 +413,7 @@ mod tests {
 
     #[test]
     fn test_season_history_details_block_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::SeasonHistory.into());
       app.push_navigation_stack(ActiveSonarrBlock::SeasonHistoryDetails.into());
@@ -442,7 +442,7 @@ mod tests {
       prompt_block: ActiveSonarrBlock,
       #[values(true, false)] is_ready: bool,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.is_loading = is_ready;
       app.data.sonarr_data.prompt_confirm = true;
@@ -460,7 +460,7 @@ mod tests {
 
     #[test]
     fn test_season_history_esc_resets_filter_if_one_is_set_instead_of_closing_the_window() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       let mut season_history = StatefulTable {
         filter: Some("Test".into()),
@@ -523,7 +523,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
       app.push_navigation_stack(active_sonarr_block.into());
@@ -546,7 +546,7 @@ mod tests {
 
     #[test]
     fn test_toggle_monitoring_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app
         .data
@@ -581,7 +581,7 @@ mod tests {
 
     #[test]
     fn test_toggle_monitoring_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
       app.is_routing = false;
@@ -612,7 +612,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(active_sonarr_block.into());
 
@@ -639,7 +639,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(active_sonarr_block.into());
 
@@ -663,7 +663,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(active_sonarr_block.into());
       app.is_routing = false;
@@ -689,7 +689,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.is_loading = true;
       app.push_navigation_stack(active_sonarr_block.into());
@@ -722,7 +722,7 @@ mod tests {
       #[values(ActiveSonarrBlock::SeasonDetails, ActiveSonarrBlock::SeasonHistory)]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(active_sonarr_block.into());
@@ -746,7 +746,7 @@ mod tests {
 
     #[test]
     fn test_season_details_manual_search_confirm_prompt_confirm_confirm_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.data.sonarr_data.prompt_confirm = true;
       app.push_navigation_stack(ActiveSonarrBlock::ManualSeasonSearch.into());
@@ -791,7 +791,7 @@ mod tests {
 
   #[test]
   fn test_extract_episode_file_id() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data = create_test_sonarr_data();
 
     let episode_file_id = SeasonDetailsHandler::new(
@@ -808,7 +808,7 @@ mod tests {
   #[test]
   #[should_panic(expected = "Season details have not been loaded")]
   fn test_extract_episode_file_id_empty_season_details_modal_panics() {
-    let mut app = App::default();
+    let mut app = App::test_default();
 
     SeasonDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
@@ -821,7 +821,7 @@ mod tests {
 
   #[test]
   fn test_extract_episode_id() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.set_items(vec![episode()]);
     app.data.sonarr_data.season_details_modal = Some(season_details_modal);
@@ -840,7 +840,7 @@ mod tests {
   #[test]
   #[should_panic(expected = "Season details have not been loaded")]
   fn test_extract_episode_id_panic_when_season_details_modal_is_none() {
-    let mut app = App::default();
+    let mut app = App::test_default();
 
     SeasonDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
@@ -853,7 +853,7 @@ mod tests {
 
   #[test]
   fn test_extract_series_id_season_number_tuple() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data = create_test_sonarr_data();
 
     let (series_id, season_number) = SeasonDetailsHandler::new(
@@ -870,7 +870,7 @@ mod tests {
 
   #[test]
   fn test_season_details_handler_is_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
     app.is_loading = true;
 
@@ -886,7 +886,7 @@ mod tests {
 
   #[test]
   fn test_season_details_handler_is_not_ready_when_not_loading_and_season_details_is_none() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
 
     let handler = SeasonDetailsHandler::new(
@@ -901,7 +901,7 @@ mod tests {
 
   #[test]
   fn test_season_details_handler_is_not_ready_when_not_loading_and_episodes_table_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
     app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
 
@@ -917,7 +917,7 @@ mod tests {
 
   #[test]
   fn test_season_details_handler_is_not_ready_when_not_loading_and_history_table_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
     app.push_navigation_stack(ActiveSonarrBlock::SeasonHistory.into());
 
@@ -933,7 +933,7 @@ mod tests {
 
   #[test]
   fn test_season_details_handler_is_not_ready_when_not_loading_and_releases_table_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
     app.push_navigation_stack(ActiveSonarrBlock::ManualSeasonSearch.into());
 
@@ -956,7 +956,7 @@ mod tests {
     )]
     active_sonarr_block: ActiveSonarrBlock,
   ) {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data = create_test_sonarr_data();
     app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
     app.push_navigation_stack(active_sonarr_block.into());

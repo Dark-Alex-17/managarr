@@ -9,7 +9,7 @@ mod tests {
   use serde::de::value::I64Deserializer;
   use serde::de::IntoDeserializer;
   use serde_json::to_string;
-
+  use crate::app::ServarrConfig;
   use crate::models::from_f64;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::{from_i64, strip_non_search_characters};
@@ -512,6 +512,31 @@ mod tests {
 
     assert_eq!(active_route, second_tab);
   }
+  
+  #[test]
+  fn test_tab_state_get_active_config() {
+    let mut tabs = create_test_tab_routes();
+    tabs[1].config = Some(ServarrConfig {
+      name: Some("Test".to_owned()),
+      ..ServarrConfig::default()
+    });
+    let tab_state = TabState { tabs, index: 1 };
+    
+    let active_config = tab_state.get_active_config();
+    
+    assert!(active_config.is_some());
+    assert_str_eq!(active_config.clone().unwrap().name.unwrap(), "Test");
+  }
+
+  #[test]
+  fn test_tab_state_get_active_config_defaults_to_none() {
+    let tabs = create_test_tab_routes();
+    let tab_state = TabState { tabs, index: 1 };
+
+    let active_config = tab_state.get_active_config();
+
+    assert!(active_config.is_none());
+  }
 
   #[test]
   fn test_tab_state_get_active_tab_help() {
@@ -718,16 +743,18 @@ mod tests {
   fn create_test_tab_routes() -> Vec<TabRoute> {
     vec![
       TabRoute {
-        title: "Test 1",
+        title: "Test 1".to_owned(),
         route: ActiveRadarrBlock::Movies.into(),
         help: "Help for Test 1".to_owned(),
         contextual_help: Some("Contextual Help for Test 1".to_owned()),
+        config: None,
       },
       TabRoute {
-        title: "Test 2",
+        title: "Test 2".to_owned(),
         route: ActiveRadarrBlock::Collections.into(),
         help: "Help for Test 2".to_owned(),
         contextual_help: Some("Contextual Help for Test 2".to_owned()),
+        config: None,
       },
     ]
   }

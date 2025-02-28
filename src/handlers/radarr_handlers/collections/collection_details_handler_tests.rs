@@ -27,7 +27,7 @@ mod tests {
 
     #[test]
     fn test_collection_details_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -104,7 +104,7 @@ mod tests {
 
     #[test]
     fn test_collection_details_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into());
       app
@@ -130,7 +130,7 @@ mod tests {
 
     #[test]
     fn test_collection_details_submit_movie_already_in_library() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -166,7 +166,7 @@ mod tests {
 
     #[rstest]
     fn test_esc_collection_details(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.push_navigation_stack(ActiveRadarrBlock::Collections.into());
       app.push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into());
@@ -193,7 +193,7 @@ mod tests {
 
     #[test]
     fn test_esc_view_movie_overview() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into());
       app.push_navigation_stack(ActiveRadarrBlock::ViewMovieOverview.into());
 
@@ -237,7 +237,7 @@ mod tests {
 
     #[test]
     fn test_edit_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::CollectionDetails.into());
       let mut radarr_data = create_test_radarr_data();
@@ -280,7 +280,7 @@ mod tests {
 
   #[test]
   fn test_collection_details_handler_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let handler = CollectionDetailsHandler::new(
@@ -295,7 +295,7 @@ mod tests {
 
   #[test]
   fn test_collection_details_handler_not_ready_when_collection_movies_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     let handler = CollectionDetailsHandler::new(
@@ -310,7 +310,7 @@ mod tests {
 
   #[test]
   fn test_collection_details_handler_ready_when_not_loading_and_collection_movies_is_not_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app
       .data

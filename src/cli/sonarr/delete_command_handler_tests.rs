@@ -309,7 +309,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_blocklist_item_command = SonarrDeleteCommand::BlocklistItem {
         blocklist_item_id: 1,
       };
@@ -340,7 +340,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_download_command = SonarrDeleteCommand::Download { download_id: 1 };
 
       let result =
@@ -366,7 +366,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_episode_file_command = SonarrDeleteCommand::EpisodeFile { episode_file_id: 1 };
 
       let result =
@@ -392,7 +392,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_indexer_command = SonarrDeleteCommand::Indexer { indexer_id: 1 };
 
       let result =
@@ -418,7 +418,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_root_folder_command = SonarrDeleteCommand::RootFolder { root_folder_id: 1 };
 
       let result =
@@ -448,7 +448,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_series_command = SonarrDeleteCommand::Series {
         series_id: 1,
         delete_files_from_disk: true,
@@ -478,7 +478,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let delete_tag_command = SonarrDeleteCommand::Tag { tag_id: 1 };
 
       let result =

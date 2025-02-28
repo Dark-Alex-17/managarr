@@ -39,7 +39,7 @@ mod tests {
     fn test_log_details_scroll_no_op_when_not_ready(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app
         .data
@@ -70,7 +70,7 @@ mod tests {
     fn test_tasks_scroll(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
       app
         .data
@@ -97,7 +97,7 @@ mod tests {
     fn test_tasks_scroll_no_op_when_not_ready(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
       app
@@ -125,7 +125,7 @@ mod tests {
     fn test_queued_events_scroll(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
       app
         .data
@@ -154,7 +154,7 @@ mod tests {
     fn test_queued_events_scroll_no_op_when_not_ready(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
       app
@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn test_system_updates_scroll() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
 
       SystemDetailsHandler::new(
@@ -208,7 +208,7 @@ mod tests {
 
     #[test]
     fn test_system_updates_scroll_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
 
@@ -254,7 +254,7 @@ mod tests {
 
     #[test]
     fn test_log_details_home_end_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app
         .data
@@ -295,7 +295,7 @@ mod tests {
 
     #[test]
     fn test_tasks_home_end() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.updates =
         ScrollableText::with_string("Test 1\nTest 2\nTest 3".to_owned());
       app
@@ -333,7 +333,7 @@ mod tests {
 
     #[test]
     fn test_tasks_home_end_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.updates =
         ScrollableText::with_string("Test 1\nTest 2\nTest 3".to_owned());
@@ -372,7 +372,7 @@ mod tests {
 
     #[test]
     fn test_queued_events_home_end() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.updates =
         ScrollableText::with_string("Test 1\nTest 2\nTest 3".to_owned());
       app
@@ -410,7 +410,7 @@ mod tests {
 
     #[test]
     fn test_queued_events_home_end_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.updates =
         ScrollableText::with_string("Test 1\nTest 2\nTest 3".to_owned());
@@ -449,7 +449,7 @@ mod tests {
 
     #[test]
     fn test_system_updates_home_end() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
 
       SystemDetailsHandler::new(
@@ -475,7 +475,7 @@ mod tests {
 
     #[test]
     fn test_system_updates_home_end_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.updates = ScrollableText::with_string("Test 1\nTest 2".to_owned());
 
@@ -510,7 +510,7 @@ mod tests {
     #[test]
     fn test_handle_log_details_left_right() {
       let active_radarr_block = ActiveRadarrBlock::SystemLogs;
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .radarr_data
@@ -610,7 +610,7 @@ mod tests {
     fn test_left_right_prompt_toggle(
       #[values(DEFAULT_KEYBINDINGS.left.key, DEFAULT_KEYBINDINGS.right.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
 
       SystemDetailsHandler::new(
         key,
@@ -645,7 +645,7 @@ mod tests {
 
     #[test]
     fn test_system_tasks_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
 
       SystemDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::SystemTasks, None)
@@ -659,7 +659,7 @@ mod tests {
 
     #[test]
     fn test_system_tasks_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
       app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
@@ -675,7 +675,7 @@ mod tests {
 
     #[test]
     fn test_system_tasks_start_task_prompt_confirm_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
       app.data.radarr_data.prompt_confirm = true;
       app.data.radarr_data.tasks.set_items(vec![RadarrTask {
@@ -706,7 +706,7 @@ mod tests {
 
     #[test]
     fn test_system_tasks_start_task_prompt_decline_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
       app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
       app.push_navigation_stack(ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into());
@@ -739,7 +739,7 @@ mod tests {
 
     #[rstest]
     fn test_esc_system_logs(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app
         .data
@@ -762,7 +762,7 @@ mod tests {
 
     #[rstest]
     fn test_esc_system_tasks(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
@@ -779,7 +779,7 @@ mod tests {
 
     #[rstest]
     fn test_esc_system_queued_events(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.push_navigation_stack(ActiveRadarrBlock::SystemQueuedEvents.into());
@@ -802,7 +802,7 @@ mod tests {
 
     #[rstest]
     fn test_esc_system_updates(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.push_navigation_stack(ActiveRadarrBlock::System.into());
       app.push_navigation_stack(ActiveRadarrBlock::SystemUpdates.into());
@@ -814,7 +814,7 @@ mod tests {
 
     #[test]
     fn test_system_tasks_start_task_prompt_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
       app.push_navigation_stack(ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into());
       app.data.radarr_data.prompt_confirm = true;
@@ -853,7 +853,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
       app.push_navigation_stack(active_radarr_block.into());
 
@@ -879,7 +879,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
       app.push_navigation_stack(active_radarr_block.into());
@@ -898,7 +898,7 @@ mod tests {
 
     #[test]
     fn test_system_tasks_start_task_prompt_confirm() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
       app.data.radarr_data.tasks.set_items(vec![RadarrTask {
         task_name: RadarrTaskName::default(),
@@ -940,7 +940,7 @@ mod tests {
 
   #[test]
   fn test_extract_task_name() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.radarr_data.tasks.set_items(vec![RadarrTask {
       task_name: RadarrTaskName::default(),
       ..RadarrTask::default()
@@ -959,7 +959,7 @@ mod tests {
 
   #[test]
   fn test_system_details_handler_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let handler = SystemDetailsHandler::new(
@@ -974,7 +974,7 @@ mod tests {
 
   #[test]
   fn test_system_details_handler_not_ready_when_log_details_and_updates_and_tasks_are_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     let handler = SystemDetailsHandler::new(
@@ -989,7 +989,7 @@ mod tests {
 
   #[test]
   fn test_system_details_handler_ready_when_not_loading_and_log_details_is_not_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app
       .data
@@ -1009,7 +1009,7 @@ mod tests {
 
   #[test]
   fn test_system_details_handler_ready_when_not_loading_and_tasks_is_not_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app
       .data
@@ -1029,7 +1029,7 @@ mod tests {
 
   #[test]
   fn test_system_details_handler_ready_when_not_loading_and_updates_is_not_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app.data.radarr_data.updates = ScrollableText::with_string("Test".to_owned());
 

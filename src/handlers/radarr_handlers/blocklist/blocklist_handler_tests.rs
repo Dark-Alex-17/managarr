@@ -24,7 +24,7 @@ mod tests {
 
     #[test]
     fn test_delete_blocklist_item_prompt() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
 
       BlocklistHandler::new(DELETE_KEY, &mut app, ActiveRadarrBlock::Blocklist, None).handle();
@@ -37,7 +37,7 @@ mod tests {
 
     #[test]
     fn test_delete_blocklist_item_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
@@ -56,7 +56,7 @@ mod tests {
 
     #[rstest]
     fn test_blocklist_tab_left(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(3);
 
@@ -77,7 +77,7 @@ mod tests {
 
     #[rstest]
     fn test_blocklist_tab_right(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.radarr_data.main_tabs.set_index(3);
 
@@ -108,7 +108,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
       #[values(DEFAULT_KEYBINDINGS.left.key, DEFAULT_KEYBINDINGS.right.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
 
       BlocklistHandler::new(key, &mut app, active_radarr_block, None).handle();
 
@@ -132,7 +132,7 @@ mod tests {
 
     #[test]
     fn test_blocklist_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
 
@@ -146,7 +146,7 @@ mod tests {
 
     #[test]
     fn test_blocklist_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
@@ -172,7 +172,7 @@ mod tests {
       #[case] prompt_block: ActiveRadarrBlock,
       #[case] expected_action: RadarrEvent,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
       app.data.radarr_data.prompt_confirm = true;
       app.push_navigation_stack(base_route.into());
@@ -196,7 +196,7 @@ mod tests {
       )]
       prompt_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.push_navigation_stack(prompt_block.into());
@@ -232,7 +232,7 @@ mod tests {
       #[case] base_block: ActiveRadarrBlock,
       #[case] prompt_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(base_block.into());
       app.push_navigation_stack(prompt_block.into());
       app.data.radarr_data.prompt_confirm = true;
@@ -245,7 +245,7 @@ mod tests {
 
     #[test]
     fn test_esc_blocklist_item_details() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.push_navigation_stack(ActiveRadarrBlock::BlocklistItemDetails.into());
 
@@ -262,7 +262,7 @@ mod tests {
 
     #[rstest]
     fn test_default_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.error = "test error".to_owned().into();
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
@@ -285,7 +285,7 @@ mod tests {
 
     #[test]
     fn test_refresh_blocklist_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
 
@@ -303,7 +303,7 @@ mod tests {
 
     #[test]
     fn test_refresh_blocklist_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
@@ -322,7 +322,7 @@ mod tests {
 
     #[test]
     fn test_clear_blocklist_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
 
       BlocklistHandler::new(
@@ -341,7 +341,7 @@ mod tests {
 
     #[test]
     fn test_clear_blocklist_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::Blocklist.into());
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
@@ -373,7 +373,7 @@ mod tests {
       #[case] prompt_block: ActiveRadarrBlock,
       #[case] expected_action: RadarrEvent,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.blocklist.set_items(blocklist_vec());
       app.push_navigation_stack(base_route.into());
       app.push_navigation_stack(prompt_block.into());
@@ -543,7 +543,7 @@ mod tests {
 
   #[test]
   fn test_extract_blocklist_item_id() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.radarr_data.blocklist.set_items(blocklist_vec());
 
     let blocklist_item_id = BlocklistHandler::new(
@@ -559,7 +559,7 @@ mod tests {
 
   #[test]
   fn test_blocklist_handler_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let handler = BlocklistHandler::new(
@@ -574,7 +574,7 @@ mod tests {
 
   #[test]
   fn test_blocklist_handler_not_ready_when_blocklist_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     let handler = BlocklistHandler::new(
@@ -589,7 +589,7 @@ mod tests {
 
   #[test]
   fn test_blocklist_handler_ready_when_not_loading_and_blocklist_is_not_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app
       .data

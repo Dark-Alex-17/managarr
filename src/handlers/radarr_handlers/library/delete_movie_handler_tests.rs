@@ -23,7 +23,7 @@ mod tests {
 
     #[rstest]
     fn test_delete_movie_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.down();
 
@@ -46,7 +46,7 @@ mod tests {
     fn test_delete_movie_prompt_scroll_no_op_when_not_ready(
       #[values(Key::Up, Key::Down)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.down();
@@ -67,7 +67,7 @@ mod tests {
 
     #[rstest]
     fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
 
       DeleteMovieHandler::new(key, &mut app, ActiveRadarrBlock::DeleteMoviePrompt, None).handle();
 
@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_delete_movie_prompt_prompt_decline_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
       app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
@@ -121,7 +121,7 @@ mod tests {
 
     #[test]
     fn test_delete_movie_confirm_prompt_prompt_confirmation_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let expected_delete_movie_params = DeleteMovieParams {
         id: 1,
         delete_movie_files: true,
@@ -161,7 +161,7 @@ mod tests {
 
     #[test]
     fn test_delete_movie_confirm_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
@@ -191,7 +191,7 @@ mod tests {
     #[test]
     fn test_delete_movie_toggle_delete_files_submit() {
       let current_route = ActiveRadarrBlock::DeleteMoviePrompt.into();
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.selected_block = BlockSelectionState::new(DELETE_MOVIE_SELECTION_BLOCKS);
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
 
@@ -228,7 +228,7 @@ mod tests {
 
     #[rstest]
     fn test_delete_movie_prompt_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::DeleteMoviePrompt.into());
@@ -264,7 +264,7 @@ mod tests {
 
     #[test]
     fn test_delete_movie_confirm_prompt_prompt_confirm() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let expected_delete_movie_params = DeleteMovieParams {
         id: 1,
         delete_movie_files: true,
@@ -315,7 +315,7 @@ mod tests {
 
   #[test]
   fn test_build_delete_movie_params() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.radarr_data.movies.set_items(vec![movie()]);
     app.data.radarr_data.delete_movie_files = true;
     app.data.radarr_data.add_list_exclusion = true;
@@ -340,7 +340,7 @@ mod tests {
 
   #[test]
   fn test_delete_movie_handler_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let handler = DeleteMovieHandler::new(
@@ -355,7 +355,7 @@ mod tests {
 
   #[test]
   fn test_delete_movie_handler_ready_when_not_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     let handler = DeleteMovieHandler::new(

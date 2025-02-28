@@ -25,7 +25,7 @@ mod tests {
 
     #[rstest]
     fn test_edit_indexer_priority_scroll(#[values(Key::Up, Key::Down)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
@@ -101,7 +101,7 @@ mod tests {
 
     #[rstest]
     fn test_edit_indexer_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.data.radarr_data.selected_block =
@@ -127,7 +127,7 @@ mod tests {
     fn test_edit_indexer_prompt_scroll_no_op_when_not_ready(
       #[values(Key::Up, Key::Down)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.is_loading = true;
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
@@ -155,7 +155,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_name_input_home_end() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         name: "Test".into(),
@@ -207,7 +207,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_url_input_home_end() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         url: "Test".into(),
@@ -259,7 +259,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_api_key_input_home_end() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         api_key: "Test".into(),
@@ -311,7 +311,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_seed_ratio_input_home_end() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         seed_ratio: "Test".into(),
@@ -363,7 +363,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_tags_input_home_end() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         tags: "Test".into(),
@@ -430,7 +430,7 @@ mod tests {
 
     #[rstest]
     fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
@@ -472,7 +472,7 @@ mod tests {
       #[case] left_block: ActiveRadarrBlock,
       #[case] right_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
@@ -525,7 +525,7 @@ mod tests {
       #[case] left_block: ActiveRadarrBlock,
       #[case] right_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_NZB_SELECTION_BLOCKS);
@@ -555,7 +555,7 @@ mod tests {
     fn test_left_right_block_toggle_torren_empty_row_to_prompt_confirm(
       #[values(Key::Left, Key::Right)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.selected_block =
         BlockSelectionState::new(EDIT_INDEXER_TORRENT_SELECTION_BLOCKS);
@@ -585,7 +585,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_name_input_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         name: "Test".into(),
@@ -637,7 +637,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_url_input_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         url: "Test".into(),
@@ -689,7 +689,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_api_key_input_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         api_key: "Test".into(),
@@ -741,7 +741,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_seed_ratio_input_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         seed_ratio: "Test".into(),
@@ -793,7 +793,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_tags_input_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         tags: "Test".into(),
@@ -861,7 +861,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_prompt_prompt_decline_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
       app.data.radarr_data.selected_block =
@@ -889,7 +889,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_prompt_prompt_confirmation_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
       app.data.radarr_data.selected_block =
@@ -946,7 +946,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
@@ -981,7 +981,7 @@ mod tests {
       #[case] starting_x: usize,
       #[case] block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
@@ -1007,7 +1007,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_priority_input_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
@@ -1032,7 +1032,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_toggle_enable_rss_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.data.radarr_data.selected_block =
@@ -1085,7 +1085,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_toggle_enable_automatic_search_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.data.radarr_data.selected_block =
@@ -1138,7 +1138,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_toggle_enable_interactive_search_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
       app.data.radarr_data.selected_block =
@@ -1191,7 +1191,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_name_input_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.should_ignore_quit_key = true;
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
@@ -1227,7 +1227,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_url_input_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.should_ignore_quit_key = true;
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
@@ -1263,7 +1263,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_api_key_input_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.should_ignore_quit_key = true;
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
@@ -1299,7 +1299,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_seed_ratio_input_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.should_ignore_quit_key = true;
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
@@ -1335,7 +1335,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_tags_input_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.should_ignore_quit_key = true;
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
@@ -1382,7 +1382,7 @@ mod tests {
 
     #[rstest]
     fn test_edit_indexer_prompt_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
@@ -1413,7 +1413,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
@@ -1442,7 +1442,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_name_input_backspace() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         name: "Test".into(),
@@ -1472,7 +1472,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_url_input_backspace() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         url: "Test".into(),
@@ -1502,7 +1502,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_api_key_input_backspace() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         api_key: "Test".into(),
@@ -1532,7 +1532,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_seed_ratio_input_backspace() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         seed_ratio: "Test".into(),
@@ -1562,7 +1562,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_tags_input_backspace() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal {
         tags: "Test".into(),
@@ -1592,7 +1592,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_name_input_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
@@ -1619,7 +1619,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_url_input_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
@@ -1646,7 +1646,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_api_key_input_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
@@ -1673,7 +1673,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_seed_ratio_input_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
@@ -1700,7 +1700,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_tags_input_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
@@ -1727,7 +1727,7 @@ mod tests {
 
     #[test]
     fn test_edit_indexer_prompt_prompt_confirmation_confirm() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditIndexerPrompt.into());
       app.data.radarr_data.selected_block =
@@ -1795,7 +1795,7 @@ mod tests {
 
   #[test]
   fn test_build_edit_indexer_params() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     let edit_indexer_modal = EditIndexerModal {
       name: "Test Update".into(),
       enable_rss: Some(false),
@@ -1837,7 +1837,7 @@ mod tests {
 
   #[test]
   fn test_edit_indexer_handler_is_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
     app.is_loading = true;
 
@@ -1853,7 +1853,7 @@ mod tests {
 
   #[test]
   fn test_edit_indexer_handler_is_not_ready_when_edit_indexer_modal_is_none() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
     app.is_loading = false;
 
@@ -1869,7 +1869,7 @@ mod tests {
 
   #[test]
   fn test_edit_indexer_handler_is_ready_when_edit_indexer_modal_is_some() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
     app.is_loading = false;
     app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());

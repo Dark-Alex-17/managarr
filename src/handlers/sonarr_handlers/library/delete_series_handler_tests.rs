@@ -23,7 +23,7 @@ mod tests {
 
     #[rstest]
     fn test_delete_series_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.selected_block =
         BlockSelectionState::new(DELETE_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.down();
@@ -47,7 +47,7 @@ mod tests {
     fn test_delete_series_prompt_scroll_no_op_when_not_ready(
       #[values(Key::Up, Key::Down)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.sonarr_data.selected_block =
         BlockSelectionState::new(DELETE_SERIES_SELECTION_BLOCKS);
@@ -69,7 +69,7 @@ mod tests {
 
     #[rstest]
     fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
 
       DeleteSeriesHandler::new(key, &mut app, ActiveSonarrBlock::DeleteSeriesPrompt, None).handle();
@@ -95,7 +95,7 @@ mod tests {
 
     #[test]
     fn test_delete_series_prompt_prompt_decline_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
       app.data.sonarr_data.selected_block =
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn test_delete_series_confirm_prompt_prompt_confirmation_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
       app.data.sonarr_data.prompt_confirm = true;
@@ -166,7 +166,7 @@ mod tests {
 
     #[test]
     fn test_delete_series_confirm_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
@@ -196,7 +196,7 @@ mod tests {
     #[test]
     fn test_delete_series_toggle_delete_files_submit() {
       let current_route = ActiveSonarrBlock::DeleteSeriesPrompt.into();
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.selected_block =
         BlockSelectionState::new(DELETE_SERIES_SELECTION_BLOCKS);
       app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
@@ -234,7 +234,7 @@ mod tests {
 
     #[rstest]
     fn test_delete_series_prompt_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
@@ -270,7 +270,7 @@ mod tests {
 
     #[test]
     fn test_delete_series_confirm_prompt_prompt_confirm() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
       app.data.sonarr_data.delete_series_files = true;
@@ -322,7 +322,7 @@ mod tests {
 
   #[test]
   fn test_build_delete_series_params() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data.series.set_items(vec![series()]);
     app.data.sonarr_data.delete_series_files = true;
     app.data.sonarr_data.add_list_exclusion = true;
@@ -347,7 +347,7 @@ mod tests {
 
   #[test]
   fn test_delete_series_handler_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let handler = DeleteSeriesHandler::new(
@@ -362,7 +362,7 @@ mod tests {
 
   #[test]
   fn test_delete_series_handler_ready_when_not_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     let handler = DeleteSeriesHandler::new(

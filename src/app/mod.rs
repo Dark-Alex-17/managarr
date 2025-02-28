@@ -51,16 +51,25 @@ impl App<'_> {
     cancellation_token: CancellationToken,
   ) -> Self {
     let mut server_tabs = Vec::new();
+    let help = format!(
+      "<↑↓> scroll | ←→ change tab | {}  ",
+      build_context_clue_string(&SERVARR_CONTEXT_CLUES)
+    );
 
     if let Some(radarr_configs) = config.radarr {
+      let mut idx = 0;
       for radarr_config in radarr_configs {
+        let name = if let Some(name) = radarr_config.name.clone() {
+          name
+        } else {
+          idx+=1;
+          format!("Radarr {}", idx)
+        };
+        
         server_tabs.push(TabRoute {
-          title: radarr_config.name.clone(),
+          title: name,
           route: ActiveRadarrBlock::Movies.into(),
-          help: format!(
-            "<↑↓> scroll | ←→ change tab | {}  ",
-            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-          ),
+          help: help.clone(),
           contextual_help: None,
           config: Some(radarr_config),
         });
@@ -68,14 +77,20 @@ impl App<'_> {
     }
 
     if let Some(sonarr_configs) = config.sonarr {
+      let mut idx = 0;
+      
       for sonarr_config in sonarr_configs {
+        let name = if let Some(name) = sonarr_config.name.clone() {
+          name
+        } else {
+          idx+=1;
+          format!("Sonarr {}", idx)
+        };
+        
         server_tabs.push(TabRoute {
-          title: sonarr_config.name.clone(),
+          title: name,
           route: ActiveSonarrBlock::Series.into(),
-          help: format!(
-            "<↑↓> scroll | ←→ change tab | {}  ",
-            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-          ),
+          help: help.clone(),
           contextual_help: None,
           config: Some(sonarr_config),
         });
@@ -86,8 +101,8 @@ impl App<'_> {
       .into_iter()
       .sorted_by(|tab1, tab2| {
         Ord::cmp(
-          tab1.config.as_ref().unwrap().weight.as_ref().unwrap_or(&0),
-          tab2.config.as_ref().unwrap().weight.as_ref().unwrap_or(&0),
+          tab1.config.as_ref().unwrap().weight.as_ref().unwrap_or(&1000),
+          tab2.config.as_ref().unwrap().weight.as_ref().unwrap_or(&1000),
         )
       })
       .collect();
@@ -190,6 +205,24 @@ impl Default for App<'_> {
       cancellation_token: CancellationToken::new(),
       error: HorizontallyScrollableText::default(),
       is_first_render: true,
+      server_tabs: TabState::new(Vec::new()),
+      tick_until_poll: 400,
+      ticks_until_scroll: 4,
+      tick_count: 0,
+      is_loading: false,
+      is_routing: false,
+      should_refresh: false,
+      should_ignore_quit_key: false,
+      cli_mode: false,
+      data: Data::default(),
+    }
+  }
+}
+
+#[cfg(test)]
+impl App<'_> {
+  pub fn test_default() -> Self {
+    App {
       server_tabs: TabState::new(vec![
         TabRoute {
           title: "Radarr".to_owned(),
@@ -212,15 +245,7 @@ impl Default for App<'_> {
           config: Some(ServarrConfig::default()),
         },
       ]),
-      tick_until_poll: 400,
-      ticks_until_scroll: 4,
-      tick_count: 0,
-      is_loading: false,
-      is_routing: false,
-      should_refresh: false,
-      should_ignore_quit_key: false,
-      cli_mode: false,
-      data: Data::default(),
+      ..App::default()
     }
   }
 }
@@ -292,8 +317,8 @@ impl AppConfig {
 
 #[derive(Redact, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct ServarrConfig {
-  #[serde(default, deserialize_with = "deserialize_env_var")]
-  pub name: String,
+  #[serde(default, deserialize_with = "deserialize_optional_env_var")]
+  pub name: Option<String>,
   #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub host: Option<String>,
   #[serde(default, deserialize_with = "deserialize_u16_env_var")]
@@ -313,11 +338,6 @@ pub struct ServarrConfig {
 
 impl ServarrConfig {
   fn validate(&self) {
-    if self.name.is_empty() {
-      log_and_print_error("'name' is required for configuration".to_owned());
-      process::exit(1);
-    }
-
     if self.host.is_none() && self.uri.is_none() {
       log_and_print_error("'host' or 'uri' is required for configuration".to_owned());
       process::exit(1);
@@ -352,7 +372,7 @@ impl ServarrConfig {
 impl Default for ServarrConfig {
   fn default() -> Self {
     ServarrConfig {
-      name: String::new(),
+      name: None,
       host: Some("localhost".to_string()),
       port: None,
       uri: None,
@@ -367,15 +387,6 @@ impl Default for ServarrConfig {
 pub fn log_and_print_error(error: String) {
   error!("{}", error);
   eprintln!("error: {}", error.red());
-}
-
-fn deserialize_env_var<'de, D>(deserializer: D) -> Result<String, D::Error>
-where
-  D: serde::Deserializer<'de>,
-{
-  let s: String = String::deserialize(deserializer)?;
-  let interpolated = interpolate_env_vars(&s);
-  Ok(interpolated)
 }
 
 fn deserialize_optional_env_var<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>

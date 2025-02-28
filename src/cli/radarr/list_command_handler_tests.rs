@@ -147,7 +147,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
 
       let result = RadarrListCommandHandler::with(&app_arc, list_command, &mut mock_network)
         .handle()
@@ -171,7 +171,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let list_movie_credits_command = RadarrListCommand::MovieCredits { movie_id: 1 };
 
       let result =
@@ -197,7 +197,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let list_logs_command = RadarrListCommand::Logs {
         events: 1000,
         output_in_log_format: false,

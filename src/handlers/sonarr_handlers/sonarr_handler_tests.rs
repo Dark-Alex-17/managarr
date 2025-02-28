@@ -23,7 +23,7 @@ mod tests {
     #[case] left_block: ActiveSonarrBlock,
     #[case] right_block: ActiveSonarrBlock,
   ) {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.sonarr_data.main_tabs.set_index(index);
 
     handle_change_tab_left_right_keys(&mut app, DEFAULT_KEYBINDINGS.left.key);

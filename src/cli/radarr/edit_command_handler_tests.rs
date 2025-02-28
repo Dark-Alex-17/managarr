@@ -865,7 +865,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_all_indexer_settings_command = RadarrEditCommand::AllIndexerSettings {
         allow_hardcoded_subs: true,
         disable_allow_hardcoded_subs: false,
@@ -936,7 +936,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_all_indexer_settings_command = RadarrEditCommand::AllIndexerSettings {
         allow_hardcoded_subs: false,
         disable_allow_hardcoded_subs: true,
@@ -1008,7 +1008,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_all_indexer_settings_command = RadarrEditCommand::AllIndexerSettings {
         allow_hardcoded_subs: false,
         disable_allow_hardcoded_subs: false,
@@ -1055,7 +1055,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_collection_command = RadarrEditCommand::Collection {
         collection_id: 1,
         enable_monitoring: true,
@@ -1097,7 +1097,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_collection_command = RadarrEditCommand::Collection {
         collection_id: 1,
         enable_monitoring: false,
@@ -1139,7 +1139,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_collection_command = RadarrEditCommand::Collection {
         collection_id: 1,
         enable_monitoring: false,
@@ -1187,7 +1187,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_indexer_command = RadarrEditCommand::Indexer {
         indexer_id: 1,
         name: Some("Test".to_owned()),
@@ -1241,7 +1241,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_indexer_command = RadarrEditCommand::Indexer {
         indexer_id: 1,
         name: Some("Test".to_owned()),
@@ -1295,7 +1295,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_indexer_command = RadarrEditCommand::Indexer {
         indexer_id: 1,
         name: Some("Test".to_owned()),
@@ -1345,7 +1345,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_movie_command = RadarrEditCommand::Movie {
         movie_id: 1,
         enable_monitoring: true,
@@ -1388,7 +1388,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_movie_command = RadarrEditCommand::Movie {
         movie_id: 1,
         enable_monitoring: false,
@@ -1431,7 +1431,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let edit_movie_command = RadarrEditCommand::Movie {
         movie_id: 1,
         enable_monitoring: false,

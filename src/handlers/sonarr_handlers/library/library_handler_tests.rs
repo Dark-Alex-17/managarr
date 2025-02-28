@@ -29,7 +29,7 @@ mod tests {
 
     #[test]
     fn test_series_delete() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .sonarr_data
@@ -50,7 +50,7 @@ mod tests {
 
     #[test]
     fn test_series_delete_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app
@@ -73,7 +73,7 @@ mod tests {
 
     #[rstest]
     fn test_series_tab_left(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(0);
 
@@ -94,7 +94,7 @@ mod tests {
 
     #[rstest]
     fn test_series_tab_right(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.sonarr_data.main_tabs.set_index(0);
 
@@ -117,7 +117,7 @@ mod tests {
     fn test_left_right_update_all_series_prompt_toggle(
       #[values(DEFAULT_KEYBINDINGS.left.key, DEFAULT_KEYBINDINGS.right.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
       LibraryHandler::new(
@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn test_series_details_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .sonarr_data
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn test_series_details_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app
@@ -186,7 +186,7 @@ mod tests {
 
     #[test]
     fn test_update_all_series_prompt_confirm_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .sonarr_data
@@ -214,7 +214,7 @@ mod tests {
 
     #[test]
     fn test_update_all_series_prompt_decline_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .sonarr_data
@@ -248,7 +248,7 @@ mod tests {
 
     #[test]
     fn test_update_all_series_prompt_blocks_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::UpdateAllSeriesPrompt.into());
       app.data.sonarr_data.prompt_confirm = true;
@@ -267,7 +267,7 @@ mod tests {
 
     #[rstest]
     fn test_default_esc(#[values(true, false)] is_ready: bool) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.error = "test error".to_owned().into();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
@@ -297,7 +297,7 @@ mod tests {
 
     #[test]
     fn test_series_add_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .sonarr_data
@@ -322,7 +322,7 @@ mod tests {
 
     #[test]
     fn test_series_add_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app
@@ -355,7 +355,7 @@ mod tests {
 
     #[test]
     fn test_series_edit_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app
@@ -378,7 +378,7 @@ mod tests {
 
     #[test]
     fn test_update_all_series_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .sonarr_data
@@ -401,7 +401,7 @@ mod tests {
 
     #[test]
     fn test_update_all_series_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app
@@ -423,7 +423,7 @@ mod tests {
 
     #[test]
     fn test_refresh_series_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .sonarr_data
@@ -445,7 +445,7 @@ mod tests {
 
     #[test]
     fn test_refresh_series_key_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app
         .data
@@ -468,7 +468,7 @@ mod tests {
 
     #[test]
     fn test_update_all_series_prompt_confirm() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app
         .data
         .sonarr_data
@@ -829,7 +829,7 @@ mod tests {
 
   #[test]
   fn test_library_handler_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let handler = LibraryHandler::new(
@@ -844,7 +844,7 @@ mod tests {
 
   #[test]
   fn test_library_handler_not_ready_when_series_is_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     let handler = LibraryHandler::new(
@@ -859,7 +859,7 @@ mod tests {
 
   #[test]
   fn test_library_handler_ready_when_not_loading_and_series_is_not_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app
       .data

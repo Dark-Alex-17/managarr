@@ -30,7 +30,7 @@ mod tests {
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
       let minimum_availability_vec = Vec::from_iter(MinimumAvailability::iter());
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app
         .data
@@ -92,7 +92,7 @@ mod tests {
     fn test_edit_movie_select_quality_profile_scroll(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app
         .data
@@ -146,7 +146,7 @@ mod tests {
 
     #[rstest]
     fn test_edit_movie_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.data.radarr_data.selected_block = BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
       app.data.radarr_data.selected_block.down();
@@ -168,7 +168,7 @@ mod tests {
 
     #[rstest]
     fn test_edit_movie_prompt_scroll_no_op_when_not_ready(#[values(Key::Up, Key::Down)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.data.radarr_data.selected_block = BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
@@ -195,7 +195,7 @@ mod tests {
     #[test]
     fn test_edit_movie_select_minimum_availability_home_end() {
       let minimum_availability_vec = Vec::from_iter(MinimumAvailability::iter());
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app
         .data
@@ -249,7 +249,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_select_quality_profile_scroll() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app
         .data
@@ -307,7 +307,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_path_input_home_end_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
         path: "Test".into(),
         ..EditMovieModal::default()
@@ -358,7 +358,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_tags_input_home_end_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
         tags: "Test".into(),
         ..EditMovieModal::default()
@@ -418,7 +418,7 @@ mod tests {
 
     #[rstest]
     fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
 
       EditMovieHandler::new(key, &mut app, ActiveRadarrBlock::EditMoviePrompt, None).handle();
 
@@ -431,7 +431,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_path_input_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
         path: "Test".into(),
         ..EditMovieModal::default()
@@ -482,7 +482,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_tags_input_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
         tags: "Test".into(),
         ..EditMovieModal::default()
@@ -547,7 +547,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_path_input_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.should_ignore_quit_key = true;
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
         path: "Test Path".into(),
@@ -582,7 +582,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_tags_input_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.should_ignore_quit_key = true;
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
         tags: "Test Tags".into(),
@@ -617,7 +617,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_prompt_prompt_decline_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
@@ -642,7 +642,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_confirm_prompt_prompt_confirmation_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut edit_movie = EditMovieModal {
         tags: "usenet, testing".to_owned().into(),
         path: "/nfs/Test Path".to_owned().into(),
@@ -700,7 +700,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_confirm_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
@@ -729,7 +729,7 @@ mod tests {
         ActiveRadarrBlock::EditMoviePrompt,
         Some(ActiveRadarrBlock::Movies),
       ));
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.data.radarr_data.selected_block = BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
       app.push_navigation_stack(current_route);
@@ -784,7 +784,7 @@ mod tests {
       #[case] selected_block: ActiveRadarrBlock,
       #[case] y_index: usize,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.push_navigation_stack(
         (
@@ -821,7 +821,7 @@ mod tests {
     fn test_edit_movie_prompt_selected_block_submit_no_op_when_not_ready(
       #[values(1, 2, 3, 4)] y_index: usize,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.push_navigation_stack(
@@ -864,7 +864,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
       app.push_navigation_stack(active_radarr_block.into());
@@ -909,7 +909,7 @@ mod tests {
       )]
       active_radarr_block: ActiveRadarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data = create_test_radarr_data();
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
@@ -926,7 +926,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_prompt_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
       app.data.radarr_data = create_test_radarr_data();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
@@ -948,7 +948,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
       #[values(true, false)] is_ready: bool,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.radarr_data = create_test_radarr_data();
       app.push_navigation_stack(active_radarr_block.into());
@@ -971,7 +971,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_path_input_backspace() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
         path: "Test".into(),
         ..EditMovieModal::default()
@@ -1000,7 +1000,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_tags_input_backspace() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
         tags: "Test".into(),
         ..EditMovieModal::default()
@@ -1029,7 +1029,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_path_input_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
 
       EditMovieHandler::new(
@@ -1055,7 +1055,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_tags_input_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
 
       EditMovieHandler::new(
@@ -1081,7 +1081,7 @@ mod tests {
 
     #[test]
     fn test_edit_movie_confirm_prompt_prompt_confirm() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut edit_movie = EditMovieModal {
         tags: "usenet, testing".to_owned().into(),
         path: "/nfs/Test Path".to_owned().into(),
@@ -1150,7 +1150,7 @@ mod tests {
 
   #[test]
   fn test_build_edit_movie_params() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     let mut edit_movie = EditMovieModal {
       tags: "usenet, testing".to_owned().into(),
       path: "/nfs/Test Path".to_owned().into(),
@@ -1194,7 +1194,7 @@ mod tests {
 
   #[test]
   fn test_edit_movie_handler_is_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = true;
 
     let handler = EditMovieHandler::new(
@@ -1209,7 +1209,7 @@ mod tests {
 
   #[test]
   fn test_edit_movie_handler_is_not_ready_when_edit_movie_modal_is_none() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
 
     let handler = EditMovieHandler::new(
@@ -1224,7 +1224,7 @@ mod tests {
 
   #[test]
   fn test_edit_movie_handler_is_ready_when_edit_movie_modal_is_some() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.is_loading = false;
     app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
 

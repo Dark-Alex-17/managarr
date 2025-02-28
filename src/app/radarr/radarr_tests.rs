@@ -467,7 +467,7 @@ mod tests {
 
   #[tokio::test]
   async fn test_dispatch_by_cast_crew_blocks_cast_and_crew_non_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
 
     for active_radarr_block in &[ActiveRadarrBlock::Cast, ActiveRadarrBlock::Crew] {
       let mut movie_details_modal = MovieDetailsModal::default();
@@ -511,7 +511,7 @@ mod tests {
 
   #[tokio::test]
   async fn test_dispatch_by_manual_search_block_movie_releases_non_empty() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     let mut movie_details_modal = MovieDetailsModal::default();
     movie_details_modal
       .movie_releases
@@ -531,7 +531,7 @@ mod tests {
   async fn test_dispatch_by_manual_search_block_is_loading() {
     let mut app = App {
       is_loading: true,
-      ..App::default()
+      ..App::test_default()
     };
 
     app
@@ -545,7 +545,7 @@ mod tests {
 
   #[tokio::test]
   async fn test_check_for_radarr_prompt_action_no_prompt_confirm() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.radarr_data.prompt_confirm = false;
 
     app.check_for_radarr_prompt_action().await;
@@ -729,7 +729,7 @@ mod tests {
 
   #[tokio::test]
   async fn test_populate_movie_collection_table_unfiltered() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.radarr_data.collections.set_items(vec![Collection {
       movies: Some(vec![CollectionMovie::default()]),
       ..Collection::default()
@@ -742,7 +742,7 @@ mod tests {
 
   #[tokio::test]
   async fn test_populate_movie_collection_table_filtered() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app
       .data
       .radarr_data
@@ -759,7 +759,7 @@ mod tests {
 
   #[tokio::test]
   async fn test_extract_movie_id() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.radarr_data.movies.set_items(vec![Movie {
       id: 1,
       ..Movie::default()
@@ -770,7 +770,7 @@ mod tests {
 
   #[tokio::test]
   async fn test_extract_radarr_indexer_id() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.data.radarr_data.indexers.set_items(vec![Indexer {
       id: 1,
       ..Indexer::default()
@@ -785,7 +785,7 @@ mod tests {
       network_tx: Some(sync_network_tx),
       tick_count: 1,
       is_first_render: false,
-      ..App::default()
+      ..App::test_default()
     };
     app.data.radarr_data.prompt_confirm = true;
 

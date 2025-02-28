@@ -138,7 +138,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_all_indexer_settings_command = RadarrGetCommand::AllIndexerSettings;
 
       let result = RadarrGetCommandHandler::with(
@@ -164,7 +164,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_host_config_command = RadarrGetCommand::HostConfig;
 
       let result =
@@ -190,7 +190,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_movie_details_command = RadarrGetCommand::MovieDetails { movie_id: 1 };
 
       let result =
@@ -216,7 +216,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_movie_history_command = RadarrGetCommand::MovieHistory { movie_id: 1 };
 
       let result =
@@ -239,7 +239,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_security_config_command = RadarrGetCommand::SecurityConfig;
 
       let result =
@@ -262,7 +262,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let get_system_status_command = RadarrGetCommand::SystemStatus;
 
       let result =

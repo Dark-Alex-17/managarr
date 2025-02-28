@@ -30,7 +30,7 @@ mod tests {
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
       let series_type_vec = Vec::from_iter(SeriesType::iter());
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app
@@ -93,7 +93,7 @@ mod tests {
     fn test_edit_series_select_quality_profile_scroll(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app
@@ -150,7 +150,7 @@ mod tests {
     fn test_edit_series_select_language_profile_scroll(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app
@@ -205,7 +205,7 @@ mod tests {
 
     #[rstest]
     fn test_edit_series_prompt_scroll(#[values(Key::Up, Key::Down)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
@@ -228,7 +228,7 @@ mod tests {
 
     #[rstest]
     fn test_edit_series_prompt_scroll_no_op_when_not_ready(#[values(Key::Up, Key::Down)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.is_loading = true;
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
@@ -257,7 +257,7 @@ mod tests {
     #[test]
     fn test_edit_series_select_series_type_home_end() {
       let series_type_vec = Vec::from_iter(SeriesType::iter());
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app
@@ -312,7 +312,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_select_quality_profile_scroll() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app
@@ -371,7 +371,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_select_language_profile_scroll() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app
@@ -430,7 +430,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_path_input_home_end_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal {
         path: "Test".into(),
@@ -482,7 +482,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_tags_input_home_end_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal {
         tags: "Test".into(),
@@ -544,7 +544,7 @@ mod tests {
 
     #[rstest]
     fn test_left_right_prompt_toggle(#[values(Key::Left, Key::Right)] key: Key) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
       EditSeriesHandler::new(key, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None).handle();
@@ -558,7 +558,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_path_input_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal {
         path: "Test".into(),
@@ -610,7 +610,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_tags_input_left_right_keys() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal {
         tags: "Test".into(),
@@ -676,7 +676,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_path_input_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.should_ignore_quit_key = true;
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal {
         path: "Test Path".into(),
@@ -712,7 +712,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_tags_input_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.should_ignore_quit_key = true;
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal {
         tags: "Test Tags".into(),
@@ -748,7 +748,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_prompt_prompt_decline_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
@@ -773,7 +773,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_confirm_prompt_prompt_confirmation_submit() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut edit_series = EditSeriesModal {
         tags: "usenet, testing".to_owned().into(),
         path: "/nfs/Test Path".to_owned().into(),
@@ -840,7 +840,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_confirm_prompt_prompt_confirmation_submit_no_op_when_not_ready() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
@@ -869,7 +869,7 @@ mod tests {
         ActiveSonarrBlock::EditSeriesPrompt,
         Some(ActiveSonarrBlock::Series),
       ));
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
@@ -922,7 +922,7 @@ mod tests {
         ActiveSonarrBlock::EditSeriesPrompt,
         Some(ActiveSonarrBlock::Series),
       ));
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.selected_block.set_index(0, 1);
@@ -980,7 +980,7 @@ mod tests {
       #[case] selected_block: ActiveSonarrBlock,
       #[case] y_index: usize,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(
@@ -1018,7 +1018,7 @@ mod tests {
     fn test_edit_series_prompt_selected_block_submit_no_op_when_not_ready(
       #[values(1, 2, 3, 4)] y_index: usize,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = true;
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
@@ -1063,7 +1063,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
@@ -1109,7 +1109,7 @@ mod tests {
       )]
       active_sonarr_block: ActiveSonarrBlock,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
       app.should_ignore_quit_key = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
@@ -1127,7 +1127,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_prompt_esc() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
       app.data.sonarr_data = create_test_sonarr_data();
@@ -1151,7 +1151,7 @@ mod tests {
       active_sonarr_block: ActiveSonarrBlock,
       #[values(true, false)] is_ready: bool,
     ) {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.sonarr_data = create_test_sonarr_data();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
@@ -1178,7 +1178,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_path_input_backspace() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal {
         path: "Test".into(),
@@ -1208,7 +1208,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_tags_input_backspace() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal {
         tags: "Test".into(),
@@ -1238,7 +1238,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_path_input_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
 
@@ -1265,7 +1265,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_tags_input_char_key() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
 
@@ -1292,7 +1292,7 @@ mod tests {
 
     #[test]
     fn test_edit_series_confirm_prompt_prompt_confirm() {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut edit_series = EditSeriesModal {
         tags: "usenet, testing".to_owned().into(),
         path: "/nfs/Test Path".to_owned().into(),
@@ -1370,7 +1370,7 @@ mod tests {
 
   #[test]
   fn test_build_edit_series_params() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     let mut edit_series = EditSeriesModal {
       tags: "usenet, testing".to_owned().into(),
       path: "/nfs/Test Path".to_owned().into(),
@@ -1423,7 +1423,7 @@ mod tests {
 
   #[test]
   fn test_edit_series_handler_is_not_ready_when_loading() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Series.into());
     app.is_loading = true;
 
@@ -1439,7 +1439,7 @@ mod tests {
 
   #[test]
   fn test_edit_series_handler_is_not_ready_when_edit_series_modal_is_none() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Series.into());
     app.is_loading = false;
 
@@ -1455,7 +1455,7 @@ mod tests {
 
   #[test]
   fn test_edit_series_handler_is_ready_when_edit_series_modal_is_some() {
-    let mut app = App::default();
+    let mut app = App::test_default();
     app.push_navigation_stack(ActiveSonarrBlock::Series.into());
     app.is_loading = false;
     app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());

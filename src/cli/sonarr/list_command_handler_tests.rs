@@ -313,7 +313,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
 
       let result = SonarrListCommandHandler::with(&app_arc, list_command, &mut mock_network)
         .handle()
@@ -337,7 +337,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let list_episodes_command = SonarrListCommand::Episodes { series_id: 1 };
 
       let result =
@@ -363,7 +363,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let list_episode_files_command = SonarrListCommand::EpisodeFiles { series_id: 1 };
 
       let result =
@@ -389,7 +389,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let list_history_command = SonarrListCommand::History { events: 1000 };
 
       let result =
@@ -415,7 +415,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let list_logs_command = SonarrListCommand::Logs {
         events: 1000,
         output_in_log_format: false,
@@ -443,7 +443,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let list_series_history_command = SonarrListCommand::SeriesHistory { series_id: 1 };
 
       let result =
@@ -469,7 +469,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let list_episode_history_command = SonarrListCommand::EpisodeHistory { episode_id: 1 };
 
       let result =
@@ -496,7 +496,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let list_season_history_command = SonarrListCommand::SeasonHistory {
         series_id: 1,
         season_number: 1,

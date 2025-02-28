@@ -174,7 +174,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let trigger_automatic_series_search_command =
         SonarrTriggerAutomaticSearchCommand::Series { series_id: 1 };
 
@@ -206,7 +206,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let trigger_automatic_season_search_command = SonarrTriggerAutomaticSearchCommand::Season {
         series_id: 1,
         season_number: 1,
@@ -238,7 +238,7 @@ mod tests {
             json!({"testResponse": "response"}),
           )))
         });
-      let app_arc = Arc::new(Mutex::new(App::default()));
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
       let trigger_automatic_episode_search_command =
         SonarrTriggerAutomaticSearchCommand::Episode { episode_id: 1 };
 

@@ -16,7 +16,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
   #[macro_export]
   macro_rules! test_edit_series_key {
     ($handler:ident, $block:expr, $context:expr) => {
-      let mut app = App::default();
+      let mut app = App::test_default();
       let mut sonarr_data = SonarrData {
         quality_profile_map: bimap::BiMap::from_iter([
           (2222, "HD - 1080p".to_owned()),
