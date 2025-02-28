@@ -308,7 +308,7 @@ where you may have more than one instance of a given Servarr running. Thus, you 
 config file using the `--config` flag:
 
 ```shell
-managarr --config /path/to/config.yml
+managarr --config-file /path/to/config.yml
 ```
 
 ### Example Configuration:
@@ -359,7 +359,7 @@ radarr:
   - host: 192.168.0.78 # No name specified, so this instance's name will default to 'Radarr 1'
     port: 7878
     api_token: someApiToken1234567890
-    ssl_cert_path: /path/to/radarr.crt # Required to enable SSL
+    ssl_cert_path: /path/to/radarr.crt
     
   - name: International Movies
     host: 192.168.0.79
@@ -390,6 +390,13 @@ appended to it. For example, if you have two Radarr instances and neither has a 
 In this example configuration, the tabs in the TUI would appear as follows:
 
 `Anime | TV Shows | Radarr 1 | International Movies`
+
+### Specify Which Servarr Instance to Use in the CLI
+If you have multiple instances of the same Servarr running, you can specify which instance you want to use by using the `--servarr-name` flag:
+
+```shell
+managarr --servarr-name "International Movies"
+```
 
 ## Environment Variables
 Managarr supports using environment variables on startup so you don't have to always specify certain flags:
