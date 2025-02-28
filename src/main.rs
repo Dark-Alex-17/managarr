@@ -73,7 +73,15 @@ struct Cli {
     env = "MANAGARR_CONFIG_FILE",
     help = "The Managarr configuration file to use"
   )]
-  config: Option<PathBuf>,
+  config_file: Option<PathBuf>,
+  #[arg(
+    long,
+    global = true,
+    help = "For multi-instance configurations, you need to specify the name of the instance configuration that you want to use.
+    This is useful when you have multiple instances of the same Servarr defined in your config file.
+    By default, if left empty, the first configured Servarr instance listed in the config file will be used."
+  )]
+  servarr_name: Option<String>,
 }
 
 #[tokio::main]
@@ -85,7 +93,7 @@ async fn main() -> Result<()> {
   let running = Arc::new(AtomicBool::new(true));
   let r = running.clone();
   let args = Cli::parse();
-  let mut config = if let Some(ref config_file) = args.config {
+  let mut config = if let Some(ref config_file) = args.config_file {
     load_config(config_file.to_str().expect("Invalid config file specified"))?
   } else {
     confy::load("managarr", "config")?
@@ -111,7 +119,7 @@ async fn main() -> Result<()> {
     config.clone(),
     cancellation_token.clone(),
   )));
-
+  
   match args.command {
     Some(command) => match command {
       Command::Radarr(_) | Command::Sonarr(_) => {

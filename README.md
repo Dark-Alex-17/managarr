@@ -216,7 +216,7 @@ To see all available commands, simply run `managarr --help`:
 
 ```shell
 $ managarr --help
-managarr 0.4.0
+managarr 0.4.2
 Alex Clarke <alex.j.tusa@gmail.com>
 
 A TUI and CLI to manage your Servarrs
@@ -231,10 +231,13 @@ Commands:
   help         Print this message or the help of the given subcommand(s)
 
 Options:
-      --disable-spinner  Disable the spinner (can sometimes make parsing output challenging) [env: MANAGARR_DISABLE_SPINNER=]
-      --config <CONFIG>  The Managarr configuration file to use [env: MANAGARR_CONFIG_FILE=]
-  -h, --help             Print help
-  -V, --version          Print version
+      --disable-spinner              Disable the spinner (can sometimes make parsing output challenging) [env: MANAGARR_DISABLE_SPINNER=]
+      --config-file <CONFIG_FILE>    The Managarr configuration file to use [env: MANAGARR_CONFIG_FILE=]
+      --servarr-name <SERVARR_NAME>  For multi-instance configurations, you need to specify the name of the instance configuration that you want to use.
+                                         This is useful when you have multiple instances of the same Servarr defined in your config file.
+                                         By default, if left empty, the first configured Servarr instance listed in the config file will be used.
+  -h, --help                         Print help
+  -V, --version                      Print version
 ```
 
 All subcommands also have detailed help menus to show you how to use them. For example, to see all available commands for Sonarr, you would run:
@@ -311,39 +314,82 @@ managarr --config /path/to/config.yml
 ### Example Configuration:
 ```yaml
 radarr:
-  host: 192.168.0.78
-  port: 7878
-  api_token: someApiToken1234567890
-  ssl_cert_path: /path/to/radarr.crt # Required to enable SSL
+  - host: 192.168.0.78
+    port: 7878
+    api_token: someApiToken1234567890
+    ssl_cert_path: /path/to/radarr.crt # Required to enable SSL
 sonarr:
-  uri: http://htpc.local/sonarr # Example of using the 'uri' key instead of 'host' and 'port'
-  api_token: someApiToken1234567890
+  - uri: http://htpc.local/sonarr # Example of using the 'uri' key instead of 'host' and 'port'
+    api_token: someApiToken1234567890
+    
+  - name: Anime Sonarr # An example of a custom name for a secondary Sonarr instance
+    host: 192.168.0.89
+    port: 8989
+    api_token: someApiToken1234567890
 readarr:
-  host: 192.168.0.87 
-  port: 8787
-  api_token_file: /root/.config/readarr_api_token # Example of loading the API token from a file instead of hardcoding it in the configuration file
+  - host: 192.168.0.87 
+    port: 8787
+    api_token_file: /root/.config/readarr_api_token # Example of loading the API token from a file instead of hardcoding it in the configuration file
 lidarr:
-  host: 192.168.0.86
-  port: 8686
-  api_token: ${MY_LIDARR_API_TOKEN} # Example of configuring using environment variables
+  - host: 192.168.0.86
+    port: 8686
+    api_token: ${MY_LIDARR_API_TOKEN} # Example of configuring using environment variables
 whisparr:
-  host: 192.168.0.69
-  port: 6969
-  api_token: someApiToken1234567890
-  ssl_cert_path: /path/to/whisparr.crt
+  - host: 192.168.0.69
+    port: 6969
+    api_token: someApiToken1234567890
+    ssl_cert_path: /path/to/whisparr.crt
 bazarr:
-  host: 192.168.0.67
-  port: 6767
-  api_token: someApiToken1234567890
+  - host: 192.168.0.67
+    port: 6767
+    api_token: someApiToken1234567890
 prowlarr:
-  host: 192.168.0.96
-  port: 9696
-  api_token: someApiToken1234567890
+  - host: 192.168.0.96
+    port: 9696
+    api_token: someApiToken1234567890
 tautulli:
-  host: 192.168.0.81
-  port: 8181
-  api_token: someApiToken1234567890
+  - host: 192.168.0.81
+    port: 8181
+    api_token: someApiToken1234567890
 ```
+
+### Example Multi-Instance Configuration:
+```yaml
+radarr:
+  - host: 192.168.0.78 # No name specified, so this instance's name will default to 'Radarr 1'
+    port: 7878
+    api_token: someApiToken1234567890
+    ssl_cert_path: /path/to/radarr.crt # Required to enable SSL
+    
+  - name: International Movies
+    host: 192.168.0.79
+    port: 7878
+    api_token: someApiToken1234567890
+sonarr:
+  - name: Anime
+    weight: 1 # This instance will be the first tab in the TUI
+    uri: http://htpc.local/sonarr
+    api_token: someApiToken1234567890
+
+  - name: TV Shows
+    weight: 2 # This instance will be the second tab in the TUI
+    host: 192.168.0.89
+    port: 8989
+    api_token: someApiToken1234567890
+```
+
+In this configuration, you can see that we have multiple instances of Radarr and Sonarr configured. The `weight` key is 
+used to specify the order in which the tabs will appear in the TUI. The lower the weight, the further to the left the 
+tab will appear. If no weight is specified, then tabs will be ordered in the order they appear in the configuration 
+file.
+
+When no `name` is specified for a Servarr instance, the name will default to the name of the Servarr with a number 
+appended to it. For example, if you have two Radarr instances and neither has a name, they will be named `Radarr 1` and 
+`Radarr 2`, respectively.
+
+In this example configuration, the tabs in the TUI would appear as follows:
+
+`Anime | TV Shows | Radarr 1 | International Movies`
 
 ## Environment Variables
 Managarr supports using environment variables on startup so you don't have to always specify certain flags:

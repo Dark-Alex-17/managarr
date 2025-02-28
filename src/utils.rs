@@ -227,7 +227,11 @@ pub(super) async fn start_cli_with_spinner(
   command: Command,
 ) {
   config.verify_config_present_for_cli(&command);
-  app.lock().await.cli_mode = true;
+  {
+    let mut app = app.lock().await;
+    app.cli_mode = true;
+    select_cli_configuration(&mut app, &config, &command, None);
+  }
   let pb = render_spinner();
   let app_nw = Arc::clone(&app);
   let mut network = Network::new(&app_nw, cancellation_token, reqwest_client);
@@ -252,7 +256,11 @@ pub(super) async fn start_cli_no_spinner(
   command: Command,
 ) {
   config.verify_config_present_for_cli(&command);
-  app.lock().await.cli_mode = true;
+  {
+    let mut app = app.lock().await;
+    app.cli_mode = true;
+    select_cli_configuration(&mut app, &config, &command, None);
+  }
   let app_nw = Arc::clone(&app);
   let mut network = Network::new(&app_nw, cancellation_token, reqwest_client);
   match cli::handle_command(&app, command, &mut network).await {
@@ -262,6 +270,28 @@ pub(super) async fn start_cli_no_spinner(
     Err(e) => {
       eprintln!("error: {}", e.to_string().red());
       process::exit(1);
+    }
+  }
+}
+
+pub fn select_cli_configuration(app: &mut App<'_>, config: &AppConfig, command: &Command, servarr_name_arg: Option<String>) {
+  if let Some(servarr_name) = servarr_name_arg {
+    let trimmed_name = servarr_name.trim();
+    if !app.server_tabs.select_tab_by_title(trimmed_name) {
+      log_and_print_error(format!("A Servarr titled '{}' was not found in your configuration file", trimmed_name));
+      process::exit(1);
+    }
+  } else {
+    match command {
+      Command::Radarr(_) => {
+        let default_radarr_config = config.radarr.as_ref().unwrap()[0].clone();
+        app.server_tabs.select_tab_by_config(&default_radarr_config);
+      },
+      Command::Sonarr(_) => {
+        let default_sonarr_config = config.sonarr.as_ref().unwrap()[0].clone();
+        app.server_tabs.select_tab_by_config(&default_sonarr_config);
+      },
+      _ => ()
     }
   }
 }

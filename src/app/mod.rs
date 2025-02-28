@@ -65,7 +65,7 @@ impl App<'_> {
           idx+=1;
           format!("Radarr {}", idx)
         };
-        
+
         server_tabs.push(TabRoute {
           title: name,
           route: ActiveRadarrBlock::Movies.into(),
@@ -78,7 +78,7 @@ impl App<'_> {
 
     if let Some(sonarr_configs) = config.sonarr {
       let mut idx = 0;
-      
+
       for sonarr_config in sonarr_configs {
         let name = if let Some(name) = sonarr_config.name.clone() {
           name
@@ -86,7 +86,7 @@ impl App<'_> {
           idx+=1;
           format!("Sonarr {}", idx)
         };
-        
+
         server_tabs.push(TabRoute {
           title: name,
           route: ActiveSonarrBlock::Series.into(),

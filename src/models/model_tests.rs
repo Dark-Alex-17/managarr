@@ -537,6 +537,78 @@ mod tests {
 
     assert!(active_config.is_none());
   }
+  
+  #[test]
+  fn test_select_tab_by_title() {
+    let tabs = create_test_tab_routes();
+    let mut tab_state = TabState { tabs, index: 0 };
+
+    let result = tab_state.select_tab_by_title("Test 2");
+
+    assert!(result);
+    assert_eq!(tab_state.index, 1);
+
+    let result = tab_state.select_tab_by_title("Not real");
+
+    assert!(!result);
+    assert_eq!(tab_state.index, 1);
+  }
+  
+  #[test]
+  fn test_select_tab_by_title_empty_tabs_returns_false() {
+    let mut tab_state = TabState { tabs: vec![], index: 0 };
+    
+    let result = tab_state.select_tab_by_title("Test 2");
+    
+    assert!(!result);
+    assert_eq!(tab_state.index, 0);
+  }
+  
+  #[test]
+  fn test_select_tab_by_config() {
+    let mut tabs = create_test_tab_routes();
+    tabs[0].config = Some(ServarrConfig {
+      name: Some("Test 1".to_owned()),
+      ..ServarrConfig::default()
+    });
+    tabs[1].config = Some(ServarrConfig {
+      host: Some("http://localhost".to_owned()),
+      port: Some(7878),
+      ..ServarrConfig::default()
+    });
+    let mut tab_state = TabState { tabs, index: 0 };
+    
+    let result = tab_state.select_tab_by_config(&ServarrConfig {
+      host: Some("http://localhost".to_owned()),
+      port: Some(7878),
+      ..ServarrConfig::default()
+    });
+    
+    assert!(result);
+    assert_eq!(tab_state.index, 1);
+    
+    let result = tab_state.select_tab_by_config(&ServarrConfig {
+      name: Some("Not real".to_owned()),
+      ..ServarrConfig::default()
+    });
+    
+    assert!(!result);
+    assert_eq!(tab_state.index, 1);
+  }
+  
+  #[test]
+  fn test_select_tab_by_config_empty_tabs_returns_false() {
+    let mut tab_state = TabState { tabs: vec![], index: 0 };
+    
+    let result = tab_state.select_tab_by_config(&ServarrConfig {
+      host: Some("http://localhost".to_owned()),
+      port: Some(7878),
+      ..ServarrConfig::default()
+    });
+    
+    assert!(!result);
+    assert_eq!(tab_state.index, 0);
+  }
 
   #[test]
   fn test_tab_state_get_active_tab_help() {

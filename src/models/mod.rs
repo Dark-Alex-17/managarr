@@ -303,7 +303,39 @@ impl TabState {
     
     &self.tabs[self.index].config
   }
-
+  
+  pub fn select_tab_by_title(&mut self, name: &str) -> bool {
+    if !self.tabs.is_empty() {
+      let mut found = false;
+      self.tabs.iter().enumerate().for_each(|(idx, tab)| {
+        if tab.title == name {
+          self.index = idx;
+          found = true;
+        }
+      });
+      
+      return found;
+    }
+    
+    false
+  }
+  
+  pub fn select_tab_by_config(&mut self, config: &ServarrConfig) -> bool {
+    if !self.tabs.is_empty() {
+      let mut found = false;
+      self.tabs.iter().enumerate().for_each(|(idx, tab)| {
+        if tab.config == Some(config.clone()) {
+          self.index = idx;
+          found = true;
+        }
+      });
+      
+      return found;
+    }
+    
+    false
+  }
+  
   pub fn get_active_tab_help(&self) -> &str {
     &self.tabs[self.index].help
   }
