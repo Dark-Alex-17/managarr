@@ -1,10 +1,11 @@
-use std::{fs, process};
-use std::path::PathBuf;
 use anyhow::{anyhow, Error, Result};
 use colored::Colorize;
+use itertools::Itertools;
 use log::{debug, error};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
+use std::{fs, process};
 use tokio::sync::mpsc::Sender;
 use tokio_util::sync::CancellationToken;
 use veil::Redact;
@@ -40,7 +41,6 @@ pub struct App<'a> {
   pub should_refresh: bool,
   pub should_ignore_quit_key: bool,
   pub cli_mode: bool,
-  pub config: AppConfig,
   pub data: Data<'a>,
 }
 
@@ -52,35 +52,50 @@ impl App<'_> {
   ) -> Self {
     let mut server_tabs = Vec::new();
 
-    if config.radarr.is_some() {
-      server_tabs.push(TabRoute {
-        title: "Radarr",
-        route: ActiveRadarrBlock::Movies.into(),
-        help: format!(
-          "<↑↓> scroll | ←→ change tab | {}  ",
-          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-        ),
-        contextual_help: None,
-      });
+    if let Some(radarr_configs) = config.radarr {
+      for radarr_config in radarr_configs {
+        server_tabs.push(TabRoute {
+          title: radarr_config.name.clone(),
+          route: ActiveRadarrBlock::Movies.into(),
+          help: format!(
+            "<↑↓> scroll | ←→ change tab | {}  ",
+            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
+          ),
+          contextual_help: None,
+          config: Some(radarr_config),
+        });
+      }
     }
 
-    if config.sonarr.is_some() {
-      server_tabs.push(TabRoute {
-        title: "Sonarr",
-        route: ActiveSonarrBlock::Series.into(),
-        help: format!(
-          "<↑↓> scroll | ←→ change tab | {}  ",
-          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-        ),
-        contextual_help: None,
-      });
+    if let Some(sonarr_configs) = config.sonarr {
+      for sonarr_config in sonarr_configs {
+        server_tabs.push(TabRoute {
+          title: sonarr_config.name.clone(),
+          route: ActiveSonarrBlock::Series.into(),
+          help: format!(
+            "<↑↓> scroll | ←→ change tab | {}  ",
+            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
+          ),
+          contextual_help: None,
+          config: Some(sonarr_config),
+        });
+      }
     }
+
+    let weight_sorted_tabs = server_tabs
+      .into_iter()
+      .sorted_by(|tab1, tab2| {
+        Ord::cmp(
+          tab1.config.as_ref().unwrap().weight.as_ref().unwrap_or(&0),
+          tab2.config.as_ref().unwrap().weight.as_ref().unwrap_or(&0),
+        )
+      })
+      .collect();
 
     App {
       network_tx: Some(network_tx),
-      config,
       cancellation_token,
-      server_tabs: TabState::new(server_tabs),
+      server_tabs: TabState::new(weight_sorted_tabs),
       ..App::default()
     }
   }
@@ -177,22 +192,24 @@ impl Default for App<'_> {
       is_first_render: true,
       server_tabs: TabState::new(vec![
         TabRoute {
-          title: "Radarr",
+          title: "Radarr".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
           help: format!(
             "<↑↓> scroll | ←→ change tab | {}  ",
             build_context_clue_string(&SERVARR_CONTEXT_CLUES)
           ),
           contextual_help: None,
+          config: Some(ServarrConfig::default()),
         },
         TabRoute {
-          title: "Sonarr",
+          title: "Sonarr".to_owned(),
           route: ActiveSonarrBlock::Series.into(),
           help: format!(
             "<↑↓> scroll | ←→ change tab | {}  ",
             build_context_clue_string(&SERVARR_CONTEXT_CLUES)
           ),
           contextual_help: None,
+          config: Some(ServarrConfig::default()),
         },
       ]),
       tick_until_poll: 400,
@@ -203,7 +220,6 @@ impl Default for App<'_> {
       should_refresh: false,
       should_ignore_quit_key: false,
       cli_mode: false,
-      config: AppConfig::default(),
       data: Data::default(),
     }
   }
@@ -217,8 +233,8 @@ pub struct Data<'a> {
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct AppConfig {
-  pub radarr: Option<ServarrConfig>,
-  pub sonarr: Option<ServarrConfig>,
+  pub radarr: Option<Vec<ServarrConfig>>,
+  pub sonarr: Option<Vec<ServarrConfig>>,
 }
 
 impl AppConfig {
@@ -230,12 +246,12 @@ impl AppConfig {
       process::exit(1);
     }
 
-    if let Some(radarr_config) = &self.radarr {
-      radarr_config.validate();
+    if let Some(radarr_configs) = &self.radarr {
+      radarr_configs.iter().for_each(|config| config.validate());
     }
 
-    if let Some(sonarr_config) = &self.sonarr {
-      sonarr_config.validate();
+    if let Some(sonarr_configs) = &self.sonarr {
+      sonarr_configs.iter().for_each(|config| config.validate());
     }
   }
 
@@ -260,36 +276,32 @@ impl AppConfig {
   }
 
   pub fn post_process_initialization(&mut self) {
-    let fetch_token = |config: &mut ServarrConfig, name: &'static str| {
-      if let Some(api_token_file) = config.api_token_file.as_ref() {
-        if !PathBuf::from(api_token_file).exists() {
-          log_and_print_error(format!("The specified {} API token file", name));
-          process::exit(1);
-        }
-
-        let api_token = fs::read_to_string(api_token_file).map_err(|e| anyhow!(e)).unwrap();
-        config.api_token = Some(api_token.trim().to_owned());
+    if let Some(radarr_configs) = self.radarr.as_mut() {
+      for radarr_config in radarr_configs {
+        radarr_config.post_process_initialization();
       }
-    };
-
-    if let Some(radarr_config) = self.radarr.as_mut() {
-      fetch_token(radarr_config, "Radarr");
     }
 
-    if let Some(sonarr_config) = self.sonarr.as_mut() {
-      fetch_token(sonarr_config, "Sonarr");
+    if let Some(sonarr_configs) = self.sonarr.as_mut() {
+      for sonarr_config in sonarr_configs {
+        sonarr_config.post_process_initialization();
+      }
     }
   }
 }
 
-#[derive(Redact, Deserialize, Serialize, Clone)]
+#[derive(Redact, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct ServarrConfig {
+  #[serde(default, deserialize_with = "deserialize_env_var")]
+  pub name: String,
   #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub host: Option<String>,
   #[serde(default, deserialize_with = "deserialize_u16_env_var")]
   pub port: Option<u16>,
   #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub uri: Option<String>,
+  #[serde(default, deserialize_with = "deserialize_u16_env_var")]
+  pub weight: Option<u16>,
   #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   #[redact]
   pub api_token: Option<String>,
@@ -301,6 +313,11 @@ pub struct ServarrConfig {
 
 impl ServarrConfig {
   fn validate(&self) {
+    if self.name.is_empty() {
+      log_and_print_error("'name' is required for configuration".to_owned());
+      process::exit(1);
+    }
+
     if self.host.is_none() && self.uri.is_none() {
       log_and_print_error("'host' or 'uri' is required for configuration".to_owned());
       process::exit(1);
@@ -313,14 +330,33 @@ impl ServarrConfig {
       process::exit(1);
     }
   }
+
+  pub fn post_process_initialization(&mut self) {
+    if let Some(api_token_file) = self.api_token_file.as_ref() {
+      if !PathBuf::from(api_token_file).exists() {
+        log_and_print_error(format!(
+          "The specified {} API token file does not exist",
+          api_token_file
+        ));
+        process::exit(1);
+      }
+
+      let api_token = fs::read_to_string(api_token_file)
+        .map_err(|e| anyhow!(e))
+        .unwrap();
+      self.api_token = Some(api_token.trim().to_owned());
+    }
+  }
 }
 
 impl Default for ServarrConfig {
   fn default() -> Self {
     ServarrConfig {
+      name: String::new(),
       host: Some("localhost".to_string()),
       port: None,
       uri: None,
+      weight: None,
       api_token: Some(String::new()),
       api_token_file: None,
       ssl_cert_path: None,

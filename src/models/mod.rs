@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Display, Formatter};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use crate::app::ServarrConfig;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use radarr_models::RadarrSerdeable;
 use regex::Regex;
@@ -267,10 +268,11 @@ impl HorizontallyScrollableText {
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct TabRoute {
-  pub title: &'static str,
+  pub title: String,
   pub route: Route,
   pub help: String,
   pub contextual_help: Option<String>,
+  pub config: Option<ServarrConfig>,
 }
 
 pub struct TabState {
@@ -292,6 +294,10 @@ impl TabState {
 
   pub fn get_active_route(&self) -> Route {
     self.tabs[self.index].route
+  }
+
+  pub fn get_active_config(&self) -> &Option<ServarrConfig> {
+    &self.tabs[self.index].config
   }
 
   pub fn get_active_tab_help(&self) -> &str {

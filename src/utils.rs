@@ -152,17 +152,21 @@ pub(super) fn build_network_client(config: &AppConfig) -> Client {
     .http2_keep_alive_interval(Duration::from_secs(5))
     .tcp_keepalive(Duration::from_secs(5));
 
-  if let Some(radarr_config) = &config.radarr {
-    if let Some(ref cert_path) = &radarr_config.ssl_cert_path {
-      let cert = create_cert(cert_path, "Radarr");
-      client_builder = client_builder.add_root_certificate(cert);
+  if let Some(radarr_configs) = &config.radarr {
+    for radarr_config in radarr_configs {
+      if let Some(ref cert_path) = &radarr_config.ssl_cert_path {
+        let cert = create_cert(cert_path, "Radarr");
+        client_builder = client_builder.add_root_certificate(cert);
+      }
     }
   }
 
-  if let Some(sonarr_config) = &config.sonarr {
-    if let Some(ref cert_path) = &sonarr_config.ssl_cert_path {
-      let cert = create_cert(cert_path, "Sonarr");
-      client_builder = client_builder.add_root_certificate(cert);
+  if let Some(sonarr_configs) = &config.sonarr {
+    for sonarr_config in sonarr_configs {
+      if let Some(ref cert_path) = &sonarr_config.ssl_cert_path {
+        let cert = create_cert(cert_path, "Sonarr");
+        client_builder = client_builder.add_root_certificate(cert);
+      }
     }
   }
 

@@ -86,7 +86,7 @@ fn draw_header_row(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .server_tabs
     .tabs
     .iter()
-    .map(|tab| Line::from(tab.title.bold()));
+    .map(|tab| Line::from(tab.title.clone().bold()));
   let tabs = Tabs::new(titles)
     .block(borderless_block())
     .highlight_style(Style::new().secondary())
@@ -144,7 +144,7 @@ fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -
   let titles = tab_state
     .tabs
     .iter()
-    .map(|tab_route| Line::from(tab_route.title.bold()));
+    .map(|tab_route| Line::from(tab_route.title.clone().bold()));
   let tabs = Tabs::new(titles)
     .block(borderless_block())
     .highlight_style(Style::new().secondary())
