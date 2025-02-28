@@ -1,7 +1,7 @@
 # managarr - A TUI and CLI to manage your Servarrs
 
-![check](https://github.com/Dark-Alex-17/managarr/actions/workflows/check.yml/badge.svg)
-![test](https://github.com/Dark-Alex-17/managarr/actions/workflows/test.yml/badge.svg)
+![Check](https://github.com/Dark-Alex-17/managarr/actions/workflows/check.yml/badge.svg)
+![Test](https://github.com/Dark-Alex-17/managarr/actions/workflows/test.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-blueviolet.svg)
 ![LOC](https://tokei.rs/b1/github/Dark-Alex-17/managarr?category=code)
 [![crates.io link](https://img.shields.io/crates/v/managarr.svg)](https://crates.io/crates/managarr)
@@ -10,6 +10,8 @@
 ![Crate.io downloads](https://img.shields.io/crates/d/managarr?label=Crate%20downloads)
 [![GitHub Downloads](https://img.shields.io/github/downloads/Dark-Alex-17/managarr/total.svg?label=GitHub%20downloads)](https://github.com/Dark-Alex-17/managarr/releases)
 ![Docker pulls](https://img.shields.io/docker/pulls/darkalex17/managarr?label=Docker%20downloads)
+[![Matrix](https://img.shields.io/matrix/managarr-room%3Amatrix.org?logo=matrix&server_fqdn=matrix.org&fetchMode=guest&style=social&label=Managarr%20Matrix%20Space&link=https%3A%2F%2Fmatrix.to%2F%23%2F%23managarr%3Amatrix.org)](https://matrix.to/#/#managarr:matrix.org)
+
 
 Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC). Built with 🤎 in Rust!
 
@@ -94,7 +96,7 @@ of Chocolatey packages take quite some time, and thus the package may not be ava
 choco install managarr
 
 # Some newer releases may require a version number, so you can specify it like so:
-choco install managarr --version=0.4.1
+choco install managarr --version=0.5.0
 ```
 
 To upgrade to the latest and greatest version of Managarr:
@@ -102,7 +104,7 @@ To upgrade to the latest and greatest version of Managarr:
 choco upgrade managarr
 
 # To upgrade to a specific version:
-choco upgrade managarr --version=0.4.2
+choco upgrade managarr --version=0.5.0
 ```
 
 ### Manual
@@ -216,7 +218,7 @@ To see all available commands, simply run `managarr --help`:
 
 ```shell
 $ managarr --help
-managarr 0.4.2
+managarr 0.5.0
 Alex Clarke <alex.j.tusa@gmail.com>
 
 A TUI and CLI to manage your Servarrs
