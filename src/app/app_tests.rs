@@ -6,9 +6,7 @@ mod tests {
   use tokio::sync::mpsc;
 
   use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
-  use crate::app::{
-    interpolate_env_vars, App, AppConfig, Data, ServarrConfig,
-  };
+  use crate::app::{interpolate_env_vars, App, AppConfig, Data, ServarrConfig};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
   use crate::models::{HorizontallyScrollableText, TabRoute};

@@ -62,7 +62,7 @@ impl App<'_> {
         let name = if let Some(name) = radarr_config.name.clone() {
           name
         } else {
-          idx+=1;
+          idx += 1;
           format!("Radarr {}", idx)
         };
 
@@ -83,7 +83,7 @@ impl App<'_> {
         let name = if let Some(name) = sonarr_config.name.clone() {
           name
         } else {
-          idx+=1;
+          idx += 1;
           format!("Sonarr {}", idx)
         };
 
@@ -101,8 +101,20 @@ impl App<'_> {
       .into_iter()
       .sorted_by(|tab1, tab2| {
         Ord::cmp(
-          tab1.config.as_ref().unwrap().weight.as_ref().unwrap_or(&1000),
-          tab2.config.as_ref().unwrap().weight.as_ref().unwrap_or(&1000),
+          tab1
+            .config
+            .as_ref()
+            .unwrap()
+            .weight
+            .as_ref()
+            .unwrap_or(&1000),
+          tab2
+            .config
+            .as_ref()
+            .unwrap()
+            .weight
+            .as_ref()
+            .unwrap_or(&1000),
         )
       })
       .collect();

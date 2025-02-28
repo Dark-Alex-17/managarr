@@ -119,7 +119,7 @@ async fn main() -> Result<()> {
     config.clone(),
     cancellation_token.clone(),
   )));
-  
+
   match args.command {
     Some(command) => match command {
       Command::Radarr(_) | Command::Sonarr(_) => {

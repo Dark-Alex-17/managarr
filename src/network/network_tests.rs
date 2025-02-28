@@ -401,18 +401,14 @@ mod tests {
   #[should_panic(expected = "Servarr config is undefined")]
   #[rstest]
   async fn test_request_props_from_requires_radarr_config_to_be_present_for_all_network_events(
-    #[values(RadarrEvent::HealthCheck, SonarrEvent::HealthCheck)] network_event: impl Into<NetworkEvent> + NetworkResource) {
+    #[values(RadarrEvent::HealthCheck, SonarrEvent::HealthCheck)] network_event: impl Into<NetworkEvent>
+      + NetworkResource,
+  ) {
     let app_arc = Arc::new(Mutex::new(App::default()));
     let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     network
-      .request_props_from(
-        network_event,
-        RequestMethod::Get,
-        None::<()>,
-        None,
-        None,
-      )
+      .request_props_from(network_event, RequestMethod::Get, None::<()>, None, None)
       .await;
   }
 

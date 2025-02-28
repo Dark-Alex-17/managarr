@@ -274,11 +274,19 @@ pub(super) async fn start_cli_no_spinner(
   }
 }
 
-pub fn select_cli_configuration(app: &mut App<'_>, config: &AppConfig, command: &Command, servarr_name_arg: Option<String>) {
+pub fn select_cli_configuration(
+  app: &mut App<'_>,
+  config: &AppConfig,
+  command: &Command,
+  servarr_name_arg: Option<String>,
+) {
   if let Some(servarr_name) = servarr_name_arg {
     let trimmed_name = servarr_name.trim();
     if !app.server_tabs.select_tab_by_title(trimmed_name) {
-      log_and_print_error(format!("A Servarr titled '{}' was not found in your configuration file", trimmed_name));
+      log_and_print_error(format!(
+        "A Servarr titled '{}' was not found in your configuration file",
+        trimmed_name
+      ));
       process::exit(1);
     }
   } else {
@@ -286,12 +294,12 @@ pub fn select_cli_configuration(app: &mut App<'_>, config: &AppConfig, command: 
       Command::Radarr(_) => {
         let default_radarr_config = config.radarr.as_ref().unwrap()[0].clone();
         app.server_tabs.select_tab_by_config(&default_radarr_config);
-      },
+      }
       Command::Sonarr(_) => {
         let default_sonarr_config = config.sonarr.as_ref().unwrap()[0].clone();
         app.server_tabs.select_tab_by_config(&default_sonarr_config);
-      },
-      _ => ()
+      }
+      _ => (),
     }
   }
 }

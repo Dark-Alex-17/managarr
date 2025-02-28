@@ -264,7 +264,10 @@ mod tests {
     assert!(episode_details_modal.episode_details_tabs.tabs[0]
       .contextual_help
       .is_none());
-    assert_eq!(episode_details_modal.episode_details_tabs.tabs[0].config, None);
+    assert_eq!(
+      episode_details_modal.episode_details_tabs.tabs[0].config,
+      None
+    );
 
     assert_str_eq!(
       episode_details_modal.episode_details_tabs.tabs[1].title,
@@ -282,7 +285,10 @@ mod tests {
       episode_details_modal.episode_details_tabs.tabs[1].contextual_help,
       Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES))
     );
-    assert_eq!(episode_details_modal.episode_details_tabs.tabs[1].config, None);
+    assert_eq!(
+      episode_details_modal.episode_details_tabs.tabs[1].config,
+      None
+    );
 
     assert_str_eq!(
       episode_details_modal.episode_details_tabs.tabs[2].title,
@@ -299,7 +305,10 @@ mod tests {
     assert!(episode_details_modal.episode_details_tabs.tabs[2]
       .contextual_help
       .is_none());
-    assert_eq!(episode_details_modal.episode_details_tabs.tabs[2].config, None);
+    assert_eq!(
+      episode_details_modal.episode_details_tabs.tabs[2].config,
+      None
+    );
 
     assert_str_eq!(
       episode_details_modal.episode_details_tabs.tabs[3].title,
@@ -317,7 +326,10 @@ mod tests {
       episode_details_modal.episode_details_tabs.tabs[3].contextual_help,
       Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES))
     );
-    assert_eq!(episode_details_modal.episode_details_tabs.tabs[3].config, None);
+    assert_eq!(
+      episode_details_modal.episode_details_tabs.tabs[3].config,
+      None
+    );
   }
 
   #[test]
@@ -350,7 +362,10 @@ mod tests {
         &SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES
       ))
     );
-    assert_eq!(season_details_modal.season_details_tabs.tabs[0].config, None);
+    assert_eq!(
+      season_details_modal.season_details_tabs.tabs[0].config,
+      None
+    );
 
     assert_str_eq!(
       season_details_modal.season_details_tabs.tabs[1].title,
@@ -368,7 +383,10 @@ mod tests {
       season_details_modal.season_details_tabs.tabs[1].contextual_help,
       Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES))
     );
-    assert_eq!(season_details_modal.season_details_tabs.tabs[1].config, None);
+    assert_eq!(
+      season_details_modal.season_details_tabs.tabs[1].config,
+      None
+    );
 
     assert_str_eq!(
       season_details_modal.season_details_tabs.tabs[2].title,
@@ -386,6 +404,9 @@ mod tests {
       season_details_modal.season_details_tabs.tabs[2].contextual_help,
       Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES))
     );
-    assert_eq!(season_details_modal.season_details_tabs.tabs[2].config, None);
+    assert_eq!(
+      season_details_modal.season_details_tabs.tabs[2].config,
+      None
+    );
   }
 }

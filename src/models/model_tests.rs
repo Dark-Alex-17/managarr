@@ -3,12 +3,6 @@ mod tests {
   use std::sync::atomic::AtomicUsize;
   use std::sync::atomic::Ordering;
 
-  use pretty_assertions::{assert_eq, assert_str_eq};
-  use serde::de::value::Error as ValueError;
-  use serde::de::value::F64Deserializer;
-  use serde::de::value::I64Deserializer;
-  use serde::de::IntoDeserializer;
-  use serde_json::to_string;
   use crate::app::ServarrConfig;
   use crate::models::from_f64;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
@@ -16,6 +10,12 @@ mod tests {
   use crate::models::{
     BlockSelectionState, HorizontallyScrollableText, Scrollable, ScrollableText, TabRoute, TabState,
   };
+  use pretty_assertions::{assert_eq, assert_str_eq};
+  use serde::de::value::Error as ValueError;
+  use serde::de::value::F64Deserializer;
+  use serde::de::value::I64Deserializer;
+  use serde::de::IntoDeserializer;
+  use serde_json::to_string;
 
   const BLOCKS: &[&[i32]] = &[&[11, 12], &[21, 22], &[31, 32]];
 
@@ -512,7 +512,7 @@ mod tests {
 
     assert_eq!(active_route, second_tab);
   }
-  
+
   #[test]
   fn test_tab_state_get_active_config() {
     let mut tabs = create_test_tab_routes();
@@ -521,9 +521,9 @@ mod tests {
       ..ServarrConfig::default()
     });
     let tab_state = TabState { tabs, index: 1 };
-    
+
     let active_config = tab_state.get_active_config();
-    
+
     assert!(active_config.is_some());
     assert_str_eq!(active_config.clone().unwrap().name.unwrap(), "Test");
   }
@@ -537,7 +537,7 @@ mod tests {
 
     assert!(active_config.is_none());
   }
-  
+
   #[test]
   fn test_select_tab_by_title() {
     let tabs = create_test_tab_routes();
@@ -553,17 +553,20 @@ mod tests {
     assert!(!result);
     assert_eq!(tab_state.index, 1);
   }
-  
+
   #[test]
   fn test_select_tab_by_title_empty_tabs_returns_false() {
-    let mut tab_state = TabState { tabs: vec![], index: 0 };
-    
+    let mut tab_state = TabState {
+      tabs: vec![],
+      index: 0,
+    };
+
     let result = tab_state.select_tab_by_title("Test 2");
-    
+
     assert!(!result);
     assert_eq!(tab_state.index, 0);
   }
-  
+
   #[test]
   fn test_select_tab_by_config() {
     let mut tabs = create_test_tab_routes();
@@ -577,35 +580,38 @@ mod tests {
       ..ServarrConfig::default()
     });
     let mut tab_state = TabState { tabs, index: 0 };
-    
+
     let result = tab_state.select_tab_by_config(&ServarrConfig {
       host: Some("http://localhost".to_owned()),
       port: Some(7878),
       ..ServarrConfig::default()
     });
-    
+
     assert!(result);
     assert_eq!(tab_state.index, 1);
-    
+
     let result = tab_state.select_tab_by_config(&ServarrConfig {
       name: Some("Not real".to_owned()),
       ..ServarrConfig::default()
     });
-    
+
     assert!(!result);
     assert_eq!(tab_state.index, 1);
   }
-  
+
   #[test]
   fn test_select_tab_by_config_empty_tabs_returns_false() {
-    let mut tab_state = TabState { tabs: vec![], index: 0 };
-    
+    let mut tab_state = TabState {
+      tabs: vec![],
+      index: 0,
+    };
+
     let result = tab_state.select_tab_by_config(&ServarrConfig {
       host: Some("http://localhost".to_owned()),
       port: Some(7878),
       ..ServarrConfig::default()
     });
-    
+
     assert!(!result);
     assert_eq!(tab_state.index, 0);
   }
