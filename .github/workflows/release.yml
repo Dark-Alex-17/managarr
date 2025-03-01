@@ -430,6 +430,11 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      - name: Ensure repository is up-to-date
+        run: |
+          git fetch --all
+          git pull
+
       - name: Set version variable
         run: |
           version="$(cat artifacts/release-version)"
