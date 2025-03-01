@@ -309,6 +309,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: artifacts
+          overwrite: true
 
   publish-chocolatey-package:
     needs: [publish-github-release]
