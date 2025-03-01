@@ -112,8 +112,7 @@ pub struct DownloadRecord {
   pub status: DownloadStatus,
   #[serde(deserialize_with = "super::from_i64")]
   pub id: i64,
-  #[serde(deserialize_with = "super::from_i64")]
-  pub episode_id: i64,
+  pub episode_id: Option<Number>,
   #[serde(deserialize_with = "super::from_f64")]
   pub size: f64,
   #[serde(deserialize_with = "super::from_f64")]

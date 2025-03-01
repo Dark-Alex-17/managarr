@@ -29,6 +29,7 @@ use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use ratatui::Frame;
+use serde_json::Number;
 
 #[cfg(test)]
 #[path = "episode_details_ui_tests.rs"]
@@ -128,13 +129,22 @@ fn draw_episode_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       if let Some(episode_details_modal) = season_details_modal.episode_details_modal.as_ref() {
         let episode = season_details_modal.episodes.current_selection().clone();
         let episode_details = &episode_details_modal.episode_details;
+        let default_episode_id = Number::from(-1i64);
         let download = app
           .data
           .sonarr_data
           .downloads
           .items
           .iter()
-          .find(|&download| download.episode_id == episode.id);
+          .find(|&download| {
+            download
+              .episode_id
+              .as_ref()
+              .unwrap_or(&default_episode_id)
+              .as_i64()
+              .unwrap()
+              == episode.id
+          });
         let text = Text::from(
           episode_details
             .items

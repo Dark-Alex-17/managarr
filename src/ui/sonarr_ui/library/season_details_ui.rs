@@ -28,6 +28,7 @@ use ratatui::layout::{Alignment, Constraint, Rect};
 use ratatui::prelude::{Line, Style, Stylize, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use ratatui::Frame;
+use serde_json::Number;
 
 #[cfg(test)]
 #[path = "season_details_ui_tests.rs"]
@@ -573,10 +574,16 @@ fn decorate_with_row_style<'a>(
   row: Row<'a>,
 ) -> Row<'a> {
   if !episode.has_file {
-    if let Some(download) = downloads_vec
-      .iter()
-      .find(|&download| download.episode_id == episode.id)
-    {
+    let default_episode_id = Number::from(-1i64);
+    if let Some(download) = downloads_vec.iter().find(|&download| {
+      download
+        .episode_id
+        .as_ref()
+        .unwrap_or(&default_episode_id)
+        .as_i64()
+        .unwrap()
+        == episode.id
+    }) {
       if download.status == DownloadStatus::Downloading {
         return row.downloading();
       }

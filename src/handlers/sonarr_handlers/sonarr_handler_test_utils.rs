@@ -191,7 +191,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
       title: "Test Download Title".to_owned(),
       status: DownloadStatus::Downloading,
       id: 1,
-      episode_id: 1,
+      episode_id: Some(Number::from(1i64)),
       size: 3543348019f64,
       sizeleft: 1771674009f64,
       output_path: Some(HorizontallyScrollableText::from(

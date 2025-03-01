@@ -5438,9 +5438,21 @@ mod test {
   #[test]
   fn test_get_episode_status_missing() {
     let download_record = DownloadRecord {
-      episode_id: 1,
+      episode_id: Some(Number::from(1i64)),
       ..DownloadRecord::default()
     };
+
+    assert_str_eq!(
+      get_episode_status(false, &[download_record.clone()], 0),
+      "Missing"
+    );
+
+    assert_str_eq!(get_episode_status(false, &[download_record], 1), "Missing");
+  }
+
+  #[test]
+  fn test_get_episode_status_missing_if_episode_id_is_missing() {
+    let download_record = DownloadRecord::default();
 
     assert_str_eq!(
       get_episode_status(false, &[download_record.clone()], 0),
@@ -5456,7 +5468,7 @@ mod test {
       get_episode_status(
         false,
         &[DownloadRecord {
-          episode_id: 1,
+          episode_id: Some(Number::from(1i64)),
           status: DownloadStatus::Downloading,
           ..DownloadRecord::default()
         }],
@@ -5472,7 +5484,7 @@ mod test {
       get_episode_status(
         false,
         &[DownloadRecord {
-          episode_id: 1,
+          episode_id: Some(Number::from(1i64)),
           status: DownloadStatus::Completed,
           ..DownloadRecord::default()
         }],
@@ -5523,7 +5535,7 @@ mod test {
       title: "Test Download Title".to_owned(),
       status: DownloadStatus::Downloading,
       id: 1,
-      episode_id: 1,
+      episode_id: Some(Number::from(1i64)),
       size: 3543348019f64,
       sizeleft: 1771674009f64,
       output_path: Some(HorizontallyScrollableText::from(

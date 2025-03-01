@@ -133,7 +133,7 @@ impl<'a, 'b> Network<'a, 'b> {
               }
             } else {
               let status = response.status();
-              let whitespace_regex = Regex::new(r"\s+").unwrap();
+              let whitespace_regex = Regex::new(r"\s+")?;
               let response_body = response.text().await.unwrap_or_default();
               let error_body = whitespace_regex
                 .replace_all(&response_body.replace('\n', " "), " ")

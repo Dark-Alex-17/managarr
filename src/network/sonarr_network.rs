@@ -1,7 +1,7 @@
 use anyhow::Result;
 use indoc::formatdoc;
 use log::{debug, info, warn};
-use serde_json::{json, Value};
+use serde_json::{json, Number, Value};
 use urlencoding::encode;
 
 use super::{Network, NetworkEvent, NetworkResource};
@@ -2321,10 +2321,16 @@ impl Network<'_, '_> {
 
 fn get_episode_status(has_file: bool, downloads_vec: &[DownloadRecord], episode_id: i64) -> String {
   if !has_file {
-    if let Some(download) = downloads_vec
-      .iter()
-      .find(|&download| download.episode_id == episode_id)
-    {
+    let default_episode_id = Number::from(-1i64);
+    if let Some(download) = downloads_vec.iter().find(|&download| {
+      download
+        .episode_id
+        .as_ref()
+        .unwrap_or(&default_episode_id)
+        .as_i64()
+        .unwrap()
+        == episode_id
+    }) {
       if download.status == DownloadStatus::Downloading {
         return "Downloading".to_owned();
       }
