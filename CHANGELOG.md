@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.5.0 (2025-03-01)
+
+### Feat
+
+- CLI Support for multiple Servarr instances
+- Support for multiple servarr definitions - no tests [skip ci]
+- Support for loading Servarr API tokens from a file
+- Tweaked the implementation for environment variables in the config a bit
+- var interpolation
+
+### Fix
+
+- Updated openssl to 0.10.70 to mitigate CVE-2025-24898
+- Addressed rustfmt complaints
+- Corrected typo in the managarr.nuspec.template
+
+### Refactor
+
+- Updated dependencies
+- Addressed Cargo fmt complaints
+- Added a debug line for logging to output the config used when starting Managarr
+- Updated the 2018 idiom lint to the 2021_compatibility lint
+- Removed unnecessary clones in the networking module to speed up network request handling
+- Corrected some clone instead of copy behaviors in the command line handlers
+- Removed unnecessary clone from stateful table
+- Removed unnecessary clone call from extract_and_add_tag_ids_vec method
+- Reduced the number of clones necessary when building modal structs
+- Refactored a handful of Option calls to use take instead
+- Renamed KeyEventHandler::with to KeyEventHandler::new to keep with Rust best practices and conventions
+
 ## v0.4.2 (2024-12-21)
 
 ### Fix
