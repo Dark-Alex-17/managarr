@@ -98,9 +98,8 @@ jobs:
           git push origin --follow-tags
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: artifacts
           path: artifacts
 
   build-release-artifacts:
@@ -236,10 +235,11 @@ jobs:
           cp target/${{ matrix.job.target }}/release/${{ env.RELEASE_NAME }}.sha256 artifacts/
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: artifacts
+          name: artifacts-${{ env.RELEASE_NAME }}
           path: artifacts
+          overwrite: true
 
   publish-github-release:
     name: publish-github-release
@@ -252,10 +252,10 @@ jobs:
           fetch-depth: 0
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: artifacts
           path: artifacts
+          merge-multiple: true
 
       - name: Ensure repository is up-to-date
         run: |
@@ -306,9 +306,8 @@ jobs:
           prerelease: false
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: artifacts
           path: artifacts
 
   publish-chocolatey-package:
@@ -322,10 +321,10 @@ jobs:
           fetch-depth: 1
 
       - name: Get release artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: artifacts
           path: artifacts
+          merge-multiple: true
 
       - name: Set release assets and version
         shell: pwsh
@@ -369,10 +368,10 @@ jobs:
           fetch-depth: 1
 
       - name: Get release artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: artifacts
           path: artifacts
+          merge-multiple: true
 
       - name: Set release assets and version
         shell: bash
@@ -425,10 +424,10 @@ jobs:
           fetch-depth: 1
 
       - name: Get release artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: artifacts
           path: artifacts
+          merge-multiple: true
 
       - name: Set version variable
         run: |
