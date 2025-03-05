@@ -206,7 +206,7 @@ async fn start_ui(
   let theme_definitions = if let Some(ref theme_file) = theme_file_arg {
     load_theme_config(theme_file.to_str().expect("Invalid theme file specified"))?
   } else {
-    confy::load("managarr", "theme").unwrap_or_else(|_| vec![ThemeDefinition::default()])
+    confy::load("managarr", "themes").unwrap_or_else(|_| vec![ThemeDefinition::default()])
   };
   let theme = if !theme_name.is_empty() {
     let theme_definition = theme_definitions.iter().find(|t| t.name == theme_name);
