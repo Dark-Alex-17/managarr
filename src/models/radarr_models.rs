@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use clap::ValueEnum;
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Number, Value};
+use serde_json::{Number, Value};
 use strum_macros::EnumIter;
 
 use crate::{models::HorizontallyScrollableText, serde_enum_from};
@@ -475,46 +475,9 @@ impl Display for RadarrTaskName {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
-#[serde(untagged)]
-#[allow(clippy::large_enum_variant)]
-pub enum RadarrSerdeable {
-  Value(Value),
-  Tag(Tag),
-  BlocklistResponse(BlocklistResponse),
-  Collections(Vec<Collection>),
-  Credits(Vec<Credit>),
-  DiskSpaces(Vec<DiskSpace>),
-  DownloadsResponse(DownloadsResponse),
-  HostConfig(HostConfig),
-  Indexers(Vec<Indexer>),
-  IndexerSettings(IndexerSettings),
-  LogResponse(LogResponse),
-  Movie(Movie),
-  MovieHistoryItems(Vec<MovieHistoryItem>),
-  Movies(Vec<Movie>),
-  QualityProfiles(Vec<QualityProfile>),
-  QueueEvents(Vec<QueueEvent>),
-  Releases(Vec<RadarrRelease>),
-  RootFolders(Vec<RootFolder>),
-  SecurityConfig(SecurityConfig),
-  SystemStatus(SystemStatus),
-  Tags(Vec<Tag>),
-  Tasks(Vec<RadarrTask>),
-  Updates(Vec<Update>),
-  AddMovieSearchResults(Vec<AddMovieSearchResult>),
-  IndexerTestResults(Vec<IndexerTestResult>),
-}
-
 impl From<RadarrSerdeable> for Serdeable {
   fn from(value: RadarrSerdeable) -> Serdeable {
     Serdeable::Radarr(value)
-  }
-}
-
-impl From<()> for RadarrSerdeable {
-  fn from(_: ()) -> Self {
-    RadarrSerdeable::Value(json!({}))
   }
 }
 

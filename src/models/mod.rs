@@ -445,6 +445,21 @@ pub fn strip_non_search_characters(input: &str) -> String {
 #[macro_export]
 macro_rules! serde_enum_from {
     ($enum_name:ident { $($variant:ident($ty:ty),)* }) => {
+      #[derive(Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Debug)]
+      #[serde(untagged)]
+      #[allow(clippy::large_enum_variant)]
+      pub enum $enum_name {
+          $(
+              $variant($ty),
+          )*
+      }
+
+      impl From<()> for $enum_name {
+        fn from(_: ()) -> Self {
+          $enum_name::Value(serde_json::json!({}))
+        }
+      }
+
         $(
             impl From<$ty> for $enum_name {
                 fn from(value: $ty) -> Self {

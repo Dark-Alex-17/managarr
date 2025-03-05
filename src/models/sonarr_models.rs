@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use clap::ValueEnum;
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Number, Value};
+use serde_json::{Number, Value};
 use strum::EnumIter;
 
 use crate::serde_enum_from;
@@ -681,49 +681,9 @@ impl Display for SonarrTaskName {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
-#[serde(untagged)]
-#[allow(clippy::large_enum_variant)]
-pub enum SonarrSerdeable {
-  AddSeriesSearchResults(Vec<AddSeriesSearchResult>),
-  BlocklistResponse(BlocklistResponse),
-  DownloadsResponse(DownloadsResponse),
-  DiskSpaces(Vec<DiskSpace>),
-  Episode(Episode),
-  Episodes(Vec<Episode>),
-  EpisodeFiles(Vec<EpisodeFile>),
-  HostConfig(HostConfig),
-  IndexerSettings(IndexerSettings),
-  Indexers(Vec<Indexer>),
-  IndexerTestResults(Vec<IndexerTestResult>),
-  LanguageProfiles(Vec<Language>),
-  LogResponse(LogResponse),
-  QualityProfiles(Vec<QualityProfile>),
-  QueueEvents(Vec<QueueEvent>),
-  Releases(Vec<SonarrRelease>),
-  RootFolders(Vec<RootFolder>),
-  SecurityConfig(SecurityConfig),
-  SeriesVec(Vec<Series>),
-  Series(Series),
-  SonarrHistoryItems(Vec<SonarrHistoryItem>),
-  SonarrHistoryWrapper(SonarrHistoryWrapper),
-  SystemStatus(SystemStatus),
-  Tag(Tag),
-  Tags(Vec<Tag>),
-  Tasks(Vec<SonarrTask>),
-  Updates(Vec<Update>),
-  Value(Value),
-}
-
 impl From<SonarrSerdeable> for Serdeable {
   fn from(value: SonarrSerdeable) -> Serdeable {
     Serdeable::Sonarr(value)
-  }
-}
-
-impl From<()> for SonarrSerdeable {
-  fn from(_: ()) -> Self {
-    SonarrSerdeable::Value(json!({}))
   }
 }
 
