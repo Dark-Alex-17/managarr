@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::sync::atomic::Ordering;
 
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
@@ -15,6 +16,7 @@ use crate::app::App;
 use crate::models::{HorizontallyScrollableText, Route, TabState};
 use crate::ui::radarr_ui::RadarrUi;
 use crate::ui::styles::ManagarrStyle;
+use crate::ui::theme::Theme;
 use crate::ui::utils::{
   background_block, borderless_block, centered_rect, logo_block, title_block, title_block_centered,
 };
@@ -24,10 +26,14 @@ use crate::ui::widgets::popup::Size;
 mod radarr_ui;
 mod sonarr_ui;
 mod styles;
+pub mod theme;
 mod utils;
 mod widgets;
 
 static HIGHLIGHT_SYMBOL: &str = "=> ";
+thread_local! {
+  pub static THEME: Cell<Theme> = Cell::new(Theme::default());
+}
 
 pub trait DrawUi {
   fn accepts(route: Route) -> bool;

@@ -31,6 +31,7 @@ mod tests {
     };
     let sonarr_config_2 = ServarrConfig::default();
     let config = AppConfig {
+      theme: None,
       radarr: Some(vec![radarr_config_1.clone(), radarr_config_2.clone()]),
       sonarr: Some(vec![sonarr_config_1.clone(), sonarr_config_2.clone()]),
     };
