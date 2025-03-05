@@ -1,8 +1,10 @@
+use crate::process;
 use anyhow::Result;
 use derivative::Derivative;
 use ratatui::style::Color;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
+use validate_theme_derive::ValidateTheme;
 
 #[cfg(test)]
 #[path = "theme_tests.rs"]
@@ -34,7 +36,7 @@ pub struct Style {
   pub color: Option<Color>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Copy, Derivative)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, Derivative, ValidateTheme)]
 #[derivative(Default)]
 #[cfg_attr(test, derive(PartialEq, Eq))]
 pub struct Theme {
@@ -43,51 +45,67 @@ pub struct Theme {
     value = "Some(Background { color: Some(Color::Rgb(35, 50, 55)), enabled: Some(true) })"
   ))]
   pub background: Option<Background>,
+  #[validate]
   #[serde(default = "default_awaiting_import_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::Rgb(255, 170, 66)) })"))]
   pub awaiting_import: Option<Style>,
+  #[validate]
   #[serde(default = "default_indeterminate_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::Rgb(255, 170, 66)) })"))]
   pub indeterminate: Option<Style>,
+  #[validate]
   #[serde(default = "default_default_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::White) })"))]
   pub default: Option<Style>,
+  #[validate]
   #[serde(default = "default_downloaded_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::Green) })"))]
   pub downloaded: Option<Style>,
+  #[validate]
   #[serde(default = "default_downloading_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::Magenta) })"))]
   pub downloading: Option<Style>,
+  #[validate]
   #[serde(default = "default_failure_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::Red) })"))]
   pub failure: Option<Style>,
+  #[validate]
   #[serde(default = "default_help_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::LightBlue) })"))]
   pub help: Option<Style>,
+  #[validate]
   #[serde(default = "default_missing_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::Red) })"))]
   pub missing: Option<Style>,
+  #[validate]
   #[serde(default = "default_primary_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::Cyan) })"))]
   pub primary: Option<Style>,
+  #[validate]
   #[serde(default = "default_secondary_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::Yellow) })"))]
   pub secondary: Option<Style>,
+  #[validate]
   #[serde(default = "default_success_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::Green) })"))]
   pub success: Option<Style>,
+  #[validate]
   #[serde(default = "default_system_function_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::Yellow) })"))]
   pub system_function: Option<Style>,
+  #[validate]
   #[serde(default = "default_unmonitored_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::Gray) })"))]
   pub unmonitored: Option<Style>,
+  #[validate]
   #[serde(default = "default_unmonitored_missing_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::Yellow) })"))]
   pub unmonitored_missing: Option<Style>,
+  #[validate]
   #[serde(default = "default_unreleased_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::LightCyan) })"))]
   pub unreleased: Option<Style>,
+  #[validate]
   #[serde(default = "default_warning_style")]
   #[derivative(Default(value = "Some(Style { color: Some(Color::Magenta) })"))]
   pub warning: Option<Style>,

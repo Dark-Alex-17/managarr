@@ -222,6 +222,7 @@ async fn start_ui(
     Theme::default()
   };
   debug!("Managarr loaded using theme: {theme:?}");
+  theme.validate();
   THEME.set(theme);
 
   let mut stdout = io::stdout();
