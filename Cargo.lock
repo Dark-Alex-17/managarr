@@ -623,6 +623,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "enum_display_style_derive"
+version = "0.1.0"
+dependencies = [
+ "darling",
+ "quote",
+ "syn 2.0.99",
+]
+
+[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1366,6 +1375,7 @@ dependencies = [
  "derive_setters",
  "deunicode",
  "dirs-next",
+ "enum_display_style_derive",
  "human-panic",
  "indicatif",
  "indoc",
@@ -1764,9 +1774,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.93"
+version = "1.0.94"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60946a68e5f9d28b0dc1c21bb8a97ee7d018a8b322fa57838ba31cc878e22d99"
+checksum = "a31971752e70b8b2686d7e46ec17fb38dad4051d94024c88df49b667caea9c84"
 dependencies = [
  "unicode-ident",
 ]

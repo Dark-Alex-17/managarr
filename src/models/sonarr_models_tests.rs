@@ -15,7 +15,7 @@ mod tests {
       SeriesStatus, SeriesType, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
       SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
     },
-    EnumDisplayStyle, Serdeable,
+    Serdeable,
   };
 
   #[test]

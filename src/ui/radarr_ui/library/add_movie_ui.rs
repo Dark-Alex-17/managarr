@@ -12,7 +12,7 @@ use crate::app::radarr::radarr_context_clues::ADD_MOVIE_SEARCH_RESULTS_CONTEXT_C
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::servarr_data::radarr::modals::AddMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
-use crate::models::{EnumDisplayStyle, Route};
+use crate::models::Route;
 use crate::ui::radarr_ui::collections::CollectionsUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{

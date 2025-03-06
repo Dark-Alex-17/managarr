@@ -17,7 +17,7 @@ use crate::{
   models::{
     servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, LIBRARY_BLOCKS},
     sonarr_models::{Series, SeriesStatus},
-    EnumDisplayStyle, Route,
+    Route,
   },
   ui::{
     styles::ManagarrStyle,

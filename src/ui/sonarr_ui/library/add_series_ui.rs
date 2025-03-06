@@ -12,7 +12,7 @@ use crate::app::sonarr::sonarr_context_clues::ADD_SERIES_SEARCH_RESULTS_CONTEXT_
 use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ADD_SERIES_BLOCKS};
 use crate::models::sonarr_models::AddSeriesSearchResult;
-use crate::models::{EnumDisplayStyle, Route};
+use crate::models::Route;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block, layout_paragraph_borderless,

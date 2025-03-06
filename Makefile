@@ -8,7 +8,7 @@ default: run
 .PHONY: test test-cov build run lint lint-fix fmt analyze sonar release delete-tag
 
 test:
-	@cargo test
+	@cargo test --all
 
 ## Run all tests with coverage - `cargo install cargo-tarpaulin`
 test-cov:

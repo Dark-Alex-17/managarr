@@ -14,7 +14,7 @@ rust-version = "1.82.0"
 exclude = [".github", "CONTRIBUTING.md", "*.log", "tags"]
 
 [workspace]
-members = ["proc_macros/validate_theme_derive"]
+members = ["proc_macros/enum_display_style_derive", "proc_macros/validate_theme_derive"]
 
 [dependencies]
 anyhow = "1.0.68"
@@ -64,6 +64,7 @@ paste = "1.0.15"
 openssl = { version = "0.10.70", features = ["vendored"] }
 veil = "0.2.0"
 validate_theme_derive = { path = "proc_macros/validate_theme_derive" }
+enum_display_style_derive = { path = "proc_macros/enum_display_style_derive" }
 
 [dev-dependencies]
 assert_cmd = "2.0.16"

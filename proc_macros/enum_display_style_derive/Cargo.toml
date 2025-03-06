@@ -1,0 +1,12 @@
+[package]
+name = "enum_display_style_derive"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1.0.39"
+syn = "2.0.99"
+darling = "0.20.10"

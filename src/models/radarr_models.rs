@@ -1,19 +1,19 @@
 use std::fmt::{Display, Formatter};
 
+use crate::{models::HorizontallyScrollableText, serde_enum_from};
 use chrono::{DateTime, Utc};
 use clap::ValueEnum;
 use derivative::Derivative;
+use enum_display_style_derive::EnumDisplayStyle;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Number, Value};
-use strum_macros::EnumIter;
-
-use crate::{models::HorizontallyScrollableText, serde_enum_from};
+use serde_json::{Number, Value};
+use strum_macros::{Display, EnumIter};
 
 use super::servarr_models::{
   DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
   QueueEvent, RootFolder, SecurityConfig, Tag, Update,
 };
-use super::{EnumDisplayStyle, Serdeable};
+use super::Serdeable;
 
 #[cfg(test)]
 #[path = "radarr_models_tests.rs"]
@@ -258,67 +258,42 @@ pub struct MediaInfo {
 }
 
 #[derive(
-  Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, ValueEnum,
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  ValueEnum,
+  Display,
+  EnumDisplayStyle,
 )]
 #[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
 pub enum MinimumAvailability {
   #[default]
   Announced,
+  #[display_style(name = "In Cinemas")]
   InCinemas,
   Released,
+  #[display_style(name = "TBA")]
   Tba,
 }
 
-impl Display for MinimumAvailability {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    let minimum_availability = match self {
-      MinimumAvailability::Tba => "tba",
-      MinimumAvailability::Announced => "announced",
-      MinimumAvailability::InCinemas => "inCinemas",
-      MinimumAvailability::Released => "released",
-    };
-    write!(f, "{minimum_availability}")
-  }
-}
-
-impl<'a> EnumDisplayStyle<'a> for MinimumAvailability {
-  fn to_display_str(self) -> &'a str {
-    match self {
-      MinimumAvailability::Tba => "TBA",
-      MinimumAvailability::Announced => "Announced",
-      MinimumAvailability::InCinemas => "In Cinemas",
-      MinimumAvailability::Released => "Released",
-    }
-  }
-}
-
-#[derive(Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, ValueEnum)]
+#[derive(
+  Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, ValueEnum, Display, EnumDisplayStyle,
+)]
+#[strum(serialize_all = "camelCase")]
 pub enum MovieMonitor {
   #[default]
+  #[display_style(name = "Movie only")]
   MovieOnly,
+  #[display_style(name = "Movie and Collection")]
   MovieAndCollection,
   None,
-}
-
-impl Display for MovieMonitor {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    let monitor = match self {
-      MovieMonitor::MovieOnly => "movieOnly",
-      MovieMonitor::MovieAndCollection => "movieAndCollection",
-      MovieMonitor::None => "none",
-    };
-    write!(f, "{monitor}")
-  }
-}
-
-impl<'a> EnumDisplayStyle<'a> for MovieMonitor {
-  fn to_display_str(self) -> &'a str {
-    match self {
-      MovieMonitor::MovieOnly => "Movie only",
-      MovieMonitor::MovieAndCollection => "Movie and Collection",
-      MovieMonitor::None => "None",
-    }
-  }
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
@@ -475,46 +450,9 @@ impl Display for RadarrTaskName {
   }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
-#[serde(untagged)]
-#[allow(clippy::large_enum_variant)]
-pub enum RadarrSerdeable {
-  Value(Value),
-  Tag(Tag),
-  BlocklistResponse(BlocklistResponse),
-  Collections(Vec<Collection>),
-  Credits(Vec<Credit>),
-  DiskSpaces(Vec<DiskSpace>),
-  DownloadsResponse(DownloadsResponse),
-  HostConfig(HostConfig),
-  Indexers(Vec<Indexer>),
-  IndexerSettings(IndexerSettings),
-  LogResponse(LogResponse),
-  Movie(Movie),
-  MovieHistoryItems(Vec<MovieHistoryItem>),
-  Movies(Vec<Movie>),
-  QualityProfiles(Vec<QualityProfile>),
-  QueueEvents(Vec<QueueEvent>),
-  Releases(Vec<RadarrRelease>),
-  RootFolders(Vec<RootFolder>),
-  SecurityConfig(SecurityConfig),
-  SystemStatus(SystemStatus),
-  Tags(Vec<Tag>),
-  Tasks(Vec<RadarrTask>),
-  Updates(Vec<Update>),
-  AddMovieSearchResults(Vec<AddMovieSearchResult>),
-  IndexerTestResults(Vec<IndexerTestResult>),
-}
-
 impl From<RadarrSerdeable> for Serdeable {
   fn from(value: RadarrSerdeable) -> Serdeable {
     Serdeable::Radarr(value)
-  }
-}
-
-impl From<()> for RadarrSerdeable {
-  fn from(_: ()) -> Self {
-    RadarrSerdeable::Value(json!({}))
   }
 }
 

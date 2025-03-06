@@ -42,10 +42,6 @@ pub enum Serdeable {
   Sonarr(SonarrSerdeable),
 }
 
-pub trait EnumDisplayStyle<'a> {
-  fn to_display_str(self) -> &'a str;
-}
-
 pub trait Scrollable {
   fn scroll_down(&mut self);
   fn scroll_up(&mut self);
@@ -445,6 +441,21 @@ pub fn strip_non_search_characters(input: &str) -> String {
 #[macro_export]
 macro_rules! serde_enum_from {
     ($enum_name:ident { $($variant:ident($ty:ty),)* }) => {
+      #[derive(Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Debug)]
+      #[serde(untagged)]
+      #[allow(clippy::large_enum_variant)]
+      pub enum $enum_name {
+          $(
+              $variant($ty),
+          )*
+      }
+
+      impl From<()> for $enum_name {
+        fn from(_: ()) -> Self {
+          $enum_name::Value(serde_json::json!({}))
+        }
+      }
+
         $(
             impl From<$ty> for $enum_name {
                 fn from(value: $ty) -> Self {
