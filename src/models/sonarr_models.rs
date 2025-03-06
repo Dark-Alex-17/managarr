@@ -1,13 +1,14 @@
 use std::fmt::{Display, Formatter};
 
+use crate::serde_enum_from;
 use chrono::{DateTime, Utc};
 use clap::ValueEnum;
 use derivative::Derivative;
+use enum_display_style_derive::EnumDisplayStyle;
 use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
 use strum::EnumIter;
-
-use crate::serde_enum_from;
+use strum_macros::Display;
 
 use super::{
   radarr_models::IndexerTestResult,
@@ -15,7 +16,7 @@ use super::{
     DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
     QueueEvent, RootFolder, SecurityConfig, Tag, Update,
   },
-  EnumDisplayStyle, HorizontallyScrollableText, Serdeable,
+  HorizontallyScrollableText, Serdeable,
 };
 
 #[cfg(test)]
@@ -125,8 +126,21 @@ pub struct DownloadRecord {
 
 impl Eq for DownloadRecord {}
 
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter)]
+#[derive(
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  Display,
+  EnumDisplayStyle,
+)]
 #[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
 pub enum DownloadStatus {
   #[default]
   Unknown,
@@ -137,43 +151,9 @@ pub enum DownloadStatus {
   Failed,
   Warning,
   Delay,
+  #[display_style(name = "Download Client Unavailable")]
   DownloadClientUnavailable,
   Fallback,
-}
-
-impl Display for DownloadStatus {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    let download_status = match self {
-      DownloadStatus::Unknown => "unknown",
-      DownloadStatus::Queued => "queued",
-      DownloadStatus::Paused => "paused",
-      DownloadStatus::Downloading => "downloading",
-      DownloadStatus::Completed => "completed",
-      DownloadStatus::Failed => "failed",
-      DownloadStatus::Warning => "warning",
-      DownloadStatus::Delay => "delay",
-      DownloadStatus::DownloadClientUnavailable => "downloadClientUnavailable",
-      DownloadStatus::Fallback => "fallback",
-    };
-    write!(f, "{download_status}")
-  }
-}
-
-impl<'a> EnumDisplayStyle<'a> for DownloadStatus {
-  fn to_display_str(self) -> &'a str {
-    match self {
-      DownloadStatus::Unknown => "Unknown",
-      DownloadStatus::Queued => "Queued",
-      DownloadStatus::Paused => "Paused",
-      DownloadStatus::Downloading => "Downloading",
-      DownloadStatus::Completed => "Completed",
-      DownloadStatus::Failed => "Failed",
-      DownloadStatus::Warning => "Warning",
-      DownloadStatus::Delay => "Delay",
-      DownloadStatus::DownloadClientUnavailable => "Download Client Unavailable",
-      DownloadStatus::Fallback => "Fallback",
-    }
-  }
 }
 
 #[derive(Default, Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -363,100 +343,71 @@ pub struct Series {
 }
 
 #[derive(
-  Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, ValueEnum,
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  ValueEnum,
+  Display,
+  EnumDisplayStyle,
 )]
 #[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
 pub enum SeriesMonitor {
   #[default]
+  #[display_style(name = "All Episodes")]
   All,
   Unknown,
+  #[display_style(name = "Future Episodes")]
   Future,
+  #[display_style(name = "Missing Episodes")]
   Missing,
+  #[display_style(name = "Existing Episodes")]
   Existing,
+  #[display_style(name = "Only First Season")]
   FirstSeason,
+  #[display_style(name = "Only Last Season")]
   LastSeason,
+  #[display_style(name = "Only Latest Season")]
   LatestSeason,
+  #[display_style(name = "Pilot Episode")]
   Pilot,
+  #[display_style(name = "Recent Episodes")]
   Recent,
+  #[display_style(name = "Only Specials")]
   MonitorSpecials,
+  #[display_style(name = "Not Specials")]
   UnmonitorSpecials,
   None,
   Skip,
 }
 
-impl Display for SeriesMonitor {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    let series_monitor = match self {
-      SeriesMonitor::Unknown => "unknown",
-      SeriesMonitor::All => "all",
-      SeriesMonitor::Future => "future",
-      SeriesMonitor::Missing => "missing",
-      SeriesMonitor::Existing => "existing",
-      SeriesMonitor::FirstSeason => "firstSeason",
-      SeriesMonitor::LastSeason => "lastSeason",
-      SeriesMonitor::LatestSeason => "latestSeason",
-      SeriesMonitor::Pilot => "pilot",
-      SeriesMonitor::Recent => "recent",
-      SeriesMonitor::MonitorSpecials => "monitorSpecials",
-      SeriesMonitor::UnmonitorSpecials => "unmonitorSpecials",
-      SeriesMonitor::None => "none",
-      SeriesMonitor::Skip => "skip",
-    };
-    write!(f, "{series_monitor}")
-  }
-}
-
-impl<'a> EnumDisplayStyle<'a> for SeriesMonitor {
-  fn to_display_str(self) -> &'a str {
-    match self {
-      SeriesMonitor::Unknown => "Unknown",
-      SeriesMonitor::All => "All Episodes",
-      SeriesMonitor::Future => "Future Episodes",
-      SeriesMonitor::Missing => "Missing Episodes",
-      SeriesMonitor::Existing => "Existing Episodes",
-      SeriesMonitor::FirstSeason => "Only First Season",
-      SeriesMonitor::LastSeason => "Only Last Season",
-      SeriesMonitor::LatestSeason => "Only Latest Season",
-      SeriesMonitor::Pilot => "Pilot Episode",
-      SeriesMonitor::Recent => "Recent Episodes",
-      SeriesMonitor::MonitorSpecials => "Only Specials",
-      SeriesMonitor::UnmonitorSpecials => "Not Specials",
-      SeriesMonitor::None => "None",
-      SeriesMonitor::Skip => "Skip",
-    }
-  }
-}
-
 #[derive(
-  Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, ValueEnum,
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  ValueEnum,
+  Display,
+  EnumDisplayStyle,
 )]
 #[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
 pub enum SeriesType {
   #[default]
   Standard,
   Daily,
   Anime,
-}
-
-impl Display for SeriesType {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    let series_type = match self {
-      SeriesType::Standard => "standard",
-      SeriesType::Daily => "daily",
-      SeriesType::Anime => "anime",
-    };
-    write!(f, "{series_type}")
-  }
-}
-
-impl<'a> EnumDisplayStyle<'a> for SeriesType {
-  fn to_display_str(self) -> &'a str {
-    match self {
-      SeriesType::Standard => "Standard",
-      SeriesType::Daily => "Daily",
-      SeriesType::Anime => "Anime",
-    }
-  }
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
@@ -478,37 +429,27 @@ pub struct SeriesStatistics {
 
 impl Eq for SeriesStatistics {}
 
-#[derive(Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter)]
+#[derive(
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  Display,
+  EnumDisplayStyle,
+)]
 #[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
 pub enum SeriesStatus {
   #[default]
   Continuing,
   Ended,
   Upcoming,
   Deleted,
-}
-
-impl Display for SeriesStatus {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    let series_status = match self {
-      SeriesStatus::Continuing => "continuing",
-      SeriesStatus::Ended => "ended",
-      SeriesStatus::Upcoming => "upcoming",
-      SeriesStatus::Deleted => "deleted",
-    };
-    write!(f, "{series_status}")
-  }
-}
-
-impl<'a> EnumDisplayStyle<'a> for SeriesStatus {
-  fn to_display_str(self) -> &'a str {
-    match self {
-      SeriesStatus::Continuing => "Continuing",
-      SeriesStatus::Ended => "Ended",
-      SeriesStatus::Upcoming => "Upcoming",
-      SeriesStatus::Deleted => "Deleted",
-    }
-  }
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
@@ -537,49 +478,27 @@ pub struct SonarrHistoryData {
   pub relative_path: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[derive(
+  Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Display, EnumDisplayStyle,
+)]
 #[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
 pub enum SonarrHistoryEventType {
   #[default]
   Unknown,
   Grabbed,
+  #[display_style(name = "Series Folder Imported")]
   SeriesFolderImported,
+  #[display_style(name = "Download Folder Imported")]
   DownloadFolderImported,
+  #[display_style(name = "Download Failed")]
   DownloadFailed,
+  #[display_style(name = "Episode File Deleted")]
   EpisodeFileDeleted,
+  #[display_style(name = "Episode File Renamed")]
   EpisodeFileRenamed,
+  #[display_style(name = "Download Ignored")]
   DownloadIgnored,
-}
-
-impl Display for SonarrHistoryEventType {
-  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-    let event_type = match self {
-      SonarrHistoryEventType::Unknown => "unknown",
-      SonarrHistoryEventType::Grabbed => "grabbed",
-      SonarrHistoryEventType::SeriesFolderImported => "seriesFolderImported",
-      SonarrHistoryEventType::DownloadFolderImported => "downloadFolderImported",
-      SonarrHistoryEventType::DownloadFailed => "downloadFailed",
-      SonarrHistoryEventType::EpisodeFileDeleted => "episodeFileDeleted",
-      SonarrHistoryEventType::EpisodeFileRenamed => "episodeFileRenamed",
-      SonarrHistoryEventType::DownloadIgnored => "downloadIgnored",
-    };
-    write!(f, "{event_type}")
-  }
-}
-
-impl<'a> EnumDisplayStyle<'a> for SonarrHistoryEventType {
-  fn to_display_str(self) -> &'a str {
-    match self {
-      SonarrHistoryEventType::Unknown => "Unknown",
-      SonarrHistoryEventType::Grabbed => "Grabbed",
-      SonarrHistoryEventType::SeriesFolderImported => "Series Folder Imported",
-      SonarrHistoryEventType::DownloadFolderImported => "Download Folder Imported",
-      SonarrHistoryEventType::DownloadFailed => "Download Failed",
-      SonarrHistoryEventType::EpisodeFileDeleted => "Episode File Deleted",
-      SonarrHistoryEventType::EpisodeFileRenamed => "Episode File Renamed",
-      SonarrHistoryEventType::DownloadIgnored => "Download Ignored",
-    }
-  }
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]

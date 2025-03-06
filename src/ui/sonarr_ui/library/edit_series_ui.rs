@@ -12,7 +12,7 @@ use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, EDIT_SERIES_BLOCKS, SERIES_DETAILS_BLOCKS,
 };
-use crate::models::{EnumDisplayStyle, Route};
+use crate::models::Route;
 use crate::render_selectable_input_box;
 
 use crate::ui::styles::ManagarrStyle;

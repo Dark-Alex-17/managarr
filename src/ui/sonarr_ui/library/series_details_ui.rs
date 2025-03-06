@@ -12,7 +12,7 @@ use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SERIES
 use crate::models::sonarr_models::{
   Season, SeasonStatistics, SonarrHistoryEventType, SonarrHistoryItem,
 };
-use crate::models::{EnumDisplayStyle, Route};
+use crate::models::Route;
 use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::ui::sonarr_ui::library::season_details_ui::SeasonDetailsUi;
 use crate::ui::sonarr_ui::sonarr_ui_utils::{

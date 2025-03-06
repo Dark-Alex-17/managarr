@@ -11,7 +11,7 @@ mod tests {
       RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus, Tag, Update,
     },
     servarr_models::{HostConfig, Log, LogResponse, QueueEvent, RootFolder, SecurityConfig},
-    EnumDisplayStyle, Serdeable,
+    Serdeable,
   };
 
   #[test]
