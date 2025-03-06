@@ -2752,6 +2752,7 @@ dependencies = [
 name = "validate_theme_derive"
 version = "0.1.0"
 dependencies = [
+ "log",
  "quote",
  "syn 2.0.99",
 ]

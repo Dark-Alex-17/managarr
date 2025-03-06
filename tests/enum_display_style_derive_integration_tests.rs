@@ -8,7 +8,7 @@ fn test_derive_enum_display_style() {
 }
 
 #[derive(EnumDisplayStyle)]
-pub enum TestEnum {
+enum TestEnum {
   #[display_style(name = "Testing 123")]
   Test,
   Ignored,

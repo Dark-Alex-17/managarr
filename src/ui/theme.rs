@@ -1,4 +1,3 @@
-use crate::process;
 use anyhow::Result;
 use derivative::Derivative;
 use ratatui::style::Color;

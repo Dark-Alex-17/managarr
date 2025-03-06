@@ -9,3 +9,6 @@ proc-macro = true
 [dependencies]
 quote = "1.0.39"
 syn = "2.0.99"
+
+[dev-dependencies]
+log = "0.4.17"
