@@ -28,11 +28,13 @@ use crate::cli::Command;
 use crate::event::input_event::{Events, InputEvent};
 use crate::event::Key;
 use crate::network::{Network, NetworkEvent};
-use crate::ui::theme::{Theme, ThemeDefinition};
+use crate::ui::theme::{Theme, ThemeDefinitionsWrapper};
 use crate::ui::{ui, THEME};
 use crate::utils::load_theme_config;
 
 mod app;
+mod builtin_themes;
+mod builtin_themes_tests;
 mod cli;
 mod event;
 mod handlers;
@@ -80,9 +82,9 @@ struct Cli {
     global = true,
     value_parser,
     env = "MANAGARR_THEME_FILE",
-    help = "The Managarr theme file to use"
+    help = "The Managarr themes file to use"
   )]
-  theme_file: Option<PathBuf>,
+  themes_file: Option<PathBuf>,
   #[arg(
     long,
     global = true,
@@ -161,7 +163,7 @@ async fn main() -> Result<()> {
       });
       start_ui(
         &app,
-        &args.theme_file,
+        &args.themes_file,
         args.theme.unwrap_or(theme_name.unwrap_or_default()),
       )
       .await?;
@@ -200,16 +202,19 @@ async fn start_networking(
 
 async fn start_ui(
   app: &Arc<Mutex<App<'_>>>,
-  theme_file_arg: &Option<PathBuf>,
+  themes_file_arg: &Option<PathBuf>,
   theme_name: String,
 ) -> Result<()> {
-  let theme_definitions = if let Some(ref theme_file) = theme_file_arg {
+  let theme_definitions_wrapper = if let Some(ref theme_file) = themes_file_arg {
     load_theme_config(theme_file.to_str().expect("Invalid theme file specified"))?
   } else {
-    confy::load("managarr", "themes").unwrap_or_else(|_| vec![ThemeDefinition::default()])
+    confy::load("managarr", "themes").unwrap_or_else(|_| ThemeDefinitionsWrapper::default())
   };
   let theme = if !theme_name.is_empty() {
-    let theme_definition = theme_definitions.iter().find(|t| t.name == theme_name);
+    let theme_definition = theme_definitions_wrapper
+      .theme_definitions
+      .iter()
+      .find(|t| t.name == theme_name);
 
     if theme_definition.is_none() {
       log_and_print_error(format!("The specified theme was not found: {theme_name}"));

@@ -1,7 +1,8 @@
+use crate::builtin_themes::get_builtin_themes;
 use anyhow::Result;
 use derivative::Derivative;
 use ratatui::style::Color;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::str::FromStr;
 use validate_theme_derive::ValidateTheme;
 
@@ -118,6 +119,20 @@ pub struct ThemeDefinition {
   pub theme: Theme,
 }
 
+#[derive(Debug, Clone)]
+#[cfg_attr(test, derive(PartialEq, Eq))]
+pub struct ThemeDefinitionsWrapper {
+  pub theme_definitions: Vec<ThemeDefinition>,
+}
+
+impl Default for ThemeDefinitionsWrapper {
+  fn default() -> Self {
+    Self {
+      theme_definitions: get_builtin_themes(),
+    }
+  }
+}
+
 fn default_background_color() -> Option<Color> {
   Some(Color::Rgb(35, 50, 55))
 }
@@ -229,9 +244,28 @@ fn default_warning_style() -> Option<Style> {
   })
 }
 
+impl<'de> Deserialize<'de> for ThemeDefinitionsWrapper {
+  fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    let theme_definitions = Vec::<ThemeDefinition>::deserialize(deserializer)?;
+    Ok(ThemeDefinitionsWrapper { theme_definitions })
+  }
+}
+
+impl Serialize for ThemeDefinitionsWrapper {
+  fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+  where
+    S: serde::Serializer,
+  {
+    self.theme_definitions.serialize(serializer)
+  }
+}
+
 fn deserialize_color_str<'de, D>(deserializer: D) -> Result<Option<Color>, D::Error>
 where
-  D: serde::Deserializer<'de>,
+  D: Deserializer<'de>,
 {
   let s: Option<String> = Option::deserialize(deserializer)?;
   match s {

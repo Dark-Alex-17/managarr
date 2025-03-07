@@ -206,6 +206,9 @@ Key:
 
 - [ ] Support for Tautulli
 
+### Themes
+Managarr ships with a few themes out of the box. See the [Themes README](themes/README.md) page for more information.
+
 ### The Managarr CLI
 Managarr can be used in one of two ways: As a TUI, or as a CLI for managing your Servarrs. 
 
@@ -315,6 +318,7 @@ managarr --config-file /path/to/config.yml
 
 ### Example Configuration:
 ```yaml
+theme: default
 radarr:
   - host: 192.168.0.78
     port: 7878
@@ -357,6 +361,7 @@ tautulli:
 
 ### Example Multi-Instance Configuration:
 ```yaml
+theme: default
 radarr:
   - host: 192.168.0.78 # No name specified, so this instance's name will default to 'Radarr 1'
     port: 7878

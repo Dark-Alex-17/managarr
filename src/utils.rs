@@ -21,7 +21,7 @@ use tokio_util::sync::CancellationToken;
 use crate::app::{log_and_print_error, App, AppConfig};
 use crate::cli::{self, Command};
 use crate::network::Network;
-use crate::ui::theme::ThemeDefinition;
+use crate::ui::theme::ThemeDefinitionsWrapper;
 
 #[cfg(test)]
 #[path = "utils_tests.rs"]
@@ -154,7 +154,7 @@ pub(super) fn load_config(path: &str) -> Result<AppConfig> {
   }
 }
 
-pub(super) fn load_theme_config(path: &str) -> Result<Vec<ThemeDefinition>> {
+pub(super) fn load_theme_config(path: &str) -> Result<ThemeDefinitionsWrapper> {
   match File::open(path).map_err(|e| anyhow!(e)) {
     Ok(file) => {
       let reader = BufReader::new(file);

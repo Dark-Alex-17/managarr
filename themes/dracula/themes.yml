@@ -1,0 +1,29 @@
+- name: dracula
+  theme:
+    background:
+      enabled: false
+      color: "#282a36"
+    default:
+      color: "#f8f8f2"
+    downloaded:
+      color: "#50fa7b"
+    downloading:
+      color: "#8be9fd"
+    failure:
+      color: "#ff5555"
+    missing:
+      color: "#ffb86c"
+    unmonitored-missing:
+      color: "#6272a4"
+    help:
+      color: "#6272a4"
+    primary:
+      color: "#ff79c6"
+    secondary:
+      color: "#ff79c6"
+    success:
+      color: "#50fa7b"
+    warning:
+      color: "#f1fa8c"
+    unreleased:
+      color: "#f8f8f2"
