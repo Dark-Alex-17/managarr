@@ -10,7 +10,7 @@ homepage = "https://github.com/Dark-Alex-17/managarr"
 readme = "README.md"
 edition = "2021"
 license = "MIT"
-rust-version = "1.82.0"
+rust-version = "1.85.0"
 exclude = [".github", "CONTRIBUTING.md", "*.log", "tags"]
 
 [workspace]
