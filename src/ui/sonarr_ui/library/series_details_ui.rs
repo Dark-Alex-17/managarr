@@ -247,7 +247,11 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         size_on_disk,
         next_airing,
         ..
-      } = statistics;
+      } = if let Some(stats) = statistics {
+        stats
+      } else {
+        &SeasonStatistics::default()
+      };
       let season_monitored = if season.monitored { "🏷" } else { "" };
       let size = convert_to_gb(*size_on_disk);
 

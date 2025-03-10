@@ -327,7 +327,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
       title: None,
       season_number: 1,
       monitored: true,
-      statistics: season_statistics(),
+      statistics: Some(season_statistics()),
     }
   }
 
