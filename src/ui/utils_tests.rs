@@ -5,7 +5,7 @@ mod test {
     borderless_block, centered_rect, convert_to_minutes_hours_days, decorate_peer_style,
     get_width_from_percentage, layout_block, layout_block_bottom_border, layout_block_top_border,
     layout_block_top_border_with_title, layout_block_with_title, logo_block, style_block_highlight,
-    style_log_list_item, title_block, title_block_centered, title_style,
+    style_log_list_item, title_block, title_block_centered, title_style, unstyled_title_block,
   };
   use pretty_assertions::{assert_eq, assert_str_eq};
   use ratatui::layout::{Alignment, Rect};
@@ -19,7 +19,6 @@ mod test {
     assert_eq!(
       layout_block(),
       Block::new()
-        .default()
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
     );
@@ -34,7 +33,6 @@ mod test {
         .add_modifier(Modifier::BOLD),
     );
     let expected_block = Block::new()
-      .default()
       .borders(Borders::ALL)
       .border_type(BorderType::Rounded)
       .title(title_span.clone());
@@ -101,6 +99,19 @@ mod test {
     let expected_span = Span::styled("  test  ", Style::new().add_modifier(Modifier::BOLD));
 
     assert_eq!(title_style("test"), expected_span);
+  }
+
+  #[test]
+  fn test_unstyled_title_block() {
+    let expected_block = Block::new()
+      .borders(Borders::ALL)
+      .border_type(BorderType::Rounded)
+      .title(Span::styled(
+        "  test  ",
+        Style::new().add_modifier(Modifier::BOLD),
+      ));
+
+    assert_eq!(unstyled_title_block("test"), expected_block);
   }
 
   #[test]

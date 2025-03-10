@@ -24,7 +24,6 @@ pub fn background_block<'a>() -> Block<'a> {
 
 pub fn layout_block<'a>() -> Block<'a> {
   Block::new()
-    .default()
     .borders(Borders::ALL)
     .border_type(BorderType::Rounded)
 }
@@ -70,8 +69,12 @@ pub fn title_style(title: &str) -> Span<'_> {
   format!("  {title}  ").bold()
 }
 
-pub fn title_block(title: &str) -> Block<'_> {
+pub fn unstyled_title_block(title: &str) -> Block<'_> {
   layout_block_with_title(title_style(title))
+}
+
+pub fn title_block(title: &str) -> Block<'_> {
+  unstyled_title_block(title).default()
 }
 
 pub fn title_block_centered(title: &str) -> Block<'_> {
@@ -79,7 +82,7 @@ pub fn title_block_centered(title: &str) -> Block<'_> {
 }
 
 pub fn logo_block<'a>() -> Block<'a> {
-  layout_block().title(Span::styled(
+  layout_block().default().title(Span::styled(
     " Managarr - A Servarr management TUI ",
     Style::new().magenta().bold().italic(),
   ))
