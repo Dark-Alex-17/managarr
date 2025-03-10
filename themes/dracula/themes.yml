@@ -1,8 +1,8 @@
 - name: dracula
   theme:
     background:
-      enabled: false
-      color: "#282a36"
+      enabled: true
+      color: "#232326"
     default:
       color: "#f8f8f2"
     downloaded:

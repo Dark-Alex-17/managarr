@@ -1,6 +1,5 @@
 # Managarr Default Theme
-The [themes.yml](./themes.yml) file in this directory corresponds to the theme configuration for the 
-default Managarr theme.
+The [themes.yml](./themes.yml) file in this directory corresponds to the theme configuration for the default Managarr theme.
 
 ## Screenshots
 

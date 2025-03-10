@@ -207,7 +207,14 @@ Key:
 - [ ] Support for Tautulli
 
 ### Themes
-Managarr ships with a few themes out of the box. See the [Themes README](themes/README.md) page for more information.
+Managarr ships with a few themes out of the box. Here's a few examples:
+
+![default](themes/default/manual_episode_search.png)
+![dracula](themes/dracula/manual_episode_search.png)
+![watermelon-dark](themes/watermelon-dark/manual_episode_search.png)
+
+You can also create your own custom themes as well. To learn more about what themes are built-in to Managarr and how
+to create your own custom themes, check out the [Themes README](themes/README.md).
 
 ### The Managarr CLI
 Managarr can be used in one of two ways: As a TUI, or as a CLI for managing your Servarrs. 

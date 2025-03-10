@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test {
-  use crate::builtin_themes::get_builtin_themes;
+  use crate::ui::builtin_themes::get_builtin_themes;
   use crate::ui::theme::{Background, Style, Theme, ThemeDefinition};
   use pretty_assertions::assert_eq;
   use ratatui::prelude::Color;
@@ -35,8 +35,8 @@ mod test {
     };
     let dracula = Theme {
       background: Some(Background {
-        enabled: Some(false),
-        color: Some(Color::from_str("#233237").unwrap()),
+        enabled: Some(true),
+        color: Some(Color::from_str("#232326").unwrap()),
       }),
       default: Some(Style {
         color: Some(Color::from_str("#f8f8f2").unwrap()),
@@ -76,6 +76,49 @@ mod test {
       }),
       ..Theme::default()
     };
+    let eldritch = Theme {
+      background: Some(Background {
+        enabled: Some(true),
+        color: Some(Color::from_str("#212337").unwrap()),
+      }),
+      default: Some(Style {
+        color: Some(Color::from_str("#ebfafa").unwrap()),
+      }),
+      downloaded: Some(Style {
+        color: Some(Color::from_str("#37f499").unwrap()),
+      }),
+      downloading: Some(Style {
+        color: Some(Color::from_str("#f7c67f").unwrap()),
+      }),
+      failure: Some(Style {
+        color: Some(Color::from_str("#f16c75").unwrap()),
+      }),
+      missing: Some(Style {
+        color: Some(Color::from_str("#f7c67f").unwrap()),
+      }),
+      unmonitored_missing: Some(Style {
+        color: Some(Color::from_str("#7081d0").unwrap()),
+      }),
+      help: Some(Style {
+        color: Some(Color::from_str("#7081d0").unwrap()),
+      }),
+      primary: Some(Style {
+        color: Some(Color::from_str("#f265b5").unwrap()),
+      }),
+      secondary: Some(Style {
+        color: Some(Color::from_str("#04d1f9").unwrap()),
+      }),
+      success: Some(Style {
+        color: Some(Color::from_str("#37f499").unwrap()),
+      }),
+      warning: Some(Style {
+        color: Some(Color::from_str("#f1fc79").unwrap()),
+      }),
+      unreleased: Some(Style {
+        color: Some(Color::from_str("#ebfafa").unwrap()),
+      }),
+      ..Theme::default()
+    };
     let expected_themes = vec![
       ThemeDefinition {
         name: "default".to_owned(),
@@ -88,6 +131,10 @@ mod test {
       ThemeDefinition {
         name: "dracula".to_owned(),
         theme: dracula,
+      },
+      ThemeDefinition {
+        name: "eldritch".to_owned(),
+        theme: eldritch,
       },
     ];
 

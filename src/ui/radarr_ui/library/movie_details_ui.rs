@@ -256,7 +256,7 @@ fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Cell::from(quality.quality.name.to_owned()),
         Cell::from(date.to_string()),
       ])
-      .success()
+      .primary()
     };
     let help_footer = app
       .data
@@ -297,7 +297,7 @@ fn draw_movie_cast(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Cell::from(person_name.to_owned()),
           Cell::from(character.clone().unwrap_or_default()),
         ])
-        .success()
+        .primary()
       };
       let content = Some(&mut movie_details_modal.movie_cast);
       let help_footer = app
@@ -340,7 +340,7 @@ fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Cell::from(job.clone().unwrap_or_default()),
           Cell::from(department.clone().unwrap_or_default()),
         ])
-        .success()
+        .primary()
       };
       let content = Some(&mut movie_details_modal.movie_crew);
       let help_footer = app

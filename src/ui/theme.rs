@@ -1,4 +1,4 @@
-use crate::builtin_themes::get_builtin_themes;
+use crate::ui::builtin_themes::get_builtin_themes;
 use anyhow::Result;
 use derivative::Derivative;
 use ratatui::style::Color;

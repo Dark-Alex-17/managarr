@@ -33,8 +33,6 @@ use crate::ui::{ui, THEME};
 use crate::utils::load_theme_config;
 
 mod app;
-mod builtin_themes;
-mod builtin_themes_tests;
 mod cli;
 mod event;
 mod handlers;

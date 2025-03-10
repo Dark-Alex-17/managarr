@@ -24,13 +24,13 @@ use syn::{Data, DeriveInput, Fields, parse_macro_input};
 /// }
 ///
 /// struct Style {
-/// 	color: String,
+///     color: String,
 /// }
 ///
 /// let theme = Theme {
-/// 	good: Some(Style { color: "Green".to_owned() }),
-/// 	bad: Some(Style { color: "Red".to_owned() }),
-/// 	..Theme::default()
+///     good: Some(Style { color: "Green".to_owned() }),
+///     bad: Some(Style { color: "Red".to_owned() }),
+///     ..Theme::default()
 /// };
 ///
 /// // Since only `good` and `bad` have the `validate` attribute, the `validate` method will only check those fields.

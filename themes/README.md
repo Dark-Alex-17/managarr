@@ -18,6 +18,9 @@ custom theme off of. The following themes are included by default:
 ### [Dracula](./dracula/README.md)
 ![sonarr-library](./dracula/sonarr_library.png)
 
+### [Eldritch](./eldritch/README.md)
+![sonarr-library](./eldritch/sonarr_library.png)
+
 ### [Watermelon Dark](./watermelon-dark/README.md)
 ![sonarr-library](./watermelon-dark/sonarr_library.png)
 
@@ -32,41 +35,69 @@ is an example that shows every available customization option for a custom theme
 - name: my-theme
   theme:
     background:
-      enabled: true # Disable for transparent backgrounds
+      # Disable for transparent backgrounds
+      enabled: true
+      # Color of the full system background
       color: "#233237"
     awaiting_import:
+      # Color for items awaiting import
       color: "#FFAA42"
     indeterminate:
+      # Color for when item status is unknown
       color: "#FFAA42"
     default:
+      # Default color for text and uncolored elements
       color: "#FFFFFF"
     downloaded:
+      # Color for downloaded items (when monitored)
       color: "#00FF00"
     downloading:
+      # Color for items currently downloading
       color: "#762671"
     failure:
+      # Color for errors, no seeders, disabled indexers, 
+      # failed indexer test results, etc.
       color: "#DE382B"
     help:
+      # Color for help text like hotkeys and tooltips
       color: "#00FFFF"
     missing:
+      # Color for missing items
       color: "#DE382B"
     primary:
+      # Primary color for table/list items (without custom coloring), 
+      # selected UI elements (e.g. table/list items, current tab, etc.), 
+      # gauge bars, etc.
       color: "#2CB5E9"
     secondary:
+      # Color for selected tabs, Warn log events, Paragraph headers (e.g. "Name: "),
+      # and uncolored Message box contents
       color: "#FFC706"
     success:
+      # Color for downloaded and imported and available items, 
+      # good peer styling (more seeders than leechers), 
+      # passing indexer test results, and enabled indexers
       color: "#39B54A"
     system_function:
+      # Color for system functions like selected UI elements (e.g. checkboxes, yes/no prompts),
+      # or loading spinner
       color: "#FFC706"
     unmonitored:
+      # Color for unmonitored items
       color: "#808080"
     unmonitored_missing:
+      # Color for unmonitored items that are also missing
       color: "#FFC706"
     unreleased:
+      # Color for unreleased items
       color: "#00FFFF"
     warning:
+      # Color for fewer seeders than leechers
       color: "#FF00FF"
 ```
+
+**Note:** Bear in mind that while some colors may currently affect few UI elements, Managarr is still being built
+and thus these colors may affect more elements in the future.
 
 In order to activate your custom theme, you can either update your `config.yml`:
 

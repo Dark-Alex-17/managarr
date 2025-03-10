@@ -6,8 +6,8 @@ use std::str::FromStr;
 #[path = "builtin_themes_tests.rs"]
 mod builtin_themes_tests;
 
-pub fn get_builtin_themes() -> Vec<ThemeDefinition> {
-  let watermelon_dark = Theme {
+pub(in crate::ui) fn watermelon_dark_theme() -> Theme {
+  Theme {
     background: Some(Background {
       enabled: Some(false),
       color: Some(Color::from_str("#233237").unwrap()),
@@ -31,11 +31,14 @@ pub fn get_builtin_themes() -> Vec<ThemeDefinition> {
       color: Some(Color::from_str("#8c19ff").unwrap()),
     }),
     ..Theme::default()
-  };
-  let dracula = Theme {
+  }
+}
+
+pub(in crate::ui) fn dracula_theme() -> Theme {
+  Theme {
     background: Some(Background {
-      enabled: Some(false),
-      color: Some(Color::from_str("#233237").unwrap()),
+      enabled: Some(true),
+      color: Some(Color::from_str("#232326").unwrap()),
     }),
     default: Some(Style {
       color: Some(Color::from_str("#f8f8f2").unwrap()),
@@ -74,7 +77,56 @@ pub fn get_builtin_themes() -> Vec<ThemeDefinition> {
       color: Some(Color::from_str("#f8f8f2").unwrap()),
     }),
     ..Theme::default()
-  };
+  }
+}
+
+pub(in crate::ui) fn eldritch_theme() -> Theme {
+  Theme {
+    background: Some(Background {
+      enabled: Some(true),
+      color: Some(Color::from_str("#212337").unwrap()),
+    }),
+    default: Some(Style {
+      color: Some(Color::from_str("#ebfafa").unwrap()),
+    }),
+    downloaded: Some(Style {
+      color: Some(Color::from_str("#37f499").unwrap()),
+    }),
+    downloading: Some(Style {
+      color: Some(Color::from_str("#f7c67f").unwrap()),
+    }),
+    failure: Some(Style {
+      color: Some(Color::from_str("#f16c75").unwrap()),
+    }),
+    missing: Some(Style {
+      color: Some(Color::from_str("#f7c67f").unwrap()),
+    }),
+    unmonitored_missing: Some(Style {
+      color: Some(Color::from_str("#7081d0").unwrap()),
+    }),
+    help: Some(Style {
+      color: Some(Color::from_str("#7081d0").unwrap()),
+    }),
+    primary: Some(Style {
+      color: Some(Color::from_str("#f265b5").unwrap()),
+    }),
+    secondary: Some(Style {
+      color: Some(Color::from_str("#04d1f9").unwrap()),
+    }),
+    success: Some(Style {
+      color: Some(Color::from_str("#37f499").unwrap()),
+    }),
+    warning: Some(Style {
+      color: Some(Color::from_str("#f1fc79").unwrap()),
+    }),
+    unreleased: Some(Style {
+      color: Some(Color::from_str("#ebfafa").unwrap()),
+    }),
+    ..Theme::default()
+  }
+}
+
+pub fn get_builtin_themes() -> Vec<ThemeDefinition> {
   vec![
     ThemeDefinition {
       name: "default".to_owned(),
@@ -82,11 +134,15 @@ pub fn get_builtin_themes() -> Vec<ThemeDefinition> {
     },
     ThemeDefinition {
       name: "watermelon-dark".to_owned(),
-      theme: watermelon_dark,
+      theme: watermelon_dark_theme(),
     },
     ThemeDefinition {
       name: "dracula".to_owned(),
-      theme: dracula,
+      theme: dracula_theme(),
+    },
+    ThemeDefinition {
+      name: "eldritch".to_owned(),
+      theme: eldritch_theme(),
     },
   ]
 }

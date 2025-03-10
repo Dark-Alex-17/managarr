@@ -1,6 +1,5 @@
 # Managarr Dracula Theme
-The [themes.yml](./themes.yml) file in this directory corresponds to the theme configuration for the
-Dracula Managarr theme.
+The [themes.yml](./themes.yml) file in this directory corresponds to the theme configuration for the Dracula Managarr theme.
 
 ## Screenshots
 

@@ -24,6 +24,7 @@ use crate::ui::utils::{
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::popup::Size;
 
+mod builtin_themes;
 mod radarr_ui;
 mod sonarr_ui;
 mod styles;
