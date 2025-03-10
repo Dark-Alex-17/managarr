@@ -44,25 +44,32 @@ impl DrawUi for LibraryUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = app.get_current_route();
-    draw_library(f, app, area);
-
-    match route {
-      _ if MovieDetailsUi::accepts(route) => MovieDetailsUi::draw(f, app, area),
-      _ if AddMovieUi::accepts(route) => AddMovieUi::draw(f, app, area),
-      _ if EditMovieUi::accepts(route) => EditMovieUi::draw(f, app, area),
-      _ if DeleteMovieUi::accepts(route) => DeleteMovieUi::draw(f, app, area),
-      Route::Radarr(ActiveRadarrBlock::UpdateAllMoviesPrompt, _) => {
-        let confirmation_prompt = ConfirmationPrompt::new()
-          .title("Update All Movies")
-          .prompt("Do you want to update info and scan your disks for all of your movies?")
-          .yes_no_value(app.data.radarr_data.prompt_confirm);
-
-        f.render_widget(
-          Popup::new(confirmation_prompt).size(Size::MediumPrompt),
-          f.area(),
-        );
+    if let Route::Radarr(_, context_option) = route {
+      if context_option.is_some() && AddMovieUi::accepts(route) {
+        AddMovieUi::draw(f, app, area);
+        return;
       }
-      _ => (),
+
+      draw_library(f, app, area);
+
+      match route {
+        _ if MovieDetailsUi::accepts(route) => MovieDetailsUi::draw(f, app, area),
+        _ if AddMovieUi::accepts(route) => AddMovieUi::draw(f, app, area),
+        _ if EditMovieUi::accepts(route) => EditMovieUi::draw(f, app, area),
+        _ if DeleteMovieUi::accepts(route) => DeleteMovieUi::draw(f, app, area),
+        Route::Radarr(ActiveRadarrBlock::UpdateAllMoviesPrompt, _) => {
+          let confirmation_prompt = ConfirmationPrompt::new()
+            .title("Update All Movies")
+            .prompt("Do you want to update info and scan your disks for all of your movies?")
+            .yes_no_value(app.data.radarr_data.prompt_confirm);
+
+          f.render_widget(
+            Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+            f.area(),
+          );
+        }
+        _ => (),
+      }
     }
   }
 }
