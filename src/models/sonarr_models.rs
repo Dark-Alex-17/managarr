@@ -288,7 +288,7 @@ pub struct Season {
   #[serde(deserialize_with = "super::from_i64")]
   pub season_number: i64,
   pub monitored: bool,
-  pub statistics: SeasonStatistics,
+  pub statistics: Option<SeasonStatistics>,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
