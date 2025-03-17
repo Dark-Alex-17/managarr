@@ -79,7 +79,7 @@ struct Cli {
     long,
     global = true,
     value_parser,
-    env = "MANAGARR_THEME_FILE",
+    env = "MANAGARR_THEMES_FILE",
     help = "The Managarr themes file to use"
   )]
   themes_file: Option<PathBuf>,

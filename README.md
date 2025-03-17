@@ -228,7 +228,7 @@ To see all available commands, simply run `managarr --help`:
 
 ```shell
 $ managarr --help
-managarr 0.5.0
+managarr 0.5.1
 Alex Clarke <alex.j.tusa@gmail.com>
 
 A TUI and CLI to manage your Servarrs
@@ -245,6 +245,8 @@ Commands:
 Options:
       --disable-spinner              Disable the spinner (can sometimes make parsing output challenging) [env: MANAGARR_DISABLE_SPINNER=]
       --config-file <CONFIG_FILE>    The Managarr configuration file to use [env: MANAGARR_CONFIG_FILE=]
+      --themes-file <THEMES_FILE>    The Managarr themes file to use [env: MANAGARR_THEMES_FILE=]
+      --theme <THEME>                The name of the Managarr theme to use [env: MANAGARR_THEME=]
       --servarr-name <SERVARR_NAME>  For multi-instance configurations, you need to specify the name of the instance configuration that you want to use.
                                          This is useful when you have multiple instances of the same Servarr defined in your config file.
                                          By default, if left empty, the first configured Servarr instance listed in the config file will be used.
