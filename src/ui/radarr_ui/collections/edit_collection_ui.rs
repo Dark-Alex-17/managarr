@@ -88,6 +88,7 @@ fn draw_edit_collection_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>
     .clone()
     .unwrap_or_default();
   let title = format!("Edit - {collection_title}");
+  f.render_widget(title_block_centered(&title), area);
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();
   let highlight_yes_no = selected_block == ActiveRadarrBlock::EditCollectionConfirmPrompt;
@@ -155,7 +156,6 @@ fn draw_edit_collection_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>
     .title("Cancel")
     .selected(!yes_no_value && highlight_yes_no);
 
-  f.render_widget(title_block_centered(&title), area);
   f.render_widget(prompt_paragraph, paragraph_area);
   f.render_widget(monitored_checkbox, monitored_area);
   f.render_widget(min_availability_drop_down_button, min_availability_area);

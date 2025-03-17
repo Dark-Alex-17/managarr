@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::sync::atomic::Ordering;
 
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
@@ -15,19 +16,26 @@ use crate::app::App;
 use crate::models::{HorizontallyScrollableText, Route, TabState};
 use crate::ui::radarr_ui::RadarrUi;
 use crate::ui::styles::ManagarrStyle;
+use crate::ui::theme::Theme;
 use crate::ui::utils::{
   background_block, borderless_block, centered_rect, logo_block, title_block, title_block_centered,
+  unstyled_title_block,
 };
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::popup::Size;
 
+mod builtin_themes;
 mod radarr_ui;
 mod sonarr_ui;
 mod styles;
+pub mod theme;
 mod utils;
 mod widgets;
 
 static HIGHLIGHT_SYMBOL: &str = "=> ";
+thread_local! {
+  pub static THEME: Cell<Theme> = Cell::new(Theme::default());
+}
 
 pub trait DrawUi {
   fn accepts(route: Route) -> bool;
@@ -100,7 +108,9 @@ fn draw_header_row(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_error(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let block = title_block("Error | <esc> to close").failure().bold();
+  let block = unstyled_title_block("Error | <esc> to close")
+    .failure()
+    .bold();
 
   app.error.scroll_left_or_reset(
     area.width as usize,
@@ -130,7 +140,7 @@ pub fn draw_popup(
 
 fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -> Rect {
   if title.is_empty() {
-    f.render_widget(layout_block(), area);
+    f.render_widget(layout_block().default(), area);
   } else {
     f.render_widget(title_block(title), area);
   }

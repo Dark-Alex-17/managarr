@@ -1,0 +1,16 @@
+- name: watermelon-dark
+  theme:
+    background:
+      enabled: false
+    default:
+      color: "#00FF00"
+    downloaded:
+      color: "#80ffbf"
+    failure:
+      color: "#ff8080"
+    missing:
+      color: "#ff8080"
+    primary:
+      color: "#ff19d9"
+    secondary:
+      color: "#8c19ff"

@@ -5,7 +5,7 @@ use darling::FromVariant;
 use quote::quote;
 use syn::{Data, DeriveInput, parse_macro_input};
 
-/// Derive macro for the EnumDisplayStyle trait.
+/// Derive macro for generating a `to_display_str` method for an enum.
 ///
 /// # Example
 ///
@@ -16,13 +16,12 @@ use syn::{Data, DeriveInput, parse_macro_input};
 ///
 /// #[derive(EnumDisplayStyle)]
 /// enum Weekend {
-///   Saturday,
-///   Sunday,
+///     Saturday,
+///     Sunday,
 /// }
 ///
 /// assert_eq!(Weekend::Saturday.to_display_str(), "Saturday");
 /// assert_eq!(Weekend::Sunday.to_display_str(), "Sunday");
-///
 /// ```
 ///
 /// Using custom values for the display style:
@@ -32,10 +31,10 @@ use syn::{Data, DeriveInput, parse_macro_input};
 ///
 /// #[derive(EnumDisplayStyle)]
 /// enum MonitorStatus {
-///   #[display_style(name = "Monitor Transactions")]
-///   Active,
-///   #[display_style(name = "Don't Monitor Transactions")]
-///   None,
+///     #[display_style(name = "Monitor Transactions")]
+///     Active,
+///     #[display_style(name = "Don't Monitor Transactions")]
+///     None,
 /// }
 ///
 /// assert_eq!(MonitorStatus::Active.to_display_str(), "Monitor Transactions");

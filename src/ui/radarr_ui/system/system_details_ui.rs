@@ -105,7 +105,6 @@ fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .primary()
   };
   let tasks_table = ManagarrTable::new(Some(&mut app.data.radarr_data.tasks), tasks_row_mapping)
-    .block(borderless_block())
     .loading(app.is_loading)
     .margin(1)
     .footer(help_footer)

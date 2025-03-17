@@ -206,6 +206,16 @@ Key:
 
 - [ ] Support for Tautulli
 
+### Themes
+Managarr ships with a few themes out of the box. Here's a few examples:
+
+![default](themes/default/manual_episode_search.png)
+![dracula](themes/dracula/manual_episode_search.png)
+![watermelon-dark](themes/watermelon-dark/manual_episode_search.png)
+
+You can also create your own custom themes as well. To learn more about what themes are built-in to Managarr and how
+to create your own custom themes, check out the [Themes README](themes/README.md).
+
 ### The Managarr CLI
 Managarr can be used in one of two ways: As a TUI, or as a CLI for managing your Servarrs. 
 
@@ -218,7 +228,7 @@ To see all available commands, simply run `managarr --help`:
 
 ```shell
 $ managarr --help
-managarr 0.5.0
+managarr 0.5.1
 Alex Clarke <alex.j.tusa@gmail.com>
 
 A TUI and CLI to manage your Servarrs
@@ -235,6 +245,8 @@ Commands:
 Options:
       --disable-spinner              Disable the spinner (can sometimes make parsing output challenging) [env: MANAGARR_DISABLE_SPINNER=]
       --config-file <CONFIG_FILE>    The Managarr configuration file to use [env: MANAGARR_CONFIG_FILE=]
+      --themes-file <THEMES_FILE>    The Managarr themes file to use [env: MANAGARR_THEMES_FILE=]
+      --theme <THEME>                The name of the Managarr theme to use [env: MANAGARR_THEME=]
       --servarr-name <SERVARR_NAME>  For multi-instance configurations, you need to specify the name of the instance configuration that you want to use.
                                          This is useful when you have multiple instances of the same Servarr defined in your config file.
                                          By default, if left empty, the first configured Servarr instance listed in the config file will be used.
@@ -315,6 +327,7 @@ managarr --config-file /path/to/config.yml
 
 ### Example Configuration:
 ```yaml
+theme: default
 radarr:
   - host: 192.168.0.78
     port: 7878
@@ -357,6 +370,7 @@ tautulli:
 
 ### Example Multi-Instance Configuration:
 ```yaml
+theme: default
 radarr:
   - host: 192.168.0.78 # No name specified, so this instance's name will default to 'Radarr 1'
     port: 7878

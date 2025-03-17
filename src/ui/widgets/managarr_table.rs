@@ -3,7 +3,9 @@ use super::message::Message;
 use super::popup::Size;
 use crate::models::stateful_table::StatefulTable;
 use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::{centered_rect, layout_block_top_border, title_block_centered};
+use crate::ui::utils::{
+  borderless_block, centered_rect, layout_block_top_border, title_block_centered,
+};
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::popup::Popup;
 use crate::ui::widgets::selectable_list::SelectableList;
@@ -68,7 +70,7 @@ where
       row_mapper,
       footer: None,
       footer_alignment: Alignment::Left,
-      block: Block::new(),
+      block: borderless_block(),
       margin: 0,
       is_loading: false,
       highlight_rows: true,

@@ -25,5 +25,12 @@ mod tests {
       )
         .into()
     ));
+    assert!(CollectionDetailsUi::accepts(
+      (
+        ActiveRadarrBlock::AddMoviePrompt,
+        Some(ActiveRadarrBlock::CollectionDetails)
+      )
+        .into()
+    ));
   }
 }
