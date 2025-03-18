@@ -54,20 +54,20 @@ mod tests {
     let seasons = vec![
       Season {
         monitored: false,
-        statistics: SeasonStatistics {
+        statistics: Some(SeasonStatistics {
           episode_file_count: 1,
           episode_count: 3,
           ..SeasonStatistics::default()
-        },
+        }),
         ..Season::default()
       },
       Season {
         monitored: true,
-        statistics: SeasonStatistics {
+        statistics: Some(SeasonStatistics {
           episode_file_count: 3,
           episode_count: 3,
           ..SeasonStatistics::default()
-        },
+        }),
         ..Season::default()
       },
     ];
@@ -89,20 +89,20 @@ mod tests {
     let seasons = vec![
       Season {
         monitored: true,
-        statistics: SeasonStatistics {
+        statistics: Some(SeasonStatistics {
           episode_file_count: 1,
           episode_count: 3,
           ..SeasonStatistics::default()
-        },
+        }),
         ..Season::default()
       },
       Season {
         monitored: true,
-        statistics: SeasonStatistics {
+        statistics: Some(SeasonStatistics {
           episode_file_count: 3,
           episode_count: 3,
           ..SeasonStatistics::default()
-        },
+        }),
         ..Season::default()
       },
     ];
@@ -139,20 +139,20 @@ mod tests {
     let seasons = vec![
       Season {
         monitored: false,
-        statistics: SeasonStatistics {
+        statistics: Some(SeasonStatistics {
           episode_file_count: 1,
           episode_count: 3,
           ..SeasonStatistics::default()
-        },
+        }),
         ..Season::default()
       },
       Season {
         monitored: true,
-        statistics: SeasonStatistics {
+        statistics: Some(SeasonStatistics {
           episode_file_count: 3,
           episode_count: 3,
           ..SeasonStatistics::default()
-        },
+        }),
         ..Season::default()
       },
     ];
@@ -174,20 +174,20 @@ mod tests {
     let seasons = vec![
       Season {
         monitored: true,
-        statistics: SeasonStatistics {
+        statistics: Some(SeasonStatistics {
           episode_file_count: 1,
           episode_count: 3,
           ..SeasonStatistics::default()
-        },
+        }),
         ..Season::default()
       },
       Season {
         monitored: true,
-        statistics: SeasonStatistics {
+        statistics: Some(SeasonStatistics {
           episode_file_count: 3,
           episode_count: 3,
           ..SeasonStatistics::default()
-        },
+        }),
         ..Season::default()
       },
     ];

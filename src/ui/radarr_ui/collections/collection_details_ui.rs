@@ -33,7 +33,7 @@ impl DrawUi for CollectionDetailsUi {
     if let Route::Radarr(active_radarr_block, context_option) = route {
       if let Some(context) = context_option {
         return COLLECTION_DETAILS_BLOCKS.contains(&active_radarr_block)
-          && context == ActiveRadarrBlock::CollectionDetails;
+          || context == ActiveRadarrBlock::CollectionDetails;
       }
 
       return COLLECTION_DETAILS_BLOCKS.contains(&active_radarr_block);

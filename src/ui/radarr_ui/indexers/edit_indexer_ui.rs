@@ -49,6 +49,7 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let help_paragraph = Paragraph::new(help_text).centered();
 
   if edit_indexer_modal_option.is_some() {
+    f.render_widget(block, area);
     let edit_indexer_modal = edit_indexer_modal_option.as_ref().unwrap();
 
     let [_, settings_area, _, buttons_area, help_area] = Layout::vertical([
@@ -163,7 +164,6 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .title("Cancel")
         .selected(!yes_no_value && highlight_yes_no);
 
-      f.render_widget(block, area);
       f.render_widget(rss_checkbox, rss_area);
       f.render_widget(auto_search_checkbox, auto_search_area);
       f.render_widget(interactive_search_checkbox, interactive_search_area);

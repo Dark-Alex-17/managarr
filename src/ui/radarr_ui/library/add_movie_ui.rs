@@ -170,7 +170,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .centered();
 
         search_box.show_cursor(f, search_box_area);
-        f.render_widget(layout_block(), results_area);
+        f.render_widget(layout_block().default(), results_area);
         f.render_widget(search_box, search_box_area);
         f.render_widget(help_paragraph, help_area);
       }
@@ -182,7 +182,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         let error_message = Message::new("No movies found matching your query!");
         let error_message_popup = Popup::new(error_message).size(Size::Message);
 
-        f.render_widget(layout_block(), results_area);
+        f.render_widget(layout_block().default(), results_area);
         f.render_widget(error_message_popup, f.area());
         f.render_widget(help_paragraph, help_area);
       }
@@ -204,7 +204,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           search_results_row_mapping,
         )
         .loading(is_loading)
-        .block(layout_block())
+        .block(layout_block().default())
         .headers([
           "✔",
           "Title",

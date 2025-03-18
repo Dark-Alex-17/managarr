@@ -202,8 +202,19 @@ fn decorate_series_row_with_style<'a>(series: &Series, row: Row<'a>) -> Row<'a> 
         return if seasons
           .iter()
           .filter(|season| season.monitored)
-          .all(|season| season.statistics.episode_file_count == season.statistics.episode_count)
-        {
+          .filter(|season| season.statistics.is_some())
+          .all(|season| {
+            season
+              .statistics
+              .as_ref()
+              .expect("Season Statistics is undefined")
+              .episode_file_count
+              == season
+                .statistics
+                .as_ref()
+                .expect("Season statistics is undefined")
+                .episode_count
+          }) {
           row.downloaded()
         } else {
           row.missing()
@@ -217,8 +228,19 @@ fn decorate_series_row_with_style<'a>(series: &Series, row: Row<'a>) -> Row<'a> 
         return if seasons
           .iter()
           .filter(|season| season.monitored)
-          .all(|season| season.statistics.episode_file_count == season.statistics.episode_count)
-        {
+          .filter(|season| season.statistics.is_some())
+          .all(|season| {
+            season
+              .statistics
+              .as_ref()
+              .expect("Season Statistics is undefined")
+              .episode_file_count
+              == season
+                .statistics
+                .as_ref()
+                .expect("Season statistics is undefined")
+                .episode_count
+          }) {
           row.unreleased()
         } else {
           row.missing()

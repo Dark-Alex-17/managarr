@@ -48,6 +48,7 @@ fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area:
   let help_paragraph = Paragraph::new(help_text).centered();
 
   if indexer_settings_option.is_some() {
+    f.render_widget(block, area);
     let indexer_settings = indexer_settings_option.as_ref().unwrap();
 
     let [_, min_age_area, retention_area, max_size_area, rss_sync_area, _, buttons_area, help_area] =
@@ -109,7 +110,6 @@ fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area:
       .title("Cancel")
       .selected(!yes_no_value && highlight_yes_no);
 
-    f.render_widget(block, area);
     f.render_widget(save_button, save_area);
     f.render_widget(cancel_button, cancel_area);
     f.render_widget(help_paragraph, help_area);

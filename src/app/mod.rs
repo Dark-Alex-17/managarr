@@ -270,6 +270,7 @@ pub struct Data<'a> {
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct AppConfig {
+  pub theme: Option<String>,
   pub radarr: Option<Vec<ServarrConfig>>,
   pub sonarr: Option<Vec<ServarrConfig>>,
 }

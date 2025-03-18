@@ -56,6 +56,7 @@ fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area:
   let help_paragraph = Paragraph::new(help_text).centered();
 
   if indexer_settings_option.is_some() {
+    f.render_widget(block, area);
     let indexer_settings = indexer_settings_option.as_ref().unwrap();
 
     let [_, settings_area, _, buttons_area, help_area] = Layout::vertical([
@@ -162,7 +163,6 @@ fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area:
       .title("Cancel")
       .selected(!yes_no_value && highlight_yes_no);
 
-    f.render_widget(block, area);
     f.render_widget(prefer_indexer_flags_checkbox, prefer_flags_area);
     f.render_widget(allow_hardcoded_subs_checkbox, allow_hardcoded_subs_area);
     f.render_widget(save_button, save_area);
