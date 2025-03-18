@@ -48,6 +48,10 @@ mod tests {
       true
     }
 
+    fn ignore_alt_navigation(&self) -> bool {
+      self.app.should_ignore_quit_key
+    }
+
     fn new(
       key: Key,
       app: &'a mut App<'b>,
@@ -1040,7 +1044,7 @@ mod tests {
       app.data.radarr_data.movies.search = Some(HorizontallyScrollableText::default());
 
       TableHandlerUnit::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::SearchMovie,
         None,
@@ -1049,7 +1053,7 @@ mod tests {
 
       assert_str_eq!(
         app.data.radarr_data.movies.search.as_ref().unwrap().text,
-        "h"
+        "a"
       );
     }
 
@@ -1065,7 +1069,7 @@ mod tests {
       app.data.radarr_data.movies.filter = Some(HorizontallyScrollableText::default());
 
       TableHandlerUnit::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::FilterMovies,
         None,
@@ -1074,7 +1078,7 @@ mod tests {
 
       assert_str_eq!(
         app.data.radarr_data.movies.filter.as_ref().unwrap().text,
-        "h"
+        "a"
       );
     }
 

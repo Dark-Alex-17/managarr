@@ -456,6 +456,22 @@ mod tests {
     })
   }
 
+  #[rstest]
+  fn test_system_handler_ignore_alt_navigation(
+    #[values(true, false)] should_ignore_quit_key: bool,
+  ) {
+    let mut app = App::test_default();
+    app.should_ignore_quit_key = should_ignore_quit_key;
+    let handler = SystemHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
+  }
+
   #[test]
   fn test_system_handler_is_not_ready_when_loading() {
     let mut app = App::test_default();

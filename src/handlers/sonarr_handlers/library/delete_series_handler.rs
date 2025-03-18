@@ -1,9 +1,10 @@
 use crate::models::sonarr_models::DeleteSeriesParams;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::{
-  app::{key_binding::DEFAULT_KEYBINDINGS, App},
+  app::App,
   event::Key,
   handlers::{handle_prompt_toggle, KeyEventHandler},
+  matches_key,
   models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DELETE_SERIES_BLOCKS},
 };
 
@@ -36,6 +37,10 @@ impl DeleteSeriesHandler<'_, '_> {
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DeleteSeriesHandler<'a, 'b> {
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     DELETE_SERIES_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_alt_navigation(&self) -> bool {
+    self.app.should_ignore_quit_key
   }
 
   fn new(
@@ -123,7 +128,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DeleteSeriesHandler<
     if self.active_sonarr_block == ActiveSonarrBlock::DeleteSeriesPrompt
       && self.app.data.sonarr_data.selected_block.get_active_block()
         == ActiveSonarrBlock::DeleteSeriesConfirmPrompt
-      && self.key == DEFAULT_KEYBINDINGS.confirm.key
+      && matches_key!(confirm, self.key)
     {
       self.app.data.sonarr_data.prompt_confirm = true;
       self.app.data.sonarr_data.prompt_confirm_action =

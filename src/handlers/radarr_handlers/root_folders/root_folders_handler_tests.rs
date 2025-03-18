@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::assert_eq;
+  use rstest::rstest;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -589,7 +590,7 @@ mod tests {
       app.data.radarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
 
       RootFoldersHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::AddRootFolderPrompt,
         None,
@@ -598,7 +599,7 @@ mod tests {
 
       assert_str_eq!(
         app.data.radarr_data.edit_root_folder.as_ref().unwrap().text,
-        "h"
+        "a"
       );
     }
 
@@ -642,6 +643,22 @@ mod tests {
         assert!(!RootFoldersHandler::accepts(active_radarr_block));
       }
     })
+  }
+
+  #[rstest]
+  fn test_root_folders_handler_ignore_alt_navigation(
+    #[values(true, false)] should_ignore_quit_key: bool,
+  ) {
+    let mut app = App::test_default();
+    app.should_ignore_quit_key = should_ignore_quit_key;
+    let handler = RootFoldersHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
   }
 
   #[test]

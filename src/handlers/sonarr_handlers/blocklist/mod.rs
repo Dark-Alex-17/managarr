@@ -1,7 +1,5 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
-use crate::handle_table_events;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
@@ -9,6 +7,7 @@ use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, BLOCKL
 use crate::models::sonarr_models::BlocklistItem;
 use crate::models::stateful_table::SortOption;
 use crate::network::sonarr_network::SonarrEvent;
+use crate::{handle_table_events, matches_key};
 
 #[cfg(test)]
 #[path = "blocklist_handler_tests.rs"]
@@ -49,6 +48,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for BlocklistHandler<'a,
 
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     BLOCKLIST_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_alt_navigation(&self) -> bool {
+    self.app.should_ignore_quit_key
   }
 
   fn new(
@@ -143,10 +146,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for BlocklistHandler<'a,
     let key = self.key;
     match self.active_sonarr_block {
       ActiveSonarrBlock::Blocklist => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if matches_key!(refresh, key) => {
           self.app.should_refresh = true;
         }
-        _ if key == DEFAULT_KEYBINDINGS.clear.key => {
+        _ if matches_key!(clear, key) => {
           self
             .app
             .push_navigation_stack(ActiveSonarrBlock::BlocklistClearAllItemsPrompt.into());
@@ -154,7 +157,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for BlocklistHandler<'a,
         _ => (),
       },
       ActiveSonarrBlock::DeleteBlocklistItemPrompt => {
-        if key == DEFAULT_KEYBINDINGS.confirm.key {
+        if matches_key!(confirm, key) {
           self.app.data.sonarr_data.prompt_confirm = true;
           self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::DeleteBlocklistItem(
             self.extract_blocklist_item_id(),
@@ -164,7 +167,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for BlocklistHandler<'a,
         }
       }
       ActiveSonarrBlock::BlocklistClearAllItemsPrompt => {
-        if key == DEFAULT_KEYBINDINGS.confirm.key {
+        if matches_key!(confirm, key) {
           self.app.data.sonarr_data.prompt_confirm = true;
           self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::ClearBlocklist);
 

@@ -42,17 +42,17 @@ macro_rules! handle_table_events {
       fn [<handle_ $name _table_events>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
         if $self.is_ready() {
           match $self.key {
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.up.key => $self.[<handle_ $name _table_scroll_up>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.down.key => $self.[<handle_ $name _table_scroll_down>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.home.key => $self.[<handle_ $name _table_home>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.end.key => $self.[<handle_ $name _table_end>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.left.key
-              || $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.right.key =>
+            _ if $crate::matches_key!(up, $self.key, $self.ignore_alt_navigation()) => $self.[<handle_ $name _table_scroll_up>](config),
+            _ if $crate::matches_key!(down, $self.key, $self.ignore_alt_navigation()) => $self.[<handle_ $name _table_scroll_down>](config),
+            _ if $crate::matches_key!(home, $self.key) => $self.[<handle_ $name _table_home>](config),
+            _ if $crate::matches_key!(end, $self.key) => $self.[<handle_ $name _table_end>](config),
+            _ if $crate::matches_key!(left, $self.key, $self.ignore_alt_navigation())
+              || $crate::matches_key!(right, $self.key, $self.ignore_alt_navigation()) =>
             {
               $self.[<handle_ $name _table_left_right>](config)
             }
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.submit.key => $self.[<handle_ $name _table_submit>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.esc.key => $self.[<handle_ $name _table_esc>](config),
+            _ if $crate::matches_key!(submit, $self.key) => $self.[<handle_ $name _table_submit>](config),
+            _ if $crate::matches_key!(esc, $self.key) => $self.[<handle_ $name _table_esc>](config),
             _ if config.searching_block.is_some()
               && $self.app.get_current_route() == *config.searching_block.as_ref().unwrap() =>
             {
@@ -63,11 +63,11 @@ macro_rules! handle_table_events {
             {
               $self.[<handle_ $name _table_filter_box_input>]()
             }
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.filter.key
+            _ if $crate::matches_key!(filter, $self.key)
               && config.filtering_block.is_some() => $self.[<handle_ $name _table_filter_key>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.search.key
+            _ if $crate::matches_key!(search, $self.key)
               && config.searching_block.is_some() => $self.[<handle_ $name _table_search_key>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.sort.key
+            _ if $crate::matches_key!(sort, $self.key)
               && config.sorting_block.is_some() => $self.[<handle_ $name _table_sort_key>](config),
             _ => false,
           }

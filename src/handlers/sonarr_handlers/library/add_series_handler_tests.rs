@@ -2,6 +2,7 @@
 mod tests {
   use bimap::BiMap;
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use rstest::rstest;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -1570,7 +1571,7 @@ mod tests {
       app.data.sonarr_data.add_series_search = Some(HorizontallyScrollableText::default());
 
       AddSeriesHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchInput,
         None,
@@ -1585,7 +1586,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1596,7 +1597,7 @@ mod tests {
       app.data.sonarr_data.add_series_modal = Some(AddSeriesModal::default());
 
       AddSeriesHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveSonarrBlock::AddSeriesTagsInput,
         None,
@@ -1612,7 +1613,7 @@ mod tests {
           .unwrap()
           .tags
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1712,6 +1713,22 @@ mod tests {
         assert!(!AddSeriesHandler::accepts(active_sonarr_block));
       }
     });
+  }
+
+  #[rstest]
+  fn test_add_series_handler_ignore_alt_navigation(
+    #[values(true, false)] should_ignore_quit_key: bool,
+  ) {
+    let mut app = App::test_default();
+    app.should_ignore_quit_key = should_ignore_quit_key;
+    let handler = AddSeriesHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
   }
 
   #[test]

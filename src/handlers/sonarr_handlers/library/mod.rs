@@ -8,6 +8,7 @@ use crate::{
   event::Key,
   handle_table_events,
   handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler},
+  matches_key,
   models::{
     servarr_data::sonarr::sonarr_data::{
       ActiveSonarrBlock, DELETE_SERIES_SELECTION_BLOCKS, EDIT_SERIES_SELECTION_BLOCKS,
@@ -21,7 +22,6 @@ use crate::{
 };
 
 use super::handle_change_tab_left_right_keys;
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::handlers::sonarr_handlers::library::episode_details_handler::EpisodeDetailsHandler;
 use crate::handlers::sonarr_handlers::library::season_details_handler::SeasonDetailsHandler;
 use crate::handlers::sonarr_handlers::library::series_details_handler::SeriesDetailsHandler;
@@ -100,6 +100,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
       || SeasonDetailsHandler::accepts(active_block)
       || EpisodeDetailsHandler::accepts(active_block)
       || LIBRARY_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_alt_navigation(&self) -> bool {
+    self.app.should_ignore_quit_key
   }
 
   fn new(
@@ -182,7 +186,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
     let key = self.key;
     match self.active_sonarr_block {
       ActiveSonarrBlock::Series => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.edit.key => {
+        _ if matches_key!(edit, key) => {
           self.app.push_navigation_stack(
             (
               ActiveSonarrBlock::EditSeriesPrompt,
@@ -194,25 +198,25 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
           self.app.data.sonarr_data.selected_block =
             BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
         }
-        _ if key == DEFAULT_KEYBINDINGS.add.key => {
+        _ if matches_key!(add, key) => {
           self
             .app
             .push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchInput.into());
           self.app.data.sonarr_data.add_series_search = Some(HorizontallyScrollableText::default());
           self.app.should_ignore_quit_key = true;
         }
-        _ if key == DEFAULT_KEYBINDINGS.update.key => {
+        _ if matches_key!(update, key) => {
           self
             .app
             .push_navigation_stack(ActiveSonarrBlock::UpdateAllSeriesPrompt.into());
         }
-        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if matches_key!(refresh, key) => {
           self.app.should_refresh = true;
         }
         _ => (),
       },
       ActiveSonarrBlock::UpdateAllSeriesPrompt => {
-        if key == DEFAULT_KEYBINDINGS.confirm.key {
+        if matches_key!(confirm, key) {
           self.app.data.sonarr_data.prompt_confirm = true;
           self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::UpdateAllSeries);
 

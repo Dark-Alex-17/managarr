@@ -7,6 +7,7 @@ mod tests {
   use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::stateful_table::StatefulTable;
+  use rstest::rstest;
   use strum::IntoEnumIterator;
 
   mod test_handle_esc {
@@ -46,6 +47,22 @@ mod tests {
         assert!(!TestAllIndexersHandler::accepts(active_sonarr_block));
       }
     });
+  }
+
+  #[rstest]
+  fn test_test_all_indexers_handler_ignore_alt_navigation(
+    #[values(true, false)] should_ignore_quit_key: bool,
+  ) {
+    let mut app = App::test_default();
+    app.should_ignore_quit_key = should_ignore_quit_key;
+    let handler = TestAllIndexersHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
   }
 
   #[test]

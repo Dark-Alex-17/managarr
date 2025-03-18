@@ -23,7 +23,7 @@ mod test {
   #[case(DEFAULT_KEYBINDINGS.sort, Key::Char('o'), "sort")]
   #[case(DEFAULT_KEYBINDINGS.edit, Key::Char('e'), "edit")]
   #[case(DEFAULT_KEYBINDINGS.events, Key::Char('e'), "events")]
-  #[case(DEFAULT_KEYBINDINGS.logs, Key::Char('l'), "logs")]
+  #[case(DEFAULT_KEYBINDINGS.logs, Key::Char('L'), "logs")]
   #[case(DEFAULT_KEYBINDINGS.tasks, Key::Char('t'), "tasks")]
   #[case(DEFAULT_KEYBINDINGS.test, Key::Char('t'), "test")]
   #[case(DEFAULT_KEYBINDINGS.test_all, Key::Char('T'), "test all")]

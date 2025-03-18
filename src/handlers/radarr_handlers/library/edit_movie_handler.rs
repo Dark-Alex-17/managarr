@@ -1,4 +1,3 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
@@ -7,7 +6,7 @@ use crate::models::servarr_data::radarr::modals::EditMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_MOVIE_BLOCKS};
 use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::{handle_text_box_keys, handle_text_box_left_right_keys, matches_key};
 
 #[cfg(test)]
 #[path = "edit_movie_handler_tests.rs"]
@@ -66,6 +65,10 @@ impl EditMovieHandler<'_, '_> {
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a, 'b> {
   fn accepts(active_block: ActiveRadarrBlock) -> bool {
     EDIT_MOVIE_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_alt_navigation(&self) -> bool {
+    self.app.should_ignore_quit_key
   }
 
   fn new(
@@ -376,7 +379,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
       ActiveRadarrBlock::EditMoviePrompt => {
         if self.app.data.radarr_data.selected_block.get_active_block()
           == ActiveRadarrBlock::EditMovieConfirmPrompt
-          && key == DEFAULT_KEYBINDINGS.confirm.key
+          && matches_key!(confirm, key)
         {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action =

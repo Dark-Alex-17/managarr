@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::assert_str_eq;
+  use rstest::rstest;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -276,6 +277,22 @@ mod tests {
         assert!(!CollectionDetailsHandler::accepts(active_radarr_block));
       }
     });
+  }
+
+  #[rstest]
+  fn test_collection_details_handler_ignore_alt_navigation(
+    #[values(true, false)] should_ignore_quit_key: bool,
+  ) {
+    let mut app = App::test_default();
+    app.should_ignore_quit_key = should_ignore_quit_key;
+    let handler = CollectionDetailsHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
   }
 
   #[test]

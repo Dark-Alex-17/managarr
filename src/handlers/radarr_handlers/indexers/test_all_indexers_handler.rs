@@ -48,6 +48,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for TestAllIndexersHandl
     active_block == ActiveRadarrBlock::TestAllIndexers
   }
 
+  fn ignore_alt_navigation(&self) -> bool {
+    self.app.should_ignore_quit_key
+  }
+
   fn new(
     key: Key,
     app: &'a mut App<'b>,

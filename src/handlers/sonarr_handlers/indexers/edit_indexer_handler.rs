@@ -1,4 +1,3 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
@@ -6,7 +5,9 @@ use crate::models::servarr_data::modals::EditIndexerModal;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_INDEXER_BLOCKS};
 use crate::models::servarr_models::EditIndexerParams;
 use crate::network::sonarr_network::SonarrEvent;
-use crate::{handle_prompt_left_right_keys, handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::{
+  handle_prompt_left_right_keys, handle_text_box_keys, handle_text_box_left_right_keys, matches_key,
+};
 
 #[cfg(test)]
 #[path = "edit_indexer_handler_tests.rs"]
@@ -62,6 +63,10 @@ impl EditIndexerHandler<'_, '_> {
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditIndexerHandler<'a, 'b> {
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     EDIT_INDEXER_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_alt_navigation(&self) -> bool {
+    self.app.should_ignore_quit_key
   }
 
   fn new(
@@ -503,7 +508,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditIndexerHandler<'
       ActiveSonarrBlock::EditIndexerPrompt => {
         if self.app.data.sonarr_data.selected_block.get_active_block()
           == ActiveSonarrBlock::EditIndexerConfirmPrompt
-          && self.key == DEFAULT_KEYBINDINGS.confirm.key
+          && matches_key!(confirm, self.key)
         {
           self.app.data.sonarr_data.prompt_confirm = true;
           self.app.data.sonarr_data.prompt_confirm_action =

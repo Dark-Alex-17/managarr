@@ -633,6 +633,22 @@ mod tests {
     })
   }
 
+  #[rstest]
+  fn test_indexers_handler_ignore_alt_navigation(
+    #[values(true, false)] should_ignore_quit_key: bool,
+  ) {
+    let mut app = App::test_default();
+    app.should_ignore_quit_key = should_ignore_quit_key;
+    let handler = IndexersHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
+  }
+
   #[test]
   fn test_extract_indexer_id() {
     let mut app = App::test_default();

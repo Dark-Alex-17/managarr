@@ -1,9 +1,7 @@
 use serde_json::Number;
 
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
-use crate::handle_table_events;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::radarr_models::{
@@ -16,6 +14,7 @@ use crate::models::servarr_models::Language;
 use crate::models::stateful_table::SortOption;
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
+use crate::{handle_table_events, matches_key};
 
 #[cfg(test)]
 #[path = "movie_details_handler_tests.rs"]
@@ -136,6 +135,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
     MOVIE_DETAILS_BLOCKS.contains(&active_block)
   }
 
+  fn ignore_alt_navigation(&self) -> bool {
+    self.app.should_ignore_quit_key
+  }
+
   fn new(
     key: Key,
     app: &'a mut App<'b>,
@@ -245,13 +248,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       | ActiveRadarrBlock::Cast
       | ActiveRadarrBlock::Crew
       | ActiveRadarrBlock::ManualSearch => match self.key {
-        _ if self.key == DEFAULT_KEYBINDINGS.left.key => {
+        _ if matches_key!(left, self.key) => {
           self.app.data.radarr_data.movie_info_tabs.previous();
           self.app.pop_and_push_navigation_stack(
             self.app.data.radarr_data.movie_info_tabs.get_active_route(),
           );
         }
-        _ if self.key == DEFAULT_KEYBINDINGS.right.key => {
+        _ if matches_key!(right, self.key) => {
           self.app.data.radarr_data.movie_info_tabs.next();
           self.app.pop_and_push_navigation_stack(
             self.app.data.radarr_data.movie_info_tabs.get_active_route(),
@@ -332,12 +335,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       | ActiveRadarrBlock::Cast
       | ActiveRadarrBlock::Crew
       | ActiveRadarrBlock::ManualSearch => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.auto_search.key => {
+        _ if matches_key!(auto_search, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::AutomaticallySearchMoviePrompt.into());
         }
-        _ if key == DEFAULT_KEYBINDINGS.edit.key => {
+        _ if matches_key!(edit, key) => {
           self.app.push_navigation_stack(
             (
               ActiveRadarrBlock::EditMoviePrompt,
@@ -349,35 +352,33 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
           self.app.data.radarr_data.selected_block =
             BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
         }
-        _ if key == DEFAULT_KEYBINDINGS.update.key => {
+        _ if matches_key!(update, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::UpdateAndScanPrompt.into());
         }
-        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if matches_key!(refresh, key) => {
           self
             .app
             .pop_and_push_navigation_stack(self.active_radarr_block.into());
         }
         _ => (),
       },
-      ActiveRadarrBlock::AutomaticallySearchMoviePrompt
-        if key == DEFAULT_KEYBINDINGS.confirm.key =>
-      {
+      ActiveRadarrBlock::AutomaticallySearchMoviePrompt if matches_key!(confirm, key) => {
         self.app.data.radarr_data.prompt_confirm = true;
         self.app.data.radarr_data.prompt_confirm_action =
           Some(RadarrEvent::TriggerAutomaticSearch(self.extract_movie_id()));
 
         self.app.pop_navigation_stack();
       }
-      ActiveRadarrBlock::UpdateAndScanPrompt if key == DEFAULT_KEYBINDINGS.confirm.key => {
+      ActiveRadarrBlock::UpdateAndScanPrompt if matches_key!(confirm, key) => {
         self.app.data.radarr_data.prompt_confirm = true;
         self.app.data.radarr_data.prompt_confirm_action =
           Some(RadarrEvent::UpdateAndScan(self.extract_movie_id()));
 
         self.app.pop_navigation_stack();
       }
-      ActiveRadarrBlock::ManualSearchConfirmPrompt if key == DEFAULT_KEYBINDINGS.confirm.key => {
+      ActiveRadarrBlock::ManualSearchConfirmPrompt if matches_key!(confirm, key) => {
         self.app.data.radarr_data.prompt_confirm = true;
         self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DownloadRelease(
           self.build_radarr_release_download_body(),

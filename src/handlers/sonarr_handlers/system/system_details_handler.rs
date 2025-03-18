@@ -1,7 +1,7 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::matches_key;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::sonarr_models::SonarrTaskName;
 use crate::models::stateful_list::StatefulList;
@@ -34,6 +34,10 @@ impl SystemDetailsHandler<'_, '_> {
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemDetailsHandler<'a, 'b> {
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     SYSTEM_DETAILS_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_alt_navigation(&self) -> bool {
+    self.app.should_ignore_quit_key
   }
 
   fn new(
@@ -114,7 +118,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemDetailsHandler
 
     match self.active_sonarr_block {
       ActiveSonarrBlock::SystemLogs => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.left.key => {
+        _ if matches_key!(left, key) => {
           self
             .app
             .data
@@ -124,7 +128,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemDetailsHandler
             .iter()
             .for_each(|log| log.scroll_right());
         }
-        _ if key == DEFAULT_KEYBINDINGS.right.key => {
+        _ if matches_key!(right, key) => {
           self
             .app
             .data
@@ -178,14 +182,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemDetailsHandler
   }
 
   fn handle_char_key_event(&mut self) {
-    if SYSTEM_DETAILS_BLOCKS.contains(&self.active_sonarr_block)
-      && self.key == DEFAULT_KEYBINDINGS.refresh.key
+    if SYSTEM_DETAILS_BLOCKS.contains(&self.active_sonarr_block) && matches_key!(refresh, self.key)
     {
       self.app.should_refresh = true;
     }
 
     if self.active_sonarr_block == ActiveSonarrBlock::SystemTaskStartConfirmPrompt
-      && self.key == DEFAULT_KEYBINDINGS.confirm.key
+      && matches_key!(confirm, self.key)
     {
       self.app.data.sonarr_data.prompt_confirm = true;
       self.app.data.sonarr_data.prompt_confirm_action =

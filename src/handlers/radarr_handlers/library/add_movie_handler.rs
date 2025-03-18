@@ -1,4 +1,3 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::radarr_models::{
@@ -11,7 +10,9 @@ use crate::models::servarr_data::radarr::radarr_data::{
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
+use crate::{
+  handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, matches_key, App, Key,
+};
 
 #[cfg(test)]
 #[path = "add_movie_handler_tests.rs"]
@@ -130,6 +131,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
 
   fn accepts(active_block: ActiveRadarrBlock) -> bool {
     ADD_MOVIE_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_alt_navigation(&self) -> bool {
+    self.app.should_ignore_quit_key
   }
 
   fn new(
@@ -542,7 +547,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
       ActiveRadarrBlock::AddMoviePrompt => {
         if self.app.data.radarr_data.selected_block.get_active_block()
           == ActiveRadarrBlock::AddMovieConfirmPrompt
-          && key == DEFAULT_KEYBINDINGS.confirm.key
+          && matches_key!(confirm, key)
         {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action =

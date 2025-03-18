@@ -1395,7 +1395,7 @@ mod tests {
       app.data.radarr_data.add_movie_search = Some(HorizontallyScrollableText::default());
 
       AddMovieHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::AddMovieSearchInput,
         None,
@@ -1404,7 +1404,7 @@ mod tests {
 
       assert_str_eq!(
         app.data.radarr_data.add_movie_search.as_ref().unwrap().text,
-        "h"
+        "a"
       );
     }
 
@@ -1414,7 +1414,7 @@ mod tests {
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
 
       AddMovieHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::AddMovieTagsInput,
         None,
@@ -1430,7 +1430,7 @@ mod tests {
           .unwrap()
           .tags
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1521,6 +1521,22 @@ mod tests {
         assert!(!AddMovieHandler::accepts(active_radarr_block));
       }
     });
+  }
+
+  #[rstest]
+  fn test_add_movie_handler_ignore_alt_navigation(
+    #[values(true, false)] should_ignore_quit_key: bool,
+  ) {
+    let mut app = App::test_default();
+    app.should_ignore_quit_key = should_ignore_quit_key;
+    let handler = AddMovieHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
   }
 
   #[test]

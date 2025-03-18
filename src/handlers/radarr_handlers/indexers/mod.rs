@@ -1,7 +1,5 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
-use crate::handle_table_events;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::radarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
 use crate::handlers::radarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
@@ -15,6 +13,7 @@ use crate::models::servarr_data::radarr::radarr_data::{
 use crate::models::servarr_models::Indexer;
 use crate::models::BlockSelectionState;
 use crate::network::radarr_network::RadarrEvent;
+use crate::{handle_table_events, matches_key};
 
 mod edit_indexer_handler;
 mod edit_indexer_settings_handler;
@@ -68,6 +67,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
       || IndexerSettingsHandler::accepts(active_block)
       || TestAllIndexersHandler::accepts(active_block)
       || INDEXERS_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_alt_navigation(&self) -> bool {
+    self.app.should_ignore_quit_key
   }
 
   fn new(
@@ -169,20 +172,20 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::Indexers => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if matches_key!(refresh, key) => {
           self.app.should_refresh = true;
         }
-        _ if key == DEFAULT_KEYBINDINGS.test.key => {
+        _ if matches_key!(test, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::TestIndexer.into());
         }
-        _ if key == DEFAULT_KEYBINDINGS.test_all.key => {
+        _ if matches_key!(test_all, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::TestAllIndexers.into());
         }
-        _ if key == DEFAULT_KEYBINDINGS.settings.key => {
+        _ if matches_key!(settings, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
@@ -192,7 +195,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexersHandler<'a, 
         _ => (),
       },
       ActiveRadarrBlock::DeleteIndexerPrompt => {
-        if key == DEFAULT_KEYBINDINGS.confirm.key {
+        if matches_key!(confirm, key) {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action =
             Some(RadarrEvent::DeleteIndexer(self.extract_indexer_id()));

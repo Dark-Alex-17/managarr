@@ -7,9 +7,7 @@ use root_folders::RootFoldersHandler;
 use system::SystemHandler;
 
 use crate::{
-  app::{key_binding::DEFAULT_KEYBINDINGS, App},
-  event::Key,
-  models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock,
+  app::App, event::Key, matches_key, models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock,
 };
 
 use super::KeyEventHandler;
@@ -69,6 +67,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SonarrHandler<'a, 'b
     true
   }
 
+  fn ignore_alt_navigation(&self) -> bool {
+    self.app.should_ignore_quit_key
+  }
+
   fn new(
     key: Key,
     app: &'a mut App<'b>,
@@ -113,11 +115,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SonarrHandler<'a, 'b
 pub fn handle_change_tab_left_right_keys(app: &mut App<'_>, key: Key) {
   let key_ref = key;
   match key_ref {
-    _ if key == DEFAULT_KEYBINDINGS.left.key => {
+    _ if matches_key!(left, key, app.should_ignore_quit_key) => {
       app.data.sonarr_data.main_tabs.previous();
       app.pop_and_push_navigation_stack(app.data.sonarr_data.main_tabs.get_active_route());
     }
-    _ if key == DEFAULT_KEYBINDINGS.right.key => {
+    _ if matches_key!(right, key, app.should_ignore_quit_key) => {
       app.data.sonarr_data.main_tabs.next();
       app.pop_and_push_navigation_stack(app.data.sonarr_data.main_tabs.get_active_route());
     }

@@ -10,6 +10,7 @@ mod tests {
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
   use crate::models::servarr_models::EditIndexerParams;
   use pretty_assertions::assert_eq;
+  use rstest::rstest;
   use strum::IntoEnumIterator;
 
   mod test_handle_scroll_up_and_down {
@@ -1597,7 +1598,7 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::EditIndexerNameInput,
         None,
@@ -1613,7 +1614,7 @@ mod tests {
           .unwrap()
           .name
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1624,7 +1625,7 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::EditIndexerUrlInput,
         None,
@@ -1640,7 +1641,7 @@ mod tests {
           .unwrap()
           .url
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1651,7 +1652,7 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::EditIndexerApiKeyInput,
         None,
@@ -1667,7 +1668,7 @@ mod tests {
           .unwrap()
           .api_key
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1678,7 +1679,7 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::EditIndexerSeedRatioInput,
         None,
@@ -1694,7 +1695,7 @@ mod tests {
           .unwrap()
           .seed_ratio
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1705,7 +1706,7 @@ mod tests {
       app.data.radarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
 
       EditIndexerHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::EditIndexerTagsInput,
         None,
@@ -1721,7 +1722,7 @@ mod tests {
           .unwrap()
           .tags
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1791,6 +1792,22 @@ mod tests {
         assert!(!EditIndexerHandler::accepts(active_radarr_block));
       }
     })
+  }
+
+  #[rstest]
+  fn test_edit_indexer_handler_ignore_alt_navigation(
+    #[values(true, false)] should_ignore_quit_key: bool,
+  ) {
+    let mut app = App::test_default();
+    app.should_ignore_quit_key = should_ignore_quit_key;
+    let handler = EditIndexerHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
   }
 
   #[test]

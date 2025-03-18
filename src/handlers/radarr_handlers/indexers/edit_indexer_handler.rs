@@ -1,4 +1,3 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
@@ -6,7 +5,9 @@ use crate::models::servarr_data::modals::EditIndexerModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
 use crate::models::servarr_models::EditIndexerParams;
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_prompt_left_right_keys, handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::{
+  handle_prompt_left_right_keys, handle_text_box_keys, handle_text_box_left_right_keys, matches_key,
+};
 
 #[cfg(test)]
 #[path = "edit_indexer_handler_tests.rs"]
@@ -63,6 +64,10 @@ impl EditIndexerHandler<'_, '_> {
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'a, 'b> {
   fn accepts(active_block: ActiveRadarrBlock) -> bool {
     EDIT_INDEXER_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_alt_navigation(&self) -> bool {
+    self.app.should_ignore_quit_key
   }
 
   fn new(
@@ -504,7 +509,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
       ActiveRadarrBlock::EditIndexerPrompt => {
         if self.app.data.radarr_data.selected_block.get_active_block()
           == ActiveRadarrBlock::EditIndexerConfirmPrompt
-          && self.key == DEFAULT_KEYBINDINGS.confirm.key
+          && matches_key!(confirm, self.key)
         {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action =
