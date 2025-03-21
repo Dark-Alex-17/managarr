@@ -1300,7 +1300,7 @@ impl Network<'_, '_> {
               Runtime: {}",
               media_info.video_bit_depth,
               media_info.video_bitrate,
-              media_info.video_codec,
+              media_info.video_codec.unwrap_or_default(),
               media_info.video_fps.as_f64().unwrap(),
               media_info.resolution,
               media_info.scan_type,

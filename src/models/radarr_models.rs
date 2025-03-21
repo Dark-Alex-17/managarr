@@ -249,7 +249,7 @@ pub struct MediaInfo {
   pub video_bit_depth: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub video_bitrate: i64,
-  pub video_codec: String,
+  pub video_codec: Option<String>,
   #[derivative(Default(value = "Number::from(0)"))]
   pub video_fps: Number,
   pub resolution: String,
