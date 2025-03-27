@@ -98,7 +98,7 @@ mod tests {
     assert!(!app.is_loading);
     assert!(!app.is_routing);
     assert!(!app.should_refresh);
-    assert!(!app.should_ignore_quit_key);
+    assert!(!app.ignore_special_keys_for_textbox_input);
     assert!(!app.cli_mode);
   }
 
@@ -118,7 +118,7 @@ mod tests {
     assert!(!app.is_loading);
     assert!(!app.is_routing);
     assert!(!app.should_refresh);
-    assert!(!app.should_ignore_quit_key);
+    assert!(!app.ignore_special_keys_for_textbox_input);
     assert!(!app.cli_mode);
   }
 

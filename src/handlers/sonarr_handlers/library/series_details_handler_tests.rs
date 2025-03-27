@@ -612,11 +612,11 @@ mod tests {
   }
 
   #[rstest]
-  fn test_series_details_handler_ignore_alt_navigation(
-    #[values(true, false)] should_ignore_quit_key: bool,
+  fn test_series_details_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
   ) {
     let mut app = App::test_default();
-    app.should_ignore_quit_key = should_ignore_quit_key;
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
     let handler = SeriesDetailsHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
@@ -624,7 +624,10 @@ mod tests {
       None,
     );
 
-    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

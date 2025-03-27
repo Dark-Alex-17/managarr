@@ -68,8 +68,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
     EDIT_COLLECTION_BLOCKS.contains(&active_block)
   }
 
-  fn ignore_alt_navigation(&self) -> bool {
-    self.app.should_ignore_quit_key
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -265,7 +265,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
               )
                 .into(),
             );
-            self.app.should_ignore_quit_key = true;
+            self.app.ignore_special_keys_for_textbox_input = true;
           }
           ActiveRadarrBlock::EditCollectionToggleMonitored => {
             self
@@ -314,7 +314,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
       | ActiveRadarrBlock::EditCollectionSelectQualityProfile => self.app.pop_navigation_stack(),
       ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ => (),
     }
@@ -324,7 +324,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
     match self.active_radarr_block {
       ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       ActiveRadarrBlock::EditCollectionPrompt => {
         self.app.pop_navigation_stack();

@@ -22,12 +22,12 @@ pub trait KeyEventHandler<'a, 'b, T: Into<Route> + Copy> {
   fn handle_key_event(&mut self) {
     let key = self.get_key();
     match key {
-      _ if matches_key!(up, key, self.ignore_alt_navigation()) => {
+      _ if matches_key!(up, key, self.ignore_special_keys()) => {
         if self.is_ready() {
           self.handle_scroll_up();
         }
       }
-      _ if matches_key!(down, key, self.ignore_alt_navigation()) => {
+      _ if matches_key!(down, key, self.ignore_special_keys()) => {
         if self.is_ready() {
           self.handle_scroll_down();
         }
@@ -47,8 +47,8 @@ pub trait KeyEventHandler<'a, 'b, T: Into<Route> + Copy> {
           self.handle_delete();
         }
       }
-      _ if matches_key!(left, key, self.ignore_alt_navigation())
-        || matches_key!(right, key, self.ignore_alt_navigation()) =>
+      _ if matches_key!(left, key, self.ignore_special_keys())
+        || matches_key!(right, key, self.ignore_special_keys()) =>
       {
         self.handle_left_right_action()
       }
@@ -73,7 +73,7 @@ pub trait KeyEventHandler<'a, 'b, T: Into<Route> + Copy> {
   fn accepts(active_block: T) -> bool;
   fn new(key: Key, app: &'a mut App<'b>, active_block: T, context: Option<T>) -> Self;
   fn get_key(&self) -> Key;
-  fn ignore_alt_navigation(&self) -> bool;
+  fn ignore_special_keys(&self) -> bool;
   fn is_ready(&self) -> bool;
   fn handle_scroll_up(&mut self);
   fn handle_scroll_down(&mut self);

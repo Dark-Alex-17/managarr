@@ -69,8 +69,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
     ROOT_FOLDERS_BLOCKS.contains(&active_block)
   }
 
-  fn ignore_alt_navigation(&self) -> bool {
-    self.app.should_ignore_quit_key
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -173,7 +173,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
           self.build_add_root_folder_body(),
         ));
         self.app.data.radarr_data.prompt_confirm = true;
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
         self.app.pop_navigation_stack();
       }
       _ => (),
@@ -186,7 +186,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.edit_root_folder = None;
         self.app.data.radarr_data.prompt_confirm = false;
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       ActiveRadarrBlock::DeleteRootFolderPrompt => {
         self.app.pop_navigation_stack();
@@ -208,7 +208,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
             .app
             .push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
           self.app.data.radarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
+          self.app.ignore_special_keys_for_textbox_input = true;
         }
         _ => (),
       },

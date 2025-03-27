@@ -60,7 +60,7 @@ mod tests {
     #[case] right_block: ActiveRadarrBlock,
   ) {
     let mut app = App::test_default();
-    app.should_ignore_quit_key = false;
+    app.ignore_special_keys_for_textbox_input = false;
     app.data.radarr_data.main_tabs.set_index(index);
 
     handle_change_tab_left_right_keys(&mut app, DEFAULT_KEYBINDINGS.left.alt.unwrap());
@@ -95,7 +95,7 @@ mod tests {
     #[case] block: ActiveRadarrBlock,
   ) {
     let mut app = App::test_default();
-    app.should_ignore_quit_key = true;
+    app.ignore_special_keys_for_textbox_input = true;
     app.push_navigation_stack(block.into());
     app.data.radarr_data.main_tabs.set_index(index);
 
@@ -288,11 +288,11 @@ mod tests {
   }
 
   #[rstest]
-  fn test_radarr_handler_ignore_alt_navigation(
-    #[values(true, false)] should_ignore_quit_key: bool,
+  fn test_radarr_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
   ) {
     let mut app = App::test_default();
-    app.should_ignore_quit_key = should_ignore_quit_key;
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
     let handler = RadarrHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
@@ -300,7 +300,10 @@ mod tests {
       None,
     );
 
-    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

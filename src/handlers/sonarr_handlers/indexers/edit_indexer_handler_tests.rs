@@ -1003,7 +1003,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), block.into());
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
     }
 
     #[test]
@@ -1028,7 +1028,7 @@ mod tests {
         app.get_current_route(),
         ActiveSonarrBlock::EditIndexerPriorityInput.into()
       );
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
     }
 
     #[test]
@@ -1194,7 +1194,7 @@ mod tests {
     fn test_edit_indexer_name_input_submit() {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         name: "Test".into(),
         ..EditIndexerModal::default()
@@ -1210,7 +1210,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(!app
         .data
         .sonarr_data
@@ -1230,7 +1230,7 @@ mod tests {
     fn test_edit_indexer_url_input_submit() {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         url: "Test".into(),
         ..EditIndexerModal::default()
@@ -1246,7 +1246,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(!app
         .data
         .sonarr_data
@@ -1266,7 +1266,7 @@ mod tests {
     fn test_edit_indexer_api_key_input_submit() {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         api_key: "Test".into(),
         ..EditIndexerModal::default()
@@ -1282,7 +1282,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(!app
         .data
         .sonarr_data
@@ -1302,7 +1302,7 @@ mod tests {
     fn test_edit_indexer_seed_ratio_input_submit() {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         seed_ratio: "Test".into(),
         ..EditIndexerModal::default()
@@ -1318,7 +1318,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(!app
         .data
         .sonarr_data
@@ -1338,7 +1338,7 @@ mod tests {
     fn test_edit_indexer_tags_input_submit() {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal {
         tags: "Test".into(),
         ..EditIndexerModal::default()
@@ -1354,7 +1354,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(!app
         .data
         .sonarr_data
@@ -1418,12 +1418,12 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Indexers.into());
       app.push_navigation_stack(active_sonarr_block.into());
       app.data.sonarr_data.edit_indexer_modal = Some(EditIndexerModal::default());
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
 
       EditIndexerHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.data.sonarr_data.edit_indexer_modal,
         Some(EditIndexerModal::default())
@@ -1795,11 +1795,11 @@ mod tests {
   }
 
   #[rstest]
-  fn test_edit_indexer_handler_ignore_alt_navigation(
-    #[values(true, false)] should_ignore_quit_key: bool,
+  fn test_edit_indexer_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
   ) {
     let mut app = App::test_default();
-    app.should_ignore_quit_key = should_ignore_quit_key;
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
     let handler = EditIndexerHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
@@ -1807,7 +1807,10 @@ mod tests {
       None,
     );
 
-    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

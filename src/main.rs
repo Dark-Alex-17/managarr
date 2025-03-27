@@ -246,7 +246,7 @@ async fn start_ui(
 
     match input_events.next()? {
       InputEvent::KeyEvent(key) => {
-        if key == Key::Char('q') && !app.should_ignore_quit_key {
+        if key == Key::Char('q') && !app.ignore_special_keys_for_textbox_input {
           break;
         }
 

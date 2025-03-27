@@ -67,8 +67,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
     EDIT_MOVIE_BLOCKS.contains(&active_block)
   }
 
-  fn ignore_alt_navigation(&self) -> bool {
-    self.app.should_ignore_quit_key
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -293,7 +293,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
               )
                 .into(),
             );
-            self.app.should_ignore_quit_key = true;
+            self.app.ignore_special_keys_for_textbox_input = true;
           }
           ActiveRadarrBlock::EditMovieToggleMonitored => {
             self
@@ -322,7 +322,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
       | ActiveRadarrBlock::EditMovieSelectQualityProfile => self.app.pop_navigation_stack(),
       ActiveRadarrBlock::EditMoviePathInput | ActiveRadarrBlock::EditMovieTagsInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ => (),
     }
@@ -332,7 +332,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditMovieHandler<'a,
     match self.active_radarr_block {
       ActiveRadarrBlock::EditMovieTagsInput | ActiveRadarrBlock::EditMoviePathInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       ActiveRadarrBlock::EditMoviePrompt => {
         self.app.pop_navigation_stack();

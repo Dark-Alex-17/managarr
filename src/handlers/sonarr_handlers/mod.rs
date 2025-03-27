@@ -67,8 +67,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SonarrHandler<'a, 'b
     true
   }
 
-  fn ignore_alt_navigation(&self) -> bool {
-    self.app.should_ignore_quit_key
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -115,11 +115,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SonarrHandler<'a, 'b
 pub fn handle_change_tab_left_right_keys(app: &mut App<'_>, key: Key) {
   let key_ref = key;
   match key_ref {
-    _ if matches_key!(left, key, app.should_ignore_quit_key) => {
+    _ if matches_key!(left, key, app.ignore_special_keys_for_textbox_input) => {
       app.data.sonarr_data.main_tabs.previous();
       app.pop_and_push_navigation_stack(app.data.sonarr_data.main_tabs.get_active_route());
     }
-    _ if matches_key!(right, key, app.should_ignore_quit_key) => {
+    _ if matches_key!(right, key, app.ignore_special_keys_for_textbox_input) => {
       app.data.sonarr_data.main_tabs.next();
       app.pop_and_push_navigation_stack(app.data.sonarr_data.main_tabs.get_active_route());
     }

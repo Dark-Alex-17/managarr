@@ -133,8 +133,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
     ADD_MOVIE_BLOCKS.contains(&active_block)
   }
 
-  fn ignore_alt_navigation(&self) -> bool {
-    self.app.should_ignore_quit_key
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -409,7 +409,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
         self
           .app
           .push_navigation_stack(ActiveRadarrBlock::AddMovieSearchResults.into());
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ if self.active_radarr_block == ActiveRadarrBlock::AddMovieSearchResults
         && self.app.data.radarr_data.add_searched_movies.is_some() =>
@@ -473,7 +473,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
               )
                 .into(),
             );
-            self.app.should_ignore_quit_key = true;
+            self.app.ignore_special_keys_for_textbox_input = true;
           }
           _ => (),
         }
@@ -484,7 +484,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
       | ActiveRadarrBlock::AddMovieSelectRootFolder => self.app.pop_navigation_stack(),
       ActiveRadarrBlock::AddMovieTagsInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ => (),
     }
@@ -495,12 +495,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
       ActiveRadarrBlock::AddMovieSearchInput => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.add_movie_search = None;
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       ActiveRadarrBlock::AddMovieSearchResults | ActiveRadarrBlock::AddMovieEmptySearchResults => {
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.add_searched_movies = None;
-        self.app.should_ignore_quit_key = true;
+        self.app.ignore_special_keys_for_textbox_input = true;
       }
       ActiveRadarrBlock::AddMoviePrompt => {
         self.app.pop_navigation_stack();
@@ -514,7 +514,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
       | ActiveRadarrBlock::AddMovieSelectRootFolder => self.app.pop_navigation_stack(),
       ActiveRadarrBlock::AddMovieTagsInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ => (),
     }

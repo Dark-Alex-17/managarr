@@ -64,8 +64,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
     true
   }
 
-  fn ignore_alt_navigation(&self) -> bool {
-    self.app.should_ignore_quit_key
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -112,11 +112,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
 pub fn handle_change_tab_left_right_keys(app: &mut App<'_>, key: Key) {
   let key_ref = key;
   match key_ref {
-    _ if matches_key!(left, key, app.should_ignore_quit_key) => {
+    _ if matches_key!(left, key, app.ignore_special_keys_for_textbox_input) => {
       app.data.radarr_data.main_tabs.previous();
       app.pop_and_push_navigation_stack(app.data.radarr_data.main_tabs.get_active_route());
     }
-    _ if matches_key!(right, key, app.should_ignore_quit_key) => {
+    _ if matches_key!(right, key, app.ignore_special_keys_for_textbox_input) => {
       app.data.radarr_data.main_tabs.next();
       app.pop_and_push_navigation_stack(app.data.radarr_data.main_tabs.get_active_route());
     }
@@ -142,7 +142,7 @@ macro_rules! search_table {
     };
 
     $app.data.radarr_data.is_searching = false;
-    $app.should_ignore_quit_key = false;
+    $app.ignore_special_keys_for_textbox_input = false;
 
     if search_index.is_some() {
       $app.pop_navigation_stack();
@@ -169,7 +169,7 @@ macro_rules! search_table {
     };
 
     $app.data.radarr_data.is_searching = false;
-    $app.should_ignore_quit_key = false;
+    $app.ignore_special_keys_for_textbox_input = false;
 
     if search_index.is_some() {
       $app.pop_navigation_stack();

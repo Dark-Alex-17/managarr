@@ -48,8 +48,8 @@ mod tests {
       true
     }
 
-    fn ignore_alt_navigation(&self) -> bool {
-      self.app.should_ignore_quit_key
+    fn ignore_special_keys(&self) -> bool {
+      self.app.ignore_special_keys_for_textbox_input
     }
 
     fn new(
@@ -652,7 +652,7 @@ mod tests {
       TableHandlerUnit::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::FilterMovies, None).handle();
 
       assert!(app.data.radarr_data.movies.filtered_items.is_some());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app
           .data
@@ -688,7 +688,7 @@ mod tests {
 
       TableHandlerUnit::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::FilterMovies, None).handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(app.data.radarr_data.movies.filtered_items.is_none());
       assert_eq!(
         app.get_current_route(),
@@ -739,7 +739,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::test_default();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data = create_test_radarr_data();
@@ -748,7 +748,7 @@ mod tests {
       TableHandlerUnit::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.data.radarr_data.movies.search, None);
     }
 
@@ -758,7 +758,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::test_default();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data = create_test_radarr_data();
@@ -777,7 +777,7 @@ mod tests {
       TableHandlerUnit::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.data.radarr_data.movies.filter, None);
       assert_eq!(app.data.radarr_data.movies.filtered_items, None);
       assert_eq!(app.data.radarr_data.movies.filtered_state, None);
@@ -824,7 +824,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::SearchMovie.into()
       );
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.data.radarr_data.movies.search,
         Some(HorizontallyScrollableText::default())
@@ -851,7 +851,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.data.radarr_data.movies.search, None);
     }
 
@@ -873,7 +873,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.data.radarr_data.movies.search, None);
     }
 
@@ -898,7 +898,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::FilterMovies.into()
       );
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert!(app.data.radarr_data.movies.filter.is_some());
     }
 
@@ -922,14 +922,14 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(app.data.radarr_data.movies.filter.is_none());
     }
 
     #[test]
     fn test_filter_table_key_resets_previous_filter() {
       let mut app = App::test_default();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.data.radarr_data = create_test_radarr_data();
       app
@@ -951,7 +951,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::FilterMovies.into()
       );
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.data.radarr_data.movies.filter,
         Some(HorizontallyScrollableText::default())
@@ -978,7 +978,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.data.radarr_data.movies.filter, None);
     }
 

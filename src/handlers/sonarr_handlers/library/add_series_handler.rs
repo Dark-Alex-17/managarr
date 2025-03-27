@@ -127,8 +127,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
     ADD_SERIES_BLOCKS.contains(&active_block)
   }
 
-  fn ignore_alt_navigation(&self) -> bool {
-    self.app.should_ignore_quit_key
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -445,7 +445,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
         self
           .app
           .push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchResults.into());
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ if self.active_sonarr_block == ActiveSonarrBlock::AddSeriesSearchResults
         && self.app.data.sonarr_data.add_searched_series.is_some() =>
@@ -514,7 +514,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
                 .get_active_block()
                 .into(),
             );
-            self.app.should_ignore_quit_key = true;
+            self.app.ignore_special_keys_for_textbox_input = true;
           }
           ActiveSonarrBlock::AddSeriesToggleUseSeasonFolder => {
             self
@@ -543,7 +543,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
       | ActiveSonarrBlock::AddSeriesSelectRootFolder => self.app.pop_navigation_stack(),
       ActiveSonarrBlock::AddSeriesTagsInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ => (),
     }
@@ -554,13 +554,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
       ActiveSonarrBlock::AddSeriesSearchInput => {
         self.app.pop_navigation_stack();
         self.app.data.sonarr_data.add_series_search = None;
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       ActiveSonarrBlock::AddSeriesSearchResults
       | ActiveSonarrBlock::AddSeriesEmptySearchResults => {
         self.app.pop_navigation_stack();
         self.app.data.sonarr_data.add_searched_series = None;
-        self.app.should_ignore_quit_key = true;
+        self.app.ignore_special_keys_for_textbox_input = true;
       }
       ActiveSonarrBlock::AddSeriesPrompt => {
         self.app.pop_navigation_stack();
@@ -575,7 +575,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
       | ActiveSonarrBlock::AddSeriesSelectRootFolder => self.app.pop_navigation_stack(),
       ActiveSonarrBlock::AddSeriesTagsInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ => (),
     }

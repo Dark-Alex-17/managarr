@@ -263,7 +263,7 @@ mod tests {
         .set_items(vec![RootFolder::default()]);
       app.data.radarr_data.edit_root_folder = Some("Test".into());
       app.data.radarr_data.prompt_confirm = true;
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
 
@@ -276,7 +276,7 @@ mod tests {
       .handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::AddRootFolder(expected_add_root_folder_body))
@@ -292,7 +292,7 @@ mod tests {
       let mut app = App::test_default();
       app.data.radarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
       app.data.radarr_data.prompt_confirm = false;
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
 
@@ -305,7 +305,7 @@ mod tests {
       .handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert!(app.data.radarr_data.prompt_confirm_action.is_none());
       assert_eq!(
         app.get_current_route(),
@@ -407,7 +407,7 @@ mod tests {
       app.push_navigation_stack(ActiveRadarrBlock::RootFolders.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
       app.data.radarr_data.edit_root_folder = Some("/nfs/test".into());
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
 
       RootFoldersHandler::new(
         ESC_KEY,
@@ -424,7 +424,7 @@ mod tests {
 
       assert!(app.data.radarr_data.edit_root_folder.is_none());
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
     }
 
     #[rstest]
@@ -473,7 +473,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::AddRootFolderPrompt.into()
       );
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert!(app.data.radarr_data.edit_root_folder.is_some());
     }
 
@@ -500,7 +500,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::RootFolders.into()
       );
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(app.data.radarr_data.edit_root_folder.is_none());
     }
 
@@ -646,11 +646,11 @@ mod tests {
   }
 
   #[rstest]
-  fn test_root_folders_handler_ignore_alt_navigation(
-    #[values(true, false)] should_ignore_quit_key: bool,
+  fn test_root_folders_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
   ) {
     let mut app = App::test_default();
-    app.should_ignore_quit_key = should_ignore_quit_key;
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
     let handler = RootFoldersHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
@@ -658,7 +658,10 @@ mod tests {
       None,
     );
 
-    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

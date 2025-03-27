@@ -316,7 +316,7 @@ mod tests {
         app.get_current_route(),
         ActiveSonarrBlock::AddSeriesSearchInput.into()
       );
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert!(app.data.sonarr_data.add_series_search.is_some());
     }
 
@@ -340,7 +340,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(app.data.sonarr_data.add_series_search.is_none());
     }
 
@@ -828,11 +828,11 @@ mod tests {
   }
 
   #[rstest]
-  fn test_library_handler_ignore_alt_navigation(
-    #[values(true, false)] should_ignore_quit_key: bool,
+  fn test_library_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
   ) {
     let mut app = App::test_default();
-    app.should_ignore_quit_key = should_ignore_quit_key;
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
     let handler = LibraryHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
@@ -840,7 +840,10 @@ mod tests {
       None,
     );
 
-    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

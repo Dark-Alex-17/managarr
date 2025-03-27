@@ -66,8 +66,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
     EDIT_INDEXER_BLOCKS.contains(&active_block)
   }
 
-  fn ignore_alt_navigation(&self) -> bool {
-    self.app.should_ignore_quit_key
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -361,7 +361,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
           | ActiveRadarrBlock::EditIndexerSeedRatioInput
           | ActiveRadarrBlock::EditIndexerTagsInput => {
             self.app.push_navigation_stack(selected_block.into());
-            self.app.should_ignore_quit_key = true;
+            self.app.ignore_special_keys_for_textbox_input = true;
           }
           ActiveRadarrBlock::EditIndexerPriorityInput => self
             .app
@@ -407,7 +407,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
       | ActiveRadarrBlock::EditIndexerSeedRatioInput
       | ActiveRadarrBlock::EditIndexerTagsInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       ActiveRadarrBlock::EditIndexerPriorityInput => self.app.pop_navigation_stack(),
       _ => (),
@@ -428,7 +428,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditIndexerHandler<'
       | ActiveRadarrBlock::EditIndexerPriorityInput
       | ActiveRadarrBlock::EditIndexerTagsInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ => self.app.pop_navigation_stack(),
     }

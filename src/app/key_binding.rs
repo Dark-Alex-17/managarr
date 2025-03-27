@@ -76,7 +76,7 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
   },
   backspace: KeyBinding {
     key: Key::Backspace,
-    alt: None,
+    alt: Some(Key::Ctrl('h')),
     desc: "backspace",
   },
   next_servarr: KeyBinding {
@@ -215,9 +215,9 @@ macro_rules! matches_key {
           .unwrap()
           == $key)
   };
-  ($binding:ident, $key:expr, $ignore_alt_navigation:expr) => {
+  ($binding:ident, $key:expr, $ignore_special_keys:expr) => {
     $crate::app::key_binding::DEFAULT_KEYBINDINGS.$binding.key == $key
-      || !$ignore_alt_navigation
+      || !$ignore_special_keys
         && ($crate::app::key_binding::DEFAULT_KEYBINDINGS
           .$binding
           .alt

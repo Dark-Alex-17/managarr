@@ -458,7 +458,7 @@ mod tests {
     #[test]
     fn test_edit_collection_root_folder_path_input_submit() {
       let mut app = App::test_default();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal {
         path: "Test Path".into(),
         ..EditCollectionModal::default()
@@ -474,7 +474,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(!app
         .data
         .radarr_data
@@ -760,7 +760,7 @@ mod tests {
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
 
       if selected_block == ActiveRadarrBlock::EditCollectionRootFolderPathInput {
-        assert!(app.should_ignore_quit_key);
+        assert!(app.ignore_special_keys_for_textbox_input);
       }
     }
 
@@ -792,7 +792,7 @@ mod tests {
       );
 
       if active_radarr_block == ActiveRadarrBlock::EditCollectionRootFolderPathInput {
-        assert!(!app.should_ignore_quit_key);
+        assert!(!app.ignore_special_keys_for_textbox_input);
       }
     }
   }
@@ -812,7 +812,7 @@ mod tests {
       let mut app = App::test_default();
       app.data.radarr_data = create_test_radarr_data();
       app.data.radarr_data.edit_collection_modal = Some(EditCollectionModal::default());
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
       app.push_navigation_stack(ActiveRadarrBlock::EditCollectionRootFolderPathInput.into());
 
@@ -824,7 +824,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.get_current_route(),
         ActiveRadarrBlock::EditCollectionPrompt.into()
@@ -1021,11 +1021,11 @@ mod tests {
   }
 
   #[rstest]
-  fn test_edit_collection_handler_ignore_alt_navigation(
-    #[values(true, false)] should_ignore_quit_key: bool,
+  fn test_edit_collection_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
   ) {
     let mut app = App::test_default();
-    app.should_ignore_quit_key = should_ignore_quit_key;
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
     let handler = EditCollectionHandler::new(
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
@@ -1033,7 +1033,10 @@ mod tests {
       None,
     );
 
-    assert_eq!(handler.ignore_alt_navigation(), should_ignore_quit_key);
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

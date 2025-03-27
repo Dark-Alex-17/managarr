@@ -38,8 +38,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
     INDEXER_SETTINGS_BLOCKS.contains(&active_block)
   }
 
-  fn ignore_alt_navigation(&self) -> bool {
-    self.app.should_ignore_quit_key
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -212,7 +212,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
             self.app.push_navigation_stack(
               ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput.into(),
             );
-            self.app.should_ignore_quit_key = true;
+            self.app.ignore_special_keys_for_textbox_input = true;
           }
           ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags => {
             let indexer_settings = self.app.data.radarr_data.indexer_settings.as_mut().unwrap();
@@ -229,7 +229,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
       }
       ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       ActiveRadarrBlock::IndexerSettingsMinimumAgeInput
       | ActiveRadarrBlock::IndexerSettingsRetentionInput
@@ -249,7 +249,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
       }
       ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ => self.app.pop_navigation_stack(),
     }
