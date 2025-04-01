@@ -589,6 +589,25 @@ mod tests {
     });
   }
 
+  #[rstest]
+  fn test_collections_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = CollectionsHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
+  }
+
   #[test]
   fn test_collections_handler_not_ready_when_loading() {
     let mut app = App::test_default();

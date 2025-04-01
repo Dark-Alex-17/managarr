@@ -2,6 +2,7 @@
 mod tests {
   use bimap::BiMap;
   use pretty_assertions::assert_str_eq;
+  use rstest::rstest;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -548,7 +549,7 @@ mod tests {
     #[test]
     fn test_edit_movie_path_input_submit() {
       let mut app = App::test_default();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
         path: "Test Path".into(),
         ..EditMovieModal::default()
@@ -564,7 +565,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(!app
         .data
         .radarr_data
@@ -583,7 +584,7 @@ mod tests {
     #[test]
     fn test_edit_movie_tags_input_submit() {
       let mut app = App::test_default();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
         tags: "Test Tags".into(),
         ..EditMovieModal::default()
@@ -599,7 +600,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(!app
         .data
         .radarr_data
@@ -813,7 +814,7 @@ mod tests {
       if selected_block == ActiveRadarrBlock::EditMoviePathInput
         || selected_block == ActiveRadarrBlock::EditMovieTagsInput
       {
-        assert!(app.should_ignore_quit_key);
+        assert!(app.ignore_special_keys_for_textbox_input);
       }
     }
 
@@ -851,7 +852,7 @@ mod tests {
           .into()
       );
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
     }
 
     #[rstest]
@@ -885,7 +886,7 @@ mod tests {
       if active_radarr_block == ActiveRadarrBlock::EditMoviePathInput
         || active_radarr_block == ActiveRadarrBlock::EditMovieTagsInput
       {
-        assert!(!app.should_ignore_quit_key);
+        assert!(!app.ignore_special_keys_for_textbox_input);
       }
     }
   }
@@ -911,13 +912,13 @@ mod tests {
     ) {
       let mut app = App::test_default();
       app.data.radarr_data = create_test_radarr_data();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveRadarrBlock::EditMoviePrompt.into());
       app.push_navigation_stack(active_radarr_block.into());
 
       EditMovieHandler::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.get_current_route(),
         ActiveRadarrBlock::EditMoviePrompt.into()
@@ -1033,7 +1034,7 @@ mod tests {
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
 
       EditMovieHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::EditMoviePathInput,
         None,
@@ -1049,7 +1050,7 @@ mod tests {
           .unwrap()
           .path
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1059,7 +1060,7 @@ mod tests {
       app.data.radarr_data.edit_movie_modal = Some(EditMovieModal::default());
 
       EditMovieHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::EditMovieTagsInput,
         None,
@@ -1075,7 +1076,7 @@ mod tests {
           .unwrap()
           .tags
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1146,6 +1147,25 @@ mod tests {
         assert!(!EditMovieHandler::accepts(active_radarr_block));
       }
     });
+  }
+
+  #[rstest]
+  fn test_edit_movie_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = EditMovieHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

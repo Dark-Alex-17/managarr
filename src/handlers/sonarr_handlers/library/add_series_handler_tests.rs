@@ -2,6 +2,7 @@
 mod tests {
   use bimap::BiMap;
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use rstest::rstest;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -912,7 +913,7 @@ mod tests {
     fn test_add_series_search_input_submit() {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.data.sonarr_data.add_series_search = Some("test".into());
 
       AddSeriesHandler::new(
@@ -923,7 +924,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.get_current_route(),
         ActiveSonarrBlock::AddSeriesSearchResults.into()
@@ -936,7 +937,7 @@ mod tests {
       app.data.sonarr_data.add_series_search = Some(HorizontallyScrollableText::default());
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchInput.into());
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
 
       AddSeriesHandler::new(
         SUBMIT_KEY,
@@ -946,7 +947,7 @@ mod tests {
       )
       .handle();
 
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.get_current_route(),
         ActiveSonarrBlock::AddSeriesSearchInput.into()
@@ -1230,7 +1231,7 @@ mod tests {
       assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
 
       if selected_block == ActiveSonarrBlock::AddSeriesTagsInput {
-        assert!(app.should_ignore_quit_key);
+        assert!(app.ignore_special_keys_for_textbox_input);
       }
     }
 
@@ -1259,7 +1260,7 @@ mod tests {
       );
 
       if active_sonarr_block == ActiveSonarrBlock::AddSeriesTagsInput {
-        assert!(!app.should_ignore_quit_key);
+        assert!(!app.ignore_special_keys_for_textbox_input);
       }
     }
 
@@ -1336,7 +1337,7 @@ mod tests {
       let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.sonarr_data = create_test_sonarr_data();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchInput.into());
 
@@ -1348,7 +1349,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
       assert_eq!(app.data.sonarr_data.add_series_search, None);
     }
@@ -1357,7 +1358,7 @@ mod tests {
     fn test_add_series_input_esc() {
       let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesPrompt.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesTagsInput.into());
@@ -1370,7 +1371,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.get_current_route(),
         ActiveSonarrBlock::AddSeriesPrompt.into()
@@ -1403,7 +1404,7 @@ mod tests {
         ActiveSonarrBlock::AddSeriesSearchInput.into()
       );
       assert!(app.data.sonarr_data.add_searched_series.is_none());
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
     }
 
     #[test]
@@ -1451,7 +1452,7 @@ mod tests {
     fn test_add_series_tags_input_esc() {
       let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesPrompt.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesTagsInput.into());
@@ -1464,7 +1465,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.get_current_route(),
         ActiveSonarrBlock::AddSeriesPrompt.into()
@@ -1570,7 +1571,7 @@ mod tests {
       app.data.sonarr_data.add_series_search = Some(HorizontallyScrollableText::default());
 
       AddSeriesHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveSonarrBlock::AddSeriesSearchInput,
         None,
@@ -1585,7 +1586,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1596,7 +1597,7 @@ mod tests {
       app.data.sonarr_data.add_series_modal = Some(AddSeriesModal::default());
 
       AddSeriesHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveSonarrBlock::AddSeriesTagsInput,
         None,
@@ -1612,7 +1613,7 @@ mod tests {
           .unwrap()
           .tags
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1712,6 +1713,25 @@ mod tests {
         assert!(!AddSeriesHandler::accepts(active_sonarr_block));
       }
     });
+  }
+
+  #[rstest]
+  fn test_add_series_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = AddSeriesHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

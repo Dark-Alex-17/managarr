@@ -1,7 +1,5 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
-use crate::handle_table_events;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
@@ -9,6 +7,7 @@ use crate::models::radarr_models::BlocklistItem;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, BLOCKLIST_BLOCKS};
 use crate::models::stateful_table::SortOption;
 use crate::network::radarr_network::RadarrEvent;
+use crate::{handle_table_events, matches_key};
 
 #[cfg(test)]
 #[path = "blocklist_handler_tests.rs"]
@@ -49,6 +48,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
 
   fn accepts(active_block: ActiveRadarrBlock) -> bool {
     BLOCKLIST_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -143,10 +146,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::Blocklist => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if matches_key!(refresh, key) => {
           self.app.should_refresh = true;
         }
-        _ if key == DEFAULT_KEYBINDINGS.clear.key => {
+        _ if matches_key!(clear, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::BlocklistClearAllItemsPrompt.into());
@@ -154,7 +157,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
         _ => (),
       },
       ActiveRadarrBlock::DeleteBlocklistItemPrompt => {
-        if key == DEFAULT_KEYBINDINGS.confirm.key {
+        if matches_key!(confirm, key) {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::DeleteBlocklistItem(
             self.extract_blocklist_item_id(),
@@ -164,7 +167,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
         }
       }
       ActiveRadarrBlock::BlocklistClearAllItemsPrompt => {
-        if key == DEFAULT_KEYBINDINGS.confirm.key {
+        if matches_key!(confirm, key) {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::ClearBlocklist);
 

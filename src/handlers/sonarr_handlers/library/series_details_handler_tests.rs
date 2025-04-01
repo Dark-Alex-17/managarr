@@ -611,6 +611,25 @@ mod tests {
     });
   }
 
+  #[rstest]
+  fn test_series_details_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = SeriesDetailsHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
+  }
+
   #[test]
   fn test_extract_series_id_season_number_tuple() {
     let mut app = App::test_default();

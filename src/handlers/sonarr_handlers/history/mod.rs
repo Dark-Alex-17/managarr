@@ -1,7 +1,5 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
-use crate::handle_table_events;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_clear_errors, KeyEventHandler};
@@ -9,6 +7,7 @@ use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTOR
 use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::SonarrHistoryItem;
 use crate::models::stateful_table::SortOption;
+use crate::{handle_table_events, matches_key};
 
 #[cfg(test)]
 #[path = "history_handler_tests.rs"]
@@ -50,6 +49,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, '
 
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     HISTORY_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -110,7 +113,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, '
     let key = self.key;
     if self.active_sonarr_block == ActiveSonarrBlock::History {
       match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if matches_key!(refresh, key) => {
           self.app.should_refresh = true;
         }
         _ => (),

@@ -1,7 +1,5 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
-use crate::handle_table_events;
 use crate::handlers::sonarr_handlers::history::history_sorting_options;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
@@ -12,6 +10,7 @@ use crate::models::sonarr_models::{
 };
 use crate::models::stateful_table::SortOption;
 use crate::network::sonarr_network::SonarrEvent;
+use crate::{handle_table_events, matches_key};
 use serde_json::Number;
 
 #[cfg(test)]
@@ -140,6 +139,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
     SEASON_DETAILS_BLOCKS.contains(&active_block)
   }
 
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
+  }
+
   fn new(
     key: Key,
     app: &'a mut App<'b>,
@@ -193,7 +196,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
       ActiveSonarrBlock::SeasonDetails
       | ActiveSonarrBlock::SeasonHistory
       | ActiveSonarrBlock::ManualSeasonSearch => match self.key {
-        _ if self.key == DEFAULT_KEYBINDINGS.left.key => {
+        _ if matches_key!(left, self.key) => {
           self
             .app
             .data
@@ -215,7 +218,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
               .get_active_route(),
           );
         }
-        _ if self.key == DEFAULT_KEYBINDINGS.right.key => {
+        _ if matches_key!(right, self.key) => {
           self
             .app
             .data
@@ -378,7 +381,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
   fn handle_char_key_event(&mut self) {
     let key = self.key;
     match self.active_sonarr_block {
-      ActiveSonarrBlock::SeasonDetails if self.key == DEFAULT_KEYBINDINGS.toggle_monitoring.key => {
+      ActiveSonarrBlock::SeasonDetails if matches_key!(toggle_monitoring, self.key) => {
         self.app.data.sonarr_data.prompt_confirm = true;
         self.app.data.sonarr_data.prompt_confirm_action = Some(
           SonarrEvent::ToggleEpisodeMonitoring(self.extract_episode_id()),
@@ -391,21 +394,19 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
       ActiveSonarrBlock::SeasonDetails
       | ActiveSonarrBlock::SeasonHistory
       | ActiveSonarrBlock::ManualSeasonSearch => match self.key {
-        _ if self.key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if matches_key!(refresh, self.key) => {
           self
             .app
             .pop_and_push_navigation_stack(self.active_sonarr_block.into());
         }
-        _ if self.key == DEFAULT_KEYBINDINGS.auto_search.key => {
+        _ if matches_key!(auto_search, self.key) => {
           self
             .app
             .push_navigation_stack(ActiveSonarrBlock::AutomaticallySearchSeasonPrompt.into());
         }
         _ => (),
       },
-      ActiveSonarrBlock::AutomaticallySearchSeasonPrompt
-        if key == DEFAULT_KEYBINDINGS.confirm.key =>
-      {
+      ActiveSonarrBlock::AutomaticallySearchSeasonPrompt if matches_key!(confirm, key) => {
         self.app.data.sonarr_data.prompt_confirm = true;
         self.app.data.sonarr_data.prompt_confirm_action = Some(
           SonarrEvent::TriggerAutomaticSeasonSearch(self.extract_series_id_season_number_tuple()),
@@ -413,7 +414,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
 
         self.app.pop_navigation_stack();
       }
-      ActiveSonarrBlock::DeleteEpisodeFilePrompt if key == DEFAULT_KEYBINDINGS.confirm.key => {
+      ActiveSonarrBlock::DeleteEpisodeFilePrompt if matches_key!(confirm, key) => {
         self.app.data.sonarr_data.prompt_confirm = true;
         self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::DeleteEpisodeFile(
           self.extract_episode_file_id(),
@@ -421,9 +422,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
 
         self.app.pop_navigation_stack();
       }
-      ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt
-        if key == DEFAULT_KEYBINDINGS.confirm.key =>
-      {
+      ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt if matches_key!(confirm, key) => {
         self.app.data.sonarr_data.prompt_confirm = true;
         let SonarrRelease {
           guid, indexer_id, ..
