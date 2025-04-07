@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::assert_eq;
+  use rstest::rstest;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -602,7 +603,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput.into()
       );
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
     }
 
     #[test]
@@ -716,7 +717,7 @@ mod tests {
     #[test]
     fn test_edit_indexer_settings_whitelisted_subtitle_tags_input_submit() {
       let mut app = App::test_default();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.data.radarr_data.indexer_settings = Some(IndexerSettings {
         whitelisted_hardcoded_subs: "Test tags".into(),
         ..IndexerSettings::default()
@@ -734,7 +735,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(!app
         .data
         .radarr_data
@@ -814,7 +815,7 @@ mod tests {
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput.into(),
       );
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
 
       IndexerSettingsHandler::new(
         ESC_KEY,
@@ -825,7 +826,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.data.radarr_data.indexer_settings,
         Some(IndexerSettings::default())
@@ -907,7 +908,7 @@ mod tests {
       app.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
 
       IndexerSettingsHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput,
         None,
@@ -923,7 +924,7 @@ mod tests {
           .unwrap()
           .whitelisted_hardcoded_subs
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -968,6 +969,25 @@ mod tests {
         assert!(!IndexerSettingsHandler::accepts(active_radarr_block));
       }
     })
+  }
+
+  #[rstest]
+  fn test_indexer_settings_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = IndexerSettingsHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

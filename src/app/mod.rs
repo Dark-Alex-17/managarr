@@ -39,7 +39,7 @@ pub struct App<'a> {
   pub is_routing: bool,
   pub is_loading: bool,
   pub should_refresh: bool,
-  pub should_ignore_quit_key: bool,
+  pub ignore_special_keys_for_textbox_input: bool,
   pub cli_mode: bool,
   pub data: Data<'a>,
 }
@@ -224,7 +224,7 @@ impl Default for App<'_> {
       is_loading: false,
       is_routing: false,
       should_refresh: false,
-      should_ignore_quit_key: false,
+      ignore_special_keys_for_textbox_input: false,
       cli_mode: false,
       data: Data::default(),
     }
@@ -270,6 +270,7 @@ pub struct Data<'a> {
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct AppConfig {
+  pub theme: Option<String>,
   pub radarr: Option<Vec<ServarrConfig>>,
   pub sonarr: Option<Vec<ServarrConfig>>,
 }

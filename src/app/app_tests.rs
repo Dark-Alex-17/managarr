@@ -31,6 +31,7 @@ mod tests {
     };
     let sonarr_config_2 = ServarrConfig::default();
     let config = AppConfig {
+      theme: None,
       radarr: Some(vec![radarr_config_1.clone(), radarr_config_2.clone()]),
       sonarr: Some(vec![sonarr_config_1.clone(), sonarr_config_2.clone()]),
     };
@@ -97,7 +98,7 @@ mod tests {
     assert!(!app.is_loading);
     assert!(!app.is_routing);
     assert!(!app.should_refresh);
-    assert!(!app.should_ignore_quit_key);
+    assert!(!app.ignore_special_keys_for_textbox_input);
     assert!(!app.cli_mode);
   }
 
@@ -117,7 +118,7 @@ mod tests {
     assert!(!app.is_loading);
     assert!(!app.is_routing);
     assert!(!app.should_refresh);
-    assert!(!app.should_ignore_quit_key);
+    assert!(!app.ignore_special_keys_for_textbox_input);
     assert!(!app.cli_mode);
   }
 

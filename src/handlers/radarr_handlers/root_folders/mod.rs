@@ -1,4 +1,3 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
@@ -8,7 +7,9 @@ use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_F
 use crate::models::servarr_models::{AddRootFolderBody, RootFolder};
 use crate::models::HorizontallyScrollableText;
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::{
+  handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, matches_key,
+};
 
 #[cfg(test)]
 #[path = "root_folders_handler_tests.rs"]
@@ -66,6 +67,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
 
   fn accepts(active_block: ActiveRadarrBlock) -> bool {
     ROOT_FOLDERS_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -168,7 +173,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
           self.build_add_root_folder_body(),
         ));
         self.app.data.radarr_data.prompt_confirm = true;
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
         self.app.pop_navigation_stack();
       }
       _ => (),
@@ -181,7 +186,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
         self.app.pop_navigation_stack();
         self.app.data.radarr_data.edit_root_folder = None;
         self.app.data.radarr_data.prompt_confirm = false;
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       ActiveRadarrBlock::DeleteRootFolderPrompt => {
         self.app.pop_navigation_stack();
@@ -195,15 +200,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::RootFolders => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if matches_key!(refresh, key) => {
           self.app.should_refresh = true;
         }
-        _ if key == DEFAULT_KEYBINDINGS.add.key => {
+        _ if matches_key!(add, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::AddRootFolderPrompt.into());
           self.app.data.radarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
+          self.app.ignore_special_keys_for_textbox_input = true;
         }
         _ => (),
       },
@@ -215,7 +220,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
         )
       }
       ActiveRadarrBlock::DeleteRootFolderPrompt => {
-        if key == DEFAULT_KEYBINDINGS.confirm.key {
+        if matches_key!(confirm, key) {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action =
             Some(RadarrEvent::DeleteRootFolder(self.extract_root_folder_id()));

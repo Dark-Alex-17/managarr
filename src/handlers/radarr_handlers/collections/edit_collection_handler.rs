@@ -1,4 +1,3 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
@@ -7,7 +6,7 @@ use crate::models::servarr_data::radarr::modals::EditCollectionModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_COLLECTION_BLOCKS};
 use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::{handle_text_box_keys, handle_text_box_left_right_keys, matches_key};
 
 #[cfg(test)]
 #[path = "edit_collection_handler_tests.rs"]
@@ -67,6 +66,10 @@ impl EditCollectionHandler<'_, '_> {
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandler<'a, 'b> {
   fn accepts(active_block: ActiveRadarrBlock) -> bool {
     EDIT_COLLECTION_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -262,7 +265,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
               )
                 .into(),
             );
-            self.app.should_ignore_quit_key = true;
+            self.app.ignore_special_keys_for_textbox_input = true;
           }
           ActiveRadarrBlock::EditCollectionToggleMonitored => {
             self
@@ -311,7 +314,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
       | ActiveRadarrBlock::EditCollectionSelectQualityProfile => self.app.pop_navigation_stack(),
       ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ => (),
     }
@@ -321,7 +324,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
     match self.active_radarr_block {
       ActiveRadarrBlock::EditCollectionRootFolderPathInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       ActiveRadarrBlock::EditCollectionPrompt => {
         self.app.pop_navigation_stack();
@@ -354,7 +357,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
       ActiveRadarrBlock::EditCollectionPrompt => {
         if self.app.data.radarr_data.selected_block.get_active_block()
           == ActiveRadarrBlock::EditCollectionConfirmPrompt
-          && key == DEFAULT_KEYBINDINGS.confirm.key
+          && matches_key!(confirm, key)
         {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::EditCollection(

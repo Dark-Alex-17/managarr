@@ -1,0 +1,37 @@
+- name: default
+  theme:
+    background:
+      enabled: true
+      color: "#233237"
+    awaiting_import:
+      color: "#FFAA42"
+    indeterminate:
+      color: "#FFAA42"
+    default:
+      color: "#FFFFFF"
+    downloaded:
+      color: "#00FF00"
+    downloading:
+      color: "#762671"
+    failure:
+      color: "#DE382B"
+    help:
+      color: "#00FFFF"
+    missing:
+      color: "#DE382B"
+    primary:
+      color: "#2CB5E9"
+    secondary:
+      color: "#FFC706"
+    success:
+      color: "#39B54A"
+    system_function:
+      color: "#FFC706"
+    unmonitored:
+      color: "#808080"
+    unmonitored_missing:
+      color: "#FFC706"
+    unreleased:
+      color: "#00FFFF"
+    warning:
+      color: "#FF00FF"

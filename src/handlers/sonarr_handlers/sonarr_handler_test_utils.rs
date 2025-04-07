@@ -297,7 +297,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
       audio_stream_count: 1,
       video_bit_depth: 10,
       video_bitrate: 0,
-      video_codec: "x265".to_owned(),
+      video_codec: Some("x265".to_owned()),
       video_fps: Number::from_f64(23.976).unwrap(),
       resolution: "1920x1080".to_owned(),
       run_time: "23:51".to_owned(),
@@ -327,7 +327,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
       title: None,
       season_number: 1,
       monitored: true,
-      statistics: season_statistics(),
+      statistics: Some(season_statistics()),
     }
   }
 

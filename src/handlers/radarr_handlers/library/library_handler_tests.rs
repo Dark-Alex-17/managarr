@@ -331,7 +331,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::AddMovieSearchInput.into()
       );
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert!(app.data.radarr_data.add_movie_search.is_some());
     }
 
@@ -355,7 +355,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(app.data.radarr_data.add_movie_search.is_none());
     }
 
@@ -775,6 +775,25 @@ mod tests {
         assert!(!LibraryHandler::accepts(active_radarr_block));
       }
     });
+  }
+
+  #[rstest]
+  fn test_library_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

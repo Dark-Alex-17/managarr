@@ -1,9 +1,9 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::radarr_handlers::system::system_details_handler::SystemDetailsHandler;
 use crate::handlers::{handle_clear_errors, KeyEventHandler};
+use crate::matches_key;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::Scrollable;
 
@@ -33,6 +33,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemHandler<'a, 'b
 
   fn accepts(active_block: ActiveRadarrBlock) -> bool {
     SystemDetailsHandler::accepts(active_block) || active_block == ActiveRadarrBlock::System
+  }
+
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -86,15 +90,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemHandler<'a, 'b
     if self.active_radarr_block == ActiveRadarrBlock::System {
       let key = self.key;
       match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if matches_key!(refresh, key) => {
           self.app.should_refresh = true;
         }
-        _ if key == DEFAULT_KEYBINDINGS.events.key => {
+        _ if matches_key!(events, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::SystemQueuedEvents.into());
         }
-        _ if key == DEFAULT_KEYBINDINGS.logs.key => {
+        _ if matches_key!(logs, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::SystemLogs.into());
@@ -106,12 +110,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for SystemHandler<'a, 'b
             .set_items(self.app.data.radarr_data.logs.items.to_vec());
           self.app.data.radarr_data.log_details.scroll_to_bottom();
         }
-        _ if key == DEFAULT_KEYBINDINGS.tasks.key => {
+        _ if matches_key!(tasks, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
         }
-        _ if key == DEFAULT_KEYBINDINGS.update.key => {
+        _ if matches_key!(update, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::SystemUpdates.into());

@@ -1,7 +1,5 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
-use crate::handle_table_events;
 use crate::handlers::radarr_handlers::collections::collection_details_handler::CollectionDetailsHandler;
 use crate::handlers::radarr_handlers::collections::edit_collection_handler::EditCollectionHandler;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
@@ -14,6 +12,7 @@ use crate::models::servarr_data::radarr::radarr_data::{
 use crate::models::stateful_table::SortOption;
 use crate::models::BlockSelectionState;
 use crate::network::radarr_network::RadarrEvent;
+use crate::{handle_table_events, matches_key};
 
 mod collection_details_handler;
 mod edit_collection_handler;
@@ -71,6 +70,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
     CollectionDetailsHandler::accepts(active_block)
       || EditCollectionHandler::accepts(active_block)
       || COLLECTIONS_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -145,7 +148,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::Collections => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.edit.key => {
+        _ if matches_key!(edit, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::EditCollectionPrompt.into());
@@ -154,18 +157,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
           self.app.data.radarr_data.selected_block =
             BlockSelectionState::new(EDIT_COLLECTION_SELECTION_BLOCKS);
         }
-        _ if key == DEFAULT_KEYBINDINGS.update.key => {
+        _ if matches_key!(update, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::UpdateAllCollectionsPrompt.into());
         }
-        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if matches_key!(refresh, key) => {
           self.app.should_refresh = true;
         }
         _ => (),
       },
       ActiveRadarrBlock::UpdateAllCollectionsPrompt => {
-        if key == DEFAULT_KEYBINDINGS.confirm.key {
+        if matches_key!(confirm, key) {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateCollections);
 

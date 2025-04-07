@@ -48,6 +48,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for TestAllIndexersHandl
     active_block == ActiveSonarrBlock::TestAllIndexers
   }
 
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
+  }
+
   fn new(
     key: Key,
     app: &'a mut App<'b>,

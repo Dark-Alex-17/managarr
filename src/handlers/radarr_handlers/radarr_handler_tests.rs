@@ -47,6 +47,76 @@ mod tests {
   }
 
   #[rstest]
+  #[case(0, ActiveRadarrBlock::System, ActiveRadarrBlock::Collections)]
+  #[case(1, ActiveRadarrBlock::Movies, ActiveRadarrBlock::Downloads)]
+  #[case(2, ActiveRadarrBlock::Collections, ActiveRadarrBlock::Blocklist)]
+  #[case(3, ActiveRadarrBlock::Downloads, ActiveRadarrBlock::RootFolders)]
+  #[case(4, ActiveRadarrBlock::Blocklist, ActiveRadarrBlock::Indexers)]
+  #[case(5, ActiveRadarrBlock::RootFolders, ActiveRadarrBlock::System)]
+  #[case(6, ActiveRadarrBlock::Indexers, ActiveRadarrBlock::Movies)]
+  fn test_radarr_handler_change_tab_left_right_keys_alt_navigation(
+    #[case] index: usize,
+    #[case] left_block: ActiveRadarrBlock,
+    #[case] right_block: ActiveRadarrBlock,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = false;
+    app.data.radarr_data.main_tabs.set_index(index);
+
+    handle_change_tab_left_right_keys(&mut app, DEFAULT_KEYBINDINGS.left.alt.unwrap());
+
+    assert_eq!(
+      app.data.radarr_data.main_tabs.get_active_route(),
+      left_block.into()
+    );
+    assert_eq!(app.get_current_route(), left_block.into());
+
+    app.data.radarr_data.main_tabs.set_index(index);
+
+    handle_change_tab_left_right_keys(&mut app, DEFAULT_KEYBINDINGS.right.alt.unwrap());
+
+    assert_eq!(
+      app.data.radarr_data.main_tabs.get_active_route(),
+      right_block.into()
+    );
+    assert_eq!(app.get_current_route(), right_block.into());
+  }
+
+  #[rstest]
+  #[case(0, ActiveRadarrBlock::Movies)]
+  #[case(1, ActiveRadarrBlock::Collections)]
+  #[case(2, ActiveRadarrBlock::Downloads)]
+  #[case(3, ActiveRadarrBlock::Blocklist)]
+  #[case(4, ActiveRadarrBlock::RootFolders)]
+  #[case(5, ActiveRadarrBlock::Indexers)]
+  #[case(6, ActiveRadarrBlock::System)]
+  fn test_radarr_handler_change_tab_left_right_keys_alt_navigation_no_op_when_ignoring_quit_key(
+    #[case] index: usize,
+    #[case] block: ActiveRadarrBlock,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = true;
+    app.push_navigation_stack(block.into());
+    app.data.radarr_data.main_tabs.set_index(index);
+
+    handle_change_tab_left_right_keys(&mut app, DEFAULT_KEYBINDINGS.left.alt.unwrap());
+
+    assert_eq!(
+      app.data.radarr_data.main_tabs.get_active_route(),
+      block.into()
+    );
+    assert_eq!(app.get_current_route(), block.into());
+
+    handle_change_tab_left_right_keys(&mut app, DEFAULT_KEYBINDINGS.right.alt.unwrap());
+
+    assert_eq!(
+      app.data.radarr_data.main_tabs.get_active_route(),
+      block.into()
+    );
+    assert_eq!(app.get_current_route(), block.into());
+  }
+
+  #[rstest]
   fn test_delegates_system_blocks_to_system_handler(
     #[values(
       ActiveRadarrBlock::System,
@@ -215,6 +285,25 @@ mod tests {
     ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
       assert!(RadarrHandler::accepts(active_radarr_block));
     })
+  }
+
+  #[rstest]
+  fn test_radarr_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = RadarrHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::Movies,
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

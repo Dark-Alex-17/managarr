@@ -456,6 +456,25 @@ mod tests {
     })
   }
 
+  #[rstest]
+  fn test_system_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = SystemHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
+  }
+
   #[test]
   fn test_system_handler_is_not_ready_when_loading() {
     let mut app = App::test_default();

@@ -1043,6 +1043,25 @@ mod tests {
   }
 
   #[rstest]
+  fn test_movie_details_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = MovieDetailsHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
+  }
+
+  #[rstest]
   fn test_movie_details_handler_is_not_ready_when_loading(
     #[values(
       ActiveRadarrBlock::MovieDetails,

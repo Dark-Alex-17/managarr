@@ -1,7 +1,5 @@
-use ratatui::prelude::Color;
+use crate::ui::THEME;
 use ratatui::style::{Styled, Stylize};
-
-pub const COLOR_ORANGE: Color = Color::Rgb(255, 170, 66);
 
 #[cfg(test)]
 #[path = "styles_tests.rs"]
@@ -42,31 +40,31 @@ where
   }
 
   fn awaiting_import(self) -> T {
-    self.fg(COLOR_ORANGE)
+    THEME.with(|theme| self.fg(theme.get().awaiting_import.unwrap().color.unwrap()))
   }
 
   fn indeterminate(self) -> T {
-    self.fg(COLOR_ORANGE)
+    THEME.with(|theme| self.fg(theme.get().indeterminate.unwrap().color.unwrap()))
   }
 
   fn default(self) -> T {
-    self.white()
+    THEME.with(|theme| self.fg(theme.get().default.unwrap().color.unwrap()))
   }
 
   fn downloaded(self) -> T {
-    self.green()
+    THEME.with(|theme| self.fg(theme.get().downloaded.unwrap().color.unwrap()))
   }
 
   fn downloading(self) -> T {
-    self.magenta()
+    THEME.with(|theme| self.fg(theme.get().downloading.unwrap().color.unwrap()))
   }
 
   fn failure(self) -> T {
-    self.red()
+    THEME.with(|theme| self.fg(theme.get().failure.unwrap().color.unwrap()))
   }
 
   fn help(self) -> T {
-    self.light_blue()
+    THEME.with(|theme| self.fg(theme.get().help.unwrap().color.unwrap()))
   }
 
   fn highlight(self) -> T {
@@ -74,38 +72,38 @@ where
   }
 
   fn missing(self) -> T {
-    self.red()
+    THEME.with(|theme| self.fg(theme.get().missing.unwrap().color.unwrap()))
   }
 
   fn primary(self) -> T {
-    self.cyan()
+    THEME.with(|theme| self.fg(theme.get().primary.unwrap().color.unwrap()))
   }
 
   fn secondary(self) -> T {
-    self.yellow()
+    THEME.with(|theme| self.fg(theme.get().secondary.unwrap().color.unwrap()))
   }
 
   fn success(self) -> T {
-    self.green()
+    THEME.with(|theme| self.fg(theme.get().success.unwrap().color.unwrap()))
   }
 
   fn system_function(self) -> T {
-    self.yellow()
+    THEME.with(|theme| self.fg(theme.get().system_function.unwrap().color.unwrap()))
   }
 
   fn unmonitored(self) -> T {
-    self.gray()
+    THEME.with(|theme| self.fg(theme.get().unmonitored.unwrap().color.unwrap()))
   }
 
   fn unmonitored_missing(self) -> T {
-    self.yellow()
+    THEME.with(|theme| self.fg(theme.get().unmonitored_missing.unwrap().color.unwrap()))
   }
 
   fn unreleased(self) -> T {
-    self.light_cyan()
+    THEME.with(|theme| self.fg(theme.get().unreleased.unwrap().color.unwrap()))
   }
 
   fn warning(self) -> T {
-    self.magenta()
+    THEME.with(|theme| self.fg(theme.get().warning.unwrap().color.unwrap()))
   }
 }

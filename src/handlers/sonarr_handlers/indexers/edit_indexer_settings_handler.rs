@@ -1,13 +1,12 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
-use crate::handle_prompt_left_right_keys;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, INDEXER_SETTINGS_BLOCKS,
 };
 use crate::models::sonarr_models::IndexerSettings;
 use crate::network::sonarr_network::SonarrEvent;
+use crate::{handle_prompt_left_right_keys, matches_key};
 
 #[cfg(test)]
 #[path = "edit_indexer_settings_handler_tests.rs"]
@@ -35,6 +34,10 @@ impl IndexerSettingsHandler<'_, '_> {
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexerSettingsHandler<'a, 'b> {
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     INDEXER_SETTINGS_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -183,7 +186,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexerSettingsHandl
     if self.active_sonarr_block == ActiveSonarrBlock::AllIndexerSettingsPrompt
       && self.app.data.sonarr_data.selected_block.get_active_block()
         == ActiveSonarrBlock::IndexerSettingsConfirmPrompt
-      && self.key == DEFAULT_KEYBINDINGS.confirm.key
+      && matches_key!(confirm, self.key)
     {
       self.app.data.sonarr_data.prompt_confirm = true;
       self.app.data.sonarr_data.prompt_confirm_action = Some(SonarrEvent::EditAllIndexerSettings(

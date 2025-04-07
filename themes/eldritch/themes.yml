@@ -1,0 +1,29 @@
+- name: eldritch
+  theme:
+    background:
+      enabled: true
+      color: "#212337"
+    default:
+      color: "#ebfafa"
+    downloaded:
+      color: "#37f499"
+    downloading:
+      color: "#f7c67f"
+    failure:
+      color: "#f16c75"
+    missing:
+      color: "#f7c67f"
+    unmonitored_missing:
+      color: "#7081d0"
+    help:
+      color: "#7081d0"
+    primary:
+      color: "#f265b5"
+    secondary:
+      color: "#04d1f9"
+    success:
+      color: "#37f499"
+    warning:
+      color: "#f1fc79"
+    unreleased:
+      color: "#ebfafa"

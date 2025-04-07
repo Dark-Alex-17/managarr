@@ -1,4 +1,3 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
@@ -8,7 +7,6 @@ use crate::handlers::radarr_handlers::library::edit_movie_handler::EditMovieHand
 use crate::handlers::radarr_handlers::library::movie_details_handler::MovieDetailsHandler;
 use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
 
-use crate::handle_table_events;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::models::radarr_models::Movie;
 use crate::models::servarr_data::radarr::radarr_data::{
@@ -17,6 +15,7 @@ use crate::models::servarr_data::radarr::radarr_data::{
 use crate::models::stateful_table::SortOption;
 use crate::models::{BlockSelectionState, HorizontallyScrollableText};
 use crate::network::radarr_network::RadarrEvent;
+use crate::{handle_table_events, matches_key};
 
 mod add_movie_handler;
 mod delete_movie_handler;
@@ -79,6 +78,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
       || EditMovieHandler::accepts(active_block)
       || MovieDetailsHandler::accepts(active_block)
       || LIBRARY_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -161,7 +164,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
     let key = self.key;
     match self.active_radarr_block {
       ActiveRadarrBlock::Movies => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.edit.key => {
+        _ if matches_key!(edit, key) => {
           self.app.push_navigation_stack(
             (
               ActiveRadarrBlock::EditMoviePrompt,
@@ -173,25 +176,25 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
           self.app.data.radarr_data.selected_block =
             BlockSelectionState::new(EDIT_MOVIE_SELECTION_BLOCKS);
         }
-        _ if key == DEFAULT_KEYBINDINGS.add.key => {
+        _ if matches_key!(add, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
           self.app.data.radarr_data.add_movie_search = Some(HorizontallyScrollableText::default());
-          self.app.should_ignore_quit_key = true;
+          self.app.ignore_special_keys_for_textbox_input = true;
         }
-        _ if key == DEFAULT_KEYBINDINGS.update.key => {
+        _ if matches_key!(update, key) => {
           self
             .app
             .push_navigation_stack(ActiveRadarrBlock::UpdateAllMoviesPrompt.into());
         }
-        _ if key == DEFAULT_KEYBINDINGS.refresh.key => {
+        _ if matches_key!(refresh, key) => {
           self.app.should_refresh = true;
         }
         _ => (),
       },
       ActiveRadarrBlock::UpdateAllMoviesPrompt => {
-        if key == DEFAULT_KEYBINDINGS.confirm.key {
+        if matches_key!(confirm, key) {
           self.app.data.radarr_data.prompt_confirm = true;
           self.app.data.radarr_data.prompt_confirm_action = Some(RadarrEvent::UpdateAllMovies);
 
