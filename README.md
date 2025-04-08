@@ -209,8 +209,11 @@ Key:
 ### Themes
 Managarr ships with a few themes out of the box. Here's a few examples:
 
+#### Default
 ![default](themes/default/manual_episode_search.png)
+#### Dracula
 ![dracula](themes/dracula/manual_episode_search.png)
+#### Watermelon Dark
 ![watermelon-dark](themes/watermelon-dark/manual_episode_search.png)
 
 You can also create your own custom themes as well. To learn more about what themes are built-in to Managarr and how
