@@ -28,7 +28,7 @@ Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC). Built 
 - [ ] ![bazarr_logo](logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
 - [ ] ![tautulli_logo](logos/tautulli.png) [Tautulli](https://tautulli.com/)
 
-## Try Before You Buy
+## Try Out the Demo
 To try out Managarr before linking it to your HTPC, you can use the purpose built [managarr-demo](https://github.com/Dark-Alex-17/managarr-demo) repository.
 Simply run the following command to start a demo:
 
