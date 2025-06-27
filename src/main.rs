@@ -141,7 +141,7 @@ async fn main() -> Result<()> {
 
   match args.command {
     Some(command) => match command {
-      Command::Radarr(_) | Command::Sonarr(_) => {
+      Command::Radarr(_) | Command::Sonarr(_) | Command::Lidarr(_) => {
         if spinner_disabled {
           start_cli_no_spinner(config, reqwest_client, cancellation_token, app, command).await;
         } else {

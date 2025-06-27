@@ -3,11 +3,13 @@ use sonarr_handlers::SonarrHandler;
 
 use crate::app::App;
 use crate::event::Key;
+use crate::handlers::lidarr_handlers::LidarrHandler;
 use crate::matches_key;
 use crate::models::{HorizontallyScrollableText, Route};
 
 mod radarr_handlers;
 mod sonarr_handlers;
+pub mod lidarr_handlers;
 
 #[cfg(test)]
 #[path = "handlers_tests.rs"]
@@ -105,6 +107,9 @@ pub fn handle_events(key: Key, app: &mut App<'_>) {
       Route::Sonarr(active_sonarr_block, context) => {
         SonarrHandler::new(key, app, active_sonarr_block, context).handle()
       }
+      Route::Lidarr(active_lidarr_block, context) => {
+        LidarrHandler::new(key, app, active_lidarr_block, context).handle()
+      }
       _ => (),
     }
   }
@@ -124,6 +129,9 @@ fn handle_prompt_toggle(app: &mut App<'_>, key: Key) {
       }
       Route::Sonarr(_, _) => {
         app.data.sonarr_data.prompt_confirm = !app.data.sonarr_data.prompt_confirm
+      }
+      Route::Lidarr(_, _) => {
+        app.data.lidarr_data.prompt_confirm = !app.data.lidarr_data.prompt_confirm
       }
       _ => (),
     },

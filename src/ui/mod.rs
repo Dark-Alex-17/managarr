@@ -14,6 +14,7 @@ use utils::layout_block;
 
 use crate::app::App;
 use crate::models::{HorizontallyScrollableText, Route, TabState};
+use crate::ui::lidarr_ui::LidarrUi;
 use crate::ui::radarr_ui::RadarrUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::theme::Theme;
@@ -27,6 +28,7 @@ use crate::ui::widgets::popup::Size;
 mod builtin_themes;
 mod radarr_ui;
 mod sonarr_ui;
+mod lidarr_ui;
 mod styles;
 pub mod theme;
 mod utils;
@@ -76,6 +78,10 @@ pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
     route if SonarrUi::accepts(route) => {
       SonarrUi::draw_context_row(f, app, context_area);
       SonarrUi::draw(f, app, table_area);
+    }
+    route if LidarrUi::accepts(route) => {
+      LidarrUi::draw_context_row(f, app, context_area);
+      LidarrUi::draw(f, app, table_area);
     }
     _ => (),
   }

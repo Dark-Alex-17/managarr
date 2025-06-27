@@ -77,7 +77,7 @@ impl Display for CertificateValidation {
 #[derive(Default, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CommandBody {
-  pub name: String,
+  pub name: String
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]

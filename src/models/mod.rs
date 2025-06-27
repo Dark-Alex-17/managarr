@@ -9,6 +9,10 @@ use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Number;
 use servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use sonarr_models::SonarrSerdeable;
+use lidarr_models::LidarrSerdeable;
+use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
+
+pub mod lidarr_models;
 pub mod radarr_models;
 pub mod servarr_data;
 pub mod servarr_models;
@@ -27,8 +31,8 @@ mod model_tests;
 pub enum Route {
   Radarr(ActiveRadarrBlock, Option<ActiveRadarrBlock>),
   Sonarr(ActiveSonarrBlock, Option<ActiveSonarrBlock>),
+  Lidarr(ActiveLidarrBlock, Option<ActiveLidarrBlock>),
   Readarr,
-  Lidarr,
   Whisparr,
   Bazarr,
   Prowlarr,
@@ -40,6 +44,7 @@ pub enum Route {
 pub enum Serdeable {
   Radarr(RadarrSerdeable),
   Sonarr(SonarrSerdeable),
+  Lidarr(LidarrSerdeable),
 }
 
 pub trait Scrollable {

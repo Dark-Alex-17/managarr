@@ -13,6 +13,7 @@ mod tests {
   use crate::network::radarr_network::RadarrEvent;
   use crate::network::NetworkEvent;
   use tokio_util::sync::CancellationToken;
+  use crate::models::servarr_data::lidarr::lidarr_data::LidarrData;
 
   #[test]
   fn test_app_new() {
@@ -30,10 +31,17 @@ mod tests {
       ..ServarrConfig::default()
     };
     let sonarr_config_2 = ServarrConfig::default();
+    let lidarr_config_1 = ServarrConfig {
+      name: Some("Lidarr Test".to_owned()),
+      weight: Some(1),
+      ..ServarrConfig::default()
+    };
+    let lidarr_config_2 = ServarrConfig::default();
     let config = AppConfig {
       theme: None,
       radarr: Some(vec![radarr_config_1.clone(), radarr_config_2.clone()]),
       sonarr: Some(vec![sonarr_config_1.clone(), sonarr_config_2.clone()]),
+      lidarr: Some(vec![lidarr_config_1.clone(), lidarr_config_2.clone()]),
     };
     let expected_tab_routes = vec![
       TabRoute {
@@ -197,9 +205,14 @@ mod tests {
       version: "test".into(),
       ..SonarrData::default()
     };
+    let lidarr_data = LidarrData {
+      version: "test".into(),
+      ..LidarrData::default()
+    };
     let data = Data {
       radarr_data,
       sonarr_data,
+      lidarr_data,
     };
     let mut app = App {
       tick_count: 2,

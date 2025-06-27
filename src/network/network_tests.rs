@@ -728,6 +728,7 @@ pub(in crate::network) mod test_utils {
     match network_event.into() {
       NetworkEvent::Radarr(_) => app.server_tabs.tabs[0].config = Some(servarr_config),
       NetworkEvent::Sonarr(_) => app.server_tabs.tabs[1].config = Some(servarr_config),
+      NetworkEvent::Lidarr(_) => app.server_tabs.tabs[2].config = Some(servarr_config),
     }
 
     let app_arc = Arc::new(Mutex::new(app));

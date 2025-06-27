@@ -8,6 +8,7 @@ use regex::Regex;
 use reqwest::{Client, RequestBuilder};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use lidarr_network::LidarrEvent;
 use sonarr_network::SonarrEvent;
 use strum_macros::Display;
 use tokio::select;
@@ -20,6 +21,7 @@ use crate::network::radarr_network::RadarrEvent;
 #[cfg(test)]
 use mockall::automock;
 
+pub mod lidarr_network;
 pub mod radarr_network;
 pub mod sonarr_network;
 mod utils;
@@ -42,6 +44,7 @@ pub trait NetworkResource {
 pub enum NetworkEvent {
   Radarr(RadarrEvent),
   Sonarr(SonarrEvent),
+  Lidarr(LidarrEvent),
 }
 
 #[derive(Clone)]
@@ -61,6 +64,10 @@ impl NetworkTrait for Network<'_, '_> {
         .map(Serdeable::from),
       NetworkEvent::Sonarr(sonarr_event) => self
         .handle_sonarr_event(sonarr_event)
+        .await
+        .map(Serdeable::from),
+      NetworkEvent::Lidarr(lidarr_event) => self
+        .handle_lidarr_event(lidarr_event)
         .await
         .map(Serdeable::from),
     };
@@ -221,6 +228,7 @@ impl<'a, 'b> Network<'a, 'b> {
     let default_port = match network_event.into() {
       NetworkEvent::Radarr(_) => 7878,
       NetworkEvent::Sonarr(_) => 8989,
+      NetworkEvent::Lidarr(_) => 8686,
     };
     let mut uri = if let Some(servarr_uri) = uri {
       format!("{servarr_uri}/api/v3{resource}")
