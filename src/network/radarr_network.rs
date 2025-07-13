@@ -49,7 +49,7 @@ pub enum RadarrEvent {
   EditMovie(EditMovieParams),
   GetBlocklist,
   GetCollections,
-  GetDownloads,
+  GetDownloads(u64),
   GetHostConfig,
   GetIndexers,
   GetAllIndexerSettings,
@@ -87,7 +87,7 @@ impl NetworkResource for RadarrEvent {
       RadarrEvent::DeleteBlocklistItem(_) => "/blocklist",
       RadarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       RadarrEvent::GetCollections | RadarrEvent::EditCollection(_) => "/collection",
-      RadarrEvent::GetDownloads | RadarrEvent::DeleteDownload(_) => "/queue",
+      RadarrEvent::GetDownloads(_) | RadarrEvent::DeleteDownload(_) => "/queue",
       RadarrEvent::GetHostConfig | RadarrEvent::GetSecurityConfig => "/config/host",
       RadarrEvent::GetIndexers | RadarrEvent::EditIndexer(_) | RadarrEvent::DeleteIndexer(_) => {
         "/indexer"
@@ -196,7 +196,10 @@ impl Network<'_, '_> {
         .map(RadarrSerdeable::from),
       RadarrEvent::GetBlocklist => self.get_radarr_blocklist().await.map(RadarrSerdeable::from),
       RadarrEvent::GetCollections => self.get_collections().await.map(RadarrSerdeable::from),
-      RadarrEvent::GetDownloads => self.get_radarr_downloads().await.map(RadarrSerdeable::from),
+      RadarrEvent::GetDownloads(count) => self
+        .get_radarr_downloads(count)
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::GetHostConfig => self
         .get_radarr_host_config()
         .await
@@ -1036,12 +1039,18 @@ impl Network<'_, '_> {
       .await
   }
 
-  async fn get_radarr_downloads(&mut self) -> Result<DownloadsResponse> {
+  async fn get_radarr_downloads(&mut self, count: u64) -> Result<DownloadsResponse> {
     info!("Fetching Radarr downloads");
-    let event = RadarrEvent::GetDownloads;
+    let event = RadarrEvent::GetDownloads(count);
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("pageSize={count}")),
+      )
       .await;
 
     self

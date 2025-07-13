@@ -284,7 +284,7 @@ mod tests {
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
-      RadarrEvent::GetDownloads.into()
+      RadarrEvent::GetDownloads(500).into()
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),

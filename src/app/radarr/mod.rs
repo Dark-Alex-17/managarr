@@ -40,7 +40,7 @@ impl App<'_> {
       }
       ActiveRadarrBlock::Downloads => {
         self
-          .dispatch_network_event(RadarrEvent::GetDownloads.into())
+          .dispatch_network_event(RadarrEvent::GetDownloads(500).into())
           .await;
       }
       ActiveRadarrBlock::RootFolders => {
@@ -59,7 +59,7 @@ impl App<'_> {
           .dispatch_network_event(RadarrEvent::GetMovies.into())
           .await;
         self
-          .dispatch_network_event(RadarrEvent::GetDownloads.into())
+          .dispatch_network_event(RadarrEvent::GetDownloads(500).into())
           .await;
       }
       ActiveRadarrBlock::Indexers => {
@@ -201,7 +201,7 @@ impl App<'_> {
       .dispatch_network_event(RadarrEvent::GetRootFolders.into())
       .await;
     self
-      .dispatch_network_event(RadarrEvent::GetDownloads.into())
+      .dispatch_network_event(RadarrEvent::GetDownloads(500).into())
       .await;
     self
       .dispatch_network_event(RadarrEvent::GetDiskSpace.into())

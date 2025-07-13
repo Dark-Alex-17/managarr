@@ -102,7 +102,7 @@ mod tests {
     }
 
     #[test]
-    fn test_list_downloads_events_flag_requires_arguments() {
+    fn test_list_downloads_count_flag_requires_arguments() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "list", "downloads", "--count"]);
 

@@ -198,7 +198,7 @@ mod test {
 
   #[rstest]
   fn test_resource_queue(
-    #[values(RadarrEvent::GetDownloads, RadarrEvent::DeleteDownload(0))] event: RadarrEvent,
+    #[values(RadarrEvent::GetDownloads(0), RadarrEvent::DeleteDownload(0))] event: RadarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/queue");
   }
@@ -1859,15 +1859,15 @@ mod test {
       None,
       Some(downloads_response_json),
       None,
-      RadarrEvent::GetDownloads,
+      RadarrEvent::GetDownloads(500),
       None,
-      None,
+      Some("pageSize=500"),
     )
     .await;
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let RadarrSerdeable::DownloadsResponse(downloads) = network
-      .handle_radarr_event(RadarrEvent::GetDownloads)
+      .handle_radarr_event(RadarrEvent::GetDownloads(500))
       .await
       .unwrap()
     {
