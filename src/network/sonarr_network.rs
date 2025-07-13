@@ -55,7 +55,7 @@ pub enum SonarrEvent {
   EditSeries(EditSeriesParams),
   GetAllIndexerSettings,
   GetBlocklist,
-  GetDownloads,
+  GetDownloads(u64),
   GetHistory(u64),
   GetHostConfig,
   GetIndexers,
@@ -108,7 +108,7 @@ impl NetworkResource for SonarrEvent {
       }
       SonarrEvent::GetEpisodeFiles(_) | SonarrEvent::DeleteEpisodeFile(_) => "/episodefile",
       SonarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
-      SonarrEvent::GetDownloads | SonarrEvent::DeleteDownload(_) => "/queue",
+      SonarrEvent::GetDownloads(_) | SonarrEvent::DeleteDownload(_) => "/queue",
       SonarrEvent::GetEpisodes(_) | SonarrEvent::GetEpisodeDetails(_) => "/episode",
       SonarrEvent::GetHistory(_) | SonarrEvent::GetEpisodeHistory(_) => "/history",
       SonarrEvent::GetHostConfig | SonarrEvent::GetSecurityConfig => "/config/host",
@@ -224,7 +224,10 @@ impl Network<'_, '_> {
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::GetBlocklist => self.get_sonarr_blocklist().await.map(SonarrSerdeable::from),
-      SonarrEvent::GetDownloads => self.get_sonarr_downloads().await.map(SonarrSerdeable::from),
+      SonarrEvent::GetDownloads(count) => self
+        .get_sonarr_downloads(count)
+        .await
+        .map(SonarrSerdeable::from),
       SonarrEvent::GetEpisodes(series_id) => self
         .get_episodes(series_id)
         .await
@@ -1114,12 +1117,18 @@ impl Network<'_, '_> {
       .await
   }
 
-  async fn get_sonarr_downloads(&mut self) -> Result<DownloadsResponse> {
+  async fn get_sonarr_downloads(&mut self, count: u64) -> Result<DownloadsResponse> {
     info!("Fetching Sonarr downloads");
-    let event = SonarrEvent::GetDownloads;
+    let event = SonarrEvent::GetDownloads(count);
 
     let request_props = self
-      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("pageSize={count}")),
+      )
       .await;
 
     self

@@ -237,7 +237,7 @@ mod test {
 
   #[rstest]
   fn test_resource_queue(
-    #[values(SonarrEvent::GetDownloads, SonarrEvent::DeleteDownload(0))] event: SonarrEvent,
+    #[values(SonarrEvent::GetDownloads(0), SonarrEvent::DeleteDownload(0))] event: SonarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/queue");
   }
@@ -1740,16 +1740,16 @@ mod test {
       None,
       Some(downloads_response_json),
       None,
-      SonarrEvent::GetDownloads,
+      SonarrEvent::GetDownloads(500),
       None,
-      None,
+      Some("pageSize=500"),
     )
     .await;
     app_arc.lock().await.server_tabs.next();
     let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
 
     if let SonarrSerdeable::DownloadsResponse(downloads) = network
-      .handle_sonarr_event(SonarrEvent::GetDownloads)
+      .handle_sonarr_event(SonarrEvent::GetDownloads(500))
       .await
       .unwrap()
     {
