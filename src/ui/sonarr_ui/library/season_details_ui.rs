@@ -395,8 +395,16 @@ fn draw_season_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           let peers = if seeders.is_none() || leechers.is_none() {
             Text::from("")
           } else {
-            let seeders = seeders.clone().unwrap().as_u64().unwrap();
-            let leechers = leechers.clone().unwrap().as_u64().unwrap();
+            let seeders = seeders
+              .clone()
+              .unwrap_or(Number::from(0u64))
+              .as_u64()
+              .unwrap();
+            let leechers = leechers
+              .clone()
+              .unwrap_or(Number::from(0u64))
+              .as_u64()
+              .unwrap();
 
             decorate_peer_style(
               seeders,

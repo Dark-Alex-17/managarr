@@ -5,6 +5,7 @@ use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use ratatui::Frame;
+use serde_json::Number;
 
 use crate::app::App;
 use crate::models::radarr_models::{Credit, MovieHistoryItem, RadarrRelease};
@@ -422,8 +423,16 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let peers = if seeders.is_none() || leechers.is_none() {
         Text::from("")
       } else {
-        let seeders = seeders.clone().unwrap().as_u64().unwrap();
-        let leechers = leechers.clone().unwrap().as_u64().unwrap();
+        let seeders = seeders
+          .clone()
+          .unwrap_or(Number::from(0u64))
+          .as_u64()
+          .unwrap();
+        let leechers = leechers
+          .clone()
+          .unwrap_or(Number::from(0u64))
+          .as_u64()
+          .unwrap();
 
         decorate_peer_style(
           seeders,
