@@ -120,7 +120,8 @@ mod test {
       RadarrEvent::EditMovie(EditMovieParams::default()),
       RadarrEvent::GetMovies,
       RadarrEvent::GetMovieDetails(0),
-      RadarrEvent::DeleteMovie(DeleteMovieParams::default())
+      RadarrEvent::DeleteMovie(DeleteMovieParams::default()),
+      RadarrEvent::ToggleMovieMonitoring(0)
     )]
     event: RadarrEvent,
   ) {
@@ -951,6 +952,50 @@ mod test {
       );
       assert_eq!(results, response);
     }
+  }
+
+  #[tokio::test]
+  async fn test_handle_toggle_movies_monitoring_event() {
+    let mut expected_body: Value = serde_json::from_str(MOVIE_JSON).unwrap();
+    *expected_body.get_mut("monitored").unwrap() = json!(false);
+
+    let (async_details_server, app_arc, mut server) = mock_servarr_api(
+      RequestMethod::Get,
+      None,
+      Some(serde_json::from_str(MOVIE_JSON).unwrap()),
+      None,
+      RadarrEvent::GetMovieDetails(1),
+      Some("/1"),
+      None,
+    )
+    .await;
+    let async_toggle_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v3{}/1",
+          RadarrEvent::ToggleMovieMonitoring(1).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    {
+      let mut app = app_arc.lock().await;
+      app.data.radarr_data.movies.set_items(vec![movie()]);
+    }
+    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    assert!(network
+      .handle_radarr_event(RadarrEvent::ToggleMovieMonitoring(1))
+      .await
+      .is_ok());
+
+    async_details_server.assert_async().await;
+    async_toggle_server.assert_async().await;
   }
 
   #[tokio::test]

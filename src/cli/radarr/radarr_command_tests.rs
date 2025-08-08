@@ -216,6 +216,31 @@ mod tests {
     }
 
     #[test]
+    fn test_toggle_movie_monitoring_requires_movie_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "radarr", "toggle-movie-monitoring"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_toggle_movie_monitoring_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "radarr",
+        "toggle-movie-monitoring",
+        "--movie-id",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
+    }
+
+    #[test]
     fn test_trigger_automatic_search_requires_movie_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "trigger-automatic-search"]);
@@ -457,6 +482,32 @@ mod tests {
       let result = RadarrCliHandler::with(&app_arc, test_all_indexers_command, &mut mock_network)
         .handle()
         .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_toggle_movie_monitoring_command() {
+      let expected_movie_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          RadarrEvent::ToggleMovieMonitoring(expected_movie_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Radarr(RadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let toggle_movie_monitoring_command = RadarrCommand::ToggleMovieMonitoring { movie_id: 1 };
+
+      let result =
+        RadarrCliHandler::with(&app_arc, toggle_movie_monitoring_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert!(result.is_ok());
     }

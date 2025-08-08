@@ -2,7 +2,7 @@ use anyhow::Result;
 use std::fmt::Debug;
 
 use indoc::formatdoc;
-use log::{debug, info};
+use log::{debug, info, warn};
 use serde_json::{json, Value};
 use urlencoding::encode;
 
@@ -73,6 +73,7 @@ pub enum RadarrEvent {
   StartTask(RadarrTaskName),
   TestIndexer(i64),
   TestAllIndexers,
+  ToggleMovieMonitoring(i64),
   TriggerAutomaticSearch(i64),
   UpdateAllMovies,
   UpdateAndScan(i64),
@@ -100,7 +101,8 @@ impl NetworkResource for RadarrEvent {
       | RadarrEvent::EditMovie(_)
       | RadarrEvent::GetMovies
       | RadarrEvent::GetMovieDetails(_)
-      | RadarrEvent::DeleteMovie(_) => "/movie",
+      | RadarrEvent::DeleteMovie(_)
+      | RadarrEvent::ToggleMovieMonitoring(_) => "/movie",
       RadarrEvent::SearchNewMovie(_) => "/movie/lookup",
       RadarrEvent::GetMovieCredits(_) => "/credit",
       RadarrEvent::GetMovieHistory(_) => "/history/movie",
@@ -263,6 +265,10 @@ impl Network<'_, '_> {
         .map(RadarrSerdeable::from),
       RadarrEvent::TestAllIndexers => self
         .test_all_radarr_indexers()
+        .await
+        .map(RadarrSerdeable::from),
+      RadarrEvent::ToggleMovieMonitoring(movie_id) => self
+        .toggle_movie_monitoring(movie_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::TriggerAutomaticSearch(movie_id) => self
@@ -1746,6 +1752,66 @@ impl Network<'_, '_> {
         app.data.radarr_data.indexer_test_all_results = Some(test_all_indexer_results);
       })
       .await
+  }
+
+  async fn toggle_movie_monitoring(&mut self, movie_id: i64) -> Result<()> {
+    let event = RadarrEvent::ToggleMovieMonitoring(movie_id);
+
+    let detail_event = RadarrEvent::GetMovieDetails(movie_id);
+    info!("Toggling movie monitoring for movie with ID: {movie_id}");
+    info!("Fetching movie details for movie with ID: {movie_id}");
+
+    let request_props = self
+      .request_props_from(
+        detail_event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{movie_id}")),
+        None,
+      )
+      .await;
+
+    let mut response = String::new();
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_movie_body, _| {
+        response = detailed_movie_body.to_string()
+      })
+      .await?;
+
+    info!("Constructing toggle movie monitoring body");
+
+    match serde_json::from_str::<Value>(&response) {
+      Ok(mut detailed_movie_body) => {
+        let monitored = detailed_movie_body
+          .get("monitored")
+          .unwrap()
+          .as_bool()
+          .unwrap();
+
+        *detailed_movie_body.get_mut("monitored").unwrap() = json!(!monitored);
+
+        debug!("Toggle movie monitoring body: {detailed_movie_body:?}");
+
+        let request_props = self
+          .request_props_from(
+            event,
+            RequestMethod::Put,
+            Some(detailed_movie_body),
+            Some(format!("/{movie_id}")),
+            None,
+          )
+          .await;
+
+        self
+          .handle_request::<Value, ()>(request_props, |_, _| ())
+          .await
+      }
+      Err(_) => {
+        warn!("Request for detailed movie body was interrupted");
+        Ok(())
+      }
+    }
   }
 
   async fn trigger_automatic_movie_search(&mut self, movie_id: i64) -> Result<Value> {
