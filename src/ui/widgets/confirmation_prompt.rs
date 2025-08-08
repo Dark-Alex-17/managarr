@@ -53,7 +53,7 @@ impl ConfirmationPrompt<'_> {
       ];
       constraints.splice(
         1..1,
-        iter::repeat(Constraint::Length(3)).take(checkboxes.len()),
+        iter::repeat_n(Constraint::Length(3), checkboxes.len()),
       );
       let chunks = Layout::vertical(constraints).margin(1).split(area);
       let [yes_area, no_area] =

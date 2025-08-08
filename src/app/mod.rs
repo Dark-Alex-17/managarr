@@ -63,7 +63,7 @@ impl App<'_> {
           name
         } else {
           idx += 1;
-          format!("Radarr {}", idx)
+          format!("Radarr {idx}")
         };
 
         server_tabs.push(TabRoute {
@@ -84,7 +84,7 @@ impl App<'_> {
           name
         } else {
           idx += 1;
-          format!("Sonarr {}", idx)
+          format!("Sonarr {idx}")
         };
 
         server_tabs.push(TabRoute {
@@ -296,8 +296,7 @@ impl AppConfig {
   pub fn verify_config_present_for_cli(&self, command: &Command) {
     let msg = |servarr: &str| {
       log_and_print_error(format!(
-        "{} configuration missing; Unable to run any {} commands.",
-        servarr, servarr
+        "{servarr} configuration missing; Unable to run any {servarr} commands."
       ))
     };
     match command {
@@ -368,8 +367,7 @@ impl ServarrConfig {
     if let Some(api_token_file) = self.api_token_file.as_ref() {
       if !PathBuf::from(api_token_file).exists() {
         log_and_print_error(format!(
-          "The specified {} API token file does not exist",
-          api_token_file
+          "The specified {api_token_file} API token file does not exist"
         ));
         process::exit(1);
       }
@@ -398,7 +396,7 @@ impl Default for ServarrConfig {
 }
 
 pub fn log_and_print_error(error: String) {
-  error!("{}", error);
+  error!("{error}");
   eprintln!("error: {}", error.red());
 }
 

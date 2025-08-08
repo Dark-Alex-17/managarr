@@ -1128,7 +1128,7 @@ impl Network<'_, '_> {
     info!("Fetching Radarr logs");
     let event = RadarrEvent::GetLogs(events);
 
-    let params = format!("pageSize={}&sortDirection=descending&sortKey=time", events);
+    let params = format!("pageSize={events}&sortDirection=descending&sortKey=time");
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
       .await;
@@ -1215,7 +1215,7 @@ impl Network<'_, '_> {
           .to_owned();
         let imdb_rating = if let Some(rating) = ratings.imdb {
           if let Some(value) = rating.value.as_f64() {
-            format!("{:.1}", value)
+            format!("{value:.1}")
           } else {
             String::new()
           }
@@ -1235,7 +1235,7 @@ impl Network<'_, '_> {
 
         let rotten_tomatoes_rating = if let Some(rating) = ratings.rotten_tomatoes {
           if let Some(value) = rating.value.as_u64() {
-            format!("{}%", value)
+            format!("{value}%")
           } else {
             String::new()
           }

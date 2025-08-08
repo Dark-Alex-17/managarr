@@ -353,7 +353,7 @@ fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .block(layout_block_top_border())
         .loading(app.is_loading)
         .headers(["Crew Member", "Job", "Department"])
-        .constraints(iter::repeat(Constraint::Ratio(1, 3)).take(3))
+        .constraints(iter::repeat_n(Constraint::Ratio(1, 3), 3))
         .footer(help_footer);
 
       f.render_widget(crew_table, area);

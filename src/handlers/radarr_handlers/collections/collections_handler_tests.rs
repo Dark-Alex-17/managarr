@@ -663,7 +663,7 @@ mod tests {
       Collection {
         id: 3,
         title: "test 1".into(),
-        movies: Some(iter::repeat(CollectionMovie::default()).take(3).collect()),
+        movies: Some(iter::repeat_n(CollectionMovie::default(), 3).collect()),
         root_folder_path: Some("/nfs/movies".into()),
         quality_profile_id: 1,
         search_on_add: false,
@@ -673,7 +673,7 @@ mod tests {
       Collection {
         id: 2,
         title: "test 2".into(),
-        movies: Some(iter::repeat(CollectionMovie::default()).take(7).collect()),
+        movies: Some(iter::repeat_n(CollectionMovie::default(), 7).collect()),
         root_folder_path: Some("/htpc/movies".into()),
         quality_profile_id: 3,
         search_on_add: true,
@@ -683,7 +683,7 @@ mod tests {
       Collection {
         id: 1,
         title: "test 3".into(),
-        movies: Some(iter::repeat(CollectionMovie::default()).take(1).collect()),
+        movies: Some(iter::repeat_n(CollectionMovie::default(), 1).collect()),
         root_folder_path: Some("/nfs/some/stupidly/long/path/to/test/with".into()),
         quality_profile_id: 1,
         search_on_add: false,

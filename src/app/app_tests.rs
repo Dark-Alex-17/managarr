@@ -513,8 +513,7 @@ mod tests {
     let api_token = "thisisatest".to_owned();
     let api_token_file = "/root/.config/api_token".to_owned();
     let ssl_cert_path = "/some/path".to_owned();
-    let expected_str = format!("ServarrConfig {{ name: Some(\"{}\"), host: Some(\"{}\"), port: Some({}), uri: Some(\"{}\"), weight: Some({}), api_token: Some(\"***********\"), api_token_file: Some(\"{}\"), ssl_cert_path: Some(\"{}\") }}",
-    name, host, port, uri, weight, api_token_file, ssl_cert_path);
+    let expected_str = format!("ServarrConfig {{ name: Some(\"{name}\"), host: Some(\"{host}\"), port: Some({port}), uri: Some(\"{uri}\"), weight: Some({weight}), api_token: Some(\"***********\"), api_token_file: Some(\"{api_token_file}\"), ssl_cert_path: Some(\"{ssl_cert_path}\") }}");
     let servarr_config = ServarrConfig {
       name: Some(name),
       host: Some(host),

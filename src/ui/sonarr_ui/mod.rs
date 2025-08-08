@@ -106,9 +106,11 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
     ];
 
     constraints.append(
-      &mut iter::repeat(Constraint::Length(1))
-        .take(disk_space_vec.len() + root_folders.items.len() + 1)
-        .collect(),
+      &mut iter::repeat_n(
+        Constraint::Length(1),
+        disk_space_vec.len() + root_folders.items.len() + 1,
+      )
+      .collect(),
     );
 
     let stat_item_areas = Layout::vertical(constraints).margin(1).split(area);
@@ -189,13 +191,10 @@ fn draw_downloads_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
 
     let max_items = ((((area.height as f64 / 2.0).floor() * 2.0) as i64) / 2) - 1;
     let items = cmp::min(downloads_vec.len(), max_items.unsigned_abs() as usize);
-    let download_item_areas = Layout::vertical(
-      iter::repeat(Constraint::Length(2))
-        .take(items)
-        .collect::<Vec<Constraint>>(),
-    )
-    .margin(1)
-    .split(area);
+    let download_item_areas =
+      Layout::vertical(iter::repeat_n(Constraint::Length(2), items).collect::<Vec<Constraint>>())
+        .margin(1)
+        .split(area);
 
     for i in 0..items {
       let DownloadRecord {

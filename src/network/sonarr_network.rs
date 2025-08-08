@@ -1447,7 +1447,7 @@ impl Network<'_, '_> {
     info!("Fetching all Sonarr history events");
     let event = SonarrEvent::GetHistory(events);
 
-    let params = format!("pageSize={}&sortDirection=descending&sortKey=date", events);
+    let params = format!("pageSize={events}&sortDirection=descending&sortKey=date");
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
       .await;
@@ -1504,7 +1504,7 @@ impl Network<'_, '_> {
     info!("Fetching Sonarr logs");
     let event = SonarrEvent::GetLogs(events);
 
-    let params = format!("pageSize={}&sortDirection=descending&sortKey=time", events);
+    let params = format!("pageSize={events}&sortDirection=descending&sortKey=time");
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, Some(params))
       .await;
@@ -1678,10 +1678,7 @@ impl Network<'_, '_> {
         RequestMethod::Get,
         None::<()>,
         None,
-        Some(format!(
-          "seriesId={}&seasonNumber={}",
-          series_id, season_number
-        )),
+        Some(format!("seriesId={series_id}&seasonNumber={season_number}")),
       )
       .await;
 

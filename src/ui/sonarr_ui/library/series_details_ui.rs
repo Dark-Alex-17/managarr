@@ -258,7 +258,7 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let row = Row::new(vec![
         Cell::from(season_monitored.to_owned()),
         Cell::from(title.clone().unwrap()),
-        Cell::from(format!("{}/{}", episode_file_count, episode_count)),
+        Cell::from(format!("{episode_file_count}/{episode_count}")),
         Cell::from(format!("{size:.2} GB")),
       ]);
       if !monitored {
