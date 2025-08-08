@@ -1206,6 +1206,7 @@ impl Network<'_, '_> {
         } = movie_response;
         let (hours, minutes) = convert_runtime(runtime);
         let size = convert_to_gb(size_on_disk);
+        let studio = studio.clone().unwrap_or_default();
         let quality_profile = app
           .data
           .radarr_data

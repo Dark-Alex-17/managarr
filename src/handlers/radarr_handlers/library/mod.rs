@@ -223,7 +223,13 @@ fn movies_sorting_options() -> Vec<SortOption<Movie>> {
     },
     SortOption {
       name: "Studio",
-      cmp_fn: Some(|a, b| a.studio.to_lowercase().cmp(&b.studio.to_lowercase())),
+      cmp_fn: Some(|a, b| {
+        a.studio
+          .as_ref()
+          .unwrap_or(&String::new())
+          .to_lowercase()
+          .cmp(&b.studio.as_ref().unwrap_or(&String::new()).to_lowercase())
+      }),
     },
     SortOption {
       name: "Runtime",

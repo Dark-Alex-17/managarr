@@ -308,7 +308,7 @@ pub struct Movie {
   pub status: String,
   pub overview: String,
   pub path: String,
-  pub studio: String,
+  pub studio: Option<String>,
   pub genres: Vec<String>,
   #[serde(deserialize_with = "super::from_i64")]
   pub year: i64,

@@ -327,7 +327,7 @@ pub(in crate::handlers::radarr_handlers) mod utils {
       status: "Downloaded".to_owned(),
       overview: "Blah blah blah".to_owned(),
       path: "/nfs/movies".to_owned(),
-      studio: "21st Century Alex".to_owned(),
+      studio: Some("21st Century Alex".to_owned()),
       genres: genres(),
       year: 2023,
       monitored: true,

@@ -615,8 +615,13 @@ mod tests {
 
   #[test]
   fn test_movies_sorting_options_studio() {
-    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering =
-      |a, b| a.studio.to_lowercase().cmp(&b.studio.to_lowercase());
+    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering = |a, b| {
+      a.studio
+        .as_ref()
+        .unwrap_or(&String::new())
+        .to_lowercase()
+        .cmp(&b.studio.as_ref().unwrap_or(&String::new()).to_lowercase())
+    };
     let mut expected_movies_vec = movies_vec();
     expected_movies_vec.sort_by(expected_cmp_fn);
 
@@ -856,7 +861,7 @@ mod tests {
           name: "English".to_owned(),
         },
         size_on_disk: 1024,
-        studio: "Studio 1".to_owned(),
+        studio: Some("Studio 1".to_owned()),
         year: 2024,
         monitored: false,
         runtime: 12.into(),
@@ -873,7 +878,7 @@ mod tests {
           name: "Chinese".to_owned(),
         },
         size_on_disk: 2048,
-        studio: "Studio 2".to_owned(),
+        studio: Some("Studio 2".to_owned()),
         year: 1998,
         monitored: false,
         runtime: 60.into(),
@@ -890,7 +895,7 @@ mod tests {
           name: "Japanese".to_owned(),
         },
         size_on_disk: 512,
-        studio: "studio 3".to_owned(),
+        studio: Some("studio 3".to_owned()),
         year: 1954,
         monitored: true,
         runtime: 120.into(),

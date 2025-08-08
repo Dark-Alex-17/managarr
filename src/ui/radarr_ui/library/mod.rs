@@ -98,6 +98,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         app.tick_count % app.ticks_until_scroll == 0,
       );
       let monitored = if movie.monitored { "🏷" } else { "" };
+      let studio = movie.studio.clone().unwrap_or_default();
       let (hours, minutes) = convert_runtime(movie.runtime);
       let file_size: f64 = convert_to_gb(movie.size_on_disk);
       let certification = movie.certification.clone().unwrap_or_default();
@@ -128,7 +129,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Row::new(vec![
           Cell::from(movie.title.to_string()),
           Cell::from(movie.year.to_string()),
-          Cell::from(movie.studio.to_string()),
+          Cell::from(studio),
           Cell::from(format!("{hours}h {minutes}m")),
           Cell::from(certification),
           Cell::from(movie.original_language.name.to_owned()),
