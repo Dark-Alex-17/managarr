@@ -87,6 +87,7 @@ pub enum SonarrEvent {
   TestIndexer(i64),
   TestAllIndexers,
   ToggleSeasonMonitoring((i64, i64)),
+  ToggleSeriesMonitoring(i64),
   ToggleEpisodeMonitoring(i64),
   TriggerAutomaticEpisodeSearch(i64),
   TriggerAutomaticSeasonSearch((i64, i64)),
@@ -141,7 +142,8 @@ impl NetworkResource for SonarrEvent {
       | SonarrEvent::GetSeriesDetails(_)
       | SonarrEvent::DeleteSeries(_)
       | SonarrEvent::EditSeries(_)
-      | SonarrEvent::ToggleSeasonMonitoring(_) => "/series",
+      | SonarrEvent::ToggleSeasonMonitoring(_)
+      | SonarrEvent::ToggleSeriesMonitoring(_) => "/series",
       SonarrEvent::SearchNewSeries(_) => "/series/lookup",
       SonarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
       SonarrEvent::TestIndexer(_) => "/indexer/test",
@@ -333,6 +335,10 @@ impl Network<'_, '_> {
         .map(SonarrSerdeable::from),
       SonarrEvent::ToggleSeasonMonitoring(params) => self
         .toggle_sonarr_season_monitoring(params)
+        .await
+        .map(SonarrSerdeable::from),
+      SonarrEvent::ToggleSeriesMonitoring(series_id) => self
+        .toggle_sonarr_series_monitoring(series_id)
         .await
         .map(SonarrSerdeable::from),
       SonarrEvent::TriggerAutomaticSeasonSearch(params) => self
@@ -1020,6 +1026,66 @@ impl Network<'_, '_> {
           .unwrap() = json!(!monitored);
 
         debug!("Toggle season monitoring body: {detailed_series_body:?}");
+
+        let request_props = self
+          .request_props_from(
+            event,
+            RequestMethod::Put,
+            Some(detailed_series_body),
+            Some(format!("/{series_id}")),
+            None,
+          )
+          .await;
+
+        self
+          .handle_request::<Value, ()>(request_props, |_, _| ())
+          .await
+      }
+      Err(_) => {
+        warn!("Request for detailed series body was interrupted");
+        Ok(())
+      }
+    }
+  }
+
+  async fn toggle_sonarr_series_monitoring(&mut self, series_id: i64) -> Result<()> {
+    let event = SonarrEvent::ToggleSeriesMonitoring(series_id);
+
+    let detail_event = SonarrEvent::GetSeriesDetails(series_id);
+    info!("Toggling series monitoring for series with ID: {series_id}");
+    info!("Fetching series details for series with ID: {series_id}");
+
+    let request_props = self
+      .request_props_from(
+        detail_event,
+        RequestMethod::Get,
+        None::<()>,
+        Some(format!("/{series_id}")),
+        None,
+      )
+      .await;
+
+    let mut response = String::new();
+
+    self
+      .handle_request::<(), Value>(request_props, |detailed_series_body, _| {
+        response = detailed_series_body.to_string()
+      })
+      .await?;
+
+    info!("Constructing toggle series monitoring body");
+
+    match serde_json::from_str::<Value>(&response) {
+      Ok(mut detailed_series_body) => {
+        let monitored = detailed_series_body
+          .get("monitored")
+          .unwrap()
+          .as_bool()
+          .unwrap();
+
+        *detailed_series_body.get_mut("monitored").unwrap() = json!(!monitored);
+
+        debug!("Toggle series monitoring body: {detailed_series_body:?}");
 
         let request_props = self
           .request_props_from(
