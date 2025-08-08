@@ -44,6 +44,8 @@ macro_rules! handle_table_events {
           match $self.key {
             _ if $crate::matches_key!(up, $self.key, $self.ignore_special_keys()) => $self.[<handle_ $name _table_scroll_up>](config),
             _ if $crate::matches_key!(down, $self.key, $self.ignore_special_keys()) => $self.[<handle_ $name _table_scroll_down>](config),
+            _ if $crate::matches_key!(pg_up, $self.key, $self.ignore_special_keys()) => $self.[<handle_ $name _table_page_up>](config),
+            _ if $crate::matches_key!(pg_down, $self.key, $self.ignore_special_keys()) => $self.[<handle_ $name _table_page_down>](config),
             _ if $crate::matches_key!(home, $self.key) => $self.[<handle_ $name _table_home>](config),
             _ if $crate::matches_key!(end, $self.key) => $self.[<handle_ $name _table_end>](config),
             _ if $crate::matches_key!(left, $self.key, $self.ignore_special_keys())
@@ -110,6 +112,30 @@ macro_rules! handle_table_events {
               .as_mut()
               .unwrap()
               .scroll_down();
+            true
+          }
+          _ => false,
+        }
+      }
+
+      fn [<handle_ $name _table_page_down>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
+        use $crate::models::Paginated;
+
+        match $self.app.get_current_route() {
+          _ if config.table_block == $self.app.get_current_route() => {
+            $table.page_down();
+            true
+          }
+          _ => false,
+        }
+      }
+
+      fn [<handle_ $name _table_page_up>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
+        use $crate::models::Paginated;
+
+        match $self.app.get_current_route() {
+          _ if config.table_block == $self.app.get_current_route() => {
+            $table.page_up();
             true
           }
           _ => false,

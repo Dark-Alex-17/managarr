@@ -11,6 +11,8 @@ mod tests {
   #[case(Key::Down, "↓")]
   #[case(Key::Left, "←")]
   #[case(Key::Right, "→")]
+  #[case(Key::PgDown, "C-d")]
+  #[case(Key::PgUp, "C-u")]
   #[case(Key::Enter, "enter")]
   #[case(Key::Esc, "esc")]
   #[case(Key::Backspace, "backspace")]
@@ -43,6 +45,16 @@ mod tests {
   #[test]
   fn test_key_from_right() {
     assert_eq!(Key::from(KeyEvent::from(KeyCode::Right)), Key::Right);
+  }
+
+  #[test]
+  fn test_key_from_page_down() {
+    assert_eq!(Key::from(KeyEvent::from(KeyCode::PageDown)), Key::PgDown);
+  }
+
+  #[test]
+  fn test_key_from_page_up() {
+    assert_eq!(Key::from(KeyEvent::from(KeyCode::PageUp)), Key::PgUp);
   }
 
   #[test]

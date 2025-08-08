@@ -13,6 +13,8 @@ pub enum Key {
   Down,
   Left,
   Right,
+  PgDown,
+  PgUp,
   Enter,
   Esc,
   Backspace,
@@ -35,6 +37,8 @@ impl Display for Key {
       Key::Down => write!(f, "<↓>"),
       Key::Left => write!(f, "<←>"),
       Key::Right => write!(f, "<→>"),
+      Key::PgDown => write!(f, "<C-d>"),
+      Key::PgUp => write!(f, "<C-u>"),
       Key::Enter => write!(f, "<enter>"),
       Key::Esc => write!(f, "<esc>"),
       Key::Backspace => write!(f, "<backspace>"),
@@ -66,6 +70,14 @@ impl From<KeyEvent> for Key {
         code: KeyCode::Right,
         ..
       } => Key::Right,
+      KeyEvent {
+        code: KeyCode::PageDown,
+        ..
+      } => Key::PgDown,
+      KeyEvent {
+        code: KeyCode::PageUp,
+        ..
+      } => Key::PgUp,
       KeyEvent {
         code: KeyCode::Backspace,
         ..

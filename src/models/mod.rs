@@ -49,6 +49,11 @@ pub trait Scrollable {
   fn scroll_to_bottom(&mut self);
 }
 
+pub trait Paginated {
+  fn page_down(&mut self);
+  fn page_up(&mut self);
+}
+
 #[derive(Default)]
 pub struct ScrollableText {
   pub items: Vec<String>,

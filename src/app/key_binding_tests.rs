@@ -13,6 +13,8 @@ mod test {
   #[case(DEFAULT_KEYBINDINGS.down, Key::Down, Some(Key::Char('j')), "down")]
   #[case(DEFAULT_KEYBINDINGS.left, Key::Left, Some(Key::Char('h')), "left")]
   #[case(DEFAULT_KEYBINDINGS.right, Key::Right, Some(Key::Char('l')), "right")]
+  #[case(DEFAULT_KEYBINDINGS.pg_down, Key::PgDown, Some(Key::Ctrl('d')), "page down")]
+  #[case(DEFAULT_KEYBINDINGS.pg_up, Key::PgUp, Some(Key::Ctrl('u')), "page up")]
   #[case(DEFAULT_KEYBINDINGS.backspace, Key::Backspace, Some(Key::Ctrl('h')), "backspace")]
   #[case(DEFAULT_KEYBINDINGS.next_servarr, Key::Tab, None, "next servarr")]
   #[case(DEFAULT_KEYBINDINGS.previous_servarr, Key::BackTab, None, "previous servarr")]

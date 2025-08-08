@@ -52,7 +52,7 @@ impl App<'_> {
   ) -> Self {
     let mut server_tabs = Vec::new();
     let help = format!(
-      "<↑↓> scroll | ←→ change tab | {}  ",
+      "<↑↓> scroll | <C-u/d> page up/down | ←→ change tab | {}  ",
       build_context_clue_string(&SERVARR_CONTEXT_CLUES)
     );
 

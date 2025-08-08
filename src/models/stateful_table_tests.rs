@@ -1,9 +1,10 @@
 #[cfg(test)]
 mod tests {
   use crate::models::stateful_table::{SortOption, StatefulTable};
-  use crate::models::Scrollable;
+  use crate::models::{Paginated, Scrollable};
   use pretty_assertions::{assert_eq, assert_str_eq};
   use ratatui::widgets::TableState;
+  use std::iter;
 
   #[test]
   fn test_stateful_table_scrolling_on_empty_table_performs_no_op() {
@@ -188,6 +189,174 @@ mod tests {
         .selected(),
       Some(0)
     );
+  }
+
+  #[test]
+  fn test_stateful_table_pagination_on_empty_table_performs_no_op() {
+    let mut stateful_table: StatefulTable<String> = StatefulTable::default();
+
+    assert_eq!(stateful_table.state.selected(), None);
+
+    stateful_table.page_down();
+
+    assert_eq!(stateful_table.state.selected(), None);
+
+    stateful_table.page_up();
+
+    assert_eq!(stateful_table.state.selected(), None);
+  }
+
+  #[test]
+  fn test_stateful_table_filtered_pagination_on_empty_table_performs_no_op() {
+    let mut filtered_stateful_table: StatefulTable<String> = StatefulTable {
+      filtered_items: Some(Vec::new()),
+      filtered_state: Some(TableState::default()),
+      ..StatefulTable::default()
+    };
+
+    assert_eq!(
+      filtered_stateful_table
+        .filtered_state
+        .as_ref()
+        .unwrap()
+        .selected(),
+      None
+    );
+
+    filtered_stateful_table.page_down();
+
+    assert_eq!(
+      filtered_stateful_table
+        .filtered_state
+        .as_ref()
+        .unwrap()
+        .selected(),
+      None
+    );
+
+    filtered_stateful_table.page_up();
+
+    assert_eq!(
+      filtered_stateful_table
+        .filtered_state
+        .as_ref()
+        .unwrap()
+        .selected(),
+      None
+    );
+  }
+
+  #[test]
+  fn test_stateful_table_pagination() {
+    let mut stateful_table = StatefulTable::default();
+    let mut curr = 0;
+    stateful_table.set_filtered_items(
+      iter::repeat_with(|| {
+        let tmp = curr;
+        curr += 1;
+        tmp
+      })
+      .take(100)
+      .collect(),
+    );
+
+    assert_eq!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      Some(0)
+    );
+
+    stateful_table.page_down();
+
+    assert_eq!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      Some(20)
+    );
+
+    stateful_table.page_up();
+
+    assert_eq!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      Some(0)
+    );
+
+    stateful_table.page_up();
+
+    assert_eq!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      Some(stateful_table.filtered_items.as_ref().unwrap().len() - 21)
+    );
+
+    stateful_table.page_down();
+
+    assert_eq!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      Some(0)
+    );
+
+    stateful_table.scroll_down();
+    stateful_table.page_up();
+
+    assert_eq!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      Some(stateful_table.filtered_items.as_ref().unwrap().len() - 20)
+    );
+
+    stateful_table.scroll_down();
+    stateful_table.page_down();
+
+    assert_eq!(
+      stateful_table.filtered_state.as_ref().unwrap().selected(),
+      Some(2)
+    );
+  }
+
+  #[test]
+  fn test_stateful_table_filtered_items_pagination() {
+    let mut stateful_table = StatefulTable::default();
+    let mut curr = 0;
+    stateful_table.set_items(
+      iter::repeat_with(|| {
+        let tmp = curr;
+        curr += 1;
+        tmp
+      })
+      .take(100)
+      .collect(),
+    );
+
+    assert_eq!(stateful_table.state.selected(), Some(0));
+
+    stateful_table.page_down();
+
+    assert_eq!(stateful_table.state.selected(), Some(20));
+
+    stateful_table.page_up();
+
+    assert_eq!(stateful_table.state.selected(), Some(0));
+
+    stateful_table.page_up();
+
+    assert_eq!(
+      stateful_table.state.selected(),
+      Some(stateful_table.items.len() - 21)
+    );
+
+    stateful_table.page_down();
+
+    assert_eq!(stateful_table.state.selected(), Some(0));
+
+    stateful_table.scroll_down();
+    stateful_table.page_up();
+
+    assert_eq!(
+      stateful_table.state.selected(),
+      Some(stateful_table.items.len() - 20)
+    );
+
+    stateful_table.scroll_down();
+    stateful_table.page_down();
+
+    assert_eq!(stateful_table.state.selected(), Some(2));
   }
 
   #[test]

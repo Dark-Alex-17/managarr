@@ -14,6 +14,8 @@ generate_keybindings! {
   down,
   left,
   right,
+  pg_down,
+  pg_up,
   backspace,
   next_servarr,
   previous_servarr,
@@ -73,6 +75,16 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
     key: Key::Right,
     alt: Some(Key::Char('l')),
     desc: "right",
+  },
+  pg_down: KeyBinding {
+    key: Key::PgDown,
+    alt: Some(Key::Ctrl('d')),
+    desc: "page down",
+  },
+  pg_up: KeyBinding {
+    key: Key::PgUp,
+    alt: Some(Key::Ctrl('u')),
+    desc: "page up",
   },
   backspace: KeyBinding {
     key: Key::Backspace,

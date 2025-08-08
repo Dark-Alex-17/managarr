@@ -40,7 +40,7 @@ mod tests {
         title: "Sonarr Test".to_owned(),
         route: ActiveSonarrBlock::default().into(),
         help: format!(
-          "<↑↓> scroll | ←→ change tab | {}  ",
+          "<↑↓> scroll | <C-u/d> page up/down | ←→ change tab | {}  ",
           build_context_clue_string(&SERVARR_CONTEXT_CLUES)
         ),
         contextual_help: None,
@@ -50,7 +50,7 @@ mod tests {
         title: "Radarr 1".to_owned(),
         route: ActiveRadarrBlock::default().into(),
         help: format!(
-          "<↑↓> scroll | ←→ change tab | {}  ",
+          "<↑↓> scroll | <C-u/d> page up/down | ←→ change tab | {}  ",
           build_context_clue_string(&SERVARR_CONTEXT_CLUES)
         ),
         contextual_help: None,
@@ -60,7 +60,7 @@ mod tests {
         title: "Radarr Test".to_owned(),
         route: ActiveRadarrBlock::default().into(),
         help: format!(
-          "<↑↓> scroll | ←→ change tab | {}  ",
+          "<↑↓> scroll | <C-u/d> page up/down | ←→ change tab | {}  ",
           build_context_clue_string(&SERVARR_CONTEXT_CLUES)
         ),
         contextual_help: None,
@@ -70,7 +70,7 @@ mod tests {
         title: "Sonarr 1".to_owned(),
         route: ActiveSonarrBlock::default().into(),
         help: format!(
-          "<↑↓> scroll | ←→ change tab | {}  ",
+          "<↑↓> scroll | <C-u/d> page up/down | ←→ change tab | {}  ",
           build_context_clue_string(&SERVARR_CONTEXT_CLUES)
         ),
         contextual_help: None,

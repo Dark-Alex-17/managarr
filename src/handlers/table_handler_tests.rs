@@ -429,6 +429,48 @@ mod tests {
     }
   }
 
+  mod test_handle_pagination_scroll {
+    use super::*;
+    use crate::handlers::table_handler::table_handler_tests::tests::TableHandlerUnit;
+    use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+    use pretty_assertions::assert_str_eq;
+    use rstest::rstest;
+    use std::iter;
+
+    #[rstest]
+    fn test_table_pagination_scroll(
+      #[values(DEFAULT_KEYBINDINGS.pg_up.key, DEFAULT_KEYBINDINGS.pg_down.key)] key: Key,
+    ) {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      let mut curr = 0;
+      let movies_vec = iter::repeat_with(|| {
+        let tmp = curr;
+        curr += 1;
+        Movie {
+          title: format!("Test {tmp}").into(),
+          ..Movie::default()
+        }
+      })
+      .take(100)
+      .collect();
+      app.data.radarr_data.movies.set_items(movies_vec);
+      TableHandlerUnit::new(key, &mut app, ActiveRadarrBlock::Movies, None).handle();
+
+      if key == Key::PgUp {
+        assert_str_eq!(
+          app.data.radarr_data.movies.current_selection().title.text,
+          "Test 79"
+        );
+      } else {
+        assert_str_eq!(
+          app.data.radarr_data.movies.current_selection().title.text,
+          "Test 20"
+        );
+      }
+    }
+  }
+
   mod test_handle_left_right_action {
     use pretty_assertions::assert_eq;
     use std::sync::atomic::Ordering::SeqCst;
