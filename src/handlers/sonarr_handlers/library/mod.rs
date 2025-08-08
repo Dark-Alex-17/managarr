@@ -46,6 +46,9 @@ pub(super) struct LibraryHandler<'a, 'b> {
 
 impl LibraryHandler<'_, '_> {
   handle_table_events!(self, series, self.app.data.sonarr_data.series, Series);
+  fn extract_series_id(&self) -> i64 {
+    self.app.data.sonarr_data.series.current_selection().id
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, 'b> {
@@ -204,6 +207,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
             .push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchInput.into());
           self.app.data.sonarr_data.add_series_search = Some(HorizontallyScrollableText::default());
           self.app.ignore_special_keys_for_textbox_input = true;
+        }
+        _ if matches_key!(toggle_monitoring, key) => {
+          self.app.data.sonarr_data.prompt_confirm = true;
+          self.app.data.sonarr_data.prompt_confirm_action = Some(
+            SonarrEvent::ToggleSeriesMonitoring(self.extract_series_id()),
+          );
+
+          self
+            .app
+            .pop_and_push_navigation_stack(self.active_sonarr_block.into());
         }
         _ if matches_key!(update, key) => {
           self

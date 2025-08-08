@@ -9,6 +9,7 @@ mod tests {
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::sonarr_handlers::library::{series_sorting_options, LibraryHandler};
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
@@ -377,6 +378,51 @@ mod tests {
     }
 
     #[test]
+    fn test_toggle_monitoring_key() {
+      let mut app = App::test_default();
+      app.data.sonarr_data = create_test_sonarr_data();
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
+      app.is_routing = false;
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+        &mut app,
+        ActiveSonarrBlock::Series,
+        None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert!(app.data.sonarr_data.prompt_confirm);
+      assert!(app.is_routing);
+      assert_eq!(
+        app.data.sonarr_data.prompt_confirm_action,
+        Some(SonarrEvent::ToggleSeriesMonitoring(0))
+      );
+    }
+
+    #[test]
+    fn test_toggle_monitoring_key_no_op_when_not_ready() {
+      let mut app = App::test_default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
+      app.is_routing = false;
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+        &mut app,
+        ActiveSonarrBlock::Series,
+        None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert!(!app.data.sonarr_data.prompt_confirm);
+      assert!(app.data.sonarr_data.prompt_confirm_action.is_none());
+      assert!(!app.is_routing);
+    }
+
+    #[test]
     fn test_update_all_series_key() {
       let mut app = App::test_default();
       app
@@ -616,6 +662,22 @@ mod tests {
       ActiveSonarrBlock::Series,
       ActiveSonarrBlock::DeleteSeriesPrompt
     );
+  }
+
+  #[test]
+  fn test_extract_series_id() {
+    let mut app = App::test_default();
+    app.data.sonarr_data.series.set_items(vec![series()]);
+
+    let series_id = LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::Series,
+      None,
+    )
+    .extract_series_id();
+
+    assert_eq!(series_id, 1);
   }
 
   #[test]

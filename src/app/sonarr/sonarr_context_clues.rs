@@ -9,9 +9,13 @@ pub static ADD_SERIES_SEARCH_RESULTS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.esc, "edit search"),
 ];
 
-pub static SERIES_CONTEXT_CLUES: [ContextClue; 10] = [
+pub static SERIES_CONTEXT_CLUES: [ContextClue; 11] = [
   (DEFAULT_KEYBINDINGS.add, DEFAULT_KEYBINDINGS.add.desc),
   (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
+  (
+    DEFAULT_KEYBINDINGS.toggle_monitoring,
+    DEFAULT_KEYBINDINGS.toggle_monitoring.desc,
+  ),
   (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
   (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
   (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
