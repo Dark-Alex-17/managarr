@@ -20,7 +20,7 @@ mod tests {
   #[case(Key::BackTab, "shift-tab")]
   #[case(Key::Delete, "del")]
   #[case(Key::Char('q'), "q")]
-  #[case(Key::Ctrl('q'), "ctrl-q")]
+  #[case(Key::Ctrl('q'), "C-q")]
   fn test_key_formatter(#[case] key: Key, #[case] expected_str: &str) {
     assert_str_eq!(format!("{key}"), format!("<{expected_str}>"));
   }

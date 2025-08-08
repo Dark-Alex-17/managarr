@@ -30,7 +30,7 @@ impl Display for Key {
   fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
     match *self {
       Key::Char(c) => write!(f, "<{c}>"),
-      Key::Ctrl(c) => write!(f, "<ctrl-{c}>"),
+      Key::Ctrl(c) => write!(f, "<C-{c}>"),
       Key::Up => write!(f, "<↑>"),
       Key::Down => write!(f, "<↓>"),
       Key::Left => write!(f, "<←>"),
