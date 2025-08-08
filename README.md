@@ -63,7 +63,7 @@ Please note that you will need to create and popular your configuration file fir
 **Note:** If you run into errors using relative file paths when mounting the volume with the configuration file, try using an absolute path.
 
 ### Homebrew (Mac and Linux)
-To install Managarr from Homebrew, install the Managarr tap and then you'll be able to install Managarr:
+To install Managarr from Homebrew, install the Managarr tap. Then you'll be able to install Managarr:
 
 ```shell
 brew tap Dark-Alex-17/managarr
@@ -119,14 +119,14 @@ Binaries are available on the [releases](https://github.com/Dark-Alex-17/managar
 #### Windows Instructions
 To use a binary from the releases page on Windows, do the following:
 
-1. Download the latest binary [binary](https://github.com/Dark-Alex-17/managarr/releases) for your OS.
+1. Download the latest [binary](https://github.com/Dark-Alex-17/managarr/releases) for your OS.
 2. Use 7-Zip or TarTool to unpack the Tar file.
 3. Run the executable `managarr.exe`!
 
 #### Linux/MacOS Instructions
 To use a binary from the releases page on Linux/MacOS, do the following:
 
-1. Download the latest binary [binary](https://github.com/Dark-Alex-17/managarr/releases) for your OS.
+1. Download the latest [binary](https://github.com/Dark-Alex-17/managarr/releases) for your OS.
 2. `cd` to the directory where you downloaded the binary.
 3. Extract the binary with `tar -C /usr/local/bin -xzf managarr-<arch>.tar.gz` (NB: This may require `sudo`)
 4. Now you can run `managarr`!
@@ -166,21 +166,21 @@ Key:
 
 | TUI | CLI | Feature                                                                                                            |
 |-----|-----|--------------------------------------------------------------------------------------------------------------------|
-| ✅  | ✅   | View your library, downloads, blocklist, episodes                                                                  |
-| ✅  | ✅   | View details of a specific series, or episode including description, history, downloaded file info, or the credits |
+| ✅   | ✅   | View your library, downloads, blocklist, episodes                                                                  |
+| ✅   | ✅   | View details of a specific series, or episode including description, history, downloaded file info, or the credits |
 | 🚫  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings     |
-| ✅  | ✅   | Search your library                                                                                                |
-| ✅  | ✅   | Add series to your library                                                                                         |
-| ✅  | ✅   | Delete series, downloads, indexers, root folders, and episode files                                                |
-| ✅  | ✅   | Trigger automatic searches for series, seasons, or episodes                                                        |
-| ✅  | ✅   | Trigger refresh and disk scan for series and downloads                                                             |
-| ✅  | ✅   | Manually search for series, seasons, or episodes                                                                   |
-| ✅  | ✅   | Edit your series and indexers                                                                                      |
-| ✅  | ✅   | Manage your tags                                                                                                   |
-| ✅  | ✅   | Manage your root folders                                                                                           |
-| ✅  | ✅   | Manage your blocklist                                                                                              |
-| ✅  | ✅   | View and browse logs, tasks, events queues, and updates                                                            |
-| ✅  | ✅   | Manually trigger scheduled tasks                                                                                   |
+| ✅   | ✅   | Search your library                                                                                                |
+| ✅   | ✅   | Add series to your library                                                                                         |
+| ✅   | ✅   | Delete series, downloads, indexers, root folders, and episode files                                                |
+| ✅   | ✅   | Trigger automatic searches for series, seasons, or episodes                                                        |
+| ✅   | ✅   | Trigger refresh and disk scan for series and downloads                                                             |
+| ✅   | ✅   | Manually search for series, seasons, or episodes                                                                   |
+| ✅   | ✅   | Edit your series and indexers                                                                                      |
+| ✅   | ✅   | Manage your tags                                                                                                   |
+| ✅   | ✅   | Manage your root folders                                                                                           |
+| ✅   | ✅   | Manage your blocklist                                                                                              |
+| ✅   | ✅   | View and browse logs, tasks, events queues, and updates                                                            |
+| ✅   | ✅   | Manually trigger scheduled tasks                                                                                   |
 
 ### Readarr
 
