@@ -9,6 +9,7 @@ mod tests {
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::library::{movies_sorting_options, LibraryHandler};
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::movie;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::{
@@ -392,6 +393,51 @@ mod tests {
     }
 
     #[test]
+    fn test_toggle_monitoring_key() {
+      let mut app = App::test_default();
+      app.data.radarr_data = create_test_radarr_data();
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      app.is_routing = false;
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+        &mut app,
+        ActiveRadarrBlock::Movies,
+        None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert!(app.data.radarr_data.prompt_confirm);
+      assert!(app.is_routing);
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(RadarrEvent::ToggleMovieMonitoring(0))
+      );
+    }
+
+    #[test]
+    fn test_toggle_monitoring_key_no_op_when_not_ready() {
+      let mut app = App::test_default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      app.is_routing = false;
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+        &mut app,
+        ActiveRadarrBlock::Movies,
+        None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert!(app.data.radarr_data.prompt_confirm_action.is_none());
+      assert!(!app.is_routing);
+    }
+
+    #[test]
     fn test_update_all_movies_key() {
       let mut app = App::test_default();
       app
@@ -578,6 +624,22 @@ mod tests {
       ActiveRadarrBlock::Movies,
       ActiveRadarrBlock::DeleteMoviePrompt
     );
+  }
+
+  #[test]
+  fn test_extract_movie_id() {
+    let mut app = App::test_default();
+    app.data.radarr_data.movies.set_items(vec![movie()]);
+
+    let movie_id = LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::Movies,
+      None,
+    )
+    .extract_movie_id();
+
+    assert_eq!(movie_id, 1);
   }
 
   #[test]

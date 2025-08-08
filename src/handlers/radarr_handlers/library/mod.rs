@@ -35,6 +35,9 @@ pub(super) struct LibraryHandler<'a, 'b> {
 
 impl LibraryHandler<'_, '_> {
   handle_table_events!(self, movies, self.app.data.radarr_data.movies, Movie);
+  fn extract_movie_id(&self) -> i64 {
+    self.app.data.radarr_data.movies.current_selection().id
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, 'b> {
@@ -182,6 +185,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
             .push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
           self.app.data.radarr_data.add_movie_search = Some(HorizontallyScrollableText::default());
           self.app.ignore_special_keys_for_textbox_input = true;
+        }
+        _ if matches_key!(toggle_monitoring, key) => {
+          self.app.data.radarr_data.prompt_confirm = true;
+          self.app.data.radarr_data.prompt_confirm_action =
+            Some(RadarrEvent::ToggleMovieMonitoring(self.extract_movie_id()));
+
+          self
+            .app
+            .pop_and_push_navigation_stack(self.active_radarr_block.into());
         }
         _ if matches_key!(update, key) => {
           self
