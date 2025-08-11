@@ -303,6 +303,15 @@ fn series_sorting_options() -> Vec<SortOption<Series>> {
       cmp_fn: Some(|a, b| a.language_profile_id.cmp(&b.language_profile_id)),
     },
     SortOption {
+      name: "Size",
+      cmp_fn: Some(|a, b| {
+        a.statistics
+          .as_ref()
+          .map_or(0, |stats| stats.size_on_disk)
+          .cmp(&b.statistics.as_ref().map_or(0, |stats| stats.size_on_disk))
+      }),
+    },
+    SortOption {
       name: "Monitored",
       cmp_fn: Some(|a, b| a.monitored.cmp(&b.monitored)),
     },

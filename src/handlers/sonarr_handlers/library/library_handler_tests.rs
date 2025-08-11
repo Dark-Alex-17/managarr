@@ -15,7 +15,7 @@ mod tests {
     ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
     EPISODE_DETAILS_BLOCKS, LIBRARY_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
   };
-  use crate::models::sonarr_models::{Series, SeriesStatus, SeriesType};
+  use crate::models::sonarr_models::{Series, SeriesStatistics, SeriesStatus, SeriesType};
   use crate::test_handler_delegation;
 
   mod test_handle_delete {
@@ -827,12 +827,31 @@ mod tests {
   }
 
   #[test]
+  fn test_series_sorting_options_size() {
+    let expected_cmp_fn: fn(&Series, &Series) -> Ordering = |a, b| {
+      a.statistics
+        .as_ref()
+        .map_or(0, |stats| stats.size_on_disk)
+        .cmp(&b.statistics.as_ref().map_or(0, |stats| stats.size_on_disk))
+    };
+    let mut expected_series_vec = series_vec();
+    expected_series_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = series_sorting_options()[8].clone();
+    let mut sorted_series_vec = series_vec();
+    sorted_series_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_series_vec, expected_series_vec);
+    assert_str_eq!(sort_option.name, "Size");
+  }
+
+  #[test]
   fn test_series_sorting_options_monitored() {
     let expected_cmp_fn: fn(&Series, &Series) -> Ordering = |a, b| a.monitored.cmp(&b.monitored);
     let mut expected_series_vec = series_vec();
     expected_series_vec.sort_by(expected_cmp_fn);
 
-    let sort_option = series_sorting_options()[8].clone();
+    let sort_option = series_sorting_options()[9].clone();
     let mut sorted_series_vec = series_vec();
     sorted_series_vec.sort_by(sort_option.cmp_fn.unwrap());
 
@@ -861,7 +880,7 @@ mod tests {
     let mut expected_series_vec = series_vec();
     expected_series_vec.sort_by(expected_cmp_fn);
 
-    let sort_option = series_sorting_options()[9].clone();
+    let sort_option = series_sorting_options()[10].clone();
     let mut sorted_series_vec = series_vec();
     sorted_series_vec.sort_by(sort_option.cmp_fn.unwrap());
 
@@ -973,6 +992,10 @@ mod tests {
         certification: Some("TV-MA".to_owned()),
         series_type: SeriesType::Daily,
         tags: vec![1.into(), 2.into()],
+        statistics: Some(SeriesStatistics {
+          size_on_disk: 789,
+          ..SeriesStatistics::default()
+        }),
         ..Series::default()
       },
       Series {
@@ -988,6 +1011,10 @@ mod tests {
         certification: Some("TV-PG".to_owned()),
         series_type: SeriesType::Anime,
         tags: vec![1.into(), 3.into()],
+        statistics: Some(SeriesStatistics {
+          size_on_disk: 456,
+          ..SeriesStatistics::default()
+        }),
         ..Series::default()
       },
       Series {

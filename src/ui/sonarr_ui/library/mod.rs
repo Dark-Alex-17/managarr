@@ -12,6 +12,7 @@ use crate::ui::widgets::{
   confirmation_prompt::ConfirmationPrompt,
   popup::{Popup, Size},
 };
+use crate::utils::convert_to_gb;
 use crate::{
   app::App,
   models::{
@@ -104,6 +105,10 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let monitored = if series.monitored { "🏷" } else { "" };
       let certification = series.certification.clone().unwrap_or_default();
       let network = series.network.clone().unwrap_or_default();
+      let size = series
+        .statistics
+        .as_ref()
+        .map_or(0f64, |stats| convert_to_gb(stats.size_on_disk));
       let quality_profile = quality_profile_map
         .get_by_left(&series.quality_profile_id)
         .unwrap()
@@ -140,6 +145,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Cell::from(series.series_type.to_display_str()),
           Cell::from(quality_profile),
           Cell::from(language_profile),
+          Cell::from(format!("{size:.2} GB")),
           Cell::from(monitored.to_owned()),
           Cell::from(tags),
         ]),
@@ -162,19 +168,21 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         "Rating",
         "Type",
         "Quality Profile",
-        "Language Profile",
+        "Language",
+        "Size",
         "Monitored",
         "Tags",
       ])
       .constraints([
-        Constraint::Percentage(23),
+        Constraint::Percentage(20),
         Constraint::Percentage(4),
         Constraint::Percentage(14),
         Constraint::Percentage(6),
         Constraint::Percentage(6),
         Constraint::Percentage(6),
-        Constraint::Percentage(13),
-        Constraint::Percentage(10),
+        Constraint::Percentage(11),
+        Constraint::Percentage(8),
+        Constraint::Percentage(7),
         Constraint::Percentage(6),
         Constraint::Percentage(12),
       ]);

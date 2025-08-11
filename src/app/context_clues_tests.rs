@@ -33,11 +33,6 @@ mod test {
 
     let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
 
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.previous_servarr);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.previous_servarr.desc);
-
-    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
-
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.quit);
     assert_str_eq!(*description, DEFAULT_KEYBINDINGS.quit.desc);
     assert_eq!(servarr_context_clues_iter.next(), None);
