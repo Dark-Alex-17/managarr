@@ -1,4 +1,3 @@
-use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
 use crate::app::App;
 use crate::models::servarr_data::modals::IndexerTestResultModalItem;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
@@ -43,10 +42,6 @@ fn draw_test_all_indexers_test_results(f: &mut Frame<'_>, app: &mut App<'_>, are
       IndexerTestResultModalItem::default()
     };
   f.render_widget(block, area);
-  let help_footer = format!(
-    "<↑↓> scroll | {}",
-    build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES)
-  );
   let test_results_row_mapping = |result: &IndexerTestResultModalItem| {
     result.validation_failures.scroll_left_or_reset(
       get_width_from_percentage(area, 86),
@@ -72,7 +67,6 @@ fn draw_test_all_indexers_test_results(f: &mut Frame<'_>, app: &mut App<'_>, are
     test_results_row_mapping,
   )
   .loading(is_loading)
-  .footer(Some(help_footer))
   .footer_alignment(Alignment::Center)
   .margin(1)
   .headers(["Indexer", "Pass/Fail", "Failure Messages"])

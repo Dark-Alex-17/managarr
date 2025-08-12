@@ -90,11 +90,6 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let language_profile_map = &app.data.sonarr_data.language_profiles_map;
     let tags_map = &app.data.sonarr_data.tags_map;
     let content = Some(&mut app.data.sonarr_data.series);
-    let help_footer = app
-      .data
-      .sonarr_data
-      .main_tabs
-      .get_active_tab_contextual_help();
 
     let series_table_row_mapping = |series: &Series| {
       series.title.scroll_left_or_reset(
@@ -154,7 +149,6 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let series_table = ManagarrTable::new(content, series_table_row_mapping)
       .block(layout_block_top_border())
       .loading(app.is_loading)
-      .footer(help_footer)
       .sorting(active_sonarr_block == ActiveSonarrBlock::SeriesSortPrompt)
       .searching(active_sonarr_block == ActiveSonarrBlock::SearchSeries)
       .filtering(active_sonarr_block == ActiveSonarrBlock::FilterSeries)

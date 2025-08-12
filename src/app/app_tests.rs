@@ -5,7 +5,6 @@ mod tests {
   use serial_test::serial;
   use tokio::sync::mpsc;
 
-  use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
   use crate::app::{interpolate_env_vars, App, AppConfig, Data, ServarrConfig};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
@@ -39,40 +38,24 @@ mod tests {
       TabRoute {
         title: "Sonarr Test".to_owned(),
         route: ActiveSonarrBlock::default().into(),
-        help: format!(
-          "<↑↓> scroll | <C-u/d> page up/down | ←→ change tab | {}  ",
-          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-        ),
         contextual_help: None,
         config: Some(sonarr_config_1),
       },
       TabRoute {
         title: "Radarr 1".to_owned(),
         route: ActiveRadarrBlock::default().into(),
-        help: format!(
-          "<↑↓> scroll | <C-u/d> page up/down | ←→ change tab | {}  ",
-          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-        ),
         contextual_help: None,
         config: Some(radarr_config_2),
       },
       TabRoute {
         title: "Radarr Test".to_owned(),
         route: ActiveRadarrBlock::default().into(),
-        help: format!(
-          "<↑↓> scroll | <C-u/d> page up/down | ←→ change tab | {}  ",
-          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-        ),
         contextual_help: None,
         config: Some(radarr_config_1),
       },
       TabRoute {
         title: "Sonarr 1".to_owned(),
         route: ActiveSonarrBlock::default().into(),
-        help: format!(
-          "<↑↓> scroll | <C-u/d> page up/down | ←→ change tab | {}  ",
-          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-        ),
         contextual_help: None,
         config: Some(sonarr_config_2),
       },

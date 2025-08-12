@@ -1,11 +1,20 @@
 use radarr_handlers::RadarrHandler;
 use sonarr_handlers::SonarrHandler;
 
+use crate::app::context_clues::{
+  ContextClueProvider, ServarrContextClueProvider, SERVARR_CONTEXT_CLUES,
+};
+use crate::app::key_binding::KeyBinding;
 use crate::app::App;
 use crate::event::Key;
+use crate::handlers::keybinding_handler::KeybindingHandler;
 use crate::matches_key;
+use crate::models::servarr_data::ActiveKeybindingBlock;
+use crate::models::servarr_models::KeybindingItem;
+use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route};
 
+mod keybinding_handler;
 mod radarr_handlers;
 mod sonarr_handlers;
 
@@ -97,8 +106,17 @@ pub fn handle_events(key: Key, app: &mut App<'_>) {
     app.server_tabs.previous();
     app.pop_and_push_navigation_stack(app.server_tabs.get_active_route());
     app.cancellation_token.cancel();
+  } else if matches_key!(help, key) && !app.ignore_special_keys_for_textbox_input {
+    if app.keymapping_table.is_none() {
+      populate_keymapping_table(app);
+    } else {
+      app.keymapping_table = None;
+    }
   } else {
     match app.get_current_route() {
+      _ if app.keymapping_table.is_some() => {
+        KeybindingHandler::new(key, app, ActiveKeybindingBlock::Help, None).handle();
+      }
       Route::Radarr(active_radarr_block, context) => {
         RadarrHandler::new(key, app, active_radarr_block, context).handle()
       }
@@ -108,6 +126,48 @@ pub fn handle_events(key: Key, app: &mut App<'_>) {
       _ => (),
     }
   }
+}
+
+fn populate_keymapping_table(app: &mut App<'_>) {
+  let context_clue_to_keybinding_item = |key: &KeyBinding, desc: &&str| {
+    let (key, alt_key) = if key.alt.is_some() {
+      (key.key.to_string(), key.alt.as_ref().unwrap().to_string())
+    } else {
+      (key.key.to_string(), String::new())
+    };
+    KeybindingItem {
+      key,
+      alt_key,
+      desc: desc.to_string(),
+    }
+  };
+  let mut keybindings = Vec::new();
+  let global_keybindings = Vec::from(SERVARR_CONTEXT_CLUES)
+    .iter()
+    .map(|(key, desc)| context_clue_to_keybinding_item(key, desc))
+    .collect::<Vec<_>>();
+
+  if let Some(contextual_help) = app.server_tabs.get_active_route_contextual_help() {
+    keybindings.extend(
+      contextual_help
+        .iter()
+        .map(|(key, desc)| context_clue_to_keybinding_item(key, desc)),
+    );
+  }
+
+  if let Some(contextual_help) = ServarrContextClueProvider::get_context_clues(app) {
+    keybindings.extend(
+      contextual_help
+        .iter()
+        .map(|(key, desc)| context_clue_to_keybinding_item(key, desc)),
+    );
+  }
+
+  keybindings.extend(global_keybindings);
+
+  let mut table = StatefulTable::default();
+  table.set_items(keybindings);
+  app.keymapping_table = Some(table);
 }
 
 fn handle_clear_errors(app: &mut App<'_>) {

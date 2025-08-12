@@ -23,6 +23,7 @@ generate_keybindings! {
   search,
   auto_search,
   settings,
+  help,
   filter,
   sort,
   edit,
@@ -120,6 +121,11 @@ pub const DEFAULT_KEYBINDINGS: KeyBindings = KeyBindings {
     key: Key::Char('S'),
     alt: None,
     desc: "settings",
+  },
+  help: KeyBinding {
+    key: Key::Char('?'),
+    alt: None,
+    desc: "show/hide keybindings",
   },
   filter: KeyBinding {
     key: Key::Char('f'),

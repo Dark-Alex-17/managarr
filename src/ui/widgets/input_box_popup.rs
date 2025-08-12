@@ -1,8 +1,7 @@
-use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::{background_block, borderless_block, centered_rect};
+use crate::ui::utils::{background_block, centered_rect};
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Rect};
-use ratatui::widgets::{Block, Clear, Paragraph, Widget, WidgetRef};
+use ratatui::widgets::{Block, Clear, Widget, WidgetRef};
 
 use super::input_box::InputBox;
 
@@ -39,17 +38,10 @@ impl<'a> InputBoxPopup<'a> {
     Clear.render(popup_area, buf);
     background_block().render(popup_area, buf);
 
-    let [text_box_area, help_area] =
-      Layout::vertical([Constraint::Length(3), Constraint::Length(1)])
-        .margin(1)
-        .areas(popup_area);
+    let [text_box_area] = Layout::vertical([Constraint::Length(3)])
+      .margin(1)
+      .areas(popup_area);
     self.input_box.render_ref(text_box_area, buf);
-
-    let help = Paragraph::new("<esc> cancel")
-      .help()
-      .centered()
-      .block(borderless_block());
-    help.render(help_area, buf);
   }
 }
 

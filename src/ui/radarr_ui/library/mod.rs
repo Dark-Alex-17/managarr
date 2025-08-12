@@ -85,11 +85,6 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let tags_map = &app.data.radarr_data.tags_map;
     let downloads_vec = &app.data.radarr_data.downloads.items;
     let content = Some(&mut app.data.radarr_data.movies);
-    let help_footer = app
-      .data
-      .radarr_data
-      .main_tabs
-      .get_active_tab_contextual_help();
 
     let library_table_row_mapping = |movie: &Movie| {
       movie.title.scroll_left_or_reset(
@@ -143,7 +138,6 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let library_table = ManagarrTable::new(content, library_table_row_mapping)
       .block(layout_block_top_border())
       .loading(app.is_loading)
-      .footer(help_footer)
       .sorting(active_radarr_block == ActiveRadarrBlock::MoviesSortPrompt)
       .searching(active_radarr_block == ActiveRadarrBlock::SearchMovie)
       .search_produced_empty_results(active_radarr_block == ActiveRadarrBlock::SearchMovieError)

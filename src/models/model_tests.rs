@@ -3,6 +3,8 @@ mod tests {
   use std::sync::atomic::AtomicUsize;
   use std::sync::atomic::Ordering;
 
+  use crate::app::context_clues::ContextClue;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::ServarrConfig;
   use crate::models::from_f64;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
@@ -18,6 +20,10 @@ mod tests {
   use serde_json::to_string;
 
   const BLOCKS: &[&[i32]] = &[&[11, 12], &[21, 22], &[31, 32]];
+  static HELP_KEYBINDINGS: [ContextClue; 1] =
+    [(DEFAULT_KEYBINDINGS.help, DEFAULT_KEYBINDINGS.help.desc)];
+  static ESC_KEYBINDINGS: [ContextClue; 1] =
+    [(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)];
 
   #[test]
   fn test_scrollable_text_with_string() {
@@ -617,26 +623,15 @@ mod tests {
   }
 
   #[test]
-  fn test_tab_state_get_active_tab_help() {
+  fn test_tab_state_get_active_route_contextual_help() {
     let tabs = create_test_tab_routes();
-    let second_tab_help = tabs[1].help.clone();
+    let second_tab_help = tabs[1].contextual_help;
     let tab_state = TabState { tabs, index: 1 };
 
-    let tab_help = tab_state.get_active_tab_help();
+    let tab_help = tab_state.get_active_route_contextual_help();
 
-    assert_str_eq!(tab_help, second_tab_help);
-  }
-
-  #[test]
-  fn test_tab_state_get_active_tab_contextual_help() {
-    let tabs = create_test_tab_routes();
-    let second_tab_contextual_help = tabs[1].contextual_help.clone().unwrap();
-    let tab_state = TabState { tabs, index: 1 };
-
-    let tab_contextual_help = tab_state.get_active_tab_contextual_help();
-
-    assert!(tab_contextual_help.is_some());
-    assert_str_eq!(tab_contextual_help.unwrap(), second_tab_contextual_help);
+    assert!(tab_help.is_some());
+    assert_eq!(tab_help.unwrap(), second_tab_help.unwrap());
   }
 
   #[test]
@@ -823,15 +818,13 @@ mod tests {
       TabRoute {
         title: "Test 1".to_owned(),
         route: ActiveRadarrBlock::Movies.into(),
-        help: "Help for Test 1".to_owned(),
-        contextual_help: Some("Contextual Help for Test 1".to_owned()),
+        contextual_help: Some(&HELP_KEYBINDINGS),
         config: None,
       },
       TabRoute {
         title: "Test 2".to_owned(),
         route: ActiveRadarrBlock::Collections.into(),
-        help: "Help for Test 2".to_owned(),
-        contextual_help: Some("Contextual Help for Test 2".to_owned()),
+        contextual_help: Some(&ESC_KEYBINDINGS),
         config: None,
       },
     ]

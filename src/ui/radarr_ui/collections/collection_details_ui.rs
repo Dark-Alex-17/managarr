@@ -4,8 +4,6 @@ use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use ratatui::Frame;
 
-use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
-use crate::app::radarr::radarr_context_clues::COLLECTION_DETAILS_CONTEXT_CLUES;
 use crate::app::App;
 use crate::models::radarr_models::CollectionMovie;
 use crate::models::servarr_data::radarr::radarr_data::{
@@ -144,10 +142,6 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
     "No"
   };
   let minimum_availability = collection_selection.minimum_availability.to_display_str();
-  let help_footer = format!(
-    "<↑↓> scroll table | {}",
-    build_context_clue_string(&COLLECTION_DETAILS_CONTEXT_CLUES)
-  );
 
   let collection_description = Text::from(vec![
     Line::from(vec![
@@ -191,7 +185,6 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
   .block(layout_block_top_border_with_title(title_style("Movies")))
   .loading(app.is_loading)
   .footer_alignment(Alignment::Center)
-  .footer(Some(help_footer))
   .headers([
     "✔",
     "Title",
@@ -220,11 +213,10 @@ fn draw_movie_overview(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let title_block = title_block("Overview");
   f.render_widget(title_block, area);
 
-  let [paragraph_area, help_area] =
-    Layout::vertical([Constraint::Percentage(95), Constraint::Length(1)])
-      .flex(Flex::SpaceBetween)
-      .margin(1)
-      .areas(area);
+  let [paragraph_area] = Layout::vertical([Constraint::Percentage(95)])
+    .flex(Flex::SpaceBetween)
+    .margin(1)
+    .areas(area);
   let overview = Text::from(
     app
       .data
@@ -235,15 +227,10 @@ fn draw_movie_overview(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .overview,
   )
   .default();
-  let help_text = Text::from(build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES).help());
 
   let paragraph = Paragraph::new(overview)
     .block(borderless_block())
     .wrap(Wrap { trim: false });
-  let help_paragraph = Paragraph::new(help_text)
-    .block(borderless_block())
-    .centered();
 
   f.render_widget(paragraph, paragraph_area);
-  f.render_widget(help_paragraph, help_area);
 }

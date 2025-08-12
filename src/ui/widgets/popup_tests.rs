@@ -21,6 +21,7 @@ mod tests {
     assert_eq!(Size::XLarge.to_percent(), (83, 83));
     assert_eq!(Size::XXLarge.to_percent(), (90, 90));
     assert_eq!(Size::Long.to_percent(), (65, 75));
+    assert_eq!(Size::LongNarrowTable.to_percent(), (55, 85));
   }
 
   #[test]
@@ -31,7 +32,6 @@ mod tests {
     assert_eq!(popup.percent_x, 0);
     assert_eq!(popup.percent_y, 0);
     assert_eq!(popup.block, None);
-    assert_eq!(popup.footer, None);
   }
 
   #[test]
@@ -42,7 +42,6 @@ mod tests {
     assert_eq!(popup.percent_y, 40);
     assert_eq!(popup.widget, Block::new());
     assert_eq!(popup.block, None);
-    assert_eq!(popup.footer, None);
   }
 
   #[test]
@@ -53,7 +52,6 @@ mod tests {
     assert_eq!(popup.percent_y, 50);
     assert_eq!(popup.widget, Block::new());
     assert_eq!(popup.block, None);
-    assert_eq!(popup.footer, None);
   }
 
   #[test]
@@ -64,17 +62,5 @@ mod tests {
     assert_eq!(popup.widget, Block::new());
     assert_eq!(popup.percent_x, 0);
     assert_eq!(popup.percent_y, 0);
-    assert_eq!(popup.footer, None);
-  }
-
-  #[test]
-  fn test_popup_footer() {
-    let popup = Popup::new(Block::new()).footer("footer");
-
-    assert_eq!(popup.footer, Some("footer"));
-    assert_eq!(popup.widget, Block::new());
-    assert_eq!(popup.percent_x, 0);
-    assert_eq!(popup.percent_y, 0);
-    assert_eq!(popup.block, None);
   }
 }

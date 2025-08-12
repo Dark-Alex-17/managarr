@@ -1,14 +1,9 @@
 use std::sync::atomic::Ordering;
 
 use ratatui::layout::{Constraint, Layout, Rect};
-use ratatui::text::Text;
-use ratatui::widgets::{Cell, ListItem, Paragraph, Row};
+use ratatui::widgets::{Cell, ListItem, Row};
 use ratatui::Frame;
 
-use crate::app::context_clues::{
-  build_context_clue_string, BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
-};
-use crate::app::radarr::radarr_context_clues::ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES;
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::servarr_data::radarr::modals::AddMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
@@ -16,8 +11,7 @@ use crate::models::Route;
 use crate::ui::radarr_ui::collections::CollectionsUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
-  borderless_block, get_width_from_percentage, layout_block, layout_paragraph_borderless,
-  title_block_centered,
+  get_width_from_percentage, layout_block, layout_paragraph_borderless, title_block_centered,
 };
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::input_box::InputBox;
@@ -83,13 +77,10 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       AddMovieSearchResult::default()
     };
 
-  let [search_box_area, results_area, help_area] = Layout::vertical([
-    Constraint::Length(3),
-    Constraint::Fill(0),
-    Constraint::Length(3),
-  ])
-  .margin(1)
-  .areas(area);
+  let [search_box_area, results_area] =
+    Layout::vertical([Constraint::Length(3), Constraint::Fill(0)])
+      .margin(1)
+      .areas(area);
   let block_content = &app.data.radarr_data.add_movie_search.as_ref().unwrap().text;
   let offset = app
     .data
@@ -164,27 +155,17 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         let search_box = InputBox::new(block_content)
           .offset(offset)
           .block(title_block_centered("Add Movie"));
-        let help_text = Text::from(build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES).help());
-        let help_paragraph = Paragraph::new(help_text)
-          .block(borderless_block())
-          .centered();
 
         search_box.show_cursor(f, search_box_area);
         f.render_widget(layout_block().default(), results_area);
         f.render_widget(search_box, search_box_area);
-        f.render_widget(help_paragraph, help_area);
       }
       ActiveRadarrBlock::AddMovieEmptySearchResults => {
-        let help_text = Text::from(build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES).help());
-        let help_paragraph = Paragraph::new(help_text)
-          .block(borderless_block())
-          .centered();
         let error_message = Message::new("No movies found matching your query!");
         let error_message_popup = Popup::new(error_message).size(Size::Message);
 
         f.render_widget(layout_block().default(), results_area);
         f.render_widget(error_message_popup, f.area());
-        f.render_widget(help_paragraph, help_area);
       }
       ActiveRadarrBlock::AddMovieSearchResults
       | ActiveRadarrBlock::AddMoviePrompt
@@ -194,11 +175,6 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       | ActiveRadarrBlock::AddMovieSelectRootFolder
       | ActiveRadarrBlock::AddMovieAlreadyInLibrary
       | ActiveRadarrBlock::AddMovieTagsInput => {
-        let help_text =
-          Text::from(build_context_clue_string(&ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES).help());
-        let help_paragraph = Paragraph::new(help_text)
-          .block(borderless_block())
-          .centered();
         let search_results_table = ManagarrTable::new(
           app.data.radarr_data.add_searched_movies.as_mut(),
           search_results_row_mapping,
@@ -225,7 +201,6 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         ]);
 
         f.render_widget(search_results_table, results_area);
-        f.render_widget(help_paragraph, help_area);
       }
       _ => (),
     }
@@ -322,7 +297,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
   f.render_widget(title_block_centered(&title), area);
 
-  let [paragraph_area, root_folder_area, monitor_area, min_availability_area, quality_profile_area, tags_area, _, buttons_area, help_area] =
+  let [paragraph_area, root_folder_area, monitor_area, min_availability_area, quality_profile_area, tags_area, _, buttons_area] =
     Layout::vertical([
       Constraint::Length(6),
       Constraint::Length(3),
@@ -332,16 +307,12 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       Constraint::Length(3),
       Constraint::Fill(1),
       Constraint::Length(3),
-      Constraint::Length(1),
     ])
     .margin(1)
     .areas(area);
 
   let prompt_paragraph = layout_paragraph_borderless(&prompt);
-  let help_text = Text::from(build_context_clue_string(&CONFIRMATION_PROMPT_CONTEXT_CLUES).help());
-  let help_paragraph = Paragraph::new(help_text).centered();
   f.render_widget(prompt_paragraph, paragraph_area);
-  f.render_widget(help_paragraph, help_area);
 
   let [add_area, cancel_area] =
     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])

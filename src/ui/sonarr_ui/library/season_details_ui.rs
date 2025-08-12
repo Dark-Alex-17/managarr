@@ -149,14 +149,6 @@ pub fn draw_season_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
 fn draw_episodes_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
-    let help_footer = app
-      .data
-      .sonarr_data
-      .season_details_modal
-      .as_ref()
-      .expect("Season details modal is unpopulated")
-      .season_details_tabs
-      .get_active_tab_contextual_help();
     let episode_files = app
       .data
       .sonarr_data
@@ -222,7 +214,6 @@ fn draw_episodes_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let season_table = ManagarrTable::new(content, episode_row_mapping)
       .block(layout_block_top_border())
       .loading(app.is_loading)
-      .footer(help_footer)
       .searching(is_searching)
       .search_produced_empty_results(active_sonarr_block == ActiveSonarrBlock::SearchEpisodesError)
       .headers([
@@ -261,9 +252,6 @@ fn draw_season_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .current_selection()
           .clone()
       };
-      let season_history_table_footer = season_details_modal
-        .season_details_tabs
-        .get_active_tab_contextual_help();
 
       if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
         let history_row_mapping = |history_item: &SonarrHistoryItem| {
@@ -308,7 +296,6 @@ fn draw_season_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           ManagarrTable::new(Some(&mut season_history_table), history_row_mapping)
             .block(layout_block_top_border())
             .loading(app.is_loading)
-            .footer(season_history_table_footer)
             .sorting(active_sonarr_block == ActiveSonarrBlock::SeasonHistorySortPrompt)
             .searching(active_sonarr_block == ActiveSonarrBlock::SearchSeasonHistory)
             .search_produced_empty_results(
@@ -363,9 +350,6 @@ fn draw_season_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           season_details_modal.season_releases.is_empty(),
         )
       };
-      let season_release_table_footer = season_details_modal
-        .season_details_tabs
-        .get_active_tab_contextual_help();
 
       if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
         let season_release_row_mapping = |release: &SonarrRelease| {
@@ -444,7 +428,6 @@ fn draw_season_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           ManagarrTable::new(Some(&mut season_release_table), season_release_row_mapping)
             .block(layout_block_top_border())
             .loading(app.is_loading || is_empty)
-            .footer(season_release_table_footer)
             .sorting(active_sonarr_block == ActiveSonarrBlock::ManualSeasonSearchSortPrompt)
             .headers([
               "Source", "Age", "⛔", "Title", "Indexer", "Size", "Peers", "Language", "Quality",

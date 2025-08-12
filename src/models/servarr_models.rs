@@ -107,6 +107,13 @@ pub struct EditIndexerParams {
   pub clear_tags: bool,
 }
 
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct KeybindingItem {
+  pub key: String,
+  pub alt_key: String,
+  pub desc: String,
+}
+
 #[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct HostConfig {

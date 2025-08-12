@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Display, Formatter};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use crate::app::context_clues::ContextClue;
 use crate::app::ServarrConfig;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use radarr_models::RadarrSerdeable;
@@ -9,6 +10,7 @@ use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Number;
 use servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use sonarr_models::SonarrSerdeable;
+
 pub mod radarr_models;
 pub mod servarr_data;
 pub mod servarr_models;
@@ -33,6 +35,7 @@ pub enum Route {
   Bazarr,
   Prowlarr,
   Tautulli,
+  Keybindings,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -271,8 +274,7 @@ impl HorizontallyScrollableText {
 pub struct TabRoute {
   pub title: String,
   pub route: Route,
-  pub help: String,
-  pub contextual_help: Option<String>,
+  pub contextual_help: Option<&'static [ContextClue]>,
   pub config: Option<ServarrConfig>,
 }
 
@@ -286,7 +288,7 @@ impl TabState {
     TabState { tabs, index: 0 }
   }
 
-  // Allowing this code for now since we'll eventually be implementing additional Servarr support and we'll need it then
+  // Allowing this code for now since we'll eventually be implementing additional Servarr support, and we'll need it then
   #[allow(dead_code)]
   pub fn set_index(&mut self, index: usize) -> &TabRoute {
     self.index = index;
@@ -337,12 +339,8 @@ impl TabState {
     false
   }
 
-  pub fn get_active_tab_help(&self) -> &str {
-    &self.tabs[self.index].help
-  }
-
-  pub fn get_active_tab_contextual_help(&self) -> Option<String> {
-    self.tabs[self.index].contextual_help.clone()
+  pub fn get_active_route_contextual_help(&self) -> Option<&'static [ContextClue]> {
+    self.tabs[self.index].contextual_help
   }
 
   pub fn next(&mut self) {

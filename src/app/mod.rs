@@ -10,10 +10,11 @@ use tokio::sync::mpsc::Sender;
 use tokio_util::sync::CancellationToken;
 use veil::Redact;
 
-use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
 use crate::cli::Command;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
+use crate::models::servarr_models::KeybindingItem;
+use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, TabRoute, TabState};
 use crate::network::NetworkEvent;
 
@@ -32,6 +33,7 @@ pub struct App<'a> {
   pub cancellation_token: CancellationToken,
   pub is_first_render: bool,
   pub server_tabs: TabState,
+  pub keymapping_table: Option<StatefulTable<KeybindingItem>>,
   pub error: HorizontallyScrollableText,
   pub tick_until_poll: u64,
   pub ticks_until_scroll: u64,
@@ -51,10 +53,6 @@ impl App<'_> {
     cancellation_token: CancellationToken,
   ) -> Self {
     let mut server_tabs = Vec::new();
-    let help = format!(
-      "<↑↓> scroll | <C-u/d> page up/down | ←→ change tab | {}  ",
-      build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-    );
 
     if let Some(radarr_configs) = config.radarr {
       let mut idx = 0;
@@ -69,7 +67,6 @@ impl App<'_> {
         server_tabs.push(TabRoute {
           title: name,
           route: ActiveRadarrBlock::Movies.into(),
-          help: help.clone(),
           contextual_help: None,
           config: Some(radarr_config),
         });
@@ -90,7 +87,6 @@ impl App<'_> {
         server_tabs.push(TabRoute {
           title: name,
           route: ActiveSonarrBlock::Series.into(),
-          help: help.clone(),
           contextual_help: None,
           config: Some(sonarr_config),
         });
@@ -215,6 +211,7 @@ impl Default for App<'_> {
       navigation_stack: Vec::new(),
       network_tx: None,
       cancellation_token: CancellationToken::new(),
+      keymapping_table: None,
       error: HorizontallyScrollableText::default(),
       is_first_render: true,
       server_tabs: TabState::new(Vec::new()),
@@ -239,20 +236,12 @@ impl App<'_> {
         TabRoute {
           title: "Radarr".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
-          help: format!(
-            "<↑↓> scroll | ←→ change tab | {}  ",
-            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-          ),
           contextual_help: None,
           config: Some(ServarrConfig::default()),
         },
         TabRoute {
           title: "Sonarr".to_owned(),
           route: ActiveSonarrBlock::Series.into(),
-          help: format!(
-            "<↑↓> scroll | ←→ change tab | {}  ",
-            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-          ),
           contextual_help: None,
           config: Some(ServarrConfig::default()),
         },

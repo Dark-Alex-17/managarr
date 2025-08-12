@@ -59,11 +59,6 @@ impl DrawUi for RootFoldersUi {
 }
 
 fn draw_root_folders(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let help_footer = app
-    .data
-    .sonarr_data
-    .main_tabs
-    .get_active_tab_contextual_help();
   let root_folders_row_mapping = |root_folders: &RootFolder| {
     let RootFolder {
       path,
@@ -94,7 +89,6 @@ fn draw_root_folders(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   )
   .block(layout_block_top_border())
   .loading(app.is_loading)
-  .footer(help_footer)
   .headers(["Path", "Free Space", "Unmapped Folders"])
   .constraints([
     Constraint::Ratio(3, 5),

@@ -11,8 +11,8 @@ mod tests {
   #[case(Key::Down, "↓")]
   #[case(Key::Left, "←")]
   #[case(Key::Right, "→")]
-  #[case(Key::PgDown, "C-d")]
-  #[case(Key::PgUp, "C-u")]
+  #[case(Key::PgDown, "pgDown")]
+  #[case(Key::PgUp, "pgUp")]
   #[case(Key::Enter, "enter")]
   #[case(Key::Esc, "esc")]
   #[case(Key::Backspace, "backspace")]
@@ -22,9 +22,9 @@ mod tests {
   #[case(Key::BackTab, "shift-tab")]
   #[case(Key::Delete, "del")]
   #[case(Key::Char('q'), "q")]
-  #[case(Key::Ctrl('q'), "C-q")]
+  #[case(Key::Ctrl('q'), "ctrl-q")]
   fn test_key_formatter(#[case] key: Key, #[case] expected_str: &str) {
-    assert_str_eq!(format!("{key}"), format!("<{expected_str}>"));
+    assert_str_eq!(format!("{key}"), format!("{expected_str}"));
   }
 
   #[test]

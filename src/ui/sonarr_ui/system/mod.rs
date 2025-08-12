@@ -4,7 +4,7 @@ use chrono::Utc;
 use ratatui::layout::Layout;
 use ratatui::style::Style;
 use ratatui::text::{Span, Text};
-use ratatui::widgets::{Cell, Paragraph, Row};
+use ratatui::widgets::{Cell, Row};
 use ratatui::{
   layout::{Constraint, Rect},
   widgets::ListItem,
@@ -17,9 +17,7 @@ use crate::models::servarr_models::QueueEvent;
 use crate::models::sonarr_models::SonarrTask;
 use crate::ui::sonarr_ui::system::system_details_ui::SystemDetailsUi;
 use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::{
-  convert_to_minutes_hours_days, layout_block_top_border, style_log_list_item,
-};
+use crate::ui::utils::{convert_to_minutes_hours_days, style_log_list_item};
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::selectable_list::SelectableList;
@@ -66,12 +64,8 @@ impl DrawUi for SystemUi {
 }
 
 fn draw_system_ui_layout(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let [activities_area, logs_area, help_area] = Layout::vertical([
-    Constraint::Ratio(1, 2),
-    Constraint::Ratio(1, 2),
-    Constraint::Min(2),
-  ])
-  .areas(area);
+  let [activities_area, logs_area] =
+    Layout::vertical([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)]).areas(area);
 
   let [tasks_area, events_area] =
     Layout::horizontal([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)]).areas(activities_area);
@@ -79,7 +73,6 @@ fn draw_system_ui_layout(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   draw_tasks(f, app, tasks_area);
   draw_queued_events(f, app, events_area);
   draw_logs(f, app, logs_area);
-  draw_help(f, app, help_area);
 }
 
 fn draw_tasks(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
@@ -179,26 +172,6 @@ fn draw_logs(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   .highlight_style(Style::new().default());
 
   f.render_widget(logs_box, area);
-}
-
-fn draw_help(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let help_text = Text::from(
-    format!(
-      " {}",
-      app
-        .data
-        .sonarr_data
-        .main_tabs
-        .get_active_tab_contextual_help()
-        .unwrap()
-    )
-    .help(),
-  );
-  let help_paragraph = Paragraph::new(help_text)
-    .block(layout_block_top_border())
-    .left_aligned();
-
-  f.render_widget(help_paragraph, area);
 }
 
 pub(super) struct TaskProps {

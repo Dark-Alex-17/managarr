@@ -22,6 +22,7 @@ mod test {
   #[case(DEFAULT_KEYBINDINGS.auto_search, Key::Char('S'), None, "auto search")]
   #[case(DEFAULT_KEYBINDINGS.search, Key::Char('s'), None, "search")]
   #[case(DEFAULT_KEYBINDINGS.settings, Key::Char('S'), None, "settings")]
+  #[case(DEFAULT_KEYBINDINGS.help, Key::Char('?'), None, "show/hide keybindings")]
   #[case(DEFAULT_KEYBINDINGS.filter, Key::Char('f'), None, "filter")]
   #[case(DEFAULT_KEYBINDINGS.sort, Key::Char('o'), None, "sort")]
   #[case(DEFAULT_KEYBINDINGS.edit, Key::Char('e'), None, "edit")]

@@ -66,11 +66,6 @@ pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
     };
     let quality_profile_map = &app.data.radarr_data.quality_profile_map;
     let content = Some(&mut app.data.radarr_data.collections);
-    let collections_table_footer = app
-      .data
-      .radarr_data
-      .main_tabs
-      .get_active_tab_contextual_help();
     let collection_row_mapping = |collection: &Collection| {
       let number_of_movies = collection.movies.as_ref().unwrap_or(&Vec::new()).len();
       collection.title.scroll_left_or_reset(
@@ -112,7 +107,6 @@ pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
           || app.data.radarr_data.movies.is_empty()
           || app.data.radarr_data.quality_profile_map.is_empty(),
       )
-      .footer(collections_table_footer)
       .block(layout_block_top_border())
       .sorting(active_radarr_block == ActiveRadarrBlock::CollectionsSortPrompt)
       .searching(active_radarr_block == ActiveRadarrBlock::SearchCollection)

@@ -257,9 +257,6 @@ fn draw_episode_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) 
             .current_selection()
             .clone()
         };
-        let episode_history_table_footer = episode_details_modal
-          .episode_details_tabs
-          .get_active_tab_contextual_help();
 
         let history_row_mapping = |history_item: &SonarrHistoryItem| {
           let SonarrHistoryItem {
@@ -306,7 +303,6 @@ fn draw_episode_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) 
           ManagarrTable::new(Some(&mut episode_history_table), history_row_mapping)
             .block(layout_block_top_border())
             .loading(app.is_loading)
-            .footer(episode_history_table_footer)
             .headers(["Source Title", "Event Type", "Language", "Quality", "Date"])
             .constraints([
               Constraint::Percentage(40),
@@ -397,9 +393,6 @@ fn draw_episode_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
             episode_details_modal.episode_releases.is_empty(),
           )
         };
-        let episode_release_table_footer = episode_details_modal
-          .episode_details_tabs
-          .get_active_tab_contextual_help();
 
         if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
           let episode_release_row_mapping = |release: &SonarrRelease| {
@@ -483,7 +476,6 @@ fn draw_episode_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           )
           .block(layout_block_top_border())
           .loading(app.is_loading || is_empty)
-          .footer(episode_release_table_footer)
           .sorting(active_sonarr_block == ActiveSonarrBlock::ManualEpisodeSearchSortPrompt)
           .headers([
             "Source", "Age", "⛔", "Title", "Indexer", "Size", "Peers", "Language", "Quality",

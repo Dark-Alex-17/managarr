@@ -157,17 +157,11 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     ])
     .primary()
   };
-  let indexers_table_footer = app
-    .data
-    .sonarr_data
-    .main_tabs
-    .get_active_tab_contextual_help();
   let indexers_table = ManagarrTable::new(
     Some(&mut app.data.sonarr_data.indexers),
     indexers_row_mapping,
   )
   .block(layout_block_top_border())
-  .footer(indexers_table_footer)
   .loading(app.is_loading)
   .headers([
     "Indexer",

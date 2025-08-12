@@ -1,6 +1,5 @@
 use std::sync::atomic::Ordering;
 
-use crate::app::context_clues::{build_context_clue_string, CONFIRMATION_PROMPT_CONTEXT_CLUES};
 use crate::app::App;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_INDEXER_BLOCKS};
 use crate::models::Route;
@@ -14,8 +13,6 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::popup::Size;
 use crate::ui::{draw_popup, DrawUi};
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
-use ratatui::text::Text;
-use ratatui::widgets::Paragraph;
 use ratatui::Frame;
 
 #[cfg(test)]
@@ -45,22 +42,15 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let highlight_yes_no = selected_block == ActiveSonarrBlock::EditIndexerConfirmPrompt;
   let edit_indexer_modal_option = &app.data.sonarr_data.edit_indexer_modal;
   let protocol = &app.data.sonarr_data.indexers.current_selection().protocol;
-  let help_text = Text::from(build_context_clue_string(&CONFIRMATION_PROMPT_CONTEXT_CLUES).help());
-  let help_paragraph = Paragraph::new(help_text).centered();
 
   if edit_indexer_modal_option.is_some() {
     f.render_widget(block, area);
     let edit_indexer_modal = edit_indexer_modal_option.as_ref().unwrap();
 
-    let [_, settings_area, _, buttons_area, help_area] = Layout::vertical([
-      Constraint::Fill(1),
-      Constraint::Length(18),
-      Constraint::Fill(1),
-      Constraint::Length(3),
-      Constraint::Length(1),
-    ])
-    .margin(1)
-    .areas(area);
+    let [settings_area, buttons_area] =
+      Layout::vertical([Constraint::Fill(1), Constraint::Length(3)])
+        .margin(1)
+        .areas(area);
     let [left_side_area, right_side_area] =
       Layout::horizontal([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)])
         .margin(1)
@@ -169,7 +159,6 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       f.render_widget(interactive_search_checkbox, interactive_search_area);
       f.render_widget(save_button, save_area);
       f.render_widget(cancel_button, cancel_area);
-      f.render_widget(help_paragraph, help_area);
     }
   } else {
     f.render_widget(LoadingBlock::new(app.is_loading, block), area);

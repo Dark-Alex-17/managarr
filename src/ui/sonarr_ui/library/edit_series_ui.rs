@@ -2,11 +2,9 @@ use std::sync::atomic::Ordering;
 
 use ratatui::layout::{Constraint, Rect};
 use ratatui::prelude::Layout;
-use ratatui::text::Text;
-use ratatui::widgets::{ListItem, Paragraph};
+use ratatui::widgets::ListItem;
 use ratatui::Frame;
 
-use crate::app::context_clues::{build_context_clue_string, CONFIRMATION_PROMPT_CONTEXT_CLUES};
 use crate::app::App;
 use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
 use crate::models::servarr_data::sonarr::sonarr_data::{
@@ -107,7 +105,7 @@ fn draw_edit_series_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, ar
   let selected_quality_profile = quality_profile_list.current_selection();
   let selected_language_profile = language_profile_list.current_selection();
 
-  let [paragraph_area, monitored_area, season_folder_area, quality_profile_area, language_profile_area, series_type_area, path_area, tags_area, _, buttons_area, help_area] =
+  let [paragraph_area, monitored_area, season_folder_area, quality_profile_area, language_profile_area, series_type_area, path_area, tags_area, _, buttons_area] =
     Layout::vertical([
       Constraint::Length(6),
       Constraint::Length(3),
@@ -119,7 +117,6 @@ fn draw_edit_series_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, ar
       Constraint::Length(3),
       Constraint::Fill(1),
       Constraint::Length(3),
-      Constraint::Length(1),
     ])
     .margin(1)
     .areas(area);
@@ -127,8 +124,6 @@ fn draw_edit_series_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, ar
     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
       .areas(buttons_area);
 
-  let help_text = Text::from(build_context_clue_string(&CONFIRMATION_PROMPT_CONTEXT_CLUES).help());
-  let help_paragraph = Paragraph::new(help_text).centered();
   let prompt_paragraph = layout_paragraph_borderless(&series_overview);
   let monitored_checkbox = Checkbox::new("Monitored")
     .checked(monitored.unwrap_or_default())
@@ -189,7 +184,6 @@ fn draw_edit_series_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, ar
   f.render_widget(series_type_drop_down_button, series_type_area);
   f.render_widget(save_button, save_area);
   f.render_widget(cancel_button, cancel_area);
-  f.render_widget(help_paragraph, help_area);
 }
 
 fn draw_edit_series_select_series_type_popup(f: &mut Frame<'_>, app: &mut App<'_>) {

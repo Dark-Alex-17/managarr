@@ -5,12 +5,10 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::context_clues::build_context_clue_string;
   use crate::app::sonarr::sonarr_context_clues::{
-    DETAILS_CONTEXTUAL_CONTEXT_CLUES, EPISODE_DETAILS_CONTEXT_CLUES,
-    MANUAL_EPISODE_SEARCH_CONTEXT_CLUES, MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
-    SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES, SEASON_DETAILS_CONTEXT_CLUES,
-    SEASON_HISTORY_CONTEXT_CLUES,
+    EPISODE_DETAILS_CONTEXT_CLUES, MANUAL_EPISODE_SEARCH_CONTEXT_CLUES,
+    MANUAL_SEASON_SEARCH_CONTEXT_CLUES, SEASON_DETAILS_CONTEXT_CLUES, SEASON_HISTORY_CONTEXT_CLUES,
+    SELECTABLE_EPISODE_DETAILS_CONTEXT_CLUES,
   };
   use crate::models::servarr_data::sonarr::modals::{
     EditSeriesModal, EpisodeDetailsModal, SeasonDetailsModal,
@@ -257,13 +255,15 @@ mod tests {
       episode_details_modal.episode_details_tabs.tabs[0].route,
       ActiveSonarrBlock::EpisodeDetails.into()
     );
-    assert_str_eq!(
-      episode_details_modal.episode_details_tabs.tabs[0].help,
-      build_context_clue_string(&EPISODE_DETAILS_CONTEXT_CLUES)
-    );
     assert!(episode_details_modal.episode_details_tabs.tabs[0]
       .contextual_help
-      .is_none());
+      .is_some());
+    assert_eq!(
+      episode_details_modal.episode_details_tabs.tabs[0]
+        .contextual_help
+        .unwrap(),
+      &EPISODE_DETAILS_CONTEXT_CLUES
+    );
     assert_eq!(
       episode_details_modal.episode_details_tabs.tabs[0].config,
       None
@@ -277,13 +277,14 @@ mod tests {
       episode_details_modal.episode_details_tabs.tabs[1].route,
       ActiveSonarrBlock::EpisodeHistory.into()
     );
-    assert_str_eq!(
-      episode_details_modal.episode_details_tabs.tabs[1].help,
-      build_context_clue_string(&EPISODE_DETAILS_CONTEXT_CLUES)
-    );
+    assert!(episode_details_modal.episode_details_tabs.tabs[1]
+      .contextual_help
+      .is_some());
     assert_eq!(
-      episode_details_modal.episode_details_tabs.tabs[1].contextual_help,
-      Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES))
+      episode_details_modal.episode_details_tabs.tabs[1]
+        .contextual_help
+        .unwrap(),
+      &SELECTABLE_EPISODE_DETAILS_CONTEXT_CLUES
     );
     assert_eq!(
       episode_details_modal.episode_details_tabs.tabs[1].config,
@@ -298,13 +299,15 @@ mod tests {
       episode_details_modal.episode_details_tabs.tabs[2].route,
       ActiveSonarrBlock::EpisodeFile.into()
     );
-    assert_str_eq!(
-      episode_details_modal.episode_details_tabs.tabs[2].help,
-      build_context_clue_string(&EPISODE_DETAILS_CONTEXT_CLUES)
-    );
     assert!(episode_details_modal.episode_details_tabs.tabs[2]
       .contextual_help
-      .is_none());
+      .is_some());
+    assert_eq!(
+      episode_details_modal.episode_details_tabs.tabs[2]
+        .contextual_help
+        .unwrap(),
+      &EPISODE_DETAILS_CONTEXT_CLUES
+    );
     assert_eq!(
       episode_details_modal.episode_details_tabs.tabs[2].config,
       None
@@ -318,13 +321,14 @@ mod tests {
       episode_details_modal.episode_details_tabs.tabs[3].route,
       ActiveSonarrBlock::ManualEpisodeSearch.into()
     );
-    assert_str_eq!(
-      episode_details_modal.episode_details_tabs.tabs[3].help,
-      build_context_clue_string(&MANUAL_EPISODE_SEARCH_CONTEXT_CLUES)
-    );
+    assert!(episode_details_modal.episode_details_tabs.tabs[3]
+      .contextual_help
+      .is_some());
     assert_eq!(
-      episode_details_modal.episode_details_tabs.tabs[3].contextual_help,
-      Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES))
+      episode_details_modal.episode_details_tabs.tabs[3]
+        .contextual_help
+        .unwrap(),
+      &MANUAL_EPISODE_SEARCH_CONTEXT_CLUES
     );
     assert_eq!(
       episode_details_modal.episode_details_tabs.tabs[3].config,
@@ -352,15 +356,14 @@ mod tests {
       season_details_modal.season_details_tabs.tabs[0].route,
       ActiveSonarrBlock::SeasonDetails.into()
     );
-    assert_str_eq!(
-      season_details_modal.season_details_tabs.tabs[0].help,
-      build_context_clue_string(&SEASON_DETAILS_CONTEXT_CLUES)
-    );
+    assert!(season_details_modal.season_details_tabs.tabs[0]
+      .contextual_help
+      .is_some());
     assert_eq!(
-      season_details_modal.season_details_tabs.tabs[0].contextual_help,
-      Some(build_context_clue_string(
-        &SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES
-      ))
+      season_details_modal.season_details_tabs.tabs[0]
+        .contextual_help
+        .unwrap(),
+      &SEASON_DETAILS_CONTEXT_CLUES
     );
     assert_eq!(
       season_details_modal.season_details_tabs.tabs[0].config,
@@ -375,13 +378,14 @@ mod tests {
       season_details_modal.season_details_tabs.tabs[1].route,
       ActiveSonarrBlock::SeasonHistory.into()
     );
-    assert_str_eq!(
-      season_details_modal.season_details_tabs.tabs[1].help,
-      build_context_clue_string(&SEASON_HISTORY_CONTEXT_CLUES)
-    );
+    assert!(season_details_modal.season_details_tabs.tabs[1]
+      .contextual_help
+      .is_some());
     assert_eq!(
-      season_details_modal.season_details_tabs.tabs[1].contextual_help,
-      Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES))
+      season_details_modal.season_details_tabs.tabs[1]
+        .contextual_help
+        .unwrap(),
+      &SEASON_HISTORY_CONTEXT_CLUES
     );
     assert_eq!(
       season_details_modal.season_details_tabs.tabs[1].config,
@@ -396,13 +400,14 @@ mod tests {
       season_details_modal.season_details_tabs.tabs[2].route,
       ActiveSonarrBlock::ManualSeasonSearch.into()
     );
-    assert_str_eq!(
-      season_details_modal.season_details_tabs.tabs[2].help,
-      build_context_clue_string(&MANUAL_SEASON_SEARCH_CONTEXT_CLUES)
-    );
+    assert!(season_details_modal.season_details_tabs.tabs[2]
+      .contextual_help
+      .is_some());
     assert_eq!(
-      season_details_modal.season_details_tabs.tabs[2].contextual_help,
-      Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES))
+      season_details_modal.season_details_tabs.tabs[2]
+        .contextual_help
+        .unwrap(),
+      &MANUAL_SEASON_SEARCH_CONTEXT_CLUES
     );
     assert_eq!(
       season_details_modal.season_details_tabs.tabs[2].config,
