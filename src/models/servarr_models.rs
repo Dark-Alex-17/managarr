@@ -153,6 +153,23 @@ pub struct Indexer {
   pub tags: Vec<Number>,
 }
 
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct IndexerTestResult {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  pub is_valid: bool,
+  pub validation_failures: Vec<IndexerValidationFailure>,
+}
+
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct IndexerValidationFailure {
+  pub property_name: String,
+  pub error_message: String,
+  pub severity: String,
+}
+
 #[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
 pub struct IndexerField {
   pub name: Option<String>,

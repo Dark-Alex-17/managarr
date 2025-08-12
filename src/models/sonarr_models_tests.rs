@@ -4,10 +4,9 @@ mod tests {
   use serde_json::json;
 
   use crate::models::{
-    radarr_models::IndexerTestResult,
     servarr_models::{
-      DiskSpace, HostConfig, Indexer, Language, Log, LogResponse, QualityProfile, QueueEvent,
-      RootFolder, SecurityConfig, Tag, Update,
+      DiskSpace, HostConfig, Indexer, IndexerTestResult, Language, Log, LogResponse,
+      QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
     },
     sonarr_models::{
       AddSeriesSearchResult, BlocklistItem, BlocklistResponse, DownloadRecord, DownloadStatus,

@@ -9,15 +9,16 @@ use urlencoding::encode;
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieSearchResult, BlocklistResponse, Collection, Credit, CreditType,
   DeleteMovieParams, DownloadRecord, DownloadsResponse, EditCollectionParams, EditMovieParams,
-  IndexerSettings, IndexerTestResult, Movie, MovieCommandBody, MovieHistoryItem, RadarrRelease,
+  IndexerSettings, Movie, MovieCommandBody, MovieHistoryItem, RadarrRelease,
   RadarrReleaseDownloadBody, RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus,
 };
 use crate::models::servarr_data::modals::IndexerTestResultModalItem;
 use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::{
-  AddRootFolderBody, CommandBody, DiskSpace, EditIndexerParams, HostConfig, Indexer, LogResponse,
-  QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
+  AddRootFolderBody, CommandBody, DiskSpace, EditIndexerParams, HostConfig, Indexer,
+  IndexerTestResult, LogResponse, QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag,
+  Update,
 };
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, Scrollable, ScrollableText};

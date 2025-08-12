@@ -21,16 +21,15 @@ mod test {
   };
 
   use crate::app::App;
-  use crate::models::radarr_models::IndexerTestResult;
   use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_data::sonarr::modals::{
     AddSeriesModal, EpisodeDetailsModal, SeasonDetailsModal,
   };
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::servarr_models::{
-    AddRootFolderBody, DiskSpace, EditIndexerParams, HostConfig, Indexer, IndexerField, Language,
-    LogResponse, Quality, QualityProfile, QualityWrapper, QueueEvent, RootFolder, SecurityConfig,
-    Tag, Update,
+    AddRootFolderBody, DiskSpace, EditIndexerParams, HostConfig, Indexer, IndexerField,
+    IndexerTestResult, Language, LogResponse, Quality, QualityProfile, QualityWrapper, QueueEvent,
+    RootFolder, SecurityConfig, Tag, Update,
   };
   use crate::models::sonarr_models::{
     BlocklistItem, DeleteSeriesParams, DownloadRecord, DownloadsResponse, Episode, EpisodeFile,

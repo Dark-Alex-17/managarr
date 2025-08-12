@@ -5,10 +5,10 @@ use serde_json::{json, Number, Value};
 use urlencoding::encode;
 
 use super::{Network, NetworkEvent, NetworkResource};
+use crate::models::servarr_models::IndexerTestResult;
 use crate::models::sonarr_models::{DownloadStatus, MonitorEpisodeBody};
 use crate::{
   models::{
-    radarr_models::IndexerTestResult,
     servarr_data::{
       modals::IndexerTestResultModalItem,
       sonarr::{

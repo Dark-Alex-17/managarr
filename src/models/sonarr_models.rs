@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-use crate::serde_enum_from;
+use crate::{models::servarr_models::IndexerTestResult, serde_enum_from};
 use chrono::{DateTime, Utc};
 use clap::ValueEnum;
 use derivative::Derivative;
@@ -11,7 +11,6 @@ use strum::EnumIter;
 use strum_macros::Display;
 
 use super::{
-  radarr_models::IndexerTestResult,
   servarr_models::{
     DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
     QueueEvent, RootFolder, SecurityConfig, Tag, Update,
