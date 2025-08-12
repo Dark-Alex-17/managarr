@@ -125,13 +125,8 @@ impl From<&SonarrData<'_>> for EditIndexerModal {
       .unwrap()
       .into();
 
-    if seed_ratio_value_option.is_some() {
-      edit_indexer_modal.seed_ratio = seed_ratio_value_option
-        .unwrap()
-        .as_f64()
-        .unwrap()
-        .to_string()
-        .into();
+    if let Some(seed_ratio_value) = seed_ratio_value_option {
+      edit_indexer_modal.seed_ratio = seed_ratio_value.as_f64().unwrap().to_string().into();
     }
 
     edit_indexer_modal.tags = tags

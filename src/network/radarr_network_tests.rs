@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod test {
+  use std::slice;
   use std::sync::Arc;
 
   use bimap::BiMap;
@@ -3980,7 +3981,7 @@ mod test {
     };
 
     assert_str_eq!(
-      get_movie_status(false, &[download_record.clone()], 0),
+      get_movie_status(false, slice::from_ref(&download_record), 0),
       "Missing"
     );
 

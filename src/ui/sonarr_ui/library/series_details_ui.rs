@@ -262,9 +262,9 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         row.downloaded()
       } else if let Some(next_airing_utc) = next_airing.as_ref() {
         if next_airing_utc > &Utc::now() {
-          return row.unreleased();
+          row.unreleased()
         } else {
-          return row.missing();
+          row.missing()
         }
       } else {
         row.missing()

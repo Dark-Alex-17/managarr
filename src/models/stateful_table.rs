@@ -10,7 +10,7 @@ use std::fmt::Debug;
 #[path = "stateful_table_tests.rs"]
 mod stateful_table_tests;
 
-#[derive(Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct SortOption<T>
 where
   T: Clone + PartialEq + Eq + Debug,
@@ -18,6 +18,17 @@ where
   pub name: &'static str,
   pub cmp_fn: Option<fn(&T, &T) -> Ordering>,
 }
+
+impl<T> PartialEq for SortOption<T>
+where
+  T: Clone + PartialEq + Eq + Debug,
+{
+  fn eq(&self, other: &Self) -> bool {
+    self.name == other.name
+  }
+}
+
+impl<T> Eq for SortOption<T> where T: Clone + PartialEq + Eq + Debug {}
 
 #[derive(Default)]
 pub struct StatefulTable<T>
