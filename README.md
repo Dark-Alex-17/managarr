@@ -128,7 +128,7 @@ To use a binary from the releases page on Linux/MacOS, do the following:
 
 1. Download the latest [binary](https://github.com/Dark-Alex-17/managarr/releases) for your OS.
 2. `cd` to the directory where you downloaded the binary.
-3. Extract the binary with `tar -C /usr/local/bin -xzf managarr-<arch>.tar.gz` (NB: This may require `sudo`)
+3. Extract the binary with `tar -C /usr/local/bin -xzf managarr-<arch>.tar.gz` (Note: This may require `sudo`)
 4. Now you can run `managarr`!
 
 ## Features
