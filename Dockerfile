@@ -1,4 +1,4 @@
-FROM rust:1.85 AS builder
+FROM rust:1.89 AS builder
 WORKDIR /usr/src
 
 # Download and compile Rust dependencies in an empty project and cache as a separate Docker layer
