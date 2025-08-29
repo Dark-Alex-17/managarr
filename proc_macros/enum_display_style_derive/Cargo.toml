@@ -2,6 +2,12 @@
 name = "enum_display_style_derive"
 version = "0.1.0"
 edition = "2024"
+authors = ["Alex Clarke <alex.j.tusa@gmail.com>"]
+description = "A proc-macro to derive a `Display` and `FromStr` implementation for enums with a `style` attribute."
+license = "MIT"
+documentation = "https://github.com/Dark-Alex-17/managarr"
+repository = "https://github.com/Dark-Alex-17/managarr"
+homepage = "https://github.com/Dark-Alex-17/managarr"
 
 [lib]
 proc-macro = true
