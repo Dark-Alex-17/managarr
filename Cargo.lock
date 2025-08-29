@@ -616,6 +616,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "enum_display_style_derive"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "583f1f514d2754010ff71ed6853068cacbe43cc142cc076aa1b871d9754efc48"
+dependencies = [
+ "darling",
+ "quote",
+ "syn 2.0.106",
+]
+
+[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1357,7 +1368,7 @@ dependencies = [
  "derive_setters",
  "deunicode",
  "dirs-next",
- "enum_display_style_derive",
+ "enum_display_style_derive 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "human-panic",
  "indicatif",
  "indoc",
@@ -1383,7 +1394,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "urlencoding",
- "validate_theme_derive",
+ "validate_theme_derive 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "veil",
 ]
 
@@ -2844,6 +2855,16 @@ name = "validate_theme_derive"
 version = "0.1.0"
 dependencies = [
  "log",
+ "quote",
+ "syn 2.0.106",
+]
+
+[[package]]
+name = "validate_theme_derive"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "40630259c022600210096da9538abcb992b801e30b464cb9d19f19ef0e0d09b9"
+dependencies = [
  "quote",
  "syn 2.0.106",
 ]

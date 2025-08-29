@@ -2,6 +2,12 @@
 name = "validate_theme_derive"
 version = "0.1.0"
 edition = "2024"
+authors = ["Alex Clarke <alex.j.tusa@gmail.com>"]
+description = "A proc-macro to validate a theme."
+license = "MIT"
+documentation = "https://github.com/Dark-Alex-17/managarr"
+repository = "https://github.com/Dark-Alex-17/managarr"
+homepage = "https://github.com/Dark-Alex-17/managarr"
 
 [lib]
 proc-macro = true
