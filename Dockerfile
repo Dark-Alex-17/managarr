@@ -6,6 +6,7 @@ RUN USER=root cargo new --bin managarr-temp
 
 WORKDIR /usr/src/managarr-temp
 COPY Cargo.* .
+COPY proc_macros ./proc_macros
 RUN cargo build --release
 # remove src from empty project
 RUN rm -r src
