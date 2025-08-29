@@ -88,9 +88,9 @@ jobs:
 
       - name: Bump Cargo.toml version
         run: |
-          sed -i "s/^version = \".*\"/version = \"${{ env.version }}\"/" Cargo.toml
+          sed -E -i '/^name = "managarr"$/ { n; s|^version = "[^"]*"|version = "'"${{ env.version }}"'"| }' Cargo.toml
           cargo update
-          git add Cargo.toml
+          git add Cargo.toml Cargo.lock
           git commit -m "chore: Bump the version in Cargo.toml"
 
       - name: Generate changelog for the version bump
