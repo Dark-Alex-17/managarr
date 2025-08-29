@@ -76,15 +76,15 @@ jobs:
           RUSTDOCFLAGS: --cfg docsrs
   msrv:
     # check that we can build using the minimal rust version that is specified by this crate
-    name: 1.85.0 / check
+    name: 1.89.0 / check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install 1.85.0
+      - name: Install 1.89.0
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.85.0
+          toolchain: 1.89.0
 
-      - name: cargo +1.85.0 check
+      - name: cargo +1.89.0 check
         run: cargo check

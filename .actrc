@@ -1,0 +1,3 @@
+--artifact-server-path=./.act/artifacts
+--cache-server-path=./.act/cache
+--env ACT=true

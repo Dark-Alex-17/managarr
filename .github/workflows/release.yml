@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Configure SSH for Git
+        if: env.ACT != 'true'
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.RELEASE_BOT_SSH_KEY }}" > ~/.ssh/id_ed25519
@@ -30,9 +31,16 @@ jobs:
           ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
       - name: Checkout repository
+        if: env.ACT != 'true'
         uses: actions/checkout@v3
         with:
           ssh-key: ${{ secrets.RELEASE_BOT_SSH_KEY }}
+          fetch-depth: 0
+
+      - name: Checkout repository
+        if: env.ACT == 'true'
+        uses: actions/checkout@v3
+        with:
           fetch-depth: 0
 
       - name: Set up Python
@@ -62,12 +70,6 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Update the Cargo.lock
-        run: |
-          cargo update
-          git add Cargo.lock
-          git commit -m "chore: Bump the version in Cargo.lock"
-
       - name: Get the new version tag
         id: version
         run: |
@@ -84,6 +86,13 @@ jobs:
           echo "Previous tag: $PREV_TAG"
           echo "prev_version=$PREV_TAG" >> $GITHUB_ENV
 
+      - name: Bump Cargo.toml version
+        run: |
+          sed -i "s/^version = \".*\"/version = \"${{ env.version }}\"/" Cargo.toml
+          cargo update
+          git add Cargo.toml
+          git commit -m "chore: Bump the version in Cargo.toml"
+
       - name: Generate changelog for the version bump
         id: changelog
         run: |
@@ -92,6 +101,7 @@ jobs:
           echo "changelog_body=$(cat artifacts/changelog.md)" >> $GITHUB_ENV
 
       - name: Push changes
+        if: env.ACT != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -129,7 +139,7 @@ jobs:
 
     steps:
       - name: Check if actor is repository owner
-        if: ${{ github.actor != github.repository_owner }}
+        if: ${{ github.actor != github.repository_owner && env.ACT != 'true' }}
         run: |
           echo "You are not authorized to run this workflow."
           exit 1
@@ -269,7 +279,13 @@ jobs:
           changelog_body="$(cat ./artifacts/changelog.md)"
           echo "changelog_body=$(cat artifacts/changelog.md)" >> $GITHUB_ENV
 
+      - name: Validate release environment variables
+        run: |
+          echo "Release version: ${{ env.RELEASE_VERSION }}"
+          echo "Changelog body: ${{ env.changelog_body }}"
+
       - name: Create a GitHub Release
+        if: env.ACT != 'true'
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -344,6 +360,7 @@ jobs:
           echo "Release version: ${{ env.RELEASE_VERSION }}"
 
       - name: Package and Publish package to Chocolatey
+        if: env.ACT != 'true'
         run: |
           mkdir ./deployment/chocolatey/tools
           # Run packaging script
@@ -395,11 +412,13 @@ jobs:
           echo "Release version: ${{ env.RELEASE_VERSION }}"
 
       - name: Execute Homebrew packaging script
+        if: env.ACT != 'true'
         run: |
           # run packaging script
           python "./deployment/homebrew/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/homebrew/managarr.rb.template" "./managarr.rb" ${{ env.MACOS_SHA }} ${{ env.MACOS_SHA_ARM }} ${{ env.LINUX_SHA }}
 
       - name: Push changes to Homebrew tap
+        if: env.ACT != 'true'
         env:
           TOKEN: ${{ secrets.MANAGARR_GITHUB_TOKEN }}
         run: |
@@ -457,6 +476,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Push to Docker Hub
+        if: env.ACT != 'true'
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -501,5 +521,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - uses: katyo/publish-crates@v2
+        if: env.ACT != 'true'
         with:
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
