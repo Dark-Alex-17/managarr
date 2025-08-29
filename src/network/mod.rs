@@ -19,6 +19,7 @@ use crate::models::Serdeable;
 use crate::network::radarr_network::RadarrEvent;
 #[cfg(test)]
 use mockall::automock;
+use reqwest::header::HeaderMap;
 
 pub mod radarr_network;
 pub mod sonarr_network;
@@ -167,28 +168,36 @@ impl<'a, 'b> Network<'a, 'b> {
       method,
       body,
       api_token,
+      custom_headers,
       ..
     } = request_props;
     debug!("Creating RequestBuilder for resource: {uri:?}");
     debug!("Sending {method:?} request to {uri} with body {body:?}");
 
     match method {
-      RequestMethod::Get => self.client.get(uri).header("X-Api-Key", api_token),
+      RequestMethod::Get => self
+        .client
+        .get(uri)
+        .header("X-Api-Key", api_token)
+        .headers(custom_headers),
       RequestMethod::Post => self
         .client
         .post(uri)
         .json(&body.unwrap_or_default())
-        .header("X-Api-Key", api_token),
+        .header("X-Api-Key", api_token)
+        .headers(custom_headers),
       RequestMethod::Put => self
         .client
         .put(uri)
         .json(&body.unwrap_or_default())
-        .header("X-Api-Key", api_token),
+        .header("X-Api-Key", api_token)
+        .headers(custom_headers),
       RequestMethod::Delete => self
         .client
         .delete(uri)
         .json(&body.unwrap_or_default())
-        .header("X-Api-Key", api_token),
+        .header("X-Api-Key", api_token)
+        .headers(custom_headers),
     }
   }
 
@@ -212,6 +221,7 @@ impl<'a, 'b> Network<'a, 'b> {
       uri,
       api_token,
       ssl_cert_path,
+      custom_headers: custom_headers_option,
       ..
     } = app
       .server_tabs
@@ -245,12 +255,15 @@ impl<'a, 'b> Network<'a, 'b> {
       uri = format!("{uri}?{params}");
     }
 
+    let custom_headers = custom_headers_option.clone().unwrap_or_default();
+
     RequestProps {
       uri,
       method,
       body,
       api_token: api_token.as_ref().expect("API token not found").clone(),
       ignore_status_code: false,
+      custom_headers,
     }
   }
 }
@@ -270,4 +283,5 @@ pub struct RequestProps<T: Serialize + Debug> {
   pub body: Option<T>,
   pub api_token: String,
   pub ignore_status_code: bool,
+  pub custom_headers: HeaderMap,
 }

@@ -357,6 +357,9 @@ whisparr:
     port: 6969
     api_token: someApiToken1234567890
     ssl_cert_path: /path/to/whisparr.crt
+    custom_headers: # Example of adding custom headers to all requests to the Servarr instance
+      traefik-auth-bypass-key: someBypassKey1234567890
+      SOME-OTHER-CUSTOM-HEADER: ${MY_CUSTOM_HEADER_VALUE}
 bazarr:
   - host: 192.168.0.67
     port: 6767

@@ -3,7 +3,9 @@ use colored::Colorize;
 use itertools::Itertools;
 use log::{debug, error};
 use regex::Regex;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::{fs, process};
 use tokio::sync::mpsc::Sender;
@@ -335,6 +337,12 @@ pub struct ServarrConfig {
   pub api_token_file: Option<String>,
   #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub ssl_cert_path: Option<String>,
+  #[serde(
+    default,
+    deserialize_with = "deserialize_optional_env_var_header_map",
+    serialize_with = "serialize_header_map"
+  )]
+  pub custom_headers: Option<HeaderMap>,
 }
 
 impl ServarrConfig {
@@ -380,6 +388,7 @@ impl Default for ServarrConfig {
       api_token: Some(String::new()),
       api_token_file: None,
       ssl_cert_path: None,
+      custom_headers: None,
     }
   }
 }
@@ -387,6 +396,27 @@ impl Default for ServarrConfig {
 pub fn log_and_print_error(error: String) {
   error!("{error}");
   eprintln!("error: {}", error.red());
+}
+
+fn serialize_header_map<S>(headers: &Option<HeaderMap>, serializer: S) -> Result<S::Ok, S::Error>
+where
+  S: serde::Serializer,
+{
+  if let Some(headers) = headers {
+    let mut map = HashMap::new();
+    for (name, value) in headers.iter() {
+      let name_str = name.as_str().to_string();
+      let value_str = value
+        .to_str()
+        .map_err(serde::ser::Error::custom)?
+        .to_string();
+
+      map.insert(name_str, value_str);
+    }
+    map.serialize(serializer)
+  } else {
+    serializer.serialize_none()
+  }
 }
 
 fn deserialize_optional_env_var<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
@@ -398,6 +428,28 @@ where
     Some(value) => {
       let interpolated = interpolate_env_vars(&value);
       Ok(Some(interpolated))
+    }
+    None => Ok(None),
+  }
+}
+
+fn deserialize_optional_env_var_header_map<'de, D>(
+  deserializer: D,
+) -> Result<Option<HeaderMap>, D::Error>
+where
+  D: serde::Deserializer<'de>,
+{
+  let opt: Option<HashMap<String, String>> = Option::deserialize(deserializer)?;
+  match opt {
+    Some(map) => {
+      let mut header_map = HeaderMap::new();
+      for (k, v) in map.iter() {
+        let name = HeaderName::from_bytes(k.as_bytes()).map_err(serde::de::Error::custom)?;
+        let value_str = interpolate_env_vars(v);
+        let value = HeaderValue::from_str(&value_str).map_err(serde::de::Error::custom)?;
+        header_map.insert(name, value);
+      }
+      Ok(Some(header_map))
     }
     None => Ok(None),
   }
