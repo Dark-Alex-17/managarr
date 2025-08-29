@@ -5,12 +5,11 @@ mod tests {
     use pretty_assertions::{assert_eq, assert_str_eq};
 
     use crate::app::context_clues::{
-      build_context_clue_string, BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
-      INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+      BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
+      ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
     };
     use crate::app::radarr::radarr_context_clues::{
-      COLLECTIONS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES,
-      MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXT_CLUES,
+      COLLECTIONS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXT_CLUES,
       MOVIE_DETAILS_CONTEXT_CLUES,
     };
 
@@ -107,10 +106,10 @@ mod tests {
         radarr_data.main_tabs.tabs[0].route,
         ActiveRadarrBlock::Movies.into()
       );
-      assert!(radarr_data.main_tabs.tabs[0].help.is_empty());
+      assert!(radarr_data.main_tabs.tabs[0].contextual_help.is_some());
       assert_eq!(
-        radarr_data.main_tabs.tabs[0].contextual_help,
-        Some(build_context_clue_string(&LIBRARY_CONTEXT_CLUES))
+        radarr_data.main_tabs.tabs[0].contextual_help.unwrap(),
+        &LIBRARY_CONTEXT_CLUES
       );
       assert_eq!(radarr_data.main_tabs.tabs[0].config, None);
 
@@ -119,10 +118,10 @@ mod tests {
         radarr_data.main_tabs.tabs[1].route,
         ActiveRadarrBlock::Collections.into()
       );
-      assert!(radarr_data.main_tabs.tabs[1].help.is_empty());
+      assert!(radarr_data.main_tabs.tabs[1].contextual_help.is_some());
       assert_eq!(
-        radarr_data.main_tabs.tabs[1].contextual_help,
-        Some(build_context_clue_string(&COLLECTIONS_CONTEXT_CLUES))
+        radarr_data.main_tabs.tabs[1].contextual_help.unwrap(),
+        &COLLECTIONS_CONTEXT_CLUES
       );
       assert_eq!(radarr_data.main_tabs.tabs[1].config, None);
 
@@ -131,10 +130,10 @@ mod tests {
         radarr_data.main_tabs.tabs[2].route,
         ActiveRadarrBlock::Downloads.into()
       );
-      assert!(radarr_data.main_tabs.tabs[2].help.is_empty());
+      assert!(radarr_data.main_tabs.tabs[2].contextual_help.is_some());
       assert_eq!(
-        radarr_data.main_tabs.tabs[2].contextual_help,
-        Some(build_context_clue_string(&DOWNLOADS_CONTEXT_CLUES))
+        radarr_data.main_tabs.tabs[2].contextual_help.unwrap(),
+        &DOWNLOADS_CONTEXT_CLUES
       );
       assert_eq!(radarr_data.main_tabs.tabs[2].config, None);
 
@@ -143,10 +142,10 @@ mod tests {
         radarr_data.main_tabs.tabs[3].route,
         ActiveRadarrBlock::Blocklist.into()
       );
-      assert!(radarr_data.main_tabs.tabs[3].help.is_empty());
+      assert!(radarr_data.main_tabs.tabs[3].contextual_help.is_some());
       assert_eq!(
-        radarr_data.main_tabs.tabs[3].contextual_help,
-        Some(build_context_clue_string(&BLOCKLIST_CONTEXT_CLUES))
+        radarr_data.main_tabs.tabs[3].contextual_help.unwrap(),
+        &BLOCKLIST_CONTEXT_CLUES
       );
       assert_eq!(radarr_data.main_tabs.tabs[3].config, None);
 
@@ -155,10 +154,10 @@ mod tests {
         radarr_data.main_tabs.tabs[4].route,
         ActiveRadarrBlock::RootFolders.into()
       );
-      assert!(radarr_data.main_tabs.tabs[4].help.is_empty());
+      assert!(radarr_data.main_tabs.tabs[4].contextual_help.is_some());
       assert_eq!(
-        radarr_data.main_tabs.tabs[4].contextual_help,
-        Some(build_context_clue_string(&ROOT_FOLDERS_CONTEXT_CLUES))
+        radarr_data.main_tabs.tabs[4].contextual_help.unwrap(),
+        &ROOT_FOLDERS_CONTEXT_CLUES
       );
       assert_eq!(radarr_data.main_tabs.tabs[4].config, None);
 
@@ -167,10 +166,10 @@ mod tests {
         radarr_data.main_tabs.tabs[5].route,
         ActiveRadarrBlock::Indexers.into()
       );
-      assert!(radarr_data.main_tabs.tabs[5].help.is_empty());
+      assert!(radarr_data.main_tabs.tabs[5].contextual_help.is_some());
       assert_eq!(
-        radarr_data.main_tabs.tabs[5].contextual_help,
-        Some(build_context_clue_string(&INDEXERS_CONTEXT_CLUES))
+        radarr_data.main_tabs.tabs[5].contextual_help.unwrap(),
+        &INDEXERS_CONTEXT_CLUES
       );
       assert_eq!(radarr_data.main_tabs.tabs[5].config, None);
 
@@ -179,10 +178,10 @@ mod tests {
         radarr_data.main_tabs.tabs[6].route,
         ActiveRadarrBlock::System.into()
       );
-      assert!(radarr_data.main_tabs.tabs[6].help.is_empty());
+      assert!(radarr_data.main_tabs.tabs[6].contextual_help.is_some());
       assert_eq!(
-        radarr_data.main_tabs.tabs[6].contextual_help,
-        Some(build_context_clue_string(&SYSTEM_CONTEXT_CLUES))
+        radarr_data.main_tabs.tabs[6].contextual_help.unwrap(),
+        &SYSTEM_CONTEXT_CLUES
       );
       assert_eq!(radarr_data.main_tabs.tabs[6].config, None);
 
@@ -193,13 +192,13 @@ mod tests {
         radarr_data.movie_info_tabs.tabs[0].route,
         ActiveRadarrBlock::MovieDetails.into()
       );
-      assert_str_eq!(
-        radarr_data.movie_info_tabs.tabs[0].help,
-        build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES)
-      );
       assert!(radarr_data.movie_info_tabs.tabs[0]
         .contextual_help
-        .is_none());
+        .is_some());
+      assert_eq!(
+        radarr_data.movie_info_tabs.tabs[0].contextual_help.unwrap(),
+        &MOVIE_DETAILS_CONTEXT_CLUES
+      );
       assert_eq!(radarr_data.movie_info_tabs.tabs[0].config, None);
 
       assert_str_eq!(radarr_data.movie_info_tabs.tabs[1].title, "History");
@@ -207,13 +206,13 @@ mod tests {
         radarr_data.movie_info_tabs.tabs[1].route,
         ActiveRadarrBlock::MovieHistory.into()
       );
-      assert_str_eq!(
-        radarr_data.movie_info_tabs.tabs[1].help,
-        build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES)
-      );
       assert!(radarr_data.movie_info_tabs.tabs[1]
         .contextual_help
-        .is_none());
+        .is_some());
+      assert_eq!(
+        radarr_data.movie_info_tabs.tabs[1].contextual_help.unwrap(),
+        &MOVIE_DETAILS_CONTEXT_CLUES
+      );
       assert_eq!(radarr_data.movie_info_tabs.tabs[1].config, None);
 
       assert_str_eq!(radarr_data.movie_info_tabs.tabs[2].title, "File");
@@ -221,13 +220,13 @@ mod tests {
         radarr_data.movie_info_tabs.tabs[2].route,
         ActiveRadarrBlock::FileInfo.into()
       );
-      assert_str_eq!(
-        radarr_data.movie_info_tabs.tabs[2].help,
-        build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES)
-      );
       assert!(radarr_data.movie_info_tabs.tabs[2]
         .contextual_help
-        .is_none());
+        .is_some());
+      assert_eq!(
+        radarr_data.movie_info_tabs.tabs[2].contextual_help.unwrap(),
+        &MOVIE_DETAILS_CONTEXT_CLUES
+      );
       assert_eq!(radarr_data.movie_info_tabs.tabs[2].config, None);
 
       assert_str_eq!(radarr_data.movie_info_tabs.tabs[3].title, "Cast");
@@ -235,13 +234,13 @@ mod tests {
         radarr_data.movie_info_tabs.tabs[3].route,
         ActiveRadarrBlock::Cast.into()
       );
-      assert_str_eq!(
-        radarr_data.movie_info_tabs.tabs[3].help,
-        build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES)
-      );
       assert!(radarr_data.movie_info_tabs.tabs[3]
         .contextual_help
-        .is_none());
+        .is_some());
+      assert_eq!(
+        radarr_data.movie_info_tabs.tabs[3].contextual_help.unwrap(),
+        &MOVIE_DETAILS_CONTEXT_CLUES
+      );
       assert_eq!(radarr_data.movie_info_tabs.tabs[3].config, None);
 
       assert_str_eq!(radarr_data.movie_info_tabs.tabs[4].title, "Crew");
@@ -249,13 +248,13 @@ mod tests {
         radarr_data.movie_info_tabs.tabs[4].route,
         ActiveRadarrBlock::Crew.into()
       );
-      assert_str_eq!(
-        radarr_data.movie_info_tabs.tabs[4].help,
-        build_context_clue_string(&MOVIE_DETAILS_CONTEXT_CLUES)
-      );
       assert!(radarr_data.movie_info_tabs.tabs[4]
         .contextual_help
-        .is_none());
+        .is_some());
+      assert_eq!(
+        radarr_data.movie_info_tabs.tabs[4].contextual_help.unwrap(),
+        &MOVIE_DETAILS_CONTEXT_CLUES
+      );
       assert_eq!(radarr_data.movie_info_tabs.tabs[4].config, None);
 
       assert_str_eq!(radarr_data.movie_info_tabs.tabs[5].title, "Manual Search");
@@ -263,15 +262,12 @@ mod tests {
         radarr_data.movie_info_tabs.tabs[5].route,
         ActiveRadarrBlock::ManualSearch.into()
       );
-      assert_str_eq!(
-        radarr_data.movie_info_tabs.tabs[5].help,
-        build_context_clue_string(&MANUAL_MOVIE_SEARCH_CONTEXT_CLUES)
-      );
+      assert!(radarr_data.movie_info_tabs.tabs[5]
+        .contextual_help
+        .is_some());
       assert_eq!(
-        radarr_data.movie_info_tabs.tabs[5].contextual_help,
-        Some(build_context_clue_string(
-          &MANUAL_MOVIE_SEARCH_CONTEXTUAL_CONTEXT_CLUES
-        ))
+        radarr_data.movie_info_tabs.tabs[5].contextual_help.unwrap(),
+        &MANUAL_MOVIE_SEARCH_CONTEXT_CLUES
       );
       assert_eq!(radarr_data.movie_info_tabs.tabs[5].config, None);
     }

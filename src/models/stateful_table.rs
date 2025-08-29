@@ -1,5 +1,7 @@
 use crate::models::stateful_list::StatefulList;
-use crate::models::{strip_non_search_characters, HorizontallyScrollableText, Scrollable};
+use crate::models::{
+  strip_non_search_characters, HorizontallyScrollableText, Paginated, Scrollable,
+};
 use ratatui::widgets::TableState;
 use std::cmp::Ordering;
 use std::fmt::Debug;
@@ -8,7 +10,7 @@ use std::fmt::Debug;
 #[path = "stateful_table_tests.rs"]
 mod stateful_table_tests;
 
-#[derive(Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct SortOption<T>
 where
   T: Clone + PartialEq + Eq + Debug,
@@ -16,6 +18,17 @@ where
   pub name: &'static str,
   pub cmp_fn: Option<fn(&T, &T) -> Ordering>,
 }
+
+impl<T> PartialEq for SortOption<T>
+where
+  T: Clone + PartialEq + Eq + Debug,
+{
+  fn eq(&self, other: &Self) -> bool {
+    self.name == other.name
+  }
+}
+
+impl<T> Eq for SortOption<T> where T: Clone + PartialEq + Eq + Debug {}
 
 #[derive(Default)]
 pub struct StatefulTable<T>
@@ -148,6 +161,79 @@ where
     }
 
     self.state.select(Some(self.items.len() - 1));
+  }
+}
+
+impl<T> Paginated for StatefulTable<T>
+where
+  T: Clone + PartialEq + Eq + Debug,
+{
+  fn page_down(&mut self) {
+    if let Some(filtered_items) = self.filtered_items.as_ref() {
+      if filtered_items.is_empty() {
+        return;
+      }
+
+      match self.filtered_state.as_ref().unwrap().selected() {
+        Some(i) => {
+          self
+            .filtered_state
+            .as_mut()
+            .unwrap()
+            .select(Some(i.saturating_add(20) % (filtered_items.len() - 1)));
+        }
+        None => self.filtered_state.as_mut().unwrap().select_first(),
+      };
+
+      return;
+    }
+
+    if self.items.is_empty() {
+      return;
+    }
+
+    match self.state.selected() {
+      Some(i) => {
+        self
+          .state
+          .select(Some(i.saturating_add(20) % (self.items.len() - 1)));
+      }
+      None => self.state.select_first(),
+    };
+  }
+
+  fn page_up(&mut self) {
+    if let Some(filtered_items) = self.filtered_items.as_ref() {
+      if filtered_items.is_empty() {
+        return;
+      }
+
+      match self.filtered_state.as_ref().unwrap().selected() {
+        Some(i) => {
+          let len = filtered_items.len() - 1;
+          self
+            .filtered_state
+            .as_mut()
+            .unwrap()
+            .select(Some((i + len - (20 % len)) % len));
+        }
+        None => self.filtered_state.as_mut().unwrap().select_last(),
+      };
+
+      return;
+    }
+
+    if self.items.is_empty() {
+      return;
+    }
+
+    match self.state.selected() {
+      Some(i) => {
+        let len = self.items.len() - 1;
+        self.state.select(Some((i + len - (20 % len)) % len));
+      }
+      None => self.state.select_last(),
+    };
   }
 }
 

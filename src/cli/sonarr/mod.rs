@@ -146,6 +146,17 @@ pub enum SonarrCommand {
     )]
     season_number: i64,
   },
+  #[command(
+    about = "Toggle monitoring for the specified series corresponding to the given series ID"
+  )]
+  ToggleSeriesMonitoring {
+    #[arg(
+      long,
+      help = "The Sonarr ID of the series to toggle monitoring on",
+      required = true
+    )]
+    series_id: i64,
+  },
 }
 
 impl From<SonarrCommand> for Command {
@@ -287,6 +298,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
           .handle_network_event(
             SonarrEvent::ToggleSeasonMonitoring((series_id, season_number)).into(),
           )
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      SonarrCommand::ToggleSeriesMonitoring { series_id } => {
+        let resp = self
+          .network
+          .handle_network_event(SonarrEvent::ToggleSeriesMonitoring(series_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

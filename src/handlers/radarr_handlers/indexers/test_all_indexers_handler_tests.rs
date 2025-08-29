@@ -7,6 +7,7 @@ mod tests {
   use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::stateful_table::StatefulTable;
+  use rstest::rstest;
   use strum::IntoEnumIterator;
 
   mod test_handle_esc {
@@ -46,6 +47,25 @@ mod tests {
         assert!(!TestAllIndexersHandler::accepts(active_radarr_block));
       }
     });
+  }
+
+  #[rstest]
+  fn test_test_all_indexers_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = TestAllIndexersHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

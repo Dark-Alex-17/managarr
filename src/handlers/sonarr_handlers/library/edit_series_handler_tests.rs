@@ -2,6 +2,7 @@
 mod tests {
   use bimap::BiMap;
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use rstest::rstest;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -677,7 +678,7 @@ mod tests {
     #[test]
     fn test_edit_series_path_input_submit() {
       let mut app = App::test_default();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal {
         path: "Test Path".into(),
         ..EditSeriesModal::default()
@@ -694,7 +695,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(!app
         .data
         .sonarr_data
@@ -713,7 +714,7 @@ mod tests {
     #[test]
     fn test_edit_series_tags_input_submit() {
       let mut app = App::test_default();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal {
         tags: "Test Tags".into(),
         ..EditSeriesModal::default()
@@ -730,7 +731,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(!app
         .data
         .sonarr_data
@@ -1010,7 +1011,7 @@ mod tests {
       if selected_block == ActiveSonarrBlock::EditSeriesPathInput
         || selected_block == ActiveSonarrBlock::EditSeriesTagsInput
       {
-        assert!(app.should_ignore_quit_key);
+        assert!(app.ignore_special_keys_for_textbox_input);
       }
     }
 
@@ -1049,7 +1050,7 @@ mod tests {
           .into()
       );
       assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
     }
 
     #[rstest]
@@ -1085,7 +1086,7 @@ mod tests {
       if active_sonarr_block == ActiveSonarrBlock::EditSeriesPathInput
         || active_sonarr_block == ActiveSonarrBlock::EditSeriesTagsInput
       {
-        assert!(!app.should_ignore_quit_key);
+        assert!(!app.ignore_special_keys_for_textbox_input);
       }
     }
   }
@@ -1111,14 +1112,14 @@ mod tests {
     ) {
       let mut app = App::test_default();
       app.data.sonarr_data = create_test_sonarr_data();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
       app.push_navigation_stack(active_sonarr_block.into());
 
       EditSeriesHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.get_current_route(),
         ActiveSonarrBlock::EditSeriesPrompt.into()
@@ -1243,7 +1244,7 @@ mod tests {
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
 
       EditSeriesHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveSonarrBlock::EditSeriesPathInput,
         None,
@@ -1259,7 +1260,7 @@ mod tests {
           .unwrap()
           .path
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1270,7 +1271,7 @@ mod tests {
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::default());
 
       EditSeriesHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveSonarrBlock::EditSeriesTagsInput,
         None,
@@ -1286,7 +1287,7 @@ mod tests {
           .unwrap()
           .tags
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1366,6 +1367,25 @@ mod tests {
         assert!(!EditSeriesHandler::accepts(active_sonarr_block));
       }
     });
+  }
+
+  #[rstest]
+  fn test_edit_series_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = EditSeriesHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

@@ -48,6 +48,10 @@ mod tests {
       true
     }
 
+    fn ignore_special_keys(&self) -> bool {
+      self.app.ignore_special_keys_for_textbox_input
+    }
+
     fn new(
       key: Key,
       app: &'a mut App<'b>,
@@ -425,6 +429,48 @@ mod tests {
     }
   }
 
+  mod test_handle_pagination_scroll {
+    use super::*;
+    use crate::handlers::table_handler::table_handler_tests::tests::TableHandlerUnit;
+    use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+    use pretty_assertions::assert_str_eq;
+    use rstest::rstest;
+    use std::iter;
+
+    #[rstest]
+    fn test_table_pagination_scroll(
+      #[values(DEFAULT_KEYBINDINGS.pg_up.key, DEFAULT_KEYBINDINGS.pg_down.key)] key: Key,
+    ) {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      let mut curr = 0;
+      let movies_vec = iter::repeat_with(|| {
+        let tmp = curr;
+        curr += 1;
+        Movie {
+          title: format!("Test {tmp}").into(),
+          ..Movie::default()
+        }
+      })
+      .take(100)
+      .collect();
+      app.data.radarr_data.movies.set_items(movies_vec);
+      TableHandlerUnit::new(key, &mut app, ActiveRadarrBlock::Movies, None).handle();
+
+      if key == Key::PgUp {
+        assert_str_eq!(
+          app.data.radarr_data.movies.current_selection().title.text,
+          "Test 79"
+        );
+      } else {
+        assert_str_eq!(
+          app.data.radarr_data.movies.current_selection().title.text,
+          "Test 20"
+        );
+      }
+    }
+  }
+
   mod test_handle_left_right_action {
     use pretty_assertions::assert_eq;
     use std::sync::atomic::Ordering::SeqCst;
@@ -648,7 +694,7 @@ mod tests {
       TableHandlerUnit::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::FilterMovies, None).handle();
 
       assert!(app.data.radarr_data.movies.filtered_items.is_some());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app
           .data
@@ -684,7 +730,7 @@ mod tests {
 
       TableHandlerUnit::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::FilterMovies, None).handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(app.data.radarr_data.movies.filtered_items.is_none());
       assert_eq!(
         app.get_current_route(),
@@ -735,7 +781,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::test_default();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data = create_test_radarr_data();
@@ -744,7 +790,7 @@ mod tests {
       TableHandlerUnit::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.data.radarr_data.movies.search, None);
     }
 
@@ -754,7 +800,7 @@ mod tests {
       active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::test_default();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.push_navigation_stack(active_radarr_block.into());
       app.data.radarr_data = create_test_radarr_data();
@@ -773,7 +819,7 @@ mod tests {
       TableHandlerUnit::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.data.radarr_data.movies.filter, None);
       assert_eq!(app.data.radarr_data.movies.filtered_items, None);
       assert_eq!(app.data.radarr_data.movies.filtered_state, None);
@@ -820,7 +866,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::SearchMovie.into()
       );
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.data.radarr_data.movies.search,
         Some(HorizontallyScrollableText::default())
@@ -847,7 +893,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.data.radarr_data.movies.search, None);
     }
 
@@ -869,7 +915,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.data.radarr_data.movies.search, None);
     }
 
@@ -894,7 +940,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::FilterMovies.into()
       );
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert!(app.data.radarr_data.movies.filter.is_some());
     }
 
@@ -918,14 +964,14 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(app.data.radarr_data.movies.filter.is_none());
     }
 
     #[test]
     fn test_filter_table_key_resets_previous_filter() {
       let mut app = App::test_default();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
       app.data.radarr_data = create_test_radarr_data();
       app
@@ -947,7 +993,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::FilterMovies.into()
       );
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.data.radarr_data.movies.filter,
         Some(HorizontallyScrollableText::default())
@@ -974,7 +1020,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.data.radarr_data.movies.filter, None);
     }
 
@@ -1040,7 +1086,7 @@ mod tests {
       app.data.radarr_data.movies.search = Some(HorizontallyScrollableText::default());
 
       TableHandlerUnit::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::SearchMovie,
         None,
@@ -1049,7 +1095,7 @@ mod tests {
 
       assert_str_eq!(
         app.data.radarr_data.movies.search.as_ref().unwrap().text,
-        "h"
+        "a"
       );
     }
 
@@ -1065,7 +1111,7 @@ mod tests {
       app.data.radarr_data.movies.filter = Some(HorizontallyScrollableText::default());
 
       TableHandlerUnit::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::FilterMovies,
         None,
@@ -1074,7 +1120,7 @@ mod tests {
 
       assert_str_eq!(
         app.data.radarr_data.movies.filter.as_ref().unwrap().text,
-        "h"
+        "a"
       );
     }
 
@@ -1161,7 +1207,7 @@ mod tests {
           name: "English".to_owned(),
         },
         size_on_disk: 1024,
-        studio: "Studio 1".to_owned(),
+        studio: Some("Studio 1".to_owned()),
         year: 2024,
         monitored: false,
         runtime: 12.into(),
@@ -1178,7 +1224,7 @@ mod tests {
           name: "Chinese".to_owned(),
         },
         size_on_disk: 2048,
-        studio: "Studio 2".to_owned(),
+        studio: Some("Studio 2".to_owned()),
         year: 1998,
         monitored: false,
         runtime: 60.into(),
@@ -1195,7 +1241,7 @@ mod tests {
           name: "Japanese".to_owned(),
         },
         size_on_disk: 512,
-        studio: "studio 3".to_owned(),
+        studio: Some("studio 3".to_owned()),
         year: 1954,
         monitored: true,
         runtime: 120.into(),

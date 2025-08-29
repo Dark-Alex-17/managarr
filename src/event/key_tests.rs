@@ -11,6 +11,8 @@ mod tests {
   #[case(Key::Down, "↓")]
   #[case(Key::Left, "←")]
   #[case(Key::Right, "→")]
+  #[case(Key::PgDown, "pgDown")]
+  #[case(Key::PgUp, "pgUp")]
   #[case(Key::Enter, "enter")]
   #[case(Key::Esc, "esc")]
   #[case(Key::Backspace, "backspace")]
@@ -22,7 +24,7 @@ mod tests {
   #[case(Key::Char('q'), "q")]
   #[case(Key::Ctrl('q'), "ctrl-q")]
   fn test_key_formatter(#[case] key: Key, #[case] expected_str: &str) {
-    assert_str_eq!(format!("{key}"), format!("<{expected_str}>"));
+    assert_str_eq!(format!("{key}"), format!("{expected_str}"));
   }
 
   #[test]
@@ -43,6 +45,16 @@ mod tests {
   #[test]
   fn test_key_from_right() {
     assert_eq!(Key::from(KeyEvent::from(KeyCode::Right)), Key::Right);
+  }
+
+  #[test]
+  fn test_key_from_page_down() {
+    assert_eq!(Key::from(KeyEvent::from(KeyCode::PageDown)), Key::PgDown);
+  }
+
+  #[test]
+  fn test_key_from_page_up() {
+    assert_eq!(Key::from(KeyEvent::from(KeyCode::PageUp)), Key::PgUp);
   }
 
   #[test]

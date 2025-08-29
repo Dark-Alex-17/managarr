@@ -77,12 +77,6 @@ impl DrawUi for BlocklistUi {
 
 fn draw_blocklist_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
-    let blocklist_table_footer = app
-      .data
-      .sonarr_data
-      .main_tabs
-      .get_active_tab_contextual_help();
-
     let blocklist_row_mapping = |blocklist_item: &BlocklistItem| {
       let BlocklistItem {
         source_title,
@@ -115,7 +109,6 @@ fn draw_blocklist_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     )
     .block(layout_block_top_border())
     .loading(app.is_loading)
-    .footer(blocklist_table_footer)
     .sorting(active_sonarr_block == ActiveSonarrBlock::BlocklistSortPrompt)
     .headers([
       "Series Title",

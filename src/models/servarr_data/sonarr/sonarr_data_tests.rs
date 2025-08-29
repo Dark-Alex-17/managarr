@@ -10,8 +10,8 @@ mod tests {
     use crate::{
       app::{
         context_clues::{
-          build_context_clue_string, BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
-          INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+          BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
+          ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
         },
         sonarr::sonarr_context_clues::{
           HISTORY_CONTEXT_CLUES, SERIES_CONTEXT_CLUES, SERIES_DETAILS_CONTEXT_CLUES,
@@ -123,10 +123,10 @@ mod tests {
         sonarr_data.main_tabs.tabs[0].route,
         ActiveSonarrBlock::Series.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[0].help.is_empty());
+      assert!(sonarr_data.main_tabs.tabs[0].contextual_help.is_some());
       assert_eq!(
-        sonarr_data.main_tabs.tabs[0].contextual_help,
-        Some(build_context_clue_string(&SERIES_CONTEXT_CLUES))
+        sonarr_data.main_tabs.tabs[0].contextual_help.unwrap(),
+        &SERIES_CONTEXT_CLUES
       );
       assert_eq!(sonarr_data.main_tabs.tabs[0].config, None);
 
@@ -135,10 +135,10 @@ mod tests {
         sonarr_data.main_tabs.tabs[1].route,
         ActiveSonarrBlock::Downloads.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[1].help.is_empty());
+      assert!(sonarr_data.main_tabs.tabs[1].contextual_help.is_some());
       assert_eq!(
-        sonarr_data.main_tabs.tabs[1].contextual_help,
-        Some(build_context_clue_string(&DOWNLOADS_CONTEXT_CLUES))
+        sonarr_data.main_tabs.tabs[1].contextual_help.unwrap(),
+        &DOWNLOADS_CONTEXT_CLUES
       );
       assert_eq!(sonarr_data.main_tabs.tabs[1].config, None);
 
@@ -147,10 +147,10 @@ mod tests {
         sonarr_data.main_tabs.tabs[2].route,
         ActiveSonarrBlock::Blocklist.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[2].help.is_empty());
+      assert!(sonarr_data.main_tabs.tabs[2].contextual_help.is_some());
       assert_eq!(
-        sonarr_data.main_tabs.tabs[2].contextual_help,
-        Some(build_context_clue_string(&BLOCKLIST_CONTEXT_CLUES))
+        sonarr_data.main_tabs.tabs[2].contextual_help.unwrap(),
+        &BLOCKLIST_CONTEXT_CLUES
       );
       assert_eq!(sonarr_data.main_tabs.tabs[2].config, None);
 
@@ -159,10 +159,10 @@ mod tests {
         sonarr_data.main_tabs.tabs[3].route,
         ActiveSonarrBlock::History.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[3].help.is_empty());
+      assert!(sonarr_data.main_tabs.tabs[3].contextual_help.is_some());
       assert_eq!(
-        sonarr_data.main_tabs.tabs[3].contextual_help,
-        Some(build_context_clue_string(&HISTORY_CONTEXT_CLUES))
+        sonarr_data.main_tabs.tabs[3].contextual_help.unwrap(),
+        &HISTORY_CONTEXT_CLUES
       );
       assert_eq!(sonarr_data.main_tabs.tabs[3].config, None);
 
@@ -171,10 +171,10 @@ mod tests {
         sonarr_data.main_tabs.tabs[4].route,
         ActiveSonarrBlock::RootFolders.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[4].help.is_empty());
+      assert!(sonarr_data.main_tabs.tabs[4].contextual_help.is_some());
       assert_eq!(
-        sonarr_data.main_tabs.tabs[4].contextual_help,
-        Some(build_context_clue_string(&ROOT_FOLDERS_CONTEXT_CLUES))
+        sonarr_data.main_tabs.tabs[4].contextual_help.unwrap(),
+        &ROOT_FOLDERS_CONTEXT_CLUES
       );
       assert_eq!(sonarr_data.main_tabs.tabs[4].config, None);
 
@@ -183,10 +183,10 @@ mod tests {
         sonarr_data.main_tabs.tabs[5].route,
         ActiveSonarrBlock::Indexers.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[5].help.is_empty());
+      assert!(sonarr_data.main_tabs.tabs[5].contextual_help.is_some());
       assert_eq!(
-        sonarr_data.main_tabs.tabs[5].contextual_help,
-        Some(build_context_clue_string(&INDEXERS_CONTEXT_CLUES))
+        sonarr_data.main_tabs.tabs[5].contextual_help.unwrap(),
+        &INDEXERS_CONTEXT_CLUES
       );
       assert_eq!(sonarr_data.main_tabs.tabs[5].config, None);
 
@@ -195,10 +195,10 @@ mod tests {
         sonarr_data.main_tabs.tabs[6].route,
         ActiveSonarrBlock::System.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[6].help.is_empty());
+      assert!(sonarr_data.main_tabs.tabs[6].contextual_help.is_some());
       assert_eq!(
-        sonarr_data.main_tabs.tabs[6].contextual_help,
-        Some(build_context_clue_string(&SYSTEM_CONTEXT_CLUES))
+        sonarr_data.main_tabs.tabs[6].contextual_help.unwrap(),
+        &SYSTEM_CONTEXT_CLUES
       );
       assert_eq!(sonarr_data.main_tabs.tabs[6].config, None);
 
@@ -209,10 +209,14 @@ mod tests {
         sonarr_data.series_info_tabs.tabs[0].route,
         ActiveSonarrBlock::SeriesDetails.into()
       );
-      assert!(sonarr_data.series_info_tabs.tabs[0].help.is_empty());
+      assert!(sonarr_data.series_info_tabs.tabs[0]
+        .contextual_help
+        .is_some());
       assert_eq!(
-        sonarr_data.series_info_tabs.tabs[0].contextual_help,
-        Some(build_context_clue_string(&SERIES_DETAILS_CONTEXT_CLUES))
+        sonarr_data.series_info_tabs.tabs[0]
+          .contextual_help
+          .unwrap(),
+        &SERIES_DETAILS_CONTEXT_CLUES
       );
       assert_eq!(sonarr_data.series_info_tabs.tabs[0].config, None);
 
@@ -221,10 +225,14 @@ mod tests {
         sonarr_data.series_info_tabs.tabs[1].route,
         ActiveSonarrBlock::SeriesHistory.into()
       );
-      assert!(sonarr_data.series_info_tabs.tabs[1].help.is_empty());
+      assert!(sonarr_data.series_info_tabs.tabs[1]
+        .contextual_help
+        .is_some());
       assert_eq!(
-        sonarr_data.series_info_tabs.tabs[1].contextual_help,
-        Some(build_context_clue_string(&SERIES_HISTORY_CONTEXT_CLUES))
+        sonarr_data.series_info_tabs.tabs[1]
+          .contextual_help
+          .unwrap(),
+        &SERIES_HISTORY_CONTEXT_CLUES
       );
       assert_eq!(sonarr_data.series_info_tabs.tabs[1].config, None);
     }

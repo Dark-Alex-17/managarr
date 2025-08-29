@@ -9,6 +9,7 @@ mod tests {
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::radarr_handlers::library::{movies_sorting_options, LibraryHandler};
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::movie;
   use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::{
@@ -331,7 +332,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::AddMovieSearchInput.into()
       );
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert!(app.data.radarr_data.add_movie_search.is_some());
     }
 
@@ -355,7 +356,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(app.data.radarr_data.add_movie_search.is_none());
     }
 
@@ -389,6 +390,51 @@ mod tests {
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert!(app.data.radarr_data.edit_movie_modal.is_none());
+    }
+
+    #[test]
+    fn test_toggle_monitoring_key() {
+      let mut app = App::test_default();
+      app.data.radarr_data = create_test_radarr_data();
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      app.is_routing = false;
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+        &mut app,
+        ActiveRadarrBlock::Movies,
+        None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert!(app.data.radarr_data.prompt_confirm);
+      assert!(app.is_routing);
+      assert_eq!(
+        app.data.radarr_data.prompt_confirm_action,
+        Some(RadarrEvent::ToggleMovieMonitoring(0))
+      );
+    }
+
+    #[test]
+    fn test_toggle_monitoring_key_no_op_when_not_ready() {
+      let mut app = App::test_default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
+      app.is_routing = false;
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+        &mut app,
+        ActiveRadarrBlock::Movies,
+        None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert!(!app.data.radarr_data.prompt_confirm);
+      assert!(app.data.radarr_data.prompt_confirm_action.is_none());
+      assert!(!app.is_routing);
     }
 
     #[test]
@@ -581,6 +627,22 @@ mod tests {
   }
 
   #[test]
+  fn test_extract_movie_id() {
+    let mut app = App::test_default();
+    app.data.radarr_data.movies.set_items(vec![movie()]);
+
+    let movie_id = LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::Movies,
+      None,
+    )
+    .extract_movie_id();
+
+    assert_eq!(movie_id, 1);
+  }
+
+  #[test]
   fn test_movies_sorting_options_title() {
     let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering = |a, b| {
       a.title
@@ -615,8 +677,13 @@ mod tests {
 
   #[test]
   fn test_movies_sorting_options_studio() {
-    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering =
-      |a, b| a.studio.to_lowercase().cmp(&b.studio.to_lowercase());
+    let expected_cmp_fn: fn(&Movie, &Movie) -> Ordering = |a, b| {
+      a.studio
+        .as_ref()
+        .unwrap_or(&String::new())
+        .to_lowercase()
+        .cmp(&b.studio.as_ref().unwrap_or(&String::new()).to_lowercase())
+    };
     let mut expected_movies_vec = movies_vec();
     expected_movies_vec.sort_by(expected_cmp_fn);
 
@@ -777,6 +844,25 @@ mod tests {
     });
   }
 
+  #[rstest]
+  fn test_library_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
+  }
+
   #[test]
   fn test_library_handler_not_ready_when_loading() {
     let mut app = App::test_default();
@@ -837,7 +923,7 @@ mod tests {
           name: "English".to_owned(),
         },
         size_on_disk: 1024,
-        studio: "Studio 1".to_owned(),
+        studio: Some("Studio 1".to_owned()),
         year: 2024,
         monitored: false,
         runtime: 12.into(),
@@ -854,7 +940,7 @@ mod tests {
           name: "Chinese".to_owned(),
         },
         size_on_disk: 2048,
-        studio: "Studio 2".to_owned(),
+        studio: Some("Studio 2".to_owned()),
         year: 1998,
         monitored: false,
         runtime: 60.into(),
@@ -871,7 +957,7 @@ mod tests {
           name: "Japanese".to_owned(),
         },
         size_on_disk: 512,
-        studio: "studio 3".to_owned(),
+        studio: Some("studio 3".to_owned()),
         year: 1954,
         monitored: true,
         runtime: 120.into(),

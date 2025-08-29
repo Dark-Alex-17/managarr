@@ -1,33 +1,43 @@
+use std::cell::Cell;
 use std::sync::atomic::Ordering;
 
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Text};
-use ratatui::widgets::Clear;
 use ratatui::widgets::Paragraph;
 use ratatui::widgets::Tabs;
 use ratatui::widgets::Wrap;
+use ratatui::widgets::{Clear, Row};
 use ratatui::Frame;
 use sonarr_ui::SonarrUi;
 use utils::layout_block;
 
 use crate::app::App;
+use crate::models::servarr_models::KeybindingItem;
 use crate::models::{HorizontallyScrollableText, Route, TabState};
 use crate::ui::radarr_ui::RadarrUi;
 use crate::ui::styles::ManagarrStyle;
+use crate::ui::theme::Theme;
 use crate::ui::utils::{
   background_block, borderless_block, centered_rect, logo_block, title_block, title_block_centered,
+  unstyled_title_block,
 };
 use crate::ui::widgets::input_box::InputBox;
+use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::Size;
 
+mod builtin_themes;
 mod radarr_ui;
 mod sonarr_ui;
 mod styles;
+pub mod theme;
 mod utils;
 mod widgets;
 
 static HIGHLIGHT_SYMBOL: &str = "=> ";
+thread_local! {
+  pub static THEME: Cell<Theme> = Cell::new(Theme::default());
+}
 
 pub trait DrawUi {
   fn accepts(route: Route) -> bool;
@@ -71,6 +81,10 @@ pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
     }
     _ => (),
   }
+
+  if app.keymapping_table.is_some() {
+    draw_help_popup(f, app);
+  }
 }
 
 fn draw_header_row(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
@@ -80,7 +94,7 @@ fn draw_header_row(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .flex(Flex::SpaceBetween)
     .margin(1)
     .areas(area);
-  let help_text = Text::from(app.server_tabs.get_active_tab_help().help());
+  let help_text = Text::from("<?> to open help".help());
 
   let titles = app
     .server_tabs
@@ -100,7 +114,9 @@ fn draw_header_row(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_error(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let block = title_block("Error | <esc> to close").failure().bold();
+  let block = unstyled_title_block("Error | <esc> to close")
+    .failure()
+    .bold();
 
   app.error.scroll_left_or_reset(
     area.width as usize,
@@ -128,9 +144,37 @@ pub fn draw_popup(
   popup_fn(f, app, popup_area);
 }
 
+pub fn draw_help_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
+  let (percent_x, percent_y) = Size::LongNarrowTable.to_percent();
+  let table_area = centered_rect(percent_x, percent_y, f.area());
+  let keymap_row_mapping = |keymap: &KeybindingItem| {
+    Row::new(vec![
+      ratatui::widgets::Cell::from(keymap.key.clone()),
+      ratatui::widgets::Cell::from(keymap.alt_key.clone()),
+      ratatui::widgets::Cell::from(keymap.desc.clone()),
+    ])
+    .primary()
+  };
+  let keymapping_table = ManagarrTable::new(
+    Some(app.keymapping_table.as_mut().unwrap()),
+    keymap_row_mapping,
+  )
+  .block(title_block("Keybindings"))
+  .loading(app.is_loading)
+  .headers(["Key", "Alt Key", "Description"])
+  .constraints([
+    Constraint::Ratio(1, 3),
+    Constraint::Ratio(1, 3),
+    Constraint::Ratio(1, 3),
+  ]);
+  f.render_widget(Clear, table_area);
+  f.render_widget(background_block(), table_area);
+  f.render_widget(keymapping_table, table_area);
+}
+
 fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -> Rect {
   if title.is_empty() {
-    f.render_widget(layout_block(), area);
+    f.render_widget(layout_block().default(), area);
   } else {
     f.render_widget(title_block(title), area);
   }
@@ -138,8 +182,6 @@ fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -
   let [header_area, content_area] = Layout::vertical([Constraint::Length(1), Constraint::Fill(0)])
     .margin(1)
     .areas(area);
-  let [tabs_area, help_area] =
-    Layout::horizontal([Constraint::Percentage(45), Constraint::Fill(0)]).areas(header_area);
 
   let titles = tab_state
     .tabs
@@ -149,12 +191,8 @@ fn draw_tabs(f: &mut Frame<'_>, area: Rect, title: &str, tab_state: &TabState) -
     .block(borderless_block())
     .highlight_style(Style::new().secondary())
     .select(tab_state.index);
-  let help = Paragraph::new(Text::from(tab_state.get_active_tab_help().help()))
-    .block(borderless_block())
-    .right_aligned();
 
-  f.render_widget(tabs, tabs_area);
-  f.render_widget(help, help_area);
+  f.render_widget(tabs, header_area);
 
   content_area
 }

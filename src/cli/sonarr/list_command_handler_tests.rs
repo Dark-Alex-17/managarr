@@ -28,7 +28,6 @@ mod tests {
       #[values(
         "blocklist",
         "series",
-        "downloads",
         "disk-space",
         "quality-profiles",
         "indexers",
@@ -99,6 +98,28 @@ mod tests {
         result.unwrap().command
       {
         assert_eq!(episode_history_command, expected_args);
+      }
+    }
+
+    #[test]
+    fn test_list_downloads_count_flag_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "list", "downloads", "--count"]);
+
+      assert!(result.is_err());
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[test]
+    fn test_list_downloads_default_values() {
+      let expected_args = SonarrListCommand::Downloads { count: 500 };
+      let result = Cli::try_parse_from(["managarr", "sonarr", "list", "downloads"]);
+
+      assert!(result.is_ok());
+
+      if let Some(Command::Sonarr(SonarrCommand::List(downloads_command))) = result.unwrap().command
+      {
+        assert_eq!(downloads_command, expected_args);
       }
     }
 
@@ -287,7 +308,6 @@ mod tests {
 
     #[rstest]
     #[case(SonarrListCommand::Blocklist, SonarrEvent::GetBlocklist)]
-    #[case(SonarrListCommand::Downloads, SonarrEvent::GetDownloads)]
     #[case(SonarrListCommand::DiskSpace, SonarrEvent::GetDiskSpace)]
     #[case(SonarrListCommand::Indexers, SonarrEvent::GetIndexers)]
     #[case(SonarrListCommand::QualityProfiles, SonarrEvent::GetQualityProfiles)]
@@ -368,6 +388,32 @@ mod tests {
 
       let result =
         SonarrListCommandHandler::with(&app_arc, list_episode_files_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_downloads_command() {
+      let expected_count = 1000;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::GetDownloads(expected_count).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_downloads_command = SonarrListCommand::Downloads { count: 1000 };
+
+      let result =
+        SonarrListCommandHandler::with(&app_arc, list_downloads_command, &mut mock_network)
           .handle()
           .await;
 

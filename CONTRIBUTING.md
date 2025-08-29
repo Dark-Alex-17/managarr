@@ -63,12 +63,32 @@ cz commit
 ## Setup workspace
 
 1. Clone this repo
-2. Run `cargo test` to setup hooks
+2. Run `cargo test` to set up hooks
 3. Make changes
 4. Run the application using `make run` or `cargo run`
 5. Commit changes. This will trigger pre-commit hooks that will run format, test and lint. If there are errors or warnings from Clippy, please fix them.
 6. Push your code to a new branch named after the feature/bug/etc. you're adding. This will trigger pre-push hooks that will run lint and test.
 7. Create a PR
+
+### CI/CD Testing with Act
+If you also are planning on testing out your changes before pushing them with [Act](https://github.com/nektos/act), you will need to set up `act`,
+`docker`, and configure your local system to run different architectures:
+
+1. Install `docker` by following the instructions on the [official Docker installation page](https://docs.docker.com/get-docker/).
+2. Install `act` by following the instructions on the [official Act installation page](https://nektosact.com/installation/index.html).
+3. Install `binfmt` on your system once so that `act` can run the correct architecture for the CI/CD workflows. 
+   You can do this by running:
+   ```shell
+   sudo docker run --rm --privileged tonistiigi/binfmt --install all
+   ```
+   
+Then, you can run workflows locally without having to commit and see if the GitHub action passes or fails. 
+
+**For example**: To test the [release.yml](.github/workflows/release.yml) workflow locally, you can run:
+
+```shell
+act -W .github/workflows/release.yml --input_type bump=minor
+```
 
 ## Questions? Reach out to me!
 If you encounter any questions while developing Managarr, please don't hesitate to reach out to me at alex.j.tusa@gmail.com. I'm happy to help contributors, new and experienced in any way I can!

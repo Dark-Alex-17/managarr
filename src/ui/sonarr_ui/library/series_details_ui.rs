@@ -229,11 +229,6 @@ pub fn draw_series_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
     let content = Some(&mut app.data.sonarr_data.seasons);
-    let help_footer = app
-      .data
-      .sonarr_data
-      .series_info_tabs
-      .get_active_tab_contextual_help();
     let season_row_mapping = |season: &Season| {
       let Season {
         title,
@@ -247,14 +242,18 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         size_on_disk,
         next_airing,
         ..
-      } = statistics;
+      } = if let Some(stats) = statistics {
+        stats
+      } else {
+        &SeasonStatistics::default()
+      };
       let season_monitored = if season.monitored { "🏷" } else { "" };
       let size = convert_to_gb(*size_on_disk);
 
       let row = Row::new(vec![
         Cell::from(season_monitored.to_owned()),
         Cell::from(title.clone().unwrap()),
-        Cell::from(format!("{}/{}", episode_file_count, episode_count)),
+        Cell::from(format!("{episode_file_count}/{episode_count}")),
         Cell::from(format!("{size:.2} GB")),
       ]);
       if !monitored {
@@ -263,9 +262,9 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         row.downloaded()
       } else if let Some(next_airing_utc) = next_airing.as_ref() {
         if next_airing_utc > &Utc::now() {
-          return row.unreleased();
+          row.unreleased()
         } else {
-          return row.missing();
+          row.missing()
         }
       } else {
         row.missing()
@@ -275,7 +274,6 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let season_table = ManagarrTable::new(content, season_row_mapping)
       .block(layout_block_top_border())
       .loading(app.is_loading)
-      .footer(help_footer)
       .searching(is_searching)
       .search_produced_empty_results(active_sonarr_block == ActiveSonarrBlock::SearchSeasonError)
       .headers(["Monitored", "Season", "Episode Count", "Size on Disk"])
@@ -302,11 +300,6 @@ fn draw_series_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       } else {
         series_history.current_selection().clone()
       };
-      let series_history_table_footer = app
-        .data
-        .sonarr_data
-        .series_info_tabs
-        .get_active_tab_contextual_help();
 
       if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
         let history_row_mapping = |history_item: &SonarrHistoryItem| {
@@ -345,7 +338,6 @@ fn draw_series_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           ManagarrTable::new(Some(&mut series_history_table), history_row_mapping)
             .block(layout_block_top_border())
             .loading(app.is_loading)
-            .footer(series_history_table_footer)
             .sorting(active_sonarr_block == ActiveSonarrBlock::SeriesHistorySortPrompt)
             .searching(active_sonarr_block == ActiveSonarrBlock::SearchSeriesHistory)
             .search_produced_empty_results(

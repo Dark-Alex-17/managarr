@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter};
 
+use crate::models::servarr_models::IndexerTestResult;
 use crate::{models::HorizontallyScrollableText, serde_enum_from};
 use chrono::{DateTime, Utc};
 use clap::ValueEnum;
@@ -216,23 +217,6 @@ pub struct IndexerSettings {
   pub whitelisted_hardcoded_subs: HorizontallyScrollableText,
 }
 
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct IndexerTestResult {
-  #[serde(deserialize_with = "super::from_i64")]
-  pub id: i64,
-  pub is_valid: bool,
-  pub validation_failures: Vec<IndexerValidationFailure>,
-}
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct IndexerValidationFailure {
-  pub property_name: String,
-  pub error_message: String,
-  pub severity: String,
-}
-
 #[derive(Serialize, Deserialize, Derivative, Debug, Clone, PartialEq, Eq)]
 #[derivative(Default)]
 #[serde(rename_all = "camelCase")]
@@ -249,7 +233,7 @@ pub struct MediaInfo {
   pub video_bit_depth: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub video_bitrate: i64,
-  pub video_codec: String,
+  pub video_codec: Option<String>,
   #[derivative(Default(value = "Number::from(0)"))]
   pub video_fps: Number,
   pub resolution: String,
@@ -308,7 +292,7 @@ pub struct Movie {
   pub status: String,
   pub overview: String,
   pub path: String,
-  pub studio: String,
+  pub studio: Option<String>,
   pub genres: Vec<String>,
   #[serde(deserialize_with = "super::from_i64")]
   pub year: i64,

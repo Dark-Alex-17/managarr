@@ -1,18 +1,25 @@
 use crate::ui::styles::ManagarrStyle;
+use crate::ui::THEME;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
-use ratatui::style::{Color, Style, Stylize};
+use ratatui::style::{Style, Stylize};
 use ratatui::symbols;
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, BorderType, Borders, LineGauge, ListItem, Paragraph, Wrap};
-
-pub const COLOR_TEAL: Color = Color::Rgb(35, 50, 55);
 
 #[cfg(test)]
 #[path = "utils_tests.rs"]
 mod utils_tests;
 
 pub fn background_block<'a>() -> Block<'a> {
-  Block::new().white().bg(COLOR_TEAL)
+  THEME.with(|theme| {
+    let background = theme.get().background.unwrap();
+
+    if background.enabled.unwrap() {
+      Block::new().white().bg(background.color.unwrap())
+    } else {
+      Block::new().white()
+    }
+  })
 }
 
 pub fn layout_block<'a>() -> Block<'a> {
@@ -30,11 +37,11 @@ pub fn layout_block_top_border_with_title(title_span: Span<'_>) -> Block<'_> {
 }
 
 pub fn layout_block_top_border<'a>() -> Block<'a> {
-  Block::new().borders(Borders::TOP)
+  Block::new().borders(Borders::TOP).default()
 }
 
 pub fn layout_block_bottom_border<'a>() -> Block<'a> {
-  Block::new().borders(Borders::BOTTOM)
+  Block::new().borders(Borders::BOTTOM).default()
 }
 
 pub fn layout_paragraph_borderless(string: &str) -> Paragraph<'_> {
@@ -47,7 +54,7 @@ pub fn layout_paragraph_borderless(string: &str) -> Paragraph<'_> {
 }
 
 pub fn borderless_block<'a>() -> Block<'a> {
-  Block::new()
+  Block::new().default()
 }
 
 pub fn style_block_highlight(is_selected: bool) -> Style {
@@ -62,8 +69,12 @@ pub fn title_style(title: &str) -> Span<'_> {
   format!("  {title}  ").bold()
 }
 
-pub fn title_block(title: &str) -> Block<'_> {
+pub fn unstyled_title_block(title: &str) -> Block<'_> {
   layout_block_with_title(title_style(title))
+}
+
+pub fn title_block(title: &str) -> Block<'_> {
+  unstyled_title_block(title).default()
 }
 
 pub fn title_block_centered(title: &str) -> Block<'_> {
@@ -71,7 +82,7 @@ pub fn title_block_centered(title: &str) -> Block<'_> {
 }
 
 pub fn logo_block<'a>() -> Block<'a> {
-  layout_block().title(Span::styled(
+  layout_block().default().title(Span::styled(
     " Managarr - A Servarr management TUI ",
     Style::new().magenta().bold().italic(),
   ))
@@ -98,7 +109,7 @@ pub fn centered_rect(percent_x: u16, percent_y: u16, area: Rect) -> Rect {
 pub fn line_gauge_with_title(title: &str, ratio: f64) -> LineGauge<'_> {
   LineGauge::new()
     .block(Block::new().title(title))
-    .filled_style(Style::new().cyan())
+    .filled_style(Style::new().primary())
     .line_set(symbols::line::THICK)
     .ratio(ratio)
     .label(Line::from(format!("{:.0}%", ratio * 100.0)))
@@ -107,7 +118,7 @@ pub fn line_gauge_with_title(title: &str, ratio: f64) -> LineGauge<'_> {
 pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge<'_> {
   LineGauge::new()
     .block(Block::new())
-    .filled_style(Style::new().cyan())
+    .filled_style(Style::new().primary())
     .line_set(symbols::line::THICK)
     .ratio(ratio)
     .label(Line::from(format!("{title}: {:.0}%", ratio * 100.0)))

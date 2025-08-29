@@ -29,7 +29,6 @@ mod tests {
       #[values(
         "blocklist",
         "collections",
-        "downloads",
         "disk-space",
         "indexers",
         "movies",
@@ -60,6 +59,15 @@ mod tests {
     }
 
     #[test]
+    fn test_list_downloads_count_flag_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "radarr", "list", "downloads", "--count"]);
+
+      assert!(result.is_err());
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[test]
     fn test_list_logs_events_flag_requires_arguments() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "list", "logs", "--events"]);
@@ -84,6 +92,18 @@ mod tests {
 
       if let Some(Command::Radarr(RadarrCommand::List(credits_command))) = result.unwrap().command {
         assert_eq!(credits_command, expected_args);
+      }
+    }
+
+    #[test]
+    fn test_list_downloads_default_values() {
+      let expected_args = RadarrListCommand::Downloads { count: 500 };
+      let result = Cli::try_parse_from(["managarr", "radarr", "list", "downloads"]);
+
+      assert!(result.is_ok());
+
+      if let Some(Command::Radarr(RadarrCommand::List(refresh_command))) = result.unwrap().command {
+        assert_eq!(refresh_command, expected_args);
       }
     }
 
@@ -122,7 +142,6 @@ mod tests {
     #[rstest]
     #[case(RadarrListCommand::Blocklist, RadarrEvent::GetBlocklist)]
     #[case(RadarrListCommand::Collections, RadarrEvent::GetCollections)]
-    #[case(RadarrListCommand::Downloads, RadarrEvent::GetDownloads)]
     #[case(RadarrListCommand::DiskSpace, RadarrEvent::GetDiskSpace)]
     #[case(RadarrListCommand::Indexers, RadarrEvent::GetIndexers)]
     #[case(RadarrListCommand::Movies, RadarrEvent::GetMovies)]
@@ -176,6 +195,32 @@ mod tests {
 
       let result =
         RadarrListCommandHandler::with(&app_arc, list_movie_credits_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_downloads_command() {
+      let expected_count = 1000;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          RadarrEvent::GetDownloads(expected_count).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Radarr(RadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_downloads_command = RadarrListCommand::Downloads { count: 1000 };
+
+      let result =
+        RadarrListCommandHandler::with(&app_arc, list_downloads_command, &mut mock_network)
           .handle()
           .await;
 

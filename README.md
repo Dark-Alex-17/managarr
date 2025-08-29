@@ -28,7 +28,7 @@ Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC). Built 
 - [ ] ![bazarr_logo](logos/bazarr.png) [Bazarr](https://www.bazarr.media/)
 - [ ] ![tautulli_logo](logos/tautulli.png) [Tautulli](https://tautulli.com/)
 
-## Try Before You Buy
+## Try Out the Demo
 To try out Managarr before linking it to your HTPC, you can use the purpose built [managarr-demo](https://github.com/Dark-Alex-17/managarr-demo) repository.
 Simply run the following command to start a demo:
 
@@ -63,7 +63,7 @@ Please note that you will need to create and popular your configuration file fir
 **Note:** If you run into errors using relative file paths when mounting the volume with the configuration file, try using an absolute path.
 
 ### Homebrew (Mac and Linux)
-To install Managarr from Homebrew, install the Managarr tap and then you'll be able to install Managarr:
+To install Managarr from Homebrew, install the Managarr tap. Then you'll be able to install Managarr:
 
 ```shell
 brew tap Dark-Alex-17/managarr
@@ -119,16 +119,16 @@ Binaries are available on the [releases](https://github.com/Dark-Alex-17/managar
 #### Windows Instructions
 To use a binary from the releases page on Windows, do the following:
 
-1. Download the latest binary [binary](https://github.com/Dark-Alex-17/managarr/releases) for your OS.
+1. Download the latest [binary](https://github.com/Dark-Alex-17/managarr/releases) for your OS.
 2. Use 7-Zip or TarTool to unpack the Tar file.
 3. Run the executable `managarr.exe`!
 
 #### Linux/MacOS Instructions
 To use a binary from the releases page on Linux/MacOS, do the following:
 
-1. Download the latest binary [binary](https://github.com/Dark-Alex-17/managarr/releases) for your OS.
+1. Download the latest [binary](https://github.com/Dark-Alex-17/managarr/releases) for your OS.
 2. `cd` to the directory where you downloaded the binary.
-3. Extract the binary with `tar -C /usr/local/bin -xzf managarr-<arch>.tar.gz` (NB: This may require `sudo`)
+3. Extract the binary with `tar -C /usr/local/bin -xzf managarr-<arch>.tar.gz` (Note: This may require `sudo`)
 4. Now you can run `managarr`!
 
 ## Features
@@ -166,21 +166,21 @@ Key:
 
 | TUI | CLI | Feature                                                                                                            |
 |-----|-----|--------------------------------------------------------------------------------------------------------------------|
-| ✅  | ✅   | View your library, downloads, blocklist, episodes                                                                  |
-| ✅  | ✅   | View details of a specific series, or episode including description, history, downloaded file info, or the credits |
+| ✅   | ✅   | View your library, downloads, blocklist, episodes                                                                  |
+| ✅   | ✅   | View details of a specific series, or episode including description, history, downloaded file info, or the credits |
 | 🚫  | ✅   | View your host and security configs from the CLI to programmatically fetch the API token, among other settings     |
-| ✅  | ✅   | Search your library                                                                                                |
-| ✅  | ✅   | Add series to your library                                                                                         |
-| ✅  | ✅   | Delete series, downloads, indexers, root folders, and episode files                                                |
-| ✅  | ✅   | Trigger automatic searches for series, seasons, or episodes                                                        |
-| ✅  | ✅   | Trigger refresh and disk scan for series and downloads                                                             |
-| ✅  | ✅   | Manually search for series, seasons, or episodes                                                                   |
-| ✅  | ✅   | Edit your series and indexers                                                                                      |
-| ✅  | ✅   | Manage your tags                                                                                                   |
-| ✅  | ✅   | Manage your root folders                                                                                           |
-| ✅  | ✅   | Manage your blocklist                                                                                              |
-| ✅  | ✅   | View and browse logs, tasks, events queues, and updates                                                            |
-| ✅  | ✅   | Manually trigger scheduled tasks                                                                                   |
+| ✅   | ✅   | Search your library                                                                                                |
+| ✅   | ✅   | Add series to your library                                                                                         |
+| ✅   | ✅   | Delete series, downloads, indexers, root folders, and episode files                                                |
+| ✅   | ✅   | Trigger automatic searches for series, seasons, or episodes                                                        |
+| ✅   | ✅   | Trigger refresh and disk scan for series and downloads                                                             |
+| ✅   | ✅   | Manually search for series, seasons, or episodes                                                                   |
+| ✅   | ✅   | Edit your series and indexers                                                                                      |
+| ✅   | ✅   | Manage your tags                                                                                                   |
+| ✅   | ✅   | Manage your root folders                                                                                           |
+| ✅   | ✅   | Manage your blocklist                                                                                              |
+| ✅   | ✅   | View and browse logs, tasks, events queues, and updates                                                            |
+| ✅   | ✅   | Manually trigger scheduled tasks                                                                                   |
 
 ### Readarr
 
@@ -206,6 +206,19 @@ Key:
 
 - [ ] Support for Tautulli
 
+### Themes
+Managarr ships with a few themes out of the box. Here's a few examples:
+
+#### Default
+![default](themes/default/manual_episode_search.png)
+#### Dracula
+![dracula](themes/dracula/manual_episode_search.png)
+#### Watermelon Dark
+![watermelon-dark](themes/watermelon-dark/manual_episode_search.png)
+
+You can also create your own custom themes as well. To learn more about what themes are built-in to Managarr and how
+to create your own custom themes, check out the [Themes README](themes/README.md).
+
 ### The Managarr CLI
 Managarr can be used in one of two ways: As a TUI, or as a CLI for managing your Servarrs. 
 
@@ -218,7 +231,7 @@ To see all available commands, simply run `managarr --help`:
 
 ```shell
 $ managarr --help
-managarr 0.5.0
+managarr 0.5.1
 Alex Clarke <alex.j.tusa@gmail.com>
 
 A TUI and CLI to manage your Servarrs
@@ -235,6 +248,8 @@ Commands:
 Options:
       --disable-spinner              Disable the spinner (can sometimes make parsing output challenging) [env: MANAGARR_DISABLE_SPINNER=]
       --config-file <CONFIG_FILE>    The Managarr configuration file to use [env: MANAGARR_CONFIG_FILE=]
+      --themes-file <THEMES_FILE>    The Managarr themes file to use [env: MANAGARR_THEMES_FILE=]
+      --theme <THEME>                The name of the Managarr theme to use [env: MANAGARR_THEME=]
       --servarr-name <SERVARR_NAME>  For multi-instance configurations, you need to specify the name of the instance configuration that you want to use.
                                          This is useful when you have multiple instances of the same Servarr defined in your config file.
                                          By default, if left empty, the first configured Servarr instance listed in the config file will be used.
@@ -315,6 +330,7 @@ managarr --config-file /path/to/config.yml
 
 ### Example Configuration:
 ```yaml
+theme: default
 radarr:
   - host: 192.168.0.78
     port: 7878
@@ -341,6 +357,9 @@ whisparr:
     port: 6969
     api_token: someApiToken1234567890
     ssl_cert_path: /path/to/whisparr.crt
+    custom_headers: # Example of adding custom headers to all requests to the Servarr instance
+      traefik-auth-bypass-key: someBypassKey1234567890
+      SOME-OTHER-CUSTOM-HEADER: ${MY_CUSTOM_HEADER_VALUE}
 bazarr:
   - host: 192.168.0.67
     port: 6767
@@ -357,6 +376,7 @@ tautulli:
 
 ### Example Multi-Instance Configuration:
 ```yaml
+theme: default
 radarr:
   - host: 192.168.0.78 # No name specified, so this instance's name will default to 'Radarr 1'
     port: 7878

@@ -132,6 +132,7 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let rss = bool_to_text(*enable_rss);
     let automatic_search = bool_to_text(*enable_automatic_search);
     let interactive_search = bool_to_text(*enable_interactive_search);
+    let empty_tag = String::new();
     let tags: String = tags
       .iter()
       .map(|tag_id| {
@@ -140,7 +141,7 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .sonarr_data
           .tags_map
           .get_by_left(&tag_id.as_i64().unwrap())
-          .unwrap()
+          .unwrap_or(&empty_tag)
           .clone()
       })
       .collect::<Vec<String>>()
@@ -156,17 +157,11 @@ fn draw_indexers(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     ])
     .primary()
   };
-  let indexers_table_footer = app
-    .data
-    .sonarr_data
-    .main_tabs
-    .get_active_tab_contextual_help();
   let indexers_table = ManagarrTable::new(
     Some(&mut app.data.sonarr_data.indexers),
     indexers_row_mapping,
   )
   .block(layout_block_top_border())
-  .footer(indexers_table_footer)
   .loading(app.is_loading)
   .headers([
     "Indexer",

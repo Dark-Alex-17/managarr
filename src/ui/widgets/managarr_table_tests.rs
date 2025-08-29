@@ -3,11 +3,12 @@ mod tests {
   use crate::models::stateful_list::StatefulList;
   use crate::models::stateful_table::{SortOption, StatefulTable};
   use crate::models::{HorizontallyScrollableText, Scrollable};
+  use crate::ui::utils::borderless_block;
   use crate::ui::widgets::managarr_table::ManagarrTable;
   use pretty_assertions::assert_eq;
   use ratatui::layout::{Alignment, Constraint};
   use ratatui::text::Text;
-  use ratatui::widgets::{Block, Cell, Row};
+  use ratatui::widgets::{Cell, Row};
   use std::sync::atomic::AtomicUsize;
 
   #[test]
@@ -26,7 +27,7 @@ mod tests {
     assert_eq!(managarr_table.constraints, Vec::new());
     assert_eq!(managarr_table.footer, None);
     assert_eq!(managarr_table.footer_alignment, Alignment::Left);
-    assert_eq!(managarr_table.block, Block::new());
+    assert_eq!(managarr_table.block, borderless_block());
     assert_eq!(managarr_table.margin, 0);
     assert!(!managarr_table.is_loading);
     assert!(managarr_table.highlight_rows);
@@ -62,7 +63,7 @@ mod tests {
     assert_eq!(managarr_table.constraints, Vec::new());
     assert_eq!(managarr_table.footer, None);
     assert_eq!(managarr_table.footer_alignment, Alignment::Left);
-    assert_eq!(managarr_table.block, Block::new());
+    assert_eq!(managarr_table.block, borderless_block());
     assert_eq!(managarr_table.margin, 0);
     assert!(!managarr_table.is_loading);
     assert!(managarr_table.highlight_rows);
@@ -98,7 +99,7 @@ mod tests {
     assert_eq!(managarr_table.constraints, Vec::new());
     assert_eq!(managarr_table.footer, None);
     assert_eq!(managarr_table.footer_alignment, Alignment::Left);
-    assert_eq!(managarr_table.block, Block::new());
+    assert_eq!(managarr_table.block, borderless_block());
     assert_eq!(managarr_table.margin, 0);
     assert!(!managarr_table.is_loading);
     assert!(managarr_table.highlight_rows);
@@ -131,7 +132,7 @@ mod tests {
     assert_eq!(managarr_table.constraints, Vec::new());
     assert_eq!(managarr_table.footer, None);
     assert_eq!(managarr_table.footer_alignment, Alignment::Left);
-    assert_eq!(managarr_table.block, Block::new());
+    assert_eq!(managarr_table.block, borderless_block());
     assert_eq!(managarr_table.margin, 0);
     assert!(!managarr_table.is_loading);
     assert!(managarr_table.highlight_rows);
@@ -164,7 +165,7 @@ mod tests {
     assert_eq!(managarr_table.table_headers, Vec::<String>::new());
     assert_eq!(managarr_table.footer, None);
     assert_eq!(managarr_table.footer_alignment, Alignment::Left);
-    assert_eq!(managarr_table.block, Block::new());
+    assert_eq!(managarr_table.block, borderless_block());
     assert_eq!(managarr_table.margin, 0);
     assert!(!managarr_table.is_loading);
     assert!(managarr_table.highlight_rows);

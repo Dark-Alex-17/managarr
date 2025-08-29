@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-use crate::serde_enum_from;
+use crate::{models::servarr_models::IndexerTestResult, serde_enum_from};
 use chrono::{DateTime, Utc};
 use clap::ValueEnum;
 use derivative::Derivative;
@@ -11,7 +11,6 @@ use strum::EnumIter;
 use strum_macros::Display;
 
 use super::{
-  radarr_models::IndexerTestResult,
   servarr_models::{
     DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
     QueueEvent, RootFolder, SecurityConfig, Tag, Update,
@@ -253,7 +252,7 @@ pub struct MediaInfo {
   pub video_bit_depth: i64,
   #[serde(deserialize_with = "super::from_i64")]
   pub video_bitrate: i64,
-  pub video_codec: String,
+  pub video_codec: Option<String>,
   #[derivative(Default(value = "Number::from(0)"))]
   pub video_fps: Number,
   pub resolution: String,
@@ -288,7 +287,7 @@ pub struct Season {
   #[serde(deserialize_with = "super::from_i64")]
   pub season_number: i64,
   pub monitored: bool,
-  pub statistics: SeasonStatistics,
+  pub statistics: Option<SeasonStatistics>,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq)]

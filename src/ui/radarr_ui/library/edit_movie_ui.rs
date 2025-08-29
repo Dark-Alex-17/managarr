@@ -2,11 +2,9 @@ use std::sync::atomic::Ordering;
 
 use ratatui::layout::{Constraint, Rect};
 use ratatui::prelude::Layout;
-use ratatui::text::Text;
-use ratatui::widgets::{ListItem, Paragraph};
+use ratatui::widgets::ListItem;
 use ratatui::Frame;
 
-use crate::app::context_clues::{build_context_clue_string, CONFIRMATION_PROMPT_CONTEXT_CLUES};
 use crate::app::App;
 use crate::models::servarr_data::radarr::modals::EditMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{
@@ -80,6 +78,7 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, are
     .overview
     .clone();
   let title = format!("Edit - {movie_title}");
+  f.render_widget(title_block_centered(&title), area);
   let yes_no_value = app.data.radarr_data.prompt_confirm;
   let selected_block = app.data.radarr_data.selected_block.get_active_block();
   let highlight_yes_no = selected_block == ActiveRadarrBlock::EditMovieConfirmPrompt;
@@ -93,7 +92,7 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, are
   let selected_minimum_availability = minimum_availability_list.current_selection();
   let selected_quality_profile = quality_profile_list.current_selection();
 
-  let [paragraph_area, monitored_area, min_availability_area, quality_profile_area, path_area, tags_area, _, buttons_area, help_area] =
+  let [paragraph_area, monitored_area, min_availability_area, quality_profile_area, path_area, tags_area, _, buttons_area] =
     Layout::vertical([
       Constraint::Length(6),
       Constraint::Length(3),
@@ -103,7 +102,6 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, are
       Constraint::Length(3),
       Constraint::Fill(1),
       Constraint::Length(3),
-      Constraint::Length(1),
     ])
     .margin(1)
     .areas(area);
@@ -111,8 +109,6 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, are
     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
       .areas(buttons_area);
 
-  let help_text = Text::from(build_context_clue_string(&CONFIRMATION_PROMPT_CONTEXT_CLUES).help());
-  let help_paragraph = Paragraph::new(help_text).centered();
   let prompt_paragraph = layout_paragraph_borderless(&movie_overview);
   let monitored_checkbox = Checkbox::new("Monitored")
     .checked(monitored.unwrap_or_default())
@@ -157,14 +153,12 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, are
     .title("Cancel")
     .selected(!yes_no_value && highlight_yes_no);
 
-  f.render_widget(title_block_centered(&title), area);
   f.render_widget(prompt_paragraph, paragraph_area);
   f.render_widget(monitored_checkbox, monitored_area);
   f.render_widget(min_availability_drop_down_button, min_availability_area);
   f.render_widget(quality_profile_drop_down_button, quality_profile_area);
   f.render_widget(save_button, save_area);
   f.render_widget(cancel_button, cancel_area);
-  f.render_widget(help_paragraph, help_area);
 }
 
 fn draw_edit_movie_select_minimum_availability_popup(f: &mut Frame<'_>, app: &mut App<'_>) {

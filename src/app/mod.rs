@@ -3,17 +3,20 @@ use colored::Colorize;
 use itertools::Itertools;
 use log::{debug, error};
 use regex::Regex;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::{fs, process};
 use tokio::sync::mpsc::Sender;
 use tokio_util::sync::CancellationToken;
 use veil::Redact;
 
-use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
 use crate::cli::Command;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
+use crate::models::servarr_models::KeybindingItem;
+use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route, TabRoute, TabState};
 use crate::network::NetworkEvent;
 
@@ -32,6 +35,7 @@ pub struct App<'a> {
   pub cancellation_token: CancellationToken,
   pub is_first_render: bool,
   pub server_tabs: TabState,
+  pub keymapping_table: Option<StatefulTable<KeybindingItem>>,
   pub error: HorizontallyScrollableText,
   pub tick_until_poll: u64,
   pub ticks_until_scroll: u64,
@@ -39,7 +43,7 @@ pub struct App<'a> {
   pub is_routing: bool,
   pub is_loading: bool,
   pub should_refresh: bool,
-  pub should_ignore_quit_key: bool,
+  pub ignore_special_keys_for_textbox_input: bool,
   pub cli_mode: bool,
   pub data: Data<'a>,
 }
@@ -51,10 +55,6 @@ impl App<'_> {
     cancellation_token: CancellationToken,
   ) -> Self {
     let mut server_tabs = Vec::new();
-    let help = format!(
-      "<↑↓> scroll | ←→ change tab | {}  ",
-      build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-    );
 
     if let Some(radarr_configs) = config.radarr {
       let mut idx = 0;
@@ -63,13 +63,12 @@ impl App<'_> {
           name
         } else {
           idx += 1;
-          format!("Radarr {}", idx)
+          format!("Radarr {idx}")
         };
 
         server_tabs.push(TabRoute {
           title: name,
           route: ActiveRadarrBlock::Movies.into(),
-          help: help.clone(),
           contextual_help: None,
           config: Some(radarr_config),
         });
@@ -84,13 +83,12 @@ impl App<'_> {
           name
         } else {
           idx += 1;
-          format!("Sonarr {}", idx)
+          format!("Sonarr {idx}")
         };
 
         server_tabs.push(TabRoute {
           title: name,
           route: ActiveSonarrBlock::Series.into(),
-          help: help.clone(),
           contextual_help: None,
           config: Some(sonarr_config),
         });
@@ -215,6 +213,7 @@ impl Default for App<'_> {
       navigation_stack: Vec::new(),
       network_tx: None,
       cancellation_token: CancellationToken::new(),
+      keymapping_table: None,
       error: HorizontallyScrollableText::default(),
       is_first_render: true,
       server_tabs: TabState::new(Vec::new()),
@@ -224,7 +223,7 @@ impl Default for App<'_> {
       is_loading: false,
       is_routing: false,
       should_refresh: false,
-      should_ignore_quit_key: false,
+      ignore_special_keys_for_textbox_input: false,
       cli_mode: false,
       data: Data::default(),
     }
@@ -239,20 +238,12 @@ impl App<'_> {
         TabRoute {
           title: "Radarr".to_owned(),
           route: ActiveRadarrBlock::Movies.into(),
-          help: format!(
-            "<↑↓> scroll | ←→ change tab | {}  ",
-            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-          ),
           contextual_help: None,
           config: Some(ServarrConfig::default()),
         },
         TabRoute {
           title: "Sonarr".to_owned(),
           route: ActiveSonarrBlock::Series.into(),
-          help: format!(
-            "<↑↓> scroll | ←→ change tab | {}  ",
-            build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-          ),
           contextual_help: None,
           config: Some(ServarrConfig::default()),
         },
@@ -270,6 +261,7 @@ pub struct Data<'a> {
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct AppConfig {
+  pub theme: Option<String>,
   pub radarr: Option<Vec<ServarrConfig>>,
   pub sonarr: Option<Vec<ServarrConfig>>,
 }
@@ -295,8 +287,7 @@ impl AppConfig {
   pub fn verify_config_present_for_cli(&self, command: &Command) {
     let msg = |servarr: &str| {
       log_and_print_error(format!(
-        "{} configuration missing; Unable to run any {} commands.",
-        servarr, servarr
+        "{servarr} configuration missing; Unable to run any {servarr} commands."
       ))
     };
     match command {
@@ -346,6 +337,12 @@ pub struct ServarrConfig {
   pub api_token_file: Option<String>,
   #[serde(default, deserialize_with = "deserialize_optional_env_var")]
   pub ssl_cert_path: Option<String>,
+  #[serde(
+    default,
+    deserialize_with = "deserialize_optional_env_var_header_map",
+    serialize_with = "serialize_header_map"
+  )]
+  pub custom_headers: Option<HeaderMap>,
 }
 
 impl ServarrConfig {
@@ -367,8 +364,7 @@ impl ServarrConfig {
     if let Some(api_token_file) = self.api_token_file.as_ref() {
       if !PathBuf::from(api_token_file).exists() {
         log_and_print_error(format!(
-          "The specified {} API token file does not exist",
-          api_token_file
+          "The specified {api_token_file} API token file does not exist"
         ));
         process::exit(1);
       }
@@ -392,13 +388,35 @@ impl Default for ServarrConfig {
       api_token: Some(String::new()),
       api_token_file: None,
       ssl_cert_path: None,
+      custom_headers: None,
     }
   }
 }
 
 pub fn log_and_print_error(error: String) {
-  error!("{}", error);
+  error!("{error}");
   eprintln!("error: {}", error.red());
+}
+
+fn serialize_header_map<S>(headers: &Option<HeaderMap>, serializer: S) -> Result<S::Ok, S::Error>
+where
+  S: serde::Serializer,
+{
+  if let Some(headers) = headers {
+    let mut map = HashMap::new();
+    for (name, value) in headers.iter() {
+      let name_str = name.as_str().to_string();
+      let value_str = value
+        .to_str()
+        .map_err(serde::ser::Error::custom)?
+        .to_string();
+
+      map.insert(name_str, value_str);
+    }
+    map.serialize(serializer)
+  } else {
+    serializer.serialize_none()
+  }
 }
 
 fn deserialize_optional_env_var<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
@@ -410,6 +428,28 @@ where
     Some(value) => {
       let interpolated = interpolate_env_vars(&value);
       Ok(Some(interpolated))
+    }
+    None => Ok(None),
+  }
+}
+
+fn deserialize_optional_env_var_header_map<'de, D>(
+  deserializer: D,
+) -> Result<Option<HeaderMap>, D::Error>
+where
+  D: serde::Deserializer<'de>,
+{
+  let opt: Option<HashMap<String, String>> = Option::deserialize(deserializer)?;
+  match opt {
+    Some(map) => {
+      let mut header_map = HeaderMap::new();
+      for (k, v) in map.iter() {
+        let name = HeaderName::from_bytes(k.as_bytes()).map_err(serde::de::Error::custom)?;
+        let value_str = interpolate_env_vars(v);
+        let value = HeaderValue::from_str(&value_str).map_err(serde::de::Error::custom)?;
+        header_map.insert(name, value);
+      }
+      Ok(Some(header_map))
     }
     None => Ok(None),
   }

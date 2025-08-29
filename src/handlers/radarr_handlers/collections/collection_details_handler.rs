@@ -1,7 +1,5 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
-use crate::handle_table_events;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::KeyEventHandler;
 use crate::models::radarr_models::CollectionMovie;
@@ -11,6 +9,7 @@ use crate::models::servarr_data::radarr::radarr_data::{
 };
 use crate::models::stateful_table::StatefulTable;
 use crate::models::BlockSelectionState;
+use crate::{handle_table_events, matches_key};
 
 #[cfg(test)]
 #[path = "collection_details_handler_tests.rs"]
@@ -44,6 +43,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
 
   fn accepts(active_block: ActiveRadarrBlock) -> bool {
     COLLECTION_DETAILS_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -130,7 +133,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
 
   fn handle_char_key_event(&mut self) {
     if self.active_radarr_block == ActiveRadarrBlock::CollectionDetails
-      && self.key == DEFAULT_KEYBINDINGS.edit.key
+      && matches_key!(edit, self.key)
     {
       self.app.push_navigation_stack(
         (

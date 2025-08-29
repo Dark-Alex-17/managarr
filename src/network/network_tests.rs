@@ -6,6 +6,7 @@ mod tests {
 
   use mockito::{Mock, Server, ServerGuard};
   use pretty_assertions::assert_str_eq;
+  use reqwest::header::HeaderMap;
   use reqwest::Client;
   use rstest::rstest;
   use serde::{Deserialize, Serialize};
@@ -81,6 +82,7 @@ mod tests {
           }),
           api_token: "test1234".to_owned(),
           ignore_status_code: false,
+          custom_headers: HeaderMap::new(),
         },
         |_, _| (),
       )
@@ -105,6 +107,7 @@ mod tests {
           body: None,
           api_token: "test1234".to_owned(),
           ignore_status_code: false,
+          custom_headers: HeaderMap::new(),
         },
         |response, mut app| app.error = HorizontallyScrollableText::from(response.value),
       )
@@ -138,6 +141,7 @@ mod tests {
           body: None,
           api_token: "test1234".to_owned(),
           ignore_status_code: true,
+          custom_headers: HeaderMap::new(),
         },
         |response, _app| test_result = response.value,
       )
@@ -176,6 +180,7 @@ mod tests {
           body: None,
           api_token: "test1234".to_owned(),
           ignore_status_code: false,
+          custom_headers: HeaderMap::new(),
         },
         |_, _| (),
       )
@@ -229,6 +234,7 @@ mod tests {
           body: None,
           api_token: "test1234".to_owned(),
           ignore_status_code: false,
+          custom_headers: HeaderMap::new(),
         },
         |response, mut app| app.error = HorizontallyScrollableText::from(response.value),
       )
@@ -261,6 +267,7 @@ mod tests {
           body: None,
           api_token: "test1234".to_owned(),
           ignore_status_code: false,
+          custom_headers: HeaderMap::new(),
         },
         |response, mut app| app.error = HorizontallyScrollableText::from(response.value),
       )
@@ -301,6 +308,7 @@ mod tests {
           body: None,
           api_token: "test1234".to_owned(),
           ignore_status_code: false,
+          custom_headers: HeaderMap::new(),
         },
         |response, mut app| app.error = HorizontallyScrollableText::from(response.value),
       )
@@ -331,6 +339,7 @@ mod tests {
           body: None,
           api_token: "test1234".to_owned(),
           ignore_status_code: false,
+          custom_headers: HeaderMap::new(),
         },
         |response, mut app| app.error = HorizontallyScrollableText::from(response.value),
       )
@@ -363,8 +372,11 @@ mod tests {
     let mut async_server = server
       .mock(&request_method.to_string().to_uppercase(), "/test")
       .match_header("X-Api-Key", "test1234")
+      .match_header("X-Custom-Header", "CustomValue")
       .with_status(200);
     let mut body = None::<Test>;
+    let mut custom_headers = HeaderMap::new();
+    custom_headers.insert("X-Custom-Header", "CustomValue".parse().unwrap());
 
     if request_method == RequestMethod::Post {
       async_server = async_server.with_body(
@@ -388,6 +400,7 @@ mod tests {
         body,
         api_token: "test1234".to_owned(),
         ignore_status_code: false,
+        custom_headers,
       })
       .await
       .send()
@@ -440,6 +453,7 @@ mod tests {
     assert_eq!(request_props.method, RequestMethod::Get);
     assert_eq!(request_props.body, None);
     assert!(request_props.api_token.is_empty());
+    assert!(request_props.custom_headers.is_empty());
   }
 
   #[rstest]
@@ -476,6 +490,47 @@ mod tests {
     assert_eq!(request_props.method, RequestMethod::Get);
     assert_eq!(request_props.body, None);
     assert_str_eq!(request_props.api_token, api_token);
+    assert!(request_props.custom_headers.is_empty());
+  }
+
+  #[rstest]
+  #[tokio::test]
+  async fn test_request_props_from_custom_config_custom_headers(
+    #[values(RadarrEvent::GetMovies, SonarrEvent::ListSeries)] network_event: impl Into<NetworkEvent>
+      + NetworkResource,
+  ) {
+    let api_token = "testToken1234".to_owned();
+    let app_arc = Arc::new(Mutex::new(App::test_default()));
+    let resource = network_event.resource();
+    let mut header_map = HeaderMap::new();
+    header_map.insert("X-Custom-Header", "CustomValue".parse().unwrap());
+    let servarr_config = ServarrConfig {
+      host: Some("192.168.0.123".to_owned()),
+      port: Some(8080),
+      api_token: Some(api_token.clone()),
+      ssl_cert_path: Some("/test/cert.crt".to_owned()),
+      custom_headers: Some(header_map.clone()),
+      ..ServarrConfig::default()
+    };
+    {
+      let mut app = app_arc.lock().await;
+      app.server_tabs.tabs[0].config = Some(servarr_config.clone());
+      app.server_tabs.tabs[1].config = Some(servarr_config);
+    }
+    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    let request_props = network
+      .request_props_from(network_event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    assert_str_eq!(
+      request_props.uri,
+      format!("https://192.168.0.123:8080/api/v3{resource}")
+    );
+    assert_eq!(request_props.method, RequestMethod::Get);
+    assert_eq!(request_props.body, None);
+    assert_str_eq!(request_props.api_token, api_token);
+    assert_eq!(request_props.custom_headers, header_map);
   }
 
   #[rstest]
@@ -510,6 +565,7 @@ mod tests {
     assert_eq!(request_props.method, RequestMethod::Get);
     assert_eq!(request_props.body, None);
     assert_str_eq!(request_props.api_token, api_token);
+    assert!(request_props.custom_headers.is_empty());
   }
 
   #[rstest]
@@ -546,6 +602,7 @@ mod tests {
     assert_eq!(request_props.method, RequestMethod::Get);
     assert_eq!(request_props.body, None);
     assert!(request_props.api_token.is_empty());
+    assert!(request_props.custom_headers.is_empty());
   }
 
   #[rstest]
@@ -588,6 +645,7 @@ mod tests {
     assert_eq!(request_props.method, RequestMethod::Get);
     assert_eq!(request_props.body, None);
     assert_str_eq!(request_props.api_token, api_token);
+    assert!(request_props.custom_headers.is_empty());
   }
 
   #[rstest]
@@ -628,6 +686,7 @@ mod tests {
     assert_eq!(request_props.method, RequestMethod::Get);
     assert_eq!(request_props.body, None);
     assert_str_eq!(request_props.api_token, api_token);
+    assert!(request_props.custom_headers.is_empty());
   }
 
   #[derive(Clone, Serialize, Deserialize, Debug, Default, PartialEq, Eq)]

@@ -72,11 +72,6 @@ fn draw_downloads(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   } else {
     app.data.radarr_data.downloads.current_selection().clone()
   };
-  let downloads_table_footer = app
-    .data
-    .radarr_data
-    .main_tabs
-    .get_active_tab_contextual_help();
 
   let downloads_row_mapping = |download_record: &DownloadRecord| {
     let DownloadRecord {
@@ -125,7 +120,6 @@ fn draw_downloads(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   )
   .block(layout_block_top_border())
   .loading(app.is_loading)
-  .footer(downloads_table_footer)
   .headers([
     "Title",
     "Percent Complete",

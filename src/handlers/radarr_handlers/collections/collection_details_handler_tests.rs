@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
   use pretty_assertions::assert_str_eq;
+  use rstest::rstest;
   use strum::IntoEnumIterator;
 
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
@@ -276,6 +277,25 @@ mod tests {
         assert!(!CollectionDetailsHandler::accepts(active_radarr_block));
       }
     });
+  }
+
+  #[rstest]
+  fn test_collection_details_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = CollectionDetailsHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

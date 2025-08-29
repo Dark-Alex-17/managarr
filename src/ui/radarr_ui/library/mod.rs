@@ -44,25 +44,32 @@ impl DrawUi for LibraryUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = app.get_current_route();
-    draw_library(f, app, area);
-
-    match route {
-      _ if MovieDetailsUi::accepts(route) => MovieDetailsUi::draw(f, app, area),
-      _ if AddMovieUi::accepts(route) => AddMovieUi::draw(f, app, area),
-      _ if EditMovieUi::accepts(route) => EditMovieUi::draw(f, app, area),
-      _ if DeleteMovieUi::accepts(route) => DeleteMovieUi::draw(f, app, area),
-      Route::Radarr(ActiveRadarrBlock::UpdateAllMoviesPrompt, _) => {
-        let confirmation_prompt = ConfirmationPrompt::new()
-          .title("Update All Movies")
-          .prompt("Do you want to update info and scan your disks for all of your movies?")
-          .yes_no_value(app.data.radarr_data.prompt_confirm);
-
-        f.render_widget(
-          Popup::new(confirmation_prompt).size(Size::MediumPrompt),
-          f.area(),
-        );
+    if let Route::Radarr(_, context_option) = route {
+      if context_option.is_some() && AddMovieUi::accepts(route) {
+        AddMovieUi::draw(f, app, area);
+        return;
       }
-      _ => (),
+
+      draw_library(f, app, area);
+
+      match route {
+        _ if MovieDetailsUi::accepts(route) => MovieDetailsUi::draw(f, app, area),
+        _ if AddMovieUi::accepts(route) => AddMovieUi::draw(f, app, area),
+        _ if EditMovieUi::accepts(route) => EditMovieUi::draw(f, app, area),
+        _ if DeleteMovieUi::accepts(route) => DeleteMovieUi::draw(f, app, area),
+        Route::Radarr(ActiveRadarrBlock::UpdateAllMoviesPrompt, _) => {
+          let confirmation_prompt = ConfirmationPrompt::new()
+            .title("Update All Movies")
+            .prompt("Do you want to update info and scan your disks for all of your movies?")
+            .yes_no_value(app.data.radarr_data.prompt_confirm);
+
+          f.render_widget(
+            Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+            f.area(),
+          );
+        }
+        _ => (),
+      }
     }
   }
 }
@@ -78,11 +85,6 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let tags_map = &app.data.radarr_data.tags_map;
     let downloads_vec = &app.data.radarr_data.downloads.items;
     let content = Some(&mut app.data.radarr_data.movies);
-    let help_footer = app
-      .data
-      .radarr_data
-      .main_tabs
-      .get_active_tab_contextual_help();
 
     let library_table_row_mapping = |movie: &Movie| {
       movie.title.scroll_left_or_reset(
@@ -91,6 +93,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         app.tick_count % app.ticks_until_scroll == 0,
       );
       let monitored = if movie.monitored { "🏷" } else { "" };
+      let studio = movie.studio.clone().unwrap_or_default();
       let (hours, minutes) = convert_runtime(movie.runtime);
       let file_size: f64 = convert_to_gb(movie.size_on_disk);
       let certification = movie.certification.clone().unwrap_or_default();
@@ -98,6 +101,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .get_by_left(&movie.quality_profile_id)
         .unwrap()
         .to_owned();
+      let empty_tag = String::new();
       let tags = if !movie.tags.is_empty() {
         movie
           .tags
@@ -105,7 +109,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .map(|tag_id| {
             tags_map
               .get_by_left(&tag_id.as_i64().unwrap())
-              .unwrap()
+              .unwrap_or(&empty_tag)
               .clone()
           })
           .collect::<Vec<String>>()
@@ -120,7 +124,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Row::new(vec![
           Cell::from(movie.title.to_string()),
           Cell::from(movie.year.to_string()),
-          Cell::from(movie.studio.to_string()),
+          Cell::from(studio),
           Cell::from(format!("{hours}h {minutes}m")),
           Cell::from(certification),
           Cell::from(movie.original_language.name.to_owned()),
@@ -134,7 +138,6 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let library_table = ManagarrTable::new(content, library_table_row_mapping)
       .block(layout_block_top_border())
       .loading(app.is_loading)
-      .footer(help_footer)
       .sorting(active_radarr_block == ActiveRadarrBlock::MoviesSortPrompt)
       .searching(active_radarr_block == ActiveRadarrBlock::SearchMovie)
       .search_produced_empty_results(active_radarr_block == ActiveRadarrBlock::SearchMovieError)

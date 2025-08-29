@@ -42,17 +42,19 @@ macro_rules! handle_table_events {
       fn [<handle_ $name _table_events>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
         if $self.is_ready() {
           match $self.key {
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.up.key => $self.[<handle_ $name _table_scroll_up>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.down.key => $self.[<handle_ $name _table_scroll_down>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.home.key => $self.[<handle_ $name _table_home>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.end.key => $self.[<handle_ $name _table_end>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.left.key
-              || $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.right.key =>
+            _ if $crate::matches_key!(up, $self.key, $self.ignore_special_keys()) => $self.[<handle_ $name _table_scroll_up>](config),
+            _ if $crate::matches_key!(down, $self.key, $self.ignore_special_keys()) => $self.[<handle_ $name _table_scroll_down>](config),
+            _ if $crate::matches_key!(pg_up, $self.key, $self.ignore_special_keys()) => $self.[<handle_ $name _table_page_up>](config),
+            _ if $crate::matches_key!(pg_down, $self.key, $self.ignore_special_keys()) => $self.[<handle_ $name _table_page_down>](config),
+            _ if $crate::matches_key!(home, $self.key) => $self.[<handle_ $name _table_home>](config),
+            _ if $crate::matches_key!(end, $self.key) => $self.[<handle_ $name _table_end>](config),
+            _ if $crate::matches_key!(left, $self.key, $self.ignore_special_keys())
+              || $crate::matches_key!(right, $self.key, $self.ignore_special_keys()) =>
             {
               $self.[<handle_ $name _table_left_right>](config)
             }
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.submit.key => $self.[<handle_ $name _table_submit>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.esc.key => $self.[<handle_ $name _table_esc>](config),
+            _ if $crate::matches_key!(submit, $self.key) => $self.[<handle_ $name _table_submit>](config),
+            _ if $crate::matches_key!(esc, $self.key) => $self.[<handle_ $name _table_esc>](config),
             _ if config.searching_block.is_some()
               && $self.app.get_current_route() == *config.searching_block.as_ref().unwrap() =>
             {
@@ -63,11 +65,11 @@ macro_rules! handle_table_events {
             {
               $self.[<handle_ $name _table_filter_box_input>]()
             }
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.filter.key
+            _ if $crate::matches_key!(filter, $self.key)
               && config.filtering_block.is_some() => $self.[<handle_ $name _table_filter_key>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.search.key
+            _ if $crate::matches_key!(search, $self.key)
               && config.searching_block.is_some() => $self.[<handle_ $name _table_search_key>](config),
-            _ if $self.key == $crate::app::key_binding::DEFAULT_KEYBINDINGS.sort.key
+            _ if $crate::matches_key!(sort, $self.key)
               && config.sorting_block.is_some() => $self.[<handle_ $name _table_sort_key>](config),
             _ => false,
           }
@@ -110,6 +112,30 @@ macro_rules! handle_table_events {
               .as_mut()
               .unwrap()
               .scroll_down();
+            true
+          }
+          _ => false,
+        }
+      }
+
+      fn [<handle_ $name _table_page_down>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
+        use $crate::models::Paginated;
+
+        match $self.app.get_current_route() {
+          _ if config.table_block == $self.app.get_current_route() => {
+            $table.page_down();
+            true
+          }
+          _ => false,
+        }
+      }
+
+      fn [<handle_ $name _table_page_up>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
+        use $crate::models::Paginated;
+
+        match $self.app.get_current_route() {
+          _ if config.table_block == $self.app.get_current_route() => {
+            $table.page_up();
             true
           }
           _ => false,
@@ -244,7 +270,7 @@ macro_rules! handle_table_events {
             && $self.app.get_current_route() == *config.searching_block.as_ref().unwrap() =>
           {
             $self.app.pop_navigation_stack();
-            $self.app.should_ignore_quit_key = false;
+            $self.app.ignore_special_keys_for_textbox_input = false;
 
             if $table.search.is_some() {
               let search_field_fn = config
@@ -267,7 +293,7 @@ macro_rules! handle_table_events {
             && $self.app.get_current_route() == *config.filtering_block.as_ref().unwrap() =>
           {
             $self.app.pop_navigation_stack();
-            $self.app.should_ignore_quit_key = false;
+            $self.app.ignore_special_keys_for_textbox_input = false;
 
             if $table.filter.is_some() {
               let filter_field_fn = config
@@ -305,7 +331,7 @@ macro_rules! handle_table_events {
           {
             $self.app.pop_navigation_stack();
             $table.reset_search();
-            $self.app.should_ignore_quit_key = false;
+            $self.app.ignore_special_keys_for_textbox_input = false;
             true
           }
           _ if (config.filtering_block.is_some()
@@ -315,7 +341,7 @@ macro_rules! handle_table_events {
           {
             $self.app.pop_navigation_stack();
             $table.reset_filter();
-            $self.app.should_ignore_quit_key = false;
+            $self.app.ignore_special_keys_for_textbox_input = false;
             true
           }
           _ if config.table_block == $self.app.get_current_route()
@@ -335,7 +361,7 @@ macro_rules! handle_table_events {
             .push_navigation_stack(config.filtering_block.expect("Filtering block is undefined").into());
           $table.reset_filter();
           $table.filter = Some($crate::models::HorizontallyScrollableText::default());
-          $self.app.should_ignore_quit_key = true;
+          $self.app.ignore_special_keys_for_textbox_input = true;
 
           true
         } else {
@@ -349,7 +375,7 @@ macro_rules! handle_table_events {
             .app
             .push_navigation_stack(config.searching_block.expect("Searching block is undefined"));
           $table.search = Some($crate::models::HorizontallyScrollableText::default());
-          $self.app.should_ignore_quit_key = true;
+          $self.app.ignore_special_keys_for_textbox_input = true;
 
           true
         } else {

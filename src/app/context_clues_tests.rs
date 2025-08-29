@@ -3,28 +3,49 @@ mod test {
   use pretty_assertions::{assert_eq, assert_str_eq};
 
   use crate::app::context_clues::{
-    BARE_POPUP_CONTEXT_CLUES, BLOCKLIST_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
-    DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
-    SERVARR_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+    ContextClueProvider, ServarrContextClueProvider, BARE_POPUP_CONTEXT_CLUES,
+    BLOCKLIST_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
+    INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SERVARR_CONTEXT_CLUES,
+    SYSTEM_CONTEXT_CLUES,
   };
-  use crate::app::{context_clues::build_context_clue_string, key_binding::DEFAULT_KEYBINDINGS};
-
-  #[test]
-  fn test_build_context_clue_string() {
-    let test_context_clues_array = [
-      (DEFAULT_KEYBINDINGS.add, "add"),
-      (DEFAULT_KEYBINDINGS.delete, "delete"),
-    ];
-
-    assert_str_eq!(
-      build_context_clue_string(&test_context_clues_array),
-      "<a> add | <del> delete"
-    );
-  }
+  use crate::app::{key_binding::DEFAULT_KEYBINDINGS, App};
+  use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+  use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
+  use crate::models::servarr_data::ActiveKeybindingBlock;
 
   #[test]
   fn test_servarr_context_clues() {
     let mut servarr_context_clues_iter = SERVARR_CONTEXT_CLUES.iter();
+
+    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.up);
+    assert_str_eq!(*description, "scroll up");
+
+    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.down);
+    assert_str_eq!(*description, "scroll down");
+
+    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.left);
+    assert_str_eq!(*description, "previous tab");
+
+    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.right);
+    assert_str_eq!(*description, "next tab");
+
+    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.pg_up);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.pg_up.desc);
+
+    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.pg_down);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.pg_down.desc);
 
     let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
 
@@ -40,6 +61,11 @@ mod test {
 
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.quit);
     assert_str_eq!(*description, DEFAULT_KEYBINDINGS.quit.desc);
+
+    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
+
+    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.help);
+    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.help.desc);
     assert_eq!(servarr_context_clues_iter.next(), None);
   }
 
@@ -208,5 +234,43 @@ mod test {
     assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.refresh);
     assert_str_eq!(*description, DEFAULT_KEYBINDINGS.refresh.desc);
     assert_eq!(system_context_clues_iter.next(), None);
+  }
+
+  #[test]
+  fn test_servarr_context_clue_provider_delegates_to_radarr_provider() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
+
+    let context_clues = ServarrContextClueProvider::get_context_clues(&mut app);
+
+    assert!(context_clues.is_some());
+    assert_eq!(
+      &crate::app::radarr::radarr_context_clues::SYSTEM_TASKS_CONTEXT_CLUES,
+      context_clues.unwrap()
+    );
+  }
+
+  #[test]
+  fn test_servarr_context_clue_provider_delegates_to_sonarr_provider() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
+
+    let context_clues = ServarrContextClueProvider::get_context_clues(&mut app);
+
+    assert!(context_clues.is_some());
+    assert_eq!(
+      &crate::app::sonarr::sonarr_context_clues::SYSTEM_TASKS_CONTEXT_CLUES,
+      context_clues.unwrap()
+    );
+  }
+
+  #[test]
+  fn test_servarr_context_clue_provider_unsupported_route_returns_none() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveKeybindingBlock::Help.into());
+
+    let context_clues = ServarrContextClueProvider::get_context_clues(&mut app);
+
+    assert!(context_clues.is_none());
   }
 }

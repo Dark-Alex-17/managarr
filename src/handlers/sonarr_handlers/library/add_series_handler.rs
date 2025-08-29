@@ -1,4 +1,3 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
 use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
@@ -9,7 +8,9 @@ use crate::models::sonarr_models::{AddSeriesBody, AddSeriesOptions, AddSeriesSea
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::sonarr_network::SonarrEvent;
-use crate::{handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, App, Key};
+use crate::{
+  handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, matches_key, App, Key,
+};
 
 #[cfg(test)]
 #[path = "add_series_handler_tests.rs"]
@@ -124,6 +125,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
 
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     ADD_SERIES_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -440,7 +445,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
         self
           .app
           .push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchResults.into());
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ if self.active_sonarr_block == ActiveSonarrBlock::AddSeriesSearchResults
         && self.app.data.sonarr_data.add_searched_series.is_some() =>
@@ -509,7 +514,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
                 .get_active_block()
                 .into(),
             );
-            self.app.should_ignore_quit_key = true;
+            self.app.ignore_special_keys_for_textbox_input = true;
           }
           ActiveSonarrBlock::AddSeriesToggleUseSeasonFolder => {
             self
@@ -538,7 +543,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
       | ActiveSonarrBlock::AddSeriesSelectRootFolder => self.app.pop_navigation_stack(),
       ActiveSonarrBlock::AddSeriesTagsInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ => (),
     }
@@ -549,13 +554,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
       ActiveSonarrBlock::AddSeriesSearchInput => {
         self.app.pop_navigation_stack();
         self.app.data.sonarr_data.add_series_search = None;
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       ActiveSonarrBlock::AddSeriesSearchResults
       | ActiveSonarrBlock::AddSeriesEmptySearchResults => {
         self.app.pop_navigation_stack();
         self.app.data.sonarr_data.add_searched_series = None;
-        self.app.should_ignore_quit_key = true;
+        self.app.ignore_special_keys_for_textbox_input = true;
       }
       ActiveSonarrBlock::AddSeriesPrompt => {
         self.app.pop_navigation_stack();
@@ -570,7 +575,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
       | ActiveSonarrBlock::AddSeriesSelectRootFolder => self.app.pop_navigation_stack(),
       ActiveSonarrBlock::AddSeriesTagsInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ => (),
     }
@@ -609,7 +614,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
       ActiveSonarrBlock::AddSeriesPrompt => {
         if self.app.data.sonarr_data.selected_block.get_active_block()
           == ActiveSonarrBlock::AddSeriesConfirmPrompt
-          && key == DEFAULT_KEYBINDINGS.confirm.key
+          && matches_key!(confirm, key)
         {
           self.app.data.sonarr_data.prompt_confirm = true;
           self.app.data.sonarr_data.prompt_confirm_action =

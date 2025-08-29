@@ -1,10 +1,4 @@
 use anyhow::Result;
-use std::panic::PanicHookInfo;
-use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use std::{io, panic, process};
-
 use clap::{crate_authors, crate_description, crate_name, crate_version, CommandFactory, Parser};
 use clap_complete::generate;
 use crossterm::execute;
@@ -16,6 +10,11 @@ use network::NetworkTrait;
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
 use reqwest::Client;
+use std::panic::PanicHookInfo;
+use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::{io, panic, process};
 use tokio::select;
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::{mpsc, Mutex};
@@ -24,12 +23,14 @@ use utils::{
   build_network_client, load_config, start_cli_no_spinner, start_cli_with_spinner, tail_logs,
 };
 
-use crate::app::App;
+use crate::app::{log_and_print_error, App};
 use crate::cli::Command;
 use crate::event::input_event::{Events, InputEvent};
 use crate::event::Key;
 use crate::network::{Network, NetworkEvent};
-use crate::ui::ui;
+use crate::ui::theme::{Theme, ThemeDefinitionsWrapper};
+use crate::ui::{ui, THEME};
+use crate::utils::load_theme_config;
 
 mod app;
 mod cli;
@@ -77,6 +78,22 @@ struct Cli {
   #[arg(
     long,
     global = true,
+    value_parser,
+    env = "MANAGARR_THEMES_FILE",
+    help = "The Managarr themes file to use"
+  )]
+  themes_file: Option<PathBuf>,
+  #[arg(
+    long,
+    global = true,
+    value_parser,
+    env = "MANAGARR_THEME",
+    help = "The name of the Managarr theme to use"
+  )]
+  theme: Option<String>,
+  #[arg(
+    long,
+    global = true,
     help = "For multi-instance configurations, you need to specify the name of the instance configuration that you want to use.
     This is useful when you have multiple instances of the same Servarr defined in your config file.
     By default, if left empty, the first configured Servarr instance listed in the config file will be used."
@@ -98,10 +115,12 @@ async fn main() -> Result<()> {
   } else {
     confy::load("managarr", "config")?
   };
+  let theme_name = config.theme.clone();
   let spinner_disabled = args.disable_spinner;
   debug!("Managarr loaded using config: {config:?}");
   config.validate();
   config.post_process_initialization();
+
   let reqwest_client = build_network_client(&config);
   let (sync_network_tx, sync_network_rx) = mpsc::channel(500);
   let cancellation_token = CancellationToken::new();
@@ -140,7 +159,12 @@ async fn main() -> Result<()> {
       std::thread::spawn(move || {
         start_networking(sync_network_rx, &app_nw, cancellation_token, reqwest_client)
       });
-      start_ui(&app).await?;
+      start_ui(
+        &app,
+        &args.themes_file,
+        args.theme.unwrap_or(theme_name.unwrap_or_default()),
+      )
+      .await?;
     }
   }
 
@@ -174,7 +198,36 @@ async fn start_networking(
   }
 }
 
-async fn start_ui(app: &Arc<Mutex<App<'_>>>) -> Result<()> {
+async fn start_ui(
+  app: &Arc<Mutex<App<'_>>>,
+  themes_file_arg: &Option<PathBuf>,
+  theme_name: String,
+) -> Result<()> {
+  let theme_definitions_wrapper = if let Some(ref theme_file) = themes_file_arg {
+    load_theme_config(theme_file.to_str().expect("Invalid theme file specified"))?
+  } else {
+    confy::load("managarr", "themes").unwrap_or_else(|_| ThemeDefinitionsWrapper::default())
+  };
+  let theme = if !theme_name.is_empty() {
+    let theme_definition = theme_definitions_wrapper
+      .theme_definitions
+      .iter()
+      .find(|t| t.name == theme_name);
+
+    if theme_definition.is_none() {
+      log_and_print_error(format!("The specified theme was not found: {theme_name}"));
+      process::exit(1);
+    }
+
+    theme_definition.unwrap().theme
+  } else {
+    debug!("No theme specified, using default theme");
+    Theme::default()
+  };
+  debug!("Managarr loaded using theme: {theme:?}");
+  theme.validate();
+  THEME.set(theme);
+
   let mut stdout = io::stdout();
   enable_raw_mode()?;
 
@@ -193,7 +246,7 @@ async fn start_ui(app: &Arc<Mutex<App<'_>>>) -> Result<()> {
 
     match input_events.next()? {
       InputEvent::KeyEvent(key) => {
-        if key == Key::Char('q') && !app.should_ignore_quit_key {
+        if key == Key::Char('q') && !app.ignore_special_keys_for_textbox_input {
           break;
         }
 

@@ -3,8 +3,6 @@ use ratatui::text::{Span, Text};
 use ratatui::widgets::{Cell, ListItem, Paragraph, Row};
 use ratatui::Frame;
 
-use crate::app::context_clues::{build_context_clue_string, BARE_POPUP_CONTEXT_CLUES};
-use crate::app::sonarr::sonarr_context_clues::SYSTEM_TASKS_CONTEXT_CLUES;
 use crate::app::App;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::sonarr_models::SonarrTask;
@@ -59,17 +57,10 @@ impl DrawUi for SystemDetailsUi {
 
 fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
   let block = title_block("Log Details");
-  let help_footer = format!(
-    "<↑↓←→> scroll | {}",
-    build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES)
-  );
 
   if app.data.sonarr_data.log_details.items.is_empty() {
     let loading = LoadingBlock::new(app.is_loading, borderless_block());
-    let popup = Popup::new(loading)
-      .size(Size::Large)
-      .block(block)
-      .footer(&help_footer);
+    let popup = Popup::new(loading).size(Size::Large).block(block);
 
     f.render_widget(popup, f.area());
     return;
@@ -82,16 +73,12 @@ fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
     style_log_list_item(ListItem::new(Text::from(Span::raw(log_line))), level)
   })
   .block(borderless_block());
-  let popup = Popup::new(logs_list)
-    .size(Size::Large)
-    .block(block)
-    .footer(&help_footer);
+  let popup = Popup::new(logs_list).size(Size::Large).block(block);
 
   f.render_widget(popup, f.area());
 }
 
 fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  let help_footer = Some(build_context_clue_string(&SYSTEM_TASKS_CONTEXT_CLUES));
   let tasks_row_mapping = |task: &SonarrTask| {
     let task_props = extract_task_props(task);
 
@@ -104,10 +91,8 @@ fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .primary()
   };
   let tasks_table = ManagarrTable::new(Some(&mut app.data.sonarr_data.tasks), tasks_row_mapping)
-    .block(borderless_block())
     .loading(app.is_loading)
     .margin(1)
-    .footer(help_footer)
     .footer_alignment(Alignment::Center)
     .headers(TASK_TABLE_HEADERS)
     .constraints(TASK_TABLE_CONSTRAINTS);
@@ -136,10 +121,6 @@ fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 }
 
 fn draw_updates_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
-  let help_footer = format!(
-    "<↑↓> scroll | {}",
-    build_context_clue_string(&BARE_POPUP_CONTEXT_CLUES)
-  );
   let updates = app.data.sonarr_data.updates.get_text();
   let block = title_block("Updates");
 
@@ -147,18 +128,12 @@ fn draw_updates_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
     let updates_paragraph = Paragraph::new(Text::from(updates))
       .block(borderless_block())
       .scroll((app.data.sonarr_data.updates.offset, 0));
-    let popup = Popup::new(updates_paragraph)
-      .size(Size::Large)
-      .block(block)
-      .footer(&help_footer);
+    let popup = Popup::new(updates_paragraph).size(Size::Large).block(block);
 
     f.render_widget(popup, f.area());
   } else {
     let loading = LoadingBlock::new(app.is_loading, borderless_block());
-    let popup = Popup::new(loading)
-      .size(Size::Large)
-      .block(block)
-      .footer(&help_footer);
+    let popup = Popup::new(loading).size(Size::Large).block(block);
 
     f.render_widget(popup, f.area());
   }

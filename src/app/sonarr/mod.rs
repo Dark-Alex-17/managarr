@@ -53,7 +53,7 @@ impl App<'_> {
           )
           .await;
         self
-          .dispatch_network_event(SonarrEvent::GetDownloads.into())
+          .dispatch_network_event(SonarrEvent::GetDownloads(500).into())
           .await;
       }
       ActiveSonarrBlock::SeasonHistory => {
@@ -108,7 +108,7 @@ impl App<'_> {
       }
       ActiveSonarrBlock::Downloads => {
         self
-          .dispatch_network_event(SonarrEvent::GetDownloads.into())
+          .dispatch_network_event(SonarrEvent::GetDownloads(500).into())
           .await;
       }
       ActiveSonarrBlock::Blocklist => {
@@ -234,7 +234,7 @@ impl App<'_> {
       .dispatch_network_event(SonarrEvent::GetRootFolders.into())
       .await;
     self
-      .dispatch_network_event(SonarrEvent::GetDownloads.into())
+      .dispatch_network_event(SonarrEvent::GetDownloads(500).into())
       .await;
     self
       .dispatch_network_event(SonarrEvent::GetDiskSpace.into())

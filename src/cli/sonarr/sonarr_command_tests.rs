@@ -216,6 +216,31 @@ mod tests {
 
       assert!(result.is_ok());
     }
+
+    #[test]
+    fn test_toggle_series_monitoring_requires_series_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "sonarr", "toggle-series-monitoring"]);
+
+      assert!(result.is_err());
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_toggle_series_monitoring_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "sonarr",
+        "toggle-series-monitoring",
+        "--series-id",
+        "1",
+      ]);
+
+      assert!(result.is_ok());
+    }
   }
 
   mod handler {
@@ -692,7 +717,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_list_toggle_episode_monitoring_command() {
+    async fn test_toggle_episode_monitoring_command() {
       let expected_episode_id = 1;
       let mut mock_network = MockNetworkTrait::new();
       mock_network
@@ -722,7 +747,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_list_toggle_season_monitoring_command() {
+    async fn test_toggle_season_monitoring_command() {
       let expected_series_id = 1;
       let expected_season_number = 1;
       let mut mock_network = MockNetworkTrait::new();
@@ -746,6 +771,35 @@ mod tests {
       let result = SonarrCliHandler::with(
         &app_arc,
         toggle_season_monitoring_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
+
+      assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_toggle_series_monitoring_command() {
+      let expected_series_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          SonarrEvent::ToggleSeriesMonitoring(expected_series_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Sonarr(SonarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let toggle_series_monitoring_command = SonarrCommand::ToggleSeriesMonitoring { series_id: 1 };
+
+      let result = SonarrCliHandler::with(
+        &app_arc,
+        toggle_series_monitoring_command,
         &mut mock_network,
       )
       .handle()

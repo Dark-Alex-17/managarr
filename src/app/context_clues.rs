@@ -1,20 +1,41 @@
 use crate::app::key_binding::{KeyBinding, DEFAULT_KEYBINDINGS};
+use crate::app::radarr::radarr_context_clues::RadarrContextClueProvider;
+use crate::app::sonarr::sonarr_context_clues::SonarrContextClueProvider;
+use crate::app::App;
+use crate::models::Route;
 
 #[cfg(test)]
 #[path = "context_clues_tests.rs"]
 mod context_clues_tests;
 
-pub(in crate::app) type ContextClue = (KeyBinding, &'static str);
+pub type ContextClue = (KeyBinding, &'static str);
 
-pub fn build_context_clue_string(context_clues: &[(KeyBinding, &str)]) -> String {
-  context_clues
-    .iter()
-    .map(|(key_binding, desc)| format!("{} {desc}", key_binding.key))
-    .collect::<Vec<String>>()
-    .join(" | ")
+pub trait ContextClueProvider {
+  fn get_context_clues(_app: &mut App<'_>) -> Option<&'static [ContextClue]>;
 }
 
-pub static SERVARR_CONTEXT_CLUES: [ContextClue; 3] = [
+pub struct ServarrContextClueProvider;
+
+impl ContextClueProvider for ServarrContextClueProvider {
+  fn get_context_clues(app: &mut App<'_>) -> Option<&'static [ContextClue]> {
+    match app.get_current_route() {
+      Route::Radarr(_, _) => RadarrContextClueProvider::get_context_clues(app),
+      Route::Sonarr(_, _) => SonarrContextClueProvider::get_context_clues(app),
+      _ => None,
+    }
+  }
+}
+
+pub static SERVARR_CONTEXT_CLUES: [ContextClue; 10] = [
+  (DEFAULT_KEYBINDINGS.up, "scroll up"),
+  (DEFAULT_KEYBINDINGS.down, "scroll down"),
+  (DEFAULT_KEYBINDINGS.left, "previous tab"),
+  (DEFAULT_KEYBINDINGS.right, "next tab"),
+  (DEFAULT_KEYBINDINGS.pg_up, DEFAULT_KEYBINDINGS.pg_up.desc),
+  (
+    DEFAULT_KEYBINDINGS.pg_down,
+    DEFAULT_KEYBINDINGS.pg_down.desc,
+  ),
   (
     DEFAULT_KEYBINDINGS.next_servarr,
     DEFAULT_KEYBINDINGS.next_servarr.desc,
@@ -24,6 +45,7 @@ pub static SERVARR_CONTEXT_CLUES: [ContextClue; 3] = [
     DEFAULT_KEYBINDINGS.previous_servarr.desc,
   ),
   (DEFAULT_KEYBINDINGS.quit, DEFAULT_KEYBINDINGS.quit.desc),
+  (DEFAULT_KEYBINDINGS.help, DEFAULT_KEYBINDINGS.help.desc),
 ];
 
 pub static BARE_POPUP_CONTEXT_CLUES: [ContextClue; 1] =

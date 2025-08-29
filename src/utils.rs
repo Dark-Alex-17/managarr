@@ -21,6 +21,7 @@ use tokio_util::sync::CancellationToken;
 use crate::app::{log_and_print_error, App, AppConfig};
 use crate::cli::{self, Command};
 use crate::network::Network;
+use crate::ui::theme::ThemeDefinitionsWrapper;
 
 #[cfg(test)]
 #[path = "utils_tests.rs"]
@@ -38,7 +39,7 @@ pub fn get_log_path() -> PathBuf {
   log_path.push("managarr");
 
   if let Err(e) = fs::create_dir_all(&log_path) {
-    eprintln!("Failed to create log directory: {:?}", e);
+    eprintln!("Failed to create log directory: {e:?}");
   }
 
   log_path.push("managarr.log");
@@ -95,10 +96,10 @@ pub async fn tail_logs(no_color: bool) {
     loop {
       if let Some(Ok(line)) = lines.next() {
         if no_color {
-          println!("{}", line);
+          println!("{line}");
         } else {
           let colored_line = colorize_log_line(&line, &re);
-          println!("{}", colored_line);
+          println!("{colored_line}");
         }
       }
     }
@@ -140,10 +141,31 @@ fn colorize_log_line(line: &str, re: &Regex) -> String {
 }
 
 pub(super) fn load_config(path: &str) -> Result<AppConfig> {
-  let file = File::open(path).map_err(|e| anyhow!(e))?;
-  let reader = BufReader::new(file);
-  let config = serde_yaml::from_reader(reader)?;
-  Ok(config)
+  match File::open(path).map_err(|e| anyhow!(e)) {
+    Ok(file) => {
+      let reader = BufReader::new(file);
+      let config = serde_yaml::from_reader(reader)?;
+      Ok(config)
+    }
+    Err(e) => {
+      log_and_print_error(format!("Unable to open config file: {e:?}"));
+      process::exit(1);
+    }
+  }
+}
+
+pub(super) fn load_theme_config(path: &str) -> Result<ThemeDefinitionsWrapper> {
+  match File::open(path).map_err(|e| anyhow!(e)) {
+    Ok(file) => {
+      let reader = BufReader::new(file);
+      let theme_config = serde_yaml::from_reader(reader)?;
+      Ok(theme_config)
+    }
+    Err(e) => {
+      log_and_print_error(format!("Unable to open theme file: {e:?}"));
+      process::exit(1);
+    }
+  }
 }
 
 pub(super) fn build_network_client(config: &AppConfig) -> Client {
@@ -173,7 +195,7 @@ pub(super) fn build_network_client(config: &AppConfig) -> Client {
   match client_builder.build() {
     Ok(client) => client,
     Err(e) => {
-      error!("Unable to create reqwest client: {}", e);
+      error!("Unable to create reqwest client: {e}");
       eprintln!("error: {}", e.to_string().red());
       process::exit(1);
     }
@@ -186,16 +208,14 @@ pub(super) fn create_cert(cert_path: &String, servarr_name: &str) -> Certificate
       Ok(certificate) => certificate,
       Err(_) => {
         log_and_print_error(format!(
-          "Unable to read the specified {} SSL certificate",
-          servarr_name
+          "Unable to read the specified {servarr_name} SSL certificate"
         ));
         process::exit(1);
       }
     },
     Err(_) => {
       log_and_print_error(format!(
-        "Unable to open specified {} SSL certificate",
-        servarr_name
+        "Unable to open specified {servarr_name} SSL certificate"
       ));
       process::exit(1);
     }
@@ -238,7 +258,7 @@ pub(super) async fn start_cli_with_spinner(
   match cli::handle_command(&app, command, &mut network).await {
     Ok(output) => {
       pb.finish();
-      println!("{}", output);
+      println!("{output}");
     }
     Err(e) => {
       pb.finish();
@@ -265,7 +285,7 @@ pub(super) async fn start_cli_no_spinner(
   let mut network = Network::new(&app_nw, cancellation_token, reqwest_client);
   match cli::handle_command(&app, command, &mut network).await {
     Ok(output) => {
-      println!("{}", output);
+      println!("{output}");
     }
     Err(e) => {
       eprintln!("error: {}", e.to_string().red());
@@ -284,8 +304,7 @@ pub fn select_cli_configuration(
     let trimmed_name = servarr_name.trim();
     if !app.server_tabs.select_tab_by_title(trimmed_name) {
       log_and_print_error(format!(
-        "A Servarr titled '{}' was not found in your configuration file",
-        trimmed_name
+        "A Servarr titled '{trimmed_name}' was not found in your configuration file"
       ));
       process::exit(1);
     }

@@ -5,6 +5,7 @@ use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use ratatui::Frame;
+use serde_json::Number;
 
 use crate::app::App;
 use crate::models::radarr_models::{Credit, MovieHistoryItem, RadarrRelease};
@@ -256,20 +257,14 @@ fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Cell::from(quality.quality.name.to_owned()),
         Cell::from(date.to_string()),
       ])
-      .success()
+      .primary()
     };
-    let help_footer = app
-      .data
-      .radarr_data
-      .movie_info_tabs
-      .get_active_tab_contextual_help();
     let history_table = ManagarrTable::new(
       Some(&mut movie_details_modal.movie_history),
       history_row_mapping,
     )
     .block(layout_block_top_border())
     .loading(app.is_loading)
-    .footer(help_footer)
     .headers(["Source Title", "Event Type", "Languages", "Quality", "Date"])
     .constraints([
       Constraint::Percentage(34),
@@ -297,17 +292,11 @@ fn draw_movie_cast(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Cell::from(person_name.to_owned()),
           Cell::from(character.clone().unwrap_or_default()),
         ])
-        .success()
+        .primary()
       };
       let content = Some(&mut movie_details_modal.movie_cast);
-      let help_footer = app
-        .data
-        .radarr_data
-        .movie_info_tabs
-        .get_active_tab_contextual_help();
       let cast_table = ManagarrTable::new(content, cast_row_mapping)
         .block(layout_block_top_border())
-        .footer(help_footer)
         .loading(app.is_loading)
         .headers(["Cast Member", "Character"])
         .constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)]);
@@ -340,20 +329,14 @@ fn draw_movie_crew(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Cell::from(job.clone().unwrap_or_default()),
           Cell::from(department.clone().unwrap_or_default()),
         ])
-        .success()
+        .primary()
       };
       let content = Some(&mut movie_details_modal.movie_crew);
-      let help_footer = app
-        .data
-        .radarr_data
-        .movie_info_tabs
-        .get_active_tab_contextual_help();
       let crew_table = ManagarrTable::new(content, crew_row_mapping)
         .block(layout_block_top_border())
         .loading(app.is_loading)
         .headers(["Crew Member", "Job", "Department"])
-        .constraints(iter::repeat(Constraint::Ratio(1, 3)).take(3))
-        .footer(help_footer);
+        .constraints(iter::repeat_n(Constraint::Ratio(1, 3), 3));
 
       f.render_widget(crew_table, area);
     }
@@ -382,11 +365,6 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     };
     let current_route = app.get_current_route();
     let mut default_movie_details_modal = MovieDetailsModal::default();
-    let help_footer = app
-      .data
-      .radarr_data
-      .movie_info_tabs
-      .get_active_tab_contextual_help();
     let content = Some(
       &mut app
         .data
@@ -422,8 +400,16 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let peers = if seeders.is_none() || leechers.is_none() {
         Text::from("")
       } else {
-        let seeders = seeders.clone().unwrap().as_u64().unwrap();
-        let leechers = leechers.clone().unwrap().as_u64().unwrap();
+        let seeders = seeders
+          .clone()
+          .unwrap_or(Number::from(0u64))
+          .as_u64()
+          .unwrap();
+        let leechers = leechers
+          .clone()
+          .unwrap_or(Number::from(0u64))
+          .as_u64()
+          .unwrap();
 
         decorate_peer_style(
           seeders,
@@ -455,7 +441,6 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let releases_table = ManagarrTable::new(content, releases_row_mapping)
       .block(layout_block_top_border())
       .loading(app.is_loading || is_empty)
-      .footer(help_footer)
       .sorting(active_radarr_block == ActiveRadarrBlock::ManualSearchSortPrompt)
       .headers([
         "Source", "Age", "⛔", "Title", "Indexer", "Size", "Peers", "Language", "Quality",

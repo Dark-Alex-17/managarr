@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod test {
-  use crate::ui::styles::{ManagarrStyle, COLOR_ORANGE};
+  use crate::ui::styles::ManagarrStyle;
   use pretty_assertions::assert_eq;
   use ratatui::prelude::Modifier;
-  use ratatui::style::{Style, Stylize};
+  use ratatui::style::{Color, Style, Stylize};
 
   #[test]
   fn test_new() {
@@ -14,13 +14,16 @@ mod test {
   fn test_style_awaiting_import() {
     assert_eq!(
       Style::new().awaiting_import(),
-      Style::new().fg(COLOR_ORANGE)
+      Style::new().fg(Color::Rgb(255, 170, 66))
     );
   }
 
   #[test]
   fn test_style_indeterminate() {
-    assert_eq!(Style::new().indeterminate(), Style::new().fg(COLOR_ORANGE));
+    assert_eq!(
+      Style::new().indeterminate(),
+      Style::new().fg(Color::Rgb(255, 170, 66))
+    );
   }
 
   #[test]

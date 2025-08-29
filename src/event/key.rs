@@ -13,6 +13,8 @@ pub enum Key {
   Down,
   Left,
   Right,
+  PgDown,
+  PgUp,
   Enter,
   Esc,
   Backspace,
@@ -29,21 +31,23 @@ pub enum Key {
 impl Display for Key {
   fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
     match *self {
-      Key::Char(c) => write!(f, "<{c}>"),
-      Key::Ctrl(c) => write!(f, "<ctrl-{c}>"),
-      Key::Up => write!(f, "<↑>"),
-      Key::Down => write!(f, "<↓>"),
-      Key::Left => write!(f, "<←>"),
-      Key::Right => write!(f, "<→>"),
-      Key::Enter => write!(f, "<enter>"),
-      Key::Esc => write!(f, "<esc>"),
-      Key::Backspace => write!(f, "<backspace>"),
-      Key::Home => write!(f, "<home>"),
-      Key::End => write!(f, "<end>"),
-      Key::Tab => write!(f, "<tab>"),
-      Key::BackTab => write!(f, "<shift-tab>"),
-      Key::Delete => write!(f, "<del>"),
-      _ => write!(f, "<{self:?}>"),
+      Key::Char(c) => write!(f, "{c}"),
+      Key::Ctrl(c) => write!(f, "ctrl-{c}"),
+      Key::Up => write!(f, "↑"),
+      Key::Down => write!(f, "↓"),
+      Key::Left => write!(f, "←"),
+      Key::Right => write!(f, "→"),
+      Key::PgDown => write!(f, "pgDown"),
+      Key::PgUp => write!(f, "pgUp"),
+      Key::Enter => write!(f, "enter"),
+      Key::Esc => write!(f, "esc"),
+      Key::Backspace => write!(f, "backspace"),
+      Key::Home => write!(f, "home"),
+      Key::End => write!(f, "end"),
+      Key::Tab => write!(f, "tab"),
+      Key::BackTab => write!(f, "shift-tab"),
+      Key::Delete => write!(f, "del"),
+      _ => write!(f, "{self:?}"),
     }
   }
 }
@@ -66,6 +70,14 @@ impl From<KeyEvent> for Key {
         code: KeyCode::Right,
         ..
       } => Key::Right,
+      KeyEvent {
+        code: KeyCode::PageDown,
+        ..
+      } => Key::PgDown,
+      KeyEvent {
+        code: KeyCode::PageUp,
+        ..
+      } => Key::PgUp,
       KeyEvent {
         code: KeyCode::Backspace,
         ..

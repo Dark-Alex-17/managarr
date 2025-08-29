@@ -1,9 +1,7 @@
-use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::{background_block, centered_rect, layout_block_top_border};
+use crate::ui::utils::{background_block, centered_rect};
 use ratatui::buffer::Buffer;
-use ratatui::layout::{Constraint, Layout, Rect};
-use ratatui::prelude::Text;
-use ratatui::widgets::{Block, Clear, Paragraph, Widget};
+use ratatui::layout::Rect;
+use ratatui::widgets::{Block, Clear, Widget};
 
 #[cfg(test)]
 #[path = "popup_tests.rs"]
@@ -25,6 +23,7 @@ pub enum Size {
   XLarge,
   XXLarge,
   Long,
+  LongNarrowTable,
 }
 
 impl Size {
@@ -45,6 +44,7 @@ impl Size {
       Size::XLarge => (83, 83),
       Size::XXLarge => (90, 90),
       Size::Long => (65, 75),
+      Size::LongNarrowTable => (55, 85),
     }
   }
 }
@@ -54,7 +54,6 @@ pub struct Popup<'a, T: Widget> {
   percent_x: u16,
   percent_y: u16,
   block: Option<Block<'a>>,
-  footer: Option<&'a str>,
 }
 
 impl<'a, T: Widget> Popup<'a, T> {
@@ -64,7 +63,6 @@ impl<'a, T: Widget> Popup<'a, T> {
       percent_x: 0,
       percent_y: 0,
       block: None,
-      footer: None,
     }
   }
 
@@ -86,11 +84,6 @@ impl<'a, T: Widget> Popup<'a, T> {
     self
   }
 
-  pub fn footer(mut self, footer: &'a str) -> Self {
-    self.footer = Some(footer);
-    self
-  }
-
   fn render_popup(self, area: Rect, buf: &mut Buffer) {
     let mut popup_area = centered_rect(self.percent_x, self.percent_y, area);
     let height = if popup_area.height < 3 {
@@ -109,23 +102,7 @@ impl<'a, T: Widget> Popup<'a, T> {
       block.render(popup_area, buf);
     }
 
-    let content_area = if let Some(footer) = self.footer {
-      let [content_area, help_footer_area] =
-        Layout::vertical([Constraint::Fill(0), Constraint::Length(2)])
-          .margin(1)
-          .areas(popup_area);
-
-      Paragraph::new(Text::from(format!(" {footer}").help()))
-        .block(layout_block_top_border())
-        .left_aligned()
-        .render(help_footer_area, buf);
-
-      content_area
-    } else {
-      popup_area
-    };
-
-    self.widget.render(content_area, buf);
+    self.widget.render(popup_area, buf);
   }
 }
 

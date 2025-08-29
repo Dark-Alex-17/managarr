@@ -55,12 +55,6 @@ fn draw_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     app.data.sonarr_data.history.current_selection().clone()
   };
   if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
-    let history_table_footer = app
-      .data
-      .sonarr_data
-      .main_tabs
-      .get_active_tab_contextual_help();
-
     let history_row_mapping = |history_item: &SonarrHistoryItem| {
       let SonarrHistoryItem {
         source_title,
@@ -96,7 +90,6 @@ fn draw_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       ManagarrTable::new(Some(&mut app.data.sonarr_data.history), history_row_mapping)
         .block(layout_block_top_border())
         .loading(app.is_loading)
-        .footer(history_table_footer)
         .sorting(active_sonarr_block == ActiveSonarrBlock::HistorySortPrompt)
         .searching(active_sonarr_block == ActiveSonarrBlock::SearchHistory)
         .search_produced_empty_results(active_sonarr_block == ActiveSonarrBlock::SearchHistoryError)

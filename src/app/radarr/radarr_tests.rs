@@ -140,7 +140,7 @@ mod tests {
     assert!(app.is_loading);
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
-      RadarrEvent::GetDownloads.into()
+      RadarrEvent::GetDownloads(500).into()
     );
     assert!(!app.data.radarr_data.prompt_confirm);
     assert_eq!(app.tick_count, 0);
@@ -186,7 +186,7 @@ mod tests {
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
-      RadarrEvent::GetDownloads.into()
+      RadarrEvent::GetDownloads(500).into()
     );
     assert!(!app.data.radarr_data.prompt_confirm);
     assert_eq!(app.tick_count, 0);
@@ -591,7 +591,7 @@ mod tests {
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
-      RadarrEvent::GetDownloads.into()
+      RadarrEvent::GetDownloads(500).into()
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
@@ -625,7 +625,7 @@ mod tests {
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
-      RadarrEvent::GetDownloads.into()
+      RadarrEvent::GetDownloads(500).into()
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
@@ -650,7 +650,7 @@ mod tests {
 
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
-      RadarrEvent::GetDownloads.into()
+      RadarrEvent::GetDownloads(500).into()
     );
     assert!(!app.data.radarr_data.prompt_confirm);
   }
@@ -675,7 +675,7 @@ mod tests {
 
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
-      RadarrEvent::GetDownloads.into()
+      RadarrEvent::GetDownloads(500).into()
     );
     assert!(app.should_refresh);
     assert!(!app.data.radarr_data.prompt_confirm);
@@ -692,7 +692,7 @@ mod tests {
 
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
-      RadarrEvent::GetDownloads.into()
+      RadarrEvent::GetDownloads(500).into()
     );
     assert!(app.is_loading);
     assert!(app.should_refresh);
@@ -722,7 +722,7 @@ mod tests {
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
-      RadarrEvent::GetDownloads.into()
+      RadarrEvent::GetDownloads(500).into()
     );
     assert!(app.is_loading);
   }

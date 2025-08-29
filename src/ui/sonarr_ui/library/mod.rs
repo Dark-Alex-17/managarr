@@ -12,6 +12,7 @@ use crate::ui::widgets::{
   confirmation_prompt::ConfirmationPrompt,
   popup::{Popup, Size},
 };
+use crate::utils::convert_to_gb;
 use crate::{
   app::App,
   models::{
@@ -89,11 +90,6 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let language_profile_map = &app.data.sonarr_data.language_profiles_map;
     let tags_map = &app.data.sonarr_data.tags_map;
     let content = Some(&mut app.data.sonarr_data.series);
-    let help_footer = app
-      .data
-      .sonarr_data
-      .main_tabs
-      .get_active_tab_contextual_help();
 
     let series_table_row_mapping = |series: &Series| {
       series.title.scroll_left_or_reset(
@@ -104,6 +100,10 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let monitored = if series.monitored { "🏷" } else { "" };
       let certification = series.certification.clone().unwrap_or_default();
       let network = series.network.clone().unwrap_or_default();
+      let size = series
+        .statistics
+        .as_ref()
+        .map_or(0f64, |stats| convert_to_gb(stats.size_on_disk));
       let quality_profile = quality_profile_map
         .get_by_left(&series.quality_profile_id)
         .unwrap()
@@ -112,6 +112,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .get_by_left(&series.language_profile_id)
         .unwrap()
         .to_owned();
+      let empty_tag = String::new();
       let tags = if !series.tags.is_empty() {
         series
           .tags
@@ -119,7 +120,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .map(|tag_id| {
             tags_map
               .get_by_left(&tag_id.as_i64().unwrap())
-              .unwrap()
+              .unwrap_or(&empty_tag)
               .clone()
           })
           .collect::<Vec<String>>()
@@ -139,6 +140,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           Cell::from(series.series_type.to_display_str()),
           Cell::from(quality_profile),
           Cell::from(language_profile),
+          Cell::from(format!("{size:.2} GB")),
           Cell::from(monitored.to_owned()),
           Cell::from(tags),
         ]),
@@ -147,7 +149,6 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let series_table = ManagarrTable::new(content, series_table_row_mapping)
       .block(layout_block_top_border())
       .loading(app.is_loading)
-      .footer(help_footer)
       .sorting(active_sonarr_block == ActiveSonarrBlock::SeriesSortPrompt)
       .searching(active_sonarr_block == ActiveSonarrBlock::SearchSeries)
       .filtering(active_sonarr_block == ActiveSonarrBlock::FilterSeries)
@@ -161,19 +162,21 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         "Rating",
         "Type",
         "Quality Profile",
-        "Language Profile",
+        "Language",
+        "Size",
         "Monitored",
         "Tags",
       ])
       .constraints([
-        Constraint::Percentage(23),
+        Constraint::Percentage(20),
         Constraint::Percentage(4),
         Constraint::Percentage(14),
         Constraint::Percentage(6),
         Constraint::Percentage(6),
         Constraint::Percentage(6),
-        Constraint::Percentage(13),
-        Constraint::Percentage(10),
+        Constraint::Percentage(11),
+        Constraint::Percentage(8),
+        Constraint::Percentage(7),
         Constraint::Percentage(6),
         Constraint::Percentage(12),
       ]);
@@ -202,8 +205,19 @@ fn decorate_series_row_with_style<'a>(series: &Series, row: Row<'a>) -> Row<'a> 
         return if seasons
           .iter()
           .filter(|season| season.monitored)
-          .all(|season| season.statistics.episode_file_count == season.statistics.episode_count)
-        {
+          .filter(|season| season.statistics.is_some())
+          .all(|season| {
+            season
+              .statistics
+              .as_ref()
+              .expect("Season Statistics is undefined")
+              .episode_file_count
+              == season
+                .statistics
+                .as_ref()
+                .expect("Season statistics is undefined")
+                .episode_count
+          }) {
           row.downloaded()
         } else {
           row.missing()
@@ -217,8 +231,19 @@ fn decorate_series_row_with_style<'a>(series: &Series, row: Row<'a>) -> Row<'a> 
         return if seasons
           .iter()
           .filter(|season| season.monitored)
-          .all(|season| season.statistics.episode_file_count == season.statistics.episode_count)
-        {
+          .filter(|season| season.statistics.is_some())
+          .all(|season| {
+            season
+              .statistics
+              .as_ref()
+              .expect("Season Statistics is undefined")
+              .episode_file_count
+              == season
+                .statistics
+                .as_ref()
+                .expect("Season statistics is undefined")
+                .episode_count
+          }) {
           row.unreleased()
         } else {
           row.missing()

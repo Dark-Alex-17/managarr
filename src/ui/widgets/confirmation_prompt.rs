@@ -1,4 +1,3 @@
-use crate::app::context_clues::{build_context_clue_string, CONFIRMATION_PROMPT_CONTEXT_CLUES};
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_paragraph_borderless, title_block_centered};
 use crate::ui::widgets::button::Button;
@@ -6,7 +5,6 @@ use crate::ui::widgets::checkbox::Checkbox;
 use derive_setters::Setters;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
-use ratatui::text::Text;
 use ratatui::widgets::{Paragraph, Widget};
 use std::iter;
 
@@ -40,20 +38,16 @@ impl ConfirmationPrompt<'_> {
 
   fn render_confirmation_prompt_with_checkboxes(self, area: Rect, buf: &mut Buffer) {
     title_block_centered(self.title).render(area, buf);
-    let help_text =
-      Text::from(build_context_clue_string(&CONFIRMATION_PROMPT_CONTEXT_CLUES).help());
-    let help_paragraph = Paragraph::new(help_text).centered();
 
     if let Some(checkboxes) = self.checkboxes {
       let mut constraints = vec![
         Constraint::Length(4),
         Constraint::Fill(1),
         Constraint::Length(3),
-        Constraint::Length(1),
       ];
       constraints.splice(
         1..1,
-        iter::repeat(Constraint::Length(3)).take(checkboxes.len()),
+        iter::repeat_n(Constraint::Length(3), checkboxes.len()),
       );
       let chunks = Layout::vertical(constraints).margin(1).split(area);
       let [yes_area, no_area] =
@@ -61,7 +55,6 @@ impl ConfirmationPrompt<'_> {
           .areas(chunks[checkboxes.len() + 2]);
 
       layout_paragraph_borderless(self.prompt).render(chunks[0], buf);
-      help_paragraph.render(chunks[checkboxes.len() + 3], buf);
 
       checkboxes
         .into_iter()
@@ -83,37 +76,29 @@ impl ConfirmationPrompt<'_> {
 
   fn render_confirmation_prompt(self, area: Rect, buf: &mut Buffer) {
     title_block_centered(self.title).render(area, buf);
-    let help_text =
-      Text::from(build_context_clue_string(&CONFIRMATION_PROMPT_CONTEXT_CLUES).help());
-    let help_paragraph = Paragraph::new(help_text).centered();
 
     let [prompt_area, buttons_area] = if let Some(content_paragraph) = self.content {
-      let [prompt_area, content_area, _, buttons_area, help_area] = Layout::vertical([
+      let [prompt_area, content_area, _, buttons_area] = Layout::vertical([
         Constraint::Length(4),
         Constraint::Length(7),
         Constraint::Fill(1),
         Constraint::Length(3),
-        Constraint::Length(1),
       ])
       .margin(1)
       .areas(area);
 
       content_paragraph.render(content_area, buf);
-      help_paragraph.render(help_area, buf);
 
       [prompt_area, buttons_area]
     } else {
-      let [prompt_area, buttons_area, _, help_area] = Layout::vertical([
+      let [prompt_area, _, buttons_area] = Layout::vertical([
         Constraint::Percentage(72),
-        Constraint::Length(3),
         Constraint::Fill(0),
-        Constraint::Min(1),
+        Constraint::Length(3),
       ])
       .margin(1)
       .flex(Flex::SpaceBetween)
       .areas(area);
-
-      help_paragraph.render(help_area, buf);
 
       [prompt_area, buttons_area]
     };

@@ -1,16 +1,12 @@
 use strum::IntoEnumIterator;
 
 use super::sonarr_data::{ActiveSonarrBlock, SonarrData};
+use crate::app::sonarr::sonarr_context_clues::SELECTABLE_EPISODE_DETAILS_CONTEXT_CLUES;
 use crate::models::sonarr_models::EpisodeFile;
 use crate::{
-  app::{
-    context_clues::build_context_clue_string,
-    sonarr::sonarr_context_clues::{
-      DETAILS_CONTEXTUAL_CONTEXT_CLUES, EPISODE_DETAILS_CONTEXT_CLUES,
-      MANUAL_EPISODE_SEARCH_CONTEXT_CLUES, MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
-      SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES, SEASON_DETAILS_CONTEXT_CLUES,
-      SEASON_HISTORY_CONTEXT_CLUES,
-    },
+  app::sonarr::sonarr_context_clues::{
+    EPISODE_DETAILS_CONTEXT_CLUES, MANUAL_EPISODE_SEARCH_CONTEXT_CLUES,
+    MANUAL_SEASON_SEARCH_CONTEXT_CLUES, SEASON_DETAILS_CONTEXT_CLUES, SEASON_HISTORY_CONTEXT_CLUES,
   },
   models::{
     servarr_data::modals::EditIndexerModal,
@@ -129,13 +125,8 @@ impl From<&SonarrData<'_>> for EditIndexerModal {
       .unwrap()
       .into();
 
-    if seed_ratio_value_option.is_some() {
-      edit_indexer_modal.seed_ratio = seed_ratio_value_option
-        .unwrap()
-        .as_f64()
-        .unwrap()
-        .to_string()
-        .into();
+    if let Some(seed_ratio_value) = seed_ratio_value_option {
+      edit_indexer_modal.seed_ratio = seed_ratio_value.as_f64().unwrap().to_string().into();
     }
 
     edit_indexer_modal.tags = tags
@@ -282,29 +273,25 @@ impl Default for EpisodeDetailsModal {
         TabRoute {
           title: "Details".to_string(),
           route: ActiveSonarrBlock::EpisodeDetails.into(),
-          help: build_context_clue_string(&EPISODE_DETAILS_CONTEXT_CLUES),
-          contextual_help: None,
+          contextual_help: Some(&EPISODE_DETAILS_CONTEXT_CLUES),
           config: None,
         },
         TabRoute {
           title: "History".to_string(),
           route: ActiveSonarrBlock::EpisodeHistory.into(),
-          help: build_context_clue_string(&EPISODE_DETAILS_CONTEXT_CLUES),
-          contextual_help: Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES)),
+          contextual_help: Some(&SELECTABLE_EPISODE_DETAILS_CONTEXT_CLUES),
           config: None,
         },
         TabRoute {
           title: "File".to_string(),
           route: ActiveSonarrBlock::EpisodeFile.into(),
-          help: build_context_clue_string(&EPISODE_DETAILS_CONTEXT_CLUES),
-          contextual_help: None,
+          contextual_help: Some(&EPISODE_DETAILS_CONTEXT_CLUES),
           config: None,
         },
         TabRoute {
           title: "Manual Search".to_string(),
           route: ActiveSonarrBlock::ManualEpisodeSearch.into(),
-          help: build_context_clue_string(&MANUAL_EPISODE_SEARCH_CONTEXT_CLUES),
-          contextual_help: Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES)),
+          contextual_help: Some(&MANUAL_EPISODE_SEARCH_CONTEXT_CLUES),
           config: None,
         },
       ]),
@@ -333,24 +320,19 @@ impl Default for SeasonDetailsModal {
         TabRoute {
           title: "Episodes".to_string(),
           route: ActiveSonarrBlock::SeasonDetails.into(),
-          help: build_context_clue_string(&SEASON_DETAILS_CONTEXT_CLUES),
-          contextual_help: Some(build_context_clue_string(
-            &SEASON_DETAILS_CONTEXTUAL_CONTEXT_CLUES,
-          )),
+          contextual_help: Some(&SEASON_DETAILS_CONTEXT_CLUES),
           config: None,
         },
         TabRoute {
           title: "History".to_string(),
           route: ActiveSonarrBlock::SeasonHistory.into(),
-          help: build_context_clue_string(&SEASON_HISTORY_CONTEXT_CLUES),
-          contextual_help: Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES)),
+          contextual_help: Some(&SEASON_HISTORY_CONTEXT_CLUES),
           config: None,
         },
         TabRoute {
           title: "Manual Search".to_string(),
           route: ActiveSonarrBlock::ManualSeasonSearch.into(),
-          help: build_context_clue_string(&MANUAL_SEASON_SEARCH_CONTEXT_CLUES),
-          contextual_help: Some(build_context_clue_string(&DETAILS_CONTEXTUAL_CONTEXT_CLUES)),
+          contextual_help: Some(&MANUAL_SEASON_SEARCH_CONTEXT_CLUES),
           config: None,
         },
       ]),

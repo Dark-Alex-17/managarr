@@ -589,6 +589,25 @@ mod tests {
     });
   }
 
+  #[rstest]
+  fn test_collections_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = CollectionsHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
+  }
+
   #[test]
   fn test_collections_handler_not_ready_when_loading() {
     let mut app = App::test_default();
@@ -644,7 +663,7 @@ mod tests {
       Collection {
         id: 3,
         title: "test 1".into(),
-        movies: Some(iter::repeat(CollectionMovie::default()).take(3).collect()),
+        movies: Some(iter::repeat_n(CollectionMovie::default(), 3).collect()),
         root_folder_path: Some("/nfs/movies".into()),
         quality_profile_id: 1,
         search_on_add: false,
@@ -654,7 +673,7 @@ mod tests {
       Collection {
         id: 2,
         title: "test 2".into(),
-        movies: Some(iter::repeat(CollectionMovie::default()).take(7).collect()),
+        movies: Some(iter::repeat_n(CollectionMovie::default(), 7).collect()),
         root_folder_path: Some("/htpc/movies".into()),
         quality_profile_id: 3,
         search_on_add: true,
@@ -664,7 +683,7 @@ mod tests {
       Collection {
         id: 1,
         title: "test 3".into(),
-        movies: Some(iter::repeat(CollectionMovie::default()).take(1).collect()),
+        movies: Some(iter::repeat_n(CollectionMovie::default(), 1).collect()),
         root_folder_path: Some("/nfs/some/stupidly/long/path/to/test/with".into()),
         quality_profile_id: 1,
         search_on_add: false,

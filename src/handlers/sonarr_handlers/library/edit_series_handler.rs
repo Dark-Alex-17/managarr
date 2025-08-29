@@ -1,4 +1,3 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
@@ -7,7 +6,7 @@ use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_S
 use crate::models::sonarr_models::EditSeriesParams;
 use crate::models::Scrollable;
 use crate::network::sonarr_network::SonarrEvent;
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys};
+use crate::{handle_text_box_keys, handle_text_box_left_right_keys, matches_key};
 
 #[cfg(test)]
 #[path = "edit_series_handler_tests.rs"]
@@ -81,6 +80,10 @@ impl EditSeriesHandler<'_, '_> {
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditSeriesHandler<'a, 'b> {
   fn accepts(active_block: ActiveSonarrBlock) -> bool {
     EDIT_SERIES_BLOCKS.contains(&active_block)
+  }
+
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -342,7 +345,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditSeriesHandler<'a
               )
                 .into(),
             );
-            self.app.should_ignore_quit_key = true;
+            self.app.ignore_special_keys_for_textbox_input = true;
           }
           ActiveSonarrBlock::EditSeriesToggleMonitored => {
             self
@@ -392,7 +395,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditSeriesHandler<'a
       | ActiveSonarrBlock::EditSeriesSelectLanguageProfile => self.app.pop_navigation_stack(),
       ActiveSonarrBlock::EditSeriesPathInput | ActiveSonarrBlock::EditSeriesTagsInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       _ => (),
     }
@@ -402,7 +405,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditSeriesHandler<'a
     match self.active_sonarr_block {
       ActiveSonarrBlock::EditSeriesTagsInput | ActiveSonarrBlock::EditSeriesPathInput => {
         self.app.pop_navigation_stack();
-        self.app.should_ignore_quit_key = false;
+        self.app.ignore_special_keys_for_textbox_input = false;
       }
       ActiveSonarrBlock::EditSeriesPrompt => {
         self.app.pop_navigation_stack();
@@ -450,7 +453,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditSeriesHandler<'a
       ActiveSonarrBlock::EditSeriesPrompt => {
         if self.app.data.sonarr_data.selected_block.get_active_block()
           == ActiveSonarrBlock::EditSeriesConfirmPrompt
-          && key == DEFAULT_KEYBINDINGS.confirm.key
+          && matches_key!(confirm, key)
         {
           self.app.data.sonarr_data.prompt_confirm = true;
           self.app.data.sonarr_data.prompt_confirm_action =

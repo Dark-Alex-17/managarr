@@ -9,12 +9,13 @@ mod tests {
   use crate::app::App;
   use crate::event::Key;
   use crate::handlers::sonarr_handlers::library::{series_sorting_options, LibraryHandler};
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
   use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
     EPISODE_DETAILS_BLOCKS, LIBRARY_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
   };
-  use crate::models::sonarr_models::{Series, SeriesStatus, SeriesType};
+  use crate::models::sonarr_models::{Series, SeriesStatistics, SeriesStatus, SeriesType};
   use crate::test_handler_delegation;
 
   mod test_handle_delete {
@@ -316,7 +317,7 @@ mod tests {
         app.get_current_route(),
         ActiveSonarrBlock::AddSeriesSearchInput.into()
       );
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert!(app.data.sonarr_data.add_series_search.is_some());
     }
 
@@ -340,7 +341,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert!(app.data.sonarr_data.add_series_search.is_none());
     }
 
@@ -374,6 +375,51 @@ mod tests {
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
       assert!(app.data.sonarr_data.edit_series_modal.is_none());
+    }
+
+    #[test]
+    fn test_toggle_monitoring_key() {
+      let mut app = App::test_default();
+      app.data.sonarr_data = create_test_sonarr_data();
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
+      app.is_routing = false;
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+        &mut app,
+        ActiveSonarrBlock::Series,
+        None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert!(app.data.sonarr_data.prompt_confirm);
+      assert!(app.is_routing);
+      assert_eq!(
+        app.data.sonarr_data.prompt_confirm_action,
+        Some(SonarrEvent::ToggleSeriesMonitoring(0))
+      );
+    }
+
+    #[test]
+    fn test_toggle_monitoring_key_no_op_when_not_ready() {
+      let mut app = App::test_default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
+      app.is_routing = false;
+
+      LibraryHandler::new(
+        DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+        &mut app,
+        ActiveSonarrBlock::Series,
+        None,
+      )
+      .handle();
+
+      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert!(!app.data.sonarr_data.prompt_confirm);
+      assert!(app.data.sonarr_data.prompt_confirm_action.is_none());
+      assert!(!app.is_routing);
     }
 
     #[test]
@@ -619,6 +665,22 @@ mod tests {
   }
 
   #[test]
+  fn test_extract_series_id() {
+    let mut app = App::test_default();
+    app.data.sonarr_data.series.set_items(vec![series()]);
+
+    let series_id = LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::Series,
+      None,
+    )
+    .extract_series_id();
+
+    assert_eq!(series_id, 1);
+  }
+
+  #[test]
   fn test_series_sorting_options_title() {
     let expected_cmp_fn: fn(&Series, &Series) -> Ordering = |a, b| {
       a.title
@@ -765,12 +827,31 @@ mod tests {
   }
 
   #[test]
+  fn test_series_sorting_options_size() {
+    let expected_cmp_fn: fn(&Series, &Series) -> Ordering = |a, b| {
+      a.statistics
+        .as_ref()
+        .map_or(0, |stats| stats.size_on_disk)
+        .cmp(&b.statistics.as_ref().map_or(0, |stats| stats.size_on_disk))
+    };
+    let mut expected_series_vec = series_vec();
+    expected_series_vec.sort_by(expected_cmp_fn);
+
+    let sort_option = series_sorting_options()[8].clone();
+    let mut sorted_series_vec = series_vec();
+    sorted_series_vec.sort_by(sort_option.cmp_fn.unwrap());
+
+    assert_eq!(sorted_series_vec, expected_series_vec);
+    assert_str_eq!(sort_option.name, "Size");
+  }
+
+  #[test]
   fn test_series_sorting_options_monitored() {
     let expected_cmp_fn: fn(&Series, &Series) -> Ordering = |a, b| a.monitored.cmp(&b.monitored);
     let mut expected_series_vec = series_vec();
     expected_series_vec.sort_by(expected_cmp_fn);
 
-    let sort_option = series_sorting_options()[8].clone();
+    let sort_option = series_sorting_options()[9].clone();
     let mut sorted_series_vec = series_vec();
     sorted_series_vec.sort_by(sort_option.cmp_fn.unwrap());
 
@@ -799,7 +880,7 @@ mod tests {
     let mut expected_series_vec = series_vec();
     expected_series_vec.sort_by(expected_cmp_fn);
 
-    let sort_option = series_sorting_options()[9].clone();
+    let sort_option = series_sorting_options()[10].clone();
     let mut sorted_series_vec = series_vec();
     sorted_series_vec.sort_by(sort_option.cmp_fn.unwrap());
 
@@ -825,6 +906,25 @@ mod tests {
         assert!(!LibraryHandler::accepts(active_sonarr_block));
       }
     });
+  }
+
+  #[rstest]
+  fn test_library_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveSonarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]
@@ -892,6 +992,10 @@ mod tests {
         certification: Some("TV-MA".to_owned()),
         series_type: SeriesType::Daily,
         tags: vec![1.into(), 2.into()],
+        statistics: Some(SeriesStatistics {
+          size_on_disk: 789,
+          ..SeriesStatistics::default()
+        }),
         ..Series::default()
       },
       Series {
@@ -907,6 +1011,10 @@ mod tests {
         certification: Some("TV-PG".to_owned()),
         series_type: SeriesType::Anime,
         tags: vec![1.into(), 3.into()],
+        statistics: Some(SeriesStatistics {
+          size_on_disk: 456,
+          ..SeriesStatistics::default()
+        }),
         ..Series::default()
       },
       Series {

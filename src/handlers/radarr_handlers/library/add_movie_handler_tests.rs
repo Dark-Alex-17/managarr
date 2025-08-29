@@ -782,7 +782,7 @@ mod tests {
     #[test]
     fn test_add_movie_search_input_submit() {
       let mut app = App::test_default();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.data.radarr_data.add_movie_search = Some("test".into());
 
       AddMovieHandler::new(
@@ -793,7 +793,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.get_current_route(),
         ActiveRadarrBlock::AddMovieSearchResults.into()
@@ -805,7 +805,7 @@ mod tests {
       let mut app = App::test_default();
       app.data.radarr_data.add_movie_search = Some(HorizontallyScrollableText::default());
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
 
       AddMovieHandler::new(
         SUBMIT_KEY,
@@ -815,7 +815,7 @@ mod tests {
       )
       .handle();
 
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.get_current_route(),
         ActiveRadarrBlock::AddMovieSearchInput.into()
@@ -1093,7 +1093,7 @@ mod tests {
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
 
       if selected_block == ActiveRadarrBlock::AddMovieTagsInput {
-        assert!(app.should_ignore_quit_key);
+        assert!(app.ignore_special_keys_for_textbox_input);
       }
     }
 
@@ -1126,7 +1126,7 @@ mod tests {
       );
 
       if active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput {
-        assert!(!app.should_ignore_quit_key);
+        assert!(!app.ignore_special_keys_for_textbox_input);
       }
     }
   }
@@ -1149,7 +1149,7 @@ mod tests {
       let mut app = App::test_default();
       app.is_loading = is_ready;
       app.data.radarr_data = create_test_radarr_data();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieSearchInput.into());
 
       AddMovieHandler::new(
@@ -1160,7 +1160,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert_eq!(app.data.radarr_data.add_movie_search, None);
     }
@@ -1169,7 +1169,7 @@ mod tests {
     fn test_add_movie_input_esc() {
       let mut app = App::test_default();
       app.data.radarr_data = create_test_radarr_data();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieTagsInput.into());
 
@@ -1181,7 +1181,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.get_current_route(),
         ActiveRadarrBlock::AddMoviePrompt.into()
@@ -1213,7 +1213,7 @@ mod tests {
         ActiveRadarrBlock::AddMovieSearchInput.into()
       );
       assert!(app.data.radarr_data.add_searched_movies.is_none());
-      assert!(app.should_ignore_quit_key);
+      assert!(app.ignore_special_keys_for_textbox_input);
     }
 
     #[test]
@@ -1259,7 +1259,7 @@ mod tests {
     fn test_add_movie_tags_input_esc() {
       let mut app = App::test_default();
       app.data.radarr_data = create_test_radarr_data();
-      app.should_ignore_quit_key = true;
+      app.ignore_special_keys_for_textbox_input = true;
       app.push_navigation_stack(ActiveRadarrBlock::AddMoviePrompt.into());
       app.push_navigation_stack(ActiveRadarrBlock::AddMovieTagsInput.into());
 
@@ -1271,7 +1271,7 @@ mod tests {
       )
       .handle();
 
-      assert!(!app.should_ignore_quit_key);
+      assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.get_current_route(),
         ActiveRadarrBlock::AddMoviePrompt.into()
@@ -1395,7 +1395,7 @@ mod tests {
       app.data.radarr_data.add_movie_search = Some(HorizontallyScrollableText::default());
 
       AddMovieHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::AddMovieSearchInput,
         None,
@@ -1404,7 +1404,7 @@ mod tests {
 
       assert_str_eq!(
         app.data.radarr_data.add_movie_search.as_ref().unwrap().text,
-        "h"
+        "a"
       );
     }
 
@@ -1414,7 +1414,7 @@ mod tests {
       app.data.radarr_data.add_movie_modal = Some(AddMovieModal::default());
 
       AddMovieHandler::new(
-        Key::Char('h'),
+        Key::Char('a'),
         &mut app,
         ActiveRadarrBlock::AddMovieTagsInput,
         None,
@@ -1430,7 +1430,7 @@ mod tests {
           .unwrap()
           .tags
           .text,
-        "h"
+        "a"
       );
     }
 
@@ -1521,6 +1521,25 @@ mod tests {
         assert!(!AddMovieHandler::accepts(active_radarr_block));
       }
     });
+  }
+
+  #[rstest]
+  fn test_add_movie_handler_ignore_special_keys(
+    #[values(true, false)] ignore_special_keys_for_textbox_input: bool,
+  ) {
+    let mut app = App::test_default();
+    app.ignore_special_keys_for_textbox_input = ignore_special_keys_for_textbox_input;
+    let handler = AddMovieHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveRadarrBlock::default(),
+      None,
+    );
+
+    assert_eq!(
+      handler.ignore_special_keys(),
+      ignore_special_keys_for_textbox_input
+    );
   }
 
   #[test]

@@ -118,6 +118,17 @@ pub enum RadarrCommand {
   },
   #[command(about = "Test all Radarr indexers")]
   TestAllIndexers,
+  #[command(
+    about = "Toggle monitoring for the specified movie corresponding to the given movie ID"
+  )]
+  ToggleMovieMonitoring {
+    #[arg(
+      long,
+      help = "The Radarr ID of the movie to toggle monitoring on",
+      required = true
+    )]
+    movie_id: i64,
+  },
   #[command(about = "Trigger an automatic search for the movie with the specified ID")]
   TriggerAutomaticSearch {
     #[arg(
@@ -247,6 +258,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrCommand> for RadarrCliHandler<'a, '
         let resp = self
           .network
           .handle_network_event(RadarrEvent::TestAllIndexers.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      RadarrCommand::ToggleMovieMonitoring { movie_id } => {
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::ToggleMovieMonitoring(movie_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

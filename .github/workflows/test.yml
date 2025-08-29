@@ -175,6 +175,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Upload to codecov.io
+        if: env.ACT != 'true'
         uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: true

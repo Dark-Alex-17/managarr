@@ -2,10 +2,11 @@
 mod tests {
   use anyhow::anyhow;
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+  use serde_json::Value;
   use serial_test::serial;
   use tokio::sync::mpsc;
 
-  use crate::app::context_clues::{build_context_clue_string, SERVARR_CONTEXT_CLUES};
   use crate::app::{interpolate_env_vars, App, AppConfig, Data, ServarrConfig};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
@@ -31,6 +32,7 @@ mod tests {
     };
     let sonarr_config_2 = ServarrConfig::default();
     let config = AppConfig {
+      theme: None,
       radarr: Some(vec![radarr_config_1.clone(), radarr_config_2.clone()]),
       sonarr: Some(vec![sonarr_config_1.clone(), sonarr_config_2.clone()]),
     };
@@ -38,40 +40,24 @@ mod tests {
       TabRoute {
         title: "Sonarr Test".to_owned(),
         route: ActiveSonarrBlock::default().into(),
-        help: format!(
-          "<↑↓> scroll | ←→ change tab | {}  ",
-          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-        ),
         contextual_help: None,
         config: Some(sonarr_config_1),
       },
       TabRoute {
         title: "Radarr 1".to_owned(),
         route: ActiveRadarrBlock::default().into(),
-        help: format!(
-          "<↑↓> scroll | ←→ change tab | {}  ",
-          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-        ),
         contextual_help: None,
         config: Some(radarr_config_2),
       },
       TabRoute {
         title: "Radarr Test".to_owned(),
         route: ActiveRadarrBlock::default().into(),
-        help: format!(
-          "<↑↓> scroll | ←→ change tab | {}  ",
-          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-        ),
         contextual_help: None,
         config: Some(radarr_config_1),
       },
       TabRoute {
         title: "Sonarr 1".to_owned(),
         route: ActiveSonarrBlock::default().into(),
-        help: format!(
-          "<↑↓> scroll | ←→ change tab | {}  ",
-          build_context_clue_string(&SERVARR_CONTEXT_CLUES)
-        ),
         contextual_help: None,
         config: Some(sonarr_config_2),
       },
@@ -97,7 +83,7 @@ mod tests {
     assert!(!app.is_loading);
     assert!(!app.is_routing);
     assert!(!app.should_refresh);
-    assert!(!app.should_ignore_quit_key);
+    assert!(!app.ignore_special_keys_for_textbox_input);
     assert!(!app.cli_mode);
   }
 
@@ -117,7 +103,7 @@ mod tests {
     assert!(!app.is_loading);
     assert!(!app.is_routing);
     assert!(!app.should_refresh);
-    assert!(!app.should_ignore_quit_key);
+    assert!(!app.ignore_special_keys_for_textbox_input);
     assert!(!app.cli_mode);
   }
 
@@ -283,7 +269,7 @@ mod tests {
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
-      RadarrEvent::GetDownloads.into()
+      RadarrEvent::GetDownloads(500).into()
     );
     assert_eq!(
       sync_network_rx.recv().await.unwrap(),
@@ -356,6 +342,43 @@ mod tests {
     assert_eq!(servarr_config.api_token, Some(String::new()));
     assert_eq!(servarr_config.api_token_file, None);
     assert_eq!(servarr_config.ssl_cert_path, None);
+    assert_eq!(servarr_config.custom_headers, None);
+  }
+
+  #[test]
+  fn serialize_header_map_basic() {
+    let mut header_map = HeaderMap::new();
+    header_map.insert(
+      HeaderName::from_static("x-api-key"),
+      HeaderValue::from_static("abc123"),
+    );
+    header_map.insert(
+      HeaderName::from_static("header-1"),
+      HeaderValue::from_static("test"),
+    );
+
+    let config = ServarrConfig {
+      custom_headers: Some(header_map),
+      ..ServarrConfig::default()
+    };
+
+    let v: Value = serde_json::to_value(&config).expect("serialize ok");
+    let custom = v.get("custom_headers").unwrap();
+    assert!(custom.is_object());
+    let obj = custom.as_object().unwrap();
+
+    assert_eq!(obj.get("x-api-key").unwrap(), "abc123");
+    assert_eq!(obj.get("header-1").unwrap(), "test");
+
+    assert!(obj.get("X-Api-Key").is_none());
+    assert!(obj.get("HEADER-1").is_none());
+  }
+
+  #[test]
+  fn serialize_header_map_none_is_null() {
+    let config = ServarrConfig::default();
+    let v: Value = serde_json::to_value(&config).expect("serialize ok");
+    assert!(v.get("custom_headers").unwrap().is_null());
   }
 
   #[test]
@@ -397,6 +420,66 @@ mod tests {
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
     assert_eq!(config.port, None);
+  }
+
+  #[test]
+  #[serial]
+  fn test_deserialize_optional_env_var_header_map_is_present() {
+    unsafe { std::env::set_var("TEST_VAR_DESERIALIZE_HEADER_OPTION", "localhost") };
+    let expected_custom_headers = {
+      let mut headers = HeaderMap::new();
+      headers.insert("X-Api-Host", "localhost".parse().unwrap());
+      headers.insert("api-token", "test123".parse().unwrap());
+      headers
+    };
+    let yaml_data = r#"
+      custom_headers:
+        X-Api-Host: ${TEST_VAR_DESERIALIZE_HEADER_OPTION}
+        api-token: "test123"
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_eq!(config.custom_headers, Some(expected_custom_headers));
+    unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_HEADER_OPTION") };
+  }
+
+  #[test]
+  #[serial]
+  fn test_deserialize_optional_env_var_header_map_does_not_overwrite_non_env_value() {
+    unsafe {
+      std::env::set_var(
+        "TEST_VAR_DESERIALIZE_HEADER_OPTION_NO_OVERWRITE",
+        "localhost",
+      )
+    };
+    let expected_custom_headers = {
+      let mut headers = HeaderMap::new();
+      headers.insert("X-Api-Host", "www.example.com".parse().unwrap());
+      headers.insert("api-token", "test123".parse().unwrap());
+      headers
+    };
+    let yaml_data = r#"
+      custom_headers:
+        X-Api-Host: www.example.com
+        api-token: "test123"
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_eq!(config.custom_headers, Some(expected_custom_headers));
+    unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_HEADER_OPTION_NO_OVERWRITE") };
+  }
+
+  #[test]
+  fn test_deserialize_optional_env_var_header_map_empty() {
+    let yaml_data = r#"
+      api_token: "test123"
+    "#;
+
+    let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
+
+    assert_eq!(config.custom_headers, None);
   }
 
   #[test]
@@ -512,8 +595,9 @@ mod tests {
     let api_token = "thisisatest".to_owned();
     let api_token_file = "/root/.config/api_token".to_owned();
     let ssl_cert_path = "/some/path".to_owned();
-    let expected_str = format!("ServarrConfig {{ name: Some(\"{}\"), host: Some(\"{}\"), port: Some({}), uri: Some(\"{}\"), weight: Some({}), api_token: Some(\"***********\"), api_token_file: Some(\"{}\"), ssl_cert_path: Some(\"{}\") }}",
-    name, host, port, uri, weight, api_token_file, ssl_cert_path);
+    let mut custom_headers = HeaderMap::new();
+    custom_headers.insert("X-Custom-Header", "value".parse().unwrap());
+    let expected_str = format!("ServarrConfig {{ name: Some(\"{name}\"), host: Some(\"{host}\"), port: Some({port}), uri: Some(\"{uri}\"), weight: Some({weight}), api_token: Some(\"***********\"), api_token_file: Some(\"{api_token_file}\"), ssl_cert_path: Some(\"{ssl_cert_path}\"), custom_headers: Some({{\"x-custom-header\": \"value\"}}) }}");
     let servarr_config = ServarrConfig {
       name: Some(name),
       host: Some(host),
@@ -523,6 +607,7 @@ mod tests {
       api_token: Some(api_token),
       api_token_file: Some(api_token_file),
       ssl_cert_path: Some(ssl_cert_path),
+      custom_headers: Some(custom_headers),
     };
 
     assert_str_eq!(format!("{servarr_config:?}"), expected_str);

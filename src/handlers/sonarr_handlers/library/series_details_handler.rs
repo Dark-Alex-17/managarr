@@ -1,7 +1,5 @@
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::app::App;
 use crate::event::Key;
-use crate::handle_table_events;
 use crate::handlers::sonarr_handlers::history::history_sorting_options;
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
@@ -11,6 +9,7 @@ use crate::models::servarr_data::sonarr::sonarr_data::{
 use crate::models::sonarr_models::{Season, SonarrHistoryItem};
 use crate::models::BlockSelectionState;
 use crate::network::sonarr_network::SonarrEvent;
+use crate::{handle_table_events, matches_key};
 
 #[cfg(test)]
 #[path = "series_details_handler_tests.rs"]
@@ -91,6 +90,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
     SERIES_DETAILS_BLOCKS.contains(&active_block)
   }
 
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
+  }
+
   fn new(
     key: Key,
     app: &'a mut App<'b>,
@@ -130,7 +133,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
   fn handle_left_right_action(&mut self) {
     match self.active_sonarr_block {
       ActiveSonarrBlock::SeriesDetails | ActiveSonarrBlock::SeriesHistory => match self.key {
-        _ if self.key == DEFAULT_KEYBINDINGS.left.key => {
+        _ if matches_key!(left, self.key) => {
           self.app.data.sonarr_data.series_info_tabs.previous();
           self.app.pop_and_push_navigation_stack(
             self
@@ -141,7 +144,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
               .get_active_route(),
           );
         }
-        _ if self.key == DEFAULT_KEYBINDINGS.right.key => {
+        _ if matches_key!(right, self.key) => {
           self.app.data.sonarr_data.series_info_tabs.next();
           self.app.pop_and_push_navigation_stack(
             self
@@ -250,20 +253,20 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
     let key = self.key;
     match self.active_sonarr_block {
       ActiveSonarrBlock::SeriesDetails => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.refresh.key => self
+        _ if matches_key!(refresh, key) => self
           .app
           .pop_and_push_navigation_stack(self.active_sonarr_block.into()),
-        _ if key == DEFAULT_KEYBINDINGS.auto_search.key => {
+        _ if matches_key!(auto_search, key) => {
           self
             .app
             .push_navigation_stack(ActiveSonarrBlock::AutomaticallySearchSeriesPrompt.into());
         }
-        _ if key == DEFAULT_KEYBINDINGS.update.key => {
+        _ if matches_key!(update, key) => {
           self
             .app
             .push_navigation_stack(ActiveSonarrBlock::UpdateAndScanSeriesPrompt.into());
         }
-        _ if key == DEFAULT_KEYBINDINGS.edit.key => {
+        _ if matches_key!(edit, key) => {
           self.app.push_navigation_stack(
             (
               ActiveSonarrBlock::EditSeriesPrompt,
@@ -275,7 +278,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
           self.app.data.sonarr_data.selected_block =
             BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
         }
-        _ if key == DEFAULT_KEYBINDINGS.toggle_monitoring.key => {
+        _ if matches_key!(toggle_monitoring, key) => {
           self.app.data.sonarr_data.prompt_confirm = true;
           self.app.data.sonarr_data.prompt_confirm_action = Some(
             SonarrEvent::ToggleSeasonMonitoring(self.extract_series_id_season_number_tuple()),
@@ -288,15 +291,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         _ => (),
       },
       ActiveSonarrBlock::SeriesHistory => match self.key {
-        _ if key == DEFAULT_KEYBINDINGS.refresh.key => self
+        _ if matches_key!(refresh, key) => self
           .app
           .pop_and_push_navigation_stack(self.active_sonarr_block.into()),
-        _ if key == DEFAULT_KEYBINDINGS.auto_search.key => {
+        _ if matches_key!(auto_search, key) => {
           self
             .app
             .push_navigation_stack(ActiveSonarrBlock::AutomaticallySearchSeriesPrompt.into());
         }
-        _ if key == DEFAULT_KEYBINDINGS.edit.key => {
+        _ if matches_key!(edit, key) => {
           self.app.push_navigation_stack(
             (
               ActiveSonarrBlock::EditSeriesPrompt,
@@ -308,7 +311,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
           self.app.data.sonarr_data.selected_block =
             BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
         }
-        _ if key == DEFAULT_KEYBINDINGS.update.key => {
+        _ if matches_key!(update, key) => {
           self
             .app
             .push_navigation_stack(ActiveSonarrBlock::UpdateAndScanSeriesPrompt.into());
@@ -316,7 +319,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         _ => (),
       },
       ActiveSonarrBlock::AutomaticallySearchSeriesPrompt => {
-        if key == DEFAULT_KEYBINDINGS.confirm.key {
+        if matches_key!(confirm, key) {
           self.app.data.sonarr_data.prompt_confirm = true;
           self.app.data.sonarr_data.prompt_confirm_action = Some(
             SonarrEvent::TriggerAutomaticSeriesSearch(self.extract_series_id()),

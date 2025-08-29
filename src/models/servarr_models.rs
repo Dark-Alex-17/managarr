@@ -107,6 +107,13 @@ pub struct EditIndexerParams {
   pub clear_tags: bool,
 }
 
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct KeybindingItem {
+  pub key: String,
+  pub alt_key: String,
+  pub desc: String,
+}
+
 #[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct HostConfig {
@@ -144,6 +151,23 @@ pub struct Indexer {
   #[serde(deserialize_with = "super::from_i64")]
   pub download_client_id: i64,
   pub tags: Vec<Number>,
+}
+
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct IndexerTestResult {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  pub is_valid: bool,
+  pub validation_failures: Vec<IndexerValidationFailure>,
+}
+
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct IndexerValidationFailure {
+  pub property_name: String,
+  pub error_message: String,
+  pub severity: String,
 }
 
 #[derive(Default, Deserialize, Serialize, Debug, Clone, Eq, PartialEq)]
