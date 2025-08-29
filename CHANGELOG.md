@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.6.0 (2025-08-29)
+
+### Feat
+
+- Support for custom headers to be added to every request to each server to support alternative authentication mechanisms [#47]
+- Refactor all keybinding tips into a dynamically changing menu that can be invoked via '?' [#32]
+- Display total disk usage for series in the Library view to mirror Radarr functionality [#44]
+- Pagination support for jumping 20 items at a time in all table views [#45]
+- Support toggling Movie monitoring directly from the library view [#43]
+- Support toggling Movie monitoring from the CLI
+- Support toggling Series monitoring directly from the Sonarr library view [#43]
+- Support toggling Series monitoring from the CLI
+- Fixed the Radarr downloads tab to display more than 10 downloads at a time and added a new --count flag to the CLI for specifying the number of downloads to return
+- Fetch more than 10 downloads when listing Sonarr downloads, and add a --count flag to the CLI to specify how many downloads to fetch
+- Support alternative keymappings for all keys, featuring hjkl movements
+- Added the Eldritch theme and updated documentation
+- Write built in themes to the themes file on first run so users can define custom themes
+- Created a theme validation macro to verify theme configurations before allowing the TUI to start
+- Initial support for custom user-defined themes
+
+### Fix
+
+- Marked Radarr studios as nullable to prevent crashes
+- Fixed a bug where the Sonarr API was returning empty values for seeders when searching for season releases
+- Improve fault tolerance for tag associations in Radarr and Sonarr
+- Upgraded to the most recent version of Tokio to mitigate CWE-664
+- Updated all dependencies and updated openssl to the most recent version to mitigate CWE-416
+- Updated the name of the should_ignore_quit_key to ignore_special_keys_for_textbox_input to give a better idea of what the flag is used for; also added alt keybinding for backspace
+- Marked videoCodecs as Option to resolve #38
+- Marked the `Season.statistics` field as `Option` so that a panic does not happen for outdated Sonarr data. This resolves #35
+- When adding a film from the Collection Details modal, the render order was wrong: Radarr Library -> Collection Table -> Add Movie Prompt (missing the Collection details prompt too). Correct order is: Collection Table -> Collection Details Modal -> Add Movie Modal
+- Fixed a bug that was rendering encompassing blocks after other widgets were rendered, thus overwriting the custom styles on each previously rendered widget
+- change the name of the theme configuration file to 'themes'
+- Ensure key events are only processed on key press to avoid duplicates
+- Updated ring dependency to mitigate CWE-770
+- Modified the Sonarr DownloadRecord so that the episode_id is optional to prevent crashes for weird downloads
+
+### Refactor
+
+- Network module is now broken out into similar directory structures for each servarr to mimic the rest of the project to make it easier to develop and maintain
+- Refactored the IndexerTestResut model into the general Servarr models
+- Renamed 'ctrl-*' keyboard shortcuts to 'C-*' to simplify and shrink the on-screen help
+- Formatted files using rustfmt
+- Reformatted code to make the format checks pass
+- Created a derive macro for defining the display style of Enum models and removed the use of the EnumDisplayStyle trait
+- Expanded the serde_enum_from macro to further reduce code duplication
+
 ## v0.5.1 (2025-03-01)
 
 ### Feat
