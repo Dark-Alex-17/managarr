@@ -87,11 +87,44 @@ jobs:
           echo "prev_version=$PREV_TAG" >> $GITHUB_ENV
 
       - name: Bump Cargo.toml version
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          VERSION: ${{ env.version }}
         run: |
-          sed -E -i '/^name = "managarr"$/ { n; s|^version = "[^"]*"|version = "'"${{ env.version }}"'"| }' Cargo.toml
-          cargo update
-          git add Cargo.toml Cargo.lock
-          git commit -m "chore: Bump the version in Cargo.toml"
+          set -euo pipefail
+          : "${VERSION:?env.version is empty}"
+
+          # Ignore Act's local artifact dir noise
+          echo artifacts/ >> .git/info/exclude || true
+
+          # Edit the version line right after name="managarr"
+          sed -E -i '
+            /^[[:space:]]*name[[:space:]]*=[[:space:]]*"managarr"[[:space:]]*$/ {
+              n
+              s|^[[:space:]]*version[[:space:]]*=[[:space:]]*"[^"]*"|version = "'"$VERSION"'"|
+            }
+          ' Cargo.toml
+
+          cargo update || true
+
+          # Git config that helps in containers (Act)
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+          # Debug: show what changed
+          git status --porcelain
+          git diff --name-only -- Cargo.toml Cargo.lock || true
+
+          # Only commit if one of these files actually changed
+          if ! git diff --quiet -- Cargo.toml Cargo.lock; then
+            # Stage only modifications of already tracked files (won't pick up artifacts/)
+            git add -u -- Cargo.toml Cargo.lock
+            git commit -m "chore: bump Cargo.toml to $VERSION"
+          else
+            echo "No changes to commit (already at $VERSION)"
+          fi
 
       - name: Generate changelog for the version bump
         id: changelog
@@ -111,6 +144,15 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: artifacts
+
+      - name: Upload the changed Cargo files (Act)
+        if: env.ACT == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bumped-cargo-files
+          path: |
+            Cargo.toml
+            Cargo.lock
 
   build-release-artifacts:
     name: build-release
@@ -150,9 +192,17 @@ jobs:
           fetch-depth: 1
 
       - name: Ensure repository is up-to-date
+        if: env.ACT != 'true'
         run: |
           git fetch --all
           git pull
+
+      - name: Get bumped Cargo files (Act)
+        if: env.ACT == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: bumped-cargo-files
+          path: ${{ github.workspace }}
 
       - uses: actions/cache@v3
         name: Cache Cargo registry
@@ -268,6 +318,7 @@ jobs:
           merge-multiple: true
 
       - name: Ensure repository is up-to-date
+        if: env.ACT != 'true'
         run: |
           git fetch --all
           git pull
@@ -450,6 +501,7 @@ jobs:
           merge-multiple: true
 
       - name: Ensure repository is up-to-date
+        if: env.ACT != 'true'
         run: |
           git fetch --all
           git pull
@@ -502,6 +554,7 @@ jobs:
           fetch-depth: 0
 
       - name: Ensure repository is up-to-date
+        if: env.ACT != 'true'
         run: |
           git fetch --all
           git pull
