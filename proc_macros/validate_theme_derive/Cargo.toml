@@ -1,6 +1,6 @@
 [package]
 name = "validate_theme_derive"
-version = "0.1.0"
+version = "0.6.1"
 edition = "2024"
 authors = ["Alex Clarke <alex.j.tusa@gmail.com>"]
 description = "A proc-macro to validate a theme."
