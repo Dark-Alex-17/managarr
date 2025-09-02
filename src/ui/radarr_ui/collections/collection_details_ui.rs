@@ -1,4 +1,4 @@
-use ratatui::layout::{Alignment, Constraint, Flex, Layout, Rect};
+use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::style::Stylize;
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
@@ -184,7 +184,6 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
   )
   .block(layout_block_top_border_with_title(title_style("Movies")))
   .loading(app.is_loading)
-  .footer_alignment(Alignment::Center)
   .headers([
     "✔",
     "Title",

@@ -1,4 +1,4 @@
-use ratatui::layout::{Alignment, Rect};
+use ratatui::layout::Rect;
 use ratatui::text::{Span, Text};
 use ratatui::widgets::{Cell, ListItem, Paragraph, Row};
 use ratatui::Frame;
@@ -60,7 +60,7 @@ fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
 
   if app.data.sonarr_data.log_details.items.is_empty() {
     let loading = LoadingBlock::new(app.is_loading, borderless_block());
-    let popup = Popup::new(loading).size(Size::Large).block(block);
+    let popup = Popup::new(loading).size(Size::Large).block(block).margin(1);
 
     f.render_widget(popup, f.area());
     return;
@@ -73,7 +73,10 @@ fn draw_logs_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
     style_log_list_item(ListItem::new(Text::from(Span::raw(log_line))), level)
   })
   .block(borderless_block());
-  let popup = Popup::new(logs_list).size(Size::Large).block(block);
+  let popup = Popup::new(logs_list)
+    .size(Size::Large)
+    .block(block)
+    .margin(1);
 
   f.render_widget(popup, f.area());
 }
@@ -93,7 +96,6 @@ fn draw_tasks_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let tasks_table = ManagarrTable::new(Some(&mut app.data.sonarr_data.tasks), tasks_row_mapping)
     .loading(app.is_loading)
     .margin(1)
-    .footer_alignment(Alignment::Center)
     .headers(TASK_TABLE_HEADERS)
     .constraints(TASK_TABLE_CONSTRAINTS);
 
@@ -128,12 +130,15 @@ fn draw_updates_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
     let updates_paragraph = Paragraph::new(Text::from(updates))
       .block(borderless_block())
       .scroll((app.data.sonarr_data.updates.offset, 0));
-    let popup = Popup::new(updates_paragraph).size(Size::Large).block(block);
+    let popup = Popup::new(updates_paragraph)
+      .size(Size::Large)
+      .block(block)
+      .margin(1);
 
     f.render_widget(popup, f.area());
   } else {
     let loading = LoadingBlock::new(app.is_loading, borderless_block());
-    let popup = Popup::new(loading).size(Size::Large).block(block);
+    let popup = Popup::new(loading).size(Size::Large).block(block).margin(1);
 
     f.render_widget(popup, f.area());
   }

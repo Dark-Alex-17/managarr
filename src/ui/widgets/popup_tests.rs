@@ -32,6 +32,7 @@ mod tests {
     assert_eq!(popup.percent_x, 0);
     assert_eq!(popup.percent_y, 0);
     assert_eq!(popup.block, None);
+    assert_eq!(popup.margin, 0);
   }
 
   #[test]
@@ -42,6 +43,7 @@ mod tests {
     assert_eq!(popup.percent_y, 40);
     assert_eq!(popup.widget, Block::new());
     assert_eq!(popup.block, None);
+    assert_eq!(popup.margin, 0);
   }
 
   #[test]
@@ -52,6 +54,7 @@ mod tests {
     assert_eq!(popup.percent_y, 50);
     assert_eq!(popup.widget, Block::new());
     assert_eq!(popup.block, None);
+    assert_eq!(popup.margin, 0);
   }
 
   #[test]
@@ -62,5 +65,17 @@ mod tests {
     assert_eq!(popup.widget, Block::new());
     assert_eq!(popup.percent_x, 0);
     assert_eq!(popup.percent_y, 0);
+    assert_eq!(popup.margin, 0);
+  }
+
+  #[test]
+  fn test_popup_margin() {
+    let popup = Popup::new(Block::new()).margin(5);
+
+    assert_eq!(popup.margin, 5);
+    assert_eq!(popup.widget, Block::new());
+    assert_eq!(popup.percent_x, 0);
+    assert_eq!(popup.percent_y, 0);
+    assert_eq!(popup.block, None);
   }
 }

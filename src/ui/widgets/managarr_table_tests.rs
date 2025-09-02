@@ -6,7 +6,7 @@ mod tests {
   use crate::ui::utils::borderless_block;
   use crate::ui::widgets::managarr_table::ManagarrTable;
   use pretty_assertions::assert_eq;
-  use ratatui::layout::{Alignment, Constraint};
+  use ratatui::layout::Constraint;
   use ratatui::text::Text;
   use ratatui::widgets::{Cell, Row};
   use std::sync::atomic::AtomicUsize;
@@ -25,8 +25,6 @@ mod tests {
     assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
     assert_eq!(managarr_table.table_headers, Vec::<String>::new());
     assert_eq!(managarr_table.constraints, Vec::new());
-    assert_eq!(managarr_table.footer, None);
-    assert_eq!(managarr_table.footer_alignment, Alignment::Left);
     assert_eq!(managarr_table.block, borderless_block());
     assert_eq!(managarr_table.margin, 0);
     assert!(!managarr_table.is_loading);
@@ -61,8 +59,6 @@ mod tests {
     assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
     assert_eq!(managarr_table.table_headers, Vec::<String>::new());
     assert_eq!(managarr_table.constraints, Vec::new());
-    assert_eq!(managarr_table.footer, None);
-    assert_eq!(managarr_table.footer_alignment, Alignment::Left);
     assert_eq!(managarr_table.block, borderless_block());
     assert_eq!(managarr_table.margin, 0);
     assert!(!managarr_table.is_loading);
@@ -97,8 +93,6 @@ mod tests {
     assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
     assert_eq!(managarr_table.table_headers, Vec::<String>::new());
     assert_eq!(managarr_table.constraints, Vec::new());
-    assert_eq!(managarr_table.footer, None);
-    assert_eq!(managarr_table.footer_alignment, Alignment::Left);
     assert_eq!(managarr_table.block, borderless_block());
     assert_eq!(managarr_table.margin, 0);
     assert!(!managarr_table.is_loading);
@@ -130,8 +124,6 @@ mod tests {
     assert_eq!(managarr_table.content.unwrap().items, items);
     assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
     assert_eq!(managarr_table.constraints, Vec::new());
-    assert_eq!(managarr_table.footer, None);
-    assert_eq!(managarr_table.footer_alignment, Alignment::Left);
     assert_eq!(managarr_table.block, borderless_block());
     assert_eq!(managarr_table.margin, 0);
     assert!(!managarr_table.is_loading);
@@ -163,8 +155,6 @@ mod tests {
     assert_eq!(managarr_table.content.unwrap().items, items);
     assert_eq!(row_mapper(&"item1"), Row::new(vec![Cell::new("item1")]));
     assert_eq!(managarr_table.table_headers, Vec::<String>::new());
-    assert_eq!(managarr_table.footer, None);
-    assert_eq!(managarr_table.footer_alignment, Alignment::Left);
     assert_eq!(managarr_table.block, borderless_block());
     assert_eq!(managarr_table.margin, 0);
     assert!(!managarr_table.is_loading);

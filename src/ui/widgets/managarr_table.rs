@@ -3,18 +3,16 @@ use super::message::Message;
 use super::popup::Size;
 use crate::models::stateful_table::StatefulTable;
 use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::{
-  borderless_block, centered_rect, layout_block_top_border, title_block_centered,
-};
+use crate::ui::utils::{borderless_block, centered_rect, title_block_centered};
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::popup::Popup;
 use crate::ui::widgets::selectable_list::SelectableList;
 use crate::ui::HIGHLIGHT_SYMBOL;
 use derive_setters::Setters;
 use ratatui::buffer::Buffer;
-use ratatui::layout::{Alignment, Constraint, Layout, Position, Rect};
+use ratatui::layout::{Constraint, Layout, Position, Rect};
 use ratatui::prelude::{Style, Stylize, Text};
-use ratatui::widgets::{Block, ListItem, Paragraph, Row, StatefulWidget, Table, Widget, WidgetRef};
+use ratatui::widgets::{Block, ListItem, Row, StatefulWidget, Table, Widget, WidgetRef};
 use ratatui::Frame;
 use std::fmt::Debug;
 use std::sync::atomic::Ordering;
@@ -36,8 +34,6 @@ where
   #[setters(skip)]
   constraints: Vec<Constraint>,
   row_mapper: F,
-  footer: Option<String>,
-  footer_alignment: Alignment,
   block: Block<'a>,
   margin: u16,
   #[setters(rename = "loading")]
@@ -68,8 +64,6 @@ where
       table_headers: Vec::new(),
       constraints: Vec::new(),
       row_mapper,
-      footer: None,
-      footer_alignment: Alignment::Left,
       block: borderless_block(),
       margin: 0,
       is_loading: false,
@@ -119,20 +113,12 @@ where
 
   fn render_table(self, area: Rect, buf: &mut Buffer) {
     let table_headers = self.parse_headers();
-    let table_area = if let Some(ref footer) = self.footer {
-      let [content_area, footer_area] =
-        Layout::vertical([Constraint::Fill(0), Constraint::Length(2)])
-          .margin(self.margin)
-          .areas(area);
-
-      Paragraph::new(Text::from(format!(" {footer}").help()))
-        .block(layout_block_top_border())
-        .alignment(self.footer_alignment)
-        .render(footer_area, buf);
+    let table_area = {
+      let [content_area, _] = Layout::vertical([Constraint::Fill(1), Constraint::Fill(0)])
+        .margin(self.margin)
+        .areas(area);
 
       content_area
-    } else {
-      area
     };
     let loading_block = LoadingBlock::new(self.is_loading, self.block.clone());
 
@@ -230,19 +216,11 @@ where
 
   pub fn show_cursor(&self, f: &mut Frame<'_>, area: Rect) {
     let mut draw_cursor = |length: usize, offset: usize| {
-      let table_area = if self.footer.is_some() {
-        let [content_area, _] = Layout::vertical([Constraint::Fill(0), Constraint::Length(2)])
-          .margin(self.margin)
-          .areas(area);
-        content_area
-      } else {
-        area
-      };
       let popup_area = Rect {
         height: 7,
-        ..centered_rect(30, 20, table_area)
+        ..centered_rect(30, 20, area)
       };
-      let [text_box_area, _] = Layout::vertical([Constraint::Length(3), Constraint::Length(1)])
+      let [text_box_area, _] = Layout::vertical([Constraint::Fill(1), Constraint::Fill(0)])
         .margin(1)
         .areas(popup_area);
       f.set_cursor_position(Position {

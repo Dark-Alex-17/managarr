@@ -1,6 +1,6 @@
 use crate::ui::utils::{background_block, centered_rect};
 use ratatui::buffer::Buffer;
-use ratatui::layout::Rect;
+use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::widgets::{Block, Clear, Widget};
 
 #[cfg(test)]
@@ -51,6 +51,7 @@ impl Size {
 
 pub struct Popup<'a, T: Widget> {
   widget: T,
+  margin: u16,
   percent_x: u16,
   percent_y: u16,
   block: Option<Block<'a>>,
@@ -62,6 +63,7 @@ impl<'a, T: Widget> Popup<'a, T> {
       widget,
       percent_x: 0,
       percent_y: 0,
+      margin: 0,
       block: None,
     }
   }
@@ -84,6 +86,11 @@ impl<'a, T: Widget> Popup<'a, T> {
     self
   }
 
+  pub fn margin(mut self, margin: u16) -> Self {
+    self.margin = margin;
+    self
+  }
+
   fn render_popup(self, area: Rect, buf: &mut Buffer) {
     let mut popup_area = centered_rect(self.percent_x, self.percent_y, area);
     let height = if popup_area.height < 3 {
@@ -102,7 +109,11 @@ impl<'a, T: Widget> Popup<'a, T> {
       block.render(popup_area, buf);
     }
 
-    self.widget.render(popup_area, buf);
+    let [content_area, _] = Layout::vertical([Constraint::Fill(1), Constraint::Fill(0)])
+      .margin(self.margin)
+      .areas(popup_area);
+
+    self.widget.render(content_area, buf);
   }
 }
 

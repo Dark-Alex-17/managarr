@@ -7,7 +7,7 @@ use crate::ui::utils::{get_width_from_percentage, title_block};
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::Size;
 use crate::ui::{draw_popup, DrawUi};
-use ratatui::layout::{Alignment, Constraint, Rect};
+use ratatui::layout::{Constraint, Rect};
 use ratatui::widgets::{Cell, Row};
 use ratatui::Frame;
 
@@ -65,7 +65,6 @@ fn draw_test_all_indexers_test_results(f: &mut Frame<'_>, app: &mut App<'_>, are
     test_results_row_mapping,
   )
   .loading(is_loading)
-  .footer_alignment(Alignment::Center)
   .margin(1)
   .headers(["Indexer", "Pass/Fail", "Failure Messages"])
   .constraints([
