@@ -1,7 +1,7 @@
 # Documentation: https://docs.brew.sh/Formula-Cookbook
 #                https://rubydoc.brew.sh/Formula
 class Managarr < Formula
-  desc "A fast and simple dashboard for Kubernetes written in Rust"
+  desc "Managarr is a TUI and CLI to help you manage your HTPC (Home Theater PC)"
   homepage "https://github.com/Dark-Alex-17/managarr"
   if OS.mac? and Hardware::CPU.arm?
     url "https://github.com/Dark-Alex-17/managarr/releases/download/v$version/managarr-macos-arm64.tar.gz"
