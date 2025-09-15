@@ -209,9 +209,7 @@ jobs:
       - name: Generate changelog for the version bump
         id: changelog
         run: |
-          changelog=$(conventional-changelog -p angular -i CHANGELOG.md -s --from ${{ env.prev_version }} --to ${{ env.version }})
-          echo "$changelog" > artifacts/changelog.md
-          echo "changelog_body=$(cat artifacts/changelog.md)" >> $GITHUB_ENV
+          conventional-changelog -p angular -i CHANGELOG.md --from ${{ env.prev_version }} --to v${{ env.version }} > artifacts/changelog.md
 
       - name: Push changes
         if: env.ACT != 'true'
@@ -415,13 +413,11 @@ jobs:
         run: |
           release_version="$(cat ./artifacts/release-version)"
           echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
-          changelog_body="$(cat ./artifacts/changelog.md)"
-          echo "changelog_body=$(cat artifacts/changelog.md)" >> $GITHUB_ENV
 
       - name: Validate release environment variables
         run: |
           echo "Release version: ${{ env.RELEASE_VERSION }}"
-          echo "Changelog body: ${{ env.changelog_body }}"
+          echo "Changelog body: $(cat artifacts/changelog.md)"
 
       - name: Create a GitHub Release
         if: env.ACT != 'true'
@@ -456,7 +452,7 @@ jobs:
             artifacts/managarr-armv7-musl.sha256
           tag_name: v${{ env.RELEASE_VERSION }}
           name: 'v${{ env.RELEASE_VERSION }}'
-          body: ${{ env.changelog_body }}
+          body_path: artifacts/changelog.md
           draft: false
           prerelease: false
 
