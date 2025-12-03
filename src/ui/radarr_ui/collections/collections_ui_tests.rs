@@ -3,10 +3,10 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::radarr::radarr_data::{
-    ActiveRadarrBlock, COLLECTIONS_BLOCKS, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS,
+    ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS, COLLECTIONS_BLOCKS, EDIT_COLLECTION_BLOCKS,
   };
-  use crate::ui::radarr_ui::collections::CollectionsUi;
   use crate::ui::DrawUi;
+  use crate::ui::radarr_ui::collections::CollectionsUi;
 
   #[test]
   fn test_collections_ui_accepts() {

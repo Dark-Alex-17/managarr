@@ -3,8 +3,8 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-  use crate::ui::radarr_ui::indexers::test_all_indexers_ui::TestAllIndexersUi;
   use crate::ui::DrawUi;
+  use crate::ui::radarr_ui::indexers::test_all_indexers_ui::TestAllIndexersUi;
 
   #[test]
   fn test_test_all_indexers_ui_accepts() {

@@ -2,18 +2,18 @@ use super::input_box_popup::InputBoxPopup;
 use super::message::Message;
 use super::popup::Size;
 use crate::models::stateful_table::StatefulTable;
+use crate::ui::HIGHLIGHT_SYMBOL;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, centered_rect, title_block_centered};
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::popup::Popup;
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::HIGHLIGHT_SYMBOL;
 use derive_setters::Setters;
+use ratatui::Frame;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Position, Rect};
 use ratatui::prelude::{Style, Stylize, Text};
 use ratatui::widgets::{Block, ListItem, Row, StatefulWidget, Table, Widget, WidgetRef};
-use ratatui::Frame;
 use std::fmt::Debug;
 use std::sync::atomic::Ordering;
 
@@ -193,17 +193,16 @@ where
   }
 
   fn parse_headers(&self) -> Vec<Text<'a>> {
-    if let Some(ref content) = self.content {
-      if let Some(ref sort_list) = content.sort {
-        if !self.is_sorting {
-          let mut new_headers = self.table_headers.clone();
-          let idx = sort_list.state.selected().unwrap_or(0);
-          let direction = if content.sort_asc { " ▲" } else { " ▼" };
-          new_headers[idx].push_str(direction);
+    if let Some(ref content) = self.content
+      && let Some(ref sort_list) = content.sort
+      && !self.is_sorting
+    {
+      let mut new_headers = self.table_headers.clone();
+      let idx = sort_list.state.selected().unwrap_or(0);
+      let direction = if content.sort_asc { " ▲" } else { " ▼" };
+      new_headers[idx].push_str(direction);
 
-          return new_headers.into_iter().map(Text::from).collect();
-        }
-      }
+      return new_headers.into_iter().map(Text::from).collect();
     }
 
     self

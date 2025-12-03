@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-  use crate::cli::{
-    sonarr::{list_command_handler::SonarrListCommand, SonarrCommand},
-    Command,
-  };
   use crate::Cli;
+  use crate::cli::{
+    Command,
+    sonarr::{SonarrCommand, list_command_handler::SonarrListCommand},
+  };
   use clap::CommandFactory;
   use pretty_assertions::assert_eq;
 
@@ -19,7 +19,7 @@ mod tests {
 
   mod cli {
     use super::*;
-    use clap::{error::ErrorKind, Parser};
+    use clap::{Parser, error::ErrorKind};
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -296,10 +296,10 @@ mod tests {
     use serde_json::json;
     use tokio::sync::Mutex;
 
-    use crate::cli::sonarr::list_command_handler::{SonarrListCommand, SonarrListCommandHandler};
     use crate::cli::CliCommandHandler;
-    use crate::models::sonarr_models::SonarrSerdeable;
+    use crate::cli::sonarr::list_command_handler::{SonarrListCommand, SonarrListCommandHandler};
     use crate::models::Serdeable;
+    use crate::models::sonarr_models::SonarrSerdeable;
     use crate::network::sonarr_network::SonarrEvent;
     use crate::{
       app::App,

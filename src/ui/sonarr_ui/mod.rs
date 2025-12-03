@@ -7,11 +7,11 @@ use history::HistoryUi;
 use indexers::IndexersUi;
 use library::LibraryUi;
 use ratatui::{
+  Frame,
   layout::{Constraint, Layout, Rect},
   style::Stylize,
   text::Text,
   widgets::Paragraph,
-  Frame,
 };
 use root_folders::RootFoldersUi;
 use system::SystemUi;
@@ -20,22 +20,21 @@ use crate::{
   app::App,
   logos::SONARR_LOGO,
   models::{
+    Route,
     servarr_data::sonarr::sonarr_data::SonarrData,
     servarr_models::{DiskSpace, RootFolder},
     sonarr_models::DownloadRecord,
-    Route,
   },
   utils::convert_to_gb,
 };
 
 use super::{
-  draw_tabs,
+  DrawUi, draw_tabs,
   styles::ManagarrStyle,
   utils::{
     borderless_block, layout_block, line_gauge_with_label, line_gauge_with_title, title_block,
   },
   widgets::loading_block::LoadingBlock,
-  DrawUi,
 };
 
 mod blocklist;

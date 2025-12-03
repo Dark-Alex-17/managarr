@@ -3,8 +3,8 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
-  use crate::ui::radarr_ui::root_folders::RootFoldersUi;
   use crate::ui::DrawUi;
+  use crate::ui::radarr_ui::root_folders::RootFoldersUi;
 
   #[test]
   fn test_root_folders_ui_accepts() {

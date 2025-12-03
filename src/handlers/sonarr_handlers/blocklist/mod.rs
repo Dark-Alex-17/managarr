@@ -2,7 +2,7 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::TableHandlingConfig;
-use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, BLOCKLIST_BLOCKS};
 use crate::models::sonarr_models::BlocklistItem;
 use crate::models::stateful_table::SortOption;

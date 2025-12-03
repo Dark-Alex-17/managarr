@@ -16,7 +16,7 @@ mod tests {
         },
         sonarr_models::{Season, Series, SonarrRelease},
       },
-      network::{sonarr_network::SonarrEvent, NetworkEvent},
+      network::{NetworkEvent, sonarr_network::SonarrEvent},
     };
 
     #[tokio::test]

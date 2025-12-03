@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
   use crate::cli::{
-    sonarr::{edit_command_handler::SonarrEditCommand, SonarrCommand},
     Command,
+    sonarr::{SonarrCommand, edit_command_handler::SonarrEditCommand},
   };
 
   #[test]
@@ -20,10 +20,10 @@ mod tests {
   }
 
   mod cli {
-    use crate::{models::sonarr_models::SeriesType, Cli};
+    use crate::{Cli, models::sonarr_models::SeriesType};
 
     use super::*;
-    use clap::{error::ErrorKind, CommandFactory, Parser};
+    use clap::{CommandFactory, Parser, error::ErrorKind};
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -609,15 +609,15 @@ mod tests {
     use crate::{
       app::App,
       cli::{
-        sonarr::edit_command_handler::{SonarrEditCommand, SonarrEditCommandHandler},
         CliCommandHandler,
+        sonarr::edit_command_handler::{SonarrEditCommand, SonarrEditCommandHandler},
       },
       models::{
+        Serdeable,
         servarr_models::EditIndexerParams,
         sonarr_models::{EditSeriesParams, IndexerSettings, SeriesType, SonarrSerdeable},
-        Serdeable,
       },
-      network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
+      network::{MockNetworkTrait, NetworkEvent, sonarr_network::SonarrEvent},
     };
 
     #[tokio::test]

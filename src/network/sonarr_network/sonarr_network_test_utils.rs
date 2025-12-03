@@ -1,5 +1,6 @@
 #[cfg(test)]
 pub(in crate::network::sonarr_network) mod test_utils {
+  use crate::models::HorizontallyScrollableText;
   use crate::models::servarr_models::{
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
@@ -9,9 +10,8 @@ pub(in crate::network::sonarr_network) mod test_utils {
     Season, SeasonStatistics, Series, SeriesStatistics, SeriesStatus, SeriesType,
     SonarrHistoryData, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
   };
-  use crate::models::HorizontallyScrollableText;
   use chrono::DateTime;
-  use serde_json::{json, Number};
+  use serde_json::{Number, Value, json};
 
   pub const SERIES_JSON: &str = r#"{
         "title": "Test",
@@ -391,5 +391,12 @@ pub(in crate::network::sonarr_network) mod test_utils {
       free_space: 219902325555200,
       unmapped_folders: None,
     }
+  }
+
+  pub fn tag() -> Value {
+    json!({
+      "id": 3,
+      "label": "testing"
+    })
   }
 }

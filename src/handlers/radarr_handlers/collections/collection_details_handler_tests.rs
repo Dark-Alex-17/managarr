@@ -4,11 +4,11 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::collections::collection_details_handler::CollectionDetailsHandler;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::radarr_handlers::collections::collection_details_handler::CollectionDetailsHandler;
   use crate::models::radarr_models::CollectionMovie;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS,
@@ -18,9 +18,9 @@ mod tests {
     use bimap::BiMap;
     use pretty_assertions::assert_eq;
 
+    use crate::models::BlockSelectionState;
     use crate::models::radarr_models::Movie;
     use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
-    use crate::models::BlockSelectionState;
 
     use super::*;
 
@@ -59,37 +59,43 @@ mod tests {
         )
           .into()
       );
-      assert!(!app
-        .data
-        .radarr_data
-        .add_movie_modal
-        .as_ref()
-        .unwrap()
-        .monitor_list
-        .items
-        .is_empty());
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .monitor_list
+          .items
+          .is_empty()
+      );
       assert_eq!(
         app.data.radarr_data.selected_block.get_active_block(),
         ActiveRadarrBlock::AddMovieSelectRootFolder
       );
-      assert!(!app
-        .data
-        .radarr_data
-        .add_movie_modal
-        .as_ref()
-        .unwrap()
-        .minimum_availability_list
-        .items
-        .is_empty());
-      assert!(!app
-        .data
-        .radarr_data
-        .add_movie_modal
-        .as_ref()
-        .unwrap()
-        .quality_profile_list
-        .items
-        .is_empty());
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .minimum_availability_list
+          .items
+          .is_empty()
+      );
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .quality_profile_list
+          .items
+          .is_empty()
+      );
       assert_str_eq!(
         app
           .data
@@ -221,7 +227,7 @@ mod tests {
     use crate::models::radarr_models::{Collection, MinimumAvailability};
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::servarr_data::radarr::radarr_data::{
-      RadarrData, EDIT_COLLECTION_SELECTION_BLOCKS,
+      EDIT_COLLECTION_SELECTION_BLOCKS, RadarrData,
     };
     use crate::test_edit_collection_key;
 

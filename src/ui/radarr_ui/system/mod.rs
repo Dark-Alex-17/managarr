@@ -6,9 +6,9 @@ use ratatui::style::Style;
 use ratatui::text::{Span, Text};
 use ratatui::widgets::{Cell, Row};
 use ratatui::{
+  Frame,
   layout::{Constraint, Rect},
   widgets::ListItem,
-  Frame,
 };
 
 use crate::app::App;
@@ -23,7 +23,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::selectable_list::SelectableList;
 use crate::{
   models::Route,
-  ui::{utils::title_block, DrawUi},
+  ui::{DrawUi, utils::title_block},
 };
 
 mod system_details_ui;

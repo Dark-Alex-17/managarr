@@ -3,8 +3,8 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_SERIES_BLOCKS};
-  use crate::ui::sonarr_ui::library::edit_series_ui::EditSeriesUi;
   use crate::ui::DrawUi;
+  use crate::ui::sonarr_ui::library::edit_series_ui::EditSeriesUi;
 
   #[test]
   fn test_edit_series_ui_accepts() {

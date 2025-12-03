@@ -2,10 +2,10 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::TableHandlingConfig;
-use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
+use crate::models::HorizontallyScrollableText;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
 use crate::models::servarr_models::{AddRootFolderBody, RootFolder};
-use crate::models::HorizontallyScrollableText;
 use crate::network::radarr_network::RadarrEvent;
 use crate::{
   handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, matches_key,

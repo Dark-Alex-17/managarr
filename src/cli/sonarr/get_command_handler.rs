@@ -7,7 +7,7 @@ use tokio::sync::Mutex;
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
-  network::{sonarr_network::SonarrEvent, NetworkTrait},
+  network::{NetworkTrait, sonarr_network::SonarrEvent},
 };
 
 use super::SonarrCommand;

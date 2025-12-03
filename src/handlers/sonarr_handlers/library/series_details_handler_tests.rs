@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::series_details_handler::SeriesDetailsHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::{season, series};
-  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, SERIES_DETAILS_BLOCKS,
   };
@@ -304,37 +304,43 @@ mod tests {
         app.get_current_route(),
         ActiveSonarrBlock::SeriesHistory.into()
       );
-      assert!(app
-        .data
-        .sonarr_data
-        .series_history
-        .as_ref()
-        .unwrap()
-        .filter
-        .is_none());
-      assert!(app
-        .data
-        .sonarr_data
-        .series_history
-        .as_ref()
-        .unwrap()
-        .filtered_items
-        .is_none());
-      assert!(app
-        .data
-        .sonarr_data
-        .series_history
-        .as_ref()
-        .unwrap()
-        .filtered_state
-        .is_none());
+      assert!(
+        app
+          .data
+          .sonarr_data
+          .series_history
+          .as_ref()
+          .unwrap()
+          .filter
+          .is_none()
+      );
+      assert!(
+        app
+          .data
+          .sonarr_data
+          .series_history
+          .as_ref()
+          .unwrap()
+          .filtered_items
+          .is_none()
+      );
+      assert!(
+        app
+          .data
+          .sonarr_data
+          .series_history
+          .as_ref()
+          .unwrap()
+          .filtered_state
+          .is_none()
+      );
     }
   }
 
   mod test_handle_key_char {
     use super::*;
-    use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
     use crate::models::servarr_data::sonarr::sonarr_data::SonarrData;
+    use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
     use crate::models::sonarr_models::{Series, SeriesType};
     use crate::network::sonarr_network::SonarrEvent;
     use crate::test_edit_series_key;

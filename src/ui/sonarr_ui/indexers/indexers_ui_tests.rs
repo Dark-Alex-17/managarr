@@ -3,10 +3,10 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::sonarr::sonarr_data::{
-    ActiveSonarrBlock, EDIT_INDEXER_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
+    ActiveSonarrBlock, EDIT_INDEXER_BLOCKS, INDEXER_SETTINGS_BLOCKS, INDEXERS_BLOCKS,
   };
-  use crate::ui::sonarr_ui::indexers::IndexersUi;
   use crate::ui::DrawUi;
+  use crate::ui::sonarr_ui::indexers::IndexersUi;
 
   #[test]
   fn test_indexers_ui_accepts() {

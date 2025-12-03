@@ -5,12 +5,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::library::edit_movie_handler::EditMovieHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::movie;
-  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::{EditMovieParams, MinimumAvailability, Movie};
   use crate::models::servarr_data::radarr::modals::EditMovieModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_MOVIE_BLOCKS};
@@ -20,9 +20,9 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
+    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::radarr::modals::EditMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::EDIT_MOVIE_SELECTION_BLOCKS;
-    use crate::models::BlockSelectionState;
 
     use super::*;
 
@@ -566,15 +566,17 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(!app
-        .data
-        .radarr_data
-        .edit_movie_modal
-        .as_ref()
-        .unwrap()
-        .path
-        .text
-        .is_empty());
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .edit_movie_modal
+          .as_ref()
+          .unwrap()
+          .path
+          .text
+          .is_empty()
+      );
       assert_eq!(
         app.get_current_route(),
         ActiveRadarrBlock::EditMoviePrompt.into()
@@ -601,15 +603,17 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(!app
-        .data
-        .radarr_data
-        .edit_movie_modal
-        .as_mut()
-        .unwrap()
-        .tags
-        .text
-        .is_empty());
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .edit_movie_modal
+          .as_mut()
+          .unwrap()
+          .tags
+          .text
+          .is_empty()
+      );
       assert_eq!(
         app.get_current_route(),
         ActiveRadarrBlock::EditMoviePrompt.into()
@@ -964,8 +968,8 @@ mod tests {
     use super::*;
     use crate::{
       models::{
-        servarr_data::radarr::{modals::EditMovieModal, radarr_data::EDIT_MOVIE_SELECTION_BLOCKS},
         BlockSelectionState,
+        servarr_data::radarr::{modals::EditMovieModal, radarr_data::EDIT_MOVIE_SELECTION_BLOCKS},
       },
       network::radarr_network::RadarrEvent,
     };

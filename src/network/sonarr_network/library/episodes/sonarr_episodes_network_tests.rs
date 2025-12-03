@@ -7,43 +7,37 @@ mod tests {
     SonarrHistoryWrapper, SonarrSerdeable,
   };
   use crate::models::stateful_table::SortOption;
-  use crate::network::network_tests::test_utils::mock_servarr_api;
+  use crate::network::NetworkResource;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
+  use crate::network::sonarr_network::SonarrEvent;
   use crate::network::sonarr_network::library::episodes::get_episode_status;
   use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
-    episode, episode_file, history_item, release, EPISODE_JSON,
+    EPISODE_JSON, episode, episode_file, history_item, release,
   };
-  use crate::network::sonarr_network::SonarrEvent;
-  use crate::network::{Network, NetworkResource, RequestMethod};
   use indoc::formatdoc;
   use mockito::Matcher;
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use reqwest::Client;
   use rstest::rstest;
-  use serde_json::{json, Number};
+  use serde_json::{Number, json};
   use std::slice;
-  use tokio_util::sync::CancellationToken;
 
   #[tokio::test]
   async fn test_handle_delete_sonarr_episode_file_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      SonarrEvent::DeleteEpisodeFile(1),
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_server, app_arc, _server) = MockServarrApi::delete()
+      .path("/1")
+      .build_for(SonarrEvent::DeleteEpisodeFile(1))
+      .await;
     app_arc.lock().await.data.sonarr_data.season_details_modal =
       Some(SeasonDetailsModal::default());
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::DeleteEpisodeFile(1))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::DeleteEpisodeFile(1))
+        .await
+        .is_ok()
+    );
 
     async_server.assert_async().await;
   }
@@ -76,16 +70,11 @@ mod tests {
     };
     let expected_episodes = vec![episode_1.clone(), episode_2.clone(), episode_3.clone()];
     let mut expected_sorted_episodes = vec![episode_1.clone(), episode_3.clone()];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!([episode_1, episode_2, episode_3])),
-      None,
-      SonarrEvent::GetEpisodes(1),
-      None,
-      Some("seriesId=1"),
-    )
-    .await;
+    let (mock, app, _server) = MockServarrApi::get()
+      .query("seriesId=1")
+      .returns(json!([episode_1, episode_2, episode_3]))
+      .build_for(SonarrEvent::GetEpisodes(1))
+      .await;
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.sort_asc = true;
     if use_custom_sorting {
@@ -99,8 +88,8 @@ mod tests {
         .episodes
         .sorting(vec![title_sort_option]);
     }
-    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
-    app_arc
+    app.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    app
       .lock()
       .await
       .data
@@ -110,7 +99,7 @@ mod tests {
         id: 1,
         ..Series::default()
       }]);
-    app_arc
+    app
       .lock()
       .await
       .data
@@ -120,42 +109,44 @@ mod tests {
         season_number: 1,
         ..Season::default()
       }]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Episodes(episodes) = network
+    let result = network
       .handle_sonarr_event(SonarrEvent::GetEpisodes(1))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episodes
-          .items,
-        expected_sorted_episodes
-      );
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episodes
-          .sort_asc
-      );
-      assert_eq!(episodes, expected_episodes);
-    }
+      .await;
+
+    mock.assert_async().await;
+
+    let SonarrSerdeable::Episodes(episodes) = result.unwrap() else {
+      panic!("Expected Episodes variant")
+    };
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episodes
+        .items,
+      expected_sorted_episodes
+    );
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episodes
+        .sort_asc
+    );
+    assert_eq!(episodes, expected_episodes);
   }
 
   #[tokio::test]
@@ -184,20 +175,15 @@ mod tests {
       ..episode()
     };
     let expected_episodes = vec![episode_1.clone(), episode_2.clone(), episode_3.clone()];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!([episode_1, episode_2, episode_3])),
-      None,
-      SonarrEvent::GetEpisodes(1),
-      None,
-      Some("seriesId=1"),
-    )
-    .await;
+    let (mock, app, _server) = MockServarrApi::get()
+      .query("seriesId=1")
+      .returns(json!([episode_1, episode_2, episode_3]))
+      .build_for(SonarrEvent::GetEpisodes(1))
+      .await;
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.sort_asc = true;
-    app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
-    app_arc
+    app.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    app
       .lock()
       .await
       .data
@@ -207,56 +193,53 @@ mod tests {
         id: 1,
         ..Series::default()
       }]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Episodes(episodes) = network
+    let result = network
       .handle_sonarr_event(SonarrEvent::GetEpisodes(1))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episodes
-          .items,
-        expected_episodes
-      );
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episodes
-          .sort_asc
-      );
-      assert_eq!(episodes, expected_episodes);
-    }
+      .await;
+
+    mock.assert_async().await;
+
+    let SonarrSerdeable::Episodes(episodes) = result.unwrap() else {
+      panic!("Expected Episodes variant")
+    };
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episodes
+        .items,
+      expected_episodes
+    );
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episodes
+        .sort_asc
+    );
+    assert_eq!(episodes, expected_episodes);
   }
 
   #[tokio::test]
   async fn test_handle_get_episodes_event_empty_season_details_modal() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!([episode()])),
-      None,
-      SonarrEvent::GetEpisodes(1),
-      None,
-      Some("seriesId=1"),
-    )
-    .await;
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(json!([episode()]))
+      .query("seriesId=1")
+      .build_for(SonarrEvent::GetEpisodes(1))
+      .await;
     app_arc
       .lock()
       .await
@@ -268,7 +251,7 @@ mod tests {
         ..Series::default()
       }]);
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     if let SonarrSerdeable::Episodes(episodes) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodes(1))
@@ -336,16 +319,11 @@ mod tests {
       ..episode()
     };
     let mut expected_episodes = vec![episode_2.clone(), episode_1.clone()];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(episodes_json),
-      None,
-      SonarrEvent::GetEpisodes(1),
-      None,
-      Some("seriesId=1"),
-    )
-    .await;
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(episodes_json)
+      .query("seriesId=1")
+      .build_for(SonarrEvent::GetEpisodes(1))
+      .await;
     app_arc
       .lock()
       .await
@@ -373,7 +351,7 @@ mod tests {
       }]);
     app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     if let SonarrSerdeable::Episodes(episodes) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodes(1))
@@ -381,16 +359,18 @@ mod tests {
       .unwrap()
     {
       async_server.assert_async().await;
-      assert!(app_arc
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .unwrap()
-        .episodes
-        .is_empty());
+      assert!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episodes
+          .is_empty()
+      );
       assert!(
         app_arc
           .lock()
@@ -409,16 +389,11 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_get_episode_files_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!([episode_file()])),
-      None,
-      SonarrEvent::GetEpisodeFiles(1),
-      None,
-      Some("seriesId=1"),
-    )
-    .await;
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(json!([episode_file()]))
+      .query("seriesId=1")
+      .build_for(SonarrEvent::GetEpisodeFiles(1))
+      .await;
     app_arc.lock().await.data.sonarr_data.season_details_modal =
       Some(SeasonDetailsModal::default());
     app_arc
@@ -432,7 +407,7 @@ mod tests {
         ..Series::default()
       }]);
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     if let SonarrSerdeable::EpisodeFiles(episode_files) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(1))
@@ -459,16 +434,11 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_get_episode_files_event_empty_season_details_modal() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!([episode_file()])),
-      None,
-      SonarrEvent::GetEpisodeFiles(1),
-      None,
-      Some("seriesId=1"),
-    )
-    .await;
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(json!([episode_file()]))
+      .query("seriesId=1")
+      .build_for(SonarrEvent::GetEpisodeFiles(1))
+      .await;
     app_arc
       .lock()
       .await
@@ -480,7 +450,7 @@ mod tests {
         ..Series::default()
       }]);
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     if let SonarrSerdeable::EpisodeFiles(episode_files) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(1))
@@ -488,13 +458,15 @@ mod tests {
       .unwrap()
     {
       async_server.assert_async().await;
-      assert!(app_arc
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .season_details_modal
-        .is_some());
+      assert!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .is_some()
+      );
       assert_eq!(
         app_arc
           .lock()
@@ -555,16 +527,11 @@ mod tests {
         ..history_item()
       },
     ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(history_json),
-      None,
-      SonarrEvent::GetEpisodeHistory(1),
-      None,
-      Some("episodeId=1&pageSize=1000&sortDirection=descending&sortKey=date"),
-    )
-    .await;
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("episodeId=1&pageSize=1000&sortDirection=descending&sortKey=date")
+      .build_for(SonarrEvent::GetEpisodeHistory(1))
+      .await;
     app_arc.lock().await.data.sonarr_data.season_details_modal =
       Some(SeasonDetailsModal::default());
     app_arc
@@ -600,7 +567,7 @@ mod tests {
       .episode_history
       .sort_asc = true;
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeHistory(1))
@@ -686,16 +653,11 @@ mod tests {
         ..history_item()
       },
     ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(history_json),
-      None,
-      SonarrEvent::GetEpisodeHistory(1),
-      None,
-      Some("episodeId=1&pageSize=1000&sortDirection=descending&sortKey=date"),
-    )
-    .await;
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("episodeId=1&pageSize=1000&sortDirection=descending&sortKey=date")
+      .build_for(SonarrEvent::GetEpisodeHistory(1))
+      .await;
     app_arc.lock().await.data.sonarr_data.season_details_modal =
       Some(SeasonDetailsModal::default());
     app_arc
@@ -709,7 +671,7 @@ mod tests {
       .episodes
       .set_items(vec![episode()]);
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeHistory(1))
@@ -795,18 +757,13 @@ mod tests {
         ..history_item()
       },
     ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(history_json),
-      None,
-      SonarrEvent::GetEpisodeHistory(1),
-      None,
-      Some("episodeId=1&pageSize=1000&sortDirection=descending&sortKey=date"),
-    )
-    .await;
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("episodeId=1&pageSize=1000&sortDirection=descending&sortKey=date")
+      .build_for(SonarrEvent::GetEpisodeHistory(1))
+      .await;
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeHistory(1))
@@ -852,16 +809,11 @@ mod tests {
   #[tokio::test]
   async fn test_handle_get_episode_details_event() {
     let response: Episode = serde_json::from_str(EPISODE_JSON).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(EPISODE_JSON).unwrap()),
-      None,
-      SonarrEvent::GetEpisodeDetails(1),
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(serde_json::from_str(EPISODE_JSON).unwrap())
+      .path("/1")
+      .build_for(SonarrEvent::GetEpisodeDetails(1))
+      .await;
     let mut episode_details_modal = EpisodeDetailsModal::default();
     episode_details_modal.episode_details_tabs.next();
     let mut season_details_modal = SeasonDetailsModal::default();
@@ -873,7 +825,7 @@ mod tests {
       .await
       .push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     if let SonarrSerdeable::Episode(episode) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(1))
@@ -881,16 +833,18 @@ mod tests {
       .unwrap()
     {
       async_server.assert_async().await;
-      assert!(app_arc
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .unwrap()
-        .episode_details_modal
-        .is_some());
+      assert!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_details_modal
+          .is_some()
+      );
       assert_eq!(
         app_arc
           .lock()
@@ -969,16 +923,11 @@ mod tests {
   #[tokio::test]
   async fn test_handle_get_episode_details_event_empty_episode_details_modal() {
     let response: Episode = serde_json::from_str(EPISODE_JSON).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(EPISODE_JSON).unwrap()),
-      None,
-      SonarrEvent::GetEpisodeDetails(1),
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(serde_json::from_str(EPISODE_JSON).unwrap())
+      .path("/1")
+      .build_for(SonarrEvent::GetEpisodeDetails(1))
+      .await;
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.set_items(vec![episode()]);
     app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
@@ -987,7 +936,7 @@ mod tests {
       .await
       .push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     if let SonarrSerdeable::Episode(episode) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(1))
@@ -995,16 +944,18 @@ mod tests {
       .unwrap()
     {
       async_server.assert_async().await;
-      assert!(app_arc
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .unwrap()
-        .episode_details_modal
-        .is_some());
+      assert!(
+        app_arc
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_details_modal
+          .is_some()
+      );
       assert_eq!(episode, response);
 
       let app = app_arc.lock().await;
@@ -1067,19 +1018,14 @@ mod tests {
   #[tokio::test]
   async fn test_handle_get_episode_details_event_season_details_modal_not_required_in_cli_mode() {
     let response: Episode = serde_json::from_str(EPISODE_JSON).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(EPISODE_JSON).unwrap()),
-      None,
-      SonarrEvent::GetEpisodeDetails(1),
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(serde_json::from_str(EPISODE_JSON).unwrap())
+      .path("/1")
+      .build_for(SonarrEvent::GetEpisodeDetails(1))
+      .await;
     app_arc.lock().await.cli_mode = true;
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     if let SonarrSerdeable::Episode(episode) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(1))
@@ -1093,20 +1039,15 @@ mod tests {
 
   #[tokio::test]
   #[should_panic(expected = "Season details modal is empty")]
-  async fn test_handle_get_episode_details_event_requires_season_details_modal_to_be_some_when_in_tui_mode(
-  ) {
-    let (_async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(EPISODE_JSON).unwrap()),
-      None,
-      SonarrEvent::GetEpisodeDetails(1),
-      Some("/1"),
-      None,
-    )
-    .await;
+  async fn test_handle_get_episode_details_event_requires_season_details_modal_to_be_some_when_in_tui_mode()
+   {
+    let (_async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(serde_json::from_str(EPISODE_JSON).unwrap())
+      .path("/1")
+      .build_for(SonarrEvent::GetEpisodeDetails(1))
+      .await;
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     network
       .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(1))
@@ -1131,16 +1072,11 @@ mod tests {
       "languages": [ { "id": 1, "name": "English" } ],
       "quality": { "quality": { "name": "Bluray-1080p" }}
     }]);
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(release_json),
-      None,
-      SonarrEvent::GetEpisodeReleases(1),
-      None,
-      Some("episodeId=1"),
-    )
-    .await;
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(release_json)
+      .query("episodeId=1")
+      .build_for(SonarrEvent::GetEpisodeReleases(1))
+      .await;
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.set_items(vec![episode()]);
     app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
@@ -1154,7 +1090,7 @@ mod tests {
       .unwrap()
       .episode_details_modal = Some(EpisodeDetailsModal::default());
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     if let SonarrSerdeable::Releases(releases_vec) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(1))
@@ -1199,21 +1135,16 @@ mod tests {
       "languages": [ { "id": 1, "name": "English" } ],
       "quality": { "quality": { "name": "Bluray-1080p" }}
     }]);
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(release_json),
-      None,
-      SonarrEvent::GetEpisodeReleases(1),
-      None,
-      Some("episodeId=1"),
-    )
-    .await;
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(release_json)
+      .query("episodeId=1")
+      .build_for(SonarrEvent::GetEpisodeReleases(1))
+      .await;
     let mut season_details_modal = SeasonDetailsModal::default();
     season_details_modal.episodes.set_items(vec![episode()]);
     app_arc.lock().await.data.sonarr_data.season_details_modal = Some(season_details_modal);
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     if let SonarrSerdeable::Releases(releases_vec) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(1))
@@ -1249,16 +1180,11 @@ mod tests {
     };
     let body = Episode { id: 2, ..episode() };
 
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!(body)),
-      None,
-      SonarrEvent::GetEpisodeDetails(2),
-      Some("/2"),
-      None,
-    )
-    .await;
+    let (async_details_server, app_arc, mut server) = MockServarrApi::get()
+      .returns(json!(body))
+      .path("/2")
+      .build_for(SonarrEvent::GetEpisodeDetails(2))
+      .await;
     let async_toggle_server = server
       .mock(
         "PUT",
@@ -1274,12 +1200,14 @@ mod tests {
       .create_async()
       .await;
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::ToggleEpisodeMonitoring(2))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::ToggleEpisodeMonitoring(2))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_toggle_server.assert_async().await;
@@ -1287,28 +1215,26 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_trigger_automatic_episode_search_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
-        "name": "EpisodeSearch",
-        "episodeIds": [ 1 ]
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::TriggerAutomaticEpisodeSearch(1),
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let body = json!({
+      "name": "EpisodeSearch",
+      "episodeIds": [ 1 ]
+    });
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(body)
+      .returns(json!({}))
+      .build_for(SonarrEvent::TriggerAutomaticEpisodeSearch(1))
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::TriggerAutomaticEpisodeSearch(1))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::TriggerAutomaticEpisodeSearch(1))
+        .await
+        .is_ok()
+    );
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
   }
 
   #[test]

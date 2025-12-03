@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod tests {
-  use clap::error::ErrorKind;
   use clap::CommandFactory;
+  use clap::error::ErrorKind;
 
-  use crate::cli::radarr::get_command_handler::RadarrGetCommand;
-  use crate::cli::radarr::RadarrCommand;
-  use crate::cli::Command;
   use crate::Cli;
+  use crate::cli::Command;
+  use crate::cli::radarr::RadarrCommand;
+  use crate::cli::radarr::get_command_handler::RadarrGetCommand;
   use pretty_assertions::assert_eq;
 
   #[test]
@@ -117,11 +117,11 @@ mod tests {
     use crate::{
       app::App,
       cli::{
-        radarr::get_command_handler::{RadarrGetCommand, RadarrGetCommandHandler},
         CliCommandHandler,
+        radarr::get_command_handler::{RadarrGetCommand, RadarrGetCommandHandler},
       },
-      models::{radarr_models::RadarrSerdeable, Serdeable},
-      network::{radarr_network::RadarrEvent, MockNetworkTrait, NetworkEvent},
+      models::{Serdeable, radarr_models::RadarrSerdeable},
+      network::{MockNetworkTrait, NetworkEvent, radarr_network::RadarrEvent},
     };
 
     #[tokio::test]

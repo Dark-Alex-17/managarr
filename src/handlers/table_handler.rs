@@ -1,5 +1,5 @@
-use crate::models::stateful_table::SortOption;
 use crate::models::Route;
+use crate::models::stateful_table::SortOption;
 use derive_setters::Setters;
 use std::cmp::Ordering;
 use std::fmt::Debug;

@@ -2,8 +2,8 @@
 mod tests {
   use std::hash::{DefaultHasher, Hash, Hasher};
 
-  use crate::models::stateful_tree::StatefulTree;
   use crate::models::Scrollable;
+  use crate::models::stateful_tree::StatefulTree;
   use managarr_tree_widget::{Tree, TreeItem, TreeState};
   use pretty_assertions::{assert_eq, assert_str_eq};
   use ratatui::buffer::Buffer;

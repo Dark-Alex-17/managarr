@@ -5,8 +5,8 @@ mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, INDEXER_SETTINGS_BLOCKS,
   };
-  use crate::ui::sonarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
   use crate::ui::DrawUi;
+  use crate::ui::sonarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
 
   #[test]
   fn test_indexer_settings_ui_accepts() {

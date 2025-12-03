@@ -3,10 +3,10 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::radarr::radarr_data::{
-    ActiveRadarrBlock, EDIT_INDEXER_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
+    ActiveRadarrBlock, EDIT_INDEXER_BLOCKS, INDEXER_SETTINGS_BLOCKS, INDEXERS_BLOCKS,
   };
-  use crate::ui::radarr_ui::indexers::IndexersUi;
   use crate::ui::DrawUi;
+  use crate::ui::radarr_ui::indexers::IndexersUi;
 
   #[test]
   fn test_indexers_ui_accepts() {

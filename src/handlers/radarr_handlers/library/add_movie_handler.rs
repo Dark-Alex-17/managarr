@@ -1,17 +1,17 @@
 use crate::handlers::table_handler::TableHandlingConfig;
-use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieOptions, AddMovieSearchResult, CollectionMovie,
 };
 use crate::models::servarr_data::radarr::modals::AddMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{
-  ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS,
+  ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS, ActiveRadarrBlock,
 };
 use crate::models::stateful_table::StatefulTable;
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
 use crate::{
-  handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, matches_key, App, Key,
+  App, Key, handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, matches_key,
 };
 
 #[cfg(test)]

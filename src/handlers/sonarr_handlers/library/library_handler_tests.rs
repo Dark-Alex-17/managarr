@@ -5,14 +5,14 @@ mod tests {
   use std::cmp::Ordering;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
-  use crate::handlers::sonarr_handlers::library::{series_sorting_options, LibraryHandler};
-  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::sonarr_handlers::library::{LibraryHandler, series_sorting_options};
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
   use crate::models::servarr_data::sonarr::sonarr_data::{
-    ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
+    ADD_SERIES_BLOCKS, ActiveSonarrBlock, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
     EPISODE_DETAILS_BLOCKS, LIBRARY_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
   };
   use crate::models::sonarr_models::{Series, SeriesStatistics, SeriesStatus, SeriesType};
@@ -287,8 +287,8 @@ mod tests {
     use serde_json::Number;
     use strum::IntoEnumIterator;
 
-    use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
     use crate::models::servarr_data::sonarr::sonarr_data::SonarrData;
+    use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
     use crate::models::sonarr_models::SeriesType;
 
     use crate::network::sonarr_network::SonarrEvent;

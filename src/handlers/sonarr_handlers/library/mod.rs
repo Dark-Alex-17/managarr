@@ -7,16 +7,16 @@ use crate::{
   app::App,
   event::Key,
   handle_table_events,
-  handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler},
+  handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle},
   matches_key,
   models::{
+    BlockSelectionState, HorizontallyScrollableText,
     servarr_data::sonarr::sonarr_data::{
       ActiveSonarrBlock, DELETE_SERIES_SELECTION_BLOCKS, EDIT_SERIES_SELECTION_BLOCKS,
       LIBRARY_BLOCKS,
     },
     sonarr_models::Series,
     stateful_table::SortOption,
-    BlockSelectionState, HorizontallyScrollableText,
   },
   network::sonarr_network::SonarrEvent,
 };

@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_INDEXER_BLOCKS};
-  use crate::ui::sonarr_ui::indexers::edit_indexer_ui::EditIndexerUi;
   use crate::ui::DrawUi;
+  use crate::ui::sonarr_ui::indexers::edit_indexer_ui::EditIndexerUi;
   use strum::IntoEnumIterator;
 
   #[test]

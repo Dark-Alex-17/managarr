@@ -2,7 +2,7 @@ use anyhow::Result;
 use std::fmt::Debug;
 
 use log::info;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::models::radarr_models::{
   AddMovieBody, DeleteMovieParams, EditCollectionParams, EditMovieParams, IndexerSettings,

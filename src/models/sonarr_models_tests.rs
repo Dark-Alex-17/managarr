@@ -4,6 +4,7 @@ mod tests {
   use serde_json::json;
 
   use crate::models::{
+    Serdeable,
     servarr_models::{
       DiskSpace, HostConfig, Indexer, IndexerTestResult, Language, Log, LogResponse,
       QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
@@ -14,7 +15,6 @@ mod tests {
       SeriesStatus, SeriesType, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
       SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus,
     },
-    Serdeable,
   };
 
   #[test]

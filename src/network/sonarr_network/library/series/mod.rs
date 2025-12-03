@@ -1,15 +1,15 @@
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use crate::models::sonarr_models::{
   AddSeriesBody, AddSeriesSearchResult, DeleteSeriesParams, EditSeriesParams, Series,
   SonarrCommandBody, SonarrHistoryItem,
 };
 use crate::models::stateful_table::StatefulTable;
-use crate::models::Route;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
 use log::{debug, info, warn};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use urlencoding::encode;
 
 #[cfg(test)]
@@ -56,7 +56,9 @@ impl Network<'_, '_> {
       add_list_exclusion,
     } = delete_series_params;
 
-    info!("Deleting Sonarr series with ID: {id} with deleteFiles={delete_series_files} and addImportExclusion={add_list_exclusion}");
+    info!(
+      "Deleting Sonarr series with ID: {id} with deleteFiles={delete_series_files} and addImportExclusion={add_list_exclusion}"
+    );
 
     let request_props = self
       .request_props_from(

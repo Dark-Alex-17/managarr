@@ -1,13 +1,13 @@
+use crate::app::App;
 use crate::app::context_clues::{
-  ContextClue, ContextClueProvider, BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
+  BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES, ContextClue, ContextClueProvider,
 };
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::radarr::radarr_data::{
-  ActiveRadarrBlock, ADD_MOVIE_BLOCKS, EDIT_COLLECTION_BLOCKS, EDIT_INDEXER_BLOCKS,
+  ADD_MOVIE_BLOCKS, ActiveRadarrBlock, EDIT_COLLECTION_BLOCKS, EDIT_INDEXER_BLOCKS,
   EDIT_MOVIE_BLOCKS, INDEXER_SETTINGS_BLOCKS, MOVIE_DETAILS_BLOCKS,
 };
-use crate::models::Route;
 
 #[cfg(test)]
 #[path = "radarr_context_clues_tests.rs"]

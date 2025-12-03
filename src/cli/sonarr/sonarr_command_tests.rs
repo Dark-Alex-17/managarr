@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-  use crate::cli::{
-    sonarr::{list_command_handler::SonarrListCommand, SonarrCommand},
-    Command,
-  };
   use crate::Cli;
+  use crate::cli::{
+    Command,
+    sonarr::{SonarrCommand, list_command_handler::SonarrListCommand},
+  };
   use clap::CommandFactory;
   use pretty_assertions::assert_eq;
 
@@ -253,25 +253,25 @@ mod tests {
     use crate::{
       app::App,
       cli::{
+        CliCommandHandler,
         sonarr::{
-          add_command_handler::SonarrAddCommand, delete_command_handler::SonarrDeleteCommand,
+          SonarrCliHandler, SonarrCommand, add_command_handler::SonarrAddCommand,
+          delete_command_handler::SonarrDeleteCommand,
           download_command_handler::SonarrDownloadCommand, edit_command_handler::SonarrEditCommand,
           get_command_handler::SonarrGetCommand, list_command_handler::SonarrListCommand,
           manual_search_command_handler::SonarrManualSearchCommand,
           refresh_command_handler::SonarrRefreshCommand,
           trigger_automatic_search_command_handler::SonarrTriggerAutomaticSearchCommand,
-          SonarrCliHandler, SonarrCommand,
         },
-        CliCommandHandler,
       },
       models::{
+        Serdeable,
         sonarr_models::{
           BlocklistItem, BlocklistResponse, IndexerSettings, Series, SonarrReleaseDownloadBody,
           SonarrSerdeable, SonarrTaskName,
         },
-        Serdeable,
       },
-      network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
+      network::{MockNetworkTrait, NetworkEvent, sonarr_network::SonarrEvent},
     };
 
     #[tokio::test]
@@ -488,8 +488,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_sonarr_cli_handler_delegates_manual_search_commands_to_the_manual_search_command_handler(
-    ) {
+    async fn test_sonarr_cli_handler_delegates_manual_search_commands_to_the_manual_search_command_handler()
+     {
       let expected_episode_id = 1;
       let mut mock_network = MockNetworkTrait::new();
       mock_network
@@ -516,8 +516,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_sonarr_cli_handler_delegates_trigger_automatic_search_commands_to_the_trigger_automatic_search_command_handler(
-    ) {
+    async fn test_sonarr_cli_handler_delegates_trigger_automatic_search_commands_to_the_trigger_automatic_search_command_handler()
+     {
       let expected_episode_id = 1;
       let mut mock_network = MockNetworkTrait::new();
       mock_network

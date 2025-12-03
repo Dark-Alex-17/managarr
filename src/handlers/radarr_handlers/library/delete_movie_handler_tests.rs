@@ -4,12 +4,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::library::delete_movie_handler::DeleteMovieHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::movie;
-  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::DeleteMovieParams;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 
@@ -17,8 +17,8 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::models::servarr_data::radarr::radarr_data::DELETE_MOVIE_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
+    use crate::models::servarr_data::radarr::radarr_data::DELETE_MOVIE_SELECTION_BLOCKS;
 
     use super::*;
 
@@ -83,8 +83,8 @@ mod tests {
   mod test_handle_submit {
     use pretty_assertions::assert_eq;
 
-    use crate::models::servarr_data::radarr::radarr_data::DELETE_MOVIE_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
+    use crate::models::servarr_data::radarr::radarr_data::DELETE_MOVIE_SELECTION_BLOCKS;
     use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
@@ -255,7 +255,7 @@ mod tests {
   mod test_handle_key_char {
     use crate::{
       models::{
-        servarr_data::radarr::radarr_data::DELETE_MOVIE_SELECTION_BLOCKS, BlockSelectionState,
+        BlockSelectionState, servarr_data::radarr::radarr_data::DELETE_MOVIE_SELECTION_BLOCKS,
       },
       network::radarr_network::RadarrEvent,
     };

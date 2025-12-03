@@ -3,20 +3,20 @@ mod tests {
   use std::sync::atomic::AtomicUsize;
   use std::sync::atomic::Ordering;
 
+  use crate::app::ServarrConfig;
   use crate::app::context_clues::ContextClue;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::app::ServarrConfig;
   use crate::models::from_f64;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-  use crate::models::{from_i64, strip_non_search_characters};
   use crate::models::{
     BlockSelectionState, HorizontallyScrollableText, Scrollable, ScrollableText, TabRoute, TabState,
   };
+  use crate::models::{from_i64, strip_non_search_characters};
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use serde::de::IntoDeserializer;
   use serde::de::value::Error as ValueError;
   use serde::de::value::F64Deserializer;
   use serde::de::value::I64Deserializer;
-  use serde::de::IntoDeserializer;
   use serde_json::to_string;
 
   const BLOCKS: &[&[i32]] = &[&[11, 12], &[21, 22], &[31, 32]];

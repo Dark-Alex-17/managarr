@@ -3,8 +3,8 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
-  use crate::ui::radarr_ui::downloads::DownloadsUi;
   use crate::ui::DrawUi;
+  use crate::ui::radarr_ui::downloads::DownloadsUi;
 
   #[test]
   fn test_downloads_ui_accepts() {

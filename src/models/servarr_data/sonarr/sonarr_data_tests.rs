@@ -18,8 +18,8 @@ mod tests {
         },
       },
       models::{
-        servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData},
         BlockSelectionState, Route,
+        servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData},
       },
     };
 
@@ -209,9 +209,11 @@ mod tests {
         sonarr_data.series_info_tabs.tabs[0].route,
         ActiveSonarrBlock::SeriesDetails.into()
       );
-      assert!(sonarr_data.series_info_tabs.tabs[0]
-        .contextual_help
-        .is_some());
+      assert!(
+        sonarr_data.series_info_tabs.tabs[0]
+          .contextual_help
+          .is_some()
+      );
       assert_eq!(
         sonarr_data.series_info_tabs.tabs[0]
           .contextual_help
@@ -225,9 +227,11 @@ mod tests {
         sonarr_data.series_info_tabs.tabs[1].route,
         ActiveSonarrBlock::SeriesHistory.into()
       );
-      assert!(sonarr_data.series_info_tabs.tabs[1]
-        .contextual_help
-        .is_some());
+      assert!(
+        sonarr_data.series_info_tabs.tabs[1]
+          .contextual_help
+          .is_some()
+      );
       assert_eq!(
         sonarr_data.series_info_tabs.tabs[1]
           .contextual_help
@@ -240,11 +244,11 @@ mod tests {
 
   mod active_sonarr_block_tests {
     use crate::models::servarr_data::sonarr::sonarr_data::{
-      ActiveSonarrBlock, ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, BLOCKLIST_BLOCKS,
+      ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, ActiveSonarrBlock, BLOCKLIST_BLOCKS,
       DELETE_SERIES_BLOCKS, DELETE_SERIES_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_INDEXER_BLOCKS,
       EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, EDIT_SERIES_BLOCKS,
-      EDIT_SERIES_SELECTION_BLOCKS, EPISODE_DETAILS_BLOCKS, HISTORY_BLOCKS, INDEXERS_BLOCKS,
-      INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS,
+      EDIT_SERIES_SELECTION_BLOCKS, EPISODE_DETAILS_BLOCKS, HISTORY_BLOCKS,
+      INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS, LIBRARY_BLOCKS,
       ROOT_FOLDERS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
     };
 
@@ -394,7 +398,9 @@ mod tests {
       assert!(DELETE_SERIES_BLOCKS.contains(&ActiveSonarrBlock::DeleteSeriesPrompt));
       assert!(DELETE_SERIES_BLOCKS.contains(&ActiveSonarrBlock::DeleteSeriesConfirmPrompt));
       assert!(DELETE_SERIES_BLOCKS.contains(&ActiveSonarrBlock::DeleteSeriesToggleDeleteFile));
-      assert!(DELETE_SERIES_BLOCKS.contains(&ActiveSonarrBlock::DeleteSeriesToggleAddListExclusion));
+      assert!(
+        DELETE_SERIES_BLOCKS.contains(&ActiveSonarrBlock::DeleteSeriesToggleAddListExclusion)
+      );
     }
 
     #[test]
@@ -533,7 +539,9 @@ mod tests {
       assert_eq!(INDEXER_SETTINGS_BLOCKS.len(), 6);
       assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveSonarrBlock::AllIndexerSettingsPrompt));
       assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveSonarrBlock::IndexerSettingsConfirmPrompt));
-      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveSonarrBlock::IndexerSettingsMaximumSizeInput));
+      assert!(
+        INDEXER_SETTINGS_BLOCKS.contains(&ActiveSonarrBlock::IndexerSettingsMaximumSizeInput)
+      );
       assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveSonarrBlock::IndexerSettingsMinimumAgeInput));
       assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveSonarrBlock::IndexerSettingsRetentionInput));
       assert!(
@@ -652,8 +660,12 @@ mod tests {
       assert!(EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::EpisodeFile));
       assert!(EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualEpisodeSearch));
       assert!(EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualEpisodeSearchSortPrompt));
-      assert!(EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt));
-      assert!(EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::AutomaticallySearchEpisodePrompt));
+      assert!(
+        EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt)
+      );
+      assert!(
+        EPISODE_DETAILS_BLOCKS.contains(&ActiveSonarrBlock::AutomaticallySearchEpisodePrompt)
+      );
     }
   }
 }

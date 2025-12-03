@@ -1,21 +1,22 @@
 #[cfg(test)]
 mod test {
   use super::super::*;
+  use crate::App;
   use crate::models::radarr_models::{
     EditCollectionParams, EditMovieParams, IndexerSettings, RadarrTaskName,
   };
   use crate::models::servarr_data::radarr::modals::EditMovieModal;
   use crate::models::servarr_models::EditIndexerParams;
-  use crate::network::network_tests::test_utils::mock_servarr_api;
-  use crate::App;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
+  use crate::network::radarr_network::radarr_network_test_utils::test_utils::{
+    quality_profile, tag,
+  };
   use bimap::BiMap;
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use reqwest::Client;
   use rstest::rstest;
   use serde_json::json;
   use std::sync::Arc;
   use tokio::sync::Mutex;
-  use tokio_util::sync::CancellationToken;
 
   #[rstest]
   fn test_resource_movie(
@@ -161,146 +162,129 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_get_radarr_healthcheck_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      None,
-      None,
-      RadarrEvent::HealthCheck,
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .build_for(RadarrEvent::HealthCheck)
+      .await;
+
+    let mut network = test_network(&app);
 
     let _ = network.handle_radarr_event(RadarrEvent::HealthCheck).await;
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
   }
 
   #[tokio::test]
   async fn test_handle_get_radarr_quality_profiles_event() {
-    let quality_profile_json = json!([{
-      "id": 2222,
-      "name": "HD - 1080p"
-    }]);
-    let response: Vec<QualityProfile> =
-      serde_json::from_value(quality_profile_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(quality_profile_json),
-      None,
-      RadarrEvent::GetQualityProfiles,
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let expected: Vec<QualityProfile> = vec![QualityProfile {
+      id: 2222,
+      name: "HD - 1080p".to_owned(),
+    }];
 
-    if let RadarrSerdeable::QualityProfiles(quality_profiles) = network
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!([quality_profile()]))
+      .build_for(RadarrEvent::GetQualityProfiles)
+      .await;
+
+    let mut network = test_network(&app);
+
+    let result = network
       .handle_radarr_event(RadarrEvent::GetQualityProfiles)
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.radarr_data.quality_profile_map,
-        BiMap::from_iter([(2222i64, "HD - 1080p".to_owned())])
-      );
-      assert_eq!(quality_profiles, response);
-    }
+      .await;
+
+    mock.assert_async().await;
+
+    let RadarrSerdeable::QualityProfiles(quality_profiles) = result.unwrap() else {
+      panic!("Expected QualityProfiles variant");
+    };
+    assert_eq!(quality_profiles, expected);
+    assert_eq!(
+      app.lock().await.data.radarr_data.quality_profile_map,
+      BiMap::from_iter([(2222i64, "HD - 1080p".to_owned())])
+    );
   }
 
   #[tokio::test]
   async fn test_handle_get_radarr_tags_event() {
-    let tags_json = json!([{
-      "id": 2222,
-      "label": "usenet"
-    }]);
-    let response: Vec<Tag> = serde_json::from_value(tags_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(tags_json),
-      None,
-      RadarrEvent::GetTags,
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let expected: Vec<Tag> = vec![Tag {
+      id: 2222,
+      label: "usenet".to_owned(),
+    }];
 
-    if let RadarrSerdeable::Tags(tags) = network
-      .handle_radarr_event(RadarrEvent::GetTags)
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.radarr_data.tags_map,
-        BiMap::from_iter([(2222i64, "usenet".to_owned())])
-      );
-      assert_eq!(tags, response);
-    }
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!([{
+        "id": 2222,
+        "label": "usenet"
+      }]))
+      .build_for(RadarrEvent::GetTags)
+      .await;
+
+    let mut network = test_network(&app);
+
+    let result = network.handle_radarr_event(RadarrEvent::GetTags).await;
+
+    mock.assert_async().await;
+
+    let RadarrSerdeable::Tags(tags) = result.unwrap() else {
+      panic!("Expected Tags variant");
+    };
+    assert_eq!(tags, expected);
+    assert_eq!(
+      app.lock().await.data.radarr_data.tags_map,
+      BiMap::from_iter([(2222i64, "usenet".to_owned())])
+    );
   }
 
   #[tokio::test]
   async fn test_handle_add_radarr_tag() {
-    let tag_json = json!({ "id": 3, "label": "testing" });
-    let response: Tag = serde_json::from_value(tag_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({ "label": "testing" })),
-      Some(tag_json),
-      None,
-      RadarrEvent::AddTag(String::new()),
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.data.radarr_data.tags_map =
-      BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let expected = Tag {
+      id: 3,
+      label: "testing".to_owned(),
+    };
 
-    if let RadarrSerdeable::Tag(tag) = network
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({ "label": "testing" }))
+      .returns(tag())
+      .build_for(RadarrEvent::AddTag(String::new()))
+      .await;
+
+    app.lock().await.data.radarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
+
+    let mut network = test_network(&app);
+
+    let result = network
       .handle_radarr_event(RadarrEvent::AddTag("testing".to_owned()))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.radarr_data.tags_map,
-        BiMap::from_iter([
-          (1, "usenet".to_owned()),
-          (2, "test".to_owned()),
-          (3, "testing".to_owned())
-        ])
-      );
-      assert_eq!(tag, response);
-    }
+      .await;
+
+    mock.assert_async().await;
+
+    let RadarrSerdeable::Tag(tag) = result.unwrap() else {
+      panic!("Expected Tag variant");
+    };
+    assert_eq!(tag, expected);
+    assert_eq!(
+      app.lock().await.data.radarr_data.tags_map,
+      BiMap::from_iter([
+        (1, "usenet".to_owned()),
+        (2, "test".to_owned()),
+        (3, "testing".to_owned())
+      ])
+    );
   }
 
   #[tokio::test]
   async fn test_handle_delete_radarr_tag_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      RadarrEvent::DeleteTag(1),
-      Some("/1"),
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .build_for(RadarrEvent::DeleteTag(1))
+      .await;
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::DeleteTag(1))
-      .await
-      .is_ok());
+    let mut network = test_network(&app);
 
-    async_server.assert_async().await;
+    let result = network.handle_radarr_event(RadarrEvent::DeleteTag(1)).await;
+
+    mock.assert_async().await;
+    assert!(result.is_ok());
   }
 
   #[tokio::test]
@@ -315,7 +299,7 @@ mod test {
         (3, "hi".to_owned()),
       ]);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     assert_eq!(
       network.extract_and_add_radarr_tag_ids_vec(tags).await,
@@ -325,34 +309,29 @@ mod test {
 
   #[tokio::test]
   async fn test_extract_and_add_radarr_tag_ids_vec_add_missing_tags_first() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({ "label": "TESTING" })),
-      Some(json!({ "id": 3, "label": "testing" })),
-      None,
-      RadarrEvent::GetTags,
-      None,
-      None,
-    )
-    .await;
+    let (async_server, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({ "label": "TESTING" }))
+      .returns(json!({ "id": 3, "label": "testing" }))
+      .build_for(RadarrEvent::GetTags)
+      .await;
     let tags = "usenet, test, TESTING";
     {
-      let mut app = app_arc.lock().await;
-      app.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
+      let mut app_guard = app.lock().await;
+      app_guard.data.radarr_data.edit_movie_modal = Some(EditMovieModal {
         tags: tags.into(),
         ..EditMovieModal::default()
       });
-      app.data.radarr_data.tags_map =
+      app_guard.data.radarr_data.tags_map =
         BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app);
 
     let tag_ids_vec = network.extract_and_add_radarr_tag_ids_vec(tags).await;
 
     async_server.assert_async().await;
     assert_eq!(tag_ids_vec, vec![1, 2, 3]);
     assert_eq!(
-      app_arc.lock().await.data.radarr_data.tags_map,
+      app.lock().await.data.radarr_data.tags_map,
       BiMap::from_iter([
         (1, "usenet".to_owned()),
         (2, "test".to_owned()),

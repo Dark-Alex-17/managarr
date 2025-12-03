@@ -3,15 +3,15 @@ mod test {
   use pretty_assertions::{assert_eq, assert_str_eq};
 
   use crate::app::context_clues::{
-    ContextClueProvider, ServarrContextClueProvider, BARE_POPUP_CONTEXT_CLUES,
-    BLOCKLIST_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
-    INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SERVARR_CONTEXT_CLUES,
-    SYSTEM_CONTEXT_CLUES,
+    BARE_POPUP_CONTEXT_CLUES, BLOCKLIST_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
+    ContextClueProvider, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
+    ROOT_FOLDERS_CONTEXT_CLUES, SERVARR_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+    ServarrContextClueProvider,
   };
-  use crate::app::{key_binding::DEFAULT_KEYBINDINGS, App};
+  use crate::app::{App, key_binding::DEFAULT_KEYBINDINGS};
+  use crate::models::servarr_data::ActiveKeybindingBlock;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
-  use crate::models::servarr_data::ActiveKeybindingBlock;
 
   #[test]
   fn test_servarr_context_clues() {

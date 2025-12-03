@@ -4,7 +4,7 @@ use crate::network::sonarr_network::SonarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
 use log::{debug, info, warn};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 #[cfg(test)]
 #[path = "sonarr_seasons_network_tests.rs"]

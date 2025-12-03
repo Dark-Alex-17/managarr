@@ -5,11 +5,11 @@ use std::process;
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::anyhow;
 use anyhow::Result;
+use anyhow::anyhow;
 use colored::Colorize;
 use indicatif::{ProgressBar, ProgressStyle};
-use log::{error, LevelFilter};
+use log::{LevelFilter, error};
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Root};
 use log4rs::encode::pattern::PatternEncoder;
@@ -18,7 +18,7 @@ use reqwest::{Certificate, Client};
 use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
 
-use crate::app::{log_and_print_error, App, AppConfig};
+use crate::app::{App, AppConfig, log_and_print_error};
 use crate::cli::{self, Command};
 use crate::network::Network;
 use crate::ui::theme::ThemeDefinitionsWrapper;
@@ -176,7 +176,7 @@ pub(super) fn build_network_client(config: &AppConfig) -> Client {
 
   if let Some(radarr_configs) = &config.radarr {
     for radarr_config in radarr_configs {
-      if let Some(ref cert_path) = &radarr_config.ssl_cert_path {
+      if let Some(cert_path) = &radarr_config.ssl_cert_path {
         let cert = create_cert(cert_path, "Radarr");
         client_builder = client_builder.add_root_certificate(cert);
       }
@@ -185,7 +185,7 @@ pub(super) fn build_network_client(config: &AppConfig) -> Client {
 
   if let Some(sonarr_configs) = &config.sonarr {
     for sonarr_config in sonarr_configs {
-      if let Some(ref cert_path) = &sonarr_config.ssl_cert_path {
+      if let Some(cert_path) = &sonarr_config.ssl_cert_path {
         let cert = create_cert(cert_path, "Sonarr");
         client_builder = client_builder.add_root_certificate(cert);
       }

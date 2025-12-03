@@ -8,7 +8,7 @@ use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
   models::sonarr_models::DeleteSeriesParams,
-  network::{sonarr_network::SonarrEvent, NetworkTrait},
+  network::{NetworkTrait, sonarr_network::SonarrEvent},
 };
 
 use super::SonarrCommand;

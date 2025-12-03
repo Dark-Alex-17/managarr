@@ -28,14 +28,14 @@ impl Events {
         let timeout = tick_rate
           .checked_sub(last_tick.elapsed())
           .unwrap_or_else(|| Duration::from_secs(0));
-        if event::poll(timeout).unwrap() {
-          if let CrosstermEvent::Key(key_event) = event::read().unwrap() {
-            // Only process the key event if it's a press event
-            // Source: https://ratatui.rs/faq/ Why am I getting duplicate key events on Windows?
-            if key_event.kind == KeyEventKind::Press {
-              let key = Key::from(key_event);
-              tx.send(InputEvent::KeyEvent(key)).unwrap();
-            }
+        if event::poll(timeout).unwrap()
+          && let CrosstermEvent::Key(key_event) = event::read().unwrap()
+        {
+          // Only process the key event if it's a press event
+          // Source: https://ratatui.rs/faq/ Why am I getting duplicate key events on Windows?
+          if key_event.kind == KeyEventKind::Press {
+            let key = Key::from(key_event);
+            tx.send(InputEvent::KeyEvent(key)).unwrap();
           }
         }
 

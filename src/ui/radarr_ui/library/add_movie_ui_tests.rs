@@ -2,9 +2,9 @@
 mod tests {
   use strum::IntoEnumIterator;
 
-  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
-  use crate::ui::radarr_ui::library::add_movie_ui::AddMovieUi;
+  use crate::models::servarr_data::radarr::radarr_data::{ADD_MOVIE_BLOCKS, ActiveRadarrBlock};
   use crate::ui::DrawUi;
+  use crate::ui::radarr_ui::library::add_movie_ui::AddMovieUi;
 
   #[test]
   fn test_add_movie_ui_accepts() {

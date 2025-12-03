@@ -2,10 +2,10 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::radarr_handlers::system::system_details_handler::SystemDetailsHandler;
-use crate::handlers::{handle_clear_errors, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_clear_errors};
 use crate::matches_key;
-use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::Scrollable;
+use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 
 mod system_details_handler;
 

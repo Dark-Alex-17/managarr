@@ -3,8 +3,8 @@ mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS,
   };
-  use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
   use crate::ui::DrawUi;
+  use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
   use strum::IntoEnumIterator;
 
   #[test]

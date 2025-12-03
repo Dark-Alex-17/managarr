@@ -7,12 +7,12 @@ mod tests {
   use serial_test::serial;
   use tokio::sync::mpsc;
 
-  use crate::app::{interpolate_env_vars, App, AppConfig, Data, ServarrConfig};
+  use crate::app::{App, AppConfig, Data, ServarrConfig, interpolate_env_vars};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
   use crate::models::{HorizontallyScrollableText, TabRoute};
-  use crate::network::radarr_network::RadarrEvent;
   use crate::network::NetworkEvent;
+  use crate::network::radarr_network::RadarrEvent;
   use tokio_util::sync::CancellationToken;
 
   #[test]
@@ -597,7 +597,9 @@ mod tests {
     let ssl_cert_path = "/some/path".to_owned();
     let mut custom_headers = HeaderMap::new();
     custom_headers.insert("X-Custom-Header", "value".parse().unwrap());
-    let expected_str = format!("ServarrConfig {{ name: Some(\"{name}\"), host: Some(\"{host}\"), port: Some({port}), uri: Some(\"{uri}\"), weight: Some({weight}), api_token: Some(\"***********\"), api_token_file: Some(\"{api_token_file}\"), ssl_cert_path: Some(\"{ssl_cert_path}\"), custom_headers: Some({{\"x-custom-header\": \"value\"}}) }}");
+    let expected_str = format!(
+      "ServarrConfig {{ name: Some(\"{name}\"), host: Some(\"{host}\"), port: Some({port}), uri: Some(\"{uri}\"), weight: Some({weight}), api_token: Some(\"***********\"), api_token_file: Some(\"{api_token_file}\"), ssl_cert_path: Some(\"{ssl_cert_path}\"), custom_headers: Some({{\"x-custom-header\": \"value\"}}) }}"
+    );
     let servarr_config = ServarrConfig {
       name: Some(name),
       host: Some(host),

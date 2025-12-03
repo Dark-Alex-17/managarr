@@ -2,7 +2,7 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::TableHandlingConfig;
-use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
 use crate::models::radarr_models::DownloadRecord;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
 use crate::network::radarr_network::RadarrEvent;

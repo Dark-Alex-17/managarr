@@ -2,11 +2,11 @@
 mod tests {
   use pretty_assertions::assert_eq;
 
-  use crate::cli::{
-    sonarr::{refresh_command_handler::SonarrRefreshCommand, SonarrCommand},
-    Command,
-  };
   use crate::Cli;
+  use crate::cli::{
+    Command,
+    sonarr::{SonarrCommand, refresh_command_handler::SonarrRefreshCommand},
+  };
   use clap::CommandFactory;
 
   #[test]
@@ -20,7 +20,7 @@ mod tests {
 
   mod cli {
     use super::*;
-    use clap::{error::ErrorKind, Parser};
+    use clap::{Parser, error::ErrorKind};
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -77,11 +77,11 @@ mod tests {
 
     use crate::{app::App, cli::sonarr::refresh_command_handler::SonarrRefreshCommandHandler};
     use crate::{
-      cli::{sonarr::refresh_command_handler::SonarrRefreshCommand, CliCommandHandler},
+      cli::{CliCommandHandler, sonarr::refresh_command_handler::SonarrRefreshCommand},
       network::sonarr_network::SonarrEvent,
     };
     use crate::{
-      models::{sonarr_models::SonarrSerdeable, Serdeable},
+      models::{Serdeable, sonarr_models::SonarrSerdeable},
       network::{MockNetworkTrait, NetworkEvent},
     };
 

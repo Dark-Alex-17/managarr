@@ -3,8 +3,8 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DOWNLOADS_BLOCKS};
-  use crate::ui::sonarr_ui::downloads::DownloadsUi;
   use crate::ui::DrawUi;
+  use crate::ui::sonarr_ui::downloads::DownloadsUi;
 
   #[test]
   fn test_downloads_ui_accepts() {

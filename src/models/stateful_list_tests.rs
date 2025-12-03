@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::stateful_list::StatefulList;
   use crate::models::Scrollable;
+  use crate::models::stateful_list::StatefulList;
   use pretty_assertions::{assert_eq, assert_str_eq};
 
   #[test]

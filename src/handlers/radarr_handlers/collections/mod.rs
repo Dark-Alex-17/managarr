@@ -4,13 +4,13 @@ use crate::handlers::radarr_handlers::collections::collection_details_handler::C
 use crate::handlers::radarr_handlers::collections::edit_collection_handler::EditCollectionHandler;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::TableHandlingConfig;
-use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
+use crate::models::BlockSelectionState;
 use crate::models::radarr_models::Collection;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTIONS_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
 };
 use crate::models::stateful_table::SortOption;
-use crate::models::BlockSelectionState;
 use crate::network::radarr_network::RadarrEvent;
 use crate::{handle_table_events, matches_key};
 

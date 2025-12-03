@@ -9,12 +9,12 @@ use crate::{
     MANUAL_SEASON_SEARCH_CONTEXT_CLUES, SEASON_DETAILS_CONTEXT_CLUES, SEASON_HISTORY_CONTEXT_CLUES,
   },
   models::{
+    HorizontallyScrollableText, ScrollableText, TabRoute, TabState,
     servarr_data::modals::EditIndexerModal,
     servarr_models::{Indexer, RootFolder},
     sonarr_models::{Episode, Series, SeriesMonitor, SeriesType, SonarrHistoryItem, SonarrRelease},
     stateful_list::StatefulList,
     stateful_table::StatefulTable,
-    HorizontallyScrollableText, ScrollableText, TabRoute, TabState,
   },
 };
 

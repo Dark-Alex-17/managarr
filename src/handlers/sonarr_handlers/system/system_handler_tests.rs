@@ -3,11 +3,11 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
-  use crate::handlers::sonarr_handlers::system::SystemHandler;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::sonarr_handlers::system::SystemHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, SYSTEM_DETAILS_BLOCKS,
   };

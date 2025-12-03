@@ -2,12 +2,12 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::history::history_sorting_options;
 use crate::handlers::table_handler::TableHandlingConfig;
-use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
+use crate::models::BlockSelectionState;
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, EDIT_SERIES_SELECTION_BLOCKS, SERIES_DETAILS_BLOCKS,
 };
 use crate::models::sonarr_models::{Season, SonarrHistoryItem};
-use crate::models::BlockSelectionState;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::{handle_table_events, matches_key};
 

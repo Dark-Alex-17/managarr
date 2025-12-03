@@ -1,11 +1,11 @@
 use radarr_handlers::RadarrHandler;
 use sonarr_handlers::SonarrHandler;
 
+use crate::app::App;
 use crate::app::context_clues::{
-  ContextClueProvider, ServarrContextClueProvider, SERVARR_CONTEXT_CLUES,
+  ContextClueProvider, SERVARR_CONTEXT_CLUES, ServarrContextClueProvider,
 };
 use crate::app::key_binding::KeyBinding;
-use crate::app::App;
 use crate::event::Key;
 use crate::handlers::keybinding_handler::KeybindingHandler;
 use crate::matches_key;

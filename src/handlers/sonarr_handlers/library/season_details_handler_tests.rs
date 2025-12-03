@@ -1,12 +1,13 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::season_details_handler::{
-    releases_sorting_options, SeasonDetailsHandler,
+    SeasonDetailsHandler, releases_sorting_options,
   };
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::episode;
-  use crate::handlers::KeyEventHandler;
+  use crate::models::HorizontallyScrollableText;
   use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
   use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
   use crate::models::servarr_data::sonarr::sonarr_data::{
@@ -14,7 +15,6 @@ mod tests {
   };
   use crate::models::servarr_models::{Language, Quality, QualityWrapper};
   use crate::models::sonarr_models::{SonarrRelease, SonarrReleaseDownloadBody};
-  use crate::models::HorizontallyScrollableText;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use serde_json::Number;
@@ -485,33 +485,39 @@ mod tests {
         app.get_current_route(),
         ActiveSonarrBlock::SeasonHistory.into()
       );
-      assert!(app
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .unwrap()
-        .season_history
-        .filter
-        .is_none());
-      assert!(app
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .unwrap()
-        .season_history
-        .filtered_items
-        .is_none());
-      assert!(app
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .unwrap()
-        .season_history
-        .filtered_state
-        .is_none());
+      assert!(
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .filter
+          .is_none()
+      );
+      assert!(
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .filtered_items
+          .is_none()
+      );
+      assert!(
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .filtered_state
+          .is_none()
+      );
     }
 
     #[rstest]

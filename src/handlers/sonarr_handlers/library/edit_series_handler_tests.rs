@@ -5,12 +5,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::edit_series_handler::EditSeriesHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
-  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_SERIES_BLOCKS};
   use crate::models::sonarr_models::{EditSeriesParams, Series, SeriesType};
@@ -20,9 +20,9 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
+    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
     use crate::models::servarr_data::sonarr::sonarr_data::EDIT_SERIES_SELECTION_BLOCKS;
-    use crate::models::BlockSelectionState;
 
     use super::*;
 
@@ -696,15 +696,17 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(!app
-        .data
-        .sonarr_data
-        .edit_series_modal
-        .as_ref()
-        .unwrap()
-        .path
-        .text
-        .is_empty());
+      assert!(
+        !app
+          .data
+          .sonarr_data
+          .edit_series_modal
+          .as_ref()
+          .unwrap()
+          .path
+          .text
+          .is_empty()
+      );
       assert_eq!(
         app.get_current_route(),
         ActiveSonarrBlock::EditSeriesPrompt.into()
@@ -732,15 +734,17 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(!app
-        .data
-        .sonarr_data
-        .edit_series_modal
-        .as_mut()
-        .unwrap()
-        .tags
-        .text
-        .is_empty());
+      assert!(
+        !app
+          .data
+          .sonarr_data
+          .edit_series_modal
+          .as_mut()
+          .unwrap()
+          .tags
+          .text
+          .is_empty()
+      );
       assert_eq!(
         app.get_current_route(),
         ActiveSonarrBlock::EditSeriesPrompt.into()
@@ -1168,10 +1172,10 @@ mod tests {
     use super::*;
     use crate::{
       models::{
+        BlockSelectionState,
         servarr_data::sonarr::{
           modals::EditSeriesModal, sonarr_data::EDIT_SERIES_SELECTION_BLOCKS,
         },
-        BlockSelectionState,
       },
       network::sonarr_network::SonarrEvent,
     };

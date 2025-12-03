@@ -14,6 +14,7 @@ use crate::{
     },
   },
   models::{
+    BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, TabRoute, TabState,
     servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem},
     servarr_models::{DiskSpace, Indexer, QueueEvent, RootFolder},
     sonarr_models::{
@@ -22,7 +23,6 @@ use crate::{
     },
     stateful_list::StatefulList,
     stateful_table::StatefulTable,
-    BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, TabRoute, TabState,
   },
   network::sonarr_network::SonarrEvent,
 };

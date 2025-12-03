@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
-  use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
-  use crate::handlers::sonarr_handlers::SonarrHandler;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::sonarr_handlers::SonarrHandler;
+  use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::test_handler_delegation;
   use pretty_assertions::assert_eq;

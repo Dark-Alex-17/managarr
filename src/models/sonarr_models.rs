@@ -11,11 +11,11 @@ use strum::EnumIter;
 use strum_macros::Display;
 
 use super::{
+  HorizontallyScrollableText, Serdeable,
   servarr_models::{
     DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
     QueueEvent, RootFolder, SecurityConfig, Tag, Update,
   },
-  HorizontallyScrollableText, Serdeable,
 };
 
 #[cfg(test)]

@@ -2,7 +2,7 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::TableHandlingConfig;
-use crate::handlers::{handle_clear_errors, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_clear_errors};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTORY_BLOCKS};
 use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::SonarrHistoryItem;
@@ -122,8 +122,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, '
   }
 }
 
-pub(in crate::handlers::sonarr_handlers) fn history_sorting_options(
-) -> Vec<SortOption<SonarrHistoryItem>> {
+pub(in crate::handlers::sonarr_handlers) fn history_sorting_options()
+-> Vec<SortOption<SonarrHistoryItem>> {
   vec![
     SortOption {
       name: "Source Title",

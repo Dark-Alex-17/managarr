@@ -1,11 +1,11 @@
-use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::Frame;
+use ratatui::layout::{Constraint, Flex, Layout, Rect};
 
 use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, INDEXER_SETTINGS_BLOCKS,
 };
-use crate::models::Route;
 use crate::render_selectable_input_box;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::title_block_centered;
@@ -13,7 +13,7 @@ use crate::ui::widgets::button::Button;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::popup::Size;
-use crate::ui::{draw_popup, DrawUi};
+use crate::ui::{DrawUi, draw_popup};
 
 #[cfg(test)]
 #[path = "indexer_settings_ui_tests.rs"]
@@ -46,18 +46,25 @@ fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area:
     f.render_widget(block, area);
     let indexer_settings = indexer_settings_option.as_ref().unwrap();
 
-    let [_, min_age_area, retention_area, max_size_area, rss_sync_area, _, buttons_area] =
-      Layout::vertical([
-        Constraint::Fill(1),
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Fill(1),
-        Constraint::Length(3),
-      ])
-      .margin(1)
-      .areas(area);
+    let [
+      _,
+      min_age_area,
+      retention_area,
+      max_size_area,
+      rss_sync_area,
+      _,
+      buttons_area,
+    ] = Layout::vertical([
+      Constraint::Fill(1),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Fill(1),
+      Constraint::Length(3),
+    ])
+    .margin(1)
+    .areas(area);
 
     if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
       let min_age = indexer_settings.minimum_age.to_string();

@@ -1,11 +1,11 @@
+use crate::models::Route;
 use crate::models::radarr_models::BlocklistResponse;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-use crate::models::Route;
 use crate::network::radarr_network::RadarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
 use log::info;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 #[cfg(test)]
 #[path = "radarr_blocklist_network_tests.rs"]

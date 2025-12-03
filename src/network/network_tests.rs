@@ -6,54 +6,41 @@ mod tests {
 
   use mockito::{Mock, Server, ServerGuard};
   use pretty_assertions::assert_str_eq;
-  use reqwest::header::HeaderMap;
   use reqwest::Client;
+  use reqwest::header::HeaderMap;
   use rstest::rstest;
   use serde::{Deserialize, Serialize};
-  use tokio::sync::{mpsc, Mutex};
+  use serde_json::json;
+  use tokio::sync::{Mutex, mpsc};
   use tokio_util::sync::CancellationToken;
 
+  use super::test_utils;
   use crate::app::{App, AppConfig, ServarrConfig};
   use crate::models::HorizontallyScrollableText;
+  use crate::network::NetworkResource;
+  use crate::network::network_tests::test_utils::test_network;
   use crate::network::radarr_network::RadarrEvent;
   use crate::network::sonarr_network::SonarrEvent;
-  use crate::network::NetworkResource;
   use crate::network::{Network, NetworkEvent, NetworkTrait, RequestMethod, RequestProps};
 
   #[tokio::test]
   async fn test_handle_network_event_radarr_event() {
-    let mut server = Server::new_async().await;
-    let radarr_server = server
-      .mock("GET", "/api/v3/health")
-      .with_status(200)
-      .with_body("{}")
-      .create_async()
+    use test_utils::{MockServarrApi, test_network};
+
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!({}))
+      .build_for(RadarrEvent::HealthCheck)
       .await;
-    let host = Some(server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned());
-    let port = Some(
-      server.host_with_port().split(':').collect::<Vec<&str>>()[1]
-        .parse()
-        .unwrap(),
-    );
-    let mut app = App::test_default();
-    app.is_loading = true;
-    let radarr_config = ServarrConfig {
-      host,
-      api_token: Some(String::new()),
-      port,
-      ssl_cert_path: None,
-      ..ServarrConfig::default()
-    };
-    app.server_tabs.tabs[0].config = Some(radarr_config);
-    let app_arc = Arc::new(Mutex::new(app));
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+
+    app.lock().await.is_loading = true;
+    let mut network = test_network(&app);
 
     let _ = network
       .handle_network_event(RadarrEvent::HealthCheck.into())
       .await;
 
-    radarr_server.assert_async().await;
-    assert!(!app_arc.lock().await.is_loading);
+    mock.assert_async().await;
+    assert!(!app.lock().await.is_loading);
   }
 
   #[rstest]
@@ -70,7 +57,7 @@ mod tests {
       .create_async()
       .await;
     let app_arc = Arc::new(Mutex::new(App::test_default()));
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     let _ = network
       .handle_request::<Test, ()>(
@@ -97,7 +84,7 @@ mod tests {
     #[values(RequestMethod::Get, RequestMethod::Post)] request_method: RequestMethod,
   ) {
     let (async_server, app_arc, server) = mock_api(request_method, 200, true).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     let resp = network
       .handle_request::<(), Test>(
@@ -130,7 +117,7 @@ mod tests {
     #[values(RequestMethod::Get, RequestMethod::Post)] request_method: RequestMethod,
   ) {
     let (async_server, app_arc, server) = mock_api(request_method, 400, true).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
     let mut test_result = String::new();
 
     let resp = network
@@ -224,7 +211,7 @@ mod tests {
       .create_async()
       .await;
     let app_arc = Arc::new(Mutex::new(App::test_default()));
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     let resp = network
       .handle_request::<(), Test>(
@@ -241,23 +228,27 @@ mod tests {
       .await;
 
     async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .error
-      .text
-      .starts_with("Failed to parse response!"));
+    assert!(
+      app_arc
+        .lock()
+        .await
+        .error
+        .text
+        .starts_with("Failed to parse response!")
+    );
     assert!(resp.is_err());
-    assert!(resp
-      .unwrap_err()
-      .to_string()
-      .starts_with("Failed to parse response!"));
+    assert!(
+      resp
+        .unwrap_err()
+        .to_string()
+        .starts_with("Failed to parse response!")
+    );
   }
 
   #[tokio::test]
   async fn test_handle_request_failure_to_send_request() {
     let app_arc = Arc::new(Mutex::new(App::test_default()));
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     let resp = network
       .handle_request::<(), Test>(
@@ -273,17 +264,21 @@ mod tests {
       )
       .await;
 
-    assert!(app_arc
-      .lock()
-      .await
-      .error
-      .text
-      .starts_with("Failed to send request."));
+    assert!(
+      app_arc
+        .lock()
+        .await
+        .error
+        .text
+        .starts_with("Failed to send request.")
+    );
     assert!(resp.is_err());
-    assert!(resp
-      .unwrap_err()
-      .to_string()
-      .starts_with("Failed to send request."));
+    assert!(
+      resp
+        .unwrap_err()
+        .to_string()
+        .starts_with("Failed to send request.")
+    );
   }
 
   #[rstest]
@@ -298,7 +293,7 @@ mod tests {
     request_method: RequestMethod,
   ) {
     let (async_server, app_arc, server) = mock_api(request_method, 404, true).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     let resp = network
       .handle_request::<(), Test>(
@@ -329,7 +324,7 @@ mod tests {
   #[tokio::test]
   async fn test_handle_request_non_success_code_empty_response_body() {
     let (async_server, app_arc, server) = mock_api(RequestMethod::Post, 404, false).await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     let resp = network
       .handle_request::<(), Test>(
@@ -391,7 +386,7 @@ mod tests {
 
     async_server = async_server.create_async().await;
     let app_arc = Arc::new(Mutex::new(App::test_default()));
-    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let network = test_network(&app_arc);
 
     network
       .call_api(RequestProps {
@@ -415,10 +410,10 @@ mod tests {
   #[rstest]
   async fn test_request_props_from_requires_radarr_config_to_be_present_for_all_network_events(
     #[values(RadarrEvent::HealthCheck, SonarrEvent::HealthCheck)] network_event: impl Into<NetworkEvent>
-      + NetworkResource,
+    + NetworkResource,
   ) {
     let app_arc = Arc::new(Mutex::new(App::default()));
-    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let network = test_network(&app_arc);
 
     network
       .request_props_from(network_event, RequestMethod::Get, None::<()>, None, None)
@@ -434,7 +429,7 @@ mod tests {
     #[case] default_port: u16,
   ) {
     let app_arc = Arc::new(Mutex::new(App::test_default()));
-    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let network = test_network(&app_arc);
     let resource = network_event.resource();
     {
       let mut app = app_arc.lock().await;
@@ -460,7 +455,7 @@ mod tests {
   #[tokio::test]
   async fn test_request_props_from_custom_config(
     #[values(RadarrEvent::GetMovies, SonarrEvent::ListSeries)] network_event: impl Into<NetworkEvent>
-      + NetworkResource,
+    + NetworkResource,
   ) {
     let api_token = "testToken1234".to_owned();
     let app_arc = Arc::new(Mutex::new(App::test_default()));
@@ -477,7 +472,7 @@ mod tests {
       app.server_tabs.tabs[0].config = Some(servarr_config.clone());
       app.server_tabs.tabs[1].config = Some(servarr_config);
     }
-    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let network = test_network(&app_arc);
 
     let request_props = network
       .request_props_from(network_event, RequestMethod::Get, None::<()>, None, None)
@@ -497,7 +492,7 @@ mod tests {
   #[tokio::test]
   async fn test_request_props_from_custom_config_custom_headers(
     #[values(RadarrEvent::GetMovies, SonarrEvent::ListSeries)] network_event: impl Into<NetworkEvent>
-      + NetworkResource,
+    + NetworkResource,
   ) {
     let api_token = "testToken1234".to_owned();
     let app_arc = Arc::new(Mutex::new(App::test_default()));
@@ -517,7 +512,7 @@ mod tests {
       app.server_tabs.tabs[0].config = Some(servarr_config.clone());
       app.server_tabs.tabs[1].config = Some(servarr_config);
     }
-    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let network = test_network(&app_arc);
 
     let request_props = network
       .request_props_from(network_event, RequestMethod::Get, None::<()>, None, None)
@@ -537,7 +532,7 @@ mod tests {
   #[tokio::test]
   async fn test_request_props_from_custom_config_using_uri_instead_of_host_and_port(
     #[values(RadarrEvent::GetMovies, SonarrEvent::ListSeries)] network_event: impl Into<NetworkEvent>
-      + NetworkResource,
+    + NetworkResource,
   ) {
     let api_token = "testToken1234".to_owned();
     let app_arc = Arc::new(Mutex::new(App::test_default()));
@@ -552,7 +547,7 @@ mod tests {
       app.server_tabs.tabs[0].config = Some(servarr_config.clone());
       app.server_tabs.tabs[1].config = Some(servarr_config);
     }
-    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let network = test_network(&app_arc);
 
     let request_props = network
       .request_props_from(network_event, RequestMethod::Get, None::<()>, None, None)
@@ -577,7 +572,7 @@ mod tests {
     #[case] default_port: u16,
   ) {
     let app_arc = Arc::new(Mutex::new(App::test_default()));
-    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let network = test_network(&app_arc);
     let resource = network_event.resource();
     {
       let mut app = app_arc.lock().await;
@@ -609,7 +604,7 @@ mod tests {
   #[tokio::test]
   async fn test_request_props_from_custom_config_with_path_and_query_params(
     #[values(RadarrEvent::GetMovies, SonarrEvent::ListSeries)] network_event: impl Into<NetworkEvent>
-      + NetworkResource,
+    + NetworkResource,
   ) {
     let api_token = "testToken1234".to_owned();
     let app_arc = Arc::new(Mutex::new(App::test_default()));
@@ -626,7 +621,7 @@ mod tests {
       app.server_tabs.tabs[0].config = Some(servarr_config.clone());
       app.server_tabs.tabs[1].config = Some(servarr_config);
     }
-    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let network = test_network(&app_arc);
 
     let request_props = network
       .request_props_from(
@@ -652,7 +647,7 @@ mod tests {
   #[tokio::test]
   async fn test_request_props_from_custom_config_using_uri_instead_of_host_and_port_with_path_and_query_params(
     #[values(RadarrEvent::GetMovies, SonarrEvent::ListSeries)] network_event: impl Into<NetworkEvent>
-      + NetworkResource,
+    + NetworkResource,
   ) {
     let api_token = "testToken1234".to_owned();
     let app_arc = Arc::new(Mutex::new(App::test_default()));
@@ -667,7 +662,7 @@ mod tests {
       app.server_tabs.tabs[0].config = Some(servarr_config.clone());
       app.server_tabs.tabs[1].config = Some(servarr_config);
     }
-    let network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let network = test_network(&app_arc);
 
     let request_props = network
       .request_props_from(
@@ -725,72 +720,161 @@ pub(in crate::network) mod test_utils {
   use std::sync::Arc;
 
   use mockito::{Matcher, Mock, Server, ServerGuard};
+  use reqwest::Client;
   use serde_json::Value;
   use tokio::sync::Mutex;
+  use tokio_util::sync::CancellationToken;
 
   use crate::{
     app::{App, ServarrConfig},
-    network::{NetworkEvent, NetworkResource, RequestMethod},
+    network::{Network, NetworkEvent, NetworkResource, RequestMethod},
   };
 
-  pub async fn mock_servarr_api<'a>(
+  /// Creates a test HTTP client
+  pub fn test_client() -> Client {
+    Client::new()
+  }
+
+  /// Creates a test cancellation token
+  pub fn test_cancellation_token() -> CancellationToken {
+    CancellationToken::new()
+  }
+
+  /// Creates a test network instance
+  pub fn test_network<'a, 'b>(app: &'a Arc<Mutex<App<'b>>>) -> Network<'a, 'b> {
+    Network::new(app, test_cancellation_token(), test_client())
+  }
+
+  pub struct MockServarrApi {
     method: RequestMethod,
     request_body: Option<Value>,
     response_body: Option<Value>,
-    response_status: Option<usize>,
-    network_event: impl Into<NetworkEvent> + NetworkResource,
-    path: Option<&str>,
-    query_params: Option<&str>,
-  ) -> (Mock, Arc<Mutex<App<'a>>>, ServerGuard) {
-    let status = response_status.unwrap_or(200);
-    let resource = network_event.resource();
-    let mut server = Server::new_async().await;
-    let mut uri = format!("/api/v3{resource}");
+    response_status: usize,
+    path: Option<String>,
+    query_params: Option<String>,
+  }
 
-    if let Some(path) = path {
-      uri = format!("{uri}{path}");
+  impl MockServarrApi {
+    /// Create a GET request builder
+    pub fn get() -> Self {
+      Self::new(RequestMethod::Get)
     }
 
-    if let Some(params) = query_params {
-      uri = format!("{uri}?{params}");
+    /// Create a POST request builder
+    pub fn post() -> Self {
+      Self::new(RequestMethod::Post)
     }
 
-    let mut async_server = server
-      .mock(&method.to_string().to_uppercase(), uri.as_str())
-      .match_header("X-Api-Key", "test1234")
-      .with_status(status);
-
-    if let Some(body) = request_body {
-      async_server = async_server.match_body(Matcher::Json(body));
+    /// Create a PUT request builder
+    #[allow(dead_code)]
+    pub fn put() -> Self {
+      Self::new(RequestMethod::Put)
     }
 
-    if let Some(body) = response_body {
-      async_server = async_server.with_body(body.to_string());
+    /// Create a DELETE request builder
+    pub fn delete() -> Self {
+      Self::new(RequestMethod::Delete)
     }
 
-    async_server = async_server.create_async().await;
-
-    let host = Some(server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned());
-    let port = Some(
-      server.host_with_port().split(':').collect::<Vec<&str>>()[1]
-        .parse()
-        .unwrap(),
-    );
-    let mut app = App::test_default();
-    let servarr_config = ServarrConfig {
-      host,
-      port,
-      api_token: Some("test1234".to_owned()),
-      ..ServarrConfig::default()
-    };
-
-    match network_event.into() {
-      NetworkEvent::Radarr(_) => app.server_tabs.tabs[0].config = Some(servarr_config),
-      NetworkEvent::Sonarr(_) => app.server_tabs.tabs[1].config = Some(servarr_config),
+    /// Create a builder with a specific request method
+    pub fn new(method: RequestMethod) -> Self {
+      Self {
+        method,
+        request_body: None,
+        response_body: None,
+        response_status: 200,
+        path: None,
+        query_params: None,
+      }
     }
 
-    let app_arc = Arc::new(Mutex::new(app));
+    /// Set the expected request body
+    pub fn with_request_body(mut self, body: Value) -> Self {
+      self.request_body = Some(body);
+      self
+    }
 
-    (async_server, app_arc, server)
+    /// Set the response body to return
+    pub fn returns(mut self, body: Value) -> Self {
+      self.response_body = Some(body);
+      self
+    }
+
+    /// Set the HTTP status code
+    pub fn status(mut self, status: usize) -> Self {
+      self.response_status = status;
+      self
+    }
+
+    /// Add a path suffix to the resource URL
+    pub fn path(mut self, path: impl Into<String>) -> Self {
+      self.path = Some(path.into());
+      self
+    }
+
+    /// Add query parameters
+    pub fn query(mut self, params: impl Into<String>) -> Self {
+      self.query_params = Some(params.into());
+      self
+    }
+
+    /// Build the mock for a specific network event
+    pub async fn build_for<E>(
+      self,
+      network_event: E,
+    ) -> (Mock, Arc<Mutex<App<'static>>>, ServerGuard)
+    where
+      E: Into<NetworkEvent> + NetworkResource,
+    {
+      let resource = network_event.resource();
+      let mut server = Server::new_async().await;
+      let mut uri = format!("/api/v3{resource}");
+
+      if let Some(path) = &self.path {
+        uri = format!("{uri}{path}");
+      }
+
+      if let Some(params) = &self.query_params {
+        uri = format!("{uri}?{params}");
+      }
+
+      let mut mock_builder = server
+        .mock(&self.method.to_string().to_uppercase(), uri.as_str())
+        .match_header("X-Api-Key", "test1234")
+        .with_status(self.response_status);
+
+      if let Some(body) = &self.request_body {
+        mock_builder = mock_builder.match_body(Matcher::Json(body.clone()));
+      }
+
+      if let Some(body) = &self.response_body {
+        mock_builder = mock_builder.with_body(body.to_string());
+      }
+
+      let mock = mock_builder.create_async().await;
+
+      let host = Some(server.host_with_port().split(':').collect::<Vec<&str>>()[0].to_owned());
+      let port = Some(
+        server.host_with_port().split(':').collect::<Vec<&str>>()[1]
+          .parse()
+          .unwrap(),
+      );
+      let mut app = App::test_default();
+      let servarr_config = ServarrConfig {
+        host,
+        port,
+        api_token: Some("test1234".to_owned()),
+        ..ServarrConfig::default()
+      };
+
+      match network_event.into() {
+        NetworkEvent::Radarr(_) => app.server_tabs.tabs[0].config = Some(servarr_config),
+        NetworkEvent::Sonarr(_) => app.server_tabs.tabs[1].config = Some(servarr_config),
+      }
+
+      let app_arc = Arc::new(Mutex::new(app));
+
+      (mock, app_arc, server)
+    }
   }
 }

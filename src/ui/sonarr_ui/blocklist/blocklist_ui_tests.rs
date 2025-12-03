@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, BLOCKLIST_BLOCKS};
-  use crate::ui::sonarr_ui::blocklist::BlocklistUi;
   use crate::ui::DrawUi;
+  use crate::ui::sonarr_ui::blocklist::BlocklistUi;
   use strum::IntoEnumIterator;
 
   #[test]

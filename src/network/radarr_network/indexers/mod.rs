@@ -6,7 +6,7 @@ use crate::network::radarr_network::RadarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
 use log::{debug, info};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 #[cfg(test)]
 #[path = "radarr_indexers_network_tests.rs"]

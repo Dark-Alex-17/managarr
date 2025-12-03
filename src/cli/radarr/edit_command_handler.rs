@@ -6,15 +6,15 @@ use tokio::sync::Mutex;
 
 use crate::{
   app::App,
-  cli::{mutex_flags_or_default, mutex_flags_or_option, CliCommandHandler, Command},
+  cli::{CliCommandHandler, Command, mutex_flags_or_default, mutex_flags_or_option},
   models::{
+    Serdeable,
     radarr_models::{
       EditCollectionParams, EditMovieParams, IndexerSettings, MinimumAvailability, RadarrSerdeable,
     },
     servarr_models::EditIndexerParams,
-    Serdeable,
   },
-  network::{radarr_network::RadarrEvent, NetworkTrait},
+  network::{NetworkTrait, radarr_network::RadarrEvent},
 };
 
 use super::RadarrCommand;

@@ -3,13 +3,13 @@ pub mod utils {
   use crate::models::servarr_models::{Indexer, RootFolder};
   use crate::models::sonarr_models::{BlocklistItem, Series};
   use crate::models::{
+    HorizontallyScrollableText, ScrollableText,
     servarr_data::sonarr::{
       modals::{EpisodeDetailsModal, SeasonDetailsModal},
       sonarr_data::SonarrData,
     },
     sonarr_models::{AddSeriesSearchResult, Episode, Season, SonarrHistoryItem, SonarrRelease},
     stateful_table::StatefulTable,
-    HorizontallyScrollableText, ScrollableText,
   };
 
   pub fn create_test_sonarr_data<'a>() -> SonarrData<'a> {

@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-  use crate::cli::{
-    sonarr::{get_command_handler::SonarrGetCommand, SonarrCommand},
-    Command,
-  };
   use crate::Cli;
+  use crate::cli::{
+    Command,
+    sonarr::{SonarrCommand, get_command_handler::SonarrGetCommand},
+  };
   use clap::CommandFactory;
   use pretty_assertions::assert_eq;
 
@@ -118,11 +118,11 @@ mod tests {
     use crate::{
       app::App,
       cli::{
-        sonarr::get_command_handler::{SonarrGetCommand, SonarrGetCommandHandler},
         CliCommandHandler,
+        sonarr::get_command_handler::{SonarrGetCommand, SonarrGetCommandHandler},
       },
-      models::{sonarr_models::SonarrSerdeable, Serdeable},
-      network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
+      models::{Serdeable, sonarr_models::SonarrSerdeable},
+      network::{MockNetworkTrait, NetworkEvent, sonarr_network::SonarrEvent},
     };
 
     #[tokio::test]

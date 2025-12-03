@@ -1,12 +1,12 @@
 use std::fmt::{Debug, Display, Formatter};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use crate::app::context_clues::ContextClue;
 use crate::app::ServarrConfig;
+use crate::app::context_clues::ContextClue;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use radarr_models::RadarrSerdeable;
 use regex::Regex;
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use serde_json::Number;
 use servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use sonarr_models::SonarrSerdeable;

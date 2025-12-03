@@ -1,12 +1,12 @@
 use crate::app::context_clues::{
-  ContextClueProvider, BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
+  BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES, ContextClueProvider,
 };
-use crate::app::{context_clues::ContextClue, key_binding::DEFAULT_KEYBINDINGS, App};
+use crate::app::{App, context_clues::ContextClue, key_binding::DEFAULT_KEYBINDINGS};
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{
-  ActiveSonarrBlock, ADD_SERIES_BLOCKS, EDIT_INDEXER_BLOCKS, EDIT_SERIES_BLOCKS,
+  ADD_SERIES_BLOCKS, ActiveSonarrBlock, EDIT_INDEXER_BLOCKS, EDIT_SERIES_BLOCKS,
   EPISODE_DETAILS_BLOCKS, INDEXER_SETTINGS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
 };
-use crate::models::Route;
 
 #[cfg(test)]
 #[path = "sonarr_context_clues_tests.rs"]

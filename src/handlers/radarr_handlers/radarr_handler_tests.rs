@@ -4,10 +4,10 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
-  use crate::handlers::radarr_handlers::{handle_change_tab_left_right_keys, RadarrHandler};
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::radarr_handlers::{RadarrHandler, handle_change_tab_left_right_keys};
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::test_handler_delegation;
 

@@ -3,15 +3,15 @@ mod tests {
   use pretty_assertions::assert_eq;
   use tokio::sync::mpsc;
 
-  use crate::app::radarr::ActiveRadarrBlock;
   use crate::app::App;
+  use crate::app::radarr::ActiveRadarrBlock;
   use crate::models::radarr_models::{
     AddMovieBody, AddMovieOptions, Collection, CollectionMovie, Credit, Movie, RadarrRelease,
   };
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
   use crate::models::servarr_models::Indexer;
-  use crate::network::radarr_network::RadarrEvent;
   use crate::network::NetworkEvent;
+  use crate::network::radarr_network::RadarrEvent;
 
   #[tokio::test]
   async fn test_dispatch_by_blocklist_block() {

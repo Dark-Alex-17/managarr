@@ -1,15 +1,15 @@
 #[cfg(test)]
 mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{
-    ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
+    ADD_SERIES_BLOCKS, ActiveSonarrBlock, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
     EPISODE_DETAILS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
   };
   use crate::models::{
     servarr_data::sonarr::sonarr_data::LIBRARY_BLOCKS, sonarr_models::SeriesStatus,
   };
+  use crate::ui::DrawUi;
   use crate::ui::sonarr_ui::library::LibraryUi;
   use crate::ui::styles::ManagarrStyle;
-  use crate::ui::DrawUi;
   use pretty_assertions::assert_eq;
   use ratatui::widgets::{Cell, Row};
   use strum::IntoEnumIterator;
@@ -134,8 +134,8 @@ mod tests {
   }
 
   #[test]
-  fn test_decorate_row_with_style_unreleased_when_continuing_and_all_monitored_episodes_are_present(
-  ) {
+  fn test_decorate_row_with_style_unreleased_when_continuing_and_all_monitored_episodes_are_present()
+   {
     let seasons = vec![
       Season {
         monitored: false,

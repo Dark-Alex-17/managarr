@@ -5,8 +5,8 @@ mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
   };
-  use crate::ui::sonarr_ui::library::series_details_ui::SeriesDetailsUi;
   use crate::ui::DrawUi;
+  use crate::ui::sonarr_ui::library::series_details_ui::SeriesDetailsUi;
 
   #[test]
   fn test_series_details_ui_accepts() {

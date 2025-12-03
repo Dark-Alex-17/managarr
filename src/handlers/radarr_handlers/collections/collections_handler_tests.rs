@@ -7,16 +7,16 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::collections::{
-    collections_sorting_options, CollectionsHandler,
-  };
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::radarr_handlers::collections::{
+    CollectionsHandler, collections_sorting_options,
+  };
   use crate::models::radarr_models::{Collection, CollectionMovie};
   use crate::models::servarr_data::radarr::radarr_data::{
-    ActiveRadarrBlock, COLLECTIONS_BLOCKS, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS,
+    ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS, COLLECTIONS_BLOCKS, EDIT_COLLECTION_BLOCKS,
   };
   use crate::test_handler_delegation;
 
@@ -258,7 +258,7 @@ mod tests {
     use crate::models::radarr_models::MinimumAvailability;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::servarr_data::radarr::radarr_data::{
-      RadarrData, EDIT_COLLECTION_SELECTION_BLOCKS,
+      EDIT_COLLECTION_SELECTION_BLOCKS, RadarrData,
     };
     use crate::network::radarr_network::RadarrEvent;
     use crate::test_edit_collection_key;

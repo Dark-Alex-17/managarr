@@ -1,8 +1,8 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handle_table_events;
-use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::KeyEventHandler;
+use crate::handlers::table_handler::TableHandlingConfig;
 use crate::models::servarr_data::ActiveKeybindingBlock;
 use crate::models::servarr_models::KeybindingItem;
 

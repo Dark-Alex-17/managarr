@@ -5,8 +5,8 @@ mod tests {
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, EDIT_COLLECTION_BLOCKS,
   };
-  use crate::ui::radarr_ui::collections::edit_collection_ui::EditCollectionUi;
   use crate::ui::DrawUi;
+  use crate::ui::radarr_ui::collections::edit_collection_ui::EditCollectionUi;
 
   #[test]
   fn test_edit_collection_ui_accepts() {

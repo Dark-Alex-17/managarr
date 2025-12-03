@@ -3,8 +3,8 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_MOVIE_BLOCKS};
-  use crate::ui::radarr_ui::library::edit_movie_ui::EditMovieUi;
   use crate::ui::DrawUi;
+  use crate::ui::radarr_ui::library::edit_movie_ui::EditMovieUi;
 
   #[test]
   fn test_edit_movie_ui_accepts() {

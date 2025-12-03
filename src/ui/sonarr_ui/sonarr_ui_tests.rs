@@ -4,7 +4,7 @@ mod tests {
 
   use crate::{
     models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock,
-    ui::{sonarr_ui::SonarrUi, DrawUi},
+    ui::{DrawUi, sonarr_ui::SonarrUi},
   };
 
   #[test]

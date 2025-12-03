@@ -3,8 +3,8 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
-  use crate::ui::radarr_ui::library::delete_movie_ui::DeleteMovieUi;
   use crate::ui::DrawUi;
+  use crate::ui::radarr_ui::library::delete_movie_ui::DeleteMovieUi;
 
   #[test]
   fn test_delete_movie_ui_accepts() {

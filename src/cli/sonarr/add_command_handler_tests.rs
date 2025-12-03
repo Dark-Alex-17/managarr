@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod tests {
-  use clap::{error::ErrorKind, CommandFactory, Parser};
+  use clap::{CommandFactory, Parser, error::ErrorKind};
   use pretty_assertions::assert_eq;
 
   use crate::{
-    cli::{
-      sonarr::{add_command_handler::SonarrAddCommand, SonarrCommand},
-      Command,
-    },
     Cli,
+    cli::{
+      Command,
+      sonarr::{SonarrCommand, add_command_handler::SonarrAddCommand},
+    },
   };
 
   #[test]
@@ -456,14 +456,14 @@ mod tests {
 
     use crate::{
       app::App,
-      cli::{sonarr::add_command_handler::SonarrAddCommandHandler, CliCommandHandler},
+      cli::{CliCommandHandler, sonarr::add_command_handler::SonarrAddCommandHandler},
       models::{
+        Serdeable,
         sonarr_models::{
           AddSeriesBody, AddSeriesOptions, SeriesMonitor, SeriesType, SonarrSerdeable,
         },
-        Serdeable,
       },
-      network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
+      network::{MockNetworkTrait, NetworkEvent, sonarr_network::SonarrEvent},
     };
 
     use super::*;

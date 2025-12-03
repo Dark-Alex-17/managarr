@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
-  use crate::ui::radarr_ui::indexers::edit_indexer_ui::EditIndexerUi;
   use crate::ui::DrawUi;
+  use crate::ui::radarr_ui::indexers::edit_indexer_ui::EditIndexerUi;
   use strum::IntoEnumIterator;
 
   #[test]

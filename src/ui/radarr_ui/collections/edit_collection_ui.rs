@@ -1,14 +1,14 @@
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::widgets::ListItem;
-use ratatui::Frame;
 use std::sync::atomic::Ordering;
 
 use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::radarr::modals::EditCollectionModal;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS,
 };
-use crate::models::Route;
 use crate::render_selectable_input_box;
 use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsUi;
 use crate::ui::styles::ManagarrStyle;
@@ -18,7 +18,7 @@ use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup, DrawUi};
+use crate::ui::{DrawUi, draw_popup};
 
 #[cfg(test)]
 #[path = "edit_collection_ui_tests.rs"]
@@ -42,10 +42,10 @@ impl DrawUi for EditCollectionUi {
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
-      if let Some(context) = context_option {
-        if COLLECTION_DETAILS_BLOCKS.contains(&context) {
-          draw_popup(f, app, CollectionDetailsUi::draw, Size::Large);
-        }
+      if let Some(context) = context_option
+        && COLLECTION_DETAILS_BLOCKS.contains(&context)
+      {
+        draw_popup(f, app, CollectionDetailsUi::draw, Size::Large);
       }
 
       draw_popup(
@@ -100,19 +100,27 @@ fn draw_edit_collection_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>
   let selected_minimum_availability = minimum_availability_list.current_selection();
   let selected_quality_profile = quality_profile_list.current_selection();
 
-  let [paragraph_area, monitored_area, min_availability_area, quality_profile_area, root_folder_area, search_on_add_area, _, buttons_area] =
-    Layout::vertical([
-      Constraint::Length(6),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Fill(1),
-      Constraint::Length(3),
-    ])
-    .margin(1)
-    .areas(area);
+  let [
+    paragraph_area,
+    monitored_area,
+    min_availability_area,
+    quality_profile_area,
+    root_folder_area,
+    search_on_add_area,
+    _,
+    buttons_area,
+  ] = Layout::vertical([
+    Constraint::Length(6),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Fill(1),
+    Constraint::Length(3),
+  ])
+  .margin(1)
+  .areas(area);
   let [save_area, cancel_area] =
     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
       .areas(buttons_area);

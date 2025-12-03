@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-  use clap::error::ErrorKind;
   use clap::CommandFactory;
+  use clap::error::ErrorKind;
 
-  use crate::cli::radarr::RadarrCommand;
-  use crate::cli::Command;
   use crate::Cli;
+  use crate::cli::Command;
+  use crate::cli::radarr::RadarrCommand;
   use pretty_assertions::assert_eq;
 
   #[test]
@@ -276,22 +276,22 @@ mod tests {
     use crate::{
       app::App,
       cli::{
-        radarr::{
-          add_command_handler::RadarrAddCommand, delete_command_handler::RadarrDeleteCommand,
-          edit_command_handler::RadarrEditCommand, get_command_handler::RadarrGetCommand,
-          list_command_handler::RadarrListCommand, refresh_command_handler::RadarrRefreshCommand,
-          RadarrCliHandler, RadarrCommand,
-        },
         CliCommandHandler,
+        radarr::{
+          RadarrCliHandler, RadarrCommand, add_command_handler::RadarrAddCommand,
+          delete_command_handler::RadarrDeleteCommand, edit_command_handler::RadarrEditCommand,
+          get_command_handler::RadarrGetCommand, list_command_handler::RadarrListCommand,
+          refresh_command_handler::RadarrRefreshCommand,
+        },
       },
       models::{
+        Serdeable,
         radarr_models::{
           BlocklistItem, BlocklistResponse, IndexerSettings, RadarrReleaseDownloadBody,
           RadarrSerdeable, RadarrTaskName,
         },
-        Serdeable,
       },
-      network::{radarr_network::RadarrEvent, MockNetworkTrait, NetworkEvent},
+      network::{MockNetworkTrait, NetworkEvent, radarr_network::RadarrEvent},
     };
 
     #[tokio::test]

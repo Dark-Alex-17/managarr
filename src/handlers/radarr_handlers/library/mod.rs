@@ -5,7 +5,7 @@ use crate::handlers::radarr_handlers::library::add_movie_handler::AddMovieHandle
 use crate::handlers::radarr_handlers::library::delete_movie_handler::DeleteMovieHandler;
 use crate::handlers::radarr_handlers::library::edit_movie_handler::EditMovieHandler;
 use crate::handlers::radarr_handlers::library::movie_details_handler::MovieDetailsHandler;
-use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
 
 use crate::handlers::table_handler::TableHandlingConfig;
 use crate::models::radarr_models::Movie;

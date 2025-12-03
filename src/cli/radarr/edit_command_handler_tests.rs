@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod tests {
   use crate::{
-    cli::{
-      radarr::{edit_command_handler::RadarrEditCommand, RadarrCommand},
-      Command,
-    },
     Cli,
+    cli::{
+      Command,
+      radarr::{RadarrCommand, edit_command_handler::RadarrEditCommand},
+    },
   };
-  use clap::{error::ErrorKind, CommandFactory, Parser};
+  use clap::{CommandFactory, Parser, error::ErrorKind};
   use pretty_assertions::assert_eq;
 
   #[test]
@@ -805,18 +805,18 @@ mod tests {
     use crate::{
       app::App,
       cli::{
-        radarr::edit_command_handler::{RadarrEditCommand, RadarrEditCommandHandler},
         CliCommandHandler,
+        radarr::edit_command_handler::{RadarrEditCommand, RadarrEditCommandHandler},
       },
       models::{
+        Serdeable,
         radarr_models::{
           EditCollectionParams, EditMovieParams, IndexerSettings, MinimumAvailability,
           RadarrSerdeable,
         },
         servarr_models::EditIndexerParams,
-        Serdeable,
       },
-      network::{radarr_network::RadarrEvent, MockNetworkTrait, NetworkEvent},
+      network::{MockNetworkTrait, NetworkEvent, radarr_network::RadarrEvent},
     };
 
     #[tokio::test]
@@ -962,8 +962,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_handle_edit_all_indexer_settings_command_unprovided_values_default_to_previous_values(
-    ) {
+    async fn test_handle_edit_all_indexer_settings_command_unprovided_values_default_to_previous_values()
+     {
       let expected_edit_all_indexer_settings = IndexerSettings {
         allow_hardcoded_subs: true,
         availability_delay: 2,

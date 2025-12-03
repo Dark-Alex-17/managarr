@@ -3,8 +3,8 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DELETE_SERIES_BLOCKS};
-  use crate::ui::sonarr_ui::library::delete_series_ui::DeleteSeriesUi;
   use crate::ui::DrawUi;
+  use crate::ui::sonarr_ui::library::delete_series_ui::DeleteSeriesUi;
 
   #[test]
   fn test_delete_series_ui_accepts() {

@@ -1,5 +1,6 @@
 #[cfg(test)]
 pub(in crate::network::radarr_network) mod test_utils {
+  use crate::models::HorizontallyScrollableText;
   use crate::models::radarr_models::{
     AddMovieSearchResult, BlocklistItem, BlocklistItemMovie, Collection, CollectionMovie, Credit,
     CreditType, DownloadRecord, DownloadsResponse, IndexerSettings, MediaInfo, MinimumAvailability,
@@ -8,9 +9,8 @@ pub(in crate::network::radarr_network) mod test_utils {
   use crate::models::servarr_models::{
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
-  use crate::models::HorizontallyScrollableText;
   use chrono::DateTime;
-  use serde_json::{json, Number};
+  use serde_json::{Number, Value, json};
 
   pub const MOVIE_JSON: &str = r#"{
         "id": 1,
@@ -377,5 +377,19 @@ pub(in crate::network::radarr_network) mod test_utils {
       id: 1,
       ..IndexerSettings::default()
     }
+  }
+
+  pub fn tag() -> Value {
+    json!({
+      "id": 3,
+      "label": "testing"
+    })
+  }
+
+  pub fn quality_profile() -> Value {
+    json!({
+      "id": 2222,
+      "name": "HD - 1080p"
+    })
   }
 }

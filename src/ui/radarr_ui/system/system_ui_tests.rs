@@ -5,8 +5,8 @@ mod tests {
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS,
   };
-  use crate::ui::radarr_ui::system::SystemUi;
   use crate::ui::DrawUi;
+  use crate::ui::radarr_ui::system::SystemUi;
 
   #[test]
   fn test_system_ui_accepts() {

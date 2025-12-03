@@ -2,7 +2,7 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::library::season_details_handler::releases_sorting_options;
 use crate::handlers::table_handler::TableHandlingConfig;
-use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS};
 use crate::models::sonarr_models::{SonarrHistoryItem, SonarrRelease, SonarrReleaseDownloadBody};
 use crate::network::sonarr_network::SonarrEvent;

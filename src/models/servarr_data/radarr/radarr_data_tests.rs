@@ -13,9 +13,9 @@ mod tests {
       MOVIE_DETAILS_CONTEXT_CLUES,
     };
 
+    use crate::models::Route;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils;
     use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
-    use crate::models::Route;
 
     use crate::assert_movie_info_tabs_reset;
     use crate::models::BlockSelectionState;
@@ -192,9 +192,11 @@ mod tests {
         radarr_data.movie_info_tabs.tabs[0].route,
         ActiveRadarrBlock::MovieDetails.into()
       );
-      assert!(radarr_data.movie_info_tabs.tabs[0]
-        .contextual_help
-        .is_some());
+      assert!(
+        radarr_data.movie_info_tabs.tabs[0]
+          .contextual_help
+          .is_some()
+      );
       assert_eq!(
         radarr_data.movie_info_tabs.tabs[0].contextual_help.unwrap(),
         &MOVIE_DETAILS_CONTEXT_CLUES
@@ -206,9 +208,11 @@ mod tests {
         radarr_data.movie_info_tabs.tabs[1].route,
         ActiveRadarrBlock::MovieHistory.into()
       );
-      assert!(radarr_data.movie_info_tabs.tabs[1]
-        .contextual_help
-        .is_some());
+      assert!(
+        radarr_data.movie_info_tabs.tabs[1]
+          .contextual_help
+          .is_some()
+      );
       assert_eq!(
         radarr_data.movie_info_tabs.tabs[1].contextual_help.unwrap(),
         &MOVIE_DETAILS_CONTEXT_CLUES
@@ -220,9 +224,11 @@ mod tests {
         radarr_data.movie_info_tabs.tabs[2].route,
         ActiveRadarrBlock::FileInfo.into()
       );
-      assert!(radarr_data.movie_info_tabs.tabs[2]
-        .contextual_help
-        .is_some());
+      assert!(
+        radarr_data.movie_info_tabs.tabs[2]
+          .contextual_help
+          .is_some()
+      );
       assert_eq!(
         radarr_data.movie_info_tabs.tabs[2].contextual_help.unwrap(),
         &MOVIE_DETAILS_CONTEXT_CLUES
@@ -234,9 +240,11 @@ mod tests {
         radarr_data.movie_info_tabs.tabs[3].route,
         ActiveRadarrBlock::Cast.into()
       );
-      assert!(radarr_data.movie_info_tabs.tabs[3]
-        .contextual_help
-        .is_some());
+      assert!(
+        radarr_data.movie_info_tabs.tabs[3]
+          .contextual_help
+          .is_some()
+      );
       assert_eq!(
         radarr_data.movie_info_tabs.tabs[3].contextual_help.unwrap(),
         &MOVIE_DETAILS_CONTEXT_CLUES
@@ -248,9 +256,11 @@ mod tests {
         radarr_data.movie_info_tabs.tabs[4].route,
         ActiveRadarrBlock::Crew.into()
       );
-      assert!(radarr_data.movie_info_tabs.tabs[4]
-        .contextual_help
-        .is_some());
+      assert!(
+        radarr_data.movie_info_tabs.tabs[4]
+          .contextual_help
+          .is_some()
+      );
       assert_eq!(
         radarr_data.movie_info_tabs.tabs[4].contextual_help.unwrap(),
         &MOVIE_DETAILS_CONTEXT_CLUES
@@ -262,9 +272,11 @@ mod tests {
         radarr_data.movie_info_tabs.tabs[5].route,
         ActiveRadarrBlock::ManualSearch.into()
       );
-      assert!(radarr_data.movie_info_tabs.tabs[5]
-        .contextual_help
-        .is_some());
+      assert!(
+        radarr_data.movie_info_tabs.tabs[5]
+          .contextual_help
+          .is_some()
+      );
       assert_eq!(
         radarr_data.movie_info_tabs.tabs[5].contextual_help.unwrap(),
         &MANUAL_MOVIE_SEARCH_CONTEXT_CLUES
@@ -277,12 +289,12 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::models::servarr_data::radarr::radarr_data::{
-      ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS, BLOCKLIST_BLOCKS,
-      COLLECTIONS_BLOCKS, COLLECTION_DETAILS_BLOCKS, DELETE_MOVIE_BLOCKS,
+      ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS, ActiveRadarrBlock, BLOCKLIST_BLOCKS,
+      COLLECTION_DETAILS_BLOCKS, COLLECTIONS_BLOCKS, DELETE_MOVIE_BLOCKS,
       DELETE_MOVIE_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_COLLECTION_BLOCKS,
       EDIT_COLLECTION_SELECTION_BLOCKS, EDIT_INDEXER_BLOCKS, EDIT_INDEXER_NZB_SELECTION_BLOCKS,
       EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, EDIT_MOVIE_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS,
-      INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, LIBRARY_BLOCKS,
+      INDEXER_SETTINGS_BLOCKS, INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS, LIBRARY_BLOCKS,
       MOVIE_DETAILS_BLOCKS, ROOT_FOLDERS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
     };
 
@@ -359,8 +371,10 @@ mod tests {
       assert!(
         EDIT_COLLECTION_BLOCKS.contains(&ActiveRadarrBlock::EditCollectionRootFolderPathInput)
       );
-      assert!(EDIT_COLLECTION_BLOCKS
-        .contains(&ActiveRadarrBlock::EditCollectionSelectMinimumAvailability));
+      assert!(
+        EDIT_COLLECTION_BLOCKS
+          .contains(&ActiveRadarrBlock::EditCollectionSelectMinimumAvailability)
+      );
       assert!(
         EDIT_COLLECTION_BLOCKS.contains(&ActiveRadarrBlock::EditCollectionSelectQualityProfile)
       );
@@ -447,18 +461,26 @@ mod tests {
         INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsAvailabilityDelayInput)
       );
       assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsConfirmPrompt));
-      assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsMaximumSizeInput));
+      assert!(
+        INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsMaximumSizeInput)
+      );
       assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsMinimumAgeInput));
       assert!(INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsRetentionInput));
       assert!(
         INDEXER_SETTINGS_BLOCKS.contains(&ActiveRadarrBlock::IndexerSettingsRssSyncIntervalInput)
       );
-      assert!(INDEXER_SETTINGS_BLOCKS
-        .contains(&ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs));
-      assert!(INDEXER_SETTINGS_BLOCKS
-        .contains(&ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags));
-      assert!(INDEXER_SETTINGS_BLOCKS
-        .contains(&ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput));
+      assert!(
+        INDEXER_SETTINGS_BLOCKS
+          .contains(&ActiveRadarrBlock::IndexerSettingsToggleAllowHardcodedSubs)
+      );
+      assert!(
+        INDEXER_SETTINGS_BLOCKS
+          .contains(&ActiveRadarrBlock::IndexerSettingsTogglePreferIndexerFlags)
+      );
+      assert!(
+        INDEXER_SETTINGS_BLOCKS
+          .contains(&ActiveRadarrBlock::IndexerSettingsWhitelistedSubtitleTagsInput)
+      );
     }
 
     #[test]

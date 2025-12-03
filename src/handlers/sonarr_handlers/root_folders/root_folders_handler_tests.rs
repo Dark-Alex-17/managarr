@@ -4,15 +4,15 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::root_folders::RootFoldersHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::root_folder;
-  use crate::handlers::KeyEventHandler;
+  use crate::models::HorizontallyScrollableText;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ROOT_FOLDERS_BLOCKS};
   use crate::models::servarr_models::{AddRootFolderBody, RootFolder};
-  use crate::models::HorizontallyScrollableText;
 
   mod test_handle_home_end {
     use crate::models::servarr_models::RootFolder;

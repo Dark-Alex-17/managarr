@@ -2,7 +2,7 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::history::history_sorting_options;
 use crate::handlers::table_handler::TableHandlingConfig;
-use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SEASON_DETAILS_BLOCKS};
 use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::{
@@ -460,8 +460,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
   }
 }
 
-pub(in crate::handlers::sonarr_handlers::library) fn releases_sorting_options(
-) -> Vec<SortOption<SonarrRelease>> {
+pub(in crate::handlers::sonarr_handlers::library) fn releases_sorting_options()
+-> Vec<SortOption<SonarrRelease>> {
   vec![
     SortOption {
       name: "Source",

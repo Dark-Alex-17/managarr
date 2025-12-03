@@ -2,17 +2,15 @@
 mod tests {
   use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
   use crate::models::sonarr_models::{SonarrHistoryItem, SonarrRelease, SonarrSerdeable};
-  use crate::network::network_tests::test_utils::mock_servarr_api;
-  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
-    history_item, release, season, series, SERIES_JSON,
-  };
+  use crate::network::NetworkResource;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::sonarr_network::SonarrEvent;
-  use crate::network::{Network, NetworkResource, RequestMethod};
+  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
+    SERIES_JSON, history_item, release, season, series,
+  };
   use mockito::Matcher;
   use pretty_assertions::assert_eq;
-  use reqwest::Client;
-  use serde_json::{json, Value};
-  use tokio_util::sync::CancellationToken;
+  use serde_json::{Value, json};
 
   #[tokio::test]
   async fn test_handle_toggle_season_monitoring_event() {
@@ -28,16 +26,11 @@ mod tests {
       .get_mut("monitored")
       .unwrap() = json!(false);
 
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(SERIES_JSON).unwrap()),
-      None,
-      SonarrEvent::GetSeriesDetails(1),
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(SERIES_JSON).unwrap())
+      .path("/1")
+      .build_for(SonarrEvent::GetSeriesDetails(1))
+      .await;
     let async_toggle_server = server
       .mock(
         "PUT",
@@ -53,17 +46,19 @@ mod tests {
       .create_async()
       .await;
     {
-      let mut app = app_arc.lock().await;
-      app.data.sonarr_data.series.set_items(vec![series()]);
-      app.data.sonarr_data.seasons.set_items(vec![season()]);
+      let mut app_lock = app.lock().await;
+      app_lock.data.sonarr_data.series.set_items(vec![series()]);
+      app_lock.data.sonarr_data.seasons.set_items(vec![season()]);
     }
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::ToggleSeasonMonitoring((1, 1)))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::ToggleSeasonMonitoring((1, 1)))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_toggle_server.assert_async().await;
@@ -118,43 +113,37 @@ mod tests {
         ..release()
       },
     ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(release_json),
-      None,
-      SonarrEvent::GetSeasonReleases((1, 1)),
-      None,
-      Some("seriesId=1&seasonNumber=1"),
-    )
-    .await;
-    app_arc
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(release_json)
+      .query("seriesId=1&seasonNumber=1")
+      .build_for(SonarrEvent::GetSeasonReleases((1, 1)))
+      .await;
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .series
       .set_items(vec![series()]);
-    app_arc
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .seasons
       .set_items(vec![season()]);
-    app_arc.lock().await.data.sonarr_data.season_details_modal =
-      Some(SeasonDetailsModal::default());
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
     if let SonarrSerdeable::Releases(releases_vec) = network
       .handle_sonarr_event(SonarrEvent::GetSeasonReleases((1, 1)))
       .await
       .unwrap()
     {
-      async_server.assert_async().await;
+      mock.assert_async().await;
       assert_eq!(
-        app_arc
+        app
           .lock()
           .await
           .data
@@ -209,41 +198,38 @@ mod tests {
       full_season: true,
       ..release()
     };
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(release_json),
-      None,
-      SonarrEvent::GetSeasonReleases((1, 1)),
-      None,
-      Some("seriesId=1&seasonNumber=1"),
-    )
-    .await;
-    app_arc
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(release_json)
+      .query("seriesId=1&seasonNumber=1")
+      .build_for(SonarrEvent::GetSeasonReleases((1, 1)))
+      .await;
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .series
       .set_items(vec![series()]);
-    app_arc
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .seasons
       .set_items(vec![season()]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::GetSeasonReleases((1, 1)))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::GetSeasonReleases((1, 1)))
+        .await
+        .is_ok()
+    );
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
     assert_eq!(
-      app_arc
+      app
         .lock()
         .await
         .data
@@ -300,33 +286,27 @@ mod tests {
         ..history_item()
       },
     ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(history_json),
-      None,
-      SonarrEvent::GetSeasonHistory((1, 1)),
-      None,
-      Some("seriesId=1&seasonNumber=1"),
-    )
-    .await;
-    app_arc.lock().await.data.sonarr_data.season_details_modal =
-      Some(SeasonDetailsModal::default());
-    app_arc
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("seriesId=1&seasonNumber=1")
+      .build_for(SonarrEvent::GetSeasonHistory((1, 1)))
+      .await;
+    app.lock().await.data.sonarr_data.season_details_modal = Some(SeasonDetailsModal::default());
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .series
       .set_items(vec![series()]);
-    app_arc
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .seasons
       .set_items(vec![season()]);
-    app_arc
+    app
       .lock()
       .await
       .data
@@ -336,17 +316,17 @@ mod tests {
       .unwrap()
       .season_history
       .sort_asc = true;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
     if let SonarrSerdeable::SonarrHistoryItems(history) = network
       .handle_sonarr_event(SonarrEvent::GetSeasonHistory((1, 1)))
       .await
       .unwrap()
     {
-      async_server.assert_async().await;
+      mock.assert_async().await;
       assert_eq!(
-        app_arc
+        app
           .lock()
           .await
           .data
@@ -359,7 +339,7 @@ mod tests {
         expected_history_items
       );
       assert!(
-        app_arc
+        app
           .lock()
           .await
           .data
@@ -417,48 +397,45 @@ mod tests {
         ..history_item()
       },
     ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(history_json),
-      None,
-      SonarrEvent::GetSeasonHistory((1, 1)),
-      None,
-      Some("seriesId=1&seasonNumber=1"),
-    )
-    .await;
-    app_arc
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("seriesId=1&seasonNumber=1")
+      .build_for(SonarrEvent::GetSeasonHistory((1, 1)))
+      .await;
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .series
       .set_items(vec![series()]);
-    app_arc
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .seasons
       .set_items(vec![season()]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
     if let SonarrSerdeable::SonarrHistoryItems(history) = network
       .handle_sonarr_event(SonarrEvent::GetSeasonHistory((1, 1)))
       .await
       .unwrap()
     {
-      async_server.assert_async().await;
-      assert!(app_arc
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .season_details_modal
-        .is_some());
+      mock.assert_async().await;
+      assert!(
+        app
+          .lock()
+          .await
+          .data
+          .sonarr_data
+          .season_details_modal
+          .is_some()
+      );
       assert_eq!(
-        app_arc
+        app
           .lock()
           .await
           .data
@@ -471,7 +448,7 @@ mod tests {
         expected_history_items
       );
       assert!(
-        !app_arc
+        !app
           .lock()
           .await
           .data
@@ -488,28 +465,25 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_trigger_automatic_season_search_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
         "name": "SeasonSearch",
         "seriesId": 1,
         "seasonNumber": 1
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::TriggerAutomaticSeasonSearch((1, 1)),
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+      }))
+      .returns(json!({}))
+      .build_for(SonarrEvent::TriggerAutomaticSeasonSearch((1, 1)))
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeasonSearch((1, 1)))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeasonSearch((1, 1)))
+        .await
+        .is_ok()
+    );
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
   }
 }

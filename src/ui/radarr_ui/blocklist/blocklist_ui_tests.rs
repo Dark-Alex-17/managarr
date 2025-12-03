@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, BLOCKLIST_BLOCKS};
-  use crate::ui::radarr_ui::blocklist::BlocklistUi;
   use crate::ui::DrawUi;
+  use crate::ui::radarr_ui::blocklist::BlocklistUi;
   use strum::IntoEnumIterator;
 
   #[test]

@@ -7,11 +7,11 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
-  use crate::handlers::sonarr_handlers::history::{history_sorting_options, HistoryHandler};
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::sonarr_handlers::history::{HistoryHandler, history_sorting_options};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTORY_BLOCKS};
   use crate::models::servarr_models::{Language, Quality, QualityWrapper};
   use crate::models::sonarr_models::{SonarrHistoryEventType, SonarrHistoryItem};

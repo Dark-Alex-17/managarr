@@ -1,14 +1,14 @@
 use crate::app::App;
 use crate::event::Key;
-use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::KeyEventHandler;
+use crate::handlers::table_handler::TableHandlingConfig;
+use crate::models::BlockSelectionState;
 use crate::models::radarr_models::CollectionMovie;
 use crate::models::servarr_data::radarr::radarr_data::{
-  ActiveRadarrBlock, ADD_MOVIE_SELECTION_BLOCKS, COLLECTION_DETAILS_BLOCKS,
+  ADD_MOVIE_SELECTION_BLOCKS, ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS,
   EDIT_COLLECTION_SELECTION_BLOCKS,
 };
 use crate::models::stateful_table::StatefulTable;
-use crate::models::BlockSelectionState;
 use crate::{handle_table_events, matches_key};
 
 #[cfg(test)]

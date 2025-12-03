@@ -1,40 +1,34 @@
 #[cfg(test)]
 mod tests {
+  use crate::models::HorizontallyScrollableText;
   use crate::models::radarr_models::{IndexerSettings, RadarrSerdeable};
   use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_models::{EditIndexerParams, Indexer, IndexerTestResult};
-  use crate::models::HorizontallyScrollableText;
-  use crate::network::network_tests::test_utils::mock_servarr_api;
+  use crate::network::NetworkResource;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
+  use crate::network::radarr_network::RadarrEvent;
   use crate::network::radarr_network::radarr_network_test_utils::test_utils::{
     indexer, indexer_settings,
   };
-  use crate::network::radarr_network::RadarrEvent;
-  use crate::network::{Network, NetworkResource, RequestMethod};
   use bimap::BiMap;
   use mockito::Matcher;
   use pretty_assertions::assert_eq;
-  use reqwest::Client;
   use serde_json::json;
-  use tokio_util::sync::CancellationToken;
 
   #[tokio::test]
   async fn test_handle_delete_radarr_indexer_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      RadarrEvent::DeleteIndexer(1),
-      Some("/1"),
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (async_server, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .build_for(RadarrEvent::DeleteIndexer(1))
+      .await;
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::DeleteIndexer(1))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::DeleteIndexer(1))
+        .await
+        .is_ok()
+    );
 
     async_server.assert_async().await;
   }
@@ -52,22 +46,18 @@ mod tests {
         "whitelistedHardcodedSubs": "",
         "id": 1
     });
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Put,
-      Some(indexer_settings_json),
-      None,
-      None,
-      RadarrEvent::EditAllIndexerSettings(indexer_settings()),
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (async_server, app, _server) = MockServarrApi::put()
+      .with_request_body(indexer_settings_json)
+      .build_for(RadarrEvent::EditAllIndexerSettings(indexer_settings()))
+      .await;
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::EditAllIndexerSettings(indexer_settings()))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::EditAllIndexerSettings(indexer_settings()))
+        .await
+        .is_ok()
+    );
 
     async_server.assert_async().await;
   }
@@ -133,16 +123,11 @@ mod tests {
       priority: Some(0),
       ..EditIndexerParams::default()
     };
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json),
-      None,
-      RadarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json)
+      .path("/1")
+      .build_for(RadarrEvent::GetIndexers)
+      .await;
     let async_edit_server = server
       .mock(
         "PUT",
@@ -157,22 +142,24 @@ mod tests {
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
-    app_arc.lock().await.data.radarr_data.tags_map =
+    app.lock().await.data.radarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_handle_edit_radarr_indexer_event_does_not_overwrite_tags_vec_if_tag_input_string_is_none(
-  ) {
+  async fn test_handle_edit_radarr_indexer_event_does_not_overwrite_tags_vec_if_tag_input_string_is_none()
+   {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -232,16 +219,11 @@ mod tests {
       priority: Some(0),
       ..EditIndexerParams::default()
     };
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json),
-      None,
-      RadarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json)
+      .path("/1")
+      .build_for(RadarrEvent::GetIndexers)
+      .await;
     let async_edit_server = server
       .mock(
         "PUT",
@@ -256,22 +238,24 @@ mod tests {
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
-    app_arc.lock().await.data.radarr_data.tags_map =
+    app.lock().await.data.radarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_handle_edit_radarr_indexer_event_does_not_add_seed_ratio_when_seed_ratio_field_is_none_in_details(
-  ) {
+  async fn test_handle_edit_radarr_indexer_event_does_not_add_seed_ratio_when_seed_ratio_field_is_none_in_details()
+   {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -323,16 +307,11 @@ mod tests {
       priority: Some(0),
       ..EditIndexerParams::default()
     };
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json),
-      None,
-      RadarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json)
+      .path("/1")
+      .build_for(RadarrEvent::GetIndexers)
+      .await;
     let async_edit_server = server
       .mock(
         "PUT",
@@ -347,22 +326,24 @@ mod tests {
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
-    app_arc.lock().await.data.radarr_data.tags_map =
+    app.lock().await.data.radarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_handle_edit_radarr_indexer_event_populates_the_seed_ratio_value_when_seed_ratio_field_is_present_in_details(
-  ) {
+  async fn test_handle_edit_radarr_indexer_event_populates_the_seed_ratio_value_when_seed_ratio_field_is_present_in_details()
+   {
     let indexer_details_json = json!({
         "enableRss": true,
         "enableAutomaticSearch": true,
@@ -421,16 +402,11 @@ mod tests {
       priority: Some(0),
       ..EditIndexerParams::default()
     };
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json),
-      None,
-      RadarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json)
+      .path("/1")
+      .build_for(RadarrEvent::GetIndexers)
+      .await;
     let async_edit_server = server
       .mock(
         "PUT",
@@ -445,14 +421,16 @@ mod tests {
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
-    app_arc.lock().await.data.radarr_data.tags_map =
+    app.lock().await.data.radarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
@@ -488,16 +466,11 @@ mod tests {
       ..EditIndexerParams::default()
     };
 
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json.clone()),
-      None,
-      RadarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json.clone())
+      .path("/1")
+      .build_for(RadarrEvent::GetIndexers)
+      .await;
     let async_edit_server = server
       .mock(
         "PUT",
@@ -512,12 +485,14 @@ mod tests {
       .match_body(Matcher::Json(indexer_details_json))
       .create_async()
       .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
@@ -577,16 +552,11 @@ mod tests {
       ..EditIndexerParams::default()
     };
 
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json),
-      None,
-      RadarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json)
+      .path("/1")
+      .build_for(RadarrEvent::GetIndexers)
+      .await;
     let async_edit_server = server
       .mock(
         "PUT",
@@ -601,12 +571,14 @@ mod tests {
       .match_body(Matcher::Json(expected_edit_indexer_body))
       .create_async()
       .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::EditIndexer(edit_indexer_params))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
@@ -645,17 +617,11 @@ mod tests {
         "id": 1
     }]);
     let response: Vec<Indexer> = serde_json::from_value(indexers_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexers_response_json),
-      None,
-      RadarrEvent::GetIndexers,
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(indexers_response_json)
+      .build_for(RadarrEvent::GetIndexers)
+      .await;
+    let mut network = test_network(&app);
 
     if let RadarrSerdeable::Indexers(indexers) = network
       .handle_radarr_event(RadarrEvent::GetIndexers)
@@ -664,7 +630,7 @@ mod tests {
     {
       async_server.assert_async().await;
       assert_eq!(
-        app_arc.lock().await.data.radarr_data.indexers.items,
+        app.lock().await.data.radarr_data.indexers.items,
         vec![indexer()]
       );
       assert_eq!(indexers, response);
@@ -686,17 +652,11 @@ mod tests {
     });
     let response: IndexerSettings =
       serde_json::from_value(indexer_settings_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_settings_response_json),
-      None,
-      RadarrEvent::GetAllIndexerSettings,
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(indexer_settings_response_json)
+      .build_for(RadarrEvent::GetAllIndexerSettings)
+      .await;
+    let mut network = test_network(&app);
 
     if let RadarrSerdeable::IndexerSettings(settings) = network
       .handle_radarr_event(RadarrEvent::GetAllIndexerSettings)
@@ -705,7 +665,7 @@ mod tests {
     {
       async_server.assert_async().await;
       assert_eq!(
-        app_arc.lock().await.data.radarr_data.indexer_settings,
+        app.lock().await.data.radarr_data.indexer_settings,
         Some(indexer_settings())
       );
       assert_eq!(settings, response);
@@ -725,27 +685,23 @@ mod tests {
         "whitelistedHardcodedSubs": "",
         "id": 1
     });
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_settings_response_json),
-      None,
-      RadarrEvent::GetAllIndexerSettings,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(indexer_settings_response_json)
+      .build_for(RadarrEvent::GetAllIndexerSettings)
+      .await;
+    app.lock().await.data.radarr_data.indexer_settings = Some(IndexerSettings::default());
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::GetAllIndexerSettings)
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::GetAllIndexerSettings)
+        .await
+        .is_ok()
+    );
 
     async_server.assert_async().await;
     assert_eq!(
-      app_arc.lock().await.data.radarr_data.indexer_settings,
+      app.lock().await.data.radarr_data.indexer_settings,
       Some(IndexerSettings::default())
     );
   }
@@ -781,16 +737,11 @@ mod tests {
         "errorMessage": "test failure",
         "severity": "error"
     }]);
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json.clone()),
-      None,
-      RadarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json.clone())
+      .path("/1")
+      .build_for(RadarrEvent::GetIndexers)
+      .await;
     let async_test_server = server
       .mock(
         "POST",
@@ -802,7 +753,7 @@ mod tests {
       .with_body(response_json.to_string())
       .create_async()
       .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app);
 
     if let RadarrSerdeable::Value(value) = network
       .handle_radarr_event(RadarrEvent::TestIndexer(1))
@@ -812,7 +763,7 @@ mod tests {
       async_details_server.assert_async().await;
       async_test_server.assert_async().await;
       assert_eq!(
-        app_arc.lock().await.data.radarr_data.indexer_test_errors,
+        app.lock().await.data.radarr_data.indexer_test_errors,
         Some("\"test failure\"".to_owned())
       );
       assert_eq!(value, response_json)
@@ -843,16 +794,11 @@ mod tests {
         "tags": [1],
         "id": 1
     });
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json.clone()),
-      None,
-      RadarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json.clone())
+      .path("/1")
+      .build_for(RadarrEvent::GetIndexers)
+      .await;
     let async_test_server = server
       .mock(
         "POST",
@@ -864,7 +810,7 @@ mod tests {
       .with_body("{}")
       .create_async()
       .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app);
 
     if let RadarrSerdeable::Value(value) = network
       .handle_radarr_event(RadarrEvent::TestIndexer(1))
@@ -874,7 +820,7 @@ mod tests {
       async_details_server.assert_async().await;
       async_test_server.assert_async().await;
       assert_eq!(
-        app_arc.lock().await.data.radarr_data.indexer_test_errors,
+        app.lock().await.data.radarr_data.indexer_test_errors,
         Some(String::new())
       );
       assert_eq!(value, json!({}));
@@ -930,24 +876,19 @@ mod tests {
       ]
     }]);
     let response: Vec<IndexerTestResult> = serde_json::from_value(response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      None,
-      Some(response_json),
-      Some(400),
-      RadarrEvent::TestAllIndexers,
-      None,
-      None,
-    )
-    .await;
-    app_arc
+    let (async_server, app, _server) = MockServarrApi::post()
+      .returns(response_json)
+      .status(400)
+      .build_for(RadarrEvent::TestAllIndexers)
+      .await;
+    app
       .lock()
       .await
       .data
       .radarr_data
       .indexers
       .set_items(indexers);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app);
 
     if let RadarrSerdeable::IndexerTestResults(results) = network
       .handle_radarr_event(RadarrEvent::TestAllIndexers)
@@ -955,15 +896,17 @@ mod tests {
       .unwrap()
     {
       async_server.assert_async().await;
-      assert!(app_arc
-        .lock()
-        .await
-        .data
-        .radarr_data
-        .indexer_test_all_results
-        .is_some());
+      assert!(
+        app
+          .lock()
+          .await
+          .data
+          .radarr_data
+          .indexer_test_all_results
+          .is_some()
+      );
       assert_eq!(
-        app_arc
+        app
           .lock()
           .await
           .data

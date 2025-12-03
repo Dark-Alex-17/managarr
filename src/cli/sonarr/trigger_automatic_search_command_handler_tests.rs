@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod tests {
-  use crate::cli::{
-    sonarr::{
-      trigger_automatic_search_command_handler::SonarrTriggerAutomaticSearchCommand, SonarrCommand,
-    },
-    Command,
-  };
   use crate::Cli;
+  use crate::cli::{
+    Command,
+    sonarr::{
+      SonarrCommand, trigger_automatic_search_command_handler::SonarrTriggerAutomaticSearchCommand,
+    },
+  };
   use clap::CommandFactory;
   use pretty_assertions::assert_eq;
 
@@ -150,13 +150,13 @@ mod tests {
     use crate::{
       app::App,
       cli::{
+        CliCommandHandler,
         sonarr::trigger_automatic_search_command_handler::{
           SonarrTriggerAutomaticSearchCommand, SonarrTriggerAutomaticSearchCommandHandler,
         },
-        CliCommandHandler,
       },
-      models::{sonarr_models::SonarrSerdeable, Serdeable},
-      network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
+      models::{Serdeable, sonarr_models::SonarrSerdeable},
+      network::{MockNetworkTrait, NetworkEvent, sonarr_network::SonarrEvent},
     };
 
     #[tokio::test]

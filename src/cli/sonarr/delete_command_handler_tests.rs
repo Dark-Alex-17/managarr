@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod tests {
   use crate::{
-    cli::{
-      sonarr::{delete_command_handler::SonarrDeleteCommand, SonarrCommand},
-      Command,
-    },
     Cli,
+    cli::{
+      Command,
+      sonarr::{SonarrCommand, delete_command_handler::SonarrDeleteCommand},
+    },
   };
-  use clap::{error::ErrorKind, CommandFactory, Parser};
+  use clap::{CommandFactory, Parser, error::ErrorKind};
   use pretty_assertions::assert_eq;
 
   #[test]
@@ -284,14 +284,14 @@ mod tests {
     use crate::{
       app::App,
       cli::{
-        sonarr::delete_command_handler::{SonarrDeleteCommand, SonarrDeleteCommandHandler},
         CliCommandHandler,
+        sonarr::delete_command_handler::{SonarrDeleteCommand, SonarrDeleteCommandHandler},
       },
       models::{
-        sonarr_models::{DeleteSeriesParams, SonarrSerdeable},
         Serdeable,
+        sonarr_models::{DeleteSeriesParams, SonarrSerdeable},
       },
-      network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
+      network::{MockNetworkTrait, NetworkEvent, sonarr_network::SonarrEvent},
     };
 
     #[tokio::test]

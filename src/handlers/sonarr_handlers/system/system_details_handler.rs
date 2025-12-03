@@ -1,11 +1,11 @@
 use crate::app::App;
 use crate::event::Key;
-use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
+use crate::models::Scrollable;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::sonarr_models::SonarrTaskName;
 use crate::models::stateful_list::StatefulList;
-use crate::models::Scrollable;
 use crate::network::sonarr_network::SonarrEvent;
 
 #[cfg(test)]

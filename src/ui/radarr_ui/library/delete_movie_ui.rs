@@ -1,13 +1,13 @@
-use ratatui::layout::Rect;
 use ratatui::Frame;
+use ratatui::layout::Rect;
 
 use crate::app::App;
-use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 use crate::models::Route;
+use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
+use crate::ui::DrawUi;
 use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::DrawUi;
 
 #[cfg(test)]
 #[path = "delete_movie_ui_tests.rs"]

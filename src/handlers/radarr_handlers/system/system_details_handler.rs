@@ -1,11 +1,11 @@
 use crate::app::App;
 use crate::event::Key;
-use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
+use crate::models::Scrollable;
 use crate::models::radarr_models::RadarrTaskName;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::stateful_list::StatefulList;
-use crate::models::Scrollable;
 use crate::network::radarr_network::RadarrEvent;
 
 #[cfg(test)]

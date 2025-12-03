@@ -6,11 +6,11 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
+  use crate::ui::DrawUi;
   use crate::ui::radarr_ui::library::movie_details_ui::{
-    style_from_download_status, MovieDetailsUi,
+    MovieDetailsUi, style_from_download_status,
   };
   use crate::ui::styles::ManagarrStyle;
-  use crate::ui::DrawUi;
 
   #[test]
   fn test_movie_details_ui_accepts() {

@@ -4,6 +4,7 @@ mod tests {
   use serde_json::json;
 
   use crate::models::{
+    Serdeable,
     radarr_models::{
       AddMovieSearchResult, BlocklistItem, BlocklistResponse, Collection, Credit, DiskSpace,
       DownloadRecord, DownloadsResponse, Indexer, IndexerSettings, IndexerTestResult,
@@ -11,7 +12,6 @@ mod tests {
       RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus, Tag, Update,
     },
     servarr_models::{HostConfig, Log, LogResponse, QueueEvent, RootFolder, SecurityConfig},
-    Serdeable,
   };
 
   #[test]

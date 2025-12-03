@@ -1,12 +1,9 @@
 #[cfg(test)]
 mod tests {
   use crate::models::sonarr_models::SonarrReleaseDownloadBody;
-  use crate::network::network_tests::test_utils::mock_servarr_api;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::sonarr_network::SonarrEvent;
-  use crate::network::{Network, RequestMethod};
-  use reqwest::Client;
   use serde_json::json;
-  use tokio_util::sync::CancellationToken;
 
   #[tokio::test]
   async fn test_handle_download_sonarr_release_event_uses_provided_params() {
@@ -16,28 +13,25 @@ mod tests {
       series_id: Some(1),
       ..SonarrReleaseDownloadBody::default()
     };
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
+
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
         "guid": "1234",
         "indexerId": 2,
         "seriesId": 1,
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::DownloadRelease(params.clone()),
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+      }))
+      .returns(json!({}))
+      .build_for(SonarrEvent::DownloadRelease(params.clone()))
+      .await;
 
-    assert!(network
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
+
+    let result = network
       .handle_sonarr_event(SonarrEvent::DownloadRelease(params))
-      .await
-      .is_ok());
+      .await;
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
+    assert!(result.is_ok());
   }
 }

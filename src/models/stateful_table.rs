@@ -1,6 +1,6 @@
 use crate::models::stateful_list::StatefulList;
 use crate::models::{
-  strip_non_search_characters, HorizontallyScrollableText, Paginated, Scrollable,
+  HorizontallyScrollableText, Paginated, Scrollable, strip_non_search_characters,
 };
 use ratatui::widgets::TableState;
 use std::cmp::Ordering;

@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
   use crate::handle_table_events;
-  use crate::handlers::table_handler::TableHandlingConfig;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::table_handler::TableHandlingConfig;
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_models::Language;
@@ -839,8 +839,8 @@ mod tests {
   }
 
   mod test_handle_key_char {
-    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::HorizontallyScrollableText;
+    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use pretty_assertions::{assert_eq, assert_str_eq};
 
     use super::*;

@@ -13,7 +13,7 @@ use crate::utils::{convert_runtime, convert_to_gb};
 use anyhow::Result;
 use indoc::formatdoc;
 use log::{debug, info, warn};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use urlencoding::encode;
 
 #[cfg(test)]
@@ -53,7 +53,9 @@ impl Network<'_, '_> {
       delete_movie_files,
       add_list_exclusion,
     } = delete_movie_params;
-    info!("Deleting Radarr movie with ID: {id} with deleteFiles={delete_movie_files} and addImportExclusion={add_list_exclusion}");
+    info!(
+      "Deleting Radarr movie with ID: {id} with deleteFiles={delete_movie_files} and addImportExclusion={add_list_exclusion}"
+    );
 
     let request_props = self
       .request_props_from(

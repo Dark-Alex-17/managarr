@@ -2,9 +2,9 @@
 mod tests {
   use strum::IntoEnumIterator;
 
-  use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ADD_SERIES_BLOCKS};
-  use crate::ui::sonarr_ui::library::add_series_ui::AddSeriesUi;
+  use crate::models::servarr_data::sonarr::sonarr_data::{ADD_SERIES_BLOCKS, ActiveSonarrBlock};
   use crate::ui::DrawUi;
+  use crate::ui::sonarr_ui::library::add_series_ui::AddSeriesUi;
 
   #[test]
   fn test_add_series_ui_accepts() {

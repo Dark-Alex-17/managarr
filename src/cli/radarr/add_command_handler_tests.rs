@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod tests {
-  use clap::{error::ErrorKind, CommandFactory, Parser};
+  use clap::{CommandFactory, Parser, error::ErrorKind};
 
   use crate::{
+    Cli,
     cli::{
-      radarr::{add_command_handler::RadarrAddCommand, RadarrCommand},
       Command,
+      radarr::{RadarrCommand, add_command_handler::RadarrAddCommand},
     },
     models::radarr_models::{MinimumAvailability, MovieMonitor},
-    Cli,
   };
   use pretty_assertions::assert_eq;
 
@@ -357,12 +357,12 @@ mod tests {
 
     use crate::{
       app::App,
-      cli::{radarr::add_command_handler::RadarrAddCommandHandler, CliCommandHandler},
+      cli::{CliCommandHandler, radarr::add_command_handler::RadarrAddCommandHandler},
       models::{
-        radarr_models::{AddMovieBody, AddMovieOptions, RadarrSerdeable},
         Serdeable,
+        radarr_models::{AddMovieBody, AddMovieOptions, RadarrSerdeable},
       },
-      network::{radarr_network::RadarrEvent, MockNetworkTrait, NetworkEvent},
+      network::{MockNetworkTrait, NetworkEvent, radarr_network::RadarrEvent},
     };
 
     use super::*;

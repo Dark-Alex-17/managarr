@@ -3,7 +3,7 @@ use crate::network::sonarr_network::SonarrEvent;
 use crate::{
   app::App,
   event::Key,
-  handlers::{handle_prompt_toggle, KeyEventHandler},
+  handlers::{KeyEventHandler, handle_prompt_toggle},
   matches_key,
   models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DELETE_SERIES_BLOCKS},
 };

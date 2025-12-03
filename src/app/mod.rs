@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Error, Result};
+use anyhow::{Error, Result, anyhow};
 use colored::Colorize;
 use itertools::Itertools;
 use log::{debug, error};
@@ -132,12 +132,12 @@ impl App<'_> {
       self.is_loading = true;
     }
 
-    if let Some(network_tx) = &self.network_tx {
-      if let Err(e) = network_tx.send(action).await {
-        self.is_loading = false;
-        error!("Failed to send event. {e:?}");
-        self.handle_error(anyhow!(e));
-      }
+    if let Some(network_tx) = &self.network_tx
+      && let Err(e) = network_tx.send(action).await
+    {
+      self.is_loading = false;
+      error!("Failed to send event. {e:?}");
+      self.handle_error(anyhow!(e));
     }
   }
 
@@ -479,10 +479,10 @@ fn interpolate_env_vars(s: &str) -> String {
 
   var_regex
     .replace_all(s, |caps: &regex::Captures<'_>| {
-      if let Some(mat) = caps.get(1) {
-        if let Ok(value) = std::env::var(mat.as_str()) {
-          return scrubbing_regex.replace_all(&value, "").to_string();
-        }
+      if let Some(mat) = caps.get(1)
+        && let Ok(value) = std::env::var(mat.as_str())
+      {
+        return scrubbing_regex.replace_all(&value, "").to_string();
       }
 
       scrubbing_regex.replace_all(&result, "").to_string()

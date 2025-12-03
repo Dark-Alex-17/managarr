@@ -10,11 +10,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
 use strum_macros::{Display, EnumIter};
 
+use super::Serdeable;
 use super::servarr_models::{
   DiskSpace, HostConfig, Indexer, Language, LogResponse, QualityProfile, QualityWrapper,
   QueueEvent, RootFolder, SecurityConfig, Tag, Update,
 };
-use super::Serdeable;
 
 #[cfg(test)]
 #[path = "radarr_models_tests.rs"]

@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod tests {
   use crate::{
-    cli::{
-      radarr::{delete_command_handler::RadarrDeleteCommand, RadarrCommand},
-      Command,
-    },
     Cli,
+    cli::{
+      Command,
+      radarr::{RadarrCommand, delete_command_handler::RadarrDeleteCommand},
+    },
   };
-  use clap::{error::ErrorKind, CommandFactory, Parser};
+  use clap::{CommandFactory, Parser, error::ErrorKind};
   use pretty_assertions::assert_eq;
 
   #[test]
@@ -251,14 +251,14 @@ mod tests {
     use crate::{
       app::App,
       cli::{
-        radarr::delete_command_handler::{RadarrDeleteCommand, RadarrDeleteCommandHandler},
         CliCommandHandler,
+        radarr::delete_command_handler::{RadarrDeleteCommand, RadarrDeleteCommandHandler},
       },
       models::{
-        radarr_models::{DeleteMovieParams, RadarrSerdeable},
         Serdeable,
+        radarr_models::{DeleteMovieParams, RadarrSerdeable},
       },
-      network::{radarr_network::RadarrEvent, MockNetworkTrait, NetworkEvent},
+      network::{MockNetworkTrait, NetworkEvent, radarr_network::RadarrEvent},
     };
 
     #[tokio::test]

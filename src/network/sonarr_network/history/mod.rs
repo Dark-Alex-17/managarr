@@ -1,6 +1,6 @@
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use crate::models::sonarr_models::SonarrHistoryWrapper;
-use crate::models::Route;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
