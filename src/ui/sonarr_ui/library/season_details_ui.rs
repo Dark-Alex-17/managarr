@@ -38,12 +38,10 @@ pub(super) struct SeasonDetailsUi;
 
 impl DrawUi for SeasonDetailsUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Sonarr(active_sonarr_block, _) = route {
-      return EpisodeDetailsUi::accepts(route)
-        || SEASON_DETAILS_BLOCKS.contains(&active_sonarr_block);
-    }
-
-    false
+    let Route::Sonarr(active_sonarr_block, _) = route else {
+      return false;
+    };
+    EpisodeDetailsUi::accepts(route) || SEASON_DETAILS_BLOCKS.contains(&active_sonarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {

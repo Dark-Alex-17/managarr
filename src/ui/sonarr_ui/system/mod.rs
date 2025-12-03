@@ -46,11 +46,10 @@ pub(super) struct SystemUi;
 
 impl DrawUi for SystemUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Sonarr(active_sonarr_block, _) = route {
-      return SystemDetailsUi::accepts(route) || active_sonarr_block == ActiveSonarrBlock::System;
-    }
-
-    false
+    let Route::Sonarr(active_sonarr_block, _) = route else {
+      return false;
+    };
+    SystemDetailsUi::accepts(route) || active_sonarr_block == ActiveSonarrBlock::System
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

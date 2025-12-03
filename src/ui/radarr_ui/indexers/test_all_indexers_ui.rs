@@ -19,11 +19,10 @@ pub(super) struct TestAllIndexersUi;
 
 impl DrawUi for TestAllIndexersUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
-      return active_radarr_block == ActiveRadarrBlock::TestAllIndexers;
-    }
-
-    false
+    let Route::Radarr(active_radarr_block, _) = route else {
+      return false;
+    };
+    active_radarr_block == ActiveRadarrBlock::TestAllIndexers
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {

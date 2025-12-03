@@ -212,8 +212,9 @@ mod test {
     mock.assert_async().await;
 
     let SonarrSerdeable::Tag(tag) = result.unwrap() else {
-      panic!("Expected Tag variant");
+      panic!("Expected Tag");
     };
+
     assert_eq!(tag, expected);
     assert_eq!(
       app.lock().await.data.sonarr_data.tags_map,
@@ -278,8 +279,9 @@ mod test {
     mock.assert_async().await;
 
     let SonarrSerdeable::LanguageProfiles(language_profiles) = result.unwrap() else {
-      panic!("Expected the LanguageProfiles variant")
+      panic!("Expected LanguageProfiles")
     };
+
     assert_eq!(
       app.lock().await.data.sonarr_data.language_profiles_map,
       BiMap::from_iter([(2222i64, "English".to_owned())])
@@ -309,8 +311,9 @@ mod test {
     mock.assert_async().await;
 
     let SonarrSerdeable::QualityProfiles(quality_profiles) = result.unwrap() else {
-      panic!("Expected the QualityProfiles variant")
+      panic!("Expected QualityProfiles")
     };
+
     assert_eq!(
       app.lock().await.data.sonarr_data.quality_profile_map,
       BiMap::from_iter([(2222i64, "HD - 1080p".to_owned())])
@@ -337,8 +340,9 @@ mod test {
     mock.assert_async().await;
 
     let SonarrSerdeable::Tags(tags) = result.unwrap() else {
-      panic!("Expected the Tag variant")
+      panic!("Expected Tags")
     };
+
     mock.assert_async().await;
     assert_eq!(
       app.lock().await.data.sonarr_data.tags_map,

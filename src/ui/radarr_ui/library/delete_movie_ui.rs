@@ -17,11 +17,10 @@ pub(super) struct DeleteMovieUi;
 
 impl DrawUi for DeleteMovieUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
-      return DELETE_MOVIE_BLOCKS.contains(&active_radarr_block);
-    }
-
-    false
+    let Route::Radarr(active_radarr_block, _) = route else {
+      return false;
+    };
+    DELETE_MOVIE_BLOCKS.contains(&active_radarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {

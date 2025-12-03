@@ -194,8 +194,9 @@ mod test {
     mock.assert_async().await;
 
     let RadarrSerdeable::QualityProfiles(quality_profiles) = result.unwrap() else {
-      panic!("Expected QualityProfiles variant");
+      panic!("Expected QualityProfiles");
     };
+
     assert_eq!(quality_profiles, expected);
     assert_eq!(
       app.lock().await.data.radarr_data.quality_profile_map,
@@ -225,8 +226,9 @@ mod test {
     mock.assert_async().await;
 
     let RadarrSerdeable::Tags(tags) = result.unwrap() else {
-      panic!("Expected Tags variant");
+      panic!("Expected Tags");
     };
+
     assert_eq!(tags, expected);
     assert_eq!(
       app.lock().await.data.radarr_data.tags_map,
@@ -259,8 +261,9 @@ mod test {
     mock.assert_async().await;
 
     let RadarrSerdeable::Tag(tag) = result.unwrap() else {
-      panic!("Expected Tag variant");
+      panic!("Expected Tag");
     };
+
     assert_eq!(tag, expected);
     assert_eq!(
       app.lock().await.data.radarr_data.tags_map,

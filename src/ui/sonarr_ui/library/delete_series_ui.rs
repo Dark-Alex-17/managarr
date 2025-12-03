@@ -17,11 +17,10 @@ pub(super) struct DeleteSeriesUi;
 
 impl DrawUi for DeleteSeriesUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Sonarr(active_sonarr_block, _) = route {
-      return DELETE_SERIES_BLOCKS.contains(&active_sonarr_block);
-    }
-
-    false
+    let Route::Sonarr(active_sonarr_block, _) = route else {
+      return false;
+    };
+    DELETE_SERIES_BLOCKS.contains(&active_sonarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {

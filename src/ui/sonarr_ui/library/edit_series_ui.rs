@@ -32,11 +32,10 @@ pub(super) struct EditSeriesUi;
 
 impl DrawUi for EditSeriesUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Sonarr(active_sonarr_block, _) = route {
-      return EDIT_SERIES_BLOCKS.contains(&active_sonarr_block);
-    }
-
-    false
+    let Route::Sonarr(active_sonarr_block, _) = route else {
+      return false;
+    };
+    EDIT_SERIES_BLOCKS.contains(&active_sonarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {

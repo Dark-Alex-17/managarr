@@ -39,18 +39,19 @@ mod tests {
       },
     ];
 
-    if let RadarrSerdeable::DiskSpaces(disk_space) = network
+    let RadarrSerdeable::DiskSpaces(disk_space) = network
       .handle_radarr_event(RadarrEvent::GetDiskSpace)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.radarr_data.disk_space_vec,
-        disk_space_vec
-      );
-      assert_eq!(disk_space, disk_space_vec);
-    }
+    else {
+      panic!("Expected DiskSpaces")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.disk_space_vec,
+      disk_space_vec
+    );
+    assert_eq!(disk_space, disk_space_vec);
   }
 
   #[tokio::test]
@@ -73,14 +74,15 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::HostConfig(host_config) = network
+    let RadarrSerdeable::HostConfig(host_config) = network
       .handle_radarr_event(RadarrEvent::GetHostConfig)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(host_config, response);
-    }
+    else {
+      panic!("Expected HostConfig")
+    };
+    mock.assert_async().await;
+    assert_eq!(host_config, response);
   }
 
   #[tokio::test]
@@ -123,26 +125,27 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::LogResponse(logs) = network
+    let RadarrSerdeable::LogResponse(logs) = network
       .handle_radarr_event(RadarrEvent::GetLogs(500))
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(app.lock().await.data.radarr_data.logs.items, expected_logs);
-      assert!(
-        app
-          .lock()
-          .await
-          .data
-          .radarr_data
-          .logs
-          .current_selection()
-          .text
-          .contains("INFO")
-      );
-      assert_eq!(logs, response);
-    }
+    else {
+      panic!("Expected LogResponse")
+    };
+    mock.assert_async().await;
+    assert_eq!(app.lock().await.data.radarr_data.logs.items, expected_logs);
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .logs
+        .current_selection()
+        .text
+        .contains("INFO")
+    );
+    assert_eq!(logs, response);
   }
 
   #[tokio::test]
@@ -176,18 +179,19 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::QueueEvents(events) = network
+    let RadarrSerdeable::QueueEvents(events) = network
       .handle_radarr_event(RadarrEvent::GetQueuedEvents)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.radarr_data.queued_events.items,
-        vec![expected_event]
-      );
-      assert_eq!(events, response);
-    }
+    else {
+      panic!("Expected QueueEvents")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.queued_events.items,
+      vec![expected_event]
+    );
+    assert_eq!(events, response);
   }
 
   #[tokio::test]
@@ -208,14 +212,15 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::SecurityConfig(security_config) = network
+    let RadarrSerdeable::SecurityConfig(security_config) = network
       .handle_radarr_event(RadarrEvent::GetSecurityConfig)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(security_config, response);
-    }
+    else {
+      panic!("Expected SecurityConfig")
+    };
+    mock.assert_async().await;
+    assert_eq!(security_config, response);
   }
 
   #[tokio::test]
@@ -230,22 +235,23 @@ mod tests {
     let mut network = test_network(&app);
     let date_time = DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap());
 
-    if let RadarrSerdeable::SystemStatus(status) = network
+    let RadarrSerdeable::SystemStatus(status) = network
       .handle_radarr_event(RadarrEvent::GetStatus)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_str_eq!(app.lock().await.data.radarr_data.version, "v1");
-      assert_eq!(app.lock().await.data.radarr_data.start_time, date_time);
-      assert_eq!(
-        status,
-        SystemStatus {
-          version: "v1".to_owned(),
-          start_time: date_time
-        }
-      );
-    }
+    else {
+      panic!("Expected SystemStatus")
+    };
+    async_server.assert_async().await;
+    assert_str_eq!(app.lock().await.data.radarr_data.version, "v1");
+    assert_eq!(app.lock().await.data.radarr_data.start_time, date_time);
+    assert_eq!(
+      status,
+      SystemStatus {
+        version: "v1".to_owned(),
+        start_time: date_time
+      }
+    );
   }
 
   #[tokio::test]
@@ -323,18 +329,19 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::Updates(updates) = network
+    let RadarrSerdeable::Updates(updates) = network
       .handle_radarr_event(RadarrEvent::GetUpdates)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_str_eq!(
-        app.lock().await.data.radarr_data.updates.get_text(),
-        expected_text.get_text()
-      );
-      assert_eq!(updates, response);
-    }
+    else {
+      panic!("Expected Updates")
+    };
+    async_server.assert_async().await;
+    assert_str_eq!(
+      app.lock().await.data.radarr_data.updates.get_text(),
+      expected_text.get_text()
+    );
+    assert_eq!(updates, response);
   }
 
   #[tokio::test]
@@ -381,18 +388,19 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::Tasks(tasks) = network
+    let RadarrSerdeable::Tasks(tasks) = network
       .handle_radarr_event(RadarrEvent::GetTasks)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.radarr_data.tasks.items,
-        expected_tasks
-      );
-      assert_eq!(tasks, response);
-    }
+    else {
+      panic!("Expected Tasks")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.tasks.items,
+      expected_tasks
+    );
+    assert_eq!(tasks, response);
   }
 
   #[tokio::test]
@@ -409,15 +417,16 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::Value(value) = network
+    let RadarrSerdeable::Value(value) = network
       .handle_radarr_event(RadarrEvent::StartTask(
         RadarrTaskName::ApplicationCheckUpdate,
       ))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(value, response);
-    }
+    else {
+      panic!("Expected Value")
+    };
+    async_server.assert_async().await;
+    assert_eq!(value, response);
   }
 }

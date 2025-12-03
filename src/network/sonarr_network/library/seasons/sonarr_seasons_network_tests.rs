@@ -136,27 +136,28 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Releases(releases_vec) = network
+    let SonarrSerdeable::Releases(releases_vec) = network
       .handle_sonarr_event(SonarrEvent::GetSeasonReleases((1, 1)))
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .season_releases
-          .items,
-        vec![expected_filtered_sonarr_release]
-      );
-      assert_eq!(releases_vec, expected_raw_sonarr_releases);
-    }
+    else {
+      panic!("Expected Releases")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .season_releases
+        .items,
+      vec![expected_filtered_sonarr_release]
+    );
+    assert_eq!(releases_vec, expected_raw_sonarr_releases);
   }
 
   #[tokio::test]
@@ -319,39 +320,40 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SonarrHistoryItems(history) = network
+    let SonarrSerdeable::SonarrHistoryItems(history) = network
       .handle_sonarr_event(SonarrEvent::GetSeasonHistory((1, 1)))
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .season_history
-          .items,
-        expected_history_items
-      );
-      assert!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .season_history
-          .sort_asc
-      );
-      assert_eq!(history, response);
-    }
+    else {
+      panic!("Expected SonarrHistoryItems")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .season_history
+        .items,
+      expected_history_items
+    );
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .season_history
+        .sort_asc
+    );
+    assert_eq!(history, response);
   }
 
   #[tokio::test]
@@ -419,48 +421,49 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SonarrHistoryItems(history) = network
+    let SonarrSerdeable::SonarrHistoryItems(history) = network
       .handle_sonarr_event(SonarrEvent::GetSeasonHistory((1, 1)))
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .is_some()
-      );
-      assert_eq!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .season_history
-          .items,
-        expected_history_items
-      );
-      assert!(
-        !app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .season_history
-          .sort_asc
-      );
-      assert_eq!(history, response);
-    }
+    else {
+      panic!("Expected SonarrHistoryItems")
+    };
+    mock.assert_async().await;
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .is_some()
+    );
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .season_history
+        .items,
+      expected_history_items
+    );
+    assert!(
+      !app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .season_history
+        .sort_asc
+    );
+    assert_eq!(history, response);
   }
 
   #[tokio::test]

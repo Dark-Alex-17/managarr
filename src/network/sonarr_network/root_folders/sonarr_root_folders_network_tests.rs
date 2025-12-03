@@ -71,17 +71,18 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::RootFolders(root_folders) = network
+    let SonarrSerdeable::RootFolders(root_folders) = network
       .handle_sonarr_event(SonarrEvent::GetRootFolders)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.sonarr_data.root_folders.items,
-        vec![root_folder()]
-      );
-      assert_eq!(root_folders, response);
-    }
+    else {
+      panic!("Expected RootFolders")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.root_folders.items,
+      vec![root_folder()]
+    );
+    assert_eq!(root_folders, response);
   }
 }

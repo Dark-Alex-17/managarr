@@ -110,23 +110,23 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EpisodeDetailsHandle
   }
 
   fn is_ready(&self) -> bool {
-    !self.app.is_loading
-      && if let Some(season_details_modal) = self.app.data.sonarr_data.season_details_modal.as_ref()
-      {
-        if let Some(episode_details_modal) = &season_details_modal.episode_details_modal {
-          match self.active_sonarr_block {
-            ActiveSonarrBlock::EpisodeHistory => !episode_details_modal.episode_history.is_empty(),
-            ActiveSonarrBlock::ManualEpisodeSearch => {
-              !episode_details_modal.episode_releases.is_empty()
-            }
-            _ => true,
-          }
-        } else {
-          false
-        }
-      } else {
-        false
-      }
+    if self.app.is_loading {
+      return false;
+    }
+
+    let Some(season_details_modal) = self.app.data.sonarr_data.season_details_modal.as_ref() else {
+      return false;
+    };
+
+    let Some(episode_details_modal) = &season_details_modal.episode_details_modal else {
+      return false;
+    };
+
+    match self.active_sonarr_block {
+      ActiveSonarrBlock::EpisodeHistory => !episode_details_modal.episode_history.is_empty(),
+      ActiveSonarrBlock::ManualEpisodeSearch => !episode_details_modal.episode_releases.is_empty(),
+      _ => true,
+    }
   }
 
   fn handle_scroll_up(&mut self) {}

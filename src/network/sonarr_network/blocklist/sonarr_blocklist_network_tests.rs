@@ -163,19 +163,20 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::BlocklistResponse(blocklist) = network
+    let SonarrSerdeable::BlocklistResponse(blocklist) = network
       .handle_sonarr_event(SonarrEvent::GetBlocklist)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.sonarr_data.blocklist.items,
-        expected_blocklist
-      );
-      assert!(app.lock().await.data.sonarr_data.blocklist.sort_asc);
-      assert_eq!(blocklist, response);
-    }
+    else {
+      panic!("Expected BlocklistResponse")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.blocklist.items,
+      expected_blocklist
+    );
+    assert!(app.lock().await.data.sonarr_data.blocklist.sort_asc);
+    assert_eq!(blocklist, response);
   }
 
   #[tokio::test]
@@ -233,15 +234,16 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::BlocklistResponse(blocklist) = network
+    let SonarrSerdeable::BlocklistResponse(blocklist) = network
       .handle_sonarr_event(SonarrEvent::GetBlocklist)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert!(app.lock().await.data.sonarr_data.blocklist.is_empty());
-      assert!(app.lock().await.data.sonarr_data.blocklist.sort_asc);
-      assert_eq!(blocklist, response);
-    }
+    else {
+      panic!("Expected BlocklistResponse")
+    };
+    mock.assert_async().await;
+    assert!(app.lock().await.data.sonarr_data.blocklist.is_empty());
+    assert!(app.lock().await.data.sonarr_data.blocklist.sort_asc);
+    assert_eq!(blocklist, response);
   }
 }

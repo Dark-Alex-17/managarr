@@ -26,11 +26,10 @@ pub(super) struct IndexerSettingsUi;
 
 impl DrawUi for IndexerSettingsUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
-      return INDEXER_SETTINGS_BLOCKS.contains(&active_radarr_block);
-    }
-
-    false
+    let Route::Radarr(active_radarr_block, _) = route else {
+      return false;
+    };
+    INDEXER_SETTINGS_BLOCKS.contains(&active_radarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {

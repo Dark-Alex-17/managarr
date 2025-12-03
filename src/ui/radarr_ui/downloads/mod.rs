@@ -22,11 +22,10 @@ pub(super) struct DownloadsUi;
 
 impl DrawUi for DownloadsUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
-      return DOWNLOADS_BLOCKS.contains(&active_radarr_block);
-    }
-
-    false
+    let Route::Radarr(active_radarr_block, _) = route else {
+      return false;
+    };
+    DOWNLOADS_BLOCKS.contains(&active_radarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

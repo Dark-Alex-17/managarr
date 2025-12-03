@@ -48,18 +48,19 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::DownloadsResponse(downloads) = network
+    let RadarrSerdeable::DownloadsResponse(downloads) = network
       .handle_radarr_event(RadarrEvent::GetDownloads(500))
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      pretty_assertions::assert_eq!(
-        app.lock().await.data.radarr_data.downloads.items,
-        downloads_response().records
-      );
-      pretty_assertions::assert_eq!(downloads, response);
-    }
+    else {
+      panic!("Expected DownloadsResponse")
+    };
+    mock.assert_async().await;
+    pretty_assertions::assert_eq!(
+      app.lock().await.data.radarr_data.downloads.items,
+      downloads_response().records
+    );
+    pretty_assertions::assert_eq!(downloads, response);
   }
 
   #[tokio::test]

@@ -623,18 +623,19 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::Indexers(indexers) = network
+    let RadarrSerdeable::Indexers(indexers) = network
       .handle_radarr_event(RadarrEvent::GetIndexers)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.radarr_data.indexers.items,
-        vec![indexer()]
-      );
-      assert_eq!(indexers, response);
-    }
+    else {
+      panic!("Expected Indexers")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.indexers.items,
+      vec![indexer()]
+    );
+    assert_eq!(indexers, response);
   }
 
   #[tokio::test]
@@ -658,18 +659,19 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::IndexerSettings(settings) = network
+    let RadarrSerdeable::IndexerSettings(settings) = network
       .handle_radarr_event(RadarrEvent::GetAllIndexerSettings)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.radarr_data.indexer_settings,
-        Some(indexer_settings())
-      );
-      assert_eq!(settings, response);
-    }
+    else {
+      panic!("Expected IndexerSettings")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.indexer_settings,
+      Some(indexer_settings())
+    );
+    assert_eq!(settings, response);
   }
 
   #[tokio::test]
@@ -755,19 +757,20 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::Value(value) = network
+    let RadarrSerdeable::Value(value) = network
       .handle_radarr_event(RadarrEvent::TestIndexer(1))
       .await
       .unwrap()
-    {
-      async_details_server.assert_async().await;
-      async_test_server.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.radarr_data.indexer_test_errors,
-        Some("\"test failure\"".to_owned())
-      );
-      assert_eq!(value, response_json)
-    }
+    else {
+      panic!("Expected Value")
+    };
+    async_details_server.assert_async().await;
+    async_test_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.indexer_test_errors,
+      Some("\"test failure\"".to_owned())
+    );
+    assert_eq!(value, response_json);
   }
 
   #[tokio::test]
@@ -812,19 +815,20 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::Value(value) = network
+    let RadarrSerdeable::Value(value) = network
       .handle_radarr_event(RadarrEvent::TestIndexer(1))
       .await
       .unwrap()
-    {
-      async_details_server.assert_async().await;
-      async_test_server.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.radarr_data.indexer_test_errors,
-        Some(String::new())
-      );
-      assert_eq!(value, json!({}));
-    }
+    else {
+      panic!("Expected Value")
+    };
+    async_details_server.assert_async().await;
+    async_test_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.indexer_test_errors,
+      Some(String::new())
+    );
+    assert_eq!(value, json!({}));
   }
 
   #[tokio::test]
@@ -890,34 +894,35 @@ mod tests {
       .set_items(indexers);
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::IndexerTestResults(results) = network
+    let RadarrSerdeable::IndexerTestResults(results) = network
       .handle_radarr_event(RadarrEvent::TestAllIndexers)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(
-        app
-          .lock()
-          .await
-          .data
-          .radarr_data
-          .indexer_test_all_results
-          .is_some()
-      );
-      assert_eq!(
-        app
-          .lock()
-          .await
-          .data
-          .radarr_data
-          .indexer_test_all_results
-          .as_ref()
-          .unwrap()
-          .items,
-        indexer_test_results_modal_items
-      );
-      assert_eq!(results, response);
-    }
+    else {
+      panic!("Expected IndexerTestResults")
+    };
+    async_server.assert_async().await;
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .indexer_test_all_results
+        .is_some()
+    );
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .indexer_test_all_results
+        .as_ref()
+        .unwrap()
+        .items,
+      indexer_test_results_modal_items
+    );
+    assert_eq!(results, response);
   }
 }

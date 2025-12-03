@@ -84,19 +84,20 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
+    let SonarrSerdeable::SonarrHistoryWrapper(history) = network
       .handle_sonarr_event(SonarrEvent::GetHistory(500))
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.sonarr_data.history.items,
-        expected_history_items
-      );
-      assert!(app.lock().await.data.sonarr_data.history.sort_asc);
-      assert_eq!(history, response);
-    }
+    else {
+      panic!("Expected SonarrHistoryWrapper")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.history.items,
+      expected_history_items
+    );
+    assert!(app.lock().await.data.sonarr_data.history.sort_asc);
+    assert_eq!(history, response);
   }
 
   #[tokio::test]
@@ -158,16 +159,17 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
+    let SonarrSerdeable::SonarrHistoryWrapper(history) = network
       .handle_sonarr_event(SonarrEvent::GetHistory(500))
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert!(app.lock().await.data.sonarr_data.history.is_empty());
-      assert!(app.lock().await.data.sonarr_data.history.sort_asc);
-      assert_eq!(history, response);
-    }
+    else {
+      panic!("Expected SonarrHistoryWrapper")
+    };
+    mock.assert_async().await;
+    assert!(app.lock().await.data.sonarr_data.history.is_empty());
+    assert!(app.lock().await.data.sonarr_data.history.sort_asc);
+    assert_eq!(history, response);
   }
 
   #[tokio::test]

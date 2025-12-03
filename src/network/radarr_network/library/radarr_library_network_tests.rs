@@ -382,19 +382,20 @@ mod tests {
     app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
     let mut network = test_network(&app_arc);
 
-    if let RadarrSerdeable::Credits(credits) = network
+    let RadarrSerdeable::Credits(credits) = network
       .handle_radarr_event(RadarrEvent::GetMovieCredits(1))
       .await
       .unwrap()
-    {
-      let app = app_arc.lock().await;
-      let movie_details_modal = app.data.radarr_data.movie_details_modal.as_ref().unwrap();
+    else {
+      panic!("Expected Credits")
+    };
+    let app = app_arc.lock().await;
+    let movie_details_modal = app.data.radarr_data.movie_details_modal.as_ref().unwrap();
 
-      async_server.assert_async().await;
-      assert_eq!(movie_details_modal.movie_cast.items, vec![cast_credit()]);
-      assert_eq!(movie_details_modal.movie_crew.items, vec![crew_credit()]);
-      assert_eq!(credits, response);
-    }
+    async_server.assert_async().await;
+    assert_eq!(movie_details_modal.movie_cast.items, vec![cast_credit()]);
+    assert_eq!(movie_details_modal.movie_crew.items, vec![crew_credit()]);
+    assert_eq!(credits, response);
   }
 
   #[tokio::test]
@@ -570,77 +571,78 @@ mod tests {
       BiMap::from_iter([(2222, "HD - 1080p".to_owned())]);
     let mut network = test_network(&app_arc);
 
-    if let RadarrSerdeable::Movie(movie) = network
+    let RadarrSerdeable::Movie(movie) = network
       .handle_radarr_event(RadarrEvent::GetMovieDetails(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .radarr_data
-          .movie_details_modal
-          .is_some()
-      );
-      assert_eq!(movie, response);
+    else {
+      panic!("Expected Movie")
+    };
+    async_server.assert_async().await;
+    assert!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .movie_details_modal
+        .is_some()
+    );
+    assert_eq!(movie, response);
 
-      let app = app_arc.lock().await;
-      let movie_details_modal = app.data.radarr_data.movie_details_modal.as_ref().unwrap();
-      assert_str_eq!(
-        movie_details_modal.movie_details.get_text(),
-        formatdoc!(
-          "Title: Test
-          Year: 2023
-          Runtime: 2h 0m
-          Rating: R
-          Collection: Test Collection
-          Status: Downloaded
-          Description: Blah blah blah
-          TMDB: 99%
-          IMDB: 9.9
-          Rotten Tomatoes: 
-          Quality Profile: HD - 1080p
-          Size: 3.30 GB
-          Path: /nfs/movies
-          Studio: 21st Century Alex
-          Genres: cool, family, fun"
-        )
-      );
-      assert_str_eq!(
-        movie_details_modal.file_details,
-        formatdoc!(
-          "Relative Path: Test.mkv
-        Absolute Path: /nfs/movies/Test.mkv
+    let app = app_arc.lock().await;
+    let movie_details_modal = app.data.radarr_data.movie_details_modal.as_ref().unwrap();
+    assert_str_eq!(
+      movie_details_modal.movie_details.get_text(),
+      formatdoc!(
+        "Title: Test
+        Year: 2023
+        Runtime: 2h 0m
+        Rating: R
+        Collection: Test Collection
+        Status: Downloaded
+        Description: Blah blah blah
+        TMDB: 99%
+        IMDB: 9.9
+        Rotten Tomatoes: 
+        Quality Profile: HD - 1080p
         Size: 3.30 GB
-        Date Added: 2022-12-30 07:37:56 UTC"
-        )
-      );
-      assert_str_eq!(
-        movie_details_modal.audio_details,
-        formatdoc!(
-          "Bitrate: 0
-        Channels: 7.1
-        Codec: AAC
-        Languages: eng
-        Stream Count: 1"
-        )
-      );
-      assert_str_eq!(
-        movie_details_modal.video_details,
-        formatdoc!(
-          "Bit Depth: 10
-        Bitrate: 0
-        Codec: x265
-        FPS: 23.976
-        Resolution: 1920x804
-        Scan Type: Progressive
-        Runtime: 2:00:00"
-        )
-      );
-    }
+        Path: /nfs/movies
+        Studio: 21st Century Alex
+        Genres: cool, family, fun"
+      )
+    );
+    assert_str_eq!(
+      movie_details_modal.file_details,
+      formatdoc!(
+        "Relative Path: Test.mkv
+      Absolute Path: /nfs/movies/Test.mkv
+      Size: 3.30 GB
+      Date Added: 2022-12-30 07:37:56 UTC"
+      )
+    );
+    assert_str_eq!(
+      movie_details_modal.audio_details,
+      formatdoc!(
+        "Bitrate: 0
+      Channels: 7.1
+      Codec: AAC
+      Languages: eng
+      Stream Count: 1"
+      )
+    );
+    assert_str_eq!(
+      movie_details_modal.video_details,
+      formatdoc!(
+        "Bit Depth: 10
+      Bitrate: 0
+      Codec: x265
+      FPS: 23.976
+      Resolution: 1920x804
+      Scan Type: Progressive
+      Runtime: 2:00:00"
+      )
+    );
   }
 
   #[tokio::test]
@@ -741,27 +743,28 @@ mod tests {
     app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
     let mut network = test_network(&app_arc);
 
-    if let RadarrSerdeable::MovieHistoryItems(history) = network
+    let RadarrSerdeable::MovieHistoryItems(history) = network
       .handle_radarr_event(RadarrEvent::GetMovieHistory(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .radarr_data
-          .movie_details_modal
-          .as_ref()
-          .unwrap()
-          .movie_history
-          .items,
-        vec![movie_history_item()]
-      );
-      assert_eq!(history, response);
-    }
+    else {
+      panic!("Expected MovieHistoryItems")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .movie_details_modal
+        .as_ref()
+        .unwrap()
+        .movie_history
+        .items,
+      vec![movie_history_item()]
+    );
+    assert_eq!(history, response);
   }
 
   #[tokio::test]
@@ -828,27 +831,28 @@ mod tests {
     app_arc.lock().await.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
     let mut network = test_network(&app_arc);
 
-    if let RadarrSerdeable::Releases(releases_vec) = network
+    let RadarrSerdeable::Releases(releases_vec) = network
       .handle_radarr_event(RadarrEvent::GetReleases(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .radarr_data
-          .movie_details_modal
-          .as_ref()
-          .unwrap()
-          .movie_releases
-          .items,
-        vec![release()]
-      );
-      assert_eq!(releases_vec, vec![release()]);
-    }
+    else {
+      panic!("Expected Releases")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .movie_details_modal
+        .as_ref()
+        .unwrap()
+        .movie_releases
+        .items,
+      vec![release()]
+    );
+    assert_eq!(releases_vec, vec![release()]);
   }
 
   #[tokio::test]
@@ -928,35 +932,36 @@ mod tests {
       .await;
     let mut network = test_network(&app_arc);
 
-    if let RadarrSerdeable::AddMovieSearchResults(add_movie_search_results) = network
+    let RadarrSerdeable::AddMovieSearchResults(add_movie_search_results) = network
       .handle_radarr_event(RadarrEvent::SearchNewMovie("test term".into()))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .radarr_data
-          .add_searched_movies
-          .is_some()
-      );
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .radarr_data
-          .add_searched_movies
-          .as_ref()
-          .unwrap()
-          .items,
-        vec![add_movie_search_result()]
-      );
-      assert_eq!(add_movie_search_results, vec![add_movie_search_result()]);
-    }
+    else {
+      panic!("Expected AddMovieSearchResults")
+    };
+    async_server.assert_async().await;
+    assert!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .add_searched_movies
+        .is_some()
+    );
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .add_searched_movies
+        .as_ref()
+        .unwrap()
+        .items,
+      vec![add_movie_search_result()]
+    );
+    assert_eq!(add_movie_search_results, vec![add_movie_search_result()]);
   }
 
   #[tokio::test]

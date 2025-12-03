@@ -158,27 +158,23 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
   }
 
   fn is_ready(&self) -> bool {
-    if let Some(movie_details_modal) = &self.app.data.radarr_data.movie_details_modal {
-      match self.active_radarr_block {
-        ActiveRadarrBlock::MovieDetails => {
-          !self.app.is_loading && !movie_details_modal.movie_details.is_empty()
-        }
-        ActiveRadarrBlock::MovieHistory => {
-          !self.app.is_loading && !movie_details_modal.movie_history.is_empty()
-        }
-        ActiveRadarrBlock::Cast => {
-          !self.app.is_loading && !movie_details_modal.movie_cast.is_empty()
-        }
-        ActiveRadarrBlock::Crew => {
-          !self.app.is_loading && !movie_details_modal.movie_crew.is_empty()
-        }
-        ActiveRadarrBlock::ManualSearch => {
-          !self.app.is_loading && !movie_details_modal.movie_releases.is_empty()
-        }
-        _ => !self.app.is_loading,
+    let Some(movie_details_modal) = &self.app.data.radarr_data.movie_details_modal else {
+      return false;
+    };
+
+    match self.active_radarr_block {
+      ActiveRadarrBlock::MovieDetails => {
+        !self.app.is_loading && !movie_details_modal.movie_details.is_empty()
       }
-    } else {
-      false
+      ActiveRadarrBlock::MovieHistory => {
+        !self.app.is_loading && !movie_details_modal.movie_history.is_empty()
+      }
+      ActiveRadarrBlock::Cast => !self.app.is_loading && !movie_details_modal.movie_cast.is_empty(),
+      ActiveRadarrBlock::Crew => !self.app.is_loading && !movie_details_modal.movie_crew.is_empty(),
+      ActiveRadarrBlock::ManualSearch => {
+        !self.app.is_loading && !movie_details_modal.movie_releases.is_empty()
+      }
+      _ => !self.app.is_loading,
     }
   }
 

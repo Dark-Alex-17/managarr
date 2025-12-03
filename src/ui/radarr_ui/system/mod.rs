@@ -52,11 +52,10 @@ pub(super) struct SystemUi;
 
 impl DrawUi for SystemUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
-      return SystemDetailsUi::accepts(route) || active_radarr_block == ActiveRadarrBlock::System;
-    }
-
-    false
+    let Route::Radarr(active_radarr_block, _) = route else {
+      return false;
+    };
+    SystemDetailsUi::accepts(route) || active_radarr_block == ActiveRadarrBlock::System
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

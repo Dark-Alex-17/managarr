@@ -253,27 +253,28 @@ mod tests {
     app_arc.lock().await.server_tabs.next();
     let mut network = test_network(&app_arc);
 
-    if let SonarrSerdeable::Episodes(episodes) = network
+    let SonarrSerdeable::Episodes(episodes) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodes(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episodes
-          .items,
-        vec![episode()]
-      );
-      assert_eq!(episodes, vec![episode()]);
-    }
+    else {
+      panic!("Expected Episodes")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episodes
+        .items,
+      vec![episode()]
+    );
+    assert_eq!(episodes, vec![episode()]);
   }
 
   #[tokio::test]
@@ -353,38 +354,39 @@ mod tests {
     app_arc.lock().await.server_tabs.next();
     let mut network = test_network(&app_arc);
 
-    if let SonarrSerdeable::Episodes(episodes) = network
+    let SonarrSerdeable::Episodes(episodes) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodes(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episodes
-          .is_empty()
-      );
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episodes
-          .sort_asc
-      );
-      assert_eq!(episodes, expected_episodes);
-    }
+    else {
+      panic!("Expected Episodes")
+    };
+    async_server.assert_async().await;
+    assert!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episodes
+        .is_empty()
+    );
+    assert!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episodes
+        .sort_asc
+    );
+    assert_eq!(episodes, expected_episodes);
   }
 
   #[tokio::test]
@@ -409,27 +411,28 @@ mod tests {
     app_arc.lock().await.server_tabs.next();
     let mut network = test_network(&app_arc);
 
-    if let SonarrSerdeable::EpisodeFiles(episode_files) = network
+    let SonarrSerdeable::EpisodeFiles(episode_files) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_files
-          .items,
-        vec![episode_file()]
-      );
-      assert_eq!(episode_files, vec![episode_file()]);
-    }
+    else {
+      panic!("Expected EpisodeFiles")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_files
+        .items,
+      vec![episode_file()]
+    );
+    assert_eq!(episode_files, vec![episode_file()]);
   }
 
   #[tokio::test]
@@ -452,36 +455,37 @@ mod tests {
     app_arc.lock().await.server_tabs.next();
     let mut network = test_network(&app_arc);
 
-    if let SonarrSerdeable::EpisodeFiles(episode_files) = network
+    let SonarrSerdeable::EpisodeFiles(episode_files) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeFiles(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .is_some()
-      );
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_files
-          .items,
-        vec![episode_file()]
-      );
-      assert_eq!(episode_files, vec![episode_file()]);
-    }
+    else {
+      panic!("Expected EpisodeFiles")
+    };
+    async_server.assert_async().await;
+    assert!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .is_some()
+    );
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_files
+        .items,
+      vec![episode_file()]
+    );
+    assert_eq!(episode_files, vec![episode_file()]);
   }
 
   #[tokio::test]
@@ -569,45 +573,46 @@ mod tests {
     app_arc.lock().await.server_tabs.next();
     let mut network = test_network(&app_arc);
 
-    if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
+    let SonarrSerdeable::SonarrHistoryWrapper(history) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeHistory(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_history
-          .items,
-        expected_history_items
-      );
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_history
-          .sort_asc
-      );
-      assert_eq!(history, response);
-    }
+    else {
+      panic!("Expected SonarrHistoryWrapper")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_history
+        .items,
+      expected_history_items
+    );
+    assert!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_history
+        .sort_asc
+    );
+    assert_eq!(history, response);
   }
 
   #[tokio::test]
@@ -673,45 +678,46 @@ mod tests {
     app_arc.lock().await.server_tabs.next();
     let mut network = test_network(&app_arc);
 
-    if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
+    let SonarrSerdeable::SonarrHistoryWrapper(history) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeHistory(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_history
-          .items,
-        expected_history_items
-      );
-      assert!(
-        !app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_history
-          .sort_asc
-      );
-      assert_eq!(history, response);
-    }
+    else {
+      panic!("Expected SonarrHistoryWrapper")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_history
+        .items,
+      expected_history_items
+    );
+    assert!(
+      !app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_history
+        .sort_asc
+    );
+    assert_eq!(history, response);
   }
 
   #[tokio::test]
@@ -765,45 +771,46 @@ mod tests {
     app_arc.lock().await.server_tabs.next();
     let mut network = test_network(&app_arc);
 
-    if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
+    let SonarrSerdeable::SonarrHistoryWrapper(history) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeHistory(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_history
-          .items,
-        expected_history_items
-      );
-      assert!(
-        !app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_history
-          .sort_asc
-      );
-      assert_eq!(history, response);
-    }
+    else {
+      panic!("Expected SonarrHistoryWrapper")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_history
+        .items,
+      expected_history_items
+    );
+    assert!(
+      !app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_history
+        .sort_asc
+    );
+    assert_eq!(history, response);
   }
 
   #[tokio::test]
@@ -827,44 +834,30 @@ mod tests {
     app_arc.lock().await.server_tabs.next();
     let mut network = test_network(&app_arc);
 
-    if let SonarrSerdeable::Episode(episode) = network
+    let SonarrSerdeable::Episode(episode) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .is_some()
-      );
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_tabs
-          .get_active_route(),
-        ActiveSonarrBlock::EpisodeHistory.into()
-      );
-      assert_eq!(episode, response);
-
-      let app = app_arc.lock().await;
-      let episode_details_modal = app
+    else {
+      panic!("Expected Episode")
+    };
+    async_server.assert_async().await;
+    assert!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .is_some()
+    );
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
         .data
         .sonarr_data
         .season_details_modal
@@ -872,52 +865,67 @@ mod tests {
         .unwrap()
         .episode_details_modal
         .as_ref()
-        .unwrap();
-      assert_str_eq!(
-        episode_details_modal.episode_details.get_text(),
-        formatdoc!(
-          "Title: Something cool
-          Season: 1
-          Episode Number: 1
-          Air Date: 2024-02-10 07:28:45 UTC
-          Status: Downloaded
-          Description: Okay so this one time at band camp..."
-        )
-      );
-      assert_str_eq!(
-        episode_details_modal.file_details,
-        formatdoc!(
-          "Relative Path: /season 1/episode 1.mkv
-          Absolute Path: /nfs/tv/series/season 1/episode 1.mkv
-          Size: 3.30 GB
-          Language: English
-          Date Added: 2024-02-10 07:28:45 UTC"
-        )
-      );
-      assert_str_eq!(
-        episode_details_modal.audio_details,
-        formatdoc!(
-          "Bitrate: 0
-          Channels: 7.1
-          Codec: AAC
-          Languages: eng
-          Stream Count: 1"
-        )
-      );
-      assert_str_eq!(
-        episode_details_modal.video_details,
-        formatdoc!(
-          "Bit Depth: 10
-          Bitrate: 0
-          Codec: x265
-          FPS: 23.976
-          Resolution: 1920x1080
-          Scan Type: Progressive
-          Runtime: 23:51
-          Subtitles: English"
-        )
-      );
-    }
+        .unwrap()
+        .episode_details_tabs
+        .get_active_route(),
+      ActiveSonarrBlock::EpisodeHistory.into()
+    );
+    assert_eq!(episode, response);
+
+    let app = app_arc.lock().await;
+    let episode_details_modal = app
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_ref()
+      .unwrap()
+      .episode_details_modal
+      .as_ref()
+      .unwrap();
+    assert_str_eq!(
+      episode_details_modal.episode_details.get_text(),
+      formatdoc!(
+        "Title: Something cool
+        Season: 1
+        Episode Number: 1
+        Air Date: 2024-02-10 07:28:45 UTC
+        Status: Downloaded
+        Description: Okay so this one time at band camp..."
+      )
+    );
+    assert_str_eq!(
+      episode_details_modal.file_details,
+      formatdoc!(
+        "Relative Path: /season 1/episode 1.mkv
+        Absolute Path: /nfs/tv/series/season 1/episode 1.mkv
+        Size: 3.30 GB
+        Language: English
+        Date Added: 2024-02-10 07:28:45 UTC"
+      )
+    );
+    assert_str_eq!(
+      episode_details_modal.audio_details,
+      formatdoc!(
+        "Bitrate: 0
+        Channels: 7.1
+        Codec: AAC
+        Languages: eng
+        Stream Count: 1"
+      )
+    );
+    assert_str_eq!(
+      episode_details_modal.video_details,
+      formatdoc!(
+        "Bit Depth: 10
+        Bitrate: 0
+        Codec: x265
+        FPS: 23.976
+        Resolution: 1920x1080
+        Scan Type: Progressive
+        Runtime: 23:51
+        Subtitles: English"
+      )
+    );
   }
 
   #[tokio::test]
@@ -938,81 +946,82 @@ mod tests {
     app_arc.lock().await.server_tabs.next();
     let mut network = test_network(&app_arc);
 
-    if let SonarrSerdeable::Episode(episode) = network
+    let SonarrSerdeable::Episode(episode) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .is_some()
-      );
-      assert_eq!(episode, response);
-
-      let app = app_arc.lock().await;
-      let episode_details_modal = app
+    else {
+      panic!("Expected Episode")
+    };
+    async_server.assert_async().await;
+    assert!(
+      app_arc
+        .lock()
+        .await
         .data
         .sonarr_data
         .season_details_modal
         .as_ref()
         .unwrap()
         .episode_details_modal
-        .as_ref()
-        .unwrap();
-      assert_str_eq!(
-        episode_details_modal.episode_details.get_text(),
-        formatdoc!(
-          "Title: Something cool
-          Season: 1
-          Episode Number: 1
-          Air Date: 2024-02-10 07:28:45 UTC
-          Status: Downloaded
-          Description: Okay so this one time at band camp..."
-        )
-      );
-      assert_str_eq!(
-        episode_details_modal.file_details,
-        formatdoc!(
-          "Relative Path: /season 1/episode 1.mkv
-          Absolute Path: /nfs/tv/series/season 1/episode 1.mkv
-          Size: 3.30 GB
-          Language: English
-          Date Added: 2024-02-10 07:28:45 UTC"
-        )
-      );
-      assert_str_eq!(
-        episode_details_modal.audio_details,
-        formatdoc!(
-          "Bitrate: 0
-          Channels: 7.1
-          Codec: AAC
-          Languages: eng
-          Stream Count: 1"
-        )
-      );
-      assert_str_eq!(
-        episode_details_modal.video_details,
-        formatdoc!(
-          "Bit Depth: 10
-          Bitrate: 0
-          Codec: x265
-          FPS: 23.976
-          Resolution: 1920x1080
-          Scan Type: Progressive
-          Runtime: 23:51
-          Subtitles: English"
-        )
-      );
-    }
+        .is_some()
+    );
+    assert_eq!(episode, response);
+
+    let app = app_arc.lock().await;
+    let episode_details_modal = app
+      .data
+      .sonarr_data
+      .season_details_modal
+      .as_ref()
+      .unwrap()
+      .episode_details_modal
+      .as_ref()
+      .unwrap();
+    assert_str_eq!(
+      episode_details_modal.episode_details.get_text(),
+      formatdoc!(
+        "Title: Something cool
+        Season: 1
+        Episode Number: 1
+        Air Date: 2024-02-10 07:28:45 UTC
+        Status: Downloaded
+        Description: Okay so this one time at band camp..."
+      )
+    );
+    assert_str_eq!(
+      episode_details_modal.file_details,
+      formatdoc!(
+        "Relative Path: /season 1/episode 1.mkv
+        Absolute Path: /nfs/tv/series/season 1/episode 1.mkv
+        Size: 3.30 GB
+        Language: English
+        Date Added: 2024-02-10 07:28:45 UTC"
+      )
+    );
+    assert_str_eq!(
+      episode_details_modal.audio_details,
+      formatdoc!(
+        "Bitrate: 0
+        Channels: 7.1
+        Codec: AAC
+        Languages: eng
+        Stream Count: 1"
+      )
+    );
+    assert_str_eq!(
+      episode_details_modal.video_details,
+      formatdoc!(
+        "Bit Depth: 10
+        Bitrate: 0
+        Codec: x265
+        FPS: 23.976
+        Resolution: 1920x1080
+        Scan Type: Progressive
+        Runtime: 23:51
+        Subtitles: English"
+      )
+    );
   }
 
   #[tokio::test]
@@ -1027,14 +1036,15 @@ mod tests {
     app_arc.lock().await.server_tabs.next();
     let mut network = test_network(&app_arc);
 
-    if let SonarrSerdeable::Episode(episode) = network
+    let SonarrSerdeable::Episode(episode) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeDetails(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(episode, response);
-    }
+    else {
+      panic!("Expected Episode")
+    };
+    async_server.assert_async().await;
+    assert_eq!(episode, response);
   }
 
   #[tokio::test]
@@ -1092,30 +1102,31 @@ mod tests {
     app_arc.lock().await.server_tabs.next();
     let mut network = test_network(&app_arc);
 
-    if let SonarrSerdeable::Releases(releases_vec) = network
+    let SonarrSerdeable::Releases(releases_vec) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_releases
-          .items,
-        vec![release()]
-      );
-      assert_eq!(releases_vec, vec![release()]);
-    }
+    else {
+      panic!("Expected Releases")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_releases
+        .items,
+      vec![release()]
+    );
+    assert_eq!(releases_vec, vec![release()]);
   }
 
   #[tokio::test]
@@ -1146,30 +1157,31 @@ mod tests {
     app_arc.lock().await.server_tabs.next();
     let mut network = test_network(&app_arc);
 
-    if let SonarrSerdeable::Releases(releases_vec) = network
+    let SonarrSerdeable::Releases(releases_vec) = network
       .handle_sonarr_event(SonarrEvent::GetEpisodeReleases(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_releases
-          .items,
-        vec![release()]
-      );
-      assert_eq!(releases_vec, vec![release()]);
-    }
+    else {
+      panic!("Expected Releases")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app_arc
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_releases
+        .items,
+      vec![release()]
+    );
+    assert_eq!(releases_vec, vec![release()]);
   }
 
   #[tokio::test]

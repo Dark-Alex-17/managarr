@@ -65,17 +65,18 @@ mod tests {
       .await;
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::RootFolders(root_folders) = network
+    let RadarrSerdeable::RootFolders(root_folders) = network
       .handle_radarr_event(RadarrEvent::GetRootFolders)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.radarr_data.root_folders.items,
-        vec![root_folder()]
-      );
-      assert_eq!(root_folders, response);
-    }
+    else {
+      panic!("Expected RootFolders")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.root_folders.items,
+      vec![root_folder()]
+    );
+    assert_eq!(root_folders, response);
   }
 }

@@ -33,14 +33,15 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::HostConfig(host_config) = network
+    let SonarrSerdeable::HostConfig(host_config) = network
       .handle_sonarr_event(SonarrEvent::GetHostConfig)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(host_config, response);
-    }
+    else {
+      panic!("Expected HostConfig")
+    };
+    mock.assert_async().await;
+    assert_eq!(host_config, response);
   }
 
   #[tokio::test]
@@ -84,26 +85,27 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::LogResponse(logs) = network
+    let SonarrSerdeable::LogResponse(logs) = network
       .handle_sonarr_event(SonarrEvent::GetLogs(500))
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(app.lock().await.data.sonarr_data.logs.items, expected_logs);
-      assert!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .logs
-          .current_selection()
-          .text
-          .contains("INFO")
-      );
-      assert_eq!(logs, response);
-    }
+    else {
+      panic!("Expected LogResponse")
+    };
+    mock.assert_async().await;
+    assert_eq!(app.lock().await.data.sonarr_data.logs.items, expected_logs);
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .logs
+        .current_selection()
+        .text
+        .contains("INFO")
+    );
+    assert_eq!(logs, response);
   }
 
   #[tokio::test]
@@ -134,18 +136,19 @@ mod tests {
       },
     ];
 
-    if let SonarrSerdeable::DiskSpaces(disk_space) = network
+    let SonarrSerdeable::DiskSpaces(disk_space) = network
       .handle_sonarr_event(SonarrEvent::GetDiskSpace)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.sonarr_data.disk_space_vec,
-        disk_space_vec
-      );
-      assert_eq!(disk_space, disk_space_vec);
-    }
+    else {
+      panic!("Expected DiskSpaces")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.disk_space_vec,
+      disk_space_vec
+    );
+    assert_eq!(disk_space, disk_space_vec);
   }
 
   #[tokio::test]
@@ -180,18 +183,19 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::QueueEvents(events) = network
+    let SonarrSerdeable::QueueEvents(events) = network
       .handle_sonarr_event(SonarrEvent::GetQueuedEvents)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.sonarr_data.queued_events.items,
-        vec![expected_event]
-      );
-      assert_eq!(events, response);
-    }
+    else {
+      panic!("Expected QueueEvents")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.queued_events.items,
+      vec![expected_event]
+    );
+    assert_eq!(events, response);
   }
 
   #[tokio::test]
@@ -213,14 +217,15 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SecurityConfig(security_config) = network
+    let SonarrSerdeable::SecurityConfig(security_config) = network
       .handle_sonarr_event(SonarrEvent::GetSecurityConfig)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(security_config, response);
-    }
+    else {
+      panic!("Expected SecurityConfig")
+    };
+    mock.assert_async().await;
+    assert_eq!(security_config, response);
   }
 
   #[tokio::test]
@@ -236,22 +241,23 @@ mod tests {
     let mut network = test_network(&app);
     let date_time = DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap());
 
-    if let SonarrSerdeable::SystemStatus(status) = network
+    let SonarrSerdeable::SystemStatus(status) = network
       .handle_sonarr_event(SonarrEvent::GetStatus)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_str_eq!(app.lock().await.data.sonarr_data.version, "v1");
-      assert_eq!(app.lock().await.data.sonarr_data.start_time, date_time);
-      assert_eq!(
-        status,
-        SystemStatus {
-          version: "v1".to_owned(),
-          start_time: date_time
-        }
-      );
-    }
+    else {
+      panic!("Expected SystemStatus")
+    };
+    mock.assert_async().await;
+    assert_str_eq!(app.lock().await.data.sonarr_data.version, "v1");
+    assert_eq!(app.lock().await.data.sonarr_data.start_time, date_time);
+    assert_eq!(
+      status,
+      SystemStatus {
+        version: "v1".to_owned(),
+        start_time: date_time
+      }
+    );
   }
 
   #[tokio::test]
@@ -295,18 +301,19 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Tasks(tasks) = network
+    let SonarrSerdeable::Tasks(tasks) = network
       .handle_sonarr_event(SonarrEvent::GetTasks)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.sonarr_data.tasks.items,
-        expected_tasks
-      );
-      assert_eq!(tasks, response);
-    }
+    else {
+      panic!("Expected Tasks")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.tasks.items,
+      expected_tasks
+    );
+    assert_eq!(tasks, response);
   }
 
   #[tokio::test]
@@ -385,25 +392,26 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Updates(updates) = network
+    let SonarrSerdeable::Updates(updates) = network
       .handle_sonarr_event(SonarrEvent::GetUpdates)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      let actual_text = app.lock().await.data.sonarr_data.updates.get_text();
-      let expected = expected_text.get_text();
+    else {
+      panic!("Expected Updates")
+    };
+    mock.assert_async().await;
+    let actual_text = app.lock().await.data.sonarr_data.updates.get_text();
+    let expected = expected_text.get_text();
 
-      // Trim trailing whitespace from each line for comparison
-      let actual_trimmed: Vec<&str> = actual_text.lines().map(|l| l.trim_end()).collect();
-      let expected_trimmed: Vec<&str> = expected.lines().map(|l| l.trim_end()).collect();
+    // Trim trailing whitespace from each line for comparison
+    let actual_trimmed: Vec<&str> = actual_text.lines().map(|l| l.trim_end()).collect();
+    let expected_trimmed: Vec<&str> = expected.lines().map(|l| l.trim_end()).collect();
 
-      assert_eq!(
-        actual_trimmed, expected_trimmed,
-        "Updates text mismatch (after trimming trailing whitespace)"
-      );
-      assert_eq!(updates, response);
-    }
+    assert_eq!(
+      actual_trimmed, expected_trimmed,
+      "Updates text mismatch (after trimming trailing whitespace)"
+    );
+    assert_eq!(updates, response);
   }
 
   #[tokio::test]
@@ -431,15 +439,16 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Value(value) = network
+    let SonarrSerdeable::Value(value) = network
       .handle_sonarr_event(SonarrEvent::StartTask(
         SonarrTaskName::ApplicationUpdateCheck,
       ))
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(value, response);
-    }
+    else {
+      panic!("Expected Value")
+    };
+    mock.assert_async().await;
+    assert_eq!(value, response);
   }
 }

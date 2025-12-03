@@ -409,14 +409,15 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Series(series) = network
+    let SonarrSerdeable::Series(series) = network
       .handle_sonarr_event(SonarrEvent::GetSeriesDetails(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(series, expected_series);
-    }
+    else {
+      panic!("Expected Series")
+    };
+    async_server.assert_async().await;
+    assert_eq!(series, expected_series);
   }
 
   #[rstest]
@@ -500,38 +501,39 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SonarrHistoryItems(history_items) = network
+    let SonarrSerdeable::SonarrHistoryItems(history_items) = network
       .handle_sonarr_event(SonarrEvent::GetSeriesHistory(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(app.lock().await.data.sonarr_data.series_history.is_some());
-      assert_eq!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .items,
-        expected_history_items
-      );
-      assert!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .sort_asc
-      );
-      assert_eq!(history_items, response);
-    }
+    else {
+      panic!("Expected SonarrHistoryItems")
+    };
+    async_server.assert_async().await;
+    assert!(app.lock().await.data.sonarr_data.series_history.is_some());
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .series_history
+        .as_ref()
+        .unwrap()
+        .items,
+      expected_history_items
+    );
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .series_history
+        .as_ref()
+        .unwrap()
+        .sort_asc
+    );
+    assert_eq!(history_items, response);
   }
 
   #[tokio::test]
@@ -592,38 +594,39 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SonarrHistoryItems(history_items) = network
+    let SonarrSerdeable::SonarrHistoryItems(history_items) = network
       .handle_sonarr_event(SonarrEvent::GetSeriesHistory(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(app.lock().await.data.sonarr_data.series_history.is_some());
-      assert_eq!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .items,
-        expected_history_items
-      );
-      assert!(
-        !app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .sort_asc
-      );
-      assert_eq!(history_items, response);
-    }
+    else {
+      panic!("Expected SonarrHistoryItems")
+    };
+    async_server.assert_async().await;
+    assert!(app.lock().await.data.sonarr_data.series_history.is_some());
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .series_history
+        .as_ref()
+        .unwrap()
+        .items,
+      expected_history_items
+    );
+    assert!(
+      !app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .series_history
+        .as_ref()
+        .unwrap()
+        .sort_asc
+    );
+    assert_eq!(history_items, response);
   }
 
   #[tokio::test]
@@ -690,37 +693,38 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SonarrHistoryItems(history_items) = network
+    let SonarrSerdeable::SonarrHistoryItems(history_items) = network
       .handle_sonarr_event(SonarrEvent::GetSeriesHistory(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(app.lock().await.data.sonarr_data.series_history.is_some());
-      assert!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .is_empty()
-      );
-      assert!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .sort_asc
-      );
-      assert_eq!(history_items, response);
-    }
+    else {
+      panic!("Expected SonarrHistoryItems")
+    };
+    async_server.assert_async().await;
+    assert!(app.lock().await.data.sonarr_data.series_history.is_some());
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .series_history
+        .as_ref()
+        .unwrap()
+        .is_empty()
+    );
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .series_history
+        .as_ref()
+        .unwrap()
+        .sort_asc
+    );
+    assert_eq!(history_items, response);
   }
 
   #[rstest]
@@ -784,19 +788,20 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SeriesVec(series) = network
+    let SonarrSerdeable::SeriesVec(series) = network
       .handle_sonarr_event(SonarrEvent::ListSeries)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.sonarr_data.series.items,
-        expected_sorted_series
-      );
-      assert!(app.lock().await.data.sonarr_data.series.sort_asc);
-      assert_eq!(series, expected_series);
-    }
+    else {
+      panic!("Expected SeriesVec")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.series.items,
+      expected_sorted_series
+    );
+    assert!(app.lock().await.data.sonarr_data.series.sort_asc);
+    assert_eq!(series, expected_series);
   }
 
   #[tokio::test]
@@ -872,35 +877,36 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::AddSeriesSearchResults(add_series_search_results) = network
+    let SonarrSerdeable::AddSeriesSearchResults(add_series_search_results) = network
       .handle_sonarr_event(SonarrEvent::SearchNewSeries("test term".into()))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .add_searched_series
-          .is_some()
-      );
-      assert_eq!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .add_searched_series
-          .as_ref()
-          .unwrap()
-          .items,
-        vec![add_series_search_result()]
-      );
-      assert_eq!(add_series_search_results, vec![add_series_search_result()]);
-    }
+    else {
+      panic!("Expected AddSeriesSearchResults")
+    };
+    async_server.assert_async().await;
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .add_searched_series
+        .is_some()
+    );
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .add_searched_series
+        .as_ref()
+        .unwrap()
+        .items,
+      vec![add_series_search_result()]
+    );
+    assert_eq!(add_series_search_results, vec![add_series_search_result()]);
   }
 
   #[tokio::test]

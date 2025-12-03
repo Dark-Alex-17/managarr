@@ -635,18 +635,19 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Indexers(indexers) = network
+    let SonarrSerdeable::Indexers(indexers) = network
       .handle_sonarr_event(SonarrEvent::GetIndexers)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.sonarr_data.indexers.items,
-        vec![indexer()]
-      );
-      assert_eq!(indexers, response);
-    }
+    else {
+      panic!("Expected Indexers")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.indexers.items,
+      vec![indexer()]
+    );
+    assert_eq!(indexers, response);
   }
 
   #[tokio::test]
@@ -706,19 +707,20 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Value(value) = network
+    let SonarrSerdeable::Value(value) = network
       .handle_sonarr_event(SonarrEvent::TestIndexer(1))
       .await
       .unwrap()
-    {
-      async_details_server.assert_async().await;
-      async_test_server.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.sonarr_data.indexer_test_errors,
-        Some("\"test failure\"".to_owned())
-      );
-      assert_eq!(value, response_json)
-    }
+    else {
+      panic!("Expected Value")
+    };
+    async_details_server.assert_async().await;
+    async_test_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.indexer_test_errors,
+      Some("\"test failure\"".to_owned())
+    );
+    assert_eq!(value, response_json);
   }
 
   #[tokio::test]
@@ -771,19 +773,20 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Value(value) = network
+    let SonarrSerdeable::Value(value) = network
       .handle_sonarr_event(SonarrEvent::TestIndexer(1))
       .await
       .unwrap()
-    {
-      async_details_server.assert_async().await;
-      async_test_server.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.sonarr_data.indexer_test_errors,
-        Some(String::new())
-      );
-      assert_eq!(value, json!({}));
-    }
+    else {
+      panic!("Expected Value")
+    };
+    async_details_server.assert_async().await;
+    async_test_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.indexer_test_errors,
+      Some(String::new())
+    );
+    assert_eq!(value, json!({}));
   }
 
   #[tokio::test]
@@ -850,34 +853,35 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::IndexerTestResults(results) = network
+    let SonarrSerdeable::IndexerTestResults(results) = network
       .handle_sonarr_event(SonarrEvent::TestAllIndexers)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .indexer_test_all_results
-          .is_some()
-      );
-      assert_eq!(
-        app
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .indexer_test_all_results
-          .as_ref()
-          .unwrap()
-          .items,
-        indexer_test_results_modal_items
-      );
-      assert_eq!(results, response);
-    }
+    else {
+      panic!("Expected IndexerTestResults")
+    };
+    async_server.assert_async().await;
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .indexer_test_all_results
+        .is_some()
+    );
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .indexer_test_all_results
+        .as_ref()
+        .unwrap()
+        .items,
+      indexer_test_results_modal_items
+    );
+    assert_eq!(results, response);
   }
 }

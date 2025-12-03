@@ -60,18 +60,19 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    if let SonarrSerdeable::DownloadsResponse(downloads) = network
+    let SonarrSerdeable::DownloadsResponse(downloads) = network
       .handle_sonarr_event(SonarrEvent::GetDownloads(500))
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.sonarr_data.downloads.items,
-        downloads_response().records
-      );
-      assert_eq!(downloads, response);
-    }
+    else {
+      panic!("Expected DownloadsResponse")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.downloads.items,
+      downloads_response().records
+    );
+    assert_eq!(downloads, response);
   }
 
   #[tokio::test]

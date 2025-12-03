@@ -277,19 +277,20 @@ mod tests {
     }
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::Collections(collections) = network
+    let RadarrSerdeable::Collections(collections) = network
       .handle_radarr_event(RadarrEvent::GetCollections)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.radarr_data.collections.items,
-        expected_collections
-      );
-      assert!(app.lock().await.data.radarr_data.collections.sort_asc);
-      assert_eq!(collections, response);
-    }
+    else {
+      panic!("Expected Collections")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.collections.items,
+      expected_collections
+    );
+    assert!(app.lock().await.data.radarr_data.collections.sort_asc);
+    assert_eq!(collections, response);
   }
 
   #[tokio::test]

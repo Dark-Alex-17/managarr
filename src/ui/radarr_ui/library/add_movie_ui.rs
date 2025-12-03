@@ -31,11 +31,10 @@ pub(super) struct AddMovieUi;
 
 impl DrawUi for AddMovieUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
-      return ADD_MOVIE_BLOCKS.contains(&active_radarr_block);
-    }
-
-    false
+    let Route::Radarr(active_radarr_block, _) = route else {
+      return false;
+    };
+    ADD_MOVIE_BLOCKS.contains(&active_radarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

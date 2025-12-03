@@ -195,19 +195,20 @@ mod tests {
     }
     let mut network = test_network(&app);
 
-    if let RadarrSerdeable::BlocklistResponse(blocklist) = network
+    let RadarrSerdeable::BlocklistResponse(blocklist) = network
       .handle_radarr_event(RadarrEvent::GetBlocklist)
       .await
       .unwrap()
-    {
-      mock.assert_async().await;
-      assert_eq!(
-        app.lock().await.data.radarr_data.blocklist.items,
-        expected_blocklist
-      );
-      assert!(app.lock().await.data.radarr_data.blocklist.sort_asc);
-      assert_eq!(blocklist, response);
-    }
+    else {
+      panic!("Expected BlocklistResponse")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.blocklist.items,
+      expected_blocklist
+    );
+    assert!(app.lock().await.data.radarr_data.blocklist.sort_asc);
+    assert_eq!(blocklist, response);
   }
 
   #[tokio::test]
