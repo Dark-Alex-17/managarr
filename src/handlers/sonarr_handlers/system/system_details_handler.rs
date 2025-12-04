@@ -196,4 +196,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemDetailsHandler
       self.app.pop_navigation_stack();
     }
   }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
+  }
 }

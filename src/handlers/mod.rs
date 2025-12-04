@@ -93,6 +93,18 @@ pub trait KeyEventHandler<'a, 'b, T: Into<Route> + Copy> {
   fn handle_submit(&mut self);
   fn handle_esc(&mut self);
   fn handle_char_key_event(&mut self);
+
+  /// Returns a mutable reference to the application state.
+  ///
+  /// This method is used by the trait-based table handler to modify app state during
+  /// table operations (e.g., navigation stack, loading flags).
+  fn app_mut(&mut self) -> &mut App<'b>;
+
+  /// Returns the current navigation route.
+  ///
+  /// This method is used by the trait-based table handler to determine which screen
+  /// or mode is currently active, enabling context-aware event handling.
+  fn current_route(&self) -> Route;
 }
 
 pub fn handle_events(key: Key, app: &mut App<'_>) {

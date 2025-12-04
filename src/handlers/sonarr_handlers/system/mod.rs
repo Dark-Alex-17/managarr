@@ -124,4 +124,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemHandler<'a, 'b
       }
     }
   }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
+  }
 }

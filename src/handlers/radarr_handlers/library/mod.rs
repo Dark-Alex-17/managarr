@@ -7,15 +7,15 @@ use crate::handlers::radarr_handlers::library::edit_movie_handler::EditMovieHand
 use crate::handlers::radarr_handlers::library::movie_details_handler::MovieDetailsHandler;
 use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
 
-use crate::handlers::table_handler::TableHandlingConfig;
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
+use crate::matches_key;
 use crate::models::radarr_models::Movie;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, DELETE_MOVIE_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS, LIBRARY_BLOCKS,
 };
 use crate::models::stateful_table::SortOption;
-use crate::models::{BlockSelectionState, HorizontallyScrollableText};
+use crate::models::{BlockSelectionState, HorizontallyScrollableText, Route};
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_table_events, matches_key};
 
 mod add_movie_handler;
 mod delete_movie_handler;
@@ -34,7 +34,6 @@ pub(super) struct LibraryHandler<'a, 'b> {
 }
 
 impl LibraryHandler<'_, '_> {
-  handle_table_events!(self, movies, self.app.data.radarr_data.movies, Movie);
   fn extract_movie_id(&self) -> i64 {
     self.app.data.radarr_data.movies.current_selection().id
   }
@@ -52,7 +51,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
       .filter_error_block(ActiveRadarrBlock::FilterMoviesError.into())
       .filter_field_fn(|movie| &movie.title.text);
 
-    if !self.handle_movies_table_events(movie_table_handling_config) {
+    if !handle_table(
+      self,
+      |app| &mut app.data.radarr_data.movies,
+      movie_table_handling_config,
+    ) {
       match self.active_radarr_block {
         _ if AddMovieHandler::accepts(self.active_radarr_block) => {
           AddMovieHandler::new(self.key, self.app, self.active_radarr_block, self.context).handle();
@@ -214,6 +217,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for LibraryHandler<'a, '
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> Route {
+    self.app.get_current_route()
   }
 }
 

@@ -1,13 +1,13 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
-use crate::handlers::table_handler::TableHandlingConfig;
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_clear_errors};
+use crate::matches_key;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTORY_BLOCKS};
 use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::SonarrHistoryItem;
 use crate::models::stateful_table::SortOption;
-use crate::{handle_table_events, matches_key};
 
 #[cfg(test)]
 #[path = "history_handler_tests.rs"]
@@ -20,14 +20,7 @@ pub(super) struct HistoryHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
-impl HistoryHandler<'_, '_> {
-  handle_table_events!(
-    self,
-    history,
-    self.app.data.sonarr_data.history,
-    SonarrHistoryItem
-  );
-}
+impl HistoryHandler<'_, '_> {}
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, 'b> {
   fn handle(&mut self) {
@@ -41,7 +34,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, '
       .filter_error_block(ActiveSonarrBlock::FilterHistoryError.into())
       .filter_field_fn(|history| &history.source_title.text);
 
-    if !self.handle_history_table_events(history_table_handling_config) {
+    if !handle_table(
+      self,
+      |app| &mut app.data.sonarr_data.history,
+      history_table_handling_config,
+    ) {
       self.handle_key_event();
     }
   }
@@ -118,6 +115,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, '
         _ => (),
       }
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }
 

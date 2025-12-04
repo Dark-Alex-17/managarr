@@ -3,8 +3,9 @@ use crate::event::Key;
 use crate::handlers::radarr_handlers::collections::collection_details_handler::CollectionDetailsHandler;
 use crate::handlers::radarr_handlers::collections::edit_collection_handler::EditCollectionHandler;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
-use crate::handlers::table_handler::TableHandlingConfig;
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
+use crate::matches_key;
 use crate::models::BlockSelectionState;
 use crate::models::radarr_models::Collection;
 use crate::models::servarr_data::radarr::radarr_data::{
@@ -12,7 +13,6 @@ use crate::models::servarr_data::radarr::radarr_data::{
 };
 use crate::models::stateful_table::SortOption;
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_table_events, matches_key};
 
 mod collection_details_handler;
 mod edit_collection_handler;
@@ -28,14 +28,7 @@ pub(super) struct CollectionsHandler<'a, 'b> {
   context: Option<ActiveRadarrBlock>,
 }
 
-impl CollectionsHandler<'_, '_> {
-  handle_table_events!(
-    self,
-    collections,
-    self.app.data.radarr_data.collections,
-    Collection
-  );
-}
+impl CollectionsHandler<'_, '_> {}
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'a, 'b> {
   fn handle(&mut self) {
@@ -50,7 +43,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
         .filter_error_block(ActiveRadarrBlock::FilterCollectionsError.into())
         .filter_field_fn(|collection| &collection.title.text);
 
-    if !self.handle_collections_table_events(collections_table_handling_config) {
+    if !handle_table(
+      self,
+      |app| &mut app.data.radarr_data.collections,
+      collections_table_handling_config,
+    ) {
       match self.active_radarr_block {
         _ if CollectionDetailsHandler::accepts(self.active_radarr_block) => {
           CollectionDetailsHandler::new(self.key, self.app, self.active_radarr_block, self.context)
@@ -176,6 +173,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }
 

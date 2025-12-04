@@ -6,7 +6,6 @@ use edit_series_handler::EditSeriesHandler;
 use crate::{
   app::App,
   event::Key,
-  handle_table_events,
   handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle},
   matches_key,
   models::{
@@ -25,7 +24,7 @@ use super::handle_change_tab_left_right_keys;
 use crate::handlers::sonarr_handlers::library::episode_details_handler::EpisodeDetailsHandler;
 use crate::handlers::sonarr_handlers::library::season_details_handler::SeasonDetailsHandler;
 use crate::handlers::sonarr_handlers::library::series_details_handler::SeriesDetailsHandler;
-use crate::handlers::table_handler::TableHandlingConfig;
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 
 mod add_series_handler;
 mod delete_series_handler;
@@ -45,7 +44,6 @@ pub(super) struct LibraryHandler<'a, 'b> {
 }
 
 impl LibraryHandler<'_, '_> {
-  handle_table_events!(self, series, self.app.data.sonarr_data.series, Series);
   fn extract_series_id(&self) -> i64 {
     self.app.data.sonarr_data.series.current_selection().id
   }
@@ -63,7 +61,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
       .filter_error_block(ActiveSonarrBlock::FilterSeriesError.into())
       .filter_field_fn(|series| &series.title.text);
 
-    if !self.handle_series_table_events(series_table_handling_config) {
+    if !handle_table(
+      self,
+      |app| &mut app.data.sonarr_data.series,
+      series_table_handling_config,
+    ) {
       match self.active_sonarr_block {
         _ if AddSeriesHandler::accepts(self.active_sonarr_block) => {
           AddSeriesHandler::new(self.key, self.app, self.active_sonarr_block, self.context)
@@ -237,6 +239,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }
 

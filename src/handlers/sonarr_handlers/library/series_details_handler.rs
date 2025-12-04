@@ -1,15 +1,15 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::history::history_sorting_options;
-use crate::handlers::table_handler::TableHandlingConfig;
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
+use crate::matches_key;
 use crate::models::BlockSelectionState;
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, EDIT_SERIES_SELECTION_BLOCKS, SERIES_DETAILS_BLOCKS,
 };
 use crate::models::sonarr_models::{Season, SonarrHistoryItem};
 use crate::network::sonarr_network::SonarrEvent;
-use crate::{handle_table_events, matches_key};
 
 #[cfg(test)]
 #[path = "series_details_handler_tests.rs"]
@@ -23,20 +23,6 @@ pub(super) struct SeriesDetailsHandler<'a, 'b> {
 }
 
 impl SeriesDetailsHandler<'_, '_> {
-  handle_table_events!(self, season, self.app.data.sonarr_data.seasons, Season);
-  handle_table_events!(
-    self,
-    series_history,
-    self
-      .app
-      .data
-      .sonarr_data
-      .series_history
-      .as_mut()
-      .expect("Series history is undefined"),
-    SonarrHistoryItem
-  );
-
   fn extract_series_id_season_number_tuple(&self) -> (i64, i64) {
     let series_id = self.app.data.sonarr_data.series.current_selection().id;
     let season_number = self
@@ -78,9 +64,22 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         .filter_error_block(ActiveSonarrBlock::FilterSeriesHistoryError.into())
         .filter_field_fn(|history_item: &SonarrHistoryItem| &history_item.source_title.text);
 
-    if !self.handle_season_table_events(season_table_handling_config)
-      && !self.handle_series_history_table_events(series_history_table_handling_config)
-    {
+    if !handle_table(
+      self,
+      |app| &mut app.data.sonarr_data.seasons,
+      season_table_handling_config,
+    ) && !handle_table(
+      self,
+      |app| {
+        app
+          .data
+          .sonarr_data
+          .series_history
+          .as_mut()
+          .expect("Series history is undefined")
+      },
+      series_history_table_handling_config,
+    ) {
       self.handle_key_event();
     }
   }
@@ -337,5 +336,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }

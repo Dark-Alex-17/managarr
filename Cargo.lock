@@ -1386,7 +1386,6 @@ dependencies = [
  "mockall",
  "mockito",
  "openssl",
- "paste",
  "pretty_assertions",
  "ratatui",
  "regex",

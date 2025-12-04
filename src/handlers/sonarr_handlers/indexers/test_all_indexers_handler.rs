@@ -1,9 +1,7 @@
 use crate::app::App;
 use crate::event::Key;
-use crate::handle_table_events;
 use crate::handlers::KeyEventHandler;
-use crate::handlers::table_handler::TableHandlingConfig;
-use crate::models::servarr_data::modals::IndexerTestResultModalItem;
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 
 #[cfg(test)]
@@ -17,29 +15,25 @@ pub(super) struct TestAllIndexersHandler<'a, 'b> {
   _context: Option<ActiveSonarrBlock>,
 }
 
-impl TestAllIndexersHandler<'_, '_> {
-  handle_table_events!(
-    self,
-    indexer_test_all_results,
-    self
-      .app
-      .data
-      .sonarr_data
-      .indexer_test_all_results
-      .as_mut()
-      .unwrap(),
-    IndexerTestResultModalItem
-  );
-}
+impl TestAllIndexersHandler<'_, '_> {}
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for TestAllIndexersHandler<'a, 'b> {
   fn handle(&mut self) {
     let indexer_test_all_results_table_handling_config =
       TableHandlingConfig::new(ActiveSonarrBlock::TestAllIndexers.into());
 
-    if !self
-      .handle_indexer_test_all_results_table_events(indexer_test_all_results_table_handling_config)
-    {
+    if !handle_table(
+      self,
+      |app| {
+        app
+          .data
+          .sonarr_data
+          .indexer_test_all_results
+          .as_mut()
+          .unwrap()
+      },
+      indexer_test_all_results_table_handling_config,
+    ) {
       self.handle_key_event();
     }
   }
@@ -102,4 +96,12 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for TestAllIndexersHandl
   }
 
   fn handle_char_key_event(&mut self) {}
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
+  }
 }

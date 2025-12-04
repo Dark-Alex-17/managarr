@@ -4,16 +4,15 @@ use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::sonarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
 use crate::handlers::sonarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
 use crate::handlers::sonarr_handlers::indexers::test_all_indexers_handler::TestAllIndexersHandler;
-use crate::handlers::table_handler::TableHandlingConfig;
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
+use crate::matches_key;
 use crate::models::BlockSelectionState;
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
   INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS,
 };
-use crate::models::servarr_models::Indexer;
 use crate::network::sonarr_network::SonarrEvent;
-use crate::{handle_table_events, matches_key};
 
 mod edit_indexer_handler;
 mod edit_indexer_settings_handler;
@@ -31,8 +30,6 @@ pub(super) struct IndexersHandler<'a, 'b> {
 }
 
 impl IndexersHandler<'_, '_> {
-  handle_table_events!(self, indexers, self.app.data.sonarr_data.indexers, Indexer);
-
   fn extract_indexer_id(&self) -> i64 {
     self.app.data.sonarr_data.indexers.current_selection().id
   }
@@ -43,7 +40,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexersHandler<'a, 
     let indexers_table_handling_config =
       TableHandlingConfig::new(ActiveSonarrBlock::Indexers.into());
 
-    if !self.handle_indexers_table_events(indexers_table_handling_config) {
+    if !handle_table(
+      self,
+      |app| &mut app.data.sonarr_data.indexers,
+      indexers_table_handling_config,
+    ) {
       match self.active_sonarr_block {
         _ if EditIndexerHandler::accepts(self.active_sonarr_block) => {
           EditIndexerHandler::new(self.key, self.app, self.active_sonarr_block, self.context)
@@ -204,5 +205,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexersHandler<'a, 
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }

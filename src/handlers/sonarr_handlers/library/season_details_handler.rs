@@ -1,8 +1,9 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::history::history_sorting_options;
-use crate::handlers::table_handler::TableHandlingConfig;
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
+use crate::matches_key;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SEASON_DETAILS_BLOCKS};
 use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::{
@@ -10,7 +11,6 @@ use crate::models::sonarr_models::{
 };
 use crate::models::stateful_table::SortOption;
 use crate::network::sonarr_network::SonarrEvent;
-use crate::{handle_table_events, matches_key};
 use serde_json::Number;
 
 #[cfg(test)]
@@ -25,46 +25,6 @@ pub(super) struct SeasonDetailsHandler<'a, 'b> {
 }
 
 impl SeasonDetailsHandler<'_, '_> {
-  handle_table_events!(
-    self,
-    episodes,
-    self
-      .app
-      .data
-      .sonarr_data
-      .season_details_modal
-      .as_mut()
-      .expect("Season details modal is undefined")
-      .episodes,
-    Episode
-  );
-  handle_table_events!(
-    self,
-    season_history,
-    self
-      .app
-      .data
-      .sonarr_data
-      .season_details_modal
-      .as_mut()
-      .expect("Season details modal is undefined")
-      .season_history,
-    SonarrHistoryItem
-  );
-  handle_table_events!(
-    self,
-    season_releases,
-    self
-      .app
-      .data
-      .sonarr_data
-      .season_details_modal
-      .as_mut()
-      .expect("Season details modal is undefined")
-      .season_releases,
-    SonarrRelease
-  );
-
   fn extract_episode_file_id(&self) -> i64 {
     self
       .app
@@ -126,10 +86,43 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
         .sorting_block(ActiveSonarrBlock::ManualSeasonSearchSortPrompt.into())
         .sort_options(releases_sorting_options());
 
-    if !self.handle_episodes_table_events(episodes_table_handling_config)
-      && !self.handle_season_history_table_events(season_history_table_handling_config)
-      && !self.handle_season_releases_table_events(season_releases_table_handling_config)
-    {
+    if !handle_table(
+      self,
+      |app| {
+        &mut app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_mut()
+          .expect("Season details modal is undefined")
+          .episodes
+      },
+      episodes_table_handling_config,
+    ) && !handle_table(
+      self,
+      |app| {
+        &mut app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_mut()
+          .expect("Season details modal is undefined")
+          .season_history
+      },
+      season_history_table_handling_config,
+    ) && !handle_table(
+      self,
+      |app| {
+        &mut app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_mut()
+          .expect("Season details modal is undefined")
+          .season_releases
+      },
+      season_releases_table_handling_config,
+    ) {
       self.handle_key_event();
     }
   }
@@ -459,6 +452,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }
 

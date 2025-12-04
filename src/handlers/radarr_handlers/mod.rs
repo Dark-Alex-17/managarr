@@ -107,6 +107,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
   fn handle_esc(&mut self) {}
 
   fn handle_char_key_event(&mut self) {}
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
+  }
 }
 
 pub fn handle_change_tab_left_right_keys(app: &mut App<'_>, key: Key) {

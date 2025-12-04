@@ -1,13 +1,13 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
-use crate::handlers::table_handler::TableHandlingConfig;
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
+use crate::matches_key;
 use crate::models::radarr_models::BlocklistItem;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, BLOCKLIST_BLOCKS};
 use crate::models::stateful_table::SortOption;
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_table_events, matches_key};
 
 #[cfg(test)]
 #[path = "blocklist_handler_tests.rs"]
@@ -21,13 +21,6 @@ pub(super) struct BlocklistHandler<'a, 'b> {
 }
 
 impl BlocklistHandler<'_, '_> {
-  handle_table_events!(
-    self,
-    blocklist,
-    self.app.data.radarr_data.blocklist,
-    BlocklistItem
-  );
-
   fn extract_blocklist_item_id(&self) -> i64 {
     self.app.data.radarr_data.blocklist.current_selection().id
   }
@@ -40,7 +33,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
         .sorting_block(ActiveRadarrBlock::BlocklistSortPrompt.into())
         .sort_options(blocklist_sorting_options());
 
-    if !self.handle_blocklist_table_events(blocklist_table_handling_config) {
+    if !handle_table(
+      self,
+      |app| &mut app.data.radarr_data.blocklist,
+      blocklist_table_handling_config,
+    ) {
       self.handle_key_event();
     }
   }
@@ -175,6 +172,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }
 

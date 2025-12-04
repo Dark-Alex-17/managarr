@@ -2,11 +2,10 @@ use serde_json::Number;
 
 use crate::app::App;
 use crate::event::Key;
-use crate::handlers::table_handler::TableHandlingConfig;
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
-use crate::models::radarr_models::{
-  Credit, MovieHistoryItem, RadarrRelease, RadarrReleaseDownloadBody,
-};
+use crate::matches_key;
+use crate::models::radarr_models::{RadarrRelease, RadarrReleaseDownloadBody};
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, EDIT_MOVIE_SELECTION_BLOCKS, MOVIE_DETAILS_BLOCKS,
 };
@@ -14,7 +13,6 @@ use crate::models::servarr_models::Language;
 use crate::models::stateful_table::SortOption;
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
-use crate::{handle_table_events, matches_key};
 
 #[cfg(test)]
 #[path = "movie_details_handler_tests.rs"]
@@ -28,59 +26,6 @@ pub(super) struct MovieDetailsHandler<'a, 'b> {
 }
 
 impl MovieDetailsHandler<'_, '_> {
-  handle_table_events!(
-    self,
-    movie_releases,
-    self
-      .app
-      .data
-      .radarr_data
-      .movie_details_modal
-      .as_mut()
-      .unwrap()
-      .movie_releases,
-    RadarrRelease
-  );
-  handle_table_events!(
-    self,
-    movie_history,
-    self
-      .app
-      .data
-      .radarr_data
-      .movie_details_modal
-      .as_mut()
-      .unwrap()
-      .movie_history,
-    MovieHistoryItem
-  );
-  handle_table_events!(
-    self,
-    movie_cast,
-    self
-      .app
-      .data
-      .radarr_data
-      .movie_details_modal
-      .as_mut()
-      .unwrap()
-      .movie_cast,
-    Credit
-  );
-  handle_table_events!(
-    self,
-    movie_crew,
-    self
-      .app
-      .data
-      .radarr_data
-      .movie_details_modal
-      .as_mut()
-      .unwrap()
-      .movie_crew,
-    Credit
-  );
-
   fn build_radarr_release_download_body(&self) -> RadarrReleaseDownloadBody {
     let movie_id = self.app.data.radarr_data.movies.current_selection().id;
     let (guid, indexer_id) = {
@@ -122,11 +67,55 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
     let movie_cast_table_handling_config = TableHandlingConfig::new(ActiveRadarrBlock::Cast.into());
     let movie_crew_table_handling_config = TableHandlingConfig::new(ActiveRadarrBlock::Crew.into());
 
-    if !self.handle_movie_history_table_events(movie_history_table_handling_config)
-      && !self.handle_movie_releases_table_events(movie_releases_table_handling_config)
-      && !self.handle_movie_cast_table_events(movie_cast_table_handling_config)
-      && !self.handle_movie_crew_table_events(movie_crew_table_handling_config)
-    {
+    if !handle_table(
+      self,
+      |app| {
+        &mut app
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_mut()
+          .unwrap()
+          .movie_history
+      },
+      movie_history_table_handling_config,
+    ) && !handle_table(
+      self,
+      |app| {
+        &mut app
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_mut()
+          .unwrap()
+          .movie_releases
+      },
+      movie_releases_table_handling_config,
+    ) && !handle_table(
+      self,
+      |app| {
+        &mut app
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_mut()
+          .unwrap()
+          .movie_cast
+      },
+      movie_cast_table_handling_config,
+    ) && !handle_table(
+      self,
+      |app| {
+        &mut app
+          .data
+          .radarr_data
+          .movie_details_modal
+          .as_mut()
+          .unwrap()
+          .movie_crew
+      },
+      movie_crew_table_handling_config,
+    ) {
       self.handle_key_event();
     }
   }
@@ -384,6 +373,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for MovieDetailsHandler<
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }
 
