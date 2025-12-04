@@ -33,7 +33,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for HistoryHandler<'a, '
   fn handle(&mut self) {
     let history_table_handling_config = TableHandlingConfig::new(ActiveSonarrBlock::History.into())
       .sorting_block(ActiveSonarrBlock::HistorySortPrompt.into())
-      .sort_by_fn(|a: &SonarrHistoryItem, b: &SonarrHistoryItem| a.id.cmp(&b.id))
       .sort_options(history_sorting_options())
       .searching_block(ActiveSonarrBlock::SearchHistory.into())
       .search_error_block(ActiveSonarrBlock::SearchHistoryError.into())

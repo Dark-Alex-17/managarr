@@ -55,7 +55,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
   fn handle(&mut self) {
     let series_table_handling_config = TableHandlingConfig::new(ActiveSonarrBlock::Series.into())
       .sorting_block(ActiveSonarrBlock::SeriesSortPrompt.into())
-      .sort_by_fn(|a: &Series, b: &Series| a.id.cmp(&b.id))
       .sort_options(series_sorting_options())
       .searching_block(ActiveSonarrBlock::SearchSeries.into())
       .search_error_block(ActiveSonarrBlock::SearchSeriesError.into())

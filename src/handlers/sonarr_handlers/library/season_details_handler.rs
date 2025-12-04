@@ -115,7 +115,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
       TableHandlingConfig::new(ActiveSonarrBlock::SeasonHistory.into())
         .sorting_block(ActiveSonarrBlock::SeasonHistorySortPrompt.into())
         .sort_options(history_sorting_options())
-        .sort_by_fn(|a: &SonarrHistoryItem, b: &SonarrHistoryItem| a.id.cmp(&b.id))
         .searching_block(ActiveSonarrBlock::SearchSeasonHistory.into())
         .search_error_block(ActiveSonarrBlock::SearchSeasonHistoryError.into())
         .search_field_fn(|history_item: &SonarrHistoryItem| &history_item.source_title.text)

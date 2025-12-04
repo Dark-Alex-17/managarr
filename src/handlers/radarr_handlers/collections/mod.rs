@@ -42,7 +42,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
     let collections_table_handling_config =
       TableHandlingConfig::new(ActiveRadarrBlock::Collections.into())
         .sorting_block(ActiveRadarrBlock::CollectionsSortPrompt.into())
-        .sort_by_fn(|a: &Collection, b: &Collection| a.id.cmp(&b.id))
         .sort_options(collections_sorting_options())
         .searching_block(ActiveRadarrBlock::SearchCollection.into())
         .search_error_block(ActiveRadarrBlock::SearchCollectionError.into())

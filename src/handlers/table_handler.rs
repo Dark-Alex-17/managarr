@@ -1,7 +1,6 @@
 use crate::models::Route;
 use crate::models::stateful_table::SortOption;
 use derive_setters::Setters;
-use std::cmp::Ordering;
 use std::fmt::Debug;
 
 #[cfg(test)]
@@ -17,8 +16,6 @@ where
   pub sorting_block: Option<Route>,
   #[setters(strip_option)]
   pub sort_options: Option<Vec<SortOption<T>>>,
-  #[setters(strip_option)]
-  pub sort_by_fn: Option<fn(&T, &T) -> Ordering>,
   #[setters(strip_option)]
   pub searching_block: Option<Route>,
   #[setters(strip_option)]
@@ -56,16 +53,12 @@ macro_rules! handle_table_events {
             _ if $crate::matches_key!(submit, $self.key) => $self.[<handle_ $name _table_submit>](config),
             _ if $crate::matches_key!(esc, $self.key) => $self.[<handle_ $name _table_esc>](config),
             _ if config.searching_block.is_some()
-              && $self.app.get_current_route() == *config.searching_block
-                .as_ref()
-                .expect("searching_block must be configured for this table") =>
+              && $self.app.get_current_route() == *config.searching_block.as_ref().unwrap() =>
             {
               $self.[<handle_ $name _table_search_box_input>]()
             }
             _ if config.filtering_block.is_some()
-              && $self.app.get_current_route() == *config.filtering_block
-                .as_ref()
-                .expect("filtering_block must be configured for this table") =>
+              && $self.app.get_current_route() == *config.filtering_block.as_ref().unwrap() =>
             {
               $self.[<handle_ $name _table_filter_box_input>]()
             }
@@ -91,11 +84,11 @@ macro_rules! handle_table_events {
             true
           }
           _ if config.sorting_block.is_some()
-            && $self.app.get_current_route() == *config.sorting_block
-              .as_ref()
-              .expect("sorting_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.sorting_block.as_ref().unwrap() =>
           {
-            $table.sort.as_mut().unwrap().scroll_up();
+            if let Some(ref mut sort) = $table.sort {
+              sort.scroll_up();
+            }
             true
           }
           _ => false,
@@ -111,27 +104,12 @@ macro_rules! handle_table_events {
             true
           }
           _ if config.sorting_block.is_some()
-            && $self.app.get_current_route() == *config.sorting_block
-              .as_ref()
-              .expect("sorting_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.sorting_block.as_ref().unwrap() =>
           {
-            $table
-              .sort
-              .as_mut()
-              .unwrap()
-              .scroll_down();
-            true
-          }
-          _ => false,
-        }
-      }
-
-      fn [<handle_ $name _table_page_down>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
-        use $crate::models::Paginated;
-
-        match $self.app.get_current_route() {
-          _ if config.table_block == $self.app.get_current_route() => {
-            $table.page_down();
+            if let Some(ref mut sort) = $table.sort {
+              sort
+                .scroll_down();
+            }
             true
           }
           _ => false,
@@ -141,12 +119,22 @@ macro_rules! handle_table_events {
       fn [<handle_ $name _table_page_up>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
         use $crate::models::Paginated;
 
-        match $self.app.get_current_route() {
-          _ if config.table_block == $self.app.get_current_route() => {
-            $table.page_up();
-            true
-          }
-          _ => false,
+        if config.table_block == $self.app.get_current_route() {
+          $table.page_up();
+          true
+        } else {
+          false
+        }
+      }
+
+      fn [<handle_ $name _table_page_down>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
+        use $crate::models::Paginated;
+
+        if config.table_block == $self.app.get_current_route() {
+          $table.page_down();
+          true
+        } else {
+          false
         }
       }
 
@@ -159,39 +147,27 @@ macro_rules! handle_table_events {
             true
           }
           _ if config.sorting_block.is_some()
-            && $self.app.get_current_route() == *config.sorting_block
-              .as_ref()
-              .expect("sorting_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.sorting_block.as_ref().unwrap() =>
           {
-            $table
-              .sort
-              .as_mut()
-              .unwrap()
-              .scroll_to_top();
+            if let Some(ref mut sort) = $table.sort {
+              sort.scroll_to_top();
+            }
             true
           }
           _ if config.searching_block.is_some()
-            && $self.app.get_current_route() == *config.searching_block
-              .as_ref()
-              .expect("searching_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.searching_block.as_ref().unwrap() =>
           {
-            $table
-              .search
-              .as_mut()
-              .unwrap()
-              .scroll_home();
+            if let Some(ref mut search) = $table.search {
+              search.scroll_home();
+            }
             true
           }
           _ if config.filtering_block.is_some()
-            && $self.app.get_current_route() == *config.filtering_block
-              .as_ref()
-              .expect("filtering_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.filtering_block.as_ref().unwrap() =>
           {
-            $table
-              .filter
-              .as_mut()
-              .unwrap()
-              .scroll_home();
+            if let Some(ref mut filter) = $table.filter {
+              filter.scroll_home();
+            }
             true
           }
           _ => false,
@@ -207,39 +183,27 @@ macro_rules! handle_table_events {
             true
           }
           _ if config.sorting_block.is_some()
-            && $self.app.get_current_route() == *config.sorting_block
-              .as_ref()
-              .expect("sorting_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.sorting_block.as_ref().unwrap() =>
           {
-            $table
-              .sort
-              .as_mut()
-              .unwrap()
-              .scroll_to_bottom();
+            if let Some(ref mut sort) = $table.sort {
+              sort.scroll_to_bottom();
+            }
             true
           }
           _ if config.searching_block.is_some()
-            && $self.app.get_current_route() == *config.searching_block
-              .as_ref()
-              .expect("searching_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.searching_block.as_ref().unwrap() =>
           {
-            $table
-              .search
-              .as_mut()
-              .unwrap()
-              .reset_offset();
+            if let Some(ref mut search) = $table.search {
+              search.reset_offset();
+            }
             true
           }
           _ if config.filtering_block.is_some()
-            && $self.app.get_current_route() == *config.filtering_block
-              .as_ref()
-              .expect("filtering_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.filtering_block.as_ref().unwrap() =>
           {
-            $table
-              .filter
-              .as_mut()
-              .unwrap()
-              .reset_offset();
+            if let Some(ref mut filter) = $table.filter {
+              filter.reset_offset();
+            }
             true
           }
           _ => false,
@@ -249,53 +213,36 @@ macro_rules! handle_table_events {
       fn [<handle_ $name _table_left_right>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
         match $self.app.get_current_route() {
           _ if config.searching_block.is_some()
-            && $self.app.get_current_route() == *config.searching_block
-              .as_ref()
-              .expect("searching_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.searching_block.as_ref().unwrap() =>
           {
-            $crate::handle_text_box_left_right_keys!(
-              $self,
-              $self.key,
-              $table.search.as_mut().unwrap()
-            );
+            if let Some(ref mut search) = $table.search {
+              $crate::handle_text_box_left_right_keys!($self, $self.key, search);
+            }
             true
           }
           _ if config.filtering_block.is_some()
-            && $self.app.get_current_route() == *config.filtering_block
-              .as_ref()
-              .expect("filtering_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.filtering_block.as_ref().unwrap() =>
           {
-            $crate::handle_text_box_left_right_keys!(
-              $self,
-              $self.key,
-              $table.filter.as_mut().unwrap()
-            );
+            if let Some(ref mut filter) = $table.filter {
+              $crate::handle_text_box_left_right_keys!($self, $self.key, filter);
+            }
             true
           }
           _ => false,
         }
       }
 
-      fn [<handle _$name _table_submit>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
+      fn [<handle_ $name _table_submit>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
         match $self.app.get_current_route() {
           _ if config.sorting_block.is_some()
-            && $self.app.get_current_route() == *config.sorting_block
-              .as_ref()
-              .expect("sorting_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.sorting_block.as_ref().unwrap() =>
           {
-            if let Some(sort_by_fn) = config.sort_by_fn {
-              $table.items.sort_by(sort_by_fn);
-            }
-
             $table.apply_sorting();
             $self.app.pop_navigation_stack();
-
             true
           }
           _ if config.searching_block.is_some()
-            && $self.app.get_current_route() == *config.searching_block
-              .as_ref()
-              .expect("searching_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.searching_block.as_ref().unwrap() =>
           {
             $self.app.pop_navigation_stack();
             $self.app.ignore_special_keys_for_textbox_input = false;
@@ -318,9 +265,7 @@ macro_rules! handle_table_events {
             true
           }
           _ if config.filtering_block.is_some()
-            && $self.app.get_current_route() == *config.filtering_block
-              .as_ref()
-              .expect("filtering_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.filtering_block.as_ref().unwrap() =>
           {
             $self.app.pop_navigation_stack();
             $self.app.ignore_special_keys_for_textbox_input = false;
@@ -349,21 +294,15 @@ macro_rules! handle_table_events {
       fn [<handle_ $name _table_esc>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
         match $self.app.get_current_route() {
           _ if config.sorting_block.is_some()
-            && $self.app.get_current_route() == *config.sorting_block
-              .as_ref()
-              .expect("sorting_block must be configured for this table") =>
+            && $self.app.get_current_route() == *config.sorting_block.as_ref().unwrap() =>
           {
             $self.app.pop_navigation_stack();
             true
           }
           _ if (config.searching_block.is_some()
-            && $self.app.get_current_route() == *config.searching_block
-              .as_ref()
-              .expect("searching_block must be configured for this table"))
+            && $self.app.get_current_route() == *config.searching_block.as_ref().unwrap())
             || (config.search_error_block.is_some()
-              && $self.app.get_current_route() == *config.search_error_block
-                .as_ref()
-                .expect("search_error_block must be configured for this table")) =>
+              && $self.app.get_current_route() == *config.search_error_block.as_ref().unwrap()) =>
           {
             $self.app.pop_navigation_stack();
             $table.reset_search();
@@ -371,13 +310,9 @@ macro_rules! handle_table_events {
             true
           }
           _ if (config.filtering_block.is_some()
-            && $self.app.get_current_route() == *config.filtering_block
-              .as_ref()
-              .expect("filtering_block must be configured for this table"))
+            && $self.app.get_current_route() == *config.filtering_block.as_ref().unwrap())
             || (config.filter_error_block.is_some()
-              && $self.app.get_current_route() == *config.filter_error_block
-                .as_ref()
-                .expect("filter_error_block must be configured for this table")) =>
+              && $self.app.get_current_route() == *config.filter_error_block.as_ref().unwrap()) =>
           {
             $self.app.pop_navigation_stack();
             $table.reset_filter();
@@ -394,68 +329,67 @@ macro_rules! handle_table_events {
         }
       }
 
-      fn [<handle_ $name _table_filter_key>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
-        if matches!($self.app.get_current_route(), _ if config.table_block == $self.app.get_current_route()) {
-          $self
-            .app
-            .push_navigation_stack(config.filtering_block.expect("Filtering block is undefined").into());
-          $table.reset_filter();
-          $table.filter = Some($crate::models::HorizontallyScrollableText::default());
-          $self.app.ignore_special_keys_for_textbox_input = true;
-
-          true
-        } else {
-          false
-        }
-      }
-
-      fn [<handle_ $name _table_search_key>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
-        if matches!($self.app.get_current_route(), _ if config.table_block == $self.app.get_current_route()) {
-          $self
-            .app
-            .push_navigation_stack(config.searching_block.expect("Searching block is undefined"));
-          $table.search = Some($crate::models::HorizontallyScrollableText::default());
-          $self.app.ignore_special_keys_for_textbox_input = true;
-
-          true
-        } else {
-          false
-        }
-      }
-
-      fn [<handle_ $name _table_sort_key>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
-        if matches!($self.app.get_current_route(), _ if config.table_block == $self.app.get_current_route()) {
-          $table.sorting(
-            config
-              .sort_options
-              .as_ref()
-              .expect("Sort options are undefined")
-              .clone(),
-          );
-          $self
-            .app
-            .push_navigation_stack(config.sorting_block.expect("Sorting block is undefined"));
-          true
-        } else {
-          false
-        }
-      }
-
       fn [<handle_ $name _table_search_box_input>](&mut $self) -> bool {
-        $crate::handle_text_box_keys!(
-          $self,
-          $self.key,
-          $table.search.as_mut().unwrap()
-        );
+        let Some(ref mut search) = $table.search else {
+          return false;
+        };
+
+        $crate::handle_text_box_keys!($self, $self.key, search);
         true
       }
 
       fn [<handle_ $name _table_filter_box_input>](&mut $self) -> bool {
-        $crate::handle_text_box_keys!(
-          $self,
-          $self.key,
-          $table.filter.as_mut().unwrap()
-        );
+        let Some(ref mut filter) = $table.filter else {
+          return false;
+        };
+
+        $crate::handle_text_box_keys!($self, $self.key, filter);
+        true
+      }
+
+      fn [<handle_ $name _table_filter_key>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
+				if $self.app.get_current_route() != config.table_block {
+					return false;
+				}
+
+        let Some(ref filtering_block) = config.filtering_block else {
+          return false;
+        };
+
+        let filter = $crate::models::HorizontallyScrollableText::default();
+        $table.filter = Some(filter);
+        $self.app.push_navigation_stack(*filtering_block);
+        $self.app.ignore_special_keys_for_textbox_input = true;
+        true
+      }
+
+      fn [<handle_ $name _table_search_key>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
+				if $self.app.get_current_route() != config.table_block {
+					return false;
+				}
+
+        let Some(ref searching_block) = config.searching_block else {
+          return false;
+        };
+
+        let search = $crate::models::HorizontallyScrollableText::default();
+        $table.search = Some(search);
+        $self.app.push_navigation_stack(*searching_block);
+        $self.app.ignore_special_keys_for_textbox_input = true;
+        true
+      }
+
+      fn [<handle_ $name _table_sort_key>](&mut $self, config: $crate::handlers::table_handler::TableHandlingConfig<$row>) -> bool {
+				if $self.app.get_current_route() != config.table_block {
+					return false;
+				}
+
+        let (Some(ref sorting_block), Some(sort_options)) = (config.sorting_block, config.sort_options.as_ref()) else {
+          return false;
+        };
+
+        $table.sorting(sort_options.clone());
+        $self.app.push_navigation_stack(*sorting_block);
         true
       }
     }
@@ -467,17 +401,16 @@ where
   T: Clone + PartialEq + Eq + Debug + Default,
 {
   pub fn new(table_block: Route) -> Self {
-    TableHandlingConfig {
+    Self {
+      table_block,
       sorting_block: None,
       sort_options: None,
-      sort_by_fn: None,
       searching_block: None,
       search_error_block: None,
       search_field_fn: None,
       filtering_block: None,
       filter_error_block: None,
       filter_field_fn: None,
-      table_block,
     }
   }
 }

@@ -38,7 +38,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for BlocklistHandler<'a,
     let blocklist_table_handling_config =
       TableHandlingConfig::new(ActiveRadarrBlock::Blocklist.into())
         .sorting_block(ActiveRadarrBlock::BlocklistSortPrompt.into())
-        .sort_by_fn(|a: &BlocklistItem, b: &BlocklistItem| a.id.cmp(&b.id))
         .sort_options(blocklist_sorting_options());
 
     if !self.handle_blocklist_table_events(blocklist_table_handling_config) {

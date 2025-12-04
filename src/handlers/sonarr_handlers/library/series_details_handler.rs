@@ -71,7 +71,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
       TableHandlingConfig::new(ActiveSonarrBlock::SeriesHistory.into())
         .sorting_block(ActiveSonarrBlock::SeriesHistorySortPrompt.into())
         .sort_options(history_sorting_options())
-        .sort_by_fn(|a: &SonarrHistoryItem, b: &SonarrHistoryItem| a.id.cmp(&b.id))
         .searching_block(ActiveSonarrBlock::SearchSeriesHistory.into())
         .search_error_block(ActiveSonarrBlock::SearchSeriesHistoryError.into())
         .search_field_fn(|history_item: &SonarrHistoryItem| &history_item.source_title.text)

@@ -5,7 +5,6 @@ use crate::models::servarr_data::sonarr::sonarr_data::{
   ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, ActiveSonarrBlock,
 };
 use crate::models::sonarr_models::{AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult};
-use crate::models::stateful_table::StatefulTable;
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::sonarr_network::SonarrEvent;
 use crate::{
@@ -33,7 +32,7 @@ impl AddSeriesHandler<'_, '_> {
       .sonarr_data
       .add_searched_series
       .as_mut()
-      .unwrap_or(&mut StatefulTable::default()),
+      .expect("add_searched_series should be initialized"),
     AddSeriesSearchResult
   );
 

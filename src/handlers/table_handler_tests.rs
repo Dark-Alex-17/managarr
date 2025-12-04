@@ -23,7 +23,6 @@ mod tests {
     fn handle(&mut self) {
       let movie_table_handling_config = TableHandlingConfig::new(ActiveRadarrBlock::Movies.into())
         .sorting_block(ActiveRadarrBlock::MoviesSortPrompt.into())
-        .sort_by_fn(|a: &Movie, b: &Movie| a.id.cmp(&b.id))
         .sort_options(sort_options())
         .searching_block(ActiveRadarrBlock::SearchMovie.into())
         .search_error_block(ActiveRadarrBlock::SearchMovieError.into())

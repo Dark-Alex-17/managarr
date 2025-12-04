@@ -6,10 +6,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use colored::Colorize;
 use indicatif::{ProgressBar, ProgressStyle};
-use log::{error, LevelFilter};
+use log::{LevelFilter, error};
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Root};
 use log4rs::encode::pattern::PatternEncoder;
@@ -18,7 +18,7 @@ use reqwest::{Certificate, Client};
 use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
 
-use crate::app::{log_and_print_error, App, AppConfig};
+use crate::app::{App, AppConfig, log_and_print_error};
 use crate::cli::{self, Command};
 use crate::network::Network;
 use crate::ui::theme::ThemeDefinitionsWrapper;
