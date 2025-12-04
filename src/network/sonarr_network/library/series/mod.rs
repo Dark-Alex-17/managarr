@@ -307,29 +307,21 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<SonarrHistoryItem>>(request_props, |mut history_vec, mut app| {
-        if app.data.sonarr_data.series_history.is_none() {
-          app.data.sonarr_data.series_history = Some(StatefulTable::default());
-        }
-
-        if !matches!(
+        let is_sorting = matches!(
           app.get_current_route(),
           Route::Sonarr(ActiveSonarrBlock::SeriesHistorySortPrompt, _)
-        ) {
+        );
+
+        let series_history = app
+          .data
+          .sonarr_data
+          .series_history
+          .get_or_insert_default();
+
+        if !is_sorting {
           history_vec.sort_by(|a, b| a.id.cmp(&b.id));
-          app
-            .data
-            .sonarr_data
-            .series_history
-            .as_mut()
-            .unwrap()
-            .set_items(history_vec);
-          app
-            .data
-            .sonarr_data
-            .series_history
-            .as_mut()
-            .unwrap()
-            .apply_sorting_toggle(false);
+          series_history.set_items(history_vec);
+          series_history.apply_sorting_toggle(false);
         }
       })
       .await

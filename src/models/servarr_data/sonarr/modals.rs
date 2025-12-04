@@ -45,24 +45,12 @@ impl From<&SonarrData<'_>> for AddSeriesModal {
     add_series_modal
       .series_type_list
       .set_items(Vec::from_iter(SeriesType::iter()));
-    let mut quality_profile_names: Vec<String> = sonarr_data
-      .quality_profile_map
-      .right_values()
-      .cloned()
-      .collect();
-    quality_profile_names.sort();
     add_series_modal
       .quality_profile_list
-      .set_items(quality_profile_names);
-    let mut language_profile_names: Vec<String> = sonarr_data
-      .language_profiles_map
-      .right_values()
-      .cloned()
-      .collect();
-    language_profile_names.sort();
+      .set_items(sonarr_data.sorted_quality_profile_names());
     add_series_modal
       .language_profile_list
-      .set_items(language_profile_names);
+      .set_items(sonarr_data.sorted_language_profile_names());
     add_series_modal
       .root_folder_list
       .set_items(sonarr_data.root_folders.items.to_vec());
@@ -135,18 +123,7 @@ impl From<&SonarrData<'_>> for EditIndexerModal {
         .into();
     }
 
-    edit_indexer_modal.tags = tags
-      .iter()
-      .map(|tag_id| {
-        sonarr_data
-          .tags_map
-          .get_by_left(&tag_id.as_i64().expect("Tag ID must be a valid i64"))
-          .expect("Tag ID must exist in tags map")
-          .clone()
-      })
-      .collect::<Vec<String>>()
-      .join(", ")
-      .into();
+    edit_indexer_modal.tags = sonarr_data.tag_ids_to_display(tags).into();
 
     edit_indexer_modal
   }
@@ -181,18 +158,7 @@ impl From<&SonarrData<'_>> for EditSeriesModal {
       .series_type_list
       .set_items(Vec::from_iter(SeriesType::iter()));
     edit_series_modal.path = path.clone().into();
-    edit_series_modal.tags = tags
-      .iter()
-      .map(|tag_id| {
-        sonarr_data
-          .tags_map
-          .get_by_left(&tag_id.as_i64().expect("Tag ID must be a valid i64"))
-          .expect("Tag ID must exist in tags map")
-          .clone()
-      })
-      .collect::<Vec<String>>()
-      .join(", ")
-      .into();
+    edit_series_modal.tags = sonarr_data.tag_ids_to_display(tags).into();
 
     edit_series_modal.monitored = Some(*monitored);
     edit_series_modal.use_season_folders = Some(*season_folder);
@@ -207,15 +173,9 @@ impl From<&SonarrData<'_>> for EditSeriesModal {
       .state
       .select(series_type_index);
 
-    let mut quality_profile_names: Vec<String> = sonarr_data
-      .quality_profile_map
-      .right_values()
-      .cloned()
-      .collect();
-    quality_profile_names.sort();
     edit_series_modal
       .quality_profile_list
-      .set_items(quality_profile_names);
+      .set_items(sonarr_data.sorted_quality_profile_names());
     let quality_profile_name = sonarr_data
       .quality_profile_map
       .get_by_left(quality_profile_id)
@@ -229,15 +189,9 @@ impl From<&SonarrData<'_>> for EditSeriesModal {
       .quality_profile_list
       .state
       .select(quality_profile_index);
-    let mut language_profile_names: Vec<String> = sonarr_data
-      .language_profiles_map
-      .right_values()
-      .cloned()
-      .collect();
-    language_profile_names.sort();
     edit_series_modal
       .language_profile_list
-      .set_items(language_profile_names);
+      .set_items(sonarr_data.sorted_language_profile_names());
     let language_profile_name = sonarr_data
       .language_profiles_map
       .get_by_left(language_profile_id)

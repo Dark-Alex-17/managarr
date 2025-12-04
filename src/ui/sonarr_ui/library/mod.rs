@@ -112,22 +112,15 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .get_by_left(&series.language_profile_id)
         .expect("Language profile ID must exist in language_profile_map")
         .to_owned();
-      let empty_tag = String::new();
-      let tags = if !series.tags.is_empty() {
-        series
-          .tags
-          .iter()
-          .map(|tag_id| {
-            tags_map
-              .get_by_left(&tag_id.as_i64().expect("Tag ID must be a valid i64"))
-              .unwrap_or(&empty_tag)
-              .clone()
-          })
-          .collect::<Vec<String>>()
-          .join(", ")
-      } else {
-        String::new()
-      };
+      let tags = series
+        .tags
+        .iter()
+        .filter_map(|tag_id| {
+          let id = tag_id.as_i64()?;
+          tags_map.get_by_left(&id).cloned()
+        })
+        .collect::<Vec<_>>()
+        .join(", ");
 
       decorate_series_row_with_style(
         series,

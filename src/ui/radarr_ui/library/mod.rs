@@ -101,22 +101,15 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .get_by_left(&movie.quality_profile_id)
         .expect("Quality profile ID must exist in quality_profile_map")
         .to_owned();
-      let empty_tag = String::new();
-      let tags = if !movie.tags.is_empty() {
-        movie
-          .tags
-          .iter()
-          .map(|tag_id| {
-            tags_map
-              .get_by_left(&tag_id.as_i64().expect("Tag ID must be a valid i64"))
-              .unwrap_or(&empty_tag)
-              .clone()
-          })
-          .collect::<Vec<String>>()
-          .join(", ")
-      } else {
-        String::new()
-      };
+      let tags = movie
+        .tags
+        .iter()
+        .filter_map(|tag_id| {
+          let id = tag_id.as_i64()?;
+          tags_map.get_by_left(&id).cloned()
+        })
+        .collect::<Vec<_>>()
+        .join(", ");
 
       decorate_with_row_style(
         downloads_vec,

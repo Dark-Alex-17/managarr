@@ -65,8 +65,7 @@ pub struct ScrollableText {
 
 impl ScrollableText {
   pub fn with_string(item: String) -> ScrollableText {
-    let items: Vec<&str> = item.split('\n').collect();
-    let items: Vec<String> = items.iter().map(|it| it.to_string()).collect();
+    let items: Vec<String> = item.split('\n').map(str::to_owned).collect();
     ScrollableText { items, offset: 0 }
   }
 

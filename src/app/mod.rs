@@ -57,42 +57,43 @@ impl App<'_> {
     let mut server_tabs = Vec::new();
 
     if let Some(radarr_configs) = config.radarr {
-      let mut idx = 0;
-      for radarr_config in radarr_configs {
+      let mut unnamed_idx = 0;
+      let radarr_tabs = radarr_configs.into_iter().map(|radarr_config| {
         let name = if let Some(name) = radarr_config.name.clone() {
           name
         } else {
-          idx += 1;
-          format!("Radarr {idx}")
+          unnamed_idx += 1;
+          format!("Radarr {unnamed_idx}")
         };
 
-        server_tabs.push(TabRoute {
+        TabRoute {
           title: name,
           route: ActiveRadarrBlock::Movies.into(),
           contextual_help: None,
           config: Some(radarr_config),
-        });
-      }
+        }
+      });
+      server_tabs.extend(radarr_tabs);
     }
 
     if let Some(sonarr_configs) = config.sonarr {
-      let mut idx = 0;
-
-      for sonarr_config in sonarr_configs {
+      let mut unnamed_idx = 0;
+      let sonarr_tabs = sonarr_configs.into_iter().map(|sonarr_config| {
         let name = if let Some(name) = sonarr_config.name.clone() {
           name
         } else {
-          idx += 1;
-          format!("Sonarr {idx}")
+          unnamed_idx += 1;
+          format!("Sonarr {unnamed_idx}")
         };
 
-        server_tabs.push(TabRoute {
+        TabRoute {
           title: name,
           route: ActiveSonarrBlock::Series.into(),
           contextual_help: None,
           config: Some(sonarr_config),
-        });
-      }
+        }
+      });
+      server_tabs.extend(sonarr_tabs);
     }
 
     let weight_sorted_tabs = server_tabs
