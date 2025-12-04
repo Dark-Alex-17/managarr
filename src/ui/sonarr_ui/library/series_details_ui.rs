@@ -333,7 +333,12 @@ fn draw_series_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           ])
           .primary()
         };
-        let mut series_history_table = app.data.sonarr_data.series_history.as_mut().unwrap();
+        let mut series_history_table = app
+          .data
+          .sonarr_data
+          .series_history
+          .as_mut()
+          .expect("series_history must be populated");
         let history_table =
           ManagarrTable::new(Some(&mut series_history_table), history_row_mapping)
             .block(layout_block_top_border())

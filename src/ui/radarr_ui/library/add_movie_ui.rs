@@ -80,13 +80,19 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     Layout::vertical([Constraint::Length(3), Constraint::Fill(0)])
       .margin(1)
       .areas(area);
-  let block_content = &app.data.radarr_data.add_movie_search.as_ref().unwrap().text;
+  let block_content = &app
+    .data
+    .radarr_data
+    .add_movie_search
+    .as_ref()
+    .expect("add_movie_search must be populated")
+    .text;
   let offset = app
     .data
     .radarr_data
     .add_movie_search
     .as_ref()
-    .unwrap()
+    .expect("add_movie_search must be populated")
     .offset
     .load(Ordering::SeqCst);
   let search_results_row_mapping = |movie: &AddMovieSearchResult| {
@@ -260,7 +266,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .radarr_data
         .add_searched_movies
         .as_ref()
-        .unwrap()
+        .expect("add_searched_movies must be populated")
         .current_selection()
         .title
         .text,
@@ -269,7 +275,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .radarr_data
         .add_searched_movies
         .as_ref()
-        .unwrap()
+        .expect("add_searched_movies must be populated")
         .current_selection()
         .overview
         .clone(),
@@ -287,7 +293,12 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     root_folder_list,
     tags,
     ..
-  } = app.data.radarr_data.add_movie_modal.as_ref().unwrap();
+  } = app
+    .data
+    .radarr_data
+    .add_movie_modal
+    .as_ref()
+    .expect("add_movie_modal must exist in this context");
 
   let selected_monitor = monitor_list.current_selection();
   let selected_minimum_availability = minimum_availability_list.current_selection();
@@ -378,7 +389,7 @@ fn draw_add_movie_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
       .radarr_data
       .add_movie_modal
       .as_mut()
-      .unwrap()
+      .expect("add_movie_modal must exist in this context")
       .monitor_list,
     |monitor| ListItem::new(monitor.to_display_str().to_owned()),
   );
@@ -394,7 +405,7 @@ fn draw_add_movie_select_minimum_availability_popup(f: &mut Frame<'_>, app: &mut
       .radarr_data
       .add_movie_modal
       .as_mut()
-      .unwrap()
+      .expect("add_movie_modal must exist in this context")
       .minimum_availability_list,
     |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
   );
@@ -410,7 +421,7 @@ fn draw_add_movie_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App<
       .radarr_data
       .add_movie_modal
       .as_mut()
-      .unwrap()
+      .expect("add_movie_modal must exist in this context")
       .quality_profile_list,
     |quality_profile| ListItem::new(quality_profile.clone()),
   );
@@ -426,7 +437,7 @@ fn draw_add_movie_select_root_folder_popup(f: &mut Frame<'_>, app: &mut App<'_>)
       .radarr_data
       .add_movie_modal
       .as_mut()
-      .unwrap()
+      .expect("add_movie_modal must exist in this context")
       .root_folder_list,
     |root_folder| ListItem::new(root_folder.path.to_owned()),
   );

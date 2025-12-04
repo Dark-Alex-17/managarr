@@ -200,10 +200,14 @@ impl App<'_> {
   }
 
   pub fn get_current_route(&self) -> Route {
-    *self
-      .navigation_stack
-      .last()
-      .unwrap_or(&self.server_tabs.tabs.first().unwrap().route)
+    *self.navigation_stack.last().unwrap_or(
+      &self
+        .server_tabs
+        .tabs
+        .first()
+        .expect("At least one server tab must exist")
+        .route,
+    )
   }
 }
 
@@ -474,8 +478,8 @@ where
 
 fn interpolate_env_vars(s: &str) -> String {
   let result = s.to_string();
-  let scrubbing_regex = Regex::new(r#"[\s\{\}!\$^\(\)\[\]\\\|`'"]+"#).unwrap();
-  let var_regex = Regex::new(r"\$\{(.*?)\}").unwrap();
+  let scrubbing_regex = Regex::new(r#"[\s{}!$^()\[\]\\|`'"]+"#).unwrap();
+  let var_regex = Regex::new(r"\$\{(.*?)}").unwrap();
 
   var_regex
     .replace_all(s, |caps: &regex::Captures<'_>| {

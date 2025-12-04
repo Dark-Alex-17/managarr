@@ -87,7 +87,12 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, are
     monitored,
     path,
     tags,
-  } = app.data.radarr_data.edit_movie_modal.as_ref().unwrap();
+  } = app
+    .data
+    .radarr_data
+    .edit_movie_modal
+    .as_ref()
+    .expect("edit_movie_modal must exist in this context");
   let selected_minimum_availability = minimum_availability_list.current_selection();
   let selected_quality_profile = quality_profile_list.current_selection();
 
@@ -175,7 +180,7 @@ fn draw_edit_movie_select_minimum_availability_popup(f: &mut Frame<'_>, app: &mu
       .radarr_data
       .edit_movie_modal
       .as_mut()
-      .unwrap()
+      .expect("edit_movie_modal must exist in this context")
       .minimum_availability_list,
     |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
   );
@@ -191,7 +196,7 @@ fn draw_edit_movie_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App
       .radarr_data
       .edit_movie_modal
       .as_mut()
-      .unwrap()
+      .expect("edit_movie_modal must exist in this context")
       .quality_profile_list,
     |quality_profile| ListItem::new(quality_profile.clone()),
   );

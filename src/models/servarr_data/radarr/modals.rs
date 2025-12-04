@@ -41,47 +41,53 @@ impl From<&RadarrData<'_>> for EditIndexerModal {
     } = radarr_data.indexers.current_selection();
     let seed_ratio_field_option = fields
       .as_ref()
-      .unwrap()
+      .expect("indexer fields must exist")
       .iter()
-      .find(|field| field.name.as_ref().unwrap() == "seedCriteria.seedRatio");
+      .find(|field| {
+        field.name.as_ref().expect("indexer field name must exist") == "seedCriteria.seedRatio"
+      });
     let seed_ratio_value_option = if let Some(seed_ratio_field) = seed_ratio_field_option {
       seed_ratio_field.value.clone()
     } else {
       None
     };
 
-    edit_indexer_modal.name = name.clone().unwrap().into();
+    edit_indexer_modal.name = name.clone().expect("indexer name must exist").into();
     edit_indexer_modal.enable_rss = Some(*enable_rss);
     edit_indexer_modal.enable_automatic_search = Some(*enable_automatic_search);
     edit_indexer_modal.enable_interactive_search = Some(*enable_interactive_search);
     edit_indexer_modal.priority = *priority;
     edit_indexer_modal.url = fields
       .as_ref()
-      .unwrap()
+      .expect("indexer fields must exist")
       .iter()
-      .find(|field| field.name.as_ref().unwrap() == "baseUrl")
-      .unwrap()
+      .find(|field| field.name.as_ref().expect("indexer field name must exist") == "baseUrl")
+      .expect("baseUrl field must exist")
       .value
       .clone()
-      .unwrap()
+      .expect("baseUrl field value must exist")
       .as_str()
-      .unwrap()
+      .expect("baseUrl field value must be a string")
       .into();
     edit_indexer_modal.api_key = fields
       .as_ref()
-      .unwrap()
+      .expect("indexer fields must exist")
       .iter()
-      .find(|field| field.name.as_ref().unwrap() == "apiKey")
-      .unwrap()
+      .find(|field| field.name.as_ref().expect("indexer field name must exist") == "apiKey")
+      .expect("apiKey field must exist")
       .value
       .clone()
-      .unwrap()
+      .expect("apiKey field value must exist")
       .as_str()
-      .unwrap()
+      .expect("apiKey field value must be a string")
       .into();
 
     if let Some(seed_ratio_value) = seed_ratio_value_option {
-      edit_indexer_modal.seed_ratio = seed_ratio_value.as_f64().unwrap().to_string().into();
+      edit_indexer_modal.seed_ratio = seed_ratio_value
+        .as_f64()
+        .expect("Seed ratio value must be a valid f64")
+        .to_string()
+        .into();
     }
 
     edit_indexer_modal.tags = tags
@@ -89,8 +95,8 @@ impl From<&RadarrData<'_>> for EditIndexerModal {
       .map(|tag_id| {
         radarr_data
           .tags_map
-          .get_by_left(&tag_id.as_i64().unwrap())
-          .unwrap()
+          .get_by_left(&tag_id.as_i64().expect("Tag ID must be a valid i64"))
+          .expect("Tag ID must exist in tags map")
           .clone()
       })
       .collect::<Vec<String>>()
@@ -131,8 +137,8 @@ impl From<&RadarrData<'_>> for EditMovieModal {
       .map(|tag_id| {
         radarr_data
           .tags_map
-          .get_by_left(&tag_id.as_i64().unwrap())
-          .unwrap()
+          .get_by_left(&tag_id.as_i64().expect("Tag ID must be a valid i64"))
+          .expect("Tag ID must exist in tags map")
           .clone()
       })
       .collect::<Vec<String>>()

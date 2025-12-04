@@ -80,14 +80,14 @@ fn draw_add_series_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .sonarr_data
     .add_series_search
     .as_ref()
-    .unwrap()
+    .expect("add_series_search must be populated")
     .text;
   let offset = app
     .data
     .sonarr_data
     .add_series_search
     .as_ref()
-    .unwrap()
+    .expect("add_series_search must be populated")
     .offset
     .load(Ordering::SeqCst);
   let search_results_row_mapping = |series: &AddSeriesSearchResult| {
@@ -232,7 +232,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .sonarr_data
       .add_searched_series
       .as_ref()
-      .unwrap()
+      .expect("add_searched_series must be populated")
       .current_selection()
       .title
       .text,
@@ -241,7 +241,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .sonarr_data
       .add_searched_series
       .as_ref()
-      .unwrap()
+      .expect("add_searched_series must be populated")
       .current_selection()
       .overview
       .clone()
@@ -261,7 +261,12 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     use_season_folder,
     tags,
     ..
-  } = app.data.sonarr_data.add_series_modal.as_ref().unwrap();
+  } = app
+    .data
+    .sonarr_data
+    .add_series_modal
+    .as_ref()
+    .expect("add_series_modal must exist in this context");
 
   let selected_monitor = monitor_list.current_selection();
   let selected_series_type = series_type_list.current_selection();
@@ -367,7 +372,7 @@ fn draw_add_series_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
       .sonarr_data
       .add_series_modal
       .as_mut()
-      .unwrap()
+      .expect("add_series_modal must exist in this context")
       .monitor_list,
     |monitor| ListItem::new(monitor.to_display_str().to_owned()),
   );
@@ -383,7 +388,7 @@ fn draw_add_series_select_series_type_popup(f: &mut Frame<'_>, app: &mut App<'_>
       .sonarr_data
       .add_series_modal
       .as_mut()
-      .unwrap()
+      .expect("add_series_modal must exist in this context")
       .series_type_list,
     |series_type| ListItem::new(series_type.to_display_str().to_owned()),
   );
@@ -399,7 +404,7 @@ fn draw_add_series_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App
       .sonarr_data
       .add_series_modal
       .as_mut()
-      .unwrap()
+      .expect("add_series_modal must exist in this context")
       .quality_profile_list,
     |quality_profile| ListItem::new(quality_profile.clone()),
   );
@@ -415,7 +420,7 @@ fn draw_add_series_select_language_profile_popup(f: &mut Frame<'_>, app: &mut Ap
       .sonarr_data
       .add_series_modal
       .as_mut()
-      .unwrap()
+      .expect("add_series_modal must exist in this context")
       .language_profile_list,
     |language_profile| ListItem::new(language_profile.clone()),
   );
@@ -431,7 +436,7 @@ fn draw_add_series_select_root_folder_popup(f: &mut Frame<'_>, app: &mut App<'_>
       .sonarr_data
       .add_series_modal
       .as_mut()
-      .unwrap()
+      .expect("add_series_modal must exist in this context")
       .root_folder_list,
     |root_folder| ListItem::new(root_folder.path.to_owned()),
   );

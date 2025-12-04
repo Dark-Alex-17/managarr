@@ -99,7 +99,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let certification = movie.certification.clone().unwrap_or_default();
       let quality_profile = quality_profile_map
         .get_by_left(&movie.quality_profile_id)
-        .unwrap()
+        .expect("Quality profile ID must exist in quality_profile_map")
         .to_owned();
       let empty_tag = String::new();
       let tags = if !movie.tags.is_empty() {
@@ -108,7 +108,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .iter()
           .map(|tag_id| {
             tags_map
-              .get_by_left(&tag_id.as_i64().unwrap())
+              .get_by_left(&tag_id.as_i64().expect("Tag ID must be a valid i64"))
               .unwrap_or(&empty_tag)
               .clone()
           })

@@ -55,15 +55,32 @@ where
         return;
       }
 
-      match self.filtered_state.as_ref().unwrap().selected() {
+      match self
+        .filtered_state
+        .as_ref()
+        .expect("filtered_state must exist when filtered_items exists")
+        .selected()
+      {
         Some(i) => {
           if i >= filtered_items.len() - 1 {
-            self.filtered_state.as_mut().unwrap().select_first();
+            self
+              .filtered_state
+              .as_mut()
+              .expect("filtered_state must exist when filtered_items exists")
+              .select_first();
           } else {
-            self.filtered_state.as_mut().unwrap().select_next();
+            self
+              .filtered_state
+              .as_mut()
+              .expect("filtered_state must exist when filtered_items exists")
+              .select_next();
           }
         }
-        None => self.filtered_state.as_mut().unwrap().select_first(),
+        None => self
+          .filtered_state
+          .as_mut()
+          .expect("filtered_state must exist when filtered_items exists")
+          .select_first(),
       };
 
       return;
@@ -91,19 +108,32 @@ where
         return;
       }
 
-      match self.filtered_state.as_ref().unwrap().selected() {
+      match self
+        .filtered_state
+        .as_ref()
+        .expect("filtered_state must exist when filtered_items exists")
+        .selected()
+      {
         Some(i) => {
           if i == 0 {
             self
               .filtered_state
               .as_mut()
-              .unwrap()
+              .expect("filtered_state must exist when filtered_items exists")
               .select(Some(filtered_items.len() - 1));
           } else {
-            self.filtered_state.as_mut().unwrap().select_previous();
+            self
+              .filtered_state
+              .as_mut()
+              .expect("filtered_state must exist when filtered_items exists")
+              .select_previous();
           }
         }
-        None => self.filtered_state.as_mut().unwrap().select_first(),
+        None => self
+          .filtered_state
+          .as_mut()
+          .expect("filtered_state must exist when filtered_items exists")
+          .select_first(),
       };
 
       return;
@@ -131,7 +161,11 @@ where
         return;
       }
 
-      self.filtered_state.as_mut().unwrap().select_first();
+      self
+        .filtered_state
+        .as_mut()
+        .expect("filtered_state must exist when filtered_items exists")
+        .select_first();
       return;
     }
 
@@ -151,7 +185,7 @@ where
       self
         .filtered_state
         .as_mut()
-        .unwrap()
+        .expect("filtered_state must exist when filtered_items exists")
         .select(Some(filtered_items.len() - 1));
       return;
     }
@@ -174,15 +208,24 @@ where
         return;
       }
 
-      match self.filtered_state.as_ref().unwrap().selected() {
+      match self
+        .filtered_state
+        .as_ref()
+        .expect("filtered_state must exist when filtered_items exists")
+        .selected()
+      {
         Some(i) => {
           self
             .filtered_state
             .as_mut()
-            .unwrap()
+            .expect("filtered_state must exist when filtered_items exists")
             .select(Some(i.saturating_add(20) % (filtered_items.len() - 1)));
         }
-        None => self.filtered_state.as_mut().unwrap().select_first(),
+        None => self
+          .filtered_state
+          .as_mut()
+          .expect("filtered_state must exist when filtered_items exists")
+          .select_first(),
       };
 
       return;
@@ -208,16 +251,25 @@ where
         return;
       }
 
-      match self.filtered_state.as_ref().unwrap().selected() {
+      match self
+        .filtered_state
+        .as_ref()
+        .expect("filtered_state must exist when filtered_items exists")
+        .selected()
+      {
         Some(i) => {
           let len = filtered_items.len() - 1;
           self
             .filtered_state
             .as_mut()
-            .unwrap()
+            .expect("filtered_state must exist when filtered_items exists")
             .select(Some((i + len - (20 % len)) % len));
         }
-        None => self.filtered_state.as_mut().unwrap().select_last(),
+        None => self
+          .filtered_state
+          .as_mut()
+          .expect("filtered_state must exist when filtered_items exists")
+          .select_last(),
       };
 
       return;
@@ -278,7 +330,7 @@ where
       &filtered_items[self
         .filtered_state
         .as_ref()
-        .unwrap()
+        .expect("filtered_state must exist when filtered_items exists")
         .selected()
         .unwrap_or(0)]
     } else {

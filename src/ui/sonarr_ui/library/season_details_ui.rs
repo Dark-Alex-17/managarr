@@ -67,7 +67,7 @@ impl DrawUi for SeasonDetailsUi {
             .sonarr_data
             .season_details_modal
             .as_ref()
-            .unwrap()
+            .expect("season_details_modal must exist in this context")
             .season_details_tabs,
         );
         draw_season_details(f, app, content_area);
@@ -103,7 +103,7 @@ impl DrawUi for SeasonDetailsUi {
                 .sonarr_data
                 .season_details_modal
                 .as_ref()
-                .unwrap()
+                .expect("season_details_modal must exist in this context")
                 .episodes
                 .current_selection()
                 .title
@@ -294,7 +294,7 @@ fn draw_season_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .sonarr_data
           .season_details_modal
           .as_mut()
-          .unwrap()
+          .expect("season_details_modal must exist in this context")
           .season_history;
         let history_table =
           ManagarrTable::new(Some(&mut season_history_table), history_row_mapping)
@@ -426,7 +426,7 @@ fn draw_season_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .sonarr_data
           .season_details_modal
           .as_mut()
-          .unwrap()
+          .expect("season_details_modal must exist in this context")
           .season_releases;
         let release_table =
           ManagarrTable::new(Some(&mut season_release_table), season_release_row_mapping)
@@ -467,7 +467,7 @@ fn draw_manual_season_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>
     .sonarr_data
     .season_details_modal
     .as_ref()
-    .unwrap()
+    .expect("season_details_modal must exist in this context")
     .season_releases
     .current_selection();
   let title = if current_selection.rejected {

@@ -80,7 +80,7 @@ pub fn convert_runtime(runtime: i64) -> (i64, i64) {
 }
 
 pub async fn tail_logs(no_color: bool) {
-  let re = Regex::new(r"^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s+<(?P<opid>[^\s>]+)>\s+\[(?P<level>[A-Z]+)\]\s+(?P<logger>[^:]+):(?P<line>\d+)\s+-\s+(?P<message>.*)$").unwrap();
+  let re = Regex::new(r"^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s+<(?P<opid>[^\s>]+)>\s+\[(?P<level>[A-Z]+)]\s+(?P<logger>[^:]+):(?P<line>\d+)\s+-\s+(?P<message>.*)$").unwrap();
   let file_path = get_log_path();
   let file = File::open(&file_path).expect("Cannot open file");
   let mut reader = BufReader::new(file);
@@ -311,11 +311,13 @@ pub fn select_cli_configuration(
   } else {
     match command {
       Command::Radarr(_) => {
-        let default_radarr_config = config.radarr.as_ref().unwrap()[0].clone();
+        let default_radarr_config =
+          config.radarr.as_ref().expect("Radarr config must exist")[0].clone();
         app.server_tabs.select_tab_by_config(&default_radarr_config);
       }
       Command::Sonarr(_) => {
-        let default_sonarr_config = config.sonarr.as_ref().unwrap()[0].clone();
+        let default_sonarr_config =
+          config.sonarr.as_ref().expect("Sonarr config must exist")[0].clone();
         app.server_tabs.select_tab_by_config(&default_sonarr_config);
       }
       _ => (),

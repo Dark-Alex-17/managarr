@@ -472,7 +472,7 @@ fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>) {
     .radarr_data
     .movie_details_modal
     .as_ref()
-    .unwrap()
+    .expect("movie_details_modal must exist in this context")
     .movie_releases
     .current_selection();
   let title = if current_selection.rejected {

@@ -99,7 +99,12 @@ fn draw_edit_series_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, ar
     use_season_folders,
     path,
     tags,
-  } = app.data.sonarr_data.edit_series_modal.as_ref().unwrap();
+  } = app
+    .data
+    .sonarr_data
+    .edit_series_modal
+    .as_ref()
+    .expect("edit_series_modal must exist in this context");
   let selected_series_type = series_type_list.current_selection();
   let selected_quality_profile = quality_profile_list.current_selection();
   let selected_language_profile = language_profile_list.current_selection();
@@ -202,7 +207,7 @@ fn draw_edit_series_select_series_type_popup(f: &mut Frame<'_>, app: &mut App<'_
       .sonarr_data
       .edit_series_modal
       .as_mut()
-      .unwrap()
+      .expect("edit_series_modal must exist in this context")
       .series_type_list,
     |series_type| ListItem::new(series_type.to_display_str().to_owned()),
   );
@@ -218,7 +223,7 @@ fn draw_edit_series_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut Ap
       .sonarr_data
       .edit_series_modal
       .as_mut()
-      .unwrap()
+      .expect("edit_series_modal must exist in this context")
       .quality_profile_list,
     |quality_profile| ListItem::new(quality_profile.clone()),
   );
@@ -234,7 +239,7 @@ fn draw_edit_series_select_language_profile_popup(f: &mut Frame<'_>, app: &mut A
       .sonarr_data
       .edit_series_modal
       .as_mut()
-      .unwrap()
+      .expect("edit_series_modal must exist in this context")
       .language_profile_list,
     |language_profile| ListItem::new(language_profile.clone()),
   );
