@@ -152,7 +152,7 @@ async fn main() -> Result<()> {
         let mut cli = Cli::command();
         generate(shell, &mut cli, "managarr", &mut io::stdout())
       }
-      Command::TailLogs { no_color } => tail_logs(no_color).await,
+      Command::TailLogs { no_color } => tail_logs(no_color).await?,
     },
     None => {
       let app_nw = Arc::clone(&app);

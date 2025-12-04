@@ -6,10 +6,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use colored::Colorize;
 use indicatif::{ProgressBar, ProgressStyle};
-use log::{LevelFilter, error};
+use log::{error, LevelFilter};
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Root};
 use log4rs::encode::pattern::PatternEncoder;
@@ -18,7 +18,7 @@ use reqwest::{Certificate, Client};
 use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
 
-use crate::app::{App, AppConfig, log_and_print_error};
+use crate::app::{log_and_print_error, App, AppConfig};
 use crate::cli::{self, Command};
 use crate::network::Network;
 use crate::ui::theme::ThemeDefinitionsWrapper;
@@ -79,16 +79,15 @@ pub fn convert_runtime(runtime: i64) -> (i64, i64) {
   (hours, minutes)
 }
 
-pub async fn tail_logs(no_color: bool) {
+pub async fn tail_logs(no_color: bool) -> Result<()> {
   let re = Regex::new(r"^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s+<(?P<opid>[^\s>]+)>\s+\[(?P<level>[A-Z]+)]\s+(?P<logger>[^:]+):(?P<line>\d+)\s+-\s+(?P<message>.*)$").unwrap();
   let file_path = get_log_path();
   let file = File::open(&file_path).expect("Cannot open file");
   let mut reader = BufReader::new(file);
 
-  if let Err(e) = reader.seek(SeekFrom::End(0)) {
-    eprintln!("Unable to tail log file: {e:?}");
-    process::exit(1);
-  };
+  reader
+    .seek(SeekFrom::End(0))
+    .with_context(|| "Unable to tail log file")?;
 
   let mut lines = reader.lines();
 
@@ -104,8 +103,7 @@ pub async fn tail_logs(no_color: bool) {
       }
     }
   })
-  .await
-  .unwrap();
+  .await?
 }
 
 fn colorize_log_line(line: &str, re: &Regex) -> String {

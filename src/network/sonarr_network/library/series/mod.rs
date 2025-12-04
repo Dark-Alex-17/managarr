@@ -312,11 +312,7 @@ impl Network<'_, '_> {
           Route::Sonarr(ActiveSonarrBlock::SeriesHistorySortPrompt, _)
         );
 
-        let series_history = app
-          .data
-          .sonarr_data
-          .series_history
-          .get_or_insert_default();
+        let series_history = app.data.sonarr_data.series_history.get_or_insert_default();
 
         if !is_sorting {
           history_vec.sort_by(|a, b| a.id.cmp(&b.id));
