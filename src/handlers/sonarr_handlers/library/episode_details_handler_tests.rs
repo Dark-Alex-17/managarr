@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_navigation_pushed;
-  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::episode_details_handler::EpisodeDetailsHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::episode;
+  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::modals::{EpisodeDetailsModal, SeasonDetailsModal};
   use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
   use crate::models::servarr_data::sonarr::sonarr_data::{
@@ -339,7 +339,6 @@ mod tests {
     use super::*;
     use crate::assert_navigation_popped;
     use crate::event::Key;
-    use pretty_assertions::assert_eq;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -401,16 +400,14 @@ mod tests {
       EpisodeDetailsHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
       assert_navigation_popped!(app, ActiveSonarrBlock::SeasonDetails.into());
-      assert!(
-        app
-          .data
-          .sonarr_data
-          .season_details_modal
-          .as_ref()
-          .unwrap()
-          .episode_details_modal
-          .is_none()
-      );
+      assert!(app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_ref()
+        .unwrap()
+        .episode_details_modal
+        .is_none());
     }
   }
 

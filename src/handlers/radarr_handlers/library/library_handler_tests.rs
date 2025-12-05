@@ -5,18 +5,18 @@ mod tests {
   use std::cmp::Ordering;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_modal_absent;
   use crate::assert_modal_present;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
-  use crate::handlers::radarr_handlers::library::{LibraryHandler, movies_sorting_options};
+  use crate::handlers::radarr_handlers::library::{movies_sorting_options, LibraryHandler};
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::movie;
+  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::{
-    ADD_MOVIE_BLOCKS, ActiveRadarrBlock, DELETE_MOVIE_BLOCKS, EDIT_MOVIE_BLOCKS, LIBRARY_BLOCKS,
+    ActiveRadarrBlock, ADD_MOVIE_BLOCKS, DELETE_MOVIE_BLOCKS, EDIT_MOVIE_BLOCKS, LIBRARY_BLOCKS,
     MOVIE_DETAILS_BLOCKS,
   };
   use crate::models::servarr_models::Language;
@@ -240,14 +240,13 @@ mod tests {
   }
 
   mod test_handle_esc {
-    use pretty_assertions::assert_eq;
     use ratatui::widgets::TableState;
 
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::stateful_table::StatefulTable;
 
     use super::*;
-    use crate::{assert_navigation_popped, assert_navigation_pushed};
+    use crate::assert_navigation_popped;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -302,7 +301,7 @@ mod tests {
     use crate::models::radarr_models::MinimumAvailability;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::servarr_data::radarr::radarr_data::{
-      EDIT_MOVIE_SELECTION_BLOCKS, RadarrData,
+      RadarrData, EDIT_MOVIE_SELECTION_BLOCKS,
     };
 
     use crate::network::radarr_network::RadarrEvent;

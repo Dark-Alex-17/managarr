@@ -2,7 +2,6 @@
 mod tests {
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
-  use crate::assert_navigation_pushed;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::KeybindingHandler;
@@ -12,9 +11,8 @@ mod tests {
 
   mod test_handle_esc {
     use super::*;
-    use crate::assert_navigation_pushed;
+    use crate::assert_modal_absent;
     use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-    use crate::{assert_modal_absent, assert_navigation_popped};
     use pretty_assertions::assert_eq;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;

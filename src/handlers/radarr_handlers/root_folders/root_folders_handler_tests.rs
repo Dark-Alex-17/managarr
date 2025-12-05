@@ -4,18 +4,18 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_modal_absent;
   use crate::assert_modal_present;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::root_folder;
   use crate::handlers::radarr_handlers::root_folders::RootFoldersHandler;
-  use crate::models::HorizontallyScrollableText;
+  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
   use crate::models::servarr_models::{AddRootFolderBody, RootFolder};
+  use crate::models::HorizontallyScrollableText;
 
   mod test_handle_home_end {
     use pretty_assertions::assert_eq;
@@ -367,7 +367,6 @@ mod tests {
   mod test_handle_esc {
     use super::*;
     use crate::assert_navigation_popped;
-    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;

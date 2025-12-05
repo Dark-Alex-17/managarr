@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_modal_absent;
   use crate::assert_modal_present;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
-  use crate::handlers::table_handler::TableHandlingConfig;
   use crate::handlers::table_handler::handle_table;
+  use crate::handlers::table_handler::TableHandlingConfig;
+  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_models::Language;
@@ -916,7 +916,7 @@ mod tests {
     use crate::models::stateful_table::StatefulTable;
 
     use super::*;
-    use crate::{assert_navigation_popped, assert_navigation_pushed};
+    use crate::assert_navigation_popped;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -1008,8 +1008,8 @@ mod tests {
   }
 
   mod test_handle_key_char {
-    use crate::models::HorizontallyScrollableText;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
+    use crate::models::HorizontallyScrollableText;
     use pretty_assertions::{assert_eq, assert_str_eq};
 
     use super::*;

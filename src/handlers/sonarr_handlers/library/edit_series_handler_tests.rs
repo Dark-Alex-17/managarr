@@ -5,14 +5,14 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_modal_absent;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::edit_series_handler::EditSeriesHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
+  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_SERIES_BLOCKS};
   use crate::models::sonarr_models::{EditSeriesParams, Series, SeriesType};
@@ -22,12 +22,12 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
-    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
     use crate::models::servarr_data::sonarr::sonarr_data::EDIT_SERIES_SELECTION_BLOCKS;
+    use crate::models::BlockSelectionState;
 
     use super::*;
-		
+
     #[rstest]
     fn test_edit_series_select_series_type_scroll(
       #[values(DEFAULT_KEYBINDINGS.up.key, DEFAULT_KEYBINDINGS.down.key)] key: Key,
@@ -698,17 +698,15 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(
-        !app
-          .data
-          .sonarr_data
-          .edit_series_modal
-          .as_ref()
-          .unwrap()
-          .path
-          .text
-          .is_empty()
-      );
+      assert!(!app
+        .data
+        .sonarr_data
+        .edit_series_modal
+        .as_ref()
+        .unwrap()
+        .path
+        .text
+        .is_empty());
       assert_navigation_popped!(app, ActiveSonarrBlock::EditSeriesPrompt.into());
     }
 
@@ -733,17 +731,15 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(
-        !app
-          .data
-          .sonarr_data
-          .edit_series_modal
-          .as_mut()
-          .unwrap()
-          .tags
-          .text
-          .is_empty()
-      );
+      assert!(!app
+        .data
+        .sonarr_data
+        .edit_series_modal
+        .as_mut()
+        .unwrap()
+        .tags
+        .text
+        .is_empty());
       assert_navigation_popped!(app, ActiveSonarrBlock::EditSeriesPrompt.into());
     }
 
@@ -1092,7 +1088,6 @@ mod tests {
     use crate::assert_navigation_popped;
     use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
     use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
-    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use super::*;
@@ -1163,10 +1158,10 @@ mod tests {
     use crate::{
       assert_navigation_popped,
       models::{
-        BlockSelectionState,
         servarr_data::sonarr::{
           modals::EditSeriesModal, sonarr_data::EDIT_SERIES_SELECTION_BLOCKS,
         },
+        BlockSelectionState,
       },
       network::sonarr_network::SonarrEvent,
     };

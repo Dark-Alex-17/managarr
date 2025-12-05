@@ -4,14 +4,14 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_modal_absent;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::indexer_settings;
+  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::IndexerSettings;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS,
@@ -21,9 +21,9 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::models::BlockSelectionState;
     use crate::models::radarr_models::IndexerSettings;
     use crate::models::servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS;
+    use crate::models::BlockSelectionState;
 
     use super::*;
 
@@ -269,9 +269,9 @@ mod tests {
   mod test_handle_left_right_action {
     use std::sync::atomic::Ordering;
 
-    use crate::models::BlockSelectionState;
     use crate::models::radarr_models::IndexerSettings;
     use crate::models::servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS;
+    use crate::models::BlockSelectionState;
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -428,8 +428,8 @@ mod tests {
     use crate::{
       assert_navigation_popped,
       models::{
-        BlockSelectionState, radarr_models::IndexerSettings,
-        servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS,
+        radarr_models::IndexerSettings,
+        servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS, BlockSelectionState,
       },
       network::radarr_network::RadarrEvent,
     };
@@ -739,17 +739,15 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(
-        !app
-          .data
-          .radarr_data
-          .indexer_settings
-          .as_ref()
-          .unwrap()
-          .whitelisted_hardcoded_subs
-          .text
-          .is_empty()
-      );
+      assert!(!app
+        .data
+        .radarr_data
+        .indexer_settings
+        .as_ref()
+        .unwrap()
+        .whitelisted_hardcoded_subs
+        .text
+        .is_empty());
       assert_navigation_popped!(app, ActiveRadarrBlock::AllIndexerSettingsPrompt.into());
     }
 
@@ -782,7 +780,7 @@ mod tests {
     use crate::models::radarr_models::IndexerSettings;
 
     use super::*;
-    use crate::{assert_navigation_popped, assert_navigation_pushed};
+    use crate::assert_navigation_popped;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -866,8 +864,8 @@ mod tests {
     use crate::{
       assert_navigation_popped,
       models::{
-        BlockSelectionState, radarr_models::IndexerSettings,
-        servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS,
+        radarr_models::IndexerSettings,
+        servarr_data::radarr::radarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS, BlockSelectionState,
       },
       network::radarr_network::RadarrEvent,
     };

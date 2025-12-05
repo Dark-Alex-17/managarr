@@ -4,13 +4,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::assert_navigation_pushed;
+  use crate::app::App;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::delete_series_handler::DeleteSeriesHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
+  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DELETE_SERIES_BLOCKS};
   use crate::models::sonarr_models::DeleteSeriesParams;
 
@@ -18,8 +17,8 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::sonarr::sonarr_data::DELETE_SERIES_SELECTION_BLOCKS;
+    use crate::models::BlockSelectionState;
 
     use super::*;
 
@@ -87,12 +86,12 @@ mod tests {
   mod test_handle_submit {
     use pretty_assertions::assert_eq;
 
-    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::sonarr::sonarr_data::DELETE_SERIES_SELECTION_BLOCKS;
+    use crate::models::BlockSelectionState;
     use crate::network::sonarr_network::SonarrEvent;
 
     use super::*;
-    use crate::{assert_navigation_popped, assert_navigation_pushed};
+    use crate::assert_navigation_popped;
 
     const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
 
@@ -230,8 +229,7 @@ mod tests {
 
   mod test_handle_esc {
     use super::*;
-    use crate::{assert_navigation_popped, assert_navigation_pushed};
-    use pretty_assertions::assert_eq;
+    use crate::assert_navigation_popped;
     use rstest::rstest;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
@@ -265,7 +263,7 @@ mod tests {
     use crate::{
       assert_navigation_popped,
       models::{
-        BlockSelectionState, servarr_data::sonarr::sonarr_data::DELETE_SERIES_SELECTION_BLOCKS,
+        servarr_data::sonarr::sonarr_data::DELETE_SERIES_SELECTION_BLOCKS, BlockSelectionState,
       },
       network::sonarr_network::SonarrEvent,
     };

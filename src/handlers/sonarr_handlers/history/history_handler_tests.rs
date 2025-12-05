@@ -7,12 +7,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
+  use crate::handlers::sonarr_handlers::history::{history_sorting_options, HistoryHandler};
   use crate::handlers::KeyEventHandler;
-  use crate::handlers::sonarr_handlers::history::{HistoryHandler, history_sorting_options};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTORY_BLOCKS};
   use crate::models::servarr_models::{Language, Quality, QualityWrapper};
   use crate::models::sonarr_models::{SonarrHistoryEventType, SonarrHistoryItem};
@@ -110,7 +110,7 @@ mod tests {
     use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
 
     use super::*;
-    use crate::{assert_navigation_popped, assert_navigation_pushed};
+    use crate::assert_navigation_popped;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 

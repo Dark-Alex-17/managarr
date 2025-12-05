@@ -9,18 +9,18 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::library::add_movie_handler::AddMovieHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::add_movie_body;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::collection_movie;
-  use crate::models::HorizontallyScrollableText;
+  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::{AddMovieSearchResult, MinimumAvailability, MovieMonitor};
   use crate::models::servarr_data::radarr::modals::AddMovieModal;
-  use crate::models::servarr_data::radarr::radarr_data::{ADD_MOVIE_BLOCKS, ActiveRadarrBlock};
+  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
   use crate::models::servarr_models::RootFolder;
+  use crate::models::HorizontallyScrollableText;
   use bimap::BiMap;
 
   mod test_handle_scroll_up_and_down {
@@ -28,9 +28,9 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
-    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
+    use crate::models::BlockSelectionState;
     use crate::simple_stateful_iterable_vec;
 
     use super::*;
@@ -768,11 +768,11 @@ mod tests {
     use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::{
       add_movie_body, add_movie_search_result, collection_movie,
     };
-    use crate::models::BlockSelectionState;
     use crate::models::radarr_models::Movie;
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
     use crate::models::stateful_table::StatefulTable;
+    use crate::models::BlockSelectionState;
     use crate::network::radarr_network::RadarrEvent;
     use bimap::BiMap;
     use pretty_assertions::{assert_eq, assert_str_eq};
@@ -851,39 +851,33 @@ mod tests {
         ActiveRadarrBlock::AddMovieSelectRootFolder
       );
       assert_modal_present!(app.data.radarr_data.add_movie_modal);
-      assert!(
-        !app
-          .data
-          .radarr_data
-          .add_movie_modal
-          .as_ref()
-          .unwrap()
-          .monitor_list
-          .items
-          .is_empty()
-      );
-      assert!(
-        !app
-          .data
-          .radarr_data
-          .add_movie_modal
-          .as_ref()
-          .unwrap()
-          .minimum_availability_list
-          .items
-          .is_empty()
-      );
-      assert!(
-        !app
-          .data
-          .radarr_data
-          .add_movie_modal
-          .as_ref()
-          .unwrap()
-          .quality_profile_list
-          .items
-          .is_empty()
-      );
+      assert!(!app
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_ref()
+        .unwrap()
+        .monitor_list
+        .items
+        .is_empty());
+      assert!(!app
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_ref()
+        .unwrap()
+        .minimum_availability_list
+        .items
+        .is_empty());
+      assert!(!app
+        .data
+        .radarr_data
+        .add_movie_modal
+        .as_ref()
+        .unwrap()
+        .quality_profile_list
+        .items
+        .is_empty());
       assert_str_eq!(
         app
           .data
@@ -1147,7 +1141,6 @@ mod tests {
     use crate::{assert_navigation_popped, simple_stateful_iterable_vec};
 
     use super::*;
-    use crate::assert_navigation_pushed;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -1327,9 +1320,9 @@ mod tests {
         add_movie_body, add_movie_search_result, collection_movie,
       },
       models::{
-        BlockSelectionState,
         servarr_data::radarr::{modals::AddMovieModal, radarr_data::ADD_MOVIE_SELECTION_BLOCKS},
         stateful_table::StatefulTable,
+        BlockSelectionState,
       },
       network::radarr_network::RadarrEvent,
     };

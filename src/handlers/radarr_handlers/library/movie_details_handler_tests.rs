@@ -7,16 +7,16 @@ mod tests {
   use serde_json::Number;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_modal_absent;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::library::movie_details_handler::{
-    MovieDetailsHandler, releases_sorting_options,
+    releases_sorting_options, MovieDetailsHandler,
   };
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::{movie, release};
+  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::{Credit, MovieHistoryItem};
   use crate::models::radarr_models::{RadarrRelease, RadarrReleaseDownloadBody};
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
@@ -432,7 +432,6 @@ mod tests {
     use crate::{assert_movie_info_tabs_reset, assert_navigation_popped};
 
     use super::*;
-    use crate::assert_navigation_pushed;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -496,7 +495,7 @@ mod tests {
     use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::servarr_data::radarr::radarr_data::{
-      EDIT_MOVIE_SELECTION_BLOCKS, RadarrData,
+      RadarrData, EDIT_MOVIE_SELECTION_BLOCKS,
     };
     use crate::network::radarr_network::RadarrEvent;
     use crate::{assert_navigation_popped, test_edit_movie_key};

@@ -3,12 +3,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::system::SystemHandler;
+  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::RadarrTask;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS,
@@ -66,10 +66,9 @@ mod tests {
   }
 
   mod test_handle_esc {
-    use pretty_assertions::assert_eq;
 
     use super::*;
-    use crate::{assert_navigation_popped, assert_navigation_pushed};
+    use crate::assert_navigation_popped;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 

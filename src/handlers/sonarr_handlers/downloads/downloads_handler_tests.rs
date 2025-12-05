@@ -4,13 +4,13 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::downloads::DownloadsHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::download_record;
+  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DOWNLOADS_BLOCKS};
   use crate::models::sonarr_models::DownloadRecord;
 
@@ -133,7 +133,7 @@ mod tests {
     use crate::network::sonarr_network::SonarrEvent;
 
     use super::*;
-    use crate::{assert_navigation_popped, assert_navigation_pushed};
+    use crate::assert_navigation_popped;
 
     const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
 
@@ -198,11 +198,10 @@ mod tests {
   }
 
   mod test_handle_esc {
-    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use super::*;
-    use crate::{assert_navigation_popped, assert_navigation_pushed};
+    use crate::assert_navigation_popped;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 

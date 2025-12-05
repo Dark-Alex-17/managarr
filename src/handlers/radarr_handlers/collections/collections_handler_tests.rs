@@ -7,18 +7,18 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_modal_absent;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::collections::{
-    CollectionsHandler, collections_sorting_options,
+    collections_sorting_options, CollectionsHandler,
   };
+  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::{Collection, CollectionMovie};
   use crate::models::servarr_data::radarr::radarr_data::{
-    ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS, COLLECTIONS_BLOCKS, EDIT_COLLECTION_BLOCKS,
+    ActiveRadarrBlock, COLLECTIONS_BLOCKS, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS,
   };
   use crate::test_handler_delegation;
 
@@ -197,7 +197,6 @@ mod tests {
   mod test_handle_esc {
     use crate::assert_navigation_popped;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
-    use pretty_assertions::assert_eq;
 
     use super::*;
 
@@ -233,9 +232,7 @@ mod tests {
 
       CollectionsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::Collections, None).handle();
 
-      assert_navigation_popped!(app,
-        ActiveRadarrBlock::Collections.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::Collections.into());
       assert!(app.error.text.is_empty());
     }
   }
@@ -248,7 +245,7 @@ mod tests {
     use crate::models::radarr_models::MinimumAvailability;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::servarr_data::radarr::radarr_data::{
-      EDIT_COLLECTION_SELECTION_BLOCKS, RadarrData,
+      RadarrData, EDIT_COLLECTION_SELECTION_BLOCKS,
     };
     use crate::network::radarr_network::RadarrEvent;
     use crate::{assert_navigation_popped, test_edit_collection_key};
@@ -354,9 +351,7 @@ mod tests {
       )
       .handle();
 
-      assert_navigation_pushed!(app,
-        ActiveRadarrBlock::Collections.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::Collections.into());
       assert!(app.should_refresh);
     }
 

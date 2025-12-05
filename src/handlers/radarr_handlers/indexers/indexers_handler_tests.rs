@@ -4,15 +4,15 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::indexers::IndexersHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::indexer;
+  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::radarr::radarr_data::{
-    ActiveRadarrBlock, EDIT_INDEXER_BLOCKS, INDEXER_SETTINGS_BLOCKS, INDEXERS_BLOCKS,
+    ActiveRadarrBlock, EDIT_INDEXER_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
   };
   use crate::models::servarr_models::Indexer;
   use crate::test_handler_delegation;
@@ -125,7 +125,7 @@ mod tests {
     use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::indexer;
     use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::servarr_data::radarr::radarr_data::{
-      EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, RadarrData,
+      RadarrData, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
     };
     use crate::models::servarr_models::{Indexer, IndexerField};
     use crate::network::radarr_network::RadarrEvent;
@@ -283,7 +283,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use super::*;
-    use crate::{assert_navigation_popped, assert_navigation_pushed};
+    use crate::assert_navigation_popped;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 

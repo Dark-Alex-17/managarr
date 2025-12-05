@@ -1,11 +1,9 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::assert_modal_absent;
-  use crate::assert_navigation_pushed;
-  use crate::handlers::KeyEventHandler;
+  use crate::app::App;
   use crate::handlers::sonarr_handlers::indexers::test_all_indexers_handler::TestAllIndexersHandler;
+  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::stateful_table::StatefulTable;
@@ -14,10 +12,8 @@ mod tests {
 
   mod test_handle_esc {
     use super::*;
-    use crate::assert_navigation_pushed;
     use crate::models::stateful_table::StatefulTable;
     use crate::{assert_modal_absent, assert_navigation_popped};
-    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     #[rstest]

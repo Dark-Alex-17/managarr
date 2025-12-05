@@ -5,14 +5,14 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_modal_absent;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::collections::edit_collection_handler::EditCollectionHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::collection;
+  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::{Collection, EditCollectionParams, MinimumAvailability};
   use crate::models::servarr_data::radarr::modals::EditCollectionModal;
   use crate::models::servarr_data::radarr::radarr_data::{
@@ -24,9 +24,9 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
-    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::radarr::modals::EditCollectionModal;
     use crate::models::servarr_data::radarr::radarr_data::EDIT_COLLECTION_SELECTION_BLOCKS;
+    use crate::models::BlockSelectionState;
 
     use super::*;
 
@@ -477,17 +477,15 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(
-        !app
-          .data
-          .radarr_data
-          .edit_collection_modal
-          .as_ref()
-          .unwrap()
-          .path
-          .text
-          .is_empty()
-      );
+      assert!(!app
+        .data
+        .radarr_data
+        .edit_collection_modal
+        .as_ref()
+        .unwrap()
+        .path
+        .text
+        .is_empty());
       assert_navigation_popped!(app, ActiveRadarrBlock::EditCollectionPrompt.into());
     }
 
@@ -792,7 +790,6 @@ mod tests {
   mod test_handle_esc {
     use crate::assert_navigation_popped;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
-    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use super::*;
@@ -868,10 +865,10 @@ mod tests {
     use crate::{
       assert_navigation_popped,
       models::{
-        BlockSelectionState,
         servarr_data::radarr::{
           modals::EditCollectionModal, radarr_data::EDIT_COLLECTION_SELECTION_BLOCKS,
         },
+        BlockSelectionState,
       },
       network::radarr_network::RadarrEvent,
     };

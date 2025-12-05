@@ -5,17 +5,17 @@ mod tests {
   use std::cmp::Ordering;
   use strum::IntoEnumIterator;
 
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
   use crate::assert_modal_absent;
   use crate::assert_modal_present;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::KeyEventHandler;
-  use crate::handlers::sonarr_handlers::library::{LibraryHandler, series_sorting_options};
+  use crate::handlers::sonarr_handlers::library::{series_sorting_options, LibraryHandler};
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
+  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
-    ADD_SERIES_BLOCKS, ActiveSonarrBlock, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
+    ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
     EPISODE_DETAILS_BLOCKS, LIBRARY_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
   };
   use crate::models::sonarr_models::{Series, SeriesStatistics, SeriesStatus, SeriesType};
@@ -240,12 +240,11 @@ mod tests {
   }
 
   mod test_handle_esc {
-    use pretty_assertions::assert_eq;
 
     use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
 
     use super::*;
-    use crate::{assert_navigation_popped, assert_navigation_pushed};
+    use crate::assert_navigation_popped;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -289,8 +288,8 @@ mod tests {
     use serde_json::Number;
     use strum::IntoEnumIterator;
 
-    use crate::models::servarr_data::sonarr::sonarr_data::SonarrData;
     use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
+    use crate::models::servarr_data::sonarr::sonarr_data::SonarrData;
     use crate::models::sonarr_models::SeriesType;
 
     use crate::network::sonarr_network::SonarrEvent;
