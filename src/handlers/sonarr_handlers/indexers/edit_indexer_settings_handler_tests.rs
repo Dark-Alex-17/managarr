@@ -6,6 +6,8 @@ mod tests {
 
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::indexers::edit_indexer_settings_handler::IndexerSettingsHandler;
@@ -237,6 +239,7 @@ mod tests {
     use rstest::rstest;
 
     use crate::{
+      assert_navigation_popped,
       models::{
         BlockSelectionState, servarr_data::sonarr::sonarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS,
         sonarr_models::IndexerSettings,
@@ -270,7 +273,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Indexers.into());
       assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
       assert!(!app.should_refresh);
       assert_eq!(app.data.sonarr_data.indexer_settings, None);
@@ -299,12 +302,12 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Indexers.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::EditAllIndexerSettings(indexer_settings()))
       );
-      assert!(app.data.sonarr_data.indexer_settings.is_none());
+      assert_modal_absent!(app.data.sonarr_data.indexer_settings);
       assert!(app.should_refresh);
     }
 
@@ -357,7 +360,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), selected_block.into());
+      assert_navigation_pushed!(app, selected_block.into());
     }
 
     #[rstest]
@@ -405,10 +408,7 @@ mod tests {
 
       IndexerSettingsHandler::new(SUBMIT_KEY, &mut app, active_sonarr_block, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::AllIndexerSettingsPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::AllIndexerSettingsPrompt.into());
     }
   }
 
@@ -419,6 +419,7 @@ mod tests {
     use crate::models::sonarr_models::IndexerSettings;
 
     use super::*;
+    use crate::{assert_navigation_popped, assert_navigation_pushed};
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -438,7 +439,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Indexers.into());
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.data.sonarr_data.indexer_settings, None);
     }
@@ -460,7 +461,7 @@ mod tests {
 
       IndexerSettingsHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Indexers.into());
       assert_eq!(
         app.data.sonarr_data.indexer_settings,
         Some(IndexerSettings::default())
@@ -470,6 +471,7 @@ mod tests {
 
   mod test_handle_key_char {
     use crate::{
+      assert_navigation_popped,
       models::{
         BlockSelectionState, servarr_data::sonarr::sonarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS,
       },
@@ -501,12 +503,12 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Indexers.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::EditAllIndexerSettings(indexer_settings()))
       );
-      assert!(app.data.sonarr_data.indexer_settings.is_none());
+      assert_modal_absent!(app.data.sonarr_data.indexer_settings);
       assert!(app.should_refresh);
     }
   }
@@ -555,7 +557,7 @@ mod tests {
     .build_edit_indexer_settings_params();
 
     assert_eq!(actual_indexer_settings, indexer_settings());
-    assert!(app.data.sonarr_data.indexer_settings.is_none());
+    assert_modal_absent!(app.data.sonarr_data.indexer_settings);
   }
 
   #[test]

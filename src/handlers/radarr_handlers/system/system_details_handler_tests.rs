@@ -6,6 +6,7 @@ mod tests {
 
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::system::system_details_handler::SystemDetailsHandler;
@@ -636,9 +637,9 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use pretty_assertions::assert_eq;
-
+    use crate::assert_navigation_popped;
     use crate::network::radarr_network::RadarrEvent;
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
@@ -652,10 +653,7 @@ mod tests {
       SystemDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::SystemTasks, None)
         .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::SystemTaskStartConfirmPrompt.into());
     }
 
     #[test]
@@ -699,10 +697,7 @@ mod tests {
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::StartTask(RadarrTaskName::default()))
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::SystemTasks.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::SystemTasks.into());
     }
 
     #[test]
@@ -722,10 +717,7 @@ mod tests {
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::SystemTasks.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::SystemTasks.into());
     }
   }
 
@@ -735,6 +727,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
+    use crate::{assert_navigation_popped, assert_navigation_pushed};
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -757,7 +750,7 @@ mod tests {
 
       SystemDetailsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::SystemLogs, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::System.into());
       assert!(app.data.radarr_data.log_details.items.is_empty());
     }
 
@@ -775,7 +768,7 @@ mod tests {
 
       SystemDetailsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::SystemTasks, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::System.into());
     }
 
     #[rstest]
@@ -798,7 +791,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::System.into());
     }
 
     #[rstest]
@@ -810,7 +803,7 @@ mod tests {
 
       SystemDetailsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::SystemUpdates, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::System.into());
     }
 
     #[test]
@@ -828,10 +821,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::SystemTasks.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::SystemTasks.into());
       assert!(!app.data.radarr_data.prompt_confirm);
     }
   }
@@ -843,6 +833,7 @@ mod tests {
     use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
+    use crate::{assert_navigation_popped, assert_navigation_pushed};
 
     #[rstest]
     fn test_refresh_key(
@@ -866,7 +857,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), active_radarr_block.into());
+      assert_navigation_pushed!(app, active_radarr_block.into());
       assert!(app.should_refresh);
     }
 
@@ -921,10 +912,7 @@ mod tests {
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::StartTask(RadarrTaskName::default()))
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::SystemTasks.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::SystemTasks.into());
     }
   }
 

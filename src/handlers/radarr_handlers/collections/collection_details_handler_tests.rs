@@ -6,6 +6,7 @@ mod tests {
 
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::collections::collection_details_handler::CollectionDetailsHandler;
@@ -15,12 +16,12 @@ mod tests {
   };
 
   mod test_handle_submit {
-    use bimap::BiMap;
-    use pretty_assertions::assert_eq;
-
+    use crate::assert_navigation_pushed;
     use crate::models::BlockSelectionState;
     use crate::models::radarr_models::Movie;
     use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
+    use bimap::BiMap;
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
@@ -51,8 +52,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_pushed!(
+        app,
         (
           ActiveRadarrBlock::AddMoviePrompt,
           Some(ActiveRadarrBlock::CollectionDetails)
@@ -132,7 +133,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::CollectionDetails.into()
       );
-      assert!(app.data.radarr_data.add_movie_modal.is_none());
+      assert_modal_absent!(app.data.radarr_data.add_movie_modal);
     }
 
     #[test]
@@ -157,15 +158,13 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::ViewMovieOverview.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::ViewMovieOverview.into());
     }
   }
 
   mod test_handle_esc {
     use super::*;
+    use crate::assert_navigation_popped;
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -191,10 +190,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::Collections.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::Collections.into());
       assert!(app.data.radarr_data.collection_movies.items.is_empty());
     }
 
@@ -212,10 +208,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::CollectionDetails.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::CollectionDetails.into());
     }
   }
 
@@ -270,7 +263,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::CollectionDetails.into()
       );
-      assert!(app.data.radarr_data.edit_collection_modal.is_none());
+      assert_modal_absent!(app.data.radarr_data.edit_collection_modal);
     }
   }
 

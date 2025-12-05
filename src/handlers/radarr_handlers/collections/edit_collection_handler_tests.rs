@@ -7,6 +7,8 @@ mod tests {
 
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::collections::edit_collection_handler::EditCollectionHandler;
@@ -443,13 +445,13 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use pretty_assertions::assert_eq;
-    use rstest::rstest;
-
+    use crate::assert_navigation_popped;
     use crate::models::servarr_data::radarr::modals::EditCollectionModal;
     use crate::models::servarr_data::radarr::radarr_data::EDIT_COLLECTION_SELECTION_BLOCKS;
     use crate::models::{BlockSelectionState, Route};
     use crate::network::radarr_network::RadarrEvent;
+    use pretty_assertions::assert_eq;
+    use rstest::rstest;
 
     use super::*;
 
@@ -486,10 +488,7 @@ mod tests {
           .text
           .is_empty()
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::EditCollectionPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::EditCollectionPrompt.into());
     }
 
     #[test]
@@ -514,10 +513,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::Collections.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::Collections.into());
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
     }
 
@@ -571,16 +567,13 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::Collections.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::Collections.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::EditCollection(expected_edit_collection_params))
       );
       assert!(app.should_refresh);
-      assert!(app.data.radarr_data.edit_collection_modal.is_none());
+      assert_modal_absent!(app.data.radarr_data.edit_collection_modal);
     }
 
     #[test]
@@ -755,8 +748,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_pushed!(
+        app,
         (selected_block, Some(ActiveRadarrBlock::Collections)).into()
       );
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
@@ -788,10 +781,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::EditCollectionPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::EditCollectionPrompt.into());
 
       if active_radarr_block == ActiveRadarrBlock::EditCollectionRootFolderPathInput {
         assert!(!app.ignore_special_keys_for_textbox_input);
@@ -800,10 +790,10 @@ mod tests {
   }
 
   mod test_handle_esc {
+    use crate::assert_navigation_popped;
+    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use pretty_assertions::assert_eq;
     use rstest::rstest;
-
-    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
 
     use super::*;
 
@@ -827,10 +817,7 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::EditCollectionPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::EditCollectionPrompt.into());
     }
 
     #[test]
@@ -848,13 +835,10 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::Collections.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::Collections.into());
       let radarr_data = &app.data.radarr_data;
 
-      assert!(radarr_data.edit_collection_modal.is_none());
+      assert_modal_absent!(radarr_data.edit_collection_modal);
       assert!(!radarr_data.prompt_confirm);
     }
 
@@ -875,16 +859,14 @@ mod tests {
 
       EditCollectionHandler::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::Collections.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::Collections.into());
     }
   }
 
   mod test_handle_key_char {
     use super::*;
     use crate::{
+      assert_navigation_popped,
       models::{
         BlockSelectionState,
         servarr_data::radarr::{
@@ -998,16 +980,13 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::Collections.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::Collections.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::EditCollection(expected_edit_collection_params))
       );
       assert!(app.should_refresh);
-      assert!(app.data.radarr_data.edit_collection_modal.is_none());
+      assert_modal_absent!(app.data.radarr_data.edit_collection_modal);
     }
   }
 
@@ -1082,7 +1061,7 @@ mod tests {
     .build_edit_collection_params();
 
     assert_eq!(edit_collection_params, expected_edit_collection_params);
-    assert!(app.data.radarr_data.edit_collection_modal.is_none());
+    assert_modal_absent!(app.data.radarr_data.edit_collection_modal);
   }
 
   #[test]

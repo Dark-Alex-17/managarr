@@ -2,6 +2,9 @@
 mod tests {
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_modal_present;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
@@ -850,6 +853,7 @@ mod tests {
     use rstest::rstest;
 
     use crate::app::App;
+    use crate::assert_navigation_popped;
     use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::{
       BlockSelectionState, servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
@@ -882,7 +886,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
       assert!(!app.should_refresh);
       assert_eq!(app.data.radarr_data.edit_indexer_modal, None);
@@ -936,8 +940,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert!(app.data.radarr_data.edit_indexer_modal.is_none());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
+      assert_modal_absent!(app.data.radarr_data.edit_indexer_modal);
       assert!(app.should_refresh);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
@@ -966,7 +970,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::EditIndexerPrompt.into()
       );
-      assert!(app.data.radarr_data.edit_indexer_modal.is_some());
+      assert_modal_present!(app.data.radarr_data.edit_indexer_modal);
       assert!(!app.should_refresh);
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
     }
@@ -1002,7 +1006,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), block.into());
+      assert_navigation_pushed!(app, block.into());
       assert!(app.ignore_special_keys_for_textbox_input);
     }
 
@@ -1024,10 +1028,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPriorityInput.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::EditIndexerPriorityInput.into());
       assert!(!app.ignore_special_keys_for_textbox_input);
     }
 
@@ -1234,10 +1235,7 @@ mod tests {
           .text
           .is_empty()
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::EditIndexerPrompt.into());
     }
 
     #[test]
@@ -1272,10 +1270,7 @@ mod tests {
           .text
           .is_empty()
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::EditIndexerPrompt.into());
     }
 
     #[test]
@@ -1310,10 +1305,7 @@ mod tests {
           .text
           .is_empty()
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::EditIndexerPrompt.into());
     }
 
     #[test]
@@ -1348,10 +1340,7 @@ mod tests {
           .text
           .is_empty()
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::EditIndexerPrompt.into());
     }
 
     #[test]
@@ -1386,10 +1375,7 @@ mod tests {
           .text
           .is_empty()
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::EditIndexerPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::EditIndexerPrompt.into());
     }
   }
 
@@ -1398,6 +1384,7 @@ mod tests {
     use crate::app::App;
     use crate::event::Key;
     use crate::models::servarr_data::modals::EditIndexerModal;
+    use crate::{assert_navigation_popped, assert_navigation_pushed};
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -1419,7 +1406,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.data.radarr_data.edit_indexer_modal, None);
     }
@@ -1444,7 +1431,7 @@ mod tests {
 
       EditIndexerHandler::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
       assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.data.radarr_data.edit_indexer_modal,
@@ -1454,14 +1441,14 @@ mod tests {
   }
 
   mod test_handle_key_char {
+    use super::*;
     use crate::app::App;
+    use crate::assert_navigation_popped;
     use crate::models::BlockSelectionState;
     use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS;
     use crate::network::radarr_network::RadarrEvent;
     use pretty_assertions::{assert_eq, assert_str_eq};
-
-    use super::*;
 
     #[test]
     fn test_edit_indexer_name_input_backspace() {
@@ -1795,8 +1782,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert!(app.data.radarr_data.edit_indexer_modal.is_none());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
+      assert_modal_absent!(app.data.radarr_data.edit_indexer_modal);
       assert!(app.should_refresh);
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
@@ -1874,7 +1861,7 @@ mod tests {
     .build_edit_indexer_params();
 
     assert_eq!(edit_indexer_params, expected_edit_indexer_params);
-    assert!(app.data.radarr_data.edit_indexer_modal.is_none());
+    assert_modal_absent!(app.data.radarr_data.edit_indexer_modal);
   }
 
   #[test]

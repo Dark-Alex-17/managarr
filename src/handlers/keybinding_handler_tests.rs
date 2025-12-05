@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::app::App;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::KeybindingHandler;
@@ -11,7 +12,9 @@ mod tests {
 
   mod test_handle_esc {
     use super::*;
+    use crate::assert_navigation_pushed;
     use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
+    use crate::{assert_modal_absent, assert_navigation_popped};
     use pretty_assertions::assert_eq;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
@@ -25,7 +28,7 @@ mod tests {
       KeybindingHandler::new(ESC_KEY, &mut app, ActiveKeybindingBlock::Help, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(app.keymapping_table.is_none());
+      assert_modal_absent!(app.keymapping_table);
     }
   }
 

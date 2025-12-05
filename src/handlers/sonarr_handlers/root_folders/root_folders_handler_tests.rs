@@ -6,6 +6,9 @@ mod tests {
 
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_modal_present;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::root_folders::RootFoldersHandler;
@@ -94,10 +97,7 @@ mod tests {
 
       RootFoldersHandler::new(DELETE_KEY, &mut app, ActiveSonarrBlock::RootFolders, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::DeleteRootFolderPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::DeleteRootFolderPrompt.into());
     }
 
     #[test]
@@ -127,6 +127,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
+    use crate::assert_navigation_pushed;
 
     #[rstest]
     fn test_root_folders_tab_left(#[values(true, false)] is_ready: bool) {
@@ -147,7 +148,7 @@ mod tests {
         app.data.sonarr_data.main_tabs.get_active_route(),
         ActiveSonarrBlock::History.into()
       );
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::History.into());
+      assert_navigation_pushed!(app, ActiveSonarrBlock::History.into());
     }
 
     #[rstest]
@@ -169,7 +170,7 @@ mod tests {
         app.data.sonarr_data.main_tabs.get_active_route(),
         ActiveSonarrBlock::Indexers.into()
       );
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_pushed!(app, ActiveSonarrBlock::Indexers.into());
     }
 
     #[rstest]
@@ -254,6 +255,7 @@ mod tests {
     use crate::network::sonarr_network::SonarrEvent;
 
     use super::*;
+    use crate::{assert_modal_absent, assert_navigation_popped};
 
     const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
 
@@ -288,11 +290,8 @@ mod tests {
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::AddRootFolder(expected_add_root_folder_body))
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::RootFolders.into()
-      );
-      assert!(app.data.sonarr_data.edit_root_folder.is_none());
+      assert_navigation_popped!(app, ActiveSonarrBlock::RootFolders.into());
+      assert_modal_absent!(app.data.sonarr_data.edit_root_folder);
     }
 
     #[test]
@@ -314,7 +313,7 @@ mod tests {
 
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert!(app.ignore_special_keys_for_textbox_input);
-      assert!(app.data.sonarr_data.prompt_confirm_action.is_none());
+      assert_modal_absent!(app.data.sonarr_data.prompt_confirm_action);
       assert_eq!(
         app.get_current_route(),
         ActiveSonarrBlock::AddRootFolderPrompt.into()
@@ -346,10 +345,7 @@ mod tests {
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::DeleteRootFolder(1))
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::RootFolders.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::RootFolders.into());
     }
 
     #[test]
@@ -373,15 +369,13 @@ mod tests {
 
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::RootFolders.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::RootFolders.into());
     }
   }
 
   mod test_handle_esc {
     use super::*;
+    use crate::assert_navigation_popped;
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -402,10 +396,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::RootFolders.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::RootFolders.into());
       assert!(!app.data.sonarr_data.prompt_confirm);
     }
 
@@ -425,12 +416,9 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::RootFolders.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::RootFolders.into());
 
-      assert!(app.data.sonarr_data.edit_root_folder.is_none());
+      assert_modal_absent!(app.data.sonarr_data.edit_root_folder);
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert!(!app.ignore_special_keys_for_textbox_input);
     }
@@ -445,18 +433,15 @@ mod tests {
 
       RootFoldersHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::RootFolders, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::RootFolders.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::RootFolders.into());
       assert!(app.error.text.is_empty());
     }
   }
 
   mod test_handle_key_char {
-    use pretty_assertions::{assert_eq, assert_str_eq};
-
+    use crate::assert_navigation_popped;
     use crate::network::sonarr_network::SonarrEvent;
+    use pretty_assertions::{assert_eq, assert_str_eq};
 
     use super::*;
 
@@ -478,12 +463,9 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::AddRootFolderPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::AddRootFolderPrompt.into());
       assert!(app.ignore_special_keys_for_textbox_input);
-      assert!(app.data.sonarr_data.edit_root_folder.is_some());
+      assert_modal_present!(app.data.sonarr_data.edit_root_folder);
     }
 
     #[test]
@@ -510,7 +492,7 @@ mod tests {
         ActiveSonarrBlock::RootFolders.into()
       );
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(app.data.sonarr_data.edit_root_folder.is_none());
+      assert_modal_absent!(app.data.sonarr_data.edit_root_folder);
     }
 
     #[test]
@@ -531,10 +513,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::RootFolders.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::RootFolders.into());
       assert!(app.should_refresh);
     }
 
@@ -638,10 +617,7 @@ mod tests {
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::DeleteRootFolder(1))
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::RootFolders.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::RootFolders.into());
     }
   }
 
@@ -712,7 +688,7 @@ mod tests {
     .build_add_root_folder_body();
 
     assert_eq!(root_folder, expected_add_root_folder_body);
-    assert!(app.data.sonarr_data.edit_root_folder.is_none());
+    assert_modal_absent!(app.data.sonarr_data.edit_root_folder);
   }
 
   #[test]

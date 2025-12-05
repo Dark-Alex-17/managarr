@@ -9,6 +9,8 @@ mod tests {
 
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::collections::{
@@ -25,6 +27,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
+    use crate::assert_navigation_pushed;
 
     #[rstest]
     fn test_collections_tab_left(#[values(true, false)] is_ready: bool) {
@@ -44,7 +47,7 @@ mod tests {
         app.data.radarr_data.main_tabs.get_active_route(),
         ActiveRadarrBlock::Movies.into()
       );
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_pushed!(app, ActiveRadarrBlock::Movies.into());
     }
 
     #[rstest]
@@ -65,7 +68,7 @@ mod tests {
         app.data.radarr_data.main_tabs.get_active_route(),
         ActiveRadarrBlock::Downloads.into()
       );
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Downloads.into());
+      assert_navigation_pushed!(app, ActiveRadarrBlock::Downloads.into());
     }
 
     #[rstest]
@@ -97,9 +100,9 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use pretty_assertions::assert_eq;
-
+    use crate::assert_navigation_popped;
     use crate::network::radarr_network::RadarrEvent;
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
@@ -116,10 +119,7 @@ mod tests {
 
       CollectionsHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Collections, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::CollectionDetails.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::CollectionDetails.into());
     }
 
     #[test]
@@ -166,10 +166,7 @@ mod tests {
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::UpdateCollections)
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::Collections.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::Collections.into());
     }
 
     #[test]
@@ -193,17 +190,14 @@ mod tests {
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::Collections.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::Collections.into());
     }
   }
 
   mod test_handle_esc {
-    use pretty_assertions::assert_eq;
-
+    use crate::assert_navigation_popped;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
@@ -224,10 +218,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::Collections.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::Collections.into());
       assert!(!app.data.radarr_data.prompt_confirm);
     }
 
@@ -242,8 +233,7 @@ mod tests {
 
       CollectionsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::Collections, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_popped!(app,
         ActiveRadarrBlock::Collections.into()
       );
       assert!(app.error.text.is_empty());
@@ -261,7 +251,7 @@ mod tests {
       EDIT_COLLECTION_SELECTION_BLOCKS, RadarrData,
     };
     use crate::network::radarr_network::RadarrEvent;
-    use crate::test_edit_collection_key;
+    use crate::{assert_navigation_popped, test_edit_collection_key};
 
     use super::*;
 
@@ -298,7 +288,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::Collections.into()
       );
-      assert!(app.data.radarr_data.edit_collection_modal.is_none());
+      assert_modal_absent!(app.data.radarr_data.edit_collection_modal);
     }
 
     #[test]
@@ -318,10 +308,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::UpdateAllCollectionsPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::UpdateAllCollectionsPrompt.into());
     }
 
     #[test]
@@ -367,8 +354,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_pushed!(app,
         ActiveRadarrBlock::Collections.into()
       );
       assert!(app.should_refresh);
@@ -424,10 +410,7 @@ mod tests {
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::UpdateCollections)
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::Collections.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::Collections.into());
     }
   }
 

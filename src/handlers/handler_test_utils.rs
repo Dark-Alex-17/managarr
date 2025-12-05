@@ -452,4 +452,40 @@ mod test_utils {
       assert!(app.should_refresh);
     };
   }
+
+  #[macro_export]
+  macro_rules! assert_modal_present {
+    ($modal:expr) => {
+      assert!($modal.is_some(), "Expected modal to be present");
+    };
+  }
+
+  #[macro_export]
+  macro_rules! assert_modal_absent {
+    ($modal:expr) => {
+      assert!($modal.is_none(), "Expected modal to be absent");
+    };
+  }
+
+  #[macro_export]
+  macro_rules! assert_navigation_pushed {
+    ($app:expr, $expected_route:expr) => {
+      pretty_assertions::assert_eq!(
+        $app.get_current_route(),
+        $expected_route,
+        "Expected route to be pushed onto navigation stack"
+      );
+    };
+  }
+
+  #[macro_export]
+  macro_rules! assert_navigation_popped {
+    ($app:expr, $expected_route:expr) => {
+      pretty_assertions::assert_eq!(
+        $app.get_current_route(),
+        $expected_route,
+        "Expected route after popping navigation stack"
+      );
+    };
+  }
 }

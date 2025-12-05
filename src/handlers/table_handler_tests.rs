@@ -2,6 +2,9 @@
 mod tests {
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_modal_present;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::table_handler::TableHandlingConfig;
@@ -736,8 +739,8 @@ mod tests {
   mod test_handle_submit {
     use pretty_assertions::{assert_eq, assert_str_eq};
 
-    use crate::extended_stateful_iterable_vec;
     use crate::models::HorizontallyScrollableText;
+    use crate::{assert_navigation_popped, extended_stateful_iterable_vec};
 
     use super::*;
 
@@ -764,7 +767,7 @@ mod tests {
         app.data.radarr_data.movies.current_selection().title.text,
         "Test 2"
       );
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
     }
 
     #[test]
@@ -788,10 +791,7 @@ mod tests {
         app.data.radarr_data.movies.current_selection().title.text,
         "Test 1"
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::SearchMovieError.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::SearchMovieError.into());
     }
 
     #[test]
@@ -820,7 +820,7 @@ mod tests {
         app.data.radarr_data.movies.current_selection().title.text,
         "Test 2"
       );
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
     }
 
     #[test]
@@ -840,7 +840,7 @@ mod tests {
 
       TableHandlerUnit::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::FilterMovies, None).handle();
 
-      assert!(app.data.radarr_data.movies.filtered_items.is_some());
+      assert_modal_present!(app.data.radarr_data.movies.filtered_items);
       assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app
@@ -857,7 +857,7 @@ mod tests {
         app.data.radarr_data.movies.current_selection().title.text,
         "Test 1"
       );
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
     }
 
     #[test]
@@ -878,11 +878,8 @@ mod tests {
       TableHandlerUnit::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::FilterMovies, None).handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(app.data.radarr_data.movies.filtered_items.is_none());
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::FilterMoviesError.into()
-      );
+      assert_modal_absent!(app.data.radarr_data.movies.filtered_items);
+      assert_navigation_pushed!(app, ActiveRadarrBlock::FilterMoviesError.into());
     }
 
     #[test]
@@ -906,7 +903,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert_eq!(app.data.radarr_data.movies.items, expected_vec);
     }
   }
@@ -919,6 +916,7 @@ mod tests {
     use crate::models::stateful_table::StatefulTable;
 
     use super::*;
+    use crate::{assert_navigation_popped, assert_navigation_pushed};
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -936,7 +934,7 @@ mod tests {
 
       TableHandlerUnit::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.data.radarr_data.movies.search, None);
     }
@@ -965,7 +963,7 @@ mod tests {
 
       TableHandlerUnit::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert!(!app.ignore_special_keys_for_textbox_input);
       assert_eq!(app.data.radarr_data.movies.filter, None);
       assert_eq!(app.data.radarr_data.movies.filtered_items, None);
@@ -981,7 +979,7 @@ mod tests {
 
       TableHandlerUnit::new(ESC_KEY, &mut app, ActiveRadarrBlock::MoviesSortPrompt, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
     }
 
     #[test]
@@ -1033,10 +1031,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::SearchMovie.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::SearchMovie.into());
       assert!(app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.data.radarr_data.movies.search,
@@ -1107,12 +1102,9 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::FilterMovies.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::FilterMovies.into());
       assert!(app.ignore_special_keys_for_textbox_input);
-      assert!(app.data.radarr_data.movies.filter.is_some());
+      assert_modal_present!(app.data.radarr_data.movies.filter);
     }
 
     #[test]
@@ -1136,7 +1128,7 @@ mod tests {
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(app.data.radarr_data.movies.filter.is_none());
+      assert_modal_absent!(app.data.radarr_data.movies.filter);
     }
 
     #[test]
@@ -1160,17 +1152,14 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::FilterMovies.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::FilterMovies.into());
       assert!(app.ignore_special_keys_for_textbox_input);
       assert_eq!(
         app.data.radarr_data.movies.filter,
         Some(HorizontallyScrollableText::default())
       );
-      assert!(app.data.radarr_data.movies.filtered_items.is_none());
-      assert!(app.data.radarr_data.movies.filtered_state.is_none());
+      assert_modal_absent!(app.data.radarr_data.movies.filtered_items);
+      assert_modal_absent!(app.data.radarr_data.movies.filtered_state);
     }
 
     #[test]
@@ -1312,10 +1301,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::MoviesSortPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::MoviesSortPrompt.into());
       assert_eq!(
         app.data.radarr_data.movies.sort.as_ref().unwrap().items,
         sort_options()
@@ -1343,7 +1329,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(app.data.radarr_data.movies.sort.is_none());
+      assert_modal_absent!(app.data.radarr_data.movies.sort);
     }
 
     #[test]
@@ -1364,7 +1350,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert!(app.data.radarr_data.movies.sort.is_none());
+      assert_modal_absent!(app.data.radarr_data.movies.sort);
     }
   }
 

@@ -7,6 +7,9 @@ mod tests {
 
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_modal_present;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::add_series_handler::AddSeriesHandler;
@@ -894,16 +897,16 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use bimap::BiMap;
-    use pretty_assertions::{assert_eq, assert_str_eq};
-    use rstest::rstest;
-
+    use crate::assert_navigation_popped;
     use crate::models::BlockSelectionState;
     use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
     use crate::models::servarr_data::sonarr::sonarr_data::ADD_SERIES_SELECTION_BLOCKS;
     use crate::models::sonarr_models::Series;
     use crate::models::stateful_table::StatefulTable;
     use crate::network::sonarr_network::SonarrEvent;
+    use bimap::BiMap;
+    use pretty_assertions::{assert_eq, assert_str_eq};
+    use rstest::rstest;
 
     use super::*;
 
@@ -925,10 +928,7 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::AddSeriesSearchResults.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::AddSeriesSearchResults.into());
     }
 
     #[test]
@@ -972,15 +972,12 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::AddSeriesPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::AddSeriesPrompt.into());
       assert_eq!(
         app.data.sonarr_data.selected_block.get_active_block(),
         ActiveSonarrBlock::AddSeriesSelectRootFolder
       );
-      assert!(app.data.sonarr_data.add_series_modal.is_some());
+      assert_modal_present!(app.data.sonarr_data.add_series_modal);
       assert!(
         !app
           .data
@@ -1048,7 +1045,7 @@ mod tests {
         app.get_current_route(),
         ActiveSonarrBlock::AddSeriesSearchResults.into()
       );
-      assert!(app.data.sonarr_data.add_series_modal.is_none());
+      assert_modal_absent!(app.data.sonarr_data.add_series_modal);
     }
 
     #[test]
@@ -1091,10 +1088,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::AddSeriesAlreadyInLibrary.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::AddSeriesAlreadyInLibrary.into());
     }
 
     #[test]
@@ -1117,7 +1111,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
       assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
     }
 
@@ -1200,12 +1194,12 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::AddSeries(expected_add_series_body))
       );
-      assert!(app.data.sonarr_data.add_series_modal.is_none());
+      assert_modal_absent!(app.data.sonarr_data.add_series_modal);
     }
 
     #[rstest]
@@ -1233,7 +1227,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), selected_block.into());
+      assert_navigation_pushed!(app, selected_block.into());
       assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
 
       if selected_block == ActiveSonarrBlock::AddSeriesTagsInput {
@@ -1260,10 +1254,7 @@ mod tests {
 
       AddSeriesHandler::new(SUBMIT_KEY, &mut app, active_sonarr_block, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::AddSeriesPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::AddSeriesPrompt.into());
 
       if active_sonarr_block == ActiveSonarrBlock::AddSeriesTagsInput {
         assert!(!app.ignore_special_keys_for_textbox_input);
@@ -1332,9 +1323,10 @@ mod tests {
     use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
     use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
     use crate::models::stateful_table::StatefulTable;
-    use crate::simple_stateful_iterable_vec;
+    use crate::{assert_navigation_popped, simple_stateful_iterable_vec};
 
     use super::*;
+    use crate::assert_navigation_pushed;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -1356,7 +1348,7 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
       assert_eq!(app.data.sonarr_data.add_series_search, None);
     }
 
@@ -1378,10 +1370,7 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::AddSeriesPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::AddSeriesPrompt.into());
     }
 
     #[rstest]
@@ -1405,11 +1394,8 @@ mod tests {
 
       AddSeriesHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::AddSeriesSearchInput.into()
-      );
-      assert!(app.data.sonarr_data.add_searched_series.is_none());
+      assert_navigation_popped!(app, ActiveSonarrBlock::AddSeriesSearchInput.into());
+      assert_modal_absent!(app.data.sonarr_data.add_searched_series);
       assert!(app.ignore_special_keys_for_textbox_input);
     }
 
@@ -1429,10 +1415,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::AddSeriesSearchResults.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::AddSeriesSearchResults.into());
     }
 
     #[test]
@@ -1447,11 +1430,8 @@ mod tests {
       AddSeriesHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::AddSeriesPrompt, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::AddSeriesSearchResults.into()
-      );
-      assert!(app.data.sonarr_data.add_series_modal.is_none());
+      assert_navigation_popped!(app, ActiveSonarrBlock::AddSeriesSearchResults.into());
+      assert_modal_absent!(app.data.sonarr_data.add_series_modal);
     }
 
     #[test]
@@ -1472,10 +1452,7 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::AddSeriesPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::AddSeriesPrompt.into());
     }
 
     #[rstest]
@@ -1496,16 +1473,14 @@ mod tests {
 
       AddSeriesHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::AddSeriesPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::AddSeriesPrompt.into());
     }
   }
 
   mod test_handle_key_char {
     use super::*;
     use crate::{
+      assert_navigation_popped,
       models::{
         BlockSelectionState,
         servarr_data::sonarr::{modals::AddSeriesModal, sonarr_data::ADD_SERIES_SELECTION_BLOCKS},
@@ -1701,12 +1676,12 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::AddSeries(expected_add_series_body))
       );
-      assert!(app.data.sonarr_data.add_series_modal.is_none());
+      assert_modal_absent!(app.data.sonarr_data.add_series_modal);
     }
   }
 
@@ -1824,7 +1799,7 @@ mod tests {
     .build_add_series_body();
 
     assert_eq!(add_series_body, expected_add_series_body);
-    assert!(app.data.sonarr_data.add_series_modal.is_none());
+    assert_modal_absent!(app.data.sonarr_data.add_series_modal);
   }
 
   #[test]

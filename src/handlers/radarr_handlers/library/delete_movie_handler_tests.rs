@@ -6,6 +6,7 @@ mod tests {
 
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::library::delete_movie_handler::DeleteMovieHandler;
@@ -88,6 +89,7 @@ mod tests {
     use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
+    use crate::{assert_navigation_popped, assert_navigation_pushed};
 
     const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
 
@@ -113,7 +115,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
       assert!(!app.data.radarr_data.prompt_confirm);
       assert!(!app.data.radarr_data.delete_movie_files);
@@ -149,7 +151,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::DeleteMovie(expected_delete_movie_params))
@@ -222,6 +224,7 @@ mod tests {
 
   mod test_handle_esc {
     use super::*;
+    use crate::{assert_navigation_popped, assert_navigation_pushed};
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -245,7 +248,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert!(!app.data.radarr_data.prompt_confirm);
       assert!(!app.data.radarr_data.delete_movie_files);
       assert!(!app.data.radarr_data.add_list_exclusion);
@@ -254,6 +257,7 @@ mod tests {
 
   mod test_handle_key_char {
     use crate::{
+      assert_navigation_popped,
       models::{
         BlockSelectionState, servarr_data::radarr::radarr_data::DELETE_MOVIE_SELECTION_BLOCKS,
       },
@@ -291,7 +295,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::DeleteMovie(expected_delete_movie_params))

@@ -2,6 +2,8 @@
 mod tests {
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_navigation_pushed;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::indexers::test_all_indexers_handler::TestAllIndexersHandler;
   use crate::models::servarr_data::modals::IndexerTestResultModalItem;
@@ -12,7 +14,9 @@ mod tests {
 
   mod test_handle_esc {
     use super::*;
+    use crate::assert_navigation_pushed;
     use crate::models::stateful_table::StatefulTable;
+    use crate::{assert_modal_absent, assert_navigation_popped};
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -32,9 +36,9 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Indexers.into());
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert!(app.data.sonarr_data.indexer_test_all_results.is_none());
+      assert_modal_absent!(app.data.sonarr_data.indexer_test_all_results);
     }
   }
 

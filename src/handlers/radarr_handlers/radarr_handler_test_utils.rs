@@ -1,7 +1,6 @@
 #[cfg(test)]
 #[macro_use]
 pub(in crate::handlers::radarr_handlers) mod utils {
-  use crate::models::HorizontallyScrollableText;
   use crate::models::radarr_models::{
     AddMovieBody, AddMovieOptions, AddMovieSearchResult, Collection, CollectionMovie,
     DownloadRecord, IndexerSettings, MediaInfo, MinimumAvailability, Movie, MovieCollection,
@@ -10,8 +9,9 @@ pub(in crate::handlers::radarr_handlers) mod utils {
   use crate::models::servarr_models::{
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
+  use crate::models::HorizontallyScrollableText;
   use chrono::DateTime;
-  use serde_json::{Number, json};
+  use serde_json::{json, Number};
 
   #[macro_export]
   macro_rules! test_edit_movie_key {
@@ -37,8 +37,8 @@ pub(in crate::handlers::radarr_handlers) mod utils {
 
       $handler::new(DEFAULT_KEYBINDINGS.edit.key, &mut app, $block, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_pushed!(
+        app,
         (ActiveRadarrBlock::EditMoviePrompt, Some($context)).into()
       );
       assert_eq!(
@@ -151,8 +151,8 @@ pub(in crate::handlers::radarr_handlers) mod utils {
 
       $handler::new(DEFAULT_KEYBINDINGS.edit.key, &mut app, $block, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      $crate::assert_navigation_pushed!(
+        app,
         (ActiveRadarrBlock::EditCollectionPrompt, $context).into()
       );
       assert_eq!(

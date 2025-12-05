@@ -2,6 +2,7 @@
 mod tests {
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_navigation_pushed;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::episode_details_handler::EpisodeDetailsHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::episode;
@@ -103,7 +104,7 @@ mod tests {
           .episode_details_tabs
           .get_active_route()
       );
-      assert_eq!(app.get_current_route(), left_block.into());
+      assert_navigation_pushed!(app, left_block.into());
 
       EpisodeDetailsHandler::new(DEFAULT_KEYBINDINGS.right.key, &mut app, left_block, None)
         .handle();
@@ -122,12 +123,13 @@ mod tests {
           .episode_details_tabs
           .get_active_route()
       );
-      assert_eq!(app.get_current_route(), right_block.into());
+      assert_navigation_pushed!(app, right_block.into());
     }
   }
 
   mod test_handle_submit {
     use super::*;
+    use crate::assert_navigation_popped;
     use crate::event::Key;
     use crate::models::stateful_table::StatefulTable;
     use crate::network::sonarr_network::SonarrEvent;
@@ -148,10 +150,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EpisodeHistoryDetails.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::EpisodeHistoryDetails.into());
     }
 
     #[test]
@@ -238,7 +237,7 @@ mod tests {
       EpisodeDetailsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(app.get_current_route(), active_sonarr_block.into());
+      assert_navigation_pushed!(app, active_sonarr_block.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
         Some(expected_action)
@@ -262,10 +261,7 @@ mod tests {
       .handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::ManualEpisodeSearch.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::ManualEpisodeSearch.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
@@ -293,10 +289,7 @@ mod tests {
       EpisodeDetailsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EpisodeDetails.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::EpisodeDetails.into());
       assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
     }
 
@@ -314,8 +307,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_pushed!(
+        app,
         ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt.into()
       );
     }
@@ -344,6 +337,7 @@ mod tests {
 
   mod test_handle_esc {
     use super::*;
+    use crate::assert_navigation_popped;
     use crate::event::Key;
     use pretty_assertions::assert_eq;
 
@@ -364,10 +358,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EpisodeHistory.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::EpisodeHistory.into());
     }
 
     #[rstest]
@@ -389,10 +380,7 @@ mod tests {
       EpisodeDetailsHandler::new(ESC_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EpisodeDetails.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::EpisodeDetails.into());
     }
 
     #[rstest]
@@ -412,10 +400,7 @@ mod tests {
 
       EpisodeDetailsHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SeasonDetails.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::SeasonDetails.into());
       assert!(
         app
           .data
@@ -431,6 +416,7 @@ mod tests {
 
   mod test_handle_key_char {
     use super::*;
+    use crate::assert_navigation_popped;
     use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
     use crate::network::sonarr_network::SonarrEvent;
     use pretty_assertions::assert_eq;
@@ -457,8 +443,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_pushed!(
+        app,
         ActiveSonarrBlock::AutomaticallySearchEpisodePrompt.into()
       );
     }
@@ -511,7 +497,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), active_sonarr_block.into());
+      assert_navigation_pushed!(app, active_sonarr_block.into());
       assert!(app.is_routing);
     }
 
@@ -576,7 +562,7 @@ mod tests {
       .handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(app.get_current_route(), active_sonarr_block.into());
+      assert_navigation_popped!(app, active_sonarr_block.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::TriggerAutomaticEpisodeSearch(1))
@@ -600,10 +586,7 @@ mod tests {
       .handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::ManualEpisodeSearch.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::ManualEpisodeSearch.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {

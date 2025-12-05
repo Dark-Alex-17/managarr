@@ -6,6 +6,7 @@ mod tests {
 
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::indexers::IndexersHandler;
@@ -35,10 +36,7 @@ mod tests {
 
       IndexersHandler::new(DELETE_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::DeleteIndexerPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::DeleteIndexerPrompt.into());
     }
 
     #[test]
@@ -83,10 +81,7 @@ mod tests {
         app.data.sonarr_data.main_tabs.get_active_route(),
         ActiveSonarrBlock::RootFolders.into()
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::RootFolders.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::RootFolders.into());
     }
 
     #[rstest]
@@ -108,7 +103,7 @@ mod tests {
         app.data.sonarr_data.main_tabs.get_active_route(),
         ActiveSonarrBlock::System.into()
       );
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::System.into());
+      assert_navigation_pushed!(app, ActiveSonarrBlock::System.into());
     }
 
     #[rstest]
@@ -129,16 +124,16 @@ mod tests {
   }
 
   mod test_handle_submit {
+    use crate::assert_navigation_popped;
     use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::servarr_data::sonarr::sonarr_data::{
       EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, SonarrData,
     };
     use crate::models::servarr_models::{Indexer, IndexerField};
+    use crate::network::sonarr_network::SonarrEvent;
     use bimap::BiMap;
     use pretty_assertions::assert_eq;
     use serde_json::{Number, Value};
-
-    use crate::network::sonarr_network::SonarrEvent;
 
     use super::*;
 
@@ -201,10 +196,7 @@ mod tests {
 
       IndexersHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EditIndexerPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::EditIndexerPrompt.into());
       assert_eq!(
         app.data.sonarr_data.edit_indexer_modal,
         Some((&app.data.sonarr_data).into())
@@ -265,7 +257,7 @@ mod tests {
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::DeleteIndexer(1))
       );
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Indexers.into());
     }
 
     #[test]
@@ -289,7 +281,7 @@ mod tests {
 
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Indexers.into());
     }
   }
 
@@ -297,6 +289,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use super::*;
+    use crate::{assert_navigation_popped, assert_navigation_pushed};
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -316,7 +309,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Indexers.into());
       assert!(!app.data.sonarr_data.prompt_confirm);
     }
 
@@ -330,7 +323,7 @@ mod tests {
 
       IndexersHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::TestIndexer, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Indexers.into());
       assert_eq!(app.data.sonarr_data.indexer_test_errors, None);
     }
 
@@ -344,7 +337,7 @@ mod tests {
 
       IndexersHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::Indexers, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Indexers.into());
       assert!(app.error.text.is_empty());
     }
   }
@@ -353,6 +346,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::{
+      assert_navigation_popped,
       models::servarr_data::sonarr::sonarr_data::INDEXER_SETTINGS_SELECTION_BLOCKS,
       network::sonarr_network::SonarrEvent,
     };
@@ -377,7 +371,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_pushed!(app, ActiveSonarrBlock::Indexers.into());
       assert!(app.should_refresh);
     }
 
@@ -427,10 +421,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::AllIndexerSettingsPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::AllIndexerSettingsPrompt.into());
       assert_eq!(
         app.data.sonarr_data.selected_block.blocks,
         INDEXER_SETTINGS_SELECTION_BLOCKS
@@ -477,10 +468,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::TestIndexer.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::TestIndexer.into());
     }
 
     #[test]
@@ -523,10 +511,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::TestAllIndexers.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::TestAllIndexers.into());
     }
 
     #[test]
@@ -571,7 +556,7 @@ mod tests {
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::DeleteIndexer(1))
       );
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Indexers.into());
     }
   }
 
