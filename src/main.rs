@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[macro_use]
+extern crate assertables;
+
 use anyhow::Result;
 use clap::{CommandFactory, Parser, crate_authors, crate_description, crate_name, crate_version};
 use clap_complete::generate;

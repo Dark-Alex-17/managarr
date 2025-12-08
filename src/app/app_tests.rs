@@ -69,9 +69,9 @@ mod tests {
       CancellationToken::new(),
     );
 
-    assert!(app.navigation_stack.is_empty());
+    assert_is_empty!(app.navigation_stack);
     assert_eq!(app.get_current_route(), ActiveSonarrBlock::default().into());
-    assert!(app.network_tx.is_some());
+    assert_some!(app.network_tx);
     assert!(!app.cancellation_token.is_cancelled());
     assert!(app.is_first_render);
     assert_eq!(app.error, HorizontallyScrollableText::default());
@@ -91,8 +91,8 @@ mod tests {
   fn test_app_default() {
     let app = App::default();
 
-    assert!(app.navigation_stack.is_empty());
-    assert!(app.network_tx.is_none());
+    assert_is_empty!(app.navigation_stack);
+    assert_none!(app.network_tx);
     assert!(!app.cancellation_token.is_cancelled());
     assert!(app.is_first_render);
     assert_eq!(app.error, HorizontallyScrollableText::default());
@@ -326,23 +326,23 @@ mod tests {
   fn test_app_config_default() {
     let app_config = AppConfig::default();
 
-    assert!(app_config.radarr.is_none());
-    assert!(app_config.sonarr.is_none());
+    assert_none!(app_config.radarr);
+    assert_none!(app_config.sonarr);
   }
 
   #[test]
   fn test_servarr_config_default() {
     let servarr_config = ServarrConfig::default();
 
-    assert_eq!(servarr_config.name, None);
-    assert_eq!(servarr_config.host, Some("localhost".to_string()));
-    assert_eq!(servarr_config.port, None);
-    assert_eq!(servarr_config.uri, None);
-    assert_eq!(servarr_config.weight, None);
-    assert_eq!(servarr_config.api_token, Some(String::new()));
-    assert_eq!(servarr_config.api_token_file, None);
-    assert_eq!(servarr_config.ssl_cert_path, None);
-    assert_eq!(servarr_config.custom_headers, None);
+    assert_none!(servarr_config.name);
+    assert_some_eq_x!(&servarr_config.host, "localhost");
+    assert_none!(servarr_config.port);
+    assert_none!(servarr_config.uri);
+    assert_none!(servarr_config.weight);
+    assert_some_eq_x!(&servarr_config.api_token, "");
+    assert_none!(servarr_config.api_token_file);
+    assert_none!(servarr_config.ssl_cert_path);
+    assert_none!(servarr_config.custom_headers);
   }
 
   #[test]
@@ -367,11 +367,11 @@ mod tests {
     assert!(custom.is_object());
     let obj = custom.as_object().unwrap();
 
-    assert_eq!(obj.get("x-api-key").unwrap(), "abc123");
-    assert_eq!(obj.get("header-1").unwrap(), "test");
+    assert_some_eq_x!(obj.get("x-api-key"), "abc123");
+    assert_some_eq_x!(obj.get("header-1"), "test");
 
-    assert!(obj.get("X-Api-Key").is_none());
-    assert!(obj.get("HEADER-1").is_none());
+    assert_none!(obj.get("X-Api-Key"));
+    assert_none!(obj.get("HEADER-1"));
   }
 
   #[test]
@@ -392,7 +392,7 @@ mod tests {
 
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
-    assert_eq!(config.host, Some("localhost".to_string()));
+    assert_some_eq_x!(&config.host, "localhost");
     unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION") };
   }
 
@@ -407,7 +407,7 @@ mod tests {
 
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
-    assert_eq!(config.host, Some("www.example.com".to_string()));
+    assert_some_eq_x!(&config.host, "www.example.com");
     unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_NO_OVERWRITE") };
   }
 
@@ -419,7 +419,7 @@ mod tests {
 
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
-    assert_eq!(config.port, None);
+    assert_none!(config.port);
   }
 
   #[test]
@@ -440,7 +440,7 @@ mod tests {
 
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
-    assert_eq!(config.custom_headers, Some(expected_custom_headers));
+    assert_some_eq_x!(&config.custom_headers, &expected_custom_headers);
     unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_HEADER_OPTION") };
   }
 
@@ -467,7 +467,7 @@ mod tests {
 
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
-    assert_eq!(config.custom_headers, Some(expected_custom_headers));
+    assert_some_eq_x!(&config.custom_headers, &expected_custom_headers);
     unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_HEADER_OPTION_NO_OVERWRITE") };
   }
 
@@ -479,7 +479,7 @@ mod tests {
 
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
-    assert_eq!(config.custom_headers, None);
+    assert_none!(config.custom_headers);
   }
 
   #[test]
@@ -493,7 +493,7 @@ mod tests {
 
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
-    assert_eq!(config.port, Some(1));
+    assert_some_eq_x!(config.port, 1);
     unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_U16") };
   }
 
@@ -508,7 +508,7 @@ mod tests {
 
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
-    assert_eq!(config.port, Some(1234));
+    assert_some_eq_x!(config.port, 1234);
     unsafe { std::env::remove_var("TEST_VAR_DESERIALIZE_OPTION_U16_UNUSED") };
   }
 
@@ -520,9 +520,9 @@ mod tests {
     "#;
     let result: Result<ServarrConfig, _> = serde_yaml::from_str(yaml_data);
 
-    assert!(result.is_err());
+    let result = assert_err_as_result!(result);
     let err = result.unwrap_err().to_string();
-    assert!(err.contains("invalid digit found in string"));
+    assert_contains!(err, "invalid digit found in string");
   }
 
   #[test]
@@ -533,7 +533,7 @@ mod tests {
 
     let config: ServarrConfig = serde_yaml::from_str(yaml_data).unwrap();
 
-    assert_eq!(config.port, None);
+    assert_none!(config.port);
   }
 
   #[test]

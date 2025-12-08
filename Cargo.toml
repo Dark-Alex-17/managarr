@@ -76,6 +76,7 @@ pretty_assertions = "1.3.0"
 proptest = "1.6.0"
 rstest = "0.25.0"
 serial_test = "3.2.0"
+assertables = "9.8.2"
 
 [dev-dependencies.cargo-husky]
 version = "1"
