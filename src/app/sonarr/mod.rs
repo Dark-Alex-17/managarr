@@ -214,7 +214,7 @@ impl App<'_> {
       }
     }
 
-    if self.tick_count % self.tick_until_poll == 0 {
+    if self.tick_count.is_multiple_of(self.tick_until_poll) {
       self.refresh_sonarr_metadata().await;
     }
   }

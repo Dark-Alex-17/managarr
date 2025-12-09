@@ -161,7 +161,10 @@ impl App<'_> {
   }
 
   pub async fn on_tick(&mut self) {
-    if self.tick_count % self.tick_until_poll == 0 || self.is_routing || self.should_refresh {
+    if self.tick_count.is_multiple_of(self.tick_until_poll)
+      || self.is_routing
+      || self.should_refresh
+    {
       match self.get_current_route() {
         Route::Radarr(active_radarr_block, _) => self.radarr_on_tick(active_radarr_block).await,
         Route::Sonarr(active_sonarr_block, _) => self.sonarr_on_tick(active_sonarr_block).await,
