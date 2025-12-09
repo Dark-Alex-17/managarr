@@ -58,6 +58,7 @@ pub trait Paginated {
 }
 
 #[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
 pub struct ScrollableText {
   pub items: Vec<String>,
   pub offset: u16,
@@ -277,6 +278,7 @@ pub struct TabRoute {
   pub config: Option<ServarrConfig>,
 }
 
+#[cfg_attr(test, derive(Debug))]
 pub struct TabState {
   pub tabs: Vec<TabRoute>,
   pub index: usize,

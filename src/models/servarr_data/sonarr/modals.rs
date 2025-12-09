@@ -210,6 +210,7 @@ impl From<&SonarrData<'_>> for EditSeriesModal {
   }
 }
 
+#[cfg_attr(test, derive(Debug))]
 pub struct EpisodeDetailsModal {
   pub episode_details: ScrollableText,
   pub file_details: String,

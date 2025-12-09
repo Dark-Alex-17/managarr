@@ -10,19 +10,19 @@ mod tests {
   fn test_stateful_table_scrolling_on_empty_table_performs_no_op() {
     let mut stateful_table: StatefulTable<String> = StatefulTable::default();
 
-    assert_eq!(stateful_table.state.selected(), None);
+    assert_none!(stateful_table.state.selected());
 
     stateful_table.scroll_up();
 
-    assert_eq!(stateful_table.state.selected(), None);
+    assert_none!(stateful_table.state.selected());
 
     stateful_table.scroll_down();
 
-    assert_eq!(stateful_table.state.selected(), None);
+    assert_none!(stateful_table.state.selected());
 
     stateful_table.scroll_to_top();
 
-    assert_eq!(stateful_table.state.selected(), None);
+    assert_none!(stateful_table.state.selected());
 
     stateful_table.scroll_to_bottom();
   }
@@ -35,46 +35,42 @@ mod tests {
       ..StatefulTable::default()
     };
 
-    assert_eq!(
+    assert_none!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
-        .selected(),
-      None
+        .selected()
     );
 
     filtered_stateful_table.scroll_up();
 
-    assert_eq!(
+    assert_none!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
-        .selected(),
-      None
+        .selected()
     );
 
     filtered_stateful_table.scroll_down();
 
-    assert_eq!(
+    assert_none!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
-        .selected(),
-      None
+        .selected()
     );
 
     filtered_stateful_table.scroll_to_top();
 
-    assert_eq!(
+    assert_none!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
-        .selected(),
-      None
+        .selected()
     );
 
     filtered_stateful_table.scroll_to_bottom();
@@ -84,110 +80,110 @@ mod tests {
   fn test_stateful_table_scroll() {
     let mut stateful_table = create_test_stateful_table();
 
-    assert_eq!(stateful_table.state.selected(), Some(0));
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
 
     stateful_table.scroll_down();
 
-    assert_eq!(stateful_table.state.selected(), Some(1));
+    assert_some_eq_x!(stateful_table.state.selected(), 1);
 
     stateful_table.scroll_down();
 
-    assert_eq!(stateful_table.state.selected(), Some(0));
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
 
     stateful_table.scroll_up();
 
-    assert_eq!(stateful_table.state.selected(), Some(1));
+    assert_some_eq_x!(stateful_table.state.selected(), 1);
 
     stateful_table.scroll_up();
 
-    assert_eq!(stateful_table.state.selected(), Some(0));
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
 
     stateful_table.scroll_to_bottom();
 
-    assert_eq!(stateful_table.state.selected(), Some(1));
+    assert_some_eq_x!(stateful_table.state.selected(), 1);
 
     stateful_table.scroll_to_top();
 
-    assert_eq!(stateful_table.state.selected(), Some(0));
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
   }
 
   #[test]
   fn test_stateful_table_filtered_items_scroll() {
     let mut filtered_stateful_table = create_test_filtered_stateful_table();
 
-    assert_eq!(
+    assert_some_eq_x!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
         .selected(),
-      Some(0)
+      0
     );
 
     filtered_stateful_table.scroll_down();
 
-    assert_eq!(
+    assert_some_eq_x!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
         .selected(),
-      Some(1)
+      1
     );
 
     filtered_stateful_table.scroll_down();
 
-    assert_eq!(
+    assert_some_eq_x!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
         .selected(),
-      Some(0)
+      0
     );
 
     filtered_stateful_table.scroll_up();
 
-    assert_eq!(
+    assert_some_eq_x!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
         .selected(),
-      Some(1)
+      1
     );
 
     filtered_stateful_table.scroll_up();
 
-    assert_eq!(
+    assert_some_eq_x!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
         .selected(),
-      Some(0)
+      0
     );
 
     filtered_stateful_table.scroll_to_bottom();
 
-    assert_eq!(
+    assert_some_eq_x!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
         .selected(),
-      Some(1)
+      1
     );
 
     filtered_stateful_table.scroll_to_top();
 
-    assert_eq!(
+    assert_some_eq_x!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
         .selected(),
-      Some(0)
+      0
     );
   }
 
@@ -195,15 +191,15 @@ mod tests {
   fn test_stateful_table_pagination_on_empty_table_performs_no_op() {
     let mut stateful_table: StatefulTable<String> = StatefulTable::default();
 
-    assert_eq!(stateful_table.state.selected(), None);
+    assert_none!(stateful_table.state.selected());
 
     stateful_table.page_down();
 
-    assert_eq!(stateful_table.state.selected(), None);
+    assert_none!(stateful_table.state.selected());
 
     stateful_table.page_up();
 
-    assert_eq!(stateful_table.state.selected(), None);
+    assert_none!(stateful_table.state.selected());
   }
 
   #[test]
@@ -214,35 +210,32 @@ mod tests {
       ..StatefulTable::default()
     };
 
-    assert_eq!(
+    assert_none!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
-        .selected(),
-      None
+        .selected()
     );
 
     filtered_stateful_table.page_down();
 
-    assert_eq!(
+    assert_none!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
-        .selected(),
-      None
+        .selected()
     );
 
     filtered_stateful_table.page_up();
 
-    assert_eq!(
+    assert_none!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
-        .selected(),
-      None
+        .selected()
     );
   }
 
@@ -260,53 +253,53 @@ mod tests {
       .collect(),
     );
 
-    assert_eq!(
+    assert_some_eq_x!(
       stateful_table.filtered_state.as_ref().unwrap().selected(),
-      Some(0)
+      0
     );
 
     stateful_table.page_down();
 
-    assert_eq!(
+    assert_some_eq_x!(
       stateful_table.filtered_state.as_ref().unwrap().selected(),
-      Some(20)
+      20
     );
 
     stateful_table.page_up();
 
-    assert_eq!(
+    assert_some_eq_x!(
       stateful_table.filtered_state.as_ref().unwrap().selected(),
-      Some(0)
+      0
     );
 
     stateful_table.page_up();
 
-    assert_eq!(
+    assert_some_eq_x!(
       stateful_table.filtered_state.as_ref().unwrap().selected(),
-      Some(stateful_table.filtered_items.as_ref().unwrap().len() - 21)
+      stateful_table.filtered_items.as_ref().unwrap().len() - 21
     );
 
     stateful_table.page_down();
 
-    assert_eq!(
+    assert_some_eq_x!(
       stateful_table.filtered_state.as_ref().unwrap().selected(),
-      Some(0)
+      0
     );
 
     stateful_table.scroll_down();
     stateful_table.page_up();
 
-    assert_eq!(
+    assert_some_eq_x!(
       stateful_table.filtered_state.as_ref().unwrap().selected(),
-      Some(stateful_table.filtered_items.as_ref().unwrap().len() - 20)
+      stateful_table.filtered_items.as_ref().unwrap().len() - 20
     );
 
     stateful_table.scroll_down();
     stateful_table.page_down();
 
-    assert_eq!(
+    assert_some_eq_x!(
       stateful_table.filtered_state.as_ref().unwrap().selected(),
-      Some(2)
+      2
     );
   }
 
@@ -324,39 +317,39 @@ mod tests {
       .collect(),
     );
 
-    assert_eq!(stateful_table.state.selected(), Some(0));
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
 
     stateful_table.page_down();
 
-    assert_eq!(stateful_table.state.selected(), Some(20));
+    assert_some_eq_x!(stateful_table.state.selected(), 20);
 
     stateful_table.page_up();
 
-    assert_eq!(stateful_table.state.selected(), Some(0));
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
 
     stateful_table.page_up();
 
-    assert_eq!(
+    assert_some_eq_x!(
       stateful_table.state.selected(),
-      Some(stateful_table.items.len() - 21)
+      stateful_table.items.len() - 21
     );
 
     stateful_table.page_down();
 
-    assert_eq!(stateful_table.state.selected(), Some(0));
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
 
     stateful_table.scroll_down();
     stateful_table.page_up();
 
-    assert_eq!(
+    assert_some_eq_x!(
       stateful_table.state.selected(),
-      Some(stateful_table.items.len() - 20)
+      stateful_table.items.len() - 20
     );
 
     stateful_table.scroll_down();
     stateful_table.page_down();
 
-    assert_eq!(stateful_table.state.selected(), Some(2));
+    assert_some_eq_x!(stateful_table.state.selected(), 2);
   }
 
   #[test]
@@ -366,17 +359,17 @@ mod tests {
 
     stateful_table.set_items(items_vec.clone());
 
-    assert_eq!(stateful_table.state.selected(), Some(0));
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
 
     stateful_table.state.select(Some(1));
     stateful_table.set_items(items_vec.clone());
 
-    assert_eq!(stateful_table.state.selected(), Some(1));
+    assert_some_eq_x!(stateful_table.state.selected(), 1);
 
     stateful_table.state.select(Some(3));
     stateful_table.set_items(items_vec);
 
-    assert_eq!(stateful_table.state.selected(), Some(2));
+    assert_some_eq_x!(stateful_table.state.selected(), 2);
   }
 
   #[test]
@@ -386,18 +379,15 @@ mod tests {
 
     filtered_stateful_table.set_filtered_items(filtered_items_vec.clone());
 
-    assert_eq!(
+    assert_some_eq_x!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
         .selected(),
-      Some(0)
+      0
     );
-    assert_eq!(
-      filtered_stateful_table.filtered_items,
-      Some(filtered_items_vec.clone())
-    );
+    assert_some_eq_x!(&filtered_stateful_table.filtered_items, &filtered_items_vec);
   }
 
   #[test]
@@ -602,50 +592,49 @@ mod tests {
   fn test_stateful_table_select_index() {
     let mut stateful_table = create_test_stateful_table();
 
-    assert_eq!(stateful_table.state.selected(), Some(0));
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
 
     stateful_table.select_index(Some(1));
 
-    assert_eq!(stateful_table.state.selected(), Some(1));
+    assert_some_eq_x!(stateful_table.state.selected(), 1);
 
     stateful_table.select_index(None);
 
-    assert_eq!(stateful_table.state.selected(), None);
+    assert_none!(stateful_table.state.selected());
   }
 
   #[test]
   fn test_filtered_stateful_table_select_index() {
     let mut filtered_stateful_table = create_test_filtered_stateful_table();
 
-    assert_eq!(
+    assert_some_eq_x!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
         .selected(),
-      Some(0)
+      0
     );
 
     filtered_stateful_table.select_index(Some(1));
 
-    assert_eq!(
+    assert_some_eq_x!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
         .selected(),
-      Some(1)
+      1
     );
 
     filtered_stateful_table.select_index(None);
 
-    assert_eq!(
+    assert_none!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
-        .selected(),
-      None
+        .selected()
     );
   }
 
@@ -653,50 +642,50 @@ mod tests {
   fn test_stateful_table_scroll_up() {
     let mut stateful_table = create_test_stateful_table();
 
-    assert_eq!(stateful_table.state.selected(), Some(0));
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
 
     stateful_table.scroll_up();
 
-    assert_eq!(stateful_table.state.selected(), Some(1));
+    assert_some_eq_x!(stateful_table.state.selected(), 1);
 
     stateful_table.scroll_up();
 
-    assert_eq!(stateful_table.state.selected(), Some(0));
+    assert_some_eq_x!(stateful_table.state.selected(), 0);
   }
 
   #[test]
   fn test_filtered_stateful_table_scroll_up() {
     let mut filtered_stateful_table = create_test_filtered_stateful_table();
 
-    assert_eq!(
+    assert_some_eq_x!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
         .selected(),
-      Some(0)
+      0
     );
 
     filtered_stateful_table.scroll_up();
 
-    assert_eq!(
+    assert_some_eq_x!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
         .selected(),
-      Some(1)
+      1
     );
 
     filtered_stateful_table.scroll_up();
 
-    assert_eq!(
+    assert_some_eq_x!(
       filtered_stateful_table
         .filtered_state
         .as_ref()
         .unwrap()
         .selected(),
-      Some(0)
+      0
     );
   }
 
@@ -711,9 +700,9 @@ mod tests {
 
     let has_matches = stateful_table.apply_filter(|&item| item);
 
-    assert_eq!(stateful_table.filter, None);
-    assert_eq!(stateful_table.filtered_items, Some(expected_items));
-    assert_eq!(stateful_table.filtered_state, Some(expected_state));
+    assert_none!(stateful_table.filter);
+    assert_some_eq_x!(&stateful_table.filtered_items, &expected_items);
+    assert_some_eq_x!(&stateful_table.filtered_state, &expected_state);
     assert!(has_matches);
   }
 
@@ -725,9 +714,9 @@ mod tests {
 
     let has_matches = stateful_table.apply_filter(|&item| item);
 
-    assert_eq!(stateful_table.filter, None);
-    assert_eq!(stateful_table.filtered_items, None);
-    assert_eq!(stateful_table.filtered_state, None);
+    assert_none!(stateful_table.filter);
+    assert_none!(stateful_table.filtered_items);
+    assert_none!(stateful_table.filtered_state);
     assert!(!has_matches);
   }
 
@@ -736,9 +725,9 @@ mod tests {
     let mut stateful_table = create_test_filtered_stateful_table();
     stateful_table.reset_filter();
 
-    assert_eq!(stateful_table.filter, None);
-    assert_eq!(stateful_table.filtered_items, None);
-    assert_eq!(stateful_table.filtered_state, None);
+    assert_none!(stateful_table.filter);
+    assert_none!(stateful_table.filtered_items);
+    assert_none!(stateful_table.filtered_state);
   }
 
   #[test]
@@ -751,7 +740,7 @@ mod tests {
 
     let has_match = stateful_table.apply_search(|&item| item);
 
-    assert_eq!(stateful_table.search, None);
+    assert_none!(stateful_table.search);
     assert_eq!(stateful_table.state, expected_state);
     assert!(has_match);
   }
@@ -764,7 +753,7 @@ mod tests {
 
     let has_match = stateful_table.apply_search(|&item| item);
 
-    assert_eq!(stateful_table.search, None);
+    assert_none!(stateful_table.search);
     assert!(!has_match);
   }
 
@@ -778,8 +767,8 @@ mod tests {
 
     let has_match = stateful_table.apply_search(|&item| item);
 
-    assert_eq!(stateful_table.search, None);
-    assert_eq!(stateful_table.filtered_state, Some(expected_state));
+    assert_none!(stateful_table.search);
+    assert_some_eq_x!(&stateful_table.filtered_state, &expected_state);
     assert!(has_match);
   }
 
@@ -793,8 +782,8 @@ mod tests {
 
     let has_match = stateful_table.apply_search(|&item| item);
 
-    assert_eq!(stateful_table.search, None);
-    assert_eq!(stateful_table.filtered_state, Some(expected_state));
+    assert_none!(stateful_table.search);
+    assert_some_eq_x!(&stateful_table.filtered_state, &expected_state);
     assert!(!has_match);
   }
 
@@ -804,7 +793,7 @@ mod tests {
     stateful_table.search = Some("test".into());
     stateful_table.reset_search();
 
-    assert_eq!(stateful_table.search, None);
+    assert_none!(stateful_table.search);
   }
 
   #[test]
@@ -815,7 +804,7 @@ mod tests {
 
     stateful_table = StatefulTable::default();
 
-    assert!(stateful_table.is_empty());
+    assert_is_empty!(stateful_table);
   }
 
   fn create_test_stateful_table() -> StatefulTable<&'static str> {

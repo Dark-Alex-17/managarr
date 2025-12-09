@@ -7,6 +7,7 @@ use std::fmt::Debug;
 mod stateful_list_tests;
 
 #[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
 pub struct StatefulList<T> {
   pub state: ListState,
   pub items: Vec<T>,

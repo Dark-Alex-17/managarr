@@ -31,6 +31,7 @@ where
 impl<T> Eq for SortOption<T> where T: Clone + PartialEq + Eq + Debug {}
 
 #[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
 pub struct StatefulTable<T>
 where
   T: Clone + PartialEq + Eq + Debug,
