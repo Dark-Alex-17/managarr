@@ -31,14 +31,14 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "refresh", subcommand]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
     fn test_refresh_series_requires_series_id() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "refresh", "series"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -57,13 +57,13 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Refresh(refresh_command))) =
-        result.unwrap().command
-      {
-        assert_eq!(refresh_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Refresh(refresh_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(refresh_command, expected_args);
     }
   }
 
@@ -109,7 +109,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -135,7 +135,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 }

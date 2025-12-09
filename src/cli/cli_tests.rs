@@ -33,7 +33,7 @@ mod tests {
   fn test_servarr_subcommand_requires_subcommand(#[values("radarr", "sonarr")] subcommand: &str) {
     let result = Cli::command().try_get_matches_from(["managarr", subcommand]);
 
-    assert!(result.is_err());
+    assert_err!(&result);
     assert_eq!(
       result.unwrap_err().kind(),
       ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand
@@ -45,21 +45,21 @@ mod tests {
     let result =
       Cli::command().try_get_matches_from(["managarr", "radarr", "get", "all-indexer-settings"]);
 
-    assert!(result.is_ok());
+    assert_ok!(&result);
   }
 
   #[test]
   fn test_sonarr_subcommand_delegates_to_sonarr() {
     let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "list", "series"]);
 
-    assert!(result.is_ok());
+    assert_ok!(&result);
   }
 
   #[test]
   fn test_completions_requires_argument() {
     let result = Cli::command().try_get_matches_from(["managarr", "completions"]);
 
-    assert!(result.is_err());
+    assert_err!(&result);
     assert_eq!(
       result.unwrap_err().kind(),
       ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand
@@ -70,7 +70,7 @@ mod tests {
   fn test_completions_invalid_argument() {
     let result = Cli::command().try_get_matches_from(["managarr", "completions", "test"]);
 
-    assert!(result.is_err());
+    assert_err!(&result);
     assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
   }
 
@@ -78,7 +78,7 @@ mod tests {
   fn test_completions_satisfied_with_argument() {
     let result = Cli::command().try_get_matches_from(["managarr", "completions", "bash"]);
 
-    assert!(result.is_ok());
+    assert_ok!(&result);
   }
 
   #[rstest]
@@ -141,7 +141,7 @@ mod tests {
 
     let result = handle_command(&app_arc, clear_blocklist_command, &mut mock_network).await;
 
-    assert!(result.is_ok());
+    assert_ok!(&result);
   }
 
   #[tokio::test]
@@ -172,6 +172,6 @@ mod tests {
 
     let result = handle_command(&app_arc, clear_blocklist_command, &mut mock_network).await;
 
-    assert!(result.is_ok());
+    assert_ok!(&result);
   }
 }

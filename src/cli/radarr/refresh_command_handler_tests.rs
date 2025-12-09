@@ -31,14 +31,14 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "refresh", subcommand]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
     fn test_refresh_movie_requires_movie_id() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "refresh", "movie"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -51,13 +51,13 @@ mod tests {
       let result =
         Cli::try_parse_from(["managarr", "radarr", "refresh", "movie", "--movie-id", "1"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::Refresh(refresh_command))) =
-        result.unwrap().command
-      {
-        assert_eq!(refresh_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::Refresh(refresh_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(refresh_command, expected_args);
     }
   }
 
@@ -102,7 +102,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -128,7 +128,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 }

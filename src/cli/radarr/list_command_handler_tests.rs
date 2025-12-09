@@ -43,7 +43,7 @@ mod tests {
     ) {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "list", subcommand]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -51,7 +51,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "list", "movie-credits"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -63,7 +63,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "list", "downloads", "--count"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -72,7 +72,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "list", "logs", "--events"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -88,11 +88,13 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::List(credits_command))) = result.unwrap().command {
-        assert_eq!(credits_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::List(credits_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(credits_command, expected_args);
     }
 
     #[test]
@@ -100,11 +102,13 @@ mod tests {
       let expected_args = RadarrListCommand::Downloads { count: 500 };
       let result = Cli::try_parse_from(["managarr", "radarr", "list", "downloads"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::List(refresh_command))) = result.unwrap().command {
-        assert_eq!(refresh_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::List(refresh_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(refresh_command, expected_args);
     }
 
     #[test]
@@ -115,11 +119,13 @@ mod tests {
       };
       let result = Cli::try_parse_from(["managarr", "radarr", "list", "logs"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::List(refresh_command))) = result.unwrap().command {
-        assert_eq!(refresh_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::List(refresh_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(refresh_command, expected_args);
     }
   }
 
@@ -172,7 +178,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -198,7 +204,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -224,7 +230,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -252,7 +258,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 }

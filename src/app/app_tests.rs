@@ -520,7 +520,7 @@ mod tests {
     "#;
     let result: Result<ServarrConfig, _> = serde_yaml::from_str(yaml_data);
 
-    let result = assert_err_as_result!(result);
+    assert_err!(&result);
     let err = result.unwrap_err().to_string();
     assert_contains!(err, "invalid digit found in string");
   }

@@ -28,7 +28,7 @@ mod tests {
     ) {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", subcommand]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -43,7 +43,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -62,7 +62,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -81,7 +81,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -102,14 +102,14 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
     fn test_manual_search_requires_movie_id() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "manual-search"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -126,14 +126,14 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
     fn test_search_new_movie_requires_query() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "search-new-movie"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -150,14 +150,14 @@ mod tests {
         "halo",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
     fn test_start_task_requires_task_name() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "start-task"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -174,7 +174,7 @@ mod tests {
         "test",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -188,14 +188,14 @@ mod tests {
         "application-check-update",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
     fn test_test_indexer_requires_indexer_id() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "test-indexer"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -212,7 +212,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -220,7 +220,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "toggle-movie-monitoring"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -237,7 +237,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -245,7 +245,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "trigger-automatic-search"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -262,7 +262,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 
@@ -324,7 +324,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -357,7 +357,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -382,7 +382,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -409,7 +409,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -436,7 +436,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -461,7 +461,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -483,7 +483,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -509,7 +509,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -538,7 +538,7 @@ mod tests {
       .handle()
       .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -565,7 +565,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -594,7 +594,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -666,7 +666,7 @@ mod tests {
       .handle()
       .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -695,7 +695,7 @@ mod tests {
       .handle()
       .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -721,7 +721,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -747,7 +747,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 }

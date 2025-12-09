@@ -27,7 +27,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "get", "all-indexer-settings"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -35,7 +35,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "get", "host-config"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -43,7 +43,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "get", "movie-details"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -61,7 +61,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -69,7 +69,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "get", "movie-history"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -87,7 +87,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -95,7 +95,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "get", "security-config"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -103,7 +103,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "get", "system-status"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 
@@ -149,7 +149,7 @@ mod tests {
       .handle()
       .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -172,7 +172,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -198,7 +198,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -224,7 +224,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -247,7 +247,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -270,7 +270,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 }

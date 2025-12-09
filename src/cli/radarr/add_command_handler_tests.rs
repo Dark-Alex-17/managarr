@@ -32,7 +32,7 @@ mod tests {
     fn test_add_movie_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "add", "movie"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -52,7 +52,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -72,7 +72,7 @@ mod tests {
         "/test",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -92,7 +92,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -117,7 +117,7 @@ mod tests {
         flag,
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -136,7 +136,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -156,7 +156,7 @@ mod tests {
         "test",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -177,7 +177,7 @@ mod tests {
         "test",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -207,10 +207,11 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
-      if let Some(Command::Radarr(RadarrCommand::Add(add_command))) = result.unwrap().command {
-        assert_eq!(add_command, expected_args);
-      }
+      assert_ok!(&result);
+      let Some(Command::Radarr(RadarrCommand::Add(add_command))) = result.unwrap().command else {
+        panic!("Unexpected command type")
+      };
+      assert_eq!(add_command, expected_args);
     }
 
     #[test]
@@ -243,10 +244,11 @@ mod tests {
         "2",
       ]);
 
-      assert!(result.is_ok());
-      if let Some(Command::Radarr(RadarrCommand::Add(add_command))) = result.unwrap().command {
-        assert_eq!(add_command, expected_args);
-      }
+      assert_ok!(&result);
+      let Some(Command::Radarr(RadarrCommand::Add(add_command))) = result.unwrap().command else {
+        panic!("Unexpected command type")
+      };
+      assert_eq!(add_command, expected_args);
     }
 
     #[test]
@@ -285,10 +287,11 @@ mod tests {
         "--no-search-for-movie",
       ]);
 
-      assert!(result.is_ok());
-      if let Some(Command::Radarr(RadarrCommand::Add(add_command))) = result.unwrap().command {
-        assert_eq!(add_command, expected_args);
-      }
+      assert_ok!(&result);
+      let Some(Command::Radarr(RadarrCommand::Add(add_command))) = result.unwrap().command else {
+        panic!("Unexpected command type")
+      };
+      assert_eq!(add_command, expected_args);
     }
 
     #[test]
@@ -296,7 +299,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "add", "root-folder"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -318,18 +321,19 @@ mod tests {
         "/nfs/test",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::Add(add_command))) = result.unwrap().command {
-        assert_eq!(add_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::Add(add_command))) = result.unwrap().command else {
+        panic!("Unexpected command type")
+      };
+      assert_eq!(add_command, expected_args);
     }
 
     #[test]
     fn test_add_tag_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "add", "tag"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -344,11 +348,12 @@ mod tests {
 
       let result = Cli::try_parse_from(["managarr", "radarr", "add", "tag", "--name", "test"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::Add(add_command))) = result.unwrap().command {
-        assert_eq!(add_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::Add(add_command))) = result.unwrap().command else {
+        panic!("Unexpected command type")
+      };
+      assert_eq!(add_command, expected_args);
     }
   }
 
@@ -416,7 +421,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -447,7 +452,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -474,7 +479,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 }

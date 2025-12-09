@@ -30,7 +30,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "delete", "blocklist-item"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -52,12 +52,13 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
 
     #[test]
@@ -65,7 +66,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "delete", "download"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -85,19 +86,20 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
 
     #[test]
     fn test_delete_indexer_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "delete", "indexer"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -117,19 +119,20 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
 
     #[test]
     fn test_delete_movie_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "delete", "movie"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -147,12 +150,13 @@ mod tests {
       let result =
         Cli::try_parse_from(["managarr", "radarr", "delete", "movie", "--movie-id", "1"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
 
     #[test]
@@ -174,12 +178,13 @@ mod tests {
         "--add-list-exclusion",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
 
     #[test]
@@ -187,7 +192,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "delete", "root-folder"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -207,19 +212,20 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
 
     #[test]
     fn test_delete_tag_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "delete", "tag"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -232,12 +238,13 @@ mod tests {
 
       let result = Cli::try_parse_from(["managarr", "radarr", "delete", "tag", "--tag-id", "1"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
   }
 
@@ -289,7 +296,7 @@ mod tests {
       .handle()
       .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -315,7 +322,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -341,7 +348,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -375,7 +382,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -401,7 +408,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -427,7 +434,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 }
