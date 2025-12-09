@@ -7,16 +7,16 @@ mod tests {
   use serde_json::Number;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_modal_absent;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::library::movie_details_handler::{
-    releases_sorting_options, MovieDetailsHandler,
+    MovieDetailsHandler, releases_sorting_options,
   };
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::{movie, release};
-  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::{Credit, MovieHistoryItem};
   use crate::models::radarr_models::{RadarrRelease, RadarrReleaseDownloadBody};
   use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
@@ -393,9 +393,9 @@ mod tests {
 
       assert!(app.data.radarr_data.prompt_confirm);
       assert_navigation_popped!(app, ActiveRadarrBlock::MovieDetails.into());
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(expected_action)
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &expected_action
       );
     }
 
@@ -420,7 +420,7 @@ mod tests {
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert_navigation_popped!(app, ActiveRadarrBlock::MovieDetails.into());
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
     }
   }
 
@@ -495,7 +495,7 @@ mod tests {
     use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::servarr_data::radarr::radarr_data::{
-      RadarrData, EDIT_MOVIE_SELECTION_BLOCKS,
+      EDIT_MOVIE_SELECTION_BLOCKS, RadarrData,
     };
     use crate::network::radarr_network::RadarrEvent;
     use crate::{assert_navigation_popped, test_edit_movie_key};
@@ -808,9 +808,9 @@ mod tests {
 
       assert!(app.data.radarr_data.prompt_confirm);
       assert_navigation_popped!(app, ActiveRadarrBlock::MovieDetails.into());
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(expected_action)
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &expected_action
       );
     }
   }

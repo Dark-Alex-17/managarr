@@ -5,17 +5,17 @@ mod tests {
   use std::cmp::Ordering;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_modal_absent;
   use crate::assert_modal_present;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::sonarr_handlers::library::{series_sorting_options, LibraryHandler};
-  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::sonarr_handlers::library::{LibraryHandler, series_sorting_options};
+  use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
   use crate::models::servarr_data::sonarr::sonarr_data::{
-    ActiveSonarrBlock, ADD_SERIES_BLOCKS, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
+    ADD_SERIES_BLOCKS, ActiveSonarrBlock, DELETE_SERIES_BLOCKS, EDIT_SERIES_BLOCKS,
     EPISODE_DETAILS_BLOCKS, LIBRARY_BLOCKS, SEASON_DETAILS_BLOCKS, SERIES_DETAILS_BLOCKS,
   };
   use crate::models::sonarr_models::{Series, SeriesStatistics, SeriesStatus, SeriesType};
@@ -207,9 +207,9 @@ mod tests {
       .handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::UpdateAllSeries)
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::UpdateAllSeries
       );
       assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
     }
@@ -234,7 +234,7 @@ mod tests {
       .handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
       assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
     }
   }
@@ -279,7 +279,7 @@ mod tests {
       LibraryHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::Series, None).handle();
 
       assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
-      assert!(app.error.text.is_empty());
+      assert_is_empty!(app.error.text);
     }
   }
 
@@ -288,8 +288,8 @@ mod tests {
     use serde_json::Number;
     use strum::IntoEnumIterator;
 
-    use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
     use crate::models::servarr_data::sonarr::sonarr_data::SonarrData;
+    use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
     use crate::models::sonarr_models::SeriesType;
 
     use crate::network::sonarr_network::SonarrEvent;
@@ -393,9 +393,9 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
       assert!(app.data.sonarr_data.prompt_confirm);
       assert!(app.is_routing);
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::ToggleSeriesMonitoring(0))
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::ToggleSeriesMonitoring(0)
       );
     }
 
@@ -527,9 +527,9 @@ mod tests {
       .handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::UpdateAllSeries)
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::UpdateAllSeries
       );
       assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
     }

@@ -5,18 +5,18 @@ mod tests {
   use std::cmp::Ordering;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_modal_absent;
   use crate::assert_modal_present;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::library::{movies_sorting_options, LibraryHandler};
-  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::movie;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::radarr_handlers::library::{LibraryHandler, movies_sorting_options};
+  use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::movie;
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::{
-    ActiveRadarrBlock, ADD_MOVIE_BLOCKS, DELETE_MOVIE_BLOCKS, EDIT_MOVIE_BLOCKS, LIBRARY_BLOCKS,
+    ADD_MOVIE_BLOCKS, ActiveRadarrBlock, DELETE_MOVIE_BLOCKS, EDIT_MOVIE_BLOCKS, LIBRARY_BLOCKS,
     MOVIE_DETAILS_BLOCKS,
   };
   use crate::models::servarr_models::Language;
@@ -207,9 +207,9 @@ mod tests {
       .handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::UpdateAllMovies)
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &RadarrEvent::UpdateAllMovies
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
     }
@@ -234,7 +234,7 @@ mod tests {
       .handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
       assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
     }
   }
@@ -288,7 +288,7 @@ mod tests {
       LibraryHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::Movies, None).handle();
 
       assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
-      assert!(app.error.text.is_empty());
+      assert_is_empty!(app.error.text);
     }
   }
 
@@ -301,7 +301,7 @@ mod tests {
     use crate::models::radarr_models::MinimumAvailability;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::servarr_data::radarr::radarr_data::{
-      RadarrData, EDIT_MOVIE_SELECTION_BLOCKS,
+      EDIT_MOVIE_SELECTION_BLOCKS, RadarrData,
     };
 
     use crate::network::radarr_network::RadarrEvent;
@@ -405,9 +405,9 @@ mod tests {
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert!(app.data.radarr_data.prompt_confirm);
       assert!(app.is_routing);
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::ToggleMovieMonitoring(0))
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &RadarrEvent::ToggleMovieMonitoring(0)
       );
     }
 
@@ -539,9 +539,9 @@ mod tests {
       .handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::UpdateAllMovies)
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &RadarrEvent::UpdateAllMovies
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
     }

@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_navigation_pushed;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::episode_details_handler::EpisodeDetailsHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::episode;
-  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::modals::{EpisodeDetailsModal, SeasonDetailsModal};
   use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
   use crate::models::servarr_data::sonarr::sonarr_data::{
@@ -238,9 +238,9 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_navigation_pushed!(app, active_sonarr_block.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(expected_action)
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &expected_action
       );
     }
 
@@ -262,14 +262,14 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_navigation_popped!(app, ActiveSonarrBlock::ManualEpisodeSearch.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
           guid: String::new(),
           indexer_id: 0,
           episode_id: Some(0),
           ..SonarrReleaseDownloadBody::default()
-        }))
+        })
       );
     }
 
@@ -290,7 +290,7 @@ mod tests {
 
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_navigation_popped!(app, ActiveSonarrBlock::EpisodeDetails.into());
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
     }
 
     #[test]
@@ -400,14 +400,15 @@ mod tests {
       EpisodeDetailsHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
       assert_navigation_popped!(app, ActiveSonarrBlock::SeasonDetails.into());
-      assert!(app
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .unwrap()
-        .episode_details_modal
-        .is_none());
+      assert_none!(
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .episode_details_modal
+      );
     }
   }
 
@@ -560,9 +561,9 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_navigation_popped!(app, active_sonarr_block.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::TriggerAutomaticEpisodeSearch(1))
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::TriggerAutomaticEpisodeSearch(1)
       );
     }
 
@@ -584,14 +585,14 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_navigation_popped!(app, ActiveSonarrBlock::ManualEpisodeSearch.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
           guid: String::new(),
           indexer_id: 0,
           episode_id: Some(0),
           ..SonarrReleaseDownloadBody::default()
-        }))
+        })
       );
     }
   }

@@ -7,12 +7,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::blocklist::{blocklist_sorting_options, BlocklistHandler};
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::radarr_handlers::blocklist::{BlocklistHandler, blocklist_sorting_options};
   use crate::models::radarr_models::{BlocklistItem, BlocklistItemMovie};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, BLOCKLIST_BLOCKS};
   use crate::models::servarr_models::{Language, Quality, QualityWrapper};
@@ -198,7 +198,7 @@ mod tests {
       BlocklistHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
       assert_navigation_popped!(app, ActiveRadarrBlock::Blocklist.into());
     }
   }

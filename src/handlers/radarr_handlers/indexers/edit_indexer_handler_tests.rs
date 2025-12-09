@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_modal_absent;
   use crate::assert_modal_present;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::indexers::edit_indexer_handler::EditIndexerHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::indexer;
-  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::modals::EditIndexerModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_INDEXER_BLOCKS};
   use crate::models::servarr_models::EditIndexerParams;
@@ -21,9 +21,9 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
+    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS;
-    use crate::models::BlockSelectionState;
 
     use super::*;
 
@@ -422,11 +422,11 @@ mod tests {
     use std::sync::atomic::Ordering;
 
     use crate::app::App;
+    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::servarr_data::radarr::radarr_data::{
       EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
     };
-    use crate::models::BlockSelectionState;
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -856,7 +856,7 @@ mod tests {
     use crate::assert_navigation_popped;
     use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::{
-      servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, BlockSelectionState,
+      BlockSelectionState, servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
     };
     use crate::network::radarr_network::RadarrEvent;
 
@@ -887,9 +887,9 @@ mod tests {
       .handle();
 
       assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
       assert!(!app.should_refresh);
-      assert_eq!(app.data.radarr_data.edit_indexer_modal, None);
+      assert_none!(app.data.radarr_data.edit_indexer_modal);
     }
 
     #[test]
@@ -972,7 +972,7 @@ mod tests {
       );
       assert_modal_present!(app.data.radarr_data.edit_indexer_modal);
       assert!(!app.should_refresh);
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
     }
 
     #[rstest]
@@ -1054,14 +1054,16 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::EditIndexerPrompt.into()
       );
-      assert!(app
-        .data
-        .radarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap()
-        .enable_rss
-        .unwrap());
+      assert!(
+        app
+          .data
+          .radarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .enable_rss
+          .unwrap()
+      );
 
       EditIndexerHandler::new(
         SUBMIT_KEY,
@@ -1075,14 +1077,16 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::EditIndexerPrompt.into()
       );
-      assert!(!app
-        .data
-        .radarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap()
-        .enable_rss
-        .unwrap());
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .enable_rss
+          .unwrap()
+      );
     }
 
     #[test]
@@ -1107,14 +1111,16 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::EditIndexerPrompt.into()
       );
-      assert!(app
-        .data
-        .radarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap()
-        .enable_automatic_search
-        .unwrap());
+      assert!(
+        app
+          .data
+          .radarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .enable_automatic_search
+          .unwrap()
+      );
 
       EditIndexerHandler::new(
         SUBMIT_KEY,
@@ -1128,14 +1134,16 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::EditIndexerPrompt.into()
       );
-      assert!(!app
-        .data
-        .radarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap()
-        .enable_automatic_search
-        .unwrap());
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .enable_automatic_search
+          .unwrap()
+      );
     }
 
     #[test]
@@ -1160,14 +1168,16 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::EditIndexerPrompt.into()
       );
-      assert!(app
-        .data
-        .radarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap()
-        .enable_interactive_search
-        .unwrap());
+      assert!(
+        app
+          .data
+          .radarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .enable_interactive_search
+          .unwrap()
+      );
 
       EditIndexerHandler::new(
         SUBMIT_KEY,
@@ -1181,14 +1191,16 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::EditIndexerPrompt.into()
       );
-      assert!(!app
-        .data
-        .radarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap()
-        .enable_interactive_search
-        .unwrap());
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .enable_interactive_search
+          .unwrap()
+      );
     }
 
     #[test]
@@ -1212,15 +1224,17 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(!app
-        .data
-        .radarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap()
-        .name
-        .text
-        .is_empty());
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .name
+          .text
+          .is_empty()
+      );
       assert_navigation_popped!(app, ActiveRadarrBlock::EditIndexerPrompt.into());
     }
 
@@ -1245,15 +1259,17 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(!app
-        .data
-        .radarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap()
-        .url
-        .text
-        .is_empty());
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .url
+          .text
+          .is_empty()
+      );
       assert_navigation_popped!(app, ActiveRadarrBlock::EditIndexerPrompt.into());
     }
 
@@ -1278,15 +1294,17 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(!app
-        .data
-        .radarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap()
-        .api_key
-        .text
-        .is_empty());
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .api_key
+          .text
+          .is_empty()
+      );
       assert_navigation_popped!(app, ActiveRadarrBlock::EditIndexerPrompt.into());
     }
 
@@ -1311,15 +1329,17 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(!app
-        .data
-        .radarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap()
-        .seed_ratio
-        .text
-        .is_empty());
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .seed_ratio
+          .text
+          .is_empty()
+      );
       assert_navigation_popped!(app, ActiveRadarrBlock::EditIndexerPrompt.into());
     }
 
@@ -1344,15 +1364,17 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(!app
-        .data
-        .radarr_data
-        .edit_indexer_modal
-        .as_ref()
-        .unwrap()
-        .tags
-        .text
-        .is_empty());
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .edit_indexer_modal
+          .as_ref()
+          .unwrap()
+          .tags
+          .text
+          .is_empty()
+      );
       assert_navigation_popped!(app, ActiveRadarrBlock::EditIndexerPrompt.into());
     }
   }
@@ -1386,7 +1408,7 @@ mod tests {
 
       assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert_eq!(app.data.radarr_data.edit_indexer_modal, None);
+      assert_none!(app.data.radarr_data.edit_indexer_modal);
     }
 
     #[rstest]
@@ -1422,9 +1444,9 @@ mod tests {
     use super::*;
     use crate::app::App;
     use crate::assert_navigation_popped;
+    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::servarr_data::radarr::radarr_data::EDIT_INDEXER_TORRENT_SELECTION_BLOCKS;
-    use crate::models::BlockSelectionState;
     use crate::network::radarr_network::RadarrEvent;
     use pretty_assertions::{assert_eq, assert_str_eq};
 

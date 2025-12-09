@@ -7,12 +7,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::sonarr_handlers::blocklist::{blocklist_sorting_options, BlocklistHandler};
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::sonarr_handlers::blocklist::{BlocklistHandler, blocklist_sorting_options};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, BLOCKLIST_BLOCKS};
   use crate::models::servarr_models::{Language, Quality, QualityWrapper};
   use crate::models::sonarr_models::BlocklistItem;
@@ -179,9 +179,9 @@ mod tests {
       BlocklistHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(expected_action)
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &expected_action
       );
       assert_navigation_popped!(app, base_route.into());
     }
@@ -202,7 +202,7 @@ mod tests {
       BlocklistHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
       assert_navigation_popped!(app, ActiveSonarrBlock::Blocklist.into());
     }
   }
@@ -267,7 +267,7 @@ mod tests {
       BlocklistHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::Blocklist, None).handle();
 
       assert_navigation_popped!(app, ActiveSonarrBlock::Blocklist.into());
-      assert!(app.error.text.is_empty());
+      assert_is_empty!(app.error.text);
     }
   }
 
@@ -382,9 +382,9 @@ mod tests {
       .handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(expected_action)
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &expected_action
       );
       assert_navigation_popped!(app, base_route.into());
     }

@@ -5,32 +5,32 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_modal_absent;
   use crate::assert_modal_present;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::add_series_handler::AddSeriesHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::add_series_search_result;
-  use crate::handlers::KeyEventHandler;
+  use crate::models::HorizontallyScrollableText;
   use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
-  use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ADD_SERIES_BLOCKS};
+  use crate::models::servarr_data::sonarr::sonarr_data::{ADD_SERIES_BLOCKS, ActiveSonarrBlock};
   use crate::models::servarr_models::RootFolder;
   use crate::models::sonarr_models::{
     AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult, SeriesMonitor, SeriesType,
   };
   use crate::models::stateful_table::StatefulTable;
-  use crate::models::HorizontallyScrollableText;
 
   mod test_handle_scroll_up_and_down {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
+    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
     use crate::models::servarr_data::sonarr::sonarr_data::ADD_SERIES_SELECTION_BLOCKS;
-    use crate::models::BlockSelectionState;
     use crate::simple_stateful_iterable_vec;
 
     use super::*;
@@ -898,11 +898,11 @@ mod tests {
 
   mod test_handle_submit {
     use crate::assert_navigation_popped;
+    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
     use crate::models::servarr_data::sonarr::sonarr_data::ADD_SERIES_SELECTION_BLOCKS;
     use crate::models::sonarr_models::Series;
     use crate::models::stateful_table::StatefulTable;
-    use crate::models::BlockSelectionState;
     use crate::network::sonarr_network::SonarrEvent;
     use bimap::BiMap;
     use pretty_assertions::{assert_eq, assert_str_eq};
@@ -978,33 +978,39 @@ mod tests {
         ActiveSonarrBlock::AddSeriesSelectRootFolder
       );
       assert_modal_present!(app.data.sonarr_data.add_series_modal);
-      assert!(!app
-        .data
-        .sonarr_data
-        .add_series_modal
-        .as_ref()
-        .unwrap()
-        .monitor_list
-        .items
-        .is_empty());
-      assert!(!app
-        .data
-        .sonarr_data
-        .add_series_modal
-        .as_ref()
-        .unwrap()
-        .series_type_list
-        .items
-        .is_empty());
-      assert!(!app
-        .data
-        .sonarr_data
-        .add_series_modal
-        .as_ref()
-        .unwrap()
-        .quality_profile_list
-        .items
-        .is_empty());
+      assert!(
+        !app
+          .data
+          .sonarr_data
+          .add_series_modal
+          .as_ref()
+          .unwrap()
+          .monitor_list
+          .items
+          .is_empty()
+      );
+      assert!(
+        !app
+          .data
+          .sonarr_data
+          .add_series_modal
+          .as_ref()
+          .unwrap()
+          .series_type_list
+          .items
+          .is_empty()
+      );
+      assert!(
+        !app
+          .data
+          .sonarr_data
+          .add_series_modal
+          .as_ref()
+          .unwrap()
+          .quality_profile_list
+          .items
+          .is_empty()
+      );
       assert_str_eq!(
         app
           .data
@@ -1106,7 +1112,7 @@ mod tests {
       .handle();
 
       assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
     }
 
     #[test]
@@ -1222,7 +1228,7 @@ mod tests {
       .handle();
 
       assert_navigation_pushed!(app, selected_block.into());
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
 
       if selected_block == ActiveSonarrBlock::AddSeriesTagsInput {
         assert!(app.ignore_special_keys_for_textbox_input);
@@ -1311,7 +1317,6 @@ mod tests {
   }
 
   mod test_handle_esc {
-    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
@@ -1342,7 +1347,7 @@ mod tests {
 
       assert!(!app.ignore_special_keys_for_textbox_input);
       assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
-      assert_eq!(app.data.sonarr_data.add_series_search, None);
+      assert_none!(app.data.sonarr_data.add_series_search);
     }
 
     #[test]
@@ -1475,8 +1480,8 @@ mod tests {
     use crate::{
       assert_navigation_popped,
       models::{
-        servarr_data::sonarr::{modals::AddSeriesModal, sonarr_data::ADD_SERIES_SELECTION_BLOCKS},
         BlockSelectionState,
+        servarr_data::sonarr::{modals::AddSeriesModal, sonarr_data::ADD_SERIES_SELECTION_BLOCKS},
       },
       network::sonarr_network::SonarrEvent,
     };

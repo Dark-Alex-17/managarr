@@ -7,18 +7,18 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_modal_absent;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::collections::{
-    collections_sorting_options, CollectionsHandler,
-  };
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::radarr_handlers::collections::{
+    CollectionsHandler, collections_sorting_options,
+  };
   use crate::models::radarr_models::{Collection, CollectionMovie};
   use crate::models::servarr_data::radarr::radarr_data::{
-    ActiveRadarrBlock, COLLECTIONS_BLOCKS, COLLECTION_DETAILS_BLOCKS, EDIT_COLLECTION_BLOCKS,
+    ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS, COLLECTIONS_BLOCKS, EDIT_COLLECTION_BLOCKS,
   };
   use crate::test_handler_delegation;
 
@@ -189,7 +189,7 @@ mod tests {
       .handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
       assert_navigation_popped!(app, ActiveRadarrBlock::Collections.into());
     }
   }
@@ -233,7 +233,7 @@ mod tests {
       CollectionsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::Collections, None).handle();
 
       assert_navigation_popped!(app, ActiveRadarrBlock::Collections.into());
-      assert!(app.error.text.is_empty());
+      assert_is_empty!(app.error.text);
     }
   }
 
@@ -245,7 +245,7 @@ mod tests {
     use crate::models::radarr_models::MinimumAvailability;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::servarr_data::radarr::radarr_data::{
-      RadarrData, EDIT_COLLECTION_SELECTION_BLOCKS,
+      EDIT_COLLECTION_SELECTION_BLOCKS, RadarrData,
     };
     use crate::network::radarr_network::RadarrEvent;
     use crate::{assert_navigation_popped, test_edit_collection_key};

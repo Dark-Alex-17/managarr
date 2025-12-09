@@ -4,12 +4,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::sonarr_handlers::system::system_details_handler::SystemDetailsHandler;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::sonarr_handlers::system::system_details_handler::SystemDetailsHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, SYSTEM_DETAILS_BLOCKS,
   };
@@ -711,9 +711,9 @@ mod tests {
       .handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::StartTask(SonarrTaskName::default()))
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::StartTask(SonarrTaskName::default())
       );
       assert_navigation_popped!(app, ActiveSonarrBlock::SystemTasks.into());
     }
@@ -734,7 +734,7 @@ mod tests {
       .handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
       assert_navigation_popped!(app, ActiveSonarrBlock::SystemTasks.into());
     }
   }
@@ -768,7 +768,7 @@ mod tests {
       SystemDetailsHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::SystemLogs, None).handle();
 
       assert_navigation_popped!(app, ActiveSonarrBlock::System.into());
-      assert!(app.data.sonarr_data.log_details.items.is_empty());
+      assert_is_empty!(app.data.sonarr_data.log_details.items);
     }
 
     #[rstest]

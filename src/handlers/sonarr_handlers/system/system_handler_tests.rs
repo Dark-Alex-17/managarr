@@ -3,12 +3,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::sonarr_handlers::system::SystemHandler;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::sonarr_handlers::system::SystemHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, SYSTEM_DETAILS_BLOCKS,
   };
@@ -85,7 +85,7 @@ mod tests {
       SystemHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::System, None).handle();
 
       assert_navigation_popped!(app, ActiveSonarrBlock::System.into());
-      assert!(app.error.text.is_empty());
+      assert_is_empty!(app.error.text);
     }
   }
 
@@ -349,7 +349,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::System.into());
-      assert!(app.data.sonarr_data.log_details.is_empty());
+      assert_is_empty!(app.data.sonarr_data.log_details);
     }
 
     #[test]

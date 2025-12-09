@@ -3,12 +3,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::system::SystemHandler;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::radarr_handlers::system::SystemHandler;
   use crate::models::radarr_models::RadarrTask;
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS,
@@ -83,7 +83,7 @@ mod tests {
       SystemHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::System, None).handle();
 
       assert_navigation_popped!(app, ActiveRadarrBlock::System.into());
-      assert!(app.error.text.is_empty());
+      assert_is_empty!(app.error.text);
     }
   }
 
@@ -344,7 +344,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::System.into());
-      assert!(app.data.radarr_data.log_details.is_empty());
+      assert_is_empty!(app.data.radarr_data.log_details);
     }
 
     #[test]

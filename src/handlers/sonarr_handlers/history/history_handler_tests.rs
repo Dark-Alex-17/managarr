@@ -7,12 +7,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::sonarr_handlers::history::{history_sorting_options, HistoryHandler};
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::sonarr_handlers::history::{HistoryHandler, history_sorting_options};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTORY_BLOCKS};
   use crate::models::servarr_models::{Language, Quality, QualityWrapper};
   use crate::models::sonarr_models::{SonarrHistoryEventType, SonarrHistoryItem};
@@ -153,7 +153,7 @@ mod tests {
       HistoryHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::History, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::History.into());
-      assert!(app.error.text.is_empty());
+      assert_is_empty!(app.error.text);
     }
   }
 

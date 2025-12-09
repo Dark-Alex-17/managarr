@@ -197,9 +197,9 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_navigation_popped!(app, ActiveSonarrBlock::SeriesDetails.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(expected_action)
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &expected_action
       );
     }
 
@@ -219,7 +219,7 @@ mod tests {
 
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_navigation_popped!(app, ActiveSonarrBlock::SeriesDetails.into());
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
     }
   }
 
@@ -289,17 +289,8 @@ mod tests {
         app.get_current_route(),
         ActiveSonarrBlock::SeriesHistory.into()
       );
-      assert!(
-        app
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .filter
-          .is_none()
-      );
-      assert!(
+      assert_none!(app.data.sonarr_data.series_history.as_ref().unwrap().filter);
+      assert_none!(
         app
           .data
           .sonarr_data
@@ -307,9 +298,8 @@ mod tests {
           .as_ref()
           .unwrap()
           .filtered_items
-          .is_none()
       );
-      assert!(
+      assert_none!(
         app
           .data
           .sonarr_data
@@ -317,7 +307,6 @@ mod tests {
           .as_ref()
           .unwrap()
           .filtered_state
-          .is_none()
       );
     }
   }
@@ -387,9 +376,9 @@ mod tests {
       );
       assert!(app.data.sonarr_data.prompt_confirm);
       assert!(app.is_routing);
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::ToggleSeasonMonitoring((0, 0)))
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::ToggleSeasonMonitoring((0, 0))
       );
     }
 
@@ -581,9 +570,9 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_navigation_popped!(app, active_sonarr_block.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(expected_action)
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &expected_action
       );
     }
   }

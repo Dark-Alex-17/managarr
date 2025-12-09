@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_modal_absent;
   use crate::assert_modal_present;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::table_handler::handle_table;
-  use crate::handlers::table_handler::TableHandlingConfig;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::table_handler::TableHandlingConfig;
+  use crate::handlers::table_handler::handle_table;
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_models::Language;
@@ -936,7 +936,7 @@ mod tests {
 
       assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(app.data.radarr_data.movies.search, None);
+      assert_none!(app.data.radarr_data.movies.search);
     }
 
     #[rstest]
@@ -965,9 +965,9 @@ mod tests {
 
       assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(app.data.radarr_data.movies.filter, None);
-      assert_eq!(app.data.radarr_data.movies.filtered_items, None);
-      assert_eq!(app.data.radarr_data.movies.filtered_state, None);
+      assert_none!(app.data.radarr_data.movies.filter);
+      assert_none!(app.data.radarr_data.movies.filtered_items);
+      assert_none!(app.data.radarr_data.movies.filtered_state);
     }
 
     #[test]
@@ -1001,15 +1001,15 @@ mod tests {
       TableHandlerUnit::new(ESC_KEY, &mut app, ActiveRadarrBlock::Movies, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert_eq!(app.data.radarr_data.movies.filter, None);
-      assert_eq!(app.data.radarr_data.movies.filtered_items, None);
-      assert_eq!(app.data.radarr_data.movies.filtered_state, None);
+      assert_none!(app.data.radarr_data.movies.filter);
+      assert_none!(app.data.radarr_data.movies.filtered_items);
+      assert_none!(app.data.radarr_data.movies.filtered_state);
     }
   }
 
   mod test_handle_key_char {
-    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::HorizontallyScrollableText;
+    use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use pretty_assertions::{assert_eq, assert_str_eq};
 
     use super::*;
@@ -1033,9 +1033,9 @@ mod tests {
 
       assert_navigation_pushed!(app, ActiveRadarrBlock::SearchMovie.into());
       assert!(app.ignore_special_keys_for_textbox_input);
-      assert_eq!(
-        app.data.radarr_data.movies.search,
-        Some(HorizontallyScrollableText::default())
+      assert_some_eq_x!(
+        &app.data.radarr_data.movies.search,
+        &HorizontallyScrollableText::default()
       );
     }
 
@@ -1060,7 +1060,7 @@ mod tests {
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(app.data.radarr_data.movies.search, None);
+      assert_none!(app.data.radarr_data.movies.search);
     }
 
     #[test]
@@ -1082,7 +1082,7 @@ mod tests {
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(app.data.radarr_data.movies.search, None);
+      assert_none!(app.data.radarr_data.movies.search);
     }
 
     #[test]
@@ -1154,9 +1154,9 @@ mod tests {
 
       assert_navigation_pushed!(app, ActiveRadarrBlock::FilterMovies.into());
       assert!(app.ignore_special_keys_for_textbox_input);
-      assert_eq!(
-        app.data.radarr_data.movies.filter,
-        Some(HorizontallyScrollableText::default())
+      assert_some_eq_x!(
+        &app.data.radarr_data.movies.filter,
+        &HorizontallyScrollableText::default()
       );
       assert_modal_absent!(app.data.radarr_data.movies.filtered_items);
       assert_modal_absent!(app.data.radarr_data.movies.filtered_state);
@@ -1181,7 +1181,7 @@ mod tests {
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(app.data.radarr_data.movies.filter, None);
+      assert_none!(app.data.radarr_data.movies.filter);
     }
 
     #[test]

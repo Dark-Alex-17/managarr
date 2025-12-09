@@ -4,18 +4,18 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_modal_absent;
   use crate::assert_modal_present;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::root_folder;
   use crate::handlers::radarr_handlers::root_folders::RootFoldersHandler;
-  use crate::handlers::KeyEventHandler;
+  use crate::models::HorizontallyScrollableText;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
   use crate::models::servarr_models::{AddRootFolderBody, RootFolder};
-  use crate::models::HorizontallyScrollableText;
 
   mod test_handle_home_end {
     use pretty_assertions::assert_eq;
@@ -332,9 +332,9 @@ mod tests {
       .handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteRootFolder(1))
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &RadarrEvent::DeleteRootFolder(1)
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::RootFolders.into());
     }
@@ -359,7 +359,7 @@ mod tests {
       .handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
       assert_navigation_popped!(app, ActiveRadarrBlock::RootFolders.into());
     }
   }
@@ -424,7 +424,7 @@ mod tests {
       RootFoldersHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::RootFolders, None).handle();
 
       assert_navigation_popped!(app, ActiveRadarrBlock::RootFolders.into());
-      assert!(app.error.text.is_empty());
+      assert_is_empty!(app.error.text);
     }
   }
 
@@ -600,9 +600,9 @@ mod tests {
       .handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteRootFolder(1))
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &RadarrEvent::DeleteRootFolder(1)
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::RootFolders.into());
     }

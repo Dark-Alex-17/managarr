@@ -33,7 +33,7 @@ mod tests {
 
     handle_clear_errors(&mut app);
 
-    assert!(app.error.text.is_empty());
+    assert_is_empty!(app.error.text);
   }
 
   #[rstest]

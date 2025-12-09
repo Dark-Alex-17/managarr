@@ -4,15 +4,15 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::indexers::IndexersHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::indexer;
-  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::radarr::radarr_data::{
-    ActiveRadarrBlock, EDIT_INDEXER_BLOCKS, INDEXERS_BLOCKS, INDEXER_SETTINGS_BLOCKS,
+    ActiveRadarrBlock, EDIT_INDEXER_BLOCKS, INDEXER_SETTINGS_BLOCKS, INDEXERS_BLOCKS,
   };
   use crate::models::servarr_models::Indexer;
   use crate::test_handler_delegation;
@@ -125,7 +125,7 @@ mod tests {
     use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::indexer;
     use crate::models::servarr_data::modals::EditIndexerModal;
     use crate::models::servarr_data::radarr::radarr_data::{
-      RadarrData, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
+      EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, RadarrData,
     };
     use crate::models::servarr_models::{Indexer, IndexerField};
     use crate::network::radarr_network::RadarrEvent;
@@ -192,13 +192,13 @@ mod tests {
       IndexersHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
 
       assert_navigation_pushed!(app, ActiveRadarrBlock::EditIndexerPrompt.into());
-      assert_eq!(
-        app.data.radarr_data.edit_indexer_modal,
-        Some((&app.data.radarr_data).into())
+      assert_some_eq_x!(
+        &app.data.radarr_data.edit_indexer_modal,
+        &EditIndexerModal::from(&app.data.radarr_data)
       );
-      assert_eq!(
-        app.data.radarr_data.edit_indexer_modal,
-        Some(expected_edit_indexer_modal)
+      assert_some_eq_x!(
+        &app.data.radarr_data.edit_indexer_modal,
+        &expected_edit_indexer_modal
       );
       if torrent_protocol {
         assert_eq!(
@@ -227,7 +227,7 @@ mod tests {
       IndexersHandler::new(SUBMIT_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
 
       assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
-      assert_eq!(app.data.radarr_data.edit_indexer_modal, None);
+      assert_none!(app.data.radarr_data.edit_indexer_modal);
     }
 
     #[test]
@@ -247,9 +247,9 @@ mod tests {
       .handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteIndexer(1))
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &RadarrEvent::DeleteIndexer(1)
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
     }
@@ -274,14 +274,12 @@ mod tests {
       .handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
       assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
     }
   }
 
   mod test_handle_esc {
-    use pretty_assertions::assert_eq;
-
     use super::*;
     use crate::assert_navigation_popped;
 
@@ -318,7 +316,7 @@ mod tests {
       IndexersHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::TestIndexer, None).handle();
 
       assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
-      assert_eq!(app.data.radarr_data.indexer_test_errors, None);
+      assert_none!(app.data.radarr_data.indexer_test_errors);
     }
 
     #[rstest]
@@ -332,7 +330,7 @@ mod tests {
       IndexersHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::Indexers, None).handle();
 
       assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
-      assert!(app.error.text.is_empty());
+      assert_is_empty!(app.error.text);
     }
   }
 
@@ -538,9 +536,9 @@ mod tests {
       .handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteIndexer(1))
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &RadarrEvent::DeleteIndexer(1)
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
     }

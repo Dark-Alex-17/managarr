@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::KeybindingHandler;

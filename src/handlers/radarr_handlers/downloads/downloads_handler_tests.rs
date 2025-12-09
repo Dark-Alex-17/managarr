@@ -4,13 +4,13 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::downloads::DownloadsHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::download_record;
-  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::DownloadRecord;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
 
@@ -187,7 +187,7 @@ mod tests {
       DownloadsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
       assert_navigation_popped!(app, base_route.into());
     }
   }
@@ -229,7 +229,7 @@ mod tests {
       DownloadsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::Downloads, None).handle();
 
       assert_navigation_popped!(app, ActiveRadarrBlock::Downloads.into());
-      assert!(app.error.text.is_empty());
+      assert_is_empty!(app.error.text);
     }
   }
 

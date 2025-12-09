@@ -4,12 +4,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::radarr_handlers::system::system_details_handler::SystemDetailsHandler;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::radarr_handlers::system::system_details_handler::SystemDetailsHandler;
   use crate::models::radarr_models::{RadarrTask, RadarrTaskName};
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, SYSTEM_DETAILS_BLOCKS,
@@ -693,9 +693,9 @@ mod tests {
       .handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::StartTask(RadarrTaskName::default()))
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &RadarrEvent::StartTask(RadarrTaskName::default())
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::SystemTasks.into());
     }
@@ -716,7 +716,7 @@ mod tests {
       .handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
       assert_navigation_popped!(app, ActiveRadarrBlock::SystemTasks.into());
     }
   }
@@ -750,7 +750,7 @@ mod tests {
       SystemDetailsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::SystemLogs, None).handle();
 
       assert_navigation_popped!(app, ActiveRadarrBlock::System.into());
-      assert!(app.data.radarr_data.log_details.items.is_empty());
+      assert_is_empty!(app.data.radarr_data.log_details.items);
     }
 
     #[rstest]
@@ -907,9 +907,9 @@ mod tests {
       .handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::StartTask(RadarrTaskName::default()))
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &RadarrEvent::StartTask(RadarrTaskName::default())
       );
       assert_navigation_popped!(app, ActiveRadarrBlock::SystemTasks.into());
     }

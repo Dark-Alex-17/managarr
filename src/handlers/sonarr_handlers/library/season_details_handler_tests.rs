@@ -290,9 +290,9 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_navigation_popped!(app, active_sonarr_block.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(expected_action)
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &expected_action
       );
     }
 
@@ -314,15 +314,15 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_navigation_popped!(app, ActiveSonarrBlock::ManualSeasonSearch.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
           guid: String::new(),
           indexer_id: 0,
           series_id: Some(0),
           season_number: Some(0),
           ..SonarrReleaseDownloadBody::default()
-        }))
+        })
       );
     }
 
@@ -344,7 +344,7 @@ mod tests {
 
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert_navigation_popped!(app, ActiveSonarrBlock::SeasonDetails.into());
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
     }
 
     #[test]
@@ -468,7 +468,7 @@ mod tests {
         app.get_current_route(),
         ActiveSonarrBlock::SeasonHistory.into()
       );
-      assert!(
+      assert_none!(
         app
           .data
           .sonarr_data
@@ -477,9 +477,8 @@ mod tests {
           .unwrap()
           .season_history
           .filter
-          .is_none()
       );
-      assert!(
+      assert_none!(
         app
           .data
           .sonarr_data
@@ -488,9 +487,8 @@ mod tests {
           .unwrap()
           .season_history
           .filtered_items
-          .is_none()
       );
-      assert!(
+      assert_none!(
         app
           .data
           .sonarr_data
@@ -499,7 +497,6 @@ mod tests {
           .unwrap()
           .season_history
           .filtered_state
-          .is_none()
       );
     }
 
@@ -560,9 +557,9 @@ mod tests {
       );
       assert!(app.data.sonarr_data.prompt_confirm);
       assert!(app.is_routing);
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::ToggleEpisodeMonitoring(1))
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::ToggleEpisodeMonitoring(1)
       );
     }
 
@@ -725,9 +722,9 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_navigation_popped!(app, active_sonarr_block.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(expected_action)
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &expected_action
       );
     }
 
@@ -749,15 +746,15 @@ mod tests {
 
       assert!(app.data.sonarr_data.prompt_confirm);
       assert_navigation_popped!(app, ActiveSonarrBlock::ManualSeasonSearch.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
           guid: String::new(),
           indexer_id: 0,
           series_id: Some(0),
           season_number: Some(0),
           ..SonarrReleaseDownloadBody::default()
-        }))
+        })
       );
     }
   }
