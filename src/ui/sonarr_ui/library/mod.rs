@@ -95,7 +95,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       series.title.scroll_left_or_reset(
         get_width_from_percentage(area, 23),
         *series == current_selection,
-        app.tick_count % app.ticks_until_scroll == 0,
+        app.tick_count.is_multiple_of(app.ticks_until_scroll),
       );
       let monitored = if series.monitored { "🏷" } else { "" };
       let certification = series.certification.clone().unwrap_or_default();

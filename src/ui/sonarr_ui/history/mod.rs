@@ -68,7 +68,7 @@ fn draw_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       source_title.scroll_left_or_reset(
         get_width_from_percentage(area, 40),
         current_selection == *history_item,
-        app.tick_count % app.ticks_until_scroll == 0,
+        app.tick_count.is_multiple_of(app.ticks_until_scroll),
       );
 
       Row::new(vec![

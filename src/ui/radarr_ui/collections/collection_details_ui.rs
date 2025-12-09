@@ -90,7 +90,7 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
     movie.title.scroll_left_or_reset(
       get_width_from_percentage(table_area, 20),
       current_selection == *movie,
-      app.tick_count % app.ticks_until_scroll == 0,
+      app.tick_count.is_multiple_of(app.ticks_until_scroll),
     );
     let (hours, minutes) = convert_runtime(movie.runtime);
     let imdb_rating = movie
