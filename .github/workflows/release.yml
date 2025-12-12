@@ -51,7 +51,7 @@ jobs:
       - name: Install Commitizen
         run: |
           python3 -m pip install --upgrade pip
-          pip3 install commitizen
+          pip3 install commitizen==4.8.3
           npm install -g conventional-changelog-cli
 
       - name: Configure Git user
