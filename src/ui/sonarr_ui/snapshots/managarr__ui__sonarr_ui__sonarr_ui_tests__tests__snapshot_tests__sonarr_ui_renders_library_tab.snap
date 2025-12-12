@@ -1,0 +1,34 @@
+---
+source: src/ui/sonarr_ui/sonarr_ui_tests.rs
+expression: output
+---
+╭  Series  ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Library │ Downloads │ Blocklist │ History │ Root Folders │ Indexers │ System                                         │
+│──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
+│   Title                   Year  Network Status Rating  Type    Quality Prof Language  Size     Monitor Tags          │
+│=> Test Series             0             Contin         Standar Any          English   0.00 GB                        │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

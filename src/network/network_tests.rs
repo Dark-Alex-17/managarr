@@ -730,17 +730,14 @@ pub(in crate::network) mod test_utils {
     network::{Network, NetworkEvent, NetworkResource, RequestMethod},
   };
 
-  /// Creates a test HTTP client
   pub fn test_client() -> Client {
     Client::new()
   }
 
-  /// Creates a test cancellation token
   pub fn test_cancellation_token() -> CancellationToken {
     CancellationToken::new()
   }
 
-  /// Creates a test network instance
   pub fn test_network<'a, 'b>(app: &'a Arc<Mutex<App<'b>>>) -> Network<'a, 'b> {
     Network::new(app, test_cancellation_token(), test_client())
   }
@@ -755,28 +752,23 @@ pub(in crate::network) mod test_utils {
   }
 
   impl MockServarrApi {
-    /// Create a GET request builder
     pub fn get() -> Self {
       Self::new(RequestMethod::Get)
     }
 
-    /// Create a POST request builder
     pub fn post() -> Self {
       Self::new(RequestMethod::Post)
     }
 
-    /// Create a PUT request builder
     #[allow(dead_code)]
     pub fn put() -> Self {
       Self::new(RequestMethod::Put)
     }
 
-    /// Create a DELETE request builder
     pub fn delete() -> Self {
       Self::new(RequestMethod::Delete)
     }
 
-    /// Create a builder with a specific request method
     pub fn new(method: RequestMethod) -> Self {
       Self {
         method,
@@ -788,37 +780,31 @@ pub(in crate::network) mod test_utils {
       }
     }
 
-    /// Set the expected request body
     pub fn with_request_body(mut self, body: Value) -> Self {
       self.request_body = Some(body);
       self
     }
 
-    /// Set the response body to return
     pub fn returns(mut self, body: Value) -> Self {
       self.response_body = Some(body);
       self
     }
 
-    /// Set the HTTP status code
     pub fn status(mut self, status: usize) -> Self {
       self.response_status = status;
       self
     }
 
-    /// Add a path suffix to the resource URL
     pub fn path(mut self, path: impl Into<String>) -> Self {
       self.path = Some(path.into());
       self
     }
 
-    /// Add query parameters
     pub fn query(mut self, params: impl Into<String>) -> Self {
       self.query_params = Some(params.into());
       self
     }
 
-    /// Build the mock for a specific network event
     pub async fn build_for<E>(
       self,
       network_event: E,

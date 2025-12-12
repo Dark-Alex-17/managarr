@@ -1,0 +1,8 @@
+---
+source: src/ui/sonarr_ui/history/history_ui_tests.rs
+expression: output
+---
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Source Title                                Event Type        Language       Quality          Date                   
+=> Test.Series.S01E01                          unknown                                           1970-01-01 00:00:00 UTC
+   Another.Series.S02E05                       unknown                                           1970-01-01 00:00:00 UTC

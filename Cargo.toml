@@ -77,6 +77,7 @@ proptest = "1.6.0"
 rstest = "0.25.0"
 serial_test = "3.2.0"
 assertables = "9.8.2"
+insta = "1.41.1"
 
 [dev-dependencies.cargo-husky]
 version = "1"

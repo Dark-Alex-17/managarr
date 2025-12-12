@@ -245,4 +245,41 @@ mod tests {
 
     assert_eq!(style, row.indeterminate());
   }
+
+  mod snapshot_tests {
+
+    use crate::app::App;
+    use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
+
+    use crate::models::stateful_table::StatefulTable;
+    use crate::ui::DrawUi;
+    use crate::ui::sonarr_ui::library::LibraryUi;
+    use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
+
+    #[test]
+    fn test_library_ui_renders_loading_state() {
+      let mut app = App::test_default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
+
+      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_library_ui_renders_empty_series() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
+      app.data.sonarr_data.series = StatefulTable::default();
+
+      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+  }
 }

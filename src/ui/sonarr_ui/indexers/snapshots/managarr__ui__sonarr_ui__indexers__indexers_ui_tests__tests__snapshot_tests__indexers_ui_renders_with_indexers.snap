@@ -1,0 +1,8 @@
+---
+source: src/ui/sonarr_ui/indexers/indexers_ui_tests.rs
+expression: output
+---
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Indexer                  RSS             Automatic Search Interactive Sea Priority        Tags                       
+=> Test Indexer 1           Enabled         Enabled          Enabled         25                                         
+   Test Indexer 2           Disabled        Disabled         Disabled        0

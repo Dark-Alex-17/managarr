@@ -1,0 +1,24 @@
+---
+source: src/ui/radarr_ui/library/delete_movie_ui_tests.rs
+expression: output
+---
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                     ╭─────────────  Delete Movie  ──────────────╮                                      
+                                     │      Do you really want to delete:        │                                      
+                                     │                Test Movie?                │                                      
+                                     │                                           │                                      
+                                     │                     ╭───╮                 │                                      
+                                     │  Delete Movie File: │   │                 │                                      
+                                     │                     ╰───╯                 │                                      
+                                     │                     ╭───╮                 │                                      
+                                     │ Add List Exclusion: │   │                 │                                      
+                                     │                     ╰───╯                 │                                      
+                                     ╰───────────────────────────────────────────╯

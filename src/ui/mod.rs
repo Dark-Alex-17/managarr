@@ -31,6 +31,10 @@ mod radarr_ui;
 mod sonarr_ui;
 mod styles;
 pub mod theme;
+#[cfg(test)]
+mod ui_property_tests;
+#[cfg(test)]
+pub mod ui_test_utils;
 mod utils;
 mod widgets;
 

@@ -1,0 +1,8 @@
+---
+source: src/ui/sonarr_ui/root_folders/root_folders_ui_tests.rs
+expression: output
+---
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Path                                                                 Free Space               Unmapped Folders       
+=> /tv                                                                  100.00 GB                0                      
+   /media/tv                                                            50.00 GB                 0

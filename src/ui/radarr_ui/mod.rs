@@ -248,3 +248,7 @@ fn draw_radarr_logo(f: &mut Frame<'_>, area: Rect) {
     .centered();
   f.render_widget(logo, area);
 }
+
+#[cfg(test)]
+#[path = "radarr_ui_tests.rs"]
+mod radarr_ui_tests;

@@ -1,0 +1,8 @@
+---
+source: src/ui/radarr_ui/root_folders/root_folders_ui_tests.rs
+expression: output
+---
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Path                                                                 Free Space               Unmapped Folders       
+=> /movies                                                              100.00 GB                0                      
+   /media/movies                                                        50.00 GB                 0

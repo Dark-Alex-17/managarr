@@ -1,0 +1,5 @@
+---
+source: src/ui/sonarr_ui/library/season_details_ui_tests.rs
+expression: output
+---
+
