@@ -515,12 +515,17 @@ pub(in crate::handlers::sonarr_handlers::library) fn releases_sorting_options(
     SortOption {
       name: "Language",
       cmp_fn: Some(|a, b| {
-        let default_language_vec = vec![Language {
+        let default_language = Language {
           id: 1,
           name: "_".to_owned(),
-        }];
-        let language_a = &a.languages.as_ref().unwrap_or(&default_language_vec)[0];
-        let language_b = &b.languages.as_ref().unwrap_or(&default_language_vec)[0];
+        };
+        let default_language_vec = vec![Some(default_language.clone())];
+        let language_a = &a.languages.as_ref().unwrap_or(&default_language_vec)[0]
+          .as_ref()
+          .unwrap_or(&default_language);
+        let language_b = &b.languages.as_ref().unwrap_or(&default_language_vec)[0]
+          .as_ref()
+          .unwrap_or(&default_language);
 
         language_a.cmp(language_b)
       }),

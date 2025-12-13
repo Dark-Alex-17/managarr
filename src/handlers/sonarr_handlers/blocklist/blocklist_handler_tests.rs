@@ -445,13 +445,25 @@ mod tests {
       let a_languages = a
         .languages
         .iter()
-        .map(|lang| lang.name.to_lowercase())
+        .map(|lang| {
+          lang
+            .as_ref()
+            .unwrap_or(&Default::default())
+            .name
+            .to_lowercase()
+        })
         .collect::<Vec<String>>()
         .join(", ");
       let b_languages = b
         .languages
         .iter()
-        .map(|lang| lang.name.to_lowercase())
+        .map(|lang| {
+          lang
+            .as_ref()
+            .unwrap_or(&Default::default())
+            .name
+            .to_lowercase()
+        })
         .collect::<Vec<String>>()
         .join(", ");
 
@@ -607,10 +619,10 @@ mod tests {
       BlocklistItem {
         id: 3,
         source_title: "test 1".to_owned(),
-        languages: vec![Language {
+        languages: vec![Some(Language {
           id: 1,
           name: "telgu".to_owned(),
-        }],
+        })],
         quality: QualityWrapper {
           quality: Quality {
             name: "HD - 1080p".to_owned(),
@@ -623,10 +635,10 @@ mod tests {
       BlocklistItem {
         id: 2,
         source_title: "test 2".to_owned(),
-        languages: vec![Language {
+        languages: vec![Some(Language {
           id: 3,
           name: "chinese".to_owned(),
-        }],
+        })],
         quality: QualityWrapper {
           quality: Quality {
             name: "SD - 720p".to_owned(),
@@ -639,10 +651,10 @@ mod tests {
       BlocklistItem {
         id: 1,
         source_title: "test 3".to_owned(),
-        languages: vec![Language {
+        languages: vec![Some(Language {
           id: 1,
           name: "english".to_owned(),
-        }],
+        })],
         quality: QualityWrapper {
           quality: Quality {
             name: "HD - 1080p".to_owned(),

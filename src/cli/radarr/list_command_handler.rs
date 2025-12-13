@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use clap::{command, Subcommand};
+use clap::Subcommand;
 use tokio::sync::Mutex;
 
 use crate::{

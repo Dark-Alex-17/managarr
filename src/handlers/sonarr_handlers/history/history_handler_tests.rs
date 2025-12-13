@@ -245,8 +245,19 @@ mod tests {
         id: 1,
         name: "_".to_owned(),
       };
-      let language_a = &a.languages.first().unwrap_or(&default_language);
-      let language_b = &b.languages.first().unwrap_or(&default_language);
+      let default_language_option = Some(default_language.clone());
+      let language_a = &a
+        .languages
+        .first()
+        .unwrap_or(&default_language_option)
+        .as_ref()
+        .unwrap_or(&default_language);
+      let language_b = &b
+        .languages
+        .first()
+        .unwrap_or(&default_language_option)
+        .as_ref()
+        .unwrap_or(&default_language);
 
       language_a.cmp(language_b)
     };
@@ -385,10 +396,10 @@ mod tests {
         id: 3,
         source_title: "test 1".into(),
         event_type: SonarrHistoryEventType::Grabbed,
-        languages: vec![Language {
+        languages: vec![Some(Language {
           id: 1,
           name: "telgu".to_owned(),
-        }],
+        })],
         quality: QualityWrapper {
           quality: Quality {
             name: "HD - 1080p".to_owned(),
@@ -401,10 +412,10 @@ mod tests {
         id: 2,
         source_title: "test 2".into(),
         event_type: SonarrHistoryEventType::DownloadFolderImported,
-        languages: vec![Language {
+        languages: vec![Some(Language {
           id: 3,
           name: "chinese".to_owned(),
-        }],
+        })],
         quality: QualityWrapper {
           quality: Quality {
             name: "SD - 720p".to_owned(),
@@ -417,10 +428,10 @@ mod tests {
         id: 1,
         source_title: "test 3".into(),
         event_type: SonarrHistoryEventType::EpisodeFileDeleted,
-        languages: vec![Language {
+        languages: vec![Some(Language {
           id: 1,
           name: "english".to_owned(),
-        }],
+        })],
         quality: QualityWrapper {
           quality: Quality {
             name: "HD - 1080p".to_owned(),

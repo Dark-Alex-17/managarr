@@ -210,13 +210,25 @@ fn blocklist_sorting_options() -> Vec<SortOption<BlocklistItem>> {
         let a_languages = a
           .languages
           .iter()
-          .map(|lang| lang.name.to_lowercase())
+          .map(|lang| {
+            lang
+              .as_ref()
+              .unwrap_or(&Default::default())
+              .name
+              .to_lowercase()
+          })
           .collect::<Vec<String>>()
           .join(", ");
         let b_languages = b
           .languages
           .iter()
-          .map(|lang| lang.name.to_lowercase())
+          .map(|lang| {
+            lang
+              .as_ref()
+              .unwrap_or(&Default::default())
+              .name
+              .to_lowercase()
+          })
           .collect::<Vec<String>>()
           .join(", ");
 
