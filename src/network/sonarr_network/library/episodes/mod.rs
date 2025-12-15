@@ -297,7 +297,13 @@ impl Network<'_, '_> {
             Date Added: {}",
             file.relative_path,
             file.path,
-            file.languages.first().unwrap_or(&Language::default()).name,
+            file
+              .languages
+              .first()
+              .unwrap_or(&Some(Language::default()))
+              .as_ref()
+              .unwrap_or(&Language::default())
+              .name,
             file.date_added,
           );
 

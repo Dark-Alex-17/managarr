@@ -228,7 +228,7 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
       path: "/nfs/tv/series/season 1/episode 1.mkv".to_owned(),
       size: 3543348019,
       quality: quality_wrapper(),
-      languages: vec![language()],
+      languages: vec![Some(language())],
       date_added: DateTime::from(DateTime::parse_from_rfc3339("2024-02-10T07:28:45Z").unwrap()),
       media_info: Some(media_info()),
     }

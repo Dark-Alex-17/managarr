@@ -215,7 +215,7 @@ pub struct EpisodeFile {
   pub path: String,
   #[serde(deserialize_with = "super::from_i64")]
   pub size: i64,
-  pub languages: Vec<Language>,
+  pub languages: Vec<Option<Language>>,
   pub quality: QualityWrapper,
   pub date_added: DateTime<Utc>,
   pub media_info: Option<MediaInfo>,
