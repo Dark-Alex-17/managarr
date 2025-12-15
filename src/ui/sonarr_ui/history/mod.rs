@@ -1,6 +1,7 @@
 use crate::app::App;
 use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTORY_BLOCKS};
+use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::{SonarrHistoryEventType, SonarrHistoryItem};
 use crate::ui::DrawUi;
 use crate::ui::styles::ManagarrStyle;
@@ -77,7 +78,13 @@ fn draw_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         Cell::from(
           languages
             .iter()
-            .map(|language| language.name.to_owned())
+            .map(|language| {
+              language
+                .as_ref()
+                .unwrap_or(&Language::default())
+                .name
+                .to_owned()
+            })
             .collect::<Vec<String>>()
             .join(","),
         ),

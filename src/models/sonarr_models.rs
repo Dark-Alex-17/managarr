@@ -84,7 +84,7 @@ pub struct BlocklistItem {
   pub series_title: Option<String>,
   pub episode_ids: Vec<Number>,
   pub source_title: String,
-  pub languages: Vec<Language>,
+  pub languages: Vec<Option<Language>>,
   pub quality: QualityWrapper,
   pub date: DateTime<Utc>,
   pub protocol: String,
@@ -509,7 +509,7 @@ pub struct SonarrHistoryItem {
   #[serde(deserialize_with = "super::from_i64")]
   pub episode_id: i64,
   pub quality: QualityWrapper,
-  pub languages: Vec<Language>,
+  pub languages: Vec<Option<Language>>,
   pub date: DateTime<Utc>,
   pub event_type: SonarrHistoryEventType,
   pub data: SonarrHistoryData,
@@ -545,7 +545,7 @@ pub struct SonarrRelease {
   pub rejections: Option<Vec<String>>,
   pub seeders: Option<Number>,
   pub leechers: Option<Number>,
-  pub languages: Option<Vec<Language>>,
+  pub languages: Option<Vec<Option<Language>>>,
   pub quality: QualityWrapper,
   pub full_season: bool,
 }

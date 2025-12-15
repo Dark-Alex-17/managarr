@@ -90,7 +90,7 @@ fn draw_blocklist_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let title = series_title.as_ref().unwrap_or(&String::new()).to_owned();
       let languages_string = languages
         .iter()
-        .map(|lang| lang.name.to_owned())
+        .map(|lang| lang.as_ref().unwrap_or(&Default::default()).name.to_owned())
         .collect::<Vec<String>>()
         .join(", ");
 

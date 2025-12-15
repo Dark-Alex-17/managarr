@@ -154,8 +154,19 @@ pub(in crate::handlers::sonarr_handlers) fn history_sorting_options()
           id: 1,
           name: "_".to_owned(),
         };
-        let language_a = &a.languages.first().unwrap_or(&default_language);
-        let language_b = &b.languages.first().unwrap_or(&default_language);
+        let default_language_option = Some(default_language.clone());
+        let language_a = &a
+          .languages
+          .first()
+          .unwrap_or(&default_language_option)
+          .as_ref()
+          .unwrap_or(&default_language);
+        let language_b = &b
+          .languages
+          .first()
+          .unwrap_or(&default_language_option)
+          .as_ref()
+          .unwrap_or(&default_language);
 
         language_a.cmp(language_b)
       }),

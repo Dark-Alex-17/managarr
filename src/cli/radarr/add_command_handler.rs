@@ -10,7 +10,7 @@ use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
   models::radarr_models::{AddMovieBody, AddMovieOptions, MinimumAvailability, MovieMonitor},
-  network::{NetworkTrait, radarr_network::RadarrEvent},
+  network::{radarr_network::RadarrEvent, NetworkTrait},
 };
 
 #[cfg(test)]

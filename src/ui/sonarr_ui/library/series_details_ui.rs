@@ -324,7 +324,13 @@ fn draw_series_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
             Cell::from(
               languages
                 .iter()
-                .map(|language| language.name.to_owned())
+                .map(|language| {
+                  language
+                    .as_ref()
+                    .unwrap_or(&Default::default())
+                    .name
+                    .to_owned()
+                })
                 .collect::<Vec<String>>()
                 .join(","),
             ),

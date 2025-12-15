@@ -1,6 +1,7 @@
 use crate::app::App;
 use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS};
+use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::{
   DownloadRecord, DownloadStatus, Episode, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
 };
@@ -289,7 +290,13 @@ fn draw_episode_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) 
             Cell::from(
               languages
                 .iter()
-                .map(|language| language.name.to_owned())
+                .map(|language| {
+                  language
+                    .as_ref()
+                    .unwrap_or(&Language::default())
+                    .name
+                    .to_owned()
+                })
                 .collect::<Vec<String>>()
                 .join(","),
             ),
@@ -450,7 +457,11 @@ fn draw_episode_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
             };
 
             let language = if languages.is_some() {
-              languages.clone().unwrap()[0].name.clone()
+              languages.clone().unwrap()[0]
+                .as_ref()
+                .unwrap_or(&Default::default())
+                .name
+                .clone()
             } else {
               String::new()
             };

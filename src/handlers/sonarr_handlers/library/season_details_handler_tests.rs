@@ -1097,12 +1097,17 @@ mod tests {
   #[test]
   fn test_releases_sorting_options_language() {
     let expected_cmp_fn: fn(&SonarrRelease, &SonarrRelease) -> Ordering = |a, b| {
-      let default_language_vec = vec![Language {
+      let default_language = Language {
         id: 1,
         name: "_".to_owned(),
-      }];
-      let language_a = &a.languages.as_ref().unwrap_or(&default_language_vec)[0];
-      let language_b = &b.languages.as_ref().unwrap_or(&default_language_vec)[0];
+      };
+      let default_language_vec = vec![Some(default_language.clone())];
+      let language_a = a.languages.as_ref().unwrap_or(&default_language_vec)[0]
+        .as_ref()
+        .unwrap_or(&default_language);
+      let language_b = b.languages.as_ref().unwrap_or(&default_language_vec)[0]
+        .as_ref()
+        .unwrap_or(&default_language);
 
       language_a.cmp(language_b)
     };
@@ -1141,10 +1146,10 @@ mod tests {
       size: 1,
       rejected: true,
       seeders: Some(Number::from(1)),
-      languages: Some(vec![Language {
+      languages: Some(vec![Some(Language {
         id: 1,
         name: "Language A".to_owned(),
-      }]),
+      })]),
       quality: QualityWrapper {
         quality: Quality {
           name: "Quality A".to_owned(),
@@ -1160,10 +1165,10 @@ mod tests {
       size: 2,
       rejected: false,
       seeders: Some(Number::from(2)),
-      languages: Some(vec![Language {
+      languages: Some(vec![Some(Language {
         id: 2,
         name: "Language B".to_owned(),
-      }]),
+      })]),
       quality: QualityWrapper {
         quality: Quality {
           name: "Quality B".to_owned(),
