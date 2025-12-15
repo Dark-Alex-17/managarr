@@ -26,10 +26,10 @@ lint-fix:
 
 # Analyze the project for unsafe usage
 [group: 'style']
-analyze:
+@analyze:
     #!/usr/bin/env bash
-    @cargo geiger -h > /dev/null 2>&1 | cargo install cargo-geiger
-    @cargo geiger
+    cargo geiger -h > /dev/null 2>&1 | cargo install cargo-geiger
+    cargo geiger
 
 # Run all tests
 [group: 'test']
@@ -38,10 +38,10 @@ test:
 
 # Run all tests with coverage
 [group:'test']
-test-cov:
+@test-cov:
     #!/usr/bin/env bash
-    @cargo tarpaulin -h > /dev/null 2>&1 || cargo install cargo-tarpaulin
-    @cargo tarpaulin
+    cargo tarpaulin -h > /dev/null 2>&1 || cargo install cargo-tarpaulin
+    cargo tarpaulin
 
 # Run all doc tests
 [group: 'test']
@@ -60,10 +60,10 @@ snapshot-tests:
 
 # Review snapshot test changes
 [group: 'test']
-snapshot-review:
+@snapshot-review:
     #!/usr/bin/env bash
-    @cargo insta -h > /dev/null 2>&1 || cargo install cargo-insta
-    @cargo insta review
+    cargo insta -h > /dev/null 2>&1 || cargo install cargo-insta
+    cargo insta review
 
 # Build and run the binary for the current system
 run:
