@@ -1,0 +1,5 @@
+[keys.normal.backspace]
+b = ":sh zellij run -x '4%%' --width '92%%' -f -n Build -- just build"
+r = ":sh zellij run -x '3%%' -y '8%%' --width '95%%' --height '90%%' -fc -n 'Run' -- just run"
+t = ":sh zellij run -x '4%%' --width '92%%' -f -n Tests -- just test"
+l = ":sh zellij run -x '4%%' --width '92%%' -f -n Lint -- just lint"
