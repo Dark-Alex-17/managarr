@@ -3,11 +3,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
-  use crate::handlers::sonarr_handlers::system::SystemHandler;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::sonarr_handlers::system::SystemHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, SYSTEM_DETAILS_BLOCKS,
   };
@@ -19,6 +20,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use super::*;
+    use crate::assert_navigation_pushed;
 
     #[rstest]
     fn test_system_tab_left(#[values(true, false)] is_ready: bool) {
@@ -39,7 +41,7 @@ mod tests {
         app.data.sonarr_data.main_tabs.get_active_route(),
         ActiveSonarrBlock::Indexers.into()
       );
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Indexers.into());
+      assert_navigation_pushed!(app, ActiveSonarrBlock::Indexers.into());
     }
 
     #[rstest]
@@ -61,14 +63,14 @@ mod tests {
         app.data.sonarr_data.main_tabs.get_active_route(),
         ActiveSonarrBlock::Series.into()
       );
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert_navigation_pushed!(app, ActiveSonarrBlock::Series.into());
     }
   }
 
   mod test_handle_esc {
-    use pretty_assertions::assert_eq;
 
     use super::*;
+    use crate::assert_navigation_popped;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -82,8 +84,8 @@ mod tests {
 
       SystemHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::System, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::System.into());
-      assert!(app.error.text.is_empty());
+      assert_navigation_popped!(app, ActiveSonarrBlock::System.into());
+      assert_is_empty!(app.error.text);
     }
   }
 
@@ -121,10 +123,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SystemUpdates.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SystemUpdates.into());
     }
 
     #[test]
@@ -185,10 +184,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SystemQueuedEvents.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SystemQueuedEvents.into());
     }
 
     #[test]
@@ -249,7 +245,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::System.into());
+      assert_navigation_pushed!(app, ActiveSonarrBlock::System.into());
       assert!(app.should_refresh);
     }
 
@@ -313,10 +309,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SystemLogs.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SystemLogs.into());
       assert_eq!(
         app.data.sonarr_data.log_details.items,
         app.data.sonarr_data.logs.items
@@ -356,7 +349,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), ActiveSonarrBlock::System.into());
-      assert!(app.data.sonarr_data.log_details.is_empty());
+      assert_is_empty!(app.data.sonarr_data.log_details);
     }
 
     #[test]
@@ -386,10 +379,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SystemTasks.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SystemTasks.into());
     }
 
     #[test]

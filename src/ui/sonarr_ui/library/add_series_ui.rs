@@ -1,13 +1,13 @@
 use std::sync::atomic::Ordering;
 
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::widgets::{Cell, ListItem, Row};
-use ratatui::Frame;
 
-use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
-use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ADD_SERIES_BLOCKS};
-use crate::models::sonarr_models::AddSeriesSearchResult;
 use crate::models::Route;
+use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
+use crate::models::servarr_data::sonarr::sonarr_data::{ADD_SERIES_BLOCKS, ActiveSonarrBlock};
+use crate::models::sonarr_models::AddSeriesSearchResult;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   get_width_from_percentage, layout_block, layout_paragraph_borderless, title_block_centered,
@@ -19,8 +19,8 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup, DrawUi};
-use crate::{render_selectable_input_box, App};
+use crate::ui::{DrawUi, draw_popup};
+use crate::{App, render_selectable_input_box};
 
 #[cfg(test)]
 #[path = "add_series_ui_tests.rs"]
@@ -30,11 +30,10 @@ pub(super) struct AddSeriesUi;
 
 impl DrawUi for AddSeriesUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Sonarr(active_sonarr_block, _) = route {
-      return ADD_SERIES_BLOCKS.contains(&active_sonarr_block);
-    }
-
-    false
+    let Route::Sonarr(active_sonarr_block, _) = route else {
+      return false;
+    };
+    ADD_SERIES_BLOCKS.contains(&active_sonarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
@@ -81,14 +80,14 @@ fn draw_add_series_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .sonarr_data
     .add_series_search
     .as_ref()
-    .unwrap()
+    .expect("add_series_search must be populated")
     .text;
   let offset = app
     .data
     .sonarr_data
     .add_series_search
     .as_ref()
-    .unwrap()
+    .expect("add_series_search must be populated")
     .offset
     .load(Ordering::SeqCst);
   let search_results_row_mapping = |series: &AddSeriesSearchResult| {
@@ -233,7 +232,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .sonarr_data
       .add_searched_series
       .as_ref()
-      .unwrap()
+      .expect("add_searched_series must be populated")
       .current_selection()
       .title
       .text,
@@ -242,7 +241,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .sonarr_data
       .add_searched_series
       .as_ref()
-      .unwrap()
+      .expect("add_searched_series must be populated")
       .current_selection()
       .overview
       .clone()
@@ -262,7 +261,12 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     use_season_folder,
     tags,
     ..
-  } = app.data.sonarr_data.add_series_modal.as_ref().unwrap();
+  } = app
+    .data
+    .sonarr_data
+    .add_series_modal
+    .as_ref()
+    .expect("add_series_modal must exist in this context");
 
   let selected_monitor = monitor_list.current_selection();
   let selected_series_type = series_type_list.current_selection();
@@ -272,21 +276,31 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
   f.render_widget(title_block_centered(&title), area);
 
-  let [paragraph_area, root_folder_area, monitor_area, quality_profile_area, language_profile_area, series_type_area, season_folder_area, tags_area, _, buttons_area] =
-    Layout::vertical([
-      Constraint::Length(6),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Fill(1),
-      Constraint::Length(3),
-    ])
-    .margin(1)
-    .areas(area);
+  let [
+    paragraph_area,
+    root_folder_area,
+    monitor_area,
+    quality_profile_area,
+    language_profile_area,
+    series_type_area,
+    season_folder_area,
+    tags_area,
+    _,
+    buttons_area,
+  ] = Layout::vertical([
+    Constraint::Length(6),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Fill(1),
+    Constraint::Length(3),
+  ])
+  .margin(1)
+  .areas(area);
 
   let prompt_paragraph = layout_paragraph_borderless(&prompt);
   f.render_widget(prompt_paragraph, paragraph_area);
@@ -358,7 +372,7 @@ fn draw_add_series_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
       .sonarr_data
       .add_series_modal
       .as_mut()
-      .unwrap()
+      .expect("add_series_modal must exist in this context")
       .monitor_list,
     |monitor| ListItem::new(monitor.to_display_str().to_owned()),
   );
@@ -374,7 +388,7 @@ fn draw_add_series_select_series_type_popup(f: &mut Frame<'_>, app: &mut App<'_>
       .sonarr_data
       .add_series_modal
       .as_mut()
-      .unwrap()
+      .expect("add_series_modal must exist in this context")
       .series_type_list,
     |series_type| ListItem::new(series_type.to_display_str().to_owned()),
   );
@@ -390,7 +404,7 @@ fn draw_add_series_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App
       .sonarr_data
       .add_series_modal
       .as_mut()
-      .unwrap()
+      .expect("add_series_modal must exist in this context")
       .quality_profile_list,
     |quality_profile| ListItem::new(quality_profile.clone()),
   );
@@ -406,7 +420,7 @@ fn draw_add_series_select_language_profile_popup(f: &mut Frame<'_>, app: &mut Ap
       .sonarr_data
       .add_series_modal
       .as_mut()
-      .unwrap()
+      .expect("add_series_modal must exist in this context")
       .language_profile_list,
     |language_profile| ListItem::new(language_profile.clone()),
   );
@@ -422,7 +436,7 @@ fn draw_add_series_select_root_folder_popup(f: &mut Frame<'_>, app: &mut App<'_>
       .sonarr_data
       .add_series_modal
       .as_mut()
-      .unwrap()
+      .expect("add_series_modal must exist in this context")
       .root_folder_list,
     |root_folder| ListItem::new(root_folder.path.to_owned()),
   );

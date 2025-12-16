@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod tests {
-  use clap::error::ErrorKind;
   use clap::CommandFactory;
+  use clap::error::ErrorKind;
 
-  use crate::cli::radarr::refresh_command_handler::RadarrRefreshCommand;
-  use crate::cli::radarr::RadarrCommand;
-  use crate::cli::Command;
   use crate::Cli;
+  use crate::cli::Command;
+  use crate::cli::radarr::RadarrCommand;
+  use crate::cli::radarr::refresh_command_handler::RadarrRefreshCommand;
   use pretty_assertions::assert_eq;
 
   #[test]
@@ -31,14 +31,14 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "radarr", "refresh", subcommand]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
     fn test_refresh_movie_requires_movie_id() {
       let result = Cli::command().try_get_matches_from(["managarr", "radarr", "refresh", "movie"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -51,13 +51,13 @@ mod tests {
       let result =
         Cli::try_parse_from(["managarr", "radarr", "refresh", "movie", "--movie-id", "1"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Radarr(RadarrCommand::Refresh(refresh_command))) =
-        result.unwrap().command
-      {
-        assert_eq!(refresh_command, expected_args);
-      }
+      let Some(Command::Radarr(RadarrCommand::Refresh(refresh_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(refresh_command, expected_args);
     }
   }
 
@@ -73,8 +73,8 @@ mod tests {
     use crate::{
       app::App,
       cli::radarr::refresh_command_handler::{RadarrRefreshCommand, RadarrRefreshCommandHandler},
-      models::{radarr_models::RadarrSerdeable, Serdeable},
-      network::{radarr_network::RadarrEvent, MockNetworkTrait, NetworkEvent},
+      models::{Serdeable, radarr_models::RadarrSerdeable},
+      network::{MockNetworkTrait, NetworkEvent, radarr_network::RadarrEvent},
     };
 
     #[rstest]
@@ -102,7 +102,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -128,7 +128,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 }

@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
-  use crate::handlers::radarr_handlers::indexers::test_all_indexers_handler::TestAllIndexersHandler;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::radarr_handlers::indexers::test_all_indexers_handler::TestAllIndexersHandler;
   use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::stateful_table::StatefulTable;
@@ -13,7 +13,7 @@ mod tests {
   mod test_handle_esc {
     use super::*;
     use crate::models::stateful_table::StatefulTable;
-    use pretty_assertions::assert_eq;
+    use crate::{assert_modal_absent, assert_navigation_popped};
     use rstest::rstest;
 
     #[rstest]
@@ -32,9 +32,9 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Indexers.into());
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert!(app.data.radarr_data.indexer_test_all_results.is_none());
+      assert_modal_absent!(app.data.radarr_data.indexer_test_all_results);
     }
   }
 

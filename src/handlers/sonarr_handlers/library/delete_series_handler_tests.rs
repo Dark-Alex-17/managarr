@@ -4,12 +4,12 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::delete_series_handler::DeleteSeriesHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
-  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DELETE_SERIES_BLOCKS};
   use crate::models::sonarr_models::DeleteSeriesParams;
 
@@ -17,8 +17,8 @@ mod tests {
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
-    use crate::models::servarr_data::sonarr::sonarr_data::DELETE_SERIES_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
+    use crate::models::servarr_data::sonarr::sonarr_data::DELETE_SERIES_SELECTION_BLOCKS;
 
     use super::*;
 
@@ -86,11 +86,12 @@ mod tests {
   mod test_handle_submit {
     use pretty_assertions::assert_eq;
 
-    use crate::models::servarr_data::sonarr::sonarr_data::DELETE_SERIES_SELECTION_BLOCKS;
     use crate::models::BlockSelectionState;
+    use crate::models::servarr_data::sonarr::sonarr_data::DELETE_SERIES_SELECTION_BLOCKS;
     use crate::network::sonarr_network::SonarrEvent;
 
     use super::*;
+    use crate::assert_navigation_popped;
 
     const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
 
@@ -117,8 +118,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert!(!app.data.sonarr_data.delete_series_files);
       assert!(!app.data.sonarr_data.add_list_exclusion);
@@ -154,7 +155,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::DeleteSeries(expected_delete_series_params))
@@ -187,7 +188,7 @@ mod tests {
         app.get_current_route(),
         ActiveSonarrBlock::DeleteSeriesPrompt.into()
       );
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
       assert!(!app.should_refresh);
       assert!(app.data.sonarr_data.prompt_confirm);
       assert!(app.data.sonarr_data.delete_series_files);
@@ -228,7 +229,7 @@ mod tests {
 
   mod test_handle_esc {
     use super::*;
-    use pretty_assertions::assert_eq;
+    use crate::assert_navigation_popped;
     use rstest::rstest;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
@@ -251,7 +252,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
       assert!(!app.data.sonarr_data.prompt_confirm);
       assert!(!app.data.sonarr_data.delete_series_files);
       assert!(!app.data.sonarr_data.add_list_exclusion);
@@ -260,8 +261,9 @@ mod tests {
 
   mod test_handle_key_char {
     use crate::{
+      assert_navigation_popped,
       models::{
-        servarr_data::sonarr::sonarr_data::DELETE_SERIES_SELECTION_BLOCKS, BlockSelectionState,
+        BlockSelectionState, servarr_data::sonarr::sonarr_data::DELETE_SERIES_SELECTION_BLOCKS,
       },
       network::sonarr_network::SonarrEvent,
     };
@@ -298,7 +300,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::DeleteSeries(expected_delete_series_params))

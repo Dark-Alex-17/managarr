@@ -1,23 +1,26 @@
 #[cfg(test)]
 mod tests {
+  use crate::assert_modal_absent;
+  use crate::assert_modal_present;
+  use crate::assert_navigation_pushed;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::add_movie_search_result;
   use crate::models::stateful_table::StatefulTable;
   use pretty_assertions::assert_str_eq;
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::library::add_movie_handler::AddMovieHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::add_movie_body;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::collection_movie;
-  use crate::handlers::KeyEventHandler;
+  use crate::models::HorizontallyScrollableText;
   use crate::models::radarr_models::{AddMovieSearchResult, MinimumAvailability, MovieMonitor};
   use crate::models::servarr_data::radarr::modals::AddMovieModal;
-  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
+  use crate::models::servarr_data::radarr::radarr_data::{ADD_MOVIE_BLOCKS, ActiveRadarrBlock};
   use crate::models::servarr_models::RootFolder;
-  use crate::models::HorizontallyScrollableText;
   use bimap::BiMap;
 
   mod test_handle_scroll_up_and_down {
@@ -25,9 +28,9 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
+    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
-    use crate::models::BlockSelectionState;
     use crate::simple_stateful_iterable_vec;
 
     use super::*;
@@ -761,19 +764,19 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use bimap::BiMap;
-    use pretty_assertions::{assert_eq, assert_str_eq};
-    use rstest::rstest;
-
+    use crate::assert_navigation_popped;
     use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::{
       add_movie_body, add_movie_search_result, collection_movie,
     };
+    use crate::models::BlockSelectionState;
     use crate::models::radarr_models::Movie;
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
     use crate::models::stateful_table::StatefulTable;
-    use crate::models::BlockSelectionState;
     use crate::network::radarr_network::RadarrEvent;
+    use bimap::BiMap;
+    use pretty_assertions::{assert_eq, assert_str_eq};
+    use rstest::rstest;
 
     use super::*;
 
@@ -847,34 +850,40 @@ mod tests {
         app.data.radarr_data.selected_block.get_active_block(),
         ActiveRadarrBlock::AddMovieSelectRootFolder
       );
-      assert!(app.data.radarr_data.add_movie_modal.is_some());
-      assert!(!app
-        .data
-        .radarr_data
-        .add_movie_modal
-        .as_ref()
-        .unwrap()
-        .monitor_list
-        .items
-        .is_empty());
-      assert!(!app
-        .data
-        .radarr_data
-        .add_movie_modal
-        .as_ref()
-        .unwrap()
-        .minimum_availability_list
-        .items
-        .is_empty());
-      assert!(!app
-        .data
-        .radarr_data
-        .add_movie_modal
-        .as_ref()
-        .unwrap()
-        .quality_profile_list
-        .items
-        .is_empty());
+      assert_modal_present!(app.data.radarr_data.add_movie_modal);
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .monitor_list
+          .items
+          .is_empty()
+      );
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .minimum_availability_list
+          .items
+          .is_empty()
+      );
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .add_movie_modal
+          .as_ref()
+          .unwrap()
+          .quality_profile_list
+          .items
+          .is_empty()
+      );
       assert_str_eq!(
         app
           .data
@@ -908,7 +917,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::AddMovieSearchResults.into()
       );
-      assert!(app.data.radarr_data.add_movie_modal.is_none());
+      assert_modal_absent!(app.data.radarr_data.add_movie_modal);
     }
 
     #[test]
@@ -975,8 +984,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
     }
 
     #[rstest]
@@ -1049,12 +1058,12 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::AddMovie(add_movie_body()))
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &RadarrEvent::AddMovie(add_movie_body())
       );
-      assert!(app.data.radarr_data.add_movie_modal.is_none());
+      assert_modal_absent!(app.data.radarr_data.add_movie_modal);
     }
 
     #[rstest]
@@ -1086,11 +1095,11 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_pushed!(
+        app,
         (selected_block, Some(ActiveRadarrBlock::CollectionDetails)).into()
       );
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
 
       if selected_block == ActiveRadarrBlock::AddMovieTagsInput {
         assert!(app.ignore_special_keys_for_textbox_input);
@@ -1120,10 +1129,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::AddMoviePrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::AddMoviePrompt.into());
 
       if active_radarr_block == ActiveRadarrBlock::AddMovieTagsInput {
         assert!(!app.ignore_special_keys_for_textbox_input);
@@ -1132,13 +1138,12 @@ mod tests {
   }
 
   mod test_handle_esc {
-    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use crate::models::servarr_data::radarr::modals::AddMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
     use crate::models::stateful_table::StatefulTable;
-    use crate::simple_stateful_iterable_vec;
+    use crate::{assert_navigation_popped, simple_stateful_iterable_vec};
 
     use super::*;
 
@@ -1161,8 +1166,8 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert_eq!(app.data.radarr_data.add_movie_search, None);
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
+      assert_none!(app.data.radarr_data.add_movie_search);
     }
 
     #[test]
@@ -1182,10 +1187,7 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::AddMoviePrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::AddMoviePrompt.into());
     }
 
     #[rstest]
@@ -1208,11 +1210,8 @@ mod tests {
 
       AddMovieHandler::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::AddMovieSearchInput.into()
-      );
-      assert!(app.data.radarr_data.add_searched_movies.is_none());
+      assert_navigation_popped!(app, ActiveRadarrBlock::AddMovieSearchInput.into());
+      assert_modal_absent!(app.data.radarr_data.add_searched_movies);
       assert!(app.ignore_special_keys_for_textbox_input);
     }
 
@@ -1231,10 +1230,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::AddMovieSearchResults.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::AddMovieSearchResults.into());
     }
 
     #[test]
@@ -1248,11 +1244,8 @@ mod tests {
       AddMovieHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::AddMoviePrompt, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::AddMovieSearchResults.into()
-      );
-      assert!(app.data.radarr_data.add_movie_modal.is_none());
+      assert_navigation_popped!(app, ActiveRadarrBlock::AddMovieSearchResults.into());
+      assert_modal_absent!(app.data.radarr_data.add_movie_modal);
     }
 
     #[test]
@@ -1272,10 +1265,7 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::AddMoviePrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::AddMoviePrompt.into());
     }
 
     #[rstest]
@@ -1312,8 +1302,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_popped!(
+        app,
         (
           ActiveRadarrBlock::AddMoviePrompt,
           Some(ActiveRadarrBlock::CollectionDetails),
@@ -1325,18 +1315,18 @@ mod tests {
 
   mod test_handle_key_char {
     use bimap::BiMap;
-    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use super::*;
     use crate::{
+      assert_navigation_popped,
       handlers::radarr_handlers::radarr_handler_test_utils::utils::{
         add_movie_body, add_movie_search_result, collection_movie,
       },
       models::{
+        BlockSelectionState,
         servarr_data::radarr::{modals::AddMovieModal, radarr_data::ADD_MOVIE_SELECTION_BLOCKS},
         stateful_table::StatefulTable,
-        BlockSelectionState,
       },
       network::radarr_network::RadarrEvent,
     };
@@ -1503,12 +1493,12 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::AddMovie(add_movie_body()))
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &RadarrEvent::AddMovie(add_movie_body())
       );
-      assert!(app.data.radarr_data.add_movie_modal.is_none());
+      assert_modal_absent!(app.data.radarr_data.add_movie_modal);
     }
   }
 

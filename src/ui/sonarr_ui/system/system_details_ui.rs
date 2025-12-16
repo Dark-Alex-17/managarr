@@ -1,14 +1,14 @@
+use ratatui::Frame;
 use ratatui::layout::Rect;
 use ratatui::text::{Span, Text};
 use ratatui::widgets::{Cell, ListItem, Paragraph, Row};
-use ratatui::Frame;
 
 use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::sonarr_models::SonarrTask;
-use crate::models::Route;
 use crate::ui::sonarr_ui::system::{
-  draw_queued_events, extract_task_props, TASK_TABLE_CONSTRAINTS, TASK_TABLE_HEADERS,
+  TASK_TABLE_CONSTRAINTS, TASK_TABLE_HEADERS, draw_queued_events, extract_task_props,
 };
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, style_log_list_item, title_block};
@@ -17,7 +17,7 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup, DrawUi};
+use crate::ui::{DrawUi, draw_popup};
 
 #[cfg(test)]
 #[path = "system_details_ui_tests.rs"]
@@ -27,11 +27,10 @@ pub(super) struct SystemDetailsUi;
 
 impl DrawUi for SystemDetailsUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Sonarr(active_sonarr_block, _) = route {
-      return SYSTEM_DETAILS_BLOCKS.contains(&active_sonarr_block);
-    }
-
-    false
+    let Route::Sonarr(active_sonarr_block, _) = route else {
+      return false;
+    };
+    SYSTEM_DETAILS_BLOCKS.contains(&active_sonarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {

@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use clap::Subcommand;
+use clap::{Subcommand, command};
 use tokio::sync::Mutex;
 
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
-  network::{radarr_network::RadarrEvent, NetworkTrait},
+  network::{NetworkTrait, radarr_network::RadarrEvent},
 };
 
 use super::RadarrCommand;

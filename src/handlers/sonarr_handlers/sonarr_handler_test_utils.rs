@@ -1,6 +1,7 @@
 #[cfg(test)]
 #[macro_use]
 pub(in crate::handlers::sonarr_handlers) mod utils {
+  use crate::models::HorizontallyScrollableText;
   use crate::models::servarr_models::{
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
@@ -9,9 +10,8 @@ pub(in crate::handlers::sonarr_handlers) mod utils {
     Episode, EpisodeFile, IndexerSettings, MediaInfo, Rating, Season, SeasonStatistics, Series,
     SeriesStatistics, SeriesStatus, SeriesType,
   };
-  use crate::models::HorizontallyScrollableText;
   use chrono::DateTime;
-  use serde_json::{json, Number};
+  use serde_json::{Number, json};
 
   #[macro_export]
   macro_rules! test_edit_series_key {

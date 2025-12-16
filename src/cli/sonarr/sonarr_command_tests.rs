@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-  use crate::cli::{
-    sonarr::{list_command_handler::SonarrListCommand, SonarrCommand},
-    Command,
-  };
   use crate::Cli;
+  use crate::cli::{
+    Command,
+    sonarr::{SonarrCommand, list_command_handler::SonarrListCommand},
+  };
   use clap::CommandFactory;
   use pretty_assertions::assert_eq;
 
@@ -29,7 +29,7 @@ mod tests {
     ) {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", subcommand]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -37,7 +37,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "mark-history-item-as-failed"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -54,14 +54,14 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
     fn test_search_new_series_requires_query() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "search-new-series"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -78,14 +78,14 @@ mod tests {
         "halo",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
     fn test_start_task_requires_task_name() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "start-task"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -102,7 +102,7 @@ mod tests {
         "test",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -116,14 +116,14 @@ mod tests {
         "application-update-check",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
     fn test_test_indexer_requires_indexer_id() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "test-indexer"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -140,7 +140,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -148,7 +148,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "toggle-episode-monitoring"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -165,7 +165,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -178,7 +178,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -195,7 +195,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -214,7 +214,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -222,7 +222,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "toggle-series-monitoring"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -239,7 +239,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 
@@ -253,25 +253,25 @@ mod tests {
     use crate::{
       app::App,
       cli::{
+        CliCommandHandler,
         sonarr::{
-          add_command_handler::SonarrAddCommand, delete_command_handler::SonarrDeleteCommand,
+          SonarrCliHandler, SonarrCommand, add_command_handler::SonarrAddCommand,
+          delete_command_handler::SonarrDeleteCommand,
           download_command_handler::SonarrDownloadCommand, edit_command_handler::SonarrEditCommand,
           get_command_handler::SonarrGetCommand, list_command_handler::SonarrListCommand,
           manual_search_command_handler::SonarrManualSearchCommand,
           refresh_command_handler::SonarrRefreshCommand,
           trigger_automatic_search_command_handler::SonarrTriggerAutomaticSearchCommand,
-          SonarrCliHandler, SonarrCommand,
         },
-        CliCommandHandler,
       },
       models::{
+        Serdeable,
         sonarr_models::{
           BlocklistItem, BlocklistResponse, IndexerSettings, Series, SonarrReleaseDownloadBody,
           SonarrSerdeable, SonarrTaskName,
         },
-        Serdeable,
       },
-      network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
+      network::{MockNetworkTrait, NetworkEvent, sonarr_network::SonarrEvent},
     };
 
     #[tokio::test]
@@ -304,7 +304,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -334,7 +334,7 @@ mod tests {
       .handle()
       .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -361,7 +361,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -390,7 +390,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -426,7 +426,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -484,12 +484,12 @@ mod tests {
       .handle()
       .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
-    async fn test_sonarr_cli_handler_delegates_manual_search_commands_to_the_manual_search_command_handler(
-    ) {
+    async fn test_sonarr_cli_handler_delegates_manual_search_commands_to_the_manual_search_command_handler()
+     {
       let expected_episode_id = 1;
       let mut mock_network = MockNetworkTrait::new();
       mock_network
@@ -512,12 +512,12 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
-    async fn test_sonarr_cli_handler_delegates_trigger_automatic_search_commands_to_the_trigger_automatic_search_command_handler(
-    ) {
+    async fn test_sonarr_cli_handler_delegates_trigger_automatic_search_commands_to_the_trigger_automatic_search_command_handler()
+     {
       let expected_episode_id = 1;
       let mut mock_network = MockNetworkTrait::new();
       mock_network
@@ -542,7 +542,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -564,7 +564,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -586,7 +586,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -612,7 +612,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -639,7 +639,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -666,7 +666,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -691,7 +691,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -713,7 +713,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -743,7 +743,7 @@ mod tests {
       .handle()
       .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -776,7 +776,7 @@ mod tests {
       .handle()
       .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -805,7 +805,7 @@ mod tests {
       .handle()
       .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 }

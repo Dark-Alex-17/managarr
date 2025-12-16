@@ -1,17 +1,17 @@
 use std::iter;
 
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
-use ratatui::Frame;
 use serde_json::Number;
 
 use crate::app::App;
+use crate::models::Route;
 use crate::models::radarr_models::{Credit, MovieHistoryItem, RadarrRelease};
 use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
-use crate::models::Route;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, decorate_peer_style, get_width_from_percentage, layout_block_bottom_border,
@@ -21,7 +21,7 @@ use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{draw_popup, draw_tabs, DrawUi};
+use crate::ui::{DrawUi, draw_popup, draw_tabs};
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -32,11 +32,10 @@ pub(super) struct MovieDetailsUi;
 
 impl DrawUi for MovieDetailsUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
-      return MOVIE_DETAILS_BLOCKS.contains(&active_radarr_block);
-    }
-
-    false
+    let Route::Radarr(active_radarr_block, _) = route else {
+      return false;
+    };
+    MOVIE_DETAILS_BLOCKS.contains(&active_radarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
@@ -117,16 +116,22 @@ fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       let file_info = movie_details_modal.file_details.to_owned();
       let audio_details = movie_details_modal.audio_details.to_owned();
       let video_details = movie_details_modal.video_details.to_owned();
-      let [file_details_title_area, file_details_area, audio_details_title_area, audio_details_area, video_details_title_area, video_details_area] =
-        Layout::vertical([
-          Constraint::Length(2),
-          Constraint::Length(5),
-          Constraint::Length(1),
-          Constraint::Length(6),
-          Constraint::Length(1),
-          Constraint::Length(7),
-        ])
-        .areas(area);
+      let [
+        file_details_title_area,
+        file_details_area,
+        audio_details_title_area,
+        audio_details_area,
+        video_details_title_area,
+        video_details_area,
+      ] = Layout::vertical([
+        Constraint::Length(2),
+        Constraint::Length(5),
+        Constraint::Length(1),
+        Constraint::Length(6),
+        Constraint::Length(1),
+        Constraint::Length(7),
+      ])
+      .areas(area);
 
       let file_details_title_paragraph =
         Paragraph::new("File Details".bold()).block(layout_block_top_border());
@@ -404,12 +409,12 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .clone()
           .unwrap_or(Number::from(0u64))
           .as_u64()
-          .unwrap();
+          .unwrap_or_default();
         let leechers = leechers
           .clone()
           .unwrap_or(Number::from(0u64))
           .as_u64()
-          .unwrap();
+          .unwrap_or_default();
 
         decorate_peer_style(
           seeders,
@@ -467,7 +472,7 @@ fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>) {
     .radarr_data
     .movie_details_modal
     .as_ref()
-    .unwrap()
+    .expect("movie_details_modal must exist in this context")
     .movie_releases
     .current_selection();
   let title = if current_selection.rejected {

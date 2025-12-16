@@ -1,7 +1,7 @@
-use crate::app::key_binding::{KeyBinding, DEFAULT_KEYBINDINGS};
+use crate::app::App;
+use crate::app::key_binding::{DEFAULT_KEYBINDINGS, KeyBinding};
 use crate::app::radarr::radarr_context_clues::RadarrContextClueProvider;
 use crate::app::sonarr::sonarr_context_clues::SonarrContextClueProvider;
-use crate::app::App;
 use crate::models::Route;
 
 #[cfg(test)]

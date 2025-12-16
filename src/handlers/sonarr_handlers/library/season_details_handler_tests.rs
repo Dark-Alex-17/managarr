@@ -1,12 +1,15 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_navigation_pushed;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::season_details_handler::{
-    releases_sorting_options, SeasonDetailsHandler,
+    SeasonDetailsHandler, releases_sorting_options,
   };
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::episode;
-  use crate::handlers::KeyEventHandler;
+  use crate::models::HorizontallyScrollableText;
   use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
   use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
   use crate::models::servarr_data::sonarr::sonarr_data::{
@@ -14,7 +17,6 @@ mod tests {
   };
   use crate::models::servarr_models::{Language, Quality, QualityWrapper};
   use crate::models::sonarr_models::{SonarrRelease, SonarrReleaseDownloadBody};
-  use crate::models::HorizontallyScrollableText;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use serde_json::Number;
@@ -37,10 +39,7 @@ mod tests {
       SeasonDetailsHandler::new(DELETE_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
         .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::DeleteEpisodeFilePrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::DeleteEpisodeFilePrompt.into());
     }
 
     #[test]
@@ -139,7 +138,7 @@ mod tests {
           .season_details_tabs
           .get_active_route()
       );
-      assert_eq!(app.get_current_route(), left_block.into());
+      assert_navigation_pushed!(app, left_block.into());
 
       SeasonDetailsHandler::new(DEFAULT_KEYBINDINGS.right.key, &mut app, left_block, None).handle();
 
@@ -154,12 +153,13 @@ mod tests {
           .season_details_tabs
           .get_active_route()
       );
-      assert_eq!(app.get_current_route(), right_block.into());
+      assert_navigation_pushed!(app, right_block.into());
     }
   }
 
   mod test_handle_submit {
     use super::*;
+    use crate::assert_navigation_popped;
     use crate::event::Key;
     use crate::models::stateful_table::StatefulTable;
     use crate::network::sonarr_network::SonarrEvent;
@@ -176,10 +176,7 @@ mod tests {
       SeasonDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonDetails, None)
         .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EpisodeDetails.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::EpisodeDetails.into());
     }
 
     #[test]
@@ -227,10 +224,7 @@ mod tests {
       SeasonDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeasonHistory, None)
         .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SeasonHistoryDetails.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SeasonHistoryDetails.into());
     }
 
     #[test]
@@ -295,10 +289,10 @@ mod tests {
       SeasonDetailsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(app.get_current_route(), active_sonarr_block.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(expected_action)
+      assert_navigation_popped!(app, active_sonarr_block.into());
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &expected_action
       );
     }
 
@@ -319,19 +313,16 @@ mod tests {
       .handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::ManualSeasonSearch.into()
-      );
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
+      assert_navigation_popped!(app, ActiveSonarrBlock::ManualSeasonSearch.into());
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
           guid: String::new(),
           indexer_id: 0,
           series_id: Some(0),
           season_number: Some(0),
           ..SonarrReleaseDownloadBody::default()
-        }))
+        })
       );
     }
 
@@ -352,11 +343,8 @@ mod tests {
       SeasonDetailsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SeasonDetails.into()
-      );
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_navigation_popped!(app, ActiveSonarrBlock::SeasonDetails.into());
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
     }
 
     #[test]
@@ -373,8 +361,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_pushed!(
+        app,
         ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt.into()
       );
     }
@@ -403,6 +391,7 @@ mod tests {
 
   mod test_handle_esc {
     use super::*;
+    use crate::assert_navigation_popped;
     use crate::event::Key;
     use crate::models::sonarr_models::SonarrHistoryItem;
     use crate::models::stateful_table::StatefulTable;
@@ -426,10 +415,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SeasonHistory.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::SeasonHistory.into());
     }
 
     #[rstest]
@@ -452,10 +438,7 @@ mod tests {
       SeasonDetailsHandler::new(ESC_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SeasonDetails.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::SeasonDetails.into());
     }
 
     #[test]
@@ -485,33 +468,36 @@ mod tests {
         app.get_current_route(),
         ActiveSonarrBlock::SeasonHistory.into()
       );
-      assert!(app
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .unwrap()
-        .season_history
-        .filter
-        .is_none());
-      assert!(app
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .unwrap()
-        .season_history
-        .filtered_items
-        .is_none());
-      assert!(app
-        .data
-        .sonarr_data
-        .season_details_modal
-        .as_ref()
-        .unwrap()
-        .season_history
-        .filtered_state
-        .is_none());
+      assert_none!(
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .filter
+      );
+      assert_none!(
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .filtered_items
+      );
+      assert_none!(
+        app
+          .data
+          .sonarr_data
+          .season_details_modal
+          .as_ref()
+          .unwrap()
+          .season_history
+          .filtered_state
+      );
     }
 
     #[rstest]
@@ -530,16 +516,14 @@ mod tests {
 
       SeasonDetailsHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SeriesDetails.into()
-      );
-      assert!(app.data.sonarr_data.season_details_modal.is_none());
+      assert_navigation_popped!(app, ActiveSonarrBlock::SeriesDetails.into());
+      assert_modal_absent!(app.data.sonarr_data.season_details_modal);
     }
   }
 
   mod test_handle_key_char {
     use super::*;
+    use crate::assert_navigation_popped;
     use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
     use crate::network::sonarr_network::SonarrEvent;
     use pretty_assertions::assert_eq;
@@ -573,9 +557,9 @@ mod tests {
       );
       assert!(app.data.sonarr_data.prompt_confirm);
       assert!(app.is_routing);
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::ToggleEpisodeMonitoring(1))
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::ToggleEpisodeMonitoring(1)
       );
     }
 
@@ -599,7 +583,7 @@ mod tests {
         ActiveSonarrBlock::SeasonDetails.into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert!(app.data.sonarr_data.prompt_confirm_action.is_none());
+      assert_modal_absent!(app.data.sonarr_data.prompt_confirm_action);
       assert!(!app.is_routing);
     }
 
@@ -624,8 +608,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_pushed!(
+        app,
         ActiveSonarrBlock::AutomaticallySearchSeasonPrompt.into()
       );
     }
@@ -676,7 +660,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), active_sonarr_block.into());
+      assert_navigation_pushed!(app, active_sonarr_block.into());
       assert!(app.is_routing);
     }
 
@@ -737,10 +721,10 @@ mod tests {
       .handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(app.get_current_route(), active_sonarr_block.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(expected_action)
+      assert_navigation_popped!(app, active_sonarr_block.into());
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &expected_action
       );
     }
 
@@ -761,19 +745,16 @@ mod tests {
       .handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::ManualSeasonSearch.into()
-      );
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
+      assert_navigation_popped!(app, ActiveSonarrBlock::ManualSeasonSearch.into());
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::DownloadRelease(SonarrReleaseDownloadBody {
           guid: String::new(),
           indexer_id: 0,
           series_id: Some(0),
           season_number: Some(0),
           ..SonarrReleaseDownloadBody::default()
-        }))
+        })
       );
     }
   }

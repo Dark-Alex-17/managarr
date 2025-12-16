@@ -1,50 +1,44 @@
 #[cfg(test)]
 mod tests {
+  use crate::models::HorizontallyScrollableText;
   use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_models::{EditIndexerParams, Indexer, IndexerTestResult};
   use crate::models::sonarr_models::SonarrSerdeable;
-  use crate::models::HorizontallyScrollableText;
-  use crate::network::network_tests::test_utils::mock_servarr_api;
+  use crate::network::NetworkResource;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
+  use crate::network::sonarr_network::SonarrEvent;
   use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
     indexer, indexer_settings,
   };
-  use crate::network::sonarr_network::SonarrEvent;
-  use crate::network::{Network, NetworkResource, RequestMethod};
   use bimap::BiMap;
   use mockito::Matcher;
   use pretty_assertions::assert_eq;
-  use reqwest::Client;
   use serde_json::json;
-  use tokio_util::sync::CancellationToken;
 
   #[tokio::test]
   async fn test_handle_delete_sonarr_indexer_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      SonarrEvent::DeleteIndexer(1),
-      Some("/1"),
-      None,
-    )
-    .await;
-    app_arc
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .build_for(SonarrEvent::DeleteIndexer(1))
+      .await;
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .indexers
       .set_items(vec![indexer()]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::DeleteIndexer(1))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::DeleteIndexer(1))
+        .await
+        .is_ok()
+    );
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
   }
 
   #[tokio::test]
@@ -56,26 +50,22 @@ mod tests {
         "retention": 1,
         "rssSyncInterval": 60
     });
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Put,
-      Some(indexer_settings_json),
-      None,
-      None,
-      SonarrEvent::EditAllIndexerSettings(indexer_settings()),
-      None,
-      None,
-    )
-    .await;
+    let (mock, app, _server) = MockServarrApi::put()
+      .with_request_body(indexer_settings_json)
+      .build_for(SonarrEvent::EditAllIndexerSettings(indexer_settings()))
+      .await;
 
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditAllIndexerSettings(indexer_settings()))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::EditAllIndexerSettings(indexer_settings()))
+        .await
+        .is_ok()
+    );
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
   }
 
   #[tokio::test]
@@ -139,17 +129,12 @@ mod tests {
         "tags": [1, 2],
         "id": 1
     });
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json),
-      None,
-      SonarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
-    let async_edit_server = server
+    let (mock_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json)
+      .path("/1")
+      .build_for(SonarrEvent::GetIndexers)
+      .await;
+    let mock_edit_server = server
       .mock(
         "PUT",
         format!(
@@ -163,23 +148,25 @@ mod tests {
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
-    app_arc.lock().await.data.sonarr_data.tags_map =
+    app.lock().await.data.sonarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
+        .await
+        .is_ok()
+    );
 
-    async_details_server.assert_async().await;
-    async_edit_server.assert_async().await;
+    mock_details_server.assert_async().await;
+    mock_edit_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_handle_edit_sonarr_indexer_event_does_not_overwrite_tags_vec_if_tag_input_string_is_none(
-  ) {
+  async fn test_handle_edit_sonarr_indexer_event_does_not_overwrite_tags_vec_if_tag_input_string_is_none()
+   {
     let expected_edit_indexer_params = EditIndexerParams {
       indexer_id: 1,
       name: Some("Test Update".to_owned()),
@@ -239,17 +226,12 @@ mod tests {
         "tags": [1, 2],
         "id": 1
     });
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json),
-      None,
-      SonarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
-    let async_edit_server = server
+    let (mock_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json)
+      .path("/1")
+      .build_for(SonarrEvent::GetIndexers)
+      .await;
+    let mock_edit_server = server
       .mock(
         "PUT",
         format!(
@@ -263,21 +245,23 @@ mod tests {
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
+        .await
+        .is_ok()
+    );
 
-    async_details_server.assert_async().await;
-    async_edit_server.assert_async().await;
+    mock_details_server.assert_async().await;
+    mock_edit_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_handle_edit_sonarr_indexer_event_does_not_add_seed_ratio_when_seed_ratio_field_is_none_in_details(
-  ) {
+  async fn test_handle_edit_sonarr_indexer_event_does_not_add_seed_ratio_when_seed_ratio_field_is_none_in_details()
+   {
     let expected_edit_indexer_params = EditIndexerParams {
       indexer_id: 1,
       name: Some("Test Update".to_owned()),
@@ -330,17 +314,12 @@ mod tests {
         "id": 1
     });
 
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json),
-      None,
-      SonarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
-    let async_edit_server = server
+    let (mock_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json)
+      .path("/1")
+      .build_for(SonarrEvent::GetIndexers)
+      .await;
+    let mock_edit_server = server
       .mock(
         "PUT",
         format!(
@@ -354,23 +333,25 @@ mod tests {
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
-    app_arc.lock().await.data.sonarr_data.tags_map =
+    app.lock().await.data.sonarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
+        .await
+        .is_ok()
+    );
 
-    async_details_server.assert_async().await;
-    async_edit_server.assert_async().await;
+    mock_details_server.assert_async().await;
+    mock_edit_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_handle_edit_sonarr_indexer_event_populates_the_seed_ratio_value_when_seed_ratio_field_is_present_in_details(
-  ) {
+  async fn test_handle_edit_sonarr_indexer_event_populates_the_seed_ratio_value_when_seed_ratio_field_is_present_in_details()
+   {
     let expected_edit_indexer_params = EditIndexerParams {
       indexer_id: 1,
       name: Some("Test Update".to_owned()),
@@ -430,17 +411,12 @@ mod tests {
         "id": 1
     });
 
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json),
-      None,
-      SonarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
-    let async_edit_server = server
+    let (mock_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json)
+      .path("/1")
+      .build_for(SonarrEvent::GetIndexers)
+      .await;
+    let mock_edit_server = server
       .mock(
         "PUT",
         format!(
@@ -454,18 +430,20 @@ mod tests {
       .match_body(Matcher::Json(expected_indexer_edit_body_json))
       .create_async()
       .await;
-    app_arc.lock().await.data.sonarr_data.tags_map =
+    app.lock().await.data.sonarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::EditIndexer(expected_edit_indexer_params))
+        .await
+        .is_ok()
+    );
 
-    async_details_server.assert_async().await;
-    async_edit_server.assert_async().await;
+    mock_details_server.assert_async().await;
+    mock_edit_server.assert_async().await;
   }
 
   #[tokio::test]
@@ -497,17 +475,12 @@ mod tests {
       indexer_id: 1,
       ..EditIndexerParams::default()
     };
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json.clone()),
-      None,
-      SonarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
-    let async_edit_server = server
+    let (mock_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json.clone())
+      .path("/1")
+      .build_for(SonarrEvent::GetIndexers)
+      .await;
+    let mock_edit_server = server
       .mock(
         "PUT",
         format!(
@@ -521,16 +494,18 @@ mod tests {
       .match_body(Matcher::Json(indexer_details_json))
       .create_async()
       .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditIndexer(edit_indexer_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::EditIndexer(edit_indexer_params))
+        .await
+        .is_ok()
+    );
 
-    async_details_server.assert_async().await;
-    async_edit_server.assert_async().await;
+    mock_details_server.assert_async().await;
+    mock_edit_server.assert_async().await;
   }
 
   #[tokio::test]
@@ -587,16 +562,11 @@ mod tests {
       ..EditIndexerParams::default()
     };
 
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json),
-      None,
-      SonarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json)
+      .path("/1")
+      .build_for(SonarrEvent::GetIndexers)
+      .await;
     let async_edit_server = server
       .mock(
         "PUT",
@@ -611,13 +581,15 @@ mod tests {
       .match_body(Matcher::Json(expected_edit_indexer_body))
       .create_async()
       .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditIndexer(edit_indexer_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::EditIndexer(edit_indexer_params))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
@@ -656,31 +628,26 @@ mod tests {
         "id": 1
     }]);
     let response: Vec<Indexer> = serde_json::from_value(indexers_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexers_response_json),
-      None,
-      SonarrEvent::GetIndexers,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(indexers_response_json)
+      .build_for(SonarrEvent::GetIndexers)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Indexers(indexers) = network
+    let SonarrSerdeable::Indexers(indexers) = network
       .handle_sonarr_event(SonarrEvent::GetIndexers)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.indexers.items,
-        vec![indexer()]
-      );
-      assert_eq!(indexers, response);
-    }
+    else {
+      panic!("Expected Indexers")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.indexers.items,
+      vec![indexer()]
+    );
+    assert_eq!(indexers, response);
   }
 
   #[tokio::test]
@@ -714,16 +681,11 @@ mod tests {
         "errorMessage": "test failure",
         "severity": "error"
     }]);
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json.clone()),
-      None,
-      SonarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json.clone())
+      .path("/1")
+      .build_for(SonarrEvent::GetIndexers)
+      .await;
     let async_test_server = server
       .mock(
         "POST",
@@ -735,29 +697,30 @@ mod tests {
       .with_body(response_json.to_string())
       .create_async()
       .await;
-    app_arc
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .indexers
       .set_items(vec![indexer()]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Value(value) = network
+    let SonarrSerdeable::Value(value) = network
       .handle_sonarr_event(SonarrEvent::TestIndexer(1))
       .await
       .unwrap()
-    {
-      async_details_server.assert_async().await;
-      async_test_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.indexer_test_errors,
-        Some("\"test failure\"".to_owned())
-      );
-      assert_eq!(value, response_json)
-    }
+    else {
+      panic!("Expected Value")
+    };
+    async_details_server.assert_async().await;
+    async_test_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.indexer_test_errors,
+      Some("\"test failure\"".to_owned())
+    );
+    assert_eq!(value, response_json);
   }
 
   #[tokio::test]
@@ -784,16 +747,11 @@ mod tests {
         "tags": [1],
         "id": 1
     });
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(indexer_details_json.clone()),
-      None,
-      SonarrEvent::GetIndexers,
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(indexer_details_json.clone())
+      .path("/1")
+      .build_for(SonarrEvent::GetIndexers)
+      .await;
     let async_test_server = server
       .mock(
         "POST",
@@ -805,29 +763,30 @@ mod tests {
       .with_body("{}")
       .create_async()
       .await;
-    app_arc
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .indexers
       .set_items(vec![indexer()]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Value(value) = network
+    let SonarrSerdeable::Value(value) = network
       .handle_sonarr_event(SonarrEvent::TestIndexer(1))
       .await
       .unwrap()
-    {
-      async_details_server.assert_async().await;
-      async_test_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.indexer_test_errors,
-        Some(String::new())
-      );
-      assert_eq!(value, json!({}));
-    }
+    else {
+      panic!("Expected Value")
+    };
+    async_details_server.assert_async().await;
+    async_test_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.indexer_test_errors,
+      Some(String::new())
+    );
+    assert_eq!(value, json!({}));
   }
 
   #[tokio::test]
@@ -879,52 +838,50 @@ mod tests {
       ]
     }]);
     let response: Vec<IndexerTestResult> = serde_json::from_value(response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      None,
-      Some(response_json),
-      Some(400),
-      SonarrEvent::TestAllIndexers,
-      None,
-      None,
-    )
-    .await;
-    app_arc
+    let (async_server, app, _server) = MockServarrApi::post()
+      .returns(response_json)
+      .status(400)
+      .build_for(SonarrEvent::TestAllIndexers)
+      .await;
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .indexers
       .set_items(indexers);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::IndexerTestResults(results) = network
+    let SonarrSerdeable::IndexerTestResults(results) = network
       .handle_sonarr_event(SonarrEvent::TestAllIndexers)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(app_arc
+    else {
+      panic!("Expected IndexerTestResults")
+    };
+    async_server.assert_async().await;
+    assert!(
+      app
         .lock()
         .await
         .data
         .sonarr_data
         .indexer_test_all_results
-        .is_some());
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .indexer_test_all_results
-          .as_ref()
-          .unwrap()
-          .items,
-        indexer_test_results_modal_items
-      );
-      assert_eq!(results, response);
-    }
+        .is_some()
+    );
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .indexer_test_all_results
+        .as_ref()
+        .unwrap()
+        .items,
+      indexer_test_results_modal_items
+    );
+    assert_eq!(results, response);
   }
 }

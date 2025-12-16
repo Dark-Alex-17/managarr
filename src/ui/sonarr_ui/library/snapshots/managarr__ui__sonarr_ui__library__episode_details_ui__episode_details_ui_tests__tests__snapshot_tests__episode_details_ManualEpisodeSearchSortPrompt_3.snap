@@ -1,0 +1,48 @@
+---
+source: src/ui/sonarr_ui/library/episode_details_ui_tests.rs
+expression: output
+---
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                    ╭  Episode Details  ───────────────────────────────────────────────────────────────────────────────────────────────────────╮                     
+                    │ Details │ History │ File │ Manual Search                                                                                 │                     
+                    │──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│                     
+                    │   Source    Age        ⛔     Title                 Indexer                Size         Peers        Language Quality     │                     
+                    │=> torrent   1 days     ⛔     Test Release          kickass torrents       0.0 GB       2 / 1        English  Bluray-1080p│                     
+                    │   usenet    1 days     ⛔     Test Release          DrunkenSlug            0.0 GB                    English  Bluray-1080p│                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                 ╭──────────────────────╮                                                 │                     
+                    │                                                 │Something             │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 │                      │                                                 │                     
+                    │                                                 ╰──────────────────────╯                                                 │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

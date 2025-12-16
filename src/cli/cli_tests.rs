@@ -2,16 +2,18 @@
 mod tests {
   use std::sync::Arc;
 
-  use clap::{error::ErrorKind, CommandFactory};
+  use clap::{CommandFactory, error::ErrorKind};
   use mockall::predicate::eq;
   use rstest::rstest;
   use serde_json::json;
   use tokio::sync::Mutex;
 
   use crate::{
+    Cli,
     app::App,
     cli::{handle_command, mutex_flags_or_option, radarr::RadarrCommand, sonarr::SonarrCommand},
     models::{
+      Serdeable,
       radarr_models::{
         BlocklistItem as RadarrBlocklistItem, BlocklistResponse as RadarrBlocklistResponse,
         RadarrSerdeable,
@@ -20,12 +22,10 @@ mod tests {
         BlocklistItem as SonarrBlocklistItem, BlocklistResponse as SonarrBlocklistResponse,
         SonarrSerdeable,
       },
-      Serdeable,
     },
     network::{
-      radarr_network::RadarrEvent, sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent,
+      MockNetworkTrait, NetworkEvent, radarr_network::RadarrEvent, sonarr_network::SonarrEvent,
     },
-    Cli,
   };
   use pretty_assertions::assert_eq;
 
@@ -33,7 +33,7 @@ mod tests {
   fn test_servarr_subcommand_requires_subcommand(#[values("radarr", "sonarr")] subcommand: &str) {
     let result = Cli::command().try_get_matches_from(["managarr", subcommand]);
 
-    assert!(result.is_err());
+    assert_err!(&result);
     assert_eq!(
       result.unwrap_err().kind(),
       ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand
@@ -45,21 +45,21 @@ mod tests {
     let result =
       Cli::command().try_get_matches_from(["managarr", "radarr", "get", "all-indexer-settings"]);
 
-    assert!(result.is_ok());
+    assert_ok!(&result);
   }
 
   #[test]
   fn test_sonarr_subcommand_delegates_to_sonarr() {
     let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "list", "series"]);
 
-    assert!(result.is_ok());
+    assert_ok!(&result);
   }
 
   #[test]
   fn test_completions_requires_argument() {
     let result = Cli::command().try_get_matches_from(["managarr", "completions"]);
 
-    assert!(result.is_err());
+    assert_err!(&result);
     assert_eq!(
       result.unwrap_err().kind(),
       ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand
@@ -70,7 +70,7 @@ mod tests {
   fn test_completions_invalid_argument() {
     let result = Cli::command().try_get_matches_from(["managarr", "completions", "test"]);
 
-    assert!(result.is_err());
+    assert_err!(&result);
     assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
   }
 
@@ -78,7 +78,7 @@ mod tests {
   fn test_completions_satisfied_with_argument() {
     let result = Cli::command().try_get_matches_from(["managarr", "completions", "bash"]);
 
-    assert!(result.is_ok());
+    assert_ok!(&result);
   }
 
   #[rstest]
@@ -141,7 +141,7 @@ mod tests {
 
     let result = handle_command(&app_arc, clear_blocklist_command, &mut mock_network).await;
 
-    assert!(result.is_ok());
+    assert_ok!(&result);
   }
 
   #[tokio::test]
@@ -172,6 +172,6 @@ mod tests {
 
     let result = handle_command(&app_arc, clear_blocklist_command, &mut mock_network).await;
 
-    assert!(result.is_ok());
+    assert_ok!(&result);
   }
 }

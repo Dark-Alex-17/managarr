@@ -6,19 +6,17 @@ mod tests {
     SonarrHistoryItem, SonarrSerdeable,
   };
   use crate::models::stateful_table::{SortOption, StatefulTable};
-  use crate::network::network_tests::test_utils::mock_servarr_api;
-  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
-    add_series_search_result, history_item, season, series, SERIES_JSON,
-  };
+  use crate::network::NetworkResource;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::sonarr_network::SonarrEvent;
-  use crate::network::{Network, NetworkResource, RequestMethod};
+  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
+    SERIES_JSON, add_series_search_result, history_item, season, series,
+  };
   use bimap::BiMap;
   use mockito::Matcher;
   use pretty_assertions::assert_eq;
-  use reqwest::Client;
   use rstest::rstest;
-  use serde_json::{json, Value};
-  use tokio_util::sync::CancellationToken;
+  use serde_json::{Value, json};
 
   #[tokio::test]
   async fn test_handle_add_sonarr_series_event() {
@@ -39,9 +37,8 @@ mod tests {
         search_for_missing_episodes: true,
       },
     };
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
+    let (async_server, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
         "tvdbId": 1234,
         "title": "Test",
         "monitored": true,
@@ -56,30 +53,28 @@ mod tests {
           "searchForCutoffUnmetEpisodes": true,
           "searchForMissingEpisodes": true
         }
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::AddSeries(expected_add_series_body.clone()),
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.data.sonarr_data.tags_map =
+      }))
+      .returns(json!({}))
+      .build_for(SonarrEvent::AddSeries(expected_add_series_body.clone()))
+      .await;
+    app.lock().await.data.sonarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::AddSeries(expected_add_series_body))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::AddSeries(expected_add_series_body))
+        .await
+        .is_ok()
+    );
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_handle_add_sonarr_series_event_does_not_overwrite_tags_vec_when_tag_input_string_is_none(
-  ) {
+  async fn test_handle_add_sonarr_series_event_does_not_overwrite_tags_vec_when_tag_input_string_is_none()
+   {
     let expected_add_series_body = AddSeriesBody {
       tvdb_id: 1234,
       title: "Test".to_owned(),
@@ -97,9 +92,8 @@ mod tests {
         search_for_missing_episodes: true,
       },
     };
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
+    let (async_server, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
         "tvdbId": 1234,
         "title": "Test",
         "monitored": true,
@@ -114,21 +108,19 @@ mod tests {
           "searchForCutoffUnmetEpisodes": true,
           "searchForMissingEpisodes": true
         }
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::AddSeries(expected_add_series_body.clone()),
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+      }))
+      .returns(json!({}))
+      .build_for(SonarrEvent::AddSeries(expected_add_series_body.clone()))
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::AddSeries(expected_add_series_body))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::AddSeries(expected_add_series_body))
+        .await
+        .is_ok()
+    );
 
     async_server.assert_async().await;
   }
@@ -140,23 +132,20 @@ mod tests {
       delete_series_files: true,
       add_list_exclusion: true,
     };
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      SonarrEvent::DeleteSeries(delete_series_params.clone()),
-      Some("/1"),
-      Some("deleteFiles=true&addImportExclusion=true"),
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (async_server, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .query("deleteFiles=true&addImportExclusion=true")
+      .build_for(SonarrEvent::DeleteSeries(delete_series_params.clone()))
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::DeleteSeries(delete_series_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::DeleteSeries(delete_series_params))
+        .await
+        .is_ok()
+    );
 
     async_server.assert_async().await;
   }
@@ -183,16 +172,11 @@ mod tests {
       ..EditSeriesParams::default()
     };
 
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(SERIES_JSON).unwrap()),
-      None,
-      SonarrEvent::GetSeriesDetails(1),
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(SERIES_JSON).unwrap())
+      .path("/1")
+      .build_for(SonarrEvent::GetSeriesDetails(1))
+      .await;
     let async_edit_server = server
       .mock(
         "PUT",
@@ -207,23 +191,25 @@ mod tests {
       .match_body(Matcher::Json(expected_body))
       .create_async()
       .await;
-    app_arc.lock().await.data.sonarr_data.tags_map =
+    app.lock().await.data.sonarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditSeries(edit_series_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::EditSeries(edit_series_params))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
   }
 
   #[tokio::test]
-  async fn test_handle_edit_series_event_does_not_overwrite_tag_ids_vec_when_tag_input_string_is_none(
-  ) {
+  async fn test_handle_edit_series_event_does_not_overwrite_tag_ids_vec_when_tag_input_string_is_none()
+   {
     let mut expected_body: Value = serde_json::from_str(SERIES_JSON).unwrap();
     *expected_body.get_mut("monitored").unwrap() = json!(false);
     *expected_body.get_mut("seasonFolder").unwrap() = json!(false);
@@ -244,16 +230,11 @@ mod tests {
       ..EditSeriesParams::default()
     };
 
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(SERIES_JSON).unwrap()),
-      None,
-      SonarrEvent::GetSeriesDetails(1),
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(SERIES_JSON).unwrap())
+      .path("/1")
+      .build_for(SonarrEvent::GetSeriesDetails(1))
+      .await;
     let async_edit_server = server
       .mock(
         "PUT",
@@ -268,15 +249,17 @@ mod tests {
       .match_body(Matcher::Json(expected_body))
       .create_async()
       .await;
-    app_arc.lock().await.data.sonarr_data.tags_map =
+    app.lock().await.data.sonarr_data.tags_map =
       BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditSeries(edit_series_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::EditSeries(edit_series_params))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
@@ -289,16 +272,11 @@ mod tests {
       ..EditSeriesParams::default()
     };
     let expected_body: Value = serde_json::from_str(SERIES_JSON).unwrap();
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(SERIES_JSON).unwrap()),
-      None,
-      SonarrEvent::GetSeriesDetails(1),
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(SERIES_JSON).unwrap())
+      .path("/1")
+      .build_for(SonarrEvent::GetSeriesDetails(1))
+      .await;
     let async_edit_server = server
       .mock(
         "PUT",
@@ -313,13 +291,15 @@ mod tests {
       .match_body(Matcher::Json(expected_body))
       .create_async()
       .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditSeries(edit_series_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::EditSeries(edit_series_params))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
@@ -330,16 +310,11 @@ mod tests {
     let mut expected_body: Value = serde_json::from_str(SERIES_JSON).unwrap();
     *expected_body.get_mut("tags").unwrap() = json!([]);
 
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(SERIES_JSON).unwrap()),
-      None,
-      SonarrEvent::GetSeriesDetails(1),
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(SERIES_JSON).unwrap())
+      .path("/1")
+      .build_for(SonarrEvent::GetSeriesDetails(1))
+      .await;
     let edit_series_params = EditSeriesParams {
       series_id: 1,
       clear_tags: true,
@@ -359,13 +334,15 @@ mod tests {
       .match_body(Matcher::Json(expected_body))
       .create_async()
       .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::EditSeries(edit_series_params))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::EditSeries(edit_series_params))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
@@ -376,16 +353,11 @@ mod tests {
     let mut expected_body: Value = serde_json::from_str(SERIES_JSON).unwrap();
     *expected_body.get_mut("monitored").unwrap() = json!(false);
 
-    let (async_details_server, app_arc, mut server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(SERIES_JSON).unwrap()),
-      None,
-      SonarrEvent::GetSeriesDetails(1),
-      Some("/1"),
-      None,
-    )
-    .await;
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(SERIES_JSON).unwrap())
+      .path("/1")
+      .build_for(SonarrEvent::GetSeriesDetails(1))
+      .await;
     let async_toggle_server = server
       .mock(
         "PUT",
@@ -401,17 +373,19 @@ mod tests {
       .create_async()
       .await;
     {
-      let mut app = app_arc.lock().await;
+      let mut app = app.lock().await;
       app.data.sonarr_data.series.set_items(vec![series()]);
       app.data.sonarr_data.seasons.set_items(vec![season()]);
     }
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::ToggleSeriesMonitoring(1))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::ToggleSeriesMonitoring(1))
+        .await
+        .is_ok()
+    );
 
     async_details_server.assert_async().await;
     async_toggle_server.assert_async().await;
@@ -420,34 +394,30 @@ mod tests {
   #[tokio::test]
   async fn test_handle_get_series_details_event() {
     let expected_series: Series = serde_json::from_str(SERIES_JSON).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(serde_json::from_str(SERIES_JSON).unwrap()),
-      None,
-      SonarrEvent::GetSeriesDetails(1),
-      Some("/1"),
-      None,
-    )
-    .await;
-    app_arc
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(serde_json::from_str(SERIES_JSON).unwrap())
+      .path("/1")
+      .build_for(SonarrEvent::GetSeriesDetails(1))
+      .await;
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .series
       .set_items(vec![series()]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Series(series) = network
+    let SonarrSerdeable::Series(series) = network
       .handle_sonarr_event(SonarrEvent::GetSeriesDetails(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(series, expected_series);
-    }
+    else {
+      panic!("Expected Series")
+    };
+    async_server.assert_async().await;
+    assert_eq!(series, expected_series);
   }
 
   #[rstest]
@@ -496,16 +466,11 @@ mod tests {
         ..history_item()
       },
     ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(history_json),
-      None,
-      SonarrEvent::GetSeriesHistory(1),
-      None,
-      Some("seriesId=1"),
-    )
-    .await;
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("seriesId=1")
+      .build_for(SonarrEvent::GetSeriesHistory(1))
+      .await;
     let mut series_history_table = StatefulTable {
       sort_asc: true,
       ..StatefulTable::default()
@@ -525,55 +490,50 @@ mod tests {
       };
       series_history_table.sorting(vec![history_sort_option]);
     }
-    app_arc
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .series
       .set_items(vec![series()]);
-    app_arc.lock().await.data.sonarr_data.series_history = Some(series_history_table);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.data.sonarr_data.series_history = Some(series_history_table);
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SonarrHistoryItems(history_items) = network
+    let SonarrSerdeable::SonarrHistoryItems(history_items) = network
       .handle_sonarr_event(SonarrEvent::GetSeriesHistory(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(app_arc
+    else {
+      panic!("Expected SonarrHistoryItems")
+    };
+    async_server.assert_async().await;
+    assert!(app.lock().await.data.sonarr_data.series_history.is_some());
+    assert_eq!(
+      app
         .lock()
         .await
         .data
         .sonarr_data
         .series_history
-        .is_some());
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .items,
-        expected_history_items
-      );
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .sort_asc
-      );
-      assert_eq!(history_items, response);
-    }
+        .as_ref()
+        .unwrap()
+        .items,
+      expected_history_items
+    );
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .series_history
+        .as_ref()
+        .unwrap()
+        .sort_asc
+    );
+    assert_eq!(history_items, response);
   }
 
   #[tokio::test]
@@ -619,64 +579,54 @@ mod tests {
         ..history_item()
       },
     ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(history_json),
-      None,
-      SonarrEvent::GetSeriesHistory(1),
-      None,
-      Some("seriesId=1"),
-    )
-    .await;
-    app_arc
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("seriesId=1")
+      .build_for(SonarrEvent::GetSeriesHistory(1))
+      .await;
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .series
       .set_items(vec![series()]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SonarrHistoryItems(history_items) = network
+    let SonarrSerdeable::SonarrHistoryItems(history_items) = network
       .handle_sonarr_event(SonarrEvent::GetSeriesHistory(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(app_arc
+    else {
+      panic!("Expected SonarrHistoryItems")
+    };
+    async_server.assert_async().await;
+    assert!(app.lock().await.data.sonarr_data.series_history.is_some());
+    assert_eq!(
+      app
         .lock()
         .await
         .data
         .sonarr_data
         .series_history
-        .is_some());
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .items,
-        expected_history_items
-      );
-      assert!(
-        !app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .sort_asc
-      );
-      assert_eq!(history_items, response);
-    }
+        .as_ref()
+        .unwrap()
+        .items,
+      expected_history_items
+    );
+    assert!(
+      !app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .series_history
+        .as_ref()
+        .unwrap()
+        .sort_asc
+    );
+    assert_eq!(history_items, response);
   }
 
   #[tokio::test]
@@ -708,16 +658,11 @@ mod tests {
       }
     }]);
     let response: Vec<SonarrHistoryItem> = serde_json::from_value(history_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(history_json),
-      None,
-      SonarrEvent::GetSeriesHistory(1),
-      None,
-      Some("seriesId=1"),
-    )
-    .await;
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("seriesId=1")
+      .build_for(SonarrEvent::GetSeriesHistory(1))
+      .await;
     let cmp_fn = |a: &SonarrHistoryItem, b: &SonarrHistoryItem| {
       a.source_title
         .text
@@ -733,35 +678,32 @@ mod tests {
       ..StatefulTable::default()
     };
     series_history_table.sorting(vec![history_sort_option]);
-    app_arc.lock().await.data.sonarr_data.series_history = Some(series_history_table);
-    app_arc
+    app.lock().await.data.sonarr_data.series_history = Some(series_history_table);
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .series
       .set_items(vec![series()]);
-    app_arc
+    app
       .lock()
       .await
       .push_navigation_stack(ActiveSonarrBlock::SeriesHistorySortPrompt.into());
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SonarrHistoryItems(history_items) = network
+    let SonarrSerdeable::SonarrHistoryItems(history_items) = network
       .handle_sonarr_event(SonarrEvent::GetSeriesHistory(1))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(app_arc
-        .lock()
-        .await
-        .data
-        .sonarr_data
-        .series_history
-        .is_some());
-      assert!(app_arc
+    else {
+      panic!("Expected SonarrHistoryItems")
+    };
+    async_server.assert_async().await;
+    assert!(app.lock().await.data.sonarr_data.series_history.is_some());
+    assert!(
+      app
         .lock()
         .await
         .data
@@ -769,20 +711,20 @@ mod tests {
         .series_history
         .as_ref()
         .unwrap()
-        .is_empty());
-      assert!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .series_history
-          .as_ref()
-          .unwrap()
-          .sort_asc
-      );
-      assert_eq!(history_items, response);
-    }
+        .is_empty()
+    );
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .series_history
+        .as_ref()
+        .unwrap()
+        .sort_asc
+    );
+    assert_eq!(history_items, response);
   }
 
   #[rstest]
@@ -818,17 +760,11 @@ mod tests {
         ..series()
       },
     ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!([series_1, series_2])),
-      None,
-      SonarrEvent::ListSeries,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.data.sonarr_data.series.sort_asc = true;
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(json!([series_1, series_2]))
+      .build_for(SonarrEvent::ListSeries)
+      .await;
+    app.lock().await.data.sonarr_data.series.sort_asc = true;
     if use_custom_sorting {
       let cmp_fn = |a: &Series, b: &Series| {
         a.title
@@ -841,7 +777,7 @@ mod tests {
         name: "Title",
         cmp_fn: Some(cmp_fn),
       };
-      app_arc
+      app
         .lock()
         .await
         .data
@@ -849,22 +785,23 @@ mod tests {
         .series
         .sorting(vec![title_sort_option]);
     }
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SeriesVec(series) = network
+    let SonarrSerdeable::SeriesVec(series) = network
       .handle_sonarr_event(SonarrEvent::ListSeries)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.series.items,
-        expected_sorted_series
-      );
-      assert!(app_arc.lock().await.data.sonarr_data.series.sort_asc);
-      assert_eq!(series, expected_series);
-    }
+    else {
+      panic!("Expected SeriesVec")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.series.items,
+      expected_sorted_series
+    );
+    assert!(app.lock().await.data.sonarr_data.series.sort_asc);
+    assert_eq!(series, expected_series);
   }
 
   #[tokio::test]
@@ -875,21 +812,15 @@ mod tests {
     *series_1.get_mut("title").unwrap() = json!("z test");
     *series_2.get_mut("id").unwrap() = json!(2);
     *series_2.get_mut("title").unwrap() = json!("A test");
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!([series_1, series_2])),
-      None,
-      SonarrEvent::ListSeries,
-      None,
-      None,
-    )
-    .await;
-    app_arc
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(json!([series_1, series_2]))
+      .build_for(SonarrEvent::ListSeries)
+      .await;
+    app
       .lock()
       .await
       .push_navigation_stack(ActiveSonarrBlock::SeriesSortPrompt.into());
-    app_arc.lock().await.data.sonarr_data.series.sort_asc = true;
+    app.lock().await.data.sonarr_data.series.sort_asc = true;
     let cmp_fn = |a: &Series, b: &Series| {
       a.title
         .text
@@ -900,31 +831,26 @@ mod tests {
       name: "Title",
       cmp_fn: Some(cmp_fn),
     };
-    app_arc
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .series
       .sorting(vec![title_sort_option]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::ListSeries)
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::ListSeries)
+        .await
+        .is_ok()
+    );
 
     async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .series
-      .items
-      .is_empty());
-    assert!(app_arc.lock().await.data.sonarr_data.series.sort_asc);
+    assert!(app.lock().await.data.sonarr_data.series.items.is_empty());
+    assert!(app.lock().await.data.sonarr_data.series.sort_asc);
   }
 
   #[tokio::test]
@@ -942,164 +868,152 @@ mod tests {
       "ratings": { "votes": 406744, "value": 8.4 },
       "statistics": { "seasonCount": 3 }
     }]);
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(add_series_search_result_json),
-      None,
-      SonarrEvent::SearchNewSeries("test term".into()),
-      None,
-      Some("term=test%20term"),
-    )
-    .await;
-    app_arc.lock().await.data.sonarr_data.add_series_search = Some("test term".into());
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(add_series_search_result_json)
+      .query("term=test%20term")
+      .build_for(SonarrEvent::SearchNewSeries("test term".into()))
+      .await;
+    app.lock().await.data.sonarr_data.add_series_search = Some("test term".into());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::AddSeriesSearchResults(add_series_search_results) = network
+    let SonarrSerdeable::AddSeriesSearchResults(add_series_search_results) = network
       .handle_sonarr_event(SonarrEvent::SearchNewSeries("test term".into()))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(app_arc
+    else {
+      panic!("Expected AddSeriesSearchResults")
+    };
+    async_server.assert_async().await;
+    assert!(
+      app
         .lock()
         .await
         .data
         .sonarr_data
         .add_searched_series
-        .is_some());
-      assert_eq!(
-        app_arc
-          .lock()
-          .await
-          .data
-          .sonarr_data
-          .add_searched_series
-          .as_ref()
-          .unwrap()
-          .items,
-        vec![add_series_search_result()]
-      );
-      assert_eq!(add_series_search_results, vec![add_series_search_result()]);
-    }
+        .is_some()
+    );
+    assert_eq!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .add_searched_series
+        .as_ref()
+        .unwrap()
+        .items,
+      vec![add_series_search_result()]
+    );
+    assert_eq!(add_series_search_results, vec![add_series_search_result()]);
   }
 
   #[tokio::test]
   async fn test_handle_search_new_series_event_no_results() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!([])),
-      None,
-      SonarrEvent::SearchNewSeries("test term".into()),
-      None,
-      Some("term=test%20term"),
-    )
-    .await;
-    app_arc.lock().await.data.sonarr_data.add_series_search = Some("test term".into());
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(json!([]))
+      .query("term=test%20term")
+      .build_for(SonarrEvent::SearchNewSeries("test term".into()))
+      .await;
+    app.lock().await.data.sonarr_data.add_series_search = Some("test term".into());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::SearchNewSeries("test term".into()))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::SearchNewSeries("test term".into()))
+        .await
+        .is_ok()
+    );
 
     async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .sonarr_data
-      .add_searched_series
-      .is_none());
+    assert!(
+      app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .add_searched_series
+        .is_none()
+    );
     assert_eq!(
-      app_arc.lock().await.get_current_route(),
+      app.lock().await.get_current_route(),
       ActiveSonarrBlock::AddSeriesEmptySearchResults.into()
     );
   }
 
   #[tokio::test]
   async fn test_handle_trigger_automatic_series_search_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
+    let (async_server, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
         "name": "SeriesSearch",
         "seriesId": 1
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::TriggerAutomaticSeriesSearch(1),
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+      }))
+      .returns(json!({}))
+      .build_for(SonarrEvent::TriggerAutomaticSeriesSearch(1))
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeriesSearch(1))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::TriggerAutomaticSeriesSearch(1))
+        .await
+        .is_ok()
+    );
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
   async fn test_handle_update_all_series_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
+    let (async_server, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
         "name": "RefreshSeries",
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::UpdateAllSeries,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+      }))
+      .returns(json!({}))
+      .build_for(SonarrEvent::UpdateAllSeries)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::UpdateAllSeries)
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::UpdateAllSeries)
+        .await
+        .is_ok()
+    );
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
   async fn test_handle_update_and_scan_series_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
+    let (async_server, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
         "name": "RefreshSeries",
         "seriesId": 1,
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::UpdateAndScanSeries(1),
-      None,
-      None,
-    )
-    .await;
-    app_arc
+      }))
+      .returns(json!({}))
+      .build_for(SonarrEvent::UpdateAndScanSeries(1))
+      .await;
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .series
       .set_items(vec![series()]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::UpdateAndScanSeries(1))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::UpdateAndScanSeries(1))
+        .await
+        .is_ok()
+    );
 
     async_server.assert_async().await;
   }

@@ -1,11 +1,13 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::series_details_handler::SeriesDetailsHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::{season, series};
-  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, SERIES_DETAILS_BLOCKS,
   };
@@ -69,7 +71,7 @@ mod tests {
         app.get_current_route(),
         app.data.sonarr_data.series_info_tabs.get_active_route()
       );
-      assert_eq!(app.get_current_route(), left_block.into());
+      assert_navigation_pushed!(app, left_block.into());
 
       SeriesDetailsHandler::new(DEFAULT_KEYBINDINGS.right.key, &mut app, left_block, None).handle();
 
@@ -77,15 +79,15 @@ mod tests {
         app.get_current_route(),
         app.data.sonarr_data.series_info_tabs.get_active_route()
       );
-      assert_eq!(app.get_current_route(), right_block.into());
+      assert_navigation_pushed!(app, right_block.into());
     }
   }
 
   mod test_handle_submit {
     use pretty_assertions::assert_eq;
 
-    use crate::extended_stateful_iterable_vec;
     use crate::network::sonarr_network::SonarrEvent;
+    use crate::{assert_navigation_popped, extended_stateful_iterable_vec};
 
     use super::*;
 
@@ -103,10 +105,7 @@ mod tests {
       SeriesDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeriesDetails, None)
         .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SeasonDetails.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SeasonDetails.into());
     }
 
     #[test]
@@ -145,10 +144,7 @@ mod tests {
       SeriesDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveSonarrBlock::SeriesHistory, None)
         .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SeriesHistoryDetails.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::SeriesHistoryDetails.into());
     }
 
     #[test]
@@ -200,13 +196,10 @@ mod tests {
       SeriesDetailsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SeriesDetails.into()
-      );
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(expected_action)
+      assert_navigation_popped!(app, ActiveSonarrBlock::SeriesDetails.into());
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &expected_action
       );
     }
 
@@ -225,16 +218,14 @@ mod tests {
       SeriesDetailsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SeriesDetails.into()
-      );
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_navigation_popped!(app, ActiveSonarrBlock::SeriesDetails.into());
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
     }
   }
 
   mod test_handle_esc {
     use super::*;
+    use crate::assert_navigation_popped;
     use crate::models::stateful_table::StatefulTable;
     use pretty_assertions::assert_eq;
     use ratatui::widgets::TableState;
@@ -255,10 +246,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SeriesHistory.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::SeriesHistory.into());
     }
 
     #[rstest]
@@ -279,10 +267,7 @@ mod tests {
       SeriesDetailsHandler::new(ESC_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::SeriesDetails.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::SeriesDetails.into());
     }
 
     #[test]
@@ -304,40 +289,35 @@ mod tests {
         app.get_current_route(),
         ActiveSonarrBlock::SeriesHistory.into()
       );
-      assert!(app
-        .data
-        .sonarr_data
-        .series_history
-        .as_ref()
-        .unwrap()
-        .filter
-        .is_none());
-      assert!(app
-        .data
-        .sonarr_data
-        .series_history
-        .as_ref()
-        .unwrap()
-        .filtered_items
-        .is_none());
-      assert!(app
-        .data
-        .sonarr_data
-        .series_history
-        .as_ref()
-        .unwrap()
-        .filtered_state
-        .is_none());
+      assert_none!(app.data.sonarr_data.series_history.as_ref().unwrap().filter);
+      assert_none!(
+        app
+          .data
+          .sonarr_data
+          .series_history
+          .as_ref()
+          .unwrap()
+          .filtered_items
+      );
+      assert_none!(
+        app
+          .data
+          .sonarr_data
+          .series_history
+          .as_ref()
+          .unwrap()
+          .filtered_state
+      );
     }
   }
 
   mod test_handle_key_char {
     use super::*;
-    use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
     use crate::models::servarr_data::sonarr::sonarr_data::SonarrData;
+    use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
     use crate::models::sonarr_models::{Series, SeriesType};
     use crate::network::sonarr_network::SonarrEvent;
-    use crate::test_edit_series_key;
+    use crate::{assert_navigation_popped, test_edit_series_key};
     use pretty_assertions::{assert_eq, assert_str_eq};
     use serde_json::Number;
     use strum::IntoEnumIterator;
@@ -372,7 +352,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), active_sonarr_block.into());
-      assert!(app.data.sonarr_data.edit_series_modal.is_none());
+      assert_modal_absent!(app.data.sonarr_data.edit_series_modal);
     }
 
     #[test]
@@ -396,9 +376,9 @@ mod tests {
       );
       assert!(app.data.sonarr_data.prompt_confirm);
       assert!(app.is_routing);
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::ToggleSeasonMonitoring((0, 0)))
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::ToggleSeasonMonitoring((0, 0))
       );
     }
 
@@ -422,7 +402,7 @@ mod tests {
         ActiveSonarrBlock::SeriesDetails.into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert!(app.data.sonarr_data.prompt_confirm_action.is_none());
+      assert_modal_absent!(app.data.sonarr_data.prompt_confirm_action);
       assert!(!app.is_routing);
     }
 
@@ -445,8 +425,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_pushed!(
+        app,
         ActiveSonarrBlock::AutomaticallySearchSeriesPrompt.into()
       );
     }
@@ -490,10 +470,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::UpdateAndScanSeriesPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveSonarrBlock::UpdateAndScanSeriesPrompt.into());
     }
 
     #[rstest]
@@ -536,7 +513,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), active_sonarr_block.into());
+      assert_navigation_pushed!(app, active_sonarr_block.into());
       assert!(app.is_routing);
     }
 
@@ -592,10 +569,10 @@ mod tests {
       .handle();
 
       assert!(app.data.sonarr_data.prompt_confirm);
-      assert_eq!(app.get_current_route(), active_sonarr_block.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(expected_action)
+      assert_navigation_popped!(app, active_sonarr_block.into());
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &expected_action
       );
     }
   }

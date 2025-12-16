@@ -1,12 +1,11 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
-use crate::handlers::table_handler::TableHandlingConfig;
-use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
+use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
+use crate::matches_key;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DOWNLOADS_BLOCKS};
-use crate::models::sonarr_models::DownloadRecord;
 use crate::network::sonarr_network::SonarrEvent;
-use crate::{handle_table_events, matches_key};
 
 #[cfg(test)]
 #[path = "downloads_handler_tests.rs"]
@@ -20,13 +19,6 @@ pub(super) struct DownloadsHandler<'a, 'b> {
 }
 
 impl DownloadsHandler<'_, '_> {
-  handle_table_events!(
-    self,
-    downloads,
-    self.app.data.sonarr_data.downloads,
-    DownloadRecord
-  );
-
   fn extract_download_id(&self) -> i64 {
     self.app.data.sonarr_data.downloads.current_selection().id
   }
@@ -37,7 +29,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DownloadsHandler<'a,
     let download_table_handling_config =
       TableHandlingConfig::new(ActiveSonarrBlock::Downloads.into());
 
-    if !self.handle_downloads_table_events(download_table_handling_config) {
+    if !handle_table(
+      self,
+      |app| &mut app.data.sonarr_data.downloads,
+      download_table_handling_config,
+    ) {
       self.handle_key_event();
     }
   }
@@ -162,5 +158,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DownloadsHandler<'a,
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }

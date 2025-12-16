@@ -1,10 +1,10 @@
 use derive_setters::Setters;
+use ratatui::Frame;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Position, Rect};
 use ratatui::prelude::Text;
 use ratatui::style::{Style, Styled, Stylize};
 use ratatui::widgets::{Block, Paragraph, Widget, WidgetRef};
-use ratatui::Frame;
 
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{borderless_block, layout_block};

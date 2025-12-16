@@ -1,6 +1,6 @@
 use crate::app::App;
 use crate::event::Key;
-use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::models::radarr_models::IndexerSettings;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS,
@@ -287,5 +287,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }

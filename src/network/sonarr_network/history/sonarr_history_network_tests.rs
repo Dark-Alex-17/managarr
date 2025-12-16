@@ -3,15 +3,12 @@ mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::sonarr_models::{SonarrHistoryItem, SonarrHistoryWrapper, SonarrSerdeable};
   use crate::models::stateful_table::SortOption;
-  use crate::network::network_tests::test_utils::mock_servarr_api;
-  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::history_item;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::sonarr_network::SonarrEvent;
-  use crate::network::{Network, RequestMethod};
+  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::history_item;
   use pretty_assertions::assert_eq;
-  use reqwest::Client;
   use rstest::rstest;
   use serde_json::json;
-  use tokio_util::sync::CancellationToken;
 
   #[rstest]
   #[tokio::test]
@@ -57,17 +54,12 @@ mod tests {
         ..history_item()
       },
     ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(history_json),
-      None,
-      SonarrEvent::GetHistory(500),
-      None,
-      Some("pageSize=500&sortDirection=descending&sortKey=date"),
-    )
-    .await;
-    app_arc.lock().await.data.sonarr_data.history.sort_asc = true;
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("pageSize=500&sortDirection=descending&sortKey=date")
+      .build_for(SonarrEvent::GetHistory(500))
+      .await;
+    app.lock().await.data.sonarr_data.history.sort_asc = true;
     if use_custom_sorting {
       let cmp_fn = |a: &SonarrHistoryItem, b: &SonarrHistoryItem| {
         a.source_title
@@ -81,7 +73,7 @@ mod tests {
         name: "Source Title",
         cmp_fn: Some(cmp_fn),
       };
-      app_arc
+      app
         .lock()
         .await
         .data
@@ -89,22 +81,23 @@ mod tests {
         .history
         .sorting(vec![history_sort_option]);
     }
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
+    let SonarrSerdeable::SonarrHistoryWrapper(history) = network
       .handle_sonarr_event(SonarrEvent::GetHistory(500))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.history.items,
-        expected_history_items
-      );
-      assert!(app_arc.lock().await.data.sonarr_data.history.sort_asc);
-      assert_eq!(history, response);
-    }
+    else {
+      panic!("Expected SonarrHistoryWrapper")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.history.items,
+      expected_history_items
+    );
+    assert!(app.lock().await.data.sonarr_data.history.sort_asc);
+    assert_eq!(history, response);
   }
 
   #[tokio::test]
@@ -136,18 +129,13 @@ mod tests {
       }
     }]});
     let response: SonarrHistoryWrapper = serde_json::from_value(history_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(history_json),
-      None,
-      SonarrEvent::GetHistory(500),
-      None,
-      Some("pageSize=500&sortDirection=descending&sortKey=date"),
-    )
-    .await;
-    app_arc.lock().await.data.sonarr_data.history.sort_asc = true;
-    app_arc
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("pageSize=500&sortDirection=descending&sortKey=date")
+      .build_for(SonarrEvent::GetHistory(500))
+      .await;
+    app.lock().await.data.sonarr_data.history.sort_asc = true;
+    app
       .lock()
       .await
       .push_navigation_stack(ActiveSonarrBlock::HistorySortPrompt.into());
@@ -161,50 +149,50 @@ mod tests {
       name: "Source Title",
       cmp_fn: Some(cmp_fn),
     };
-    app_arc
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .history
       .sorting(vec![history_sort_option]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SonarrHistoryWrapper(history) = network
+    let SonarrSerdeable::SonarrHistoryWrapper(history) = network
       .handle_sonarr_event(SonarrEvent::GetHistory(500))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert!(app_arc.lock().await.data.sonarr_data.history.is_empty());
-      assert!(app_arc.lock().await.data.sonarr_data.history.sort_asc);
-      assert_eq!(history, response);
-    }
+    else {
+      panic!("Expected SonarrHistoryWrapper")
+    };
+    mock.assert_async().await;
+    assert!(app.lock().await.data.sonarr_data.history.is_empty());
+    assert!(app.lock().await.data.sonarr_data.history.sort_asc);
+    assert_eq!(history, response);
   }
 
   #[tokio::test]
   async fn test_handle_mark_sonarr_history_item_as_failed_event() {
     let expected_history_item_id = 1;
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      None,
-      Some(json!({})),
-      None,
-      SonarrEvent::MarkHistoryItemAsFailed(expected_history_item_id),
-      Some("/1"),
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::MarkHistoryItemAsFailed(
-        expected_history_item_id
+    let (mock, app, _server) = MockServarrApi::post()
+      .returns(json!({}))
+      .path("/1")
+      .build_for(SonarrEvent::MarkHistoryItemAsFailed(
+        expected_history_item_id,
       ))
-      .await
-      .is_ok());
-    async_server.assert_async().await;
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
+
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::MarkHistoryItemAsFailed(
+          expected_history_item_id
+        ))
+        .await
+        .is_ok()
+    );
+    mock.assert_async().await;
   }
 }

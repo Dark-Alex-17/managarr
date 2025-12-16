@@ -1,12 +1,12 @@
 use std::fmt::{Debug, Display, Formatter};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use crate::app::context_clues::ContextClue;
 use crate::app::ServarrConfig;
+use crate::app::context_clues::ContextClue;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use radarr_models::RadarrSerdeable;
 use regex::Regex;
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use serde_json::Number;
 use servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use sonarr_models::SonarrSerdeable;
@@ -58,6 +58,7 @@ pub trait Paginated {
 }
 
 #[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
 pub struct ScrollableText {
   pub items: Vec<String>,
   pub offset: u16,
@@ -65,8 +66,7 @@ pub struct ScrollableText {
 
 impl ScrollableText {
   pub fn with_string(item: String) -> ScrollableText {
-    let items: Vec<&str> = item.split('\n').collect();
-    let items: Vec<String> = items.iter().map(|it| it.to_string()).collect();
+    let items: Vec<String> = item.split('\n').map(str::to_owned).collect();
     ScrollableText { items, offset: 0 }
   }
 
@@ -278,6 +278,7 @@ pub struct TabRoute {
   pub config: Option<ServarrConfig>,
 }
 
+#[cfg_attr(test, derive(Debug))]
 pub struct TabState {
   pub tabs: Vec<TabRoute>,
   pub index: usize,

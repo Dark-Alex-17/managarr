@@ -1,19 +1,19 @@
 use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, BLOCKLIST_BLOCKS};
 use crate::models::sonarr_models::BlocklistItem;
-use crate::models::Route;
+use crate::ui::DrawUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::layout_block_top_border;
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::DrawUi;
+use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Row};
-use ratatui::Frame;
 
 #[cfg(test)]
 #[path = "blocklist_ui_tests.rs"]

@@ -7,8 +7,8 @@ echo "Running pre-push hook:"
 echo "Executing: cargo fmt --check"
 cargo fmt --check
 
-echo "Executing: make lint"
-make lint
+echo "Executing: cargo clippy --all"
+cargo clippy --all
 
-echo "Executing: cargo test"
-cargo test
+echo "Executing: cargo test --all"
+cargo test --all

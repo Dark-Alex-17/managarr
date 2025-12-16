@@ -1,16 +1,13 @@
-use crate::handlers::table_handler::TableHandlingConfig;
-use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
+use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::models::servarr_data::sonarr::modals::AddSeriesModal;
 use crate::models::servarr_data::sonarr::sonarr_data::{
-  ActiveSonarrBlock, ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS,
+  ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, ActiveSonarrBlock,
 };
 use crate::models::sonarr_models::{AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult};
-use crate::models::stateful_table::StatefulTable;
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::sonarr_network::SonarrEvent;
-use crate::{
-  handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, matches_key, App, Key,
-};
+use crate::{App, Key, handle_text_box_keys, handle_text_box_left_right_keys, matches_key};
 
 #[cfg(test)]
 #[path = "add_series_handler_tests.rs"]
@@ -24,19 +21,6 @@ pub(super) struct AddSeriesHandler<'a, 'b> {
 }
 
 impl AddSeriesHandler<'_, '_> {
-  handle_table_events!(
-    self,
-    add_searched_series,
-    self
-      .app
-      .data
-      .sonarr_data
-      .add_searched_series
-      .as_mut()
-      .unwrap_or(&mut StatefulTable::default()),
-    AddSeriesSearchResult
-  );
-
   fn build_add_series_body(&mut self) -> AddSeriesBody {
     let add_series_modal = self
       .app
@@ -118,7 +102,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
     let add_series_table_handling_config =
       TableHandlingConfig::new(ActiveSonarrBlock::AddSeriesSearchResults.into());
 
-    if !self.handle_add_searched_series_table_events(add_series_table_handling_config) {
+    if !handle_table(
+      self,
+      |app| {
+        app
+          .data
+          .sonarr_data
+          .add_searched_series
+          .as_mut()
+          .expect("add_searched_series should be initialized")
+      },
+      add_series_table_handling_config,
+    ) {
       self.handle_key_event();
     }
   }
@@ -624,5 +619,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }

@@ -1,10 +1,11 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
-  use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
-  use crate::handlers::sonarr_handlers::SonarrHandler;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_navigation_pushed;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::sonarr_handlers::SonarrHandler;
+  use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::test_handler_delegation;
   use pretty_assertions::assert_eq;
@@ -33,7 +34,7 @@ mod tests {
       app.data.sonarr_data.main_tabs.get_active_route(),
       left_block.into()
     );
-    assert_eq!(app.get_current_route(), left_block.into());
+    assert_navigation_pushed!(app, left_block.into());
 
     app.data.sonarr_data.main_tabs.set_index(index);
 
@@ -43,7 +44,7 @@ mod tests {
       app.data.sonarr_data.main_tabs.get_active_route(),
       right_block.into()
     );
-    assert_eq!(app.get_current_route(), right_block.into());
+    assert_navigation_pushed!(app, right_block.into());
   }
 
   #[rstest]
@@ -68,7 +69,7 @@ mod tests {
       app.data.sonarr_data.main_tabs.get_active_route(),
       left_block.into()
     );
-    assert_eq!(app.get_current_route(), left_block.into());
+    assert_navigation_pushed!(app, left_block.into());
 
     app.data.sonarr_data.main_tabs.set_index(index);
 
@@ -78,7 +79,7 @@ mod tests {
       app.data.sonarr_data.main_tabs.get_active_route(),
       right_block.into()
     );
-    assert_eq!(app.get_current_route(), right_block.into());
+    assert_navigation_pushed!(app, right_block.into());
   }
 
   #[rstest]

@@ -1,6 +1,6 @@
 use crate::app::App;
 use crate::event::Key;
-use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
 use crate::models::radarr_models::DeleteMovieParams;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
@@ -135,5 +135,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'
 
       self.app.pop_navigation_stack();
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }

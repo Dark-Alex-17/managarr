@@ -1,9 +1,9 @@
 use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SEASON_DETAILS_BLOCKS};
 use crate::models::sonarr_models::{
   DownloadRecord, DownloadStatus, Episode, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
 };
-use crate::models::Route;
 use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::ui::sonarr_ui::sonarr_ui_utils::{
   create_download_failed_history_event_details,
@@ -21,13 +21,13 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{draw_popup, draw_tabs, DrawUi};
+use crate::ui::{DrawUi, draw_popup, draw_tabs};
 use crate::utils::convert_to_gb;
 use chrono::Utc;
+use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Rect};
 use ratatui::prelude::{Line, Style, Stylize, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
-use ratatui::Frame;
 use serde_json::Number;
 
 #[cfg(test)]
@@ -38,111 +38,115 @@ pub(super) struct SeasonDetailsUi;
 
 impl DrawUi for SeasonDetailsUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Sonarr(active_sonarr_block, _) = route {
-      return EpisodeDetailsUi::accepts(route)
-        || SEASON_DETAILS_BLOCKS.contains(&active_sonarr_block);
-    }
-
-    false
+    let Route::Sonarr(active_sonarr_block, _) = route else {
+      return false;
+    };
+    EpisodeDetailsUi::accepts(route) || SEASON_DETAILS_BLOCKS.contains(&active_sonarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     let route = app.get_current_route();
-    if app.data.sonarr_data.season_details_modal.is_some() {
-      if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
-        let draw_season_details_popup = |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| {
-          let content_area = draw_tabs(
-            f,
-            popup_area,
-            &format!(
-              "Season {} Details",
+    if app.data.sonarr_data.season_details_modal.is_some()
+      && let Route::Sonarr(active_sonarr_block, _) = app.get_current_route()
+    {
+      let draw_season_details_popup = |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| {
+        let content_area = draw_tabs(
+          f,
+          popup_area,
+          &format!(
+            "Season {} Details",
+            app
+              .data
+              .sonarr_data
+              .seasons
+              .current_selection()
+              .season_number
+          ),
+          &app
+            .data
+            .sonarr_data
+            .season_details_modal
+            .as_ref()
+            .expect("season_details_modal must exist in this context")
+            .season_details_tabs,
+        );
+        draw_season_details(f, app, content_area);
+
+        match active_sonarr_block {
+          ActiveSonarrBlock::AutomaticallySearchSeasonPrompt => {
+            let prompt = format!(
+              "Do you want to trigger an automatic search of your indexers for season packs for: {}",
               app
                 .data
                 .sonarr_data
                 .seasons
                 .current_selection()
-                .season_number
-            ),
-            &app
-              .data
-              .sonarr_data
-              .season_details_modal
-              .as_ref()
-              .unwrap()
-              .season_details_tabs,
-          );
-          draw_season_details(f, app, content_area);
+                .title
+                .as_ref()
+                .unwrap()
+            );
+            let confirmation_prompt = ConfirmationPrompt::new()
+              .title("Automatic Season Search")
+              .prompt(&prompt)
+              .yes_no_value(app.data.sonarr_data.prompt_confirm);
 
-          match active_sonarr_block {
-            ActiveSonarrBlock::AutomaticallySearchSeasonPrompt => {
-              let prompt = format!(
-                "Do you want to trigger an automatic search of your indexers for season packs for: {}",
-                app.data.sonarr_data.seasons.current_selection().title.as_ref().unwrap()
-              );
-              let confirmation_prompt = ConfirmationPrompt::new()
-                .title("Automatic Season Search")
-                .prompt(&prompt)
-                .yes_no_value(app.data.sonarr_data.prompt_confirm);
-
-              f.render_widget(
-                Popup::new(confirmation_prompt).size(Size::MediumPrompt),
-                f.area(),
-              );
-            }
-            ActiveSonarrBlock::DeleteEpisodeFilePrompt => {
-              let prompt = format!(
-                "Do you really want to delete this episode: \n{}?",
-                app
-                  .data
-                  .sonarr_data
-                  .season_details_modal
-                  .as_ref()
-                  .unwrap()
-                  .episodes
-                  .current_selection()
-                  .title
-              );
-              let confirmation_prompt = ConfirmationPrompt::new()
-                .title("Delete Episode")
-                .prompt(&prompt)
-                .yes_no_value(app.data.sonarr_data.prompt_confirm);
-
-              f.render_widget(
-                Popup::new(confirmation_prompt).size(Size::MediumPrompt),
-                f.area(),
-              );
-            }
-            ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt => {
-              draw_manual_season_search_confirm_prompt(f, app);
-            }
-            ActiveSonarrBlock::SeasonHistoryDetails => {
-              draw_history_item_details_popup(f, app, popup_area);
-            }
-            _ => (),
+            f.render_widget(
+              Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+              f.area(),
+            );
           }
-        };
+          ActiveSonarrBlock::DeleteEpisodeFilePrompt => {
+            let prompt = format!(
+              "Do you really want to delete this episode: \n{}?",
+              app
+                .data
+                .sonarr_data
+                .season_details_modal
+                .as_ref()
+                .expect("season_details_modal must exist in this context")
+                .episodes
+                .current_selection()
+                .title
+            );
+            let confirmation_prompt = ConfirmationPrompt::new()
+              .title("Delete Episode")
+              .prompt(&prompt)
+              .yes_no_value(app.data.sonarr_data.prompt_confirm);
 
-        draw_popup(f, app, draw_season_details_popup, Size::XLarge);
-
-        if EpisodeDetailsUi::accepts(route) {
-          EpisodeDetailsUi::draw(f, app, _area);
+            f.render_widget(
+              Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+              f.area(),
+            );
+          }
+          ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt => {
+            draw_manual_season_search_confirm_prompt(f, app);
+          }
+          ActiveSonarrBlock::SeasonHistoryDetails => {
+            draw_history_item_details_popup(f, app, popup_area);
+          }
+          _ => (),
         }
+      };
+
+      draw_popup(f, app, draw_season_details_popup, Size::XLarge);
+
+      if EpisodeDetailsUi::accepts(route) {
+        EpisodeDetailsUi::draw(f, app, _area);
       }
     }
   }
 }
 
 pub fn draw_season_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  if let Some(season_details_modal) = app.data.sonarr_data.season_details_modal.as_ref() {
-    if let Route::Sonarr(active_sonarr_block, _) =
+  if let Some(season_details_modal) = app.data.sonarr_data.season_details_modal.as_ref()
+    && let Route::Sonarr(active_sonarr_block, _) =
       season_details_modal.season_details_tabs.get_active_route()
-    {
-      match active_sonarr_block {
-        ActiveSonarrBlock::SeasonDetails => draw_episodes_table(f, app, area),
-        ActiveSonarrBlock::SeasonHistory => draw_season_history_table(f, app, area),
-        ActiveSonarrBlock::ManualSeasonSearch => draw_season_releases(f, app, area),
-        _ => (),
-      }
+  {
+    match active_sonarr_block {
+      ActiveSonarrBlock::SeasonDetails => draw_episodes_table(f, app, area),
+      ActiveSonarrBlock::SeasonHistory => draw_season_history_table(f, app, area),
+      ActiveSonarrBlock::ManualSeasonSearch => draw_season_releases(f, app, area),
+      _ => (),
     }
   }
 }
@@ -296,7 +300,7 @@ fn draw_season_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .sonarr_data
           .season_details_modal
           .as_mut()
-          .unwrap()
+          .expect("season_details_modal must exist in this context")
           .season_history;
         let history_table =
           ManagarrTable::new(Some(&mut season_history_table), history_row_mapping)
@@ -432,7 +436,7 @@ fn draw_season_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .sonarr_data
           .season_details_modal
           .as_mut()
-          .unwrap()
+          .expect("season_details_modal must exist in this context")
           .season_releases;
         let release_table =
           ManagarrTable::new(Some(&mut season_release_table), season_release_row_mapping)
@@ -473,7 +477,7 @@ fn draw_manual_season_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>
     .sonarr_data
     .season_details_modal
     .as_ref()
-    .unwrap()
+    .expect("season_details_modal must exist in this context")
     .season_releases
     .current_selection();
   let title = if current_selection.rejected {
@@ -598,10 +602,10 @@ fn decorate_with_row_style<'a>(
       return row.unmonitored_missing();
     }
 
-    if let Some(air_date) = episode.air_date_utc.as_ref() {
-      if air_date > &Utc::now() {
-        return row.unreleased();
-      }
+    if let Some(air_date) = episode.air_date_utc.as_ref()
+      && air_date > &Utc::now()
+    {
+      return row.unreleased();
     }
 
     return row.missing();

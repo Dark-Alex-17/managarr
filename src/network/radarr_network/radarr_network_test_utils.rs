@@ -1,16 +1,19 @@
 #[cfg(test)]
-pub(in crate::network::radarr_network) mod test_utils {
+pub mod test_utils {
   use crate::models::radarr_models::{
     AddMovieSearchResult, BlocklistItem, BlocklistItemMovie, Collection, CollectionMovie, Credit,
     CreditType, DownloadRecord, DownloadsResponse, IndexerSettings, MediaInfo, MinimumAvailability,
-    Movie, MovieCollection, MovieFile, MovieHistoryItem, RadarrRelease, Rating, RatingsList,
+    Movie, MovieCollection, MovieFile, MovieHistoryItem, RadarrRelease, RadarrTask, RadarrTaskName,
+    Rating, RatingsList,
   };
   use crate::models::servarr_models::{
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
-  use crate::models::HorizontallyScrollableText;
+  use crate::models::{HorizontallyScrollableText, ScrollableText};
+  use bimap::BiMap;
   use chrono::DateTime;
-  use serde_json::{json, Number};
+  use indoc::formatdoc;
+  use serde_json::{Number, Value, json};
 
   pub const MOVIE_JSON: &str = r#"{
         "id": 1,
@@ -42,7 +45,7 @@ pub(in crate::network::radarr_network) mod test_utils {
             "value": 9.9
           },
           "rottenTomatoes": {
-            "value": 9.9
+            "value": 99
           }
         },
         "movieFile": {
@@ -86,10 +89,10 @@ pub(in crate::network::radarr_network) mod test_utils {
                   "value": 9.9
                 },
                 "tmdb": {
-                  "value": 9.9
+                  "value": 99
                 },
                 "rottenTomatoes": {
-                  "value": 9.9
+                  "value": 99
                 }
               }
             }
@@ -104,6 +107,25 @@ pub(in crate::network::radarr_network) mod test_utils {
     }
   }
 
+  pub fn log_line() -> &'static str {
+    "2025-12-15 16:14:45 UTC|INFO|DownloadDecisionMaker|Processing 545 releases"
+  }
+
+  pub fn task() -> RadarrTask {
+    RadarrTask {
+      name: "Backup".to_string(),
+      task_name: RadarrTaskName::Backup,
+      interval: 60,
+      last_execution: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap()),
+      last_duration: "00:00:17".to_string(),
+      next_execution: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T22:29:16Z").unwrap()),
+    }
+  }
+
+  pub fn tags_map() -> BiMap<i64, String> {
+    BiMap::from_iter([(1, "alex".to_owned())])
+  }
+
   pub fn genres() -> Vec<String> {
     vec!["cool".to_owned(), "family".to_owned(), "fun".to_owned()]
   }
@@ -114,11 +136,15 @@ pub(in crate::network::radarr_network) mod test_utils {
     }
   }
 
+  pub fn percentage_rating() -> Rating {
+    Rating { value: 99.into() }
+  }
+
   pub fn ratings_list() -> RatingsList {
     RatingsList {
       imdb: Some(rating()),
       tmdb: Some(rating()),
-      rotten_tomatoes: Some(rating()),
+      rotten_tomatoes: Some(percentage_rating()),
     }
   }
 
@@ -376,6 +402,102 @@ pub(in crate::network::radarr_network) mod test_utils {
       allow_hardcoded_subs: true,
       id: 1,
       ..IndexerSettings::default()
+    }
+  }
+
+  pub fn tag() -> Value {
+    json!({
+      "id": 3,
+      "label": "testing"
+    })
+  }
+
+  pub fn quality_profile() -> Value {
+    json!({
+      "id": 2222,
+      "name": "HD - 1080p"
+    })
+  }
+
+  pub fn quality_profile_map() -> BiMap<i64, String> {
+    let quality_profile = quality_profile();
+    let id = quality_profile
+      .get("id")
+      .expect("A id must be set on a quality profile")
+      .as_i64()
+      .expect("'id' must be a string");
+    let name = quality_profile
+      .get("name")
+      .expect("A name must be set on a quality profile")
+      .as_str()
+      .expect("'name' must be a string")
+      .to_owned();
+
+    BiMap::from_iter(vec![(id, name)])
+  }
+
+  pub fn updates() -> ScrollableText {
+    let line_break = "-".repeat(200);
+    ScrollableText::with_string(formatdoc!(
+      "
+    The latest version of Radarr is already installed
+
+    4.3.2.1 - 2023-04-15 02:02:53 UTC (Currently Installed)
+    {line_break}
+    New:
+      * Cool new thing
+    Fixed:
+      * Some bugs killed
+
+
+    3.2.1.0 - 2023-04-15 02:02:53 UTC (Previously Installed)
+    {line_break}
+    New:
+      * Cool new thing (old)
+      * Other cool new thing (old)
+
+
+    2.1.0 - 2023-04-15 02:02:53 UTC
+    {line_break}
+    Fixed:
+      * Killed bug 1
+      * Fixed bug 2"
+    ))
+  }
+
+  pub fn torrent_release() -> RadarrRelease {
+    RadarrRelease {
+      guid: "1234".to_string(),
+      protocol: "torrent".to_string(),
+      age: 12,
+      title: "Some movie release".into(),
+      indexer: "The Pirate Bay".to_string(),
+      indexer_id: 1,
+      size: 2468,
+      rejected: true,
+      rejections: Some(vec!["something interesting".into()]),
+      seeders: Some(25.into()),
+      leechers: Some(3.into()),
+      languages: Some(vec![language()]),
+      quality: quality_wrapper(),
+    }
+  }
+
+  pub fn usenet_release() -> RadarrRelease {
+    RadarrRelease {
+      guid: "1234".to_string(),
+      protocol: "usenet".to_string(),
+      age: 22,
+      title: "Some Other movie release".into(),
+      indexer: "The Pirate Bay".to_string(),
+      indexer_id: 2,
+      size: 1512,
+      rejected: true,
+      rejections: Some(vec!["Bad stuff happens in the middle of nowhere".into()]),
+      seeders: None,
+      leechers: None,
+      languages: Some(vec![language()]),
+      quality: quality_wrapper(),
     }
   }
 }

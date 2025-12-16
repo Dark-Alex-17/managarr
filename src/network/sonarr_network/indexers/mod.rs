@@ -4,9 +4,9 @@ use crate::models::sonarr_models::IndexerSettings;
 use crate::models::stateful_table::StatefulTable;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::network::{Network, RequestMethod};
-use anyhow::Result;
+use anyhow::{Context, Result};
 use log::{debug, info};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 #[cfg(test)]
 #[path = "sonarr_indexers_network_tests.rs"]
@@ -101,57 +101,57 @@ impl Network<'_, '_> {
     ) = {
       let priority = detailed_indexer_body["priority"]
         .as_i64()
-        .expect("Unable to deserialize 'priority'");
+        .context("Failed to deserialize indexer 'priority' field")?;
       let seed_ratio_field_option = detailed_indexer_body["fields"]
         .as_array()
-        .unwrap()
+        .context("Failed to get indexer 'fields' array")?
         .iter()
         .find(|field| field["name"] == "seedCriteria.seedRatio");
       let name = edit_indexer_params.name.unwrap_or(
         detailed_indexer_body["name"]
           .as_str()
-          .expect("Unable to deserialize 'name'")
+          .context("Failed to deserialize indexer 'name' field")?
           .to_owned(),
       );
       let enable_rss = edit_indexer_params.enable_rss.unwrap_or(
         detailed_indexer_body["enableRss"]
           .as_bool()
-          .expect("Unable to deserialize 'enableRss'"),
+          .context("Failed to deserialize indexer 'enableRss' field")?,
       );
       let enable_automatic_search = edit_indexer_params.enable_automatic_search.unwrap_or(
         detailed_indexer_body["enableAutomaticSearch"]
           .as_bool()
-          .expect("Unable to deserialize 'enableAutomaticSearch"),
+          .context("Failed to deserialize indexer 'enableAutomaticSearch' field")?,
       );
       let enable_interactive_search = edit_indexer_params.enable_interactive_search.unwrap_or(
         detailed_indexer_body["enableInteractiveSearch"]
           .as_bool()
-          .expect("Unable to deserialize 'enableInteractiveSearch'"),
+          .context("Failed to deserialize indexer 'enableInteractiveSearch' field")?,
       );
       let url = edit_indexer_params.url.unwrap_or(
         detailed_indexer_body["fields"]
           .as_array()
-          .expect("Unable to deserialize 'fields'")
+          .context("Failed to get indexer 'fields' array for baseUrl")?
           .iter()
           .find(|field| field["name"] == "baseUrl")
-          .expect("Field 'baseUrl' was not found in the 'fields' array")
+          .context("Field 'baseUrl' was not found in the indexer fields array")?
           .get("value")
           .unwrap_or(&json!(""))
           .as_str()
-          .expect("Unable to deserialize 'baseUrl value'")
+          .context("Failed to deserialize indexer 'baseUrl' value")?
           .to_owned(),
       );
       let api_key = edit_indexer_params.api_key.unwrap_or(
         detailed_indexer_body["fields"]
           .as_array()
-          .expect("Unable to deserialize 'fields'")
+          .context("Failed to get indexer 'fields' array for apiKey")?
           .iter()
           .find(|field| field["name"] == "apiKey")
-          .expect("Field 'apiKey' was not found in the 'fields' array")
+          .context("Field 'apiKey' was not found in the indexer fields array")?
           .get("value")
           .unwrap_or(&json!(""))
           .as_str()
-          .expect("Unable to deserialize 'apiKey value'")
+          .context("Failed to deserialize indexer 'apiKey' value")?
           .to_owned(),
       );
       let seed_ratio = edit_indexer_params.seed_ratio.unwrap_or_else(|| {
@@ -160,7 +160,7 @@ impl Network<'_, '_> {
             .get("value")
             .unwrap_or(&json!(""))
             .as_str()
-            .expect("Unable to deserialize 'seedCriteria.seedRatio value'")
+            .unwrap_or("")
             .to_owned();
         }
 
@@ -172,10 +172,14 @@ impl Network<'_, '_> {
         edit_indexer_params.tags.unwrap_or(
           detailed_indexer_body["tags"]
             .as_array()
-            .expect("Unable to deserialize 'tags'")
+            .context("Failed to get indexer 'tags' array")?
             .iter()
-            .map(|item| item.as_i64().expect("Unable to deserialize tag ID"))
-            .collect(),
+            .map(|item| {
+              item
+                .as_i64()
+                .context("Failed to deserialize indexer tag ID")
+            })
+            .collect::<Result<Vec<_>>>()?,
         )
       };
       let priority = edit_indexer_params.priority.unwrap_or(priority);
@@ -193,47 +197,54 @@ impl Network<'_, '_> {
       )
     };
 
-    *detailed_indexer_body.get_mut("name").unwrap() = json!(name);
-    *detailed_indexer_body.get_mut("priority").unwrap() = json!(priority);
-    *detailed_indexer_body.get_mut("enableRss").unwrap() = json!(enable_rss);
+    *detailed_indexer_body
+      .get_mut("name")
+      .context("Failed to get mutable reference to indexer 'name' field")? = json!(name);
+    *detailed_indexer_body
+      .get_mut("priority")
+      .context("Failed to get mutable reference to indexer 'priority' field")? = json!(priority);
+    *detailed_indexer_body
+      .get_mut("enableRss")
+      .context("Failed to get mutable reference to indexer 'enableRss' field")? = json!(enable_rss);
     *detailed_indexer_body
       .get_mut("enableAutomaticSearch")
-      .unwrap() = json!(enable_automatic_search);
+      .context("Failed to get mutable reference to indexer 'enableAutomaticSearch' field")? =
+      json!(enable_automatic_search);
     *detailed_indexer_body
       .get_mut("enableInteractiveSearch")
-      .unwrap() = json!(enable_interactive_search);
+      .context("Failed to get mutable reference to indexer 'enableInteractiveSearch' field")? =
+      json!(enable_interactive_search);
     *detailed_indexer_body
       .get_mut("fields")
-      .unwrap()
-      .as_array_mut()
-      .unwrap()
+      .and_then(|f| f.as_array_mut())
+      .context("Failed to get mutable reference to indexer 'fields' array")?
       .iter_mut()
       .find(|field| field["name"] == "baseUrl")
-      .unwrap()
+      .context("Failed to find 'baseUrl' field in indexer fields array")?
       .get_mut("value")
-      .unwrap() = json!(url);
+      .context("Failed to get mutable reference to 'baseUrl' value")? = json!(url);
     *detailed_indexer_body
       .get_mut("fields")
-      .unwrap()
-      .as_array_mut()
-      .unwrap()
+      .and_then(|f| f.as_array_mut())
+      .context("Failed to get mutable reference to indexer 'fields' array for apiKey")?
       .iter_mut()
       .find(|field| field["name"] == "apiKey")
-      .unwrap()
+      .context("Failed to find 'apiKey' field in indexer fields array")?
       .get_mut("value")
-      .unwrap() = json!(api_key);
-    *detailed_indexer_body.get_mut("tags").unwrap() = json!(tags);
+      .context("Failed to get mutable reference to 'apiKey' value")? = json!(api_key);
+    *detailed_indexer_body
+      .get_mut("tags")
+      .context("Failed to get mutable reference to indexer 'tags' field")? = json!(tags);
     let seed_ratio_field_option = detailed_indexer_body
       .get_mut("fields")
-      .unwrap()
-      .as_array_mut()
-      .unwrap()
+      .and_then(|f| f.as_array_mut())
+      .context("Failed to get mutable reference to indexer 'fields' array for seed ratio")?
       .iter_mut()
       .find(|field| field["name"] == "seedCriteria.seedRatio");
     if let Some(seed_ratio_field) = seed_ratio_field_option {
       seed_ratio_field
         .as_object_mut()
-        .unwrap()
+        .context("Failed to get mutable reference to 'seedCriteria.seedRatio' object")?
         .insert("value".to_string(), json!(seed_ratio));
     }
 
@@ -330,12 +341,13 @@ impl Network<'_, '_> {
     self
       .handle_request::<Value, Value>(request_props, |test_results, mut app| {
         if test_results.as_object().is_none() {
-          app.data.sonarr_data.indexer_test_errors = Some(
-            test_results.as_array().unwrap()[0]
-              .get("errorMessage")
-              .unwrap()
-              .to_string(),
-          );
+          let error_message = test_results
+            .as_array()
+            .and_then(|arr| arr.first())
+            .and_then(|item| item.get("errorMessage"))
+            .map(|msg| msg.to_string())
+            .unwrap_or_else(|| "Unknown indexer test error".to_string());
+          app.data.sonarr_data.indexer_test_errors = Some(error_message);
         } else {
           app.data.sonarr_data.indexer_test_errors = Some(String::new());
         };

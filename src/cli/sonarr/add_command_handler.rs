@@ -10,7 +10,7 @@ use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
   models::sonarr_models::{AddSeriesBody, AddSeriesOptions, SeriesMonitor, SeriesType},
-  network::{sonarr_network::SonarrEvent, NetworkTrait},
+  network::{NetworkTrait, sonarr_network::SonarrEvent},
 };
 
 #[cfg(test)]

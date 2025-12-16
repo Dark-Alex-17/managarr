@@ -1,14 +1,17 @@
 use std::ops::Sub;
 
+#[cfg(test)]
+use crate::ui::ui_test_utils::test_utils::Utc;
+#[cfg(not(test))]
 use chrono::Utc;
 use ratatui::layout::Layout;
 use ratatui::style::Style;
 use ratatui::text::{Span, Text};
 use ratatui::widgets::{Cell, Row};
 use ratatui::{
+  Frame,
   layout::{Constraint, Rect},
   widgets::ListItem,
-  Frame,
 };
 
 use crate::app::App;
@@ -23,7 +26,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::selectable_list::SelectableList;
 use crate::{
   models::Route,
-  ui::{utils::title_block, DrawUi},
+  ui::{DrawUi, utils::title_block},
 };
 
 mod system_details_ui;
@@ -46,11 +49,10 @@ pub(super) struct SystemUi;
 
 impl DrawUi for SystemUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Sonarr(active_sonarr_block, _) = route {
-      return SystemDetailsUi::accepts(route) || active_sonarr_block == ActiveSonarrBlock::System;
-    }
-
-    false
+    let Route::Sonarr(active_sonarr_block, _) = route else {
+      return false;
+    };
+    SystemDetailsUi::accepts(route) || active_sonarr_block == ActiveSonarrBlock::System
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

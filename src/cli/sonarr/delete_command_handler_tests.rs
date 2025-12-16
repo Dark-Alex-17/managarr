@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod tests {
   use crate::{
-    cli::{
-      sonarr::{delete_command_handler::SonarrDeleteCommand, SonarrCommand},
-      Command,
-    },
     Cli,
+    cli::{
+      Command,
+      sonarr::{SonarrCommand, delete_command_handler::SonarrDeleteCommand},
+    },
   };
-  use clap::{error::ErrorKind, CommandFactory, Parser};
+  use clap::{CommandFactory, Parser, error::ErrorKind};
   use pretty_assertions::assert_eq;
 
   #[test]
@@ -30,7 +30,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "delete", "blocklist-item"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -52,12 +52,13 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
 
     #[test]
@@ -65,7 +66,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "delete", "download"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -85,12 +86,13 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
 
     #[test]
@@ -98,7 +100,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "delete", "episode-file"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -118,19 +120,20 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
 
     #[test]
     fn test_delete_indexer_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "delete", "indexer"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -150,12 +153,13 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
 
     #[test]
@@ -163,7 +167,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "delete", "root-folder"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -183,19 +187,20 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
 
     #[test]
     fn test_delete_series_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "delete", "series"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -213,12 +218,13 @@ mod tests {
       let result =
         Cli::try_parse_from(["managarr", "sonarr", "delete", "series", "--series-id", "1"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
 
     #[test]
@@ -240,19 +246,20 @@ mod tests {
         "--add-list-exclusion",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
 
     #[test]
     fn test_delete_tag_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "delete", "tag"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -265,12 +272,13 @@ mod tests {
 
       let result = Cli::try_parse_from(["managarr", "sonarr", "delete", "tag", "--tag-id", "1"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
-      {
-        assert_eq!(delete_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
     }
   }
 
@@ -284,14 +292,14 @@ mod tests {
     use crate::{
       app::App,
       cli::{
-        sonarr::delete_command_handler::{SonarrDeleteCommand, SonarrDeleteCommandHandler},
         CliCommandHandler,
+        sonarr::delete_command_handler::{SonarrDeleteCommand, SonarrDeleteCommandHandler},
       },
       models::{
-        sonarr_models::{DeleteSeriesParams, SonarrSerdeable},
         Serdeable,
+        sonarr_models::{DeleteSeriesParams, SonarrSerdeable},
       },
-      network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
+      network::{MockNetworkTrait, NetworkEvent, sonarr_network::SonarrEvent},
     };
 
     #[tokio::test]
@@ -322,7 +330,7 @@ mod tests {
       .handle()
       .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -348,7 +356,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -374,7 +382,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -400,7 +408,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -426,7 +434,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -460,7 +468,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -486,7 +494,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 }

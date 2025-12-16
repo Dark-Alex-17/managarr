@@ -4,10 +4,11 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
-  use crate::handlers::radarr_handlers::{handle_change_tab_left_right_keys, RadarrHandler};
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_navigation_pushed;
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::radarr_handlers::{RadarrHandler, handle_change_tab_left_right_keys};
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::test_handler_delegation;
 
@@ -33,7 +34,7 @@ mod tests {
       app.data.radarr_data.main_tabs.get_active_route(),
       left_block.into()
     );
-    assert_eq!(app.get_current_route(), left_block.into());
+    assert_navigation_pushed!(app, left_block.into());
 
     app.data.radarr_data.main_tabs.set_index(index);
 
@@ -43,7 +44,7 @@ mod tests {
       app.data.radarr_data.main_tabs.get_active_route(),
       right_block.into()
     );
-    assert_eq!(app.get_current_route(), right_block.into());
+    assert_navigation_pushed!(app, right_block.into());
   }
 
   #[rstest]
@@ -69,7 +70,7 @@ mod tests {
       app.data.radarr_data.main_tabs.get_active_route(),
       left_block.into()
     );
-    assert_eq!(app.get_current_route(), left_block.into());
+    assert_navigation_pushed!(app, left_block.into());
 
     app.data.radarr_data.main_tabs.set_index(index);
 
@@ -79,7 +80,7 @@ mod tests {
       app.data.radarr_data.main_tabs.get_active_route(),
       right_block.into()
     );
-    assert_eq!(app.get_current_route(), right_block.into());
+    assert_navigation_pushed!(app, right_block.into());
   }
 
   #[rstest]

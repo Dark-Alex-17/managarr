@@ -1,3 +1,4 @@
+use crate::handlers::KeyEventHandler;
 use crate::handlers::radarr_handlers::blocklist::BlocklistHandler;
 use crate::handlers::radarr_handlers::collections::CollectionsHandler;
 use crate::handlers::radarr_handlers::downloads::DownloadsHandler;
@@ -5,9 +6,8 @@ use crate::handlers::radarr_handlers::indexers::IndexersHandler;
 use crate::handlers::radarr_handlers::library::LibraryHandler;
 use crate::handlers::radarr_handlers::root_folders::RootFoldersHandler;
 use crate::handlers::radarr_handlers::system::SystemHandler;
-use crate::handlers::KeyEventHandler;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-use crate::{matches_key, App, Key};
+use crate::{App, Key, matches_key};
 
 mod blocklist;
 mod collections;
@@ -107,6 +107,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
   fn handle_esc(&mut self) {}
 
   fn handle_char_key_event(&mut self) {}
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
+  }
 }
 
 pub fn handle_change_tab_left_right_keys(app: &mut App<'_>, key: Key) {

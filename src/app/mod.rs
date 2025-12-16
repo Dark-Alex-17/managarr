@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Error, Result};
+use anyhow::{Error, Result, anyhow};
 use colored::Colorize;
 use itertools::Itertools;
 use log::{debug, error};
@@ -21,7 +21,6 @@ use crate::models::{HorizontallyScrollableText, Route, TabRoute, TabState};
 use crate::network::NetworkEvent;
 
 #[cfg(test)]
-#[path = "app_tests.rs"]
 mod app_tests;
 pub mod context_clues;
 pub mod key_binding;
@@ -57,42 +56,43 @@ impl App<'_> {
     let mut server_tabs = Vec::new();
 
     if let Some(radarr_configs) = config.radarr {
-      let mut idx = 0;
-      for radarr_config in radarr_configs {
+      let mut unnamed_idx = 0;
+      let radarr_tabs = radarr_configs.into_iter().map(|radarr_config| {
         let name = if let Some(name) = radarr_config.name.clone() {
           name
         } else {
-          idx += 1;
-          format!("Radarr {idx}")
+          unnamed_idx += 1;
+          format!("Radarr {unnamed_idx}")
         };
 
-        server_tabs.push(TabRoute {
+        TabRoute {
           title: name,
           route: ActiveRadarrBlock::Movies.into(),
           contextual_help: None,
           config: Some(radarr_config),
-        });
-      }
+        }
+      });
+      server_tabs.extend(radarr_tabs);
     }
 
     if let Some(sonarr_configs) = config.sonarr {
-      let mut idx = 0;
-
-      for sonarr_config in sonarr_configs {
+      let mut unnamed_idx = 0;
+      let sonarr_tabs = sonarr_configs.into_iter().map(|sonarr_config| {
         let name = if let Some(name) = sonarr_config.name.clone() {
           name
         } else {
-          idx += 1;
-          format!("Sonarr {idx}")
+          unnamed_idx += 1;
+          format!("Sonarr {unnamed_idx}")
         };
 
-        server_tabs.push(TabRoute {
+        TabRoute {
           title: name,
           route: ActiveSonarrBlock::Series.into(),
           contextual_help: None,
           config: Some(sonarr_config),
-        });
-      }
+        }
+      });
+      server_tabs.extend(sonarr_tabs);
     }
 
     let weight_sorted_tabs = server_tabs
@@ -132,12 +132,12 @@ impl App<'_> {
       self.is_loading = true;
     }
 
-    if let Some(network_tx) = &self.network_tx {
-      if let Err(e) = network_tx.send(action).await {
-        self.is_loading = false;
-        error!("Failed to send event. {e:?}");
-        self.handle_error(anyhow!(e));
-      }
+    if let Some(network_tx) = &self.network_tx
+      && let Err(e) = network_tx.send(action).await
+    {
+      self.is_loading = false;
+      error!("Failed to send event. {e:?}");
+      self.handle_error(anyhow!(e));
     }
   }
 
@@ -203,10 +203,14 @@ impl App<'_> {
   }
 
   pub fn get_current_route(&self) -> Route {
-    *self
-      .navigation_stack
-      .last()
-      .unwrap_or(&self.server_tabs.tabs.first().unwrap().route)
+    *self.navigation_stack.last().unwrap_or(
+      &self
+        .server_tabs
+        .tabs
+        .first()
+        .expect("At least one server tab must exist")
+        .route,
+    )
   }
 }
 
@@ -237,6 +241,30 @@ impl Default for App<'_> {
 impl App<'_> {
   pub fn test_default() -> Self {
     App {
+      server_tabs: TabState::new(vec![
+        TabRoute {
+          title: "Radarr".to_owned(),
+          route: ActiveRadarrBlock::Movies.into(),
+          contextual_help: None,
+          config: Some(ServarrConfig::default()),
+        },
+        TabRoute {
+          title: "Sonarr".to_owned(),
+          route: ActiveSonarrBlock::Series.into(),
+          contextual_help: None,
+          config: Some(ServarrConfig::default()),
+        },
+      ]),
+      ..App::default()
+    }
+  }
+
+  pub fn test_default_fully_populated() -> Self {
+    App {
+      data: Data {
+        radarr_data: RadarrData::test_default_fully_populated(),
+        sonarr_data: SonarrData::test_default_fully_populated(),
+      },
       server_tabs: TabState::new(vec![
         TabRoute {
           title: "Radarr".to_owned(),
@@ -477,15 +505,15 @@ where
 
 fn interpolate_env_vars(s: &str) -> String {
   let result = s.to_string();
-  let scrubbing_regex = Regex::new(r#"[\s\{\}!\$^\(\)\[\]\\\|`'"]+"#).unwrap();
-  let var_regex = Regex::new(r"\$\{(.*?)\}").unwrap();
+  let scrubbing_regex = Regex::new(r#"[\s{}!$^()\[\]\\|`'"]+"#).unwrap();
+  let var_regex = Regex::new(r"\$\{(.*?)}").unwrap();
 
   var_regex
     .replace_all(s, |caps: &regex::Captures<'_>| {
-      if let Some(mat) = caps.get(1) {
-        if let Ok(value) = std::env::var(mat.as_str()) {
-          return scrubbing_regex.replace_all(&value, "").to_string();
-        }
+      if let Some(mat) = caps.get(1)
+        && let Ok(value) = std::env::var(mat.as_str())
+      {
+        return scrubbing_regex.replace_all(&value, "").to_string();
       }
 
       scrubbing_regex.replace_all(&result, "").to_string()

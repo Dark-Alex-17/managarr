@@ -41,61 +41,56 @@ impl From<&RadarrData<'_>> for EditIndexerModal {
     } = radarr_data.indexers.current_selection();
     let seed_ratio_field_option = fields
       .as_ref()
-      .unwrap()
+      .expect("indexer fields must exist")
       .iter()
-      .find(|field| field.name.as_ref().unwrap() == "seedCriteria.seedRatio");
+      .find(|field| {
+        field.name.as_ref().expect("indexer field name must exist") == "seedCriteria.seedRatio"
+      });
     let seed_ratio_value_option = if let Some(seed_ratio_field) = seed_ratio_field_option {
       seed_ratio_field.value.clone()
     } else {
       None
     };
 
-    edit_indexer_modal.name = name.clone().unwrap().into();
+    edit_indexer_modal.name = name.clone().expect("indexer name must exist").into();
     edit_indexer_modal.enable_rss = Some(*enable_rss);
     edit_indexer_modal.enable_automatic_search = Some(*enable_automatic_search);
     edit_indexer_modal.enable_interactive_search = Some(*enable_interactive_search);
     edit_indexer_modal.priority = *priority;
     edit_indexer_modal.url = fields
       .as_ref()
-      .unwrap()
+      .expect("indexer fields must exist")
       .iter()
-      .find(|field| field.name.as_ref().unwrap() == "baseUrl")
-      .unwrap()
+      .find(|field| field.name.as_ref().expect("indexer field name must exist") == "baseUrl")
+      .expect("baseUrl field must exist")
       .value
       .clone()
-      .unwrap()
+      .expect("baseUrl field value must exist")
       .as_str()
-      .unwrap()
+      .expect("baseUrl field value must be a string")
       .into();
     edit_indexer_modal.api_key = fields
       .as_ref()
-      .unwrap()
+      .expect("indexer fields must exist")
       .iter()
-      .find(|field| field.name.as_ref().unwrap() == "apiKey")
-      .unwrap()
+      .find(|field| field.name.as_ref().expect("indexer field name must exist") == "apiKey")
+      .expect("apiKey field must exist")
       .value
       .clone()
-      .unwrap()
+      .expect("apiKey field value must exist")
       .as_str()
-      .unwrap()
+      .expect("apiKey field value must be a string")
       .into();
 
     if let Some(seed_ratio_value) = seed_ratio_value_option {
-      edit_indexer_modal.seed_ratio = seed_ratio_value.as_f64().unwrap().to_string().into();
+      edit_indexer_modal.seed_ratio = seed_ratio_value
+        .as_f64()
+        .expect("Seed ratio value must be a valid f64")
+        .to_string()
+        .into();
     }
 
-    edit_indexer_modal.tags = tags
-      .iter()
-      .map(|tag_id| {
-        radarr_data
-          .tags_map
-          .get_by_left(&tag_id.as_i64().unwrap())
-          .unwrap()
-          .clone()
-      })
-      .collect::<Vec<String>>()
-      .join(", ")
-      .into();
+    edit_indexer_modal.tags = radarr_data.tag_ids_to_display(tags).into();
 
     edit_indexer_modal
   }
@@ -126,18 +121,7 @@ impl From<&RadarrData<'_>> for EditMovieModal {
       .minimum_availability_list
       .set_items(Vec::from_iter(MinimumAvailability::iter()));
     edit_movie_modal.path = path.clone().into();
-    edit_movie_modal.tags = tags
-      .iter()
-      .map(|tag_id| {
-        radarr_data
-          .tags_map
-          .get_by_left(&tag_id.as_i64().unwrap())
-          .unwrap()
-          .clone()
-      })
-      .collect::<Vec<String>>()
-      .join(", ")
-      .into();
+    edit_movie_modal.tags = radarr_data.tag_ids_to_display(tags).into();
 
     edit_movie_modal.monitored = Some(*monitored);
 
@@ -151,15 +135,9 @@ impl From<&RadarrData<'_>> for EditMovieModal {
       .state
       .select(minimum_availability_index);
 
-    let mut quality_profile_names: Vec<String> = radarr_data
-      .quality_profile_map
-      .right_values()
-      .cloned()
-      .collect();
-    quality_profile_names.sort();
     edit_movie_modal
       .quality_profile_list
-      .set_items(quality_profile_names);
+      .set_items(radarr_data.sorted_quality_profile_names());
     let quality_profile_name = radarr_data
       .quality_profile_map
       .get_by_left(quality_profile_id)
@@ -196,15 +174,9 @@ impl From<&RadarrData<'_>> for AddMovieModal {
     add_movie_modal
       .minimum_availability_list
       .set_items(Vec::from_iter(MinimumAvailability::iter()));
-    let mut quality_profile_names: Vec<String> = radarr_data
-      .quality_profile_map
-      .right_values()
-      .cloned()
-      .collect();
-    quality_profile_names.sort();
     add_movie_modal
       .quality_profile_list
-      .set_items(quality_profile_names);
+      .set_items(radarr_data.sorted_quality_profile_names());
     add_movie_modal
       .root_folder_list
       .set_items(radarr_data.root_folders.items.to_vec());
@@ -240,15 +212,9 @@ impl From<&RadarrData<'_>> for EditCollectionModal {
     edit_collection_modal
       .minimum_availability_list
       .set_items(Vec::from_iter(MinimumAvailability::iter()));
-    let mut quality_profile_names: Vec<String> = radarr_data
-      .quality_profile_map
-      .right_values()
-      .cloned()
-      .collect();
-    quality_profile_names.sort();
     edit_collection_modal
       .quality_profile_list
-      .set_items(quality_profile_names);
+      .set_items(radarr_data.sorted_quality_profile_names());
 
     let minimum_availability_index = edit_collection_modal
       .minimum_availability_list

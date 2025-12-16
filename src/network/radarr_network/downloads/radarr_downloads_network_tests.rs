@@ -1,34 +1,27 @@
 #[cfg(test)]
 mod tests {
   use crate::models::radarr_models::{DownloadsResponse, RadarrSerdeable};
-  use crate::network::network_tests::test_utils::mock_servarr_api;
-  use crate::network::radarr_network::radarr_network_test_utils::test_utils::downloads_response;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::radarr_network::RadarrEvent;
-  use crate::network::{Network, RequestMethod};
-  use reqwest::Client;
+  use crate::network::radarr_network::radarr_network_test_utils::test_utils::downloads_response;
   use serde_json::json;
-  use tokio_util::sync::CancellationToken;
 
   #[tokio::test]
   async fn test_handle_delete_radarr_download_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      RadarrEvent::DeleteDownload(1),
-      Some("/1"),
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .build_for(RadarrEvent::DeleteDownload(1))
+      .await;
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::DeleteDownload(1))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::DeleteDownload(1))
+        .await
+        .is_ok()
+    );
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
   }
 
   #[tokio::test]
@@ -48,53 +41,46 @@ mod tests {
     });
     let response: DownloadsResponse =
       serde_json::from_value(downloads_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(downloads_response_json),
-      None,
-      RadarrEvent::GetDownloads(500),
-      None,
-      Some("pageSize=500"),
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(downloads_response_json)
+      .path("?pageSize=500")
+      .build_for(RadarrEvent::GetDownloads(500))
+      .await;
+    let mut network = test_network(&app);
 
-    if let RadarrSerdeable::DownloadsResponse(downloads) = network
+    let RadarrSerdeable::DownloadsResponse(downloads) = network
       .handle_radarr_event(RadarrEvent::GetDownloads(500))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      pretty_assertions::assert_eq!(
-        app_arc.lock().await.data.radarr_data.downloads.items,
-        downloads_response().records
-      );
-      pretty_assertions::assert_eq!(downloads, response);
-    }
+    else {
+      panic!("Expected DownloadsResponse")
+    };
+    mock.assert_async().await;
+    pretty_assertions::assert_eq!(
+      app.lock().await.data.radarr_data.downloads.items,
+      downloads_response().records
+    );
+    pretty_assertions::assert_eq!(downloads, response);
   }
 
   #[tokio::test]
   async fn test_handle_update_radarr_downloads_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
         "name": "RefreshMonitoredDownloads"
-      })),
-      Some(json!({})),
-      None,
-      RadarrEvent::UpdateDownloads,
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+      }))
+      .returns(json!({}))
+      .build_for(RadarrEvent::UpdateDownloads)
+      .await;
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::UpdateDownloads)
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::UpdateDownloads)
+        .await
+        .is_ok()
+    );
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
   }
 }

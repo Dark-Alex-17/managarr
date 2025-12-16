@@ -1,8 +1,8 @@
 use std::sync::atomic::Ordering;
 
 use crate::app::App;
-use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_INDEXER_BLOCKS};
 use crate::models::Route;
+use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_INDEXER_BLOCKS};
 use crate::render_selectable_input_box;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::title_block_centered;
@@ -11,9 +11,9 @@ use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::popup::Size;
-use crate::ui::{draw_popup, DrawUi};
-use ratatui::layout::{Constraint, Flex, Layout, Rect};
+use crate::ui::{DrawUi, draw_popup};
 use ratatui::Frame;
+use ratatui::layout::{Constraint, Flex, Layout, Rect};
 
 #[cfg(test)]
 #[path = "edit_indexer_ui_tests.rs"]
@@ -23,11 +23,10 @@ pub(super) struct EditIndexerUi;
 
 impl DrawUi for EditIndexerUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Sonarr(active_sonarr_block, _) = route {
-      return EDIT_INDEXER_BLOCKS.contains(&active_sonarr_block);
-    }
-
-    false
+    let Route::Sonarr(active_sonarr_block, _) = route else {
+      return false;
+    };
+    EDIT_INDEXER_BLOCKS.contains(&active_sonarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
@@ -55,15 +54,20 @@ fn draw_edit_indexer_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       Layout::horizontal([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)])
         .margin(1)
         .areas(settings_area);
-    let [name_area, rss_area, auto_search_area, interactive_search_area, priority_area] =
-      Layout::vertical([
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(3),
-      ])
-      .areas(left_side_area);
+    let [
+      name_area,
+      rss_area,
+      auto_search_area,
+      interactive_search_area,
+      priority_area,
+    ] = Layout::vertical([
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+    ])
+    .areas(left_side_area);
     let [url_area, api_key_area, seed_ratio_area, tags_area] = Layout::vertical([
       Constraint::Length(3),
       Constraint::Length(3),

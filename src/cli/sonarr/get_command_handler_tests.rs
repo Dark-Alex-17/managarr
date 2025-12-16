@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-  use crate::cli::{
-    sonarr::{get_command_handler::SonarrGetCommand, SonarrCommand},
-    Command,
-  };
   use crate::Cli;
+  use crate::cli::{
+    Command,
+    sonarr::{SonarrCommand, get_command_handler::SonarrGetCommand},
+  };
   use clap::CommandFactory;
   use pretty_assertions::assert_eq;
 
@@ -28,7 +28,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "get", "all-indexer-settings"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -36,7 +36,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "get", "system-status"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -44,7 +44,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "get", "episode-details"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -62,7 +62,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -70,7 +70,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "get", "host-config"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -78,7 +78,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "get", "security-config"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -86,7 +86,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "get", "series-details"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -104,7 +104,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 
@@ -118,11 +118,11 @@ mod tests {
     use crate::{
       app::App,
       cli::{
-        sonarr::get_command_handler::{SonarrGetCommand, SonarrGetCommandHandler},
         CliCommandHandler,
+        sonarr::get_command_handler::{SonarrGetCommand, SonarrGetCommandHandler},
       },
-      models::{sonarr_models::SonarrSerdeable, Serdeable},
-      network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
+      models::{Serdeable, sonarr_models::SonarrSerdeable},
+      network::{MockNetworkTrait, NetworkEvent, sonarr_network::SonarrEvent},
     };
 
     #[tokio::test]
@@ -150,7 +150,7 @@ mod tests {
       .handle()
       .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -176,7 +176,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -199,7 +199,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -222,7 +222,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -248,7 +248,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -271,7 +271,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 }

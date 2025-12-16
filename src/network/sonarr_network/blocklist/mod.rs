@@ -1,11 +1,11 @@
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use crate::models::sonarr_models::{BlocklistItem, BlocklistResponse};
-use crate::models::Route;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
 use log::info;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 #[cfg(test)]
 #[path = "sonarr_blocklist_network_tests.rs"]

@@ -2,9 +2,9 @@ use add_series_ui::AddSeriesUi;
 use delete_series_ui::DeleteSeriesUi;
 use edit_series_ui::EditSeriesUi;
 use ratatui::{
+  Frame,
   layout::{Constraint, Rect},
   widgets::{Cell, Row},
-  Frame,
 };
 use series_details_ui::SeriesDetailsUi;
 
@@ -16,15 +16,15 @@ use crate::utils::convert_to_gb;
 use crate::{
   app::App,
   models::{
+    Route,
     servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, LIBRARY_BLOCKS},
     sonarr_models::{Series, SeriesStatus},
-    Route,
   },
   ui::{
+    DrawUi,
     styles::ManagarrStyle,
     utils::{get_width_from_percentage, layout_block_top_border},
     widgets::managarr_table::ManagarrTable,
-    DrawUi,
   },
 };
 
@@ -106,28 +106,21 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .map_or(0f64, |stats| convert_to_gb(stats.size_on_disk));
       let quality_profile = quality_profile_map
         .get_by_left(&series.quality_profile_id)
-        .unwrap()
+        .expect("Quality profile ID must exist in quality_profile_map")
         .to_owned();
       let language_profile = language_profile_map
         .get_by_left(&series.language_profile_id)
-        .unwrap()
+        .expect("Language profile ID must exist in language_profile_map")
         .to_owned();
-      let empty_tag = String::new();
-      let tags = if !series.tags.is_empty() {
-        series
-          .tags
-          .iter()
-          .map(|tag_id| {
-            tags_map
-              .get_by_left(&tag_id.as_i64().unwrap())
-              .unwrap_or(&empty_tag)
-              .clone()
-          })
-          .collect::<Vec<String>>()
-          .join(", ")
-      } else {
-        String::new()
-      };
+      let tags = series
+        .tags
+        .iter()
+        .filter_map(|tag_id| {
+          let id = tag_id.as_i64()?;
+          tags_map.get_by_left(&id).cloned()
+        })
+        .collect::<Vec<_>>()
+        .join(", ");
 
       decorate_series_row_with_style(
         series,

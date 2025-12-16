@@ -23,7 +23,25 @@ use crate::models::{
 use crate::network::radarr_network::RadarrEvent;
 use bimap::BiMap;
 use chrono::{DateTime, Utc};
+use serde_json::Number;
 use strum::EnumIter;
+#[cfg(test)]
+use {
+  crate::models::radarr_models::{MinimumAvailability, MovieMonitor},
+  crate::models::stateful_table::SortOption,
+  crate::network::radarr_network::radarr_network_test_utils::test_utils::root_folder,
+  crate::network::radarr_network::radarr_network_test_utils::test_utils::{
+    add_movie_search_result, blocklist_item, cast_credit, collection, collection_movie,
+    crew_credit, download_record, indexer, log_line, movie, movie_history_item,
+    quality_profile_map, tags_map, task, torrent_release, updates, usenet_release,
+  },
+  crate::network::servarr_test_utils::diskspace,
+  crate::network::servarr_test_utils::indexer_test_result,
+  crate::network::servarr_test_utils::queued_event,
+  crate::sort_option,
+  strum::IntoEnumIterator,
+  strum_macros::{Display, EnumString},
+};
 
 #[cfg(test)]
 #[path = "radarr_data_tests.rs"]
@@ -80,6 +98,23 @@ impl RadarrData<'_> {
   pub fn reset_movie_info_tabs(&mut self) {
     self.movie_details_modal = None;
     self.movie_info_tabs.index = 0;
+  }
+
+  pub fn tag_ids_to_display(&self, tag_ids: &[Number]) -> String {
+    tag_ids
+      .iter()
+      .filter_map(|tag_id| {
+        let id = tag_id.as_i64()?;
+        self.tags_map.get_by_left(&id).cloned()
+      })
+      .collect::<Vec<_>>()
+      .join(", ")
+  }
+
+  pub fn sorted_quality_profile_names(&self) -> Vec<String> {
+    let mut names: Vec<String> = self.quality_profile_map.right_values().cloned().collect();
+    names.sort();
+    names
   }
 }
 
@@ -205,7 +240,163 @@ impl<'a> Default for RadarrData<'a> {
   }
 }
 
+#[cfg(test)]
+impl RadarrData<'_> {
+  pub fn test_default_fully_populated() -> Self {
+    let quality_profile_name = "HD - 1080p".to_owned();
+    let mut add_movie_modal = AddMovieModal {
+      tags: "alex".into(),
+      ..AddMovieModal::default()
+    };
+    add_movie_modal
+      .root_folder_list
+      .set_items(vec![root_folder()]);
+    add_movie_modal
+      .monitor_list
+      .set_items(MovieMonitor::iter().collect());
+    add_movie_modal
+      .minimum_availability_list
+      .set_items(MinimumAvailability::iter().collect());
+    add_movie_modal
+      .quality_profile_list
+      .set_items(vec![quality_profile_name.clone()]);
+
+    let mut add_movie_search_result_table = StatefulTable::default();
+    add_movie_search_result_table.set_items(vec![add_movie_search_result()]);
+    add_movie_search_result_table.sorting(vec![sort_option!(tmdb_id)]);
+    add_movie_search_result_table.search = Some("something".into());
+    add_movie_search_result_table.filter = Some("something".into());
+
+    let mut edit_movie_modal = EditMovieModal {
+      monitored: Some(true),
+      path: "/nfs/movies".into(),
+      tags: "alex".into(),
+      ..EditMovieModal::default()
+    };
+    edit_movie_modal
+      .minimum_availability_list
+      .set_items(MinimumAvailability::iter().collect());
+    edit_movie_modal
+      .quality_profile_list
+      .set_items(vec![quality_profile_name.clone()]);
+
+    let mut edit_collection_modal = EditCollectionModal {
+      monitored: Some(true),
+      path: "/nfs/movies".into(),
+      search_on_add: Some(true),
+      ..EditCollectionModal::default()
+    };
+    edit_collection_modal
+      .minimum_availability_list
+      .set_items(MinimumAvailability::iter().collect());
+    edit_collection_modal
+      .quality_profile_list
+      .set_items(vec![quality_profile_name.clone()]);
+
+    let edit_indexer_modal = EditIndexerModal {
+      name: "DrunkenSlug".into(),
+      enable_rss: Some(true),
+      enable_automatic_search: Some(true),
+      enable_interactive_search: Some(true),
+      url: "http://127.0.0.1:9696/1/".into(),
+      api_key: "someApiKey".into(),
+      seed_ratio: "ratio".into(),
+      tags: "25".into(),
+      priority: 1,
+    };
+
+    let indexer_settings = IndexerSettings {
+      allow_hardcoded_subs: true,
+      availability_delay: 0,
+      id: 1,
+      maximum_size: 1234,
+      minimum_age: 12,
+      prefer_indexer_flags: true,
+      retention: 30,
+      rss_sync_interval: 60,
+      whitelisted_hardcoded_subs: "eng".into(),
+    };
+
+    let mut indexer_test_results = StatefulTable::default();
+    indexer_test_results.set_items(vec![indexer_test_result()]);
+    indexer_test_results.sorting(vec![sort_option!(name)]);
+    indexer_test_results.search = Some("something".into());
+    indexer_test_results.filter = Some("something".into());
+
+    let mut movie_details_modal = MovieDetailsModal {
+      movie_details: ScrollableText::with_string("Some information".to_owned()),
+      file_details: "Some file info".to_owned(),
+      audio_details: "Some audio info".to_owned(),
+      video_details: "Some video info".to_owned(),
+      ..MovieDetailsModal::default()
+    };
+    movie_details_modal
+      .movie_history
+      .set_items(vec![movie_history_item()]);
+    movie_details_modal
+      .movie_cast
+      .set_items(vec![cast_credit()]);
+    movie_details_modal
+      .movie_crew
+      .set_items(vec![crew_credit()]);
+    movie_details_modal
+      .movie_releases
+      .set_items(vec![torrent_release(), usenet_release()]);
+    movie_details_modal
+      .movie_releases
+      .sorting(vec![sort_option!(indexer_id)]);
+
+    let mut radarr_data = RadarrData {
+      disk_space_vec: vec![diskspace()],
+      version: "1.2.3.4".to_owned(),
+      quality_profile_map: quality_profile_map(),
+      tags_map: tags_map(),
+      updates: updates(),
+      start_time: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap()),
+      add_movie_search: Some("test".into()),
+      add_movie_modal: Some(add_movie_modal),
+      add_searched_movies: Some(add_movie_search_result_table),
+      edit_movie_modal: Some(edit_movie_modal),
+      edit_collection_modal: Some(edit_collection_modal),
+      edit_indexer_modal: Some(edit_indexer_modal),
+      edit_root_folder: Some("/nfs/movies".into()),
+      indexer_settings: Some(indexer_settings),
+      indexer_test_errors: Some("error".into()),
+      indexer_test_all_results: Some(indexer_test_results),
+      movie_details_modal: Some(movie_details_modal),
+      delete_movie_files: true,
+      ..RadarrData::default()
+    };
+    radarr_data.root_folders.set_items(vec![root_folder()]);
+    radarr_data.movies.set_items(vec![movie()]);
+    radarr_data.movies.sorting(vec![sort_option!(id)]);
+    radarr_data.movies.search = Some("Something".into());
+    radarr_data.movies.filter = Some("Something".into());
+    radarr_data.collections.set_items(vec![collection()]);
+    radarr_data.collections.sorting(vec![sort_option!(id)]);
+    radarr_data.collections.search = Some("Something".into());
+    radarr_data.collections.filter = Some("Something".into());
+    radarr_data
+      .collection_movies
+      .set_items(vec![collection_movie()]);
+    radarr_data.downloads.set_items(vec![download_record()]);
+    radarr_data.blocklist.set_items(vec![blocklist_item()]);
+    radarr_data.blocklist.sorting(vec![sort_option!(id)]);
+    radarr_data.indexers.set_items(vec![indexer()]);
+    radarr_data.indexers.sorting(vec![sort_option!(id)]);
+    radarr_data.indexers.search = Some("Something".into());
+    radarr_data.indexers.filter = Some("Something".into());
+    radarr_data.logs.set_items(vec![log_line().into()]);
+    radarr_data.log_details.set_items(vec![log_line().into()]);
+    radarr_data.tasks.set_items(vec![task()]);
+    radarr_data.queued_events.set_items(vec![queued_event()]);
+
+    radarr_data
+  }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, EnumIter)]
+#[cfg_attr(test, derive(Display, EnumString))]
 pub enum ActiveRadarrBlock {
   AddMovieAlreadyInLibrary,
   AddMovieSearchInput,

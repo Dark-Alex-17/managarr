@@ -94,16 +94,15 @@ impl App<'_> {
           .await;
       }
       ActiveSonarrBlock::ManualEpisodeSearch => {
-        if let Some(season_details_modal) = self.data.sonarr_data.season_details_modal.as_ref() {
-          if let Some(episode_details_modal) = season_details_modal.episode_details_modal.as_ref() {
-            if episode_details_modal.episode_releases.is_empty() {
-              self
-                .dispatch_network_event(
-                  SonarrEvent::GetEpisodeReleases(self.extract_episode_id().await).into(),
-                )
-                .await;
-            }
-          }
+        if let Some(season_details_modal) = self.data.sonarr_data.season_details_modal.as_ref()
+          && let Some(episode_details_modal) = season_details_modal.episode_details_modal.as_ref()
+          && episode_details_modal.episode_releases.is_empty()
+        {
+          self
+            .dispatch_network_event(
+              SonarrEvent::GetEpisodeReleases(self.extract_episode_id().await).into(),
+            )
+            .await;
         }
       }
       ActiveSonarrBlock::Downloads => {

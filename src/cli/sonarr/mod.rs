@@ -18,7 +18,7 @@ use trigger_automatic_search_command_handler::{
 use crate::{
   app::App,
   models::sonarr_models::SonarrTaskName,
-  network::{sonarr_network::SonarrEvent, NetworkTrait},
+  network::{NetworkTrait, sonarr_network::SonarrEvent},
 };
 
 use super::{CliCommandHandler, Command};

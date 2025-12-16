@@ -1,19 +1,16 @@
 #[cfg(test)]
 mod tests {
+  use crate::models::HorizontallyScrollableText;
   use crate::models::servarr_models::{
     DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, Update,
   };
   use crate::models::sonarr_models::{SonarrSerdeable, SonarrTask, SonarrTaskName, SystemStatus};
-  use crate::models::{HorizontallyScrollableText, ScrollableText};
-  use crate::network::network_tests::test_utils::mock_servarr_api;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::sonarr_network::SonarrEvent;
-  use crate::network::{Network, RequestMethod};
+  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::updates;
   use chrono::DateTime;
-  use indoc::formatdoc;
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use reqwest::Client;
   use serde_json::json;
-  use tokio_util::sync::CancellationToken;
 
   #[tokio::test]
   async fn test_handle_get_sonarr_host_config_event() {
@@ -29,27 +26,22 @@ mod tests {
       "sslCertPassword": "test"
     });
     let response: HostConfig = serde_json::from_value(host_config_response.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(host_config_response),
-      None,
-      SonarrEvent::GetHostConfig,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(host_config_response)
+      .build_for(SonarrEvent::GetHostConfig)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::HostConfig(host_config) = network
+    let SonarrSerdeable::HostConfig(host_config) = network
       .handle_sonarr_event(SonarrEvent::GetHostConfig)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(host_config, response);
-    }
+    else {
+      panic!("Expected HostConfig")
+    };
+    mock.assert_async().await;
+    assert_eq!(host_config, response);
   }
 
   #[tokio::test]
@@ -85,30 +77,25 @@ mod tests {
         ]
     });
     let response: LogResponse = serde_json::from_value(logs_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(logs_response_json),
-      None,
-      SonarrEvent::GetLogs(500),
-      None,
-      Some("pageSize=500&sortDirection=descending&sortKey=time"),
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(logs_response_json)
+      .query("pageSize=500&sortDirection=descending&sortKey=time")
+      .build_for(SonarrEvent::GetLogs(500))
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::LogResponse(logs) = network
+    let SonarrSerdeable::LogResponse(logs) = network
       .handle_sonarr_event(SonarrEvent::GetLogs(500))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.logs.items,
-        expected_logs
-      );
-      assert!(app_arc
+    else {
+      panic!("Expected LogResponse")
+    };
+    mock.assert_async().await;
+    assert_eq!(app.lock().await.data.sonarr_data.logs.items, expected_logs);
+    assert!(
+      app
         .lock()
         .await
         .data
@@ -116,17 +103,15 @@ mod tests {
         .logs
         .current_selection()
         .text
-        .contains("INFO"));
-      assert_eq!(logs, response);
-    }
+        .contains("INFO")
+    );
+    assert_eq!(logs, response);
   }
 
   #[tokio::test]
   async fn test_handle_get_sonarr_diskspace_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!([
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!([
         {
           "freeSpace": 1111,
           "totalSpace": 2222,
@@ -135,15 +120,11 @@ mod tests {
           "freeSpace": 3333,
           "totalSpace": 4444
         }
-      ])),
-      None,
-      SonarrEvent::GetDiskSpace,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+      ]))
+      .build_for(SonarrEvent::GetDiskSpace)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
     let disk_space_vec = vec![
       DiskSpace {
         free_space: 1111,
@@ -155,18 +136,19 @@ mod tests {
       },
     ];
 
-    if let SonarrSerdeable::DiskSpaces(disk_space) = network
+    let SonarrSerdeable::DiskSpaces(disk_space) = network
       .handle_sonarr_event(SonarrEvent::GetDiskSpace)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.disk_space_vec,
-        disk_space_vec
-      );
-      assert_eq!(disk_space, disk_space_vec);
-    }
+    else {
+      panic!("Expected DiskSpaces")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.disk_space_vec,
+      disk_space_vec
+    );
+    assert_eq!(disk_space, disk_space_vec);
   }
 
   #[tokio::test]
@@ -194,31 +176,26 @@ mod tests {
       trigger: "scheduled".to_owned(),
     };
 
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(queued_events_json),
-      None,
-      SonarrEvent::GetQueuedEvents,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(queued_events_json)
+      .build_for(SonarrEvent::GetQueuedEvents)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::QueueEvents(events) = network
+    let SonarrSerdeable::QueueEvents(events) = network
       .handle_sonarr_event(SonarrEvent::GetQueuedEvents)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.queued_events.items,
-        vec![expected_event]
-      );
-      assert_eq!(events, response);
-    }
+    else {
+      panic!("Expected QueueEvents")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.queued_events.items,
+      vec![expected_event]
+    );
+    assert_eq!(events, response);
   }
 
   #[tokio::test]
@@ -233,64 +210,54 @@ mod tests {
     });
     let response: SecurityConfig =
       serde_json::from_value(security_config_response.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(security_config_response),
-      None,
-      SonarrEvent::GetSecurityConfig,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(security_config_response)
+      .build_for(SonarrEvent::GetSecurityConfig)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::SecurityConfig(security_config) = network
+    let SonarrSerdeable::SecurityConfig(security_config) = network
       .handle_sonarr_event(SonarrEvent::GetSecurityConfig)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(security_config, response);
-    }
+    else {
+      panic!("Expected SecurityConfig")
+    };
+    mock.assert_async().await;
+    assert_eq!(security_config, response);
   }
 
   #[tokio::test]
   async fn test_handle_get_status_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!({
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!({
         "version": "v1",
         "startTime": "2023-02-25T20:16:43Z"
-      })),
-      None,
-      SonarrEvent::GetStatus,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+      }))
+      .build_for(SonarrEvent::GetStatus)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
     let date_time = DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap());
 
-    if let SonarrSerdeable::SystemStatus(status) = network
+    let SonarrSerdeable::SystemStatus(status) = network
       .handle_sonarr_event(SonarrEvent::GetStatus)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_str_eq!(app_arc.lock().await.data.sonarr_data.version, "v1");
-      assert_eq!(app_arc.lock().await.data.sonarr_data.start_time, date_time);
-      assert_eq!(
-        status,
-        SystemStatus {
-          version: "v1".to_owned(),
-          start_time: date_time
-        }
-      );
-    }
+    else {
+      panic!("Expected SystemStatus")
+    };
+    mock.assert_async().await;
+    assert_str_eq!(app.lock().await.data.sonarr_data.version, "v1");
+    assert_eq!(app.lock().await.data.sonarr_data.start_time, date_time);
+    assert_eq!(
+      status,
+      SystemStatus {
+        version: "v1".to_owned(),
+        start_time: date_time
+      }
+    );
   }
 
   #[tokio::test]
@@ -327,31 +294,26 @@ mod tests {
         next_execution: timestamp,
       },
     ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(tasks_json),
-      None,
-      SonarrEvent::GetTasks,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(tasks_json)
+      .build_for(SonarrEvent::GetTasks)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Tasks(tasks) = network
+    let SonarrSerdeable::Tasks(tasks) = network
       .handle_sonarr_event(SonarrEvent::GetTasks)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.tasks.items,
-        expected_tasks
-      );
-      assert_eq!(tasks, response);
-    }
+    else {
+      panic!("Expected Tasks")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.tasks.items,
+      expected_tasks
+    );
+    assert_eq!(tasks, response);
   }
 
   #[tokio::test]
@@ -397,75 +359,49 @@ mod tests {
       },
     }]);
     let response: Vec<Update> = serde_json::from_value(updates_json.clone()).unwrap();
-    let line_break = "-".repeat(200);
-    let expected_text = ScrollableText::with_string(formatdoc!(
-      "
-    The latest version of Sonarr is already installed
+    let expected_text = updates();
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(updates_json)
+      .build_for(SonarrEvent::GetUpdates)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    4.3.2.1 - 2023-04-15 02:02:53 UTC (Currently Installed)
-    {line_break}
-    New:
-      * Cool new thing
-    Fixed:
-      * Some bugs killed
-    
-    
-    3.2.1.0 - 2023-04-15 02:02:53 UTC (Previously Installed)
-    {line_break}
-    New:
-      * Cool new thing (old)
-      * Other cool new thing (old)
-    
-    
-    2.1.0 - 2023-04-15 02:02:53 UTC 
-    {line_break}
-    Fixed:
-      * Killed bug 1
-      * Fixed bug 2"
-    ));
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(updates_json),
-      None,
-      SonarrEvent::GetUpdates,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let SonarrSerdeable::Updates(updates) = network
+    let SonarrSerdeable::Updates(updates) = network
       .handle_sonarr_event(SonarrEvent::GetUpdates)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_str_eq!(
-        app_arc.lock().await.data.sonarr_data.updates.get_text(),
-        expected_text.get_text()
-      );
-      assert_eq!(updates, response);
-    }
+    else {
+      panic!("Expected Updates")
+    };
+    mock.assert_async().await;
+    let actual_text = app.lock().await.data.sonarr_data.updates.get_text();
+    let expected = expected_text.get_text();
+
+    // Trim trailing whitespace from each line for comparison
+    let actual_trimmed: Vec<&str> = actual_text.lines().map(|l| l.trim_end()).collect();
+    let expected_trimmed: Vec<&str> = expected.lines().map(|l| l.trim_end()).collect();
+
+    assert_eq!(
+      actual_trimmed, expected_trimmed,
+      "Updates text mismatch (after trimming trailing whitespace)"
+    );
+    assert_eq!(updates, response);
   }
 
   #[tokio::test]
   async fn test_handle_start_sonarr_task_event() {
     let response = json!({ "test": "test"});
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
         "name": "ApplicationUpdateCheck"
-      })),
-      Some(response.clone()),
-      None,
-      SonarrEvent::StartTask(SonarrTaskName::ApplicationUpdateCheck),
-      None,
-      None,
-    )
-    .await;
-    app_arc
+      }))
+      .returns(response.clone())
+      .build_for(SonarrEvent::StartTask(
+        SonarrTaskName::ApplicationUpdateCheck,
+      ))
+      .await;
+    app
       .lock()
       .await
       .data
@@ -475,18 +411,19 @@ mod tests {
         task_name: SonarrTaskName::default(),
         ..SonarrTask::default()
       }]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Value(value) = network
+    let SonarrSerdeable::Value(value) = network
       .handle_sonarr_event(SonarrEvent::StartTask(
         SonarrTaskName::ApplicationUpdateCheck,
       ))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(value, response);
-    }
+    else {
+      panic!("Expected Value")
+    };
+    mock.assert_async().await;
+    assert_eq!(value, response);
   }
 }

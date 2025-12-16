@@ -1,13 +1,13 @@
-use ratatui::layout::Rect;
 use ratatui::Frame;
+use ratatui::layout::Rect;
 
 use crate::app::App;
-use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 use crate::models::Route;
+use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
+use crate::ui::DrawUi;
 use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::DrawUi;
 
 #[cfg(test)]
 #[path = "delete_movie_ui_tests.rs"]
@@ -17,11 +17,10 @@ pub(super) struct DeleteMovieUi;
 
 impl DrawUi for DeleteMovieUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
-      return DELETE_MOVIE_BLOCKS.contains(&active_radarr_block);
-    }
-
-    false
+    let Route::Radarr(active_radarr_block, _) = route else {
+      return false;
+    };
+    DELETE_MOVIE_BLOCKS.contains(&active_radarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {

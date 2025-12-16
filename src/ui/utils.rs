@@ -1,5 +1,5 @@
-use crate::ui::styles::ManagarrStyle;
 use crate::ui::THEME;
+use crate::ui::styles::ManagarrStyle;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::symbols;

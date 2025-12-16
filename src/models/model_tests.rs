@@ -3,20 +3,20 @@ mod tests {
   use std::sync::atomic::AtomicUsize;
   use std::sync::atomic::Ordering;
 
+  use crate::app::ServarrConfig;
   use crate::app::context_clues::ContextClue;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::app::ServarrConfig;
   use crate::models::from_f64;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-  use crate::models::{from_i64, strip_non_search_characters};
   use crate::models::{
     BlockSelectionState, HorizontallyScrollableText, Scrollable, ScrollableText, TabRoute, TabState,
   };
+  use crate::models::{from_i64, strip_non_search_characters};
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use serde::de::IntoDeserializer;
   use serde::de::value::Error as ValueError;
   use serde::de::value::F64Deserializer;
   use serde::de::value::I64Deserializer;
-  use serde::de::IntoDeserializer;
   use serde_json::to_string;
 
   const BLOCKS: &[&[i32]] = &[&[11, 12], &[21, 22], &[31, 32]];
@@ -46,7 +46,7 @@ mod tests {
   fn test_scrollable_text_is_empty() {
     let scrollable_text = ScrollableText::default();
 
-    assert!(scrollable_text.is_empty());
+    assert_is_empty!(scrollable_text);
 
     let test_text = "Test \nString";
     let scrollable_text = ScrollableText::with_string(test_text.to_owned());
@@ -151,7 +151,7 @@ mod tests {
       offset: AtomicUsize::new(test_text.len()),
     };
 
-    assert!(horizontally_scrollable_text.to_string().is_empty());
+    assert_is_empty!(horizontally_scrollable_text.to_string());
   }
 
   #[test]
@@ -228,7 +228,7 @@ mod tests {
       horizontally_scrollable_text.offset.load(Ordering::SeqCst),
       2
     );
-    assert!(horizontally_scrollable_text.to_string().is_empty());
+    assert_is_empty!(horizontally_scrollable_text.to_string());
   }
 
   #[test]
@@ -444,7 +444,7 @@ mod tests {
 
     horizontally_scrollable_text.pop();
 
-    assert!(horizontally_scrollable_text.text.is_empty());
+    assert_is_empty!(horizontally_scrollable_text.text);
     assert_eq!(
       horizontally_scrollable_text.offset.load(Ordering::SeqCst),
       0
@@ -452,7 +452,7 @@ mod tests {
 
     horizontally_scrollable_text.pop();
 
-    assert!(horizontally_scrollable_text.text.is_empty());
+    assert_is_empty!(horizontally_scrollable_text.text);
     assert_eq!(
       horizontally_scrollable_text.offset.load(Ordering::SeqCst),
       0
@@ -530,7 +530,7 @@ mod tests {
 
     let active_config = tab_state.get_active_config();
 
-    assert!(active_config.is_some());
+    assert_some!(active_config);
     assert_str_eq!(active_config.clone().unwrap().name.unwrap(), "Test");
   }
 
@@ -541,7 +541,7 @@ mod tests {
 
     let active_config = tab_state.get_active_config();
 
-    assert!(active_config.is_none());
+    assert_none!(active_config);
   }
 
   #[test]
@@ -630,8 +630,7 @@ mod tests {
 
     let tab_help = tab_state.get_active_route_contextual_help();
 
-    assert!(tab_help.is_some());
-    assert_eq!(tab_help.unwrap(), second_tab_help.unwrap());
+    assert_some_eq_x!(tab_help, second_tab_help.unwrap());
   }
 
   #[test]
@@ -784,7 +783,7 @@ mod tests {
   fn test_from_i64() {
     let deserializer: I64Deserializer<ValueError> = 1i64.into_deserializer();
 
-    assert_eq!(from_i64(deserializer), Ok(1));
+    assert_ok_eq_x!(from_i64(deserializer), 1);
   }
 
   #[test]
@@ -801,7 +800,7 @@ mod tests {
   fn test_from_f64() {
     let deserializer: F64Deserializer<ValueError> = 1f64.into_deserializer();
 
-    assert_eq!(from_f64(deserializer), Ok(1.0));
+    assert_ok_eq_x!(from_f64(deserializer), 1.0);
   }
 
   #[test]

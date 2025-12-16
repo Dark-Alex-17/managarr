@@ -1,126 +1,118 @@
 #[cfg(test)]
 mod tests {
+  use crate::app::App;
   use crate::app::context_clues::{
-    ContextClue, ContextClueProvider, BARE_POPUP_CONTEXT_CLUES, BLOCKLIST_CONTEXT_CLUES,
-    CONFIRMATION_PROMPT_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
+    BARE_POPUP_CONTEXT_CLUES, BLOCKLIST_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
+    ContextClue, ContextClueProvider, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
     ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
   };
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::radarr::radarr_context_clues::{
-    RadarrContextClueProvider, ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES, COLLECTIONS_CONTEXT_CLUES,
-    COLLECTION_DETAILS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXT_CLUES,
-    MOVIE_DETAILS_CONTEXT_CLUES, SYSTEM_TASKS_CONTEXT_CLUES,
+    ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES, COLLECTION_DETAILS_CONTEXT_CLUES,
+    COLLECTIONS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXT_CLUES,
+    MOVIE_DETAILS_CONTEXT_CLUES, RadarrContextClueProvider, SYSTEM_TASKS_CONTEXT_CLUES,
   };
-  use crate::app::App;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
-  use pretty_assertions::{assert_eq, assert_str_eq};
+  use pretty_assertions::assert_eq;
   use rstest::rstest;
 
   #[test]
   fn test_library_context_clues() {
     let mut library_context_clues_iter = LIBRARY_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = library_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.add);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.add.desc);
-
-    let (key_binding, description) = library_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.edit);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.edit.desc);
-
-    let (key_binding, description) = library_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.toggle_monitoring);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.toggle_monitoring.desc);
-
-    let (key_binding, description) = library_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.sort);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.sort.desc);
-
-    let (key_binding, description) = library_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.delete);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.delete.desc);
-
-    let (key_binding, description) = library_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.search);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.search.desc);
-
-    let (key_binding, description) = library_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.filter);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.filter.desc);
-
-    let (key_binding, description) = library_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.refresh);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.refresh.desc);
-
-    let (key_binding, description) = library_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.update);
-    assert_str_eq!(*description, "update all");
-
-    let (key_binding, description) = library_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
-    assert_str_eq!(*description, "details");
-
-    let (key_binding, description) = library_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
-    assert_str_eq!(*description, "cancel filter");
-    assert_eq!(library_context_clues_iter.next(), None);
+    assert_some_eq_x!(
+      library_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.add, DEFAULT_KEYBINDINGS.add.desc)
+    );
+    assert_some_eq_x!(
+      library_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc)
+    );
+    assert_some_eq_x!(
+      library_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.toggle_monitoring,
+        DEFAULT_KEYBINDINGS.toggle_monitoring.desc
+      )
+    );
+    assert_some_eq_x!(
+      library_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc)
+    );
+    assert_some_eq_x!(
+      library_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc)
+    );
+    assert_some_eq_x!(
+      library_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc)
+    );
+    assert_some_eq_x!(
+      library_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc)
+    );
+    assert_some_eq_x!(
+      library_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_some_eq_x!(
+      library_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.update, "update all")
+    );
+    assert_some_eq_x!(
+      library_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.submit, "details")
+    );
+    assert_some_eq_x!(
+      library_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, "cancel filter")
+    );
+    assert_none!(library_context_clues_iter.next());
   }
 
   #[test]
   fn test_collections_context_clues() {
     let mut collections_context_clues = COLLECTIONS_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = collections_context_clues.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.search);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.search.desc);
-
-    let (key_binding, description) = collections_context_clues.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.edit);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.edit.desc);
-
-    let (key_binding, description) = collections_context_clues.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.sort);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.sort.desc);
-
-    let (key_binding, description) = collections_context_clues.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.filter);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.filter.desc);
-
-    let (key_binding, description) = collections_context_clues.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.refresh);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.refresh.desc);
-
-    let (key_binding, description) = collections_context_clues.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.update);
-    assert_str_eq!(*description, "update all");
-
-    let (key_binding, description) = collections_context_clues.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
-    assert_str_eq!(*description, "details");
-
-    let (key_binding, description) = collections_context_clues.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
-    assert_str_eq!(*description, "cancel filter");
+    assert_some_eq_x!(
+      collections_context_clues.next(),
+      &(DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc)
+    );
+    assert_some_eq_x!(
+      collections_context_clues.next(),
+      &(DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc)
+    );
+    assert_some_eq_x!(
+      collections_context_clues.next(),
+      &(DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc)
+    );
+    assert_some_eq_x!(
+      collections_context_clues.next(),
+      &(DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc)
+    );
+    assert_some_eq_x!(
+      collections_context_clues.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_some_eq_x!(
+      collections_context_clues.next(),
+      &(DEFAULT_KEYBINDINGS.update, "update all")
+    );
+    assert_some_eq_x!(
+      collections_context_clues.next(),
+      &(DEFAULT_KEYBINDINGS.submit, "details")
+    );
+    assert_some_eq_x!(
+      collections_context_clues.next(),
+      &(DEFAULT_KEYBINDINGS.esc, "cancel filter")
+    );
     assert_eq!(collections_context_clues.next(), None);
   }
 
@@ -128,30 +120,32 @@ mod tests {
   fn test_movie_details_context_clues() {
     let mut movie_details_context_clues_iter = MOVIE_DETAILS_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = movie_details_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.refresh);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.refresh.desc);
-
-    let (key_binding, description) = movie_details_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.update);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.update.desc);
-
-    let (key_binding, description) = movie_details_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.edit);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.edit.desc);
-
-    let (key_binding, description) = movie_details_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.auto_search);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.auto_search.desc);
-
-    let (key_binding, description) = movie_details_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.esc.desc);
+    assert_some_eq_x!(
+      movie_details_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_some_eq_x!(
+      movie_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc)
+    );
+    assert_some_eq_x!(
+      movie_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc)
+    );
+    assert_some_eq_x!(
+      movie_details_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.auto_search,
+        DEFAULT_KEYBINDINGS.auto_search.desc
+      )
+    );
+    assert_some_eq_x!(
+      movie_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
+    );
     assert_eq!(movie_details_context_clues_iter.next(), None);
   }
 
@@ -159,41 +153,40 @@ mod tests {
   fn test_manual_movie_search_context_clues() {
     let mut manual_movie_search_context_clues_iter = MANUAL_MOVIE_SEARCH_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = manual_movie_search_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.refresh);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.refresh.desc);
-
-    let (key_binding, description) = manual_movie_search_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.update);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.update.desc);
-
-    let (key_binding, description) = manual_movie_search_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.edit);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.edit.desc);
-
-    let (key_binding, description) = manual_movie_search_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.sort);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.sort.desc);
-
-    let (key_binding, description) = manual_movie_search_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.auto_search);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.auto_search.desc);
-
-    let (key_binding, description) = manual_movie_search_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
-    assert_str_eq!(*description, "details");
-
-    let (key_binding, description) = manual_movie_search_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.esc.desc);
-
+    assert_some_eq_x!(
+      manual_movie_search_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_some_eq_x!(
+      manual_movie_search_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc)
+    );
+    assert_some_eq_x!(
+      manual_movie_search_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc)
+    );
+    assert_some_eq_x!(
+      manual_movie_search_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc)
+    );
+    assert_some_eq_x!(
+      manual_movie_search_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.auto_search,
+        DEFAULT_KEYBINDINGS.auto_search.desc
+      )
+    );
+    assert_some_eq_x!(
+      manual_movie_search_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.submit, "details")
+    );
+    assert_some_eq_x!(
+      manual_movie_search_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
+    );
     assert_eq!(manual_movie_search_context_clues_iter.next(), None);
   }
 
@@ -202,15 +195,14 @@ mod tests {
     let mut add_movie_search_results_context_clues_iter =
       ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = add_movie_search_results_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
-    assert_str_eq!(*description, "details");
-
-    let (key_binding, description) = add_movie_search_results_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
-    assert_str_eq!(*description, "edit search");
+    assert_some_eq_x!(
+      add_movie_search_results_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.submit, "details")
+    );
+    assert_some_eq_x!(
+      add_movie_search_results_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, "edit search")
+    );
     assert_eq!(add_movie_search_results_context_clues_iter.next(), None);
   }
 
@@ -218,15 +210,14 @@ mod tests {
   fn test_system_tasks_context_clues() {
     let mut system_tasks_context_clues_iter = SYSTEM_TASKS_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = system_tasks_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
-    assert_str_eq!(*description, "start task");
-
-    let (key_binding, description) = system_tasks_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.esc.desc);
+    assert_some_eq_x!(
+      system_tasks_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.submit, "start task")
+    );
+    assert_some_eq_x!(
+      system_tasks_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
+    );
     assert_eq!(system_tasks_context_clues_iter.next(), None);
   }
 
@@ -234,20 +225,18 @@ mod tests {
   fn test_collection_details_context_clues() {
     let mut collection_details_context_clues_iter = COLLECTION_DETAILS_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = collection_details_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
-    assert_str_eq!(*description, "show overview/add movie");
-
-    let (key_binding, description) = collection_details_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.edit);
-    assert_str_eq!(*description, "edit collection");
-
-    let (key_binding, description) = collection_details_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.esc.desc);
+    assert_some_eq_x!(
+      collection_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.submit, "show overview/add movie")
+    );
+    assert_some_eq_x!(
+      collection_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.edit, "edit collection")
+    );
+    assert_some_eq_x!(
+      collection_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
+    );
     assert_eq!(collection_details_context_clues_iter.next(), None);
   }
 
@@ -283,8 +272,7 @@ mod tests {
 
     let context_clues = RadarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_some());
-    assert_eq!(&BARE_POPUP_CONTEXT_CLUES, context_clues.unwrap());
+    assert_some_eq_x!(context_clues, &BARE_POPUP_CONTEXT_CLUES);
   }
 
   #[rstest]
@@ -306,8 +294,7 @@ mod tests {
 
     let context_clues = RadarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_some());
-    assert_eq!(expected_context_clues, context_clues.unwrap());
+    assert_some_eq_x!(context_clues, expected_context_clues);
   }
 
   #[rstest]
@@ -329,8 +316,7 @@ mod tests {
 
     let context_clues = RadarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_some());
-    assert_eq!(&CONFIRMATION_PROMPT_CONTEXT_CLUES, context_clues.unwrap());
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
   }
 
   #[rstest]
@@ -352,8 +338,7 @@ mod tests {
 
     let context_clues = RadarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_some());
-    assert_eq!(&CONFIRMATION_PROMPT_CONTEXT_CLUES, context_clues.unwrap());
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
   }
 
   #[rstest]
@@ -379,8 +364,7 @@ mod tests {
 
     let context_clues = RadarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_some());
-    assert_eq!(&CONFIRMATION_PROMPT_CONTEXT_CLUES, context_clues.unwrap());
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
   }
 
   #[rstest]
@@ -405,8 +389,7 @@ mod tests {
 
     let context_clues = RadarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_some());
-    assert_eq!(&CONFIRMATION_PROMPT_CONTEXT_CLUES, context_clues.unwrap());
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
   }
 
   #[rstest]
@@ -428,8 +411,7 @@ mod tests {
 
     let context_clues = RadarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_some());
-    assert_eq!(&CONFIRMATION_PROMPT_CONTEXT_CLUES, context_clues.unwrap());
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
   }
 
   #[rstest]
@@ -446,11 +428,7 @@ mod tests {
 
     let context_clues = RadarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_some());
-    assert_eq!(
-      &ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES,
-      context_clues.unwrap()
-    );
+    assert_some_eq_x!(context_clues, &ADD_MOVIE_SEARCH_RESULTS_CONTEXT_CLUES);
   }
 
   #[test]
@@ -461,8 +439,7 @@ mod tests {
 
     let context_clues = RadarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_some());
-    assert_eq!(&COLLECTION_DETAILS_CONTEXT_CLUES, context_clues.unwrap());
+    assert_some_eq_x!(context_clues, &COLLECTION_DETAILS_CONTEXT_CLUES);
   }
 
   #[test]
@@ -474,8 +451,7 @@ mod tests {
 
     let context_clues = RadarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_some());
-    assert_eq!(&SYSTEM_TASKS_CONTEXT_CLUES, context_clues.unwrap());
+    assert_some_eq_x!(context_clues, &SYSTEM_TASKS_CONTEXT_CLUES);
   }
 
   #[rstest]
@@ -498,7 +474,6 @@ mod tests {
 
     let context_clues = RadarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_some());
-    assert_eq!(expected_context_clues, context_clues.unwrap());
+    assert_some_eq_x!(context_clues, expected_context_clues);
   }
 }

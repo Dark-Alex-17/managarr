@@ -6,17 +6,16 @@ use edit_series_handler::EditSeriesHandler;
 use crate::{
   app::App,
   event::Key,
-  handle_table_events,
-  handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler},
+  handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle},
   matches_key,
   models::{
+    BlockSelectionState, HorizontallyScrollableText,
     servarr_data::sonarr::sonarr_data::{
       ActiveSonarrBlock, DELETE_SERIES_SELECTION_BLOCKS, EDIT_SERIES_SELECTION_BLOCKS,
       LIBRARY_BLOCKS,
     },
     sonarr_models::Series,
     stateful_table::SortOption,
-    BlockSelectionState, HorizontallyScrollableText,
   },
   network::sonarr_network::SonarrEvent,
 };
@@ -25,7 +24,7 @@ use super::handle_change_tab_left_right_keys;
 use crate::handlers::sonarr_handlers::library::episode_details_handler::EpisodeDetailsHandler;
 use crate::handlers::sonarr_handlers::library::season_details_handler::SeasonDetailsHandler;
 use crate::handlers::sonarr_handlers::library::series_details_handler::SeriesDetailsHandler;
-use crate::handlers::table_handler::TableHandlingConfig;
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 
 mod add_series_handler;
 mod delete_series_handler;
@@ -45,7 +44,6 @@ pub(super) struct LibraryHandler<'a, 'b> {
 }
 
 impl LibraryHandler<'_, '_> {
-  handle_table_events!(self, series, self.app.data.sonarr_data.series, Series);
   fn extract_series_id(&self) -> i64 {
     self.app.data.sonarr_data.series.current_selection().id
   }
@@ -55,7 +53,6 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
   fn handle(&mut self) {
     let series_table_handling_config = TableHandlingConfig::new(ActiveSonarrBlock::Series.into())
       .sorting_block(ActiveSonarrBlock::SeriesSortPrompt.into())
-      .sort_by_fn(|a: &Series, b: &Series| a.id.cmp(&b.id))
       .sort_options(series_sorting_options())
       .searching_block(ActiveSonarrBlock::SearchSeries.into())
       .search_error_block(ActiveSonarrBlock::SearchSeriesError.into())
@@ -64,7 +61,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
       .filter_error_block(ActiveSonarrBlock::FilterSeriesError.into())
       .filter_field_fn(|series| &series.title.text);
 
-    if !self.handle_series_table_events(series_table_handling_config) {
+    if !handle_table(
+      self,
+      |app| &mut app.data.sonarr_data.series,
+      series_table_handling_config,
+    ) {
       match self.active_sonarr_block {
         _ if AddSeriesHandler::accepts(self.active_sonarr_block) => {
           AddSeriesHandler::new(self.key, self.app, self.active_sonarr_block, self.context)
@@ -238,6 +239,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for LibraryHandler<'a, '
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }
 

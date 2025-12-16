@@ -1,6 +1,6 @@
 use crate::models::stateful_list::StatefulList;
 use crate::models::{
-  strip_non_search_characters, HorizontallyScrollableText, Paginated, Scrollable,
+  HorizontallyScrollableText, Paginated, Scrollable, strip_non_search_characters,
 };
 use ratatui::widgets::TableState;
 use std::cmp::Ordering;
@@ -31,6 +31,7 @@ where
 impl<T> Eq for SortOption<T> where T: Clone + PartialEq + Eq + Debug {}
 
 #[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
 pub struct StatefulTable<T>
 where
   T: Clone + PartialEq + Eq + Debug,
@@ -50,117 +51,46 @@ where
   T: Clone + PartialEq + Eq + Debug,
 {
   fn scroll_down(&mut self) {
-    if let Some(filtered_items) = self.filtered_items.as_ref() {
-      if filtered_items.is_empty() {
-        return;
-      }
-
-      match self.filtered_state.as_ref().unwrap().selected() {
-        Some(i) => {
-          if i >= filtered_items.len() - 1 {
-            self.filtered_state.as_mut().unwrap().select_first();
-          } else {
-            self.filtered_state.as_mut().unwrap().select_next();
-          }
-        }
-        None => self.filtered_state.as_mut().unwrap().select_first(),
-      };
-
+    let items_len = self.active_items().len();
+    if items_len == 0 {
       return;
     }
 
-    if self.items.is_empty() {
-      return;
+    let state = self.active_state_mut();
+    match state.selected() {
+      Some(i) if i >= items_len - 1 => state.select_first(),
+      Some(_) => state.select_next(),
+      None => state.select_first(),
     }
-
-    match self.state.selected() {
-      Some(i) => {
-        if i >= self.items.len() - 1 {
-          self.state.select_first();
-        } else {
-          self.state.select_next();
-        }
-      }
-      None => self.state.select_first(),
-    };
   }
 
   fn scroll_up(&mut self) {
-    if let Some(filtered_items) = self.filtered_items.as_ref() {
-      if filtered_items.is_empty() {
-        return;
-      }
-
-      match self.filtered_state.as_ref().unwrap().selected() {
-        Some(i) => {
-          if i == 0 {
-            self
-              .filtered_state
-              .as_mut()
-              .unwrap()
-              .select(Some(filtered_items.len() - 1));
-          } else {
-            self.filtered_state.as_mut().unwrap().select_previous();
-          }
-        }
-        None => self.filtered_state.as_mut().unwrap().select_first(),
-      };
-
+    let items_len = self.active_items().len();
+    if items_len == 0 {
       return;
     }
 
-    if self.items.is_empty() {
-      return;
+    let state = self.active_state_mut();
+    match state.selected() {
+      Some(0) => state.select(Some(items_len - 1)),
+      Some(_) => state.select_previous(),
+      None => state.select_first(),
     }
-
-    match self.state.selected() {
-      Some(i) => {
-        if i == 0 {
-          self.state.select(Some(self.items.len() - 1));
-        } else {
-          self.state.select_previous();
-        }
-      }
-      None => self.state.select_first(),
-    };
   }
 
   fn scroll_to_top(&mut self) {
-    if let Some(filtered_items) = self.filtered_items.as_ref() {
-      if filtered_items.is_empty() {
-        return;
-      }
-
-      self.filtered_state.as_mut().unwrap().select_first();
+    if self.active_items().is_empty() {
       return;
     }
-
-    if self.items.is_empty() {
-      return;
-    }
-
-    self.state.select_first();
+    self.active_state_mut().select_first();
   }
 
   fn scroll_to_bottom(&mut self) {
-    if let Some(filtered_items) = self.filtered_items.as_ref() {
-      if filtered_items.is_empty() {
-        return;
-      }
-
-      self
-        .filtered_state
-        .as_mut()
-        .unwrap()
-        .select(Some(filtered_items.len() - 1));
+    let items_len = self.active_items().len();
+    if items_len == 0 {
       return;
     }
-
-    if self.items.is_empty() {
-      return;
-    }
-
-    self.state.select(Some(self.items.len() - 1));
+    self.active_state_mut().select(Some(items_len - 1));
   }
 }
 
@@ -169,71 +99,56 @@ where
   T: Clone + PartialEq + Eq + Debug,
 {
   fn page_down(&mut self) {
-    if let Some(filtered_items) = self.filtered_items.as_ref() {
-      if filtered_items.is_empty() {
-        return;
-      }
-
-      match self.filtered_state.as_ref().unwrap().selected() {
-        Some(i) => {
-          self
-            .filtered_state
-            .as_mut()
-            .unwrap()
-            .select(Some(i.saturating_add(20) % (filtered_items.len() - 1)));
-        }
-        None => self.filtered_state.as_mut().unwrap().select_first(),
-      };
-
+    let items_len = self.active_items().len();
+    if items_len == 0 {
       return;
     }
 
-    if self.items.is_empty() {
-      return;
+    let state = self.active_state_mut();
+    match state.selected() {
+      Some(i) => state.select(Some(i.saturating_add(20) % (items_len - 1))),
+      None => state.select_first(),
     }
-
-    match self.state.selected() {
-      Some(i) => {
-        self
-          .state
-          .select(Some(i.saturating_add(20) % (self.items.len() - 1)));
-      }
-      None => self.state.select_first(),
-    };
   }
 
   fn page_up(&mut self) {
-    if let Some(filtered_items) = self.filtered_items.as_ref() {
-      if filtered_items.is_empty() {
-        return;
-      }
-
-      match self.filtered_state.as_ref().unwrap().selected() {
-        Some(i) => {
-          let len = filtered_items.len() - 1;
-          self
-            .filtered_state
-            .as_mut()
-            .unwrap()
-            .select(Some((i + len - (20 % len)) % len));
-        }
-        None => self.filtered_state.as_mut().unwrap().select_last(),
-      };
-
+    let items_len = self.active_items().len();
+    if items_len == 0 {
       return;
     }
 
-    if self.items.is_empty() {
-      return;
-    }
-
-    match self.state.selected() {
+    let state = self.active_state_mut();
+    match state.selected() {
       Some(i) => {
-        let len = self.items.len() - 1;
-        self.state.select(Some((i + len - (20 % len)) % len));
+        let len = items_len - 1;
+        state.select(Some((i + len - (20 % len)) % len));
       }
-      None => self.state.select_last(),
-    };
+      None => state.select_last(),
+    }
+  }
+}
+
+impl<T> StatefulTable<T>
+where
+  T: Clone + PartialEq + Eq + Debug,
+{
+  fn active_items(&self) -> &[T] {
+    self
+      .filtered_items
+      .as_ref()
+      .map_or(&self.items[..], |items| &items[..])
+  }
+
+  fn active_state_mut(&mut self) -> &mut TableState {
+    if let Some(ref mut filtered_state) = self.filtered_state {
+      filtered_state
+    } else {
+      &mut self.state
+    }
+  }
+
+  fn active_state(&self) -> &TableState {
+    self.filtered_state.as_ref().unwrap_or(&self.state)
   }
 }
 
@@ -266,24 +181,13 @@ where
   }
 
   pub fn select_index(&mut self, index: Option<usize>) {
-    if let Some(filtered_state) = &mut self.filtered_state {
-      filtered_state.select(index);
-    } else {
-      self.state.select(index);
-    }
+    self.active_state_mut().select(index);
   }
 
   pub fn current_selection(&self) -> &T {
-    if let Some(filtered_items) = &self.filtered_items {
-      &filtered_items[self
-        .filtered_state
-        .as_ref()
-        .unwrap()
-        .selected()
-        .unwrap_or(0)]
-    } else {
-      &self.items[self.state.selected().unwrap_or(0)]
-    }
+    let items = self.active_items();
+    let index = self.active_state().selected().unwrap_or(0);
+    &items[index]
   }
 
   pub fn sorting(&mut self, sort_options: Vec<SortOption<T>>) {

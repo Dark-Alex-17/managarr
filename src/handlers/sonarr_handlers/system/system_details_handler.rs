@@ -1,11 +1,11 @@
 use crate::app::App;
 use crate::event::Key;
-use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
+use crate::models::Scrollable;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::sonarr_models::SonarrTaskName;
 use crate::models::stateful_list::StatefulList;
-use crate::models::Scrollable;
 use crate::network::sonarr_network::SonarrEvent;
 
 #[cfg(test)]
@@ -195,5 +195,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemDetailsHandler
         Some(SonarrEvent::StartTask(self.extract_task_name()));
       self.app.pop_navigation_stack();
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }

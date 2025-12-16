@@ -1,239 +1,237 @@
 #[cfg(test)]
 mod test {
-  use pretty_assertions::{assert_eq, assert_str_eq};
-
   use crate::app::context_clues::{
-    ContextClueProvider, ServarrContextClueProvider, BARE_POPUP_CONTEXT_CLUES,
-    BLOCKLIST_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES,
-    INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SERVARR_CONTEXT_CLUES,
-    SYSTEM_CONTEXT_CLUES,
+    BARE_POPUP_CONTEXT_CLUES, BLOCKLIST_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
+    ContextClueProvider, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
+    ROOT_FOLDERS_CONTEXT_CLUES, SERVARR_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+    ServarrContextClueProvider,
   };
-  use crate::app::{key_binding::DEFAULT_KEYBINDINGS, App};
+  use crate::app::{App, key_binding::DEFAULT_KEYBINDINGS};
+  use crate::models::servarr_data::ActiveKeybindingBlock;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
-  use crate::models::servarr_data::ActiveKeybindingBlock;
 
   #[test]
   fn test_servarr_context_clues() {
     let mut servarr_context_clues_iter = SERVARR_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.up);
-    assert_str_eq!(*description, "scroll up");
-
-    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.down);
-    assert_str_eq!(*description, "scroll down");
-
-    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.left);
-    assert_str_eq!(*description, "previous tab");
-
-    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.right);
-    assert_str_eq!(*description, "next tab");
-
-    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.pg_up);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.pg_up.desc);
-
-    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.pg_down);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.pg_down.desc);
-
-    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.next_servarr);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.next_servarr.desc);
-
-    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.previous_servarr);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.previous_servarr.desc);
-
-    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.quit);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.quit.desc);
-
-    let (key_binding, description) = servarr_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.help);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.help.desc);
-    assert_eq!(servarr_context_clues_iter.next(), None);
+    assert_some_eq_x!(
+      servarr_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.up, "scroll up")
+    );
+    assert_some_eq_x!(
+      servarr_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.down, "scroll down")
+    );
+    assert_some_eq_x!(
+      servarr_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.left, "previous tab")
+    );
+    assert_some_eq_x!(
+      servarr_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.right, "next tab")
+    );
+    assert_some_eq_x!(
+      servarr_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.pg_up, DEFAULT_KEYBINDINGS.pg_up.desc)
+    );
+    assert_some_eq_x!(
+      servarr_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.pg_down,
+        DEFAULT_KEYBINDINGS.pg_down.desc
+      )
+    );
+    assert_some_eq_x!(
+      servarr_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.next_servarr,
+        DEFAULT_KEYBINDINGS.next_servarr.desc
+      )
+    );
+    assert_some_eq_x!(
+      servarr_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.previous_servarr,
+        DEFAULT_KEYBINDINGS.previous_servarr.desc
+      )
+    );
+    assert_some_eq_x!(
+      servarr_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.quit, DEFAULT_KEYBINDINGS.quit.desc)
+    );
+    assert_some_eq_x!(
+      servarr_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.help, DEFAULT_KEYBINDINGS.help.desc)
+    );
+    assert_none!(servarr_context_clues_iter.next());
   }
 
   #[test]
   fn test_bare_popup_context_clues() {
     let mut bare_popup_context_clues_iter = BARE_POPUP_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = bare_popup_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.esc.desc);
-    assert_eq!(bare_popup_context_clues_iter.next(), None);
+    assert_some_eq_x!(
+      bare_popup_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
+    );
+    assert_none!(bare_popup_context_clues_iter.next());
   }
 
   #[test]
   fn test_downloads_context_clues() {
     let mut downloads_context_clues_iter = DOWNLOADS_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = downloads_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.refresh);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.refresh.desc);
-
-    let (key_binding, description) = downloads_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.delete);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.delete.desc);
-
-    let (key_binding, description) = downloads_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.update);
-    assert_str_eq!(*description, "update downloads");
-    assert_eq!(downloads_context_clues_iter.next(), None);
+    assert_some_eq_x!(
+      downloads_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_some_eq_x!(
+      downloads_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc)
+    );
+    assert_some_eq_x!(
+      downloads_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.update, "update downloads")
+    );
+    assert_none!(downloads_context_clues_iter.next());
   }
 
   #[test]
   fn test_blocklist_context_clues() {
     let mut blocklist_context_clues_iter = BLOCKLIST_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = blocklist_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.refresh);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.refresh.desc);
-
-    let (key_binding, description) = blocklist_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.sort);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.sort.desc);
-
-    let (key_binding, description) = blocklist_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
-    assert_str_eq!(*description, "details");
-
-    let (key_binding, description) = blocklist_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.delete);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.delete.desc);
-
-    let (key_binding, description) = blocklist_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.clear);
-    assert_str_eq!(*description, "clear blocklist");
-    assert_eq!(blocklist_context_clues_iter.next(), None);
+    assert_some_eq_x!(
+      blocklist_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_some_eq_x!(
+      blocklist_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc)
+    );
+    assert_some_eq_x!(
+      blocklist_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.submit, "details")
+    );
+    assert_some_eq_x!(
+      blocklist_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc)
+    );
+    assert_some_eq_x!(
+      blocklist_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.clear, "clear blocklist")
+    );
+    assert_none!(blocklist_context_clues_iter.next());
   }
 
   #[test]
   fn test_confirmation_prompt_context_clues() {
     let mut confirmation_prompt_context_clues_iter = CONFIRMATION_PROMPT_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = confirmation_prompt_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.confirm);
-    assert_str_eq!(*description, "submit");
-
-    let (key_binding, description) = confirmation_prompt_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.esc);
-    assert_str_eq!(*description, "cancel");
-    assert_eq!(confirmation_prompt_context_clues_iter.next(), None);
+    assert_some_eq_x!(
+      confirmation_prompt_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.confirm, "submit")
+    );
+    assert_some_eq_x!(
+      confirmation_prompt_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, "cancel")
+    );
+    assert_none!(confirmation_prompt_context_clues_iter.next());
   }
 
   #[test]
   fn test_root_folders_context_clues() {
     let mut root_folders_context_clues_iter = ROOT_FOLDERS_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = root_folders_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.add);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.add.desc);
-
-    let (key_binding, description) = root_folders_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.delete);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.delete.desc);
-
-    let (key_binding, description) = root_folders_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.refresh);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.refresh.desc);
-    assert_eq!(root_folders_context_clues_iter.next(), None);
+    assert_some_eq_x!(
+      root_folders_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.add, DEFAULT_KEYBINDINGS.add.desc)
+    );
+    assert_some_eq_x!(
+      root_folders_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc)
+    );
+    assert_some_eq_x!(
+      root_folders_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_none!(root_folders_context_clues_iter.next());
   }
 
   #[test]
   fn test_indexers_context_clues() {
     let mut indexers_context_clues_iter = INDEXERS_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = indexers_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.submit);
-    assert_str_eq!(*description, "edit indexer");
-
-    let (key_binding, description) = indexers_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.settings);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.settings.desc);
-
-    let (key_binding, description) = indexers_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.delete);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.delete.desc);
-
-    let (key_binding, description) = indexers_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.test);
-    assert_str_eq!(*description, "test indexer");
-
-    let (key_binding, description) = indexers_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.test_all);
-    assert_str_eq!(*description, "test all indexers");
-
-    let (key_binding, description) = indexers_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.refresh);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.refresh.desc);
-    assert_eq!(indexers_context_clues_iter.next(), None);
+    assert_some_eq_x!(
+      indexers_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.submit, "edit indexer")
+    );
+    assert_some_eq_x!(
+      indexers_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.settings,
+        DEFAULT_KEYBINDINGS.settings.desc
+      )
+    );
+    assert_some_eq_x!(
+      indexers_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc)
+    );
+    assert_some_eq_x!(
+      indexers_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.test, "test indexer")
+    );
+    assert_some_eq_x!(
+      indexers_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.test_all, "test all indexers")
+    );
+    assert_some_eq_x!(
+      indexers_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_none!(indexers_context_clues_iter.next());
   }
 
   #[test]
   fn test_system_context_clues() {
     let mut system_context_clues_iter = SYSTEM_CONTEXT_CLUES.iter();
 
-    let (key_binding, description) = system_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.tasks);
-    assert_str_eq!(*description, "open tasks");
-
-    let (key_binding, description) = system_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.events);
-    assert_str_eq!(*description, "open events");
-
-    let (key_binding, description) = system_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.logs);
-    assert_str_eq!(*description, "open logs");
-
-    let (key_binding, description) = system_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.update);
-    assert_str_eq!(*description, "open updates");
-
-    let (key_binding, description) = system_context_clues_iter.next().unwrap();
-
-    assert_eq!(*key_binding, DEFAULT_KEYBINDINGS.refresh);
-    assert_str_eq!(*description, DEFAULT_KEYBINDINGS.refresh.desc);
-    assert_eq!(system_context_clues_iter.next(), None);
+    assert_some_eq_x!(
+      system_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.tasks, "open tasks")
+    );
+    assert_some_eq_x!(
+      system_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.events, "open events")
+    );
+    assert_some_eq_x!(
+      system_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.logs, "open logs")
+    );
+    assert_some_eq_x!(
+      system_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.update, "open updates")
+    );
+    assert_some_eq_x!(
+      system_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_none!(system_context_clues_iter.next());
   }
 
   #[test]
@@ -243,10 +241,9 @@ mod test {
 
     let context_clues = ServarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_some());
-    assert_eq!(
+    assert_some_eq_x!(
+      context_clues,
       &crate::app::radarr::radarr_context_clues::SYSTEM_TASKS_CONTEXT_CLUES,
-      context_clues.unwrap()
     );
   }
 
@@ -257,10 +254,9 @@ mod test {
 
     let context_clues = ServarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_some());
-    assert_eq!(
+    assert_some_eq_x!(
+      context_clues,
       &crate::app::sonarr::sonarr_context_clues::SYSTEM_TASKS_CONTEXT_CLUES,
-      context_clues.unwrap()
     );
   }
 
@@ -271,6 +267,6 @@ mod test {
 
     let context_clues = ServarrContextClueProvider::get_context_clues(&mut app);
 
-    assert!(context_clues.is_none());
+    assert_none!(context_clues);
   }
 }

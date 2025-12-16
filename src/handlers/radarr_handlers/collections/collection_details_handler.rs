@@ -1,15 +1,14 @@
 use crate::app::App;
 use crate::event::Key;
-use crate::handlers::table_handler::TableHandlingConfig;
 use crate::handlers::KeyEventHandler;
-use crate::models::radarr_models::CollectionMovie;
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
+use crate::matches_key;
+use crate::models::BlockSelectionState;
 use crate::models::servarr_data::radarr::radarr_data::{
-  ActiveRadarrBlock, ADD_MOVIE_SELECTION_BLOCKS, COLLECTION_DETAILS_BLOCKS,
+  ADD_MOVIE_SELECTION_BLOCKS, ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS,
   EDIT_COLLECTION_SELECTION_BLOCKS,
 };
 use crate::models::stateful_table::StatefulTable;
-use crate::models::BlockSelectionState;
-use crate::{handle_table_events, matches_key};
 
 #[cfg(test)]
 #[path = "collection_details_handler_tests.rs"]
@@ -22,21 +21,18 @@ pub(super) struct CollectionDetailsHandler<'a, 'b> {
   _context: Option<ActiveRadarrBlock>,
 }
 
-impl CollectionDetailsHandler<'_, '_> {
-  handle_table_events!(
-    self,
-    collection_movies,
-    self.app.data.radarr_data.collection_movies,
-    CollectionMovie
-  );
-}
+impl CollectionDetailsHandler<'_, '_> {}
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHandler<'a, 'b> {
   fn handle(&mut self) {
     let collection_movies_table_handling_config =
       TableHandlingConfig::new(ActiveRadarrBlock::CollectionDetails.into());
 
-    if !self.handle_collection_movies_table_events(collection_movies_table_handling_config) {
+    if !handle_table(
+      self,
+      |app| &mut app.data.radarr_data.collection_movies,
+      collection_movies_table_handling_config,
+    ) {
       self.handle_key_event();
     }
   }
@@ -146,5 +142,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionDetailsHan
       self.app.data.radarr_data.selected_block =
         BlockSelectionState::new(EDIT_COLLECTION_SELECTION_BLOCKS);
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }

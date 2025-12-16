@@ -1,11 +1,11 @@
 use radarr_handlers::RadarrHandler;
 use sonarr_handlers::SonarrHandler;
 
+use crate::app::App;
 use crate::app::context_clues::{
-  ContextClueProvider, ServarrContextClueProvider, SERVARR_CONTEXT_CLUES,
+  ContextClueProvider, SERVARR_CONTEXT_CLUES, ServarrContextClueProvider,
 };
 use crate::app::key_binding::KeyBinding;
-use crate::app::App;
 use crate::event::Key;
 use crate::handlers::keybinding_handler::KeybindingHandler;
 use crate::matches_key;
@@ -93,6 +93,8 @@ pub trait KeyEventHandler<'a, 'b, T: Into<Route> + Copy> {
   fn handle_submit(&mut self);
   fn handle_esc(&mut self);
   fn handle_char_key_event(&mut self);
+  fn app_mut(&mut self) -> &mut App<'b>;
+  fn current_route(&self) -> Route;
 }
 
 pub fn handle_events(key: Key, app: &mut App<'_>) {
@@ -128,7 +130,7 @@ pub fn handle_events(key: Key, app: &mut App<'_>) {
   }
 }
 
-fn populate_keymapping_table(app: &mut App<'_>) {
+pub fn populate_keymapping_table(app: &mut App<'_>) {
   let context_clue_to_keybinding_item = |key: &KeyBinding, desc: &&str| {
     let (key, alt_key) = if key.alt.is_some() {
       (key.key.to_string(), key.alt.as_ref().unwrap().to_string())

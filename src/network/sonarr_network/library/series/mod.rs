@@ -1,15 +1,15 @@
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use crate::models::sonarr_models::{
   AddSeriesBody, AddSeriesSearchResult, DeleteSeriesParams, EditSeriesParams, Series,
   SonarrCommandBody, SonarrHistoryItem,
 };
 use crate::models::stateful_table::StatefulTable;
-use crate::models::Route;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
 use log::{debug, info, warn};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use urlencoding::encode;
 
 #[cfg(test)]
@@ -56,7 +56,9 @@ impl Network<'_, '_> {
       add_list_exclusion,
     } = delete_series_params;
 
-    info!("Deleting Sonarr series with ID: {id} with deleteFiles={delete_series_files} and addImportExclusion={add_list_exclusion}");
+    info!(
+      "Deleting Sonarr series with ID: {id} with deleteFiles={delete_series_files} and addImportExclusion={add_list_exclusion}"
+    );
 
     let request_props = self
       .request_props_from(
@@ -305,29 +307,17 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<SonarrHistoryItem>>(request_props, |mut history_vec, mut app| {
-        if app.data.sonarr_data.series_history.is_none() {
-          app.data.sonarr_data.series_history = Some(StatefulTable::default());
-        }
-
-        if !matches!(
+        let is_sorting = matches!(
           app.get_current_route(),
           Route::Sonarr(ActiveSonarrBlock::SeriesHistorySortPrompt, _)
-        ) {
+        );
+
+        let series_history = app.data.sonarr_data.series_history.get_or_insert_default();
+
+        if !is_sorting {
           history_vec.sort_by(|a, b| a.id.cmp(&b.id));
-          app
-            .data
-            .sonarr_data
-            .series_history
-            .as_mut()
-            .unwrap()
-            .set_items(history_vec);
-          app
-            .data
-            .sonarr_data
-            .series_history
-            .as_mut()
-            .unwrap()
-            .apply_sorting_toggle(false);
+          series_history.set_items(history_vec);
+          series_history.apply_sorting_toggle(false);
         }
       })
       .await

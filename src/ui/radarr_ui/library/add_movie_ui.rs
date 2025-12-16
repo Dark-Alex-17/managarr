@@ -1,13 +1,13 @@
 use std::sync::atomic::Ordering;
 
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::widgets::{Cell, ListItem, Row};
-use ratatui::Frame;
 
+use crate::models::Route;
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::servarr_data::radarr::modals::AddMovieModal;
-use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
-use crate::models::Route;
+use crate::models::servarr_data::radarr::radarr_data::{ADD_MOVIE_BLOCKS, ActiveRadarrBlock};
 use crate::ui::radarr_ui::collections::CollectionsUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
@@ -19,9 +19,9 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup, DrawUi};
+use crate::ui::{DrawUi, draw_popup};
 use crate::utils::convert_runtime;
-use crate::{render_selectable_input_box, App};
+use crate::{App, render_selectable_input_box};
 
 #[cfg(test)]
 #[path = "add_movie_ui_tests.rs"]
@@ -31,11 +31,10 @@ pub(super) struct AddMovieUi;
 
 impl DrawUi for AddMovieUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
-      return ADD_MOVIE_BLOCKS.contains(&active_radarr_block);
-    }
-
-    false
+    let Route::Radarr(active_radarr_block, _) = route else {
+      return false;
+    };
+    ADD_MOVIE_BLOCKS.contains(&active_radarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
@@ -81,13 +80,19 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     Layout::vertical([Constraint::Length(3), Constraint::Fill(0)])
       .margin(1)
       .areas(area);
-  let block_content = &app.data.radarr_data.add_movie_search.as_ref().unwrap().text;
+  let block_content = &app
+    .data
+    .radarr_data
+    .add_movie_search
+    .as_ref()
+    .expect("add_movie_search must be populated")
+    .text;
   let offset = app
     .data
     .radarr_data
     .add_movie_search
     .as_ref()
-    .unwrap()
+    .expect("add_movie_search must be populated")
     .offset
     .load(Ordering::SeqCst);
   let search_results_row_mapping = |movie: &AddMovieSearchResult| {
@@ -99,7 +104,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .unwrap_or_default()
       .value
       .as_f64()
-      .unwrap();
+      .unwrap_or_default();
     let rotten_tomatoes_rating = movie
       .ratings
       .rotten_tomatoes
@@ -107,7 +112,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .unwrap_or_default()
       .value
       .as_u64()
-      .unwrap();
+      .unwrap_or_default();
     let imdb_rating = if imdb_rating == 0.0 {
       String::new()
     } else {
@@ -261,7 +266,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .radarr_data
         .add_searched_movies
         .as_ref()
-        .unwrap()
+        .expect("add_searched_movies must be populated")
         .current_selection()
         .title
         .text,
@@ -270,7 +275,7 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .radarr_data
         .add_searched_movies
         .as_ref()
-        .unwrap()
+        .expect("add_searched_movies must be populated")
         .current_selection()
         .overview
         .clone(),
@@ -288,7 +293,12 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     root_folder_list,
     tags,
     ..
-  } = app.data.radarr_data.add_movie_modal.as_ref().unwrap();
+  } = app
+    .data
+    .radarr_data
+    .add_movie_modal
+    .as_ref()
+    .expect("add_movie_modal must exist in this context");
 
   let selected_monitor = monitor_list.current_selection();
   let selected_minimum_availability = minimum_availability_list.current_selection();
@@ -297,19 +307,27 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
   f.render_widget(title_block_centered(&title), area);
 
-  let [paragraph_area, root_folder_area, monitor_area, min_availability_area, quality_profile_area, tags_area, _, buttons_area] =
-    Layout::vertical([
-      Constraint::Length(6),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Fill(1),
-      Constraint::Length(3),
-    ])
-    .margin(1)
-    .areas(area);
+  let [
+    paragraph_area,
+    root_folder_area,
+    monitor_area,
+    min_availability_area,
+    quality_profile_area,
+    tags_area,
+    _,
+    buttons_area,
+  ] = Layout::vertical([
+    Constraint::Length(6),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Fill(1),
+    Constraint::Length(3),
+  ])
+  .margin(1)
+  .areas(area);
 
   let prompt_paragraph = layout_paragraph_borderless(&prompt);
   f.render_widget(prompt_paragraph, paragraph_area);
@@ -371,7 +389,7 @@ fn draw_add_movie_select_monitor_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
       .radarr_data
       .add_movie_modal
       .as_mut()
-      .unwrap()
+      .expect("add_movie_modal must exist in this context")
       .monitor_list,
     |monitor| ListItem::new(monitor.to_display_str().to_owned()),
   );
@@ -387,7 +405,7 @@ fn draw_add_movie_select_minimum_availability_popup(f: &mut Frame<'_>, app: &mut
       .radarr_data
       .add_movie_modal
       .as_mut()
-      .unwrap()
+      .expect("add_movie_modal must exist in this context")
       .minimum_availability_list,
     |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
   );
@@ -403,7 +421,7 @@ fn draw_add_movie_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App<
       .radarr_data
       .add_movie_modal
       .as_mut()
-      .unwrap()
+      .expect("add_movie_modal must exist in this context")
       .quality_profile_list,
     |quality_profile| ListItem::new(quality_profile.clone()),
   );
@@ -419,7 +437,7 @@ fn draw_add_movie_select_root_folder_popup(f: &mut Frame<'_>, app: &mut App<'_>)
       .radarr_data
       .add_movie_modal
       .as_mut()
-      .unwrap()
+      .expect("add_movie_modal must exist in this context")
       .root_folder_list,
     |root_folder| ListItem::new(root_folder.path.to_owned()),
   );

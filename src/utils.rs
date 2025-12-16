@@ -5,11 +5,11 @@ use std::process;
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::anyhow;
 use anyhow::Result;
+use anyhow::{Context, anyhow};
 use colored::Colorize;
 use indicatif::{ProgressBar, ProgressStyle};
-use log::{error, LevelFilter};
+use log::{LevelFilter, error};
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Root};
 use log4rs::encode::pattern::PatternEncoder;
@@ -18,7 +18,7 @@ use reqwest::{Certificate, Client};
 use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
 
-use crate::app::{log_and_print_error, App, AppConfig};
+use crate::app::{App, AppConfig, log_and_print_error};
 use crate::cli::{self, Command};
 use crate::network::Network;
 use crate::ui::theme::ThemeDefinitionsWrapper;
@@ -79,16 +79,15 @@ pub fn convert_runtime(runtime: i64) -> (i64, i64) {
   (hours, minutes)
 }
 
-pub async fn tail_logs(no_color: bool) {
-  let re = Regex::new(r"^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s+<(?P<opid>[^\s>]+)>\s+\[(?P<level>[A-Z]+)\]\s+(?P<logger>[^:]+):(?P<line>\d+)\s+-\s+(?P<message>.*)$").unwrap();
+pub async fn tail_logs(no_color: bool) -> Result<()> {
+  let re = Regex::new(r"^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s+<(?P<opid>[^\s>]+)>\s+\[(?P<level>[A-Z]+)]\s+(?P<logger>[^:]+):(?P<line>\d+)\s+-\s+(?P<message>.*)$").unwrap();
   let file_path = get_log_path();
   let file = File::open(&file_path).expect("Cannot open file");
   let mut reader = BufReader::new(file);
 
-  if let Err(e) = reader.seek(SeekFrom::End(0)) {
-    eprintln!("Unable to tail log file: {e:?}");
-    process::exit(1);
-  };
+  reader
+    .seek(SeekFrom::End(0))
+    .with_context(|| "Unable to tail log file")?;
 
   let mut lines = reader.lines();
 
@@ -104,8 +103,7 @@ pub async fn tail_logs(no_color: bool) {
       }
     }
   })
-  .await
-  .unwrap();
+  .await?
 }
 
 fn colorize_log_line(line: &str, re: &Regex) -> String {
@@ -176,7 +174,7 @@ pub(super) fn build_network_client(config: &AppConfig) -> Client {
 
   if let Some(radarr_configs) = &config.radarr {
     for radarr_config in radarr_configs {
-      if let Some(ref cert_path) = &radarr_config.ssl_cert_path {
+      if let Some(cert_path) = &radarr_config.ssl_cert_path {
         let cert = create_cert(cert_path, "Radarr");
         client_builder = client_builder.add_root_certificate(cert);
       }
@@ -185,7 +183,7 @@ pub(super) fn build_network_client(config: &AppConfig) -> Client {
 
   if let Some(sonarr_configs) = &config.sonarr {
     for sonarr_config in sonarr_configs {
-      if let Some(ref cert_path) = &sonarr_config.ssl_cert_path {
+      if let Some(cert_path) = &sonarr_config.ssl_cert_path {
         let cert = create_cert(cert_path, "Sonarr");
         client_builder = client_builder.add_root_certificate(cert);
       }
@@ -311,11 +309,13 @@ pub fn select_cli_configuration(
   } else {
     match command {
       Command::Radarr(_) => {
-        let default_radarr_config = config.radarr.as_ref().unwrap()[0].clone();
+        let default_radarr_config =
+          config.radarr.as_ref().expect("Radarr config must exist")[0].clone();
         app.server_tabs.select_tab_by_config(&default_radarr_config);
       }
       Command::Sonarr(_) => {
-        let default_sonarr_config = config.sonarr.as_ref().unwrap()[0].clone();
+        let default_sonarr_config =
+          config.sonarr.as_ref().expect("Sonarr config must exist")[0].clone();
         app.server_tabs.select_tab_by_config(&default_sonarr_config);
       }
       _ => (),

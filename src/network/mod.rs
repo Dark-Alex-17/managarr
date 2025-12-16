@@ -1,13 +1,13 @@
 use std::fmt::Debug;
 use std::sync::Arc;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use async_trait::async_trait;
 use log::{debug, error, warn};
 use regex::Regex;
 use reqwest::{Client, RequestBuilder};
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use sonarr_network::SonarrEvent;
 use strum_macros::Display;
 use tokio::select;
@@ -26,8 +26,9 @@ pub mod sonarr_network;
 mod utils;
 
 #[cfg(test)]
-#[path = "network_tests.rs"]
 mod network_tests;
+#[cfg(test)]
+pub mod servarr_test_utils;
 
 #[cfg_attr(test, automock)]
 #[async_trait]

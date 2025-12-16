@@ -1,6 +1,6 @@
 use crate::app::App;
 use crate::event::Key;
-use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::models::servarr_data::modals::EditIndexerModal;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_INDEXER_BLOCKS};
 use crate::models::servarr_models::EditIndexerParams;
@@ -520,5 +520,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditIndexerHandler<'
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }

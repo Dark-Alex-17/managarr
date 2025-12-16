@@ -3,7 +3,7 @@ use crate::network::sonarr_network::SonarrEvent;
 use crate::{
   app::App,
   event::Key,
-  handlers::{handle_prompt_toggle, KeyEventHandler},
+  handlers::{KeyEventHandler, handle_prompt_toggle},
   matches_key,
   models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DELETE_SERIES_BLOCKS},
 };
@@ -137,5 +137,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for DeleteSeriesHandler<
 
       self.app.pop_navigation_stack();
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }

@@ -1,27 +1,30 @@
 #[cfg(test)]
 mod tests {
+  use crate::assert_modal_absent;
+  use crate::assert_navigation_pushed;
   use crate::models::radarr_models::Movie;
   use crate::models::sonarr_models::Series;
+  use crate::{assert_modal_present, assert_navigation_popped};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
   use tokio_util::sync::CancellationToken;
 
+  use crate::app::App;
   use crate::app::context_clues::SERVARR_CONTEXT_CLUES;
-  use crate::app::key_binding::{KeyBinding, DEFAULT_KEYBINDINGS};
+  use crate::app::key_binding::{DEFAULT_KEYBINDINGS, KeyBinding};
   use crate::app::radarr::radarr_context_clues::{
     LIBRARY_CONTEXT_CLUES, MOVIE_DETAILS_CONTEXT_CLUES,
   };
-  use crate::app::App;
   use crate::event::Key;
   use crate::handlers::{handle_clear_errors, handle_prompt_toggle};
   use crate::handlers::{handle_events, populate_keymapping_table};
-  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
-  use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
-  use crate::models::servarr_data::ActiveKeybindingBlock;
-  use crate::models::servarr_models::KeybindingItem;
-  use crate::models::stateful_table::StatefulTable;
   use crate::models::HorizontallyScrollableText;
   use crate::models::Route;
+  use crate::models::servarr_data::ActiveKeybindingBlock;
+  use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
+  use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
+  use crate::models::servarr_models::KeybindingItem;
+  use crate::models::stateful_table::StatefulTable;
 
   #[test]
   fn test_handle_clear_errors() {
@@ -30,7 +33,7 @@ mod tests {
 
     handle_clear_errors(&mut app);
 
-    assert!(app.error.text.is_empty());
+    assert_is_empty!(app.error.text);
   }
 
   #[rstest]
@@ -53,7 +56,7 @@ mod tests {
 
     handle_events(DEFAULT_KEYBINDINGS.esc.key, &mut app);
 
-    assert_eq!(app.get_current_route(), base_block);
+    assert_navigation_popped!(app, base_block);
   }
 
   #[rstest]
@@ -70,7 +73,7 @@ mod tests {
     handle_events(DEFAULT_KEYBINDINGS.previous_servarr.key, &mut app);
 
     assert_eq!(app.server_tabs.get_active_route(), left_block.into());
-    assert_eq!(app.get_current_route(), left_block.into());
+    assert_navigation_pushed!(app, left_block.into());
     assert!(app.is_first_render);
     assert_eq!(app.error, HorizontallyScrollableText::default());
     assert!(app.cancellation_token.is_cancelled());
@@ -83,7 +86,7 @@ mod tests {
     handle_events(DEFAULT_KEYBINDINGS.next_servarr.key, &mut app);
 
     assert_eq!(app.server_tabs.get_active_route(), right_block.into());
-    assert_eq!(app.get_current_route(), right_block.into());
+    assert_navigation_pushed!(app, right_block.into());
     assert!(app.is_first_render);
     assert_eq!(app.error, HorizontallyScrollableText::default());
     assert!(app.cancellation_token.is_cancelled());
@@ -100,7 +103,7 @@ mod tests {
 
     handle_events(DEFAULT_KEYBINDINGS.help.key, &mut app);
 
-    assert!(app.keymapping_table.is_some());
+    assert_modal_present!(app.keymapping_table);
     assert_eq!(
       expected_keybinding_items,
       app.keymapping_table.unwrap().items
@@ -115,12 +118,12 @@ mod tests {
 
     handle_events(DEFAULT_KEYBINDINGS.help.key, &mut app);
 
-    assert!(app.keymapping_table.is_none());
+    assert_modal_absent!(app.keymapping_table);
   }
 
   #[test]
-  fn test_handle_empties_keybindings_table_on_help_button_press_when_keybindings_table_is_already_populated(
-  ) {
+  fn test_handle_empties_keybindings_table_on_help_button_press_when_keybindings_table_is_already_populated()
+   {
     let mut app = App::test_default();
     let keybinding_items = Vec::from(SERVARR_CONTEXT_CLUES)
       .iter()
@@ -133,7 +136,7 @@ mod tests {
 
     handle_events(DEFAULT_KEYBINDINGS.help.key, &mut app);
 
-    assert!(app.keymapping_table.is_none());
+    assert_modal_absent!(app.keymapping_table);
   }
 
   #[test]
@@ -158,7 +161,7 @@ mod tests {
 
     handle_events(DEFAULT_KEYBINDINGS.down.key, &mut app);
 
-    assert!(app.keymapping_table.is_some());
+    assert_modal_present!(app.keymapping_table);
     assert_eq!(
       &expected_selection,
       app.keymapping_table.unwrap().current_selection()
@@ -219,7 +222,7 @@ mod tests {
 
     populate_keymapping_table(&mut app);
 
-    assert!(app.keymapping_table.is_some());
+    assert_modal_present!(app.keymapping_table);
     assert_eq!(
       expected_keybinding_items,
       app.keymapping_table.unwrap().items
@@ -243,7 +246,7 @@ mod tests {
 
     populate_keymapping_table(&mut app);
 
-    assert!(app.keymapping_table.is_some());
+    assert_modal_present!(app.keymapping_table);
     assert_eq!(
       expected_keybinding_items,
       app.keymapping_table.unwrap().items
@@ -251,8 +254,8 @@ mod tests {
   }
 
   #[test]
-  fn test_populate_keymapping_table_populates_delegated_servarr_context_provider_options_before_global_options(
-  ) {
+  fn test_populate_keymapping_table_populates_delegated_servarr_context_provider_options_before_global_options()
+   {
     let mut expected_keybinding_items = MOVIE_DETAILS_CONTEXT_CLUES
       .iter()
       .map(|(key, desc)| context_clue_to_keybinding_item(key, desc))
@@ -268,7 +271,7 @@ mod tests {
 
     populate_keymapping_table(&mut app);
 
-    assert!(app.keymapping_table.is_some());
+    assert_modal_present!(app.keymapping_table);
     assert_eq!(
       expected_keybinding_items,
       app.keymapping_table.unwrap().items

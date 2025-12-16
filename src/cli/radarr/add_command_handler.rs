@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use clap::{ArgAction, Subcommand};
+use clap::{ArgAction, Subcommand, arg, command};
 use tokio::sync::Mutex;
 
 use super::RadarrCommand;
@@ -10,7 +10,7 @@ use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
   models::radarr_models::{AddMovieBody, AddMovieOptions, MinimumAvailability, MovieMonitor},
-  network::{radarr_network::RadarrEvent, NetworkTrait},
+  network::{NetworkTrait, radarr_network::RadarrEvent},
 };
 
 #[cfg(test)]

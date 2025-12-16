@@ -1,45 +1,38 @@
 #[cfg(test)]
 mod tests {
   use crate::models::sonarr_models::{DownloadsResponse, SonarrSerdeable};
-  use crate::network::network_tests::test_utils::mock_servarr_api;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
+  use crate::network::sonarr_network::SonarrEvent;
   use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
     download_record, downloads_response,
   };
-  use crate::network::sonarr_network::SonarrEvent;
-  use crate::network::{Network, RequestMethod};
   use pretty_assertions::assert_eq;
-  use reqwest::Client;
   use serde_json::json;
-  use tokio_util::sync::CancellationToken;
 
   #[tokio::test]
   async fn test_handle_delete_sonarr_download_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      SonarrEvent::DeleteDownload(1),
-      Some("/1"),
-      None,
-    )
-    .await;
-    app_arc
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .build_for(SonarrEvent::DeleteDownload(1))
+      .await;
+    app
       .lock()
       .await
       .data
       .sonarr_data
       .downloads
       .set_items(vec![download_record()]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::DeleteDownload(1))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::DeleteDownload(1))
+        .await
+        .is_ok()
+    );
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
   }
 
   #[tokio::test]
@@ -59,55 +52,48 @@ mod tests {
     });
     let response: DownloadsResponse =
       serde_json::from_value(downloads_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(downloads_response_json),
-      None,
-      SonarrEvent::GetDownloads(500),
-      None,
-      Some("pageSize=500"),
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(downloads_response_json)
+      .query("pageSize=500")
+      .build_for(SonarrEvent::GetDownloads(500))
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::DownloadsResponse(downloads) = network
+    let SonarrSerdeable::DownloadsResponse(downloads) = network
       .handle_sonarr_event(SonarrEvent::GetDownloads(500))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.downloads.items,
-        downloads_response().records
-      );
-      assert_eq!(downloads, response);
-    }
+    else {
+      panic!("Expected DownloadsResponse")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.downloads.items,
+      downloads_response().records
+    );
+    assert_eq!(downloads, response);
   }
 
   #[tokio::test]
   async fn test_handle_update_sonarr_downloads_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
         "name": "RefreshMonitoredDownloads"
-      })),
-      Some(json!({})),
-      None,
-      SonarrEvent::UpdateDownloads,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+      }))
+      .returns(json!({}))
+      .build_for(SonarrEvent::UpdateDownloads)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::UpdateDownloads)
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::UpdateDownloads)
+        .await
+        .is_ok()
+    );
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
   }
 }

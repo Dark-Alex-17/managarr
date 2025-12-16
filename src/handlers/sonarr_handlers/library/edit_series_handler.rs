@@ -1,10 +1,10 @@
 use crate::app::App;
 use crate::event::Key;
-use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
+use crate::models::Scrollable;
 use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_SERIES_BLOCKS};
 use crate::models::sonarr_models::EditSeriesParams;
-use crate::models::Scrollable;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys, matches_key};
 
@@ -465,5 +465,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EditSeriesHandler<'a
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }

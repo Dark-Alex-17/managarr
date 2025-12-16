@@ -9,18 +9,15 @@ mod test {
     AddSeriesBody, EditSeriesParams, IndexerSettings, SonarrTaskName,
   };
   use crate::models::sonarr_models::{DeleteSeriesParams, SonarrSerdeable};
-  use crate::network::{
-    network_tests::test_utils::mock_servarr_api, sonarr_network::SonarrEvent, Network,
-    NetworkEvent, NetworkResource, RequestMethod,
-  };
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
+  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::tag;
+  use crate::network::{NetworkEvent, NetworkResource, sonarr_network::SonarrEvent};
   use bimap::BiMap;
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use reqwest::Client;
   use rstest::rstest;
   use serde_json::json;
   use std::sync::Arc;
   use tokio::sync::Mutex;
-  use tokio_util::sync::CancellationToken;
 
   #[rstest]
   fn test_resource_all_indexer_settings(
@@ -191,82 +188,74 @@ mod test {
 
   #[tokio::test]
   async fn test_handle_add_sonarr_tag() {
-    let tag_json = json!({ "id": 3, "label": "testing" });
-    let response: Tag = serde_json::from_value(tag_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({ "label": "testing" })),
-      Some(tag_json),
-      None,
-      SonarrEvent::AddTag(String::new()),
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.data.sonarr_data.tags_map =
-      BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let expected = Tag {
+      id: 3,
+      label: "testing".to_owned(),
+    };
 
-    if let SonarrSerdeable::Tag(tag) = network
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({ "label": "testing" }))
+      .returns(tag())
+      .build_for(SonarrEvent::AddTag(String::new()))
+      .await;
+
+    app.lock().await.data.sonarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
+    app.lock().await.server_tabs.next();
+
+    let mut network = test_network(&app);
+
+    let result = network
       .handle_sonarr_event(SonarrEvent::AddTag("testing".to_owned()))
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.tags_map,
-        BiMap::from_iter([
-          (1, "usenet".to_owned()),
-          (2, "test".to_owned()),
-          (3, "testing".to_owned())
-        ])
-      );
-      assert_eq!(tag, response);
-    }
+      .await;
+
+    mock.assert_async().await;
+
+    let SonarrSerdeable::Tag(tag) = result.unwrap() else {
+      panic!("Expected Tag");
+    };
+
+    assert_eq!(tag, expected);
+    assert_eq!(
+      app.lock().await.data.sonarr_data.tags_map,
+      BiMap::from_iter([
+        (1, "usenet".to_owned()),
+        (2, "test".to_owned()),
+        (3, "testing".to_owned())
+      ])
+    );
   }
 
   #[tokio::test]
   async fn test_handle_delete_sonarr_tag_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      SonarrEvent::DeleteTag(1),
-      Some("/1"),
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (async_server, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .build_for(SonarrEvent::DeleteTag(1))
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_sonarr_event(SonarrEvent::DeleteTag(1))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_sonarr_event(SonarrEvent::DeleteTag(1))
+        .await
+        .is_ok()
+    );
 
     async_server.assert_async().await;
   }
 
   #[tokio::test]
   async fn test_handle_get_sonarr_healthcheck_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      None,
-      None,
-      SonarrEvent::HealthCheck,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .build_for(SonarrEvent::HealthCheck)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
     let _ = network.handle_sonarr_event(SonarrEvent::HealthCheck).await;
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
   }
 
   #[tokio::test]
@@ -276,31 +265,28 @@ mod test {
       "name": "English"
     }]);
     let response: Vec<Language> = serde_json::from_value(language_profiles_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(language_profiles_json),
-      None,
-      SonarrEvent::GetLanguageProfiles,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(language_profiles_json)
+      .build_for(SonarrEvent::GetLanguageProfiles)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::LanguageProfiles(language_profiles) = network
+    let result = network
       .handle_sonarr_event(SonarrEvent::GetLanguageProfiles)
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.language_profiles_map,
-        BiMap::from_iter([(2222i64, "English".to_owned())])
-      );
-      assert_eq!(language_profiles, response);
-    }
+      .await;
+
+    mock.assert_async().await;
+
+    let SonarrSerdeable::LanguageProfiles(language_profiles) = result.unwrap() else {
+      panic!("Expected LanguageProfiles")
+    };
+
+    assert_eq!(
+      app.lock().await.data.sonarr_data.language_profiles_map,
+      BiMap::from_iter([(2222i64, "English".to_owned())])
+    );
+    assert_eq!(language_profiles, response);
   }
 
   #[tokio::test]
@@ -311,31 +297,28 @@ mod test {
     }]);
     let response: Vec<QualityProfile> =
       serde_json::from_value(quality_profile_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(quality_profile_json),
-      None,
-      SonarrEvent::GetQualityProfiles,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(quality_profile_json)
+      .build_for(SonarrEvent::GetQualityProfiles)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::QualityProfiles(quality_profiles) = network
+    let result = network
       .handle_sonarr_event(SonarrEvent::GetQualityProfiles)
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.quality_profile_map,
-        BiMap::from_iter([(2222i64, "HD - 1080p".to_owned())])
-      );
-      assert_eq!(quality_profiles, response);
-    }
+      .await;
+
+    mock.assert_async().await;
+
+    let SonarrSerdeable::QualityProfiles(quality_profiles) = result.unwrap() else {
+      panic!("Expected QualityProfiles")
+    };
+
+    assert_eq!(
+      app.lock().await.data.sonarr_data.quality_profile_map,
+      BiMap::from_iter([(2222i64, "HD - 1080p".to_owned())])
+    );
+    assert_eq!(quality_profiles, response);
   }
 
   #[tokio::test]
@@ -345,31 +328,27 @@ mod test {
       "label": "usenet"
     }]);
     let response: Vec<Tag> = serde_json::from_value(tags_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(tags_json),
-      None,
-      SonarrEvent::GetTags,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(tags_json)
+      .build_for(SonarrEvent::GetTags)
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
-    if let SonarrSerdeable::Tags(tags) = network
-      .handle_sonarr_event(SonarrEvent::GetTags)
-      .await
-      .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.sonarr_data.tags_map,
-        BiMap::from_iter([(2222i64, "usenet".to_owned())])
-      );
-      assert_eq!(tags, response);
-    }
+    let result = network.handle_sonarr_event(SonarrEvent::GetTags).await;
+
+    mock.assert_async().await;
+
+    let SonarrSerdeable::Tags(tags) = result.unwrap() else {
+      panic!("Expected Tags")
+    };
+
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.sonarr_data.tags_map,
+      BiMap::from_iter([(2222i64, "usenet".to_owned())])
+    );
+    assert_eq!(tags, response);
   }
 
   #[tokio::test]
@@ -385,7 +364,7 @@ mod test {
       ]);
     }
     app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app_arc);
 
     assert_eq!(
       network.extract_and_add_sonarr_tag_ids_vec(tags).await,
@@ -395,35 +374,30 @@ mod test {
 
   #[tokio::test]
   async fn test_extract_and_add_sonarr_tag_ids_vec_add_missing_tags_first() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({ "label": "TESTING" })),
-      Some(json!({ "id": 3, "label": "testing" })),
-      None,
-      SonarrEvent::GetTags,
-      None,
-      None,
-    )
-    .await;
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({ "label": "TESTING" }))
+      .returns(json!({ "id": 3, "label": "testing" }))
+      .build_for(SonarrEvent::GetTags)
+      .await;
     let tags = "usenet, test, TESTING";
     {
-      let mut app = app_arc.lock().await;
-      app.data.sonarr_data.add_series_modal = Some(AddSeriesModal {
+      let mut app_guard = app.lock().await;
+      app_guard.data.sonarr_data.add_series_modal = Some(AddSeriesModal {
         tags: tags.into(),
         ..AddSeriesModal::default()
       });
-      app.data.sonarr_data.tags_map =
+      app_guard.data.sonarr_data.tags_map =
         BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
     }
-    app_arc.lock().await.server_tabs.next();
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
 
     let tag_ids_vec = network.extract_and_add_sonarr_tag_ids_vec(tags).await;
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
     assert_eq!(tag_ids_vec, vec![1, 2, 3]);
     assert_eq!(
-      app_arc.lock().await.data.sonarr_data.tags_map,
+      app.lock().await.data.sonarr_data.tags_map,
       BiMap::from_iter([
         (1, "usenet".to_owned()),
         (2, "test".to_owned()),

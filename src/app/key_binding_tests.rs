@@ -3,7 +3,7 @@ mod test {
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
 
-  use crate::app::key_binding::{KeyBinding, DEFAULT_KEYBINDINGS};
+  use crate::app::key_binding::{DEFAULT_KEYBINDINGS, KeyBinding};
   use crate::event::Key;
   use crate::matches_key;
 

@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::servarr_data::ActiveKeybindingBlock;
   use crate::models::Route;
+  use crate::models::servarr_data::ActiveKeybindingBlock;
   use pretty_assertions::assert_eq;
 
   #[test]

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use log::info;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use super::{Network, NetworkEvent, NetworkResource};
 use crate::{
@@ -19,7 +19,7 @@ mod sonarr_network_tests;
 
 #[cfg(test)]
 #[path = "sonarr_network_test_utils.rs"]
-mod sonarr_network_test_utils;
+pub mod sonarr_network_test_utils;
 
 mod blocklist;
 mod downloads;

@@ -13,8 +13,8 @@ use crate::app::App;
 
 use crate::cli::CliCommandHandler;
 use crate::models::radarr_models::{RadarrReleaseDownloadBody, RadarrTaskName};
-use crate::network::radarr_network::RadarrEvent;
 use crate::network::NetworkTrait;
+use crate::network::radarr_network::RadarrEvent;
 use anyhow::Result;
 
 use super::Command;

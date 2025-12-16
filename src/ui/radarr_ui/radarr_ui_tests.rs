@@ -6,16 +6,46 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
+  use crate::app::App;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-  use crate::ui::radarr_ui::{decorate_with_row_style, RadarrUi};
-  use crate::ui::styles::ManagarrStyle;
   use crate::ui::DrawUi;
+  use crate::ui::radarr_ui::{RadarrUi, decorate_with_row_style};
+  use crate::ui::styles::ManagarrStyle;
+  use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
 
   #[test]
   fn test_radarr_ui_accepts() {
     ActiveRadarrBlock::iter().for_each(|active_radarr_block| {
       assert!(RadarrUi::accepts(active_radarr_block.into()));
     });
+  }
+
+  mod snapshot_tests {
+    use super::*;
+    use crate::ui::ui_test_utils::test_utils::TerminalSize;
+
+    #[rstest]
+    #[case(ActiveRadarrBlock::Movies, 0)]
+    #[case(ActiveRadarrBlock::Collections, 1)]
+    #[case(ActiveRadarrBlock::Downloads, 2)]
+    #[case(ActiveRadarrBlock::Blocklist, 3)]
+    #[case(ActiveRadarrBlock::RootFolders, 4)]
+    #[case(ActiveRadarrBlock::Indexers, 5)]
+    #[case(ActiveRadarrBlock::System, 6)]
+    fn test_radarr_ui_renders_radarr_tabs(
+      #[case] active_radarr_block: ActiveRadarrBlock,
+      #[case] index: usize,
+    ) {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(active_radarr_block.into());
+      app.data.radarr_data.main_tabs.set_index(index);
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        RadarrUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(active_radarr_block.to_string(), output);
+    }
   }
 
   #[rstest]

@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
   use crate::cli::{
-    sonarr::{edit_command_handler::SonarrEditCommand, SonarrCommand},
     Command,
+    sonarr::{SonarrCommand, edit_command_handler::SonarrEditCommand},
   };
 
   #[test]
@@ -20,10 +20,10 @@ mod tests {
   }
 
   mod cli {
-    use crate::{models::sonarr_models::SeriesType, Cli};
+    use crate::{Cli, models::sonarr_models::SeriesType};
 
     use super::*;
-    use clap::{error::ErrorKind, CommandFactory, Parser};
+    use clap::{CommandFactory, Parser, error::ErrorKind};
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -32,7 +32,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "edit", "all-indexer-settings"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -57,7 +57,7 @@ mod tests {
         flag,
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -78,11 +78,12 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command {
-        assert_eq!(edit_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(edit_command, expected_args);
     }
 
     #[test]
@@ -108,18 +109,19 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command {
-        assert_eq!(edit_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(edit_command, expected_args);
     }
 
     #[test]
     fn test_edit_indexer_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "edit", "indexer"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -137,7 +139,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -157,7 +159,7 @@ mod tests {
         "--disable-rss",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
     }
 
@@ -174,7 +176,7 @@ mod tests {
         "--disable-automatic-search",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
     }
 
@@ -191,7 +193,7 @@ mod tests {
         "--disable-interactive-search",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
     }
 
@@ -209,7 +211,7 @@ mod tests {
         "--clear-tags",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
     }
 
@@ -227,7 +229,7 @@ mod tests {
         flag,
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -261,11 +263,12 @@ mod tests {
         "Test",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command {
-        assert_eq!(edit_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(edit_command, expected_args);
     }
 
     #[test]
@@ -300,11 +303,12 @@ mod tests {
         "2",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command {
-        assert_eq!(edit_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(edit_command, expected_args);
     }
 
     #[test]
@@ -352,18 +356,19 @@ mod tests {
         "25",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command {
-        assert_eq!(edit_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(edit_command, expected_args);
     }
 
     #[test]
     fn test_edit_series_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "edit", "series"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -381,7 +386,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -401,7 +406,7 @@ mod tests {
         "--disable-monitoring",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
     }
 
@@ -418,7 +423,7 @@ mod tests {
         "--disable-season-folders",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
     }
 
@@ -436,7 +441,7 @@ mod tests {
         "--clear-tags",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::ArgumentConflict);
     }
 
@@ -461,7 +466,7 @@ mod tests {
         flag,
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -478,7 +483,7 @@ mod tests {
         "test",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -509,11 +514,12 @@ mod tests {
         "/nfs/test",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command {
-        assert_eq!(edit_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(edit_command, expected_args);
     }
 
     #[test]
@@ -545,11 +551,12 @@ mod tests {
         "2",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command {
-        assert_eq!(edit_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(edit_command, expected_args);
     }
 
     #[test]
@@ -591,11 +598,12 @@ mod tests {
         "2",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command {
-        assert_eq!(edit_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Edit(edit_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(edit_command, expected_args);
     }
   }
 
@@ -609,15 +617,15 @@ mod tests {
     use crate::{
       app::App,
       cli::{
-        sonarr::edit_command_handler::{SonarrEditCommand, SonarrEditCommandHandler},
         CliCommandHandler,
+        sonarr::edit_command_handler::{SonarrEditCommand, SonarrEditCommandHandler},
       },
       models::{
+        Serdeable,
         servarr_models::EditIndexerParams,
         sonarr_models::{EditSeriesParams, IndexerSettings, SeriesType, SonarrSerdeable},
-        Serdeable,
       },
-      network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
+      network::{MockNetworkTrait, NetworkEvent, sonarr_network::SonarrEvent},
     };
 
     #[tokio::test]
@@ -674,7 +682,7 @@ mod tests {
       .handle()
       .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -728,7 +736,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -776,7 +784,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -824,7 +832,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -872,7 +880,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 }

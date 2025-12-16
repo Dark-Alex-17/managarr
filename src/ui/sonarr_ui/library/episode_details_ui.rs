@@ -1,10 +1,10 @@
 use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS};
 use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::{
   DownloadRecord, DownloadStatus, Episode, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
 };
-use crate::models::Route;
 use crate::ui::sonarr_ui::sonarr_ui_utils::{
   create_download_failed_history_event_details,
   create_download_folder_imported_history_event_details,
@@ -22,14 +22,14 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{draw_popup, draw_tabs, DrawUi};
+use crate::ui::{DrawUi, draw_popup, draw_tabs};
 use crate::utils::convert_to_gb;
 use chrono::Utc;
+use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
-use ratatui::Frame;
 use serde_json::Number;
 
 #[cfg(test)]
@@ -40,84 +40,87 @@ pub(super) struct EpisodeDetailsUi;
 
 impl DrawUi for EpisodeDetailsUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Sonarr(active_sonarr_block, _) = route {
-      return EPISODE_DETAILS_BLOCKS.contains(&active_sonarr_block);
-    }
-
-    false
+    let Route::Sonarr(active_sonarr_block, _) = route else {
+      return false;
+    };
+    EPISODE_DETAILS_BLOCKS.contains(&active_sonarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
-    if let Some(season_details_modal) = app.data.sonarr_data.season_details_modal.as_ref() {
-      if season_details_modal.episode_details_modal.is_some() {
-        if let Route::Sonarr(active_sonarr_block, _) = app.get_current_route() {
-          let draw_episode_details_popup =
-            |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| {
-              let content_area = draw_tabs(
-                f,
-                popup_area,
-                "Episode Details",
-                &app
-                  .data
-                  .sonarr_data
-                  .season_details_modal
-                  .as_ref()
-                  .unwrap()
-                  .episode_details_modal
-                  .as_ref()
-                  .unwrap()
-                  .episode_details_tabs,
-              );
-              draw_episode_details_tabs(f, app, content_area);
+    if let Some(season_details_modal) = app.data.sonarr_data.season_details_modal.as_ref()
+      && season_details_modal.episode_details_modal.is_some()
+      && let Route::Sonarr(active_sonarr_block, _) = app.get_current_route()
+    {
+      let draw_episode_details_popup = |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| {
+        let content_area = draw_tabs(
+          f,
+          popup_area,
+          "Episode Details",
+          &app
+            .data
+            .sonarr_data
+            .season_details_modal
+            .as_ref()
+            .expect("season_details_modal must exist in this context")
+            .episode_details_modal
+            .as_ref()
+            .expect("episode_details_modal must exist in this context")
+            .episode_details_tabs,
+        );
+        draw_episode_details_tabs(f, app, content_area);
 
-              match active_sonarr_block {
-                ActiveSonarrBlock::AutomaticallySearchEpisodePrompt => {
-                  let prompt = format!(
-                "Do you want to trigger an automatic search of your indexers for the episode: {}",
-                app.data.sonarr_data.season_details_modal.as_ref().unwrap().episodes.current_selection().title
-              );
-                  let confirmation_prompt = ConfirmationPrompt::new()
-                    .title("Automatic Episode Search")
-                    .prompt(&prompt)
-                    .yes_no_value(app.data.sonarr_data.prompt_confirm);
+        match active_sonarr_block {
+          ActiveSonarrBlock::AutomaticallySearchEpisodePrompt => {
+            let prompt = format!(
+              "Do you want to trigger an automatic search of your indexers for the episode: {}",
+              app
+                .data
+                .sonarr_data
+                .season_details_modal
+                .as_ref()
+                .expect("season_details_modal must exist in this context")
+                .episodes
+                .current_selection()
+                .title
+            );
+            let confirmation_prompt = ConfirmationPrompt::new()
+              .title("Automatic Episode Search")
+              .prompt(&prompt)
+              .yes_no_value(app.data.sonarr_data.prompt_confirm);
 
-                  f.render_widget(
-                    Popup::new(confirmation_prompt).size(Size::MediumPrompt),
-                    f.area(),
-                  );
-                }
-                ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt => {
-                  draw_manual_episode_search_confirm_prompt(f, app);
-                }
-                ActiveSonarrBlock::EpisodeHistoryDetails => {
-                  draw_history_item_details_popup(f, app, popup_area);
-                }
-                _ => (),
-              }
-            };
-
-          draw_popup(f, app, draw_episode_details_popup, Size::Large);
+            f.render_widget(
+              Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+              f.area(),
+            );
+          }
+          ActiveSonarrBlock::ManualEpisodeSearchConfirmPrompt => {
+            draw_manual_episode_search_confirm_prompt(f, app);
+          }
+          ActiveSonarrBlock::EpisodeHistoryDetails => {
+            draw_history_item_details_popup(f, app, popup_area);
+          }
+          _ => (),
         }
-      }
+      };
+
+      draw_popup(f, app, draw_episode_details_popup, Size::Large);
     }
   }
 }
 
 pub fn draw_episode_details_tabs(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  if let Some(season_details_modal) = app.data.sonarr_data.season_details_modal.as_ref() {
-    if let Some(episode_details_modal) = season_details_modal.episode_details_modal.as_ref() {
-      if let Route::Sonarr(active_sonarr_block, _) = episode_details_modal
-        .episode_details_tabs
-        .get_active_route()
-      {
-        match active_sonarr_block {
-          ActiveSonarrBlock::EpisodeDetails => draw_episode_details(f, app, area),
-          ActiveSonarrBlock::EpisodeHistory => draw_episode_history_table(f, app, area),
-          ActiveSonarrBlock::EpisodeFile => draw_file_info(f, app, area),
-          ActiveSonarrBlock::ManualEpisodeSearch => draw_episode_releases(f, app, area),
-          _ => (),
-        }
-      }
+  if let Some(season_details_modal) = app.data.sonarr_data.season_details_modal.as_ref()
+    && let Some(episode_details_modal) = season_details_modal.episode_details_modal.as_ref()
+    && let Route::Sonarr(active_sonarr_block, _) = episode_details_modal
+      .episode_details_tabs
+      .get_active_route()
+  {
+    match active_sonarr_block {
+      ActiveSonarrBlock::EpisodeDetails => draw_episode_details(f, app, area),
+      ActiveSonarrBlock::EpisodeHistory => draw_episode_history_table(f, app, area),
+      ActiveSonarrBlock::EpisodeFile => draw_file_info(f, app, area),
+      ActiveSonarrBlock::ManualEpisodeSearch => draw_episode_releases(f, app, area),
+      _ => (),
     }
   }
 }
@@ -179,7 +182,7 @@ fn draw_episode_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
             .sonarr_data
             .season_details_modal
             .as_ref()
-            .unwrap()
+            .expect("season_details_modal must exist in this context")
             .episode_details_modal
             .is_none(),
         block,
@@ -191,15 +194,20 @@ fn draw_episode_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
 
 fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   match app.data.sonarr_data.season_details_modal.as_ref() {
-    Some(season_details_modal) => match season_details_modal.episode_details_modal.as_ref() {
-      Some(episode_details_modal)
-        if !episode_details_modal.file_details.is_empty() && !app.is_loading =>
-      {
-        let file_info = episode_details_modal.file_details.to_owned();
-        let audio_details = episode_details_modal.audio_details.to_owned();
-        let video_details = episode_details_modal.video_details.to_owned();
-        let [file_details_title_area, file_details_area, audio_details_title_area, audio_details_area, video_details_title_area, video_details_area] =
-          Layout::vertical([
+    Some(season_details_modal) if !app.is_loading => {
+      match season_details_modal.episode_details_modal.as_ref() {
+        Some(episode_details_modal) if !episode_details_modal.file_details.is_empty() => {
+          let file_info = episode_details_modal.file_details.to_owned();
+          let audio_details = episode_details_modal.audio_details.to_owned();
+          let video_details = episode_details_modal.video_details.to_owned();
+          let [
+            file_details_title_area,
+            file_details_area,
+            audio_details_title_area,
+            audio_details_area,
+            video_details_title_area,
+            video_details_area,
+          ] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Length(5),
             Constraint::Length(1),
@@ -209,36 +217,37 @@ fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
           ])
           .areas(area);
 
-        let file_details_title_paragraph =
-          Paragraph::new("File Details".bold()).block(layout_block_top_border());
-        let audio_details_title_paragraph =
-          Paragraph::new("Audio Details".bold()).block(borderless_block());
-        let video_details_title_paragraph =
-          Paragraph::new("Video Details".bold()).block(borderless_block());
+          let file_details_title_paragraph =
+            Paragraph::new("File Details".bold()).block(layout_block_top_border());
+          let audio_details_title_paragraph =
+            Paragraph::new("Audio Details".bold()).block(borderless_block());
+          let video_details_title_paragraph =
+            Paragraph::new("Video Details".bold()).block(borderless_block());
 
-        let file_details = Text::from(file_info);
-        let audio_details = Text::from(audio_details);
-        let video_details = Text::from(video_details);
+          let file_details = Text::from(file_info);
+          let audio_details = Text::from(audio_details);
+          let video_details = Text::from(video_details);
 
-        let file_details_paragraph = Paragraph::new(file_details)
-          .block(layout_block_bottom_border())
-          .wrap(Wrap { trim: false });
-        let audio_details_paragraph = Paragraph::new(audio_details)
-          .block(layout_block_bottom_border())
-          .wrap(Wrap { trim: false });
-        let video_details_paragraph = Paragraph::new(video_details)
-          .block(borderless_block())
-          .wrap(Wrap { trim: false });
+          let file_details_paragraph = Paragraph::new(file_details)
+            .block(layout_block_bottom_border())
+            .wrap(Wrap { trim: false });
+          let audio_details_paragraph = Paragraph::new(audio_details)
+            .block(layout_block_bottom_border())
+            .wrap(Wrap { trim: false });
+          let video_details_paragraph = Paragraph::new(video_details)
+            .block(borderless_block())
+            .wrap(Wrap { trim: false });
 
-        f.render_widget(file_details_title_paragraph, file_details_title_area);
-        f.render_widget(file_details_paragraph, file_details_area);
-        f.render_widget(audio_details_title_paragraph, audio_details_title_area);
-        f.render_widget(audio_details_paragraph, audio_details_area);
-        f.render_widget(video_details_title_paragraph, video_details_title_area);
-        f.render_widget(video_details_paragraph, video_details_area);
+          f.render_widget(file_details_title_paragraph, file_details_title_area);
+          f.render_widget(file_details_paragraph, file_details_area);
+          f.render_widget(audio_details_title_paragraph, audio_details_title_area);
+          f.render_widget(audio_details_paragraph, audio_details_area);
+          f.render_widget(video_details_title_paragraph, video_details_title_area);
+          f.render_widget(video_details_paragraph, video_details_area);
+        }
+        _ => f.render_widget(layout_block_top_border(), area),
       }
-      _ => f.render_widget(layout_block_top_border(), area),
-    },
+    }
     _ => f.render_widget(
       LoadingBlock::new(app.is_loading, layout_block_top_border()),
       area,
@@ -301,10 +310,10 @@ fn draw_episode_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) 
           .sonarr_data
           .season_details_modal
           .as_mut()
-          .unwrap()
+          .expect("season_details_modal must exist in this context")
           .episode_details_modal
           .as_mut()
-          .unwrap()
+          .expect("episode_details_modal must exist in this context")
           .episode_history;
         let history_table =
           ManagarrTable::new(Some(&mut episode_history_table), history_row_mapping)
@@ -330,7 +339,7 @@ fn draw_episode_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) 
             .sonarr_data
             .season_details_modal
             .as_ref()
-            .unwrap()
+            .expect("season_details_modal must exist in this context")
             .episode_details_modal
             .is_none(),
         layout_block_top_border(),
@@ -476,10 +485,10 @@ fn draw_episode_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
             .sonarr_data
             .season_details_modal
             .as_mut()
-            .unwrap()
+            .expect("season_details_modal must exist in this context")
             .episode_details_modal
             .as_mut()
-            .unwrap()
+            .expect("episode_details_modal must exist in this context")
             .episode_releases;
           let release_table = ManagarrTable::new(
             Some(&mut episode_release_table),
@@ -515,7 +524,7 @@ fn draw_episode_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
             .sonarr_data
             .season_details_modal
             .as_ref()
-            .unwrap()
+            .expect("season_details_modal must exist in this context")
             .episode_details_modal
             .is_none(),
         layout_block_top_border(),
@@ -531,10 +540,10 @@ fn draw_manual_episode_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_
     .sonarr_data
     .season_details_modal
     .as_ref()
-    .unwrap()
+    .expect("season_details_modal must exist in this context")
     .episode_details_modal
     .as_ref()
-    .unwrap()
+    .expect("episode_details_modal must exist in this context")
     .episode_releases
     .current_selection();
   let title = if current_selection.rejected {
@@ -604,10 +613,10 @@ fn style_from_status(download: Option<&DownloadRecord>, episode: &Episode) -> St
       return Style::new().unmonitored_missing();
     }
 
-    if let Some(air_date) = episode.air_date_utc.as_ref() {
-      if air_date > &Utc::now() {
-        return Style::new().unreleased();
-      }
+    if let Some(air_date) = episode.air_date_utc.as_ref()
+      && air_date > &Utc::now()
+    {
+      return Style::new().unreleased();
     }
 
     return Style::new().missing();

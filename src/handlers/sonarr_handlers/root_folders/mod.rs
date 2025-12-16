@@ -1,15 +1,13 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
-use crate::handlers::table_handler::TableHandlingConfig;
-use crate::handlers::{handle_clear_errors, handle_prompt_toggle, KeyEventHandler};
-use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ROOT_FOLDERS_BLOCKS};
-use crate::models::servarr_models::{AddRootFolderBody, RootFolder};
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
+use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
 use crate::models::HorizontallyScrollableText;
+use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ROOT_FOLDERS_BLOCKS};
+use crate::models::servarr_models::AddRootFolderBody;
 use crate::network::sonarr_network::SonarrEvent;
-use crate::{
-  handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, matches_key,
-};
+use crate::{handle_text_box_keys, handle_text_box_left_right_keys, matches_key};
 
 #[cfg(test)]
 #[path = "root_folders_handler_tests.rs"]
@@ -23,13 +21,6 @@ pub(super) struct RootFoldersHandler<'a, 'b> {
 }
 
 impl RootFoldersHandler<'_, '_> {
-  handle_table_events!(
-    self,
-    root_folders,
-    self.app.data.sonarr_data.root_folders,
-    RootFolder
-  );
-
   fn build_add_root_folder_body(&mut self) -> AddRootFolderBody {
     let root_folder = self
       .app
@@ -58,7 +49,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for RootFoldersHandler<'
     let root_folders_table_handling_config =
       TableHandlingConfig::new(ActiveSonarrBlock::RootFolders.into());
 
-    if !self.handle_root_folders_table_events(root_folders_table_handling_config) {
+    if !handle_table(
+      self,
+      |app| &mut app.data.sonarr_data.root_folders,
+      root_folders_table_handling_config,
+    ) {
       self.handle_key_event();
     }
   }
@@ -228,5 +223,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for RootFoldersHandler<'
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }

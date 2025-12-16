@@ -2,7 +2,7 @@ use anyhow::Result;
 use std::fmt::Debug;
 
 use log::info;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::models::radarr_models::{
   AddMovieBody, DeleteMovieParams, EditCollectionParams, EditMovieParams, IndexerSettings,
@@ -22,12 +22,10 @@ mod root_folders;
 mod system;
 
 #[cfg(test)]
-#[path = "radarr_network_tests.rs"]
 mod radarr_network_tests;
 
 #[cfg(test)]
-#[path = "radarr_network_test_utils.rs"]
-mod radarr_network_test_utils;
+pub mod radarr_network_test_utils;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum RadarrEvent {

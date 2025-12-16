@@ -4,12 +4,13 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::downloads::DownloadsHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::download_record;
-  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::DownloadRecord;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
 
@@ -31,10 +32,7 @@ mod tests {
 
       DownloadsHandler::new(DELETE_KEY, &mut app, ActiveRadarrBlock::Downloads, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::DeleteDownloadPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::DeleteDownloadPrompt.into());
     }
 
     #[test]
@@ -78,10 +76,7 @@ mod tests {
         app.data.radarr_data.main_tabs.get_active_route(),
         ActiveRadarrBlock::Collections.into()
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::Collections.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::Collections.into());
     }
 
     #[rstest]
@@ -102,7 +97,7 @@ mod tests {
         app.data.radarr_data.main_tabs.get_active_route(),
         ActiveRadarrBlock::Blocklist.into()
       );
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Blocklist.into());
+      assert_navigation_pushed!(app, ActiveRadarrBlock::Blocklist.into());
     }
 
     #[rstest]
@@ -133,6 +128,7 @@ mod tests {
     use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
+    use crate::assert_navigation_popped;
 
     const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
 
@@ -169,7 +165,7 @@ mod tests {
         app.data.radarr_data.prompt_confirm_action,
         Some(expected_action)
       );
-      assert_eq!(app.get_current_route(), base_route.into());
+      assert_navigation_popped!(app, base_route.into());
     }
 
     #[rstest]
@@ -191,16 +187,16 @@ mod tests {
       DownloadsHandler::new(SUBMIT_KEY, &mut app, prompt_block, None).handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
-      assert_eq!(app.get_current_route(), base_route.into());
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
+      assert_navigation_popped!(app, base_route.into());
     }
   }
 
   mod test_handle_esc {
-    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     use super::*;
+    use crate::assert_navigation_popped;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
 
@@ -218,7 +214,7 @@ mod tests {
 
       DownloadsHandler::new(ESC_KEY, &mut app, prompt_block, None).handle();
 
-      assert_eq!(app.get_current_route(), base_block.into());
+      assert_navigation_popped!(app, base_block.into());
       assert!(!app.data.radarr_data.prompt_confirm);
     }
 
@@ -232,16 +228,16 @@ mod tests {
 
       DownloadsHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::Downloads, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Downloads.into());
-      assert!(app.error.text.is_empty());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Downloads.into());
+      assert_is_empty!(app.error.text);
     }
   }
 
   mod test_handle_key_char {
+    use crate::assert_navigation_popped;
+    use crate::network::radarr_network::RadarrEvent;
     use pretty_assertions::assert_eq;
     use rstest::rstest;
-
-    use crate::network::radarr_network::RadarrEvent;
 
     use super::*;
 
@@ -262,10 +258,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::UpdateDownloadsPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::UpdateDownloadsPrompt.into());
     }
 
     #[test]
@@ -308,7 +301,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Downloads.into());
+      assert_navigation_pushed!(app, ActiveRadarrBlock::Downloads.into());
       assert!(app.should_refresh);
     }
 
@@ -373,7 +366,7 @@ mod tests {
         app.data.radarr_data.prompt_confirm_action,
         Some(expected_action)
       );
-      assert_eq!(app.get_current_route(), base_route.into());
+      assert_navigation_popped!(app, base_route.into());
     }
   }
 

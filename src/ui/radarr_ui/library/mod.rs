@@ -1,11 +1,12 @@
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Rect};
 use ratatui::widgets::{Cell, Row};
-use ratatui::Frame;
 
 use crate::app::App;
+use crate::models::Route;
 use crate::models::radarr_models::Movie;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, LIBRARY_BLOCKS};
-use crate::models::Route;
+use crate::ui::DrawUi;
 use crate::ui::radarr_ui::decorate_with_row_style;
 use crate::ui::radarr_ui::library::add_movie_ui::AddMovieUi;
 use crate::ui::radarr_ui::library::delete_movie_ui::DeleteMovieUi;
@@ -15,7 +16,6 @@ use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::DrawUi;
 use crate::utils::{convert_runtime, convert_to_gb};
 
 mod add_movie_ui;
@@ -99,24 +99,17 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       let certification = movie.certification.clone().unwrap_or_default();
       let quality_profile = quality_profile_map
         .get_by_left(&movie.quality_profile_id)
-        .unwrap()
+        .expect("Quality profile ID must exist in quality_profile_map")
         .to_owned();
-      let empty_tag = String::new();
-      let tags = if !movie.tags.is_empty() {
-        movie
-          .tags
-          .iter()
-          .map(|tag_id| {
-            tags_map
-              .get_by_left(&tag_id.as_i64().unwrap())
-              .unwrap_or(&empty_tag)
-              .clone()
-          })
-          .collect::<Vec<String>>()
-          .join(", ")
-      } else {
-        String::new()
-      };
+      let tags = movie
+        .tags
+        .iter()
+        .filter_map(|tag_id| {
+          let id = tag_id.as_i64()?;
+          tags_map.get_by_left(&id).cloned()
+        })
+        .collect::<Vec<_>>()
+        .join(", ");
 
       decorate_with_row_style(
         downloads_vec,

@@ -72,17 +72,29 @@ impl Network<'_, '_> {
                 "{}|{}|{}|{}|{}",
                 log.time,
                 log.level.to_uppercase(),
-                log.logger.as_ref().unwrap(),
-                log.exception_type.as_ref().unwrap(),
-                log.exception.as_ref().unwrap()
+                log
+                  .logger
+                  .as_ref()
+                  .expect("logger must exist when exception is present"),
+                log
+                  .exception_type
+                  .as_ref()
+                  .expect("exception_type must exist when exception is present"),
+                log
+                  .exception
+                  .as_ref()
+                  .expect("exception must exist in this branch")
               ))
             } else {
               HorizontallyScrollableText::from(format!(
                 "{}|{}|{}|{}",
                 log.time,
                 log.level.to_uppercase(),
-                log.logger.as_ref().unwrap(),
-                log.message.as_ref().unwrap()
+                log.logger.as_ref().expect("logger must exist in log entry"),
+                log
+                  .message
+                  .as_ref()
+                  .expect("message must exist when exception is not present")
               ))
             }
           })
@@ -173,9 +185,9 @@ impl Network<'_, '_> {
           .map(|update| {
             let install_status = if update.installed_on.is_some() {
               if update.installed {
-                "(Currently Installed)".to_owned()
+                " (Currently Installed)".to_owned()
               } else {
-                "(Previously Installed)".to_owned()
+                " (Previously Installed)".to_owned()
               }
             } else {
               String::new()
@@ -189,7 +201,7 @@ impl Network<'_, '_> {
             };
 
             let mut update_info = formatdoc!(
-              "{} - {} {install_status}
+              "{} - {}{install_status}
               {}",
               update.version,
               update.release_date,

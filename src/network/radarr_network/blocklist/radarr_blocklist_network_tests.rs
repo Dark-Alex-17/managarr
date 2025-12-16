@@ -5,16 +5,13 @@ mod tests {
   use crate::models::radarr_models::BlocklistResponse;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::stateful_table::SortOption;
-  use crate::network::network_tests::test_utils::mock_servarr_api;
-  use crate::network::radarr_network::radarr_network_test_utils::test_utils::blocklist_item;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::radarr_network::RadarrEvent;
   use crate::network::radarr_network::RadarrSerdeable;
-  use crate::network::{Network, RequestMethod};
+  use crate::network::radarr_network::radarr_network_test_utils::test_utils::blocklist_item;
   use pretty_assertions::assert_eq;
-  use reqwest::Client;
   use rstest::rstest;
   use serde_json::json;
-  use tokio_util::sync::CancellationToken;
 
   #[tokio::test]
   async fn test_handle_clear_radarr_blocklist_event() {
@@ -33,53 +30,45 @@ mod tests {
       },
     ];
     let expected_request_json = json!({ "ids": [1, 2, 3]});
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      Some(expected_request_json),
-      None,
-      None,
-      RadarrEvent::ClearBlocklist,
-      None,
-      None,
-    )
-    .await;
-    app_arc
+    let (mock, app, _server) = MockServarrApi::delete()
+      .with_request_body(expected_request_json)
+      .build_for(RadarrEvent::ClearBlocklist)
+      .await;
+    app
       .lock()
       .await
       .data
       .radarr_data
       .blocklist
       .set_items(blocklist_items);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::ClearBlocklist)
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::ClearBlocklist)
+        .await
+        .is_ok()
+    );
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
   }
 
   #[tokio::test]
   async fn test_handle_delete_radarr_blocklist_item_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Delete,
-      None,
-      None,
-      None,
-      RadarrEvent::DeleteBlocklistItem(1),
-      Some("/1"),
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .build_for(RadarrEvent::DeleteBlocklistItem(1))
+      .await;
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::DeleteBlocklistItem(1))
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::DeleteBlocklistItem(1))
+        .await
+        .is_ok()
+    );
 
-    async_server.assert_async().await;
+    mock.assert_async().await;
   }
 
   #[rstest]
@@ -179,17 +168,11 @@ mod tests {
         ..blocklist_item()
       },
     ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(blocklist_json),
-      None,
-      RadarrEvent::GetBlocklist,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.data.radarr_data.blocklist.sort_asc = true;
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(blocklist_json)
+      .build_for(RadarrEvent::GetBlocklist)
+      .await;
+    app.lock().await.data.radarr_data.blocklist.sort_asc = true;
     if use_custom_sorting {
       let cmp_fn = |a: &BlocklistItem, b: &BlocklistItem| {
         a.source_title
@@ -202,7 +185,7 @@ mod tests {
         name: "Source Title",
         cmp_fn: Some(cmp_fn),
       };
-      app_arc
+      app
         .lock()
         .await
         .data
@@ -210,21 +193,22 @@ mod tests {
         .blocklist
         .sorting(vec![blocklist_sort_option]);
     }
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app);
 
-    if let RadarrSerdeable::BlocklistResponse(blocklist) = network
+    let RadarrSerdeable::BlocklistResponse(blocklist) = network
       .handle_radarr_event(RadarrEvent::GetBlocklist)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.radarr_data.blocklist.items,
-        expected_blocklist
-      );
-      assert!(app_arc.lock().await.data.radarr_data.blocklist.sort_asc);
-      assert_eq!(blocklist, response);
-    }
+    else {
+      panic!("Expected BlocklistResponse")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.blocklist.items,
+      expected_blocklist
+    );
+    assert!(app.lock().await.data.radarr_data.blocklist.sort_asc);
+    assert_eq!(blocklist, response);
   }
 
   #[tokio::test]
@@ -302,18 +286,12 @@ mod tests {
           },
         },
     }]});
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(blocklist_json),
-      None,
-      RadarrEvent::GetBlocklist,
-      None,
-      None,
-    )
-    .await;
-    app_arc.lock().await.data.radarr_data.blocklist.sort_asc = true;
-    app_arc
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(blocklist_json)
+      .build_for(RadarrEvent::GetBlocklist)
+      .await;
+    app.lock().await.data.radarr_data.blocklist.sort_asc = true;
+    app
       .lock()
       .await
       .push_navigation_stack(ActiveRadarrBlock::BlocklistSortPrompt.into());
@@ -326,29 +304,24 @@ mod tests {
       name: "Source Title",
       cmp_fn: Some(cmp_fn),
     };
-    app_arc
+    app
       .lock()
       .await
       .data
       .radarr_data
       .blocklist
       .sorting(vec![blocklist_sort_option]);
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let mut network = test_network(&app);
 
-    assert!(network
-      .handle_radarr_event(RadarrEvent::GetBlocklist)
-      .await
-      .is_ok());
+    assert!(
+      network
+        .handle_radarr_event(RadarrEvent::GetBlocklist)
+        .await
+        .is_ok()
+    );
 
-    async_server.assert_async().await;
-    assert!(app_arc
-      .lock()
-      .await
-      .data
-      .radarr_data
-      .blocklist
-      .items
-      .is_empty());
-    assert!(app_arc.lock().await.data.radarr_data.blocklist.sort_asc);
+    mock.assert_async().await;
+    assert!(app.lock().await.data.radarr_data.blocklist.items.is_empty());
+    assert!(app.lock().await.data.radarr_data.blocklist.sort_asc);
   }
 }

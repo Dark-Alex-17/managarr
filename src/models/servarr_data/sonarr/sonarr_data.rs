@@ -1,7 +1,4 @@
-use bimap::BiMap;
-use chrono::{DateTime, Utc};
-use strum::EnumIter;
-
+use super::modals::{AddSeriesModal, EditSeriesModal, SeasonDetailsModal};
 use crate::{
   app::{
     context_clues::{
@@ -14,6 +11,7 @@ use crate::{
     },
   },
   models::{
+    BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, TabRoute, TabState,
     servarr_data::modals::{EditIndexerModal, IndexerTestResultModalItem},
     servarr_models::{DiskSpace, Indexer, QueueEvent, RootFolder},
     sonarr_models::{
@@ -22,12 +20,33 @@ use crate::{
     },
     stateful_list::StatefulList,
     stateful_table::StatefulTable,
-    BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, TabRoute, TabState,
   },
   network::sonarr_network::SonarrEvent,
 };
-
-use super::modals::{AddSeriesModal, EditSeriesModal, SeasonDetailsModal};
+use bimap::BiMap;
+use chrono::{DateTime, Utc};
+use serde_json::Number;
+use strum::EnumIter;
+#[cfg(test)]
+use {
+  super::modals::EpisodeDetailsModal,
+  crate::models::sonarr_models::{SeriesMonitor, SeriesType},
+  crate::models::stateful_table::SortOption,
+  crate::network::servarr_test_utils::diskspace,
+  crate::network::servarr_test_utils::indexer_test_result,
+  crate::network::servarr_test_utils::queued_event,
+  crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
+    add_series_search_result, blocklist_item, download_record, history_item, indexer,
+    indexer_settings, log_line, root_folder,
+  },
+  crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
+    episode, episode_file, language_profiles_map, quality_profile_map, season, series, tags_map,
+    task, torrent_release, updates, usenet_release,
+  },
+  crate::sort_option,
+  strum::IntoEnumIterator,
+  strum_macros::{Display, EnumString},
+};
 
 #[cfg(test)]
 #[path = "sonarr_data_tests.rs"]
@@ -86,6 +105,29 @@ impl SonarrData<'_> {
     self.series_history = None;
     self.seasons = StatefulTable::default();
     self.series_info_tabs.index = 0;
+  }
+
+  pub fn tag_ids_to_display(&self, tag_ids: &[Number]) -> String {
+    tag_ids
+      .iter()
+      .filter_map(|tag_id| {
+        let id = tag_id.as_i64()?;
+        self.tags_map.get_by_left(&id).cloned()
+      })
+      .collect::<Vec<_>>()
+      .join(", ")
+  }
+
+  pub fn sorted_quality_profile_names(&self) -> Vec<String> {
+    let mut names: Vec<String> = self.quality_profile_map.right_values().cloned().collect();
+    names.sort();
+    names
+  }
+
+  pub fn sorted_language_profile_names(&self) -> Vec<String> {
+    let mut names: Vec<String> = self.language_profiles_map.right_values().cloned().collect();
+    names.sort();
+    names
   }
 }
 
@@ -188,7 +230,164 @@ impl<'a> Default for SonarrData<'a> {
   }
 }
 
+#[cfg(test)]
+impl SonarrData<'_> {
+  pub fn test_default_fully_populated() -> Self {
+    let quality_profile_name = "Bluray-1080p".to_owned();
+    let language_profile_name = "English".to_owned();
+    let mut add_searched_series = StatefulTable::default();
+    add_searched_series.set_items(vec![add_series_search_result()]);
+
+    let mut add_series_modal = AddSeriesModal {
+      use_season_folder: true,
+      tags: "alex".into(),
+      ..AddSeriesModal::default()
+    };
+    add_series_modal
+      .root_folder_list
+      .set_items(vec![root_folder()]);
+    add_series_modal
+      .monitor_list
+      .set_items(SeriesMonitor::iter().collect());
+    add_series_modal
+      .quality_profile_list
+      .set_items(vec![quality_profile_name.clone()]);
+    add_series_modal
+      .language_profile_list
+      .set_items(vec![language_profile_name.clone()]);
+    add_series_modal
+      .series_type_list
+      .set_items(SeriesType::iter().collect());
+
+    let edit_indexer_modal = EditIndexerModal {
+      name: "DrunkenSlug".into(),
+      enable_rss: Some(true),
+      enable_automatic_search: Some(true),
+      enable_interactive_search: Some(true),
+      url: "http://127.0.0.1:9696/1/".into(),
+      api_key: "someApiKey".into(),
+      seed_ratio: "ratio".into(),
+      tags: "25".into(),
+      priority: 1,
+    };
+
+    let mut edit_series_modal = EditSeriesModal {
+      monitored: Some(true),
+      use_season_folders: Some(true),
+      path: "/nfs/tv".into(),
+      tags: "alex".into(),
+      ..EditSeriesModal::default()
+    };
+    edit_series_modal
+      .series_type_list
+      .set_items(SeriesType::iter().collect());
+    edit_series_modal
+      .quality_profile_list
+      .set_items(vec![quality_profile_name.clone()]);
+    edit_series_modal
+      .language_profile_list
+      .set_items(vec![language_profile_name.clone()]);
+
+    let mut indexer_test_all_results = StatefulTable::default();
+    indexer_test_all_results.set_items(vec![indexer_test_result()]);
+
+    let mut episode_details_modal = EpisodeDetailsModal {
+      episode_details: ScrollableText::with_string("Some episode details".into()),
+      file_details: "Some file details".to_owned(),
+      audio_details: "Some audio details".to_owned(),
+      video_details: "Some video details".to_owned(),
+      ..EpisodeDetailsModal::default()
+    };
+    episode_details_modal
+      .episode_history
+      .set_items(vec![history_item()]);
+    episode_details_modal
+      .episode_releases
+      .set_items(vec![torrent_release(), usenet_release()]);
+    episode_details_modal
+      .episode_releases
+      .sorting(vec![sort_option!(indexer_id)]);
+
+    let mut season_details_modal = SeasonDetailsModal {
+      episode_details_modal: Some(episode_details_modal),
+      ..SeasonDetailsModal::default()
+    };
+    season_details_modal.episodes.set_items(vec![episode()]);
+    season_details_modal.episodes.search = Some("episode search".into());
+    season_details_modal
+      .episode_files
+      .set_items(vec![episode_file()]);
+    season_details_modal
+      .season_history
+      .set_items(vec![history_item()]);
+    season_details_modal.season_history.search = Some("season history search".into());
+    season_details_modal.season_history.filter = Some("season history filter".into());
+    season_details_modal
+      .season_history
+      .sorting(vec![sort_option!(id)]);
+    season_details_modal
+      .season_releases
+      .set_items(vec![torrent_release(), usenet_release()]);
+    season_details_modal
+      .season_releases
+      .sorting(vec![sort_option!(indexer_id)]);
+
+    let mut series_history = StatefulTable::default();
+    series_history.set_items(vec![history_item()]);
+    series_history.sorting(vec![sort_option!(id)]);
+    series_history.search = Some("series history search".into());
+    series_history.filter = Some("series history filter".into());
+
+    let mut sonarr_data = SonarrData {
+      add_list_exclusion: true,
+      add_searched_series: Some(add_searched_series),
+      add_series_modal: Some(add_series_modal),
+      add_series_search: Some("something".into()),
+      delete_series_files: true,
+      disk_space_vec: vec![diskspace()],
+      edit_indexer_modal: Some(edit_indexer_modal),
+      edit_root_folder: Some("/nfs/tv".into()),
+      edit_series_modal: Some(edit_series_modal),
+      indexer_settings: Some(indexer_settings()),
+      indexer_test_all_results: Some(indexer_test_all_results),
+      indexer_test_errors: Some("error".to_string()),
+      language_profiles_map: language_profiles_map(),
+      quality_profile_map: quality_profile_map(),
+      season_details_modal: Some(season_details_modal),
+      series_history: Some(series_history),
+      start_time: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap()),
+      tags_map: tags_map(),
+      updates: updates(),
+      version: "1.2.3.4".to_owned(),
+      ..SonarrData::default()
+    };
+
+    sonarr_data.blocklist.set_items(vec![blocklist_item()]);
+    sonarr_data.blocklist.sorting(vec![sort_option!(id)]);
+    sonarr_data.downloads.set_items(vec![download_record()]);
+    sonarr_data.history.set_items(vec![history_item()]);
+    sonarr_data.history.sorting(vec![sort_option!(id)]);
+    sonarr_data.history.search = Some("test search".into());
+    sonarr_data.history.filter = Some("test filter".into());
+    sonarr_data.indexers.set_items(vec![indexer()]);
+    sonarr_data.queued_events.set_items(vec![queued_event()]);
+    sonarr_data.root_folders.set_items(vec![root_folder()]);
+    sonarr_data.seasons.set_items(vec![season()]);
+    sonarr_data.seasons.search = Some("season search".into());
+    sonarr_data.series.set_items(vec![series()]);
+    sonarr_data.series.sorting(vec![sort_option!(id)]);
+    sonarr_data.series.search = Some("series search".into());
+    sonarr_data.series.filter = Some("series filter".into());
+    sonarr_data.logs.set_items(vec![log_line().into()]);
+    sonarr_data.log_details.set_items(vec![log_line().into()]);
+    sonarr_data.tasks.set_items(vec![task()]);
+
+    sonarr_data
+  }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, EnumIter)]
+#[cfg_attr(test, derive(Display, EnumString))]
 pub enum ActiveSonarrBlock {
   AddRootFolderPrompt,
   AddSeriesAlreadyInLibrary,

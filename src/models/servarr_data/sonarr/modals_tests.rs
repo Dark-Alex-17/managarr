@@ -255,9 +255,11 @@ mod tests {
       episode_details_modal.episode_details_tabs.tabs[0].route,
       ActiveSonarrBlock::EpisodeDetails.into()
     );
-    assert!(episode_details_modal.episode_details_tabs.tabs[0]
-      .contextual_help
-      .is_some());
+    assert!(
+      episode_details_modal.episode_details_tabs.tabs[0]
+        .contextual_help
+        .is_some()
+    );
     assert_eq!(
       episode_details_modal.episode_details_tabs.tabs[0]
         .contextual_help
@@ -277,9 +279,11 @@ mod tests {
       episode_details_modal.episode_details_tabs.tabs[1].route,
       ActiveSonarrBlock::EpisodeHistory.into()
     );
-    assert!(episode_details_modal.episode_details_tabs.tabs[1]
-      .contextual_help
-      .is_some());
+    assert!(
+      episode_details_modal.episode_details_tabs.tabs[1]
+        .contextual_help
+        .is_some()
+    );
     assert_eq!(
       episode_details_modal.episode_details_tabs.tabs[1]
         .contextual_help
@@ -299,9 +303,11 @@ mod tests {
       episode_details_modal.episode_details_tabs.tabs[2].route,
       ActiveSonarrBlock::EpisodeFile.into()
     );
-    assert!(episode_details_modal.episode_details_tabs.tabs[2]
-      .contextual_help
-      .is_some());
+    assert!(
+      episode_details_modal.episode_details_tabs.tabs[2]
+        .contextual_help
+        .is_some()
+    );
     assert_eq!(
       episode_details_modal.episode_details_tabs.tabs[2]
         .contextual_help
@@ -321,9 +327,11 @@ mod tests {
       episode_details_modal.episode_details_tabs.tabs[3].route,
       ActiveSonarrBlock::ManualEpisodeSearch.into()
     );
-    assert!(episode_details_modal.episode_details_tabs.tabs[3]
-      .contextual_help
-      .is_some());
+    assert!(
+      episode_details_modal.episode_details_tabs.tabs[3]
+        .contextual_help
+        .is_some()
+    );
     assert_eq!(
       episode_details_modal.episode_details_tabs.tabs[3]
         .contextual_help
@@ -356,9 +364,11 @@ mod tests {
       season_details_modal.season_details_tabs.tabs[0].route,
       ActiveSonarrBlock::SeasonDetails.into()
     );
-    assert!(season_details_modal.season_details_tabs.tabs[0]
-      .contextual_help
-      .is_some());
+    assert!(
+      season_details_modal.season_details_tabs.tabs[0]
+        .contextual_help
+        .is_some()
+    );
     assert_eq!(
       season_details_modal.season_details_tabs.tabs[0]
         .contextual_help
@@ -378,9 +388,11 @@ mod tests {
       season_details_modal.season_details_tabs.tabs[1].route,
       ActiveSonarrBlock::SeasonHistory.into()
     );
-    assert!(season_details_modal.season_details_tabs.tabs[1]
-      .contextual_help
-      .is_some());
+    assert!(
+      season_details_modal.season_details_tabs.tabs[1]
+        .contextual_help
+        .is_some()
+    );
     assert_eq!(
       season_details_modal.season_details_tabs.tabs[1]
         .contextual_help
@@ -400,9 +412,11 @@ mod tests {
       season_details_modal.season_details_tabs.tabs[2].route,
       ActiveSonarrBlock::ManualSeasonSearch.into()
     );
-    assert!(season_details_modal.season_details_tabs.tabs[2]
-      .contextual_help
-      .is_some());
+    assert!(
+      season_details_modal.season_details_tabs.tabs[2]
+        .contextual_help
+        .is_some()
+    );
     assert_eq!(
       season_details_modal.season_details_tabs.tabs[2]
         .contextual_help

@@ -1,26 +1,21 @@
 #[cfg(test)]
 mod tests {
+  use crate::models::HorizontallyScrollableText;
   use crate::models::radarr_models::{RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus};
   use crate::models::servarr_models::{
     DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, Update,
   };
-  use crate::models::{HorizontallyScrollableText, ScrollableText};
-  use crate::network::network_tests::test_utils::mock_servarr_api;
+  use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::radarr_network::RadarrEvent;
-  use crate::network::{Network, RequestMethod};
+  use crate::network::radarr_network::radarr_network_test_utils::test_utils::updates;
   use chrono::DateTime;
-  use indoc::formatdoc;
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use reqwest::Client;
   use serde_json::json;
-  use tokio_util::sync::CancellationToken;
 
   #[tokio::test]
   async fn test_handle_get_radarr_diskspace_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!([
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!([
         {
           "freeSpace": 1111,
           "totalSpace": 2222,
@@ -29,14 +24,10 @@ mod tests {
           "freeSpace": 3333,
           "totalSpace": 4444
         }
-      ])),
-      None,
-      RadarrEvent::GetDiskSpace,
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+      ]))
+      .build_for(RadarrEvent::GetDiskSpace)
+      .await;
+    let mut network = test_network(&app);
     let disk_space_vec = vec![
       DiskSpace {
         free_space: 1111,
@@ -48,18 +39,19 @@ mod tests {
       },
     ];
 
-    if let RadarrSerdeable::DiskSpaces(disk_space) = network
+    let RadarrSerdeable::DiskSpaces(disk_space) = network
       .handle_radarr_event(RadarrEvent::GetDiskSpace)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.radarr_data.disk_space_vec,
-        disk_space_vec
-      );
-      assert_eq!(disk_space, disk_space_vec);
-    }
+    else {
+      panic!("Expected DiskSpaces")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.disk_space_vec,
+      disk_space_vec
+    );
+    assert_eq!(disk_space, disk_space_vec);
   }
 
   #[tokio::test]
@@ -76,26 +68,21 @@ mod tests {
       "sslCertPassword": "test"
     });
     let response: HostConfig = serde_json::from_value(host_config_response.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(host_config_response),
-      None,
-      RadarrEvent::GetHostConfig,
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(host_config_response)
+      .build_for(RadarrEvent::GetHostConfig)
+      .await;
+    let mut network = test_network(&app);
 
-    if let RadarrSerdeable::HostConfig(host_config) = network
+    let RadarrSerdeable::HostConfig(host_config) = network
       .handle_radarr_event(RadarrEvent::GetHostConfig)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(host_config, response);
-    }
+    else {
+      panic!("Expected HostConfig")
+    };
+    mock.assert_async().await;
+    assert_eq!(host_config, response);
   }
 
   #[tokio::test]
@@ -131,29 +118,24 @@ mod tests {
         ]
     });
     let response: LogResponse = serde_json::from_value(logs_response_json.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(logs_response_json),
-      None,
-      RadarrEvent::GetLogs(500),
-      None,
-      Some("pageSize=500&sortDirection=descending&sortKey=time"),
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(logs_response_json)
+      .query("pageSize=500&sortDirection=descending&sortKey=time")
+      .build_for(RadarrEvent::GetLogs(500))
+      .await;
+    let mut network = test_network(&app);
 
-    if let RadarrSerdeable::LogResponse(logs) = network
+    let RadarrSerdeable::LogResponse(logs) = network
       .handle_radarr_event(RadarrEvent::GetLogs(500))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.radarr_data.logs.items,
-        expected_logs
-      );
-      assert!(app_arc
+    else {
+      panic!("Expected LogResponse")
+    };
+    mock.assert_async().await;
+    assert_eq!(app.lock().await.data.radarr_data.logs.items, expected_logs);
+    assert!(
+      app
         .lock()
         .await
         .data
@@ -161,9 +143,9 @@ mod tests {
         .logs
         .current_selection()
         .text
-        .contains("INFO"));
-      assert_eq!(logs, response);
-    }
+        .contains("INFO")
+    );
+    assert_eq!(logs, response);
   }
 
   #[tokio::test]
@@ -191,30 +173,25 @@ mod tests {
       trigger: "scheduled".to_owned(),
     };
 
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(queued_events_json),
-      None,
-      RadarrEvent::GetQueuedEvents,
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(queued_events_json)
+      .build_for(RadarrEvent::GetQueuedEvents)
+      .await;
+    let mut network = test_network(&app);
 
-    if let RadarrSerdeable::QueueEvents(events) = network
+    let RadarrSerdeable::QueueEvents(events) = network
       .handle_radarr_event(RadarrEvent::GetQueuedEvents)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.radarr_data.queued_events.items,
-        vec![expected_event]
-      );
-      assert_eq!(events, response);
-    }
+    else {
+      panic!("Expected QueueEvents")
+    };
+    mock.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.queued_events.items,
+      vec![expected_event]
+    );
+    assert_eq!(events, response);
   }
 
   #[tokio::test]
@@ -229,62 +206,52 @@ mod tests {
     });
     let response: SecurityConfig =
       serde_json::from_value(security_config_response.clone()).unwrap();
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(security_config_response),
-      None,
-      RadarrEvent::GetSecurityConfig,
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(security_config_response)
+      .build_for(RadarrEvent::GetSecurityConfig)
+      .await;
+    let mut network = test_network(&app);
 
-    if let RadarrSerdeable::SecurityConfig(security_config) = network
+    let RadarrSerdeable::SecurityConfig(security_config) = network
       .handle_radarr_event(RadarrEvent::GetSecurityConfig)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(security_config, response);
-    }
+    else {
+      panic!("Expected SecurityConfig")
+    };
+    mock.assert_async().await;
+    assert_eq!(security_config, response);
   }
 
   #[tokio::test]
   async fn test_handle_get_radarr_status_event() {
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(json!({
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(json!({
         "version": "v1",
         "startTime": "2023-02-25T20:16:43Z"
-      })),
-      None,
-      RadarrEvent::GetStatus,
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+      }))
+      .build_for(RadarrEvent::GetStatus)
+      .await;
+    let mut network = test_network(&app);
     let date_time = DateTime::from(DateTime::parse_from_rfc3339("2023-02-25T20:16:43Z").unwrap());
 
-    if let RadarrSerdeable::SystemStatus(status) = network
+    let RadarrSerdeable::SystemStatus(status) = network
       .handle_radarr_event(RadarrEvent::GetStatus)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_str_eq!(app_arc.lock().await.data.radarr_data.version, "v1");
-      assert_eq!(app_arc.lock().await.data.radarr_data.start_time, date_time);
-      assert_eq!(
-        status,
-        SystemStatus {
-          version: "v1".to_owned(),
-          start_time: date_time
-        }
-      );
-    }
+    else {
+      panic!("Expected SystemStatus")
+    };
+    async_server.assert_async().await;
+    assert_str_eq!(app.lock().await.data.radarr_data.version, "v1");
+    assert_eq!(app.lock().await.data.radarr_data.start_time, date_time);
+    assert_eq!(
+      status,
+      SystemStatus {
+        version: "v1".to_owned(),
+        start_time: date_time
+      }
+    );
   }
 
   #[tokio::test]
@@ -330,56 +297,26 @@ mod tests {
       },
     }]);
     let response: Vec<Update> = serde_json::from_value(updates_json.clone()).unwrap();
-    let line_break = "-".repeat(200);
-    let expected_text = ScrollableText::with_string(formatdoc!(
-      "
-    The latest version of Radarr is already installed
+    let expected_text = updates();
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(updates_json)
+      .build_for(RadarrEvent::GetUpdates)
+      .await;
+    let mut network = test_network(&app);
 
-    4.3.2.1 - 2023-04-15 02:02:53 UTC (Currently Installed)
-    {line_break}
-    New:
-      * Cool new thing
-    Fixed:
-      * Some bugs killed
-    
-    
-    3.2.1.0 - 2023-04-15 02:02:53 UTC (Previously Installed)
-    {line_break}
-    New:
-      * Cool new thing (old)
-      * Other cool new thing (old)
-    
-    
-    2.1.0 - 2023-04-15 02:02:53 UTC 
-    {line_break}
-    Fixed:
-      * Killed bug 1
-      * Fixed bug 2"
-    ));
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(updates_json),
-      None,
-      RadarrEvent::GetUpdates,
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
-
-    if let RadarrSerdeable::Updates(updates) = network
+    let RadarrSerdeable::Updates(updates) = network
       .handle_radarr_event(RadarrEvent::GetUpdates)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_str_eq!(
-        app_arc.lock().await.data.radarr_data.updates.get_text(),
-        expected_text.get_text()
-      );
-      assert_eq!(updates, response);
-    }
+    else {
+      panic!("Expected Updates")
+    };
+    async_server.assert_async().await;
+    assert_str_eq!(
+      app.lock().await.data.radarr_data.updates.get_text(),
+      expected_text.get_text()
+    );
+    assert_eq!(updates, response);
   }
 
   #[tokio::test]
@@ -420,58 +357,51 @@ mod tests {
         last_duration: "00:00:00.5111547".to_owned(),
       },
     ];
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Get,
-      None,
-      Some(tasks_json),
-      None,
-      RadarrEvent::GetTasks,
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(tasks_json)
+      .build_for(RadarrEvent::GetTasks)
+      .await;
+    let mut network = test_network(&app);
 
-    if let RadarrSerdeable::Tasks(tasks) = network
+    let RadarrSerdeable::Tasks(tasks) = network
       .handle_radarr_event(RadarrEvent::GetTasks)
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(
-        app_arc.lock().await.data.radarr_data.tasks.items,
-        expected_tasks
-      );
-      assert_eq!(tasks, response);
-    }
+    else {
+      panic!("Expected Tasks")
+    };
+    async_server.assert_async().await;
+    assert_eq!(
+      app.lock().await.data.radarr_data.tasks.items,
+      expected_tasks
+    );
+    assert_eq!(tasks, response);
   }
 
   #[tokio::test]
   async fn test_handle_start_radarr_task_event() {
     let response = json!({ "test": "test"});
-    let (async_server, app_arc, _server) = mock_servarr_api(
-      RequestMethod::Post,
-      Some(json!({
+    let (async_server, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
         "name": "ApplicationCheckUpdate"
-      })),
-      Some(response.clone()),
-      None,
-      RadarrEvent::StartTask(RadarrTaskName::ApplicationCheckUpdate),
-      None,
-      None,
-    )
-    .await;
-    let mut network = Network::new(&app_arc, CancellationToken::new(), Client::new());
+      }))
+      .returns(response.clone())
+      .build_for(RadarrEvent::StartTask(
+        RadarrTaskName::ApplicationCheckUpdate,
+      ))
+      .await;
+    let mut network = test_network(&app);
 
-    if let RadarrSerdeable::Value(value) = network
+    let RadarrSerdeable::Value(value) = network
       .handle_radarr_event(RadarrEvent::StartTask(
         RadarrTaskName::ApplicationCheckUpdate,
       ))
       .await
       .unwrap()
-    {
-      async_server.assert_async().await;
-      assert_eq!(value, response);
-    }
+    else {
+      panic!("Expected Value")
+    };
+    async_server.assert_async().await;
+    assert_eq!(value, response);
   }
 }

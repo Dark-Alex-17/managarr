@@ -13,7 +13,7 @@ use crate::utils::{convert_runtime, convert_to_gb};
 use anyhow::Result;
 use indoc::formatdoc;
 use log::{debug, info, warn};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use urlencoding::encode;
 
 #[cfg(test)]
@@ -53,7 +53,9 @@ impl Network<'_, '_> {
       delete_movie_files,
       add_list_exclusion,
     } = delete_movie_params;
-    info!("Deleting Radarr movie with ID: {id} with deleteFiles={delete_movie_files} and addImportExclusion={add_list_exclusion}");
+    info!(
+      "Deleting Radarr movie with ID: {id} with deleteFiles={delete_movie_files} and addImportExclusion={add_list_exclusion}"
+    );
 
     let request_props = self
       .request_props_from(
@@ -223,26 +225,14 @@ impl Network<'_, '_> {
           .cloned()
           .collect();
 
-        if app.data.radarr_data.movie_details_modal.is_none() {
-          app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
-        }
+        let modal = app
+          .data
+          .radarr_data
+          .movie_details_modal
+          .get_or_insert_default();
 
-        app
-          .data
-          .radarr_data
-          .movie_details_modal
-          .as_mut()
-          .unwrap()
-          .movie_cast
-          .set_items(cast_vec);
-        app
-          .data
-          .radarr_data
-          .movie_details_modal
-          .as_mut()
-          .unwrap()
-          .movie_crew
-          .set_items(crew_vec);
+        modal.movie_cast.set_items(cast_vec);
+        modal.movie_crew.set_items(crew_vec);
       })
       .await
   }
@@ -450,16 +440,11 @@ impl Network<'_, '_> {
         let mut reversed_movie_history_vec = movie_history_vec.to_vec();
         reversed_movie_history_vec.reverse();
 
-        if app.data.radarr_data.movie_details_modal.is_none() {
-          app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default())
-        }
-
         app
           .data
           .radarr_data
           .movie_details_modal
-          .as_mut()
-          .unwrap()
+          .get_or_insert_default()
           .movie_history
           .set_items(reversed_movie_history_vec)
       })
@@ -485,16 +470,11 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Vec<RadarrRelease>>(request_props, |release_vec, mut app| {
-        if app.data.radarr_data.movie_details_modal.is_none() {
-          app.data.radarr_data.movie_details_modal = Some(MovieDetailsModal::default());
-        }
-
         app
           .data
           .radarr_data
           .movie_details_modal
-          .as_mut()
-          .unwrap()
+          .get_or_insert_default()
           .movie_releases
           .set_items(release_vec);
       })

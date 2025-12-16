@@ -2,9 +2,14 @@
 mod tests {
   use strum::IntoEnumIterator;
 
-  use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DELETE_SERIES_BLOCKS};
-  use crate::ui::sonarr_ui::library::delete_series_ui::DeleteSeriesUi;
+  use crate::app::App;
+  use crate::models::BlockSelectionState;
+  use crate::models::servarr_data::sonarr::sonarr_data::{
+    ActiveSonarrBlock, DELETE_SERIES_BLOCKS, DELETE_SERIES_SELECTION_BLOCKS,
+  };
   use crate::ui::DrawUi;
+  use crate::ui::sonarr_ui::library::delete_series_ui::DeleteSeriesUi;
+  use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
 
   #[test]
   fn test_delete_series_ui_accepts() {
@@ -15,5 +20,25 @@ mod tests {
         assert!(!DeleteSeriesUi::accepts(active_sonarr_block.into()));
       }
     });
+  }
+
+  mod snapshot_tests {
+    use crate::ui::ui_test_utils::test_utils::TerminalSize;
+
+    use super::*;
+
+    #[test]
+    fn test_delete_series_ui_renders_delete_series() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
+      app.data.sonarr_data.selected_block =
+        BlockSelectionState::new(DELETE_SERIES_SELECTION_BLOCKS);
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        DeleteSeriesUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
   }
 }

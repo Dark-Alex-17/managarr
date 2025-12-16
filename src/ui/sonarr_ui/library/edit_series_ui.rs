@@ -1,16 +1,16 @@
 use std::sync::atomic::Ordering;
 
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Rect};
 use ratatui::prelude::Layout;
 use ratatui::widgets::ListItem;
-use ratatui::Frame;
 
 use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, EDIT_SERIES_BLOCKS, SERIES_DETAILS_BLOCKS,
 };
-use crate::models::Route;
 use crate::render_selectable_input_box;
 
 use crate::ui::styles::ManagarrStyle;
@@ -20,7 +20,7 @@ use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup, DrawUi};
+use crate::ui::{DrawUi, draw_popup};
 
 use super::series_details_ui::SeriesDetailsUi;
 
@@ -32,19 +32,18 @@ pub(super) struct EditSeriesUi;
 
 impl DrawUi for EditSeriesUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Sonarr(active_sonarr_block, _) = route {
-      return EDIT_SERIES_BLOCKS.contains(&active_sonarr_block);
-    }
-
-    false
+    let Route::Sonarr(active_sonarr_block, _) = route else {
+      return false;
+    };
+    EDIT_SERIES_BLOCKS.contains(&active_sonarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     if let Route::Sonarr(active_sonarr_block, context_option) = app.get_current_route() {
-      if let Some(context) = context_option {
-        if SERIES_DETAILS_BLOCKS.contains(&context) {
-          draw_popup(f, app, SeriesDetailsUi::draw, Size::Large);
-        }
+      if let Some(context) = context_option
+        && SERIES_DETAILS_BLOCKS.contains(&context)
+      {
+        draw_popup(f, app, SeriesDetailsUi::draw, Size::Large);
       }
 
       let draw_edit_series_prompt = |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| {
@@ -100,26 +99,41 @@ fn draw_edit_series_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, ar
     use_season_folders,
     path,
     tags,
-  } = app.data.sonarr_data.edit_series_modal.as_ref().unwrap();
+  } = app
+    .data
+    .sonarr_data
+    .edit_series_modal
+    .as_ref()
+    .expect("edit_series_modal must exist in this context");
   let selected_series_type = series_type_list.current_selection();
   let selected_quality_profile = quality_profile_list.current_selection();
   let selected_language_profile = language_profile_list.current_selection();
 
-  let [paragraph_area, monitored_area, season_folder_area, quality_profile_area, language_profile_area, series_type_area, path_area, tags_area, _, buttons_area] =
-    Layout::vertical([
-      Constraint::Length(6),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Fill(1),
-      Constraint::Length(3),
-    ])
-    .margin(1)
-    .areas(area);
+  let [
+    paragraph_area,
+    monitored_area,
+    season_folder_area,
+    quality_profile_area,
+    language_profile_area,
+    series_type_area,
+    path_area,
+    tags_area,
+    _,
+    buttons_area,
+  ] = Layout::vertical([
+    Constraint::Length(6),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Fill(1),
+    Constraint::Length(3),
+  ])
+  .margin(1)
+  .areas(area);
   let [save_area, cancel_area] =
     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
       .areas(buttons_area);
@@ -193,7 +207,7 @@ fn draw_edit_series_select_series_type_popup(f: &mut Frame<'_>, app: &mut App<'_
       .sonarr_data
       .edit_series_modal
       .as_mut()
-      .unwrap()
+      .expect("edit_series_modal must exist in this context")
       .series_type_list,
     |series_type| ListItem::new(series_type.to_display_str().to_owned()),
   );
@@ -209,7 +223,7 @@ fn draw_edit_series_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut Ap
       .sonarr_data
       .edit_series_modal
       .as_mut()
-      .unwrap()
+      .expect("edit_series_modal must exist in this context")
       .quality_profile_list,
     |quality_profile| ListItem::new(quality_profile.clone()),
   );
@@ -225,7 +239,7 @@ fn draw_edit_series_select_language_profile_popup(f: &mut Frame<'_>, app: &mut A
       .sonarr_data
       .edit_series_modal
       .as_mut()
-      .unwrap()
+      .expect("edit_series_modal must exist in this context")
       .language_profile_list,
     |language_profile| ListItem::new(language_profile.clone()),
   );

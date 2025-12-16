@@ -5,12 +5,14 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::library::edit_movie_handler::EditMovieHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::movie;
-  use crate::handlers::KeyEventHandler;
   use crate::models::radarr_models::{EditMovieParams, MinimumAvailability, Movie};
   use crate::models::servarr_data::radarr::modals::EditMovieModal;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_MOVIE_BLOCKS};
@@ -20,9 +22,9 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
+    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::radarr::modals::EditMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::EDIT_MOVIE_SELECTION_BLOCKS;
-    use crate::models::BlockSelectionState;
 
     use super::*;
 
@@ -534,13 +536,13 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use pretty_assertions::assert_eq;
-    use rstest::rstest;
-
+    use crate::assert_navigation_popped;
     use crate::models::servarr_data::radarr::modals::EditMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::EDIT_MOVIE_SELECTION_BLOCKS;
     use crate::models::{BlockSelectionState, Route};
     use crate::network::radarr_network::RadarrEvent;
+    use pretty_assertions::assert_eq;
+    use rstest::rstest;
 
     use super::*;
 
@@ -566,19 +568,18 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(!app
-        .data
-        .radarr_data
-        .edit_movie_modal
-        .as_ref()
-        .unwrap()
-        .path
-        .text
-        .is_empty());
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::EditMoviePrompt.into()
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .edit_movie_modal
+          .as_ref()
+          .unwrap()
+          .path
+          .text
+          .is_empty()
       );
+      assert_navigation_popped!(app, ActiveRadarrBlock::EditMoviePrompt.into());
     }
 
     #[test]
@@ -601,19 +602,18 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(!app
-        .data
-        .radarr_data
-        .edit_movie_modal
-        .as_mut()
-        .unwrap()
-        .tags
-        .text
-        .is_empty());
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::EditMoviePrompt.into()
+      assert!(
+        !app
+          .data
+          .radarr_data
+          .edit_movie_modal
+          .as_mut()
+          .unwrap()
+          .tags
+          .text
+          .is_empty()
       );
+      assert_navigation_popped!(app, ActiveRadarrBlock::EditMoviePrompt.into());
     }
 
     #[test]
@@ -637,8 +637,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
     }
 
     #[test]
@@ -690,12 +690,12 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::EditMovie(expected_edit_movie_params))
       );
-      assert!(app.data.radarr_data.edit_movie_modal.is_none());
+      assert_modal_absent!(app.data.radarr_data.edit_movie_modal);
       assert!(app.should_refresh);
     }
 
@@ -720,7 +720,7 @@ mod tests {
         app.get_current_route(),
         ActiveRadarrBlock::EditMoviePrompt.into()
       );
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
       assert!(!app.should_refresh);
     }
 
@@ -744,7 +744,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), current_route);
-      assert_eq!(
+      assert_some_eq_x!(
         app
           .data
           .radarr_data
@@ -752,7 +752,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .monitored,
-        Some(true)
+        true
       );
 
       EditMovieHandler::new(
@@ -764,7 +764,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), current_route);
-      assert_eq!(
+      assert_some_eq_x!(
         app
           .data
           .radarr_data
@@ -772,7 +772,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .monitored,
-        Some(false)
+        false
       );
     }
 
@@ -805,11 +805,11 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_pushed!(
+        app,
         (selected_block, Some(ActiveRadarrBlock::Movies)).into()
       );
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
 
       if selected_block == ActiveRadarrBlock::EditMoviePathInput
         || selected_block == ActiveRadarrBlock::EditMovieTagsInput
@@ -851,7 +851,7 @@ mod tests {
         )
           .into()
       );
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
       assert!(!app.ignore_special_keys_for_textbox_input);
     }
 
@@ -878,10 +878,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::EditMoviePrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::EditMoviePrompt.into());
 
       if active_radarr_block == ActiveRadarrBlock::EditMoviePathInput
         || active_radarr_block == ActiveRadarrBlock::EditMovieTagsInput
@@ -892,11 +889,10 @@ mod tests {
   }
 
   mod test_handle_esc {
-    use pretty_assertions::assert_eq;
-    use rstest::rstest;
-
+    use crate::assert_navigation_popped;
     use crate::models::servarr_data::radarr::modals::EditMovieModal;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils::create_test_radarr_data;
+    use rstest::rstest;
 
     use super::*;
 
@@ -919,10 +915,7 @@ mod tests {
       EditMovieHandler::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::EditMoviePrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::EditMoviePrompt.into());
     }
 
     #[test]
@@ -934,9 +927,9 @@ mod tests {
 
       EditMovieHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::EditMoviePrompt, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
 
-      assert!(app.data.radarr_data.edit_movie_modal.is_none());
+      assert_modal_absent!(app.data.radarr_data.edit_movie_modal);
       assert!(!app.data.radarr_data.prompt_confirm);
     }
 
@@ -956,16 +949,17 @@ mod tests {
 
       EditMovieHandler::new(ESC_KEY, &mut app, active_radarr_block, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
     }
   }
 
   mod test_handle_key_char {
     use super::*;
     use crate::{
+      assert_navigation_popped,
       models::{
-        servarr_data::radarr::{modals::EditMovieModal, radarr_data::EDIT_MOVIE_SELECTION_BLOCKS},
         BlockSelectionState,
+        servarr_data::radarr::{modals::EditMovieModal, radarr_data::EDIT_MOVIE_SELECTION_BLOCKS},
       },
       network::radarr_network::RadarrEvent,
     };
@@ -1128,12 +1122,12 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Movies.into());
+      assert_navigation_popped!(app, ActiveRadarrBlock::Movies.into());
       assert_eq!(
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::EditMovie(expected_edit_movie_params))
       );
-      assert!(app.data.radarr_data.edit_movie_modal.is_none());
+      assert_modal_absent!(app.data.radarr_data.edit_movie_modal);
       assert!(app.should_refresh);
     }
   }
@@ -1209,7 +1203,7 @@ mod tests {
     .build_edit_movie_params();
 
     assert_eq!(edit_movie_params, expected_edit_movie_params);
-    assert!(app.data.radarr_data.edit_movie_modal.is_none());
+    assert_modal_absent!(app.data.radarr_data.edit_movie_modal);
   }
 
   #[test]

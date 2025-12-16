@@ -1,12 +1,12 @@
+use crate::models::Route;
 use crate::models::radarr_models::{Collection, EditCollectionParams};
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::models::servarr_models::CommandBody;
-use crate::models::Route;
 use crate::network::radarr_network::RadarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
 use log::{debug, info};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 #[cfg(test)]
 #[path = "radarr_collections_network_tests.rs"]

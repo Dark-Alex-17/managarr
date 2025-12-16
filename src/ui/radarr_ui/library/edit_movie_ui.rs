@@ -1,16 +1,16 @@
 use std::sync::atomic::Ordering;
 
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Rect};
 use ratatui::prelude::Layout;
 use ratatui::widgets::ListItem;
-use ratatui::Frame;
 
 use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::radarr::modals::EditMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, EDIT_MOVIE_BLOCKS, MOVIE_DETAILS_BLOCKS,
 };
-use crate::models::Route;
 use crate::render_selectable_input_box;
 use crate::ui::radarr_ui::library::movie_details_ui::MovieDetailsUi;
 
@@ -21,7 +21,7 @@ use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{draw_popup, DrawUi};
+use crate::ui::{DrawUi, draw_popup};
 
 #[cfg(test)]
 #[path = "edit_movie_ui_tests.rs"]
@@ -31,19 +31,18 @@ pub(super) struct EditMovieUi;
 
 impl DrawUi for EditMovieUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
-      return EDIT_MOVIE_BLOCKS.contains(&active_radarr_block);
-    }
-
-    false
+    let Route::Radarr(active_radarr_block, _) = route else {
+      return false;
+    };
+    EDIT_MOVIE_BLOCKS.contains(&active_radarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
     if let Route::Radarr(active_radarr_block, context_option) = app.get_current_route() {
-      if let Some(context) = context_option {
-        if MOVIE_DETAILS_BLOCKS.contains(&context) {
-          draw_popup(f, app, MovieDetailsUi::draw, Size::Large);
-        }
+      if let Some(context) = context_option
+        && MOVIE_DETAILS_BLOCKS.contains(&context)
+      {
+        draw_popup(f, app, MovieDetailsUi::draw, Size::Large);
       }
 
       draw_popup(f, app, draw_edit_movie_confirmation_prompt, Size::Medium);
@@ -88,23 +87,36 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, are
     monitored,
     path,
     tags,
-  } = app.data.radarr_data.edit_movie_modal.as_ref().unwrap();
+  } = app
+    .data
+    .radarr_data
+    .edit_movie_modal
+    .as_ref()
+    .expect("edit_movie_modal must exist in this context");
   let selected_minimum_availability = minimum_availability_list.current_selection();
   let selected_quality_profile = quality_profile_list.current_selection();
 
-  let [paragraph_area, monitored_area, min_availability_area, quality_profile_area, path_area, tags_area, _, buttons_area] =
-    Layout::vertical([
-      Constraint::Length(6),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Length(3),
-      Constraint::Fill(1),
-      Constraint::Length(3),
-    ])
-    .margin(1)
-    .areas(area);
+  let [
+    paragraph_area,
+    monitored_area,
+    min_availability_area,
+    quality_profile_area,
+    path_area,
+    tags_area,
+    _,
+    buttons_area,
+  ] = Layout::vertical([
+    Constraint::Length(6),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Length(3),
+    Constraint::Fill(1),
+    Constraint::Length(3),
+  ])
+  .margin(1)
+  .areas(area);
   let [save_area, cancel_area] =
     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
       .areas(buttons_area);
@@ -168,7 +180,7 @@ fn draw_edit_movie_select_minimum_availability_popup(f: &mut Frame<'_>, app: &mu
       .radarr_data
       .edit_movie_modal
       .as_mut()
-      .unwrap()
+      .expect("edit_movie_modal must exist in this context")
       .minimum_availability_list,
     |minimum_availability| ListItem::new(minimum_availability.to_display_str().to_owned()),
   );
@@ -184,7 +196,7 @@ fn draw_edit_movie_select_quality_profile_popup(f: &mut Frame<'_>, app: &mut App
       .radarr_data
       .edit_movie_modal
       .as_mut()
-      .unwrap()
+      .expect("edit_movie_modal must exist in this context")
       .quality_profile_list,
     |quality_profile| ListItem::new(quality_profile.clone()),
   );

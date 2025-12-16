@@ -1,11 +1,12 @@
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Rect};
 use ratatui::widgets::{Cell, Row};
-use ratatui::Frame;
 
 use crate::app::App;
+use crate::models::Route;
 use crate::models::radarr_models::Collection;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, COLLECTIONS_BLOCKS};
-use crate::models::Route;
+use crate::ui::DrawUi;
 use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsUi;
 use crate::ui::radarr_ui::collections::edit_collection_ui::EditCollectionUi;
 use crate::ui::styles::ManagarrStyle;
@@ -13,7 +14,6 @@ use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::DrawUi;
 
 mod collection_details_ui;
 #[cfg(test)]
@@ -25,13 +25,12 @@ pub(super) struct CollectionsUi;
 
 impl DrawUi for CollectionsUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
-      return CollectionDetailsUi::accepts(route)
-        || EditCollectionUi::accepts(route)
-        || COLLECTIONS_BLOCKS.contains(&active_radarr_block);
-    }
-
-    false
+    let Route::Radarr(active_radarr_block, _) = route else {
+      return false;
+    };
+    CollectionDetailsUi::accepts(route)
+      || EditCollectionUi::accepts(route)
+      || COLLECTIONS_BLOCKS.contains(&active_radarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
@@ -39,8 +38,8 @@ impl DrawUi for CollectionsUi {
     draw_collections(f, app, area);
 
     match route {
-      _ if CollectionDetailsUi::accepts(route) => CollectionDetailsUi::draw(f, app, area),
       _ if EditCollectionUi::accepts(route) => EditCollectionUi::draw(f, app, area),
+      _ if CollectionDetailsUi::accepts(route) => CollectionDetailsUi::draw(f, app, area),
       Route::Radarr(ActiveRadarrBlock::UpdateAllCollectionsPrompt, _) => {
         let confirmation_prompt = ConfirmationPrompt::new()
           .title("Update All Collections")

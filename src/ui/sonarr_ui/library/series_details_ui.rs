@@ -1,18 +1,18 @@
 use chrono::Utc;
 use deunicode::deunicode;
+use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
-use ratatui::Frame;
 use regex::Regex;
 
 use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SERIES_DETAILS_BLOCKS};
 use crate::models::sonarr_models::{
   Season, SeasonStatistics, SonarrHistoryEventType, SonarrHistoryItem,
 };
-use crate::models::Route;
 use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::ui::sonarr_ui::library::season_details_ui::SeasonDetailsUi;
 use crate::ui::sonarr_ui::sonarr_ui_utils::{
@@ -31,7 +31,7 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{draw_popup, draw_tabs, DrawUi};
+use crate::ui::{DrawUi, draw_popup, draw_tabs};
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -42,13 +42,12 @@ pub(super) struct SeriesDetailsUi;
 
 impl DrawUi for SeriesDetailsUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Sonarr(active_sonarr_block, _) = route {
-      return SeasonDetailsUi::accepts(route)
-        || EpisodeDetailsUi::accepts(route)
-        || SERIES_DETAILS_BLOCKS.contains(&active_sonarr_block);
-    }
-
-    false
+    let Route::Sonarr(active_sonarr_block, _) = route else {
+      return false;
+    };
+    SeasonDetailsUi::accepts(route)
+      || EpisodeDetailsUi::accepts(route)
+      || SERIES_DETAILS_BLOCKS.contains(&active_sonarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
@@ -75,7 +74,8 @@ impl DrawUi for SeriesDetailsUi {
         match active_sonarr_block {
           ActiveSonarrBlock::AutomaticallySearchSeriesPrompt => {
             let prompt = format!(
-              "Do you want to trigger an automatic search of your indexers for all monitored episode(s) for the series: {}", app.data.sonarr_data.series.current_selection().title
+              "Do you want to trigger an automatic search of your indexers for all monitored episode(s) for the series: {}",
+              app.data.sonarr_data.series.current_selection().title
             );
             let confirmation_prompt = ConfirmationPrompt::new()
               .title("Automatic Series Search")
@@ -252,7 +252,7 @@ fn draw_seasons_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
       let row = Row::new(vec![
         Cell::from(season_monitored.to_owned()),
-        Cell::from(title.clone().unwrap()),
+        Cell::from(title.clone().unwrap_or_default()),
         Cell::from(format!("{episode_file_count}/{episode_count}")),
         Cell::from(format!("{size:.2} GB")),
       ]);
@@ -339,7 +339,12 @@ fn draw_series_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           ])
           .primary()
         };
-        let mut series_history_table = app.data.sonarr_data.series_history.as_mut().unwrap();
+        let mut series_history_table = app
+          .data
+          .sonarr_data
+          .series_history
+          .as_mut()
+          .expect("series_history must be populated");
         let history_table =
           ManagarrTable::new(Some(&mut series_history_table), history_row_mapping)
             .block(layout_block_top_border())

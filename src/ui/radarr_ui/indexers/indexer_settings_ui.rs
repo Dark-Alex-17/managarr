@@ -1,13 +1,13 @@
 use std::sync::atomic::Ordering;
 
-use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::Frame;
+use ratatui::layout::{Constraint, Flex, Layout, Rect};
 
 use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, INDEXER_SETTINGS_BLOCKS,
 };
-use crate::models::Route;
 use crate::render_selectable_input_box;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::title_block_centered;
@@ -16,7 +16,7 @@ use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::popup::Size;
-use crate::ui::{draw_popup, DrawUi};
+use crate::ui::{DrawUi, draw_popup};
 
 #[cfg(test)]
 #[path = "indexer_settings_ui_tests.rs"]
@@ -26,11 +26,10 @@ pub(super) struct IndexerSettingsUi;
 
 impl DrawUi for IndexerSettingsUi {
   fn accepts(route: Route) -> bool {
-    if let Route::Radarr(active_radarr_block, _) = route {
-      return INDEXER_SETTINGS_BLOCKS.contains(&active_radarr_block);
-    }
-
-    false
+    let Route::Radarr(active_radarr_block, _) = route else {
+      return false;
+    };
+    INDEXER_SETTINGS_BLOCKS.contains(&active_radarr_block)
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
@@ -62,21 +61,30 @@ fn draw_edit_indexer_settings_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area:
       Layout::horizontal([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)])
         .margin(1)
         .areas(settings_area);
-    let [min_age_area, retention_area, max_size_area, prefer_flags_area] = Layout::vertical([
+    let [
+      min_age_area,
+      retention_area,
+      max_size_area,
+      prefer_flags_area,
+    ] = Layout::vertical([
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
       Constraint::Length(3),
     ])
     .areas(left_side_area);
-    let [availability_delay_area, rss_sync_interval_area, whitelisted_sub_tags_area, allow_hardcoded_subs_area] =
-      Layout::vertical([
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(3),
-      ])
-      .areas(right_side_area);
+    let [
+      availability_delay_area,
+      rss_sync_interval_area,
+      whitelisted_sub_tags_area,
+      allow_hardcoded_subs_area,
+    ] = Layout::vertical([
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+    ])
+    .areas(right_side_area);
 
     if let Route::Radarr(active_radarr_block, _) = app.get_current_route() {
       let min_age = indexer_settings.minimum_age.to_string();

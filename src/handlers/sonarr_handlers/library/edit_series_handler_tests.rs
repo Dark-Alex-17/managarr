@@ -5,12 +5,14 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::sonarr_handlers::library::edit_series_handler::EditSeriesHandler;
   use crate::handlers::sonarr_handlers::sonarr_handler_test_utils::utils::series;
-  use crate::handlers::KeyEventHandler;
   use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_SERIES_BLOCKS};
   use crate::models::sonarr_models::{EditSeriesParams, Series, SeriesType};
@@ -20,9 +22,9 @@ mod tests {
     use rstest::rstest;
     use strum::IntoEnumIterator;
 
+    use crate::models::BlockSelectionState;
     use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
     use crate::models::servarr_data::sonarr::sonarr_data::EDIT_SERIES_SELECTION_BLOCKS;
-    use crate::models::BlockSelectionState;
 
     use super::*;
 
@@ -663,13 +665,13 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use pretty_assertions::assert_eq;
-    use rstest::rstest;
-
+    use crate::assert_navigation_popped;
     use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
     use crate::models::servarr_data::sonarr::sonarr_data::EDIT_SERIES_SELECTION_BLOCKS;
     use crate::models::{BlockSelectionState, Route};
     use crate::network::sonarr_network::SonarrEvent;
+    use pretty_assertions::assert_eq;
+    use rstest::rstest;
 
     use super::*;
 
@@ -696,19 +698,18 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(!app
-        .data
-        .sonarr_data
-        .edit_series_modal
-        .as_ref()
-        .unwrap()
-        .path
-        .text
-        .is_empty());
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EditSeriesPrompt.into()
+      assert!(
+        !app
+          .data
+          .sonarr_data
+          .edit_series_modal
+          .as_ref()
+          .unwrap()
+          .path
+          .text
+          .is_empty()
       );
+      assert_navigation_popped!(app, ActiveSonarrBlock::EditSeriesPrompt.into());
     }
 
     #[test]
@@ -732,19 +733,18 @@ mod tests {
       .handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(!app
-        .data
-        .sonarr_data
-        .edit_series_modal
-        .as_mut()
-        .unwrap()
-        .tags
-        .text
-        .is_empty());
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EditSeriesPrompt.into()
+      assert!(
+        !app
+          .data
+          .sonarr_data
+          .edit_series_modal
+          .as_mut()
+          .unwrap()
+          .tags
+          .text
+          .is_empty()
       );
+      assert_navigation_popped!(app, ActiveSonarrBlock::EditSeriesPrompt.into());
     }
 
     #[test]
@@ -768,8 +768,8 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
     }
 
     #[test]
@@ -830,12 +830,12 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::EditSeries(expected_edit_series_params))
       );
-      assert!(app.data.sonarr_data.edit_series_modal.is_none());
+      assert_modal_absent!(app.data.sonarr_data.edit_series_modal);
       assert!(app.should_refresh);
     }
 
@@ -860,7 +860,7 @@ mod tests {
         app.get_current_route(),
         ActiveSonarrBlock::EditSeriesPrompt.into()
       );
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
       assert!(!app.should_refresh);
     }
 
@@ -885,7 +885,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), current_route);
-      assert_eq!(
+      assert_some_eq_x!(
         app
           .data
           .sonarr_data
@@ -893,7 +893,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .monitored,
-        Some(true)
+        true
       );
 
       EditSeriesHandler::new(
@@ -905,7 +905,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), current_route);
-      assert_eq!(
+      assert_some_eq_x!(
         app
           .data
           .sonarr_data
@@ -913,7 +913,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .monitored,
-        Some(false)
+        false
       );
     }
 
@@ -939,7 +939,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), current_route);
-      assert_eq!(
+      assert_some_eq_x!(
         app
           .data
           .sonarr_data
@@ -947,7 +947,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .use_season_folders,
-        Some(true)
+        true
       );
 
       EditSeriesHandler::new(
@@ -959,7 +959,7 @@ mod tests {
       .handle();
 
       assert_eq!(app.get_current_route(), current_route);
-      assert_eq!(
+      assert_some_eq_x!(
         app
           .data
           .sonarr_data
@@ -967,7 +967,7 @@ mod tests {
           .as_ref()
           .unwrap()
           .use_season_folders,
-        Some(false)
+        false
       );
     }
 
@@ -1002,11 +1002,11 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
+      assert_navigation_pushed!(
+        app,
         (selected_block, Some(ActiveSonarrBlock::Series)).into()
       );
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
 
       if selected_block == ActiveSonarrBlock::EditSeriesPathInput
         || selected_block == ActiveSonarrBlock::EditSeriesTagsInput
@@ -1049,7 +1049,7 @@ mod tests {
         )
           .into()
       );
-      assert_eq!(app.data.sonarr_data.prompt_confirm_action, None);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
       assert!(!app.ignore_special_keys_for_textbox_input);
     }
 
@@ -1078,10 +1078,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EditSeriesPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::EditSeriesPrompt.into());
 
       if active_sonarr_block == ActiveSonarrBlock::EditSeriesPathInput
         || active_sonarr_block == ActiveSonarrBlock::EditSeriesTagsInput
@@ -1092,11 +1089,10 @@ mod tests {
   }
 
   mod test_handle_esc {
-    use pretty_assertions::assert_eq;
-    use rstest::rstest;
-
+    use crate::assert_navigation_popped;
     use crate::models::servarr_data::sonarr::modals::EditSeriesModal;
     use crate::models::servarr_data::sonarr::sonarr_data::sonarr_test_utils::utils::create_test_sonarr_data;
+    use rstest::rstest;
 
     use super::*;
 
@@ -1120,10 +1116,7 @@ mod tests {
       EditSeriesHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveSonarrBlock::EditSeriesPrompt.into()
-      );
+      assert_navigation_popped!(app, ActiveSonarrBlock::EditSeriesPrompt.into());
     }
 
     #[test]
@@ -1136,9 +1129,9 @@ mod tests {
 
       EditSeriesHandler::new(ESC_KEY, &mut app, ActiveSonarrBlock::EditSeriesPrompt, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
 
-      assert!(app.data.sonarr_data.edit_series_modal.is_none());
+      assert_modal_absent!(app.data.sonarr_data.edit_series_modal);
       assert!(!app.data.sonarr_data.prompt_confirm);
     }
 
@@ -1160,18 +1153,19 @@ mod tests {
 
       EditSeriesHandler::new(ESC_KEY, &mut app, active_sonarr_block, None).handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
     }
   }
 
   mod test_handle_key_char {
     use super::*;
     use crate::{
+      assert_navigation_popped,
       models::{
+        BlockSelectionState,
         servarr_data::sonarr::{
           modals::EditSeriesModal, sonarr_data::EDIT_SERIES_SELECTION_BLOCKS,
         },
-        BlockSelectionState,
       },
       network::sonarr_network::SonarrEvent,
     };
@@ -1348,12 +1342,12 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(app.get_current_route(), ActiveSonarrBlock::Series.into());
+      assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
       assert_eq!(
         app.data.sonarr_data.prompt_confirm_action,
         Some(SonarrEvent::EditSeries(expected_edit_series_params))
       );
-      assert!(app.data.sonarr_data.edit_series_modal.is_none());
+      assert_modal_absent!(app.data.sonarr_data.edit_series_modal);
       assert!(app.should_refresh);
     }
   }
@@ -1438,7 +1432,7 @@ mod tests {
     .build_edit_series_params();
 
     assert_eq!(edit_series_params, expected_edit_series_params);
-    assert!(app.data.sonarr_data.edit_series_modal.is_none());
+    assert_modal_absent!(app.data.sonarr_data.edit_series_modal);
   }
 
   #[test]

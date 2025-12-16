@@ -2,10 +2,10 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::sonarr_handlers::system::system_details_handler::SystemDetailsHandler;
-use crate::handlers::{handle_clear_errors, KeyEventHandler};
+use crate::handlers::{KeyEventHandler, handle_clear_errors};
 use crate::matches_key;
-use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 use crate::models::Scrollable;
+use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
 
 mod system_details_handler;
 
@@ -123,5 +123,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemHandler<'a, 'b
         _ => (),
       }
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }

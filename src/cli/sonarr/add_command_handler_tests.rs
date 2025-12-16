@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod tests {
-  use clap::{error::ErrorKind, CommandFactory, Parser};
+  use clap::{CommandFactory, Parser, error::ErrorKind};
   use pretty_assertions::assert_eq;
 
   use crate::{
-    cli::{
-      sonarr::{add_command_handler::SonarrAddCommand, SonarrCommand},
-      Command,
-    },
     Cli,
+    cli::{
+      Command,
+      sonarr::{SonarrCommand, add_command_handler::SonarrAddCommand},
+    },
   };
 
   #[test]
@@ -34,7 +34,7 @@ mod tests {
       let result =
         Cli::command().try_get_matches_from(["managarr", "sonarr", "add", "root-folder"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -56,18 +56,19 @@ mod tests {
         "/nfs/test",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Add(add_command))) = result.unwrap().command {
-        assert_eq!(add_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Add(add_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(add_command, expected_args);
     }
 
     #[test]
     fn test_add_series_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "add", "series"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -91,7 +92,7 @@ mod tests {
         "test",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -115,7 +116,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -139,7 +140,7 @@ mod tests {
         "test",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -163,7 +164,7 @@ mod tests {
         "test",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -187,7 +188,7 @@ mod tests {
         "test",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -216,7 +217,7 @@ mod tests {
         flag,
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -239,7 +240,7 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[test]
@@ -263,7 +264,7 @@ mod tests {
         "test",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -288,7 +289,7 @@ mod tests {
         "test",
       ]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
     }
 
@@ -325,10 +326,11 @@ mod tests {
         "1",
       ]);
 
-      assert!(result.is_ok());
-      if let Some(Command::Sonarr(SonarrCommand::Add(add_command))) = result.unwrap().command {
-        assert_eq!(add_command, expected_args);
-      }
+      assert_ok!(&result);
+      let Some(Command::Sonarr(SonarrCommand::Add(add_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(add_command, expected_args);
     }
 
     #[test]
@@ -368,10 +370,11 @@ mod tests {
         "2",
       ]);
 
-      assert!(result.is_ok());
-      if let Some(Command::Sonarr(SonarrCommand::Add(add_command))) = result.unwrap().command {
-        assert_eq!(add_command, expected_args);
-      }
+      assert_ok!(&result);
+      let Some(Command::Sonarr(SonarrCommand::Add(add_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(add_command, expected_args);
     }
 
     #[test]
@@ -418,17 +421,18 @@ mod tests {
         "--no-search-for-series",
       ]);
 
-      assert!(result.is_ok());
-      if let Some(Command::Sonarr(SonarrCommand::Add(add_command))) = result.unwrap().command {
-        assert_eq!(add_command, expected_args);
-      }
+      assert_ok!(&result);
+      let Some(Command::Sonarr(SonarrCommand::Add(add_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(add_command, expected_args);
     }
 
     #[test]
     fn test_add_tag_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "add", "tag"]);
 
-      assert!(result.is_err());
+      assert_err!(&result);
       assert_eq!(
         result.unwrap_err().kind(),
         ErrorKind::MissingRequiredArgument
@@ -443,11 +447,12 @@ mod tests {
 
       let result = Cli::try_parse_from(["managarr", "sonarr", "add", "tag", "--name", "test"]);
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
 
-      if let Some(Command::Sonarr(SonarrCommand::Add(add_command))) = result.unwrap().command {
-        assert_eq!(add_command, expected_args);
-      }
+      let Some(Command::Sonarr(SonarrCommand::Add(add_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(add_command, expected_args);
     }
   }
 
@@ -456,14 +461,14 @@ mod tests {
 
     use crate::{
       app::App,
-      cli::{sonarr::add_command_handler::SonarrAddCommandHandler, CliCommandHandler},
+      cli::{CliCommandHandler, sonarr::add_command_handler::SonarrAddCommandHandler},
       models::{
+        Serdeable,
         sonarr_models::{
           AddSeriesBody, AddSeriesOptions, SeriesMonitor, SeriesType, SonarrSerdeable,
         },
-        Serdeable,
       },
-      network::{sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent},
+      network::{MockNetworkTrait, NetworkEvent, sonarr_network::SonarrEvent},
     };
 
     use super::*;
@@ -501,7 +506,7 @@ mod tests {
           .handle()
           .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -554,7 +559,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
 
     #[tokio::test]
@@ -581,7 +586,7 @@ mod tests {
         .handle()
         .await;
 
-      assert!(result.is_ok());
+      assert_ok!(&result);
     }
   }
 }

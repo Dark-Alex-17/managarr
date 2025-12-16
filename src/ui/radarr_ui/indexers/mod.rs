@@ -1,13 +1,14 @@
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::Text;
 use ratatui::widgets::{Cell, Row};
-use ratatui::Frame;
 
 use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, INDEXERS_BLOCKS};
 use crate::models::servarr_models::Indexer;
-use crate::models::Route;
+use crate::ui::DrawUi;
 use crate::ui::radarr_ui::indexers::edit_indexer_ui::EditIndexerUi;
 use crate::ui::radarr_ui::indexers::indexer_settings_ui::IndexerSettingsUi;
 use crate::ui::radarr_ui::indexers::test_all_indexers_ui::TestAllIndexersUi;
@@ -18,7 +19,6 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::DrawUi;
 
 mod edit_indexer_ui;
 mod indexer_settings_ui;

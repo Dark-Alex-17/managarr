@@ -4,15 +4,18 @@ mod tests {
   use rstest::rstest;
   use strum::IntoEnumIterator;
 
-  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
+  use crate::assert_modal_present;
+  use crate::assert_navigation_pushed;
   use crate::event::Key;
+  use crate::handlers::KeyEventHandler;
   use crate::handlers::radarr_handlers::radarr_handler_test_utils::utils::root_folder;
   use crate::handlers::radarr_handlers::root_folders::RootFoldersHandler;
-  use crate::handlers::KeyEventHandler;
+  use crate::models::HorizontallyScrollableText;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
   use crate::models::servarr_models::{AddRootFolderBody, RootFolder};
-  use crate::models::HorizontallyScrollableText;
 
   mod test_handle_home_end {
     use pretty_assertions::assert_eq;
@@ -91,10 +94,7 @@ mod tests {
 
       RootFoldersHandler::new(DELETE_KEY, &mut app, ActiveRadarrBlock::RootFolders, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::DeleteRootFolderPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::DeleteRootFolderPrompt.into());
     }
 
     #[test]
@@ -124,6 +124,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
+    use crate::assert_navigation_pushed;
 
     #[rstest]
     fn test_root_folders_tab_left(#[values(true, false)] is_ready: bool) {
@@ -143,7 +144,7 @@ mod tests {
         app.data.radarr_data.main_tabs.get_active_route(),
         ActiveRadarrBlock::Blocklist.into()
       );
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Blocklist.into());
+      assert_navigation_pushed!(app, ActiveRadarrBlock::Blocklist.into());
     }
 
     #[rstest]
@@ -164,7 +165,7 @@ mod tests {
         app.data.radarr_data.main_tabs.get_active_route(),
         ActiveRadarrBlock::Indexers.into()
       );
-      assert_eq!(app.get_current_route(), ActiveRadarrBlock::Indexers.into());
+      assert_navigation_pushed!(app, ActiveRadarrBlock::Indexers.into());
     }
 
     #[rstest]
@@ -242,9 +243,9 @@ mod tests {
   }
 
   mod test_handle_submit {
-    use pretty_assertions::assert_eq;
-
+    use crate::assert_navigation_popped;
     use crate::network::radarr_network::RadarrEvent;
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
@@ -281,10 +282,7 @@ mod tests {
         app.data.radarr_data.prompt_confirm_action,
         Some(RadarrEvent::AddRootFolder(expected_add_root_folder_body))
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::RootFolders.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::RootFolders.into());
     }
 
     #[test]
@@ -306,7 +304,7 @@ mod tests {
 
       assert!(!app.data.radarr_data.prompt_confirm);
       assert!(app.ignore_special_keys_for_textbox_input);
-      assert!(app.data.radarr_data.prompt_confirm_action.is_none());
+      assert_modal_absent!(app.data.radarr_data.prompt_confirm_action);
       assert_eq!(
         app.get_current_route(),
         ActiveRadarrBlock::AddRootFolderPrompt.into()
@@ -334,14 +332,11 @@ mod tests {
       .handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteRootFolder(1))
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &RadarrEvent::DeleteRootFolder(1)
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::RootFolders.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::RootFolders.into());
     }
 
     #[test]
@@ -364,17 +359,14 @@ mod tests {
       .handle();
 
       assert!(!app.data.radarr_data.prompt_confirm);
-      assert_eq!(app.data.radarr_data.prompt_confirm_action, None);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::RootFolders.into()
-      );
+      assert_none!(app.data.radarr_data.prompt_confirm_action);
+      assert_navigation_popped!(app, ActiveRadarrBlock::RootFolders.into());
     }
   }
 
   mod test_handle_esc {
     use super::*;
-    use pretty_assertions::assert_eq;
+    use crate::assert_navigation_popped;
     use rstest::rstest;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
@@ -394,10 +386,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::RootFolders.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::RootFolders.into());
       assert!(!app.data.radarr_data.prompt_confirm);
     }
 
@@ -417,12 +406,9 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::RootFolders.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::RootFolders.into());
 
-      assert!(app.data.radarr_data.edit_root_folder.is_none());
+      assert_modal_absent!(app.data.radarr_data.edit_root_folder);
       assert!(!app.data.radarr_data.prompt_confirm);
       assert!(!app.ignore_special_keys_for_textbox_input);
     }
@@ -437,18 +423,15 @@ mod tests {
 
       RootFoldersHandler::new(ESC_KEY, &mut app, ActiveRadarrBlock::RootFolders, None).handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::RootFolders.into()
-      );
-      assert!(app.error.text.is_empty());
+      assert_navigation_popped!(app, ActiveRadarrBlock::RootFolders.into());
+      assert_is_empty!(app.error.text);
     }
   }
 
   mod test_handle_key_char {
-    use pretty_assertions::{assert_eq, assert_str_eq};
-
+    use crate::assert_navigation_popped;
     use crate::network::radarr_network::RadarrEvent;
+    use pretty_assertions::{assert_eq, assert_str_eq};
 
     use super::*;
 
@@ -469,12 +452,9 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::AddRootFolderPrompt.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::AddRootFolderPrompt.into());
       assert!(app.ignore_special_keys_for_textbox_input);
-      assert!(app.data.radarr_data.edit_root_folder.is_some());
+      assert_modal_present!(app.data.radarr_data.edit_root_folder);
     }
 
     #[test]
@@ -501,7 +481,7 @@ mod tests {
         ActiveRadarrBlock::RootFolders.into()
       );
       assert!(!app.ignore_special_keys_for_textbox_input);
-      assert!(app.data.radarr_data.edit_root_folder.is_none());
+      assert_modal_absent!(app.data.radarr_data.edit_root_folder);
     }
 
     #[test]
@@ -522,10 +502,7 @@ mod tests {
       )
       .handle();
 
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::RootFolders.into()
-      );
+      assert_navigation_pushed!(app, ActiveRadarrBlock::RootFolders.into());
       assert!(app.should_refresh);
     }
 
@@ -623,14 +600,11 @@ mod tests {
       .handle();
 
       assert!(app.data.radarr_data.prompt_confirm);
-      assert_eq!(
-        app.data.radarr_data.prompt_confirm_action,
-        Some(RadarrEvent::DeleteRootFolder(1))
+      assert_some_eq_x!(
+        &app.data.radarr_data.prompt_confirm_action,
+        &RadarrEvent::DeleteRootFolder(1)
       );
-      assert_eq!(
-        app.get_current_route(),
-        ActiveRadarrBlock::RootFolders.into()
-      );
+      assert_navigation_popped!(app, ActiveRadarrBlock::RootFolders.into());
     }
   }
 
@@ -681,7 +655,7 @@ mod tests {
     .build_add_root_folder_body();
 
     assert_eq!(actual_add_root_folder_body, expected_add_root_folder_body);
-    assert!(app.data.radarr_data.edit_root_folder.is_none());
+    assert_modal_absent!(app.data.radarr_data.edit_root_folder);
   }
 
   #[test]

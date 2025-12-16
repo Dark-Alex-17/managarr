@@ -8,7 +8,7 @@ use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
   models::radarr_models::DeleteMovieParams,
-  network::{radarr_network::RadarrEvent, NetworkTrait},
+  network::{NetworkTrait, radarr_network::RadarrEvent},
 };
 
 use super::RadarrCommand;

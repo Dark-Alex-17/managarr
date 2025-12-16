@@ -6,13 +6,13 @@ use tokio::sync::Mutex;
 
 use crate::{
   app::App,
-  cli::{mutex_flags_or_option, CliCommandHandler, Command},
+  cli::{CliCommandHandler, Command, mutex_flags_or_option},
   models::{
+    Serdeable,
     servarr_models::EditIndexerParams,
     sonarr_models::{EditSeriesParams, IndexerSettings, SeriesType, SonarrSerdeable},
-    Serdeable,
   },
-  network::{sonarr_network::SonarrEvent, NetworkTrait},
+  network::{NetworkTrait, sonarr_network::SonarrEvent},
 };
 
 use super::SonarrCommand;

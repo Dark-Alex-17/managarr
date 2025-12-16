@@ -1,18 +1,15 @@
-use crate::handlers::table_handler::TableHandlingConfig;
-use crate::handlers::{handle_prompt_toggle, KeyEventHandler};
+use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
+use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::models::radarr_models::{
   AddMovieBody, AddMovieOptions, AddMovieSearchResult, CollectionMovie,
 };
 use crate::models::servarr_data::radarr::modals::AddMovieModal;
 use crate::models::servarr_data::radarr::radarr_data::{
-  ActiveRadarrBlock, ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS,
+  ADD_MOVIE_BLOCKS, ADD_MOVIE_SELECTION_BLOCKS, ActiveRadarrBlock,
 };
-use crate::models::stateful_table::StatefulTable;
 use crate::models::{BlockSelectionState, Scrollable};
 use crate::network::radarr_network::RadarrEvent;
-use crate::{
-  handle_table_events, handle_text_box_keys, handle_text_box_left_right_keys, matches_key, App, Key,
-};
+use crate::{App, Key, handle_text_box_keys, handle_text_box_left_right_keys, matches_key};
 
 #[cfg(test)]
 #[path = "add_movie_handler_tests.rs"]
@@ -26,19 +23,6 @@ pub(super) struct AddMovieHandler<'a, 'b> {
 }
 
 impl AddMovieHandler<'_, '_> {
-  handle_table_events!(
-    self,
-    add_movie_search_results,
-    self
-      .app
-      .data
-      .radarr_data
-      .add_searched_movies
-      .as_mut()
-      .unwrap_or(&mut StatefulTable::default()),
-    AddMovieSearchResult
-  );
-
   fn build_add_movie_body(&mut self) -> AddMovieBody {
     let add_movie_modal = self
       .app
@@ -124,7 +108,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
     let add_movie_table_handling_config =
       TableHandlingConfig::new(ActiveRadarrBlock::AddMovieSearchResults.into());
 
-    if !self.handle_add_movie_search_results_table_events(add_movie_table_handling_config) {
+    if !handle_table(
+      self,
+      |app| {
+        app
+          .data
+          .radarr_data
+          .add_searched_movies
+          .as_mut()
+          .expect("add_searched_movies should be initialized")
+      },
+      add_movie_table_handling_config,
+    ) {
       self.handle_key_event();
     }
   }
@@ -557,5 +552,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for AddMovieHandler<'a, 
       }
       _ => (),
     }
+  }
+
+  fn app_mut(&mut self) -> &mut App<'b> {
+    self.app
+  }
+
+  fn current_route(&self) -> crate::models::Route {
+    self.app.get_current_route()
   }
 }
