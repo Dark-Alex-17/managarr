@@ -35,6 +35,8 @@ pub mod theme;
 mod ui_property_tests;
 #[cfg(test)]
 pub mod ui_test_utils;
+#[cfg(test)]
+mod ui_tests;
 mod utils;
 mod widgets;
 

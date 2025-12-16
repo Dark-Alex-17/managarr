@@ -185,9 +185,9 @@ impl Network<'_, '_> {
           .map(|update| {
             let install_status = if update.installed_on.is_some() {
               if update.installed {
-                "(Currently Installed)".to_owned()
+                " (Currently Installed)".to_owned()
               } else {
-                "(Previously Installed)".to_owned()
+                " (Previously Installed)".to_owned()
               }
             } else {
               String::new()
@@ -201,7 +201,7 @@ impl Network<'_, '_> {
             };
 
             let mut update_info = formatdoc!(
-              "{} - {} {install_status}
+              "{} - {}{install_status}
               {}",
               update.version,
               update.release_date,

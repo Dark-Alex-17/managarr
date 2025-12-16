@@ -1,0 +1,7 @@
+---
+source: src/ui/radarr_ui/blocklist/blocklist_ui_tests.rs
+expression: output
+---
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Movie Title ▼                    Source Title                                         Languages        Quality           Formats          Date                    
+=> Test                             z movie                                              English          HD - 1080p        English          2024-02-10 07:28:45 UTC

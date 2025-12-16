@@ -24,6 +24,8 @@ mod tests {
   }
 
   mod snapshot_tests {
+    use crate::ui::ui_test_utils::test_utils::TerminalSize;
+
     use super::*;
 
     #[test]
@@ -34,7 +36,7 @@ mod tests {
         BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
       app.data.sonarr_data.indexer_settings = Some(IndexerSettings::default());
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         IndexerSettingsUi::draw(f, app, f.area());
       });
 

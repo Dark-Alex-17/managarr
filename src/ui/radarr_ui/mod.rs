@@ -1,6 +1,9 @@
 use std::{cmp, iter};
-
-use chrono::{Duration, Utc};
+#[cfg(test)]
+use crate::ui::ui_test_utils::test_utils::Utc;
+#[cfg(not(test))]
+use chrono::Utc;
+use chrono::{Duration};
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Stylize;
@@ -34,6 +37,8 @@ mod collections;
 mod downloads;
 mod indexers;
 mod library;
+#[cfg(test)]
+mod radarr_ui_tests;
 mod root_folders;
 mod system;
 
@@ -248,7 +253,3 @@ fn draw_radarr_logo(f: &mut Frame<'_>, area: Rect) {
     .centered();
   f.render_widget(logo, area);
 }
-
-#[cfg(test)]
-#[path = "radarr_ui_tests.rs"]
-mod radarr_ui_tests;

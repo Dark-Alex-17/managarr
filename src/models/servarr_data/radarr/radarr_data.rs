@@ -25,6 +25,8 @@ use bimap::BiMap;
 use chrono::{DateTime, Utc};
 use serde_json::Number;
 use strum::EnumIter;
+#[cfg(test)]
+use strum_macros::{Display, EnumString};
 
 #[cfg(test)]
 #[path = "radarr_data_tests.rs"]
@@ -224,6 +226,7 @@ impl<'a> Default for RadarrData<'a> {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, EnumIter)]
+#[cfg_attr(test, derive(Display, EnumString))]
 pub enum ActiveRadarrBlock {
   AddMovieAlreadyInLibrary,
   AddMovieSearchInput,

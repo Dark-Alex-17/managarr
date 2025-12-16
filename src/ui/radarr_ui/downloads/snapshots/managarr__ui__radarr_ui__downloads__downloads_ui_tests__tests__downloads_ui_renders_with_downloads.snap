@@ -1,8 +1,0 @@
----
-source: src/ui/radarr_ui/downloads/downloads_ui_tests.rs
-expression: output
----
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-   Title                           Percent Compl Size          Output Path          Indexer              Download Client
-=> Test Movie Download             50%           1.00 GB                                                                
-   Another Movie Download          100%          2.00 GB

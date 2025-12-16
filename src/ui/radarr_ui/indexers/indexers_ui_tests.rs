@@ -6,11 +6,10 @@ mod tests {
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, EDIT_INDEXER_BLOCKS, INDEXER_SETTINGS_BLOCKS, INDEXERS_BLOCKS,
   };
-  use crate::models::servarr_models::Indexer;
   use crate::models::stateful_table::StatefulTable;
   use crate::ui::DrawUi;
   use crate::ui::radarr_ui::indexers::IndexersUi;
-  use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
+  use crate::ui::ui_test_utils::test_utils::{TerminalSize, render_to_string_with_app};
 
   #[test]
   fn test_indexers_ui_accepts() {
@@ -29,59 +28,97 @@ mod tests {
     });
   }
 
-  #[test]
-  fn test_indexers_ui_renders_loading_state() {
-    let mut app = App::test_default();
-    app.is_loading = true;
-    app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+  mod snapshot_tests {
+    use super::*;
 
-    let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
-      IndexersUi::draw(f, app, f.area());
-    });
+    #[test]
+    fn test_indexers_ui_renders_indexers_tab_loading() {
+      let mut app = App::test_default_fully_populated();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
 
-    insta::assert_snapshot!(output);
-  }
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        IndexersUi::draw(f, app, f.area());
+      });
 
-  #[test]
-  fn test_indexers_ui_renders_empty_indexers() {
-    let mut app = App::test_default();
-    app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-    app.data.radarr_data.indexers = StatefulTable::default();
+      insta::assert_snapshot!(output);
+    }
 
-    let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
-      IndexersUi::draw(f, app, f.area());
-    });
+    #[test]
+    fn test_indexers_ui_renders_indexers_tab_empty_indexers() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
+      app.data.radarr_data.indexers = StatefulTable::default();
 
-    insta::assert_snapshot!(output);
-  }
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        IndexersUi::draw(f, app, f.area());
+      });
 
-  #[test]
-  fn test_indexers_ui_renders_with_indexers() {
-    let mut app = App::test_default();
-    app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
-    app.data.radarr_data.indexers = StatefulTable::default();
-    app.data.radarr_data.indexers.set_items(vec![
-      Indexer {
-        id: 1,
-        name: Some("Test Indexer 1".to_owned()),
-        enable_rss: true,
-        enable_automatic_search: true,
-        enable_interactive_search: true,
-        priority: 25,
-        ..Indexer::default()
-      },
-      Indexer {
-        id: 2,
-        name: Some("Test Indexer 2".to_owned()),
-        enable_rss: false,
-        ..Indexer::default()
-      },
-    ]);
+      insta::assert_snapshot!(output);
+    }
 
-    let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
-      IndexersUi::draw(f, app, f.area());
-    });
+    #[test]
+    fn test_indexers_ui_renders_indexers_tab() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveRadarrBlock::Indexers.into());
 
-    insta::assert_snapshot!(output);
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        IndexersUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_indexers_ui_renders_test_indexer_loading() {
+      let mut app = App::test_default_fully_populated();
+      app.data.radarr_data.indexer_test_errors = None;
+      app.push_navigation_stack(ActiveRadarrBlock::TestIndexer.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        IndexersUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_indexers_ui_renders_test_indexer_success() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveRadarrBlock::TestIndexer.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        IndexersUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_indexers_ui_renders_test_indexer_error() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveRadarrBlock::TestIndexer.into());
+
+      app.data.radarr_data.indexer_test_errors =
+        Some("Connection timeout: Unable to reach indexer".to_owned());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        IndexersUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_indexers_ui_renders_delete_indexer_prompt() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveRadarrBlock::DeleteIndexerPrompt.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        IndexersUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
   }
 }

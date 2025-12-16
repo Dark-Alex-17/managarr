@@ -1,6 +1,9 @@
 use std::ops::Sub;
 
+#[cfg(not(test))]
 use chrono::Utc;
+#[cfg(test)]
+use crate::ui::ui_test_utils::test_utils::Utc;
 use ratatui::layout::Layout;
 use ratatui::style::Style;
 use ratatui::text::{Span, Text};
@@ -125,7 +128,7 @@ pub(super) fn draw_queued_events(f: &mut Frame<'_>, app: &mut App<'_>, area: Rec
     };
 
     let duration = if event.duration.is_some() {
-      &event.duration.as_ref().unwrap()[..8]
+      event.duration.as_ref().map_or("", |it| &it[..8])
     } else {
       ""
     };

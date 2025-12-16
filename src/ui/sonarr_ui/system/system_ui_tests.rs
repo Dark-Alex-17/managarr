@@ -26,6 +26,8 @@ mod tests {
   }
 
   mod snapshot_tests {
+    use crate::ui::ui_test_utils::test_utils::TerminalSize;
+
     use super::*;
 
     #[test]
@@ -34,7 +36,7 @@ mod tests {
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::System.into());
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         SystemUi::draw(f, app, f.area());
       });
 
@@ -46,7 +48,7 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::System.into());
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         SystemUi::draw(f, app, f.area());
       });
 

@@ -23,6 +23,8 @@ mod tests {
   }
 
   mod snapshot_tests {
+    use crate::ui::ui_test_utils::test_utils::TerminalSize;
+
     use super::*;
 
     #[test]
@@ -31,7 +33,7 @@ mod tests {
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         RootFoldersUi::draw(f, app, f.area());
       });
 
@@ -44,7 +46,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
       app.data.sonarr_data.root_folders = StatefulTable::default();
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         RootFoldersUi::draw(f, app, f.area());
       });
 
@@ -71,7 +73,7 @@ mod tests {
         },
       ]);
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         RootFoldersUi::draw(f, app, f.area());
       });
 
@@ -85,7 +87,7 @@ mod tests {
       app.data.sonarr_data.root_folders = StatefulTable::default();
       app.data.sonarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         RootFoldersUi::draw(f, app, f.area());
       });
 

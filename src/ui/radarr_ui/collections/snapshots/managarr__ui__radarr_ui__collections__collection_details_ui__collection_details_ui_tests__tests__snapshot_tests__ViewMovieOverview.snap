@@ -1,0 +1,48 @@
+---
+source: src/ui/radarr_ui/collections/collection_details_ui_tests.rs
+expression: output
+---
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                    ╭  Test Collection  ───────────────────────────────────────────────────────────────────────────────────────────────────────╮                     
+                    │Overview: Collection blah blah blah                                                                                       │                     
+                    │Root Folder Path: /nfs/movies                                                                                             │                     
+                    │Quality Profile: HD - 1080p                                                                                               │                     
+                    │Minimum Availability: Released                                                                                            │                     
+                    │Monitored: Yes                                                                                                            │                     
+                    │Search on Add: Yes                                                                                                        │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                             ╭  Overview  ────────────────────────────────────────────────────╮                           │                     
+                    │  Movies  ───────────────────│Collection blah blah blah                                       │───────────────────────────│                     
+                    │   ✔  Title                  │                                                                │                           │                     
+                    │=> ✔  Test                   │                                                                │family, fun                │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             │                                                                │                           │                     
+                    │                             ╰────────────────────────────────────────────────────────────────╯                           │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    │                                                                                                                          │                     
+                    ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

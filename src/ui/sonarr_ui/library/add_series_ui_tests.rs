@@ -21,6 +21,8 @@ mod tests {
   }
 
   mod snapshot_tests {
+    use crate::ui::ui_test_utils::test_utils::TerminalSize;
+
     use super::*;
 
     #[test]
@@ -30,7 +32,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchInput.into());
       app.data.sonarr_data.add_series_search = Some(HorizontallyScrollableText::default());
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         AddSeriesUi::draw(f, app, f.area());
       });
 
@@ -43,7 +45,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchInput.into());
       app.data.sonarr_data.add_series_search = Some(HorizontallyScrollableText::default());
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         AddSeriesUi::draw(f, app, f.area());
       });
 

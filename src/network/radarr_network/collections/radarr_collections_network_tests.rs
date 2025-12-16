@@ -41,7 +41,7 @@ mod tests {
               "value": 9.9
             },
             "rottenTomatoes": {
-              "value": 9.9
+              "value": 99
             }
           }
         }
@@ -122,7 +122,7 @@ mod tests {
               "value": 9.9
             },
             "rottenTomatoes": {
-              "value": 9.9
+              "value": 99
             }
           }
         }
@@ -202,7 +202,7 @@ mod tests {
             "value": 9.9
           },
           "rottenTomatoes": {
-            "value": 9.9
+            "value": 99
           }
         }
       }],
@@ -231,7 +231,7 @@ mod tests {
             "value": 9.9
           },
           "rottenTomatoes": {
-            "value": 9.9
+            "value": 99
           }
         }
       }],
@@ -319,7 +319,7 @@ mod tests {
             "value": 9.9
           },
           "rottenTomatoes": {
-            "value": 9.9
+            "value": 99
           }
         }
       }],
@@ -348,7 +348,7 @@ mod tests {
             "value": 9.9
           },
           "rottenTomatoes": {
-            "value": 9.9
+            "value": 99
           }
         }
       }],

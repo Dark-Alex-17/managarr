@@ -130,7 +130,7 @@ pub fn handle_events(key: Key, app: &mut App<'_>) {
   }
 }
 
-fn populate_keymapping_table(app: &mut App<'_>) {
+pub fn populate_keymapping_table(app: &mut App<'_>) {
   let context_clue_to_keybinding_item = |key: &KeyBinding, desc: &&str| {
     let (key, alt_key) = if key.alt.is_some() {
       (key.key.to_string(), key.alt.as_ref().unwrap().to_string())

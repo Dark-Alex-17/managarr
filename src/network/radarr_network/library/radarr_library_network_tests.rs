@@ -604,7 +604,7 @@ mod tests {
         Description: Blah blah blah
         TMDB: 99%
         IMDB: 9.9
-        Rotten Tomatoes: 
+        Rotten Tomatoes: 99%
         Quality Profile: HD - 1080p
         Size: 3.30 GB
         Path: /nfs/movies
@@ -921,7 +921,7 @@ mod tests {
           "value": 9.9
         },
         "rottenTomatoes": {
-          "value": 9.9
+          "value": 99
         }
       }
     }]);

@@ -9,7 +9,7 @@ mod tests {
 
   use crate::ui::DrawUi;
   use crate::ui::radarr_ui::system::system_details_ui::SystemDetailsUi;
-  use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
+  use crate::ui::ui_test_utils::test_utils::{TerminalSize, render_to_string_with_app};
 
   #[test]
   fn test_system_details_ui_accepts() {
@@ -22,36 +22,67 @@ mod tests {
     });
   }
 
-  #[test]
-  fn test_system_details_ui_renders_loading_tasks() {
-    let mut app = App::test_default();
-    app.is_loading = true;
-    app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
+  mod snapshot_tests {
+    use rstest::rstest;
+    use super::*;
 
-    let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
-      SystemDetailsUi::draw(f, app, f.area());
-    });
+    #[rstest]
+    fn test_system_details_ui_renders_tasks(
+      #[values(
+        ActiveRadarrBlock::SystemLogs,
+        ActiveRadarrBlock::SystemQueuedEvents,
+        ActiveRadarrBlock::SystemTasks,
+        ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
+        ActiveRadarrBlock::SystemUpdates,
+      )] active_radarr_block: ActiveRadarrBlock
+    ) {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(active_radarr_block.into());
 
-    insta::assert_snapshot!(output);
-  }
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SystemDetailsUi::draw(f, app, f.area());
+      });
 
-  #[test]
-  fn test_system_details_ui_renders_logs() {
-    let mut app = App::test_default();
-    app.push_navigation_stack(ActiveRadarrBlock::SystemLogs.into());
-    app.data.radarr_data.logs.set_items(vec![
-      "2023-01-01T12:00:00Z | Info | Test log message 1"
-        .to_owned()
-        .into(),
-      "2023-01-01T12:01:00Z | Warn | Test warning message"
-        .to_owned()
-        .into(),
-    ]);
+      insta::assert_snapshot!(active_radarr_block.to_string(), output);
+    }
 
-    let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
-      SystemDetailsUi::draw(f, app, f.area());
-    });
+    #[test]
+    fn test_system_details_ui_renders_tasks_loading() {
+      let mut app = App::test_default_fully_populated();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
 
-    insta::assert_snapshot!(output);
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SystemDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_system_details_ui_renders_queued_events_loading() {
+      let mut app = App::test_default_fully_populated();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveRadarrBlock::SystemQueuedEvents.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SystemDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_system_details_ui_renders_logs_loading() {
+      let mut app = App::test_default_fully_populated();
+      app.is_loading  = true;
+      app.push_navigation_stack(ActiveRadarrBlock::SystemLogs.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SystemDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
   }
 }

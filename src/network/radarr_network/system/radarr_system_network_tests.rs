@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod tests {
+  use crate::models::HorizontallyScrollableText;
   use crate::models::radarr_models::{RadarrSerdeable, RadarrTask, RadarrTaskName, SystemStatus};
   use crate::models::servarr_models::{
     DiskSpace, HostConfig, LogResponse, QueueEvent, SecurityConfig, Update,
   };
-  use crate::models::{HorizontallyScrollableText, ScrollableText};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::radarr_network::RadarrEvent;
+  use crate::network::radarr_network::radarr_network_test_utils::test_utils::updates;
   use chrono::DateTime;
-  use indoc::formatdoc;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use serde_json::json;
 
@@ -297,32 +297,7 @@ mod tests {
       },
     }]);
     let response: Vec<Update> = serde_json::from_value(updates_json.clone()).unwrap();
-    let line_break = "-".repeat(200);
-    let expected_text = ScrollableText::with_string(formatdoc!(
-      "
-    The latest version of Radarr is already installed
-
-    4.3.2.1 - 2023-04-15 02:02:53 UTC (Currently Installed)
-    {line_break}
-    New:
-      * Cool new thing
-    Fixed:
-      * Some bugs killed
-    
-    
-    3.2.1.0 - 2023-04-15 02:02:53 UTC (Previously Installed)
-    {line_break}
-    New:
-      * Cool new thing (old)
-      * Other cool new thing (old)
-    
-    
-    2.1.0 - 2023-04-15 02:02:53 UTC 
-    {line_break}
-    Fixed:
-      * Killed bug 1
-      * Fixed bug 2"
-    ));
+    let expected_text = updates();
     let (async_server, app, _server) = MockServarrApi::get()
       .returns(updates_json)
       .build_for(RadarrEvent::GetUpdates)

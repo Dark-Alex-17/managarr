@@ -27,6 +27,8 @@ mod tests {
   }
 
   mod snapshot_tests {
+    use crate::ui::ui_test_utils::test_utils::TerminalSize;
+
     use super::*;
 
     #[test]
@@ -48,7 +50,7 @@ mod tests {
       app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
       app.data.sonarr_data.edit_series_modal = Some(EditSeriesModal::from(&app.data.sonarr_data));
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         EditSeriesUi::draw(f, app, f.area());
       });
 

@@ -1,0 +1,38 @@
+---
+source: src/ui/radarr_ui/collections/collections_ui_tests.rs
+expression: output
+---
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Collection ▼                         Number of Movies         Root Folder Path         Quality Profile          Search on Add             Monitored               
+=> Test Collection                      1                        /nfs/movies              HD - 1080p               Yes                       🏷                       
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                   ╭────────────────  Update All Collections  ─────────────────╮                                                     
+                                                   │      Do you want to update all of your collections?       │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │                                                           │                                                     
+                                                   │╭────────────────────────────╮╭───────────────────────────╮│                                                     
+                                                   ││             Yes            ││            No             ││                                                     
+                                                   │╰────────────────────────────╯╰───────────────────────────╯│                                                     
+                                                   ╰───────────────────────────────────────────────────────────╯

@@ -254,7 +254,7 @@ mod tests {
     use crate::models::stateful_table::StatefulTable;
     use crate::ui::DrawUi;
     use crate::ui::sonarr_ui::library::LibraryUi;
-    use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
+    use crate::ui::ui_test_utils::test_utils::{TerminalSize, render_to_string_with_app};
 
     #[test]
     fn test_library_ui_renders_loading_state() {
@@ -262,7 +262,7 @@ mod tests {
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         LibraryUi::draw(f, app, f.area());
       });
 
@@ -275,7 +275,80 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.data.sonarr_data.series = StatefulTable::default();
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_library_ui_renders_with_series() {
+      use crate::models::sonarr_models::{Series, SeriesStatus, SeriesType};
+      use crate::models::stateful_table::StatefulTable;
+      use bimap::BiMap;
+
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
+
+      // Set up quality profile and language profile maps
+      let mut quality_profile_map = BiMap::new();
+      quality_profile_map.insert(1, "HD-1080p".to_owned());
+      quality_profile_map.insert(2, "Any".to_owned());
+      app.data.sonarr_data.quality_profile_map = quality_profile_map;
+
+      let mut language_profiles_map = BiMap::new();
+      language_profiles_map.insert(1, "English".to_owned());
+      language_profiles_map.insert(2, "Any".to_owned());
+      app.data.sonarr_data.language_profiles_map = language_profiles_map;
+
+      // Create series with data
+      let mut series_table = StatefulTable::default();
+      series_table.set_items(vec![
+        Series {
+          id: 1,
+          title: "Breaking Bad".into(),
+          year: 2008,
+          network: Some("AMC".to_owned()),
+          status: SeriesStatus::Ended,
+          monitored: true,
+          series_type: SeriesType::Standard,
+          quality_profile_id: 1,
+          language_profile_id: 1,
+          seasons: Some(vec![]),
+          ..Series::default()
+        },
+        Series {
+          id: 2,
+          title: "The Wire".into(),
+          year: 2002,
+          network: Some("HBO".to_owned()),
+          status: SeriesStatus::Continuing,
+          monitored: true,
+          series_type: SeriesType::Standard,
+          quality_profile_id: 2,
+          language_profile_id: 1,
+          seasons: Some(vec![]),
+          ..Series::default()
+        },
+      ]);
+      app.data.sonarr_data.series = series_table;
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_library_ui_renders_update_all_series_prompt() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
+      app.push_navigation_stack(ActiveSonarrBlock::UpdateAllSeriesPrompt.into());
+      app.data.sonarr_data.series = StatefulTable::default();
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         LibraryUi::draw(f, app, f.area());
       });
 

@@ -409,12 +409,12 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .clone()
           .unwrap_or(Number::from(0u64))
           .as_u64()
-          .unwrap();
+          .unwrap_or_default();
         let leechers = leechers
           .clone()
           .unwrap_or(Number::from(0u64))
           .as_u64()
-          .unwrap();
+          .unwrap_or_default();
 
         decorate_peer_style(
           seeders,

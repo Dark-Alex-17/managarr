@@ -24,6 +24,10 @@ mod tests {
 
   mod snapshot_tests {
     use super::*;
+    use crate::models::sonarr_models::{SonarrTask, SonarrTaskName};
+    use crate::models::stateful_table::StatefulTable;
+    use crate::ui::ui_test_utils::test_utils::TerminalSize;
+    use chrono::{Duration, Utc};
 
     #[test]
     fn test_system_details_ui_renders_loading_tasks() {
@@ -31,7 +35,7 @@ mod tests {
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         SystemDetailsUi::draw(f, app, f.area());
       });
 
@@ -51,7 +55,7 @@ mod tests {
           .into(),
       ]);
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         SystemDetailsUi::draw(f, app, f.area());
       });
 
@@ -63,7 +67,34 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let now = Utc::now();
+      let mut tasks = StatefulTable::default();
+      tasks.set_items(vec![
+        SonarrTask {
+          name: "Refresh Series".to_owned(),
+          task_name: SonarrTaskName::RefreshSeries,
+          interval: 360,
+          last_execution: now - Duration::hours(2),
+          next_execution: now + Duration::hours(4),
+        },
+        SonarrTask {
+          name: "Check for Updates".to_owned(),
+          task_name: SonarrTaskName::ApplicationUpdateCheck,
+          interval: 1440,
+          last_execution: now - Duration::hours(12),
+          next_execution: now + Duration::hours(12),
+        },
+        SonarrTask {
+          name: "Housekeeping".to_owned(),
+          task_name: SonarrTaskName::Housekeeping,
+          interval: 1440,
+          last_execution: now - Duration::hours(24),
+          next_execution: now,
+        },
+      ]);
+      app.data.sonarr_data.tasks = tasks;
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         SystemDetailsUi::draw(f, app, f.area());
       });
 

@@ -22,6 +22,8 @@ mod tests {
   }
 
   mod snapshot_tests {
+    use crate::ui::ui_test_utils::test_utils::TerminalSize;
+
     use super::*;
 
     #[test]
@@ -30,7 +32,7 @@ mod tests {
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         HistoryUi::draw(f, app, f.area());
       });
 
@@ -43,7 +45,7 @@ mod tests {
       app.push_navigation_stack(ActiveSonarrBlock::History.into());
       app.data.sonarr_data.history = StatefulTable::default();
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         HistoryUi::draw(f, app, f.area());
       });
 
@@ -68,7 +70,7 @@ mod tests {
         },
       ]);
 
-      let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         HistoryUi::draw(f, app, f.area());
       });
 

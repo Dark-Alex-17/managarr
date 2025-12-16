@@ -1,12 +1,37 @@
 #[cfg(test)]
 #[allow(dead_code)]
 pub mod test_utils {
+  use std::cell::Cell;
+  use chrono::DateTime;
   use ratatui::Frame;
   use ratatui::Terminal;
   use ratatui::backend::TestBackend;
   use ratatui::buffer::Buffer;
 
   use crate::app::App;
+
+  thread_local! {
+    static TIMESTAMP: Cell<i64> = const { Cell::new(0) };
+  }
+
+  pub struct Utc;
+
+  impl Utc {
+    pub fn now() -> DateTime<chrono::Utc> {
+
+      TIMESTAMP.with(|timestamp| {
+        let ts = timestamp.get();
+          DateTime::<chrono::Utc>::from_timestamp(
+        if ts != 0 { ts } else { 1684618200 },
+        0,
+      )}
+    ).expect("a valid timestamp set")
+    }
+  }
+
+  pub fn set_timestamp(timestamp: i64) {
+    TIMESTAMP.set(timestamp / 1000);
+  }
 
   pub fn create_test_backend(width: u16, height: u16) -> TestBackend {
     TestBackend::new(width, height)
@@ -17,23 +42,39 @@ pub mod test_utils {
     Terminal::new(backend).unwrap()
   }
 
+  pub enum TerminalSize {
+    Small,
+    Medium,
+    Large,
+  }
+
+  impl TerminalSize {
+    pub fn to_cartesian(&self) -> (u16, u16) {
+      match self {
+        Self::Small => (80, 30),
+        Self::Medium => (120, 40),
+        Self::Large => (165, 50),
+      }
+    }
+  }
+
   /// Renders a UI component and returns the output as a string
   ///
   /// # Arguments
-  /// * `width` - Terminal width in columns
-  /// * `height` - Terminal height in rows
+  /// * `size` - Terminal T-shirt size (Small, Medium, or Large)
   /// * `render_fn` - Function that renders to the frame
   ///
   /// # Example
   /// ```rust
-  /// let output = render_to_string(120, 30, |f| {
+  /// let output = render_to_string(TerminalSize::Medium, |f| {
   ///   Block::default().title("Test").render(f.area(), f.buffer_mut());
   /// });
   /// ```
-  pub fn render_to_string<F>(width: u16, height: u16, mut render_fn: F) -> String
+  pub fn render_to_string<F>(size: TerminalSize, mut render_fn: F) -> String
   where
     F: FnMut(&mut Frame),
   {
+    let (width, height) = size.to_cartesian();
     let mut terminal = create_test_terminal(width, height);
 
     terminal
@@ -50,8 +91,7 @@ pub mod test_utils {
   /// This is the primary helper for testing UI components that need app state.
   ///
   /// # Arguments
-  /// * `width` - Terminal width in columns (typically 120)
-  /// * `height` - Terminal height in rows (typically 30)
+  /// * `size` - Terminal T-shirt size (Small, Medium, or Large)
   /// * `app` - Mutable reference to App instance
   /// * `render_fn` - Function that renders to the frame with app
   ///
@@ -60,21 +100,17 @@ pub mod test_utils {
   /// let mut app = App::test_default();
   /// app.push_navigation_stack(ActiveRadarrBlock::Movies.into());
   ///
-  /// let output = render_to_string_with_app(120, 30, &mut app, |f, app| {
+  /// let output = render_to_string_with_app(TerminalSize::Medium, &mut app, |f, app| {
   ///   LibraryUi::draw(f, app, f.area());
   /// });
   ///
   /// insta::assert_snapshot!(output);
   /// ```
-  pub fn render_to_string_with_app<F>(
-    width: u16,
-    height: u16,
-    app: &mut App,
-    mut render_fn: F,
-  ) -> String
+  pub fn render_to_string_with_app<F>(size: TerminalSize, app: &mut App, mut render_fn: F) -> String
   where
     F: FnMut(&mut Frame, &mut App),
   {
+    let (width, height) = size.to_cartesian();
     let mut terminal = create_test_terminal(width, height);
 
     terminal

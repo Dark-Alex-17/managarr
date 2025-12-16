@@ -104,7 +104,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .unwrap_or_default()
       .value
       .as_f64()
-      .unwrap();
+      .unwrap_or_default();
     let rotten_tomatoes_rating = movie
       .ratings
       .rotten_tomatoes
@@ -112,7 +112,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       .unwrap_or_default()
       .value
       .as_u64()
-      .unwrap();
+      .unwrap_or_default();
     let imdb_rating = if imdb_rating == 0.0 {
       String::new()
     } else {
