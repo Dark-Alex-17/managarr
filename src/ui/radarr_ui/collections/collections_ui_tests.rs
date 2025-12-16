@@ -30,9 +30,9 @@ mod tests {
 
   mod snapshot_tests {
     use super::*;
-    use rstest::rstest;
     use crate::models::BlockSelectionState;
     use crate::models::servarr_data::radarr::radarr_data::EDIT_COLLECTION_SELECTION_BLOCKS;
+    use rstest::rstest;
 
     #[rstest]
     #[case(true, false, false)]
@@ -70,8 +70,10 @@ mod tests {
         ActiveRadarrBlock::FilterCollectionsError,
         ActiveRadarrBlock::SearchCollection,
         ActiveRadarrBlock::SearchCollectionError,
-        ActiveRadarrBlock::UpdateAllCollectionsPrompt,
-      )] active_radarr_block: ActiveRadarrBlock) {
+        ActiveRadarrBlock::UpdateAllCollectionsPrompt
+      )]
+      active_radarr_block: ActiveRadarrBlock,
+    ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(active_radarr_block.into());
 
@@ -96,13 +98,34 @@ mod tests {
     }
 
     #[rstest]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionPrompt)]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionConfirmPrompt)]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionRootFolderPathInput)]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionSelectMinimumAvailability)]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionSelectQualityProfile)]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionToggleSearchOnAdd)]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionToggleMonitored)]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionPrompt
+    )]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionConfirmPrompt
+    )]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionRootFolderPathInput
+    )]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
+    )]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionSelectQualityProfile
+    )]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionToggleSearchOnAdd
+    )]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionToggleMonitored
+    )]
     fn test_edit_collection_ui_renders_edit_collection_modal(
       #[case] context_block: ActiveRadarrBlock,
       #[case] active_radarr_block: ActiveRadarrBlock,
@@ -116,7 +139,14 @@ mod tests {
         CollectionsUi::draw(f, app, f.area());
       });
 
-      insta::assert_snapshot!(format!("{}_{}", active_radarr_block.to_string(), context_block.to_string()), output);
+      insta::assert_snapshot!(
+        format!(
+          "{}_{}",
+          active_radarr_block.to_string(),
+          context_block.to_string()
+        ),
+        output
+      );
     }
   }
 }

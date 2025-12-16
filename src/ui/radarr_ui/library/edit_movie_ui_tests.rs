@@ -23,17 +23,33 @@ mod tests {
   }
 
   mod snapshot_tests {
-    use rstest::rstest;
     use super::*;
+    use rstest::rstest;
 
     #[rstest]
     #[case(ActiveRadarrBlock::EditMoviePrompt, None, 0)]
-    #[case(ActiveRadarrBlock::EditMoviePrompt, Some(ActiveRadarrBlock::MovieDetails), 0)]
-    #[case(ActiveRadarrBlock::EditMoviePrompt, Some(ActiveRadarrBlock::MovieHistory), 1)]
-    #[case(ActiveRadarrBlock::EditMoviePrompt, Some(ActiveRadarrBlock::FileInfo), 2)]
+    #[case(
+      ActiveRadarrBlock::EditMoviePrompt,
+      Some(ActiveRadarrBlock::MovieDetails),
+      0
+    )]
+    #[case(
+      ActiveRadarrBlock::EditMoviePrompt,
+      Some(ActiveRadarrBlock::MovieHistory),
+      1
+    )]
+    #[case(
+      ActiveRadarrBlock::EditMoviePrompt,
+      Some(ActiveRadarrBlock::FileInfo),
+      2
+    )]
     #[case(ActiveRadarrBlock::EditMoviePrompt, Some(ActiveRadarrBlock::Cast), 3)]
     #[case(ActiveRadarrBlock::EditMoviePrompt, Some(ActiveRadarrBlock::Crew), 4)]
-    #[case(ActiveRadarrBlock::EditMoviePrompt, Some(ActiveRadarrBlock::ManualSearch), 5)]
+    #[case(
+      ActiveRadarrBlock::EditMoviePrompt,
+      Some(ActiveRadarrBlock::ManualSearch),
+      5
+    )]
     fn test_edit_movie_ui_renders_edit_movie_modal(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] context: Option<ActiveRadarrBlock>,
@@ -51,7 +67,14 @@ mod tests {
       });
 
       if let Some(context) = context {
-        insta::assert_snapshot!(format!("{}_{}", active_radarr_block.to_string(), context.to_string()), output);
+        insta::assert_snapshot!(
+          format!(
+            "{}_{}",
+            active_radarr_block.to_string(),
+            context.to_string()
+          ),
+          output
+        );
       } else {
         insta::assert_snapshot!(active_radarr_block.to_string(), output);
       }

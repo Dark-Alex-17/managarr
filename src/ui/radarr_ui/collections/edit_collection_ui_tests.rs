@@ -31,24 +31,66 @@ mod tests {
   }
 
   mod snapshot_tests {
-    use rstest::rstest;
     use super::*;
+    use rstest::rstest;
 
     #[rstest]
-    #[case(ActiveRadarrBlock::Collections, ActiveRadarrBlock::EditCollectionPrompt)]
-    #[case(ActiveRadarrBlock::Collections, ActiveRadarrBlock::EditCollectionConfirmPrompt)]
-    #[case(ActiveRadarrBlock::Collections, ActiveRadarrBlock::EditCollectionRootFolderPathInput)]
-    #[case(ActiveRadarrBlock::Collections, ActiveRadarrBlock::EditCollectionSelectMinimumAvailability)]
-    #[case(ActiveRadarrBlock::Collections, ActiveRadarrBlock::EditCollectionSelectQualityProfile)]
-    #[case(ActiveRadarrBlock::Collections, ActiveRadarrBlock::EditCollectionToggleSearchOnAdd)]
-    #[case(ActiveRadarrBlock::Collections, ActiveRadarrBlock::EditCollectionToggleMonitored)]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionPrompt)]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionConfirmPrompt)]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionRootFolderPathInput)]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionSelectMinimumAvailability)]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionSelectQualityProfile)]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionToggleSearchOnAdd)]
-    #[case(ActiveRadarrBlock::CollectionDetails, ActiveRadarrBlock::EditCollectionToggleMonitored)]
+    #[case(
+      ActiveRadarrBlock::Collections,
+      ActiveRadarrBlock::EditCollectionPrompt
+    )]
+    #[case(
+      ActiveRadarrBlock::Collections,
+      ActiveRadarrBlock::EditCollectionConfirmPrompt
+    )]
+    #[case(
+      ActiveRadarrBlock::Collections,
+      ActiveRadarrBlock::EditCollectionRootFolderPathInput
+    )]
+    #[case(
+      ActiveRadarrBlock::Collections,
+      ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
+    )]
+    #[case(
+      ActiveRadarrBlock::Collections,
+      ActiveRadarrBlock::EditCollectionSelectQualityProfile
+    )]
+    #[case(
+      ActiveRadarrBlock::Collections,
+      ActiveRadarrBlock::EditCollectionToggleSearchOnAdd
+    )]
+    #[case(
+      ActiveRadarrBlock::Collections,
+      ActiveRadarrBlock::EditCollectionToggleMonitored
+    )]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionPrompt
+    )]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionConfirmPrompt
+    )]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionRootFolderPathInput
+    )]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionSelectMinimumAvailability
+    )]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionSelectQualityProfile
+    )]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionToggleSearchOnAdd
+    )]
+    #[case(
+      ActiveRadarrBlock::CollectionDetails,
+      ActiveRadarrBlock::EditCollectionToggleMonitored
+    )]
     fn test_edit_collection_ui_renders_edit_collection_modal(
       #[case] active_radarr_block: ActiveRadarrBlock,
       #[case] context_block: ActiveRadarrBlock,
@@ -62,7 +104,14 @@ mod tests {
         EditCollectionUi::draw(f, app, f.area());
       });
 
-      insta::assert_snapshot!(format!("{}_{}", active_radarr_block.to_string(), context_block.to_string()), output);
+      insta::assert_snapshot!(
+        format!(
+          "{}_{}",
+          active_radarr_block.to_string(),
+          context_block.to_string()
+        ),
+        output
+      );
     }
   }
 }

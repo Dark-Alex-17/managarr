@@ -20,8 +20,8 @@ mod tests {
   }
 
   mod snapshot_tests {
-    use rstest::rstest;
     use crate::ui::ui_test_utils::test_utils::TerminalSize;
+    use rstest::rstest;
 
     use super::*;
 
@@ -53,11 +53,12 @@ mod tests {
     #[rstest]
     fn test_blocklist_ui_renders_blocklist_tab(
       #[values(
-      ActiveRadarrBlock::Blocklist,
-      ActiveRadarrBlock::BlocklistSortPrompt,
-      ActiveRadarrBlock::DeleteBlocklistItemPrompt,
-      ActiveRadarrBlock::BlocklistClearAllItemsPrompt,
-      )] active_radarr_block: ActiveRadarrBlock
+        ActiveRadarrBlock::Blocklist,
+        ActiveRadarrBlock::BlocklistSortPrompt,
+        ActiveRadarrBlock::DeleteBlocklistItemPrompt,
+        ActiveRadarrBlock::BlocklistClearAllItemsPrompt
+      )]
+      active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(active_radarr_block.into());

@@ -98,7 +98,7 @@ pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
         Cell::from(search_on_add),
         Cell::from(monitored),
       ])
-        .primary()
+      .primary()
     };
     let collections_table = ManagarrTable::new(content, collection_row_mapping)
       .loading(
@@ -137,7 +137,7 @@ pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
       ActiveRadarrBlock::SearchCollection,
       ActiveRadarrBlock::FilterCollections,
     ]
-      .contains(&active_radarr_block)
+    .contains(&active_radarr_block)
     {
       collections_table.show_cursor(f, area);
     }

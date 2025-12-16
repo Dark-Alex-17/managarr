@@ -37,16 +37,17 @@ mod tests {
   }
 
   mod snapshot_tests {
-    use rstest::rstest;
-    use crate::models::stateful_table::StatefulTable;
     use super::*;
+    use crate::models::stateful_table::StatefulTable;
+    use rstest::rstest;
 
     #[rstest]
     fn test_collection_details_ui_renders_collection_details(
       #[values(
-      ActiveRadarrBlock::CollectionDetails,
-      ActiveRadarrBlock::ViewMovieOverview
-      )] active_radarr_block: ActiveRadarrBlock
+        ActiveRadarrBlock::CollectionDetails,
+        ActiveRadarrBlock::ViewMovieOverview
+      )]
+      active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(active_radarr_block.into());

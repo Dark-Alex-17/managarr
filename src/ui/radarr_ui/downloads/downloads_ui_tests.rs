@@ -20,8 +20,8 @@ mod tests {
   }
 
   mod snapshot_tests {
-    use rstest::rstest;
     use super::*;
+    use rstest::rstest;
 
     #[test]
     fn test_radarr_ui_renders_downloads_tab_loading() {
@@ -41,8 +41,9 @@ mod tests {
       #[values(
         ActiveRadarrBlock::Downloads,
         ActiveRadarrBlock::DeleteDownloadPrompt,
-        ActiveRadarrBlock::UpdateDownloadsPrompt,
-      )] active_radarr_block: ActiveRadarrBlock
+        ActiveRadarrBlock::UpdateDownloadsPrompt
+      )]
+      active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(active_radarr_block.into());

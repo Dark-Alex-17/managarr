@@ -1,14 +1,14 @@
-use std::{cmp, iter};
 #[cfg(test)]
 use crate::ui::ui_test_utils::test_utils::Utc;
+use chrono::Duration;
 #[cfg(not(test))]
 use chrono::Utc;
-use chrono::{Duration};
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Stylize;
 use ratatui::text::Text;
 use ratatui::widgets::{Paragraph, Row};
+use std::{cmp, iter};
 
 use crate::app::App;
 use crate::logos::RADARR_LOGO;

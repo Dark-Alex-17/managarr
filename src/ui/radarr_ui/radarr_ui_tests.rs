@@ -22,7 +22,7 @@ mod tests {
 
   mod snapshot_tests {
     use super::*;
-    use crate::ui::ui_test_utils::test_utils::{TerminalSize};
+    use crate::ui::ui_test_utils::test_utils::TerminalSize;
 
     #[rstest]
     #[case(ActiveRadarrBlock::Movies, 0)]

@@ -20,10 +20,10 @@ mod tests {
   }
 
   mod snapshot_tests {
-    use rstest::rstest;
+    use super::*;
     use crate::models::BlockSelectionState;
     use crate::models::servarr_data::radarr::radarr_data::ADD_MOVIE_SELECTION_BLOCKS;
-    use super::*;
+    use rstest::rstest;
 
     #[test]
     fn test_add_movie_ui_renders_loading_for_search() {
@@ -49,15 +49,33 @@ mod tests {
     #[case(ActiveRadarrBlock::AddMovieSelectRootFolder, None)]
     #[case(ActiveRadarrBlock::AddMovieAlreadyInLibrary, None)]
     #[case(ActiveRadarrBlock::AddMovieTagsInput, None)]
-    #[case(ActiveRadarrBlock::AddMoviePrompt, Some(ActiveRadarrBlock::CollectionDetails))]
-    #[case(ActiveRadarrBlock::AddMovieSelectMinimumAvailability, Some(ActiveRadarrBlock::CollectionDetails))]
-    #[case(ActiveRadarrBlock::AddMovieSelectMonitor, Some(ActiveRadarrBlock::CollectionDetails))]
-    #[case(ActiveRadarrBlock::AddMovieSelectQualityProfile, Some(ActiveRadarrBlock::CollectionDetails))]
-    #[case(ActiveRadarrBlock::AddMovieSelectRootFolder, Some(ActiveRadarrBlock::CollectionDetails))]
-    #[case(ActiveRadarrBlock::AddMovieTagsInput, Some(ActiveRadarrBlock::CollectionDetails))]
+    #[case(
+      ActiveRadarrBlock::AddMoviePrompt,
+      Some(ActiveRadarrBlock::CollectionDetails)
+    )]
+    #[case(
+      ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+      Some(ActiveRadarrBlock::CollectionDetails)
+    )]
+    #[case(
+      ActiveRadarrBlock::AddMovieSelectMonitor,
+      Some(ActiveRadarrBlock::CollectionDetails)
+    )]
+    #[case(
+      ActiveRadarrBlock::AddMovieSelectQualityProfile,
+      Some(ActiveRadarrBlock::CollectionDetails)
+    )]
+    #[case(
+      ActiveRadarrBlock::AddMovieSelectRootFolder,
+      Some(ActiveRadarrBlock::CollectionDetails)
+    )]
+    #[case(
+      ActiveRadarrBlock::AddMovieTagsInput,
+      Some(ActiveRadarrBlock::CollectionDetails)
+    )]
     fn test_add_movie_ui_renders(
       #[case] active_radarr_block: ActiveRadarrBlock,
-      #[case] context: Option<ActiveRadarrBlock>
+      #[case] context: Option<ActiveRadarrBlock>,
     ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack((active_radarr_block, context).into());
@@ -68,7 +86,14 @@ mod tests {
       });
 
       if let Some(context) = context {
-        insta::assert_snapshot!(format!("{}_{}", active_radarr_block.to_string(), context.to_string()), output);
+        insta::assert_snapshot!(
+          format!(
+            "{}_{}",
+            active_radarr_block.to_string(),
+            context.to_string()
+          ),
+          output
+        );
       } else {
         insta::assert_snapshot!(active_radarr_block.to_string(), output);
       }

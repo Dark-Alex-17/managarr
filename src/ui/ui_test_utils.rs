@@ -1,12 +1,12 @@
 #[cfg(test)]
 #[allow(dead_code)]
 pub mod test_utils {
-  use std::cell::Cell;
   use chrono::DateTime;
   use ratatui::Frame;
   use ratatui::Terminal;
   use ratatui::backend::TestBackend;
   use ratatui::buffer::Buffer;
+  use std::cell::Cell;
 
   use crate::app::App;
 
@@ -18,14 +18,12 @@ pub mod test_utils {
 
   impl Utc {
     pub fn now() -> DateTime<chrono::Utc> {
-
-      TIMESTAMP.with(|timestamp| {
-        let ts = timestamp.get();
-          DateTime::<chrono::Utc>::from_timestamp(
-        if ts != 0 { ts } else { 1684618200 },
-        0,
-      )}
-    ).expect("a valid timestamp set")
+      TIMESTAMP
+        .with(|timestamp| {
+          let ts = timestamp.get();
+          DateTime::<chrono::Utc>::from_timestamp(if ts != 0 { ts } else { 1684618200 }, 0)
+        })
+        .expect("a valid timestamp set")
     }
   }
 

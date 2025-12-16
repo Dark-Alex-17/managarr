@@ -29,7 +29,8 @@ mod tests {
     fn test_indexer_settings_ui_renders_indexer_settings() {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(ActiveRadarrBlock::IndexerSettingsMinimumAgeInput.into());
-      app.data.radarr_data.selected_block = BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
+      app.data.radarr_data.selected_block =
+        BlockSelectionState::new(INDEXER_SETTINGS_SELECTION_BLOCKS);
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         IndexerSettingsUi::draw(f, app, f.area());

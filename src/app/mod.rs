@@ -30,11 +30,11 @@ use {
   crate::models::servarr_data::radarr::modals::{
     EditCollectionModal, EditMovieModal, MovieDetailsModal,
   },
+  crate::models::stateful_table::SortOption,
   crate::network::radarr_network::radarr_network_test_utils::test_utils::*,
   chrono::DateTime,
-  strum::IntoEnumIterator,
   std::fmt::Debug,
-  crate::models::stateful_table::SortOption
+  strum::IntoEnumIterator,
 };
 
 #[cfg(test)]
@@ -50,9 +50,9 @@ macro_rules! sort_option {
   ($field:ident) => {
     SortOption {
       name: "Something",
-      cmp_fn: Some(|a, b| a.$field.cmp(&b.$field))
+      cmp_fn: Some(|a, b| a.$field.cmp(&b.$field)),
     }
-  }
+  };
 }
 
 pub struct App<'a> {
@@ -386,7 +386,9 @@ impl App<'_> {
     movie_details_modal
       .movie_releases
       .set_items(vec![torrent_release(), usenet_release()]);
-    movie_details_modal.movie_releases.sorting(vec![sort_option!(indexer_id)]);
+    movie_details_modal
+      .movie_releases
+      .sorting(vec![sort_option!(indexer_id)]);
 
     let mut radarr_data = RadarrData {
       disk_space_vec: vec![diskspace()],
@@ -418,7 +420,9 @@ impl App<'_> {
     radarr_data.collections.sorting(vec![sort_option!(id)]);
     radarr_data.collections.search = Some("Something".into());
     radarr_data.collections.filter = Some("Something".into());
-    radarr_data.collection_movies.set_items(vec![collection_movie()]);
+    radarr_data
+      .collection_movies
+      .set_items(vec![collection_movie()]);
     radarr_data.downloads.set_items(vec![download_record()]);
     radarr_data.blocklist.set_items(vec![blocklist_item()]);
     radarr_data.blocklist.sorting(vec![sort_option!(id)]);

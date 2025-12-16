@@ -30,10 +30,12 @@ mod tests {
   }
 
   mod snapshot_tests {
-    use rstest::rstest;
-    use crate::models::BlockSelectionState;
-    use crate::models::servarr_data::radarr::radarr_data::{ADD_MOVIE_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS};
     use super::*;
+    use crate::models::BlockSelectionState;
+    use crate::models::servarr_data::radarr::radarr_data::{
+      ADD_MOVIE_SELECTION_BLOCKS, EDIT_MOVIE_SELECTION_BLOCKS,
+    };
+    use rstest::rstest;
 
     #[test]
     fn test_library_ui_renders_library_tab_loading() {
@@ -69,8 +71,9 @@ mod tests {
         ActiveRadarrBlock::SearchMovieError,
         ActiveRadarrBlock::FilterMovies,
         ActiveRadarrBlock::FilterMoviesError,
-        ActiveRadarrBlock::UpdateAllMoviesPrompt,
-      )] active_radarr_block: ActiveRadarrBlock,
+        ActiveRadarrBlock::UpdateAllMoviesPrompt
+      )]
+      active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(active_radarr_block.into());
@@ -85,17 +88,18 @@ mod tests {
     #[rstest]
     fn test_library_movie_ui_renders_add_movie_ui(
       #[values(
-      ActiveRadarrBlock::AddMovieSearchInput,
-    ActiveRadarrBlock::AddMovieSearchResults,
-    ActiveRadarrBlock::AddMovieEmptySearchResults,
-    ActiveRadarrBlock::AddMoviePrompt,
-    ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
-    ActiveRadarrBlock::AddMovieSelectMonitor,
-    ActiveRadarrBlock::AddMovieSelectQualityProfile,
-    ActiveRadarrBlock::AddMovieSelectRootFolder,
-    ActiveRadarrBlock::AddMovieAlreadyInLibrary,
-    ActiveRadarrBlock::AddMovieTagsInput,
-      )] active_radarr_block: ActiveRadarrBlock,
+        ActiveRadarrBlock::AddMovieSearchInput,
+        ActiveRadarrBlock::AddMovieSearchResults,
+        ActiveRadarrBlock::AddMovieEmptySearchResults,
+        ActiveRadarrBlock::AddMoviePrompt,
+        ActiveRadarrBlock::AddMovieSelectMinimumAvailability,
+        ActiveRadarrBlock::AddMovieSelectMonitor,
+        ActiveRadarrBlock::AddMovieSelectQualityProfile,
+        ActiveRadarrBlock::AddMovieSelectRootFolder,
+        ActiveRadarrBlock::AddMovieAlreadyInLibrary,
+        ActiveRadarrBlock::AddMovieTagsInput
+      )]
+      active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(active_radarr_block.into());
@@ -105,7 +109,7 @@ mod tests {
         LibraryUi::draw(f, app, f.area());
       });
 
-        insta::assert_snapshot!(active_radarr_block.to_string(), output);
+      insta::assert_snapshot!(active_radarr_block.to_string(), output);
     }
 
     #[test]
@@ -118,7 +122,7 @@ mod tests {
         LibraryUi::draw(f, app, f.area());
       });
 
-        insta::assert_snapshot!(output);
+      insta::assert_snapshot!(output);
     }
   }
 }

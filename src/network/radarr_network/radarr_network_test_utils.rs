@@ -162,9 +162,7 @@ pub mod test_utils {
   }
 
   pub fn percentage_rating() -> Rating {
-    Rating {
-      value: 99.into(),
-    }
+    Rating { value: 99.into() }
   }
 
   pub fn ratings_list() -> RatingsList {

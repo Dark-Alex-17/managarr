@@ -7,7 +7,7 @@ mod tests {
   use crate::models::servarr_data::radarr::radarr_data::{
     ActiveRadarrBlock, EDIT_INDEXER_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
   };
-  use crate::models::servarr_models::{Indexer};
+  use crate::models::servarr_models::Indexer;
   use crate::ui::DrawUi;
   use crate::ui::radarr_ui::indexers::edit_indexer_ui::EditIndexerUi;
   use crate::ui::ui_test_utils::test_utils::{TerminalSize, render_to_string_with_app};
@@ -24,9 +24,9 @@ mod tests {
   }
 
   mod snapshot_tests {
+    use super::*;
     use crate::models::servarr_data::radarr::radarr_data::EDIT_INDEXER_NZB_SELECTION_BLOCKS;
     use crate::network::radarr_network::radarr_network_test_utils::test_utils::indexer;
-    use super::*;
 
     #[test]
     fn test_edit_indexer_ui_renders_edit_indexer_modal_torrent() {

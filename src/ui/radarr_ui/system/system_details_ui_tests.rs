@@ -23,8 +23,8 @@ mod tests {
   }
 
   mod snapshot_tests {
-    use rstest::rstest;
     use super::*;
+    use rstest::rstest;
 
     #[rstest]
     fn test_system_details_ui_renders_tasks(
@@ -33,8 +33,9 @@ mod tests {
         ActiveRadarrBlock::SystemQueuedEvents,
         ActiveRadarrBlock::SystemTasks,
         ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
-        ActiveRadarrBlock::SystemUpdates,
-      )] active_radarr_block: ActiveRadarrBlock
+        ActiveRadarrBlock::SystemUpdates
+      )]
+      active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(active_radarr_block.into());
@@ -75,7 +76,7 @@ mod tests {
     #[test]
     fn test_system_details_ui_renders_logs_loading() {
       let mut app = App::test_default_fully_populated();
-      app.is_loading  = true;
+      app.is_loading = true;
       app.push_navigation_stack(ActiveRadarrBlock::SystemLogs.into());
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {

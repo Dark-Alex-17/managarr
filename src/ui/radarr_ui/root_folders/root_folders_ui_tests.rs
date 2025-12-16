@@ -21,8 +21,8 @@ mod tests {
   }
 
   mod snapshot_tests {
-    use rstest::rstest;
     use super::*;
+    use rstest::rstest;
 
     #[test]
     fn test_root_folders_ui_renders_loading() {
@@ -55,8 +55,9 @@ mod tests {
       #[values(
         ActiveRadarrBlock::RootFolders,
         ActiveRadarrBlock::AddRootFolderPrompt,
-        ActiveRadarrBlock::DeleteRootFolderPrompt,
-      )] active_radarr_block: ActiveRadarrBlock
+        ActiveRadarrBlock::DeleteRootFolderPrompt
+      )]
+      active_radarr_block: ActiveRadarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(active_radarr_block.into());
