@@ -1,0 +1,50 @@
+---
+source: src/ui/sonarr_ui/library/season_details_ui_tests.rs
+expression: output
+---
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+             ╭  Season 1 Details  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮               
+             │ Episodes │ History │ Manual Search                                                                                                    │               
+             │───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│               
+             │   Source ▼  Age        ⛔     Title                          Indexer                  Size         Peers        Language  Quality      │               
+             │=> torrent   1 days     ⛔     Test Release                   kickass torrents         0.0 GB       2 / 1        English   Bluray-1080p │               
+             │   usenet    1 days     ⛔     Test Release                   DrunkenSlug              0.0 GB                    English   Bluray-1080p │               
+             │                                                                                                                                       │               
+             │                                                                                                                                       │               
+             │                                                                                                                                       │               
+             │                                                                                                                                       │               
+             │                                                                                                                                       │               
+             │                                    ╭─────────────────  Download Rejected Release  ──────────────────╮                                 │               
+             │                                    │    Do you really want to download the rejected release: Test   │                                 │               
+             │                                    │                            Release?                            │                                 │               
+             │                                    │                                                                │                                 │               
+             │                                    │                                                                │                                 │               
+             │                                    │Rejection reasons:                                              │                                 │               
+             │                                    │• Unknown quality profile                                       │                                 │               
+             │                                    │• Release is already mapped                                     │                                 │               
+             │                                    │                                                                │                                 │               
+             │                                    │                                                                │                                 │               
+             │                                    │                                                                │                                 │               
+             │                                    │                                                                │                                 │               
+             │                                    │                                                                │                                 │               
+             │                                    │                                                                │                                 │               
+             │                                    │                                                                │                                 │               
+             │                                    │                                                                │                                 │               
+             │                                    │╭──────────────────────────────╮╭──────────────────────────────╮│                                 │               
+             │                                    ││              Yes             ││              No              ││                                 │               
+             │                                    │╰──────────────────────────────╯╰──────────────────────────────╯│                                 │               
+             │                                    ╰────────────────────────────────────────────────────────────────╯                                 │               
+             │                                                                                                                                       │               
+             │                                                                                                                                       │               
+             │                                                                                                                                       │               
+             │                                                                                                                                       │               
+             │                                                                                                                                       │               
+             │                                                                                                                                       │               
+             │                                                                                                                                       │               
+             │                                                                                                                                       │               
+             │                                                                                                                                       │               
+             │                                                                                                                                       │               
+             ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

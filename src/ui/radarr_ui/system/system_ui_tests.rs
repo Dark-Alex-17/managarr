@@ -29,6 +29,7 @@ mod tests {
     use super::*;
     use crate::models::stateful_list::StatefulList;
     use crate::models::stateful_table::StatefulTable;
+    use rstest::rstest;
 
     #[test]
     fn test_radarr_ui_renders_system_tab_loading() {
@@ -97,6 +98,30 @@ mod tests {
       });
 
       insta::assert_snapshot!(output);
+    }
+
+    #[rstest]
+    fn test_system_details_ui_renders_popups_over_system_tab(
+      #[values(
+        ActiveRadarrBlock::SystemLogs,
+        ActiveRadarrBlock::SystemQueuedEvents,
+        ActiveRadarrBlock::SystemTasks,
+        ActiveRadarrBlock::SystemTaskStartConfirmPrompt,
+        ActiveRadarrBlock::SystemUpdates
+      )]
+      active_radarr_block: ActiveRadarrBlock,
+    ) {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(active_radarr_block.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SystemUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(
+        format!("system_details_over_system_tab_{active_radarr_block}"),
+        output
+      );
     }
   }
 }

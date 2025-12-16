@@ -25,9 +25,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_test_all_indexers_ui_renders_loading_state() {
-      let mut app = App::test_default();
+    fn test_test_all_indexers_ui_renders_loading() {
+      let mut app = App::test_default_fully_populated();
       app.is_loading = true;
+      app.push_navigation_stack(ActiveSonarrBlock::TestAllIndexers.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        TestAllIndexersUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_test_all_indexers_ui_renders() {
+      let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(ActiveSonarrBlock::TestAllIndexers.into());
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {

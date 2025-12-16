@@ -1,14 +1,11 @@
 #[cfg(test)]
 mod tests {
-  use bimap::BiMap;
   use strum::IntoEnumIterator;
 
   use crate::app::App;
-  use crate::models::servarr_data::sonarr::modals::SeasonDetailsModal;
   use crate::models::servarr_data::sonarr::sonarr_data::{
     ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS, SEASON_DETAILS_BLOCKS,
   };
-  use crate::models::sonarr_models::{Season, Series};
   use crate::models::stateful_table::StatefulTable;
   use crate::ui::DrawUi;
   use crate::ui::sonarr_ui::library::season_details_ui::SeasonDetailsUi;
@@ -30,114 +27,116 @@ mod tests {
 
   mod snapshot_tests {
     use crate::ui::ui_test_utils::test_utils::TerminalSize;
+    use rstest::rstest;
 
     use super::*;
 
-    #[test]
-    fn test_season_details_ui_renders_loading_state() {
-      let mut app = App::test_default();
+    #[rstest]
+    #[case(ActiveSonarrBlock::SeasonDetails, 0)]
+    #[case(ActiveSonarrBlock::SeasonHistory, 1)]
+    #[case(ActiveSonarrBlock::SearchEpisodes, 0)]
+    #[case(ActiveSonarrBlock::SearchEpisodesError, 0)]
+    #[case(ActiveSonarrBlock::AutomaticallySearchSeasonPrompt, 0)]
+    #[case(ActiveSonarrBlock::AutomaticallySearchSeasonPrompt, 1)]
+    #[case(ActiveSonarrBlock::AutomaticallySearchSeasonPrompt, 2)]
+    #[case(ActiveSonarrBlock::SearchSeasonHistory, 1)]
+    #[case(ActiveSonarrBlock::SearchSeasonHistoryError, 1)]
+    #[case(ActiveSonarrBlock::FilterSeasonHistory, 1)]
+    #[case(ActiveSonarrBlock::FilterSeasonHistoryError, 1)]
+    #[case(ActiveSonarrBlock::SeasonHistorySortPrompt, 1)]
+    #[case(ActiveSonarrBlock::SeasonHistoryDetails, 1)]
+    #[case(ActiveSonarrBlock::ManualSeasonSearch, 2)]
+    #[case(ActiveSonarrBlock::ManualSeasonSearchConfirmPrompt, 2)]
+    #[case(ActiveSonarrBlock::ManualSeasonSearchSortPrompt, 2)]
+    #[case(ActiveSonarrBlock::DeleteEpisodeFilePrompt, 0)]
+    fn test_season_details_ui_renders(
+      #[case] active_sonarr_block: ActiveSonarrBlock,
+      #[case] index: usize,
+    ) {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(active_sonarr_block.into());
+      app
+        .data
+        .sonarr_data
+        .season_details_modal
+        .as_mut()
+        .unwrap()
+        .season_details_tabs
+        .set_index(index);
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SeasonDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(
+        format!("season_details_renders_{active_sonarr_block}_{index}"),
+        output
+      );
+    }
+
+    #[rstest]
+    #[case(ActiveSonarrBlock::SeasonDetails, 0)]
+    #[case(ActiveSonarrBlock::SeasonHistory, 1)]
+    #[case(ActiveSonarrBlock::SeasonHistoryDetails, 1)]
+    #[case(ActiveSonarrBlock::ManualSeasonSearch, 2)]
+    fn test_season_details_ui_renders_loading(
+      #[case] active_sonarr_block: ActiveSonarrBlock,
+      #[case] index: usize,
+    ) {
+      let mut app = App::test_default_fully_populated();
       app.is_loading = true;
-      app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
-      app.data.sonarr_data.series = StatefulTable::default();
-      app.data.sonarr_data.series.set_items(vec![Series {
-        seasons: Some(vec![Season::default()]),
-        ..Series::default()
-      }]);
+      app.push_navigation_stack(active_sonarr_block.into());
+      {
+        let season_details_modal = app.data.sonarr_data.season_details_modal.as_mut().unwrap();
+        season_details_modal.season_releases = StatefulTable::default();
+        season_details_modal.season_history = StatefulTable::default();
+        season_details_modal.episodes = StatefulTable::default();
+        season_details_modal.season_details_tabs.set_index(index);
+      }
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         SeasonDetailsUi::draw(f, app, f.area());
       });
 
-      insta::assert_snapshot!(output);
+      insta::assert_snapshot!(
+        format!("loading_season_details_{active_sonarr_block}_{index}"),
+        output
+      );
     }
 
-    #[test]
-    fn test_season_details_ui_renders_episodes_tab() {
-      let mut app = App::test_default();
-      app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
-      app.data.sonarr_data.series = StatefulTable::default();
-      app.data.sonarr_data.series.set_items(vec![Series {
-        seasons: Some(vec![Season::default()]),
-        ..Series::default()
-      }]);
+    #[rstest]
+    #[case(ActiveSonarrBlock::SeasonDetails, 0)]
+    #[case(ActiveSonarrBlock::SeasonHistory, 1)]
+    #[case(ActiveSonarrBlock::SeasonHistoryDetails, 1)]
+    #[case(ActiveSonarrBlock::ManualSeasonSearch, 2)]
+    fn test_season_details_ui_renders_empty(
+      #[case] active_sonarr_block: ActiveSonarrBlock,
+      #[case] index: usize,
+    ) {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(active_sonarr_block.into());
+      {
+        let season_details_modal = app.data.sonarr_data.season_details_modal.as_mut().unwrap();
+        season_details_modal.season_releases = StatefulTable::default();
+        season_details_modal.season_history = StatefulTable::default();
+        season_details_modal.episodes = StatefulTable::default();
+        season_details_modal.season_details_tabs.set_index(index);
+      }
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         SeasonDetailsUi::draw(f, app, f.area());
       });
 
-      insta::assert_snapshot!(output);
+      insta::assert_snapshot!(
+        format!("empty_season_details_{active_sonarr_block}_{index}"),
+        output
+      );
     }
 
     #[test]
-    fn test_season_details_ui_renders_manual_search_tab() {
-      use crate::models::sonarr_models::{Episode, EpisodeFile, SonarrRelease};
-
-      let mut app = App::test_default();
-      app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
-      app.data.sonarr_data.quality_profile_map = BiMap::from_iter(vec![(0, "Any".to_owned())]);
-      app.data.sonarr_data.language_profiles_map =
-        BiMap::from_iter(vec![(0, "English".to_owned())]);
-      app.data.sonarr_data.series = StatefulTable::default();
-      app.data.sonarr_data.series.set_items(vec![Series {
-        seasons: Some(vec![Season::default()]),
-        ..Series::default()
-      }]);
-      app
-        .data
-        .sonarr_data
-        .seasons
-        .set_items(vec![Season::default()]);
-      let mut season_details_modal = SeasonDetailsModal::default();
-      season_details_modal.season_details_tabs.set_index(2);
-      season_details_modal
-        .episodes
-        .set_items(vec![Episode::default()]);
-      season_details_modal
-        .episode_files
-        .set_items(vec![EpisodeFile::default()]);
-      season_details_modal
-        .season_releases
-        .set_items(vec![SonarrRelease::default()]);
-      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
-
-      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
-        SeasonDetailsUi::draw(f, app, f.area());
-      });
-
-      insta::assert_snapshot!(output);
-    }
-
-    #[test]
-    fn test_season_details_ui_renders_season_history_tab() {
-      use crate::models::sonarr_models::{Episode, EpisodeFile, SonarrHistoryItem};
-
-      let mut app = App::test_default();
-      app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
-      app.data.sonarr_data.quality_profile_map = BiMap::from_iter(vec![(0, "Any".to_owned())]);
-      app.data.sonarr_data.language_profiles_map =
-        BiMap::from_iter(vec![(0, "English".to_owned())]);
-      app.data.sonarr_data.series = StatefulTable::default();
-      app.data.sonarr_data.series.set_items(vec![Series {
-        seasons: Some(vec![Season::default()]),
-        ..Series::default()
-      }]);
-      app
-        .data
-        .sonarr_data
-        .seasons
-        .set_items(vec![Season::default()]);
-      let mut season_details_modal = SeasonDetailsModal::default();
-      season_details_modal.season_details_tabs.set_index(1);
-      season_details_modal
-        .episodes
-        .set_items(vec![Episode::default()]);
-      season_details_modal
-        .episode_files
-        .set_items(vec![EpisodeFile::default()]);
-      season_details_modal
-        .season_history
-        .set_items(vec![SonarrHistoryItem::default()]);
-      app.data.sonarr_data.season_details_modal = Some(season_details_modal);
+    fn test_season_details_ui_renders_episode_details_over_season_details() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         SeasonDetailsUi::draw(f, app, f.area());

@@ -24,16 +24,58 @@ mod tests {
 
   mod snapshot_tests {
     use super::*;
-    use crate::models::sonarr_models::{SonarrTask, SonarrTaskName};
-    use crate::models::stateful_table::StatefulTable;
+    use crate::models::ScrollableText;
     use crate::ui::ui_test_utils::test_utils::TerminalSize;
-    use chrono::{Duration, Utc};
+    use rstest::rstest;
 
-    #[test]
-    fn test_system_details_ui_renders_loading_tasks() {
+    #[rstest]
+    fn test_system_details_ui_popups(
+      #[values(
+        ActiveSonarrBlock::SystemLogs,
+        ActiveSonarrBlock::SystemQueuedEvents,
+        ActiveSonarrBlock::SystemTasks,
+        ActiveSonarrBlock::SystemTaskStartConfirmPrompt,
+        ActiveSonarrBlock::SystemUpdates
+      )]
+      active_sonarr_block: ActiveSonarrBlock,
+    ) {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(active_sonarr_block.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SystemDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(format!("popup_{active_sonarr_block}"), output);
+    }
+
+    #[rstest]
+    fn test_system_details_ui_loading(
+      #[values(
+        ActiveSonarrBlock::SystemLogs,
+        ActiveSonarrBlock::SystemQueuedEvents,
+        ActiveSonarrBlock::SystemTasks,
+        ActiveSonarrBlock::SystemUpdates
+      )]
+      active_sonarr_block: ActiveSonarrBlock,
+    ) {
       let mut app = App::test_default();
       app.is_loading = true;
-      app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
+      app.push_navigation_stack(active_sonarr_block.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SystemDetailsUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(format!("loading_{active_sonarr_block}"), output);
+    }
+
+    #[test]
+    fn test_system_details_ui_updates_popup_loading_when_empty() {
+      let mut app = App::test_default_fully_populated();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveSonarrBlock::SystemUpdates.into());
+      app.data.sonarr_data.updates = ScrollableText::with_string("".to_string());
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         SystemDetailsUi::draw(f, app, f.area());
@@ -42,63 +84,23 @@ mod tests {
       insta::assert_snapshot!(output);
     }
 
-    #[test]
-    fn test_system_details_ui_renders_logs() {
+    #[rstest]
+    fn test_system_details_ui_popups_empty(
+      #[values(
+        ActiveSonarrBlock::SystemLogs,
+        ActiveSonarrBlock::SystemQueuedEvents,
+        ActiveSonarrBlock::SystemTasks
+      )]
+      active_sonarr_block: ActiveSonarrBlock,
+    ) {
       let mut app = App::test_default();
-      app.push_navigation_stack(ActiveSonarrBlock::SystemLogs.into());
-      app.data.sonarr_data.logs.set_items(vec![
-        "2023-01-01T12:00:00Z | Info | Test log message 1"
-          .to_owned()
-          .into(),
-        "2023-01-01T12:01:00Z | Warn | Test warning message"
-          .to_owned()
-          .into(),
-      ]);
+      app.push_navigation_stack(active_sonarr_block.into());
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         SystemDetailsUi::draw(f, app, f.area());
       });
 
-      insta::assert_snapshot!(output);
-    }
-
-    #[test]
-    fn test_system_details_ui_renders_tasks() {
-      let mut app = App::test_default();
-      app.push_navigation_stack(ActiveSonarrBlock::SystemTasks.into());
-
-      let now = Utc::now();
-      let mut tasks = StatefulTable::default();
-      tasks.set_items(vec![
-        SonarrTask {
-          name: "Refresh Series".to_owned(),
-          task_name: SonarrTaskName::RefreshSeries,
-          interval: 360,
-          last_execution: now - Duration::hours(2),
-          next_execution: now + Duration::hours(4),
-        },
-        SonarrTask {
-          name: "Check for Updates".to_owned(),
-          task_name: SonarrTaskName::ApplicationUpdateCheck,
-          interval: 1440,
-          last_execution: now - Duration::hours(12),
-          next_execution: now + Duration::hours(12),
-        },
-        SonarrTask {
-          name: "Housekeeping".to_owned(),
-          task_name: SonarrTaskName::Housekeeping,
-          interval: 1440,
-          last_execution: now - Duration::hours(24),
-          next_execution: now,
-        },
-      ]);
-      app.data.sonarr_data.tasks = tasks;
-
-      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
-        SystemDetailsUi::draw(f, app, f.area());
-      });
-
-      insta::assert_snapshot!(output);
+      insta::assert_snapshot!(format!("empty_{active_sonarr_block}"), output);
     }
   }
 }

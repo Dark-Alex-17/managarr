@@ -194,60 +194,60 @@ fn draw_episode_details(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
 
 fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
   match app.data.sonarr_data.season_details_modal.as_ref() {
-    Some(season_details_modal) => match season_details_modal.episode_details_modal.as_ref() {
-      Some(episode_details_modal)
-        if !episode_details_modal.file_details.is_empty() && !app.is_loading =>
-      {
-        let file_info = episode_details_modal.file_details.to_owned();
-        let audio_details = episode_details_modal.audio_details.to_owned();
-        let video_details = episode_details_modal.video_details.to_owned();
-        let [
-          file_details_title_area,
-          file_details_area,
-          audio_details_title_area,
-          audio_details_area,
-          video_details_title_area,
-          video_details_area,
-        ] = Layout::vertical([
-          Constraint::Length(2),
-          Constraint::Length(5),
-          Constraint::Length(1),
-          Constraint::Length(6),
-          Constraint::Length(1),
-          Constraint::Length(7),
-        ])
-        .areas(area);
+    Some(season_details_modal) if !app.is_loading => {
+      match season_details_modal.episode_details_modal.as_ref() {
+        Some(episode_details_modal) if !episode_details_modal.file_details.is_empty() => {
+          let file_info = episode_details_modal.file_details.to_owned();
+          let audio_details = episode_details_modal.audio_details.to_owned();
+          let video_details = episode_details_modal.video_details.to_owned();
+          let [
+            file_details_title_area,
+            file_details_area,
+            audio_details_title_area,
+            audio_details_area,
+            video_details_title_area,
+            video_details_area,
+          ] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Length(5),
+            Constraint::Length(1),
+            Constraint::Length(6),
+            Constraint::Length(1),
+            Constraint::Length(7),
+          ])
+          .areas(area);
 
-        let file_details_title_paragraph =
-          Paragraph::new("File Details".bold()).block(layout_block_top_border());
-        let audio_details_title_paragraph =
-          Paragraph::new("Audio Details".bold()).block(borderless_block());
-        let video_details_title_paragraph =
-          Paragraph::new("Video Details".bold()).block(borderless_block());
+          let file_details_title_paragraph =
+            Paragraph::new("File Details".bold()).block(layout_block_top_border());
+          let audio_details_title_paragraph =
+            Paragraph::new("Audio Details".bold()).block(borderless_block());
+          let video_details_title_paragraph =
+            Paragraph::new("Video Details".bold()).block(borderless_block());
 
-        let file_details = Text::from(file_info);
-        let audio_details = Text::from(audio_details);
-        let video_details = Text::from(video_details);
+          let file_details = Text::from(file_info);
+          let audio_details = Text::from(audio_details);
+          let video_details = Text::from(video_details);
 
-        let file_details_paragraph = Paragraph::new(file_details)
-          .block(layout_block_bottom_border())
-          .wrap(Wrap { trim: false });
-        let audio_details_paragraph = Paragraph::new(audio_details)
-          .block(layout_block_bottom_border())
-          .wrap(Wrap { trim: false });
-        let video_details_paragraph = Paragraph::new(video_details)
-          .block(borderless_block())
-          .wrap(Wrap { trim: false });
+          let file_details_paragraph = Paragraph::new(file_details)
+            .block(layout_block_bottom_border())
+            .wrap(Wrap { trim: false });
+          let audio_details_paragraph = Paragraph::new(audio_details)
+            .block(layout_block_bottom_border())
+            .wrap(Wrap { trim: false });
+          let video_details_paragraph = Paragraph::new(video_details)
+            .block(borderless_block())
+            .wrap(Wrap { trim: false });
 
-        f.render_widget(file_details_title_paragraph, file_details_title_area);
-        f.render_widget(file_details_paragraph, file_details_area);
-        f.render_widget(audio_details_title_paragraph, audio_details_title_area);
-        f.render_widget(audio_details_paragraph, audio_details_area);
-        f.render_widget(video_details_title_paragraph, video_details_title_area);
-        f.render_widget(video_details_paragraph, video_details_area);
+          f.render_widget(file_details_title_paragraph, file_details_title_area);
+          f.render_widget(file_details_paragraph, file_details_area);
+          f.render_widget(audio_details_title_paragraph, audio_details_title_area);
+          f.render_widget(audio_details_paragraph, audio_details_area);
+          f.render_widget(video_details_title_paragraph, video_details_title_area);
+          f.render_widget(video_details_paragraph, video_details_area);
+        }
+        _ => f.render_widget(layout_block_top_border(), area),
       }
-      _ => f.render_widget(layout_block_top_border(), area),
-    },
+    }
     _ => f.render_widget(
       LoadingBlock::new(app.is_loading, layout_block_top_border()),
       area,

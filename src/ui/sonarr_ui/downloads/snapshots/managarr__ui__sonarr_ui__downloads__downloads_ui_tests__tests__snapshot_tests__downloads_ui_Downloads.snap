@@ -1,0 +1,7 @@
+---
+source: src/ui/sonarr_ui/downloads/downloads_ui_tests.rs
+expression: output
+---
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Title                                         Percent Complete   Size               Output Path                 Indexer                      Download Client      
+=> Test Download Title                           50%                3.30 GB            /nfs/tv/Test show/season 1/ kickass torrents             transmission

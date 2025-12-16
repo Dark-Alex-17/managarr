@@ -3,10 +3,7 @@ mod tests {
   use strum::IntoEnumIterator;
 
   use crate::app::App;
-  use crate::models::HorizontallyScrollableText;
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, ROOT_FOLDERS_BLOCKS};
-  use crate::models::servarr_models::RootFolder;
-  use crate::models::stateful_table::StatefulTable;
   use crate::ui::DrawUi;
   use crate::ui::sonarr_ui::root_folders::RootFoldersUi;
   use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
@@ -24,11 +21,12 @@ mod tests {
 
   mod snapshot_tests {
     use crate::ui::ui_test_utils::test_utils::TerminalSize;
+    use rstest::rstest;
 
     use super::*;
 
     #[test]
-    fn test_root_folders_ui_renders_loading_state() {
+    fn test_root_folders_ui_renders_loading() {
       let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
@@ -44,7 +42,6 @@ mod tests {
     fn test_root_folders_ui_renders_empty_root_folders() {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
-      app.data.sonarr_data.root_folders = StatefulTable::default();
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         RootFoldersUi::draw(f, app, f.area());
@@ -53,45 +50,23 @@ mod tests {
       insta::assert_snapshot!(output);
     }
 
-    #[test]
-    fn test_root_folders_ui_renders_with_root_folders() {
-      let mut app = App::test_default();
-      app.push_navigation_stack(ActiveSonarrBlock::RootFolders.into());
-      app.data.sonarr_data.root_folders = StatefulTable::default();
-      app.data.sonarr_data.root_folders.set_items(vec![
-        RootFolder {
-          path: "/tv".to_owned(),
-          accessible: true,
-          free_space: 1024 * 1024 * 1024 * 100,
-          ..RootFolder::default()
-        },
-        RootFolder {
-          path: "/media/tv".to_owned(),
-          accessible: true,
-          free_space: 1024 * 1024 * 1024 * 50,
-          ..RootFolder::default()
-        },
-      ]);
+    #[rstest]
+    fn test_root_folders_ui_renders_root_folders_tab(
+      #[values(
+        ActiveSonarrBlock::RootFolders,
+        ActiveSonarrBlock::AddRootFolderPrompt,
+        ActiveSonarrBlock::DeleteRootFolderPrompt
+      )]
+      active_sonarr_block: ActiveSonarrBlock,
+    ) {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(active_sonarr_block.into());
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         RootFoldersUi::draw(f, app, f.area());
       });
 
-      insta::assert_snapshot!(output);
-    }
-
-    #[test]
-    fn test_root_folders_ui_renders_add_root_folder() {
-      let mut app = App::test_default();
-      app.push_navigation_stack(ActiveSonarrBlock::AddRootFolderPrompt.into());
-      app.data.sonarr_data.root_folders = StatefulTable::default();
-      app.data.sonarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
-
-      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
-        RootFoldersUi::draw(f, app, f.area());
-      });
-
-      insta::assert_snapshot!(output);
+      insta::assert_snapshot!(active_sonarr_block.to_string(), output);
     }
   }
 }

@@ -1,5 +1,8 @@
 use std::ops::Sub;
 
+#[cfg(test)]
+use crate::ui::ui_test_utils::test_utils::Utc;
+#[cfg(not(test))]
 use chrono::Utc;
 use ratatui::layout::Layout;
 use ratatui::style::Style;

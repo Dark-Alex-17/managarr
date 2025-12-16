@@ -1,6 +1,5 @@
 #[cfg(test)]
-pub(in crate::network::sonarr_network) mod test_utils {
-  use crate::models::HorizontallyScrollableText;
+pub mod test_utils {
   use crate::models::servarr_models::{
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
@@ -8,9 +7,13 @@ pub(in crate::network::sonarr_network) mod test_utils {
     AddSeriesSearchResult, AddSeriesSearchResultStatistics, BlocklistItem, DownloadRecord,
     DownloadStatus, DownloadsResponse, Episode, EpisodeFile, IndexerSettings, MediaInfo, Rating,
     Season, SeasonStatistics, Series, SeriesStatistics, SeriesStatus, SeriesType,
-    SonarrHistoryData, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease,
+    SonarrHistoryData, SonarrHistoryEventType, SonarrHistoryItem, SonarrRelease, SonarrTask,
+    SonarrTaskName,
   };
+  use crate::models::{HorizontallyScrollableText, ScrollableText};
+  use bimap::BiMap;
   use chrono::DateTime;
+  use indoc::formatdoc;
   use serde_json::{Number, Value, json};
 
   pub const SERIES_JSON: &str = r#"{
@@ -22,6 +25,7 @@ pub(in crate::network::sonarr_network) mod test_utils {
         "seasons": [
             {
                 "seasonNumber": 1,
+                "title": "Season title",
                 "monitored": true,
                 "statistics": {
                     "previousAiring": "2022-10-24T01:00:00Z",
@@ -120,7 +124,7 @@ pub(in crate::network::sonarr_network) mod test_utils {
     BlocklistItem {
       id: 1,
       series_id: 1,
-      series_title: None,
+      series_title: Some("Test Series".to_owned()),
       episode_ids: vec![Number::from(1)],
       source_title: "Test Source Title".to_owned(),
       languages: vec![Some(language())],
@@ -299,7 +303,7 @@ pub(in crate::network::sonarr_network) mod test_utils {
 
   pub fn season() -> Season {
     Season {
-      title: None,
+      title: Some("Season title".to_owned()),
       season_number: 1,
       monitored: true,
       statistics: Some(season_statistics()),
@@ -364,7 +368,7 @@ pub(in crate::network::sonarr_network) mod test_utils {
     ]
   }
 
-  pub fn release() -> SonarrRelease {
+  pub fn torrent_release() -> SonarrRelease {
     SonarrRelease {
       guid: "1234".to_owned(),
       protocol: "torrent".to_owned(),
@@ -377,6 +381,25 @@ pub(in crate::network::sonarr_network) mod test_utils {
       rejections: Some(rejections()),
       seeders: Some(Number::from(2)),
       leechers: Some(Number::from(1)),
+      languages: Some(vec![Some(language())]),
+      quality: quality_wrapper(),
+      full_season: false,
+    }
+  }
+
+  pub fn usenet_release() -> SonarrRelease {
+    SonarrRelease {
+      guid: "1234".to_owned(),
+      protocol: "usenet".to_owned(),
+      age: 1,
+      title: HorizontallyScrollableText::from("Test Release"),
+      indexer: "DrunkenSlug".to_owned(),
+      indexer_id: 1,
+      size: 1234,
+      rejected: true,
+      rejections: Some(rejections()),
+      seeders: None,
+      leechers: None,
       languages: Some(vec![Some(language())]),
       quality: quality_wrapper(),
       full_season: false,
@@ -398,5 +421,62 @@ pub(in crate::network::sonarr_network) mod test_utils {
       "id": 3,
       "label": "testing"
     })
+  }
+
+  pub fn log_line() -> &'static str {
+    "2025-12-16 16:40:59 UTC|INFO|ImportListSyncService|No list items to process"
+  }
+
+  pub fn language_profiles_map() -> BiMap<i64, String> {
+    let Language { id, name } = language();
+
+    BiMap::from_iter(vec![(id, name)])
+  }
+
+  pub fn quality_profile_map() -> BiMap<i64, String> {
+    BiMap::from_iter(vec![(6, quality().name)])
+  }
+
+  pub fn tags_map() -> BiMap<i64, String> {
+    BiMap::from_iter(vec![(1, "alex".to_owned())])
+  }
+
+  pub fn task() -> SonarrTask {
+    SonarrTask {
+      name: "Backup".to_owned(),
+      task_name: SonarrTaskName::Backup,
+      interval: 60,
+      last_execution: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap()),
+      next_execution: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T22:29:16Z").unwrap()),
+    }
+  }
+
+  pub fn updates() -> ScrollableText {
+    let line_break = "-".repeat(200);
+    ScrollableText::with_string(formatdoc!(
+      "
+    The latest version of Sonarr is already installed
+
+    4.3.2.1 - 2023-04-15 02:02:53 UTC (Currently Installed)
+    {line_break}
+    New:
+      * Cool new thing
+    Fixed:
+      * Some bugs killed
+
+
+    3.2.1.0 - 2023-04-15 02:02:53 UTC (Previously Installed)
+    {line_break}
+    New:
+      * Cool new thing (old)
+      * Other cool new thing (old)
+
+
+    2.1.0 - 2023-04-15 02:02:53 UTC
+    {line_break}
+    Fixed:
+      * Killed bug 1
+      * Fixed bug 2"
+    ))
   }
 }

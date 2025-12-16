@@ -82,7 +82,7 @@ mod tests {
         LibraryUi::draw(f, app, f.area());
       });
 
-      insta::assert_snapshot!(active_radarr_block.to_string(), output);
+      insta::assert_snapshot!(format!("library_tab_{active_radarr_block}"), output);
     }
 
     #[rstest]
@@ -109,7 +109,7 @@ mod tests {
         LibraryUi::draw(f, app, f.area());
       });
 
-      insta::assert_snapshot!(active_radarr_block.to_string(), output);
+      insta::assert_snapshot!(format!("add_movie_ui_{active_radarr_block}"), output);
     }
 
     #[test]

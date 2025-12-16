@@ -1,7 +1,11 @@
 use std::{cmp, iter};
 
+#[cfg(test)]
+use crate::ui::ui_test_utils::test_utils::Utc;
 use blocklist::BlocklistUi;
-use chrono::{Duration, Utc};
+use chrono::Duration;
+#[cfg(not(test))]
+use chrono::Utc;
 use downloads::DownloadsUi;
 use history::HistoryUi;
 use indexers::IndexersUi;

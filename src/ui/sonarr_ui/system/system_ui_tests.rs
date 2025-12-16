@@ -26,12 +26,14 @@ mod tests {
   }
 
   mod snapshot_tests {
+    use crate::models::stateful_list::StatefulList;
     use crate::ui::ui_test_utils::test_utils::TerminalSize;
+    use rstest::rstest;
 
     use super::*;
 
     #[test]
-    fn test_system_ui_renders_loading_state() {
+    fn test_system_ui_renders_system_tab_loading() {
       let mut app = App::test_default();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::System.into());
@@ -44,7 +46,46 @@ mod tests {
     }
 
     #[test]
-    fn test_system_ui_renders_system_menu() {
+    fn test_system_ui_renders_logs_loading() {
+      let mut app = App::test_default_fully_populated();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveSonarrBlock::System.into());
+      app.data.sonarr_data.logs = StatefulList::default();
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SystemUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_system_ui_renders_system_tab_task_and_events_loading() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::System.into());
+      app.is_loading = true;
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SystemUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_system_ui_renders_system_tab() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::System.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SystemUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_system_ui_renders_system_tab_empty() {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::System.into());
 
@@ -53,6 +94,30 @@ mod tests {
       });
 
       insta::assert_snapshot!(output);
+    }
+
+    #[rstest]
+    fn test_system_details_ui_renders_popups_over_system_ui(
+      #[values(
+        ActiveSonarrBlock::SystemLogs,
+        ActiveSonarrBlock::SystemQueuedEvents,
+        ActiveSonarrBlock::SystemTasks,
+        ActiveSonarrBlock::SystemTaskStartConfirmPrompt,
+        ActiveSonarrBlock::SystemUpdates
+      )]
+      active_sonarr_block: ActiveSonarrBlock,
+    ) {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(active_sonarr_block.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        SystemUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(
+        format!("popups_over_system_ui_{active_sonarr_block}"),
+        output
+      );
     }
   }
 }

@@ -58,7 +58,12 @@ mod tests {
         CollectionsUi::draw(f, app, f.area());
       });
 
-      insta::assert_snapshot!(output);
+      insta::assert_snapshot!(
+        format!(
+          "is_loading_{is_loading}_empty_movies_{empty_movies}_empty_profile_{empty_profile_map}"
+        ),
+        output
+      );
     }
 
     #[rstest]
@@ -81,7 +86,7 @@ mod tests {
         CollectionsUi::draw(f, app, f.area());
       });
 
-      insta::assert_snapshot!(active_radarr_block.to_string(), output);
+      insta::assert_snapshot!(format!("collections_tab_{active_radarr_block}"), output);
     }
 
     #[test]
@@ -141,7 +146,7 @@ mod tests {
 
       insta::assert_snapshot!(
         format!(
-          "{}_{}",
+          "edit_collection_modal_{}_{}",
           active_radarr_block.to_string(),
           context_block.to_string()
         ),

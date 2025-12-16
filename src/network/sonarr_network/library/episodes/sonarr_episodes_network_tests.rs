@@ -12,7 +12,7 @@ mod tests {
   use crate::network::sonarr_network::SonarrEvent;
   use crate::network::sonarr_network::library::episodes::get_episode_status;
   use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
-    EPISODE_JSON, episode, episode_file, history_item, release,
+    EPISODE_JSON, episode, episode_file, history_item, torrent_release,
   };
   use indoc::formatdoc;
   use mockito::Matcher;
@@ -1124,9 +1124,9 @@ mod tests {
         .unwrap()
         .episode_releases
         .items,
-      vec![release()]
+      vec![torrent_release()]
     );
-    assert_eq!(releases_vec, vec![release()]);
+    assert_eq!(releases_vec, vec![torrent_release()]);
   }
 
   #[tokio::test]
@@ -1179,9 +1179,9 @@ mod tests {
         .unwrap()
         .episode_releases
         .items,
-      vec![release()]
+      vec![torrent_release()]
     );
-    assert_eq!(releases_vec, vec![release()]);
+    assert_eq!(releases_vec, vec![torrent_release()]);
   }
 
   #[tokio::test]

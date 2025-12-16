@@ -247,18 +247,44 @@ mod tests {
   }
 
   mod snapshot_tests {
-
     use crate::app::App;
-    use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
+    use crate::models::BlockSelectionState;
+    use crate::models::servarr_data::sonarr::sonarr_data::{
+      ADD_SERIES_SELECTION_BLOCKS, ActiveSonarrBlock, DELETE_SERIES_SELECTION_BLOCKS,
+      EDIT_SERIES_SELECTION_BLOCKS,
+    };
+    use rstest::rstest;
 
-    use crate::models::stateful_table::StatefulTable;
     use crate::ui::DrawUi;
     use crate::ui::sonarr_ui::library::LibraryUi;
     use crate::ui::ui_test_utils::test_utils::{TerminalSize, render_to_string_with_app};
 
+    #[rstest]
+    fn test_library_ui_renders(
+      #[values(
+        ActiveSonarrBlock::Series,
+        ActiveSonarrBlock::SeriesSortPrompt,
+        ActiveSonarrBlock::SearchSeries,
+        ActiveSonarrBlock::SearchSeriesError,
+        ActiveSonarrBlock::FilterSeries,
+        ActiveSonarrBlock::FilterSeriesError,
+        ActiveSonarrBlock::UpdateAllSeriesPrompt
+      )]
+      active_sonarr_block: ActiveSonarrBlock,
+    ) {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(active_sonarr_block.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(format!("sonarr_library_{active_sonarr_block}"), output);
+    }
+
     #[test]
-    fn test_library_ui_renders_loading_state() {
-      let mut app = App::test_default();
+    fn test_library_ui_renders_loading() {
+      let mut app = App::test_default_fully_populated();
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
 
@@ -270,10 +296,9 @@ mod tests {
     }
 
     #[test]
-    fn test_library_ui_renders_empty_series() {
+    fn test_library_ui_renders_empty() {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
-      app.data.sonarr_data.series = StatefulTable::default();
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         LibraryUi::draw(f, app, f.area());
@@ -283,56 +308,9 @@ mod tests {
     }
 
     #[test]
-    fn test_library_ui_renders_with_series() {
-      use crate::models::sonarr_models::{Series, SeriesStatus, SeriesType};
-      use crate::models::stateful_table::StatefulTable;
-      use bimap::BiMap;
-
-      let mut app = App::test_default();
-      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
-
-      // Set up quality profile and language profile maps
-      let mut quality_profile_map = BiMap::new();
-      quality_profile_map.insert(1, "HD-1080p".to_owned());
-      quality_profile_map.insert(2, "Any".to_owned());
-      app.data.sonarr_data.quality_profile_map = quality_profile_map;
-
-      let mut language_profiles_map = BiMap::new();
-      language_profiles_map.insert(1, "English".to_owned());
-      language_profiles_map.insert(2, "Any".to_owned());
-      app.data.sonarr_data.language_profiles_map = language_profiles_map;
-
-      // Create series with data
-      let mut series_table = StatefulTable::default();
-      series_table.set_items(vec![
-        Series {
-          id: 1,
-          title: "Breaking Bad".into(),
-          year: 2008,
-          network: Some("AMC".to_owned()),
-          status: SeriesStatus::Ended,
-          monitored: true,
-          series_type: SeriesType::Standard,
-          quality_profile_id: 1,
-          language_profile_id: 1,
-          seasons: Some(vec![]),
-          ..Series::default()
-        },
-        Series {
-          id: 2,
-          title: "The Wire".into(),
-          year: 2002,
-          network: Some("HBO".to_owned()),
-          status: SeriesStatus::Continuing,
-          monitored: true,
-          series_type: SeriesType::Standard,
-          quality_profile_id: 2,
-          language_profile_id: 1,
-          seasons: Some(vec![]),
-          ..Series::default()
-        },
-      ]);
-      app.data.sonarr_data.series = series_table;
+    fn test_library_ui_renders_series_details_over_series() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::SeriesDetails.into());
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         LibraryUi::draw(f, app, f.area());
@@ -342,11 +320,61 @@ mod tests {
     }
 
     #[test]
-    fn test_library_ui_renders_update_all_series_prompt() {
-      let mut app = App::test_default();
-      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
-      app.push_navigation_stack(ActiveSonarrBlock::UpdateAllSeriesPrompt.into());
-      app.data.sonarr_data.series = StatefulTable::default();
+    fn test_library_ui_renders_season_details_over_series() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::SeasonDetails.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_library_ui_renders_episode_details_over_series() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::EpisodeDetails.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_library_ui_renders_delete_episode_over_series() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::DeleteSeriesPrompt.into());
+      app.data.sonarr_data.selected_block =
+        BlockSelectionState::new(DELETE_SERIES_SELECTION_BLOCKS);
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_library_ui_renders_edit_series_over_series() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::EditSeriesPrompt.into());
+      app.data.sonarr_data.selected_block = BlockSelectionState::new(EDIT_SERIES_SELECTION_BLOCKS);
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_library_ui_renders_add_series_over_series() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::AddSeriesPrompt.into());
+      app.data.sonarr_data.selected_block = BlockSelectionState::new(ADD_SERIES_SELECTION_BLOCKS);
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         LibraryUi::draw(f, app, f.area());

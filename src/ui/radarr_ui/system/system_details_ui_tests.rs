@@ -27,7 +27,7 @@ mod tests {
     use rstest::rstest;
 
     #[rstest]
-    fn test_system_details_ui_renders_tasks(
+    fn test_system_details_ui_renders_popups(
       #[values(
         ActiveRadarrBlock::SystemLogs,
         ActiveRadarrBlock::SystemQueuedEvents,

@@ -5,7 +5,8 @@ pub mod radarr;
 pub mod sonarr;
 
 #[cfg(test)]
-#[path = "servarr_data_tests.rs"]
+pub(in crate::models::servarr_data) mod data_test_utils;
+#[cfg(test)]
 mod servarr_data_tests;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]

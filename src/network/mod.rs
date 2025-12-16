@@ -26,8 +26,9 @@ pub mod sonarr_network;
 mod utils;
 
 #[cfg(test)]
-#[path = "network_tests.rs"]
 mod network_tests;
+#[cfg(test)]
+pub mod servarr_test_utils;
 
 #[cfg_attr(test, automock)]
 #[async_trait]

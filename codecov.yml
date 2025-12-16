@@ -12,4 +12,3 @@ coverage:
 
 ignore:
   - "**/*_tests.rs"
-  - "src/ui"

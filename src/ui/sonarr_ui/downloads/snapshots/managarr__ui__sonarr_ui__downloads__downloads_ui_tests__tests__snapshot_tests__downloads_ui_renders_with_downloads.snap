@@ -1,8 +1,0 @@
----
-source: src/ui/sonarr_ui/downloads/downloads_ui_tests.rs
-expression: output
----
-─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-   Title                                         Percent Complete   Size               Output Path                 Indexer                      Download Client      
-=> Test Series Download                          50%                1.00 GB                                                                                          
-   Another Series Download                       100%               2.00 GB

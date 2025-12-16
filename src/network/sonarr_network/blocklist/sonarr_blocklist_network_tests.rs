@@ -96,6 +96,7 @@ mod tests {
     },
     {
         "seriesId": 2001,
+        "seriesTitle": "Test Series",
         "episodeIds": [42018],
         "sourceTitle": "A Series",
         "languages": [{ "id": 1, "name": "English" }],

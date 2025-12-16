@@ -6,7 +6,7 @@ mod tests {
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::sonarr_network::SonarrEvent;
   use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
-    SERIES_JSON, history_item, release, season, series,
+    SERIES_JSON, history_item, season, series, torrent_release,
   };
   use mockito::Matcher;
   use pretty_assertions::assert_eq;
@@ -101,16 +101,16 @@ mod tests {
     ]);
     let expected_filtered_sonarr_release = SonarrRelease {
       full_season: true,
-      ..release()
+      ..torrent_release()
     };
     let expected_raw_sonarr_releases = vec![
       SonarrRelease {
         full_season: true,
-        ..release()
+        ..torrent_release()
       },
       SonarrRelease {
         guid: "4567".to_owned(),
-        ..release()
+        ..torrent_release()
       },
     ];
     let (mock, app, _server) = MockServarrApi::get()
@@ -197,7 +197,7 @@ mod tests {
     ]);
     let expected_sonarr_release = SonarrRelease {
       full_season: true,
-      ..release()
+      ..torrent_release()
     };
     let (mock, app, _server) = MockServarrApi::get()
       .returns(release_json)

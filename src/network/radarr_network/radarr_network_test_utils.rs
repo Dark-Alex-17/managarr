@@ -6,9 +6,8 @@ pub mod test_utils {
     Movie, MovieCollection, MovieFile, MovieHistoryItem, RadarrRelease, RadarrTask, RadarrTaskName,
     Rating, RatingsList,
   };
-  use crate::models::servarr_data::modals::IndexerTestResultModalItem;
   use crate::models::servarr_models::{
-    DiskSpace, Indexer, IndexerField, Language, Quality, QualityWrapper, QueueEvent, RootFolder,
+    Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
   };
   use crate::models::{HorizontallyScrollableText, ScrollableText};
   use bimap::BiMap;
@@ -108,13 +107,6 @@ pub mod test_utils {
     }
   }
 
-  pub fn diskspace() -> DiskSpace {
-    DiskSpace {
-      free_space: 6500,
-      total_space: 8675309,
-    }
-  }
-
   pub fn log_line() -> &'static str {
     "2025-12-15 16:14:45 UTC|INFO|DownloadDecisionMaker|Processing 545 releases"
   }
@@ -127,23 +119,6 @@ pub mod test_utils {
       last_execution: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap()),
       last_duration: "00:00:17".to_string(),
       next_execution: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T22:29:16Z").unwrap()),
-    }
-  }
-
-  pub fn queued_event() -> QueueEvent {
-    QueueEvent {
-      trigger: "manual".to_string(),
-      name: "Refresh Monitored Downloads".to_string(),
-      command_name: "Refresh Monitored Downloads".to_string(),
-      status: "completed".to_string(),
-      queued: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:25:16Z").unwrap()),
-      started: Some(DateTime::from(
-        DateTime::parse_from_rfc3339("2023-05-20T21:25:30Z").unwrap(),
-      )),
-      ended: Some(DateTime::from(
-        DateTime::parse_from_rfc3339("2023-05-20T21:28:33Z").unwrap(),
-      )),
-      duration: Some("00:03:03".to_owned()),
     }
   }
 
@@ -488,14 +463,6 @@ pub mod test_utils {
       * Killed bug 1
       * Fixed bug 2"
     ))
-  }
-
-  pub fn indexer_test_result() -> IndexerTestResultModalItem {
-    IndexerTestResultModalItem {
-      name: "DrunkenSlug".to_owned(),
-      is_valid: false,
-      validation_failures: "Some failure".into(),
-    }
   }
 
   pub fn torrent_release() -> RadarrRelease {
