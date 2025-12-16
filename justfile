@@ -53,17 +53,27 @@ doctest:
 proptest:
     @cargo test proptest
 
+alias test-snapshots := snapshot-tests
 # Run all snapshot tests
 [group: 'test']
 snapshot-tests:
     @cargo test snapshot
 
+alias review := snapshot-review
 # Review snapshot test changes
 [group: 'test']
 @snapshot-review:
     #!/usr/bin/env bash
     cargo insta -h > /dev/null 2>&1 || cargo install cargo-insta
     cargo insta review
+
+alias clean-orphaned-snapshots := snapshot-delete-unreferenced
+# Delete any unreferenced snapshots
+[group: 'test']
+@snapshot-delete-unreferenced:
+    #!/usr/bin/env bash
+    cargo insta -h > /dev/null 2>&1 || cargo install cargo-insta
+    cargo insta test --unreferenced=delete
 
 # Build and run the binary for the current system
 run:
