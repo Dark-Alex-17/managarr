@@ -122,7 +122,7 @@ where
     };
     let loading_block = LoadingBlock::new(self.is_loading, self.block.clone());
 
-    if let Some(content) = self.content {
+    if let Some(content) = self.content && !self.is_loading {
       let (table_contents, table_state) = if content.filtered_items.is_some() {
         (
           content.filtered_items.as_ref().unwrap(),
