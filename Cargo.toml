@@ -91,4 +91,6 @@ name = "managarr"
 
 [profile.release]
 lto = true
-codegen-units = 1
+codegen-units = 3
+opt-level = "s"
+strip = true
