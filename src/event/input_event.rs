@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
 use std::thread;
@@ -49,7 +50,10 @@ impl Events {
     Events { rx }
   }
 
-  pub fn next(&self) -> Result<InputEvent<Key>, mpsc::RecvError> {
-    self.rx.recv()
+  pub fn next(&self) -> Result<Option<InputEvent<Key>>> {
+    match self.rx.try_recv() {
+      Ok(event) => Ok(Some(event)),
+      _ => Ok(None),
+    }
   }
 }

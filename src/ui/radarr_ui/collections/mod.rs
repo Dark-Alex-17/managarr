@@ -1,12 +1,11 @@
-use ratatui::Frame;
 use ratatui::layout::{Constraint, Rect};
 use ratatui::widgets::{Cell, Row};
+use ratatui::Frame;
 
 use crate::app::App;
-use crate::models::Route;
 use crate::models::radarr_models::Collection;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, COLLECTIONS_BLOCKS};
-use crate::ui::DrawUi;
+use crate::models::Route;
 use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsUi;
 use crate::ui::radarr_ui::collections::edit_collection_ui::EditCollectionUi;
 use crate::ui::styles::ManagarrStyle;
@@ -14,6 +13,7 @@ use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
+use crate::ui::DrawUi;
 
 mod collection_details_ui;
 #[cfg(test)]
@@ -70,7 +70,7 @@ pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
       collection.title.scroll_left_or_reset(
         get_width_from_percentage(area, 25),
         *collection == current_selection,
-        app.tick_count.is_multiple_of(app.ticks_until_scroll),
+        app.ui_scroll_tick_count == 0,
       );
       let monitored = if collection.monitored { "🏷" } else { "" };
       let search_on_add = if collection.search_on_add {

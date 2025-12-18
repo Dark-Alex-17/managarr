@@ -7,12 +7,12 @@ mod tests {
   use serial_test::serial;
   use tokio::sync::mpsc;
 
-  use crate::app::{App, AppConfig, Data, ServarrConfig, interpolate_env_vars};
+  use crate::app::{interpolate_env_vars, App, AppConfig, Data, ServarrConfig};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
   use crate::models::{HorizontallyScrollableText, TabRoute};
-  use crate::network::NetworkEvent;
   use crate::network::radarr_network::RadarrEvent;
+  use crate::network::NetworkEvent;
   use tokio_util::sync::CancellationToken;
 
   #[test]
@@ -80,6 +80,7 @@ mod tests {
     assert_eq!(app.tick_until_poll, 400);
     assert_eq!(app.ticks_until_scroll, 4);
     assert_eq!(app.tick_count, 0);
+    assert_eq!(app.ui_scroll_tick_count, 0);
     assert!(!app.is_loading);
     assert!(!app.is_routing);
     assert!(!app.should_refresh);
@@ -237,6 +238,27 @@ mod tests {
       sync_network_rx.recv().await.unwrap(),
       RadarrEvent::GetStatus.into()
     );
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[test]
+  fn test_on_ui_scroll_tick() {
+    let mut app = App {
+      ticks_until_scroll: 1,
+      ..App::default()
+    };
+
+    assert_eq!(app.ui_scroll_tick_count, 0);
+    assert_eq!(app.tick_count, 0);
+
+    app.on_ui_scroll_tick();
+
+    assert_eq!(app.ui_scroll_tick_count, 1);
+    assert_eq!(app.tick_count, 0);
+
+    app.on_ui_scroll_tick();
+
+    assert_eq!(app.ui_scroll_tick_count, 0);
     assert_eq!(app.tick_count, 0);
   }
 

@@ -2,9 +2,9 @@ use add_series_ui::AddSeriesUi;
 use delete_series_ui::DeleteSeriesUi;
 use edit_series_ui::EditSeriesUi;
 use ratatui::{
-  Frame,
   layout::{Constraint, Rect},
   widgets::{Cell, Row},
+  Frame,
 };
 use series_details_ui::SeriesDetailsUi;
 
@@ -16,15 +16,15 @@ use crate::utils::convert_to_gb;
 use crate::{
   app::App,
   models::{
-    Route,
     servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, LIBRARY_BLOCKS},
     sonarr_models::{Series, SeriesStatus},
+    Route,
   },
   ui::{
-    DrawUi,
     styles::ManagarrStyle,
     utils::{get_width_from_percentage, layout_block_top_border},
     widgets::managarr_table::ManagarrTable,
+    DrawUi,
   },
 };
 
@@ -95,7 +95,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       series.title.scroll_left_or_reset(
         get_width_from_percentage(area, 23),
         *series == current_selection,
-        app.tick_count.is_multiple_of(app.ticks_until_scroll),
+        app.ui_scroll_tick_count == 0,
       );
       let monitored = if series.monitored { "🏷" } else { "" };
       let certification = series.certification.clone().unwrap_or_default();

@@ -3,37 +3,39 @@
 extern crate assertables;
 
 use anyhow::Result;
-use clap::{CommandFactory, Parser, crate_authors, crate_description, crate_name, crate_version};
+use clap::{crate_authors, crate_description, crate_name, crate_version, CommandFactory, Parser};
 use clap_complete::generate;
 use crossterm::execute;
 use crossterm::terminal::{
-  EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
+  disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
 use log::{debug, error, warn};
 use network::NetworkTrait;
-use ratatui::Terminal;
 use ratatui::backend::CrosstermBackend;
+use ratatui::Terminal;
 use reqwest::Client;
 use std::panic::PanicHookInfo;
 use std::path::PathBuf;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use tokio::time::sleep;
+use std::time::{Duration, Instant};
 use std::{io, panic, process};
 use tokio::select;
 use tokio::sync::mpsc::Receiver;
-use tokio::sync::{Mutex, mpsc};
+use tokio::sync::{mpsc, Mutex};
 use tokio_util::sync::CancellationToken;
 use utils::{
   build_network_client, load_config, start_cli_no_spinner, start_cli_with_spinner, tail_logs,
 };
 
-use crate::app::{App, log_and_print_error};
+use crate::app::{log_and_print_error, App};
 use crate::cli::Command;
-use crate::event::Key;
 use crate::event::input_event::{Events, InputEvent};
+use crate::event::Key;
 use crate::network::{Network, NetworkEvent};
 use crate::ui::theme::{Theme, ThemeDefinitionsWrapper};
-use crate::ui::{THEME, ui};
+use crate::ui::{ui, THEME};
 use crate::utils::load_theme_config;
 
 mod app;
@@ -249,7 +251,7 @@ async fn start_ui(
     terminal.draw(|f| ui(f, &mut app))?;
 
     match input_events.next()? {
-      InputEvent::KeyEvent(key) => {
+      Some(InputEvent::KeyEvent(key)) => {
         if key == Key::Char('q') && !app.ignore_special_keys_for_textbox_input {
           break;
         }
@@ -257,8 +259,11 @@ async fn start_ui(
         handlers::handle_events(key, &mut app);
       }
 
-      InputEvent::Tick => app.on_tick().await,
+      Some(InputEvent::Tick) => app.on_tick().await,
+      _ => {}
     }
+
+    let _ = sleep(Duration::from_millis(16)).await;
   }
 
   terminal.show_cursor()?;

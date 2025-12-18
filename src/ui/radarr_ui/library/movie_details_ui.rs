@@ -1,17 +1,17 @@
 use std::iter;
 
-use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
+use ratatui::Frame;
 use serde_json::Number;
 
 use crate::app::App;
-use crate::models::Route;
 use crate::models::radarr_models::{Credit, MovieHistoryItem, RadarrRelease};
 use crate::models::servarr_data::radarr::modals::MovieDetailsModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, MOVIE_DETAILS_BLOCKS};
+use crate::models::Route;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, decorate_peer_style, get_width_from_percentage, layout_block_bottom_border,
@@ -21,7 +21,7 @@ use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{DrawUi, draw_popup, draw_tabs};
+use crate::ui::{draw_popup, draw_tabs, DrawUi};
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]
@@ -116,22 +116,16 @@ fn draw_file_info(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       let file_info = movie_details_modal.file_details.to_owned();
       let audio_details = movie_details_modal.audio_details.to_owned();
       let video_details = movie_details_modal.video_details.to_owned();
-      let [
-        file_details_title_area,
-        file_details_area,
-        audio_details_title_area,
-        audio_details_area,
-        video_details_title_area,
-        video_details_area,
-      ] = Layout::vertical([
-        Constraint::Length(2),
-        Constraint::Length(5),
-        Constraint::Length(1),
-        Constraint::Length(6),
-        Constraint::Length(1),
-        Constraint::Length(7),
-      ])
-      .areas(area);
+      let [file_details_title_area, file_details_area, audio_details_title_area, audio_details_area, video_details_title_area, video_details_area] =
+        Layout::vertical([
+          Constraint::Length(2),
+          Constraint::Length(5),
+          Constraint::Length(1),
+          Constraint::Length(6),
+          Constraint::Length(1),
+          Constraint::Length(7),
+        ])
+        .areas(area);
 
       let file_details_title_paragraph =
         Paragraph::new("File Details".bold()).block(layout_block_top_border());
@@ -246,7 +240,7 @@ fn draw_movie_history(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       movie_history_item.source_title.scroll_left_or_reset(
         get_width_from_percentage(area, 34),
         current_selection == *movie_history_item,
-        app.tick_count.is_multiple_of(app.ticks_until_scroll),
+        app.ui_scroll_tick_count == 0,
       );
 
       Row::new(vec![
@@ -398,7 +392,7 @@ fn draw_movie_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         get_width_from_percentage(area, 30),
         current_selection == *release
           && current_route != ActiveRadarrBlock::ManualSearchConfirmPrompt.into(),
-        app.tick_count.is_multiple_of(app.ticks_until_scroll),
+        app.ui_scroll_tick_count == 0,
       );
       let size = convert_to_gb(*size);
       let rejected_str = if *rejected { "⛔" } else { "" };

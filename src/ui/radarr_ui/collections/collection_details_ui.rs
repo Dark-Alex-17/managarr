@@ -1,15 +1,15 @@
-use ratatui::Frame;
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::style::Stylize;
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
+use ratatui::Frame;
 
 use crate::app::App;
-use crate::models::Route;
 use crate::models::radarr_models::CollectionMovie;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTION_DETAILS_BLOCKS,
 };
+use crate::models::Route;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_top_border_with_title, title_block,
@@ -17,7 +17,7 @@ use crate::ui::utils::{
 };
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::Size;
-use crate::ui::{DrawUi, draw_popup};
+use crate::ui::{draw_popup, DrawUi};
 use crate::utils::convert_runtime;
 
 #[cfg(test)]
@@ -90,7 +90,7 @@ pub fn draw_collection_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
     movie.title.scroll_left_or_reset(
       get_width_from_percentage(table_area, 20),
       current_selection == *movie,
-      app.tick_count.is_multiple_of(app.ticks_until_scroll),
+      app.ui_scroll_tick_count == 0,
     );
     let (hours, minutes) = convert_runtime(movie.runtime);
     let imdb_rating = movie

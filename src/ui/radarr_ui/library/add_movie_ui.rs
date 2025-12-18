@@ -1,13 +1,13 @@
 use std::sync::atomic::Ordering;
 
-use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::widgets::{Cell, ListItem, Row};
+use ratatui::Frame;
 
-use crate::models::Route;
 use crate::models::radarr_models::AddMovieSearchResult;
 use crate::models::servarr_data::radarr::modals::AddMovieModal;
-use crate::models::servarr_data::radarr::radarr_data::{ADD_MOVIE_BLOCKS, ActiveRadarrBlock};
+use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ADD_MOVIE_BLOCKS};
+use crate::models::Route;
 use crate::ui::radarr_ui::collections::CollectionsUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
@@ -19,9 +19,9 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::widgets::selectable_list::SelectableList;
-use crate::ui::{DrawUi, draw_popup};
+use crate::ui::{draw_popup, DrawUi};
 use crate::utils::convert_runtime;
-use crate::{App, render_selectable_input_box};
+use crate::{render_selectable_input_box, App};
 
 #[cfg(test)]
 #[path = "add_movie_ui_tests.rs"]
@@ -139,7 +139,7 @@ fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     movie.title.scroll_left_or_reset(
       get_width_from_percentage(area, 27),
       *movie == current_selection,
-      app.tick_count.is_multiple_of(app.ticks_until_scroll),
+      app.ui_scroll_tick_count == 0,
     );
 
     Row::new(vec![
@@ -307,27 +307,19 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
   f.render_widget(title_block_centered(&title), area);
 
-  let [
-    paragraph_area,
-    root_folder_area,
-    monitor_area,
-    min_availability_area,
-    quality_profile_area,
-    tags_area,
-    _,
-    buttons_area,
-  ] = Layout::vertical([
-    Constraint::Length(6),
-    Constraint::Length(3),
-    Constraint::Length(3),
-    Constraint::Length(3),
-    Constraint::Length(3),
-    Constraint::Length(3),
-    Constraint::Fill(1),
-    Constraint::Length(3),
-  ])
-  .margin(1)
-  .areas(area);
+  let [paragraph_area, root_folder_area, monitor_area, min_availability_area, quality_profile_area, tags_area, _, buttons_area] =
+    Layout::vertical([
+      Constraint::Length(6),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Length(3),
+      Constraint::Fill(1),
+      Constraint::Length(3),
+    ])
+    .margin(1)
+    .areas(area);
 
   let prompt_paragraph = layout_paragraph_borderless(&prompt);
   f.render_widget(prompt_paragraph, paragraph_area);

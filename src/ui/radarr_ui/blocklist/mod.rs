@@ -1,19 +1,19 @@
 use crate::app::App;
-use crate::models::Route;
 use crate::models::radarr_models::BlocklistItem;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, BLOCKLIST_BLOCKS};
-use crate::ui::DrawUi;
+use crate::models::Route;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
-use ratatui::Frame;
+use crate::ui::DrawUi;
 use ratatui::layout::{Alignment, Constraint, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Row};
+use ratatui::Frame;
 
 #[cfg(test)]
 #[path = "blocklist_ui_tests.rs"]
@@ -96,7 +96,7 @@ fn draw_blocklist_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       movie.title.scroll_left_or_reset(
         get_width_from_percentage(area, 20),
         current_selection == *blocklist_item,
-        app.tick_count.is_multiple_of(app.ticks_until_scroll),
+        app.ui_scroll_tick_count == 0,
       );
 
       let languages_string = languages

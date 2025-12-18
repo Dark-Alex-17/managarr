@@ -1,19 +1,19 @@
 use crate::app::App;
-use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTORY_BLOCKS};
 use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::{SonarrHistoryEventType, SonarrHistoryItem};
-use crate::ui::DrawUi;
+use crate::models::Route;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
-use ratatui::Frame;
+use crate::ui::DrawUi;
 use ratatui::layout::{Alignment, Constraint, Rect};
 use ratatui::style::Style;
 use ratatui::text::Text;
 use ratatui::widgets::{Cell, Row};
+use ratatui::Frame;
 
 use super::sonarr_ui_utils::{
   create_download_failed_history_event_details,
@@ -69,7 +69,7 @@ fn draw_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       source_title.scroll_left_or_reset(
         get_width_from_percentage(area, 40),
         current_selection == *history_item,
-        app.tick_count.is_multiple_of(app.ticks_until_scroll),
+        app.ui_scroll_tick_count == 0,
       );
 
       Row::new(vec![
