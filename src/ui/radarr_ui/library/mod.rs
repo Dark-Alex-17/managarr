@@ -90,7 +90,7 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       movie.title.scroll_left_or_reset(
         get_width_from_percentage(area, 27),
         *movie == current_selection,
-        app.tick_count.is_multiple_of(app.ticks_until_scroll),
+        app.ui_scroll_tick_count == 0,
       );
       let monitored = if movie.monitored { "🏷" } else { "" };
       let studio = movie.studio.clone().unwrap_or_default();

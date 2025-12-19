@@ -52,6 +52,7 @@ pub trait DrawUi {
 }
 
 pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
+  app.on_ui_scroll_tick();
   f.render_widget(background_block(), f.area());
   let [header_area, context_area, table_area] = if !app.error.text.is_empty() {
     let [header_area, error_area, context_area, table_area] = Layout::vertical([
@@ -124,11 +125,9 @@ fn draw_error(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     .failure()
     .bold();
 
-  app.error.scroll_left_or_reset(
-    area.width as usize,
-    true,
-    app.tick_count.is_multiple_of(app.ticks_until_scroll),
-  );
+  app
+    .error
+    .scroll_left_or_reset(area.width as usize, true, app.ui_scroll_tick_count == 0);
 
   let paragraph = Paragraph::new(Text::from(app.error.to_string().failure()))
     .block(block)

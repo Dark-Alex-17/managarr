@@ -39,6 +39,7 @@ pub struct App<'a> {
   pub tick_until_poll: u64,
   pub ticks_until_scroll: u64,
   pub tick_count: u64,
+  pub ui_scroll_tick_count: u64,
   pub is_routing: bool,
   pub is_loading: bool,
   pub should_refresh: bool,
@@ -145,6 +146,14 @@ impl App<'_> {
     self.tick_count = 0;
   }
 
+  pub fn on_ui_scroll_tick(&mut self) {
+    if self.ui_scroll_tick_count == self.ticks_until_scroll {
+      self.ui_scroll_tick_count = 0;
+    } else {
+      self.ui_scroll_tick_count += 1;
+    }
+  }
+
   #[allow(dead_code)]
   pub fn reset(&mut self) {
     self.reset_tick_count();
@@ -227,6 +236,7 @@ impl Default for App<'_> {
       tick_until_poll: 400,
       ticks_until_scroll: 4,
       tick_count: 0,
+      ui_scroll_tick_count: 0,
       is_loading: false,
       is_routing: false,
       should_refresh: false,

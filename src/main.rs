@@ -249,7 +249,7 @@ async fn start_ui(
     terminal.draw(|f| ui(f, &mut app))?;
 
     match input_events.next()? {
-      InputEvent::KeyEvent(key) => {
+      Some(InputEvent::KeyEvent(key)) => {
         if key == Key::Char('q') && !app.ignore_special_keys_for_textbox_input {
           break;
         }
@@ -257,7 +257,8 @@ async fn start_ui(
         handlers::handle_events(key, &mut app);
       }
 
-      InputEvent::Tick => app.on_tick().await,
+      Some(InputEvent::Tick) => app.on_tick().await,
+      _ => {}
     }
   }
 

@@ -70,7 +70,7 @@ pub(super) fn draw_collections(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect)
       collection.title.scroll_left_or_reset(
         get_width_from_percentage(area, 25),
         *collection == current_selection,
-        app.tick_count.is_multiple_of(app.ticks_until_scroll),
+        app.ui_scroll_tick_count == 0,
       );
       let monitored = if collection.monitored { "🏷" } else { "" };
       let search_on_add = if collection.search_on_add {
