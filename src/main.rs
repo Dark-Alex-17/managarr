@@ -3,39 +3,37 @@
 extern crate assertables;
 
 use anyhow::Result;
-use clap::{crate_authors, crate_description, crate_name, crate_version, CommandFactory, Parser};
+use clap::{CommandFactory, Parser, crate_authors, crate_description, crate_name, crate_version};
 use clap_complete::generate;
 use crossterm::execute;
 use crossterm::terminal::{
-  disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
+  EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
 };
 use log::{debug, error, warn};
 use network::NetworkTrait;
-use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
+use ratatui::backend::CrosstermBackend;
 use reqwest::Client;
 use std::panic::PanicHookInfo;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use tokio::time::sleep;
-use std::time::{Duration, Instant};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::{io, panic, process};
 use tokio::select;
 use tokio::sync::mpsc::Receiver;
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::{Mutex, mpsc};
 use tokio_util::sync::CancellationToken;
 use utils::{
   build_network_client, load_config, start_cli_no_spinner, start_cli_with_spinner, tail_logs,
 };
 
-use crate::app::{log_and_print_error, App};
+use crate::app::{App, log_and_print_error};
 use crate::cli::Command;
-use crate::event::input_event::{Events, InputEvent};
 use crate::event::Key;
+use crate::event::input_event::{Events, InputEvent};
 use crate::network::{Network, NetworkEvent};
 use crate::ui::theme::{Theme, ThemeDefinitionsWrapper};
-use crate::ui::{ui, THEME};
+use crate::ui::{THEME, ui};
 use crate::utils::load_theme_config;
 
 mod app;
@@ -262,8 +260,6 @@ async fn start_ui(
       Some(InputEvent::Tick) => app.on_tick().await,
       _ => {}
     }
-
-    let _ = sleep(Duration::from_millis(16)).await;
   }
 
   terminal.show_cursor()?;

@@ -7,12 +7,12 @@ mod tests {
   use serial_test::serial;
   use tokio::sync::mpsc;
 
-  use crate::app::{interpolate_env_vars, App, AppConfig, Data, ServarrConfig};
+  use crate::app::{App, AppConfig, Data, ServarrConfig, interpolate_env_vars};
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
   use crate::models::{HorizontallyScrollableText, TabRoute};
-  use crate::network::radarr_network::RadarrEvent;
   use crate::network::NetworkEvent;
+  use crate::network::radarr_network::RadarrEvent;
   use tokio_util::sync::CancellationToken;
 
   #[test]

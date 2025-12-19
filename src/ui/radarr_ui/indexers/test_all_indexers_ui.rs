@@ -1,15 +1,15 @@
 use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::modals::IndexerTestResultModalItem;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
-use crate::models::Route;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{get_width_from_percentage, title_block};
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::Size;
-use crate::ui::{draw_popup, DrawUi};
+use crate::ui::{DrawUi, draw_popup};
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Rect};
 use ratatui::widgets::{Cell, Row};
-use ratatui::Frame;
 
 #[cfg(test)]
 #[path = "test_all_indexers_ui_tests.rs"]

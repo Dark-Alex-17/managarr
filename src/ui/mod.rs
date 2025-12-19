@@ -1,6 +1,7 @@
 use std::cell::Cell;
 use std::sync::atomic::Ordering;
 
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Flex, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Text};
@@ -8,7 +9,6 @@ use ratatui::widgets::Paragraph;
 use ratatui::widgets::Tabs;
 use ratatui::widgets::Wrap;
 use ratatui::widgets::{Clear, Row};
-use ratatui::Frame;
 use sonarr_ui::SonarrUi;
 use utils::layout_block;
 

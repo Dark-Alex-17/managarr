@@ -1,18 +1,18 @@
 use chrono::Utc;
 use deunicode::deunicode;
+use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
-use ratatui::Frame;
 use regex::Regex;
 
 use crate::app::App;
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SERIES_DETAILS_BLOCKS};
 use crate::models::sonarr_models::{
   Season, SeasonStatistics, SonarrHistoryEventType, SonarrHistoryItem,
 };
-use crate::models::Route;
 use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::ui::sonarr_ui::library::season_details_ui::SeasonDetailsUi;
 use crate::ui::sonarr_ui::sonarr_ui_utils::{
@@ -31,7 +31,7 @@ use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{draw_popup, draw_tabs, DrawUi};
+use crate::ui::{DrawUi, draw_popup, draw_tabs};
 use crate::utils::convert_to_gb;
 
 #[cfg(test)]

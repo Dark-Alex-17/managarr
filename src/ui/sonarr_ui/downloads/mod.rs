@@ -1,17 +1,17 @@
+use ratatui::Frame;
 use ratatui::layout::{Constraint, Rect};
 use ratatui::widgets::{Cell, Row};
-use ratatui::Frame;
 
 use crate::app::App;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DOWNLOADS_BLOCKS};
 use crate::models::sonarr_models::DownloadRecord;
 use crate::models::{HorizontallyScrollableText, Route};
+use crate::ui::DrawUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::DrawUi;
 use crate::utils::convert_f64_to_gb;
 
 #[cfg(test)]

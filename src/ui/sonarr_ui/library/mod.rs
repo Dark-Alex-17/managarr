@@ -2,9 +2,9 @@ use add_series_ui::AddSeriesUi;
 use delete_series_ui::DeleteSeriesUi;
 use edit_series_ui::EditSeriesUi;
 use ratatui::{
+  Frame,
   layout::{Constraint, Rect},
   widgets::{Cell, Row},
-  Frame,
 };
 use series_details_ui::SeriesDetailsUi;
 
@@ -16,15 +16,15 @@ use crate::utils::convert_to_gb;
 use crate::{
   app::App,
   models::{
+    Route,
     servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, LIBRARY_BLOCKS},
     sonarr_models::{Series, SeriesStatus},
-    Route,
   },
   ui::{
+    DrawUi,
     styles::ManagarrStyle,
     utils::{get_width_from_percentage, layout_block_top_border},
     widgets::managarr_table::ManagarrTable,
-    DrawUi,
   },
 };
 
