@@ -1,10 +1,23 @@
 use crate::app::App;
 use crate::app::context_clues::{ContextClue, ContextClueProvider};
+use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::models::Route;
 
 #[cfg(test)]
 #[path = "lidarr_context_clues_tests.rs"]
 mod lidarr_context_clues_tests;
+
+pub static ARTISTS_CONTEXT_CLUES: [ContextClue; 6] = [
+  (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
+  (DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc),
+  (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
+  (DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc),
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
+];
 
 pub(in crate::app) struct LidarrContextClueProvider;
 

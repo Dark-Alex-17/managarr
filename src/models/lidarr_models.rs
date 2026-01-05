@@ -3,7 +3,7 @@ use derivative::Derivative;
 use enum_display_style_derive::EnumDisplayStyle;
 use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
-use strum::EnumIter;
+use strum::{Display, EnumIter};
 
 use super::{HorizontallyScrollableText, Serdeable};
 use crate::serde_enum_from;
@@ -45,7 +45,7 @@ pub struct Artist {
   Clone,
   Copy,
   Debug,
-  strum::Display,
+  Display,
   EnumDisplayStyle,
 )]
 #[serde(rename_all = "camelCase")]
@@ -134,7 +134,7 @@ impl Eq for DownloadRecord {}
   Copy,
   Debug,
   EnumIter,
-  strum::Display,
+  Display,
   EnumDisplayStyle,
 )]
 #[serde(rename_all = "camelCase")]
@@ -165,6 +165,14 @@ pub struct DownloadsResponse {
 pub struct SystemStatus {
   pub version: String,
   pub start_time: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub struct DeleteArtistParams {
+  pub id: i64,
+  pub delete_files: bool,
+  pub add_import_list_exclusion: bool,
 }
 
 impl From<LidarrSerdeable> for Serdeable {

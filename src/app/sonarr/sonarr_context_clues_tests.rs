@@ -455,7 +455,6 @@ mod tests {
     let mut app = App::test_default();
     app.push_navigation_stack(ActiveRadarrBlock::default().into());
 
-    // This should panic because the route is not a Sonarr route
     SonarrContextClueProvider::get_context_clues(&mut app);
   }
 

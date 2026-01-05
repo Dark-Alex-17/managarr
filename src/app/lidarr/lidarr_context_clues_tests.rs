@@ -2,10 +2,10 @@
 mod tests {
   use crate::app::context_clues::ContextClueProvider;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::app::lidarr::lidarr_context_clues::LidarrContextClueProvider;
+  use crate::app::lidarr::lidarr_context_clues::{LidarrContextClueProvider, ARTISTS_CONTEXT_CLUES};
   use crate::app::App;
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ActiveLidarrBlock, ARTISTS_CONTEXT_CLUES,
+    ActiveLidarrBlock,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 
@@ -16,6 +16,10 @@ mod tests {
     assert_some_eq_x!(
       artists_context_clues_iter.next(),
       &(DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc)
+    );
+    assert_some_eq_x!(
+      artists_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc)
     );
     assert_some_eq_x!(
       artists_context_clues_iter.next(),

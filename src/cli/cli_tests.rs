@@ -2,18 +2,16 @@
 mod tests {
   use std::sync::Arc;
 
-  use clap::{CommandFactory, error::ErrorKind};
+  use clap::{error::ErrorKind, CommandFactory};
   use mockall::predicate::eq;
   use rstest::rstest;
   use serde_json::json;
   use tokio::sync::Mutex;
 
   use crate::{
-    Cli,
     app::App,
     cli::{handle_command, mutex_flags_or_option, radarr::RadarrCommand, sonarr::SonarrCommand},
     models::{
-      Serdeable,
       radarr_models::{
         BlocklistItem as RadarrBlocklistItem, BlocklistResponse as RadarrBlocklistResponse,
         RadarrSerdeable,
@@ -22,10 +20,12 @@ mod tests {
         BlocklistItem as SonarrBlocklistItem, BlocklistResponse as SonarrBlocklistResponse,
         SonarrSerdeable,
       },
+      Serdeable,
     },
     network::{
-      MockNetworkTrait, NetworkEvent, radarr_network::RadarrEvent, sonarr_network::SonarrEvent,
+      radarr_network::RadarrEvent, sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent,
     },
+    Cli,
   };
   use pretty_assertions::assert_eq;
 
@@ -51,6 +51,13 @@ mod tests {
   #[test]
   fn test_sonarr_subcommand_delegates_to_sonarr() {
     let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "list", "series"]);
+
+    assert_ok!(&result);
+  }
+
+  #[test]
+  fn test_lidarr_subcommand_delegates_to_lidarr() {
+    let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "list", "artists"]);
 
     assert_ok!(&result);
   }
@@ -174,4 +181,6 @@ mod tests {
 
     assert_ok!(&result);
   }
+
+  // TODO: Implement test_cli_handler_delegates_lidarr_commands_to_the_lidarr_cli_handler
 }

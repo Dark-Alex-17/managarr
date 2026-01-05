@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+  use pretty_assertions::assert_eq;
   use crate::app::App;
   use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
   use crate::network::NetworkEvent;
@@ -14,6 +15,7 @@ mod tests {
 
     app.dispatch_by_lidarr_block(&ActiveLidarrBlock::Artists).await;
 
+    assert!(app.is_loading);
     assert_eq!(
       rx.recv().await.unwrap(),
       LidarrEvent::GetQualityProfiles.into()
@@ -24,5 +26,7 @@ mod tests {
     );
     assert_eq!(rx.recv().await.unwrap(), LidarrEvent::GetTags.into());
     assert_eq!(rx.recv().await.unwrap(), LidarrEvent::ListArtists.into());
+    assert!(!app.data.sonarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
   }
 }

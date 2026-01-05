@@ -5,7 +5,7 @@ use crate::{
 
 use super::App;
 
-pub(in crate::app) mod lidarr_context_clues;
+pub mod lidarr_context_clues;
 
 #[cfg(test)]
 #[path = "lidarr_tests.rs"]

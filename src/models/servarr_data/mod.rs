@@ -1,9 +1,9 @@
 use crate::models::Route;
 
-pub mod lidarr;
 pub mod modals;
 pub mod radarr;
 pub mod sonarr;
+pub mod lidarr;
 
 #[cfg(test)]
 pub(in crate::models::servarr_data) mod data_test_utils;

@@ -1,3 +1,4 @@
+use delete_artist_ui::DeleteArtistUi;
 use ratatui::{
   Frame,
   layout::{Constraint, Rect},
@@ -20,6 +21,8 @@ use crate::{
   },
 };
 
+mod delete_artist_ui;
+
 #[cfg(test)]
 #[path = "library_ui_tests.rs"]
 mod library_ui_tests;
@@ -29,14 +32,19 @@ pub(super) struct LibraryUi;
 impl DrawUi for LibraryUi {
   fn accepts(route: Route) -> bool {
     if let Route::Lidarr(active_lidarr_block, _) = route {
-      return LIBRARY_BLOCKS.contains(&active_lidarr_block);
+      return DeleteArtistUi::accepts(route) || LIBRARY_BLOCKS.contains(&active_lidarr_block);
     }
 
     false
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+    let route = app.get_current_route();
     draw_library(f, app, area);
+
+    if DeleteArtistUi::accepts(route) {
+      DeleteArtistUi::draw(f, app, area);
+    }
   }
 }
 

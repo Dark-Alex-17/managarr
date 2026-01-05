@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use strum::EnumIter;
 #[cfg(test)]
 use strum::{Display, EnumString};
-
+use crate::app::lidarr::lidarr_context_clues::ARTISTS_CONTEXT_CLUES;
 use crate::models::{
   Route, TabRoute, TabState,
   lidarr_models::{Artist, DownloadRecord},
@@ -17,7 +17,9 @@ use crate::network::lidarr_network::LidarrEvent;
 mod lidarr_data_tests;
 
 pub struct LidarrData<'a> {
+  pub add_import_list_exclusion: bool,
   pub artists: StatefulTable<Artist>,
+  pub delete_artist_files: bool,
   pub disk_space_vec: Vec<DiskSpace>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub main_tabs: TabState,
@@ -33,15 +35,18 @@ pub struct LidarrData<'a> {
 }
 
 impl LidarrData<'_> {
-  pub fn reset_sorting(&mut self) {
-    self.artists.sorting(vec![]);
+  pub fn reset_delete_artist_preferences(&mut self) {
+    self.delete_artist_files = false;
+    self.add_import_list_exclusion = false;
   }
 }
 
 impl<'a> Default for LidarrData<'a> {
   fn default() -> LidarrData<'a> {
     LidarrData {
+      add_import_list_exclusion: false,
       artists: StatefulTable::default(),
+      delete_artist_files: false,
       disk_space_vec: Vec::new(),
       downloads: StatefulTable::default(),
       metadata_profile_map: BiMap::new(),
@@ -78,6 +83,8 @@ impl LidarrData<'_> {
       name: "Name",
       cmp_fn: Some(|a: &Artist, b: &Artist| a.artist_name.text.cmp(&b.artist_name.text)),
     }]);
+    lidarr_data.artists.search = Some("artist search".into());
+    lidarr_data.artists.filter = Some("artist filter".into());
     lidarr_data.quality_profile_map = BiMap::from_iter([(1i64, "Lossless".to_owned())]);
     lidarr_data.metadata_profile_map = BiMap::from_iter([(1i64, "Standard".to_owned())]);
     lidarr_data.tags_map = BiMap::from_iter([(1i64, "usenet".to_owned())]);
@@ -93,26 +100,16 @@ impl LidarrData<'_> {
   }
 }
 
-use crate::app::context_clues::ContextClue;
-use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-
-pub static ARTISTS_CONTEXT_CLUES: [ContextClue; 5] = [
-  (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
-  (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
-  (DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc),
-  (
-    DEFAULT_KEYBINDINGS.refresh,
-    DEFAULT_KEYBINDINGS.refresh.desc,
-  ),
-  (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
-];
-
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, EnumIter)]
 #[cfg_attr(test, derive(Display, EnumString))]
 pub enum ActiveLidarrBlock {
   #[default]
   Artists,
   ArtistsSortPrompt,
+  DeleteArtistPrompt,
+  DeleteArtistConfirmPrompt,
+  DeleteArtistToggleDeleteFile,
+  DeleteArtistToggleAddListExclusion,
   SearchArtists,
   SearchArtistsError,
   FilterArtists,
@@ -126,6 +123,19 @@ pub static LIBRARY_BLOCKS: [ActiveLidarrBlock; 6] = [
   ActiveLidarrBlock::SearchArtistsError,
   ActiveLidarrBlock::FilterArtists,
   ActiveLidarrBlock::FilterArtistsError,
+];
+
+pub static DELETE_ARTIST_BLOCKS: [ActiveLidarrBlock; 4] = [
+  ActiveLidarrBlock::DeleteArtistPrompt,
+  ActiveLidarrBlock::DeleteArtistConfirmPrompt,
+  ActiveLidarrBlock::DeleteArtistToggleDeleteFile,
+  ActiveLidarrBlock::DeleteArtistToggleAddListExclusion,
+];
+
+pub const DELETE_ARTIST_SELECTION_BLOCKS: &[&[ActiveLidarrBlock]] = &[
+  &[ActiveLidarrBlock::DeleteArtistToggleDeleteFile],
+  &[ActiveLidarrBlock::DeleteArtistToggleAddListExclusion],
+  &[ActiveLidarrBlock::DeleteArtistConfirmPrompt],
 ];
 
 impl From<ActiveLidarrBlock> for Route {

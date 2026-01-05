@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::lidarr_models::{Artist, LidarrSerdeable};
+  use crate::models::lidarr_models::{Artist, DeleteArtistParams, LidarrSerdeable};
   use crate::network::lidarr_network::LidarrEvent;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use pretty_assertions::assert_eq;
@@ -40,5 +40,30 @@ mod tests {
 
     assert_eq!(artists, response);
     assert!(!app.lock().await.data.lidarr_data.artists.is_empty());
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_artist_event() {
+    let delete_artist_params = DeleteArtistParams {
+      id: 1,
+      delete_files: true,
+      add_import_list_exclusion: true,
+    };
+    let (async_server, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .query("deleteFiles=true&addImportListExclusion=true")
+      .build_for(LidarrEvent::DeleteArtist(delete_artist_params.clone()))
+      .await;
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    assert!(
+      network
+        .handle_lidarr_event(LidarrEvent::DeleteArtist(delete_artist_params))
+        .await
+        .is_ok()
+    );
+
+    async_server.assert_async().await;
   }
 }

@@ -1,0 +1,31 @@
+---
+source: src/ui/lidarr_ui/library/library_ui_tests.rs
+expression: output
+---
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Name ▼                       Type          Status        Quality Profile      Metadata Profile    Albums     Tracks      Size        Monitored  Tags              
+=>                                            Continuing                                             0                      0.00 GB                                  
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                             ╭───────────────  Error  ───────────────╮                                                               
+                                                             │    No items found matching search     │                                                               
+                                                             │                                       │                                                               
+                                                             ╰───────────────────────────────────────╯

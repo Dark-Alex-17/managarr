@@ -4,14 +4,21 @@ use crate::{
   handlers::{KeyEventHandler, handle_clear_errors},
   matches_key,
   models::{
+    BlockSelectionState,
     lidarr_models::Artist,
-    servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LIBRARY_BLOCKS},
+    servarr_data::lidarr::lidarr_data::{
+      ActiveLidarrBlock, DELETE_ARTIST_SELECTION_BLOCKS, LIBRARY_BLOCKS,
+    },
     stateful_table::SortOption,
   },
 };
 
 use super::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
+
+mod delete_artist_handler;
+
+pub(in crate::handlers::lidarr_handlers) use delete_artist_handler::DeleteArtistHandler;
 
 #[cfg(test)]
 #[path = "library_handler_tests.rs"]
@@ -84,7 +91,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
 
   fn handle_end(&mut self) {}
 
-  fn handle_delete(&mut self) {}
+  fn handle_delete(&mut self) {
+    if self.active_lidarr_block == ActiveLidarrBlock::Artists {
+      self
+        .app
+        .push_navigation_stack(ActiveLidarrBlock::DeleteArtistPrompt.into());
+      self.app.data.lidarr_data.selected_block =
+        BlockSelectionState::new(DELETE_ARTIST_SELECTION_BLOCKS);
+    }
+  }
 
   fn handle_left_right_action(&mut self) {
     if self.active_lidarr_block == ActiveLidarrBlock::Artists {
