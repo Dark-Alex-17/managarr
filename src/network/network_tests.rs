@@ -810,11 +810,16 @@ pub(in crate::network) mod test_utils {
       network_event: E,
     ) -> (Mock, Arc<Mutex<App<'static>>>, ServerGuard)
     where
-      E: Into<NetworkEvent> + NetworkResource,
+      E: Into<NetworkEvent> + NetworkResource + Clone,
     {
       let resource = network_event.resource();
+      let network_event_clone: NetworkEvent = network_event.clone().into();
+      let api_version = match &network_event_clone {
+        NetworkEvent::Lidarr(_) => "v1",
+        _ => "v3",
+      };
       let mut server = Server::new_async().await;
-      let mut uri = format!("/api/v3{resource}");
+      let mut uri = format!("/api/{api_version}{resource}");
 
       if let Some(path) = &self.path {
         uri = format!("{uri}{path}");
@@ -853,9 +858,10 @@ pub(in crate::network) mod test_utils {
         ..ServarrConfig::default()
       };
 
-      match network_event.into() {
+      match network_event_clone {
         NetworkEvent::Radarr(_) => app.server_tabs.tabs[0].config = Some(servarr_config),
         NetworkEvent::Sonarr(_) => app.server_tabs.tabs[1].config = Some(servarr_config),
+        NetworkEvent::Lidarr(_) => app.server_tabs.tabs[2].config = Some(servarr_config),
       }
 
       let app_arc = Arc::new(Mutex::new(app));

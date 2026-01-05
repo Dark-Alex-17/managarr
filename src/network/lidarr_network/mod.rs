@@ -7,6 +7,10 @@ use crate::{
   network::RequestMethod,
 };
 
+#[cfg(test)]
+#[path = "lidarr_network_tests.rs"]
+mod lidarr_network_tests;
+
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum LidarrEvent {
   HealthCheck,

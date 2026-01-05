@@ -35,6 +35,7 @@ mod tests {
       theme: None,
       radarr: Some(vec![radarr_config_1.clone(), radarr_config_2.clone()]),
       sonarr: Some(vec![sonarr_config_1.clone(), sonarr_config_2.clone()]),
+      lidarr: None,
     };
     let expected_tab_routes = vec![
       TabRoute {

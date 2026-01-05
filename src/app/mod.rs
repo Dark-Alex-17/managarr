@@ -285,6 +285,12 @@ impl App<'_> {
           contextual_help: None,
           config: Some(ServarrConfig::default()),
         },
+        TabRoute {
+          title: "Lidarr".to_owned(),
+          route: ActiveLidarrBlock::Artists.into(),
+          contextual_help: None,
+          config: Some(ServarrConfig::default()),
+        },
       ]),
       ..App::default()
     }
@@ -306,6 +312,12 @@ impl App<'_> {
         TabRoute {
           title: "Sonarr".to_owned(),
           route: ActiveSonarrBlock::Series.into(),
+          contextual_help: None,
+          config: Some(ServarrConfig::default()),
+        },
+        TabRoute {
+          title: "Lidarr".to_owned(),
+          route: ActiveLidarrBlock::Artists.into(),
           contextual_help: None,
           config: Some(ServarrConfig::default()),
         },

@@ -6,6 +6,10 @@ use serde_json::{Number, Value};
 use super::{HorizontallyScrollableText, Serdeable};
 use crate::serde_enum_from;
 
+#[cfg(test)]
+#[path = "lidarr_models_tests.rs"]
+mod lidarr_models_tests;
+
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Artist {

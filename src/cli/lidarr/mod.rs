@@ -14,6 +14,10 @@ use super::{CliCommandHandler, Command};
 
 mod list_command_handler;
 
+#[cfg(test)]
+#[path = "lidarr_command_tests.rs"]
+mod lidarr_command_tests;
+
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum LidarrCommand {
   #[command(

@@ -12,6 +12,10 @@ use crate::{
 
 use super::LidarrCommand;
 
+#[cfg(test)]
+#[path = "list_command_handler_tests.rs"]
+mod list_command_handler_tests;
+
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum LidarrListCommand {
   #[command(about = "List all artists in your Lidarr library")]
