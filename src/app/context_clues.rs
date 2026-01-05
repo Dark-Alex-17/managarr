@@ -1,5 +1,6 @@
 use crate::app::App;
 use crate::app::key_binding::{DEFAULT_KEYBINDINGS, KeyBinding};
+use crate::app::lidarr::lidarr_context_clues::LidarrContextClueProvider;
 use crate::app::radarr::radarr_context_clues::RadarrContextClueProvider;
 use crate::app::sonarr::sonarr_context_clues::SonarrContextClueProvider;
 use crate::models::Route;
@@ -21,6 +22,7 @@ impl ContextClueProvider for ServarrContextClueProvider {
     match app.get_current_route() {
       Route::Radarr(_, _) => RadarrContextClueProvider::get_context_clues(app),
       Route::Sonarr(_, _) => SonarrContextClueProvider::get_context_clues(app),
+      Route::Lidarr(_, _) => LidarrContextClueProvider::get_context_clues(app),
       _ => None,
     }
   }

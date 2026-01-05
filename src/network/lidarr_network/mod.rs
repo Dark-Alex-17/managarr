@@ -1,11 +1,11 @@
 use anyhow::Result;
-use log::info;
 
-use super::{Network, NetworkEvent, NetworkResource};
-use crate::{
-  models::lidarr_models::{Artist, LidarrSerdeable},
-  network::RequestMethod,
-};
+use super::{NetworkEvent, NetworkResource};
+use crate::models::lidarr_models::LidarrSerdeable;
+use crate::network::Network;
+
+mod library;
+mod system;
 
 #[cfg(test)]
 #[path = "lidarr_network_tests.rs"]
@@ -13,6 +13,13 @@ mod lidarr_network_tests;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum LidarrEvent {
+  GetDiskSpace,
+  GetDownloads(u64),
+  GetMetadataProfiles,
+  GetQualityProfiles,
+  GetRootFolders,
+  GetStatus,
+  GetTags,
   HealthCheck,
   ListArtists,
 }
@@ -20,6 +27,13 @@ pub enum LidarrEvent {
 impl NetworkResource for LidarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
+      LidarrEvent::GetDiskSpace => "/diskspace",
+      LidarrEvent::GetDownloads(_) => "/queue",
+      LidarrEvent::GetMetadataProfiles => "/metadataprofile",
+      LidarrEvent::GetQualityProfiles => "/qualityprofile",
+      LidarrEvent::GetRootFolders => "/rootfolder",
+      LidarrEvent::GetStatus => "/system/status",
+      LidarrEvent::GetTags => "/tag",
       LidarrEvent::HealthCheck => "/health",
       LidarrEvent::ListArtists => "/artist",
     }
@@ -38,37 +52,36 @@ impl Network<'_, '_> {
     lidarr_event: LidarrEvent,
   ) -> Result<LidarrSerdeable> {
     match lidarr_event {
+      LidarrEvent::GetDiskSpace => self
+        .get_lidarr_diskspace()
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetDownloads(count) => self
+        .get_lidarr_downloads(count)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetMetadataProfiles => self
+        .get_lidarr_metadata_profiles()
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetQualityProfiles => self
+        .get_lidarr_quality_profiles()
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetRootFolders => self
+        .get_lidarr_root_folders()
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetStatus => self
+        .get_lidarr_status()
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetTags => self.get_lidarr_tags().await.map(LidarrSerdeable::from),
       LidarrEvent::HealthCheck => self
         .get_lidarr_healthcheck()
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::ListArtists => self.list_artists().await.map(LidarrSerdeable::from),
     }
-  }
-
-  async fn get_lidarr_healthcheck(&mut self) -> Result<()> {
-    info!("Performing Lidarr health check");
-    let event = LidarrEvent::HealthCheck;
-
-    let request_props = self
-      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
-      .await;
-
-    self
-      .handle_request::<(), ()>(request_props, |_, _| ())
-      .await
-  }
-
-  async fn list_artists(&mut self) -> Result<Vec<Artist>> {
-    info!("Fetching Lidarr artists");
-    let event = LidarrEvent::ListArtists;
-
-    let request_props = self
-      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
-      .await;
-
-    self
-      .handle_request::<(), Vec<Artist>>(request_props, |_, _| ())
-      .await
   }
 }

@@ -13,7 +13,7 @@ use tokio_util::sync::CancellationToken;
 use veil::Redact;
 
 use crate::cli::Command;
-use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
+use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LidarrData};
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
 use crate::models::servarr_models::KeybindingItem;
@@ -26,6 +26,7 @@ mod app_tests;
 pub mod context_clues;
 pub mod key_binding;
 mod key_binding_tests;
+pub mod lidarr;
 pub mod radarr;
 pub mod sonarr;
 
@@ -197,6 +198,7 @@ impl App<'_> {
       match self.get_current_route() {
         Route::Radarr(active_radarr_block, _) => self.radarr_on_tick(active_radarr_block).await,
         Route::Sonarr(active_sonarr_block, _) => self.sonarr_on_tick(active_sonarr_block).await,
+        Route::Lidarr(active_lidarr_block, _) => self.lidarr_on_tick(active_lidarr_block).await,
         _ => (),
       }
 
@@ -299,6 +301,7 @@ impl App<'_> {
   pub fn test_default_fully_populated() -> Self {
     App {
       data: Data {
+        lidarr_data: LidarrData::test_default_fully_populated(),
         radarr_data: RadarrData::test_default_fully_populated(),
         sonarr_data: SonarrData::test_default_fully_populated(),
       },
@@ -329,6 +332,7 @@ impl App<'_> {
 
 #[derive(Default)]
 pub struct Data<'a> {
+  pub lidarr_data: LidarrData<'a>,
   pub radarr_data: RadarrData<'a>,
   pub sonarr_data: SonarrData<'a>,
 }

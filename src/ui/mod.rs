@@ -9,6 +9,7 @@ use ratatui::widgets::Paragraph;
 use ratatui::widgets::Tabs;
 use ratatui::widgets::Wrap;
 use ratatui::widgets::{Clear, Row};
+use lidarr_ui::LidarrUi;
 use sonarr_ui::SonarrUi;
 use utils::layout_block;
 
@@ -27,6 +28,7 @@ use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::Size;
 
 mod builtin_themes;
+mod lidarr_ui;
 mod radarr_ui;
 mod sonarr_ui;
 mod styles;
@@ -85,6 +87,10 @@ pub fn ui(f: &mut Frame<'_>, app: &mut App<'_>) {
     route if SonarrUi::accepts(route) => {
       SonarrUi::draw_context_row(f, app, context_area);
       SonarrUi::draw(f, app, table_area);
+    }
+    route if LidarrUi::accepts(route) => {
+      LidarrUi::draw_context_row(f, app, context_area);
+      LidarrUi::draw(f, app, table_area);
     }
     _ => (),
   }

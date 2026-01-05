@@ -85,7 +85,6 @@ mod tests {
     let artist: Artist = serde_json::from_value(artist_json).unwrap();
 
     assert_eq!(artist.id, 1);
-    assert_str_eq!(artist.mb_id, "test-mb-id");
     assert_str_eq!(artist.artist_name.text, "Test Artist");
     assert_str_eq!(artist.foreign_artist_id, "test-foreign-id");
     assert_eq!(artist.status, ArtistStatus::Continuing);

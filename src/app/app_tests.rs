@@ -8,6 +8,7 @@ mod tests {
   use tokio::sync::mpsc;
 
   use crate::app::{App, AppConfig, Data, ServarrConfig, interpolate_env_vars};
+  use crate::models::servarr_data::lidarr::lidarr_data::LidarrData;
   use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, RadarrData};
   use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SonarrData};
   use crate::models::{HorizontallyScrollableText, TabRoute};
@@ -185,6 +186,7 @@ mod tests {
       ..SonarrData::default()
     };
     let data = Data {
+      lidarr_data: LidarrData::default(),
       radarr_data,
       sonarr_data,
     };

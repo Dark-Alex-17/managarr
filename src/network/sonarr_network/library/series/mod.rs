@@ -20,7 +20,7 @@ impl Network<'_, '_> {
   pub(in crate::network::sonarr_network) async fn add_sonarr_series(
     &mut self,
     mut add_series_body: AddSeriesBody,
-  ) -> anyhow::Result<Value> {
+  ) -> Result<Value> {
     info!("Adding new series to Sonarr");
     let event = SonarrEvent::AddSeries(AddSeriesBody::default());
     if let Some(tag_input_str) = add_series_body.tag_input_string.as_ref() {

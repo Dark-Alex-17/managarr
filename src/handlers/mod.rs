@@ -1,3 +1,4 @@
+use lidarr_handlers::LidarrHandler;
 use radarr_handlers::RadarrHandler;
 use sonarr_handlers::SonarrHandler;
 
@@ -15,6 +16,7 @@ use crate::models::stateful_table::StatefulTable;
 use crate::models::{HorizontallyScrollableText, Route};
 
 mod keybinding_handler;
+mod lidarr_handlers;
 mod radarr_handlers;
 mod sonarr_handlers;
 
@@ -125,6 +127,9 @@ pub fn handle_events(key: Key, app: &mut App<'_>) {
       Route::Sonarr(active_sonarr_block, context) => {
         SonarrHandler::new(key, app, active_sonarr_block, context).handle()
       }
+      Route::Lidarr(active_lidarr_block, context) => {
+        LidarrHandler::new(key, app, active_lidarr_block, context).handle()
+      }
       _ => (),
     }
   }
@@ -186,6 +191,9 @@ fn handle_prompt_toggle(app: &mut App<'_>, key: Key) {
       }
       Route::Sonarr(_, _) => {
         app.data.sonarr_data.prompt_confirm = !app.data.sonarr_data.prompt_confirm
+      }
+      Route::Lidarr(_, _) => {
+        app.data.lidarr_data.prompt_confirm = !app.data.lidarr_data.prompt_confirm
       }
       _ => (),
     },

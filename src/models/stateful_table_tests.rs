@@ -391,6 +391,47 @@ mod tests {
   }
 
   #[test]
+  fn test_stateful_table_set_filtered_items_preserves_selection() {
+    let filtered_items_vec = vec!["Test 1", "Test 2", "Test 3"];
+    let mut filtered_stateful_table: StatefulTable<&str> = StatefulTable::default();
+
+    filtered_stateful_table.set_filtered_items(filtered_items_vec.clone());
+    filtered_stateful_table
+      .filtered_state
+      .as_mut()
+      .unwrap()
+      .select(Some(1));
+
+    filtered_stateful_table.set_filtered_items(filtered_items_vec.clone());
+
+    assert_some_eq_x!(
+      filtered_stateful_table
+        .filtered_state
+        .as_ref()
+        .unwrap()
+        .selected(),
+      1
+    );
+
+    filtered_stateful_table
+      .filtered_state
+      .as_mut()
+      .unwrap()
+      .select(Some(5));
+
+    filtered_stateful_table.set_filtered_items(filtered_items_vec);
+
+    assert_some_eq_x!(
+      filtered_stateful_table
+        .filtered_state
+        .as_ref()
+        .unwrap()
+        .selected(),
+      2
+    );
+  }
+
+  #[test]
   fn test_stateful_table_current_selection() {
     let mut stateful_table = create_test_stateful_table();
 
