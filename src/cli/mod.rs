@@ -3,12 +3,14 @@ use std::sync::Arc;
 use anyhow::Result;
 use clap::{Subcommand, command};
 use clap_complete::Shell;
+use lidarr::{LidarrCliHandler, LidarrCommand};
 use radarr::{RadarrCliHandler, RadarrCommand};
 use sonarr::{SonarrCliHandler, SonarrCommand};
 use tokio::sync::Mutex;
 
 use crate::{app::App, network::NetworkTrait};
 
+pub mod lidarr;
 pub mod radarr;
 pub mod sonarr;
 
@@ -23,6 +25,9 @@ pub enum Command {
 
   #[command(subcommand, about = "Commands for manging your Sonarr instance")]
   Sonarr(SonarrCommand),
+
+  #[command(subcommand, about = "Commands for manging your Lidarr instance")]
+  Lidarr(LidarrCommand),
 
   #[command(
     arg_required_else_help = true,
@@ -58,6 +63,11 @@ pub(crate) async fn handle_command(
     }
     Command::Sonarr(sonarr_command) => {
       SonarrCliHandler::with(app, sonarr_command, network)
+        .handle()
+        .await?
+    }
+    Command::Lidarr(lidarr_command) => {
+      LidarrCliHandler::with(app, lidarr_command, network)
         .handle()
         .await?
     }

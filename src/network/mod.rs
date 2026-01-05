@@ -8,6 +8,7 @@ use regex::Regex;
 use reqwest::{Client, RequestBuilder};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
+use lidarr_network::LidarrEvent;
 use sonarr_network::SonarrEvent;
 use strum_macros::Display;
 use tokio::select;
@@ -21,6 +22,7 @@ use crate::network::radarr_network::RadarrEvent;
 use mockall::automock;
 use reqwest::header::HeaderMap;
 
+pub mod lidarr_network;
 pub mod radarr_network;
 pub mod sonarr_network;
 mod utils;
@@ -44,6 +46,7 @@ pub trait NetworkResource {
 pub enum NetworkEvent {
   Radarr(RadarrEvent),
   Sonarr(SonarrEvent),
+  Lidarr(LidarrEvent),
 }
 
 #[derive(Clone)]
@@ -63,6 +66,10 @@ impl NetworkTrait for Network<'_, '_> {
         .map(Serdeable::from),
       NetworkEvent::Sonarr(sonarr_event) => self
         .handle_sonarr_event(sonarr_event)
+        .await
+        .map(Serdeable::from),
+      NetworkEvent::Lidarr(lidarr_event) => self
+        .handle_lidarr_event(lidarr_event)
         .await
         .map(Serdeable::from),
     };
@@ -229,12 +236,14 @@ impl<'a, 'b> Network<'a, 'b> {
       .get_active_config()
       .as_ref()
       .expect("Servarr config is undefined");
-    let default_port = match network_event.into() {
-      NetworkEvent::Radarr(_) => 7878,
-      NetworkEvent::Sonarr(_) => 8989,
+    let network_event_type = network_event.into();
+    let (default_port, api_version) = match &network_event_type {
+      NetworkEvent::Radarr(_) => (7878, "v3"),
+      NetworkEvent::Sonarr(_) => (8989, "v3"),
+      NetworkEvent::Lidarr(_) => (8686, "v1"),
     };
     let mut uri = if let Some(servarr_uri) = uri {
-      format!("{servarr_uri}/api/v3{resource}")
+      format!("{servarr_uri}/api/{api_version}{resource}")
     } else {
       let protocol = if ssl_cert_path.is_some() {
         "https"
@@ -243,7 +252,7 @@ impl<'a, 'b> Network<'a, 'b> {
       };
       let host = host.as_ref().unwrap();
       format!(
-        "{protocol}://{host}:{}/api/v3{resource}",
+        "{protocol}://{host}:{}/api/{api_version}{resource}",
         port.unwrap_or(default_port)
       )
     };

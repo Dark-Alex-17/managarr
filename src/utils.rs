@@ -6,10 +6,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
-use anyhow::{Context, anyhow};
+use anyhow::{anyhow, Context};
 use colored::Colorize;
 use indicatif::{ProgressBar, ProgressStyle};
-use log::{LevelFilter, error};
+use log::{error, LevelFilter};
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Root};
 use log4rs::encode::pattern::PatternEncoder;
@@ -18,7 +18,7 @@ use reqwest::{Certificate, Client};
 use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
 
-use crate::app::{App, AppConfig, log_and_print_error};
+use crate::app::{log_and_print_error, App, AppConfig};
 use crate::cli::{self, Command};
 use crate::network::Network;
 use crate::ui::theme::ThemeDefinitionsWrapper;
@@ -317,6 +317,11 @@ pub fn select_cli_configuration(
         let default_sonarr_config =
           config.sonarr.as_ref().expect("Sonarr config must exist")[0].clone();
         app.server_tabs.select_tab_by_config(&default_sonarr_config);
+      }
+      Command::Lidarr(_) => {
+        let default_lidarr_config =
+          config.lidarr.as_ref().expect("Lidarr config must exist")[0].clone();
+        app.server_tabs.select_tab_by_config(&default_lidarr_config);
       }
       _ => (),
     }
