@@ -37,16 +37,7 @@ pub struct Artist {
 }
 
 #[derive(
-  Serialize,
-  Deserialize,
-  Default,
-  PartialEq,
-  Eq,
-  Clone,
-  Copy,
-  Debug,
-  Display,
-  EnumDisplayStyle,
+  Serialize, Deserialize, Default, PartialEq, Eq, Clone, Copy, Debug, Display, EnumDisplayStyle,
 )]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]

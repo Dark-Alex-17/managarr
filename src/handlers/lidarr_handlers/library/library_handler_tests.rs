@@ -6,8 +6,8 @@ mod tests {
   use serde_json::Number;
   use strum::IntoEnumIterator;
 
-  use crate::handlers::lidarr_handlers::library::{LibraryHandler, artists_sorting_options};
   use crate::handlers::KeyEventHandler;
+  use crate::handlers::lidarr_handlers::library::{LibraryHandler, artists_sorting_options};
   use crate::models::lidarr_models::{Artist, ArtistStatistics, ArtistStatus};
   use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LIBRARY_BLOCKS};
 

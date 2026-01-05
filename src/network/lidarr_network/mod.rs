@@ -60,10 +60,7 @@ impl Network<'_, '_> {
       LidarrEvent::DeleteArtist(params) => {
         self.delete_artist(params).await.map(LidarrSerdeable::from)
       }
-      LidarrEvent::GetDiskSpace => self
-        .get_lidarr_diskspace()
-        .await
-        .map(LidarrSerdeable::from),
+      LidarrEvent::GetDiskSpace => self.get_lidarr_diskspace().await.map(LidarrSerdeable::from),
       LidarrEvent::GetDownloads(count) => self
         .get_lidarr_downloads(count)
         .await
@@ -80,10 +77,7 @@ impl Network<'_, '_> {
         .get_lidarr_root_folders()
         .await
         .map(LidarrSerdeable::from),
-      LidarrEvent::GetStatus => self
-        .get_lidarr_status()
-        .await
-        .map(LidarrSerdeable::from),
+      LidarrEvent::GetStatus => self.get_lidarr_status().await.map(LidarrSerdeable::from),
       LidarrEvent::GetTags => self.get_lidarr_tags().await.map(LidarrSerdeable::from),
       LidarrEvent::HealthCheck => self
         .get_lidarr_healthcheck()

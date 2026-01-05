@@ -31,7 +31,13 @@ impl DrawUi for DeleteArtistUi {
       let selected_block = app.data.lidarr_data.selected_block.get_active_block();
       let prompt = format!(
         "Do you really want to delete the artist: \n{}?",
-        app.data.lidarr_data.artists.current_selection().artist_name.text
+        app
+          .data
+          .lidarr_data
+          .artists
+          .current_selection()
+          .artist_name
+          .text
       );
       let checkboxes = vec![
         Checkbox::new("Delete Artist Files")

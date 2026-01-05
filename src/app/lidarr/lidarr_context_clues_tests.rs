@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod tests {
+  use crate::app::App;
   use crate::app::context_clues::ContextClueProvider;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::app::lidarr::lidarr_context_clues::{LidarrContextClueProvider, ARTISTS_CONTEXT_CLUES};
-  use crate::app::App;
-  use crate::models::servarr_data::lidarr::lidarr_data::{
-    ActiveLidarrBlock,
+  use crate::app::lidarr::lidarr_context_clues::{
+    ARTISTS_CONTEXT_CLUES, LidarrContextClueProvider,
   };
+  use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 
   #[test]

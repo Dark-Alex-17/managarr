@@ -4,8 +4,8 @@ mod tests {
   use serde_json::json;
 
   use crate::models::{
-    lidarr_models::{Artist, ArtistStatistics, ArtistStatus, LidarrSerdeable, Ratings},
     Serdeable,
+    lidarr_models::{Artist, ArtistStatistics, ArtistStatus, LidarrSerdeable, Ratings},
   };
 
   #[test]

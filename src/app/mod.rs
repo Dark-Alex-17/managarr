@@ -26,9 +26,9 @@ mod app_tests;
 pub mod context_clues;
 pub mod key_binding;
 mod key_binding_tests;
+pub mod lidarr;
 pub mod radarr;
 pub mod sonarr;
-pub mod lidarr;
 
 pub struct App<'a> {
   navigation_stack: Vec<Route>,
@@ -361,7 +361,7 @@ impl AppConfig {
     if let Some(sonarr_configs) = &self.sonarr {
       sonarr_configs.iter().for_each(|config| config.validate());
     }
-    
+
     if let Some(lidarr_configs) = &self.lidarr {
       lidarr_configs.iter().for_each(|config| config.validate());
     }

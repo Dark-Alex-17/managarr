@@ -29,7 +29,9 @@ use crate::{
 use super::{
   DrawUi, draw_tabs,
   styles::ManagarrStyle,
-  utils::{borderless_block, layout_block, line_gauge_with_label, line_gauge_with_title, title_block},
+  utils::{
+    borderless_block, layout_block, line_gauge_with_label, line_gauge_with_title, title_block,
+  },
   widgets::loading_block::LoadingBlock,
 };
 

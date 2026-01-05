@@ -1,9 +1,9 @@
 use anyhow::Result;
 use log::info;
 
+use crate::models::Route;
 use crate::models::lidarr_models::{Artist, DeleteArtistParams};
 use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
-use crate::models::Route;
 use crate::network::lidarr_network::LidarrEvent;
 use crate::network::{Network, RequestMethod};
 

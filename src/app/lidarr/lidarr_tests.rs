@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::assert_eq;
   use crate::app::App;
   use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
   use crate::network::NetworkEvent;
   use crate::network::lidarr_network::LidarrEvent;
+  use pretty_assertions::assert_eq;
   use tokio::sync::mpsc;
 
   #[tokio::test]
@@ -13,7 +13,9 @@ mod tests {
     let mut app = App::test_default();
     app.network_tx = Some(tx);
 
-    app.dispatch_by_lidarr_block(&ActiveLidarrBlock::Artists).await;
+    app
+      .dispatch_by_lidarr_block(&ActiveLidarrBlock::Artists)
+      .await;
 
     assert!(app.is_loading);
     assert_eq!(

@@ -3,8 +3,8 @@ mod tests {
   use pretty_assertions::assert_eq;
 
   use crate::models::{
-    servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LidarrData},
     Route,
+    servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LidarrData},
   };
 
   #[test]
@@ -25,7 +25,7 @@ mod tests {
 
   #[test]
   fn test_reset_delete_artist_preferences() {
-    let mut lidarr_data = LidarrData{
+    let mut lidarr_data = LidarrData {
       delete_artist_files: true,
       add_import_list_exclusion: true,
       ..LidarrData::default()

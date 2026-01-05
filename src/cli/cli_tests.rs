@@ -2,16 +2,18 @@
 mod tests {
   use std::sync::Arc;
 
-  use clap::{error::ErrorKind, CommandFactory};
+  use clap::{CommandFactory, error::ErrorKind};
   use mockall::predicate::eq;
   use rstest::rstest;
   use serde_json::json;
   use tokio::sync::Mutex;
 
   use crate::{
+    Cli,
     app::App,
     cli::{handle_command, mutex_flags_or_option, radarr::RadarrCommand, sonarr::SonarrCommand},
     models::{
+      Serdeable,
       radarr_models::{
         BlocklistItem as RadarrBlocklistItem, BlocklistResponse as RadarrBlocklistResponse,
         RadarrSerdeable,
@@ -20,12 +22,10 @@ mod tests {
         BlocklistItem as SonarrBlocklistItem, BlocklistResponse as SonarrBlocklistResponse,
         SonarrSerdeable,
       },
-      Serdeable,
     },
     network::{
-      radarr_network::RadarrEvent, sonarr_network::SonarrEvent, MockNetworkTrait, NetworkEvent,
+      MockNetworkTrait, NetworkEvent, radarr_network::RadarrEvent, sonarr_network::SonarrEvent,
     },
-    Cli,
   };
   use pretty_assertions::assert_eq;
 

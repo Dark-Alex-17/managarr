@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-  use crate::cli::{
-    lidarr::{list_command_handler::LidarrListCommand, LidarrCommand},
-    Command,
-  };
   use crate::Cli;
+  use crate::cli::{
+    Command,
+    lidarr::{LidarrCommand, list_command_handler::LidarrListCommand},
+  };
   use clap::CommandFactory;
   use pretty_assertions::assert_eq;
 
@@ -54,8 +54,7 @@ mod tests {
       cli::{
         CliCommandHandler,
         lidarr::{
-          LidarrCliHandler, LidarrCommand,
-          delete_command_handler::LidarrDeleteCommand,
+          LidarrCliHandler, LidarrCommand, delete_command_handler::LidarrDeleteCommand,
           list_command_handler::LidarrListCommand,
         },
       },

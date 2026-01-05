@@ -33,16 +33,15 @@ pub(super) struct LibraryHandler<'a, 'b> {
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, 'b> {
   fn handle(&mut self) {
-    let artists_table_handling_config =
-      TableHandlingConfig::new(ActiveLidarrBlock::Artists.into())
-        .sorting_block(ActiveLidarrBlock::ArtistsSortPrompt.into())
-        .sort_options(artists_sorting_options())
-        .searching_block(ActiveLidarrBlock::SearchArtists.into())
-        .search_error_block(ActiveLidarrBlock::SearchArtistsError.into())
-        .search_field_fn(|artist| &artist.artist_name.text)
-        .filtering_block(ActiveLidarrBlock::FilterArtists.into())
-        .filter_error_block(ActiveLidarrBlock::FilterArtistsError.into())
-        .filter_field_fn(|artist| &artist.artist_name.text);
+    let artists_table_handling_config = TableHandlingConfig::new(ActiveLidarrBlock::Artists.into())
+      .sorting_block(ActiveLidarrBlock::ArtistsSortPrompt.into())
+      .sort_options(artists_sorting_options())
+      .searching_block(ActiveLidarrBlock::SearchArtists.into())
+      .search_error_block(ActiveLidarrBlock::SearchArtistsError.into())
+      .search_field_fn(|artist| &artist.artist_name.text)
+      .filtering_block(ActiveLidarrBlock::FilterArtists.into())
+      .filter_error_block(ActiveLidarrBlock::FilterArtistsError.into())
+      .filter_field_fn(|artist| &artist.artist_name.text);
 
     if !handle_table(
       self,

@@ -29,8 +29,7 @@ mod tests {
 
     #[test]
     fn test_delete_artist_requires_arguments() {
-      let result =
-        Cli::command().try_get_matches_from(["managarr", "lidarr", "delete", "artist"]);
+      let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "delete", "artist"]);
 
       assert_err!(&result);
       assert_eq!(

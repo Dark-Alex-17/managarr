@@ -6,9 +6,9 @@ mod tests {
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ActiveLidarrBlock, DELETE_ARTIST_BLOCKS, LIBRARY_BLOCKS,
   };
+  use crate::ui::DrawUi;
   use crate::ui::lidarr_ui::library::{LibraryUi, decorate_artist_row_with_style};
   use crate::ui::styles::ManagarrStyle;
-  use crate::ui::DrawUi;
   use pretty_assertions::assert_eq;
   use ratatui::widgets::{Cell, Row};
 
@@ -183,9 +183,9 @@ mod tests {
     };
     use rstest::rstest;
 
+    use crate::ui::DrawUi;
     use crate::ui::lidarr_ui::library::LibraryUi;
     use crate::ui::ui_test_utils::test_utils::{TerminalSize, render_to_string_with_app};
-    use crate::ui::DrawUi;
 
     #[rstest]
     fn test_library_ui_renders(

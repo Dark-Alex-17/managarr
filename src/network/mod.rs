@@ -3,12 +3,12 @@ use std::sync::Arc;
 
 use anyhow::{Result, anyhow};
 use async_trait::async_trait;
+use lidarr_network::LidarrEvent;
 use log::{debug, error, warn};
 use regex::Regex;
 use reqwest::{Client, RequestBuilder};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
-use lidarr_network::LidarrEvent;
 use sonarr_network::SonarrEvent;
 use strum_macros::Display;
 use tokio::select;

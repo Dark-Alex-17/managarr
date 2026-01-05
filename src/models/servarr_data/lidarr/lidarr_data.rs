@@ -1,8 +1,3 @@
-use bimap::BiMap;
-use chrono::{DateTime, Utc};
-use strum::EnumIter;
-#[cfg(test)]
-use strum::{Display, EnumString};
 use crate::app::lidarr::lidarr_context_clues::ARTISTS_CONTEXT_CLUES;
 use crate::models::{
   Route, TabRoute, TabState,
@@ -11,6 +6,11 @@ use crate::models::{
   stateful_table::StatefulTable,
 };
 use crate::network::lidarr_network::LidarrEvent;
+use bimap::BiMap;
+use chrono::{DateTime, Utc};
+use strum::EnumIter;
+#[cfg(test)]
+use strum::{Display, EnumString};
 
 #[cfg(test)]
 #[path = "lidarr_data_tests.rs"]
@@ -58,14 +58,12 @@ impl<'a> Default for LidarrData<'a> {
       start_time: Utc::now(),
       tags_map: BiMap::new(),
       version: String::new(),
-      main_tabs: TabState::new(vec![
-        TabRoute {
-          title: "Library".to_string(),
-          route: ActiveLidarrBlock::Artists.into(),
-          contextual_help: Some(&ARTISTS_CONTEXT_CLUES),
-          config: None,
-        },
-      ]),
+      main_tabs: TabState::new(vec![TabRoute {
+        title: "Library".to_string(),
+        route: ActiveLidarrBlock::Artists.into(),
+        contextual_help: Some(&ARTISTS_CONTEXT_CLUES),
+        config: None,
+      }]),
     }
   }
 }
@@ -76,7 +74,7 @@ impl LidarrData<'_> {
     use crate::models::lidarr_models::{Artist, DownloadRecord};
     use crate::models::servarr_models::{DiskSpace, RootFolder};
     use crate::models::stateful_table::SortOption;
-    
+
     let mut lidarr_data = LidarrData::default();
     lidarr_data.artists.set_items(vec![Artist::default()]);
     lidarr_data.artists.sorting(vec![SortOption {
@@ -92,10 +90,14 @@ impl LidarrData<'_> {
       free_space: 50000000000,
       total_space: 100000000000,
     }];
-    lidarr_data.downloads.set_items(vec![DownloadRecord::default()]);
-    lidarr_data.root_folders.set_items(vec![RootFolder::default()]);
+    lidarr_data
+      .downloads
+      .set_items(vec![DownloadRecord::default()]);
+    lidarr_data
+      .root_folders
+      .set_items(vec![RootFolder::default()]);
     lidarr_data.version = "1.0.0".to_owned();
-    
+
     lidarr_data
   }
 }

@@ -84,12 +84,9 @@ fn draw_library(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
         .statistics
         .as_ref()
         .map_or(0, |stats| stats.album_count);
-      let tracks = artist
-        .statistics
-        .as_ref()
-        .map_or(String::new(), |stats| {
-          format!("{}/{}", stats.track_file_count, stats.total_track_count)
-        });
+      let tracks = artist.statistics.as_ref().map_or(String::new(), |stats| {
+        format!("{}/{}", stats.track_file_count, stats.total_track_count)
+      });
       let tags = artist
         .tags
         .iter()
