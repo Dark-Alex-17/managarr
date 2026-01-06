@@ -11,7 +11,6 @@ mod tests {
   async fn test_handle_list_artists_event() {
     let artists_json = json!([{
       "id": 1,
-      "mbId": "test-mb-id",
       "artistName": "Test Artist",
       "foreignArtistId": "test-foreign-id",
       "status": "continuing",
@@ -73,18 +72,30 @@ mod tests {
   async fn test_handle_get_artist_details_event() {
     let artist_json = json!({
       "id": 1,
-      "mbId": "test-mb-id",
       "artistName": "Test Artist",
       "foreignArtistId": "test-foreign-id",
       "status": "continuing",
+      "overview": "some interesting description of the artist",
+      "artistType": "Person",
+      "disambiguation": "American pianist",
       "path": "/music/test-artist",
+      "members": [{"name": "alex", "instrument": "piano"}],
       "qualityProfileId": 1,
       "metadataProfileId": 1,
       "monitored": true,
       "monitorNewItems": "all",
-      "genres": [],
-      "tags": [],
-      "added": "2023-01-01T00:00:00Z"
+      "genres": ["soundtrack"],
+      "tags": [1],
+      "added": "2023-01-01T00:00:00Z",
+      "ratings": { "votes": 15, "value": 8.4 },
+      "statistics": {
+        "albumCount": 1,
+        "trackFileCount": 15,
+        "trackCount": 15,
+        "totalTrackCount": 15,
+        "sizeOnDisk": 12345,
+        "percentOfTracks": 99.9
+      }
     });
     let response: Artist = serde_json::from_value(artist_json.clone()).unwrap();
     let (mock, app, _server) = MockServarrApi::get()
@@ -112,7 +123,6 @@ mod tests {
   async fn test_handle_toggle_artist_monitoring_event() {
     let artist_json = json!({
       "id": 1,
-      "mbId": "test-mb-id",
       "artistName": "Test Artist",
       "foreignArtistId": "test-foreign-id",
       "status": "continuing",

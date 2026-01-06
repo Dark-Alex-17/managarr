@@ -26,6 +26,7 @@ pub struct Artist {
   pub overview: Option<String>,
   pub artist_type: Option<String>,
   pub disambiguation: Option<String>,
+  pub members: Option<Vec<Member>>,
   pub path: String,
   #[serde(deserialize_with = "super::from_i64")]
   pub quality_profile_id: i64,
@@ -62,6 +63,15 @@ pub struct Ratings {
 }
 
 impl Eq for Ratings {}
+
+#[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct Member {
+  pub name: Option<String>,
+  pub instrument: Option<String>,
+}
+
+impl Eq for Member {}
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]

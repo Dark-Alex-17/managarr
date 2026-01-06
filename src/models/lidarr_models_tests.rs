@@ -5,7 +5,7 @@ mod tests {
   use serde_json::json;
 
   use crate::models::lidarr_models::{
-    DownloadRecord, DownloadStatus, DownloadsResponse, MetadataProfile, NewItemMonitorType,
+    DownloadRecord, DownloadStatus, DownloadsResponse, Member, MetadataProfile, NewItemMonitorType,
     SystemStatus,
   };
   use crate::models::servarr_models::{DiskSpace, QualityProfile, RootFolder, Tag};
@@ -74,7 +74,6 @@ mod tests {
   fn test_artist_deserialization() {
     let artist_json = json!({
       "id": 1,
-      "mbId": "test-mb-id",
       "artistName": "Test Artist",
       "foreignArtistId": "test-foreign-id",
       "status": "continuing",
@@ -82,6 +81,10 @@ mod tests {
       "artistType": "Group",
       "disambiguation": "UK Band",
       "path": "/music/test-artist",
+      "members": [
+        { "name": "alex", "instrument": "piano" },
+        { "name": "madi", "instrument": "vocals" }
+      ],
       "qualityProfileId": 1,
       "metadataProfileId": 1,
       "monitored": true,
@@ -102,6 +105,16 @@ mod tests {
         "percentOfTracks": 83.33
       }
     });
+    let expected_members_vec = vec![
+      Member {
+        name: Some("alex".to_string()),
+        instrument: Some("piano".to_string()),
+      },
+      Member {
+        name: Some("madi".to_string()),
+        instrument: Some("vocals".to_string()),
+      },
+    ];
 
     let artist: Artist = serde_json::from_value(artist_json).unwrap();
 
@@ -113,6 +126,7 @@ mod tests {
     assert_some_eq_x!(&artist.artist_type, "Group");
     assert_some_eq_x!(&artist.disambiguation, "UK Band");
     assert_str_eq!(artist.path, "/music/test-artist");
+    assert_some_eq_x!(&artist.members, &expected_members_vec);
     assert_eq!(artist.quality_profile_id, 1);
     assert_eq!(artist.metadata_profile_id, 1);
     assert!(artist.monitored);
@@ -198,7 +212,6 @@ mod tests {
   fn test_artist_with_optional_fields_none() {
     let artist_json = json!({
       "id": 1,
-      "mbId": "",
       "artistName": "Test Artist",
       "foreignArtistId": "",
       "status": "continuing",
