@@ -76,6 +76,7 @@ mod tests {
     use serde_json::json;
     use tokio::sync::Mutex;
 
+    use crate::cli::lidarr::get_command_handler::LidarrGetCommand;
     use crate::{
       app::App,
       cli::{
@@ -91,7 +92,6 @@ mod tests {
       },
       network::{MockNetworkTrait, NetworkEvent, lidarr_network::LidarrEvent},
     };
-    use crate::cli::lidarr::get_command_handler::LidarrGetCommand;
 
     #[tokio::test]
     async fn test_lidarr_cli_handler_delegates_get_commands_to_the_get_command_handler() {
