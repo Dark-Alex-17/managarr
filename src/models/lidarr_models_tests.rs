@@ -8,7 +8,9 @@ mod tests {
     DownloadRecord, DownloadStatus, DownloadsResponse, Member, MetadataProfile, NewItemMonitorType,
     SystemStatus,
   };
-  use crate::models::servarr_models::{DiskSpace, QualityProfile, RootFolder, Tag};
+  use crate::models::servarr_models::{
+    DiskSpace, HostConfig, QualityProfile, RootFolder, SecurityConfig, Tag,
+  };
   use crate::models::{
     Serdeable,
     lidarr_models::{Artist, ArtistStatistics, ArtistStatus, LidarrSerdeable, Ratings},
@@ -292,6 +294,18 @@ mod tests {
   }
 
   #[test]
+  fn test_lidarr_serdeable_from_host_config() {
+    let host_config = HostConfig {
+      port: 8686,
+      ..HostConfig::default()
+    };
+
+    let lidarr_serdeable: LidarrSerdeable = host_config.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::HostConfig(host_config));
+  }
+
+  #[test]
   fn test_lidarr_serdeable_from_quality_profiles() {
     let quality_profiles = vec![QualityProfile {
       id: 1,
@@ -319,6 +333,21 @@ mod tests {
     let lidarr_serdeable: LidarrSerdeable = root_folders.clone().into();
 
     assert_eq!(lidarr_serdeable, LidarrSerdeable::RootFolders(root_folders));
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_security_config() {
+    let security_config = SecurityConfig {
+      api_key: "test-key".to_owned(),
+      ..SecurityConfig::default()
+    };
+
+    let lidarr_serdeable: LidarrSerdeable = security_config.clone().into();
+
+    assert_eq!(
+      lidarr_serdeable,
+      LidarrSerdeable::SecurityConfig(security_config)
+    );
   }
 
   #[test]

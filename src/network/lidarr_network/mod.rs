@@ -21,9 +21,11 @@ pub enum LidarrEvent {
   GetArtistDetails(i64),
   GetDiskSpace,
   GetDownloads(u64),
+  GetHostConfig,
   GetMetadataProfiles,
   GetQualityProfiles,
   GetRootFolders,
+  GetSecurityConfig,
   GetStatus,
   GetTags,
   HealthCheck,
@@ -40,6 +42,7 @@ impl NetworkResource for LidarrEvent {
       | LidarrEvent::ToggleArtistMonitoring(_) => "/artist",
       LidarrEvent::GetDiskSpace => "/diskspace",
       LidarrEvent::GetDownloads(_) => "/queue",
+      LidarrEvent::GetHostConfig | LidarrEvent::GetSecurityConfig => "/config/host",
       LidarrEvent::GetMetadataProfiles => "/metadataprofile",
       LidarrEvent::GetQualityProfiles => "/qualityprofile",
       LidarrEvent::GetRootFolders => "/rootfolder",
@@ -74,6 +77,10 @@ impl Network<'_, '_> {
         .get_lidarr_downloads(count)
         .await
         .map(LidarrSerdeable::from),
+      LidarrEvent::GetHostConfig => self
+        .get_lidarr_host_config()
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::GetMetadataProfiles => self
         .get_lidarr_metadata_profiles()
         .await
@@ -84,6 +91,10 @@ impl Network<'_, '_> {
         .map(LidarrSerdeable::from),
       LidarrEvent::GetRootFolders => self
         .get_lidarr_root_folders()
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetSecurityConfig => self
+        .get_lidarr_security_config()
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::GetStatus => self.get_lidarr_status().await.map(LidarrSerdeable::from),
@@ -98,6 +109,19 @@ impl Network<'_, '_> {
         .await
         .map(LidarrSerdeable::from),
     }
+  }
+
+  pub(in crate::network::lidarr_network) async fn get_lidarr_healthcheck(&mut self) -> Result<()> {
+    info!("Performing Lidarr health check");
+    let event = LidarrEvent::HealthCheck;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
+      .await
   }
 
   async fn get_lidarr_metadata_profiles(&mut self) -> Result<Vec<MetadataProfile>> {

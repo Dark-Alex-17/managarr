@@ -1,6 +1,6 @@
 use crate::app::lidarr::lidarr_context_clues::ARTISTS_CONTEXT_CLUES;
 use crate::models::{
-  Route, TabRoute, TabState,
+  BlockSelectionState, Route, TabRoute, TabState,
   lidarr_models::{Artist, DownloadRecord},
   servarr_models::{DiskSpace, RootFolder},
   stateful_table::StatefulTable,
@@ -28,7 +28,7 @@ pub struct LidarrData<'a> {
   pub prompt_confirm_action: Option<LidarrEvent>,
   pub quality_profile_map: BiMap<i64, String>,
   pub root_folders: StatefulTable<RootFolder>,
-  pub selected_block: crate::models::BlockSelectionState<'a, ActiveLidarrBlock>,
+  pub selected_block: BlockSelectionState<'a, ActiveLidarrBlock>,
   pub start_time: DateTime<Utc>,
   pub tags_map: BiMap<i64, String>,
   pub version: String,
@@ -54,7 +54,7 @@ impl<'a> Default for LidarrData<'a> {
       prompt_confirm_action: None,
       quality_profile_map: BiMap::new(),
       root_folders: StatefulTable::default(),
-      selected_block: crate::models::BlockSelectionState::default(),
+      selected_block: BlockSelectionState::default(),
       start_time: Utc::now(),
       tags_map: BiMap::new(),
       version: String::new(),

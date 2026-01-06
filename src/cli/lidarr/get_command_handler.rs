@@ -27,6 +27,10 @@ pub enum LidarrGetCommand {
     )]
     artist_id: i64,
   },
+  #[command(about = "Fetch the host config for your Lidarr instance")]
+  HostConfig,
+  #[command(about = "Fetch the security config for your Lidarr instance")]
+  SecurityConfig,
   #[command(about = "Get the system status")]
   SystemStatus,
 }
@@ -62,6 +66,20 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrGetCommand> for LidarrGetCommandHan
         let resp = self
           .network
           .handle_network_event(LidarrEvent::GetArtistDetails(artist_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrGetCommand::HostConfig => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetHostConfig.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrGetCommand::SecurityConfig => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetSecurityConfig.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

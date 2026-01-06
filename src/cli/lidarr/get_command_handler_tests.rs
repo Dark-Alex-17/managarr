@@ -50,6 +50,22 @@ mod tests {
     }
 
     #[test]
+    fn test_host_config_has_no_arg_requirements() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "lidarr", "get", "host-config"]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
+    fn test_security_config_has_no_arg_requirements() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "lidarr", "get", "security-config"]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_system_status_has_no_arg_requirements() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "lidarr", "get", "system-status"]);
@@ -95,6 +111,52 @@ mod tests {
 
       let result =
         LidarrGetCommandHandler::with(&app_arc, get_artist_details_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_get_host_config_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(LidarrEvent::GetHostConfig.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let get_host_config_command = LidarrGetCommand::HostConfig;
+
+      let result =
+        LidarrGetCommandHandler::with(&app_arc, get_host_config_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_get_security_config_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(LidarrEvent::GetSecurityConfig.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let get_security_config_command = LidarrGetCommand::SecurityConfig;
+
+      let result =
+        LidarrGetCommandHandler::with(&app_arc, get_security_config_command, &mut mock_network)
           .handle()
           .await;
 

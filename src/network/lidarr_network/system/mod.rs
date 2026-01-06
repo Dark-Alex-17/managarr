@@ -2,7 +2,7 @@ use anyhow::Result;
 use log::info;
 
 use crate::models::lidarr_models::SystemStatus;
-use crate::models::servarr_models::DiskSpace;
+use crate::models::servarr_models::{DiskSpace, HostConfig, SecurityConfig};
 use crate::network::lidarr_network::LidarrEvent;
 use crate::network::{Network, RequestMethod};
 
@@ -11,16 +11,33 @@ use crate::network::{Network, RequestMethod};
 mod lidarr_system_network_tests;
 
 impl Network<'_, '_> {
-  pub(in crate::network::lidarr_network) async fn get_lidarr_healthcheck(&mut self) -> Result<()> {
-    info!("Performing Lidarr health check");
-    let event = LidarrEvent::HealthCheck;
+  pub(in crate::network::lidarr_network) async fn get_lidarr_host_config(
+    &mut self,
+  ) -> Result<HostConfig> {
+    info!("Fetching Lidarr host config");
+    let event = LidarrEvent::GetHostConfig;
 
     let request_props = self
       .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
       .await;
 
     self
-      .handle_request::<(), ()>(request_props, |_, _| ())
+      .handle_request::<(), HostConfig>(request_props, |_, _| ())
+      .await
+  }
+
+  pub(in crate::network::lidarr_network) async fn get_lidarr_security_config(
+    &mut self,
+  ) -> Result<SecurityConfig> {
+    info!("Fetching Lidarr security config");
+    let event = LidarrEvent::GetSecurityConfig;
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Get, None::<()>, None, None)
+      .await;
+
+    self
+      .handle_request::<(), SecurityConfig>(request_props, |_, _| ())
       .await
   }
 

@@ -21,6 +21,13 @@ mod tests {
   }
 
   #[rstest]
+  fn test_resource_config(
+    #[values(LidarrEvent::GetHostConfig, LidarrEvent::GetSecurityConfig)] event: LidarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/config/host");
+  }
+
+  #[rstest]
   #[case(LidarrEvent::GetDiskSpace, "/diskspace")]
   #[case(LidarrEvent::GetDownloads(500), "/queue")]
   #[case(LidarrEvent::GetMetadataProfiles, "/metadataprofile")]
@@ -39,6 +46,19 @@ mod tests {
       NetworkEvent::Lidarr(LidarrEvent::HealthCheck),
       NetworkEvent::from(LidarrEvent::HealthCheck)
     );
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_lidarr_healthcheck_event() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .build_for(LidarrEvent::HealthCheck)
+      .await;
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    let _ = network.handle_lidarr_event(LidarrEvent::HealthCheck).await;
+
+    mock.assert_async().await;
   }
 
   #[tokio::test]

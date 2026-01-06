@@ -7,7 +7,7 @@ use strum::{Display, EnumIter};
 
 use super::{
   HorizontallyScrollableText, Serdeable,
-  servarr_models::{DiskSpace, QualityProfile, RootFolder, Tag},
+  servarr_models::{DiskSpace, HostConfig, QualityProfile, RootFolder, SecurityConfig, Tag},
 };
 use crate::serde_enum_from;
 
@@ -217,9 +217,11 @@ serde_enum_from!(
     Artists(Vec<Artist>),
     DiskSpaces(Vec<DiskSpace>),
     DownloadsResponse(DownloadsResponse),
+    HostConfig(HostConfig),
     MetadataProfiles(Vec<MetadataProfile>),
     QualityProfiles(Vec<QualityProfile>),
     RootFolders(Vec<RootFolder>),
+    SecurityConfig(SecurityConfig),
     SystemStatus(SystemStatus),
     Tags(Vec<Tag>),
     Value(Value),

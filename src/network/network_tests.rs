@@ -18,6 +18,7 @@ mod tests {
   use crate::app::{App, AppConfig, ServarrConfig};
   use crate::models::HorizontallyScrollableText;
   use crate::network::NetworkResource;
+  use crate::network::lidarr_network::LidarrEvent;
   use crate::network::network_tests::test_utils::test_network;
   use crate::network::radarr_network::RadarrEvent;
   use crate::network::sonarr_network::SonarrEvent;
@@ -421,11 +422,13 @@ mod tests {
   }
 
   #[rstest]
-  #[case(RadarrEvent::GetMovies, 7878)]
-  #[case(SonarrEvent::ListSeries, 8989)]
+  #[case(RadarrEvent::GetMovies, "v3", 7878)]
+  #[case(SonarrEvent::ListSeries, "v3", 8989)]
+  #[case(LidarrEvent::ListArtists, "v1", 8686)]
   #[tokio::test]
   async fn test_request_props_from_default_config(
     #[case] network_event: impl Into<NetworkEvent> + NetworkResource,
+    #[case] api_version: &str,
     #[case] default_port: u16,
   ) {
     let app_arc = Arc::new(Mutex::new(App::test_default()));
@@ -435,6 +438,7 @@ mod tests {
       let mut app = app_arc.lock().await;
       app.server_tabs.tabs[0].config = Some(ServarrConfig::default());
       app.server_tabs.tabs[1].config = Some(ServarrConfig::default());
+      app.server_tabs.tabs[2].config = Some(ServarrConfig::default());
     }
 
     let request_props = network
@@ -443,7 +447,7 @@ mod tests {
 
     assert_str_eq!(
       request_props.uri,
-      format!("http://localhost:{default_port}/api/v3{resource}")
+      format!("http://localhost:{default_port}/api/{api_version}{resource}")
     );
     assert_eq!(request_props.method, RequestMethod::Get);
     assert_eq!(request_props.body, None);
@@ -564,11 +568,13 @@ mod tests {
   }
 
   #[rstest]
-  #[case(RadarrEvent::GetMovies, 7878)]
-  #[case(SonarrEvent::ListSeries, 8989)]
+  #[case(RadarrEvent::GetMovies, "v3", 7878)]
+  #[case(SonarrEvent::ListSeries, "v3", 8989)]
+  #[case(LidarrEvent::ListArtists, "v1", 8686)]
   #[tokio::test]
   async fn test_request_props_from_default_config_with_path_and_query_params(
     #[case] network_event: impl Into<NetworkEvent> + NetworkResource,
+    #[case] api_version: &str,
     #[case] default_port: u16,
   ) {
     let app_arc = Arc::new(Mutex::new(App::test_default()));
@@ -578,6 +584,7 @@ mod tests {
       let mut app = app_arc.lock().await;
       app.server_tabs.tabs[0].config = Some(ServarrConfig::default());
       app.server_tabs.tabs[1].config = Some(ServarrConfig::default());
+      app.server_tabs.tabs[2].config = Some(ServarrConfig::default());
     }
 
     let request_props = network
@@ -592,7 +599,7 @@ mod tests {
 
     assert_str_eq!(
       request_props.uri,
-      format!("http://localhost:{default_port}/api/v3{resource}/test?id=1")
+      format!("http://localhost:{default_port}/api/{api_version}{resource}/test?id=1")
     );
     assert_eq!(request_props.method, RequestMethod::Get);
     assert_eq!(request_props.body, None);
