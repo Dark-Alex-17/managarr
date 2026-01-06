@@ -5,7 +5,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
 use strum::{Display, EnumIter};
 
-use super::{HorizontallyScrollableText, Serdeable};
+use super::{
+  HorizontallyScrollableText, Serdeable,
+  servarr_models::{DiskSpace, QualityProfile, RootFolder, Tag},
+};
 use crate::serde_enum_from;
 
 #[cfg(test)]
@@ -29,6 +32,7 @@ pub struct Artist {
   #[serde(deserialize_with = "super::from_i64")]
   pub metadata_profile_id: i64,
   pub monitored: bool,
+  pub monitor_new_items: NewItemMonitorType,
   pub genres: Vec<String>,
   pub tags: Vec<Number>,
   pub added: DateTime<Utc>,
@@ -92,6 +96,31 @@ impl From<(&i64, &String)> for MetadataProfile {
       name: value.1.clone(),
     }
   }
+}
+
+#[derive(
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  Display,
+  EnumDisplayStyle,
+)]
+#[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
+pub enum NewItemMonitorType {
+  #[default]
+  #[display_style(name = "All Albums")]
+  All,
+  #[display_style(name = "No New Albums")]
+  None,
+  #[display_style(name = "New Albums")]
+  New,
 }
 
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
@@ -174,14 +203,15 @@ impl From<LidarrSerdeable> for Serdeable {
 
 serde_enum_from!(
   LidarrSerdeable {
+    Artist(Artist),
     Artists(Vec<Artist>),
-    DiskSpaces(Vec<super::servarr_models::DiskSpace>),
+    DiskSpaces(Vec<DiskSpace>),
     DownloadsResponse(DownloadsResponse),
     MetadataProfiles(Vec<MetadataProfile>),
-    QualityProfiles(Vec<super::servarr_models::QualityProfile>),
-    RootFolders(Vec<super::servarr_models::RootFolder>),
+    QualityProfiles(Vec<QualityProfile>),
+    RootFolders(Vec<RootFolder>),
     SystemStatus(SystemStatus),
-    Tags(Vec<super::servarr_models::Tag>),
+    Tags(Vec<Tag>),
     Value(Value),
   }
 );

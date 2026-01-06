@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use clap::Subcommand;
+use clap::{Subcommand, arg};
 use delete_command_handler::{LidarrDeleteCommand, LidarrDeleteCommandHandler};
 use list_command_handler::{LidarrListCommand, LidarrListCommandHandler};
 use tokio::sync::Mutex;
 
+use crate::network::lidarr_network::LidarrEvent;
 use crate::{app::App, network::NetworkTrait};
 
 use super::{CliCommandHandler, Command};
@@ -29,6 +30,17 @@ pub enum LidarrCommand {
     about = "Commands to list attributes from your Lidarr instance"
   )]
   List(LidarrListCommand),
+  #[command(
+    about = "Toggle monitoring for the specified artist corresponding to the given artist ID"
+  )]
+  ToggleArtistMonitoring {
+    #[arg(
+      long,
+      help = "The Lidarr ID of the artist to toggle monitoring on",
+      required = true
+    )]
+    artist_id: i64,
+  },
 }
 
 impl From<LidarrCommand> for Command {
@@ -67,6 +79,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrCommand> for LidarrCliHandler<'a, '
         LidarrListCommandHandler::with(self.app, list_command, self.network)
           .handle()
           .await?
+      }
+      LidarrCommand::ToggleArtistMonitoring { artist_id } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::ToggleArtistMonitoring(artist_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
     };
 

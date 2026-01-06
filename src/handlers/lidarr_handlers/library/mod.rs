@@ -11,6 +11,7 @@ use crate::{
     },
     stateful_table::SortOption,
   },
+  network::lidarr_network::LidarrEvent,
 };
 
 use super::handle_change_tab_left_right_keys;
@@ -29,6 +30,12 @@ pub(super) struct LibraryHandler<'a, 'b> {
   app: &'a mut App<'b>,
   active_lidarr_block: ActiveLidarrBlock,
   _context: Option<ActiveLidarrBlock>,
+}
+
+impl LibraryHandler<'_, '_> {
+  fn extract_artist_id(&self) -> i64 {
+    self.app.data.lidarr_data.artists.current_selection().id
+  }
 }
 
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, 'b> {
@@ -114,8 +121,23 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
 
   fn handle_char_key_event(&mut self) {
     let key = self.key;
-    if self.active_lidarr_block == ActiveLidarrBlock::Artists && matches_key!(refresh, key) {
-      self.app.should_refresh = true;
+    if self.active_lidarr_block == ActiveLidarrBlock::Artists {
+      match key {
+        _ if matches_key!(toggle_monitoring, key) => {
+          self.app.data.lidarr_data.prompt_confirm = true;
+          self.app.data.lidarr_data.prompt_confirm_action = Some(
+            LidarrEvent::ToggleArtistMonitoring(self.extract_artist_id()),
+          );
+
+          self
+            .app
+            .pop_and_push_navigation_stack(self.active_lidarr_block.into());
+        }
+        _ if matches_key!(refresh, key) => {
+          self.app.should_refresh = true;
+        }
+        _ => (),
+      }
     }
   }
 

@@ -18,6 +18,7 @@ mod lidarr_network_tests;
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum LidarrEvent {
   DeleteArtist(DeleteArtistParams),
+  GetArtistDetails(i64),
   GetDiskSpace,
   GetDownloads(u64),
   GetMetadataProfiles,
@@ -27,12 +28,16 @@ pub enum LidarrEvent {
   GetTags,
   HealthCheck,
   ListArtists,
+  ToggleArtistMonitoring(i64),
 }
 
 impl NetworkResource for LidarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
-      LidarrEvent::DeleteArtist(_) | LidarrEvent::ListArtists => "/artist",
+      LidarrEvent::DeleteArtist(_)
+      | LidarrEvent::GetArtistDetails(_)
+      | LidarrEvent::ListArtists
+      | LidarrEvent::ToggleArtistMonitoring(_) => "/artist",
       LidarrEvent::GetDiskSpace => "/diskspace",
       LidarrEvent::GetDownloads(_) => "/queue",
       LidarrEvent::GetMetadataProfiles => "/metadataprofile",
@@ -60,6 +65,10 @@ impl Network<'_, '_> {
       LidarrEvent::DeleteArtist(params) => {
         self.delete_artist(params).await.map(LidarrSerdeable::from)
       }
+      LidarrEvent::GetArtistDetails(artist_id) => self
+        .get_artist_details(artist_id)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::GetDiskSpace => self.get_lidarr_diskspace().await.map(LidarrSerdeable::from),
       LidarrEvent::GetDownloads(count) => self
         .get_lidarr_downloads(count)
@@ -84,6 +93,10 @@ impl Network<'_, '_> {
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::ListArtists => self.list_artists().await.map(LidarrSerdeable::from),
+      LidarrEvent::ToggleArtistMonitoring(artist_id) => self
+        .toggle_artist_monitoring(artist_id)
+        .await
+        .map(LidarrSerdeable::from),
     }
   }
 

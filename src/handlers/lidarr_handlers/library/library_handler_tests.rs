@@ -6,10 +6,14 @@ mod tests {
   use serde_json::Number;
   use strum::IntoEnumIterator;
 
+  use crate::app::App;
+  use crate::app::key_binding::DEFAULT_KEYBINDINGS;
+  use crate::assert_modal_absent;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::lidarr_handlers::library::{LibraryHandler, artists_sorting_options};
   use crate::models::lidarr_models::{Artist, ArtistStatistics, ArtistStatus};
   use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LIBRARY_BLOCKS};
+  use crate::network::lidarr_network::LidarrEvent;
 
   #[test]
   fn test_library_handler_accepts() {
@@ -212,6 +216,55 @@ mod tests {
 
     assert_eq!(sorted_artists_vec, expected_artists_vec);
     assert_str_eq!(sort_option.name, "Tags");
+  }
+
+  #[test]
+  fn test_toggle_monitoring_key() {
+    let mut app = App::test_default();
+    app
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![Artist::default()]);
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app.is_routing = false;
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+      &mut app,
+      ActiveLidarrBlock::Artists,
+      None,
+    )
+    .handle();
+
+    assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
+    assert!(app.data.lidarr_data.prompt_confirm);
+    assert!(app.is_routing);
+    assert_some_eq_x!(
+      &app.data.lidarr_data.prompt_confirm_action,
+      &LidarrEvent::ToggleArtistMonitoring(0)
+    );
+  }
+
+  #[test]
+  fn test_toggle_monitoring_key_no_op_when_not_ready() {
+    let mut app = App::test_default();
+    app.is_loading = true;
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app.is_routing = false;
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.toggle_monitoring.key,
+      &mut app,
+      ActiveLidarrBlock::Artists,
+      None,
+    )
+    .handle();
+
+    assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
+    assert!(!app.data.lidarr_data.prompt_confirm);
+    assert_modal_absent!(app.data.lidarr_data.prompt_confirm_action);
+    assert!(!app.is_routing);
   }
 
   fn artists_vec() -> Vec<Artist> {

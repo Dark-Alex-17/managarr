@@ -19,6 +19,8 @@ mod tests {
 
   mod cli {
     use super::*;
+    use clap::error::ErrorKind;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_list_artists_has_no_arg_requirements() {
@@ -39,6 +41,31 @@ mod tests {
       let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "delete"]);
 
       assert_err!(&result);
+    }
+
+    #[test]
+    fn test_toggle_artist_monitoring_requires_artist_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "lidarr", "toggle-artist-monitoring"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_toggle_artist_monitoring_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "toggle-artist-monitoring",
+        "--artist-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
     }
   }
 
@@ -116,6 +143,34 @@ mod tests {
       let result = LidarrCliHandler::with(&app_arc, list_artists_command, &mut mock_network)
         .handle()
         .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_toggle_artist_monitoring_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::ToggleArtistMonitoring(1).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let toggle_artist_monitoring_command = LidarrCommand::ToggleArtistMonitoring { artist_id: 1 };
+
+      let result = LidarrCliHandler::with(
+        &app_arc,
+        toggle_artist_monitoring_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
 
       assert_ok!(&result);
     }

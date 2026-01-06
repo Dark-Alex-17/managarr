@@ -15,6 +15,13 @@ mod tests {
 
     assert_some_eq_x!(
       artists_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.toggle_monitoring,
+        DEFAULT_KEYBINDINGS.toggle_monitoring.desc
+      )
+    );
+    assert_some_eq_x!(
+      artists_context_clues_iter.next(),
       &(DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc)
     );
     assert_some_eq_x!(

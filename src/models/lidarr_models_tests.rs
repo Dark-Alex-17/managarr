@@ -1,8 +1,14 @@
 #[cfg(test)]
 mod tests {
+  use chrono::Utc;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use serde_json::json;
 
+  use crate::models::lidarr_models::{
+    DownloadRecord, DownloadStatus, DownloadsResponse, MetadataProfile, NewItemMonitorType,
+    SystemStatus,
+  };
+  use crate::models::servarr_models::{DiskSpace, QualityProfile, RootFolder, Tag};
   use crate::models::{
     Serdeable,
     lidarr_models::{Artist, ArtistStatistics, ArtistStatus, LidarrSerdeable, Ratings},
@@ -11,6 +17,20 @@ mod tests {
   #[test]
   fn test_artist_status_default() {
     assert_eq!(ArtistStatus::default(), ArtistStatus::Continuing);
+  }
+
+  #[test]
+  fn test_new_item_monitor_type_display() {
+    assert_str_eq!(NewItemMonitorType::All.to_string(), "all");
+    assert_str_eq!(NewItemMonitorType::None.to_string(), "none");
+    assert_str_eq!(NewItemMonitorType::New.to_string(), "new");
+  }
+
+  #[test]
+  fn test_new_item_monitor_type_to_display_str() {
+    assert_str_eq!(NewItemMonitorType::All.to_display_str(), "All Albums");
+    assert_str_eq!(NewItemMonitorType::None.to_display_str(), "No New Albums");
+    assert_str_eq!(NewItemMonitorType::New.to_display_str(), "New Albums");
   }
 
   #[test]
@@ -65,6 +85,7 @@ mod tests {
       "qualityProfileId": 1,
       "metadataProfileId": 1,
       "monitored": true,
+      "monitorNewItems": "all",
       "genres": ["Rock", "Alternative"],
       "tags": [1, 2],
       "added": "2023-01-01T00:00:00Z",
@@ -95,6 +116,7 @@ mod tests {
     assert_eq!(artist.quality_profile_id, 1);
     assert_eq!(artist.metadata_profile_id, 1);
     assert!(artist.monitored);
+    assert_eq!(artist.monitor_new_items, NewItemMonitorType::All);
     assert_eq!(artist.genres, vec!["Rock", "Alternative"]);
     assert_eq!(artist.tags.len(), 2);
     assert_some!(&artist.ratings);
@@ -184,6 +206,7 @@ mod tests {
       "qualityProfileId": 1,
       "metadataProfileId": 1,
       "monitored": false,
+      "monitorNewItems": "all",
       "genres": [],
       "tags": [],
       "added": "2023-01-01T00:00:00Z"
@@ -194,7 +217,169 @@ mod tests {
     assert_none!(&artist.overview);
     assert_none!(&artist.artist_type);
     assert_none!(&artist.disambiguation);
+    assert_eq!(artist.monitor_new_items, NewItemMonitorType::All);
     assert_none!(&artist.ratings);
     assert_none!(&artist.statistics);
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_artist() {
+    let artist = Artist {
+      id: 1,
+      ..Artist::default()
+    };
+
+    let lidarr_serdeable: LidarrSerdeable = artist.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::Artist(artist));
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_disk_spaces() {
+    let disk_spaces = vec![DiskSpace {
+      free_space: 1,
+      total_space: 1,
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = disk_spaces.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::DiskSpaces(disk_spaces));
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_downloads_response() {
+    let downloads_response = DownloadsResponse {
+      records: vec![DownloadRecord {
+        id: 1,
+        ..DownloadRecord::default()
+      }],
+    };
+
+    let lidarr_serdeable: LidarrSerdeable = downloads_response.clone().into();
+
+    assert_eq!(
+      lidarr_serdeable,
+      LidarrSerdeable::DownloadsResponse(downloads_response)
+    );
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_metadata_profiles() {
+    let metadata_profiles = vec![MetadataProfile {
+      id: 1,
+      name: "Standard".to_owned(),
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = metadata_profiles.clone().into();
+
+    assert_eq!(
+      lidarr_serdeable,
+      LidarrSerdeable::MetadataProfiles(metadata_profiles)
+    );
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_quality_profiles() {
+    let quality_profiles = vec![QualityProfile {
+      id: 1,
+      name: "Any".to_owned(),
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = quality_profiles.clone().into();
+
+    assert_eq!(
+      lidarr_serdeable,
+      LidarrSerdeable::QualityProfiles(quality_profiles)
+    );
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_root_folders() {
+    let root_folders = vec![RootFolder {
+      id: 1,
+      path: "/music".to_owned(),
+      accessible: true,
+      free_space: 1000000,
+      unmapped_folders: None,
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = root_folders.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::RootFolders(root_folders));
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_system_status() {
+    let system_status = SystemStatus {
+      version: "1.0.0".to_owned(),
+      start_time: Utc::now(),
+    };
+
+    let lidarr_serdeable: LidarrSerdeable = system_status.clone().into();
+
+    assert_eq!(
+      lidarr_serdeable,
+      LidarrSerdeable::SystemStatus(system_status)
+    );
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_tags() {
+    let tags = vec![Tag {
+      id: 1,
+      label: "rock".to_owned(),
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = tags.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::Tags(tags));
+  }
+
+  #[test]
+  fn test_artist_status_display() {
+    assert_str_eq!(ArtistStatus::Continuing.to_string(), "continuing");
+    assert_str_eq!(ArtistStatus::Ended.to_string(), "ended");
+    assert_str_eq!(ArtistStatus::Deleted.to_string(), "deleted");
+  }
+
+  #[test]
+  fn test_artist_status_to_display_str() {
+    assert_str_eq!(ArtistStatus::Continuing.to_display_str(), "Continuing");
+    assert_str_eq!(ArtistStatus::Ended.to_display_str(), "Ended");
+    assert_str_eq!(ArtistStatus::Deleted.to_display_str(), "Deleted");
+  }
+
+  #[test]
+  fn test_download_status_display() {
+    assert_str_eq!(DownloadStatus::Unknown.to_string(), "unknown");
+    assert_str_eq!(DownloadStatus::Queued.to_string(), "queued");
+    assert_str_eq!(DownloadStatus::Paused.to_string(), "paused");
+    assert_str_eq!(DownloadStatus::Downloading.to_string(), "downloading");
+    assert_str_eq!(DownloadStatus::Completed.to_string(), "completed");
+    assert_str_eq!(DownloadStatus::Failed.to_string(), "failed");
+    assert_str_eq!(DownloadStatus::Warning.to_string(), "warning");
+    assert_str_eq!(DownloadStatus::Delay.to_string(), "delay");
+    assert_str_eq!(
+      DownloadStatus::DownloadClientUnavailable.to_string(),
+      "downloadClientUnavailable"
+    );
+    assert_str_eq!(DownloadStatus::Fallback.to_string(), "fallback");
+  }
+
+  #[test]
+  fn test_download_status_to_display_str() {
+    assert_str_eq!(DownloadStatus::Unknown.to_display_str(), "Unknown");
+    assert_str_eq!(DownloadStatus::Queued.to_display_str(), "Queued");
+    assert_str_eq!(DownloadStatus::Paused.to_display_str(), "Paused");
+    assert_str_eq!(DownloadStatus::Downloading.to_display_str(), "Downloading");
+    assert_str_eq!(DownloadStatus::Completed.to_display_str(), "Completed");
+    assert_str_eq!(DownloadStatus::Failed.to_display_str(), "Failed");
+    assert_str_eq!(DownloadStatus::Warning.to_display_str(), "Warning");
+    assert_str_eq!(DownloadStatus::Delay.to_display_str(), "Delay");
+    assert_str_eq!(
+      DownloadStatus::DownloadClientUnavailable.to_display_str(),
+      "Download Client Unavailable"
+    );
+    assert_str_eq!(DownloadStatus::Fallback.to_display_str(), "Fallback");
   }
 }

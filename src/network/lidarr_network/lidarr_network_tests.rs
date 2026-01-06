@@ -9,6 +9,18 @@ mod tests {
   use serde_json::json;
 
   #[rstest]
+  fn test_resource_artist(
+    #[values(
+      LidarrEvent::GetArtistDetails(0),
+      LidarrEvent::ListArtists,
+      LidarrEvent::ToggleArtistMonitoring(0)
+    )]
+    event: LidarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/artist");
+  }
+
+  #[rstest]
   #[case(LidarrEvent::GetDiskSpace, "/diskspace")]
   #[case(LidarrEvent::GetDownloads(500), "/queue")]
   #[case(LidarrEvent::GetMetadataProfiles, "/metadataprofile")]
@@ -17,7 +29,6 @@ mod tests {
   #[case(LidarrEvent::GetStatus, "/system/status")]
   #[case(LidarrEvent::GetTags, "/tag")]
   #[case(LidarrEvent::HealthCheck, "/health")]
-  #[case(LidarrEvent::ListArtists, "/artist")]
   fn test_resource(#[case] event: LidarrEvent, #[case] expected_uri: &str) {
     assert_str_eq!(event.resource(), expected_uri);
   }
