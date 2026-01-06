@@ -91,6 +91,29 @@ mod tests {
       },
       network::{MockNetworkTrait, NetworkEvent, lidarr_network::LidarrEvent},
     };
+    use crate::cli::lidarr::get_command_handler::LidarrGetCommand;
+
+    #[tokio::test]
+    async fn test_lidarr_cli_handler_delegates_get_commands_to_the_get_command_handler() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(LidarrEvent::GetStatus.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let get_system_status_command = LidarrCommand::Get(LidarrGetCommand::SystemStatus);
+
+      let result = LidarrCliHandler::with(&app_arc, get_system_status_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
 
     #[tokio::test]
     async fn test_lidarr_cli_handler_delegates_delete_commands_to_the_delete_command_handler() {

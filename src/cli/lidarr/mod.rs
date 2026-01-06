@@ -3,6 +3,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use clap::{Subcommand, arg};
 use delete_command_handler::{LidarrDeleteCommand, LidarrDeleteCommandHandler};
+use get_command_handler::{LidarrGetCommand, LidarrGetCommandHandler};
 use list_command_handler::{LidarrListCommand, LidarrListCommandHandler};
 use tokio::sync::Mutex;
 
@@ -12,6 +13,7 @@ use crate::{app::App, network::NetworkTrait};
 use super::{CliCommandHandler, Command};
 
 mod delete_command_handler;
+mod get_command_handler;
 mod list_command_handler;
 
 #[cfg(test)]
@@ -25,6 +27,11 @@ pub enum LidarrCommand {
     about = "Commands to delete resources from your Lidarr instance"
   )]
   Delete(LidarrDeleteCommand),
+  #[command(
+    subcommand,
+    about = "Commands to fetch details of the resources in your Lidarr instance"
+  )]
+  Get(LidarrGetCommand),
   #[command(
     subcommand,
     about = "Commands to list attributes from your Lidarr instance"
@@ -72,6 +79,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrCommand> for LidarrCliHandler<'a, '
     let result = match self.command {
       LidarrCommand::Delete(delete_command) => {
         LidarrDeleteCommandHandler::with(self.app, delete_command, self.network)
+          .handle()
+          .await?
+      }
+      LidarrCommand::Get(get_command) => {
+        LidarrGetCommandHandler::with(self.app, get_command, self.network)
           .handle()
           .await?
       }
