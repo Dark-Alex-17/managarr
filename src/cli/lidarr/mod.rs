@@ -5,6 +5,7 @@ use clap::{Subcommand, arg};
 use delete_command_handler::{LidarrDeleteCommand, LidarrDeleteCommandHandler};
 use get_command_handler::{LidarrGetCommand, LidarrGetCommandHandler};
 use list_command_handler::{LidarrListCommand, LidarrListCommandHandler};
+use refresh_command_handler::{LidarrRefreshCommand, LidarrRefreshCommandHandler};
 use tokio::sync::Mutex;
 
 use crate::network::lidarr_network::LidarrEvent;
@@ -15,6 +16,7 @@ use super::{CliCommandHandler, Command};
 mod delete_command_handler;
 mod get_command_handler;
 mod list_command_handler;
+mod refresh_command_handler;
 
 #[cfg(test)]
 #[path = "lidarr_command_tests.rs"]
@@ -37,6 +39,11 @@ pub enum LidarrCommand {
     about = "Commands to list attributes from your Lidarr instance"
   )]
   List(LidarrListCommand),
+  #[command(
+    subcommand,
+    about = "Commands to refresh the data in your Lidarr instance"
+  )]
+  Refresh(LidarrRefreshCommand),
   #[command(
     about = "Toggle monitoring for the specified artist corresponding to the given artist ID"
   )]
@@ -89,6 +96,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrCommand> for LidarrCliHandler<'a, '
       }
       LidarrCommand::List(list_command) => {
         LidarrListCommandHandler::with(self.app, list_command, self.network)
+          .handle()
+          .await?
+      }
+      LidarrCommand::Refresh(refresh_command) => {
+        LidarrRefreshCommandHandler::with(self.app, refresh_command, self.network)
           .handle()
           .await?
       }

@@ -28,6 +28,11 @@ mod tests {
   }
 
   #[rstest]
+  fn test_resource_command(#[values(LidarrEvent::UpdateAllArtists)] event: LidarrEvent) {
+    assert_str_eq!(event.resource(), "/command");
+  }
+
+  #[rstest]
   #[case(LidarrEvent::GetDiskSpace, "/diskspace")]
   #[case(LidarrEvent::GetDownloads(500), "/queue")]
   #[case(LidarrEvent::GetMetadataProfiles, "/metadataprofile")]

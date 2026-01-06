@@ -5,6 +5,7 @@ use serde_json::{Value, json};
 use crate::models::Route;
 use crate::models::lidarr_models::{Artist, DeleteArtistParams};
 use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
+use crate::models::servarr_models::CommandBody;
 use crate::network::lidarr_network::LidarrEvent;
 use crate::network::{Network, RequestMethod};
 
@@ -150,5 +151,21 @@ impl Network<'_, '_> {
         Ok(())
       }
     }
+  }
+
+  pub(in crate::network::lidarr_network) async fn update_all_artists(&mut self) -> Result<Value> {
+    info!("Updating all artists");
+    let event = LidarrEvent::UpdateAllArtists;
+    let body = CommandBody {
+      name: "RefreshArtist".to_owned(),
+    };
+
+    let request_props = self
+      .request_props_from(event, RequestMethod::Post, Some(body), None, None)
+      .await;
+
+    self
+      .handle_request::<CommandBody, Value>(request_props, |_, _| ())
+      .await
   }
 }

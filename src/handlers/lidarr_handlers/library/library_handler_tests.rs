@@ -2,18 +2,18 @@
 mod tests {
   use std::cmp::Ordering;
 
-  use pretty_assertions::assert_str_eq;
+  use pretty_assertions::{assert_eq, assert_str_eq};
   use serde_json::Number;
   use strum::IntoEnumIterator;
 
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::assert_modal_absent;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::lidarr_handlers::library::{LibraryHandler, artists_sorting_options};
   use crate::models::lidarr_models::{Artist, ArtistStatistics, ArtistStatus};
   use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LIBRARY_BLOCKS};
   use crate::network::lidarr_network::LidarrEvent;
+  use crate::{assert_modal_absent, assert_navigation_popped, assert_navigation_pushed};
 
   #[test]
   fn test_library_handler_accepts() {
@@ -265,6 +265,173 @@ mod tests {
     assert!(!app.data.lidarr_data.prompt_confirm);
     assert_modal_absent!(app.data.lidarr_data.prompt_confirm_action);
     assert!(!app.is_routing);
+  }
+
+  #[test]
+  fn test_update_all_artists_key() {
+    let mut app = App::test_default();
+    app
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![Artist::default()]);
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.update.key,
+      &mut app,
+      ActiveLidarrBlock::Artists,
+      None,
+    )
+    .handle();
+
+    assert_navigation_pushed!(app, ActiveLidarrBlock::UpdateAllArtistsPrompt.into());
+  }
+
+  #[test]
+  fn test_update_all_artists_key_no_op_when_not_ready() {
+    let mut app = App::test_default();
+    app.is_loading = true;
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![Artist::default()]);
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.update.key,
+      &mut app,
+      ActiveLidarrBlock::Artists,
+      None,
+    )
+    .handle();
+
+    assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
+  }
+
+  #[test]
+  fn test_update_all_artists_prompt_confirm_submit() {
+    let mut app = App::test_default();
+    app
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![Artist::default()]);
+    app.data.lidarr_data.prompt_confirm = true;
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app.push_navigation_stack(ActiveLidarrBlock::UpdateAllArtistsPrompt.into());
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.submit.key,
+      &mut app,
+      ActiveLidarrBlock::UpdateAllArtistsPrompt,
+      None,
+    )
+    .handle();
+
+    assert!(app.data.lidarr_data.prompt_confirm);
+    assert_some_eq_x!(
+      &app.data.lidarr_data.prompt_confirm_action,
+      &LidarrEvent::UpdateAllArtists
+    );
+    assert_navigation_popped!(app, ActiveLidarrBlock::Artists.into());
+  }
+
+  #[test]
+  fn test_update_all_artists_prompt_decline_submit() {
+    let mut app = App::test_default();
+    app
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![Artist::default()]);
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app.push_navigation_stack(ActiveLidarrBlock::UpdateAllArtistsPrompt.into());
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.submit.key,
+      &mut app,
+      ActiveLidarrBlock::UpdateAllArtistsPrompt,
+      None,
+    )
+    .handle();
+
+    assert!(!app.data.lidarr_data.prompt_confirm);
+    assert_none!(app.data.lidarr_data.prompt_confirm_action);
+    assert_navigation_popped!(app, ActiveLidarrBlock::Artists.into());
+  }
+
+  #[test]
+  fn test_update_all_artists_prompt_esc() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app.push_navigation_stack(ActiveLidarrBlock::UpdateAllArtistsPrompt.into());
+    app.data.lidarr_data.prompt_confirm = true;
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveLidarrBlock::UpdateAllArtistsPrompt,
+      None,
+    )
+    .handle();
+
+    assert_navigation_popped!(app, ActiveLidarrBlock::Artists.into());
+    assert!(!app.data.lidarr_data.prompt_confirm);
+  }
+
+  #[test]
+  fn test_update_all_artists_prompt_left_right() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app.push_navigation_stack(ActiveLidarrBlock::UpdateAllArtistsPrompt.into());
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.left.key,
+      &mut app,
+      ActiveLidarrBlock::UpdateAllArtistsPrompt,
+      None,
+    )
+    .handle();
+
+    assert!(app.data.lidarr_data.prompt_confirm);
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.right.key,
+      &mut app,
+      ActiveLidarrBlock::UpdateAllArtistsPrompt,
+      None,
+    )
+    .handle();
+
+    assert!(!app.data.lidarr_data.prompt_confirm);
+  }
+
+  #[test]
+  fn test_update_all_artists_prompt_confirm_key() {
+    let mut app = App::test_default();
+    app
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![Artist::default()]);
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app.push_navigation_stack(ActiveLidarrBlock::UpdateAllArtistsPrompt.into());
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.confirm.key,
+      &mut app,
+      ActiveLidarrBlock::UpdateAllArtistsPrompt,
+      None,
+    )
+    .handle();
+
+    assert!(app.data.lidarr_data.prompt_confirm);
+    assert_some_eq_x!(
+      &app.data.lidarr_data.prompt_confirm_action,
+      &LidarrEvent::UpdateAllArtists
+    );
+    assert_navigation_popped!(app, ActiveLidarrBlock::Artists.into());
   }
 
   fn artists_vec() -> Vec<Artist> {

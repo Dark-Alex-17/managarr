@@ -77,6 +77,7 @@ mod tests {
     use tokio::sync::Mutex;
 
     use crate::cli::lidarr::get_command_handler::LidarrGetCommand;
+    use crate::cli::lidarr::refresh_command_handler::LidarrRefreshCommand;
     use crate::{
       app::App,
       cli::{
@@ -164,6 +165,28 @@ mod tests {
       let list_artists_command = LidarrCommand::List(LidarrListCommand::Artists);
 
       let result = LidarrCliHandler::with(&app_arc, list_artists_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_lidarr_cli_handler_delegates_refresh_commands_to_the_refresh_command_handler() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(LidarrEvent::UpdateAllArtists.into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let refresh_series_command = LidarrCommand::Refresh(LidarrRefreshCommand::AllArtists);
+
+      let result = LidarrCliHandler::with(&app_arc, refresh_series_command, &mut mock_network)
         .handle()
         .await;
 

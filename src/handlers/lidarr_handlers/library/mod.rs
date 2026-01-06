@@ -1,7 +1,7 @@
 use crate::{
   app::App,
   event::Key,
-  handlers::{KeyEventHandler, handle_clear_errors},
+  handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle},
   matches_key,
   models::{
     BlockSelectionState,
@@ -108,21 +108,39 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
   }
 
   fn handle_left_right_action(&mut self) {
-    if self.active_lidarr_block == ActiveLidarrBlock::Artists {
-      handle_change_tab_left_right_keys(self.app, self.key);
+    match self.active_lidarr_block {
+      ActiveLidarrBlock::Artists => handle_change_tab_left_right_keys(self.app, self.key),
+      ActiveLidarrBlock::UpdateAllArtistsPrompt => handle_prompt_toggle(self.app, self.key),
+      _ => (),
     }
   }
 
-  fn handle_submit(&mut self) {}
+  fn handle_submit(&mut self) {
+    if self.active_lidarr_block == ActiveLidarrBlock::UpdateAllArtistsPrompt {
+      if self.app.data.lidarr_data.prompt_confirm {
+        self.app.data.lidarr_data.prompt_confirm_action = Some(LidarrEvent::UpdateAllArtists);
+      }
+
+      self.app.pop_navigation_stack();
+    }
+  }
 
   fn handle_esc(&mut self) {
-    handle_clear_errors(self.app);
+    match self.active_lidarr_block {
+      ActiveLidarrBlock::UpdateAllArtistsPrompt => {
+        self.app.pop_navigation_stack();
+        self.app.data.lidarr_data.prompt_confirm = false;
+      }
+      _ => {
+        handle_clear_errors(self.app);
+      }
+    }
   }
 
   fn handle_char_key_event(&mut self) {
     let key = self.key;
-    if self.active_lidarr_block == ActiveLidarrBlock::Artists {
-      match key {
+    match self.active_lidarr_block {
+      ActiveLidarrBlock::Artists => match key {
         _ if matches_key!(toggle_monitoring, key) => {
           self.app.data.lidarr_data.prompt_confirm = true;
           self.app.data.lidarr_data.prompt_confirm_action = Some(
@@ -133,11 +151,25 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
             .app
             .pop_and_push_navigation_stack(self.active_lidarr_block.into());
         }
+        _ if matches_key!(update, key) => {
+          self
+            .app
+            .push_navigation_stack(ActiveLidarrBlock::UpdateAllArtistsPrompt.into());
+        }
         _ if matches_key!(refresh, key) => {
           self.app.should_refresh = true;
         }
         _ => (),
+      },
+      ActiveLidarrBlock::UpdateAllArtistsPrompt => {
+        if matches_key!(confirm, key) {
+          self.app.data.lidarr_data.prompt_confirm = true;
+          self.app.data.lidarr_data.prompt_confirm_action = Some(LidarrEvent::UpdateAllArtists);
+
+          self.app.pop_navigation_stack();
+        }
       }
+      _ => (),
     }
   }
 

@@ -6,6 +6,10 @@ use ratatui::{
 };
 
 use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::widgets::{
+  confirmation_prompt::ConfirmationPrompt,
+  popup::{Popup, Size},
+};
 use crate::utils::convert_to_gb;
 use crate::{
   app::App,
@@ -42,8 +46,20 @@ impl DrawUi for LibraryUi {
     let route = app.get_current_route();
     draw_library(f, app, area);
 
-    if DeleteArtistUi::accepts(route) {
-      DeleteArtistUi::draw(f, app, area);
+    match route {
+      _ if DeleteArtistUi::accepts(route) => DeleteArtistUi::draw(f, app, area),
+      Route::Lidarr(ActiveLidarrBlock::UpdateAllArtistsPrompt, _) => {
+        let confirmation_prompt = ConfirmationPrompt::new()
+          .title("Update All Artists")
+          .prompt("Do you want to update info and scan your disks for all of your artists?")
+          .yes_no_value(app.data.lidarr_data.prompt_confirm);
+
+        f.render_widget(
+          Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+          f.area(),
+        );
+      }
+      _ => (),
     }
   }
 }

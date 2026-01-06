@@ -382,5 +382,18 @@ mod tests {
 
       insta::assert_snapshot!(output);
     }
+
+    #[test]
+    fn test_library_ui_renders_update_all_series_prompt() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveSonarrBlock::Series.into());
+      app.push_navigation_stack(ActiveSonarrBlock::UpdateAllSeriesPrompt.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
   }
 }

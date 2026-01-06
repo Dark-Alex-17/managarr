@@ -82,39 +82,39 @@ mod tests {
       let sonarr_data = SonarrData::default();
 
       assert!(!sonarr_data.add_list_exclusion);
-      assert!(sonarr_data.add_searched_series.is_none());
-      assert!(sonarr_data.add_series_search.is_none());
-      assert!(sonarr_data.add_series_modal.is_none());
-      assert!(sonarr_data.blocklist.is_empty());
+      assert_none!(sonarr_data.add_searched_series);
+      assert_none!(sonarr_data.add_series_search);
+      assert_none!(sonarr_data.add_series_modal);
+      assert_is_empty!(sonarr_data.blocklist);
       assert!(!sonarr_data.delete_series_files);
-      assert!(sonarr_data.downloads.is_empty());
-      assert!(sonarr_data.disk_space_vec.is_empty());
-      assert!(sonarr_data.edit_indexer_modal.is_none());
-      assert!(sonarr_data.edit_root_folder.is_none());
-      assert!(sonarr_data.edit_series_modal.is_none());
-      assert!(sonarr_data.history.is_empty());
-      assert!(sonarr_data.indexers.is_empty());
-      assert!(sonarr_data.indexer_settings.is_none());
-      assert!(sonarr_data.indexer_test_errors.is_none());
-      assert!(sonarr_data.indexer_test_all_results.is_none());
-      assert!(sonarr_data.language_profiles_map.is_empty());
-      assert!(sonarr_data.logs.is_empty());
-      assert!(sonarr_data.log_details.is_empty());
+      assert_is_empty!(sonarr_data.downloads);
+      assert_is_empty!(sonarr_data.disk_space_vec);
+      assert_none!(sonarr_data.edit_indexer_modal);
+      assert_none!(sonarr_data.edit_root_folder);
+      assert_none!(sonarr_data.edit_series_modal);
+      assert_is_empty!(sonarr_data.history);
+      assert_is_empty!(sonarr_data.indexers);
+      assert_none!(sonarr_data.indexer_settings);
+      assert_none!(sonarr_data.indexer_test_errors);
+      assert_none!(sonarr_data.indexer_test_all_results);
+      assert_is_empty!(sonarr_data.language_profiles_map);
+      assert_is_empty!(sonarr_data.logs);
+      assert_is_empty!(sonarr_data.log_details);
       assert!(!sonarr_data.prompt_confirm);
-      assert!(sonarr_data.prompt_confirm_action.is_none());
-      assert!(sonarr_data.quality_profile_map.is_empty());
-      assert!(sonarr_data.queued_events.is_empty());
-      assert!(sonarr_data.root_folders.is_empty());
-      assert!(sonarr_data.seasons.is_empty());
-      assert!(sonarr_data.season_details_modal.is_none());
+      assert_none!(sonarr_data.prompt_confirm_action);
+      assert_is_empty!(sonarr_data.quality_profile_map);
+      assert_is_empty!(sonarr_data.queued_events);
+      assert_is_empty!(sonarr_data.root_folders);
+      assert_is_empty!(sonarr_data.seasons);
+      assert_none!(sonarr_data.season_details_modal);
       assert_eq!(sonarr_data.selected_block, BlockSelectionState::default());
-      assert!(sonarr_data.series.is_empty());
-      assert!(sonarr_data.series_history.is_none());
+      assert_is_empty!(sonarr_data.series);
+      assert_none!(sonarr_data.series_history);
       assert_eq!(sonarr_data.start_time, <DateTime<Utc>>::default());
-      assert!(sonarr_data.tags_map.is_empty());
-      assert!(sonarr_data.tasks.is_empty());
-      assert!(sonarr_data.updates.is_empty());
-      assert!(sonarr_data.version.is_empty());
+      assert_is_empty!(sonarr_data.tags_map);
+      assert_is_empty!(sonarr_data.tasks);
+      assert_is_empty!(sonarr_data.updates);
+      assert_is_empty!(sonarr_data.version);
 
       assert_eq!(sonarr_data.main_tabs.tabs.len(), 7);
 
@@ -123,84 +123,77 @@ mod tests {
         sonarr_data.main_tabs.tabs[0].route,
         ActiveSonarrBlock::Series.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[0].contextual_help.is_some());
-      assert_eq!(
-        sonarr_data.main_tabs.tabs[0].contextual_help.unwrap(),
+      assert_some_eq_x!(
+        &sonarr_data.main_tabs.tabs[0].contextual_help,
         &SERIES_CONTEXT_CLUES
       );
-      assert_eq!(sonarr_data.main_tabs.tabs[0].config, None);
+      assert_none!(sonarr_data.main_tabs.tabs[0].config);
 
       assert_str_eq!(sonarr_data.main_tabs.tabs[1].title, "Downloads");
       assert_eq!(
         sonarr_data.main_tabs.tabs[1].route,
         ActiveSonarrBlock::Downloads.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[1].contextual_help.is_some());
-      assert_eq!(
-        sonarr_data.main_tabs.tabs[1].contextual_help.unwrap(),
+      assert_some_eq_x!(
+        &sonarr_data.main_tabs.tabs[1].contextual_help,
         &DOWNLOADS_CONTEXT_CLUES
       );
-      assert_eq!(sonarr_data.main_tabs.tabs[1].config, None);
+      assert_none!(sonarr_data.main_tabs.tabs[1].config);
 
       assert_str_eq!(sonarr_data.main_tabs.tabs[2].title, "Blocklist");
       assert_eq!(
         sonarr_data.main_tabs.tabs[2].route,
         ActiveSonarrBlock::Blocklist.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[2].contextual_help.is_some());
-      assert_eq!(
-        sonarr_data.main_tabs.tabs[2].contextual_help.unwrap(),
+      assert_some_eq_x!(
+        &sonarr_data.main_tabs.tabs[2].contextual_help,
         &BLOCKLIST_CONTEXT_CLUES
       );
-      assert_eq!(sonarr_data.main_tabs.tabs[2].config, None);
+      assert_none!(sonarr_data.main_tabs.tabs[2].config);
 
       assert_str_eq!(sonarr_data.main_tabs.tabs[3].title, "History");
       assert_eq!(
         sonarr_data.main_tabs.tabs[3].route,
         ActiveSonarrBlock::History.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[3].contextual_help.is_some());
-      assert_eq!(
-        sonarr_data.main_tabs.tabs[3].contextual_help.unwrap(),
+      assert_some_eq_x!(
+        &sonarr_data.main_tabs.tabs[3].contextual_help,
         &HISTORY_CONTEXT_CLUES
       );
-      assert_eq!(sonarr_data.main_tabs.tabs[3].config, None);
+      assert_none!(sonarr_data.main_tabs.tabs[3].config);
 
       assert_str_eq!(sonarr_data.main_tabs.tabs[4].title, "Root Folders");
       assert_eq!(
         sonarr_data.main_tabs.tabs[4].route,
         ActiveSonarrBlock::RootFolders.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[4].contextual_help.is_some());
-      assert_eq!(
-        sonarr_data.main_tabs.tabs[4].contextual_help.unwrap(),
+      assert_some_eq_x!(
+        &sonarr_data.main_tabs.tabs[4].contextual_help,
         &ROOT_FOLDERS_CONTEXT_CLUES
       );
-      assert_eq!(sonarr_data.main_tabs.tabs[4].config, None);
+      assert_none!(sonarr_data.main_tabs.tabs[4].config);
 
       assert_str_eq!(sonarr_data.main_tabs.tabs[5].title, "Indexers");
       assert_eq!(
         sonarr_data.main_tabs.tabs[5].route,
         ActiveSonarrBlock::Indexers.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[5].contextual_help.is_some());
-      assert_eq!(
-        sonarr_data.main_tabs.tabs[5].contextual_help.unwrap(),
+      assert_some_eq_x!(
+        &sonarr_data.main_tabs.tabs[5].contextual_help,
         &INDEXERS_CONTEXT_CLUES
       );
-      assert_eq!(sonarr_data.main_tabs.tabs[5].config, None);
+      assert_none!(sonarr_data.main_tabs.tabs[5].config);
 
       assert_str_eq!(sonarr_data.main_tabs.tabs[6].title, "System");
       assert_eq!(
         sonarr_data.main_tabs.tabs[6].route,
         ActiveSonarrBlock::System.into()
       );
-      assert!(sonarr_data.main_tabs.tabs[6].contextual_help.is_some());
-      assert_eq!(
-        sonarr_data.main_tabs.tabs[6].contextual_help.unwrap(),
+      assert_some_eq_x!(
+        &sonarr_data.main_tabs.tabs[6].contextual_help,
         &SYSTEM_CONTEXT_CLUES
       );
-      assert_eq!(sonarr_data.main_tabs.tabs[6].config, None);
+      assert_none!(sonarr_data.main_tabs.tabs[6].config);
 
       assert_eq!(sonarr_data.series_info_tabs.tabs.len(), 2);
 
@@ -209,36 +202,22 @@ mod tests {
         sonarr_data.series_info_tabs.tabs[0].route,
         ActiveSonarrBlock::SeriesDetails.into()
       );
-      assert!(
-        sonarr_data.series_info_tabs.tabs[0]
-          .contextual_help
-          .is_some()
-      );
-      assert_eq!(
-        sonarr_data.series_info_tabs.tabs[0]
-          .contextual_help
-          .unwrap(),
+      assert_some_eq_x!(
+        &sonarr_data.series_info_tabs.tabs[0].contextual_help,
         &SERIES_DETAILS_CONTEXT_CLUES
       );
-      assert_eq!(sonarr_data.series_info_tabs.tabs[0].config, None);
+      assert_none!(sonarr_data.series_info_tabs.tabs[0].config);
 
       assert_str_eq!(sonarr_data.series_info_tabs.tabs[1].title, "History");
       assert_eq!(
         sonarr_data.series_info_tabs.tabs[1].route,
         ActiveSonarrBlock::SeriesHistory.into()
       );
-      assert!(
-        sonarr_data.series_info_tabs.tabs[1]
-          .contextual_help
-          .is_some()
-      );
-      assert_eq!(
-        sonarr_data.series_info_tabs.tabs[1]
-          .contextual_help
-          .unwrap(),
+      assert_some_eq_x!(
+        &sonarr_data.series_info_tabs.tabs[1].contextual_help,
         &SERIES_HISTORY_CONTEXT_CLUES
       );
-      assert_eq!(sonarr_data.series_info_tabs.tabs[1].config, None);
+      assert_none!(sonarr_data.series_info_tabs.tabs[1].config);
     }
   }
 

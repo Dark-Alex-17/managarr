@@ -162,4 +162,26 @@ mod tests {
     get_mock.assert_async().await;
     put_mock.assert_async().await;
   }
+
+  #[tokio::test]
+  async fn test_handle_update_all_artists_event() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "name": "RefreshArtist"
+      }))
+      .returns(json!({}))
+      .build_for(LidarrEvent::UpdateAllArtists)
+      .await;
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    assert!(
+      network
+        .handle_lidarr_event(LidarrEvent::UpdateAllArtists)
+        .await
+        .is_ok()
+    );
+
+    mock.assert_async().await;
+  }
 }

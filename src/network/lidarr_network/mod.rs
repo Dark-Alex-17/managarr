@@ -31,6 +31,7 @@ pub enum LidarrEvent {
   HealthCheck,
   ListArtists,
   ToggleArtistMonitoring(i64),
+  UpdateAllArtists,
 }
 
 impl NetworkResource for LidarrEvent {
@@ -43,6 +44,7 @@ impl NetworkResource for LidarrEvent {
       LidarrEvent::GetDiskSpace => "/diskspace",
       LidarrEvent::GetDownloads(_) => "/queue",
       LidarrEvent::GetHostConfig | LidarrEvent::GetSecurityConfig => "/config/host",
+      LidarrEvent::UpdateAllArtists => "/command",
       LidarrEvent::GetMetadataProfiles => "/metadataprofile",
       LidarrEvent::GetQualityProfiles => "/qualityprofile",
       LidarrEvent::GetRootFolders => "/rootfolder",
@@ -108,6 +110,7 @@ impl Network<'_, '_> {
         .toggle_artist_monitoring(artist_id)
         .await
         .map(LidarrSerdeable::from),
+      LidarrEvent::UpdateAllArtists => self.update_all_artists().await.map(LidarrSerdeable::from),
     }
   }
 

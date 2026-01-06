@@ -7,7 +7,7 @@ use crate::models::Route;
 #[path = "lidarr_context_clues_tests.rs"]
 mod lidarr_context_clues_tests;
 
-pub static ARTISTS_CONTEXT_CLUES: [ContextClue; 7] = [
+pub static ARTISTS_CONTEXT_CLUES: [ContextClue; 8] = [
   (
     DEFAULT_KEYBINDINGS.toggle_monitoring,
     DEFAULT_KEYBINDINGS.toggle_monitoring.desc,
@@ -20,6 +20,7 @@ pub static ARTISTS_CONTEXT_CLUES: [ContextClue; 7] = [
     DEFAULT_KEYBINDINGS.refresh,
     DEFAULT_KEYBINDINGS.refresh.desc,
   ),
+  (DEFAULT_KEYBINDINGS.update, "update all"),
   (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
 ];
 

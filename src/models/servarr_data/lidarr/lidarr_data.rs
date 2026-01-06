@@ -55,7 +55,7 @@ impl<'a> Default for LidarrData<'a> {
       quality_profile_map: BiMap::new(),
       root_folders: StatefulTable::default(),
       selected_block: BlockSelectionState::default(),
-      start_time: Utc::now(),
+      start_time: DateTime::default(),
       tags_map: BiMap::new(),
       version: String::new(),
       main_tabs: TabState::new(vec![TabRoute {
@@ -112,19 +112,21 @@ pub enum ActiveLidarrBlock {
   DeleteArtistConfirmPrompt,
   DeleteArtistToggleDeleteFile,
   DeleteArtistToggleAddListExclusion,
-  SearchArtists,
-  SearchArtistsError,
   FilterArtists,
   FilterArtistsError,
+  SearchArtists,
+  SearchArtistsError,
+  UpdateAllArtistsPrompt,
 }
 
-pub static LIBRARY_BLOCKS: [ActiveLidarrBlock; 6] = [
+pub static LIBRARY_BLOCKS: [ActiveLidarrBlock; 7] = [
   ActiveLidarrBlock::Artists,
   ActiveLidarrBlock::ArtistsSortPrompt,
-  ActiveLidarrBlock::SearchArtists,
-  ActiveLidarrBlock::SearchArtistsError,
   ActiveLidarrBlock::FilterArtists,
   ActiveLidarrBlock::FilterArtistsError,
+  ActiveLidarrBlock::SearchArtists,
+  ActiveLidarrBlock::SearchArtistsError,
+  ActiveLidarrBlock::UpdateAllArtistsPrompt,
 ];
 
 pub static DELETE_ARTIST_BLOCKS: [ActiveLidarrBlock; 4] = [

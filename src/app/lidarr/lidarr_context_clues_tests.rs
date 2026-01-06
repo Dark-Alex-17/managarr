@@ -45,6 +45,10 @@ mod tests {
     );
     assert_some_eq_x!(
       artists_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.update, "update all")
+    );
+    assert_some_eq_x!(
+      artists_context_clues_iter.next(),
       &(DEFAULT_KEYBINDINGS.esc, "cancel filter")
     );
     assert_none!(artists_context_clues_iter.next());
