@@ -25,6 +25,7 @@ pub mod lidarr_network_test_utils;
 pub enum LidarrEvent {
   AddTag(String),
   DeleteArtist(DeleteArtistParams),
+  DeleteTag(i64),
   EditArtist(EditArtistParams),
   GetArtistDetails(i64),
   GetDiskSpace,
@@ -45,7 +46,7 @@ pub enum LidarrEvent {
 impl NetworkResource for LidarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
-      LidarrEvent::AddTag(_) | LidarrEvent::GetTags => "/tag",
+      LidarrEvent::AddTag(_) | LidarrEvent::DeleteTag(_) | LidarrEvent::GetTags => "/tag",
       LidarrEvent::DeleteArtist(_)
       | LidarrEvent::EditArtist(_)
       | LidarrEvent::GetArtistDetails(_)
@@ -80,6 +81,10 @@ impl Network<'_, '_> {
       LidarrEvent::DeleteArtist(params) => {
         self.delete_artist(params).await.map(LidarrSerdeable::from)
       }
+      LidarrEvent::DeleteTag(tag_id) => self
+        .delete_lidarr_tag(tag_id)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::GetArtistDetails(artist_id) => self
         .get_artist_details(artist_id)
         .await
@@ -210,6 +215,25 @@ impl Network<'_, '_> {
       .handle_request::<serde_json::Value, Tag>(request_props, |tag, mut app| {
         app.data.lidarr_data.tags_map.insert(tag.id, tag.label);
       })
+      .await
+  }
+
+  async fn delete_lidarr_tag(&mut self, id: i64) -> Result<()> {
+    info!("Deleting Lidarr tag with ID: {id}");
+    let event = LidarrEvent::DeleteTag(id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        None::<()>,
+        Some(format!("/{id}")),
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
       .await
   }
 

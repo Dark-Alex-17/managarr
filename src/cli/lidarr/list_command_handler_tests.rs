@@ -18,16 +18,11 @@ mod tests {
   }
 
   mod cli {
-    use rstest::rstest;
     use super::*;
+    use rstest::rstest;
 
     #[rstest]
-    fn test_list_commands_have_no_arg_requirements(
-      #[values(
-      "artists",
-      "tags"
-      )] subcommand: &str
-    ) {
+    fn test_list_commands_have_no_arg_requirements(#[values("artists", "tags")] subcommand: &str) {
       let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "list", subcommand]);
 
       assert_ok!(&result);
@@ -53,12 +48,12 @@ mod tests {
     };
 
     #[rstest]
-		#[case(LidarrListCommand::Artists, LidarrEvent::ListArtists)]
-		#[case(LidarrListCommand::Tags, LidarrEvent::GetTags)]
+    #[case(LidarrListCommand::Artists, LidarrEvent::ListArtists)]
+    #[case(LidarrListCommand::Tags, LidarrEvent::GetTags)]
     #[tokio::test]
     async fn test_handle_list_command(
       #[case] list_command: LidarrListCommand,
-      #[case] expected_lidarr_event: LidarrEvent
+      #[case] expected_lidarr_event: LidarrEvent,
     ) {
       let mut mock_network = MockNetworkTrait::new();
       mock_network
@@ -72,10 +67,9 @@ mod tests {
         });
       let app_arc = Arc::new(Mutex::new(App::test_default()));
 
-      let result =
-        LidarrListCommandHandler::with(&app_arc, list_command, &mut mock_network)
-          .handle()
-          .await;
+      let result = LidarrListCommandHandler::with(&app_arc, list_command, &mut mock_network)
+        .handle()
+        .await;
 
       assert_ok!(&result);
     }

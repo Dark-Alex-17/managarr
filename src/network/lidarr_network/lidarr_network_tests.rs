@@ -26,6 +26,18 @@ mod tests {
   }
 
   #[rstest]
+  fn test_resource_tag(
+    #[values(
+      LidarrEvent::AddTag(String::new()),
+      LidarrEvent::DeleteTag(0),
+      LidarrEvent::GetTags
+    )]
+    event: LidarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/tag");
+  }
+
+  #[rstest]
   fn test_resource_config(
     #[values(LidarrEvent::GetHostConfig, LidarrEvent::GetSecurityConfig)] event: LidarrEvent,
   ) {
@@ -206,6 +218,21 @@ mod tests {
       app.lock().await.data.lidarr_data.tags_map.get_by_left(&1),
       Some(&"usenet".to_owned())
     );
+  }
+
+  #[tokio::test]
+  async fn test_handle_delete_lidarr_tag_event() {
+    let (mock, app, _server) = MockServarrApi::delete()
+      .path("/1")
+      .build_for(LidarrEvent::DeleteTag(1))
+      .await;
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    let result = network.handle_lidarr_event(LidarrEvent::DeleteTag(1)).await;
+
+    mock.assert_async().await;
+    assert!(result.is_ok());
   }
 
   #[tokio::test]

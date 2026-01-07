@@ -85,6 +85,32 @@ mod tests {
       };
       assert_eq!(delete_command, expected_args);
     }
+
+    #[test]
+    fn test_delete_tag_requires_arguments() {
+      let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "delete", "tag"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_delete_tag_success() {
+      let expected_args = LidarrDeleteCommand::Tag { tag_id: 1 };
+
+      let result = Cli::try_parse_from(["managarr", "lidarr", "delete", "tag", "--tag-id", "1"]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Lidarr(LidarrCommand::Delete(delete_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(delete_command, expected_args);
+    }
   }
 
   mod handler {
@@ -135,6 +161,32 @@ mod tests {
 
       let result =
         LidarrDeleteCommandHandler::with(&app_arc, delete_artist_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_delete_tag_command() {
+      let expected_tag_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::DeleteTag(expected_tag_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let delete_tag_command = LidarrDeleteCommand::Tag { tag_id: 1 };
+
+      let result =
+        LidarrDeleteCommandHandler::with(&app_arc, delete_tag_command, &mut mock_network)
           .handle()
           .await;
 

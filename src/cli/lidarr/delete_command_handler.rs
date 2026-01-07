@@ -28,6 +28,11 @@ pub enum LidarrDeleteCommand {
     #[arg(long, help = "Add a list exclusion for this artist")]
     add_list_exclusion: bool,
   },
+  #[command(about = "Delete the tag with the specified ID")]
+  Tag {
+    #[arg(long, help = "The ID of the tag to delete", required = true)]
+    tag_id: i64,
+  },
 }
 
 impl From<LidarrDeleteCommand> for Command {
@@ -70,6 +75,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrDeleteCommand> for LidarrDeleteComm
         let resp = self
           .network
           .handle_network_event(LidarrEvent::DeleteArtist(delete_artist_params).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrDeleteCommand::Tag { tag_id } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::DeleteTag(tag_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
