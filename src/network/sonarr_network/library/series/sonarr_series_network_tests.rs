@@ -944,6 +944,35 @@ mod tests {
   }
 
   #[tokio::test]
+  async fn test_handle_search_new_series_event_sets_empty_table_on_api_error() {
+    let (async_server, app, _server) = MockServarrApi::get()
+      .status(500)
+      .query("term=test%20term")
+      .build_for(SonarrEvent::SearchNewSeries("test term".into()))
+      .await;
+    app.lock().await.server_tabs.next();
+    let mut network = test_network(&app);
+
+    let result =
+      network
+        .handle_sonarr_event(SonarrEvent::SearchNewSeries("test term".into()))
+        .await;
+
+    async_server.assert_async().await;
+    assert_err!(result);
+    let app = app.lock().await;
+    assert_some!(
+      &app
+        .data
+        .sonarr_data
+        .add_searched_series
+    );
+    assert_is_empty!(
+      app.data.sonarr_data.add_searched_series.as_ref().unwrap()
+    );
+  }
+
+  #[tokio::test]
   async fn test_handle_trigger_automatic_series_search_event() {
     let (async_server, app, _server) = MockServarrApi::post()
       .with_request_body(json!({

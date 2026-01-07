@@ -981,19 +981,45 @@ mod tests {
     );
 
     async_server.assert_async().await;
-    assert!(
-      app_arc
+    assert_none!(
+      &app_arc
         .lock()
         .await
         .data
         .radarr_data
         .add_searched_movies
-        .is_none()
     );
     assert_eq!(
       app_arc.lock().await.get_current_route(),
       ActiveRadarrBlock::AddMovieEmptySearchResults.into()
     );
+  }
+
+  #[tokio::test]
+  async fn test_handle_search_new_movie_event_sets_empty_table_on_api_error() {
+    let (async_server, app_arc, _server) = MockServarrApi::get()
+      .returns(json!([]))
+      .status(500)
+      .query("term=test%20term")
+      .build_for(RadarrEvent::SearchNewMovie("test term".into()))
+      .await;
+    let mut network = test_network(&app_arc);
+
+      let result = network
+        .handle_radarr_event(RadarrEvent::SearchNewMovie("test term".into()))
+        .await;
+
+    async_server.assert_async().await;
+    assert_err!(result);
+    assert_some!(
+      &app_arc
+        .lock()
+        .await
+        .data
+        .radarr_data
+        .add_searched_movies
+    );
+    assert_is_empty!(app_arc.lock().await.data.radarr_data.add_searched_movies.as_ref().unwrap());
   }
 
   #[tokio::test]

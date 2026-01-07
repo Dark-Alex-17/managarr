@@ -366,7 +366,7 @@ impl Network<'_, '_> {
       .await;
     request_props.ignore_status_code = true;
 
-    self
+    let result = self
       .handle_request::<(), Vec<IndexerTestResult>>(request_props, |test_results, mut app| {
         let mut test_all_indexer_results = StatefulTable::default();
         let indexers = app.data.sonarr_data.indexers.items.clone();
@@ -401,6 +401,12 @@ impl Network<'_, '_> {
         test_all_indexer_results.set_items(modal_test_results);
         app.data.sonarr_data.indexer_test_all_results = Some(test_all_indexer_results);
       })
-      .await
+      .await;
+
+    if result.is_err() {
+      self.app.lock().await.data.sonarr_data.indexer_test_all_results = Some(StatefulTable::default());
+    }
+
+    result
   }
 }

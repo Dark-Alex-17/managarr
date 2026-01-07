@@ -884,4 +884,29 @@ mod tests {
     );
     assert_eq!(results, response);
   }
+
+  #[tokio::test]
+  async fn test_handle_test_all_sonarr_indexers_event_sets_empty_table_on_api_error() {
+    let (async_server, app, _server) = MockServarrApi::post()
+      .status(500)
+      .build_for(SonarrEvent::TestAllIndexers)
+      .await;
+    let mut network = test_network(&app);
+    app.lock().await.server_tabs.next();
+
+    let result = network
+      .handle_sonarr_event(SonarrEvent::TestAllIndexers)
+      .await;
+
+    async_server.assert_async().await;
+    assert_err!(result);
+    let app = app.lock().await;
+    assert_some!(
+      &app
+        .data
+        .sonarr_data
+        .indexer_test_all_results
+    );
+    assert_is_empty!(app.data.sonarr_data.indexer_test_all_results.as_ref().unwrap());
+  }
 }
