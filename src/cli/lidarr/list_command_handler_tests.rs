@@ -22,7 +22,9 @@ mod tests {
     use rstest::rstest;
 
     #[rstest]
-    fn test_list_commands_have_no_arg_requirements(#[values("artists", "tags")] subcommand: &str) {
+    fn test_list_commands_have_no_arg_requirements(
+      #[values("artists", "metadata-profiles", "quality-profiles", "tags")] subcommand: &str,
+    ) {
       let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "list", subcommand]);
 
       assert_ok!(&result);
@@ -49,6 +51,8 @@ mod tests {
 
     #[rstest]
     #[case(LidarrListCommand::Artists, LidarrEvent::ListArtists)]
+    #[case(LidarrListCommand::MetadataProfiles, LidarrEvent::GetMetadataProfiles)]
+    #[case(LidarrListCommand::QualityProfiles, LidarrEvent::GetQualityProfiles)]
     #[case(LidarrListCommand::Tags, LidarrEvent::GetTags)]
     #[tokio::test]
     async fn test_handle_list_command(
