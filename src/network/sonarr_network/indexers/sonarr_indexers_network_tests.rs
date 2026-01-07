@@ -901,12 +901,14 @@ mod tests {
     async_server.assert_async().await;
     assert_err!(result);
     let app = app.lock().await;
-    assert_some!(
-      &app
+    assert_some!(&app.data.sonarr_data.indexer_test_all_results);
+    assert_is_empty!(
+      app
         .data
         .sonarr_data
         .indexer_test_all_results
+        .as_ref()
+        .unwrap()
     );
-    assert_is_empty!(app.data.sonarr_data.indexer_test_all_results.as_ref().unwrap());
   }
 }

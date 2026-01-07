@@ -873,7 +873,6 @@ mod tests {
       .query("term=test%20term")
       .build_for(SonarrEvent::SearchNewSeries("test term".into()))
       .await;
-    app.lock().await.data.sonarr_data.add_series_search = Some("test term".into());
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
@@ -953,23 +952,15 @@ mod tests {
     app.lock().await.server_tabs.next();
     let mut network = test_network(&app);
 
-    let result =
-      network
-        .handle_sonarr_event(SonarrEvent::SearchNewSeries("test term".into()))
-        .await;
+    let result = network
+      .handle_sonarr_event(SonarrEvent::SearchNewSeries("test term".into()))
+      .await;
 
     async_server.assert_async().await;
     assert_err!(result);
     let app = app.lock().await;
-    assert_some!(
-      &app
-        .data
-        .sonarr_data
-        .add_searched_series
-    );
-    assert_is_empty!(
-      app.data.sonarr_data.add_searched_series.as_ref().unwrap()
-    );
+    assert_some!(&app.data.sonarr_data.add_searched_series);
+    assert_is_empty!(app.data.sonarr_data.add_searched_series.as_ref().unwrap());
   }
 
   #[tokio::test]

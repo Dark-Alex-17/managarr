@@ -13,8 +13,8 @@ mod tests {
   use crate::handlers::lidarr_handlers::library::{LibraryHandler, artists_sorting_options};
   use crate::models::lidarr_models::{Artist, ArtistStatistics, ArtistStatus};
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ActiveLidarrBlock, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
-    LIBRARY_BLOCKS,
+    ADD_ARTIST_BLOCKS, ActiveLidarrBlock, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS,
+    EDIT_ARTIST_SELECTION_BLOCKS, LIBRARY_BLOCKS,
   };
   use crate::models::servarr_data::lidarr::modals::EditArtistModal;
   use crate::network::lidarr_network::LidarrEvent;
@@ -28,6 +28,7 @@ mod tests {
     library_handler_blocks.extend(LIBRARY_BLOCKS);
     library_handler_blocks.extend(DELETE_ARTIST_BLOCKS);
     library_handler_blocks.extend(EDIT_ARTIST_BLOCKS);
+    library_handler_blocks.extend(ADD_ARTIST_BLOCKS);
 
     ActiveLidarrBlock::iter().for_each(|lidarr_block| {
       if library_handler_blocks.contains(&lidarr_block) {
@@ -500,6 +501,35 @@ mod tests {
         ..Artist::default()
       },
     ]
+  }
+
+  #[rstest]
+  fn test_delegates_add_artist_blocks_to_add_artist_handler(
+    #[values(
+      ActiveLidarrBlock::AddArtistSearchInput,
+      ActiveLidarrBlock::AddArtistEmptySearchResults,
+      ActiveLidarrBlock::AddArtistSearchResults
+    )]
+    active_lidarr_block: ActiveLidarrBlock,
+  ) {
+    let mut app = App::test_default_fully_populated();
+    app
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![Artist::default()]);
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app.push_navigation_stack(active_lidarr_block.into());
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      active_lidarr_block,
+      None,
+    )
+    .handle();
+
+    assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
   }
 
   #[test]

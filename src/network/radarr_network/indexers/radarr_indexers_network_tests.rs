@@ -940,14 +940,16 @@ mod tests {
 
     async_server.assert_async().await;
     assert_err!(result);
-    assert_some!(
-      &app
+    assert_some!(&app.lock().await.data.radarr_data.indexer_test_all_results);
+    assert_is_empty!(
+      app
         .lock()
         .await
         .data
         .radarr_data
         .indexer_test_all_results
+        .as_ref()
+        .unwrap()
     );
-    assert_is_empty!(app.lock().await.data.radarr_data.indexer_test_all_results.as_ref().unwrap());
   }
 }

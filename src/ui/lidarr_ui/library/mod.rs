@@ -1,3 +1,4 @@
+use add_artist_ui::AddArtistUi;
 use delete_artist_ui::DeleteArtistUi;
 use edit_artist_ui::EditArtistUi;
 use ratatui::{
@@ -26,6 +27,7 @@ use crate::{
   },
 };
 
+mod add_artist_ui;
 mod delete_artist_ui;
 mod edit_artist_ui;
 
@@ -38,7 +40,8 @@ pub(super) struct LibraryUi;
 impl DrawUi for LibraryUi {
   fn accepts(route: Route) -> bool {
     if let Route::Lidarr(active_lidarr_block, _) = route {
-      return DeleteArtistUi::accepts(route)
+      return AddArtistUi::accepts(route)
+        || DeleteArtistUi::accepts(route)
         || EditArtistUi::accepts(route)
         || LIBRARY_BLOCKS.contains(&active_lidarr_block);
     }
@@ -51,6 +54,7 @@ impl DrawUi for LibraryUi {
     draw_library(f, app, area);
 
     match route {
+      _ if AddArtistUi::accepts(route) => AddArtistUi::draw(f, app, area),
       _ if DeleteArtistUi::accepts(route) => DeleteArtistUi::draw(f, app, area),
       _ if EditArtistUi::accepts(route) => EditArtistUi::draw(f, app, area),
       Route::Lidarr(ActiveLidarrBlock::UpdateAllArtistsPrompt, _) => {

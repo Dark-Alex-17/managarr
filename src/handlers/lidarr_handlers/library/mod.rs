@@ -4,7 +4,7 @@ use crate::{
   handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle},
   matches_key,
   models::{
-    BlockSelectionState,
+    BlockSelectionState, HorizontallyScrollableText,
     lidarr_models::Artist,
     servarr_data::lidarr::lidarr_data::{
       ActiveLidarrBlock, DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
@@ -18,10 +18,12 @@ use crate::{
 use super::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 
+mod add_artist_handler;
 mod delete_artist_handler;
 mod edit_artist_handler;
 
 use crate::models::Route;
+pub(in crate::handlers::lidarr_handlers) use add_artist_handler::AddArtistHandler;
 pub(in crate::handlers::lidarr_handlers) use delete_artist_handler::DeleteArtistHandler;
 pub(in crate::handlers::lidarr_handlers) use edit_artist_handler::EditArtistHandler;
 
@@ -60,6 +62,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
       artists_table_handling_config,
     ) {
       match self.active_lidarr_block {
+        _ if AddArtistHandler::accepts(self.active_lidarr_block) => {
+          AddArtistHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
+            .handle();
+        }
         _ if DeleteArtistHandler::accepts(self.active_lidarr_block) => {
           DeleteArtistHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
             .handle();
@@ -74,7 +80,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
   }
 
   fn accepts(active_block: ActiveLidarrBlock) -> bool {
-    DeleteArtistHandler::accepts(active_block)
+    AddArtistHandler::accepts(active_block)
+      || DeleteArtistHandler::accepts(active_block)
       || EditArtistHandler::accepts(active_block)
       || LIBRARY_BLOCKS.contains(&active_block)
   }
@@ -157,6 +164,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
     let key = self.key;
     match self.active_lidarr_block {
       ActiveLidarrBlock::Artists => match key {
+        _ if matches_key!(add, key) => {
+          self
+            .app
+            .push_navigation_stack(ActiveLidarrBlock::AddArtistSearchInput.into());
+          self.app.data.lidarr_data.add_artist_search = Some(HorizontallyScrollableText::default());
+          self.app.ignore_special_keys_for_textbox_input = true;
+        }
         _ if matches_key!(toggle_monitoring, key) => {
           self.app.data.lidarr_data.prompt_confirm = true;
           self.app.data.lidarr_data.prompt_confirm_action = Some(

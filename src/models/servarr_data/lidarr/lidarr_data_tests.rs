@@ -2,7 +2,7 @@
 mod tests {
   use crate::app::lidarr::lidarr_context_clues::ARTISTS_CONTEXT_CLUES;
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    DELETE_ARTIST_BLOCKS, DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_BLOCKS,
+    ADD_ARTIST_BLOCKS, DELETE_ARTIST_BLOCKS, DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_BLOCKS,
     EDIT_ARTIST_SELECTION_BLOCKS,
   };
   use crate::models::{
@@ -109,7 +109,9 @@ mod tests {
   fn test_lidarr_data_default() {
     let lidarr_data = LidarrData::default();
 
+    assert_none!(lidarr_data.add_artist_search);
     assert!(!lidarr_data.add_import_list_exclusion);
+    assert_none!(lidarr_data.add_searched_artists);
     assert_is_empty!(lidarr_data.artists);
     assert!(!lidarr_data.delete_artist_files);
     assert_is_empty!(lidarr_data.disk_space_vec);
@@ -149,6 +151,14 @@ mod tests {
     assert!(LIBRARY_BLOCKS.contains(&ActiveLidarrBlock::FilterArtists));
     assert!(LIBRARY_BLOCKS.contains(&ActiveLidarrBlock::FilterArtistsError));
     assert!(LIBRARY_BLOCKS.contains(&ActiveLidarrBlock::UpdateAllArtistsPrompt));
+  }
+
+  #[test]
+  fn test_add_artist_blocks_contents() {
+    assert_eq!(ADD_ARTIST_BLOCKS.len(), 3);
+    assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistEmptySearchResults));
+    assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistSearchInput));
+    assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistSearchResults));
   }
 
   #[test]

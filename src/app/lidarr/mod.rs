@@ -28,11 +28,29 @@ impl App<'_> {
           .dispatch_network_event(LidarrEvent::ListArtists.into())
           .await;
       }
+      ActiveLidarrBlock::AddArtistSearchResults => {
+        self
+          .dispatch_network_event(
+            LidarrEvent::SearchNewArtist(self.extract_add_new_artist_search_query().await).into(),
+          )
+          .await;
+      }
       _ => (),
     }
 
     self.check_for_lidarr_prompt_action().await;
     self.reset_tick_count();
+  }
+
+  async fn extract_add_new_artist_search_query(&self) -> String {
+    self
+      .data
+      .lidarr_data
+      .add_artist_search
+      .as_ref()
+      .expect("add_artist_search should be set")
+      .text
+      .clone()
   }
 
   async fn check_for_lidarr_prompt_action(&mut self) {

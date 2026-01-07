@@ -1,11 +1,15 @@
 #[cfg(test)]
 mod tests {
   use crate::models::lidarr_models::{
-    Artist, DeleteArtistParams, EditArtistParams, LidarrSerdeable, NewItemMonitorType,
+    AddArtistSearchResult, Artist, DeleteArtistParams, EditArtistParams, LidarrSerdeable,
+    NewItemMonitorType,
   };
+  use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
   use crate::network::NetworkResource;
   use crate::network::lidarr_network::LidarrEvent;
-  use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::ARTIST_JSON;
+  use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
+    ADD_ARTIST_SEARCH_RESULT_JSON, ARTIST_JSON,
+  };
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use bimap::BiMap;
   use mockito::Matcher;
@@ -355,5 +359,84 @@ mod tests {
 
     async_details_server.assert_async().await;
     async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_search_new_artist_event() {
+    let search_results_json =
+      json!([serde_json::from_str::<Value>(ADD_ARTIST_SEARCH_RESULT_JSON).unwrap()]);
+    let expected_results: Vec<AddArtistSearchResult> =
+      serde_json::from_value(search_results_json.clone()).unwrap();
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(search_results_json)
+      .query("term=test%20artist")
+      .build_for(LidarrEvent::SearchNewArtist("test artist".to_owned()))
+      .await;
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_lidarr_event(LidarrEvent::SearchNewArtist("test artist".to_owned()))
+      .await;
+
+    mock.assert_async().await;
+
+    let LidarrSerdeable::AddArtistSearchResults(search_results) = result.unwrap() else {
+      panic!("Expected AddArtistSearchResults");
+    };
+
+    assert_eq!(search_results, expected_results);
+    assert_some!(&app.lock().await.data.lidarr_data.add_searched_artists);
+  }
+
+  #[tokio::test]
+  async fn test_handle_search_new_artist_event_navigates_to_empty_results_when_empty() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .returns(json!([]))
+      .query("term=nonexistent")
+      .build_for(LidarrEvent::SearchNewArtist("nonexistent".to_owned()))
+      .await;
+    app.lock().await.server_tabs.set_index(2);
+    app
+      .lock()
+      .await
+      .push_navigation_stack(ActiveLidarrBlock::AddArtistSearchResults.into());
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_lidarr_event(LidarrEvent::SearchNewArtist("nonexistent".to_owned()))
+      .await;
+
+    mock.assert_async().await;
+
+    assert_ok!(result);
+    let app = app.lock().await;
+    assert_none!(&app.data.lidarr_data.add_searched_artists);
+    assert_eq!(
+      app.get_current_route(),
+      ActiveLidarrBlock::AddArtistEmptySearchResults.into()
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_search_new_artist_event_sets_empty_table_on_api_error() {
+    let (mock, app, _server) = MockServarrApi::get()
+      .status(500)
+      .query("term=nonexistent")
+      .build_for(LidarrEvent::SearchNewArtist("nonexistent".to_owned()))
+      .await;
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_lidarr_event(LidarrEvent::SearchNewArtist("nonexistent".to_owned()))
+      .await;
+
+    mock.assert_async().await;
+
+    assert_err!(result);
+    let app = app.lock().await;
+    assert_some!(&app.data.lidarr_data.add_searched_artists);
+    assert_is_empty!(app.data.lidarr_data.add_searched_artists.as_ref().unwrap());
   }
 }

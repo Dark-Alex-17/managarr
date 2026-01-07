@@ -3,11 +3,15 @@ use log::{debug, info, warn};
 use serde_json::{Value, json};
 
 use crate::models::Route;
-use crate::models::lidarr_models::{Artist, DeleteArtistParams, EditArtistParams};
+use crate::models::lidarr_models::{
+  AddArtistSearchResult, Artist, DeleteArtistParams, EditArtistParams,
+};
 use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
 use crate::models::servarr_models::CommandBody;
+use crate::models::stateful_table::StatefulTable;
 use crate::network::lidarr_network::LidarrEvent;
 use crate::network::{Network, RequestMethod};
+use urlencoding::encode;
 
 #[cfg(test)]
 #[path = "lidarr_library_network_tests.rs"]
@@ -167,6 +171,46 @@ impl Network<'_, '_> {
     self
       .handle_request::<CommandBody, Value>(request_props, |_, _| ())
       .await
+  }
+
+  pub(in crate::network::lidarr_network) async fn search_artist(
+    &mut self,
+    query: String,
+  ) -> Result<Vec<AddArtistSearchResult>> {
+    info!("Searching for artist: {query}");
+    let event = LidarrEvent::SearchNewArtist(String::new());
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("term={}", encode(&query))),
+      )
+      .await;
+
+    let result = self
+      .handle_request::<(), Vec<AddArtistSearchResult>>(request_props, |artist_vec, mut app| {
+        if artist_vec.is_empty() {
+          app.pop_and_push_navigation_stack(ActiveLidarrBlock::AddArtistEmptySearchResults.into());
+        } else if let Some(add_searched_artists) =
+          app.data.lidarr_data.add_searched_artists.as_mut()
+        {
+          add_searched_artists.set_items(artist_vec);
+        } else {
+          let mut add_searched_artists = StatefulTable::default();
+          add_searched_artists.set_items(artist_vec);
+          app.data.lidarr_data.add_searched_artists = Some(add_searched_artists);
+        }
+      })
+      .await;
+
+    if result.is_err() {
+      self.app.lock().await.data.lidarr_data.add_searched_artists = Some(StatefulTable::default());
+    }
+
+    result
   }
 
   pub(in crate::network::lidarr_network) async fn edit_artist(

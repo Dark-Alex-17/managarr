@@ -74,6 +74,30 @@ mod tests {
 
       assert_ok!(&result);
     }
+
+    #[test]
+    fn test_search_new_artist_requires_query() {
+      let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "search-new-artist"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_search_new_artist_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "search-new-artist",
+        "--query",
+        "test query",
+      ]);
+
+      assert_ok!(&result);
+    }
   }
 
   mod handler {
@@ -252,6 +276,33 @@ mod tests {
       )
       .handle()
       .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_search_new_artist_command() {
+      let expected_query = "test artist".to_owned();
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::SearchNewArtist(expected_query.clone()).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let search_new_artist_command = LidarrCommand::SearchNewArtist {
+        query: expected_query,
+      };
+
+      let result = LidarrCliHandler::with(&app_arc, search_new_artist_command, &mut mock_network)
+        .handle()
+        .await;
 
       assert_ok!(&result);
     }

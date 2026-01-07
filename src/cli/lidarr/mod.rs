@@ -58,6 +58,15 @@ pub enum LidarrCommand {
     about = "Commands to refresh the data in your Lidarr instance"
   )]
   Refresh(LidarrRefreshCommand),
+  #[command(about = "Search for a new artist to add to Lidarr")]
+  SearchNewArtist {
+    #[arg(
+      long,
+      help = "The name of the artist you want to search for",
+      required = true
+    )]
+    query: String,
+  },
   #[command(
     about = "Toggle monitoring for the specified artist corresponding to the given artist ID"
   )]
@@ -127,6 +136,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrCommand> for LidarrCliHandler<'a, '
         LidarrRefreshCommandHandler::with(self.app, refresh_command, self.network)
           .handle()
           .await?
+      }
+      LidarrCommand::SearchNewArtist { query } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::SearchNewArtist(query).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
       }
       LidarrCommand::ToggleArtistMonitoring { artist_id } => {
         let resp = self

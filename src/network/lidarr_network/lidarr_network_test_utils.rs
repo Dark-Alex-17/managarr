@@ -1,15 +1,27 @@
 #[cfg(test)]
-#[allow(dead_code)] // TODO: maybe remove?
+#[allow(dead_code)]
 pub mod test_utils {
   use crate::models::HorizontallyScrollableText;
   use crate::models::lidarr_models::{
-    Artist, ArtistStatistics, ArtistStatus, DownloadRecord, DownloadStatus, DownloadsResponse,
-    EditArtistParams, Member, MetadataProfile, NewItemMonitorType, Ratings, SystemStatus,
+    AddArtistSearchResult, Artist, ArtistStatistics, ArtistStatus, DownloadRecord, DownloadStatus,
+    DownloadsResponse, EditArtistParams, Member, MetadataProfile, NewItemMonitorType, Ratings,
+    SystemStatus,
   };
   use crate::models::servarr_models::{QualityProfile, RootFolder, Tag};
   use bimap::BiMap;
   use chrono::DateTime;
   use serde_json::Number;
+
+  pub const ADD_ARTIST_SEARCH_RESULT_JSON: &str = r#"{
+    "foreignArtistId": "test-foreign-id",
+    "artistName": "Test Artist",
+    "status": "continuing",
+    "overview": "some interesting description of the artist",
+    "artistType": "Person",
+    "disambiguation": "American pianist",
+    "genres": ["soundtrack"],
+    "ratings": { "votes": 15, "value": 8.4 }
+  }"#;
 
   pub const ARTIST_JSON: &str = r#"{
     "id": 1,
@@ -172,6 +184,19 @@ pub mod test_utils {
       tags: Some(vec![tag().id]),
       tag_input_string: Some("alex".to_owned()),
       clear_tags: false,
+    }
+  }
+
+  pub fn add_artist_search_result() -> AddArtistSearchResult {
+    AddArtistSearchResult {
+      foreign_artist_id: "test-foreign-id".to_owned(),
+      artist_name: "Test Artist".into(),
+      status: ArtistStatus::Continuing,
+      overview: Some("some interesting description of the artist".to_owned()),
+      artist_type: Some("Person".to_owned()),
+      disambiguation: Some("American pianist".to_owned()),
+      genres: vec!["soundtrack".to_owned()],
+      ratings: Some(ratings()),
     }
   }
 }

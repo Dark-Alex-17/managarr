@@ -404,7 +404,13 @@ impl Network<'_, '_> {
       .await;
 
     if result.is_err() {
-      self.app.lock().await.data.sonarr_data.indexer_test_all_results = Some(StatefulTable::default());
+      self
+        .app
+        .lock()
+        .await
+        .data
+        .sonarr_data
+        .indexer_test_all_results = Some(StatefulTable::default());
     }
 
     result

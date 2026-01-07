@@ -198,6 +198,19 @@ pub struct SystemStatus {
   pub start_time: DateTime<Utc>,
 }
 
+#[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AddArtistSearchResult {
+  pub foreign_artist_id: String,
+  pub artist_name: HorizontallyScrollableText,
+  pub status: ArtistStatus,
+  pub overview: Option<String>,
+  pub artist_type: Option<String>,
+  pub disambiguation: Option<String>,
+  pub genres: Vec<String>,
+  pub ratings: Option<Ratings>,
+}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub struct DeleteArtistParams {
@@ -229,6 +242,7 @@ impl From<LidarrSerdeable> for Serdeable {
 
 serde_enum_from!(
   LidarrSerdeable {
+    AddArtistSearchResults(Vec<AddArtistSearchResult>),
     Artist(Artist),
     Artists(Vec<Artist>),
     DiskSpaces(Vec<DiskSpace>),

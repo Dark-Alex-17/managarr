@@ -39,6 +39,7 @@ pub enum LidarrEvent {
   GetTags,
   HealthCheck,
   ListArtists,
+  SearchNewArtist(String),
   ToggleArtistMonitoring(i64),
   UpdateAllArtists,
 }
@@ -61,6 +62,7 @@ impl NetworkResource for LidarrEvent {
       LidarrEvent::GetRootFolders => "/rootfolder",
       LidarrEvent::GetStatus => "/system/status",
       LidarrEvent::HealthCheck => "/health",
+      LidarrEvent::SearchNewArtist(_) => "/artist/lookup",
     }
   }
 }
@@ -121,6 +123,9 @@ impl Network<'_, '_> {
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::ListArtists => self.list_artists().await.map(LidarrSerdeable::from),
+      LidarrEvent::SearchNewArtist(query) => {
+        self.search_artist(query).await.map(LidarrSerdeable::from)
+      }
       LidarrEvent::ToggleArtistMonitoring(artist_id) => self
         .toggle_artist_monitoring(artist_id)
         .await

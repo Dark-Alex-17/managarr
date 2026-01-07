@@ -5,8 +5,8 @@ mod tests {
   use serde_json::json;
 
   use crate::models::lidarr_models::{
-    DownloadRecord, DownloadStatus, DownloadsResponse, Member, MetadataProfile, NewItemMonitorType,
-    SystemStatus,
+    AddArtistSearchResult, DownloadRecord, DownloadStatus, DownloadsResponse, Member,
+    MetadataProfile, NewItemMonitorType, SystemStatus,
   };
   use crate::models::servarr_models::{
     DiskSpace, HostConfig, QualityProfile, RootFolder, SecurityConfig, Tag,
@@ -423,5 +423,73 @@ mod tests {
       "Download Client Unavailable"
     );
     assert_str_eq!(DownloadStatus::Fallback.to_display_str(), "Fallback");
+  }
+
+  #[test]
+  fn test_add_artist_search_result_deserialization() {
+    let search_result_json = json!({
+      "foreignArtistId": "test-foreign-id",
+      "artistName": "Test Artist",
+      "status": "continuing",
+      "overview": "Test overview",
+      "artistType": "Group",
+      "disambiguation": "UK Band",
+      "genres": ["Rock", "Alternative"],
+      "ratings": {
+        "votes": 100,
+        "value": 4.5
+      }
+    });
+
+    let search_result: AddArtistSearchResult = serde_json::from_value(search_result_json).unwrap();
+
+    assert_str_eq!(search_result.foreign_artist_id, "test-foreign-id");
+    assert_str_eq!(search_result.artist_name.text, "Test Artist");
+    assert_eq!(search_result.status, ArtistStatus::Continuing);
+    assert_some_eq_x!(&search_result.overview, "Test overview");
+    assert_some_eq_x!(&search_result.artist_type, "Group");
+    assert_some_eq_x!(&search_result.disambiguation, "UK Band");
+    assert_eq!(search_result.genres, vec!["Rock", "Alternative"]);
+    assert_some!(&search_result.ratings);
+
+    let ratings = search_result.ratings.unwrap();
+    assert_eq!(ratings.votes, 100);
+    assert_eq!(ratings.value, 4.5);
+  }
+
+  #[test]
+  fn test_add_artist_search_result_with_optional_fields_none() {
+    let search_result_json = json!({
+      "foreignArtistId": "test-foreign-id",
+      "artistName": "Test Artist",
+      "status": "ended",
+      "genres": []
+    });
+
+    let search_result: AddArtistSearchResult = serde_json::from_value(search_result_json).unwrap();
+
+    assert_str_eq!(search_result.foreign_artist_id, "test-foreign-id");
+    assert_str_eq!(search_result.artist_name.text, "Test Artist");
+    assert_eq!(search_result.status, ArtistStatus::Ended);
+    assert_none!(&search_result.overview);
+    assert_none!(&search_result.artist_type);
+    assert_none!(&search_result.disambiguation);
+    assert!(search_result.genres.is_empty());
+    assert_none!(&search_result.ratings);
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_add_artist_search_results() {
+    let search_results = vec![AddArtistSearchResult {
+      foreign_artist_id: "test-id".to_owned(),
+      ..AddArtistSearchResult::default()
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = search_results.clone().into();
+
+    assert_eq!(
+      lidarr_serdeable,
+      LidarrSerdeable::AddArtistSearchResults(search_results)
+    );
   }
 }
