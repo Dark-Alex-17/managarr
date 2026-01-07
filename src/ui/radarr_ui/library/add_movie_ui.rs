@@ -70,7 +70,7 @@ impl DrawUi for AddMovieUi {
 fn draw_add_movie_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let is_loading = app.is_loading || app.data.radarr_data.add_searched_movies.is_none();
   let current_selection =
-    if let Some(add_searched_movies) = app.data.radarr_data.add_searched_movies.as_ref() {
+    if let Some(add_searched_movies) = app.data.radarr_data.add_searched_movies.as_ref() && app.error.is_empty() {
       add_searched_movies.current_selection().clone()
     } else {
       AddMovieSearchResult::default()

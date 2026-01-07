@@ -65,7 +65,7 @@ impl DrawUi for AddSeriesUi {
 fn draw_add_series_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let is_loading = app.is_loading || app.data.sonarr_data.add_searched_series.is_none();
   let current_selection =
-    if let Some(add_searched_series) = app.data.sonarr_data.add_searched_series.as_ref() {
+    if let Some(add_searched_series) = app.data.sonarr_data.add_searched_series.as_ref() && app.error.is_empty() {
       add_searched_series.current_selection().clone()
     } else {
       AddSeriesSearchResult::default()
