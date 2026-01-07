@@ -10,7 +10,6 @@ use crate::{
       ActiveLidarrBlock, DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
       LIBRARY_BLOCKS,
     },
-    servarr_data::lidarr::modals::EditArtistModal,
     stateful_table::SortOption,
   },
   network::lidarr_network::LidarrEvent,
@@ -22,9 +21,9 @@ use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 mod delete_artist_handler;
 mod edit_artist_handler;
 
+use crate::models::Route;
 pub(in crate::handlers::lidarr_handlers) use delete_artist_handler::DeleteArtistHandler;
 pub(in crate::handlers::lidarr_handlers) use edit_artist_handler::EditArtistHandler;
-use crate::models::Route;
 
 #[cfg(test)]
 #[path = "library_handler_tests.rs"]
@@ -66,7 +65,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
             .handle();
         }
         _ if EditArtistHandler::accepts(self.active_lidarr_block) => {
-          EditArtistHandler::new(self.key, self.app, self.active_lidarr_block, self.context).handle();
+          EditArtistHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
+            .handle();
         }
         _ => self.handle_key_event(),
       }
@@ -168,8 +168,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
             .pop_and_push_navigation_stack(self.active_lidarr_block.into());
         }
         _ if matches_key!(edit, key) => {
-          self.app.data.lidarr_data.edit_artist_modal =
-            Some((&self.app.data.lidarr_data).into());
+          self.app.data.lidarr_data.edit_artist_modal = Some((&self.app.data.lidarr_data).into());
           self
             .app
             .push_navigation_stack(ActiveLidarrBlock::EditArtistPrompt.into());

@@ -1,22 +1,49 @@
 #[cfg(test)]
 mod tests {
-  use pretty_assertions::assert_eq;
   use strum::IntoEnumIterator;
 
-  use crate::models::Route;
-  use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, EDIT_ARTIST_BLOCKS};
+  use crate::app::App;
+  use crate::models::BlockSelectionState;
+  use crate::models::servarr_data::lidarr::lidarr_data::{
+    ActiveLidarrBlock, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
+  };
   use crate::ui::DrawUi;
   use crate::ui::lidarr_ui::library::edit_artist_ui::EditArtistUi;
+  use crate::ui::ui_test_utils::test_utils::render_to_string_with_app;
 
   #[test]
   fn test_edit_artist_ui_accepts() {
-    let mut edit_artist_ui_blocks = Vec::new();
-    for block in ActiveLidarrBlock::iter() {
-      if EditArtistUi::accepts(Route::Lidarr(block, None)) {
-        edit_artist_ui_blocks.push(block);
+    ActiveLidarrBlock::iter().for_each(|active_lidarr_block| {
+      if EDIT_ARTIST_BLOCKS.contains(&active_lidarr_block) {
+        assert!(EditArtistUi::accepts(active_lidarr_block.into()));
+      } else {
+        assert!(!EditArtistUi::accepts(active_lidarr_block.into()));
       }
-    }
+    });
+  }
 
-    assert_eq!(edit_artist_ui_blocks, EDIT_ARTIST_BLOCKS.to_vec());
+  mod snapshot_tests {
+    use crate::ui::ui_test_utils::test_utils::TerminalSize;
+    use rstest::rstest;
+
+    use super::*;
+
+    #[rstest]
+    #[case(ActiveLidarrBlock::EditArtistPrompt)]
+    #[case(ActiveLidarrBlock::EditArtistConfirmPrompt)]
+    #[case(ActiveLidarrBlock::EditArtistSelectMetadataProfile)]
+    #[case(ActiveLidarrBlock::EditArtistSelectMonitorNewItems)]
+    #[case(ActiveLidarrBlock::EditArtistSelectQualityProfile)]
+    fn test_edit_artist_ui_renders(#[case] active_lidarr_block: ActiveLidarrBlock) {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(active_lidarr_block.into());
+      app.data.lidarr_data.selected_block = BlockSelectionState::new(EDIT_ARTIST_SELECTION_BLOCKS);
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        EditArtistUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(format!("edit_artist_{active_lidarr_block}"), output);
+    }
   }
 }

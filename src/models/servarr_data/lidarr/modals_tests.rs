@@ -10,10 +10,16 @@ mod tests {
   #[test]
   fn test_edit_artist_modal_from_lidarr_data() {
     let mut lidarr_data = LidarrData {
-      quality_profile_map: BiMap::from_iter([(1i64, "HD - 1080p".to_owned()), (2i64, "Any".to_owned())]),
-      metadata_profile_map: BiMap::from_iter([(1i64, "Standard".to_owned()), (2i64, "None".to_owned())]),
+      quality_profile_map: BiMap::from_iter([
+        (1i64, "HD - 1080p".to_owned()),
+        (2i64, "Any".to_owned()),
+      ]),
+      metadata_profile_map: BiMap::from_iter([
+        (1i64, "Standard".to_owned()),
+        (2i64, "None".to_owned()),
+      ]),
       tags_map: BiMap::from_iter([(1i64, "usenet".to_owned())]),
-     ..LidarrData::default() 
+      ..LidarrData::default()
     };
     let artist = Artist {
       id: 1,

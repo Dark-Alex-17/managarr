@@ -1,11 +1,16 @@
 #[cfg(test)]
 mod tests {
-  use crate::models::lidarr_models::{Artist, DeleteArtistParams, LidarrSerdeable};
+  use crate::models::lidarr_models::{
+    Artist, DeleteArtistParams, EditArtistParams, LidarrSerdeable, NewItemMonitorType,
+  };
+  use crate::network::NetworkResource;
   use crate::network::lidarr_network::LidarrEvent;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
+  use bimap::BiMap;
   use mockito::Matcher;
   use pretty_assertions::assert_eq;
-  use serde_json::json;
+  use serde_json::{Value, json};
+  use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::ARTIST_JSON;
 
   #[tokio::test]
   async fn test_handle_list_artists_event() {
@@ -70,36 +75,9 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_get_artist_details_event() {
-    let artist_json = json!({
-      "id": 1,
-      "artistName": "Test Artist",
-      "foreignArtistId": "test-foreign-id",
-      "status": "continuing",
-      "overview": "some interesting description of the artist",
-      "artistType": "Person",
-      "disambiguation": "American pianist",
-      "path": "/music/test-artist",
-      "members": [{"name": "alex", "instrument": "piano"}],
-      "qualityProfileId": 1,
-      "metadataProfileId": 1,
-      "monitored": true,
-      "monitorNewItems": "all",
-      "genres": ["soundtrack"],
-      "tags": [1],
-      "added": "2023-01-01T00:00:00Z",
-      "ratings": { "votes": 15, "value": 8.4 },
-      "statistics": {
-        "albumCount": 1,
-        "trackFileCount": 15,
-        "trackCount": 15,
-        "totalTrackCount": 15,
-        "sizeOnDisk": 12345,
-        "percentOfTracks": 99.9
-      }
-    });
-    let response: Artist = serde_json::from_value(artist_json.clone()).unwrap();
+    let expected_artist: Artist = serde_json::from_str(ARTIST_JSON).unwrap();
     let (mock, app, _server) = MockServarrApi::get()
-      .returns(artist_json)
+      .returns(serde_json::from_str(ARTIST_JSON).unwrap())
       .path("/1")
       .build_for(LidarrEvent::GetArtistDetails(1))
       .await;
@@ -116,7 +94,7 @@ mod tests {
       panic!("Expected Artist");
     };
 
-    assert_eq!(artist, response);
+    assert_eq!(artist, expected_artist);
   }
 
   #[tokio::test]
@@ -183,5 +161,199 @@ mod tests {
     );
 
     mock.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_artist_event() {
+    let mut expected_body: Value = serde_json::from_str(ARTIST_JSON).unwrap();
+    *expected_body.get_mut("monitored").unwrap() = json!(false);
+    *expected_body.get_mut("monitorNewItems").unwrap() = json!("none");
+    *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
+    *expected_body.get_mut("metadataProfileId").unwrap() = json!(2222);
+    *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
+    *expected_body.get_mut("tags").unwrap() = json!([1, 2]);
+    let edit_artist_params = EditArtistParams {
+      artist_id: 1,
+      monitored: Some(false),
+      monitor_new_items: Some(NewItemMonitorType::None),
+      quality_profile_id: Some(1111),
+      metadata_profile_id: Some(2222),
+      root_folder_path: Some("/nfs/Test Path".to_owned()),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      ..EditArtistParams::default()
+    };
+
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(ARTIST_JSON).unwrap())
+      .path("/1")
+      .build_for(LidarrEvent::GetArtistDetails(1))
+      .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          LidarrEvent::EditArtist(edit_artist_params.clone()).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    app.lock().await.data.lidarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    assert!(
+      network
+        .handle_lidarr_event(LidarrEvent::EditArtist(edit_artist_params))
+        .await
+        .is_ok()
+    );
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_artist_event_does_not_overwrite_tag_ids_vec_when_tag_input_string_is_none()
+   {
+    let mut expected_body: Value = serde_json::from_str(ARTIST_JSON).unwrap();
+    *expected_body.get_mut("monitored").unwrap() = json!(false);
+    *expected_body.get_mut("monitorNewItems").unwrap() = json!("none");
+    *expected_body.get_mut("qualityProfileId").unwrap() = json!(1111);
+    *expected_body.get_mut("metadataProfileId").unwrap() = json!(2222);
+    *expected_body.get_mut("path").unwrap() = json!("/nfs/Test Path");
+    *expected_body.get_mut("tags").unwrap() = json!([1, 2]);
+    let edit_artist_params = EditArtistParams {
+      artist_id: 1,
+      monitored: Some(false),
+      monitor_new_items: Some(NewItemMonitorType::None),
+      quality_profile_id: Some(1111),
+      metadata_profile_id: Some(2222),
+      root_folder_path: Some("/nfs/Test Path".to_owned()),
+      tags: Some(vec![1, 2]),
+      ..EditArtistParams::default()
+    };
+
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(ARTIST_JSON).unwrap())
+      .path("/1")
+      .build_for(LidarrEvent::GetArtistDetails(1))
+      .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          LidarrEvent::EditArtist(edit_artist_params.clone()).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    app.lock().await.data.lidarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    assert!(
+      network
+        .handle_lidarr_event(LidarrEvent::EditArtist(edit_artist_params))
+        .await
+        .is_ok()
+    );
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_artist_event_defaults_to_previous_values() {
+    let edit_artist_params = EditArtistParams {
+      artist_id: 1,
+      ..EditArtistParams::default()
+    };
+    let expected_body: Value = serde_json::from_str(ARTIST_JSON).unwrap();
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(ARTIST_JSON).unwrap())
+      .path("/1")
+      .build_for(LidarrEvent::GetArtistDetails(1))
+      .await;
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          LidarrEvent::EditArtist(edit_artist_params.clone()).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    assert!(
+      network
+        .handle_lidarr_event(LidarrEvent::EditArtist(edit_artist_params))
+        .await
+        .is_ok()
+    );
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_edit_artist_event_returns_empty_tags_vec_when_clear_tags_is_true() {
+    let mut expected_body: Value = serde_json::from_str(ARTIST_JSON).unwrap();
+    *expected_body.get_mut("tags").unwrap() = json!([]);
+
+    let (async_details_server, app, mut server) = MockServarrApi::get()
+      .returns(serde_json::from_str(ARTIST_JSON).unwrap())
+      .path("/1")
+      .build_for(LidarrEvent::GetArtistDetails(1))
+      .await;
+    let edit_artist_params = EditArtistParams {
+      artist_id: 1,
+      clear_tags: true,
+      ..EditArtistParams::default()
+    };
+    let async_edit_server = server
+      .mock(
+        "PUT",
+        format!(
+          "/api/v1{}/1",
+          LidarrEvent::EditArtist(edit_artist_params.clone()).resource()
+        )
+        .as_str(),
+      )
+      .with_status(202)
+      .match_header("X-Api-Key", "test1234")
+      .match_body(Matcher::Json(expected_body))
+      .create_async()
+      .await;
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    assert!(
+      network
+        .handle_lidarr_event(LidarrEvent::EditArtist(edit_artist_params))
+        .await
+        .is_ok()
+    );
+
+    async_details_server.assert_async().await;
+    async_edit_server.assert_async().await;
   }
 }

@@ -1,5 +1,6 @@
 use serde_json::Number;
 
+use super::modals::EditArtistModal;
 use crate::app::lidarr::lidarr_context_clues::ARTISTS_CONTEXT_CLUES;
 use crate::models::{
   BlockSelectionState, Route, TabRoute, TabState,
@@ -10,16 +11,17 @@ use crate::models::{
 use crate::network::lidarr_network::LidarrEvent;
 use bimap::BiMap;
 use chrono::{DateTime, Utc};
-use strum::{EnumIter};
-use super::modals::EditArtistModal;
+use strum::EnumIter;
 #[cfg(test)]
 use {
-  strum::{Display, EnumString, IntoEnumIterator},
   crate::models::lidarr_models::NewItemMonitorType,
   crate::models::stateful_table::SortOption,
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::quality_profile_map,
+  crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
+    download_record, metadata_profile, metadata_profile_map, quality_profile, root_folder, tags_map,
+  },
   crate::network::servarr_test_utils::diskspace,
-  crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{download_record, metadata_profile, metadata_profile_map, quality_profile, root_folder, tags_map},
+  strum::{Display, EnumString, IntoEnumIterator},
 };
 
 #[cfg(test)]
@@ -114,9 +116,15 @@ impl LidarrData<'_> {
       tags: "alex".into(),
       ..EditArtistModal::default()
     };
-    edit_artist_modal.monitor_list.set_items(NewItemMonitorType::iter().collect());
-    edit_artist_modal.quality_profile_list.set_items(vec![quality_profile().name]);
-    edit_artist_modal.metadata_profile_list.set_items(vec![metadata_profile().name]);
+    edit_artist_modal
+      .monitor_list
+      .set_items(NewItemMonitorType::iter().collect());
+    edit_artist_modal
+      .quality_profile_list
+      .set_items(vec![quality_profile().name]);
+    edit_artist_modal
+      .metadata_profile_list
+      .set_items(vec![metadata_profile().name]);
 
     let mut lidarr_data = LidarrData {
       delete_artist_files: true,
@@ -134,12 +142,8 @@ impl LidarrData<'_> {
     }]);
     lidarr_data.artists.search = Some("artist search".into());
     lidarr_data.artists.filter = Some("artist filter".into());
-    lidarr_data
-      .downloads
-      .set_items(vec![download_record()]);
-    lidarr_data
-      .root_folders
-      .set_items(vec![root_folder()]);
+    lidarr_data.downloads.set_items(vec![download_record()]);
+    lidarr_data.root_folders.set_items(vec![root_folder()]);
     lidarr_data.version = "1.0.0".to_owned();
 
     lidarr_data

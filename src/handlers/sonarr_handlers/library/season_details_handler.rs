@@ -4,6 +4,7 @@ use crate::handlers::sonarr_handlers::history::history_sorting_options;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SEASON_DETAILS_BLOCKS};
 use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::{
@@ -12,7 +13,6 @@ use crate::models::sonarr_models::{
 use crate::models::stateful_table::SortOption;
 use crate::network::sonarr_network::SonarrEvent;
 use serde_json::Number;
-use crate::models::Route;
 
 #[cfg(test)]
 #[path = "season_details_handler_tests.rs"]

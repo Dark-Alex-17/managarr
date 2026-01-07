@@ -1,10 +1,10 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
-use crate::models::{Route, Scrollable};
 use crate::models::lidarr_models::EditArtistParams;
 use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, EDIT_ARTIST_BLOCKS};
 use crate::models::servarr_data::lidarr::modals::EditArtistModal;
+use crate::models::{Route, Scrollable};
 use crate::network::lidarr_network::LidarrEvent;
 use crate::{handle_text_box_keys, handle_text_box_left_right_keys, matches_key};
 

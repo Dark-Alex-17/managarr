@@ -12,7 +12,7 @@ use crate::models::servarr_data::lidarr::modals::EditArtistModal;
 use crate::render_selectable_input_box;
 
 use crate::ui::styles::ManagarrStyle;
-use crate::ui::utils::{title_block_centered};
+use crate::ui::utils::title_block_centered;
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
 use crate::ui::widgets::input_box::InputBox;
@@ -91,7 +91,7 @@ fn draw_edit_artist_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, ar
   let selected_metadata_profile = metadata_profile_list.current_selection();
 
   let [
-  _,
+    _,
     monitored_area,
     monitor_new_items_area,
     quality_profile_area,

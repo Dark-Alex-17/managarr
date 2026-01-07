@@ -1,6 +1,7 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
+use crate::models::Route;
 use crate::models::servarr_data::modals::EditIndexerModal;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EDIT_INDEXER_BLOCKS};
 use crate::models::servarr_models::EditIndexerParams;
@@ -8,7 +9,6 @@ use crate::network::sonarr_network::SonarrEvent;
 use crate::{
   handle_prompt_left_right_keys, handle_text_box_keys, handle_text_box_left_right_keys, matches_key,
 };
-use crate::models::Route;
 
 #[cfg(test)]
 #[path = "edit_indexer_handler_tests.rs"]

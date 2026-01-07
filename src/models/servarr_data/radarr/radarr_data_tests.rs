@@ -1,10 +1,6 @@
 #[cfg(test)]
 mod tests {
   mod radarr_data_tests {
-    use bimap::BiMap;
-    use chrono::{DateTime, Utc};
-    use pretty_assertions::{assert_eq, assert_str_eq};
-    use serde_json::Number;
     use crate::app::context_clues::{
       BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
       ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
@@ -13,6 +9,10 @@ mod tests {
       COLLECTIONS_CONTEXT_CLUES, LIBRARY_CONTEXT_CLUES, MANUAL_MOVIE_SEARCH_CONTEXT_CLUES,
       MOVIE_DETAILS_CONTEXT_CLUES,
     };
+    use bimap::BiMap;
+    use chrono::{DateTime, Utc};
+    use pretty_assertions::{assert_eq, assert_str_eq};
+    use serde_json::Number;
 
     use crate::models::Route;
     use crate::models::servarr_data::radarr::radarr_data::radarr_test_utils::utils;
@@ -73,7 +73,10 @@ mod tests {
         ..RadarrData::default()
       };
 
-      assert_str_eq!(radarr_data.tag_ids_to_display(&[Number::from(1), Number::from(2)]), "test 1, test 2");
+      assert_str_eq!(
+        radarr_data.tag_ids_to_display(&[Number::from(1), Number::from(2)]),
+        "test 1, test 2"
+      );
     }
 
     #[test]
@@ -86,9 +89,16 @@ mod tests {
         quality_profile_map,
         ..RadarrData::default()
       };
-      let expected_quality_profile_vec = vec!["test 1".to_owned(), "test 2".to_owned(), "test 3".to_owned()];
+      let expected_quality_profile_vec = vec![
+        "test 1".to_owned(),
+        "test 2".to_owned(),
+        "test 3".to_owned(),
+      ];
 
-      assert_iter_eq!(radarr_data.sorted_quality_profile_names(), expected_quality_profile_vec);
+      assert_iter_eq!(
+        radarr_data.sorted_quality_profile_names(),
+        expected_quality_profile_vec
+      );
     }
 
     #[test]

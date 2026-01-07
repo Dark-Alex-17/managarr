@@ -1,12 +1,17 @@
 #[cfg(test)]
 mod tests {
+  use std::sync::Arc;
   use crate::models::lidarr_models::{LidarrSerdeable, MetadataProfile};
   use crate::models::servarr_models::{QualityProfile, Tag};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::{NetworkEvent, NetworkResource, lidarr_network::LidarrEvent};
+  use bimap::BiMap;
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use serde_json::json;
+  use tokio::sync::Mutex;
+  use crate::app::App;
+  use crate::models::servarr_data::lidarr::modals::EditArtistModal;
 
   #[rstest]
   fn test_resource_artist(
@@ -168,6 +173,93 @@ mod tests {
     assert_eq!(
       app.lock().await.data.lidarr_data.tags_map.get_by_left(&1),
       Some(&"usenet".to_owned())
+    );
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_lidarr_tag_event() {
+    let tag_json = json!({
+      "id": 1,
+      "label": "usenet"
+    });
+    let response: Tag = serde_json::from_value(tag_json.clone()).unwrap();
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({ "label": "usenet" }))
+      .returns(tag_json)
+      .build_for(LidarrEvent::AddTag("usenet".to_owned()))
+      .await;
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    let result = network
+      .handle_lidarr_event(LidarrEvent::AddTag("usenet".to_owned()))
+      .await;
+
+    mock.assert_async().await;
+
+    let LidarrSerdeable::Tag(tag) = result.unwrap() else {
+      panic!("Expected Tag");
+    };
+
+    assert_eq!(tag, response);
+    assert_eq!(
+      app.lock().await.data.lidarr_data.tags_map.get_by_left(&1),
+      Some(&"usenet".to_owned())
+    );
+  }
+
+  #[tokio::test]
+  async fn test_extract_and_add_lidarr_tag_ids_vec() {
+    let app_arc = Arc::new(Mutex::new(App::test_default()));
+    let tags = "    test,HI ,, usenet ";
+    {
+      let mut app = app_arc.lock().await;
+      app.data.lidarr_data.tags_map = BiMap::from_iter([
+        (1, "usenet".to_owned()),
+        (2, "test".to_owned()),
+        (3, "hi".to_owned()),
+      ]);
+    }
+    app_arc.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app_arc);
+
+    assert_eq!(
+      network.extract_and_add_lidarr_tag_ids_vec(tags).await,
+      vec![2, 3, 1]
+    );
+  }
+
+  #[tokio::test]
+  async fn test_extract_and_add_lidarr_tag_ids_vec_add_missing_tags_first() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({ "label": "TESTING" }))
+      .returns(json!({ "id": 3, "label": "testing" }))
+      .build_for(LidarrEvent::GetTags)
+      .await;
+    let tags = "usenet, test, TESTING";
+    {
+      let mut app_guard = app.lock().await;
+      app_guard.data.lidarr_data.edit_artist_modal = Some(EditArtistModal {
+        tags: tags.into(),
+        ..EditArtistModal::default()
+      });
+      app_guard.data.lidarr_data.tags_map =
+        BiMap::from_iter([(1, "usenet".to_owned()), (2, "test".to_owned())]);
+    }
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    let tag_ids_vec = network.extract_and_add_lidarr_tag_ids_vec(tags).await;
+
+    mock.assert_async().await;
+    assert_eq!(tag_ids_vec, vec![1, 2, 3]);
+    assert_eq!(
+      app.lock().await.data.lidarr_data.tags_map,
+      BiMap::from_iter([
+        (1, "usenet".to_owned()),
+        (2, "test".to_owned()),
+        (3, "testing".to_owned())
+      ])
     );
   }
 }

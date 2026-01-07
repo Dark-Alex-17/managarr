@@ -4,8 +4,8 @@ use crate::handlers::sonarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::sonarr_handlers::system::system_details_handler::SystemDetailsHandler;
 use crate::handlers::{KeyEventHandler, handle_clear_errors};
 use crate::matches_key;
-use crate::models::{Route, Scrollable};
 use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
+use crate::models::{Route, Scrollable};
 
 mod system_details_handler;
 

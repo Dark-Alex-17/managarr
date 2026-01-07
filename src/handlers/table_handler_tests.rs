@@ -9,12 +9,12 @@ mod tests {
   use crate::handlers::KeyEventHandler;
   use crate::handlers::table_handler::TableHandlingConfig;
   use crate::handlers::table_handler::handle_table;
+  use crate::models::Route;
   use crate::models::radarr_models::Movie;
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use crate::models::servarr_models::Language;
   use crate::models::stateful_table::SortOption;
   use rstest::rstest;
-  use crate::models::Route;
 
   struct TableHandlerUnit<'a, 'b> {
     key: Key,

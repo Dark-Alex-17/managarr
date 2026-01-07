@@ -1,12 +1,15 @@
 #[cfg(test)]
 mod tests {
-  use bimap::BiMap;
   use crate::app::lidarr::lidarr_context_clues::ARTISTS_CONTEXT_CLUES;
-  use crate::models::servarr_data::lidarr::lidarr_data::{DELETE_ARTIST_BLOCKS, DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS};
+  use crate::models::servarr_data::lidarr::lidarr_data::{
+    DELETE_ARTIST_BLOCKS, DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_BLOCKS,
+    EDIT_ARTIST_SELECTION_BLOCKS,
+  };
   use crate::models::{
     BlockSelectionState, Route,
     servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LIBRARY_BLOCKS, LidarrData},
   };
+  use bimap::BiMap;
   use chrono::{DateTime, Utc};
   use pretty_assertions::{assert_eq, assert_str_eq};
   use serde_json::Number;
@@ -52,7 +55,10 @@ mod tests {
       ..LidarrData::default()
     };
 
-    assert_str_eq!(lidarr_data.tag_ids_to_display(&[Number::from(1), Number::from(2)]), "test 1, test 2");
+    assert_str_eq!(
+      lidarr_data.tag_ids_to_display(&[Number::from(1), Number::from(2)]),
+      "test 1, test 2"
+    );
   }
 
   #[test]
@@ -65,9 +71,16 @@ mod tests {
       quality_profile_map,
       ..LidarrData::default()
     };
-    let expected_quality_profile_vec = vec!["test 1".to_owned(), "test 2".to_owned(), "test 3".to_owned()];
+    let expected_quality_profile_vec = vec![
+      "test 1".to_owned(),
+      "test 2".to_owned(),
+      "test 3".to_owned(),
+    ];
 
-    assert_iter_eq!(lidarr_data.sorted_quality_profile_names(), expected_quality_profile_vec);
+    assert_iter_eq!(
+      lidarr_data.sorted_quality_profile_names(),
+      expected_quality_profile_vec
+    );
   }
 
   #[test]
@@ -80,9 +93,16 @@ mod tests {
       metadata_profile_map,
       ..LidarrData::default()
     };
-    let expected_metadata_profile_vec = vec!["test 1".to_owned(), "test 2".to_owned(), "test 3".to_owned()];
+    let expected_metadata_profile_vec = vec![
+      "test 1".to_owned(),
+      "test 2".to_owned(),
+      "test 3".to_owned(),
+    ];
 
-    assert_iter_eq!(lidarr_data.sorted_metadata_profile_names(), expected_metadata_profile_vec);
+    assert_iter_eq!(
+      lidarr_data.sorted_metadata_profile_names(),
+      expected_metadata_profile_vec
+    );
   }
 
   #[test]
@@ -176,13 +196,34 @@ mod tests {
   fn test_edit_artist_selection_blocks_ordering() {
     let mut edit_artist_block_iter = EDIT_ARTIST_SELECTION_BLOCKS.iter();
 
-    assert_eq!(edit_artist_block_iter.next().unwrap(), &[ActiveLidarrBlock::EditArtistToggleMonitored]);
-    assert_eq!(edit_artist_block_iter.next().unwrap(), &[ActiveLidarrBlock::EditArtistSelectMonitorNewItems]);
-    assert_eq!(edit_artist_block_iter.next().unwrap(), &[ActiveLidarrBlock::EditArtistSelectQualityProfile]);
-    assert_eq!(edit_artist_block_iter.next().unwrap(), &[ActiveLidarrBlock::EditArtistSelectMetadataProfile]);
-    assert_eq!(edit_artist_block_iter.next().unwrap(), &[ActiveLidarrBlock::EditArtistPathInput]);
-    assert_eq!(edit_artist_block_iter.next().unwrap(), &[ActiveLidarrBlock::EditArtistTagsInput]);
-    assert_eq!(edit_artist_block_iter.next().unwrap(), &[ActiveLidarrBlock::EditArtistConfirmPrompt]);
+    assert_eq!(
+      edit_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::EditArtistToggleMonitored]
+    );
+    assert_eq!(
+      edit_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::EditArtistSelectMonitorNewItems]
+    );
+    assert_eq!(
+      edit_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::EditArtistSelectQualityProfile]
+    );
+    assert_eq!(
+      edit_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::EditArtistSelectMetadataProfile]
+    );
+    assert_eq!(
+      edit_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::EditArtistPathInput]
+    );
+    assert_eq!(
+      edit_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::EditArtistTagsInput]
+    );
+    assert_eq!(
+      edit_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::EditArtistConfirmPrompt]
+    );
     assert_none!(edit_artist_block_iter.next());
   }
 }

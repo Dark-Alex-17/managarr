@@ -1,3 +1,4 @@
+use crate::models::Route;
 use crate::models::sonarr_models::DeleteSeriesParams;
 use crate::network::sonarr_network::SonarrEvent;
 use crate::{
@@ -7,7 +8,6 @@ use crate::{
   matches_key,
   models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, DELETE_SERIES_BLOCKS},
 };
-use crate::models::Route;
 
 #[cfg(test)]
 #[path = "delete_series_handler_tests.rs"]

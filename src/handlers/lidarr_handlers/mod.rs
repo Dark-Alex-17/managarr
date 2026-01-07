@@ -1,10 +1,10 @@
 use library::LibraryHandler;
 
+use super::KeyEventHandler;
+use crate::models::Route;
 use crate::{
   app::App, event::Key, matches_key, models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock,
 };
-use crate::models::Route;
-use super::KeyEventHandler;
 
 mod library;
 

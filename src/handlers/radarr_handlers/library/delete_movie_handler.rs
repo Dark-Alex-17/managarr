@@ -2,8 +2,8 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
-use crate::models::radarr_models::DeleteMovieParams;
 use crate::models::Route;
+use crate::models::radarr_models::DeleteMovieParams;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 use crate::network::radarr_network::RadarrEvent;
 

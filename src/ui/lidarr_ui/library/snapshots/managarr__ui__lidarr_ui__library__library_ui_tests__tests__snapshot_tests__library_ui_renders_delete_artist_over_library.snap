@@ -24,7 +24,7 @@ expression: output
                                                    │                                                           │                                                     
                                                    │                                                           │                                                     
                                                    │                            ╭───╮                          │                                                     
-                                                   │       Delete Artist Files: │   │                          │                                                     
+                                                   │       Delete Artist Files: │ ✔ │                          │                                                     
                                                    │                            ╰───╯                          │                                                     
                                                    │                            ╭───╮                          │                                                     
                                                    │        Add List Exclusion: │   │                          │                                                     

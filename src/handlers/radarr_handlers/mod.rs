@@ -6,9 +6,9 @@ use crate::handlers::radarr_handlers::indexers::IndexersHandler;
 use crate::handlers::radarr_handlers::library::LibraryHandler;
 use crate::handlers::radarr_handlers::root_folders::RootFoldersHandler;
 use crate::handlers::radarr_handlers::system::SystemHandler;
+use crate::models::Route;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::{App, Key, matches_key};
-use crate::models::Route;
 
 mod blocklist;
 mod collections;

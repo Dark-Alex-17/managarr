@@ -3,6 +3,7 @@ mod tests {
   use std::cmp::Ordering;
 
   use pretty_assertions::{assert_eq, assert_str_eq};
+  use rstest::rstest;
   use serde_json::Number;
   use strum::IntoEnumIterator;
 
@@ -11,9 +12,15 @@ mod tests {
   use crate::handlers::KeyEventHandler;
   use crate::handlers::lidarr_handlers::library::{LibraryHandler, artists_sorting_options};
   use crate::models::lidarr_models::{Artist, ArtistStatistics, ArtistStatus};
-  use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS, LIBRARY_BLOCKS};
+  use crate::models::servarr_data::lidarr::lidarr_data::{
+    ActiveLidarrBlock, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
+    LIBRARY_BLOCKS,
+  };
+  use crate::models::servarr_data::lidarr::modals::EditArtistModal;
   use crate::network::lidarr_network::LidarrEvent;
-  use crate::{assert_modal_absent, assert_navigation_popped, assert_navigation_pushed};
+  use crate::{
+    assert_modal_absent, assert_modal_present, assert_navigation_popped, assert_navigation_pushed,
+  };
 
   #[test]
   fn test_library_handler_accepts() {
@@ -22,7 +29,7 @@ mod tests {
     library_handler_blocks.extend(DELETE_ARTIST_BLOCKS);
     library_handler_blocks.extend(EDIT_ARTIST_BLOCKS);
 
-    ActiveLidarrBlock::iter().for_each(|lidarr_block|  {
+    ActiveLidarrBlock::iter().for_each(|lidarr_block| {
       if library_handler_blocks.contains(&lidarr_block) {
         assert!(LibraryHandler::accepts(lidarr_block));
       } else {
@@ -493,5 +500,135 @@ mod tests {
         ..Artist::default()
       },
     ]
+  }
+
+  #[test]
+  fn test_delegates_delete_artist_blocks_to_delete_artist_handler() {
+    let mut app = App::test_default();
+    app
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![Artist::default()]);
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app.push_navigation_stack(ActiveLidarrBlock::DeleteArtistPrompt.into());
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveLidarrBlock::DeleteArtistPrompt,
+      None,
+    )
+    .handle();
+
+    assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
+  }
+
+  #[rstest]
+  fn test_delegates_edit_artist_blocks_to_edit_artist_handler(
+    #[values(
+      ActiveLidarrBlock::EditArtistPrompt,
+      ActiveLidarrBlock::EditArtistSelectMetadataProfile,
+      ActiveLidarrBlock::EditArtistSelectMonitorNewItems,
+      ActiveLidarrBlock::EditArtistSelectQualityProfile,
+      ActiveLidarrBlock::EditArtistTagsInput,
+      ActiveLidarrBlock::EditArtistPathInput,
+    )]
+    active_lidarr_block: ActiveLidarrBlock,
+  ) {
+    let mut app = App::test_default();
+    app
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![Artist::default()]);
+    app.data.lidarr_data.edit_artist_modal = Some(EditArtistModal::default());
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app.push_navigation_stack(active_lidarr_block.into());
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      active_lidarr_block,
+      None,
+    )
+    .handle();
+
+    assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
+  }
+
+  #[test]
+  fn test_edit_key() {
+    let mut app = App::test_default();
+    app
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![Artist::default()]);
+    app.data.lidarr_data.quality_profile_map =
+      bimap::BiMap::from_iter([(0i64, "Default Quality".to_owned())]);
+    app.data.lidarr_data.metadata_profile_map =
+      bimap::BiMap::from_iter([(0i64, "Default Metadata".to_owned())]);
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.edit.key,
+      &mut app,
+      ActiveLidarrBlock::Artists,
+      None,
+    )
+    .handle();
+
+    assert_navigation_pushed!(app, ActiveLidarrBlock::EditArtistPrompt.into());
+    assert_modal_present!(app.data.lidarr_data.edit_artist_modal);
+    assert_eq!(
+      app.data.lidarr_data.selected_block.blocks,
+      EDIT_ARTIST_SELECTION_BLOCKS
+    );
+  }
+
+  #[test]
+  fn test_edit_key_no_op_when_not_ready() {
+    let mut app = App::test_default();
+    app.is_loading = true;
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![Artist::default()]);
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.edit.key,
+      &mut app,
+      ActiveLidarrBlock::Artists,
+      None,
+    )
+    .handle();
+
+    assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
+    assert_modal_absent!(app.data.lidarr_data.edit_artist_modal);
+  }
+
+  #[test]
+  fn test_refresh_key() {
+    let mut app = App::test_default();
+    app
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![Artist::default()]);
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.refresh.key,
+      &mut app,
+      ActiveLidarrBlock::Artists,
+      None,
+    )
+    .handle();
+
+    assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
+    assert!(app.should_refresh);
   }
 }
