@@ -272,10 +272,6 @@ impl HorizontallyScrollableText {
       }
     }
   }
-
-  pub fn is_empty(&self) -> bool {
-    self.text.is_empty()
-  }
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]

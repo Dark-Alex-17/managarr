@@ -35,7 +35,7 @@ fn draw_test_all_indexers_test_results(f: &mut Frame<'_>, app: &mut App<'_>, are
   let block = title_block("Test All Indexers");
 
   let current_selection =
-    if let Some(test_all_results) = app.data.radarr_data.indexer_test_all_results.as_ref() {
+    if let Some(test_all_results) = app.data.radarr_data.indexer_test_all_results.as_ref() && !test_all_results.is_empty() {
       test_all_results.current_selection().clone()
     } else {
       IndexerTestResultModalItem::default()

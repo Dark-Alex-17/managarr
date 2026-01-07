@@ -34,7 +34,7 @@ impl DrawUi for TestAllIndexersUi {
 fn draw_test_all_indexers_test_results(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let is_loading = app.is_loading || app.data.sonarr_data.indexer_test_all_results.is_none();
   let current_selection =
-    if let Some(test_all_results) = app.data.sonarr_data.indexer_test_all_results.as_ref() {
+    if let Some(test_all_results) = app.data.sonarr_data.indexer_test_all_results.as_ref() && !test_all_results.is_empty() {
       test_all_results.current_selection().clone()
     } else {
       IndexerTestResultModalItem::default()

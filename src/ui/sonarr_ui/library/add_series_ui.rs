@@ -64,12 +64,14 @@ impl DrawUi for AddSeriesUi {
 
 fn draw_add_series_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let is_loading = app.is_loading || app.data.sonarr_data.add_searched_series.is_none();
-  let current_selection =
-    if let Some(add_searched_series) = app.data.sonarr_data.add_searched_series.as_ref() && app.error.is_empty() {
-      add_searched_series.current_selection().clone()
-    } else {
-      AddSeriesSearchResult::default()
-    };
+  let current_selection = if let Some(add_searched_series) =
+    app.data.sonarr_data.add_searched_series.as_ref()
+    && !add_searched_series.is_empty()
+  {
+    add_searched_series.current_selection().clone()
+  } else {
+    AddSeriesSearchResult::default()
+  };
 
   let [search_box_area, results_area] =
     Layout::vertical([Constraint::Length(3), Constraint::Fill(0)])

@@ -177,11 +177,6 @@ mod tests {
   }
 
   #[test]
-  fn test_horizontally_scrollable_text_is_empty() {
-    assert_is_empty!(HorizontallyScrollableText::from(""))
-  }
-
-  #[test]
   fn test_horizontally_scrollable_text_scroll_text_left() {
     let horizontally_scrollable_text = HorizontallyScrollableText::from("Test string");
 
