@@ -26,6 +26,10 @@ mod tests {
     );
     assert_some_eq_x!(
       artists_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc)
+    );
+    assert_some_eq_x!(
+      artists_context_clues_iter.next(),
       &(DEFAULT_KEYBINDINGS.delete, DEFAULT_KEYBINDINGS.delete.desc)
     );
     assert_some_eq_x!(

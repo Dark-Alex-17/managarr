@@ -5,7 +5,7 @@ use crate::models::servarr_data::sonarr::sonarr_data::{
   ADD_SERIES_BLOCKS, ADD_SERIES_SELECTION_BLOCKS, ActiveSonarrBlock,
 };
 use crate::models::sonarr_models::{AddSeriesBody, AddSeriesOptions, AddSeriesSearchResult};
-use crate::models::{BlockSelectionState, Scrollable};
+use crate::models::{BlockSelectionState, Route, Scrollable};
 use crate::network::sonarr_network::SonarrEvent;
 use crate::{App, Key, handle_text_box_keys, handle_text_box_left_right_keys, matches_key};
 
@@ -625,7 +625,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

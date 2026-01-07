@@ -1,7 +1,7 @@
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
-use crate::models::Scrollable;
+use crate::models::{Route, Scrollable};
 use crate::models::radarr_models::EditCollectionParams;
 use crate::models::servarr_data::radarr::modals::EditCollectionModal;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, EDIT_COLLECTION_BLOCKS};
@@ -376,7 +376,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for EditCollectionHandle
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

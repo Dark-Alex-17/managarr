@@ -9,6 +9,7 @@ use crate::network::radarr_network::RadarrEvent;
 use crate::{
   handle_prompt_left_right_keys, handle_text_box_keys, handle_text_box_left_right_keys, matches_key,
 };
+use crate::models::Route;
 
 #[cfg(test)]
 #[path = "edit_indexer_settings_handler_tests.rs"]
@@ -293,7 +294,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for IndexerSettingsHandl
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

@@ -284,6 +284,7 @@ pub mod test_utils {
       subtitles: Some("English".to_owned()),
     }
   }
+
   pub fn quality() -> Quality {
     Quality {
       name: "Bluray-1080p".to_owned(),

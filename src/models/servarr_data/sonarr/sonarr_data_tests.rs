@@ -1,9 +1,10 @@
 #[cfg(test)]
 mod tests {
   mod sonarr_data_tests {
+    use bimap::BiMap;
     use chrono::{DateTime, Utc};
     use pretty_assertions::{assert_eq, assert_str_eq};
-
+    use serde_json::Number;
     use crate::app::sonarr::sonarr_context_clues::SERIES_HISTORY_CONTEXT_CLUES;
     use crate::models::sonarr_models::{Season, SonarrHistoryItem};
     use crate::models::stateful_table::StatefulTable;
@@ -75,6 +76,50 @@ mod tests {
       assert!(sonarr_data.series_history.is_none());
       assert!(sonarr_data.seasons.is_empty());
       assert_eq!(sonarr_data.series_info_tabs.index, 0);
+    }
+
+    #[test]
+    fn test_tag_ids_to_display() {
+      let mut tags_map = BiMap::new();
+      tags_map.insert(3, "test 3".to_owned());
+      tags_map.insert(2, "test 2".to_owned());
+      tags_map.insert(1, "test 1".to_owned());
+      let sonarr_data = SonarrData {
+        tags_map,
+        ..SonarrData::default()
+      };
+
+      assert_str_eq!(sonarr_data.tag_ids_to_display(&[Number::from(1), Number::from(2)]), "test 1, test 2");
+    }
+
+    #[test]
+    fn test_sorted_quality_profile_names() {
+      let mut quality_profile_map = BiMap::new();
+      quality_profile_map.insert(3, "test 3".to_owned());
+      quality_profile_map.insert(2, "test 2".to_owned());
+      quality_profile_map.insert(1, "test 1".to_owned());
+      let sonarr_data = SonarrData {
+        quality_profile_map,
+        ..SonarrData::default()
+      };
+      let expected_quality_profile_vec = vec!["test 1".to_owned(), "test 2".to_owned(), "test 3".to_owned()];
+
+      assert_iter_eq!(sonarr_data.sorted_quality_profile_names(), expected_quality_profile_vec);
+    }
+
+    #[test]
+    fn test_sorted_language_profile_names() {
+      let mut language_profiles_map = BiMap::new();
+      language_profiles_map.insert(3, "test 3".to_owned());
+      language_profiles_map.insert(2, "test 2".to_owned());
+      language_profiles_map.insert(1, "test 1".to_owned());
+      let sonarr_data = SonarrData {
+        language_profiles_map,
+        ..SonarrData::default()
+      };
+      let expected_language_profiles_vec = vec!["test 1".to_owned(), "test 2".to_owned(), "test 3".to_owned()];
+
+      assert_iter_eq!(sonarr_data.sorted_language_profile_names(), expected_language_profiles_vec);
     }
 
     #[test]

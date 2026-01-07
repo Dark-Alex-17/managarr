@@ -11,19 +11,24 @@ mod tests {
   use crate::handlers::KeyEventHandler;
   use crate::handlers::lidarr_handlers::library::{LibraryHandler, artists_sorting_options};
   use crate::models::lidarr_models::{Artist, ArtistStatistics, ArtistStatus};
-  use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, LIBRARY_BLOCKS};
+  use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS, LIBRARY_BLOCKS};
   use crate::network::lidarr_network::LidarrEvent;
   use crate::{assert_modal_absent, assert_navigation_popped, assert_navigation_pushed};
 
   #[test]
   fn test_library_handler_accepts() {
-    for lidarr_block in ActiveLidarrBlock::iter() {
-      if LIBRARY_BLOCKS.contains(&lidarr_block) {
+    let mut library_handler_blocks = Vec::new();
+    library_handler_blocks.extend(LIBRARY_BLOCKS);
+    library_handler_blocks.extend(DELETE_ARTIST_BLOCKS);
+    library_handler_blocks.extend(EDIT_ARTIST_BLOCKS);
+
+    ActiveLidarrBlock::iter().for_each(|lidarr_block|  {
+      if library_handler_blocks.contains(&lidarr_block) {
         assert!(LibraryHandler::accepts(lidarr_block));
       } else {
         assert!(!LibraryHandler::accepts(lidarr_block));
       }
-    }
+    });
   }
 
   #[test]

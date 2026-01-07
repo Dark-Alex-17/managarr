@@ -118,6 +118,7 @@ impl From<(&i64, &String)> for MetadataProfile {
   Copy,
   Debug,
   EnumIter,
+  clap::ValueEnum,
   Display,
   EnumDisplayStyle,
 )]
@@ -205,6 +206,21 @@ pub struct DeleteArtistParams {
   pub add_import_list_exclusion: bool,
 }
 
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct EditArtistParams {
+  pub artist_id: i64,
+  pub monitored: Option<bool>,
+  pub monitor_new_items: Option<NewItemMonitorType>,
+  pub quality_profile_id: Option<i64>,
+  pub metadata_profile_id: Option<i64>,
+  pub root_folder_path: Option<String>,
+  pub tags: Option<Vec<i64>>,
+  #[serde(skip_serializing, skip_deserializing)]
+  pub tag_input_string: Option<String>,
+  pub clear_tags: bool,
+}
+
 impl From<LidarrSerdeable> for Serdeable {
   fn from(value: LidarrSerdeable) -> Serdeable {
     Serdeable::Lidarr(value)
@@ -223,6 +239,7 @@ serde_enum_from!(
     RootFolders(Vec<RootFolder>),
     SecurityConfig(SecurityConfig),
     SystemStatus(SystemStatus),
+    Tag(Tag),
     Tags(Vec<Tag>),
     Value(Value),
   }

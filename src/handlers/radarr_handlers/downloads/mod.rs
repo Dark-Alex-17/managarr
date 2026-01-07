@@ -4,6 +4,7 @@ use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
 use crate::matches_key;
+use crate::models::Route;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DOWNLOADS_BLOCKS};
 use crate::network::radarr_network::RadarrEvent;
 
@@ -164,7 +165,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DownloadsHandler<'a,
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

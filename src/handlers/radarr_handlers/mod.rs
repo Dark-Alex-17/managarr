@@ -8,6 +8,7 @@ use crate::handlers::radarr_handlers::root_folders::RootFoldersHandler;
 use crate::handlers::radarr_handlers::system::SystemHandler;
 use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
 use crate::{App, Key, matches_key};
+use crate::models::Route;
 
 mod blocklist;
 mod collections;
@@ -112,7 +113,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RadarrHandler<'a, 'b
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

@@ -14,6 +14,7 @@ mod tests {
   use crate::models::servarr_models::Language;
   use crate::models::stateful_table::SortOption;
   use rstest::rstest;
+  use crate::models::Route;
 
   struct TableHandlerUnit<'a, 'b> {
     key: Key,
@@ -98,7 +99,7 @@ mod tests {
       self.app
     }
 
-    fn current_route(&self) -> crate::models::Route {
+    fn current_route(&self) -> Route {
       self.app.get_current_route()
     }
   }

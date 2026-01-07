@@ -1,4 +1,5 @@
 use delete_artist_ui::DeleteArtistUi;
+use edit_artist_ui::EditArtistUi;
 use ratatui::{
   Frame,
   layout::{Constraint, Rect},
@@ -26,6 +27,7 @@ use crate::{
 };
 
 mod delete_artist_ui;
+mod edit_artist_ui;
 
 #[cfg(test)]
 #[path = "library_ui_tests.rs"]
@@ -36,7 +38,9 @@ pub(super) struct LibraryUi;
 impl DrawUi for LibraryUi {
   fn accepts(route: Route) -> bool {
     if let Route::Lidarr(active_lidarr_block, _) = route {
-      return DeleteArtistUi::accepts(route) || LIBRARY_BLOCKS.contains(&active_lidarr_block);
+      return DeleteArtistUi::accepts(route)
+        || EditArtistUi::accepts(route)
+        || LIBRARY_BLOCKS.contains(&active_lidarr_block);
     }
 
     false
@@ -48,6 +52,7 @@ impl DrawUi for LibraryUi {
 
     match route {
       _ if DeleteArtistUi::accepts(route) => DeleteArtistUi::draw(f, app, area),
+      _ if EditArtistUi::accepts(route) => EditArtistUi::draw(f, app, area),
       Route::Lidarr(ActiveLidarrBlock::UpdateAllArtistsPrompt, _) => {
         let confirmation_prompt = ConfirmationPrompt::new()
           .title("Update All Artists")

@@ -7,7 +7,7 @@ use crate::handlers::sonarr_handlers::indexers::test_all_indexers_handler::TestA
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
 use crate::matches_key;
-use crate::models::BlockSelectionState;
+use crate::models::{BlockSelectionState, Route};
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, EDIT_INDEXER_NZB_SELECTION_BLOCKS, EDIT_INDEXER_TORRENT_SELECTION_BLOCKS,
   INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS,
@@ -211,7 +211,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for IndexersHandler<'a, 
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

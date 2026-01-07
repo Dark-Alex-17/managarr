@@ -2,7 +2,9 @@ use anyhow::Result;
 use log::info;
 
 use super::{NetworkEvent, NetworkResource};
-use crate::models::lidarr_models::{DeleteArtistParams, LidarrSerdeable, MetadataProfile};
+use crate::models::lidarr_models::{
+  DeleteArtistParams, EditArtistParams, LidarrSerdeable, MetadataProfile,
+};
 use crate::models::servarr_models::{QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
 
@@ -15,9 +17,15 @@ mod system;
 #[path = "lidarr_network_tests.rs"]
 mod lidarr_network_tests;
 
+#[cfg(test)]
+#[path = "lidarr_network_test_utils.rs"]
+pub mod lidarr_network_test_utils;
+
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum LidarrEvent {
+  AddTag(String),
   DeleteArtist(DeleteArtistParams),
+  EditArtist(EditArtistParams),
   GetArtistDetails(i64),
   GetDiskSpace,
   GetDownloads(u64),
@@ -37,7 +45,9 @@ pub enum LidarrEvent {
 impl NetworkResource for LidarrEvent {
   fn resource(&self) -> &'static str {
     match &self {
+      LidarrEvent::AddTag(_) | LidarrEvent::GetTags => "/tag",
       LidarrEvent::DeleteArtist(_)
+      | LidarrEvent::EditArtist(_)
       | LidarrEvent::GetArtistDetails(_)
       | LidarrEvent::ListArtists
       | LidarrEvent::ToggleArtistMonitoring(_) => "/artist",
@@ -49,7 +59,6 @@ impl NetworkResource for LidarrEvent {
       LidarrEvent::GetQualityProfiles => "/qualityprofile",
       LidarrEvent::GetRootFolders => "/rootfolder",
       LidarrEvent::GetStatus => "/system/status",
-      LidarrEvent::GetTags => "/tag",
       LidarrEvent::HealthCheck => "/health",
     }
   }
@@ -67,6 +76,7 @@ impl Network<'_, '_> {
     lidarr_event: LidarrEvent,
   ) -> Result<LidarrSerdeable> {
     match lidarr_event {
+      LidarrEvent::AddTag(tag) => self.add_lidarr_tag(tag).await.map(LidarrSerdeable::from),
       LidarrEvent::DeleteArtist(params) => {
         self.delete_artist(params).await.map(LidarrSerdeable::from)
       }
@@ -111,6 +121,7 @@ impl Network<'_, '_> {
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::UpdateAllArtists => self.update_all_artists().await.map(LidarrSerdeable::from),
+      LidarrEvent::EditArtist(params) => self.edit_artist(params).await.map(LidarrSerdeable::from),
     }
   }
 
@@ -179,5 +190,62 @@ impl Network<'_, '_> {
           .collect();
       })
       .await
+  }
+
+  async fn add_lidarr_tag(&mut self, tag: String) -> Result<Tag> {
+    info!("Adding a new Lidarr tag");
+    let event = LidarrEvent::AddTag(String::new());
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Post,
+        Some(serde_json::json!({ "label": tag })),
+        None,
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<serde_json::Value, Tag>(request_props, |tag, mut app| {
+        app.data.lidarr_data.tags_map.insert(tag.id, tag.label);
+      })
+      .await
+  }
+
+  pub(in crate::network::lidarr_network) async fn extract_and_add_lidarr_tag_ids_vec(
+    &mut self,
+    edit_tags: &str,
+  ) -> Vec<i64> {
+    let missing_tags_vec = {
+      let tags_map = &self.app.lock().await.data.lidarr_data.tags_map;
+      edit_tags
+        .split(',')
+        .filter(|&tag| {
+          !tag.is_empty() && tags_map.get_by_right(tag.to_lowercase().trim()).is_none()
+        })
+        .collect::<Vec<&str>>()
+    };
+
+    for tag in missing_tags_vec {
+      self
+        .add_lidarr_tag(tag.trim().to_owned())
+        .await
+        .expect("Unable to add tag");
+    }
+
+    let app = self.app.lock().await;
+    edit_tags
+      .split(',')
+      .filter(|tag| !tag.is_empty())
+      .map(|tag| {
+        *app
+          .data
+          .lidarr_data
+          .tags_map
+          .get_by_right(tag.to_lowercase().trim())
+          .unwrap()
+      })
+      .collect()
   }
 }

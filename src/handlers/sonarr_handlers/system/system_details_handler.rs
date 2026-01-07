@@ -2,7 +2,7 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
-use crate::models::Scrollable;
+use crate::models::{Route, Scrollable};
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SYSTEM_DETAILS_BLOCKS};
 use crate::models::sonarr_models::SonarrTaskName;
 use crate::models::stateful_list::StatefulList;
@@ -201,7 +201,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SystemDetailsHandler
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

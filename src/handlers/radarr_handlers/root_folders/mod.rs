@@ -3,7 +3,7 @@ use crate::event::Key;
 use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
-use crate::models::HorizontallyScrollableText;
+use crate::models::{HorizontallyScrollableText, Route};
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, ROOT_FOLDERS_BLOCKS};
 use crate::models::servarr_models::AddRootFolderBody;
 use crate::network::radarr_network::RadarrEvent;
@@ -231,7 +231,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for RootFoldersHandler<'
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

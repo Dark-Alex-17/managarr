@@ -7,6 +7,7 @@ use crate::{
   matches_key,
   models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, DELETE_ARTIST_BLOCKS},
 };
+use crate::models::Route;
 
 #[cfg(test)]
 #[path = "delete_artist_handler_tests.rs"]
@@ -143,7 +144,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for DeleteArtistHandler<
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

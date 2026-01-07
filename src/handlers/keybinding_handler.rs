@@ -2,6 +2,7 @@ use crate::app::App;
 use crate::event::Key;
 use crate::handlers::KeyEventHandler;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
+use crate::models::Route;
 use crate::models::servarr_data::ActiveKeybindingBlock;
 
 #[cfg(test)]
@@ -75,7 +76,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveKeybindingBlock> for KeybindingHandle
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

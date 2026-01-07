@@ -1,9 +1,9 @@
-use library::{DeleteArtistHandler, LibraryHandler};
+use library::LibraryHandler;
 
 use crate::{
   app::App, event::Key, matches_key, models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock,
 };
-
+use crate::models::Route;
 use super::KeyEventHandler;
 
 mod library;
@@ -22,10 +22,6 @@ pub(super) struct LidarrHandler<'a, 'b> {
 impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LidarrHandler<'a, 'b> {
   fn handle(&mut self) {
     match self.active_lidarr_block {
-      _ if DeleteArtistHandler::accepts(self.active_lidarr_block) => {
-        DeleteArtistHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
-          .handle();
-      }
       _ if LibraryHandler::accepts(self.active_lidarr_block) => {
         LibraryHandler::new(self.key, self.app, self.active_lidarr_block, self.context).handle();
       }
@@ -85,7 +81,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LidarrHandler<'a, 'b
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

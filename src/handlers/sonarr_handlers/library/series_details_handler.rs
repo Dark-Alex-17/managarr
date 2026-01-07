@@ -4,7 +4,7 @@ use crate::handlers::sonarr_handlers::history::history_sorting_options;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
-use crate::models::BlockSelectionState;
+use crate::models::{BlockSelectionState, Route};
 use crate::models::servarr_data::sonarr::sonarr_data::{
   ActiveSonarrBlock, EDIT_SERIES_SELECTION_BLOCKS, SERIES_DETAILS_BLOCKS,
 };
@@ -342,7 +342,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

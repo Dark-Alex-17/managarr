@@ -12,6 +12,7 @@ use crate::models::sonarr_models::{
 use crate::models::stateful_table::SortOption;
 use crate::network::sonarr_network::SonarrEvent;
 use serde_json::Number;
+use crate::models::Route;
 
 #[cfg(test)]
 #[path = "season_details_handler_tests.rs"]
@@ -458,7 +459,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeasonDetailsHandler
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

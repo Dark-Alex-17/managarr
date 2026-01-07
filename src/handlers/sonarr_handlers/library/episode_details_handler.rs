@@ -4,6 +4,7 @@ use crate::handlers::sonarr_handlers::library::season_details_handler::releases_
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
+use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, EPISODE_DETAILS_BLOCKS};
 use crate::models::sonarr_models::{SonarrRelease, SonarrReleaseDownloadBody};
 use crate::network::sonarr_network::SonarrEvent;
@@ -370,7 +371,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for EpisodeDetailsHandle
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

@@ -7,8 +7,10 @@ use crate::{
     BlockSelectionState,
     lidarr_models::Artist,
     servarr_data::lidarr::lidarr_data::{
-      ActiveLidarrBlock, DELETE_ARTIST_SELECTION_BLOCKS, LIBRARY_BLOCKS,
+      ActiveLidarrBlock, DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
+      LIBRARY_BLOCKS,
     },
+    servarr_data::lidarr::modals::EditArtistModal,
     stateful_table::SortOption,
   },
   network::lidarr_network::LidarrEvent,
@@ -18,8 +20,11 @@ use super::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 
 mod delete_artist_handler;
+mod edit_artist_handler;
 
 pub(in crate::handlers::lidarr_handlers) use delete_artist_handler::DeleteArtistHandler;
+pub(in crate::handlers::lidarr_handlers) use edit_artist_handler::EditArtistHandler;
+use crate::models::Route;
 
 #[cfg(test)]
 #[path = "library_handler_tests.rs"]
@@ -29,7 +34,7 @@ pub(super) struct LibraryHandler<'a, 'b> {
   key: Key,
   app: &'a mut App<'b>,
   active_lidarr_block: ActiveLidarrBlock,
-  _context: Option<ActiveLidarrBlock>,
+  context: Option<ActiveLidarrBlock>,
 }
 
 impl LibraryHandler<'_, '_> {
@@ -55,12 +60,23 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
       |app| &mut app.data.lidarr_data.artists,
       artists_table_handling_config,
     ) {
-      self.handle_key_event();
+      match self.active_lidarr_block {
+        _ if DeleteArtistHandler::accepts(self.active_lidarr_block) => {
+          DeleteArtistHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
+            .handle();
+        }
+        _ if EditArtistHandler::accepts(self.active_lidarr_block) => {
+          EditArtistHandler::new(self.key, self.app, self.active_lidarr_block, self.context).handle();
+        }
+        _ => self.handle_key_event(),
+      }
     }
   }
 
   fn accepts(active_block: ActiveLidarrBlock) -> bool {
-    LIBRARY_BLOCKS.contains(&active_block)
+    DeleteArtistHandler::accepts(active_block)
+      || EditArtistHandler::accepts(active_block)
+      || LIBRARY_BLOCKS.contains(&active_block)
   }
 
   fn ignore_special_keys(&self) -> bool {
@@ -77,7 +93,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
       key,
       app,
       active_lidarr_block: active_block,
-      _context: context,
+      context,
     }
   }
 
@@ -151,6 +167,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
             .app
             .pop_and_push_navigation_stack(self.active_lidarr_block.into());
         }
+        _ if matches_key!(edit, key) => {
+          self.app.data.lidarr_data.edit_artist_modal =
+            Some((&self.app.data.lidarr_data).into());
+          self
+            .app
+            .push_navigation_stack(ActiveLidarrBlock::EditArtistPrompt.into());
+          self.app.data.lidarr_data.selected_block =
+            BlockSelectionState::new(EDIT_ARTIST_SELECTION_BLOCKS);
+        }
         _ if matches_key!(update, key) => {
           self
             .app
@@ -177,7 +202,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

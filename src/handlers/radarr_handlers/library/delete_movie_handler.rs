@@ -3,6 +3,7 @@ use crate::event::Key;
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
 use crate::models::radarr_models::DeleteMovieParams;
+use crate::models::Route;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, DELETE_MOVIE_BLOCKS};
 use crate::network::radarr_network::RadarrEvent;
 
@@ -141,7 +142,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for DeleteMovieHandler<'
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }

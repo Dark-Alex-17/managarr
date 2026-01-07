@@ -6,7 +6,7 @@ use crate::handlers::radarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
 use crate::matches_key;
-use crate::models::BlockSelectionState;
+use crate::models::{BlockSelectionState, Route};
 use crate::models::radarr_models::Collection;
 use crate::models::servarr_data::radarr::radarr_data::{
   ActiveRadarrBlock, COLLECTIONS_BLOCKS, EDIT_COLLECTION_SELECTION_BLOCKS,
@@ -179,7 +179,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveRadarrBlock> for CollectionsHandler<'
     self.app
   }
 
-  fn current_route(&self) -> crate::models::Route {
+  fn current_route(&self) -> Route {
     self.app.get_current_route()
   }
 }
