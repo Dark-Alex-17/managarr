@@ -20,6 +20,8 @@ mod list_command_handler_tests;
 pub enum LidarrListCommand {
   #[command(about = "List all artists in your Lidarr library")]
   Artists,
+  #[command(about = "List all Lidarr tags")]
+  Tags,
 }
 
 impl From<LidarrListCommand> for Command {
@@ -53,6 +55,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrListCommand> for LidarrListCommandH
         let resp = self
           .network
           .handle_network_event(LidarrEvent::ListArtists.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrListCommand::Tags => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetTags.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

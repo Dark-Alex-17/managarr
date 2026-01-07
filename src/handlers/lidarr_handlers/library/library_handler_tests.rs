@@ -532,7 +532,7 @@ mod tests {
       ActiveLidarrBlock::EditArtistSelectMonitorNewItems,
       ActiveLidarrBlock::EditArtistSelectQualityProfile,
       ActiveLidarrBlock::EditArtistTagsInput,
-      ActiveLidarrBlock::EditArtistPathInput,
+      ActiveLidarrBlock::EditArtistPathInput
     )]
     active_lidarr_block: ActiveLidarrBlock,
   ) {

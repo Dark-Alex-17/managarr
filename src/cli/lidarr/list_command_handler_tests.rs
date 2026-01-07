@@ -18,11 +18,17 @@ mod tests {
   }
 
   mod cli {
+    use rstest::rstest;
     use super::*;
 
-    #[test]
-    fn test_list_artists_has_no_arg_requirements() {
-      let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "list", "artists"]);
+    #[rstest]
+    fn test_list_commands_have_no_arg_requirements(
+      #[values(
+      "artists",
+      "tags"
+      )] subcommand: &str
+    ) {
+      let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "list", subcommand]);
 
       assert_ok!(&result);
     }
@@ -32,6 +38,7 @@ mod tests {
     use std::sync::Arc;
 
     use mockall::predicate::eq;
+    use rstest::rstest;
     use serde_json::json;
     use tokio::sync::Mutex;
 
@@ -45,12 +52,18 @@ mod tests {
       network::{MockNetworkTrait, NetworkEvent},
     };
 
+    #[rstest]
+		#[case(LidarrListCommand::Artists, LidarrEvent::ListArtists)]
+		#[case(LidarrListCommand::Tags, LidarrEvent::GetTags)]
     #[tokio::test]
-    async fn test_handle_list_artists_command() {
+    async fn test_handle_list_command(
+      #[case] list_command: LidarrListCommand,
+      #[case] expected_lidarr_event: LidarrEvent
+    ) {
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
-        .with(eq::<NetworkEvent>(LidarrEvent::ListArtists.into()))
+        .with(eq::<NetworkEvent>(expected_lidarr_event.into()))
         .times(1)
         .returning(|_| {
           Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
@@ -60,7 +73,7 @@ mod tests {
       let app_arc = Arc::new(Mutex::new(App::test_default()));
 
       let result =
-        LidarrListCommandHandler::with(&app_arc, LidarrListCommand::Artists, &mut mock_network)
+        LidarrListCommandHandler::with(&app_arc, list_command, &mut mock_network)
           .handle()
           .await;
 

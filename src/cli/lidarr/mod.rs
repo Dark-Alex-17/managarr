@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use add_command_handler::{LidarrAddCommand, LidarrAddCommandHandler};
 use anyhow::Result;
 use clap::{Subcommand, arg};
 use delete_command_handler::{LidarrDeleteCommand, LidarrDeleteCommandHandler};
@@ -14,6 +15,7 @@ use crate::{app::App, network::NetworkTrait};
 
 use super::{CliCommandHandler, Command};
 
+mod add_command_handler;
 mod delete_command_handler;
 mod edit_command_handler;
 mod get_command_handler;
@@ -26,6 +28,11 @@ mod lidarr_command_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum LidarrCommand {
+  #[command(
+    subcommand,
+    about = "Commands to add or create new resources within your Lidarr instance"
+  )]
+  Add(LidarrAddCommand),
   #[command(
     subcommand,
     about = "Commands to delete resources from your Lidarr instance"
@@ -91,6 +98,11 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrCommand> for LidarrCliHandler<'a, '
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      LidarrCommand::Add(add_command) => {
+        LidarrAddCommandHandler::with(self.app, add_command, self.network)
+          .handle()
+          .await?
+      }
       LidarrCommand::Delete(delete_command) => {
         LidarrDeleteCommandHandler::with(self.app, delete_command, self.network)
           .handle()

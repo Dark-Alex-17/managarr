@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod tests {
-  use std::sync::Arc;
+  use crate::app::App;
   use crate::models::lidarr_models::{LidarrSerdeable, MetadataProfile};
+  use crate::models::servarr_data::lidarr::modals::EditArtistModal;
   use crate::models::servarr_models::{QualityProfile, Tag};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::{NetworkEvent, NetworkResource, lidarr_network::LidarrEvent};
@@ -9,9 +10,8 @@ mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
   use rstest::rstest;
   use serde_json::json;
+  use std::sync::Arc;
   use tokio::sync::Mutex;
-  use crate::app::App;
-  use crate::models::servarr_data::lidarr::modals::EditArtistModal;
 
   #[rstest]
   fn test_resource_artist(

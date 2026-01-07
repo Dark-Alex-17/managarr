@@ -37,6 +37,13 @@ mod tests {
     }
 
     #[test]
+    fn test_lidarr_add_subcommand_requires_subcommand() {
+      let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "add"]);
+
+      assert_err!(&result);
+    }
+
+    #[test]
     fn test_lidarr_delete_subcommand_requires_subcommand() {
       let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "delete"]);
 
@@ -76,6 +83,7 @@ mod tests {
     use serde_json::json;
     use tokio::sync::Mutex;
 
+    use crate::cli::lidarr::add_command_handler::LidarrAddCommand;
     use crate::cli::lidarr::get_command_handler::LidarrGetCommand;
     use crate::cli::lidarr::refresh_command_handler::LidarrRefreshCommand;
     use crate::{
@@ -93,6 +101,33 @@ mod tests {
       },
       network::{MockNetworkTrait, NetworkEvent, lidarr_network::LidarrEvent},
     };
+
+    #[tokio::test]
+    async fn test_lidarr_cli_handler_delegates_add_commands_to_the_add_command_handler() {
+      let expected_tag_name = "test".to_owned();
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::AddTag(expected_tag_name.clone()).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let add_tag_command = LidarrCommand::Add(LidarrAddCommand::Tag {
+        name: expected_tag_name,
+      });
+
+      let result = LidarrCliHandler::with(&app_arc, add_tag_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
 
     #[tokio::test]
     async fn test_lidarr_cli_handler_delegates_get_commands_to_the_get_command_handler() {

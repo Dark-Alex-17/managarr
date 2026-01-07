@@ -5,12 +5,12 @@ mod tests {
   };
   use crate::network::NetworkResource;
   use crate::network::lidarr_network::LidarrEvent;
+  use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::ARTIST_JSON;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use bimap::BiMap;
   use mockito::Matcher;
   use pretty_assertions::assert_eq;
   use serde_json::{Value, json};
-  use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::ARTIST_JSON;
 
   #[tokio::test]
   async fn test_handle_list_artists_event() {
