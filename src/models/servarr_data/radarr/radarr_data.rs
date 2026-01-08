@@ -23,6 +23,7 @@ use crate::models::{
 use crate::network::radarr_network::RadarrEvent;
 use bimap::BiMap;
 use chrono::{DateTime, Utc};
+use itertools::Itertools;
 use serde_json::Number;
 use strum::EnumIter;
 #[cfg(test)]
@@ -112,9 +113,13 @@ impl RadarrData<'_> {
   }
 
   pub fn sorted_quality_profile_names(&self) -> Vec<String> {
-    let mut names: Vec<String> = self.quality_profile_map.right_values().cloned().collect();
-    names.sort();
-    names
+    self
+      .quality_profile_map
+      .iter()
+      .sorted_by_key(|(id, _)| *id)
+      .map(|(_, name)| name)
+      .cloned()
+      .collect()
   }
 }
 

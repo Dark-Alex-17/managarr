@@ -11,6 +11,7 @@ use crate::models::{
 use crate::network::lidarr_network::LidarrEvent;
 use bimap::BiMap;
 use chrono::{DateTime, Utc};
+use itertools::Itertools;
 use strum::EnumIter;
 #[cfg(test)]
 use {
@@ -68,17 +69,23 @@ impl LidarrData<'_> {
   }
 
   pub fn sorted_quality_profile_names(&self) -> Vec<String> {
-    let mut quality_profile_names: Vec<String> =
-      self.quality_profile_map.right_values().cloned().collect();
-    quality_profile_names.sort();
-    quality_profile_names
+    self
+      .quality_profile_map
+      .iter()
+      .sorted_by_key(|(id, _)| *id)
+      .map(|(_, name)| name)
+      .cloned()
+      .collect()
   }
 
   pub fn sorted_metadata_profile_names(&self) -> Vec<String> {
-    let mut metadata_profile_names: Vec<String> =
-      self.metadata_profile_map.right_values().cloned().collect();
-    metadata_profile_names.sort();
-    metadata_profile_names
+    self
+      .metadata_profile_map
+      .iter()
+      .sorted_by_key(|(id, _)| *id)
+      .map(|(_, name)| name)
+      .cloned()
+      .collect()
   }
 }
 

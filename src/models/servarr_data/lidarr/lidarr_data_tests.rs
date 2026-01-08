@@ -64,17 +64,17 @@ mod tests {
   #[test]
   fn test_sorted_quality_profile_names() {
     let mut quality_profile_map = BiMap::new();
-    quality_profile_map.insert(3, "test 3".to_owned());
+    quality_profile_map.insert(3, "test 1".to_owned());
     quality_profile_map.insert(2, "test 2".to_owned());
-    quality_profile_map.insert(1, "test 1".to_owned());
+    quality_profile_map.insert(1, "test 3".to_owned());
     let lidarr_data = LidarrData {
       quality_profile_map,
       ..LidarrData::default()
     };
     let expected_quality_profile_vec = vec![
-      "test 1".to_owned(),
-      "test 2".to_owned(),
       "test 3".to_owned(),
+      "test 2".to_owned(),
+      "test 1".to_owned(),
     ];
 
     assert_iter_eq!(
@@ -86,17 +86,17 @@ mod tests {
   #[test]
   fn test_sorted_metadata_profile_names() {
     let mut metadata_profile_map = BiMap::new();
-    metadata_profile_map.insert(3, "test 3".to_owned());
+    metadata_profile_map.insert(3, "test 1".to_owned());
     metadata_profile_map.insert(2, "test 2".to_owned());
-    metadata_profile_map.insert(1, "test 1".to_owned());
+    metadata_profile_map.insert(1, "test 3".to_owned());
     let lidarr_data = LidarrData {
       metadata_profile_map,
       ..LidarrData::default()
     };
     let expected_metadata_profile_vec = vec![
-      "test 1".to_owned(),
-      "test 2".to_owned(),
       "test 3".to_owned(),
+      "test 2".to_owned(),
+      "test 1".to_owned(),
     ];
 
     assert_iter_eq!(

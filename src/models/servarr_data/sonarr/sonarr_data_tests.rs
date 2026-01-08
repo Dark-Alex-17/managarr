@@ -98,17 +98,17 @@ mod tests {
     #[test]
     fn test_sorted_quality_profile_names() {
       let mut quality_profile_map = BiMap::new();
-      quality_profile_map.insert(3, "test 3".to_owned());
+      quality_profile_map.insert(3, "test 1".to_owned());
       quality_profile_map.insert(2, "test 2".to_owned());
-      quality_profile_map.insert(1, "test 1".to_owned());
+      quality_profile_map.insert(1, "test 3".to_owned());
       let sonarr_data = SonarrData {
         quality_profile_map,
         ..SonarrData::default()
       };
       let expected_quality_profile_vec = vec![
-        "test 1".to_owned(),
-        "test 2".to_owned(),
         "test 3".to_owned(),
+        "test 2".to_owned(),
+        "test 1".to_owned(),
       ];
 
       assert_iter_eq!(
@@ -120,17 +120,17 @@ mod tests {
     #[test]
     fn test_sorted_language_profile_names() {
       let mut language_profiles_map = BiMap::new();
-      language_profiles_map.insert(3, "test 3".to_owned());
+      language_profiles_map.insert(3, "test 1".to_owned());
       language_profiles_map.insert(2, "test 2".to_owned());
-      language_profiles_map.insert(1, "test 1".to_owned());
+      language_profiles_map.insert(1, "test 3".to_owned());
       let sonarr_data = SonarrData {
         language_profiles_map,
         ..SonarrData::default()
       };
       let expected_language_profiles_vec = vec![
-        "test 1".to_owned(),
-        "test 2".to_owned(),
         "test 3".to_owned(),
+        "test 2".to_owned(),
+        "test 1".to_owned(),
       ];
 
       assert_iter_eq!(
