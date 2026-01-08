@@ -4,14 +4,13 @@ use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTOR
 use crate::models::servarr_models::Language;
 use crate::models::sonarr_models::{SonarrHistoryEventType, SonarrHistoryItem};
 use crate::ui::DrawUi;
-use crate::ui::styles::ManagarrStyle;
+use crate::ui::styles::{ManagarrStyle, secondary_style};
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Rect};
-use ratatui::style::Style;
 use ratatui::text::Text;
 use ratatui::widgets::{Cell, Row};
 
@@ -151,7 +150,7 @@ fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
 
   let message = Message::new(text)
     .title("Details")
-    .style(Style::new().secondary())
+    .style(secondary_style())
     .alignment(Alignment::Left);
 
   f.render_widget(Popup::new(message).size(Size::NarrowMessage), f.area());

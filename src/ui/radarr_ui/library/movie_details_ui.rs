@@ -1,3 +1,7 @@
+use crate::ui::styles::{
+  awaiting_import_style, downloaded_style, downloading_style, missing_style,
+  unmonitored_missing_style, unreleased_style,
+};
 use std::iter;
 
 use ratatui::Frame;
@@ -529,12 +533,12 @@ fn draw_manual_search_confirm_prompt(f: &mut Frame<'_>, app: &mut App<'_>) {
 
 fn style_from_download_status(download_status: &str, is_monitored: bool, status: String) -> Style {
   match download_status {
-    "Downloaded" => Style::new().downloaded(),
-    "Awaiting Import" => Style::new().awaiting_import(),
-    "Downloading" => Style::new().downloading(),
-    _ if !is_monitored && download_status == "Missing" => Style::new().unmonitored_missing(),
-    _ if status != "released" && download_status == "Missing" => Style::new().unreleased(),
-    "Missing" => Style::new().missing(),
-    _ => Style::new().downloaded(),
+    "Downloaded" => downloaded_style(),
+    "Awaiting Import" => awaiting_import_style(),
+    "Downloading" => downloading_style(),
+    _ if !is_monitored && download_status == "Missing" => unmonitored_missing_style(),
+    _ if status != "released" && download_status == "Missing" => unreleased_style(),
+    "Missing" => missing_style(),
+    _ => downloaded_style(),
   }
 }

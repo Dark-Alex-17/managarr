@@ -13,6 +13,7 @@ use crate::ui::sonarr_ui::sonarr_ui_utils::{
   create_no_data_history_event_details,
 };
 use crate::ui::styles::ManagarrStyle;
+use crate::ui::styles::secondary_style;
 use crate::ui::utils::{
   borderless_block, decorate_peer_style, get_width_from_percentage, layout_block_top_border,
 };
@@ -26,7 +27,7 @@ use crate::utils::convert_to_gb;
 use chrono::Utc;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Rect};
-use ratatui::prelude::{Line, Style, Stylize, Text};
+use ratatui::prelude::{Line, Stylize, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use serde_json::Number;
 
@@ -567,7 +568,7 @@ fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: R
 
   let message = Message::new(text)
     .title("Details")
-    .style(Style::new().secondary())
+    .style(secondary_style())
     .alignment(Alignment::Left);
 
   f.render_widget(Popup::new(message).size(Size::NarrowMessage), area);

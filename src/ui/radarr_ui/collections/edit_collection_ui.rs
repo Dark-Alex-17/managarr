@@ -11,7 +11,6 @@ use crate::models::servarr_data::radarr::radarr_data::{
 };
 use crate::render_selectable_input_box;
 use crate::ui::radarr_ui::collections::collection_details_ui::CollectionDetailsUi;
-use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_paragraph_borderless, title_block_centered};
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
@@ -129,12 +128,12 @@ fn draw_edit_collection_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>
   let monitored_checkbox = Checkbox::new("Monitored")
     .highlighted(selected_block == ActiveRadarrBlock::EditCollectionToggleMonitored)
     .checked(monitored.unwrap_or_default());
-  let min_availability_drop_down_button = Button::new()
+  let min_availability_drop_down_button = Button::default()
     .title(selected_minimum_availability.to_display_str())
     .label("Minimum Availability")
     .icon("▼")
     .selected(selected_block == ActiveRadarrBlock::EditCollectionSelectMinimumAvailability);
-  let quality_profile_drop_down_button = Button::new()
+  let quality_profile_drop_down_button = Button::default()
     .title(selected_quality_profile)
     .label("Quality Profile")
     .icon("▼")
@@ -152,10 +151,10 @@ fn draw_edit_collection_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>
   let search_on_add_checkbox = Checkbox::new("Search on Add")
     .highlighted(selected_block == ActiveRadarrBlock::EditCollectionToggleSearchOnAdd)
     .checked(search_on_add.unwrap_or_default());
-  let save_button = Button::new()
+  let save_button = Button::default()
     .title("Save")
     .selected(yes_no_value && highlight_yes_no);
-  let cancel_button = Button::new()
+  let cancel_button = Button::default()
     .title("Cancel")
     .selected(!yes_no_value && highlight_yes_no);
 

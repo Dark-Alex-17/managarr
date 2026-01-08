@@ -144,14 +144,14 @@ fn draw_add_series_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .block(title_block_centered("Add Series"));
 
         search_box.show_cursor(f, search_box_area);
-        f.render_widget(layout_block().default(), results_area);
+        f.render_widget(layout_block().default_color(), results_area);
         f.render_widget(search_box, search_box_area);
       }
       ActiveSonarrBlock::AddSeriesEmptySearchResults => {
         let error_message = Message::new("No series found matching your query!");
         let error_message_popup = Popup::new(error_message).size(Size::Message);
 
-        f.render_widget(layout_block().default(), results_area);
+        f.render_widget(layout_block().default_color(), results_area);
         f.render_widget(error_message_popup, f.area());
       }
       ActiveSonarrBlock::AddSeriesSearchResults
@@ -168,7 +168,7 @@ fn draw_add_series_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           search_results_row_mapping,
         )
         .loading(is_loading)
-        .block(layout_block().default())
+        .block(layout_block().default_color())
         .headers([
           "✔", "Title", "Year", "Network", "Seasons", "Rating", "Genres",
         ])
@@ -314,27 +314,27 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   let use_season_folder_checkbox = Checkbox::new("Season Folder")
     .checked(*use_season_folder)
     .highlighted(selected_block == ActiveSonarrBlock::AddSeriesToggleUseSeasonFolder);
-  let root_folder_drop_down_button = Button::new()
+  let root_folder_drop_down_button = Button::default()
     .title(&selected_root_folder.path)
     .label("Root Folder")
     .icon("▼")
     .selected(selected_block == ActiveSonarrBlock::AddSeriesSelectRootFolder);
-  let monitor_drop_down_button = Button::new()
+  let monitor_drop_down_button = Button::default()
     .title(selected_monitor.to_display_str())
     .label("Monitor")
     .icon("▼")
     .selected(selected_block == ActiveSonarrBlock::AddSeriesSelectMonitor);
-  let series_type_drop_down_button = Button::new()
+  let series_type_drop_down_button = Button::default()
     .title(selected_series_type.to_display_str())
     .label("Series Type")
     .icon("▼")
     .selected(selected_block == ActiveSonarrBlock::AddSeriesSelectSeriesType);
-  let quality_profile_drop_down_button = Button::new()
+  let quality_profile_drop_down_button = Button::default()
     .title(selected_quality_profile)
     .label("Quality Profile")
     .icon("▼")
     .selected(selected_block == ActiveSonarrBlock::AddSeriesSelectQualityProfile);
-  let language_profile_drop_down_button = Button::new()
+  let language_profile_drop_down_button = Button::default()
     .title(selected_language_profile)
     .label("Language Profile")
     .icon("▼")
@@ -356,10 +356,10 @@ fn draw_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     render_selectable_input_box!(tags_input_box, f, tags_area);
   }
 
-  let add_button = Button::new()
+  let add_button = Button::default()
     .title("Add")
     .selected(yes_no_value && highlight_yes_no);
-  let cancel_button = Button::new()
+  let cancel_button = Button::default()
     .title("Cancel")
     .selected(!yes_no_value && highlight_yes_no);
 

@@ -14,7 +14,6 @@ use crate::models::servarr_data::radarr::radarr_data::{
 use crate::render_selectable_input_box;
 use crate::ui::radarr_ui::library::movie_details_ui::MovieDetailsUi;
 
-use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_paragraph_borderless, title_block_centered};
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
@@ -125,12 +124,12 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, are
   let monitored_checkbox = Checkbox::new("Monitored")
     .checked(monitored.unwrap_or_default())
     .highlighted(selected_block == ActiveRadarrBlock::EditMovieToggleMonitored);
-  let min_availability_drop_down_button = Button::new()
+  let min_availability_drop_down_button = Button::default()
     .title(selected_minimum_availability.to_display_str())
     .label("Minimum Availability")
     .icon("▼")
     .selected(selected_block == ActiveRadarrBlock::EditMovieSelectMinimumAvailability);
-  let quality_profile_drop_down_button = Button::new()
+  let quality_profile_drop_down_button = Button::default()
     .title(selected_quality_profile)
     .label("Quality Profile")
     .icon("▼")
@@ -158,10 +157,10 @@ fn draw_edit_movie_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, are
     render_selectable_input_box!(tags_input_box, f, tags_area);
   }
 
-  let save_button = Button::new()
+  let save_button = Button::default()
     .title("Save")
     .selected(yes_no_value && highlight_yes_no);
-  let cancel_button = Button::new()
+  let cancel_button = Button::default()
     .title("Cancel")
     .selected(!yes_no_value && highlight_yes_no);
 

@@ -13,7 +13,6 @@ use crate::models::servarr_data::sonarr::sonarr_data::{
 };
 use crate::render_selectable_input_box;
 
-use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{layout_paragraph_borderless, title_block_centered};
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
@@ -145,17 +144,17 @@ fn draw_edit_series_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, ar
   let season_folder_checkbox = Checkbox::new("Season Folder")
     .checked(use_season_folders.unwrap_or_default())
     .highlighted(selected_block == ActiveSonarrBlock::EditSeriesToggleSeasonFolder);
-  let series_type_drop_down_button = Button::new()
+  let series_type_drop_down_button = Button::default()
     .title(selected_series_type.to_display_str())
     .label("Series Type")
     .icon("▼")
     .selected(selected_block == ActiveSonarrBlock::EditSeriesSelectSeriesType);
-  let quality_profile_drop_down_button = Button::new()
+  let quality_profile_drop_down_button = Button::default()
     .title(selected_quality_profile)
     .label("Quality Profile")
     .icon("▼")
     .selected(selected_block == ActiveSonarrBlock::EditSeriesSelectQualityProfile);
-  let language_profile_drop_down_button = Button::new()
+  let language_profile_drop_down_button = Button::default()
     .title(selected_language_profile)
     .label("Language Profile")
     .icon("▼")
@@ -183,10 +182,10 @@ fn draw_edit_series_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, ar
     render_selectable_input_box!(tags_input_box, f, tags_area);
   }
 
-  let save_button = Button::new()
+  let save_button = Button::default()
     .title("Save")
     .selected(yes_no_value && highlight_yes_no);
-  let cancel_button = Button::new()
+  let cancel_button = Button::default()
     .title("Cancel")
     .selected(!yes_no_value && highlight_yes_no);
 

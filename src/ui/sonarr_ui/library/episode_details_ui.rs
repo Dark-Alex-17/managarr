@@ -13,6 +13,10 @@ use crate::ui::sonarr_ui::sonarr_ui_utils::{
   create_no_data_history_event_details,
 };
 use crate::ui::styles::ManagarrStyle;
+use crate::ui::styles::{
+  awaiting_import_style, downloaded_style, downloading_style, missing_style, secondary_style,
+  unmonitored_missing_style, unmonitored_style, unreleased_style,
+};
 use crate::ui::utils::{
   borderless_block, decorate_peer_style, get_width_from_percentage, layout_block_bottom_border,
   layout_block_top_border,
@@ -388,7 +392,7 @@ fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: R
 
   let message = Message::new(text)
     .title("Details")
-    .style(Style::new().secondary())
+    .style(secondary_style())
     .alignment(Alignment::Left);
 
   f.render_widget(Popup::new(message).size(Size::NarrowMessage), area);
@@ -602,29 +606,29 @@ fn style_from_status(download: Option<&DownloadRecord>, episode: &Episode) -> St
   if !episode.has_file {
     if let Some(download) = download {
       if download.status == DownloadStatus::Downloading {
-        return Style::new().downloading();
+        return downloading_style();
       }
 
       if download.status == DownloadStatus::Completed {
-        return Style::new().awaiting_import();
+        return awaiting_import_style();
       }
     }
     if !episode.monitored {
-      return Style::new().unmonitored_missing();
+      return unmonitored_missing_style();
     }
 
     if let Some(air_date) = episode.air_date_utc.as_ref()
       && air_date > &Utc::now()
     {
-      return Style::new().unreleased();
+      return unreleased_style();
     }
 
-    return Style::new().missing();
+    return missing_style();
   }
 
   if !episode.monitored {
-    Style::new().unmonitored()
+    unmonitored_style()
   } else {
-    Style::new().downloaded()
+    downloaded_style()
   }
 }

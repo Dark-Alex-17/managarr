@@ -4,7 +4,6 @@ use derive_setters::Setters;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::prelude::Text;
-use ratatui::style::Stylize;
 use ratatui::widgets::{Paragraph, Widget};
 
 #[derive(PartialEq, Debug, Copy, Clone, Setters)]

@@ -1,6 +1,6 @@
+use crate::ui::styles::success_style;
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Rect};
-use ratatui::style::{Style, Stylize};
 use ratatui::text::Text;
 use ratatui::widgets::{Cell, Row};
 
@@ -73,7 +73,7 @@ impl DrawUi for IndexersUi {
               } else {
                 let message = Message::new("Indexer test succeeded!")
                   .title("Success")
-                  .style(Style::new().success().bold());
+                  .style(success_style().bold());
                 Popup::new(message).size(Size::Message)
               }
             };

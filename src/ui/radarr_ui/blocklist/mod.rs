@@ -3,7 +3,7 @@ use crate::models::Route;
 use crate::models::radarr_models::BlocklistItem;
 use crate::models::servarr_data::radarr::radarr_data::{ActiveRadarrBlock, BLOCKLIST_BLOCKS};
 use crate::ui::DrawUi;
-use crate::ui::styles::ManagarrStyle;
+use crate::ui::styles::{ManagarrStyle, secondary_style};
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
@@ -11,7 +11,7 @@ use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Rect};
-use ratatui::style::{Style, Stylize};
+use ratatui::style::Stylize;
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Row};
 
@@ -186,7 +186,7 @@ fn draw_blocklist_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
 
   let message = Message::new(text)
     .title("Details")
-    .style(Style::new().secondary())
+    .style(secondary_style())
     .alignment(Alignment::Left);
 
   f.render_widget(Popup::new(message).size(Size::NarrowMessage), f.area());

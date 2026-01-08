@@ -1,8 +1,9 @@
+use crate::ui::styles::secondary_style;
 use chrono::Utc;
 use deunicode::deunicode;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
-use ratatui::style::{Style, Stylize};
+use ratatui::style::Stylize;
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Paragraph, Row, Wrap};
 use regex::Regex;
@@ -157,54 +158,60 @@ fn draw_series_description(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
       "Title: ".primary().bold(),
       current_selection.title.text.clone().primary().bold(),
     ]),
-    Line::from(vec!["Overview: ".primary().bold(), overview.default()]),
+    Line::from(vec![
+      "Overview: ".primary().bold(),
+      overview.default_color(),
+    ]),
     Line::from(vec![
       "Network: ".primary().bold(),
       current_selection
         .network
         .clone()
         .unwrap_or_default()
-        .default(),
+        .default_color(),
     ]),
     Line::from(vec![
       "Status: ".primary().bold(),
-      current_selection.status.to_display_str().default(),
+      current_selection.status.to_display_str().default_color(),
     ]),
     Line::from(vec![
       "Genres: ".primary().bold(),
-      current_selection.genres.join(", ").default(),
+      current_selection.genres.join(", ").default_color(),
     ]),
     Line::from(vec![
       "Rating: ".primary().bold(),
-      format!("{}%", (current_selection.ratings.value * 10.0) as i32).default(),
+      format!("{}%", (current_selection.ratings.value * 10.0) as i32).default_color(),
     ]),
     Line::from(vec![
       "Year: ".primary().bold(),
-      current_selection.year.to_string().default(),
+      current_selection.year.to_string().default_color(),
     ]),
     Line::from(vec![
       "Runtime: ".primary().bold(),
-      format!("{} minutes", current_selection.runtime).default(),
+      format!("{} minutes", current_selection.runtime).default_color(),
     ]),
     Line::from(vec![
       "Path: ".primary().bold(),
-      current_selection.path.clone().default(),
+      current_selection.path.clone().default_color(),
     ]),
     Line::from(vec![
       "Quality Profile: ".primary().bold(),
-      quality_profile.default(),
+      quality_profile.default_color(),
     ]),
     Line::from(vec![
       "Language Profile: ".primary().bold(),
-      language_profile.default(),
+      language_profile.default_color(),
     ]),
-    Line::from(vec!["Monitored: ".primary().bold(), monitored.default()]),
+    Line::from(vec![
+      "Monitored: ".primary().bold(),
+      monitored.default_color(),
+    ]),
   ];
   if let Some(stats) = current_selection.statistics.as_ref() {
     let size = convert_to_gb(stats.size_on_disk);
     series_description.extend(vec![Line::from(vec![
       "Size on Disk: ".primary().bold(),
-      format!("{size:.2} GB").default(),
+      format!("{size:.2} GB").default_color(),
     ])]);
   }
 
@@ -421,7 +428,7 @@ fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: R
 
   let message = Message::new(text)
     .title("Details")
-    .style(Style::new().secondary())
+    .style(secondary_style())
     .alignment(Alignment::Left);
 
   f.render_widget(Popup::new(message).size(Size::NarrowMessage), area);

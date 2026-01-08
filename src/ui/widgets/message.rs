@@ -1,9 +1,9 @@
-use crate::ui::styles::ManagarrStyle;
+use crate::ui::styles::failure_style;
 use crate::ui::utils::title_block_centered;
 use derive_setters::Setters;
 use ratatui::buffer::Buffer;
 use ratatui::layout::{Alignment, Rect};
-use ratatui::style::{Style, Stylize};
+use ratatui::style::Style;
 use ratatui::text::Text;
 use ratatui::widgets::{Paragraph, Widget, Wrap};
 
@@ -27,7 +27,7 @@ impl<'a> Message<'a> {
     Message {
       text: message.into(),
       title: "Error",
-      style: Style::new().failure().bold(),
+      style: failure_style().bold(),
       alignment: Alignment::Center,
     }
   }

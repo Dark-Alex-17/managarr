@@ -1,10 +1,9 @@
 #[cfg(test)]
 mod tests {
-  use crate::ui::styles::ManagarrStyle;
+  use crate::ui::styles::default_style;
   use crate::ui::utils::layout_block;
   use crate::ui::widgets::input_box::InputBox;
   use pretty_assertions::{assert_eq, assert_str_eq};
-  use ratatui::style::Style;
 
   #[test]
   fn test_input_box_new() {
@@ -12,7 +11,7 @@ mod tests {
 
     assert_str_eq!(input_box.content, "test");
     assert_eq!(input_box.offset, 0);
-    assert_eq!(input_box.style, Style::new().default());
+    assert_eq!(input_box.style, default_style());
     assert_eq!(input_box.block, layout_block());
     assert_eq!(input_box.label, None);
     assert!(input_box.cursor_after_string);

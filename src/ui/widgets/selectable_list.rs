@@ -1,5 +1,5 @@
 use crate::models::stateful_list::StatefulList;
-use crate::ui::styles::ManagarrStyle;
+use crate::ui::styles::highlight_style;
 use crate::ui::utils::layout_block;
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
@@ -29,7 +29,7 @@ where
     Self {
       content,
       row_mapper,
-      highlight_style: Style::new().highlight(),
+      highlight_style: highlight_style(),
       block: layout_block(),
     }
   }

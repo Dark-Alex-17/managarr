@@ -161,7 +161,7 @@ fn draw_stats_context(f: &mut Frame<'_>, app: &App<'_>, area: Rect) {
       let space: f64 = convert_to_gb(*free_space);
       let root_folder_space = Paragraph::new(format!("{path}: {space:.2} GB free"))
         .block(borderless_block())
-        .default();
+        .default_color();
 
       f.render_widget(
         root_folder_space,
@@ -249,7 +249,7 @@ fn draw_radarr_logo(f: &mut Frame<'_>, area: Rect) {
   let logo_text = Text::from(RADARR_LOGO);
   let logo = Paragraph::new(logo_text)
     .light_yellow()
-    .block(layout_block().default())
+    .block(layout_block().default_color())
     .centered();
   f.render_widget(logo, area);
 }

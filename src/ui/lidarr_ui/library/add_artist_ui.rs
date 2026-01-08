@@ -109,14 +109,14 @@ fn draw_add_artist_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           .block(title_block_centered("Add Artist"));
 
         search_box.show_cursor(f, search_box_area);
-        f.render_widget(layout_block().default(), results_area);
+        f.render_widget(layout_block().default_color(), results_area);
         f.render_widget(search_box, search_box_area);
       }
       ActiveLidarrBlock::AddArtistEmptySearchResults => {
         let error_message = Message::new("No artists found matching your query!");
         let error_message_popup = Popup::new(error_message).size(Size::Message);
 
-        f.render_widget(layout_block().default(), results_area);
+        f.render_widget(layout_block().default_color(), results_area);
         f.render_widget(error_message_popup, f.area());
       }
       ActiveLidarrBlock::AddArtistSearchResults => {
@@ -125,7 +125,7 @@ fn draw_add_artist_search(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
           search_results_row_mapping,
         )
         .loading(is_loading)
-        .block(layout_block().default())
+        .block(layout_block().default_color())
         .headers(["✔", "Name", "Type", "Status", "Rating", "Genres"])
         .constraints([
           Constraint::Percentage(3),
