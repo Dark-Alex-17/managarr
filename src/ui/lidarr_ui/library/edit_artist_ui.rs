@@ -66,7 +66,15 @@ fn draw_edit_artist_confirmation_prompt(f: &mut Frame<'_>, app: &mut App<'_>, ar
     .artist_name
     .text
     .clone();
-  let title = format!("Edit - {artist_name}");
+  let artist_disambiguation = app
+    .data
+    .lidarr_data
+    .artists
+    .current_selection()
+    .disambiguation
+    .clone()
+    .unwrap_or_default();
+  let title = format!("Edit - {artist_name} ({artist_disambiguation})");
   f.render_widget(title_block_centered(&title), area);
 
   let yes_no_value = app.data.lidarr_data.prompt_confirm;
