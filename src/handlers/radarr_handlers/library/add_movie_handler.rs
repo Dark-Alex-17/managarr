@@ -83,8 +83,8 @@ impl AddMovieHandler<'_, '_> {
       .unwrap();
 
     let path = root_folder_list.current_selection().path.clone();
-    let monitor = monitor_list.current_selection().to_string();
-    let minimum_availability = minimum_availability_list.current_selection().to_string();
+    let monitor = *monitor_list.current_selection();
+    let minimum_availability = *minimum_availability_list.current_selection();
 
     AddMovieBody {
       tmdb_id,

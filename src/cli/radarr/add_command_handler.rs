@@ -122,12 +122,12 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrAddCommand> for RadarrAddCommandHan
           title: String::new(),
           root_folder_path,
           quality_profile_id,
-          minimum_availability: minimum_availability.to_string(),
+          minimum_availability,
           monitored: !disable_monitoring,
           tags,
           tag_input_string: None,
           add_options: AddMovieOptions {
-            monitor: monitor.to_string(),
+            monitor,
             search_for_movie: !no_search_for_movie,
           },
         };

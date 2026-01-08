@@ -31,7 +31,7 @@ pub struct AddSeriesBody {
   pub root_folder_path: String,
   pub quality_profile_id: i64,
   pub language_profile_id: i64,
-  pub series_type: String,
+  pub series_type: SeriesType,
   pub season_folder: bool,
   pub tags: Vec<i64>,
   #[serde(skip_serializing, skip_deserializing)]
@@ -68,7 +68,7 @@ pub struct AddSeriesSearchResultStatistics {
 #[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AddSeriesOptions {
-  pub monitor: String,
+  pub monitor: SeriesMonitor,
   pub search_for_cutoff_unmet_episodes: bool,
   pub search_for_missing_episodes: bool,
 }

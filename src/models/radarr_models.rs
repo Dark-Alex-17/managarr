@@ -27,7 +27,7 @@ pub struct AddMovieBody {
   pub title: String,
   pub root_folder_path: String,
   pub quality_profile_id: i64,
-  pub minimum_availability: String,
+  pub minimum_availability: MinimumAvailability,
   pub monitored: bool,
   pub tags: Vec<i64>,
   #[serde(skip_serializing, skip_deserializing)]
@@ -55,7 +55,7 @@ pub struct AddMovieSearchResult {
 #[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AddMovieOptions {
-  pub monitor: String,
+  pub monitor: MovieMonitor,
   pub search_for_movie: bool,
 }
 
@@ -268,8 +268,20 @@ pub enum MinimumAvailability {
 }
 
 #[derive(
-  Default, PartialEq, Eq, Clone, Copy, Debug, EnumIter, ValueEnum, Display, EnumDisplayStyle,
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  ValueEnum,
+  Display,
+  EnumDisplayStyle,
 )]
+#[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum MovieMonitor {
   #[default]

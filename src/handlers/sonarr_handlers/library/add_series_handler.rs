@@ -74,8 +74,8 @@ impl AddSeriesHandler<'_, '_> {
       .unwrap();
 
     let path = root_folder_list.current_selection().path.clone();
-    let monitor = monitor_list.current_selection().to_string();
-    let series_type = series_type_list.current_selection().to_string();
+    let monitor = *monitor_list.current_selection();
+    let series_type = *series_type_list.current_selection();
 
     AddSeriesBody {
       tvdb_id,

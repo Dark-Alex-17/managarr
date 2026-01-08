@@ -2,8 +2,8 @@
 mod tests {
   use crate::models::servarr_data::sonarr::sonarr_data::ActiveSonarrBlock;
   use crate::models::sonarr_models::{
-    AddSeriesBody, AddSeriesOptions, DeleteSeriesParams, EditSeriesParams, Series, SeriesType,
-    SonarrHistoryItem, SonarrSerdeable,
+    AddSeriesBody, AddSeriesOptions, DeleteSeriesParams, EditSeriesParams, Series, SeriesMonitor,
+    SeriesType, SonarrHistoryItem, SonarrSerdeable,
   };
   use crate::models::stateful_table::{SortOption, StatefulTable};
   use crate::network::NetworkResource;
@@ -27,12 +27,12 @@ mod tests {
       root_folder_path: "/nfs2".to_owned(),
       quality_profile_id: 2222,
       language_profile_id: 2222,
-      series_type: "standard".to_owned(),
+      series_type: SeriesType::Standard,
       season_folder: true,
       tags: Vec::new(),
       tag_input_string: Some("usenet, testing".to_owned()),
       add_options: AddSeriesOptions {
-        monitor: "all".to_owned(),
+        monitor: SeriesMonitor::All,
         search_for_cutoff_unmet_episodes: true,
         search_for_missing_episodes: true,
       },
@@ -82,12 +82,12 @@ mod tests {
       root_folder_path: "/nfs2".to_owned(),
       quality_profile_id: 2222,
       language_profile_id: 2222,
-      series_type: "standard".to_owned(),
+      series_type: SeriesType::Standard,
       season_folder: true,
       tags: vec![1, 2],
       tag_input_string: None,
       add_options: AddSeriesOptions {
-        monitor: "all".to_owned(),
+        monitor: SeriesMonitor::All,
         search_for_cutoff_unmet_episodes: true,
         search_for_missing_episodes: true,
       },

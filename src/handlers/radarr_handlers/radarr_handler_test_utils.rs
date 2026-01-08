@@ -5,7 +5,7 @@ pub(in crate::handlers::radarr_handlers) mod utils {
   use crate::models::radarr_models::{
     AddMovieBody, AddMovieOptions, AddMovieSearchResult, Collection, CollectionMovie,
     DownloadRecord, IndexerSettings, MediaInfo, MinimumAvailability, Movie, MovieCollection,
-    MovieFile, RadarrRelease, Rating, RatingsList,
+    MovieFile, MovieMonitor, RadarrRelease, Rating, RatingsList,
   };
   use crate::models::servarr_models::{
     Indexer, IndexerField, Language, Quality, QualityWrapper, RootFolder,
@@ -470,13 +470,13 @@ pub(in crate::handlers::radarr_handlers) mod utils {
       tmdb_id: 1234,
       title: "Test".to_owned(),
       root_folder_path: "/nfs2".to_owned(),
-      minimum_availability: "announced".to_owned(),
+      minimum_availability: MinimumAvailability::Announced,
       monitored: true,
       quality_profile_id: 2222,
       tags: Vec::new(),
       tag_input_string: Some("usenet, testing".into()),
       add_options: AddMovieOptions {
-        monitor: "movieOnly".to_owned(),
+        monitor: MovieMonitor::MovieOnly,
         search_for_movie: true,
       },
     }
