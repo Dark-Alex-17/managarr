@@ -113,6 +113,7 @@ pub fn line_gauge_with_title(title: &str, ratio: f64) -> LineGauge<'_> {
     .block(Block::new().title(title))
     .filled_style(primary_style())
     .filled_symbol("━")
+    .unfilled_symbol("━")
     .ratio(ratio)
     .label(Line::from(format!("{:.0}%", ratio * 100.0)))
 }
@@ -122,6 +123,7 @@ pub fn line_gauge_with_label(title: &str, ratio: f64) -> LineGauge<'_> {
     .block(Block::new())
     .filled_style(primary_style())
     .filled_symbol("━")
+    .unfilled_symbol("━")
     .ratio(ratio)
     .label(Line::from(format!("{title}: {:.0}%", ratio * 100.0)))
 }
