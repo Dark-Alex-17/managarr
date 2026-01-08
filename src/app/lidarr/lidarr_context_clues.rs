@@ -44,6 +44,9 @@ impl ContextClueProvider for LidarrContextClueProvider {
       ActiveLidarrBlock::AddArtistSearchInput | ActiveLidarrBlock::AddArtistEmptySearchResults => {
         Some(&BARE_POPUP_CONTEXT_CLUES)
       }
+      _ if EDIT_ARTIST_BLOCKS.contains(&active_lidarr_block) => {
+        Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES)
+      }
       _ if ADD_ARTIST_BLOCKS.contains(&active_lidarr_block) => {
         Some(&ADD_ARTIST_SEARCH_RESULTS_CONTEXT_CLUES)
       }
