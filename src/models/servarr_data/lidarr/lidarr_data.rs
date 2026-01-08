@@ -15,7 +15,7 @@ use itertools::Itertools;
 use strum::EnumIter;
 #[cfg(test)]
 use {
-  crate::models::lidarr_models::NewItemMonitorType,
+  crate::models::lidarr_models::{MonitorType, NewItemMonitorType},
   crate::models::stateful_table::SortOption,
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::quality_profile_map,
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{

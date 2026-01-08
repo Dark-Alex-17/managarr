@@ -169,4 +169,26 @@ mod tests {
 
     assert_some_eq_x!(context_clues, &ADD_ARTIST_SEARCH_RESULTS_CONTEXT_CLUES);
   }
+
+  #[rstest]
+  fn test_lidarr_context_clue_provider_confirmation_prompt_context_clues_add_artist_blocks(
+    #[values(
+      ActiveLidarrBlock::AddArtistPrompt,
+      ActiveLidarrBlock::AddArtistSelectMonitor,
+      ActiveLidarrBlock::AddArtistSelectMonitorNewItems,
+      ActiveLidarrBlock::AddArtistSelectQualityProfile,
+      ActiveLidarrBlock::AddArtistSelectMetadataProfile,
+      ActiveLidarrBlock::AddArtistSelectRootFolder,
+      ActiveLidarrBlock::AddArtistTagsInput,
+      ActiveLidarrBlock::AddArtistAlreadyInLibrary
+    )]
+    active_lidarr_block: ActiveLidarrBlock,
+  ) {
+    let mut app = App::test_default();
+    app.push_navigation_stack(active_lidarr_block.into());
+
+    let context_clues = LidarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
+  }
 }
