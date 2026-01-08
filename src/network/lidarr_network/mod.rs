@@ -3,7 +3,7 @@ use log::info;
 
 use super::{NetworkEvent, NetworkResource};
 use crate::models::lidarr_models::{
-  DeleteArtistParams, EditArtistParams, LidarrSerdeable, MetadataProfile,
+  AddArtistBody, DeleteArtistParams, EditArtistParams, LidarrSerdeable, MetadataProfile,
 };
 use crate::models::servarr_models::{QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
@@ -23,6 +23,7 @@ pub mod lidarr_network_test_utils;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum LidarrEvent {
+  AddArtist(AddArtistBody),
   AddTag(String),
   DeleteArtist(DeleteArtistParams),
   DeleteTag(i64),
@@ -52,6 +53,7 @@ impl NetworkResource for LidarrEvent {
       | LidarrEvent::EditArtist(_)
       | LidarrEvent::GetArtistDetails(_)
       | LidarrEvent::ListArtists
+      | LidarrEvent::AddArtist(_)
       | LidarrEvent::ToggleArtistMonitoring(_) => "/artist",
       LidarrEvent::GetDiskSpace => "/diskspace",
       LidarrEvent::GetDownloads(_) => "/queue",
@@ -132,6 +134,7 @@ impl Network<'_, '_> {
         .map(LidarrSerdeable::from),
       LidarrEvent::UpdateAllArtists => self.update_all_artists().await.map(LidarrSerdeable::from),
       LidarrEvent::EditArtist(params) => self.edit_artist(params).await.map(LidarrSerdeable::from),
+      LidarrEvent::AddArtist(body) => self.add_artist(body).await.map(LidarrSerdeable::from),
     }
   }
 

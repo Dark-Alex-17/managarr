@@ -426,8 +426,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
 
   fn handle_submit(&mut self) {
     match self.active_sonarr_block {
-      _ if self.active_sonarr_block == ActiveSonarrBlock::AddSeriesSearchInput
-        && !self
+      ActiveSonarrBlock::AddSeriesSearchInput
+        if !self
           .app
           .data
           .sonarr_data
@@ -442,8 +442,8 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for AddSeriesHandler<'a,
           .push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchResults.into());
         self.app.ignore_special_keys_for_textbox_input = false;
       }
-      _ if self.active_sonarr_block == ActiveSonarrBlock::AddSeriesSearchResults
-        && self.app.data.sonarr_data.add_searched_series.is_some() =>
+      ActiveSonarrBlock::AddSeriesSearchResults
+        if self.app.data.sonarr_data.add_searched_series.is_some() =>
       {
         let tvdb_id = self
           .app

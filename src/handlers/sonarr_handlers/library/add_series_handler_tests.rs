@@ -1030,8 +1030,6 @@ mod tests {
       app.is_loading = true;
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchResults.into());
-      let mut add_searched_series = StatefulTable::default();
-      add_searched_series.set_items(vec![AddSeriesSearchResult::default()]);
 
       AddSeriesHandler::new(
         SUBMIT_KEY,
@@ -1053,6 +1051,7 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesSearchResults.into());
+
       AddSeriesHandler::new(
         SUBMIT_KEY,
         &mut app,
@@ -1092,7 +1091,7 @@ mod tests {
     }
 
     #[test]
-    fn test_add_series_prompt_prompt_decline_submit() {
+    fn test_add_series_confirm_prompt_prompt_decline_submit() {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveSonarrBlock::Series.into());
       app.push_navigation_stack(ActiveSonarrBlock::AddSeriesPrompt.into());
@@ -1195,9 +1194,9 @@ mod tests {
       .handle();
 
       assert_navigation_popped!(app, ActiveSonarrBlock::Series.into());
-      assert_eq!(
-        app.data.sonarr_data.prompt_confirm_action,
-        Some(SonarrEvent::AddSeries(expected_add_series_body))
+      assert_some_eq_x!(
+        &app.data.sonarr_data.prompt_confirm_action,
+        &SonarrEvent::AddSeries(expected_add_series_body.clone())
       );
       assert_modal_absent!(app.data.sonarr_data.add_series_modal);
     }

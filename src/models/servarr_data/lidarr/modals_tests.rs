@@ -3,9 +3,66 @@ mod tests {
   use bimap::BiMap;
   use pretty_assertions::{assert_eq, assert_str_eq};
 
-  use crate::models::lidarr_models::{Artist, NewItemMonitorType};
+  use crate::models::lidarr_models::{Artist, MonitorType, NewItemMonitorType};
   use crate::models::servarr_data::lidarr::lidarr_data::LidarrData;
-  use crate::models::servarr_data::lidarr::modals::EditArtistModal;
+  use crate::models::servarr_data::lidarr::modals::{AddArtistModal, EditArtistModal};
+  use crate::models::servarr_models::RootFolder;
+
+  #[test]
+  fn test_add_artist_modal_from_lidarr_data() {
+    let mut lidarr_data = LidarrData {
+      quality_profile_map: BiMap::from_iter([
+        (2i64, "Lossless".to_owned()),
+        (1i64, "Standard".to_owned()),
+      ]),
+      metadata_profile_map: BiMap::from_iter([
+        (2i64, "None".to_owned()),
+        (1i64, "Standard".to_owned()),
+      ]),
+      ..LidarrData::default()
+    };
+    let root_folder_1 = RootFolder {
+      id: 1,
+      path: "/nfs".to_owned(),
+      accessible: true,
+      free_space: 219902325555200,
+      unmapped_folders: None,
+    };
+    lidarr_data.root_folders.set_items(vec![
+      root_folder_1.clone(),
+      RootFolder {
+        id: 2,
+        path: "/nfs2".to_owned(),
+        accessible: true,
+        free_space: 21990232555520,
+        unmapped_folders: None,
+      },
+    ]);
+
+    let add_artist_modal = AddArtistModal::from(&lidarr_data);
+
+    assert_eq!(
+      *add_artist_modal.monitor_list.current_selection(),
+      MonitorType::default()
+    );
+    assert_eq!(
+      *add_artist_modal.monitor_new_items_list.current_selection(),
+      NewItemMonitorType::default()
+    );
+    assert_str_eq!(
+      add_artist_modal.quality_profile_list.current_selection(),
+      "Standard"
+    );
+    assert_str_eq!(
+      add_artist_modal.metadata_profile_list.current_selection(),
+      "Standard"
+    );
+    assert_eq!(
+      add_artist_modal.root_folder_list.current_selection(),
+      &root_folder_1
+    );
+    assert_is_empty!(add_artist_modal.tags.text);
+  }
 
   #[test]
   fn test_edit_artist_modal_from_lidarr_data() {

@@ -6,7 +6,7 @@ mod tests {
 
   use crate::models::lidarr_models::{
     AddArtistSearchResult, DownloadRecord, DownloadStatus, DownloadsResponse, Member,
-    MetadataProfile, NewItemMonitorType, SystemStatus,
+    MetadataProfile, MonitorType, NewItemMonitorType, SystemStatus,
   };
   use crate::models::servarr_models::{
     DiskSpace, HostConfig, QualityProfile, RootFolder, SecurityConfig, Tag,
@@ -33,6 +33,30 @@ mod tests {
     assert_str_eq!(NewItemMonitorType::All.to_display_str(), "All Albums");
     assert_str_eq!(NewItemMonitorType::None.to_display_str(), "No New Albums");
     assert_str_eq!(NewItemMonitorType::New.to_display_str(), "New Albums");
+  }
+
+  #[test]
+  fn test_monitor_type_display() {
+    assert_str_eq!(MonitorType::All.to_string(), "all");
+    assert_str_eq!(MonitorType::Future.to_string(), "future");
+    assert_str_eq!(MonitorType::Missing.to_string(), "missing");
+    assert_str_eq!(MonitorType::Existing.to_string(), "existing");
+    assert_str_eq!(MonitorType::First.to_string(), "first");
+    assert_str_eq!(MonitorType::Latest.to_string(), "latest");
+    assert_str_eq!(MonitorType::None.to_string(), "none");
+    assert_str_eq!(MonitorType::Unknown.to_string(), "unknown");
+  }
+
+  #[test]
+  fn test_monitor_type_to_display_str() {
+    assert_str_eq!(MonitorType::All.to_display_str(), "All Albums");
+    assert_str_eq!(MonitorType::Future.to_display_str(), "Future Albums");
+    assert_str_eq!(MonitorType::Missing.to_display_str(), "Missing Albums");
+    assert_str_eq!(MonitorType::Existing.to_display_str(), "Existing Albums");
+    assert_str_eq!(MonitorType::First.to_display_str(), "First Album");
+    assert_str_eq!(MonitorType::Latest.to_display_str(), "Latest Album");
+    assert_str_eq!(MonitorType::None.to_display_str(), "None");
+    assert_str_eq!(MonitorType::Unknown.to_display_str(), "Unknown");
   }
 
   #[test]

@@ -1,6 +1,6 @@
 use serde_json::Number;
 
-use super::modals::EditArtistModal;
+use super::modals::{AddArtistModal, EditArtistModal};
 use crate::app::lidarr::lidarr_context_clues::ARTISTS_CONTEXT_CLUES;
 use crate::models::{
   BlockSelectionState, HorizontallyScrollableText, Route, TabRoute, TabState,
@@ -31,6 +31,7 @@ use {
 mod lidarr_data_tests;
 
 pub struct LidarrData<'a> {
+  pub add_artist_modal: Option<AddArtistModal>,
   pub add_artist_search: Option<HorizontallyScrollableText>,
   pub add_import_list_exclusion: bool,
   pub add_searched_artists: Option<StatefulTable<AddArtistSearchResult>>,
@@ -92,6 +93,7 @@ impl LidarrData<'_> {
 impl<'a> Default for LidarrData<'a> {
   fn default() -> LidarrData<'a> {
     LidarrData {
+      add_artist_modal: None,
       add_artist_search: None,
       add_import_list_exclusion: false,
       add_searched_artists: None,
@@ -122,6 +124,25 @@ impl<'a> Default for LidarrData<'a> {
 #[cfg(test)]
 impl LidarrData<'_> {
   pub fn test_default_fully_populated() -> Self {
+    let mut add_artist_modal = AddArtistModal {
+      tags: "usenet, testing".into(),
+      ..AddArtistModal::default()
+    };
+    add_artist_modal
+      .monitor_list
+      .set_items(Vec::from_iter(MonitorType::iter()));
+    add_artist_modal
+      .monitor_new_items_list
+      .set_items(Vec::from_iter(NewItemMonitorType::iter()));
+    add_artist_modal
+      .metadata_profile_list
+      .set_items(vec![metadata_profile().name]);
+    add_artist_modal
+      .quality_profile_list
+      .set_items(vec![quality_profile().name]);
+    add_artist_modal
+      .root_folder_list
+      .set_items(vec![root_folder()]);
     let mut edit_artist_modal = EditArtistModal {
       monitored: Some(true),
       path: "/nfs/music".into(),
@@ -144,6 +165,7 @@ impl LidarrData<'_> {
       quality_profile_map: quality_profile_map(),
       metadata_profile_map: metadata_profile_map(),
       edit_artist_modal: Some(edit_artist_modal),
+      add_artist_modal: Some(add_artist_modal),
       tags_map: tags_map(),
       ..LidarrData::default()
     };
@@ -172,9 +194,18 @@ pub enum ActiveLidarrBlock {
   #[default]
   Artists,
   ArtistsSortPrompt,
+  AddArtistAlreadyInLibrary,
+  AddArtistConfirmPrompt,
   AddArtistEmptySearchResults,
+  AddArtistPrompt,
   AddArtistSearchInput,
   AddArtistSearchResults,
+  AddArtistSelectMetadataProfile,
+  AddArtistSelectMonitor,
+  AddArtistSelectMonitorNewItems,
+  AddArtistSelectQualityProfile,
+  AddArtistSelectRootFolder,
+  AddArtistTagsInput,
   DeleteArtistPrompt,
   DeleteArtistConfirmPrompt,
   DeleteArtistToggleDeleteFile,
@@ -204,10 +235,29 @@ pub static LIBRARY_BLOCKS: [ActiveLidarrBlock; 7] = [
   ActiveLidarrBlock::UpdateAllArtistsPrompt,
 ];
 
-pub static ADD_ARTIST_BLOCKS: [ActiveLidarrBlock; 3] = [
+pub static ADD_ARTIST_BLOCKS: [ActiveLidarrBlock; 12] = [
+  ActiveLidarrBlock::AddArtistAlreadyInLibrary,
+  ActiveLidarrBlock::AddArtistConfirmPrompt,
   ActiveLidarrBlock::AddArtistEmptySearchResults,
+  ActiveLidarrBlock::AddArtistPrompt,
   ActiveLidarrBlock::AddArtistSearchInput,
   ActiveLidarrBlock::AddArtistSearchResults,
+  ActiveLidarrBlock::AddArtistSelectMetadataProfile,
+  ActiveLidarrBlock::AddArtistSelectMonitor,
+  ActiveLidarrBlock::AddArtistSelectMonitorNewItems,
+  ActiveLidarrBlock::AddArtistSelectQualityProfile,
+  ActiveLidarrBlock::AddArtistSelectRootFolder,
+  ActiveLidarrBlock::AddArtistTagsInput,
+];
+
+pub const ADD_ARTIST_SELECTION_BLOCKS: &[&[ActiveLidarrBlock]] = &[
+  &[ActiveLidarrBlock::AddArtistSelectRootFolder],
+  &[ActiveLidarrBlock::AddArtistSelectMonitor],
+  &[ActiveLidarrBlock::AddArtistSelectMonitorNewItems],
+  &[ActiveLidarrBlock::AddArtistSelectQualityProfile],
+  &[ActiveLidarrBlock::AddArtistSelectMetadataProfile],
+  &[ActiveLidarrBlock::AddArtistTagsInput],
+  &[ActiveLidarrBlock::AddArtistConfirmPrompt],
 ];
 
 pub static DELETE_ARTIST_BLOCKS: [ActiveLidarrBlock; 4] = [

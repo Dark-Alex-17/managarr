@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 
 use crate::models::Route;
 use crate::models::lidarr_models::{
-  AddArtistSearchResult, Artist, DeleteArtistParams, EditArtistParams,
+  AddArtistBody, AddArtistSearchResult, Artist, DeleteArtistParams, EditArtistParams,
 };
 use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
 use crate::models::servarr_models::CommandBody;
@@ -211,6 +211,32 @@ impl Network<'_, '_> {
     }
 
     result
+  }
+
+  pub(in crate::network::lidarr_network) async fn add_artist(
+    &mut self,
+    mut add_artist_body: AddArtistBody,
+  ) -> Result<Value> {
+    info!("Adding Lidarr artist: {}", add_artist_body.artist_name);
+    if let Some(tag_input_str) = add_artist_body.tag_input_string.as_ref() {
+      let tag_ids_vec = self.extract_and_add_lidarr_tag_ids_vec(tag_input_str).await;
+      add_artist_body.tags = tag_ids_vec;
+    }
+    let event = LidarrEvent::AddArtist(AddArtistBody::default());
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Post,
+        Some(add_artist_body),
+        None,
+        None,
+      )
+      .await;
+
+    self
+      .handle_request::<AddArtistBody, Value>(request_props, |_, _| ())
+      .await
   }
 
   pub(in crate::network::lidarr_network) async fn edit_artist(

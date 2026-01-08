@@ -2,8 +2,8 @@
 mod tests {
   use crate::app::lidarr::lidarr_context_clues::ARTISTS_CONTEXT_CLUES;
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ADD_ARTIST_BLOCKS, DELETE_ARTIST_BLOCKS, DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_BLOCKS,
-    EDIT_ARTIST_SELECTION_BLOCKS,
+    ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, DELETE_ARTIST_BLOCKS,
+    DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
   };
   use crate::models::{
     BlockSelectionState, Route,
@@ -155,10 +155,54 @@ mod tests {
 
   #[test]
   fn test_add_artist_blocks_contents() {
-    assert_eq!(ADD_ARTIST_BLOCKS.len(), 3);
+    assert_eq!(ADD_ARTIST_BLOCKS.len(), 12);
+    assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistAlreadyInLibrary));
+    assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistConfirmPrompt));
     assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistEmptySearchResults));
+    assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistPrompt));
     assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistSearchInput));
     assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistSearchResults));
+    assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistSelectMetadataProfile));
+    assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistSelectMonitor));
+    assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistSelectMonitorNewItems));
+    assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistSelectQualityProfile));
+    assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistSelectRootFolder));
+    assert!(ADD_ARTIST_BLOCKS.contains(&ActiveLidarrBlock::AddArtistTagsInput));
+  }
+
+  #[test]
+  fn test_add_artist_selection_blocks_ordering() {
+    let mut add_artist_block_iter = ADD_ARTIST_SELECTION_BLOCKS.iter();
+
+    assert_eq!(
+      add_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::AddArtistSelectRootFolder]
+    );
+    assert_eq!(
+      add_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::AddArtistSelectMonitor]
+    );
+    assert_eq!(
+      add_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::AddArtistSelectMonitorNewItems]
+    );
+    assert_eq!(
+      add_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::AddArtistSelectQualityProfile]
+    );
+    assert_eq!(
+      add_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::AddArtistSelectMetadataProfile]
+    );
+    assert_eq!(
+      add_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::AddArtistTagsInput]
+    );
+    assert_eq!(
+      add_artist_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::AddArtistConfirmPrompt]
+    );
+    assert_none!(add_artist_block_iter.next());
   }
 
   #[test]

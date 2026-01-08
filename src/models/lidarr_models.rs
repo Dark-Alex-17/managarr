@@ -134,6 +134,40 @@ pub enum NewItemMonitorType {
   New,
 }
 
+#[derive(
+  Serialize,
+  Deserialize,
+  Default,
+  PartialEq,
+  Eq,
+  Clone,
+  Copy,
+  Debug,
+  EnumIter,
+  clap::ValueEnum,
+  Display,
+  EnumDisplayStyle,
+)]
+#[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
+pub enum MonitorType {
+  #[default]
+  #[display_style(name = "All Albums")]
+  All,
+  #[display_style(name = "Future Albums")]
+  Future,
+  #[display_style(name = "Missing Albums")]
+  Missing,
+  #[display_style(name = "Existing Albums")]
+  Existing,
+  #[display_style(name = "First Album")]
+  First,
+  #[display_style(name = "Latest Album")]
+  Latest,
+  None,
+  Unknown,
+}
+
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DownloadRecord {
@@ -217,6 +251,29 @@ pub struct DeleteArtistParams {
   pub id: i64,
   pub delete_files: bool,
   pub add_import_list_exclusion: bool,
+}
+
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AddArtistBody {
+  pub foreign_artist_id: String,
+  pub artist_name: String,
+  pub monitored: bool,
+  pub root_folder_path: String,
+  pub quality_profile_id: i64,
+  pub metadata_profile_id: i64,
+  pub tags: Vec<i64>,
+  #[serde(skip_serializing, skip_deserializing)]
+  pub tag_input_string: Option<String>,
+  pub add_options: AddArtistOptions,
+}
+
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AddArtistOptions {
+  pub monitor: MonitorType,
+  pub monitor_new_items: NewItemMonitorType,
+  pub search_for_missing_albums: bool,
 }
 
 #[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]

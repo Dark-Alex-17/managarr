@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
   use crate::models::lidarr_models::{
-    AddArtistSearchResult, Artist, DeleteArtistParams, EditArtistParams, LidarrSerdeable,
-    NewItemMonitorType,
+    AddArtistBody, AddArtistOptions, AddArtistSearchResult, Artist, DeleteArtistParams,
+    EditArtistParams, LidarrSerdeable, MonitorType, NewItemMonitorType,
   };
   use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
   use crate::network::NetworkResource;
@@ -438,5 +438,106 @@ mod tests {
     let app = app.lock().await;
     assert_some!(&app.data.lidarr_data.add_searched_artists);
     assert_is_empty!(app.data.lidarr_data.add_searched_artists.as_ref().unwrap());
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_artist_event() {
+    let add_artist_body = AddArtistBody {
+      foreign_artist_id: "test-foreign-id".to_owned(),
+      artist_name: "Test Artist".to_owned(),
+      monitored: true,
+      root_folder_path: "/music".to_owned(),
+      quality_profile_id: 1,
+      metadata_profile_id: 1,
+      tags: Vec::default(),
+      tag_input_string: Some("usenet, testing".to_owned()),
+      add_options: AddArtistOptions {
+        monitor: MonitorType::All,
+        monitor_new_items: NewItemMonitorType::All,
+        search_for_missing_albums: true,
+      },
+    };
+    let expected_body = json!({
+      "foreignArtistId": "test-foreign-id",
+      "artistName": "Test Artist",
+      "monitored": true,
+      "rootFolderPath": "/music",
+      "qualityProfileId": 1,
+      "metadataProfileId": 1,
+      "tags": [1, 2],
+      "addOptions": {
+        "monitor": "all",
+        "monitorNewItems": "all",
+        "searchForMissingAlbums": true
+      }
+    });
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(expected_body)
+      .returns(json!({"id": 1}))
+      .build_for(LidarrEvent::AddArtist(AddArtistBody::default()))
+      .await;
+    app.lock().await.data.lidarr_data.tags_map =
+      BiMap::from_iter([(1, "usenet".to_owned()), (2, "testing".to_owned())]);
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    assert!(
+      network
+        .handle_lidarr_event(LidarrEvent::AddArtist(add_artist_body))
+        .await
+        .is_ok()
+    );
+
+    mock.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_add_artist_event_does_not_overwrite_tags_vec_when_tag_input_string_is_none()
+  {
+    let add_artist_body = AddArtistBody {
+      foreign_artist_id: "test-foreign-id".to_owned(),
+      artist_name: "Test Artist".to_owned(),
+      monitored: true,
+      root_folder_path: "/music".to_owned(),
+      quality_profile_id: 1,
+      metadata_profile_id: 1,
+      tags: vec![1, 2],
+      tag_input_string: None,
+      add_options: AddArtistOptions {
+        monitor: MonitorType::All,
+        monitor_new_items: NewItemMonitorType::All,
+        search_for_missing_albums: true,
+      },
+    };
+    let expected_body = json!({
+      "foreignArtistId": "test-foreign-id",
+      "artistName": "Test Artist",
+      "monitored": true,
+      "rootFolderPath": "/music",
+      "qualityProfileId": 1,
+      "metadataProfileId": 1,
+      "tags": [1, 2],
+      "addOptions": {
+        "monitor": "all",
+        "monitorNewItems": "all",
+        "searchForMissingAlbums": true
+      }
+    });
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(expected_body)
+      .returns(json!({"id": 1}))
+      .build_for(LidarrEvent::AddArtist(add_artist_body.clone()))
+      .await;
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    assert!(
+      network
+        .handle_lidarr_event(LidarrEvent::AddArtist(add_artist_body))
+        .await
+        .is_ok()
+    );
+
+    mock.assert_async().await;
   }
 }

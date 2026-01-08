@@ -1,8 +1,12 @@
 use crate::app::App;
-use crate::app::context_clues::{BARE_POPUP_CONTEXT_CLUES, ContextClue, ContextClueProvider};
+use crate::app::context_clues::{
+  BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES, ContextClue, ContextClueProvider,
+};
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::models::Route;
-use crate::models::servarr_data::lidarr::lidarr_data::{ADD_ARTIST_BLOCKS, ActiveLidarrBlock};
+use crate::models::servarr_data::lidarr::lidarr_data::{
+  ADD_ARTIST_BLOCKS, ActiveLidarrBlock, EDIT_ARTIST_BLOCKS,
+};
 
 #[cfg(test)]
 #[path = "lidarr_context_clues_tests.rs"]
@@ -47,6 +51,14 @@ impl ContextClueProvider for LidarrContextClueProvider {
       _ if EDIT_ARTIST_BLOCKS.contains(&active_lidarr_block) => {
         Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES)
       }
+      ActiveLidarrBlock::AddArtistPrompt
+      | ActiveLidarrBlock::AddArtistSelectMonitor
+      | ActiveLidarrBlock::AddArtistSelectMonitorNewItems
+      | ActiveLidarrBlock::AddArtistSelectQualityProfile
+      | ActiveLidarrBlock::AddArtistSelectMetadataProfile
+      | ActiveLidarrBlock::AddArtistSelectRootFolder
+      | ActiveLidarrBlock::AddArtistTagsInput
+      | ActiveLidarrBlock::AddArtistAlreadyInLibrary => Some(&CONFIRMATION_PROMPT_CONTEXT_CLUES),
       _ if ADD_ARTIST_BLOCKS.contains(&active_lidarr_block) => {
         Some(&ADD_ARTIST_SEARCH_RESULTS_CONTEXT_CLUES)
       }

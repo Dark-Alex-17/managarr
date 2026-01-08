@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
   use crate::app::App;
-  use crate::models::lidarr_models::{LidarrSerdeable, MetadataProfile};
+  use crate::models::lidarr_models::{AddArtistBody, LidarrSerdeable, MetadataProfile};
   use crate::models::servarr_data::lidarr::modals::EditArtistModal;
   use crate::models::servarr_models::{QualityProfile, Tag};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
@@ -18,6 +18,7 @@ mod tests {
     #[values(
       LidarrEvent::GetArtistDetails(0),
       LidarrEvent::ListArtists,
+      LidarrEvent::AddArtist(AddArtistBody::default()),
       LidarrEvent::ToggleArtistMonitoring(0)
     )]
     event: LidarrEvent,
