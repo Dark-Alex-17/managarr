@@ -7,7 +7,7 @@ use tokio::sync::Mutex;
 use crate::{
   app::App,
   cli::{CliCommandHandler, Command},
-  models::lidarr_models::DeleteArtistParams,
+  models::lidarr_models::DeleteParams,
   network::{NetworkTrait, lidarr_network::LidarrEvent},
 };
 
@@ -19,6 +19,15 @@ mod delete_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum LidarrDeleteCommand {
+  #[command(about = "Delete an album from your Lidarr library")]
+  Album {
+    #[arg(long, help = "The ID of the album to delete", required = true)]
+    album_id: i64,
+    #[arg(long, help = "Delete the album files from disk as well")]
+    delete_files_from_disk: bool,
+    #[arg(long, help = "Add a list exclusion for this album")]
+    add_list_exclusion: bool,
+  },
   #[command(about = "Delete an artist from your Lidarr library")]
   Artist {
     #[arg(long, help = "The ID of the artist to delete", required = true)]
@@ -62,12 +71,28 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrDeleteCommand> for LidarrDeleteComm
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      LidarrDeleteCommand::Album {
+        album_id,
+        delete_files_from_disk,
+        add_list_exclusion,
+      } => {
+        let delete_album_params = DeleteParams {
+          id: album_id,
+          delete_files: delete_files_from_disk,
+          add_import_list_exclusion: add_list_exclusion,
+        };
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::DeleteAlbum(delete_album_params).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
       LidarrDeleteCommand::Artist {
         artist_id,
         delete_files_from_disk,
         add_list_exclusion,
       } => {
-        let delete_artist_params = DeleteArtistParams {
+        let delete_artist_params = DeleteParams {
           id: artist_id,
           delete_files: delete_files_from_disk,
           add_import_list_exclusion: add_list_exclusion,

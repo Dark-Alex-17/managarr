@@ -9,7 +9,7 @@ mod tests {
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::lidarr_handlers::library::delete_artist_handler::DeleteArtistHandler;
-  use crate::models::lidarr_models::{Artist, DeleteArtistParams};
+  use crate::models::lidarr_models::{Artist, DeleteParams};
   use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, DELETE_ARTIST_BLOCKS};
 
   mod test_handle_scroll_up_and_down {
@@ -137,7 +137,7 @@ mod tests {
         .lidarr_data
         .artists
         .set_items(vec![Artist::default()]);
-      let expected_delete_artist_params = DeleteArtistParams {
+      let expected_delete_artist_params = DeleteParams {
         id: 0,
         delete_files: true,
         add_import_list_exclusion: true,
@@ -286,7 +286,7 @@ mod tests {
         .lidarr_data
         .artists
         .set_items(vec![Artist::default()]);
-      let expected_delete_artist_params = DeleteArtistParams {
+      let expected_delete_artist_params = DeleteParams {
         id: 0,
         delete_files: true,
         add_import_list_exclusion: true,
@@ -359,7 +359,7 @@ mod tests {
       .set_items(vec![Artist::default()]);
     app.data.lidarr_data.delete_artist_files = true;
     app.data.lidarr_data.add_import_list_exclusion = true;
-    let expected_delete_artist_params = DeleteArtistParams {
+    let expected_delete_artist_params = DeleteParams {
       id: 0,
       delete_files: true,
       add_import_list_exclusion: true,

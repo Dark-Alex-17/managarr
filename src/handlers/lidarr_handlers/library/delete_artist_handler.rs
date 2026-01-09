@@ -1,5 +1,5 @@
 use crate::models::Route;
-use crate::models::lidarr_models::DeleteArtistParams;
+use crate::models::lidarr_models::DeleteParams;
 use crate::network::lidarr_network::LidarrEvent;
 use crate::{
   app::App,
@@ -21,13 +21,13 @@ pub(in crate::handlers::lidarr_handlers) struct DeleteArtistHandler<'a, 'b> {
 }
 
 impl DeleteArtistHandler<'_, '_> {
-  fn build_delete_artist_params(&mut self) -> DeleteArtistParams {
+  fn build_delete_artist_params(&mut self) -> DeleteParams {
     let id = self.app.data.lidarr_data.artists.current_selection().id;
     let delete_files = self.app.data.lidarr_data.delete_artist_files;
     let add_import_list_exclusion = self.app.data.lidarr_data.add_import_list_exclusion;
     self.app.data.lidarr_data.reset_delete_artist_preferences();
 
-    DeleteArtistParams {
+    DeleteParams {
       id,
       delete_files,
       add_import_list_exclusion,

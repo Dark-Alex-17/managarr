@@ -4,8 +4,7 @@ use serde_json::{Value, json};
 
 use crate::models::Route;
 use crate::models::lidarr_models::{
-  AddArtistBody, AddArtistSearchResult, Artist, DeleteArtistParams, EditArtistParams,
-  LidarrCommandBody,
+  AddArtistBody, AddArtistSearchResult, Artist, DeleteParams, EditArtistParams, LidarrCommandBody,
 };
 use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
 use crate::models::stateful_table::StatefulTable;
@@ -20,10 +19,10 @@ mod lidarr_artists_network_tests;
 impl Network<'_, '_> {
   pub(in crate::network::lidarr_network) async fn delete_artist(
     &mut self,
-    delete_artist_params: DeleteArtistParams,
+    delete_artist_params: DeleteParams,
   ) -> Result<()> {
-    let event = LidarrEvent::DeleteArtist(DeleteArtistParams::default());
-    let DeleteArtistParams {
+    let event = LidarrEvent::DeleteArtist(DeleteParams::default());
+    let DeleteParams {
       id,
       delete_files,
       add_import_list_exclusion,

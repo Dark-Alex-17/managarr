@@ -1,7 +1,9 @@
 #[cfg(test)]
 mod tests {
   use crate::app::App;
-  use crate::models::lidarr_models::{AddArtistBody, LidarrSerdeable, MetadataProfile};
+  use crate::models::lidarr_models::{
+    AddArtistBody, DeleteParams, EditArtistParams, LidarrSerdeable, MetadataProfile,
+  };
   use crate::models::servarr_data::lidarr::modals::EditArtistModal;
   use crate::models::servarr_models::{QualityProfile, Tag};
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
@@ -19,7 +21,9 @@ mod tests {
       LidarrEvent::GetArtistDetails(0),
       LidarrEvent::ListArtists,
       LidarrEvent::AddArtist(AddArtistBody::default()),
-      LidarrEvent::ToggleArtistMonitoring(0)
+      LidarrEvent::ToggleArtistMonitoring(0),
+      LidarrEvent::DeleteArtist(DeleteParams::default()),
+      LidarrEvent::EditArtist(EditArtistParams::default())
     )]
     event: LidarrEvent,
   ) {
@@ -58,8 +62,14 @@ mod tests {
   }
 
   #[rstest]
-  fn test_resource_albums(
-    #[values(LidarrEvent::GetAlbums(0), LidarrEvent::ToggleAlbumMonitoring(0), LidarrEvent::GetAlbumDetails(0))] event: LidarrEvent,
+  fn test_resource_album(
+    #[values(
+      LidarrEvent::GetAlbums(0),
+      LidarrEvent::ToggleAlbumMonitoring(0),
+      LidarrEvent::GetAlbumDetails(0),
+      LidarrEvent::DeleteAlbum(DeleteParams::default())
+    )]
+    event: LidarrEvent,
   ) {
     assert_str_eq!(event.resource(), "/album");
   }

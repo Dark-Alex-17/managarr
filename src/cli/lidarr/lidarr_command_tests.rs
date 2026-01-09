@@ -147,7 +147,7 @@ mod tests {
       },
       models::{
         Serdeable,
-        lidarr_models::{Artist, DeleteArtistParams, LidarrSerdeable},
+        lidarr_models::{Artist, DeleteParams, LidarrSerdeable},
       },
       network::{MockNetworkTrait, NetworkEvent, lidarr_network::LidarrEvent},
     };
@@ -203,7 +203,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_lidarr_cli_handler_delegates_delete_commands_to_the_delete_command_handler() {
-      let expected_delete_artist_params = DeleteArtistParams {
+      let expected_delete_artist_params = DeleteParams {
         id: 1,
         delete_files: true,
         add_import_list_exclusion: true,

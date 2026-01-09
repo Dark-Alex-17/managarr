@@ -1,4 +1,4 @@
-use crate::models::lidarr_models::{Album};
+use crate::models::lidarr_models::{Album, DeleteParams};
 use crate::network::lidarr_network::LidarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
@@ -54,6 +54,38 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<(), Album>(request_props, |_, _| ())
+      .await
+  }
+
+  pub(in crate::network::lidarr_network) async fn delete_album(
+    &mut self,
+    delete_album_params: DeleteParams,
+  ) -> Result<()> {
+    let event = LidarrEvent::DeleteAlbum(DeleteParams::default());
+    let DeleteParams {
+      id,
+      delete_files,
+      add_import_list_exclusion,
+    } = delete_album_params;
+
+    info!(
+      "Deleting Lidarr album with ID: {id} with deleteFiles={delete_files} and addImportListExclusion={add_import_list_exclusion}"
+    );
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Delete,
+        None::<()>,
+        Some(format!("/{id}")),
+        Some(format!(
+          "deleteFiles={delete_files}&addImportListExclusion={add_import_list_exclusion}"
+        )),
+      )
+      .await;
+
+    self
+      .handle_request::<(), ()>(request_props, |_, _| ())
       .await
   }
 

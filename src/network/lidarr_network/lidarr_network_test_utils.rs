@@ -50,7 +50,7 @@ pub mod test_utils {
       "percentOfTracks": 99.9
     }
   }"#;
-  
+
   pub const ALBUM_JSON: &str = r#"{
       "id": 1,
       "title": "Test Album",

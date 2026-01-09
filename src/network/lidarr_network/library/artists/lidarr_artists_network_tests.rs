@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
   use crate::models::lidarr_models::{
-    AddArtistBody, AddArtistOptions, AddArtistSearchResult, Artist, DeleteArtistParams,
-    EditArtistParams, LidarrSerdeable, MonitorType, NewItemMonitorType,
+    AddArtistBody, AddArtistOptions, AddArtistSearchResult, Artist, DeleteParams, EditArtistParams,
+    LidarrSerdeable, MonitorType, NewItemMonitorType,
   };
   use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
   use crate::network::NetworkResource;
@@ -54,7 +54,7 @@ mod tests {
 
   #[tokio::test]
   async fn test_handle_delete_artist_event() {
-    let delete_artist_params = DeleteArtistParams {
+    let delete_artist_params = DeleteParams {
       id: 1,
       delete_files: true,
       add_import_list_exclusion: true,

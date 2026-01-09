@@ -3,7 +3,7 @@ use log::info;
 
 use super::{NetworkEvent, NetworkResource};
 use crate::models::lidarr_models::{
-  AddArtistBody, DeleteArtistParams, EditArtistParams, LidarrSerdeable, MetadataProfile,
+  AddArtistBody, DeleteParams, EditArtistParams, LidarrSerdeable, MetadataProfile,
 };
 use crate::models::servarr_models::{QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
@@ -25,7 +25,8 @@ pub mod lidarr_network_test_utils;
 pub enum LidarrEvent {
   AddArtist(AddArtistBody),
   AddTag(String),
-  DeleteArtist(DeleteArtistParams),
+  DeleteAlbum(DeleteParams),
+  DeleteArtist(DeleteParams),
   DeleteTag(i64),
   EditArtist(EditArtistParams),
   GetAlbums(i64),
@@ -60,7 +61,10 @@ impl NetworkResource for LidarrEvent {
       | LidarrEvent::ListArtists
       | LidarrEvent::AddArtist(_)
       | LidarrEvent::ToggleArtistMonitoring(_) => "/artist",
-      LidarrEvent::GetAlbums(_) | LidarrEvent::ToggleAlbumMonitoring(_) | LidarrEvent::GetAlbumDetails(_) => "/album",
+      LidarrEvent::GetAlbums(_)
+      | LidarrEvent::ToggleAlbumMonitoring(_)
+      | LidarrEvent::GetAlbumDetails(_)
+      | LidarrEvent::DeleteAlbum(_) => "/album",
       LidarrEvent::GetDiskSpace => "/diskspace",
       LidarrEvent::GetDownloads(_) => "/queue",
       LidarrEvent::GetHostConfig | LidarrEvent::GetSecurityConfig => "/config/host",
@@ -90,6 +94,9 @@ impl Network<'_, '_> {
   ) -> Result<LidarrSerdeable> {
     match lidarr_event {
       LidarrEvent::AddTag(tag) => self.add_lidarr_tag(tag).await.map(LidarrSerdeable::from),
+      LidarrEvent::DeleteAlbum(params) => {
+        self.delete_album(params).await.map(LidarrSerdeable::from)
+      }
       LidarrEvent::DeleteArtist(params) => {
         self.delete_artist(params).await.map(LidarrSerdeable::from)
       }
@@ -104,7 +111,10 @@ impl Network<'_, '_> {
         .get_artist_details(artist_id)
         .await
         .map(LidarrSerdeable::from),
-      LidarrEvent::GetAlbumDetails(album_id) => self.get_album_details(album_id).await.map(LidarrSerdeable::from),
+      LidarrEvent::GetAlbumDetails(album_id) => self
+        .get_album_details(album_id)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::GetDiskSpace => self.get_lidarr_diskspace().await.map(LidarrSerdeable::from),
       LidarrEvent::GetDownloads(count) => self
         .get_lidarr_downloads(count)

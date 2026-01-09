@@ -255,7 +255,7 @@ pub struct LidarrCommandBody {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "lowercase")]
-pub struct DeleteArtistParams {
+pub struct DeleteParams {
   pub id: i64,
   pub delete_files: bool,
   pub add_import_list_exclusion: bool,
