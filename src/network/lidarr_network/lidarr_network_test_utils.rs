@@ -3,9 +3,9 @@
 pub mod test_utils {
   use crate::models::HorizontallyScrollableText;
   use crate::models::lidarr_models::{
-    AddArtistSearchResult, Artist, ArtistStatistics, ArtistStatus, DownloadRecord, DownloadStatus,
-    DownloadsResponse, EditArtistParams, Member, MetadataProfile, NewItemMonitorType, Ratings,
-    SystemStatus,
+    AddArtistSearchResult, Album, AlbumStatistics, Artist, ArtistStatistics, ArtistStatus,
+    DownloadRecord, DownloadStatus, DownloadsResponse, EditArtistParams, Member, MetadataProfile,
+    NewItemMonitorType, Ratings, SystemStatus,
   };
   use crate::models::servarr_models::{QualityProfile, RootFolder, Tag};
   use bimap::BiMap;
@@ -50,6 +50,27 @@ pub mod test_utils {
       "percentOfTracks": 99.9
     }
   }"#;
+  
+  pub const ALBUM_JSON: &str = r#"{
+      "id": 1,
+      "title": "Test Album",
+			"foreignAlbumId": "test-foreign-album-id",
+			"monitored": true,
+			"anyReleaseOk": true,
+			"profileId": 1,
+			"duration": 180,
+			"albumType": "Album",
+			"genres": ["Classical"],
+			"ratings": {"votes": 15, "value": 8.4},
+			"releaseDate": "2023-01-01T00:00:00Z",
+			"statistics": {
+				"trackFileCount": 10,
+				"trackCount": 10,
+				"totalTrackCount": 10,
+				"sizeOnDisk": 1024,
+				"percentOfTracks": 99.9
+			}
+    }"#;
 
   pub fn member() -> Member {
     Member {
@@ -197,6 +218,35 @@ pub mod test_utils {
       disambiguation: Some("American pianist".to_owned()),
       genres: vec!["soundtrack".to_owned()],
       ratings: Some(ratings()),
+    }
+  }
+
+  pub fn album_statistics() -> AlbumStatistics {
+    AlbumStatistics {
+      track_file_count: 10,
+      track_count: 10,
+      total_track_count: 10,
+      size_on_disk: 1024,
+      percent_of_tracks: 99.9,
+    }
+  }
+
+  pub fn album() -> Album {
+    Album {
+      id: 1,
+      title: "Test Album".into(),
+      foreign_album_id: "test-foreign-album-id".to_string(),
+      monitored: true,
+      any_release_ok: true,
+      profile_id: 1,
+      duration: 180,
+      album_type: Some("Album".to_owned()),
+      genres: vec!["Classical".to_owned()],
+      ratings: Some(ratings()),
+      release_date: Some(DateTime::from(
+        DateTime::parse_from_rfc3339("2023-01-01T00:00:00Z").unwrap(),
+      )),
+      statistics: Some(album_statistics()),
     }
   }
 }

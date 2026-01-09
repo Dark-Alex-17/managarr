@@ -2,13 +2,16 @@
 mod tests {
   use crate::app::App;
   use crate::app::context_clues::{
-    BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES, ContextClueProvider,
+    BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES, ContextClue, ContextClueProvider,
   };
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::lidarr::lidarr_context_clues::{
-    ADD_ARTIST_SEARCH_RESULTS_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES, LidarrContextClueProvider,
+    ADD_ARTIST_SEARCH_RESULTS_CONTEXT_CLUES, ARTIST_DETAILS_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
+    LidarrContextClueProvider,
   };
-  use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, EDIT_ARTIST_BLOCKS};
+  use crate::models::servarr_data::lidarr::lidarr_data::{
+    ActiveLidarrBlock, EDIT_ARTIST_BLOCKS, LidarrData,
+  };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use rstest::rstest;
 
@@ -66,6 +69,50 @@ mod tests {
   }
 
   #[test]
+  fn test_artist_details_context_clues() {
+    let mut artist_details_context_clues_iter = ARTIST_DETAILS_CONTEXT_CLUES.iter();
+
+    assert_some_eq_x!(
+      artist_details_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc,
+      )
+    );
+    assert_some_eq_x!(
+      artist_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc)
+    );
+    assert_some_eq_x!(
+      artist_details_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.toggle_monitoring,
+        DEFAULT_KEYBINDINGS.toggle_monitoring.desc,
+      )
+    );
+    assert_some_eq_x!(
+      artist_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc)
+    );
+    assert_some_eq_x!(
+      artist_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc)
+    );
+    assert_some_eq_x!(
+      artist_details_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.auto_search,
+        DEFAULT_KEYBINDINGS.auto_search.desc,
+      )
+    );
+    assert_some_eq_x!(
+      artist_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
+    );
+    assert_none!(artist_details_context_clues_iter.next());
+  }
+
+  #[test]
   fn test_add_artist_search_results_context_clues() {
     let mut add_artist_search_results_context_clues_iter =
       ADD_ARTIST_SEARCH_RESULTS_CONTEXT_CLUES.iter();
@@ -90,6 +137,23 @@ mod tests {
     app.push_navigation_stack(ActiveRadarrBlock::default().into());
 
     LidarrContextClueProvider::get_context_clues(&mut app);
+  }
+
+  #[rstest]
+  #[case(0, ActiveLidarrBlock::ArtistDetails, &ARTIST_DETAILS_CONTEXT_CLUES)]
+  fn test_lidarr_context_clue_provider_artist_info_tabs(
+    #[case] index: usize,
+    #[case] active_lidarr_block: ActiveLidarrBlock,
+    #[case] expected_context_clues: &[ContextClue],
+  ) {
+    let mut app = App::test_default();
+    app.data.lidarr_data = LidarrData::default();
+    app.data.lidarr_data.artist_info_tabs.set_index(index);
+    app.push_navigation_stack(active_lidarr_block.into());
+
+    let context_clues = LidarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, expected_context_clues);
   }
 
   #[test]

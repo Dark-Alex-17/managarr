@@ -7,10 +7,13 @@ use ratatui::widgets::ListItem;
 
 use crate::app::App;
 use crate::models::Route;
-use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, EDIT_ARTIST_BLOCKS};
+use crate::models::servarr_data::lidarr::lidarr_data::{
+  ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, EDIT_ARTIST_BLOCKS,
+};
 use crate::models::servarr_data::lidarr::modals::EditArtistModal;
 use crate::render_selectable_input_box;
 
+use crate::ui::lidarr_ui::library::artist_details_ui::ArtistDetailsUi;
 use crate::ui::utils::title_block_centered;
 use crate::ui::widgets::button::Button;
 use crate::ui::widgets::checkbox::Checkbox;
@@ -34,7 +37,13 @@ impl DrawUi for EditArtistUi {
   }
 
   fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
-    if let Route::Lidarr(active_lidarr_block, _context_option) = app.get_current_route() {
+    if let Route::Lidarr(active_lidarr_block, context_option) = app.get_current_route() {
+      if let Some(context) = context_option
+        && ARTIST_DETAILS_BLOCKS.contains(&context)
+      {
+        draw_popup(f, app, ArtistDetailsUi::draw, Size::Large);
+      }
+
       let draw_edit_artist_prompt = |f: &mut Frame<'_>, app: &mut App<'_>, prompt_area: Rect| {
         draw_edit_artist_confirmation_prompt(f, app, prompt_area);
 

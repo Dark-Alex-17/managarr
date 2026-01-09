@@ -5,7 +5,7 @@ use crate::app::context_clues::{
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::models::Route;
 use crate::models::servarr_data::lidarr::lidarr_data::{
-  ADD_ARTIST_BLOCKS, ActiveLidarrBlock, EDIT_ARTIST_BLOCKS,
+  ADD_ARTIST_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, EDIT_ARTIST_BLOCKS,
 };
 
 #[cfg(test)]
@@ -36,6 +36,25 @@ pub static ADD_ARTIST_SEARCH_RESULTS_CONTEXT_CLUES: [ContextClue; 2] = [
   (DEFAULT_KEYBINDINGS.esc, "edit search"),
 ];
 
+pub static ARTIST_DETAILS_CONTEXT_CLUES: [ContextClue; 7] = [
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc),
+  (
+    DEFAULT_KEYBINDINGS.toggle_monitoring,
+    DEFAULT_KEYBINDINGS.toggle_monitoring.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
+  (DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc),
+  (
+    DEFAULT_KEYBINDINGS.auto_search,
+    DEFAULT_KEYBINDINGS.auto_search.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
+];
+
 pub(in crate::app) struct LidarrContextClueProvider;
 
 impl ContextClueProvider for LidarrContextClueProvider {
@@ -45,6 +64,11 @@ impl ContextClueProvider for LidarrContextClueProvider {
     };
 
     match active_lidarr_block {
+      _ if ARTIST_DETAILS_BLOCKS.contains(&active_lidarr_block) => app
+        .data
+        .lidarr_data
+        .artist_info_tabs
+        .get_active_route_contextual_help(),
       ActiveLidarrBlock::AddArtistSearchInput | ActiveLidarrBlock::AddArtistEmptySearchResults => {
         Some(&BARE_POPUP_CONTEXT_CLUES)
       }

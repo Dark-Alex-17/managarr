@@ -4,7 +4,8 @@ mod tests {
 
   use crate::models::lidarr_models::{Artist, ArtistStatistics, ArtistStatus};
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ADD_ARTIST_BLOCKS, ActiveLidarrBlock, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS, LIBRARY_BLOCKS,
+    ADD_ARTIST_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ARTIST_BLOCKS,
+    EDIT_ARTIST_BLOCKS, LIBRARY_BLOCKS,
   };
   use crate::ui::DrawUi;
   use crate::ui::lidarr_ui::library::{LibraryUi, decorate_artist_row_with_style};
@@ -19,6 +20,7 @@ mod tests {
     library_ui_blocks.extend(DELETE_ARTIST_BLOCKS);
     library_ui_blocks.extend(EDIT_ARTIST_BLOCKS);
     library_ui_blocks.extend(ADD_ARTIST_BLOCKS);
+    library_ui_blocks.extend(ARTIST_DETAILS_BLOCKS);
 
     for active_lidarr_block in ActiveLidarrBlock::iter() {
       if library_ui_blocks.contains(&active_lidarr_block) {
@@ -182,7 +184,7 @@ mod tests {
     use crate::app::App;
     use crate::models::BlockSelectionState;
     use crate::models::servarr_data::lidarr::lidarr_data::{
-      ActiveLidarrBlock, DELETE_ARTIST_SELECTION_BLOCKS,
+      ActiveLidarrBlock, DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
     };
     use rstest::rstest;
 
@@ -256,6 +258,50 @@ mod tests {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
       app.push_navigation_stack(ActiveLidarrBlock::UpdateAllArtistsPrompt.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_library_ui_renders_artist_details_over_library() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_library_ui_renders_edit_artist_over_artist_details() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+      app.push_navigation_stack(ActiveLidarrBlock::EditArtistPrompt.into());
+      app.data.lidarr_data.selected_block = BlockSelectionState::new(EDIT_ARTIST_SELECTION_BLOCKS);
+
+      let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
+        LibraryUi::draw(f, app, f.area());
+      });
+
+      insta::assert_snapshot!(output);
+    }
+
+    #[test]
+    fn test_library_ui_renders_dropdown_over_edit_artist_over_artist_details() {
+      let mut app = App::test_default_fully_populated();
+      app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+      app.push_navigation_stack(ActiveLidarrBlock::EditArtistPrompt.into());
+      app.push_navigation_stack(ActiveLidarrBlock::EditArtistSelectMetadataProfile.into());
+      app.data.lidarr_data.selected_block = BlockSelectionState::new(EDIT_ARTIST_SELECTION_BLOCKS);
 
       let output = render_to_string_with_app(TerminalSize::Large, &mut app, |f, app| {
         LibraryUi::draw(f, app, f.area());

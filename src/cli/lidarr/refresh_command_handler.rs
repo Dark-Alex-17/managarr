@@ -19,6 +19,15 @@ mod refresh_command_handler_tests;
 pub enum LidarrRefreshCommand {
   #[command(about = "Refresh all artist data for all artists in your Lidarr library")]
   AllArtists,
+  #[command(about = "Refresh artist data and scan disk for the artist with the given ID")]
+  Artist {
+    #[arg(
+      long,
+      help = "The ID of the artist to refresh information on and to scan the disk for",
+      required = true
+    )]
+    artist_id: i64,
+  },
 }
 
 impl From<LidarrRefreshCommand> for Command {
@@ -54,6 +63,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrRefreshCommand>
         let resp = self
           .network
           .handle_network_event(LidarrEvent::UpdateAllArtists.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrRefreshCommand::Artist { artist_id } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::UpdateAndScanArtist(artist_id).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

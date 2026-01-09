@@ -1,8 +1,11 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::lidarr::lidarr_context_clues::ARTISTS_CONTEXT_CLUES;
+  use crate::app::lidarr::lidarr_context_clues::{
+    ARTIST_DETAILS_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
+  };
+  use crate::models::lidarr_models::Album;
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, DELETE_ARTIST_BLOCKS,
+    ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, ARTIST_DETAILS_BLOCKS, DELETE_ARTIST_BLOCKS,
     DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
   };
   use crate::models::{
@@ -42,6 +45,18 @@ mod tests {
 
     assert!(!lidarr_data.delete_artist_files);
     assert!(!lidarr_data.add_import_list_exclusion);
+  }
+
+  #[test]
+  fn test_reset_artist_info_tabs() {
+    let mut lidarr_data = LidarrData::default();
+    lidarr_data.albums.set_items(vec![Album::default()]);
+    lidarr_data.artist_info_tabs.index = 1;
+
+    lidarr_data.reset_artist_info_tabs();
+
+    assert_is_empty!(lidarr_data.albums);
+    assert_eq!(lidarr_data.artist_info_tabs.index, 0);
   }
 
   #[test]
@@ -112,6 +127,7 @@ mod tests {
     assert_none!(lidarr_data.add_artist_search);
     assert!(!lidarr_data.add_import_list_exclusion);
     assert_none!(lidarr_data.add_searched_artists);
+    assert_is_empty!(lidarr_data.albums);
     assert_is_empty!(lidarr_data.artists);
     assert!(!lidarr_data.delete_artist_files);
     assert_is_empty!(lidarr_data.disk_space_vec);
@@ -139,6 +155,18 @@ mod tests {
       &ARTISTS_CONTEXT_CLUES
     );
     assert_none!(lidarr_data.main_tabs.tabs[0].config);
+
+    assert_eq!(lidarr_data.artist_info_tabs.tabs.len(), 1);
+    assert_str_eq!(lidarr_data.artist_info_tabs.tabs[0].title, "Albums");
+    assert_eq!(
+      lidarr_data.artist_info_tabs.tabs[0].route,
+      ActiveLidarrBlock::ArtistDetails.into()
+    );
+    assert_some_eq_x!(
+      &lidarr_data.artist_info_tabs.tabs[0].contextual_help,
+      &ARTIST_DETAILS_CONTEXT_CLUES
+    );
+    assert_none!(lidarr_data.artist_info_tabs.tabs[0].config);
   }
 
   #[test]
@@ -151,6 +179,16 @@ mod tests {
     assert!(LIBRARY_BLOCKS.contains(&ActiveLidarrBlock::FilterArtists));
     assert!(LIBRARY_BLOCKS.contains(&ActiveLidarrBlock::FilterArtistsError));
     assert!(LIBRARY_BLOCKS.contains(&ActiveLidarrBlock::UpdateAllArtistsPrompt));
+  }
+
+  #[test]
+  fn test_artist_details_blocks_contains_expected_blocks() {
+    assert_eq!(ARTIST_DETAILS_BLOCKS.len(), 5);
+    assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::ArtistDetails));
+    assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::AutomaticallySearchArtistPrompt));
+    assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchAlbums));
+    assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SearchAlbumsError));
+    assert!(ARTIST_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::UpdateAndScanArtistPrompt));
   }
 
   #[test]

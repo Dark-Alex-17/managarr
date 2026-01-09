@@ -28,6 +28,8 @@ pub enum LidarrEvent {
   DeleteArtist(DeleteArtistParams),
   DeleteTag(i64),
   EditArtist(EditArtistParams),
+  GetAlbums(i64),
+  GetAlbumDetails(i64),
   GetArtistDetails(i64),
   GetDiskSpace,
   GetDownloads(u64),
@@ -41,8 +43,11 @@ pub enum LidarrEvent {
   HealthCheck,
   ListArtists,
   SearchNewArtist(String),
+  ToggleAlbumMonitoring(i64),
   ToggleArtistMonitoring(i64),
+  TriggerAutomaticArtistSearch(i64),
   UpdateAllArtists,
+  UpdateAndScanArtist(i64),
 }
 
 impl NetworkResource for LidarrEvent {
@@ -55,10 +60,13 @@ impl NetworkResource for LidarrEvent {
       | LidarrEvent::ListArtists
       | LidarrEvent::AddArtist(_)
       | LidarrEvent::ToggleArtistMonitoring(_) => "/artist",
+      LidarrEvent::GetAlbums(_) | LidarrEvent::ToggleAlbumMonitoring(_) | LidarrEvent::GetAlbumDetails(_) => "/album",
       LidarrEvent::GetDiskSpace => "/diskspace",
       LidarrEvent::GetDownloads(_) => "/queue",
       LidarrEvent::GetHostConfig | LidarrEvent::GetSecurityConfig => "/config/host",
-      LidarrEvent::UpdateAllArtists => "/command",
+      LidarrEvent::TriggerAutomaticArtistSearch(_)
+      | LidarrEvent::UpdateAllArtists
+      | LidarrEvent::UpdateAndScanArtist(_) => "/command",
       LidarrEvent::GetMetadataProfiles => "/metadataprofile",
       LidarrEvent::GetQualityProfiles => "/qualityprofile",
       LidarrEvent::GetRootFolders => "/rootfolder",
@@ -89,10 +97,14 @@ impl Network<'_, '_> {
         .delete_lidarr_tag(tag_id)
         .await
         .map(LidarrSerdeable::from),
+      LidarrEvent::GetAlbums(artist_id) => {
+        self.get_albums(artist_id).await.map(LidarrSerdeable::from)
+      }
       LidarrEvent::GetArtistDetails(artist_id) => self
         .get_artist_details(artist_id)
         .await
         .map(LidarrSerdeable::from),
+      LidarrEvent::GetAlbumDetails(album_id) => self.get_album_details(album_id).await.map(LidarrSerdeable::from),
       LidarrEvent::GetDiskSpace => self.get_lidarr_diskspace().await.map(LidarrSerdeable::from),
       LidarrEvent::GetDownloads(count) => self
         .get_lidarr_downloads(count)
@@ -128,11 +140,23 @@ impl Network<'_, '_> {
       LidarrEvent::SearchNewArtist(query) => {
         self.search_artist(query).await.map(LidarrSerdeable::from)
       }
+      LidarrEvent::ToggleAlbumMonitoring(album_id) => self
+        .toggle_album_monitoring(album_id)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::ToggleArtistMonitoring(artist_id) => self
         .toggle_artist_monitoring(artist_id)
         .await
         .map(LidarrSerdeable::from),
+      LidarrEvent::TriggerAutomaticArtistSearch(artist_id) => self
+        .trigger_automatic_artist_search(artist_id)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::UpdateAllArtists => self.update_all_artists().await.map(LidarrSerdeable::from),
+      LidarrEvent::UpdateAndScanArtist(artist_id) => self
+        .update_and_scan_artist(artist_id)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::EditArtist(params) => self.edit_artist(params).await.map(LidarrSerdeable::from),
       LidarrEvent::AddArtist(body) => self.add_artist(body).await.map(LidarrSerdeable::from),
     }

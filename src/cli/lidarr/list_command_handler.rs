@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use clap::Subcommand;
+use clap::{Subcommand, arg};
 use tokio::sync::Mutex;
 
 use crate::{
@@ -18,6 +18,15 @@ mod list_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum LidarrListCommand {
+  #[command(about = "List all albums for the artist with the given ID")]
+  Albums {
+    #[arg(
+      long,
+      help = "The Lidarr ID of the artist whose albums you want to list",
+      required = true
+    )]
+    artist_id: i64,
+  },
   #[command(about = "List all artists in your Lidarr library")]
   Artists,
   #[command(about = "List all Lidarr metadata profiles")]
@@ -55,6 +64,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrListCommand> for LidarrListCommandH
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      LidarrListCommand::Albums { artist_id } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetAlbums(artist_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
       LidarrListCommand::Artists => {
         let resp = self
           .network

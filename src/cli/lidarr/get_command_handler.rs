@@ -18,6 +18,15 @@ mod get_command_handler_tests;
 
 #[derive(Debug, Clone, PartialEq, Eq, Subcommand)]
 pub enum LidarrGetCommand {
+  #[command(about = "Get detailed information for the album with the given ID")]
+  AlbumDetails {
+    #[arg(
+      long,
+      help = "The Lidarr ID of the album whose details you wish to fetch",
+      required = true
+    )]
+    album_id: i64,
+  },
   #[command(about = "Get detailed information for the artist with the given ID")]
   ArtistDetails {
     #[arg(
@@ -62,6 +71,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrGetCommand> for LidarrGetCommandHan
 
   async fn handle(self) -> Result<String> {
     let result = match self.command {
+      LidarrGetCommand::AlbumDetails { album_id } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetAlbumDetails(album_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
       LidarrGetCommand::ArtistDetails { artist_id } => {
         let resp = self
           .network

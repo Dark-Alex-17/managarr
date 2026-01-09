@@ -5,7 +5,7 @@ mod tests {
   use serde_json::json;
 
   use crate::models::lidarr_models::{
-    AddArtistSearchResult, DownloadRecord, DownloadStatus, DownloadsResponse, Member,
+    AddArtistSearchResult, Album, DownloadRecord, DownloadStatus, DownloadsResponse, Member,
     MetadataProfile, MonitorType, NewItemMonitorType, SystemStatus,
   };
   use crate::models::servarr_models::{
@@ -402,6 +402,45 @@ mod tests {
   }
 
   #[test]
+  fn test_lidarr_serdeable_from_add_artist_search_results() {
+    let search_results = vec![AddArtistSearchResult {
+      foreign_artist_id: "test-id".to_owned(),
+      ..AddArtistSearchResult::default()
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = search_results.clone().into();
+
+    assert_eq!(
+      lidarr_serdeable,
+      LidarrSerdeable::AddArtistSearchResults(search_results)
+    );
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_albums() {
+    let albums = vec![Album {
+      id: 1,
+      ..Album::default()
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = albums.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::Albums(albums));
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_album() {
+    let album = Album {
+      id: 1,
+      ..Album::default()
+    };
+
+    let lidarr_serdeable: LidarrSerdeable = album.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::Album(album));
+  }
+
+  #[test]
   fn test_artist_status_display() {
     assert_str_eq!(ArtistStatus::Continuing.to_string(), "continuing");
     assert_str_eq!(ArtistStatus::Ended.to_string(), "ended");
@@ -500,20 +539,5 @@ mod tests {
     assert_none!(&search_result.disambiguation);
     assert!(search_result.genres.is_empty());
     assert_none!(&search_result.ratings);
-  }
-
-  #[test]
-  fn test_lidarr_serdeable_from_add_artist_search_results() {
-    let search_results = vec![AddArtistSearchResult {
-      foreign_artist_id: "test-id".to_owned(),
-      ..AddArtistSearchResult::default()
-    }];
-
-    let lidarr_serdeable: LidarrSerdeable = search_results.clone().into();
-
-    assert_eq!(
-      lidarr_serdeable,
-      LidarrSerdeable::AddArtistSearchResults(search_results)
-    );
   }
 }

@@ -1,10 +1,12 @@
 use serde_json::Number;
 
 use super::modals::{AddArtistModal, EditArtistModal};
-use crate::app::lidarr::lidarr_context_clues::ARTISTS_CONTEXT_CLUES;
+use crate::app::lidarr::lidarr_context_clues::{
+  ARTIST_DETAILS_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
+};
 use crate::models::{
   BlockSelectionState, HorizontallyScrollableText, Route, TabRoute, TabState,
-  lidarr_models::{AddArtistSearchResult, Artist, DownloadRecord},
+  lidarr_models::{AddArtistSearchResult, Album, Artist, DownloadRecord},
   servarr_models::{DiskSpace, RootFolder},
   stateful_table::StatefulTable,
 };
@@ -19,8 +21,8 @@ use {
   crate::models::stateful_table::SortOption,
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::quality_profile_map,
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
-    add_artist_search_result, download_record, metadata_profile, metadata_profile_map,
-    quality_profile, root_folder, tags_map,
+    add_artist_search_result, album, artist, download_record, metadata_profile,
+    metadata_profile_map, quality_profile, root_folder, tags_map,
   },
   crate::network::servarr_test_utils::diskspace,
   strum::{Display, EnumString, IntoEnumIterator},
@@ -35,6 +37,8 @@ pub struct LidarrData<'a> {
   pub add_artist_search: Option<HorizontallyScrollableText>,
   pub add_import_list_exclusion: bool,
   pub add_searched_artists: Option<StatefulTable<AddArtistSearchResult>>,
+  pub albums: StatefulTable<Album>,
+  pub artist_info_tabs: TabState,
   pub artists: StatefulTable<Artist>,
   pub delete_artist_files: bool,
   pub disk_space_vec: Vec<DiskSpace>,
@@ -56,6 +60,11 @@ impl LidarrData<'_> {
   pub fn reset_delete_artist_preferences(&mut self) {
     self.delete_artist_files = false;
     self.add_import_list_exclusion = false;
+  }
+
+  pub fn reset_artist_info_tabs(&mut self) {
+    self.albums = StatefulTable::default();
+    self.artist_info_tabs.index = 0;
   }
 
   pub fn tag_ids_to_display(&self, tag_ids: &[Number]) -> String {
@@ -97,6 +106,7 @@ impl<'a> Default for LidarrData<'a> {
       add_artist_search: None,
       add_import_list_exclusion: false,
       add_searched_artists: None,
+      albums: StatefulTable::default(),
       artists: StatefulTable::default(),
       delete_artist_files: false,
       disk_space_vec: Vec::new(),
@@ -115,6 +125,12 @@ impl<'a> Default for LidarrData<'a> {
         title: "Library".to_string(),
         route: ActiveLidarrBlock::Artists.into(),
         contextual_help: Some(&ARTISTS_CONTEXT_CLUES),
+        config: None,
+      }]),
+      artist_info_tabs: TabState::new(vec![TabRoute {
+        title: "Albums".to_string(),
+        route: ActiveLidarrBlock::ArtistDetails.into(),
+        contextual_help: Some(&ARTIST_DETAILS_CONTEXT_CLUES),
         config: None,
       }]),
     }
@@ -169,7 +185,9 @@ impl LidarrData<'_> {
       tags_map: tags_map(),
       ..LidarrData::default()
     };
-    lidarr_data.artists.set_items(vec![Artist::default()]);
+    lidarr_data.albums.set_items(vec![album()]);
+    lidarr_data.albums.search = Some("album search".into());
+    lidarr_data.artists.set_items(vec![artist()]);
     lidarr_data.artists.sorting(vec![SortOption {
       name: "Name",
       cmp_fn: Some(|a: &Artist, b: &Artist| a.artist_name.text.cmp(&b.artist_name.text)),
@@ -193,6 +211,7 @@ impl LidarrData<'_> {
 pub enum ActiveLidarrBlock {
   #[default]
   Artists,
+  ArtistDetails,
   ArtistsSortPrompt,
   AddArtistAlreadyInLibrary,
   AddArtistConfirmPrompt,
@@ -206,6 +225,7 @@ pub enum ActiveLidarrBlock {
   AddArtistSelectQualityProfile,
   AddArtistSelectRootFolder,
   AddArtistTagsInput,
+  AutomaticallySearchArtistPrompt,
   DeleteArtistPrompt,
   DeleteArtistConfirmPrompt,
   DeleteArtistToggleDeleteFile,
@@ -220,9 +240,12 @@ pub enum ActiveLidarrBlock {
   EditArtistToggleMonitored,
   FilterArtists,
   FilterArtistsError,
+  SearchAlbums,
+  SearchAlbumsError,
   SearchArtists,
   SearchArtistsError,
   UpdateAllArtistsPrompt,
+  UpdateAndScanArtistPrompt,
 }
 
 pub static LIBRARY_BLOCKS: [ActiveLidarrBlock; 7] = [
@@ -233,6 +256,14 @@ pub static LIBRARY_BLOCKS: [ActiveLidarrBlock; 7] = [
   ActiveLidarrBlock::SearchArtists,
   ActiveLidarrBlock::SearchArtistsError,
   ActiveLidarrBlock::UpdateAllArtistsPrompt,
+];
+
+pub static ARTIST_DETAILS_BLOCKS: [ActiveLidarrBlock; 5] = [
+  ActiveLidarrBlock::ArtistDetails,
+  ActiveLidarrBlock::AutomaticallySearchArtistPrompt,
+  ActiveLidarrBlock::SearchAlbums,
+  ActiveLidarrBlock::SearchAlbumsError,
+  ActiveLidarrBlock::UpdateAndScanArtistPrompt,
 ];
 
 pub static ADD_ARTIST_BLOCKS: [ActiveLidarrBlock; 12] = [

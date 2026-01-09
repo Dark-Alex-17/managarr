@@ -19,6 +19,8 @@ mod tests {
 
   mod cli {
     use super::*;
+    use clap::{Parser, error::ErrorKind};
+    use pretty_assertions::assert_eq;
     use rstest::rstest;
 
     #[rstest]
@@ -28,6 +30,32 @@ mod tests {
       let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "list", subcommand]);
 
       assert_ok!(&result);
+    }
+
+    #[test]
+    fn test_list_albums_requires_artist_id() {
+      let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "list", "albums"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_list_albums_with_artist_id() {
+      let expected_args = LidarrListCommand::Albums { artist_id: 1 };
+      let result =
+        Cli::try_parse_from(["managarr", "lidarr", "list", "albums", "--artist-id", "1"]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Lidarr(LidarrCommand::List(album_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(album_command, expected_args);
     }
   }
 
@@ -70,6 +98,28 @@ mod tests {
           )))
         });
       let app_arc = Arc::new(Mutex::new(App::test_default()));
+
+      let result = LidarrListCommandHandler::with(&app_arc, list_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_albums_command() {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(LidarrEvent::GetAlbums(1).into()))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_command = LidarrListCommand::Albums { artist_id: 1 };
 
       let result = LidarrListCommandHandler::with(&app_arc, list_command, &mut mock_network)
         .handle()

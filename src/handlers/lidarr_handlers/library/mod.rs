@@ -19,11 +19,13 @@ use super::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 
 mod add_artist_handler;
+mod artist_details_handler;
 mod delete_artist_handler;
 mod edit_artist_handler;
 
 use crate::models::Route;
 pub(in crate::handlers::lidarr_handlers) use add_artist_handler::AddArtistHandler;
+pub(in crate::handlers::lidarr_handlers) use artist_details_handler::ArtistDetailsHandler;
 pub(in crate::handlers::lidarr_handlers) use delete_artist_handler::DeleteArtistHandler;
 pub(in crate::handlers::lidarr_handlers) use edit_artist_handler::EditArtistHandler;
 
@@ -74,6 +76,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
           EditArtistHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
             .handle();
         }
+        _ if ArtistDetailsHandler::accepts(self.active_lidarr_block) => {
+          ArtistDetailsHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
+            .handle();
+        }
         _ => self.handle_key_event(),
       }
     }
@@ -83,6 +89,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
     AddArtistHandler::accepts(active_block)
       || DeleteArtistHandler::accepts(active_block)
       || EditArtistHandler::accepts(active_block)
+      || ArtistDetailsHandler::accepts(active_block)
       || LIBRARY_BLOCKS.contains(&active_block)
   }
 
@@ -139,12 +146,20 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LibraryHandler<'a, '
   }
 
   fn handle_submit(&mut self) {
-    if self.active_lidarr_block == ActiveLidarrBlock::UpdateAllArtistsPrompt {
-      if self.app.data.lidarr_data.prompt_confirm {
-        self.app.data.lidarr_data.prompt_confirm_action = Some(LidarrEvent::UpdateAllArtists);
+    match self.active_lidarr_block {
+      ActiveLidarrBlock::Artists => {
+        self
+          .app
+          .push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
       }
+      ActiveLidarrBlock::UpdateAllArtistsPrompt => {
+        if self.app.data.lidarr_data.prompt_confirm {
+          self.app.data.lidarr_data.prompt_confirm_action = Some(LidarrEvent::UpdateAllArtists);
+        }
 
-      self.app.pop_navigation_stack();
+        self.app.pop_navigation_stack();
+      }
+      _ => (),
     }
   }
 

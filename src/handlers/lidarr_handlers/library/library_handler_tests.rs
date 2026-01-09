@@ -13,8 +13,8 @@ mod tests {
   use crate::handlers::lidarr_handlers::library::{LibraryHandler, artists_sorting_options};
   use crate::models::lidarr_models::{Artist, ArtistStatistics, ArtistStatus};
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ADD_ARTIST_BLOCKS, ActiveLidarrBlock, DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS,
-    EDIT_ARTIST_SELECTION_BLOCKS, LIBRARY_BLOCKS,
+    ADD_ARTIST_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ARTIST_BLOCKS,
+    EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS, LIBRARY_BLOCKS,
   };
   use crate::models::servarr_data::lidarr::modals::EditArtistModal;
   use crate::network::lidarr_network::LidarrEvent;
@@ -26,6 +26,7 @@ mod tests {
   fn test_library_handler_accepts() {
     let mut library_handler_blocks = Vec::new();
     library_handler_blocks.extend(LIBRARY_BLOCKS);
+    library_handler_blocks.extend(ARTIST_DETAILS_BLOCKS);
     library_handler_blocks.extend(DELETE_ARTIST_BLOCKS);
     library_handler_blocks.extend(EDIT_ARTIST_BLOCKS);
     library_handler_blocks.extend(ADD_ARTIST_BLOCKS);
@@ -573,6 +574,32 @@ mod tests {
       .artists
       .set_items(vec![Artist::default()]);
     app.data.lidarr_data.edit_artist_modal = Some(EditArtistModal::default());
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app.push_navigation_stack(active_lidarr_block.into());
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      active_lidarr_block,
+      None,
+    )
+    .handle();
+
+    assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
+  }
+
+  #[rstest]
+  fn test_delegates_artist_details_blocks_to_artist_details_handler(
+    #[values(
+      ActiveLidarrBlock::ArtistDetails,
+      ActiveLidarrBlock::AutomaticallySearchArtistPrompt,
+      ActiveLidarrBlock::SearchAlbums,
+      ActiveLidarrBlock::SearchAlbumsError,
+      ActiveLidarrBlock::UpdateAndScanArtistPrompt
+    )]
+    active_lidarr_block: ActiveLidarrBlock,
+  ) {
+    let mut app = App::test_default_fully_populated();
     app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
     app.push_navigation_stack(active_lidarr_block.into());
 

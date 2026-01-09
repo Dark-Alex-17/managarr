@@ -46,8 +46,22 @@ mod tests {
   }
 
   #[rstest]
-  fn test_resource_command(#[values(LidarrEvent::UpdateAllArtists)] event: LidarrEvent) {
+  fn test_resource_command(
+    #[values(
+      LidarrEvent::UpdateAllArtists,
+      LidarrEvent::TriggerAutomaticArtistSearch(0),
+      LidarrEvent::UpdateAndScanArtist(0)
+    )]
+    event: LidarrEvent,
+  ) {
     assert_str_eq!(event.resource(), "/command");
+  }
+
+  #[rstest]
+  fn test_resource_albums(
+    #[values(LidarrEvent::GetAlbums(0), LidarrEvent::ToggleAlbumMonitoring(0), LidarrEvent::GetAlbumDetails(0))] event: LidarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/album");
   }
 
   #[rstest]

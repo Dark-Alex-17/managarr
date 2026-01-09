@@ -134,11 +134,10 @@ mod tests {
     app.lock().await.server_tabs.set_index(2);
     let mut network = test_network(&app);
 
-    assert!(
+    assert_ok!(
       network
         .handle_lidarr_event(LidarrEvent::ToggleArtistMonitoring(1))
         .await
-        .is_ok()
     );
 
     get_mock.assert_async().await;
@@ -160,6 +159,52 @@ mod tests {
     assert!(
       network
         .handle_lidarr_event(LidarrEvent::UpdateAllArtists)
+        .await
+        .is_ok()
+    );
+
+    mock.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_update_and_scan_artist_event() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "name": "RefreshArtist",
+        "artistId": 1
+      }))
+      .returns(json!({}))
+      .build_for(LidarrEvent::UpdateAndScanArtist(1))
+      .await;
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    assert!(
+      network
+        .handle_lidarr_event(LidarrEvent::UpdateAndScanArtist(1))
+        .await
+        .is_ok()
+    );
+
+    mock.assert_async().await;
+  }
+
+  #[tokio::test]
+  async fn test_handle_trigger_automatic_artist_search_event() {
+    let (mock, app, _server) = MockServarrApi::post()
+      .with_request_body(json!({
+        "name": "ArtistSearch",
+        "artistId": 1
+      }))
+      .returns(json!({}))
+      .build_for(LidarrEvent::TriggerAutomaticArtistSearch(1))
+      .await;
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    assert!(
+      network
+        .handle_lidarr_event(LidarrEvent::TriggerAutomaticArtistSearch(1))
         .await
         .is_ok()
     );

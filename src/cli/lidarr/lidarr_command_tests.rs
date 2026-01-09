@@ -76,6 +76,31 @@ mod tests {
     }
 
     #[test]
+    fn test_toggle_album_monitoring_requires_album_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "lidarr", "toggle-album-monitoring"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_toggle_album_monitoring_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "toggle-album-monitoring",
+        "--album-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_search_new_artist_requires_query() {
       let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "search-new-artist"]);
 
@@ -110,6 +135,7 @@ mod tests {
     use crate::cli::lidarr::add_command_handler::LidarrAddCommand;
     use crate::cli::lidarr::get_command_handler::LidarrGetCommand;
     use crate::cli::lidarr::refresh_command_handler::LidarrRefreshCommand;
+    use crate::cli::lidarr::trigger_automatic_search_command_handler::LidarrTriggerAutomaticSearchCommand;
     use crate::{
       app::App,
       cli::{
@@ -303,6 +329,38 @@ mod tests {
       let result = LidarrCliHandler::with(&app_arc, search_new_artist_command, &mut mock_network)
         .handle()
         .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_lidarr_cli_handler_delegates_trigger_automatic_search_commands_to_the_trigger_automatic_search_command_handler()
+     {
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::TriggerAutomaticArtistSearch(1).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let trigger_automatic_search_command =
+        LidarrCommand::TriggerAutomaticSearch(LidarrTriggerAutomaticSearchCommand::Artist {
+          artist_id: 1,
+        });
+
+      let result = LidarrCliHandler::with(
+        &app_arc,
+        trigger_automatic_search_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
 
       assert_ok!(&result);
     }

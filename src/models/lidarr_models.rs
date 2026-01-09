@@ -245,6 +245,14 @@ pub struct AddArtistSearchResult {
   pub ratings: Option<Ratings>,
 }
 
+#[derive(Default, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LidarrCommandBody {
+  pub name: String,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub artist_id: Option<i64>,
+}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub struct DeleteArtistParams {
@@ -291,6 +299,44 @@ pub struct EditArtistParams {
   pub clear_tags: bool,
 }
 
+#[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Album {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  pub title: HorizontallyScrollableText,
+  pub foreign_album_id: String,
+  pub monitored: bool,
+  #[serde(default)]
+  pub any_release_ok: bool,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub profile_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub duration: i64,
+  pub album_type: Option<String>,
+  pub genres: Vec<String>,
+  pub ratings: Option<Ratings>,
+  pub release_date: Option<DateTime<Utc>>,
+  pub statistics: Option<AlbumStatistics>,
+}
+
+#[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct AlbumStatistics {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub track_file_count: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub track_count: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub total_track_count: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub size_on_disk: i64,
+  #[serde(deserialize_with = "super::from_f64")]
+  pub percent_of_tracks: f64,
+}
+
+impl Eq for AlbumStatistics {}
+
 impl From<LidarrSerdeable> for Serdeable {
   fn from(value: LidarrSerdeable) -> Serdeable {
     Serdeable::Lidarr(value)
@@ -300,6 +346,8 @@ impl From<LidarrSerdeable> for Serdeable {
 serde_enum_from!(
   LidarrSerdeable {
     AddArtistSearchResults(Vec<AddArtistSearchResult>),
+    Albums(Vec<Album>),
+    Album(Album),
     Artist(Artist),
     Artists(Vec<Artist>),
     DiskSpaces(Vec<DiskSpace>),

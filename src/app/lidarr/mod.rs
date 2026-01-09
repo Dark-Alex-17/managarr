@@ -28,6 +28,11 @@ impl App<'_> {
           .dispatch_network_event(LidarrEvent::ListArtists.into())
           .await;
       }
+      ActiveLidarrBlock::ArtistDetails => {
+        self
+          .dispatch_network_event(LidarrEvent::GetAlbums(self.extract_artist_id().await).into())
+          .await;
+      }
       ActiveLidarrBlock::AddArtistSearchResults => {
         self
           .dispatch_network_event(
@@ -51,6 +56,10 @@ impl App<'_> {
       .expect("add_artist_search should be set")
       .text
       .clone()
+  }
+
+  async fn extract_artist_id(&self) -> i64 {
+    self.data.lidarr_data.artists.current_selection().id
   }
 
   async fn check_for_lidarr_prompt_action(&mut self) {

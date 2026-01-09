@@ -402,7 +402,7 @@ mod tests {
         ActiveSonarrBlock::SeriesDetails.into()
       );
       assert!(!app.data.sonarr_data.prompt_confirm);
-      assert_modal_absent!(app.data.sonarr_data.prompt_confirm_action);
+      assert_none!(app.data.sonarr_data.prompt_confirm_action);
       assert!(!app.is_routing);
     }
 

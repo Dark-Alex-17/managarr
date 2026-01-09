@@ -1,4 +1,5 @@
 use add_artist_ui::AddArtistUi;
+use artist_details_ui::ArtistDetailsUi;
 use delete_artist_ui::DeleteArtistUi;
 use edit_artist_ui::EditArtistUi;
 use ratatui::{
@@ -28,6 +29,7 @@ use crate::{
 };
 
 mod add_artist_ui;
+mod artist_details_ui;
 mod delete_artist_ui;
 mod edit_artist_ui;
 
@@ -43,6 +45,7 @@ impl DrawUi for LibraryUi {
       return AddArtistUi::accepts(route)
         || DeleteArtistUi::accepts(route)
         || EditArtistUi::accepts(route)
+        || ArtistDetailsUi::accepts(route)
         || LIBRARY_BLOCKS.contains(&active_lidarr_block);
     }
 
@@ -57,6 +60,7 @@ impl DrawUi for LibraryUi {
       _ if AddArtistUi::accepts(route) => AddArtistUi::draw(f, app, area),
       _ if DeleteArtistUi::accepts(route) => DeleteArtistUi::draw(f, app, area),
       _ if EditArtistUi::accepts(route) => EditArtistUi::draw(f, app, area),
+      _ if ArtistDetailsUi::accepts(route) => ArtistDetailsUi::draw(f, app, area),
       Route::Lidarr(ActiveLidarrBlock::UpdateAllArtistsPrompt, _) => {
         let confirmation_prompt = ConfirmationPrompt::new()
           .title("Update All Artists")

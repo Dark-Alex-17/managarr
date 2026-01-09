@@ -24,6 +24,32 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_album_details_requires_album_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "lidarr", "get", "album-details"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_album_details_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "get",
+        "album-details",
+        "--album-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_artist_details_requires_artist_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "lidarr", "get", "artist-details"]);
@@ -90,6 +116,32 @@ mod tests {
       models::{Serdeable, lidarr_models::LidarrSerdeable},
       network::{MockNetworkTrait, NetworkEvent, lidarr_network::LidarrEvent},
     };
+
+    #[tokio::test]
+    async fn test_handle_get_album_details_command() {
+      let expected_album_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::GetAlbumDetails(expected_album_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let get_album_details_command = LidarrGetCommand::AlbumDetails { album_id: 1 };
+
+      let result =
+        LidarrGetCommandHandler::with(&app_arc, get_album_details_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
 
     #[tokio::test]
     async fn test_handle_get_artist_details_command() {
