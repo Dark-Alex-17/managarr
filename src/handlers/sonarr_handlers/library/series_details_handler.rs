@@ -327,10 +327,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveSonarrBlock> for SeriesDetailsHandler
         }
       }
       ActiveSonarrBlock::UpdateAndScanSeriesPrompt => {
-        if self.app.data.sonarr_data.prompt_confirm {
-          self.app.data.sonarr_data.prompt_confirm_action =
-            Some(SonarrEvent::UpdateAndScanSeries(self.extract_series_id()));
-        }
+        self.app.data.sonarr_data.prompt_confirm = true;
+        self.app.data.sonarr_data.prompt_confirm_action =
+          Some(SonarrEvent::UpdateAndScanSeries(self.extract_series_id()));
 
         self.app.pop_navigation_stack();
       }

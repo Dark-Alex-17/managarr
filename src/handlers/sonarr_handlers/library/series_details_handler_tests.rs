@@ -555,7 +555,6 @@ mod tests {
       active_sonarr_block: ActiveSonarrBlock,
     ) {
       let mut app = App::test_default();
-      app.data.sonarr_data.prompt_confirm = true;
       app.data.sonarr_data.series.set_items(vec![series()]);
       app.push_navigation_stack(active_sonarr_block.into());
       app.push_navigation_stack(prompt_block.into());
