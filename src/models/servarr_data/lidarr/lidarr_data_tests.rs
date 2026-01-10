@@ -5,8 +5,9 @@ mod tests {
   };
   use crate::models::lidarr_models::Album;
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, ARTIST_DETAILS_BLOCKS, DELETE_ARTIST_BLOCKS,
-    DELETE_ARTIST_SELECTION_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
+    ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, ARTIST_DETAILS_BLOCKS, DELETE_ALBUM_BLOCKS,
+    DELETE_ALBUM_SELECTION_BLOCKS, DELETE_ARTIST_BLOCKS, DELETE_ARTIST_SELECTION_BLOCKS,
+    EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS,
   };
   use crate::models::{
     BlockSelectionState, Route,
@@ -34,16 +35,16 @@ mod tests {
   }
 
   #[test]
-  fn test_reset_delete_artist_preferences() {
+  fn test_reset_delete_preferences() {
     let mut lidarr_data = LidarrData {
-      delete_artist_files: true,
+      delete_files: true,
       add_import_list_exclusion: true,
       ..LidarrData::default()
     };
 
-    lidarr_data.reset_delete_artist_preferences();
+    lidarr_data.reset_delete_preferences();
 
-    assert!(!lidarr_data.delete_artist_files);
+    assert!(!lidarr_data.delete_files);
     assert!(!lidarr_data.add_import_list_exclusion);
   }
 
@@ -129,7 +130,7 @@ mod tests {
     assert_none!(lidarr_data.add_searched_artists);
     assert_is_empty!(lidarr_data.albums);
     assert_is_empty!(lidarr_data.artists);
-    assert!(!lidarr_data.delete_artist_files);
+    assert!(!lidarr_data.delete_files);
     assert_is_empty!(lidarr_data.disk_space_vec);
     assert_is_empty!(lidarr_data.downloads);
     assert_none!(lidarr_data.edit_artist_modal);
@@ -269,6 +270,34 @@ mod tests {
       &[ActiveLidarrBlock::DeleteArtistConfirmPrompt]
     );
     assert_none!(delete_artist_block_iter.next());
+  }
+
+  #[test]
+  fn test_delete_album_blocks_contents() {
+    assert_eq!(DELETE_ALBUM_BLOCKS.len(), 4);
+    assert!(DELETE_ALBUM_BLOCKS.contains(&ActiveLidarrBlock::DeleteAlbumPrompt));
+    assert!(DELETE_ALBUM_BLOCKS.contains(&ActiveLidarrBlock::DeleteAlbumConfirmPrompt));
+    assert!(DELETE_ALBUM_BLOCKS.contains(&ActiveLidarrBlock::DeleteAlbumToggleDeleteFile));
+    assert!(DELETE_ALBUM_BLOCKS.contains(&ActiveLidarrBlock::DeleteAlbumToggleAddListExclusion));
+  }
+
+  #[test]
+  fn test_delete_album_selection_blocks_ordering() {
+    let mut delete_album_block_iter = DELETE_ALBUM_SELECTION_BLOCKS.iter();
+
+    assert_eq!(
+      delete_album_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::DeleteAlbumToggleDeleteFile]
+    );
+    assert_eq!(
+      delete_album_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::DeleteAlbumToggleAddListExclusion]
+    );
+    assert_eq!(
+      delete_album_block_iter.next().unwrap(),
+      &[ActiveLidarrBlock::DeleteAlbumConfirmPrompt]
+    );
+    assert_none!(delete_album_block_iter.next());
   }
 
   #[test]

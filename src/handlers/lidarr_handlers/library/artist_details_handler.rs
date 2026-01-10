@@ -1,11 +1,13 @@
 use crate::app::App;
 use crate::event::Key;
+use crate::handlers::lidarr_handlers::library::delete_album_handler::DeleteAlbumHandler;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
 use crate::models::lidarr_models::Album;
 use crate::models::servarr_data::lidarr::lidarr_data::{
-  ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, EDIT_ARTIST_SELECTION_BLOCKS,
+  ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_SELECTION_BLOCKS,
+  EDIT_ARTIST_SELECTION_BLOCKS,
 };
 use crate::models::{BlockSelectionState, Route};
 use crate::network::lidarr_network::LidarrEvent;
@@ -18,7 +20,7 @@ pub struct ArtistDetailsHandler<'a, 'b> {
   key: Key,
   app: &'a mut App<'b>,
   active_lidarr_block: ActiveLidarrBlock,
-  _context: Option<ActiveLidarrBlock>,
+  context: Option<ActiveLidarrBlock>,
 }
 
 impl ArtistDetailsHandler<'_, '_> {
@@ -44,12 +46,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
       |app| &mut app.data.lidarr_data.albums,
       albums_table_handling_config,
     ) {
-      self.handle_key_event();
+      match self.active_lidarr_block {
+        _ if DeleteAlbumHandler::accepts(self.active_lidarr_block) => {
+          DeleteAlbumHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
+            .handle();
+        }
+        _ => self.handle_key_event(),
+      };
     }
   }
 
   fn accepts(active_block: ActiveLidarrBlock) -> bool {
-    ARTIST_DETAILS_BLOCKS.contains(&active_block)
+    DeleteAlbumHandler::accepts(active_block) || ARTIST_DETAILS_BLOCKS.contains(&active_block)
   }
 
   fn ignore_special_keys(&self) -> bool {
@@ -60,13 +68,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveLidarrBlock,
-    _context: Option<ActiveLidarrBlock>,
+    context: Option<ActiveLidarrBlock>,
   ) -> ArtistDetailsHandler<'a, 'b> {
     ArtistDetailsHandler {
       key,
       app,
       active_lidarr_block: active_block,
-      _context,
+      context,
     }
   }
 
@@ -86,7 +94,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
 
   fn handle_end(&mut self) {}
 
-  fn handle_delete(&mut self) {}
+  fn handle_delete(&mut self) {
+    if self.active_lidarr_block == ActiveLidarrBlock::ArtistDetails {
+      self
+        .app
+        .push_navigation_stack(ActiveLidarrBlock::DeleteAlbumPrompt.into());
+      self.app.data.lidarr_data.selected_block =
+        BlockSelectionState::new(DELETE_ALBUM_SELECTION_BLOCKS);
+    }
+  }
 
   fn handle_left_right_action(&mut self) {
     match self.active_lidarr_block {

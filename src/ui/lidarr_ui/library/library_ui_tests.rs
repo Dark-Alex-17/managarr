@@ -4,8 +4,8 @@ mod tests {
 
   use crate::models::lidarr_models::{Artist, ArtistStatistics, ArtistStatus};
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ADD_ARTIST_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ARTIST_BLOCKS,
-    EDIT_ARTIST_BLOCKS, LIBRARY_BLOCKS,
+    ADD_ARTIST_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS,
+    DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS, LIBRARY_BLOCKS,
   };
   use crate::ui::DrawUi;
   use crate::ui::lidarr_ui::library::{LibraryUi, decorate_artist_row_with_style};
@@ -18,6 +18,7 @@ mod tests {
     let mut library_ui_blocks = Vec::new();
     library_ui_blocks.extend(LIBRARY_BLOCKS);
     library_ui_blocks.extend(DELETE_ARTIST_BLOCKS);
+    library_ui_blocks.extend(DELETE_ALBUM_BLOCKS);
     library_ui_blocks.extend(EDIT_ARTIST_BLOCKS);
     library_ui_blocks.extend(ADD_ARTIST_BLOCKS);
     library_ui_blocks.extend(ARTIST_DETAILS_BLOCKS);

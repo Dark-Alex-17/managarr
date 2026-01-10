@@ -33,6 +33,7 @@ mod artist_details_ui;
 mod delete_artist_ui;
 mod edit_artist_ui;
 
+mod delete_album_ui;
 #[cfg(test)]
 #[path = "library_ui_tests.rs"]
 mod library_ui_tests;
@@ -59,8 +60,8 @@ impl DrawUi for LibraryUi {
     match route {
       _ if AddArtistUi::accepts(route) => AddArtistUi::draw(f, app, area),
       _ if DeleteArtistUi::accepts(route) => DeleteArtistUi::draw(f, app, area),
-      _ if EditArtistUi::accepts(route) => EditArtistUi::draw(f, app, area),
       _ if ArtistDetailsUi::accepts(route) => ArtistDetailsUi::draw(f, app, area),
+      _ if EditArtistUi::accepts(route) => EditArtistUi::draw(f, app, area),
       Route::Lidarr(ActiveLidarrBlock::UpdateAllArtistsPrompt, _) => {
         let confirmation_prompt = ConfirmationPrompt::new()
           .title("Update All Artists")

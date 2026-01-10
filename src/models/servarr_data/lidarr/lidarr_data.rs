@@ -40,7 +40,7 @@ pub struct LidarrData<'a> {
   pub albums: StatefulTable<Album>,
   pub artist_info_tabs: TabState,
   pub artists: StatefulTable<Artist>,
-  pub delete_artist_files: bool,
+  pub delete_files: bool,
   pub disk_space_vec: Vec<DiskSpace>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub edit_artist_modal: Option<EditArtistModal>,
@@ -57,8 +57,8 @@ pub struct LidarrData<'a> {
 }
 
 impl LidarrData<'_> {
-  pub fn reset_delete_artist_preferences(&mut self) {
-    self.delete_artist_files = false;
+  pub fn reset_delete_preferences(&mut self) {
+    self.delete_files = false;
     self.add_import_list_exclusion = false;
   }
 
@@ -108,7 +108,7 @@ impl<'a> Default for LidarrData<'a> {
       add_searched_artists: None,
       albums: StatefulTable::default(),
       artists: StatefulTable::default(),
-      delete_artist_files: false,
+      delete_files: false,
       disk_space_vec: Vec::new(),
       downloads: StatefulTable::default(),
       edit_artist_modal: None,
@@ -176,7 +176,7 @@ impl LidarrData<'_> {
       .set_items(vec![metadata_profile().name]);
 
     let mut lidarr_data = LidarrData {
-      delete_artist_files: true,
+      delete_files: true,
       disk_space_vec: vec![diskspace()],
       quality_profile_map: quality_profile_map(),
       metadata_profile_map: metadata_profile_map(),
@@ -226,6 +226,10 @@ pub enum ActiveLidarrBlock {
   AddArtistSelectRootFolder,
   AddArtistTagsInput,
   AutomaticallySearchArtistPrompt,
+  DeleteAlbumPrompt,
+  DeleteAlbumConfirmPrompt,
+  DeleteAlbumToggleDeleteFile,
+  DeleteAlbumToggleAddListExclusion,
   DeleteArtistPrompt,
   DeleteArtistConfirmPrompt,
   DeleteArtistToggleDeleteFile,
@@ -302,6 +306,19 @@ pub const DELETE_ARTIST_SELECTION_BLOCKS: &[&[ActiveLidarrBlock]] = &[
   &[ActiveLidarrBlock::DeleteArtistToggleDeleteFile],
   &[ActiveLidarrBlock::DeleteArtistToggleAddListExclusion],
   &[ActiveLidarrBlock::DeleteArtistConfirmPrompt],
+];
+
+pub static DELETE_ALBUM_BLOCKS: [ActiveLidarrBlock; 4] = [
+  ActiveLidarrBlock::DeleteAlbumPrompt,
+  ActiveLidarrBlock::DeleteAlbumConfirmPrompt,
+  ActiveLidarrBlock::DeleteAlbumToggleDeleteFile,
+  ActiveLidarrBlock::DeleteAlbumToggleAddListExclusion,
+];
+
+pub const DELETE_ALBUM_SELECTION_BLOCKS: &[&[ActiveLidarrBlock]] = &[
+  &[ActiveLidarrBlock::DeleteAlbumToggleDeleteFile],
+  &[ActiveLidarrBlock::DeleteAlbumToggleAddListExclusion],
+  &[ActiveLidarrBlock::DeleteAlbumConfirmPrompt],
 ];
 
 pub static EDIT_ARTIST_BLOCKS: [ActiveLidarrBlock; 8] = [

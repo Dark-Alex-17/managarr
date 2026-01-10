@@ -81,13 +81,17 @@ mod tests {
     );
     assert_some_eq_x!(
       artist_details_context_clues_iter.next(),
-      &(DEFAULT_KEYBINDINGS.edit, DEFAULT_KEYBINDINGS.edit.desc)
+      &(DEFAULT_KEYBINDINGS.edit, "edit artist")
+    );
+    assert_some_eq_x!(
+      artist_details_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.delete, "delete album")
     );
     assert_some_eq_x!(
       artist_details_context_clues_iter.next(),
       &(
         DEFAULT_KEYBINDINGS.toggle_monitoring,
-        DEFAULT_KEYBINDINGS.toggle_monitoring.desc,
+        "toggle album monitoring",
       )
     );
     assert_some_eq_x!(

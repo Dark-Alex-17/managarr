@@ -11,6 +11,7 @@ use crate::app::App;
 use crate::models::Route;
 use crate::models::lidarr_models::Album;
 use crate::models::servarr_data::lidarr::lidarr_data::{ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock};
+use crate::ui::lidarr_ui::library::delete_album_ui::DeleteAlbumUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_top_border, title_block,
@@ -32,10 +33,10 @@ impl DrawUi for ArtistDetailsUi {
     let Route::Lidarr(active_lidarr_block, _) = route else {
       return false;
     };
-    ARTIST_DETAILS_BLOCKS.contains(&active_lidarr_block)
+    DeleteAlbumUi::accepts(route) || ARTIST_DETAILS_BLOCKS.contains(&active_lidarr_block)
   }
 
-  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, _area: Rect) {
+  fn draw(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
     let route = app.get_current_route();
     if let Route::Lidarr(active_lidarr_block, _) = route {
       let draw_artist_details_popup = |f: &mut Frame<'_>, app: &mut App<'_>, popup_area: Rect| {
@@ -65,6 +66,7 @@ impl DrawUi for ArtistDetailsUi {
         draw_artist_details(f, app, content_area);
 
         match active_lidarr_block {
+          _ if DeleteAlbumUi::accepts(route) => DeleteAlbumUi::draw(f, app, area),
           ActiveLidarrBlock::AutomaticallySearchArtistPrompt => {
             let prompt = format!(
               "Do you want to trigger an automatic search of your indexers for all monitored album(s) for the artist: {}?",

@@ -11,10 +11,10 @@ mod tests {
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::lidarr_handlers::library::{LibraryHandler, artists_sorting_options};
-  use crate::models::lidarr_models::{Artist, ArtistStatistics, ArtistStatus};
+  use crate::models::lidarr_models::{Album, Artist, ArtistStatistics, ArtistStatus};
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ADD_ARTIST_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ARTIST_BLOCKS,
-    EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS, LIBRARY_BLOCKS,
+    ADD_ARTIST_BLOCKS, ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS,
+    DELETE_ARTIST_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS, LIBRARY_BLOCKS,
   };
   use crate::models::servarr_data::lidarr::modals::EditArtistModal;
   use crate::network::lidarr_network::LidarrEvent;
@@ -28,6 +28,7 @@ mod tests {
     library_handler_blocks.extend(LIBRARY_BLOCKS);
     library_handler_blocks.extend(ARTIST_DETAILS_BLOCKS);
     library_handler_blocks.extend(DELETE_ARTIST_BLOCKS);
+    library_handler_blocks.extend(DELETE_ALBUM_BLOCKS);
     library_handler_blocks.extend(EDIT_ARTIST_BLOCKS);
     library_handler_blocks.extend(ADD_ARTIST_BLOCKS);
 
@@ -531,6 +532,31 @@ mod tests {
     .handle();
 
     assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
+  }
+
+  #[test]
+  fn test_delegates_delete_album_blocks_to_delete_album_handler() {
+    let mut app = App::test_default();
+    app
+      .data
+      .lidarr_data
+      .albums
+      .set_items(vec![Album::default()]);
+    app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+    app.push_navigation_stack(ActiveLidarrBlock::DeleteAlbumPrompt.into());
+
+    LibraryHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveLidarrBlock::DeleteAlbumPrompt,
+      None,
+    )
+    .handle();
+
+    assert_eq!(
+      app.get_current_route(),
+      ActiveLidarrBlock::ArtistDetails.into()
+    );
   }
 
   #[test]

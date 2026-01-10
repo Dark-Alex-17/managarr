@@ -9,8 +9,41 @@ mod tests {
   use crate::handlers::KeyEventHandler;
   use crate::handlers::lidarr_handlers::library::artist_details_handler::ArtistDetailsHandler;
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock,
+    ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS,
   };
+
+  mod test_handle_delete {
+    use super::*;
+    use crate::assert_delete_prompt;
+    use crate::event::Key;
+    use crate::models::lidarr_models::Album;
+    use crate::models::servarr_data::lidarr::lidarr_data::DELETE_ALBUM_SELECTION_BLOCKS;
+    use pretty_assertions::assert_eq;
+
+    const DELETE_KEY: Key = DEFAULT_KEYBINDINGS.delete.key;
+
+    #[test]
+    fn test_album_delete() {
+      let mut app = App::test_default();
+      app
+        .data
+        .lidarr_data
+        .albums
+        .set_items(vec![Album::default()]);
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
+
+      assert_delete_prompt!(
+        ArtistDetailsHandler,
+        app,
+        ActiveLidarrBlock::ArtistDetails,
+        ActiveLidarrBlock::DeleteAlbumPrompt
+      );
+      assert_eq!(
+        app.data.lidarr_data.selected_block.blocks,
+        DELETE_ALBUM_SELECTION_BLOCKS
+      );
+    }
+  }
 
   mod test_handle_left_right_action {
     use rstest::rstest;
@@ -436,8 +469,11 @@ mod tests {
 
   #[test]
   fn test_artist_details_handler_accepts() {
+    let mut artist_details_blocks = ARTIST_DETAILS_BLOCKS.clone().to_vec();
+    artist_details_blocks.extend(DELETE_ALBUM_BLOCKS);
+
     ActiveLidarrBlock::iter().for_each(|active_lidarr_block| {
-      if ARTIST_DETAILS_BLOCKS.contains(&active_lidarr_block) {
+      if artist_details_blocks.contains(&active_lidarr_block) {
         assert!(ArtistDetailsHandler::accepts(active_lidarr_block));
       } else {
         assert!(!ArtistDetailsHandler::accepts(active_lidarr_block));

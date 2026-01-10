@@ -1,28 +1,29 @@
 use crate::models::Route;
 use crate::models::lidarr_models::DeleteParams;
+use crate::models::servarr_data::lidarr::lidarr_data::DELETE_ALBUM_BLOCKS;
 use crate::network::lidarr_network::LidarrEvent;
 use crate::{
   app::App,
   event::Key,
   handlers::{KeyEventHandler, handle_prompt_toggle},
   matches_key,
-  models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, DELETE_ARTIST_BLOCKS},
+  models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock,
 };
 
 #[cfg(test)]
-#[path = "delete_artist_handler_tests.rs"]
-mod delete_artist_handler_tests;
+#[path = "delete_album_handler_tests.rs"]
+mod delete_album_handler_tests;
 
-pub(in crate::handlers::lidarr_handlers) struct DeleteArtistHandler<'a, 'b> {
+pub(in crate::handlers::lidarr_handlers) struct DeleteAlbumHandler<'a, 'b> {
   key: Key,
   app: &'a mut App<'b>,
   active_lidarr_block: ActiveLidarrBlock,
   _context: Option<ActiveLidarrBlock>,
 }
 
-impl DeleteArtistHandler<'_, '_> {
-  fn build_delete_artist_params(&mut self) -> DeleteParams {
-    let id = self.app.data.lidarr_data.artists.current_selection().id;
+impl DeleteAlbumHandler<'_, '_> {
+  fn build_delete_album_params(&mut self) -> DeleteParams {
+    let id = self.app.data.lidarr_data.albums.current_selection().id;
     let delete_files = self.app.data.lidarr_data.delete_files;
     let add_import_list_exclusion = self.app.data.lidarr_data.add_import_list_exclusion;
     self.app.data.lidarr_data.reset_delete_preferences();
@@ -35,9 +36,9 @@ impl DeleteArtistHandler<'_, '_> {
   }
 }
 
-impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for DeleteArtistHandler<'a, 'b> {
+impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for DeleteAlbumHandler<'a, 'b> {
   fn accepts(active_block: ActiveLidarrBlock) -> bool {
-    DELETE_ARTIST_BLOCKS.contains(&active_block)
+    DELETE_ALBUM_BLOCKS.contains(&active_block)
   }
 
   fn ignore_special_keys(&self) -> bool {
@@ -50,7 +51,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for DeleteArtistHandler<
     active_block: ActiveLidarrBlock,
     _context: Option<ActiveLidarrBlock>,
   ) -> Self {
-    DeleteArtistHandler {
+    DeleteAlbumHandler {
       key,
       app,
       active_lidarr_block: active_block,
@@ -67,13 +68,13 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for DeleteArtistHandler<
   }
 
   fn handle_scroll_up(&mut self) {
-    if self.active_lidarr_block == ActiveLidarrBlock::DeleteArtistPrompt {
+    if self.active_lidarr_block == ActiveLidarrBlock::DeleteAlbumPrompt {
       self.app.data.lidarr_data.selected_block.up();
     }
   }
 
   fn handle_scroll_down(&mut self) {
-    if self.active_lidarr_block == ActiveLidarrBlock::DeleteArtistPrompt {
+    if self.active_lidarr_block == ActiveLidarrBlock::DeleteAlbumPrompt {
       self.app.data.lidarr_data.selected_block.down();
     }
   }
@@ -85,18 +86,18 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for DeleteArtistHandler<
   fn handle_delete(&mut self) {}
 
   fn handle_left_right_action(&mut self) {
-    if self.active_lidarr_block == ActiveLidarrBlock::DeleteArtistPrompt {
+    if self.active_lidarr_block == ActiveLidarrBlock::DeleteAlbumPrompt {
       handle_prompt_toggle(self.app, self.key);
     }
   }
 
   fn handle_submit(&mut self) {
-    if self.active_lidarr_block == ActiveLidarrBlock::DeleteArtistPrompt {
+    if self.active_lidarr_block == ActiveLidarrBlock::DeleteAlbumPrompt {
       match self.app.data.lidarr_data.selected_block.get_active_block() {
-        ActiveLidarrBlock::DeleteArtistConfirmPrompt => {
+        ActiveLidarrBlock::DeleteAlbumConfirmPrompt => {
           if self.app.data.lidarr_data.prompt_confirm {
             self.app.data.lidarr_data.prompt_confirm_action =
-              Some(LidarrEvent::DeleteArtist(self.build_delete_artist_params()));
+              Some(LidarrEvent::DeleteAlbum(self.build_delete_album_params()));
             self.app.should_refresh = true;
           } else {
             self.app.data.lidarr_data.reset_delete_preferences();
@@ -104,10 +105,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for DeleteArtistHandler<
 
           self.app.pop_navigation_stack();
         }
-        ActiveLidarrBlock::DeleteArtistToggleDeleteFile => {
+        ActiveLidarrBlock::DeleteAlbumToggleDeleteFile => {
           self.app.data.lidarr_data.delete_files = !self.app.data.lidarr_data.delete_files;
         }
-        ActiveLidarrBlock::DeleteArtistToggleAddListExclusion => {
+        ActiveLidarrBlock::DeleteAlbumToggleAddListExclusion => {
           self.app.data.lidarr_data.add_import_list_exclusion =
             !self.app.data.lidarr_data.add_import_list_exclusion;
         }
@@ -117,7 +118,7 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for DeleteArtistHandler<
   }
 
   fn handle_esc(&mut self) {
-    if self.active_lidarr_block == ActiveLidarrBlock::DeleteArtistPrompt {
+    if self.active_lidarr_block == ActiveLidarrBlock::DeleteAlbumPrompt {
       self.app.pop_navigation_stack();
       self.app.data.lidarr_data.reset_delete_preferences();
       self.app.data.lidarr_data.prompt_confirm = false;
@@ -125,14 +126,14 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for DeleteArtistHandler<
   }
 
   fn handle_char_key_event(&mut self) {
-    if self.active_lidarr_block == ActiveLidarrBlock::DeleteArtistPrompt
+    if self.active_lidarr_block == ActiveLidarrBlock::DeleteAlbumPrompt
       && self.app.data.lidarr_data.selected_block.get_active_block()
-        == ActiveLidarrBlock::DeleteArtistConfirmPrompt
+        == ActiveLidarrBlock::DeleteAlbumConfirmPrompt
       && matches_key!(confirm, self.key)
     {
       self.app.data.lidarr_data.prompt_confirm = true;
       self.app.data.lidarr_data.prompt_confirm_action =
-        Some(LidarrEvent::DeleteArtist(self.build_delete_artist_params()));
+        Some(LidarrEvent::DeleteAlbum(self.build_delete_album_params()));
       self.app.should_refresh = true;
 
       self.app.pop_navigation_stack();
