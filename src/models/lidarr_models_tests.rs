@@ -5,8 +5,9 @@ mod tests {
   use serde_json::json;
 
   use crate::models::lidarr_models::{
-    AddArtistSearchResult, Album, DownloadRecord, DownloadStatus, DownloadsResponse, Member,
-    MetadataProfile, MonitorType, NewItemMonitorType, SystemStatus,
+    AddArtistSearchResult, Album, DownloadRecord, DownloadStatus, DownloadsResponse,
+    LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, Member, MetadataProfile,
+    MonitorType, NewItemMonitorType, SystemStatus,
   };
   use crate::models::servarr_models::{
     DiskSpace, HostConfig, QualityProfile, RootFolder, SecurityConfig, Tag,
@@ -303,6 +304,23 @@ mod tests {
   }
 
   #[test]
+  fn test_lidarr_serdeable_from_history_wrapper() {
+    let history_wrapper = LidarrHistoryWrapper {
+      records: vec![LidarrHistoryItem {
+        id: 1,
+        ..LidarrHistoryItem::default()
+      }],
+    };
+
+    let lidarr_serdeable: LidarrSerdeable = history_wrapper.clone().into();
+
+    assert_eq!(
+      lidarr_serdeable,
+      LidarrSerdeable::HistoryWrapper(history_wrapper)
+    );
+  }
+
+  #[test]
   fn test_lidarr_serdeable_from_metadata_profiles() {
     let metadata_profiles = vec![MetadataProfile {
       id: 1,
@@ -486,6 +504,90 @@ mod tests {
       "Download Client Unavailable"
     );
     assert_str_eq!(DownloadStatus::Fallback.to_display_str(), "Fallback");
+  }
+
+  #[test]
+  fn test_lidarr_history_event_type_display() {
+    assert_str_eq!(LidarrHistoryEventType::Unknown.to_string(), "unknown");
+    assert_str_eq!(LidarrHistoryEventType::Grabbed.to_string(), "grabbed");
+    assert_str_eq!(
+      LidarrHistoryEventType::ArtistFolderImported.to_string(),
+      "artistFolderImported"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::AlbumImportIncomplete.to_string(),
+      "albumImportIncomplete"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::DownloadIgnored.to_string(),
+      "downloadIgnored"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::DownloadImported.to_string(),
+      "downloadImported"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::DownloadFailed.to_string(),
+      "downloadFailed"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::TrackFileDeleted.to_string(),
+      "trackFileDeleted"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::TrackFileImported.to_string(),
+      "trackFileImported"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::TrackFileRenamed.to_string(),
+      "trackFileRenamed"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::TrackFileRetagged.to_string(),
+      "trackFileRetagged"
+    );
+  }
+
+  #[test]
+  fn test_lidarr_history_event_type_to_display_str() {
+    assert_str_eq!(LidarrHistoryEventType::Unknown.to_display_str(), "Unknown");
+    assert_str_eq!(LidarrHistoryEventType::Grabbed.to_display_str(), "Grabbed");
+    assert_str_eq!(
+      LidarrHistoryEventType::ArtistFolderImported.to_display_str(),
+      "Artist Folder Imported"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::AlbumImportIncomplete.to_display_str(),
+      "Album Import Incomplete"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::DownloadIgnored.to_display_str(),
+      "Download Ignored"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::DownloadImported.to_display_str(),
+      "Download Imported"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::DownloadFailed.to_display_str(),
+      "Download Failed"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::TrackFileDeleted.to_display_str(),
+      "Track File Deleted"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::TrackFileImported.to_display_str(),
+      "Track File Imported"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::TrackFileRenamed.to_display_str(),
+      "Track File Renamed"
+    );
+    assert_str_eq!(
+      LidarrHistoryEventType::TrackFileRetagged.to_display_str(),
+      "Track File Retagged"
+    );
   }
 
   #[test]

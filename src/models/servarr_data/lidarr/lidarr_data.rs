@@ -1,12 +1,13 @@
 use serde_json::Number;
 
 use super::modals::{AddArtistModal, EditArtistModal};
+use crate::app::context_clues::HISTORY_CONTEXT_CLUES;
 use crate::app::lidarr::lidarr_context_clues::{
   ARTIST_DETAILS_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
 };
 use crate::models::{
   BlockSelectionState, HorizontallyScrollableText, Route, TabRoute, TabState,
-  lidarr_models::{AddArtistSearchResult, Album, Artist, DownloadRecord},
+  lidarr_models::{AddArtistSearchResult, Album, Artist, DownloadRecord, LidarrHistoryItem},
   servarr_models::{DiskSpace, RootFolder},
   stateful_table::StatefulTable,
 };
@@ -21,8 +22,8 @@ use {
   crate::models::stateful_table::SortOption,
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::quality_profile_map,
   crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
-    add_artist_search_result, album, artist, download_record, metadata_profile,
-    metadata_profile_map, quality_profile, root_folder, tags_map,
+    add_artist_search_result, album, artist, download_record, lidarr_history_item,
+    metadata_profile, metadata_profile_map, quality_profile, root_folder, tags_map,
   },
   crate::network::servarr_test_utils::diskspace,
   strum::{Display, EnumString, IntoEnumIterator},
@@ -44,6 +45,7 @@ pub struct LidarrData<'a> {
   pub disk_space_vec: Vec<DiskSpace>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub edit_artist_modal: Option<EditArtistModal>,
+  pub history: StatefulTable<LidarrHistoryItem>,
   pub main_tabs: TabState,
   pub metadata_profile_map: BiMap<i64, String>,
   pub prompt_confirm: bool,
@@ -112,6 +114,7 @@ impl<'a> Default for LidarrData<'a> {
       disk_space_vec: Vec::new(),
       downloads: StatefulTable::default(),
       edit_artist_modal: None,
+      history: StatefulTable::default(),
       metadata_profile_map: BiMap::new(),
       prompt_confirm: false,
       prompt_confirm_action: None,
@@ -121,12 +124,20 @@ impl<'a> Default for LidarrData<'a> {
       start_time: DateTime::default(),
       tags_map: BiMap::new(),
       version: String::new(),
-      main_tabs: TabState::new(vec![TabRoute {
-        title: "Library".to_string(),
-        route: ActiveLidarrBlock::Artists.into(),
-        contextual_help: Some(&ARTISTS_CONTEXT_CLUES),
-        config: None,
-      }]),
+      main_tabs: TabState::new(vec![
+        TabRoute {
+          title: "Library".to_string(),
+          route: ActiveLidarrBlock::Artists.into(),
+          contextual_help: Some(&ARTISTS_CONTEXT_CLUES),
+          config: None,
+        },
+        TabRoute {
+          title: "History".to_string(),
+          route: ActiveLidarrBlock::History.into(),
+          contextual_help: Some(&HISTORY_CONTEXT_CLUES),
+          config: None,
+        },
+      ]),
       artist_info_tabs: TabState::new(vec![TabRoute {
         title: "Albums".to_string(),
         route: ActiveLidarrBlock::ArtistDetails.into(),
@@ -195,6 +206,13 @@ impl LidarrData<'_> {
     lidarr_data.artists.search = Some("artist search".into());
     lidarr_data.artists.filter = Some("artist filter".into());
     lidarr_data.downloads.set_items(vec![download_record()]);
+    lidarr_data.history.set_items(vec![lidarr_history_item()]);
+    lidarr_data.history.sorting(vec![SortOption {
+      name: "Date",
+      cmp_fn: Some(|a: &LidarrHistoryItem, b: &LidarrHistoryItem| a.date.cmp(&b.date)),
+    }]);
+    lidarr_data.history.search = Some("test search".into());
+    lidarr_data.history.filter = Some("test filter".into());
     lidarr_data.root_folders.set_items(vec![root_folder()]);
     lidarr_data.version = "1.0.0".to_owned();
     lidarr_data.add_artist_search = Some("Test Artist".into());
@@ -244,10 +262,17 @@ pub enum ActiveLidarrBlock {
   EditArtistToggleMonitored,
   FilterArtists,
   FilterArtistsError,
+  FilterHistory,
+  FilterHistoryError,
+  History,
+  HistoryItemDetails,
+  HistorySortPrompt,
   SearchAlbums,
   SearchAlbumsError,
   SearchArtists,
   SearchArtistsError,
+  SearchHistory,
+  SearchHistoryError,
   UpdateAllArtistsPrompt,
   UpdateAndScanArtistPrompt,
 }
@@ -268,6 +293,16 @@ pub static ARTIST_DETAILS_BLOCKS: [ActiveLidarrBlock; 5] = [
   ActiveLidarrBlock::SearchAlbums,
   ActiveLidarrBlock::SearchAlbumsError,
   ActiveLidarrBlock::UpdateAndScanArtistPrompt,
+];
+
+pub static HISTORY_BLOCKS: [ActiveLidarrBlock; 7] = [
+  ActiveLidarrBlock::History,
+  ActiveLidarrBlock::HistoryItemDetails,
+  ActiveLidarrBlock::HistorySortPrompt,
+  ActiveLidarrBlock::SearchHistory,
+  ActiveLidarrBlock::SearchHistoryError,
+  ActiveLidarrBlock::FilterHistory,
+  ActiveLidarrBlock::FilterHistoryError,
 ];
 
 pub static ADD_ARTIST_BLOCKS: [ActiveLidarrBlock; 12] = [

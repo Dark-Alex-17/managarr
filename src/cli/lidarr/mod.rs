@@ -8,6 +8,7 @@ use edit_command_handler::{LidarrEditCommand, LidarrEditCommandHandler};
 use get_command_handler::{LidarrGetCommand, LidarrGetCommandHandler};
 use list_command_handler::{LidarrListCommand, LidarrListCommandHandler};
 use refresh_command_handler::{LidarrRefreshCommand, LidarrRefreshCommandHandler};
+use serde_json::json;
 use tokio::sync::Mutex;
 use trigger_automatic_search_command_handler::{
   LidarrTriggerAutomaticSearchCommand, LidarrTriggerAutomaticSearchCommandHandler,
@@ -67,6 +68,15 @@ pub enum LidarrCommand {
     about = "Commands to trigger automatic searches for releases of different resources in your Lidarr instance"
   )]
   TriggerAutomaticSearch(LidarrTriggerAutomaticSearchCommand),
+  #[command(about = "Mark the Lidarr history item with the given ID as 'failed'")]
+  MarkHistoryItemAsFailed {
+    #[arg(
+      long,
+      help = "The Lidarr ID of the history item you wish to mark as 'failed'",
+      required = true
+    )]
+    history_item_id: i64,
+  },
   #[command(about = "Search for a new artist to add to Lidarr")]
   SearchNewArtist {
     #[arg(
@@ -165,6 +175,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrCommand> for LidarrCliHandler<'a, '
         )
         .handle()
         .await?
+      }
+      LidarrCommand::MarkHistoryItemAsFailed { history_item_id } => {
+        let _ = self
+          .network
+          .handle_network_event(LidarrEvent::MarkHistoryItemAsFailed(history_item_id).into())
+          .await?;
+        serde_json::to_string_pretty(&json!({"message": "Lidarr history item marked as 'failed'"}))?
       }
       LidarrCommand::SearchNewArtist { query } => {
         let resp = self

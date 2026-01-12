@@ -9,6 +9,7 @@ use crate::models::servarr_models::{QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
 
 mod downloads;
+mod history;
 mod library;
 mod root_folders;
 mod system;
@@ -34,7 +35,9 @@ pub enum LidarrEvent {
   GetArtistDetails(i64),
   GetDiskSpace,
   GetDownloads(u64),
+  GetHistory(u64),
   GetHostConfig,
+  MarkHistoryItemAsFailed(i64),
   GetMetadataProfiles,
   GetQualityProfiles,
   GetRootFolders,
@@ -67,6 +70,8 @@ impl NetworkResource for LidarrEvent {
       | LidarrEvent::DeleteAlbum(_) => "/album",
       LidarrEvent::GetDiskSpace => "/diskspace",
       LidarrEvent::GetDownloads(_) => "/queue",
+      LidarrEvent::GetHistory(_) => "/history",
+      LidarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
       LidarrEvent::GetHostConfig | LidarrEvent::GetSecurityConfig => "/config/host",
       LidarrEvent::TriggerAutomaticArtistSearch(_)
       | LidarrEvent::UpdateAllArtists
@@ -118,6 +123,14 @@ impl Network<'_, '_> {
       LidarrEvent::GetDiskSpace => self.get_lidarr_diskspace().await.map(LidarrSerdeable::from),
       LidarrEvent::GetDownloads(count) => self
         .get_lidarr_downloads(count)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetHistory(events) => self
+        .get_lidarr_history(events)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::MarkHistoryItemAsFailed(history_item_id) => self
+        .mark_lidarr_history_item_as_failed(history_item_id)
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::GetHostConfig => self

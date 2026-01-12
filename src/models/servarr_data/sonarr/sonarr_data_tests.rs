@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
   mod sonarr_data_tests {
+    use crate::app::context_clues::HISTORY_CONTEXT_CLUES;
     use crate::app::sonarr::sonarr_context_clues::SERIES_HISTORY_CONTEXT_CLUES;
     use crate::models::sonarr_models::{Season, SonarrHistoryItem};
     use crate::models::stateful_table::StatefulTable;
@@ -10,9 +11,7 @@ mod tests {
           BLOCKLIST_CONTEXT_CLUES, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
           ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
         },
-        sonarr::sonarr_context_clues::{
-          HISTORY_CONTEXT_CLUES, SERIES_CONTEXT_CLUES, SERIES_DETAILS_CONTEXT_CLUES,
-        },
+        sonarr::sonarr_context_clues::{SERIES_CONTEXT_CLUES, SERIES_DETAILS_CONTEXT_CLUES},
       },
       models::{
         BlockSelectionState, Route,

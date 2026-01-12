@@ -2,8 +2,8 @@
 mod tests {
   use crate::app::context_clues::{
     BARE_POPUP_CONTEXT_CLUES, BLOCKLIST_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
-    ContextClue, ContextClueProvider, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
-    ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
+    ContextClue, ContextClueProvider, DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES,
+    INDEXERS_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
   };
   use crate::app::sonarr::sonarr_context_clues::{
     SELECTABLE_EPISODE_DETAILS_CONTEXT_CLUES, SonarrContextClueProvider,
@@ -13,10 +13,9 @@ mod tests {
     key_binding::DEFAULT_KEYBINDINGS,
     sonarr::sonarr_context_clues::{
       ADD_SERIES_SEARCH_RESULTS_CONTEXT_CLUES, EPISODE_DETAILS_CONTEXT_CLUES,
-      HISTORY_CONTEXT_CLUES, MANUAL_EPISODE_SEARCH_CONTEXT_CLUES,
-      MANUAL_SEASON_SEARCH_CONTEXT_CLUES, SEASON_DETAILS_CONTEXT_CLUES,
-      SEASON_HISTORY_CONTEXT_CLUES, SERIES_CONTEXT_CLUES, SERIES_DETAILS_CONTEXT_CLUES,
-      SERIES_HISTORY_CONTEXT_CLUES, SYSTEM_TASKS_CONTEXT_CLUES,
+      MANUAL_EPISODE_SEARCH_CONTEXT_CLUES, MANUAL_SEASON_SEARCH_CONTEXT_CLUES,
+      SEASON_DETAILS_CONTEXT_CLUES, SEASON_HISTORY_CONTEXT_CLUES, SERIES_CONTEXT_CLUES,
+      SERIES_DETAILS_CONTEXT_CLUES, SERIES_HISTORY_CONTEXT_CLUES, SYSTEM_TASKS_CONTEXT_CLUES,
     },
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
@@ -144,40 +143,6 @@ mod tests {
       &(DEFAULT_KEYBINDINGS.esc, "cancel filter/close")
     );
     assert_none!(series_history_context_clues_iter.next());
-  }
-
-  #[test]
-  fn test_history_context_clues() {
-    let mut history_context_clues_iter = HISTORY_CONTEXT_CLUES.iter();
-
-    assert_some_eq_x!(
-      history_context_clues_iter.next(),
-      &(DEFAULT_KEYBINDINGS.submit, "details")
-    );
-    assert_some_eq_x!(
-      history_context_clues_iter.next(),
-      &(DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc)
-    );
-    assert_some_eq_x!(
-      history_context_clues_iter.next(),
-      &(DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc)
-    );
-    assert_some_eq_x!(
-      history_context_clues_iter.next(),
-      &(DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc)
-    );
-    assert_some_eq_x!(
-      history_context_clues_iter.next(),
-      &(
-        DEFAULT_KEYBINDINGS.refresh,
-        DEFAULT_KEYBINDINGS.refresh.desc
-      )
-    );
-    assert_some_eq_x!(
-      history_context_clues_iter.next(),
-      &(DEFAULT_KEYBINDINGS.esc, "cancel filter")
-    );
-    assert_none!(history_context_clues_iter.next());
   }
 
   #[test]

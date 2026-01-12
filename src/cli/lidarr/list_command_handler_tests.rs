@@ -57,6 +57,29 @@ mod tests {
       };
       assert_eq!(album_command, expected_args);
     }
+
+    #[test]
+    fn test_list_history_events_flag_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "lidarr", "list", "history", "--events"]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[test]
+    fn test_list_history_default_values() {
+      let expected_args = LidarrListCommand::History { events: 500 };
+      let result = Cli::try_parse_from(["managarr", "lidarr", "list", "history"]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Lidarr(LidarrCommand::List(history_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(history_command, expected_args);
+    }
   }
 
   mod handler {
@@ -124,6 +147,32 @@ mod tests {
       let result = LidarrListCommandHandler::with(&app_arc, list_command, &mut mock_network)
         .handle()
         .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_history_command() {
+      let expected_events = 1000;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::GetHistory(expected_events).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_history_command = LidarrListCommand::History { events: 1000 };
+
+      let result =
+        LidarrListCommandHandler::with(&app_arc, list_history_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert_ok!(&result);
     }

@@ -31,6 +31,11 @@ mod tests {
   }
 
   #[rstest]
+  fn test_resource_history(#[values(LidarrEvent::GetHistory(0))] event: LidarrEvent) {
+    assert_str_eq!(event.resource(), "/history");
+  }
+
+  #[rstest]
   fn test_resource_tag(
     #[values(
       LidarrEvent::AddTag(String::new()),
@@ -83,6 +88,7 @@ mod tests {
   #[case(LidarrEvent::GetStatus, "/system/status")]
   #[case(LidarrEvent::GetTags, "/tag")]
   #[case(LidarrEvent::HealthCheck, "/health")]
+  #[case(LidarrEvent::MarkHistoryItemAsFailed(0), "/history/failed")]
   fn test_resource(#[case] event: LidarrEvent, #[case] expected_uri: &str) {
     assert_str_eq!(event.resource(), expected_uri);
   }

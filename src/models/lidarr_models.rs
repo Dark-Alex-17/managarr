@@ -7,7 +7,9 @@ use strum::{Display, EnumIter};
 
 use super::{
   HorizontallyScrollableText, Serdeable,
-  servarr_models::{DiskSpace, HostConfig, QualityProfile, RootFolder, SecurityConfig, Tag},
+  servarr_models::{
+    DiskSpace, HostConfig, QualityProfile, QualityWrapper, RootFolder, SecurityConfig, Tag,
+  },
 };
 use crate::serde_enum_from;
 
@@ -337,6 +339,78 @@ pub struct AlbumStatistics {
 
 impl Eq for AlbumStatistics {}
 
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LidarrHistoryWrapper {
+  pub records: Vec<LidarrHistoryItem>,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LidarrHistoryData {
+  pub indexer: Option<String>,
+  pub release_group: Option<String>,
+  pub nzb_info_url: Option<String>,
+  pub download_client_name: Option<String>,
+  pub download_client: Option<String>,
+  pub age: Option<String>,
+  pub published_date: Option<DateTime<Utc>>,
+  pub message: Option<String>,
+  pub reason: Option<String>,
+  pub dropped_path: Option<String>,
+  pub imported_path: Option<String>,
+  pub source_path: Option<String>,
+  pub path: Option<String>,
+  pub status_messages: Option<String>,
+}
+
+#[derive(
+  Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Display, EnumDisplayStyle,
+)]
+#[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
+pub enum LidarrHistoryEventType {
+  #[default]
+  Unknown,
+  Grabbed,
+  #[display_style(name = "Artist Folder Imported")]
+  ArtistFolderImported,
+  #[display_style(name = "Album Import Incomplete")]
+  AlbumImportIncomplete,
+  #[display_style(name = "Download Ignored")]
+  DownloadIgnored,
+  #[display_style(name = "Download Imported")]
+  DownloadImported,
+  #[display_style(name = "Download Failed")]
+  DownloadFailed,
+  #[display_style(name = "Track File Deleted")]
+  TrackFileDeleted,
+  #[display_style(name = "Track File Imported")]
+  TrackFileImported,
+  #[display_style(name = "Track File Renamed")]
+  TrackFileRenamed,
+  #[display_style(name = "Track File Retagged")]
+  TrackFileRetagged,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LidarrHistoryItem {
+  #[serde(deserialize_with = "super::from_i64")]
+  pub id: i64,
+  pub source_title: HorizontallyScrollableText,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub album_id: i64,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub artist_id: i64,
+  #[serde(default)]
+  pub quality: QualityWrapper,
+  pub date: DateTime<Utc>,
+  pub event_type: LidarrHistoryEventType,
+  #[serde(default)]
+  pub data: LidarrHistoryData,
+}
+
 impl From<LidarrSerdeable> for Serdeable {
   fn from(value: LidarrSerdeable) -> Serdeable {
     Serdeable::Lidarr(value)
@@ -352,6 +426,7 @@ serde_enum_from!(
     Artists(Vec<Artist>),
     DiskSpaces(Vec<DiskSpace>),
     DownloadsResponse(DownloadsResponse),
+    HistoryWrapper(LidarrHistoryWrapper),
     HostConfig(HostConfig),
     MetadataProfiles(Vec<MetadataProfile>),
     QualityProfiles(Vec<QualityProfile>),

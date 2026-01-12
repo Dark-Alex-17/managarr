@@ -4,10 +4,11 @@ pub mod test_utils {
   use crate::models::HorizontallyScrollableText;
   use crate::models::lidarr_models::{
     AddArtistSearchResult, Album, AlbumStatistics, Artist, ArtistStatistics, ArtistStatus,
-    DownloadRecord, DownloadStatus, DownloadsResponse, EditArtistParams, Member, MetadataProfile,
+    DownloadRecord, DownloadStatus, DownloadsResponse, EditArtistParams, LidarrHistoryData,
+    LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, Member, MetadataProfile,
     NewItemMonitorType, Ratings, SystemStatus,
   };
-  use crate::models::servarr_models::{QualityProfile, RootFolder, Tag};
+  use crate::models::servarr_models::{Quality, QualityProfile, QualityWrapper, RootFolder, Tag};
   use bimap::BiMap;
   use chrono::DateTime;
   use serde_json::Number;
@@ -117,6 +118,16 @@ pub mod test_utils {
       added: DateTime::from(DateTime::parse_from_rfc3339("2023-01-01T00:00:00Z").unwrap()),
       ratings: Some(ratings()),
       statistics: Some(artist_statistics()),
+    }
+  }
+
+  pub fn quality_wrapper() -> QualityWrapper {
+    QualityWrapper { quality: quality() }
+  }
+
+  pub fn quality() -> Quality {
+    Quality {
+      name: "Lossless".to_string(),
     }
   }
 
@@ -247,6 +258,33 @@ pub mod test_utils {
         DateTime::parse_from_rfc3339("2023-01-01T00:00:00Z").unwrap(),
       )),
       statistics: Some(album_statistics()),
+    }
+  }
+
+  pub fn lidarr_history_wrapper() -> LidarrHistoryWrapper {
+    LidarrHistoryWrapper {
+      records: vec![lidarr_history_item()],
+    }
+  }
+
+  pub fn lidarr_history_item() -> LidarrHistoryItem {
+    LidarrHistoryItem {
+      id: 1,
+      source_title: "Test source title".into(),
+      album_id: 1,
+      artist_id: 1,
+      quality: quality_wrapper(),
+      date: DateTime::from(DateTime::parse_from_rfc3339("2023-01-01T00:00:00Z").unwrap()),
+      event_type: LidarrHistoryEventType::Grabbed,
+      data: lidarr_history_data(),
+    }
+  }
+
+  pub fn lidarr_history_data() -> LidarrHistoryData {
+    LidarrHistoryData {
+      dropped_path: Some("/nfs/nzbget/completed/music/Something/cool.mp3".to_owned()),
+      imported_path: Some("/nfs/music/Something/Album 1/Cool.mp3".to_owned()),
+      ..LidarrHistoryData::default()
     }
   }
 }

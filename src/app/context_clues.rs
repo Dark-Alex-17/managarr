@@ -102,6 +102,18 @@ pub static INDEXERS_CONTEXT_CLUES: [ContextClue; 6] = [
   ),
 ];
 
+pub static HISTORY_CONTEXT_CLUES: [ContextClue; 6] = [
+  (DEFAULT_KEYBINDINGS.submit, "details"),
+  (DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc),
+  (DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc),
+  (DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc),
+  (
+    DEFAULT_KEYBINDINGS.refresh,
+    DEFAULT_KEYBINDINGS.refresh.desc,
+  ),
+  (DEFAULT_KEYBINDINGS.esc, "cancel filter"),
+];
+
 pub static SYSTEM_CONTEXT_CLUES: [ContextClue; 5] = [
   (DEFAULT_KEYBINDINGS.tasks, "open tasks"),
   (DEFAULT_KEYBINDINGS.events, "open events"),

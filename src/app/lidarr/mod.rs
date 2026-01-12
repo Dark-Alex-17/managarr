@@ -40,6 +40,11 @@ impl App<'_> {
           )
           .await;
       }
+      ActiveLidarrBlock::History => {
+        self
+          .dispatch_network_event(LidarrEvent::GetHistory(500).into())
+          .await
+      }
       _ => (),
     }
 

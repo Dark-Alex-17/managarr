@@ -2,7 +2,7 @@
 mod test {
   use crate::app::context_clues::{
     BARE_POPUP_CONTEXT_CLUES, BLOCKLIST_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
-    ContextClueProvider, DOWNLOADS_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
+    ContextClueProvider, DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
     ROOT_FOLDERS_CONTEXT_CLUES, SERVARR_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
     ServarrContextClueProvider,
   };
@@ -202,6 +202,40 @@ mod test {
       )
     );
     assert_none!(indexers_context_clues_iter.next());
+  }
+
+  #[test]
+  fn test_history_context_clues() {
+    let mut history_context_clues_iter = HISTORY_CONTEXT_CLUES.iter();
+
+    assert_some_eq_x!(
+      history_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.submit, "details")
+    );
+    assert_some_eq_x!(
+      history_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc)
+    );
+    assert_some_eq_x!(
+      history_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc)
+    );
+    assert_some_eq_x!(
+      history_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc)
+    );
+    assert_some_eq_x!(
+      history_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_some_eq_x!(
+      history_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, "cancel filter")
+    );
+    assert_none!(history_context_clues_iter.next());
   }
 
   #[test]

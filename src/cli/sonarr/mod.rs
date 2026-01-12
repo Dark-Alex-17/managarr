@@ -10,6 +10,7 @@ use get_command_handler::{SonarrGetCommand, SonarrGetCommandHandler};
 use list_command_handler::{SonarrListCommand, SonarrListCommandHandler};
 use manual_search_command_handler::{SonarrManualSearchCommand, SonarrManualSearchCommandHandler};
 use refresh_command_handler::{SonarrRefreshCommand, SonarrRefreshCommandHandler};
+use serde_json::json;
 use tokio::sync::Mutex;
 use trigger_automatic_search_command_handler::{
   SonarrTriggerAutomaticSearchCommand, SonarrTriggerAutomaticSearchCommandHandler,
@@ -251,7 +252,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, SonarrCommand> for SonarrCliHandler<'a, '
           .network
           .handle_network_event(SonarrEvent::MarkHistoryItemAsFailed(history_item_id).into())
           .await?;
-        "Sonarr history item marked as 'failed'".to_owned()
+        serde_json::to_string_pretty(&json!({"message": "Sonarr history item marked as 'failed'"}))?
       }
       SonarrCommand::SearchNewSeries { query } => {
         let resp = self

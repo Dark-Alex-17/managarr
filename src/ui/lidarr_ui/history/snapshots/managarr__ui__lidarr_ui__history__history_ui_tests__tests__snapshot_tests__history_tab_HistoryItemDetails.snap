@@ -1,0 +1,34 @@
+---
+source: src/ui/lidarr_ui/history/history_ui_tests.rs
+expression: output
+---
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Source Title ▼                                                                 Event Type                    Quality              Date                            
+=> Test source title                                                              grabbed                       Lossless             2023-01-01 00:00:00 UTC         
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                         ╭───────────────────────────────────  Details  ───────────────────────────────────╮                                         
+                                         │Source Title: Test source title                                                  │                                         
+                                         │Event Type: grabbed                                                              │                                         
+                                         │Quality: Lossless                                                                │                                         
+                                         │Date: 2023-01-01 00:00:00 UTC                                                    │                                         
+                                         │Indexer:                                                                         │                                         
+                                         │NZB Info URL:                                                                    │                                         
+                                         │Release Group:                                                                   │                                         
+                                         │Age: 0 days                                                                      │                                         
+                                         ╰─────────────────────────────────────────────────────────────────────────────────╯

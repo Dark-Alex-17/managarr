@@ -1,3 +1,4 @@
+use history::HistoryHandler;
 use library::LibraryHandler;
 
 use super::KeyEventHandler;
@@ -6,6 +7,7 @@ use crate::{
   app::App, event::Key, matches_key, models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock,
 };
 
+mod history;
 mod library;
 
 #[cfg(test)]
@@ -24,6 +26,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LidarrHandler<'a, 'b
     match self.active_lidarr_block {
       _ if LibraryHandler::accepts(self.active_lidarr_block) => {
         LibraryHandler::new(self.key, self.app, self.active_lidarr_block, self.context).handle();
+      }
+      _ if HistoryHandler::accepts(self.active_lidarr_block) => {
+        HistoryHandler::new(self.key, self.app, self.active_lidarr_block, self.context).handle();
       }
       _ => self.handle_key_event(),
     }
