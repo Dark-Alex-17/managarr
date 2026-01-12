@@ -571,7 +571,7 @@ fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: R
     .style(secondary_style())
     .alignment(Alignment::Left);
 
-  f.render_widget(Popup::new(message).size(Size::NarrowMessage), area);
+  f.render_widget(Popup::new(message).size(Size::NarrowLongMessage), area);
 }
 
 fn decorate_with_row_style<'a>(

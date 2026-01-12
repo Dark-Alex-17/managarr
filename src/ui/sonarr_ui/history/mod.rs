@@ -153,5 +153,5 @@ fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
     .style(secondary_style())
     .alignment(Alignment::Left);
 
-  f.render_widget(Popup::new(message).size(Size::NarrowMessage), f.area());
+  f.render_widget(Popup::new(message).size(Size::NarrowLongMessage), f.area());
 }
