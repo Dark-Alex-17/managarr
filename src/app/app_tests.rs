@@ -80,7 +80,7 @@ mod tests {
     assert_eq!(app.server_tabs.index, 0);
     assert_eq!(app.server_tabs.tabs, expected_tab_routes);
     assert_eq!(app.tick_until_poll, 400);
-    assert_eq!(app.ticks_until_scroll, 4);
+    assert_eq!(app.ticks_until_scroll, 64);
     assert_eq!(app.tick_count, 0);
     assert_eq!(app.ui_scroll_tick_count, 0);
     assert!(!app.is_loading);
@@ -101,7 +101,7 @@ mod tests {
     assert_eq!(app.error, HorizontallyScrollableText::default());
     assert_eq!(app.server_tabs.index, 0);
     assert_eq!(app.tick_until_poll, 400);
-    assert_eq!(app.ticks_until_scroll, 4);
+    assert_eq!(app.ticks_until_scroll, 64);
     assert_eq!(app.tick_count, 0);
     assert!(!app.is_loading);
     assert!(!app.is_routing);

@@ -257,7 +257,7 @@ impl Default for App<'_> {
       is_first_render: true,
       server_tabs: TabState::new(Vec::new()),
       tick_until_poll: 400,
-      ticks_until_scroll: 4,
+      ticks_until_scroll: 64,
       tick_count: 0,
       ui_scroll_tick_count: 0,
       is_loading: false,
