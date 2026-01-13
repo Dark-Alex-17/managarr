@@ -3,7 +3,7 @@ source: src/ui/radarr_ui/radarr_ui_tests.rs
 expression: output
 ---
 ╭  Movies  ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ Library │ Collections │ Downloads │ Blocklist │ Root Folders │ Indexers │ System                                                                                  │
+│ Library │ Collections │ Downloads │ Blocklist │ History │ Root Folders │ Indexers │ System                                                                        │
 │╭  Tasks  ───────────────────────────────────────────────────────────────────────╮╭  Queued Events  ──────────────────────────────────────────────────────────────╮│
 ││Name                 Interval   Last Execution Last Duration  Next Execution    ││Trigger    Status      Name               Queued        Started     Duration   ││
 ││Backup               1 hour     now            00:00:17       59 minutes        ││manual     completed   Refresh Monitored  4 minutes ago 4 minutes a 00:03:03   ││

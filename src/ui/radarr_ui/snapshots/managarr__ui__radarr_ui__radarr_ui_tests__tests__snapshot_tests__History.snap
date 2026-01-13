@@ -5,8 +5,8 @@ expression: output
 ╭  Movies  ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Library │ Collections │ Downloads │ Blocklist │ History │ Root Folders │ Indexers │ System                                                                        │
 │───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
-│   Path                                                                                           Free Space                       Unmapped Folders                │
-│=> /nfs                                                                                           204800.00 GB                     0                               │
+│   Source Title ▼                                               Event Type               Language            Quality               Date                            │
+│=> Test                                                         grabbed                  English             HD - 1080p            2022-12-30 07:37:56 UTC         │
 │                                                                                                                                                                   │
 │                                                                                                                                                                   │
 │                                                                                                                                                                   │

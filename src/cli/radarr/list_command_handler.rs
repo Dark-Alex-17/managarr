@@ -29,6 +29,11 @@ pub enum RadarrListCommand {
   },
   #[command(about = "List disk space details for all provisioned root folders in Radarr")]
   DiskSpace,
+  #[command(about = "Fetch all Radarr history events")]
+  History {
+    #[arg(long, help = "How many history events to fetch", default_value_t = 500)]
+    events: u64,
+  },
   #[command(about = "List all Radarr indexers")]
   Indexers,
   #[command(about = "Fetch Radarr logs")]
@@ -118,6 +123,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, RadarrListCommand> for RadarrListCommandH
         let resp = self
           .network
           .handle_network_event(RadarrEvent::GetDiskSpace.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      RadarrListCommand::History { events: items } => {
+        let resp = self
+          .network
+          .handle_network_event(RadarrEvent::GetHistory(items).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

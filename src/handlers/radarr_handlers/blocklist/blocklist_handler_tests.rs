@@ -91,9 +91,9 @@ mod tests {
 
       assert_eq!(
         app.data.radarr_data.main_tabs.get_active_route(),
-        ActiveRadarrBlock::RootFolders.into()
+        ActiveRadarrBlock::History.into()
       );
-      assert_navigation_pushed!(app, ActiveRadarrBlock::RootFolders.into());
+      assert_navigation_pushed!(app, ActiveRadarrBlock::History.into());
     }
 
     #[rstest]

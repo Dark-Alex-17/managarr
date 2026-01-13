@@ -16,6 +16,7 @@ use super::NetworkResource;
 mod blocklist;
 mod collections;
 mod downloads;
+mod history;
 mod indexers;
 mod library;
 mod root_folders;
@@ -47,10 +48,12 @@ pub enum RadarrEvent {
   GetBlocklist,
   GetCollections,
   GetDownloads(u64),
+  GetHistory(u64),
   GetHostConfig,
   GetIndexers,
   GetAllIndexerSettings,
   GetLogs(u64),
+  MarkHistoryItemAsFailed(i64),
   GetMovieCredits(i64),
   GetMovieDetails(i64),
   GetMovieHistory(i64),
@@ -86,7 +89,9 @@ impl NetworkResource for RadarrEvent {
       RadarrEvent::GetBlocklist => "/blocklist?page=1&pageSize=10000",
       RadarrEvent::GetCollections | RadarrEvent::EditCollection(_) => "/collection",
       RadarrEvent::GetDownloads(_) | RadarrEvent::DeleteDownload(_) => "/queue",
+      RadarrEvent::GetHistory(_) => "/history",
       RadarrEvent::GetHostConfig | RadarrEvent::GetSecurityConfig => "/config/host",
+      RadarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
       RadarrEvent::GetIndexers | RadarrEvent::EditIndexer(_) | RadarrEvent::DeleteIndexer(_) => {
         "/indexer"
       }
@@ -199,6 +204,10 @@ impl Network<'_, '_> {
         .get_radarr_downloads(count)
         .await
         .map(RadarrSerdeable::from),
+      RadarrEvent::GetHistory(events) => self
+        .get_radarr_history(events)
+        .await
+        .map(RadarrSerdeable::from),
       RadarrEvent::GetHostConfig => self
         .get_radarr_host_config()
         .await
@@ -206,6 +215,10 @@ impl Network<'_, '_> {
       RadarrEvent::GetIndexers => self.get_radarr_indexers().await.map(RadarrSerdeable::from),
       RadarrEvent::GetLogs(events) => self
         .get_radarr_logs(events)
+        .await
+        .map(RadarrSerdeable::from),
+      RadarrEvent::MarkHistoryItemAsFailed(history_item_id) => self
+        .mark_radarr_history_item_as_failed(history_item_id)
         .await
         .map(RadarrSerdeable::from),
       RadarrEvent::GetMovieCredits(movie_id) => {

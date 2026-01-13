@@ -356,6 +356,9 @@ mod test_utils {
         .radarr_data
         .movies
         .set_items(vec![$crate::models::radarr_models::Movie::default()]);
+      app.data.radarr_data.history.set_items(vec![
+        $crate::models::radarr_models::RadarrHistoryItem::default(),
+      ]);
       app
         .data
         .radarr_data

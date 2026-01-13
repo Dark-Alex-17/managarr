@@ -65,7 +65,7 @@ mod tests {
     fn test_indexers_tab_left(#[values(true, false)] is_ready: bool) {
       let mut app = App::test_default();
       app.is_loading = is_ready;
-      app.data.radarr_data.main_tabs.set_index(5);
+      app.data.radarr_data.main_tabs.set_index(6);
 
       IndexersHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
@@ -86,7 +86,7 @@ mod tests {
     fn test_indexers_tab_right(#[values(true, false)] is_ready: bool) {
       let mut app = App::test_default();
       app.is_loading = is_ready;
-      app.data.radarr_data.main_tabs.set_index(5);
+      app.data.radarr_data.main_tabs.set_index(6);
 
       IndexersHandler::new(
         DEFAULT_KEYBINDINGS.right.key,

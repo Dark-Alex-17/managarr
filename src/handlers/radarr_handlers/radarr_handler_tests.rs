@@ -16,10 +16,11 @@ mod tests {
   #[case(0, ActiveRadarrBlock::System, ActiveRadarrBlock::Collections)]
   #[case(1, ActiveRadarrBlock::Movies, ActiveRadarrBlock::Downloads)]
   #[case(2, ActiveRadarrBlock::Collections, ActiveRadarrBlock::Blocklist)]
-  #[case(3, ActiveRadarrBlock::Downloads, ActiveRadarrBlock::RootFolders)]
-  #[case(4, ActiveRadarrBlock::Blocklist, ActiveRadarrBlock::Indexers)]
-  #[case(5, ActiveRadarrBlock::RootFolders, ActiveRadarrBlock::System)]
-  #[case(6, ActiveRadarrBlock::Indexers, ActiveRadarrBlock::Movies)]
+  #[case(3, ActiveRadarrBlock::Downloads, ActiveRadarrBlock::History)]
+  #[case(4, ActiveRadarrBlock::Blocklist, ActiveRadarrBlock::RootFolders)]
+  #[case(5, ActiveRadarrBlock::History, ActiveRadarrBlock::Indexers)]
+  #[case(6, ActiveRadarrBlock::RootFolders, ActiveRadarrBlock::System)]
+  #[case(7, ActiveRadarrBlock::Indexers, ActiveRadarrBlock::Movies)]
   fn test_radarr_handler_change_tab_left_right_keys(
     #[case] index: usize,
     #[case] left_block: ActiveRadarrBlock,
@@ -51,10 +52,11 @@ mod tests {
   #[case(0, ActiveRadarrBlock::System, ActiveRadarrBlock::Collections)]
   #[case(1, ActiveRadarrBlock::Movies, ActiveRadarrBlock::Downloads)]
   #[case(2, ActiveRadarrBlock::Collections, ActiveRadarrBlock::Blocklist)]
-  #[case(3, ActiveRadarrBlock::Downloads, ActiveRadarrBlock::RootFolders)]
-  #[case(4, ActiveRadarrBlock::Blocklist, ActiveRadarrBlock::Indexers)]
-  #[case(5, ActiveRadarrBlock::RootFolders, ActiveRadarrBlock::System)]
-  #[case(6, ActiveRadarrBlock::Indexers, ActiveRadarrBlock::Movies)]
+  #[case(3, ActiveRadarrBlock::Downloads, ActiveRadarrBlock::History)]
+  #[case(4, ActiveRadarrBlock::Blocklist, ActiveRadarrBlock::RootFolders)]
+  #[case(5, ActiveRadarrBlock::History, ActiveRadarrBlock::Indexers)]
+  #[case(6, ActiveRadarrBlock::RootFolders, ActiveRadarrBlock::System)]
+  #[case(7, ActiveRadarrBlock::Indexers, ActiveRadarrBlock::Movies)]
   fn test_radarr_handler_change_tab_left_right_keys_alt_navigation(
     #[case] index: usize,
     #[case] left_block: ActiveRadarrBlock,
@@ -88,9 +90,10 @@ mod tests {
   #[case(1, ActiveRadarrBlock::Collections)]
   #[case(2, ActiveRadarrBlock::Downloads)]
   #[case(3, ActiveRadarrBlock::Blocklist)]
-  #[case(4, ActiveRadarrBlock::RootFolders)]
-  #[case(5, ActiveRadarrBlock::Indexers)]
-  #[case(6, ActiveRadarrBlock::System)]
+  #[case(4, ActiveRadarrBlock::History)]
+  #[case(5, ActiveRadarrBlock::RootFolders)]
+  #[case(6, ActiveRadarrBlock::Indexers)]
+  #[case(7, ActiveRadarrBlock::System)]
   fn test_radarr_handler_change_tab_left_right_keys_alt_navigation_no_op_when_ignoring_quit_key(
     #[case] index: usize,
     #[case] block: ActiveRadarrBlock,
@@ -277,6 +280,26 @@ mod tests {
     test_handler_delegation!(
       RadarrHandler,
       ActiveRadarrBlock::Blocklist,
+      active_radarr_block
+    );
+  }
+
+  #[rstest]
+  fn test_delegates_history_blocks_to_history_handler(
+    #[values(
+      ActiveRadarrBlock::History,
+      ActiveRadarrBlock::HistoryItemDetails,
+      ActiveRadarrBlock::HistorySortPrompt,
+      ActiveRadarrBlock::FilterHistory,
+      ActiveRadarrBlock::FilterHistoryError,
+      ActiveRadarrBlock::SearchHistory,
+      ActiveRadarrBlock::SearchHistoryError
+    )]
+    active_radarr_block: ActiveRadarrBlock,
+  ) {
+    test_handler_delegation!(
+      RadarrHandler,
+      ActiveRadarrBlock::History,
       active_radarr_block
     );
   }

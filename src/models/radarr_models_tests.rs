@@ -3,6 +3,9 @@ mod tests {
   use pretty_assertions::{assert_eq, assert_str_eq};
   use serde_json::json;
 
+  use crate::models::radarr_models::{
+    RadarrHistoryEventType, RadarrHistoryItem, RadarrHistoryWrapper,
+  };
   use crate::models::{
     Serdeable,
     radarr_models::{
@@ -59,6 +62,66 @@ mod tests {
       "Movie and Collection"
     );
     assert_str_eq!(MovieMonitor::None.to_display_str(), "None");
+  }
+
+  #[test]
+  fn test_radarr_history_event_type_display() {
+    assert_str_eq!(RadarrHistoryEventType::Unknown.to_string(), "unknown");
+    assert_str_eq!(RadarrHistoryEventType::Grabbed.to_string(), "grabbed");
+    assert_str_eq!(
+      RadarrHistoryEventType::DownloadFolderImported.to_string(),
+      "downloadFolderImported"
+    );
+    assert_str_eq!(
+      RadarrHistoryEventType::DownloadFailed.to_string(),
+      "downloadFailed"
+    );
+    assert_str_eq!(
+      RadarrHistoryEventType::MovieFileDeleted.to_string(),
+      "movieFileDeleted"
+    );
+    assert_str_eq!(
+      RadarrHistoryEventType::MovieFolderImported.to_string(),
+      "movieFolderImported"
+    );
+    assert_str_eq!(
+      RadarrHistoryEventType::MovieFileRenamed.to_string(),
+      "movieFileRenamed"
+    );
+    assert_str_eq!(
+      RadarrHistoryEventType::DownloadIgnored.to_string(),
+      "downloadIgnored"
+    );
+  }
+
+  #[test]
+  fn test_radarr_history_event_type_to_display_str() {
+    assert_str_eq!(RadarrHistoryEventType::Unknown.to_display_str(), "Unknown");
+    assert_str_eq!(RadarrHistoryEventType::Grabbed.to_display_str(), "Grabbed");
+    assert_str_eq!(
+      RadarrHistoryEventType::DownloadFolderImported.to_display_str(),
+      "Download Folder Imported"
+    );
+    assert_str_eq!(
+      RadarrHistoryEventType::DownloadFailed.to_display_str(),
+      "Download Failed"
+    );
+    assert_str_eq!(
+      RadarrHistoryEventType::MovieFileDeleted.to_display_str(),
+      "Movie File Deleted"
+    );
+    assert_str_eq!(
+      RadarrHistoryEventType::MovieFolderImported.to_display_str(),
+      "Movie Folder Imported"
+    );
+    assert_str_eq!(
+      RadarrHistoryEventType::MovieFileRenamed.to_display_str(),
+      "Movie File Renamed"
+    );
+    assert_str_eq!(
+      RadarrHistoryEventType::DownloadIgnored.to_display_str(),
+      "Download Ignored"
+    );
   }
 
   #[test]
@@ -232,6 +295,23 @@ mod tests {
     assert_eq!(
       radarr_serdeable,
       RadarrSerdeable::IndexerSettings(indexer_settings)
+    );
+  }
+
+  #[test]
+  fn test_radarr_serdeable_from_history_wrapper() {
+    let history_wrapper = RadarrHistoryWrapper {
+      records: vec![RadarrHistoryItem {
+        id: 1,
+        ..RadarrHistoryItem::default()
+      }],
+    };
+
+    let radarr_serdeable: RadarrSerdeable = history_wrapper.clone().into();
+
+    assert_eq!(
+      radarr_serdeable,
+      RadarrSerdeable::HistoryWrapper(history_wrapper)
     );
   }
 

@@ -32,6 +32,31 @@ mod tests {
     }
 
     #[test]
+    fn test_mark_history_item_as_failed_requires_history_item_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "radarr", "mark-history-item-as-failed"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_mark_history_item_as_failed_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "radarr",
+        "mark-history-item-as-failed",
+        "--history-item-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_download_release_requires_movie_id() {
       let result = Cli::command().try_get_matches_from([
         "managarr",
@@ -323,6 +348,36 @@ mod tests {
       let result = RadarrCliHandler::with(&app_arc, clear_blocklist_command, &mut mock_network)
         .handle()
         .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_mark_history_item_as_failed_command() {
+      let expected_history_item_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          RadarrEvent::MarkHistoryItemAsFailed(expected_history_item_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Radarr(RadarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let mark_history_item_as_failed_command =
+        RadarrCommand::MarkHistoryItemAsFailed { history_item_id: 1 };
+
+      let result = RadarrCliHandler::with(
+        &app_arc,
+        mark_history_item_as_failed_command,
+        &mut mock_network,
+      )
+      .handle()
+      .await;
 
       assert_ok!(&result);
     }

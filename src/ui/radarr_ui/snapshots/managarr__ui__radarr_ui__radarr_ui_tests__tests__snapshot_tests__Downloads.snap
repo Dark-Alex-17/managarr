@@ -3,7 +3,7 @@ source: src/ui/radarr_ui/radarr_ui_tests.rs
 expression: output
 ---
 ╭  Movies  ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ Library │ Collections │ Downloads │ Blocklist │ Root Folders │ Indexers │ System                                                                                  │
+│ Library │ Collections │ Downloads │ Blocklist │ History │ Root Folders │ Indexers │ System                                                                        │
 │───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
 │   Title                                         Percent Complete  Size               Output Path                 Indexer                     Download Client      │
 │=> Test Download Title                           50%               3.30 GB            /nfs/movies/Test            kickass torrents            transmission         │

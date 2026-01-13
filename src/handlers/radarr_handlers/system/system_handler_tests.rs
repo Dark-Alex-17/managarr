@@ -26,7 +26,7 @@ mod tests {
     fn test_system_tab_left(#[values(true, false)] is_ready: bool) {
       let mut app = App::test_default();
       app.is_loading = is_ready;
-      app.data.radarr_data.main_tabs.set_index(6);
+      app.data.radarr_data.main_tabs.set_index(7);
 
       SystemHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
@@ -47,7 +47,7 @@ mod tests {
     fn test_system_tab_right(#[values(true, false)] is_ready: bool) {
       let mut app = App::test_default();
       app.is_loading = is_ready;
-      app.data.radarr_data.main_tabs.set_index(6);
+      app.data.radarr_data.main_tabs.set_index(7);
 
       SystemHandler::new(
         DEFAULT_KEYBINDINGS.right.key,
