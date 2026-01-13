@@ -2,8 +2,9 @@ use crate::app::App;
 use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, HISTORY_BLOCKS};
 use crate::models::servarr_models::Language;
-use crate::models::sonarr_models::{SonarrHistoryEventType, SonarrHistoryItem};
+use crate::models::sonarr_models::SonarrHistoryItem;
 use crate::ui::DrawUi;
+use crate::ui::sonarr_ui::sonarr_ui_utils::create_history_event_details;
 use crate::ui::styles::{ManagarrStyle, secondary_style};
 use crate::ui::utils::{get_width_from_percentage, layout_block_top_border};
 use crate::ui::widgets::managarr_table::ManagarrTable;
@@ -13,14 +14,6 @@ use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Rect};
 use ratatui::text::Text;
 use ratatui::widgets::{Cell, Row};
-
-use super::sonarr_ui_utils::{
-  create_download_failed_history_event_details,
-  create_download_folder_imported_history_event_details,
-  create_episode_file_deleted_history_event_details,
-  create_episode_file_renamed_history_event_details, create_grabbed_history_event_details,
-  create_no_data_history_event_details,
-};
 
 #[cfg(test)]
 #[path = "history_ui_tests.rs"]
@@ -130,22 +123,7 @@ fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
     app.data.sonarr_data.history.current_selection().clone()
   };
 
-  let line_vec = match current_selection.event_type {
-    SonarrHistoryEventType::Grabbed => create_grabbed_history_event_details(current_selection),
-    SonarrHistoryEventType::DownloadFolderImported => {
-      create_download_folder_imported_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::DownloadFailed => {
-      create_download_failed_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::EpisodeFileDeleted => {
-      create_episode_file_deleted_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::EpisodeFileRenamed => {
-      create_episode_file_renamed_history_event_details(current_selection)
-    }
-    _ => create_no_data_history_event_details(current_selection),
-  };
+  let line_vec = create_history_event_details(current_selection);
   let text = Text::from(line_vec);
 
   let message = Message::new(text)

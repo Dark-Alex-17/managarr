@@ -11,18 +11,10 @@ use regex::Regex;
 use crate::app::App;
 use crate::models::Route;
 use crate::models::servarr_data::sonarr::sonarr_data::{ActiveSonarrBlock, SERIES_DETAILS_BLOCKS};
-use crate::models::sonarr_models::{
-  Season, SeasonStatistics, SonarrHistoryEventType, SonarrHistoryItem,
-};
+use crate::models::sonarr_models::{Season, SeasonStatistics, SonarrHistoryItem};
 use crate::ui::sonarr_ui::library::episode_details_ui::EpisodeDetailsUi;
 use crate::ui::sonarr_ui::library::season_details_ui::SeasonDetailsUi;
-use crate::ui::sonarr_ui::sonarr_ui_utils::{
-  create_download_failed_history_event_details,
-  create_download_folder_imported_history_event_details,
-  create_episode_file_deleted_history_event_details,
-  create_episode_file_renamed_history_event_details, create_grabbed_history_event_details,
-  create_no_data_history_event_details,
-};
+use crate::ui::sonarr_ui::sonarr_ui_utils::create_history_event_details;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_top_border, title_block,
@@ -408,22 +400,7 @@ fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: R
       SonarrHistoryItem::default()
     };
 
-  let line_vec = match current_selection.event_type {
-    SonarrHistoryEventType::Grabbed => create_grabbed_history_event_details(current_selection),
-    SonarrHistoryEventType::DownloadFolderImported => {
-      create_download_folder_imported_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::DownloadFailed => {
-      create_download_failed_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::EpisodeFileDeleted => {
-      create_episode_file_deleted_history_event_details(current_selection)
-    }
-    SonarrHistoryEventType::EpisodeFileRenamed => {
-      create_episode_file_renamed_history_event_details(current_selection)
-    }
-    _ => create_no_data_history_event_details(current_selection),
-  };
+  let line_vec = create_history_event_details(current_selection);
   let text = Text::from(line_vec);
 
   let message = Message::new(text)

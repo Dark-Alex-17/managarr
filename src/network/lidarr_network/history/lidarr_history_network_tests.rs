@@ -173,7 +173,7 @@ mod tests {
       panic!("Expected LidarrHistoryWrapper")
     };
     mock.assert_async().await;
-    assert!(app.lock().await.data.lidarr_data.history.is_empty());
+    assert_is_empty!(app.lock().await.data.lidarr_data.history);
     assert!(app.lock().await.data.lidarr_data.history.sort_asc);
     assert_eq!(history, response);
   }
@@ -194,6 +194,6 @@ mod tests {
       .await;
 
     mock.assert_async().await;
-    assert!(result.is_ok());
+    assert_ok!(result);
   }
 }

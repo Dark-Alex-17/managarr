@@ -26,29 +26,35 @@ mod tests {
 
     assert_eq!(
       result[0],
-      Line::from(format!("Source Title: {}", source_title.text))
+      Line::from(format!("Source Title: {}", source_title.text.trim_start()))
     );
     assert_eq!(result[1], Line::from(format!("Event Type: {event_type}")));
     assert_eq!(
       result[2],
-      Line::from(format!("Quality: {}", quality.quality.name))
+      Line::from(format!("Quality: {}", quality.quality.name.trim_start()))
     );
     assert_eq!(result[3], Line::from(format!("Date: {date}")));
     assert_eq!(
       result[4],
-      Line::from(format!("Indexer: {}", data.indexer.unwrap()))
+      Line::from(format!("Indexer: {}", data.indexer.unwrap().trim_start()))
     );
     assert_eq!(
       result[5],
-      Line::from(format!("NZB Info URL: {}", data.nzb_info_url.unwrap()))
+      Line::from(format!(
+        "NZB Info URL: {}",
+        data.nzb_info_url.unwrap().trim_start()
+      ))
     );
     assert_eq!(
       result[6],
-      Line::from(format!("Release Group: {}", data.release_group.unwrap()))
+      Line::from(format!(
+        "Release Group: {}",
+        data.release_group.unwrap().trim_start()
+      ))
     );
     assert_eq!(
       result[7],
-      Line::from(format!("Age: {} days", data.age.unwrap()))
+      Line::from(format!("Age: {} days", data.age.unwrap().trim_start()))
     );
     assert_eq!(
       result[8],
@@ -58,7 +64,7 @@ mod tests {
       result[9],
       Line::from(format!(
         "Download Client: {}",
-        data.download_client_name.unwrap()
+        data.download_client_name.unwrap().trim_start()
       ))
     );
     assert_eq!(result.len(), 10);
@@ -68,7 +74,7 @@ mod tests {
   fn test_create_history_event_details_grabbed_uses_download_client_as_fallback() {
     let mut history_item = lidarr_history_item(LidarrHistoryEventType::Grabbed);
     history_item.data.download_client_name = None;
-    history_item.data.download_client = Some("Fallback Client".to_owned());
+    history_item.data.download_client = Some("\nFallback Client".to_owned());
 
     let result = create_history_event_details(history_item);
 
@@ -91,17 +97,20 @@ mod tests {
 
     assert_eq!(
       result[0],
-      Line::from(format!("Source Title: {}", source_title.text))
+      Line::from(format!("Source Title: {}", source_title.text.trim_start()))
     );
     assert_eq!(result[1], Line::from(format!("Event Type: {event_type}")));
     assert_eq!(
       result[2],
-      Line::from(format!("Quality: {}", quality.quality.name))
+      Line::from(format!("Quality: {}", quality.quality.name.trim_start()))
     );
     assert_eq!(result[3], Line::from(format!("Date: {date}")));
     assert_eq!(
       result[4],
-      Line::from(format!("Release Group: {}", data.release_group.unwrap()))
+      Line::from(format!(
+        "Release Group: {}",
+        data.release_group.unwrap().trim_start()
+      ))
     );
     assert_eq!(result.len(), 5);
   }
@@ -122,32 +131,35 @@ mod tests {
 
     assert_eq!(
       result[0],
-      Line::from(format!("Source Title: {}", source_title.text))
+      Line::from(format!("Source Title: {}", source_title.text.trim_start()))
     );
     assert_eq!(result[1], Line::from(format!("Event Type: {event_type}")));
     assert_eq!(
       result[2],
-      Line::from(format!("Quality: {}", quality.quality.name))
+      Line::from(format!("Quality: {}", quality.quality.name.trim_start()))
     );
     assert_eq!(result[3], Line::from(format!("Date: {date}")));
     assert_eq!(
       result[4],
       Line::from(format!(
         "Download Client: {}",
-        data.download_client_name.unwrap()
+        data.download_client_name.unwrap().trim_start()
       ))
     );
     assert_eq!(
       result[5],
-      Line::from(format!("Message: {}", data.message.unwrap()))
+      Line::from(format!("Message: {}", data.message.unwrap().trim_start()))
     );
     assert_eq!(
       result[6],
-      Line::from(format!("Release Group: {}", data.release_group.unwrap()))
+      Line::from(format!(
+        "Release Group: {}",
+        data.release_group.unwrap().trim_start()
+      ))
     );
     assert_eq!(
       result[7],
-      Line::from(format!("Indexer: {}", data.indexer.unwrap()))
+      Line::from(format!("Indexer: {}", data.indexer.unwrap().trim_start()))
     );
     assert_eq!(result.len(), 8);
   }
@@ -168,21 +180,24 @@ mod tests {
 
     assert_eq!(
       result[0],
-      Line::from(format!("Source Title: {}", source_title.text))
+      Line::from(format!("Source Title: {}", source_title.text.trim_start()))
     );
     assert_eq!(result[1], Line::from(format!("Event Type: {event_type}")));
     assert_eq!(
       result[2],
-      Line::from(format!("Quality: {}", quality.quality.name))
+      Line::from(format!("Quality: {}", quality.quality.name.trim_start()))
     );
     assert_eq!(result[3], Line::from(format!("Date: {date}")));
     assert_eq!(
       result[4],
-      Line::from(format!("Reason: {}", data.reason.unwrap()))
+      Line::from(format!("Reason: {}", data.reason.unwrap().trim_start()))
     );
     assert_eq!(
       result[5],
-      Line::from(format!("Release Group: {}", data.release_group.unwrap()))
+      Line::from(format!(
+        "Release Group: {}",
+        data.release_group.unwrap().trim_start()
+      ))
     );
     assert_eq!(result.len(), 6);
   }
@@ -203,32 +218,41 @@ mod tests {
 
     assert_eq!(
       result[0],
-      Line::from(format!("Source Title: {}", source_title.text))
+      Line::from(format!("Source Title: {}", source_title.text.trim_start()))
     );
     assert_eq!(result[1], Line::from(format!("Event Type: {event_type}")));
     assert_eq!(
       result[2],
-      Line::from(format!("Quality: {}", quality.quality.name))
+      Line::from(format!("Quality: {}", quality.quality.name.trim_start()))
     );
     assert_eq!(result[3], Line::from(format!("Date: {date}")));
     assert_eq!(
       result[4],
-      Line::from(format!("Dropped Path: {}", data.dropped_path.unwrap()))
+      Line::from(format!(
+        "Dropped Path: {}",
+        data.dropped_path.unwrap().trim_start()
+      ))
     );
     assert_eq!(
       result[5],
-      Line::from(format!("Imported Path: {}", data.imported_path.unwrap()))
+      Line::from(format!(
+        "Imported Path: {}",
+        data.imported_path.unwrap().trim_start()
+      ))
     );
     assert_eq!(
       result[6],
       Line::from(format!(
         "Download Client: {}",
-        data.download_client_name.unwrap()
+        data.download_client_name.unwrap().trim_start()
       ))
     );
     assert_eq!(
       result[7],
-      Line::from(format!("Release Group: {}", data.release_group.unwrap()))
+      Line::from(format!(
+        "Release Group: {}",
+        data.release_group.unwrap().trim_start()
+      ))
     );
     assert_eq!(result.len(), 8);
   }
@@ -249,25 +273,31 @@ mod tests {
 
     assert_eq!(
       result[0],
-      Line::from(format!("Source Title: {}", source_title.text))
+      Line::from(format!("Source Title: {}", source_title.text.trim_start()))
     );
     assert_eq!(result[1], Line::from(format!("Event Type: {event_type}")));
     assert_eq!(
       result[2],
-      Line::from(format!("Quality: {}", quality.quality.name))
+      Line::from(format!("Quality: {}", quality.quality.name.trim_start()))
     );
     assert_eq!(result[3], Line::from(format!("Date: {date}")));
     assert_eq!(
       result[4],
-      Line::from(format!("Source Path: {}", data.source_path.unwrap()))
+      Line::from(format!(
+        "Source Path: {}",
+        data.source_path.unwrap().trim_start()
+      ))
     );
     assert_eq!(
       result[5],
-      Line::from(format!("Path: {}", data.path.unwrap()))
+      Line::from(format!("Path: {}", data.path.unwrap().trim_start()))
     );
     assert_eq!(
       result[6],
-      Line::from(format!("Release Group: {}", data.release_group.unwrap()))
+      Line::from(format!(
+        "Release Group: {}",
+        data.release_group.unwrap().trim_start()
+      ))
     );
     assert_eq!(result.len(), 7);
   }
@@ -288,17 +318,20 @@ mod tests {
 
     assert_eq!(
       result[0],
-      Line::from(format!("Source Title: {}", source_title.text))
+      Line::from(format!("Source Title: {}", source_title.text.trim_start()))
     );
     assert_eq!(result[1], Line::from(format!("Event Type: {event_type}")));
     assert_eq!(
       result[2],
-      Line::from(format!("Quality: {}", quality.quality.name))
+      Line::from(format!("Quality: {}", quality.quality.name.trim_start()))
     );
     assert_eq!(result[3], Line::from(format!("Date: {date}")));
     assert_eq!(
       result[4],
-      Line::from(format!("Release Group: {}", data.release_group.unwrap()))
+      Line::from(format!(
+        "Release Group: {}",
+        data.release_group.unwrap().trim_start()
+      ))
     );
     assert_eq!(result.len(), 5);
   }
@@ -319,24 +352,27 @@ mod tests {
 
     assert_eq!(
       result[0],
-      Line::from(format!("Source Title: {}", source_title.text))
+      Line::from(format!("Source Title: {}", source_title.text.trim_start()))
     );
     assert_eq!(result[1], Line::from(format!("Event Type: {event_type}")));
     assert_eq!(
       result[2],
-      Line::from(format!("Quality: {}", quality.quality.name))
+      Line::from(format!("Quality: {}", quality.quality.name.trim_start()))
     );
     assert_eq!(result[3], Line::from(format!("Date: {date}")));
     assert_eq!(
       result[4],
       Line::from(format!(
         "Status Messages: {}",
-        data.status_messages.unwrap()
+        data.status_messages.unwrap().trim_start()
       ))
     );
     assert_eq!(
       result[5],
-      Line::from(format!("Release Group: {}", data.release_group.unwrap()))
+      Line::from(format!(
+        "Release Group: {}",
+        data.release_group.unwrap().trim_start()
+      ))
     );
     assert_eq!(result.len(), 6);
   }
@@ -356,12 +392,12 @@ mod tests {
 
     assert_eq!(
       result[0],
-      Line::from(format!("Source Title: {}", source_title.text))
+      Line::from(format!("Source Title: {}", source_title.text.trim_start()))
     );
     assert_eq!(result[1], Line::from(format!("Event Type: {event_type}")));
     assert_eq!(
       result[2],
-      Line::from(format!("Quality: {}", quality.quality.name))
+      Line::from(format!("Quality: {}", quality.quality.name.trim_start()))
     );
     assert_eq!(result[3], Line::from(format!("Date: {date}")));
     assert_eq!(result[4], Line::from("No additional details available."));
@@ -386,13 +422,13 @@ mod tests {
   fn lidarr_history_item(event_type: LidarrHistoryEventType) -> LidarrHistoryItem {
     LidarrHistoryItem {
       id: 1,
-      source_title: "Test Album - Artist Name".into(),
+      source_title: "\nTest Album - Artist Name".into(),
       album_id: 100,
       artist_id: 10,
       event_type,
       quality: QualityWrapper {
         quality: Quality {
-          name: "FLAC".to_owned(),
+          name: "\nFLAC".to_owned(),
         },
       },
       date: Utc::now(),
@@ -402,20 +438,20 @@ mod tests {
 
   fn lidarr_history_data() -> LidarrHistoryData {
     LidarrHistoryData {
-      indexer: Some("Test Indexer".to_owned()),
-      release_group: Some("Test Release Group".to_owned()),
-      nzb_info_url: Some("https://test.url".to_owned()),
-      download_client_name: Some("Test Download Client".to_owned()),
-      download_client: Some("Fallback Download Client".to_owned()),
-      age: Some("7".to_owned()),
+      indexer: Some("\nTest Indexer".to_owned()),
+      release_group: Some("\nTest Release Group".to_owned()),
+      nzb_info_url: Some("\nhttps://test.url".to_owned()),
+      download_client_name: Some("\nTest Download Client".to_owned()),
+      download_client: Some("\nFallback Download Client".to_owned()),
+      age: Some("\n7".to_owned()),
       published_date: Some(Utc::now()),
-      message: Some("Test failure message".to_owned()),
-      reason: Some("Test deletion reason".to_owned()),
-      dropped_path: Some("/downloads/completed/album".to_owned()),
-      imported_path: Some("/music/artist/album".to_owned()),
-      source_path: Some("/music/artist/old_album_name".to_owned()),
-      path: Some("/music/artist/new_album_name".to_owned()),
-      status_messages: Some("Missing tracks: 1, 2, 3".to_owned()),
+      message: Some("\nTest failure message".to_owned()),
+      reason: Some("\nTest deletion reason".to_owned()),
+      dropped_path: Some("\n/downloads/completed/album".to_owned()),
+      imported_path: Some("\n/music/artist/album".to_owned()),
+      source_path: Some("\n/music/artist/old_album_name".to_owned()),
+      path: Some("\n/music/artist/new_album_name".to_owned()),
+      status_messages: Some("\nMissing tracks: 1, 2, 3".to_owned()),
     }
   }
 }
