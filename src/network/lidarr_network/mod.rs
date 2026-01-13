@@ -28,6 +28,7 @@ pub enum LidarrEvent {
   AddTag(String),
   DeleteAlbum(DeleteParams),
   DeleteArtist(DeleteParams),
+  DeleteDownload(i64),
   DeleteTag(i64),
   EditArtist(EditArtistParams),
   GetAlbums(i64),
@@ -52,6 +53,7 @@ pub enum LidarrEvent {
   TriggerAutomaticArtistSearch(i64),
   UpdateAllArtists,
   UpdateAndScanArtist(i64),
+  UpdateDownloads,
 }
 
 impl NetworkResource for LidarrEvent {
@@ -69,13 +71,14 @@ impl NetworkResource for LidarrEvent {
       | LidarrEvent::GetAlbumDetails(_)
       | LidarrEvent::DeleteAlbum(_) => "/album",
       LidarrEvent::GetDiskSpace => "/diskspace",
-      LidarrEvent::GetDownloads(_) => "/queue",
+      LidarrEvent::GetDownloads(_) | LidarrEvent::DeleteDownload(_) => "/queue",
       LidarrEvent::GetHistory(_) => "/history",
       LidarrEvent::MarkHistoryItemAsFailed(_) => "/history/failed",
       LidarrEvent::GetHostConfig | LidarrEvent::GetSecurityConfig => "/config/host",
       LidarrEvent::TriggerAutomaticArtistSearch(_)
       | LidarrEvent::UpdateAllArtists
-      | LidarrEvent::UpdateAndScanArtist(_) => "/command",
+      | LidarrEvent::UpdateAndScanArtist(_)
+      | LidarrEvent::UpdateDownloads => "/command",
       LidarrEvent::GetMetadataProfiles => "/metadataprofile",
       LidarrEvent::GetQualityProfiles => "/qualityprofile",
       LidarrEvent::GetRootFolders => "/rootfolder",
@@ -105,6 +108,10 @@ impl Network<'_, '_> {
       LidarrEvent::DeleteArtist(params) => {
         self.delete_artist(params).await.map(LidarrSerdeable::from)
       }
+      LidarrEvent::DeleteDownload(download_id) => self
+        .delete_lidarr_download(download_id)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::DeleteTag(tag_id) => self
         .delete_lidarr_tag(tag_id)
         .await
@@ -182,6 +189,10 @@ impl Network<'_, '_> {
         .map(LidarrSerdeable::from),
       LidarrEvent::EditArtist(params) => self.edit_artist(params).await.map(LidarrSerdeable::from),
       LidarrEvent::AddArtist(body) => self.add_artist(body).await.map(LidarrSerdeable::from),
+      LidarrEvent::UpdateDownloads => self
+        .update_lidarr_downloads()
+        .await
+        .map(LidarrSerdeable::from),
     }
   }
 

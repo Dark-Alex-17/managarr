@@ -29,7 +29,7 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveLidarrBlock::History.into());
       app.is_loading = is_ready;
-      app.data.lidarr_data.main_tabs.set_index(1);
+      app.data.lidarr_data.main_tabs.set_index(2);
 
       HistoryHandler::new(
         DEFAULT_KEYBINDINGS.left.key,
@@ -41,9 +41,9 @@ mod tests {
 
       assert_eq!(
         app.data.lidarr_data.main_tabs.get_active_route(),
-        ActiveLidarrBlock::Artists.into()
+        ActiveLidarrBlock::Downloads.into()
       );
-      assert_navigation_pushed!(app, ActiveLidarrBlock::Artists.into());
+      assert_navigation_pushed!(app, ActiveLidarrBlock::Downloads.into());
     }
 
     #[rstest]
@@ -51,7 +51,7 @@ mod tests {
       let mut app = App::test_default();
       app.push_navigation_stack(ActiveLidarrBlock::History.into());
       app.is_loading = is_ready;
-      app.data.lidarr_data.main_tabs.set_index(1);
+      app.data.lidarr_data.main_tabs.set_index(2);
 
       HistoryHandler::new(
         DEFAULT_KEYBINDINGS.right.key,

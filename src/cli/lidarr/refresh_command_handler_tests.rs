@@ -22,11 +22,14 @@ mod tests {
     use super::*;
     use clap::{Parser, error::ErrorKind};
     use pretty_assertions::assert_eq;
+    use rstest::rstest;
 
-    #[test]
-    fn test_refresh_all_artists_has_no_arg_requirements() {
+    #[rstest]
+    fn test_refresh_commands_have_no_arg_requirements(
+      #[values("all-artists", "downloads")] subcommand: &str,
+    ) {
       let result =
-        Cli::command().try_get_matches_from(["managarr", "lidarr", "refresh", "all-artists"]);
+        Cli::command().try_get_matches_from(["managarr", "lidarr", "refresh", subcommand]);
 
       assert_ok!(&result);
     }
@@ -67,6 +70,7 @@ mod tests {
     use std::sync::Arc;
 
     use mockall::predicate::eq;
+    use rstest::rstest;
     use serde_json::json;
     use tokio::sync::Mutex;
 
@@ -80,12 +84,18 @@ mod tests {
       network::{MockNetworkTrait, NetworkEvent},
     };
 
+    #[rstest]
+    #[case(LidarrRefreshCommand::AllArtists, LidarrEvent::UpdateAllArtists)]
+    #[case(LidarrRefreshCommand::Downloads, LidarrEvent::UpdateDownloads)]
     #[tokio::test]
-    async fn test_handle_refresh_all_artists_command() {
+    async fn test_handle_refresh_command(
+      #[case] refresh_command: LidarrRefreshCommand,
+      #[case] expected_sonarr_event: LidarrEvent,
+    ) {
       let mut mock_network = MockNetworkTrait::new();
       mock_network
         .expect_handle_network_event()
-        .with(eq::<NetworkEvent>(LidarrEvent::UpdateAllArtists.into()))
+        .with(eq::<NetworkEvent>(expected_sonarr_event.into()))
         .times(1)
         .returning(|_| {
           Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
@@ -93,7 +103,6 @@ mod tests {
           )))
         });
       let app_arc = Arc::new(Mutex::new(App::test_default()));
-      let refresh_command = LidarrRefreshCommand::AllArtists;
 
       let result = LidarrRefreshCommandHandler::with(&app_arc, refresh_command, &mut mock_network)
         .handle()

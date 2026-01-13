@@ -59,6 +59,29 @@ mod tests {
     }
 
     #[test]
+    fn test_list_downloads_count_flag_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "lidarr", "list", "downloads", "--count"]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[test]
+    fn test_list_downloads_default_values() {
+      let expected_args = LidarrListCommand::Downloads { count: 500 };
+      let result = Cli::try_parse_from(["managarr", "lidarr", "list", "downloads"]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Lidarr(LidarrCommand::List(downloads_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(downloads_command, expected_args);
+    }
+
+    #[test]
     fn test_list_history_events_flag_requires_arguments() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "lidarr", "list", "history", "--events"]);
@@ -147,6 +170,32 @@ mod tests {
       let result = LidarrListCommandHandler::with(&app_arc, list_command, &mut mock_network)
         .handle()
         .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_downloads_command() {
+      let expected_count = 1000;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::GetDownloads(expected_count).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_downloads_command = LidarrListCommand::Downloads { count: 1000 };
+
+      let result =
+        LidarrListCommandHandler::with(&app_arc, list_downloads_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert_ok!(&result);
     }

@@ -2,13 +2,10 @@
 mod tests {
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::assert_navigation_pushed;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::lidarr_handlers::{LidarrHandler, handle_change_tab_left_right_keys};
-  use crate::models::lidarr_models::Artist;
-  use crate::models::lidarr_models::LidarrHistoryItem;
   use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
-  use crate::models::servarr_data::lidarr::modals::EditArtistModal;
+  use crate::{assert_navigation_pushed, test_handler_delegation};
   use pretty_assertions::assert_eq;
   use rstest::rstest;
   use strum::IntoEnumIterator;
@@ -55,8 +52,9 @@ mod tests {
   }
 
   #[rstest]
-  #[case(0, ActiveLidarrBlock::History, ActiveLidarrBlock::History)]
-  #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::Artists)]
+  #[case(0, ActiveLidarrBlock::History, ActiveLidarrBlock::Downloads)]
+  #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::History)]
+  #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::Artists)]
   fn test_lidarr_handler_change_tab_left_right_keys(
     #[case] index: usize,
     #[case] left_block: ActiveLidarrBlock,
@@ -85,8 +83,9 @@ mod tests {
   }
 
   #[rstest]
-  #[case(0, ActiveLidarrBlock::History, ActiveLidarrBlock::History)]
-  #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::Artists)]
+  #[case(0, ActiveLidarrBlock::History, ActiveLidarrBlock::Downloads)]
+  #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::History)]
+  #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::Artists)]
   fn test_lidarr_handler_change_tab_left_right_keys_alt_navigation(
     #[case] index: usize,
     #[case] left_block: ActiveLidarrBlock,
@@ -116,7 +115,8 @@ mod tests {
 
   #[rstest]
   #[case(0, ActiveLidarrBlock::Artists)]
-  #[case(1, ActiveLidarrBlock::History)]
+  #[case(1, ActiveLidarrBlock::Downloads)]
+  #[case(2, ActiveLidarrBlock::History)]
   fn test_lidarr_handler_change_tab_left_right_keys_alt_navigation_no_op_when_ignoring_quit_key(
     #[case] index: usize,
     #[case] block: ActiveLidarrBlock,
@@ -165,25 +165,27 @@ mod tests {
     )]
     active_lidarr_block: ActiveLidarrBlock,
   ) {
-    let mut app = App::test_default();
-    app
-      .data
-      .lidarr_data
-      .artists
-      .set_items(vec![Artist::default()]);
-    app.data.lidarr_data.edit_artist_modal = Some(EditArtistModal::default());
-    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
-    app.push_navigation_stack(active_lidarr_block.into());
+    test_handler_delegation!(
+      LidarrHandler,
+      ActiveLidarrBlock::Artists,
+      active_lidarr_block
+    );
+  }
 
-    LidarrHandler::new(
-      DEFAULT_KEYBINDINGS.esc.key,
-      &mut app,
-      active_lidarr_block,
-      None,
-    )
-    .handle();
-
-    assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
+  #[rstest]
+  fn test_delegates_downloads_blocks_to_downloads_handler(
+    #[values(
+      ActiveLidarrBlock::Downloads,
+      ActiveLidarrBlock::DeleteDownloadPrompt,
+      ActiveLidarrBlock::UpdateDownloadsPrompt
+    )]
+    active_lidarr_block: ActiveLidarrBlock,
+  ) {
+    test_handler_delegation!(
+      LidarrHandler,
+      ActiveLidarrBlock::Downloads,
+      active_lidarr_block
+    );
   }
 
   #[rstest]
@@ -199,23 +201,10 @@ mod tests {
     )]
     active_lidarr_block: ActiveLidarrBlock,
   ) {
-    let mut app = App::test_default();
-    app
-      .data
-      .lidarr_data
-      .history
-      .set_items(vec![LidarrHistoryItem::default()]);
-    app.push_navigation_stack(ActiveLidarrBlock::History.into());
-    app.push_navigation_stack(active_lidarr_block.into());
-
-    LidarrHandler::new(
-      DEFAULT_KEYBINDINGS.esc.key,
-      &mut app,
-      active_lidarr_block,
-      None,
-    )
-    .handle();
-
-    assert_eq!(app.get_current_route(), ActiveLidarrBlock::History.into());
+    test_handler_delegation!(
+      LidarrHandler,
+      ActiveLidarrBlock::History,
+      active_lidarr_block
+    );
   }
 }

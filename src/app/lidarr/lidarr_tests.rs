@@ -12,6 +12,7 @@ mod tests {
   async fn test_dispatch_by_lidarr_block_artists() {
     let (tx, mut rx) = mpsc::channel::<NetworkEvent>(500);
     let mut app = App::test_default();
+    app.data.lidarr_data.prompt_confirm = true;
     app.network_tx = Some(tx);
 
     app
@@ -37,6 +38,7 @@ mod tests {
   async fn test_dispatch_by_lidarr_block_artist_details() {
     let (tx, mut rx) = mpsc::channel::<NetworkEvent>(500);
     let mut app = App::test_default();
+    app.data.lidarr_data.prompt_confirm = true;
     app.data.lidarr_data.artists.set_items(vec![artist()]);
     app.network_tx = Some(tx);
 
@@ -51,9 +53,30 @@ mod tests {
   }
 
   #[tokio::test]
+  async fn test_dispatch_by_downloads_block() {
+    let (tx, mut rx) = mpsc::channel::<NetworkEvent>(500);
+    let mut app = App::test_default();
+    app.data.lidarr_data.prompt_confirm = true;
+    app.network_tx = Some(tx);
+
+    app
+      .dispatch_by_lidarr_block(&ActiveLidarrBlock::Downloads)
+      .await;
+
+    assert!(app.is_loading);
+    assert_eq!(
+      rx.recv().await.unwrap(),
+      LidarrEvent::GetDownloads(500).into()
+    );
+    assert!(!app.data.lidarr_data.prompt_confirm);
+    assert_eq!(app.tick_count, 0);
+  }
+
+  #[tokio::test]
   async fn test_dispatch_by_lidarr_block_add_artist_search_results() {
     let (tx, mut rx) = mpsc::channel::<NetworkEvent>(500);
     let mut app = App::test_default();
+    app.data.lidarr_data.prompt_confirm = true;
     app.network_tx = Some(tx);
     app.data.lidarr_data.add_artist_search = Some("test artist".into());
 
@@ -74,6 +97,7 @@ mod tests {
   async fn test_dispatch_by_history_block() {
     let (tx, mut rx) = mpsc::channel::<NetworkEvent>(500);
     let mut app = App::test_default();
+    app.data.lidarr_data.prompt_confirm = true;
     app.network_tx = Some(tx);
 
     app

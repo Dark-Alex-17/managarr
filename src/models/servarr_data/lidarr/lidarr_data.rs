@@ -1,7 +1,7 @@
 use serde_json::Number;
 
 use super::modals::{AddArtistModal, EditArtistModal};
-use crate::app::context_clues::HISTORY_CONTEXT_CLUES;
+use crate::app::context_clues::{DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES};
 use crate::app::lidarr::lidarr_context_clues::{
   ARTIST_DETAILS_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
 };
@@ -132,6 +132,12 @@ impl<'a> Default for LidarrData<'a> {
           config: None,
         },
         TabRoute {
+          title: "Downloads".to_string(),
+          route: ActiveLidarrBlock::Downloads.into(),
+          contextual_help: Some(&DOWNLOADS_CONTEXT_CLUES),
+          config: None,
+        },
+        TabRoute {
           title: "History".to_string(),
           route: ActiveLidarrBlock::History.into(),
           contextual_help: Some(&HISTORY_CONTEXT_CLUES),
@@ -252,6 +258,8 @@ pub enum ActiveLidarrBlock {
   DeleteArtistConfirmPrompt,
   DeleteArtistToggleDeleteFile,
   DeleteArtistToggleAddListExclusion,
+  DeleteDownloadPrompt,
+  Downloads,
   EditArtistPrompt,
   EditArtistConfirmPrompt,
   EditArtistPathInput,
@@ -275,6 +283,7 @@ pub enum ActiveLidarrBlock {
   SearchHistoryError,
   UpdateAllArtistsPrompt,
   UpdateAndScanArtistPrompt,
+  UpdateDownloadsPrompt,
 }
 
 pub static LIBRARY_BLOCKS: [ActiveLidarrBlock; 7] = [
@@ -293,6 +302,12 @@ pub static ARTIST_DETAILS_BLOCKS: [ActiveLidarrBlock; 5] = [
   ActiveLidarrBlock::SearchAlbums,
   ActiveLidarrBlock::SearchAlbumsError,
   ActiveLidarrBlock::UpdateAndScanArtistPrompt,
+];
+
+pub static DOWNLOADS_BLOCKS: [ActiveLidarrBlock; 3] = [
+  ActiveLidarrBlock::Downloads,
+  ActiveLidarrBlock::DeleteDownloadPrompt,
+  ActiveLidarrBlock::UpdateDownloadsPrompt,
 ];
 
 pub static HISTORY_BLOCKS: [ActiveLidarrBlock; 7] = [

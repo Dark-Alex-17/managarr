@@ -15,6 +15,15 @@ use ratatui::{
   widgets::Paragraph,
 };
 
+use super::{
+  DrawUi, draw_tabs,
+  styles::ManagarrStyle,
+  utils::{
+    borderless_block, layout_block, line_gauge_with_label, line_gauge_with_title, title_block,
+  },
+  widgets::loading_block::LoadingBlock,
+};
+use crate::ui::lidarr_ui::downloads::DownloadsUi;
 use crate::{
   app::App,
   logos::LIDARR_LOGO,
@@ -27,15 +36,7 @@ use crate::{
   utils::convert_to_gb,
 };
 
-use super::{
-  DrawUi, draw_tabs,
-  styles::ManagarrStyle,
-  utils::{
-    borderless_block, layout_block, line_gauge_with_label, line_gauge_with_title, title_block,
-  },
-  widgets::loading_block::LoadingBlock,
-};
-
+mod downloads;
 mod history;
 mod library;
 mod lidarr_ui_utils;
@@ -57,6 +58,7 @@ impl DrawUi for LidarrUi {
 
     match route {
       _ if LibraryUi::accepts(route) => LibraryUi::draw(f, app, content_area),
+      _ if DownloadsUi::accepts(route) => DownloadsUi::draw(f, app, content_area),
       _ if HistoryUi::accepts(route) => HistoryUi::draw(f, app, content_area),
       _ => (),
     }

@@ -29,6 +29,11 @@ pub enum LidarrListCommand {
   },
   #[command(about = "List all artists in your Lidarr library")]
   Artists,
+  #[command(about = "List all active downloads in Lidarr")]
+  Downloads {
+    #[arg(long, help = "How many downloads to fetch", default_value_t = 500)]
+    count: u64,
+  },
   #[command(about = "Fetch all Lidarr history events")]
   History {
     #[arg(long, help = "How many history events to fetch", default_value_t = 500)]
@@ -80,6 +85,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrListCommand> for LidarrListCommandH
         let resp = self
           .network
           .handle_network_event(LidarrEvent::ListArtists.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrListCommand::Downloads { count } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetDownloads(count).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

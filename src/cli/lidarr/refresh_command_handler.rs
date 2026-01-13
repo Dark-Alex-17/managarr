@@ -28,6 +28,8 @@ pub enum LidarrRefreshCommand {
     )]
     artist_id: i64,
   },
+  #[command(about = "Refresh all downloads in Lidarr")]
+  Downloads,
 }
 
 impl From<LidarrRefreshCommand> for Command {
@@ -70,6 +72,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrRefreshCommand>
         let resp = self
           .network
           .handle_network_event(LidarrEvent::UpdateAndScanArtist(artist_id).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrRefreshCommand::Downloads => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::UpdateDownloads.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

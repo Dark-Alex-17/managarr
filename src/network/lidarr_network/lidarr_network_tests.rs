@@ -31,6 +31,13 @@ mod tests {
   }
 
   #[rstest]
+  fn test_resource_downloads(
+    #[values(LidarrEvent::GetDownloads(0), LidarrEvent::DeleteDownload(0))] event: LidarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/queue");
+  }
+
+  #[rstest]
   fn test_resource_history(#[values(LidarrEvent::GetHistory(0))] event: LidarrEvent) {
     assert_str_eq!(event.resource(), "/history");
   }
@@ -59,7 +66,8 @@ mod tests {
     #[values(
       LidarrEvent::UpdateAllArtists,
       LidarrEvent::TriggerAutomaticArtistSearch(0),
-      LidarrEvent::UpdateAndScanArtist(0)
+      LidarrEvent::UpdateAndScanArtist(0),
+      LidarrEvent::UpdateDownloads
     )]
     event: LidarrEvent,
   ) {
@@ -81,7 +89,6 @@ mod tests {
 
   #[rstest]
   #[case(LidarrEvent::GetDiskSpace, "/diskspace")]
-  #[case(LidarrEvent::GetDownloads(500), "/queue")]
   #[case(LidarrEvent::GetMetadataProfiles, "/metadataprofile")]
   #[case(LidarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(LidarrEvent::GetRootFolders, "/rootfolder")]
