@@ -50,6 +50,11 @@ impl App<'_> {
           .dispatch_network_event(LidarrEvent::GetHistory(500).into())
           .await
       }
+      ActiveLidarrBlock::RootFolders => {
+        self
+          .dispatch_network_event(LidarrEvent::GetRootFolders.into())
+          .await;
+      }
       _ => (),
     }
 

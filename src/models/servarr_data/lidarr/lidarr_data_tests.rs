@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod tests {
-  use crate::app::context_clues::{DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES};
+  use crate::app::context_clues::{
+    DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
+  };
   use crate::app::lidarr::lidarr_context_clues::{
     ARTIST_DETAILS_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
   };
@@ -9,6 +11,7 @@ mod tests {
     ADD_ARTIST_BLOCKS, ADD_ARTIST_SELECTION_BLOCKS, ARTIST_DETAILS_BLOCKS, DELETE_ALBUM_BLOCKS,
     DELETE_ALBUM_SELECTION_BLOCKS, DELETE_ARTIST_BLOCKS, DELETE_ARTIST_SELECTION_BLOCKS,
     DOWNLOADS_BLOCKS, EDIT_ARTIST_BLOCKS, EDIT_ARTIST_SELECTION_BLOCKS, HISTORY_BLOCKS,
+    ROOT_FOLDERS_BLOCKS,
   };
   use crate::models::{
     BlockSelectionState, Route,
@@ -135,6 +138,7 @@ mod tests {
     assert_is_empty!(lidarr_data.disk_space_vec);
     assert_is_empty!(lidarr_data.downloads);
     assert_none!(lidarr_data.edit_artist_modal);
+    assert_none!(lidarr_data.edit_root_folder);
     assert_is_empty!(lidarr_data.history);
     assert_is_empty!(lidarr_data.metadata_profile_map);
     assert!(!lidarr_data.prompt_confirm);
@@ -146,7 +150,7 @@ mod tests {
     assert_is_empty!(lidarr_data.tags_map);
     assert_is_empty!(lidarr_data.version);
 
-    assert_eq!(lidarr_data.main_tabs.tabs.len(), 3);
+    assert_eq!(lidarr_data.main_tabs.tabs.len(), 4);
 
     assert_str_eq!(lidarr_data.main_tabs.tabs[0].title, "Library");
     assert_eq!(
@@ -180,6 +184,17 @@ mod tests {
       &HISTORY_CONTEXT_CLUES
     );
     assert_none!(lidarr_data.main_tabs.tabs[2].config);
+
+    assert_str_eq!(lidarr_data.main_tabs.tabs[3].title, "Root Folders");
+    assert_eq!(
+      lidarr_data.main_tabs.tabs[3].route,
+      ActiveLidarrBlock::RootFolders.into()
+    );
+    assert_some_eq_x!(
+      &lidarr_data.main_tabs.tabs[3].contextual_help,
+      &ROOT_FOLDERS_CONTEXT_CLUES
+    );
+    assert_none!(lidarr_data.main_tabs.tabs[3].config);
 
     assert_eq!(lidarr_data.artist_info_tabs.tabs.len(), 1);
     assert_str_eq!(lidarr_data.artist_info_tabs.tabs[0].title, "Albums");
@@ -390,5 +405,13 @@ mod tests {
       &[ActiveLidarrBlock::EditArtistConfirmPrompt]
     );
     assert_none!(edit_artist_block_iter.next());
+  }
+
+  #[test]
+  fn test_root_folders_blocks_contents() {
+    assert_eq!(ROOT_FOLDERS_BLOCKS.len(), 3);
+    assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveLidarrBlock::RootFolders));
+    assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderPrompt));
+    assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveLidarrBlock::DeleteRootFolderPrompt));
   }
 }

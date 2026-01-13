@@ -28,6 +28,41 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
+    fn test_add_root_folder_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "lidarr", "add", "root-folder"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_add_root_folder_success() {
+      let expected_args = LidarrAddCommand::RootFolder {
+        root_folder_path: "/nfs/test".to_owned(),
+      };
+
+      let result = Cli::try_parse_from([
+        "managarr",
+        "lidarr",
+        "add",
+        "root-folder",
+        "--root-folder-path",
+        "/nfs/test",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Lidarr(LidarrCommand::Add(add_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(add_command, expected_args);
+    }
+
+    #[test]
     fn test_add_tag_requires_arguments() {
       let result = Cli::command().try_get_matches_from(["managarr", "lidarr", "add", "tag"]);
 
@@ -383,11 +418,43 @@ mod tests {
     use crate::models::lidarr_models::{
       AddArtistBody, AddArtistOptions, LidarrSerdeable, MonitorType, NewItemMonitorType,
     };
+    use crate::models::servarr_models::AddRootFolderBody;
     use crate::network::lidarr_network::LidarrEvent;
     use crate::{
       app::App,
       network::{MockNetworkTrait, NetworkEvent},
     };
+
+    #[tokio::test]
+    async fn test_handle_add_root_folder_command() {
+      let expected_root_folder_path = "/nfs/test".to_owned();
+      let expected_add_root_folder_body = AddRootFolderBody {
+        path: expected_root_folder_path.clone(),
+      };
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::AddRootFolder(expected_add_root_folder_body.clone()).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let add_root_folder_command = LidarrAddCommand::RootFolder {
+        root_folder_path: expected_root_folder_path,
+      };
+
+      let result =
+        LidarrAddCommandHandler::with(&app_arc, add_root_folder_command, &mut mock_network)
+          .handle()
+          .await;
+
+      assert_ok!(&result);
+    }
 
     #[tokio::test]
     async fn test_handle_add_tag_command() {

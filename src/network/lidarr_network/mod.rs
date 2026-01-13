@@ -5,7 +5,7 @@ use super::{NetworkEvent, NetworkResource};
 use crate::models::lidarr_models::{
   AddArtistBody, DeleteParams, EditArtistParams, LidarrSerdeable, MetadataProfile,
 };
-use crate::models::servarr_models::{QualityProfile, Tag};
+use crate::models::servarr_models::{AddRootFolderBody, QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
 
 mod downloads;
@@ -25,10 +25,12 @@ pub mod lidarr_network_test_utils;
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum LidarrEvent {
   AddArtist(AddArtistBody),
+  AddRootFolder(AddRootFolderBody),
   AddTag(String),
   DeleteAlbum(DeleteParams),
   DeleteArtist(DeleteParams),
   DeleteDownload(i64),
+  DeleteRootFolder(i64),
   DeleteTag(i64),
   EditArtist(EditArtistParams),
   GetAlbums(i64),
@@ -81,7 +83,9 @@ impl NetworkResource for LidarrEvent {
       | LidarrEvent::UpdateDownloads => "/command",
       LidarrEvent::GetMetadataProfiles => "/metadataprofile",
       LidarrEvent::GetQualityProfiles => "/qualityprofile",
-      LidarrEvent::GetRootFolders => "/rootfolder",
+      LidarrEvent::GetRootFolders
+      | LidarrEvent::AddRootFolder(_)
+      | LidarrEvent::DeleteRootFolder(_) => "/rootfolder",
       LidarrEvent::GetStatus => "/system/status",
       LidarrEvent::HealthCheck => "/health",
       LidarrEvent::SearchNewArtist(_) => "/artist/lookup",
@@ -102,6 +106,10 @@ impl Network<'_, '_> {
   ) -> Result<LidarrSerdeable> {
     match lidarr_event {
       LidarrEvent::AddTag(tag) => self.add_lidarr_tag(tag).await.map(LidarrSerdeable::from),
+      LidarrEvent::AddRootFolder(path) => self
+        .add_lidarr_root_folder(path)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::DeleteAlbum(params) => {
         self.delete_album(params).await.map(LidarrSerdeable::from)
       }
@@ -110,6 +118,10 @@ impl Network<'_, '_> {
       }
       LidarrEvent::DeleteDownload(download_id) => self
         .delete_lidarr_download(download_id)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::DeleteRootFolder(root_folder_id) => self
+        .delete_lidarr_root_folder(root_folder_id)
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::DeleteTag(tag_id) => self

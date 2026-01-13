@@ -43,6 +43,8 @@ pub enum LidarrListCommand {
   MetadataProfiles,
   #[command(about = "List all Lidarr quality profiles")]
   QualityProfiles,
+  #[command(about = "List all root folders in Lidarr")]
+  RootFolders,
   #[command(about = "List all Lidarr tags")]
   Tags,
 }
@@ -113,6 +115,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrListCommand> for LidarrListCommandH
         let resp = self
           .network
           .handle_network_event(LidarrEvent::GetQualityProfiles.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrListCommand::RootFolders => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetRootFolders.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

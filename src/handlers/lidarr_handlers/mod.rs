@@ -3,6 +3,7 @@ use library::LibraryHandler;
 
 use super::KeyEventHandler;
 use crate::handlers::lidarr_handlers::downloads::DownloadsHandler;
+use crate::handlers::lidarr_handlers::root_folders::RootFoldersHandler;
 use crate::models::Route;
 use crate::{
   app::App, event::Key, matches_key, models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock,
@@ -15,6 +16,7 @@ mod downloads;
 #[cfg(test)]
 #[path = "lidarr_handler_tests.rs"]
 mod lidarr_handler_tests;
+mod root_folders;
 
 pub(super) struct LidarrHandler<'a, 'b> {
   key: Key,
@@ -34,6 +36,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LidarrHandler<'a, 'b
       }
       _ if HistoryHandler::accepts(self.active_lidarr_block) => {
         HistoryHandler::new(self.key, self.app, self.active_lidarr_block, self.context).handle();
+      }
+      _ if RootFoldersHandler::accepts(self.active_lidarr_block) => {
+        RootFoldersHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
+          .handle();
       }
       _ => self.handle_key_event(),
     }

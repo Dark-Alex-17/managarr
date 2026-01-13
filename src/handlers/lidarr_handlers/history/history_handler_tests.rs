@@ -63,9 +63,12 @@ mod tests {
 
       assert_eq!(
         app.data.lidarr_data.main_tabs.get_active_route(),
-        ActiveLidarrBlock::Artists.into()
+        ActiveLidarrBlock::RootFolders.into()
       );
-      assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
+      assert_eq!(
+        app.get_current_route(),
+        ActiveLidarrBlock::RootFolders.into()
+      );
     }
   }
 

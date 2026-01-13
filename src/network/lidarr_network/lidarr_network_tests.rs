@@ -88,10 +88,21 @@ mod tests {
   }
 
   #[rstest]
+  fn test_resource_root_folder(
+    #[values(
+      LidarrEvent::GetRootFolders,
+      LidarrEvent::DeleteRootFolder(0),
+      LidarrEvent::AddRootFolder(Default::default())
+    )]
+    event: LidarrEvent,
+  ) {
+    assert_str_eq!(event.resource(), "/rootfolder");
+  }
+
+  #[rstest]
   #[case(LidarrEvent::GetDiskSpace, "/diskspace")]
   #[case(LidarrEvent::GetMetadataProfiles, "/metadataprofile")]
   #[case(LidarrEvent::GetQualityProfiles, "/qualityprofile")]
-  #[case(LidarrEvent::GetRootFolders, "/rootfolder")]
   #[case(LidarrEvent::GetStatus, "/system/status")]
   #[case(LidarrEvent::GetTags, "/tag")]
   #[case(LidarrEvent::HealthCheck, "/health")]

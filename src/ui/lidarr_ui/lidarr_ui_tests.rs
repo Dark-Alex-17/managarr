@@ -24,6 +24,7 @@ mod tests {
     #[case(ActiveLidarrBlock::Artists, 0)]
     #[case(ActiveLidarrBlock::Downloads, 1)]
     #[case(ActiveLidarrBlock::History, 2)]
+    #[case(ActiveLidarrBlock::RootFolders, 3)]
     fn test_lidarr_ui_renders_lidarr_tabs(
       #[case] active_lidarr_block: ActiveLidarrBlock,
       #[case] index: usize,

@@ -1,7 +1,9 @@
 use serde_json::Number;
 
 use super::modals::{AddArtistModal, EditArtistModal};
-use crate::app::context_clues::{DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES};
+use crate::app::context_clues::{
+  DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
+};
 use crate::app::lidarr::lidarr_context_clues::{
   ARTIST_DETAILS_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
 };
@@ -45,6 +47,7 @@ pub struct LidarrData<'a> {
   pub disk_space_vec: Vec<DiskSpace>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub edit_artist_modal: Option<EditArtistModal>,
+  pub edit_root_folder: Option<HorizontallyScrollableText>,
   pub history: StatefulTable<LidarrHistoryItem>,
   pub main_tabs: TabState,
   pub metadata_profile_map: BiMap<i64, String>,
@@ -114,6 +117,7 @@ impl<'a> Default for LidarrData<'a> {
       disk_space_vec: Vec::new(),
       downloads: StatefulTable::default(),
       edit_artist_modal: None,
+      edit_root_folder: None,
       history: StatefulTable::default(),
       metadata_profile_map: BiMap::new(),
       prompt_confirm: false,
@@ -141,6 +145,12 @@ impl<'a> Default for LidarrData<'a> {
           title: "History".to_string(),
           route: ActiveLidarrBlock::History.into(),
           contextual_help: Some(&HISTORY_CONTEXT_CLUES),
+          config: None,
+        },
+        TabRoute {
+          title: "Root Folders".to_string(),
+          route: ActiveLidarrBlock::RootFolders.into(),
+          contextual_help: Some(&ROOT_FOLDERS_CONTEXT_CLUES),
           config: None,
         },
       ]),
@@ -198,6 +208,7 @@ impl LidarrData<'_> {
       quality_profile_map: quality_profile_map(),
       metadata_profile_map: metadata_profile_map(),
       edit_artist_modal: Some(edit_artist_modal),
+      edit_root_folder: Some("/nfs".into()),
       add_artist_modal: Some(add_artist_modal),
       tags_map: tags_map(),
       ..LidarrData::default()
@@ -249,6 +260,7 @@ pub enum ActiveLidarrBlock {
   AddArtistSelectQualityProfile,
   AddArtistSelectRootFolder,
   AddArtistTagsInput,
+  AddRootFolderPrompt,
   AutomaticallySearchArtistPrompt,
   DeleteAlbumPrompt,
   DeleteAlbumConfirmPrompt,
@@ -259,6 +271,7 @@ pub enum ActiveLidarrBlock {
   DeleteArtistToggleDeleteFile,
   DeleteArtistToggleAddListExclusion,
   DeleteDownloadPrompt,
+  DeleteRootFolderPrompt,
   Downloads,
   EditArtistPrompt,
   EditArtistConfirmPrompt,
@@ -275,6 +288,7 @@ pub enum ActiveLidarrBlock {
   History,
   HistoryItemDetails,
   HistorySortPrompt,
+  RootFolders,
   SearchAlbums,
   SearchAlbumsError,
   SearchArtists,
@@ -390,6 +404,12 @@ pub const EDIT_ARTIST_SELECTION_BLOCKS: &[&[ActiveLidarrBlock]] = &[
   &[ActiveLidarrBlock::EditArtistPathInput],
   &[ActiveLidarrBlock::EditArtistTagsInput],
   &[ActiveLidarrBlock::EditArtistConfirmPrompt],
+];
+
+pub const ROOT_FOLDERS_BLOCKS: [ActiveLidarrBlock; 3] = [
+  ActiveLidarrBlock::RootFolders,
+  ActiveLidarrBlock::AddRootFolderPrompt,
+  ActiveLidarrBlock::DeleteRootFolderPrompt,
 ];
 
 impl From<ActiveLidarrBlock> for Route {

@@ -52,9 +52,10 @@ mod tests {
   }
 
   #[rstest]
-  #[case(0, ActiveLidarrBlock::History, ActiveLidarrBlock::Downloads)]
+  #[case(0, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::Downloads)]
   #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::History)]
-  #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::Artists)]
+  #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::RootFolders)]
+  #[case(3, ActiveLidarrBlock::History, ActiveLidarrBlock::Artists)]
   fn test_lidarr_handler_change_tab_left_right_keys(
     #[case] index: usize,
     #[case] left_block: ActiveLidarrBlock,
@@ -83,9 +84,10 @@ mod tests {
   }
 
   #[rstest]
-  #[case(0, ActiveLidarrBlock::History, ActiveLidarrBlock::Downloads)]
+  #[case(0, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::Downloads)]
   #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::History)]
-  #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::Artists)]
+  #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::RootFolders)]
+  #[case(3, ActiveLidarrBlock::History, ActiveLidarrBlock::Artists)]
   fn test_lidarr_handler_change_tab_left_right_keys_alt_navigation(
     #[case] index: usize,
     #[case] left_block: ActiveLidarrBlock,
@@ -117,6 +119,7 @@ mod tests {
   #[case(0, ActiveLidarrBlock::Artists)]
   #[case(1, ActiveLidarrBlock::Downloads)]
   #[case(2, ActiveLidarrBlock::History)]
+  #[case(3, ActiveLidarrBlock::RootFolders)]
   fn test_lidarr_handler_change_tab_left_right_keys_alt_navigation_no_op_when_ignoring_quit_key(
     #[case] index: usize,
     #[case] block: ActiveLidarrBlock,
@@ -204,6 +207,22 @@ mod tests {
     test_handler_delegation!(
       LidarrHandler,
       ActiveLidarrBlock::History,
+      active_lidarr_block
+    );
+  }
+
+  #[rstest]
+  fn test_delegates_root_folders_blocks_to_root_folders_handler(
+    #[values(
+      ActiveLidarrBlock::RootFolders,
+      ActiveLidarrBlock::AddRootFolderPrompt,
+      ActiveLidarrBlock::DeleteRootFolderPrompt
+    )]
+    active_lidarr_block: ActiveLidarrBlock,
+  ) {
+    test_handler_delegation!(
+      LidarrHandler,
+      ActiveLidarrBlock::RootFolders,
       active_lidarr_block
     );
   }
