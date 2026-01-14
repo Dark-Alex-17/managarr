@@ -38,6 +38,13 @@ impl App<'_> {
           .dispatch_network_event(LidarrEvent::GetAlbums(self.extract_artist_id().await).into())
           .await;
       }
+      ActiveLidarrBlock::ArtistHistory => {
+        self
+          .dispatch_network_event(
+            LidarrEvent::GetArtistHistory(self.extract_artist_id().await).into(),
+          )
+          .await;
+      }
       ActiveLidarrBlock::AddArtistSearchResults => {
         self
           .dispatch_network_event(

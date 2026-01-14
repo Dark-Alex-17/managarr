@@ -305,7 +305,7 @@ mod tests {
   }
 
   #[test]
-  fn test_lidarr_serdeable_from_history_wrapper() {
+  fn test_lidarr_serdeable_from_lidarr_history_wrapper() {
     let history_wrapper = LidarrHistoryWrapper {
       records: vec![LidarrHistoryItem {
         id: 1,
@@ -317,7 +317,21 @@ mod tests {
 
     assert_eq!(
       lidarr_serdeable,
-      LidarrSerdeable::HistoryWrapper(history_wrapper)
+      LidarrSerdeable::LidarrHistoryWrapper(history_wrapper)
+    );
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_lidarr_history_items() {
+    let history_items = vec![LidarrHistoryItem {
+      id: 1,
+      ..LidarrHistoryItem::default()
+    }];
+    let lidarr_serdeable: LidarrSerdeable = history_items.clone().into();
+
+    assert_eq!(
+      lidarr_serdeable,
+      LidarrSerdeable::LidarrHistoryItems(history_items)
     );
   }
 

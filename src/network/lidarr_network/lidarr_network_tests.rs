@@ -135,6 +135,7 @@ mod tests {
   #[case(LidarrEvent::GetUpdates, "/update")]
   #[case(LidarrEvent::HealthCheck, "/health")]
   #[case(LidarrEvent::MarkHistoryItemAsFailed(0), "/history/failed")]
+  #[case(LidarrEvent::GetArtistHistory(0), "/history/artist")]
   #[case(LidarrEvent::TestIndexer(0), "/indexer/test")]
   #[case(LidarrEvent::TestAllIndexers, "/indexer/testall")]
   fn test_resource(#[case] event: LidarrEvent, #[case] expected_uri: &str) {

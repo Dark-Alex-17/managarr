@@ -95,7 +95,7 @@ mod tests {
 
     mock.assert_async().await;
     assert!(result.is_ok());
-    let LidarrSerdeable::HistoryWrapper(history) = result.unwrap() else {
+    let LidarrSerdeable::LidarrHistoryWrapper(history) = result.unwrap() else {
       panic!("Expected LidarrHistoryWrapper")
     };
     assert_eq!(
@@ -165,7 +165,7 @@ mod tests {
     app.lock().await.server_tabs.set_index(2);
     let mut network = test_network(&app);
 
-    let LidarrSerdeable::HistoryWrapper(history) = network
+    let LidarrSerdeable::LidarrHistoryWrapper(history) = network
       .handle_lidarr_event(LidarrEvent::GetHistory(500))
       .await
       .unwrap()

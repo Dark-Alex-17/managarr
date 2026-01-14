@@ -12,7 +12,7 @@ mod tests {
   use crate::network::sonarr_network::SonarrEvent;
   use crate::network::sonarr_network::library::episodes::get_episode_status;
   use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
-    EPISODE_JSON, episode, episode_file, history_item, torrent_release,
+    EPISODE_JSON, episode, episode_file, sonarr_history_item, torrent_release,
   };
   use indoc::formatdoc;
   use mockito::Matcher;
@@ -522,13 +522,13 @@ mod tests {
         id: 123,
         episode_id: 1007,
         source_title: "z episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
       SonarrHistoryItem {
         id: 456,
         episode_id: 2001,
         source_title: "A Episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
     ];
     let (async_server, app_arc, _server) = MockServarrApi::get()
@@ -649,13 +649,13 @@ mod tests {
         id: 123,
         episode_id: 1007,
         source_title: "z episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
       SonarrHistoryItem {
         id: 456,
         episode_id: 2001,
         source_title: "A Episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
     ];
     let (async_server, app_arc, _server) = MockServarrApi::get()
@@ -754,13 +754,13 @@ mod tests {
         id: 123,
         episode_id: 1007,
         source_title: "z episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
       SonarrHistoryItem {
         id: 456,
         episode_id: 2001,
         source_title: "A Episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
     ];
     let (async_server, app_arc, _server) = MockServarrApi::get()

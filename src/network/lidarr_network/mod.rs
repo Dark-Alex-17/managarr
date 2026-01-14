@@ -40,6 +40,7 @@ pub enum LidarrEvent {
   EditIndexer(EditIndexerParams),
   GetAlbums(i64),
   GetAlbumDetails(i64),
+  GetArtistHistory(i64),
   GetAllIndexerSettings,
   GetArtistDetails(i64),
   GetDiskSpace,
@@ -89,6 +90,7 @@ impl NetworkResource for LidarrEvent {
       | LidarrEvent::ToggleAlbumMonitoring(_)
       | LidarrEvent::GetAlbumDetails(_)
       | LidarrEvent::DeleteAlbum(_) => "/album",
+      LidarrEvent::GetArtistHistory(_) => "/history/artist",
       LidarrEvent::GetLogs(_) => "/log",
       LidarrEvent::GetDiskSpace => "/diskspace",
       LidarrEvent::GetDownloads(_) | LidarrEvent::DeleteDownload(_) => "/queue",
@@ -190,6 +192,10 @@ impl Network<'_, '_> {
       LidarrEvent::GetIndexers => self.get_lidarr_indexers().await.map(LidarrSerdeable::from),
       LidarrEvent::GetHistory(events) => self
         .get_lidarr_history(events)
+        .await
+        .map(LidarrSerdeable::from),
+      LidarrEvent::GetArtistHistory(artist_id) => self
+        .get_lidarr_artist_history(artist_id)
         .await
         .map(LidarrSerdeable::from),
       LidarrEvent::GetLogs(events) => self

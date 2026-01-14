@@ -11,6 +11,7 @@ mod tests {
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_BLOCKS,
   };
+  use crate::models::stateful_table::StatefulTable;
 
   mod test_handle_delete {
     use super::*;
@@ -80,13 +81,15 @@ mod tests {
   mod test_handle_submit {
     use crate::app::App;
     use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-    use crate::assert_navigation_popped;
     use crate::event::Key;
     use crate::handlers::KeyEventHandler;
     use crate::handlers::lidarr_handlers::library::artist_details_handler::ArtistDetailsHandler;
+    use crate::models::lidarr_models::LidarrHistoryItem;
     use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
+    use crate::models::stateful_table::StatefulTable;
     use crate::network::lidarr_network::LidarrEvent;
     use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::artist;
+    use crate::{assert_navigation_popped, assert_navigation_pushed};
     use rstest::rstest;
 
     const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
@@ -138,6 +141,46 @@ mod tests {
       assert_navigation_popped!(app, ActiveLidarrBlock::ArtistDetails.into());
       assert_none!(app.data.lidarr_data.prompt_confirm_action);
     }
+
+    #[test]
+    fn test_artist_history_submit() {
+      let mut app = App::test_default();
+      let mut artist_history = StatefulTable::default();
+      artist_history.set_items(vec![LidarrHistoryItem::default()]);
+      app.data.lidarr_data.artist_history = Some(artist_history);
+
+      ArtistDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveLidarrBlock::ArtistHistory, None)
+        .handle();
+
+      assert_navigation_pushed!(app, ActiveLidarrBlock::ArtistHistoryDetails.into());
+    }
+
+    #[test]
+    fn test_artist_history_submit_no_op_when_artist_history_is_empty() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistHistory.into());
+      app.data.lidarr_data.artist_history = Some(StatefulTable::default());
+
+      ArtistDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveLidarrBlock::ArtistHistory, None)
+        .handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveLidarrBlock::ArtistHistory.into()
+      );
+    }
+
+    #[test]
+    fn test_artist_history_submit_no_op_when_not_ready() {
+      let mut app = App::test_default();
+      app.is_loading = true;
+      app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+
+      ArtistDetailsHandler::new(SUBMIT_KEY, &mut app, ActiveLidarrBlock::ArtistHistory, None)
+        .handle();
+
+      assert_eq!(app.get_current_route(), ActiveLidarrBlock::Artists.into());
+    }
   }
 
   mod test_handle_esc {
@@ -147,10 +190,70 @@ mod tests {
     use crate::event::Key;
     use crate::handlers::KeyEventHandler;
     use crate::handlers::lidarr_handlers::library::artist_details_handler::ArtistDetailsHandler;
+    use crate::models::lidarr_models::LidarrHistoryItem;
     use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
+    use crate::models::stateful_table::StatefulTable;
+    use ratatui::widgets::TableState;
     use rstest::rstest;
 
     const ESC_KEY: Key = DEFAULT_KEYBINDINGS.esc.key;
+
+    #[test]
+    fn test_artist_history_details_block_esc() {
+      let mut app = App::test_default();
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistHistory.into());
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistHistoryDetails.into());
+
+      ArtistDetailsHandler::new(
+        ESC_KEY,
+        &mut app,
+        ActiveLidarrBlock::ArtistHistoryDetails,
+        None,
+      )
+      .handle();
+
+      assert_navigation_popped!(app, ActiveLidarrBlock::ArtistHistory.into());
+    }
+
+    #[test]
+    fn test_artist_history_esc_resets_filter_if_one_is_set_instead_of_closing_the_window() {
+      let mut app = App::test_default();
+      let artist_history = StatefulTable {
+        filter: Some("Test".into()),
+        filtered_items: Some(vec![LidarrHistoryItem::default()]),
+        filtered_state: Some(TableState::default()),
+        ..StatefulTable::default()
+      };
+      app.data.lidarr_data.artist_history = Some(artist_history);
+      app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+      app.push_navigation_stack(ActiveLidarrBlock::ArtistHistory.into());
+
+      ArtistDetailsHandler::new(ESC_KEY, &mut app, ActiveLidarrBlock::ArtistHistory, None).handle();
+
+      assert_eq!(
+        app.get_current_route(),
+        ActiveLidarrBlock::ArtistHistory.into()
+      );
+      assert_none!(app.data.lidarr_data.artist_history.as_ref().unwrap().filter);
+      assert_none!(
+        app
+          .data
+          .lidarr_data
+          .artist_history
+          .as_ref()
+          .unwrap()
+          .filtered_items
+      );
+      assert_none!(
+        app
+          .data
+          .lidarr_data
+          .artist_history
+          .as_ref()
+          .unwrap()
+          .filtered_state
+      );
+    }
 
     #[rstest]
     fn test_artist_details_esc(
@@ -191,7 +294,8 @@ mod tests {
 
     #[rstest]
     fn test_artist_details_edit_key(
-      #[values(ActiveLidarrBlock::ArtistDetails)] active_lidarr_block: ActiveLidarrBlock,
+      #[values(ActiveLidarrBlock::ArtistDetails, ActiveLidarrBlock::ArtistHistory)]
+      active_lidarr_block: ActiveLidarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(ActiveLidarrBlock::ArtistDetails.into());
@@ -209,12 +313,12 @@ mod tests {
         app,
         (
           ActiveLidarrBlock::EditArtistPrompt,
-          Some(ActiveLidarrBlock::ArtistDetails)
+          Some(active_lidarr_block)
         )
           .into()
       );
       assert_modal_present!(app.data.lidarr_data.edit_artist_modal);
-      assert!(app.data.lidarr_data.edit_artist_modal.is_some());
+      assert_some!(app.data.lidarr_data.edit_artist_modal);
       assert_eq!(
         app.data.lidarr_data.selected_block.blocks,
         EDIT_ARTIST_SELECTION_BLOCKS
@@ -223,7 +327,8 @@ mod tests {
 
     #[rstest]
     fn test_artist_details_edit_key_no_op_when_not_ready(
-      #[values(ActiveLidarrBlock::ArtistDetails)] active_lidarr_block: ActiveLidarrBlock,
+      #[values(ActiveLidarrBlock::ArtistDetails, ActiveLidarrBlock::ArtistHistory)]
+      active_lidarr_block: ActiveLidarrBlock,
     ) {
       let mut app = App::test_default();
       app.is_loading = true;
@@ -315,7 +420,8 @@ mod tests {
 
     #[rstest]
     fn test_artist_details_auto_search_key(
-      #[values(ActiveLidarrBlock::ArtistDetails)] active_lidarr_block: ActiveLidarrBlock,
+      #[values(ActiveLidarrBlock::ArtistDetails, ActiveLidarrBlock::ArtistHistory)]
+      active_lidarr_block: ActiveLidarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(active_lidarr_block.into());
@@ -336,7 +442,8 @@ mod tests {
 
     #[rstest]
     fn test_artist_details_auto_search_key_no_op_when_not_ready(
-      #[values(ActiveLidarrBlock::ArtistDetails)] active_lidarr_block: ActiveLidarrBlock,
+      #[values(ActiveLidarrBlock::ArtistDetails, ActiveLidarrBlock::ArtistHistory)]
+      active_lidarr_block: ActiveLidarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.is_loading = true;
@@ -355,7 +462,8 @@ mod tests {
 
     #[rstest]
     fn test_artist_details_update_key(
-      #[values(ActiveLidarrBlock::ArtistDetails)] active_lidarr_block: ActiveLidarrBlock,
+      #[values(ActiveLidarrBlock::ArtistDetails, ActiveLidarrBlock::ArtistHistory)]
+      active_lidarr_block: ActiveLidarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(active_lidarr_block.into());
@@ -373,7 +481,8 @@ mod tests {
 
     #[rstest]
     fn test_artist_details_update_key_no_op_when_not_ready(
-      #[values(ActiveLidarrBlock::ArtistDetails)] active_lidarr_block: ActiveLidarrBlock,
+      #[values(ActiveLidarrBlock::ArtistDetails, ActiveLidarrBlock::ArtistHistory)]
+      active_lidarr_block: ActiveLidarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.is_loading = true;
@@ -392,7 +501,8 @@ mod tests {
 
     #[rstest]
     fn test_artist_details_refresh_key(
-      #[values(ActiveLidarrBlock::ArtistDetails)] active_lidarr_block: ActiveLidarrBlock,
+      #[values(ActiveLidarrBlock::ArtistDetails, ActiveLidarrBlock::ArtistHistory)]
+      active_lidarr_block: ActiveLidarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.is_routing = false;
@@ -413,7 +523,8 @@ mod tests {
 
     #[rstest]
     fn test_artist_details_refresh_key_no_op_when_not_ready(
-      #[values(ActiveLidarrBlock::ArtistDetails)] active_lidarr_block: ActiveLidarrBlock,
+      #[values(ActiveLidarrBlock::ArtistDetails, ActiveLidarrBlock::ArtistHistory)]
+      active_lidarr_block: ActiveLidarrBlock,
     ) {
       let mut app = App::test_default();
       app.is_loading = true;
@@ -444,7 +555,8 @@ mod tests {
     fn test_artist_details_prompt_confirm_key(
       #[case] prompt_block: ActiveLidarrBlock,
       #[case] expected_action: LidarrEvent,
-      #[values(ActiveLidarrBlock::ArtistDetails)] active_lidarr_block: ActiveLidarrBlock,
+      #[values(ActiveLidarrBlock::ArtistDetails, ActiveLidarrBlock::ArtistHistory)]
+      active_lidarr_block: ActiveLidarrBlock,
     ) {
       let mut app = App::test_default_fully_populated();
       app.push_navigation_stack(active_lidarr_block.into());
@@ -557,6 +669,37 @@ mod tests {
       DEFAULT_KEYBINDINGS.esc.key,
       &mut app,
       ActiveLidarrBlock::ArtistDetails,
+      None,
+    );
+
+    assert!(handler.is_ready());
+  }
+
+  #[test]
+  fn test_artist_details_handler_is_not_ready_when_not_loading_and_artist_history_is_none() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+
+    let handler = ArtistDetailsHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveLidarrBlock::ArtistHistory,
+      None,
+    );
+
+    assert!(!handler.is_ready());
+  }
+
+  #[test]
+  fn test_artist_details_handler_ready_when_not_loading_and_artist_history_is_some() {
+    let mut app = App::test_default();
+    app.push_navigation_stack(ActiveLidarrBlock::Artists.into());
+    app.data.lidarr_data.artist_history = Some(StatefulTable::default());
+
+    let handler = ArtistDetailsHandler::new(
+      DEFAULT_KEYBINDINGS.esc.key,
+      &mut app,
+      ActiveLidarrBlock::ArtistHistory,
       None,
     );
 

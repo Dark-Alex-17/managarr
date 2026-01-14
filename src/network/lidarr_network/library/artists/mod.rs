@@ -5,6 +5,7 @@ use serde_json::{Value, json};
 use crate::models::Route;
 use crate::models::lidarr_models::{
   AddArtistBody, AddArtistSearchResult, Artist, DeleteParams, EditArtistParams, LidarrCommandBody,
+  LidarrHistoryItem,
 };
 use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
 use crate::models::stateful_table::StatefulTable;
@@ -278,6 +279,41 @@ impl Network<'_, '_> {
 
     self
       .handle_request::<AddArtistBody, Value>(request_props, |_, _| ())
+      .await
+  }
+
+  pub(in crate::network::lidarr_network) async fn get_lidarr_artist_history(
+    &mut self,
+    artist_id: i64,
+  ) -> Result<Vec<LidarrHistoryItem>> {
+    info!("Fetching Lidarr artist history for artist with ID: {artist_id}");
+    let event = LidarrEvent::GetArtistHistory(artist_id);
+
+    let request_props = self
+      .request_props_from(
+        event,
+        RequestMethod::Get,
+        None::<()>,
+        None,
+        Some(format!("artistId={artist_id}")),
+      )
+      .await;
+
+    self
+      .handle_request::<(), Vec<LidarrHistoryItem>>(request_props, |mut history_vec, mut app| {
+        let is_sorting = matches!(
+          app.get_current_route(),
+          Route::Lidarr(ActiveLidarrBlock::ArtistHistorySortPrompt, _)
+        );
+
+        let artist_history = app.data.lidarr_data.artist_history.get_or_insert_default();
+
+        if !is_sorting {
+          history_vec.sort_by(|a, b| a.id.cmp(&b.id));
+          artist_history.set_items(history_vec);
+          artist_history.apply_sorting_toggle(false);
+        }
+      })
       .await
   }
 

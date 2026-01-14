@@ -2,18 +2,20 @@
 mod tests {
   use crate::models::lidarr_models::{
     AddArtistBody, AddArtistOptions, AddArtistSearchResult, Artist, DeleteParams, EditArtistParams,
-    LidarrSerdeable, MonitorType, NewItemMonitorType,
+    LidarrHistoryItem, LidarrSerdeable, MonitorType, NewItemMonitorType,
   };
   use crate::models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock;
+  use crate::models::stateful_table::{SortOption, StatefulTable};
   use crate::network::NetworkResource;
   use crate::network::lidarr_network::LidarrEvent;
   use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{
-    ADD_ARTIST_SEARCH_RESULT_JSON, ARTIST_JSON,
+    ADD_ARTIST_SEARCH_RESULT_JSON, ARTIST_JSON, artist, lidarr_history_item,
   };
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use bimap::BiMap;
   use mockito::Matcher;
   use pretty_assertions::assert_eq;
+  use rstest::rstest;
   use serde_json::{Value, json};
 
   #[tokio::test]
@@ -99,6 +101,296 @@ mod tests {
     };
 
     assert_eq!(artist, expected_artist);
+  }
+
+  #[rstest]
+  #[tokio::test]
+  async fn test_handle_get_lidarr_artist_history_event(
+    #[values(true, false)] use_custom_sorting: bool,
+  ) {
+    let history_json = json!([{
+      "id": 123,
+      "sourceTitle": "z album",
+      "albumId": 1007,
+      "artistId": 1007,
+      "quality": { "quality": { "name": "Lossless" } },
+      "date": "2023-01-01T00:00:00Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/music/Something/cool.mp3",
+        "importedPath": "/nfs/music/Something/Album 1/Cool.mp3"
+      }
+    },
+    {
+      "id": 456,
+      "sourceTitle": "An Album",
+      "albumId": 2001,
+      "artistId": 2001,
+      "quality": { "quality": { "name": "Lossless" } },
+      "date": "2023-01-01T00:00:00Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/music/Something/cool.mp3",
+        "importedPath": "/nfs/music/Something/Album 1/Cool.mp3"
+      }
+    }]);
+    let response: Vec<LidarrHistoryItem> = serde_json::from_value(history_json.clone()).unwrap();
+    let mut expected_history_items = vec![
+      LidarrHistoryItem {
+        id: 123,
+        artist_id: 1007,
+        album_id: 1007,
+        source_title: "z album".into(),
+        ..lidarr_history_item()
+      },
+      LidarrHistoryItem {
+        id: 456,
+        artist_id: 2001,
+        album_id: 2001,
+        source_title: "An Album".into(),
+        ..lidarr_history_item()
+      },
+    ];
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("artistId=1")
+      .build_for(LidarrEvent::GetArtistHistory(1))
+      .await;
+    let mut artist_history_table = StatefulTable {
+      sort_asc: true,
+      ..StatefulTable::default()
+    };
+    if use_custom_sorting {
+      let cmp_fn = |a: &LidarrHistoryItem, b: &LidarrHistoryItem| {
+        a.source_title
+          .text
+          .to_lowercase()
+          .cmp(&b.source_title.text.to_lowercase())
+      };
+      expected_history_items.sort_by(cmp_fn);
+
+      let history_sort_option = SortOption {
+        name: "Source Title",
+        cmp_fn: Some(cmp_fn),
+      };
+      artist_history_table.sorting(vec![history_sort_option]);
+    }
+    app
+      .lock()
+      .await
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![artist()]);
+    app.lock().await.data.lidarr_data.artist_history = Some(artist_history_table);
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    let LidarrSerdeable::LidarrHistoryItems(history_items) = network
+      .handle_lidarr_event(LidarrEvent::GetArtistHistory(1))
+      .await
+      .unwrap()
+    else {
+      panic!("Expected LidarrHistoryItems")
+    };
+    async_server.assert_async().await;
+    let app = app.lock().await;
+    assert_some!(&app.data.lidarr_data.artist_history);
+    assert_eq!(
+      app.data.lidarr_data.artist_history.as_ref().unwrap().items,
+      expected_history_items
+    );
+    assert!(
+      app
+        .data
+        .lidarr_data
+        .artist_history
+        .as_ref()
+        .unwrap()
+        .sort_asc
+    );
+    assert_eq!(history_items, response);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_lidarr_artist_history_event_empty_artist_history_table() {
+    let history_json = json!([{
+      "id": 123,
+      "sourceTitle": "z album",
+      "albumId": 1007,
+      "artistId": 1007,
+      "quality": { "quality": { "name": "Lossless" } },
+      "date": "2023-01-01T00:00:00Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/music/Something/cool.mp3",
+        "importedPath": "/nfs/music/Something/Album 1/Cool.mp3"
+      }
+    },
+    {
+      "id": 456,
+      "sourceTitle": "An Album",
+      "albumId": 2001,
+      "artistId": 2001,
+      "quality": { "quality": { "name": "Lossless" } },
+      "date": "2023-01-01T00:00:00Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/music/Something/cool.mp3",
+        "importedPath": "/nfs/music/Something/Album 1/Cool.mp3"
+      }
+    }]);
+    let response: Vec<LidarrHistoryItem> = serde_json::from_value(history_json.clone()).unwrap();
+    let expected_history_items = vec![
+      LidarrHistoryItem {
+        id: 123,
+        artist_id: 1007,
+        album_id: 1007,
+        source_title: "z album".into(),
+        ..lidarr_history_item()
+      },
+      LidarrHistoryItem {
+        id: 456,
+        artist_id: 2001,
+        album_id: 2001,
+        source_title: "An Album".into(),
+        ..lidarr_history_item()
+      },
+    ];
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("artistId=1")
+      .build_for(LidarrEvent::GetArtistHistory(1))
+      .await;
+    app
+      .lock()
+      .await
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![artist()]);
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    let LidarrSerdeable::LidarrHistoryItems(history_items) = network
+      .handle_lidarr_event(LidarrEvent::GetArtistHistory(1))
+      .await
+      .unwrap()
+    else {
+      panic!("Expected LidarrHistoryItems")
+    };
+    async_server.assert_async().await;
+    let app = app.lock().await;
+    assert_some!(&app.data.lidarr_data.artist_history);
+    assert_eq!(
+      app.data.lidarr_data.artist_history.as_ref().unwrap().items,
+      expected_history_items
+    );
+    assert!(
+      !app
+        .data
+        .lidarr_data
+        .artist_history
+        .as_ref()
+        .unwrap()
+        .sort_asc
+    );
+    assert_eq!(history_items, response);
+  }
+
+  #[tokio::test]
+  async fn test_handle_get_lidarr_artist_history_event_no_op_when_user_is_selecting_sort_options() {
+    let history_json = json!([{
+      "id": 123,
+      "sourceTitle": "z album",
+      "albumId": 1007,
+      "artistId": 1007,
+      "quality": { "quality": { "name": "Lossless" } },
+      "date": "2023-01-01T00:00:00Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/music/Something/cool.mp3",
+        "importedPath": "/nfs/music/Something/Album 1/Cool.mp3"
+      }
+    },
+    {
+      "id": 456,
+      "sourceTitle": "An Album",
+      "albumId": 2001,
+      "artistId": 2001,
+      "quality": { "quality": { "name": "Lossless" } },
+      "date": "2023-01-01T00:00:00Z",
+      "eventType": "grabbed",
+      "data": {
+        "droppedPath": "/nfs/nzbget/completed/music/Something/cool.mp3",
+        "importedPath": "/nfs/music/Something/Album 1/Cool.mp3"
+      }
+    }]);
+    let response: Vec<LidarrHistoryItem> = serde_json::from_value(history_json.clone()).unwrap();
+    let (async_server, app, _server) = MockServarrApi::get()
+      .returns(history_json)
+      .query("artistId=1")
+      .build_for(LidarrEvent::GetArtistHistory(1))
+      .await;
+    let cmp_fn = |a: &LidarrHistoryItem, b: &LidarrHistoryItem| {
+      a.source_title
+        .text
+        .to_lowercase()
+        .cmp(&b.source_title.text.to_lowercase())
+    };
+    let history_sort_option = SortOption {
+      name: "Source Title",
+      cmp_fn: Some(cmp_fn),
+    };
+    let mut artist_history_table = StatefulTable {
+      sort_asc: true,
+      ..StatefulTable::default()
+    };
+    artist_history_table.sorting(vec![history_sort_option]);
+    app.lock().await.data.lidarr_data.artist_history = Some(artist_history_table);
+    app
+      .lock()
+      .await
+      .data
+      .lidarr_data
+      .artists
+      .set_items(vec![artist()]);
+    app
+      .lock()
+      .await
+      .push_navigation_stack(ActiveLidarrBlock::ArtistHistorySortPrompt.into());
+    app.lock().await.server_tabs.set_index(2);
+    let mut network = test_network(&app);
+
+    let LidarrSerdeable::LidarrHistoryItems(history_items) = network
+      .handle_lidarr_event(LidarrEvent::GetArtistHistory(1))
+      .await
+      .unwrap()
+    else {
+      panic!("Expected LidarrHistoryItems")
+    };
+    async_server.assert_async().await;
+    let app = app.lock().await;
+    assert_some!(&app.data.lidarr_data.artist_history);
+    assert!(
+      app
+        .data
+        .lidarr_data
+        .artist_history
+        .as_ref()
+        .unwrap()
+        .is_empty()
+    );
+    assert!(
+      app
+        .data
+        .lidarr_data
+        .artist_history
+        .as_ref()
+        .unwrap()
+        .sort_asc
+    );
+    assert_eq!(history_items, response);
   }
 
   #[tokio::test]

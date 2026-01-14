@@ -5,7 +5,7 @@ mod tests {
   use crate::models::stateful_table::SortOption;
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::sonarr_network::SonarrEvent;
-  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::history_item;
+  use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::sonarr_history_item;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
   use serde_json::json;
@@ -45,13 +45,13 @@ mod tests {
         id: 123,
         episode_id: 1007,
         source_title: "z episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
       SonarrHistoryItem {
         id: 456,
         episode_id: 2001,
         source_title: "A Episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
     ];
     let (mock, app, _server) = MockServarrApi::get()

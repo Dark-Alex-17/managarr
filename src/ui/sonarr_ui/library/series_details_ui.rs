@@ -96,7 +96,7 @@ impl DrawUi for SeriesDetailsUi {
             );
           }
           ActiveSonarrBlock::SeriesHistoryDetails => {
-            draw_history_item_details_popup(f, app, popup_area);
+            draw_history_item_details_popup(f, app);
           }
           _ => (),
         };
@@ -388,7 +388,7 @@ fn draw_series_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   }
 }
 
-fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
   let current_selection =
     if let Some(series_history_items) = app.data.sonarr_data.series_history.as_ref() {
       if series_history_items.is_empty() {
@@ -408,5 +408,5 @@ fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: R
     .style(secondary_style())
     .alignment(Alignment::Left);
 
-  f.render_widget(Popup::new(message).size(Size::NarrowLongMessage), area);
+  f.render_widget(Popup::new(message).size(Size::NarrowLongMessage), f.area());
 }

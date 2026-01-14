@@ -203,7 +203,7 @@ pub mod test_utils {
     }
   }
 
-  pub fn history_item() -> SonarrHistoryItem {
+  pub fn sonarr_history_item() -> SonarrHistoryItem {
     SonarrHistoryItem {
       id: 1,
       source_title: "Test source".into(),

@@ -1,10 +1,11 @@
 use crate::app::App;
 use crate::event::Key;
+use crate::handlers::lidarr_handlers::history::history_sorting_options;
 use crate::handlers::lidarr_handlers::library::delete_album_handler::DeleteAlbumHandler;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_prompt_toggle};
 use crate::matches_key;
-use crate::models::lidarr_models::Album;
+use crate::models::lidarr_models::{Album, LidarrHistoryItem};
 use crate::models::servarr_data::lidarr::lidarr_data::{
   ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock, DELETE_ALBUM_SELECTION_BLOCKS,
   EDIT_ARTIST_SELECTION_BLOCKS,
@@ -41,10 +42,32 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
         .search_error_block(ActiveLidarrBlock::SearchAlbumsError.into())
         .search_field_fn(|album: &Album| &album.title.text);
 
+    let artist_history_table_handling_config =
+      TableHandlingConfig::new(ActiveLidarrBlock::ArtistHistory.into())
+        .sorting_block(ActiveLidarrBlock::ArtistHistorySortPrompt.into())
+        .sort_options(history_sorting_options())
+        .searching_block(ActiveLidarrBlock::SearchArtistHistory.into())
+        .search_error_block(ActiveLidarrBlock::SearchArtistHistoryError.into())
+        .search_field_fn(|history_item: &LidarrHistoryItem| &history_item.source_title.text)
+        .filtering_block(ActiveLidarrBlock::FilterArtistHistory.into())
+        .filter_error_block(ActiveLidarrBlock::FilterArtistHistoryError.into())
+        .filter_field_fn(|history_item: &LidarrHistoryItem| &history_item.source_title.text);
+
     if !handle_table(
       self,
       |app| &mut app.data.lidarr_data.albums,
       albums_table_handling_config,
+    ) && !handle_table(
+      self,
+      |app| {
+        app
+          .data
+          .lidarr_data
+          .artist_history
+          .as_mut()
+          .expect("Artist history is undefined")
+      },
+      artist_history_table_handling_config,
     ) {
       match self.active_lidarr_block {
         _ if DeleteAlbumHandler::accepts(self.active_lidarr_block) => {
@@ -83,7 +106,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
   }
 
   fn is_ready(&self) -> bool {
-    !self.app.is_loading
+    if self.active_lidarr_block == ActiveLidarrBlock::ArtistHistory {
+      !self.app.is_loading && self.app.data.lidarr_data.artist_history.is_some()
+    } else {
+      !self.app.is_loading
+    }
   }
 
   fn handle_scroll_up(&mut self) {}
@@ -106,6 +133,31 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
 
   fn handle_left_right_action(&mut self) {
     match self.active_lidarr_block {
+      ActiveLidarrBlock::ArtistDetails | ActiveLidarrBlock::ArtistHistory => match self.key {
+        _ if matches_key!(left, self.key) => {
+          self.app.data.lidarr_data.artist_info_tabs.previous();
+          self.app.pop_and_push_navigation_stack(
+            self
+              .app
+              .data
+              .lidarr_data
+              .artist_info_tabs
+              .get_active_route(),
+          );
+        }
+        _ if matches_key!(right, self.key) => {
+          self.app.data.lidarr_data.artist_info_tabs.next();
+          self.app.pop_and_push_navigation_stack(
+            self
+              .app
+              .data
+              .lidarr_data
+              .artist_info_tabs
+              .get_active_route(),
+          );
+        }
+        _ => (),
+      },
       ActiveLidarrBlock::UpdateAndScanArtistPrompt
       | ActiveLidarrBlock::AutomaticallySearchArtistPrompt => {
         handle_prompt_toggle(self.app, self.key);
@@ -116,6 +168,20 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
 
   fn handle_submit(&mut self) {
     match self.active_lidarr_block {
+      ActiveLidarrBlock::ArtistHistory
+        if !self
+          .app
+          .data
+          .lidarr_data
+          .artist_history
+          .as_ref()
+          .expect("Artist history should be Some")
+          .is_empty() =>
+      {
+        self
+          .app
+          .push_navigation_stack(ActiveLidarrBlock::ArtistHistoryDetails.into());
+      }
       ActiveLidarrBlock::AutomaticallySearchArtistPrompt => {
         if self.app.data.lidarr_data.prompt_confirm {
           self.app.data.lidarr_data.prompt_confirm_action = Some(
@@ -143,6 +209,33 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
       | ActiveLidarrBlock::AutomaticallySearchArtistPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.lidarr_data.prompt_confirm = false;
+      }
+      ActiveLidarrBlock::ArtistHistoryDetails => {
+        self.app.pop_navigation_stack();
+      }
+      ActiveLidarrBlock::ArtistHistory => {
+        if self
+          .app
+          .data
+          .lidarr_data
+          .artist_history
+          .as_ref()
+          .expect("Artist history is not populated")
+          .filtered_items
+          .is_some()
+        {
+          self
+            .app
+            .data
+            .lidarr_data
+            .artist_history
+            .as_mut()
+            .expect("Artist history is not populated")
+            .reset_filter();
+        } else {
+          self.app.pop_navigation_stack();
+          self.app.data.lidarr_data.reset_artist_info_tabs();
+        }
       }
       ActiveLidarrBlock::ArtistDetails => {
         self.app.pop_navigation_stack();
@@ -191,6 +284,34 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for ArtistDetailsHandler
               .app
               .pop_and_push_navigation_stack(self.active_lidarr_block.into());
           }
+        }
+        _ => (),
+      },
+      ActiveLidarrBlock::ArtistHistory => match self.key {
+        _ if matches_key!(refresh, key) => self
+          .app
+          .pop_and_push_navigation_stack(self.active_lidarr_block.into()),
+        _ if matches_key!(auto_search, key) => {
+          self
+            .app
+            .push_navigation_stack(ActiveLidarrBlock::AutomaticallySearchArtistPrompt.into());
+        }
+        _ if matches_key!(edit, key) => {
+          self.app.push_navigation_stack(
+            (
+              ActiveLidarrBlock::EditArtistPrompt,
+              Some(self.active_lidarr_block),
+            )
+              .into(),
+          );
+          self.app.data.lidarr_data.edit_artist_modal = Some((&self.app.data.lidarr_data).into());
+          self.app.data.lidarr_data.selected_block =
+            BlockSelectionState::new(EDIT_ARTIST_SELECTION_BLOCKS);
+        }
+        _ if matches_key!(update, key) => {
+          self
+            .app
+            .push_navigation_stack(ActiveLidarrBlock::UpdateAndScanArtistPrompt.into());
         }
         _ => (),
       },

@@ -7,8 +7,8 @@ mod tests {
   };
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::lidarr::lidarr_context_clues::{
-    ADD_ARTIST_SEARCH_RESULTS_CONTEXT_CLUES, ARTIST_DETAILS_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
-    LidarrContextClueProvider,
+    ADD_ARTIST_SEARCH_RESULTS_CONTEXT_CLUES, ARTIST_DETAILS_CONTEXT_CLUES,
+    ARTIST_HISTORY_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES, LidarrContextClueProvider,
   };
   use crate::models::servarr_data::lidarr::lidarr_data::{
     ADD_ROOT_FOLDER_BLOCKS, ActiveLidarrBlock, EDIT_ARTIST_BLOCKS, EDIT_INDEXER_BLOCKS,
@@ -143,6 +143,55 @@ mod tests {
     app.push_navigation_stack(ActiveRadarrBlock::default().into());
 
     LidarrContextClueProvider::get_context_clues(&mut app);
+  }
+
+  #[test]
+  fn test_artist_history_context_clues() {
+    let mut artist_history_context_clues_iter = ARTIST_HISTORY_CONTEXT_CLUES.iter();
+
+    assert_some_eq_x!(
+      artist_history_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.refresh,
+        DEFAULT_KEYBINDINGS.refresh.desc
+      )
+    );
+    assert_some_eq_x!(
+      artist_history_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.edit, "edit artist")
+    );
+    assert_some_eq_x!(
+      artist_history_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.submit, "details")
+    );
+    assert_some_eq_x!(
+      artist_history_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.sort, DEFAULT_KEYBINDINGS.sort.desc)
+    );
+    assert_some_eq_x!(
+      artist_history_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.search, DEFAULT_KEYBINDINGS.search.desc)
+    );
+    assert_some_eq_x!(
+      artist_history_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.filter, DEFAULT_KEYBINDINGS.filter.desc)
+    );
+    assert_some_eq_x!(
+      artist_history_context_clues_iter.next(),
+      &(
+        DEFAULT_KEYBINDINGS.auto_search,
+        DEFAULT_KEYBINDINGS.auto_search.desc
+      )
+    );
+    assert_some_eq_x!(
+      artist_history_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.update, DEFAULT_KEYBINDINGS.update.desc)
+    );
+    assert_some_eq_x!(
+      artist_history_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, "cancel filter/close")
+    );
+    assert_none!(artist_history_context_clues_iter.next());
   }
 
   #[rstest]

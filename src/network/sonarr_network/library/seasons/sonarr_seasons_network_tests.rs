@@ -6,7 +6,7 @@ mod tests {
   use crate::network::network_tests::test_utils::{MockServarrApi, test_network};
   use crate::network::sonarr_network::SonarrEvent;
   use crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
-    SERIES_JSON, history_item, season, series, torrent_release,
+    SERIES_JSON, season, series, sonarr_history_item, torrent_release,
   };
   use mockito::Matcher;
   use pretty_assertions::assert_eq;
@@ -278,13 +278,13 @@ mod tests {
         id: 123,
         episode_id: 1007,
         source_title: "z episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
       SonarrHistoryItem {
         id: 456,
         episode_id: 2001,
         source_title: "A Episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
     ];
     let (mock, app, _server) = MockServarrApi::get()
@@ -390,13 +390,13 @@ mod tests {
         id: 123,
         episode_id: 1007,
         source_title: "z episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
       SonarrHistoryItem {
         id: 456,
         episode_id: 2001,
         source_title: "A Episode".into(),
-        ..history_item()
+        ..sonarr_history_item()
       },
     ];
     let (mock, app, _server) = MockServarrApi::get()

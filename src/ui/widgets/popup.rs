@@ -36,7 +36,7 @@ impl Size {
       Size::WideLargePrompt => (70, 50),
       Size::Message => (25, 8),
       Size::NarrowMessage => (50, 20),
-      Size::NarrowLongMessage => (50, 40),
+      Size::NarrowLongMessage => (50, 35),
       Size::LargeMessage => (25, 25),
       Size::InputBox => (30, 13),
       Size::Dropdown => (20, 30),

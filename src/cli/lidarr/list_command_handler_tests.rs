@@ -70,6 +70,39 @@ mod tests {
     }
 
     #[test]
+    fn test_list_artist_history_requires_artist_id() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "lidarr", "list", "artist-history"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_list_artist_history_success() {
+      let expected_args = LidarrListCommand::ArtistHistory { artist_id: 1 };
+      let result = Cli::try_parse_from([
+        "managarr",
+        "lidarr",
+        "list",
+        "artist-history",
+        "--artist-id",
+        "1",
+      ]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Lidarr(LidarrCommand::List(artist_command))) = result.unwrap().command
+      else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(artist_command, expected_args);
+    }
+
+    #[test]
     fn test_list_downloads_count_flag_requires_arguments() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "lidarr", "list", "downloads", "--count"]);
@@ -211,6 +244,32 @@ mod tests {
       let result = LidarrListCommandHandler::with(&app_arc, list_command, &mut mock_network)
         .handle()
         .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_artist_history_command() {
+      let expected_artist_id = 1;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::GetArtistHistory(expected_artist_id).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_artist_history_command = LidarrListCommand::ArtistHistory { artist_id: 1 };
+
+      let result =
+        LidarrListCommandHandler::with(&app_arc, list_artist_history_command, &mut mock_network)
+          .handle()
+          .await;
 
       assert_ok!(&result);
     }

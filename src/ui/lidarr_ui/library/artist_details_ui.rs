@@ -9,18 +9,23 @@ use regex::Regex;
 
 use crate::app::App;
 use crate::models::Route;
-use crate::models::lidarr_models::Album;
+use crate::models::lidarr_models::{Album, LidarrHistoryItem};
 use crate::models::servarr_data::lidarr::lidarr_data::{ARTIST_DETAILS_BLOCKS, ActiveLidarrBlock};
 use crate::ui::lidarr_ui::library::delete_album_ui::DeleteAlbumUi;
-use crate::ui::styles::ManagarrStyle;
+use crate::ui::lidarr_ui::lidarr_ui_utils::create_history_event_details;
+use crate::ui::styles::{ManagarrStyle, secondary_style};
 use crate::ui::utils::{
   borderless_block, get_width_from_percentage, layout_block_top_border, title_block,
 };
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
+use crate::ui::widgets::loading_block::LoadingBlock;
 use crate::ui::widgets::managarr_table::ManagarrTable;
+use crate::ui::widgets::message::Message;
 use crate::ui::widgets::popup::{Popup, Size};
 use crate::ui::{DrawUi, draw_popup, draw_tabs};
 use crate::utils::convert_to_gb;
+use ratatui::layout::Alignment;
+use ratatui::text::Text;
 
 #[cfg(test)]
 #[path = "artist_details_ui_tests.rs"]
@@ -53,7 +58,7 @@ impl DrawUi for ArtistDetailsUi {
           popup_area,
         );
         let [description_area, detail_area] =
-          Layout::vertical([Constraint::Percentage(37), Constraint::Fill(0)])
+          Layout::vertical([Constraint::Length(14), Constraint::Fill(0)])
             .margin(1)
             .areas(popup_area);
         draw_artist_description(f, app, description_area);
@@ -67,6 +72,9 @@ impl DrawUi for ArtistDetailsUi {
 
         match active_lidarr_block {
           _ if DeleteAlbumUi::accepts(route) => DeleteAlbumUi::draw(f, app, area),
+          ActiveLidarrBlock::ArtistHistoryDetails => {
+            draw_artist_history_item_details_popup(f, app);
+          }
           ActiveLidarrBlock::AutomaticallySearchArtistPrompt => {
             let prompt = format!(
               "Do you want to trigger an automatic search of your indexers for all monitored album(s) for the artist: {}?",
@@ -232,6 +240,7 @@ fn draw_artist_details(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   {
     match active_lidarr_block {
       ActiveLidarrBlock::ArtistDetails => draw_albums_table(f, app, area),
+      ActiveLidarrBlock::ArtistHistory => draw_artist_history_table(f, app, area),
       _ => (),
     }
   }
@@ -326,4 +335,109 @@ fn draw_albums_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
 
     f.render_widget(album_table, area);
   }
+}
+
+fn draw_artist_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+  match app.data.lidarr_data.artist_history.as_ref() {
+    Some(artist_history) if !app.is_loading => {
+      let current_selection = if artist_history.is_empty() {
+        LidarrHistoryItem::default()
+      } else {
+        artist_history.current_selection().clone()
+      };
+
+      if let Route::Lidarr(active_lidarr_block, _) = app.get_current_route() {
+        let history_row_mapping = |history_item: &LidarrHistoryItem| {
+          let LidarrHistoryItem {
+            source_title,
+            quality,
+            event_type,
+            date,
+            ..
+          } = history_item;
+
+          source_title.scroll_left_or_reset(
+            get_width_from_percentage(area, 40),
+            current_selection == *history_item,
+            app.ui_scroll_tick_count == 0,
+          );
+
+          Row::new(vec![
+            Cell::from(source_title.to_string()),
+            Cell::from(event_type.to_string()),
+            Cell::from(quality.quality.name.to_owned()),
+            Cell::from(date.to_string()),
+          ])
+          .primary()
+        };
+        let mut artist_history_table = app
+          .data
+          .lidarr_data
+          .artist_history
+          .as_mut()
+          .expect("artist_history must be populated");
+        let history_table =
+          ManagarrTable::new(Some(&mut artist_history_table), history_row_mapping)
+            .block(layout_block_top_border())
+            .loading(app.is_loading)
+            .sorting(active_lidarr_block == ActiveLidarrBlock::ArtistHistorySortPrompt)
+            .searching(active_lidarr_block == ActiveLidarrBlock::SearchArtistHistory)
+            .search_produced_empty_results(
+              active_lidarr_block == ActiveLidarrBlock::SearchArtistHistoryError,
+            )
+            .filtering(active_lidarr_block == ActiveLidarrBlock::FilterArtistHistory)
+            .filter_produced_empty_results(
+              active_lidarr_block == ActiveLidarrBlock::FilterArtistHistoryError,
+            )
+            .headers(["Source Title", "Event Type", "Quality", "Date"])
+            .constraints([
+              Constraint::Percentage(40),
+              Constraint::Percentage(20),
+              Constraint::Percentage(15),
+              Constraint::Percentage(25),
+            ]);
+
+        if [
+          ActiveLidarrBlock::SearchArtistHistory,
+          ActiveLidarrBlock::FilterArtistHistory,
+        ]
+        .contains(&active_lidarr_block)
+        {
+          history_table.show_cursor(f, area);
+        }
+
+        f.render_widget(history_table, area);
+      }
+    }
+    _ => f.render_widget(
+      LoadingBlock::new(
+        app.is_loading || app.data.lidarr_data.albums.is_empty(),
+        layout_block_top_border(),
+      ),
+      area,
+    ),
+  }
+}
+
+fn draw_artist_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
+  let current_selection =
+    if let Some(artist_history_items) = app.data.lidarr_data.artist_history.as_ref() {
+      if artist_history_items.is_empty() {
+        LidarrHistoryItem::default()
+      } else {
+        artist_history_items.current_selection().clone()
+      }
+    } else {
+      LidarrHistoryItem::default()
+    };
+
+  let line_vec = create_history_event_details(current_selection);
+  let text = Text::from(line_vec);
+
+  let message = Message::new(text)
+    .title("Details")
+    .style(secondary_style())
+    .alignment(Alignment::Left);
+
+  f.render_widget(Popup::new(message).size(Size::NarrowLongMessage), f.area());
 }

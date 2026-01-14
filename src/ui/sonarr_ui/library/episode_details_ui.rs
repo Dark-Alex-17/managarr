@@ -95,7 +95,7 @@ impl DrawUi for EpisodeDetailsUi {
             draw_manual_episode_search_confirm_prompt(f, app);
           }
           ActiveSonarrBlock::EpisodeHistoryDetails => {
-            draw_history_item_details_popup(f, app, popup_area);
+            draw_history_item_details_popup(f, app);
           }
           _ => (),
         }
@@ -347,7 +347,7 @@ fn draw_episode_history_table(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) 
   }
 }
 
-fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
+fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>) {
   let current_selection =
     if let Some(season_details_modal) = app.data.sonarr_data.season_details_modal.as_ref() {
       if let Some(episode_details_modal) = season_details_modal.episode_details_modal.as_ref() {
@@ -374,7 +374,7 @@ fn draw_history_item_details_popup(f: &mut Frame<'_>, app: &mut App<'_>, area: R
     .style(secondary_style())
     .alignment(Alignment::Left);
 
-  f.render_widget(Popup::new(message).size(Size::NarrowLongMessage), area);
+  f.render_widget(Popup::new(message).size(Size::NarrowLongMessage), f.area());
 }
 
 fn draw_episode_releases(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {

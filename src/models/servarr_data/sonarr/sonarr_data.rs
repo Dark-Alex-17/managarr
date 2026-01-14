@@ -37,8 +37,8 @@ use {
   crate::network::servarr_test_utils::indexer_test_result,
   crate::network::servarr_test_utils::queued_event,
   crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
-    add_series_search_result, blocklist_item, download_record, history_item, indexer, log_line,
-    root_folder,
+    add_series_search_result, blocklist_item, download_record, indexer, log_line, root_folder,
+    sonarr_history_item,
   },
   crate::network::sonarr_network::sonarr_network_test_utils::test_utils::{
     episode, episode_file, language_profiles_map, quality_profile_map, season, series, tags_map,
@@ -309,7 +309,7 @@ impl SonarrData<'_> {
     };
     episode_details_modal
       .episode_history
-      .set_items(vec![history_item()]);
+      .set_items(vec![sonarr_history_item()]);
     episode_details_modal
       .episode_releases
       .set_items(vec![torrent_release(), usenet_release()]);
@@ -328,7 +328,7 @@ impl SonarrData<'_> {
       .set_items(vec![episode_file()]);
     season_details_modal
       .season_history
-      .set_items(vec![history_item()]);
+      .set_items(vec![sonarr_history_item()]);
     season_details_modal.season_history.search = Some("season history search".into());
     season_details_modal.season_history.filter = Some("season history filter".into());
     season_details_modal
@@ -342,7 +342,7 @@ impl SonarrData<'_> {
       .sorting(vec![sort_option!(indexer_id)]);
 
     let mut series_history = StatefulTable::default();
-    series_history.set_items(vec![history_item()]);
+    series_history.set_items(vec![sonarr_history_item()]);
     series_history.sorting(vec![sort_option!(id)]);
     series_history.search = Some("series history search".into());
     series_history.filter = Some("series history filter".into());
@@ -374,7 +374,7 @@ impl SonarrData<'_> {
     sonarr_data.blocklist.set_items(vec![blocklist_item()]);
     sonarr_data.blocklist.sorting(vec![sort_option!(id)]);
     sonarr_data.downloads.set_items(vec![download_record()]);
-    sonarr_data.history.set_items(vec![history_item()]);
+    sonarr_data.history.set_items(vec![sonarr_history_item()]);
     sonarr_data.history.sorting(vec![sort_option!(id)]);
     sonarr_data.history.search = Some("test search".into());
     sonarr_data.history.filter = Some("test filter".into());
