@@ -1,4 +1,5 @@
-use crate::models::servarr_models::{AddRootFolderBody, RootFolder};
+use crate::models::lidarr_models::AddLidarrRootFolderBody;
+use crate::models::servarr_models::RootFolder;
 use crate::network::lidarr_network::LidarrEvent;
 use crate::network::{Network, RequestMethod};
 use anyhow::Result;
@@ -12,10 +13,14 @@ mod lidarr_root_folders_network_tests;
 impl Network<'_, '_> {
   pub(in crate::network::lidarr_network) async fn add_lidarr_root_folder(
     &mut self,
-    add_root_folder_body: AddRootFolderBody,
+    mut add_root_folder_body: AddLidarrRootFolderBody,
   ) -> Result<Value> {
     info!("Adding new root folder to Lidarr");
-    let event = LidarrEvent::AddRootFolder(AddRootFolderBody::default());
+    if let Some(tag_input_str) = add_root_folder_body.tag_input_string.as_ref() {
+      let tag_ids_vec = self.extract_and_add_lidarr_tag_ids_vec(tag_input_str).await;
+      add_root_folder_body.default_tags = tag_ids_vec;
+    }
+    let event = LidarrEvent::AddRootFolder(AddLidarrRootFolderBody::default());
 
     debug!("Add root folder body: {add_root_folder_body:?}");
 
@@ -30,7 +35,7 @@ impl Network<'_, '_> {
       .await;
 
     self
-      .handle_request::<AddRootFolderBody, Value>(request_props, |_, _| ())
+      .handle_request::<AddLidarrRootFolderBody, Value>(request_props, |_, _| ())
       .await
   }
 

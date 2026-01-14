@@ -1,6 +1,6 @@
 use serde_json::Number;
 
-use super::modals::{AddArtistModal, EditArtistModal};
+use super::modals::{AddArtistModal, AddRootFolderModal, EditArtistModal};
 use crate::app::context_clues::{
   DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, ROOT_FOLDERS_CONTEXT_CLUES,
 };
@@ -39,6 +39,7 @@ pub struct LidarrData<'a> {
   pub add_artist_modal: Option<AddArtistModal>,
   pub add_artist_search: Option<HorizontallyScrollableText>,
   pub add_import_list_exclusion: bool,
+  pub add_root_folder_modal: Option<AddRootFolderModal>,
   pub add_searched_artists: Option<StatefulTable<AddArtistSearchResult>>,
   pub albums: StatefulTable<Album>,
   pub artist_info_tabs: TabState,
@@ -47,7 +48,6 @@ pub struct LidarrData<'a> {
   pub disk_space_vec: Vec<DiskSpace>,
   pub downloads: StatefulTable<DownloadRecord>,
   pub edit_artist_modal: Option<EditArtistModal>,
-  pub edit_root_folder: Option<HorizontallyScrollableText>,
   pub history: StatefulTable<LidarrHistoryItem>,
   pub main_tabs: TabState,
   pub metadata_profile_map: BiMap<i64, String>,
@@ -110,6 +110,7 @@ impl<'a> Default for LidarrData<'a> {
       add_artist_modal: None,
       add_artist_search: None,
       add_import_list_exclusion: false,
+      add_root_folder_modal: None,
       add_searched_artists: None,
       albums: StatefulTable::default(),
       artists: StatefulTable::default(),
@@ -117,7 +118,6 @@ impl<'a> Default for LidarrData<'a> {
       disk_space_vec: Vec::new(),
       downloads: StatefulTable::default(),
       edit_artist_modal: None,
-      edit_root_folder: None,
       history: StatefulTable::default(),
       metadata_profile_map: BiMap::new(),
       prompt_confirm: false,
@@ -202,13 +202,32 @@ impl LidarrData<'_> {
       .metadata_profile_list
       .set_items(vec![metadata_profile().name]);
 
+    let mut add_root_folder_modal = AddRootFolderModal {
+      name: "Test Root Folder".into(),
+      path: "/nfs/music".into(),
+      tags: "test".into(),
+      ..AddRootFolderModal::default()
+    };
+    add_root_folder_modal
+      .monitor_list
+      .set_items(Vec::from_iter(MonitorType::iter()));
+    add_root_folder_modal
+      .monitor_new_items_list
+      .set_items(Vec::from_iter(NewItemMonitorType::iter()));
+    add_root_folder_modal
+      .quality_profile_list
+      .set_items(vec![quality_profile().name]);
+    add_root_folder_modal
+      .metadata_profile_list
+      .set_items(vec![metadata_profile().name]);
+
     let mut lidarr_data = LidarrData {
       delete_files: true,
       disk_space_vec: vec![diskspace()],
       quality_profile_map: quality_profile_map(),
       metadata_profile_map: metadata_profile_map(),
       edit_artist_modal: Some(edit_artist_modal),
-      edit_root_folder: Some("/nfs".into()),
+      add_root_folder_modal: Some(add_root_folder_modal),
       add_artist_modal: Some(add_artist_modal),
       tags_map: tags_map(),
       ..LidarrData::default()
@@ -261,6 +280,14 @@ pub enum ActiveLidarrBlock {
   AddArtistSelectRootFolder,
   AddArtistTagsInput,
   AddRootFolderPrompt,
+  AddRootFolderConfirmPrompt,
+  AddRootFolderNameInput,
+  AddRootFolderPathInput,
+  AddRootFolderSelectMonitor,
+  AddRootFolderSelectMonitorNewItems,
+  AddRootFolderSelectQualityProfile,
+  AddRootFolderSelectMetadataProfile,
+  AddRootFolderTagsInput,
   AutomaticallySearchArtistPrompt,
   DeleteAlbumPrompt,
   DeleteAlbumConfirmPrompt,
@@ -406,10 +433,32 @@ pub const EDIT_ARTIST_SELECTION_BLOCKS: &[&[ActiveLidarrBlock]] = &[
   &[ActiveLidarrBlock::EditArtistConfirmPrompt],
 ];
 
-pub const ROOT_FOLDERS_BLOCKS: [ActiveLidarrBlock; 3] = [
+pub const ROOT_FOLDERS_BLOCKS: [ActiveLidarrBlock; 2] = [
   ActiveLidarrBlock::RootFolders,
-  ActiveLidarrBlock::AddRootFolderPrompt,
   ActiveLidarrBlock::DeleteRootFolderPrompt,
+];
+
+pub static ADD_ROOT_FOLDER_BLOCKS: [ActiveLidarrBlock; 9] = [
+  ActiveLidarrBlock::AddRootFolderPrompt,
+  ActiveLidarrBlock::AddRootFolderConfirmPrompt,
+  ActiveLidarrBlock::AddRootFolderNameInput,
+  ActiveLidarrBlock::AddRootFolderPathInput,
+  ActiveLidarrBlock::AddRootFolderSelectMonitor,
+  ActiveLidarrBlock::AddRootFolderSelectMonitorNewItems,
+  ActiveLidarrBlock::AddRootFolderSelectQualityProfile,
+  ActiveLidarrBlock::AddRootFolderSelectMetadataProfile,
+  ActiveLidarrBlock::AddRootFolderTagsInput,
+];
+
+pub const ADD_ROOT_FOLDER_SELECTION_BLOCKS: &[&[ActiveLidarrBlock]] = &[
+  &[ActiveLidarrBlock::AddRootFolderNameInput],
+  &[ActiveLidarrBlock::AddRootFolderPathInput],
+  &[ActiveLidarrBlock::AddRootFolderSelectMonitor],
+  &[ActiveLidarrBlock::AddRootFolderSelectMonitorNewItems],
+  &[ActiveLidarrBlock::AddRootFolderSelectQualityProfile],
+  &[ActiveLidarrBlock::AddRootFolderSelectMetadataProfile],
+  &[ActiveLidarrBlock::AddRootFolderTagsInput],
+  &[ActiveLidarrBlock::AddRootFolderConfirmPrompt],
 ];
 
 impl From<ActiveLidarrBlock> for Route {

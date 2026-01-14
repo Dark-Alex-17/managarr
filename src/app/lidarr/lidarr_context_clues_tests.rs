@@ -10,7 +10,7 @@ mod tests {
     LidarrContextClueProvider,
   };
   use crate::models::servarr_data::lidarr::lidarr_data::{
-    ActiveLidarrBlock, EDIT_ARTIST_BLOCKS, LidarrData,
+    ADD_ROOT_FOLDER_BLOCKS, ActiveLidarrBlock, EDIT_ARTIST_BLOCKS, LidarrData,
   };
   use crate::models::servarr_data::radarr::radarr_data::ActiveRadarrBlock;
   use rstest::rstest;
@@ -218,7 +218,10 @@ mod tests {
 
   #[test]
   fn test_lidarr_context_clue_provider_confirmation_prompt_popup_clues_edit_indexer_blocks() {
-    for active_lidarr_block in EDIT_ARTIST_BLOCKS {
+    let mut blocks = EDIT_ARTIST_BLOCKS.to_vec();
+    blocks.extend(ADD_ROOT_FOLDER_BLOCKS);
+
+    for active_lidarr_block in blocks {
       let mut app = App::test_default();
       app.push_navigation_stack(active_lidarr_block.into());
 

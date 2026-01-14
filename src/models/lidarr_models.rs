@@ -301,6 +301,20 @@ pub struct EditArtistParams {
   pub clear_tags: bool,
 }
 
+#[derive(Default, Clone, Serialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AddLidarrRootFolderBody {
+  pub name: String,
+  pub path: String,
+  pub default_quality_profile_id: i64,
+  pub default_metadata_profile_id: i64,
+  pub default_monitor_option: MonitorType,
+  pub default_new_item_monitor_option: NewItemMonitorType,
+  pub default_tags: Vec<i64>,
+  #[serde(skip_serializing, skip_deserializing)]
+  pub tag_input_string: Option<String>,
+}
+
 #[derive(Derivative, Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Album {

@@ -1,13 +1,19 @@
+use add_root_folder_handler::AddRootFolderHandler;
+
 use crate::app::App;
 use crate::event::Key;
 use crate::handlers::lidarr_handlers::handle_change_tab_left_right_keys;
 use crate::handlers::table_handler::{TableHandlingConfig, handle_table};
 use crate::handlers::{KeyEventHandler, handle_clear_errors, handle_prompt_toggle};
-use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, ROOT_FOLDERS_BLOCKS};
-use crate::models::servarr_models::AddRootFolderBody;
-use crate::models::{HorizontallyScrollableText, Route};
+use crate::matches_key;
+use crate::models::servarr_data::lidarr::lidarr_data::{
+  ADD_ROOT_FOLDER_BLOCKS, ADD_ROOT_FOLDER_SELECTION_BLOCKS, ActiveLidarrBlock, ROOT_FOLDERS_BLOCKS,
+};
+use crate::models::servarr_data::lidarr::modals::AddRootFolderModal;
+use crate::models::{BlockSelectionState, Route};
 use crate::network::lidarr_network::LidarrEvent;
-use crate::{handle_text_box_keys, handle_text_box_left_right_keys, matches_key};
+
+mod add_root_folder_handler;
 
 #[cfg(test)]
 #[path = "root_folders_handler_tests.rs"]
@@ -17,22 +23,10 @@ pub(super) struct RootFoldersHandler<'a, 'b> {
   key: Key,
   app: &'a mut App<'b>,
   active_lidarr_block: ActiveLidarrBlock,
-  _context: Option<ActiveLidarrBlock>,
+  context: Option<ActiveLidarrBlock>,
 }
 
 impl RootFoldersHandler<'_, '_> {
-  fn build_add_root_folder_body(&mut self) -> AddRootFolderBody {
-    let root_folder = self
-      .app
-      .data
-      .lidarr_data
-      .edit_root_folder
-      .take()
-      .expect("EditRootFolder is None")
-      .text;
-    AddRootFolderBody { path: root_folder }
-  }
-
   fn extract_root_folder_id(&self) -> i64 {
     self
       .app
@@ -49,6 +43,11 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for RootFoldersHandler<'
     let root_folders_table_handling_config =
       TableHandlingConfig::new(ActiveLidarrBlock::RootFolders.into());
 
+    if AddRootFolderHandler::accepts(self.active_lidarr_block) {
+      return AddRootFolderHandler::new(self.key, self.app, self.active_lidarr_block, self.context)
+        .handle();
+    }
+
     if !handle_table(
       self,
       |app| &mut app.data.lidarr_data.root_folders,
@@ -59,20 +58,20 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for RootFoldersHandler<'
   }
 
   fn accepts(active_block: ActiveLidarrBlock) -> bool {
-    ROOT_FOLDERS_BLOCKS.contains(&active_block)
+    ROOT_FOLDERS_BLOCKS.contains(&active_block) || ADD_ROOT_FOLDER_BLOCKS.contains(&active_block)
   }
 
   fn new(
     key: Key,
     app: &'a mut App<'b>,
     active_block: ActiveLidarrBlock,
-    _context: Option<ActiveLidarrBlock>,
+    context: Option<ActiveLidarrBlock>,
   ) -> RootFoldersHandler<'a, 'b> {
     RootFoldersHandler {
       key,
       app,
       active_lidarr_block: active_block,
-      _context,
+      context,
     }
   }
 
@@ -92,31 +91,9 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for RootFoldersHandler<'
 
   fn handle_scroll_down(&mut self) {}
 
-  fn handle_home(&mut self) {
-    if self.active_lidarr_block == ActiveLidarrBlock::AddRootFolderPrompt {
-      self
-        .app
-        .data
-        .lidarr_data
-        .edit_root_folder
-        .as_mut()
-        .unwrap()
-        .scroll_home()
-    }
-  }
+  fn handle_home(&mut self) {}
 
-  fn handle_end(&mut self) {
-    if self.active_lidarr_block == ActiveLidarrBlock::AddRootFolderPrompt {
-      self
-        .app
-        .data
-        .lidarr_data
-        .edit_root_folder
-        .as_mut()
-        .unwrap()
-        .reset_offset()
-    }
-  }
+  fn handle_end(&mut self) {}
 
   fn handle_delete(&mut self) {
     if self.active_lidarr_block == ActiveLidarrBlock::RootFolders {
@@ -130,57 +107,23 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for RootFoldersHandler<'
     match self.active_lidarr_block {
       ActiveLidarrBlock::RootFolders => handle_change_tab_left_right_keys(self.app, self.key),
       ActiveLidarrBlock::DeleteRootFolderPrompt => handle_prompt_toggle(self.app, self.key),
-      ActiveLidarrBlock::AddRootFolderPrompt => {
-        handle_text_box_left_right_keys!(
-          self,
-          self.key,
-          self.app.data.lidarr_data.edit_root_folder.as_mut().unwrap()
-        )
-      }
       _ => (),
     }
   }
 
   fn handle_submit(&mut self) {
-    match self.active_lidarr_block {
-      ActiveLidarrBlock::DeleteRootFolderPrompt => {
-        if self.app.data.lidarr_data.prompt_confirm {
-          self.app.data.lidarr_data.prompt_confirm_action =
-            Some(LidarrEvent::DeleteRootFolder(self.extract_root_folder_id()));
-        }
+    if self.active_lidarr_block == ActiveLidarrBlock::DeleteRootFolderPrompt {
+      if self.app.data.lidarr_data.prompt_confirm {
+        self.app.data.lidarr_data.prompt_confirm_action =
+          Some(LidarrEvent::DeleteRootFolder(self.extract_root_folder_id()));
+      }
 
-        self.app.pop_navigation_stack();
-      }
-      _ if self.active_lidarr_block == ActiveLidarrBlock::AddRootFolderPrompt
-        && !self
-          .app
-          .data
-          .lidarr_data
-          .edit_root_folder
-          .as_ref()
-          .unwrap()
-          .text
-          .is_empty() =>
-      {
-        self.app.data.lidarr_data.prompt_confirm_action = Some(LidarrEvent::AddRootFolder(
-          self.build_add_root_folder_body(),
-        ));
-        self.app.data.lidarr_data.prompt_confirm = true;
-        self.app.ignore_special_keys_for_textbox_input = false;
-        self.app.pop_navigation_stack();
-      }
-      _ => (),
+      self.app.pop_navigation_stack();
     }
   }
 
   fn handle_esc(&mut self) {
     match self.active_lidarr_block {
-      ActiveLidarrBlock::AddRootFolderPrompt => {
-        self.app.pop_navigation_stack();
-        self.app.data.lidarr_data.edit_root_folder = None;
-        self.app.data.lidarr_data.prompt_confirm = false;
-        self.app.ignore_special_keys_for_textbox_input = false;
-      }
       ActiveLidarrBlock::DeleteRootFolderPrompt => {
         self.app.pop_navigation_stack();
         self.app.data.lidarr_data.prompt_confirm = false;
@@ -197,21 +140,16 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for RootFoldersHandler<'
           self.app.should_refresh = true;
         }
         _ if matches_key!(add, key) => {
+          self.app.data.lidarr_data.add_root_folder_modal =
+            Some(AddRootFolderModal::from(&self.app.data.lidarr_data));
+          self.app.data.lidarr_data.selected_block =
+            BlockSelectionState::new(ADD_ROOT_FOLDER_SELECTION_BLOCKS);
           self
             .app
             .push_navigation_stack(ActiveLidarrBlock::AddRootFolderPrompt.into());
-          self.app.data.lidarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
-          self.app.ignore_special_keys_for_textbox_input = true;
         }
         _ => (),
       },
-      ActiveLidarrBlock::AddRootFolderPrompt => {
-        handle_text_box_keys!(
-          self,
-          key,
-          self.app.data.lidarr_data.edit_root_folder.as_mut().unwrap()
-        )
-      }
       ActiveLidarrBlock::DeleteRootFolderPrompt => {
         if matches_key!(confirm, key) {
           self.app.data.lidarr_data.prompt_confirm = true;

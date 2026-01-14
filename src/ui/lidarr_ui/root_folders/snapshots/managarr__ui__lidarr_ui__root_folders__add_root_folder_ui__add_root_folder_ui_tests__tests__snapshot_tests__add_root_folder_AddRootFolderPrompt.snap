@@ -1,10 +1,10 @@
 ---
-source: src/ui/lidarr_ui/root_folders/root_folders_ui_tests.rs
+source: src/ui/lidarr_ui/root_folders/add_root_folder_ui_tests.rs
 expression: output
 ---
-─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-   Path                                                                                            Free Space                        Unmapped Folders                
-=> /nfs                                                                                            204800.00 GB                      0                               
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
                                                                                                                                                                      
                                                                                                                                                                      
                                                                                                                                                                      

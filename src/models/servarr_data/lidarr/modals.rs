@@ -113,3 +113,35 @@ impl From<&LidarrData<'_>> for EditArtistModal {
     edit_artist_modal
   }
 }
+
+#[derive(Default)]
+#[cfg_attr(test, derive(Debug))]
+pub struct AddRootFolderModal {
+  pub name: HorizontallyScrollableText,
+  pub path: HorizontallyScrollableText,
+  pub monitor_list: StatefulList<MonitorType>,
+  pub monitor_new_items_list: StatefulList<NewItemMonitorType>,
+  pub quality_profile_list: StatefulList<String>,
+  pub metadata_profile_list: StatefulList<String>,
+  pub tags: HorizontallyScrollableText,
+}
+
+impl From<&LidarrData<'_>> for AddRootFolderModal {
+  fn from(lidarr_data: &LidarrData<'_>) -> AddRootFolderModal {
+    let mut add_root_folder_modal = AddRootFolderModal::default();
+    add_root_folder_modal
+      .monitor_list
+      .set_items(Vec::from_iter(MonitorType::iter()));
+    add_root_folder_modal
+      .monitor_new_items_list
+      .set_items(Vec::from_iter(NewItemMonitorType::iter()));
+    add_root_folder_modal
+      .quality_profile_list
+      .set_items(lidarr_data.sorted_quality_profile_names());
+    add_root_folder_modal
+      .metadata_profile_list
+      .set_items(lidarr_data.sorted_metadata_profile_names());
+
+    add_root_folder_modal
+  }
+}

@@ -1,18 +1,23 @@
+use add_root_folder_ui::AddRootFolderUi;
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Rect};
 use ratatui::widgets::{Cell, Row};
 
 use crate::app::App;
 use crate::models::Route;
-use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, ROOT_FOLDERS_BLOCKS};
+use crate::models::servarr_data::lidarr::lidarr_data::{
+  ADD_ROOT_FOLDER_BLOCKS, ActiveLidarrBlock, ROOT_FOLDERS_BLOCKS,
+};
 use crate::models::servarr_models::RootFolder;
+use crate::ui::DrawUi;
 use crate::ui::styles::ManagarrStyle;
 use crate::ui::utils::layout_block_top_border;
 use crate::ui::widgets::confirmation_prompt::ConfirmationPrompt;
 use crate::ui::widgets::managarr_table::ManagarrTable;
 use crate::ui::widgets::popup::{Popup, Size};
-use crate::ui::{DrawUi, draw_input_box_popup, draw_popup};
 use crate::utils::convert_to_gb;
+
+mod add_root_folder_ui;
 
 #[cfg(test)]
 #[path = "root_folders_ui_tests.rs"]
@@ -23,7 +28,8 @@ pub(super) struct RootFoldersUi;
 impl DrawUi for RootFoldersUi {
   fn accepts(route: Route) -> bool {
     if let Route::Lidarr(active_lidarr_block, _) = route {
-      return ROOT_FOLDERS_BLOCKS.contains(&active_lidarr_block);
+      return ROOT_FOLDERS_BLOCKS.contains(&active_lidarr_block)
+        || ADD_ROOT_FOLDER_BLOCKS.contains(&active_lidarr_block);
     }
 
     false
@@ -33,26 +39,22 @@ impl DrawUi for RootFoldersUi {
     if let Route::Lidarr(active_lidarr_block, _) = app.get_current_route() {
       draw_root_folders(f, app, area);
 
-      match active_lidarr_block {
-        ActiveLidarrBlock::AddRootFolderPrompt => {
-          draw_popup(f, app, draw_add_root_folder_prompt_box, Size::InputBox)
-        }
-        ActiveLidarrBlock::DeleteRootFolderPrompt => {
-          let prompt = format!(
-            "Do you really want to delete this root folder: \n{}?",
-            app.data.lidarr_data.root_folders.current_selection().path
-          );
-          let confirmation_prompt = ConfirmationPrompt::new()
-            .title("Delete Root Folder")
-            .prompt(&prompt)
-            .yes_no_value(app.data.lidarr_data.prompt_confirm);
+      if ADD_ROOT_FOLDER_BLOCKS.contains(&active_lidarr_block) {
+        AddRootFolderUi::draw(f, app, area);
+      } else if active_lidarr_block == ActiveLidarrBlock::DeleteRootFolderPrompt {
+        let prompt = format!(
+          "Do you really want to delete this root folder: \n{}?",
+          app.data.lidarr_data.root_folders.current_selection().path
+        );
+        let confirmation_prompt = ConfirmationPrompt::new()
+          .title("Delete Root Folder")
+          .prompt(&prompt)
+          .yes_no_value(app.data.lidarr_data.prompt_confirm);
 
-          f.render_widget(
-            Popup::new(confirmation_prompt).size(Size::MediumPrompt),
-            f.area(),
-          );
-        }
-        _ => (),
+        f.render_widget(
+          Popup::new(confirmation_prompt).size(Size::MediumPrompt),
+          f.area(),
+        );
       }
     }
   }
@@ -97,13 +99,4 @@ fn draw_root_folders(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
   ]);
 
   f.render_widget(root_folders_table, area);
-}
-
-fn draw_add_root_folder_prompt_box(f: &mut Frame<'_>, app: &mut App<'_>, area: Rect) {
-  draw_input_box_popup(
-    f,
-    area,
-    "Add Root Folder",
-    app.data.lidarr_data.edit_root_folder.as_ref().unwrap(),
-  );
 }

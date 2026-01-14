@@ -42,7 +42,13 @@ mod tests {
     #[test]
     fn test_add_root_folder_success() {
       let expected_args = LidarrAddCommand::RootFolder {
+        name: "Music".to_owned(),
         root_folder_path: "/nfs/test".to_owned(),
+        quality_profile_id: 1,
+        metadata_profile_id: 1,
+        monitor: MonitorType::All,
+        monitor_new_items: NewItemMonitorType::All,
+        tag: vec![],
       };
 
       let result = Cli::try_parse_from([
@@ -50,8 +56,14 @@ mod tests {
         "lidarr",
         "add",
         "root-folder",
+        "--name",
+        "Music",
         "--root-folder-path",
         "/nfs/test",
+        "--quality-profile-id",
+        "1",
+        "--metadata-profile-id",
+        "1",
       ]);
 
       assert_ok!(&result);
@@ -416,9 +428,9 @@ mod tests {
     use crate::cli::lidarr::add_command_handler::{LidarrAddCommand, LidarrAddCommandHandler};
     use crate::models::Serdeable;
     use crate::models::lidarr_models::{
-      AddArtistBody, AddArtistOptions, LidarrSerdeable, MonitorType, NewItemMonitorType,
+      AddArtistBody, AddArtistOptions, AddLidarrRootFolderBody, LidarrSerdeable, MonitorType,
+      NewItemMonitorType,
     };
-    use crate::models::servarr_models::AddRootFolderBody;
     use crate::network::lidarr_network::LidarrEvent;
     use crate::{
       app::App,
@@ -428,8 +440,15 @@ mod tests {
     #[tokio::test]
     async fn test_handle_add_root_folder_command() {
       let expected_root_folder_path = "/nfs/test".to_owned();
-      let expected_add_root_folder_body = AddRootFolderBody {
+      let expected_add_root_folder_body = AddLidarrRootFolderBody {
+        name: "Music".to_owned(),
         path: expected_root_folder_path.clone(),
+        default_quality_profile_id: 1,
+        default_metadata_profile_id: 1,
+        default_monitor_option: MonitorType::All,
+        default_new_item_monitor_option: NewItemMonitorType::All,
+        default_tags: vec![1, 2],
+        tag_input_string: None,
       };
       let mut mock_network = MockNetworkTrait::new();
       mock_network
@@ -445,7 +464,13 @@ mod tests {
         });
       let app_arc = Arc::new(Mutex::new(App::test_default()));
       let add_root_folder_command = LidarrAddCommand::RootFolder {
+        name: "Music".to_owned(),
         root_folder_path: expected_root_folder_path,
+        quality_profile_id: 1,
+        metadata_profile_id: 1,
+        monitor: MonitorType::All,
+        monitor_new_items: NewItemMonitorType::All,
+        tag: vec![1, 2],
       };
 
       let result =

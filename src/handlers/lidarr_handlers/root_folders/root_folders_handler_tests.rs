@@ -6,77 +6,16 @@ mod tests {
 
   use crate::app::App;
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
-  use crate::assert_modal_absent;
   use crate::assert_modal_present;
   use crate::assert_navigation_pushed;
   use crate::event::Key;
   use crate::handlers::KeyEventHandler;
   use crate::handlers::lidarr_handlers::root_folders::RootFoldersHandler;
-  use crate::models::HorizontallyScrollableText;
-  use crate::models::servarr_data::lidarr::lidarr_data::{ActiveLidarrBlock, ROOT_FOLDERS_BLOCKS};
-  use crate::models::servarr_models::{AddRootFolderBody, RootFolder};
+  use crate::models::servarr_data::lidarr::lidarr_data::{
+    ADD_ROOT_FOLDER_BLOCKS, ActiveLidarrBlock, ROOT_FOLDERS_BLOCKS,
+  };
+  use crate::models::servarr_models::RootFolder;
   use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::root_folder;
-
-  mod test_handle_home_end {
-    use crate::models::servarr_models::RootFolder;
-    use pretty_assertions::assert_eq;
-    use std::sync::atomic::Ordering;
-
-    use super::*;
-
-    #[test]
-    fn test_add_root_folder_prompt_home_end_keys() {
-      let mut app = App::test_default();
-      app.push_navigation_stack(ActiveLidarrBlock::RootFolders.into());
-      app.push_navigation_stack(ActiveLidarrBlock::AddRootFolderPrompt.into());
-      app
-        .data
-        .lidarr_data
-        .root_folders
-        .set_items(vec![RootFolder::default()]);
-      app.data.lidarr_data.edit_root_folder = Some("Test".into());
-
-      RootFoldersHandler::new(
-        DEFAULT_KEYBINDINGS.home.key,
-        &mut app,
-        ActiveLidarrBlock::AddRootFolderPrompt,
-        None,
-      )
-      .handle();
-
-      assert_eq!(
-        app
-          .data
-          .lidarr_data
-          .edit_root_folder
-          .as_ref()
-          .unwrap()
-          .offset
-          .load(Ordering::SeqCst),
-        4
-      );
-
-      RootFoldersHandler::new(
-        DEFAULT_KEYBINDINGS.end.key,
-        &mut app,
-        ActiveLidarrBlock::AddRootFolderPrompt,
-        None,
-      )
-      .handle();
-
-      assert_eq!(
-        app
-          .data
-          .lidarr_data
-          .edit_root_folder
-          .as_ref()
-          .unwrap()
-          .offset
-          .load(Ordering::SeqCst),
-        0
-      );
-    }
-  }
 
   mod test_handle_delete {
     use pretty_assertions::assert_eq;
@@ -121,8 +60,6 @@ mod tests {
   }
 
   mod test_handle_left_right_action {
-    use std::sync::atomic::Ordering;
-
     use pretty_assertions::assert_eq;
     use rstest::rstest;
 
@@ -200,126 +137,16 @@ mod tests {
 
       assert!(!app.data.lidarr_data.prompt_confirm);
     }
-
-    #[test]
-    fn test_add_root_folder_prompt_left_right_keys() {
-      let mut app = App::test_default();
-      app.push_navigation_stack(ActiveLidarrBlock::RootFolders.into());
-      app.data.lidarr_data.edit_root_folder = Some("Test".into());
-
-      RootFoldersHandler::new(
-        DEFAULT_KEYBINDINGS.left.key,
-        &mut app,
-        ActiveLidarrBlock::AddRootFolderPrompt,
-        None,
-      )
-      .handle();
-
-      assert_eq!(
-        app
-          .data
-          .lidarr_data
-          .edit_root_folder
-          .as_ref()
-          .unwrap()
-          .offset
-          .load(Ordering::SeqCst),
-        1
-      );
-
-      RootFoldersHandler::new(
-        DEFAULT_KEYBINDINGS.right.key,
-        &mut app,
-        ActiveLidarrBlock::AddRootFolderPrompt,
-        None,
-      )
-      .handle();
-
-      assert_eq!(
-        app
-          .data
-          .lidarr_data
-          .edit_root_folder
-          .as_ref()
-          .unwrap()
-          .offset
-          .load(Ordering::SeqCst),
-        0
-      );
-    }
   }
 
   mod test_handle_submit {
-    use pretty_assertions::assert_eq;
-
     use crate::network::lidarr_network::LidarrEvent;
 
     use super::*;
+    use crate::assert_navigation_popped;
     use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::root_folder;
-    use crate::{assert_modal_absent, assert_navigation_popped};
 
     const SUBMIT_KEY: Key = DEFAULT_KEYBINDINGS.submit.key;
-
-    #[test]
-    fn test_add_root_folder_prompt_confirm_submit() {
-      let mut app = App::test_default();
-      let expected_add_root_folder_body = AddRootFolderBody {
-        path: "Test".to_owned(),
-      };
-      app
-        .data
-        .lidarr_data
-        .root_folders
-        .set_items(vec![RootFolder::default()]);
-      app.data.lidarr_data.edit_root_folder = Some("Test".into());
-      app.data.lidarr_data.prompt_confirm = true;
-      app.ignore_special_keys_for_textbox_input = true;
-      app.push_navigation_stack(ActiveLidarrBlock::RootFolders.into());
-      app.push_navigation_stack(ActiveLidarrBlock::AddRootFolderPrompt.into());
-
-      RootFoldersHandler::new(
-        SUBMIT_KEY,
-        &mut app,
-        ActiveLidarrBlock::AddRootFolderPrompt,
-        None,
-      )
-      .handle();
-
-      assert!(app.data.lidarr_data.prompt_confirm);
-      assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_eq!(
-        app.data.lidarr_data.prompt_confirm_action,
-        Some(LidarrEvent::AddRootFolder(expected_add_root_folder_body))
-      );
-      assert_navigation_popped!(app, ActiveLidarrBlock::RootFolders.into());
-      assert_modal_absent!(app.data.lidarr_data.edit_root_folder);
-    }
-
-    #[test]
-    fn test_add_root_folder_prompt_confirm_submit_noop_on_empty_folder() {
-      let mut app = App::test_default();
-      app.data.lidarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
-      app.data.lidarr_data.prompt_confirm = false;
-      app.ignore_special_keys_for_textbox_input = true;
-      app.push_navigation_stack(ActiveLidarrBlock::RootFolders.into());
-      app.push_navigation_stack(ActiveLidarrBlock::AddRootFolderPrompt.into());
-
-      RootFoldersHandler::new(
-        SUBMIT_KEY,
-        &mut app,
-        ActiveLidarrBlock::AddRootFolderPrompt,
-        None,
-      )
-      .handle();
-
-      assert!(!app.data.lidarr_data.prompt_confirm);
-      assert!(app.ignore_special_keys_for_textbox_input);
-      assert_modal_absent!(app.data.lidarr_data.prompt_confirm_action);
-      assert_eq!(
-        app.get_current_route(),
-        ActiveLidarrBlock::AddRootFolderPrompt.into()
-      );
-    }
 
     #[test]
     fn test_delete_root_folder_prompt_confirm_submit() {
@@ -400,29 +227,6 @@ mod tests {
       assert!(!app.data.lidarr_data.prompt_confirm);
     }
 
-    #[test]
-    fn test_add_root_folder_prompt_esc() {
-      let mut app = App::test_default();
-      app.push_navigation_stack(ActiveLidarrBlock::RootFolders.into());
-      app.push_navigation_stack(ActiveLidarrBlock::AddRootFolderPrompt.into());
-      app.data.lidarr_data.edit_root_folder = Some("/nfs/test".into());
-      app.ignore_special_keys_for_textbox_input = true;
-
-      RootFoldersHandler::new(
-        ESC_KEY,
-        &mut app,
-        ActiveLidarrBlock::AddRootFolderPrompt,
-        None,
-      )
-      .handle();
-
-      assert_navigation_popped!(app, ActiveLidarrBlock::RootFolders.into());
-
-      assert_modal_absent!(app.data.lidarr_data.edit_root_folder);
-      assert!(!app.data.lidarr_data.prompt_confirm);
-      assert!(!app.ignore_special_keys_for_textbox_input);
-    }
-
     #[rstest]
     fn test_default_esc(#[values(true, false)] is_ready: bool) {
       let mut app = App::test_default();
@@ -443,7 +247,7 @@ mod tests {
     use crate::assert_navigation_popped;
     use crate::network::lidarr_network::LidarrEvent;
     use crate::network::lidarr_network::lidarr_network_test_utils::test_utils::root_folder;
-    use pretty_assertions::{assert_eq, assert_str_eq};
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_root_folder_add() {
@@ -464,8 +268,7 @@ mod tests {
       .handle();
 
       assert_navigation_pushed!(app, ActiveLidarrBlock::AddRootFolderPrompt.into());
-      assert!(app.ignore_special_keys_for_textbox_input);
-      assert_modal_present!(app.data.lidarr_data.edit_root_folder);
+      assert_modal_present!(app.data.lidarr_data.add_root_folder_modal);
     }
 
     #[test]
@@ -491,8 +294,7 @@ mod tests {
         app.get_current_route(),
         ActiveLidarrBlock::RootFolders.into()
       );
-      assert!(!app.ignore_special_keys_for_textbox_input);
-      assert_modal_absent!(app.data.lidarr_data.edit_root_folder);
+      assert_none!(app.data.lidarr_data.add_root_folder_modal);
     }
 
     #[test]
@@ -544,56 +346,6 @@ mod tests {
     }
 
     #[test]
-    fn test_add_root_folder_prompt_backspace_key() {
-      let mut app = App::test_default();
-      app.push_navigation_stack(ActiveLidarrBlock::RootFolders.into());
-      app
-        .data
-        .lidarr_data
-        .root_folders
-        .set_items(vec![RootFolder::default()]);
-      app.data.lidarr_data.edit_root_folder = Some("/nfs/test".into());
-
-      RootFoldersHandler::new(
-        DEFAULT_KEYBINDINGS.backspace.key,
-        &mut app,
-        ActiveLidarrBlock::AddRootFolderPrompt,
-        None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app.data.lidarr_data.edit_root_folder.as_ref().unwrap().text,
-        "/nfs/tes"
-      );
-    }
-
-    #[test]
-    fn test_add_root_folder_prompt_char_key() {
-      let mut app = App::test_default();
-      app.push_navigation_stack(ActiveLidarrBlock::RootFolders.into());
-      app
-        .data
-        .lidarr_data
-        .root_folders
-        .set_items(vec![RootFolder::default()]);
-      app.data.lidarr_data.edit_root_folder = Some(HorizontallyScrollableText::default());
-
-      RootFoldersHandler::new(
-        Key::Char('a'),
-        &mut app,
-        ActiveLidarrBlock::AddRootFolderPrompt,
-        None,
-      )
-      .handle();
-
-      assert_str_eq!(
-        app.data.lidarr_data.edit_root_folder.as_ref().unwrap().text,
-        "a"
-      );
-    }
-
-    #[test]
     fn test_delete_root_folder_prompt_confirm() {
       let mut app = App::test_default();
       app
@@ -624,7 +376,9 @@ mod tests {
   #[test]
   fn test_root_folders_handler_accepts() {
     ActiveLidarrBlock::iter().for_each(|active_lidarr_block| {
-      if ROOT_FOLDERS_BLOCKS.contains(&active_lidarr_block) {
+      if ROOT_FOLDERS_BLOCKS.contains(&active_lidarr_block)
+        || ADD_ROOT_FOLDER_BLOCKS.contains(&active_lidarr_block)
+      {
         assert!(RootFoldersHandler::accepts(active_lidarr_block));
       } else {
         assert!(!RootFoldersHandler::accepts(active_lidarr_block));
@@ -669,26 +423,6 @@ mod tests {
     .extract_root_folder_id();
 
     assert_eq!(root_folder_id, 1);
-  }
-
-  #[test]
-  fn test_build_add_root_folder_body() {
-    let mut app = App::test_default();
-    app.data.lidarr_data.edit_root_folder = Some("/nfs/test".into());
-    let expected_add_root_folder_body = AddRootFolderBody {
-      path: "/nfs/test".to_owned(),
-    };
-
-    let root_folder = RootFoldersHandler::new(
-      DEFAULT_KEYBINDINGS.esc.key,
-      &mut app,
-      ActiveLidarrBlock::AddRootFolderPrompt,
-      None,
-    )
-    .build_add_root_folder_body();
-
-    assert_eq!(root_folder, expected_add_root_folder_body);
-    assert_modal_absent!(app.data.lidarr_data.edit_root_folder);
   }
 
   #[test]

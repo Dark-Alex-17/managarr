@@ -138,7 +138,7 @@ mod tests {
     assert_is_empty!(lidarr_data.disk_space_vec);
     assert_is_empty!(lidarr_data.downloads);
     assert_none!(lidarr_data.edit_artist_modal);
-    assert_none!(lidarr_data.edit_root_folder);
+    assert_none!(lidarr_data.add_root_folder_modal);
     assert_is_empty!(lidarr_data.history);
     assert_is_empty!(lidarr_data.metadata_profile_map);
     assert!(!lidarr_data.prompt_confirm);
@@ -409,9 +409,27 @@ mod tests {
 
   #[test]
   fn test_root_folders_blocks_contents() {
-    assert_eq!(ROOT_FOLDERS_BLOCKS.len(), 3);
+    assert_eq!(ROOT_FOLDERS_BLOCKS.len(), 2);
     assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveLidarrBlock::RootFolders));
-    assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderPrompt));
     assert!(ROOT_FOLDERS_BLOCKS.contains(&ActiveLidarrBlock::DeleteRootFolderPrompt));
+  }
+
+  #[test]
+  fn test_add_root_folder_blocks_contents() {
+    use crate::models::servarr_data::lidarr::lidarr_data::ADD_ROOT_FOLDER_BLOCKS;
+    assert_eq!(ADD_ROOT_FOLDER_BLOCKS.len(), 9);
+    assert!(ADD_ROOT_FOLDER_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderPrompt));
+    assert!(ADD_ROOT_FOLDER_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderConfirmPrompt));
+    assert!(ADD_ROOT_FOLDER_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderNameInput));
+    assert!(ADD_ROOT_FOLDER_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderPathInput));
+    assert!(ADD_ROOT_FOLDER_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderSelectMonitor));
+    assert!(
+      ADD_ROOT_FOLDER_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderSelectMonitorNewItems)
+    );
+    assert!(ADD_ROOT_FOLDER_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderSelectQualityProfile));
+    assert!(
+      ADD_ROOT_FOLDER_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderSelectMetadataProfile)
+    );
+    assert!(ADD_ROOT_FOLDER_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderTagsInput));
   }
 }

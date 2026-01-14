@@ -3,9 +3,10 @@ use log::info;
 
 use super::{NetworkEvent, NetworkResource};
 use crate::models::lidarr_models::{
-  AddArtistBody, DeleteParams, EditArtistParams, LidarrSerdeable, MetadataProfile,
+  AddArtistBody, AddLidarrRootFolderBody, DeleteParams, EditArtistParams, LidarrSerdeable,
+  MetadataProfile,
 };
-use crate::models::servarr_models::{AddRootFolderBody, QualityProfile, Tag};
+use crate::models::servarr_models::{QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
 
 mod downloads;
@@ -25,7 +26,7 @@ pub mod lidarr_network_test_utils;
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum LidarrEvent {
   AddArtist(AddArtistBody),
-  AddRootFolder(AddRootFolderBody),
+  AddRootFolder(AddLidarrRootFolderBody),
   AddTag(String),
   DeleteAlbum(DeleteParams),
   DeleteArtist(DeleteParams),
