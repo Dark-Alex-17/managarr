@@ -41,14 +41,30 @@ pub enum LidarrListCommand {
   },
   #[command(about = "List all Lidarr indexers")]
   Indexers,
+  #[command(about = "Fetch Lidarr logs")]
+  Logs {
+    #[arg(long, help = "How many log events to fetch", default_value_t = 500)]
+    events: u64,
+    #[arg(
+      long,
+      help = "Output the logs in the same format as they appear in the log files"
+    )]
+    output_in_log_format: bool,
+  },
   #[command(about = "List all Lidarr metadata profiles")]
   MetadataProfiles,
   #[command(about = "List all Lidarr quality profiles")]
   QualityProfiles,
+  #[command(about = "List all queued events")]
+  QueuedEvents,
   #[command(about = "List all root folders in Lidarr")]
   RootFolders,
   #[command(about = "List all Lidarr tags")]
   Tags,
+  #[command(about = "List all Lidarr tasks")]
+  Tasks,
+  #[command(about = "List all Lidarr updates")]
+  Updates,
 }
 
 impl From<LidarrListCommand> for Command {
@@ -58,7 +74,7 @@ impl From<LidarrListCommand> for Command {
 }
 
 pub(super) struct LidarrListCommandHandler<'a, 'b> {
-  _app: &'a Arc<Mutex<App<'b>>>,
+  app: &'a Arc<Mutex<App<'b>>>,
   command: LidarrListCommand,
   network: &'a mut dyn NetworkTrait,
 }
@@ -70,7 +86,7 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrListCommand> for LidarrListCommandH
     network: &'a mut dyn NetworkTrait,
   ) -> Self {
     LidarrListCommandHandler {
-      _app: app,
+      app,
       command,
       network,
     }
@@ -113,6 +129,23 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrListCommand> for LidarrListCommandH
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
+      LidarrListCommand::Logs {
+        events,
+        output_in_log_format,
+      } => {
+        let logs = self
+          .network
+          .handle_network_event(LidarrEvent::GetLogs(events).into())
+          .await?;
+
+        if output_in_log_format {
+          let log_lines = &self.app.lock().await.data.sonarr_data.logs.items;
+
+          serde_json::to_string_pretty(log_lines)?
+        } else {
+          serde_json::to_string_pretty(&logs)?
+        }
+      }
       LidarrListCommand::MetadataProfiles => {
         let resp = self
           .network
@@ -127,6 +160,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrListCommand> for LidarrListCommandH
           .await?;
         serde_json::to_string_pretty(&resp)?
       }
+      LidarrListCommand::QueuedEvents => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetQueuedEvents.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
       LidarrListCommand::RootFolders => {
         let resp = self
           .network
@@ -138,6 +178,20 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrListCommand> for LidarrListCommandH
         let resp = self
           .network
           .handle_network_event(LidarrEvent::GetTags.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrListCommand::Tasks => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetTasks.into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrListCommand::Updates => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::GetUpdates.into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

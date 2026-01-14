@@ -3,7 +3,7 @@ source: src/ui/lidarr_ui/lidarr_ui_tests.rs
 expression: output
 ---
 ╭  Artists  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ Library │ Downloads │ History │ Root Folders │ Indexers                                                                                                           │
+│ Library │ Downloads │ History │ Root Folders │ Indexers │ System                                                                                                  │
 │───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────│
 │   Path                                                                                           Free Space                       Unmapped Folders                │
 │=> /nfs                                                                                           204800.00 GB                     0                               │

@@ -5,13 +5,15 @@ use super::{
     SecurityConfig, Tag,
   },
 };
-use crate::models::servarr_models::IndexerSettings;
+use crate::models::servarr_models::{IndexerSettings, LogResponse, QueueEvent, Update};
 use crate::serde_enum_from;
 use chrono::{DateTime, Utc};
+use clap::ValueEnum;
 use derivative::Derivative;
 use enum_display_style_derive::EnumDisplayStyle;
 use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
+use std::fmt::{Display, Formatter};
 use strum::{Display, EnumIter};
 
 #[cfg(test)]
@@ -426,6 +428,42 @@ pub struct LidarrHistoryItem {
   pub data: LidarrHistoryData,
 }
 
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LidarrTask {
+  pub name: String,
+  pub task_name: LidarrTaskName,
+  #[serde(deserialize_with = "super::from_i64")]
+  pub interval: i64,
+  pub last_execution: DateTime<Utc>,
+  pub next_execution: DateTime<Utc>,
+}
+
+#[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Copy, ValueEnum)]
+#[serde(rename_all = "PascalCase")]
+pub enum LidarrTaskName {
+  #[default]
+  ApplicationUpdateCheck,
+  Backup,
+  CheckHealth,
+  Housekeeping,
+  ImportListSync,
+  MessagingCleanup,
+  RefreshArtist,
+  RefreshMonitoredDownloads,
+  RescanFolders,
+  RssSync,
+}
+
+impl Display for LidarrTaskName {
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    let task_name = serde_json::to_string(&self)
+      .expect("Unable to serialize task name")
+      .replace('"', "");
+    write!(f, "{task_name}")
+  }
+}
+
 impl From<LidarrSerdeable> for Serdeable {
   fn from(value: LidarrSerdeable) -> Serdeable {
     Serdeable::Lidarr(value)
@@ -446,13 +484,17 @@ serde_enum_from!(
     IndexerSettings(IndexerSettings),
     Indexers(Vec<Indexer>),
     IndexerTestResults(Vec<IndexerTestResult>),
+    LogResponse(LogResponse),
     MetadataProfiles(Vec<MetadataProfile>),
     QualityProfiles(Vec<QualityProfile>),
+    QueueEvents(Vec<QueueEvent>),
     RootFolders(Vec<RootFolder>),
     SecurityConfig(SecurityConfig),
     SystemStatus(SystemStatus),
     Tag(Tag),
     Tags(Vec<Tag>),
+    Tasks(Vec<LidarrTask>),
+    Updates(Vec<Update>),
     Value(Value),
   }
 );

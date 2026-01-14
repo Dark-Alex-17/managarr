@@ -4,7 +4,7 @@ mod test {
     BARE_POPUP_CONTEXT_CLUES, BLOCKLIST_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES,
     ContextClueProvider, DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
     ROOT_FOLDERS_CONTEXT_CLUES, SERVARR_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
-    ServarrContextClueProvider,
+    SYSTEM_TASKS_CONTEXT_CLUES, ServarrContextClueProvider,
   };
   use crate::app::{App, key_binding::DEFAULT_KEYBINDINGS};
   use crate::models::servarr_data::ActiveKeybindingBlock;
@@ -269,16 +269,28 @@ mod test {
   }
 
   #[test]
+  fn test_system_tasks_context_clues() {
+    let mut system_tasks_context_clues_iter = SYSTEM_TASKS_CONTEXT_CLUES.iter();
+
+    assert_some_eq_x!(
+      system_tasks_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.submit, "start task")
+    );
+    assert_some_eq_x!(
+      system_tasks_context_clues_iter.next(),
+      &(DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc)
+    );
+    assert_none!(system_tasks_context_clues_iter.next());
+  }
+
+  #[test]
   fn test_servarr_context_clue_provider_delegates_to_radarr_provider() {
     let mut app = App::test_default();
     app.push_navigation_stack(ActiveRadarrBlock::SystemTasks.into());
 
     let context_clues = ServarrContextClueProvider::get_context_clues(&mut app);
 
-    assert_some_eq_x!(
-      context_clues,
-      &crate::app::radarr::radarr_context_clues::SYSTEM_TASKS_CONTEXT_CLUES,
-    );
+    assert_some_eq_x!(context_clues, &SYSTEM_TASKS_CONTEXT_CLUES,);
   }
 
   #[test]
@@ -288,10 +300,7 @@ mod test {
 
     let context_clues = ServarrContextClueProvider::get_context_clues(&mut app);
 
-    assert_some_eq_x!(
-      context_clues,
-      &crate::app::sonarr::sonarr_context_clues::SYSTEM_TASKS_CONTEXT_CLUES,
-    );
+    assert_some_eq_x!(context_clues, &SYSTEM_TASKS_CONTEXT_CLUES,);
   }
 
   #[test]

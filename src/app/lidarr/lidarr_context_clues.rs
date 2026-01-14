@@ -1,6 +1,7 @@
 use crate::app::App;
 use crate::app::context_clues::{
   BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES, ContextClue, ContextClueProvider,
+  SYSTEM_TASKS_CONTEXT_CLUES,
 };
 use crate::app::key_binding::DEFAULT_KEYBINDINGS;
 use crate::models::Route;
@@ -73,7 +74,9 @@ impl ContextClueProvider for LidarrContextClueProvider {
         .get_active_route_contextual_help(),
       ActiveLidarrBlock::AddArtistSearchInput
       | ActiveLidarrBlock::AddArtistEmptySearchResults
-      | ActiveLidarrBlock::TestAllIndexers => Some(&BARE_POPUP_CONTEXT_CLUES),
+      | ActiveLidarrBlock::TestAllIndexers
+      | ActiveLidarrBlock::SystemLogs
+      | ActiveLidarrBlock::SystemUpdates => Some(&BARE_POPUP_CONTEXT_CLUES),
       _ if EDIT_ARTIST_BLOCKS.contains(&active_lidarr_block)
         || EDIT_INDEXER_BLOCKS.contains(&active_lidarr_block)
         || INDEXER_SETTINGS_BLOCKS.contains(&active_lidarr_block)
@@ -92,6 +95,7 @@ impl ContextClueProvider for LidarrContextClueProvider {
       _ if ADD_ARTIST_BLOCKS.contains(&active_lidarr_block) => {
         Some(&ADD_ARTIST_SEARCH_RESULTS_CONTEXT_CLUES)
       }
+      ActiveLidarrBlock::SystemTasks => Some(&SYSTEM_TASKS_CONTEXT_CLUES),
       _ => app
         .data
         .lidarr_data

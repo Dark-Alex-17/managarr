@@ -5,6 +5,7 @@ use library::LibraryHandler;
 use super::KeyEventHandler;
 use crate::handlers::lidarr_handlers::downloads::DownloadsHandler;
 use crate::handlers::lidarr_handlers::root_folders::RootFoldersHandler;
+use crate::handlers::lidarr_handlers::system::SystemHandler;
 use crate::models::Route;
 use crate::{
   app::App, event::Key, matches_key, models::servarr_data::lidarr::lidarr_data::ActiveLidarrBlock,
@@ -14,11 +15,12 @@ mod downloads;
 mod history;
 mod indexers;
 mod library;
+mod root_folders;
+mod system;
 
 #[cfg(test)]
 #[path = "lidarr_handler_tests.rs"]
 mod lidarr_handler_tests;
-mod root_folders;
 
 pub(super) struct LidarrHandler<'a, 'b> {
   key: Key,
@@ -46,16 +48,15 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LidarrHandler<'a, 'b
       _ if IndexersHandler::accepts(self.active_lidarr_block) => {
         IndexersHandler::new(self.key, self.app, self.active_lidarr_block, self.context).handle();
       }
+      _ if SystemHandler::accepts(self.active_lidarr_block) => {
+        SystemHandler::new(self.key, self.app, self.active_lidarr_block, self.context).handle();
+      }
       _ => self.handle_key_event(),
     }
   }
 
   fn accepts(_active_block: ActiveLidarrBlock) -> bool {
     true
-  }
-
-  fn ignore_special_keys(&self) -> bool {
-    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn new(
@@ -74,6 +75,10 @@ impl<'a, 'b> KeyEventHandler<'a, 'b, ActiveLidarrBlock> for LidarrHandler<'a, 'b
 
   fn get_key(&self) -> Key {
     self.key
+  }
+
+  fn ignore_special_keys(&self) -> bool {
+    self.app.ignore_special_keys_for_textbox_input
   }
 
   fn is_ready(&self) -> bool {

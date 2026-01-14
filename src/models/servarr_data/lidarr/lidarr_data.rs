@@ -3,15 +3,17 @@ use serde_json::Number;
 use super::modals::{AddArtistModal, AddRootFolderModal, EditArtistModal};
 use crate::app::context_clues::{
   DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
-  ROOT_FOLDERS_CONTEXT_CLUES,
+  ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
 };
 use crate::app::lidarr::lidarr_context_clues::{
   ARTIST_DETAILS_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
 };
+use crate::models::lidarr_models::LidarrTask;
 use crate::models::servarr_data::modals::EditIndexerModal;
-use crate::models::servarr_models::IndexerSettings;
+use crate::models::servarr_models::{IndexerSettings, QueueEvent};
+use crate::models::stateful_list::StatefulList;
 use crate::models::{
-  BlockSelectionState, HorizontallyScrollableText, Route, TabRoute, TabState,
+  BlockSelectionState, HorizontallyScrollableText, Route, ScrollableText, TabRoute, TabState,
   lidarr_models::{AddArtistSearchResult, Album, Artist, DownloadRecord, LidarrHistoryItem},
   servarr_data::modals::IndexerTestResultModalItem,
   servarr_models::{DiskSpace, Indexer, RootFolder},
@@ -32,8 +34,11 @@ use {
     add_artist_search_result, album, artist, download_record, indexer, lidarr_history_item,
     metadata_profile, metadata_profile_map, quality_profile, root_folder, tags_map,
   },
+  crate::network::lidarr_network::lidarr_network_test_utils::test_utils::{log_line, task},
   crate::network::servarr_test_utils::diskspace,
   crate::network::servarr_test_utils::indexer_test_result,
+  crate::network::servarr_test_utils::queued_event,
+  crate::network::sonarr_network::sonarr_network_test_utils::test_utils::updates,
   strum::{Display, EnumString, IntoEnumIterator},
 };
 
@@ -60,15 +65,20 @@ pub struct LidarrData<'a> {
   pub indexer_settings: Option<IndexerSettings>,
   pub indexer_test_all_results: Option<StatefulTable<IndexerTestResultModalItem>>,
   pub indexer_test_errors: Option<String>,
+  pub logs: StatefulList<HorizontallyScrollableText>,
+  pub log_details: StatefulList<HorizontallyScrollableText>,
   pub main_tabs: TabState,
   pub metadata_profile_map: BiMap<i64, String>,
   pub prompt_confirm: bool,
   pub prompt_confirm_action: Option<LidarrEvent>,
   pub quality_profile_map: BiMap<i64, String>,
+  pub queued_events: StatefulTable<QueueEvent>,
   pub root_folders: StatefulTable<RootFolder>,
   pub selected_block: BlockSelectionState<'a, ActiveLidarrBlock>,
   pub start_time: DateTime<Utc>,
   pub tags_map: BiMap<i64, String>,
+  pub tasks: StatefulTable<LidarrTask>,
+  pub updates: ScrollableText,
   pub version: String,
 }
 
@@ -135,14 +145,19 @@ impl<'a> Default for LidarrData<'a> {
       indexer_settings: None,
       indexer_test_all_results: None,
       indexer_test_errors: None,
+      logs: StatefulList::default(),
+      log_details: StatefulList::default(),
       metadata_profile_map: BiMap::new(),
       prompt_confirm: false,
       prompt_confirm_action: None,
       quality_profile_map: BiMap::new(),
+      queued_events: StatefulTable::default(),
       root_folders: StatefulTable::default(),
       selected_block: BlockSelectionState::default(),
       start_time: DateTime::default(),
       tags_map: BiMap::new(),
+      tasks: StatefulTable::default(),
+      updates: ScrollableText::default(),
       version: String::new(),
       main_tabs: TabState::new(vec![
         TabRoute {
@@ -173,6 +188,12 @@ impl<'a> Default for LidarrData<'a> {
           title: "Indexers".to_string(),
           route: ActiveLidarrBlock::Indexers.into(),
           contextual_help: Some(&INDEXERS_CONTEXT_CLUES),
+          config: None,
+        },
+        TabRoute {
+          title: "System".to_string(),
+          route: ActiveLidarrBlock::System.into(),
+          contextual_help: Some(&SYSTEM_CONTEXT_CLUES),
           config: None,
         },
       ]),
@@ -270,7 +291,10 @@ impl LidarrData<'_> {
       indexer_settings: Some(indexer_settings()),
       indexer_test_all_results: Some(indexer_test_all_results),
       indexer_test_errors: Some("error".to_string()),
+      start_time: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap()),
       tags_map: tags_map(),
+      updates: updates(),
+      version: "1.2.3.4".to_owned(),
       ..LidarrData::default()
     };
     lidarr_data.albums.set_items(vec![album()]);
@@ -292,11 +316,14 @@ impl LidarrData<'_> {
     lidarr_data.history.filter = Some("test filter".into());
     lidarr_data.root_folders.set_items(vec![root_folder()]);
     lidarr_data.indexers.set_items(vec![indexer()]);
-    lidarr_data.version = "1.0.0".to_owned();
+    lidarr_data.queued_events.set_items(vec![queued_event()]);
     lidarr_data.add_artist_search = Some("Test Artist".into());
     let mut add_searched_artists = StatefulTable::default();
     add_searched_artists.set_items(vec![add_artist_search_result()]);
     lidarr_data.add_searched_artists = Some(add_searched_artists);
+    lidarr_data.logs.set_items(vec![log_line().into()]);
+    lidarr_data.log_details.set_items(vec![log_line().into()]);
+    lidarr_data.tasks.set_items(vec![task()]);
 
     lidarr_data
   }
@@ -385,6 +412,12 @@ pub enum ActiveLidarrBlock {
   SearchArtistsError,
   SearchHistory,
   SearchHistoryError,
+  System,
+  SystemLogs,
+  SystemQueuedEvents,
+  SystemTasks,
+  SystemTaskStartConfirmPrompt,
+  SystemUpdates,
   UpdateAllArtistsPrompt,
   UpdateAndScanArtistPrompt,
   UpdateDownloadsPrompt,
@@ -609,6 +642,14 @@ pub static INDEXERS_BLOCKS: [ActiveLidarrBlock; 3] = [
   ActiveLidarrBlock::Indexers,
   ActiveLidarrBlock::DeleteIndexerPrompt,
   ActiveLidarrBlock::TestIndexer,
+];
+
+pub static SYSTEM_DETAILS_BLOCKS: [ActiveLidarrBlock; 5] = [
+  ActiveLidarrBlock::SystemLogs,
+  ActiveLidarrBlock::SystemQueuedEvents,
+  ActiveLidarrBlock::SystemTasks,
+  ActiveLidarrBlock::SystemTaskStartConfirmPrompt,
+  ActiveLidarrBlock::SystemUpdates,
 ];
 
 impl From<ActiveLidarrBlock> for Route {

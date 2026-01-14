@@ -30,7 +30,10 @@ mod tests {
         "indexers",
         "metadata-profiles",
         "quality-profiles",
+        "queued-events",
         "tags",
+        "tasks",
+        "updates",
         "root-folders"
       )]
       subcommand: &str,
@@ -111,6 +114,31 @@ mod tests {
       };
       assert_eq!(history_command, expected_args);
     }
+
+    #[test]
+    fn test_list_logs_events_flag_requires_arguments() {
+      let result =
+        Cli::command().try_get_matches_from(["managarr", "lidarr", "list", "logs", "--events"]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[test]
+    fn test_list_logs_default_values() {
+      let expected_args = LidarrListCommand::Logs {
+        events: 500,
+        output_in_log_format: false,
+      };
+      let result = Cli::try_parse_from(["managarr", "lidarr", "list", "logs"]);
+
+      assert_ok!(&result);
+
+      let Some(Command::Lidarr(LidarrCommand::List(logs_command))) = result.unwrap().command else {
+        panic!("Unexpected command type");
+      };
+      assert_eq!(logs_command, expected_args);
+    }
   }
 
   mod handler {
@@ -136,8 +164,11 @@ mod tests {
     #[case(LidarrListCommand::Indexers, LidarrEvent::GetIndexers)]
     #[case(LidarrListCommand::MetadataProfiles, LidarrEvent::GetMetadataProfiles)]
     #[case(LidarrListCommand::QualityProfiles, LidarrEvent::GetQualityProfiles)]
+    #[case(LidarrListCommand::QueuedEvents, LidarrEvent::GetQueuedEvents)]
     #[case(LidarrListCommand::RootFolders, LidarrEvent::GetRootFolders)]
     #[case(LidarrListCommand::Tags, LidarrEvent::GetTags)]
+    #[case(LidarrListCommand::Tasks, LidarrEvent::GetTasks)]
+    #[case(LidarrListCommand::Updates, LidarrEvent::GetUpdates)]
     #[tokio::test]
     async fn test_handle_list_command(
       #[case] list_command: LidarrListCommand,
@@ -232,6 +263,34 @@ mod tests {
         LidarrListCommandHandler::with(&app_arc, list_history_command, &mut mock_network)
           .handle()
           .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_handle_list_logs_command() {
+      let expected_events = 1000;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::GetLogs(expected_events).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let list_logs_command = LidarrListCommand::Logs {
+        events: 1000,
+        output_in_log_format: false,
+      };
+
+      let result = LidarrListCommandHandler::with(&app_arc, list_logs_command, &mut mock_network)
+        .handle()
+        .await;
 
       assert_ok!(&result);
     }

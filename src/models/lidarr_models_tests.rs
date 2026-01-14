@@ -6,12 +6,12 @@ mod tests {
 
   use crate::models::lidarr_models::{
     AddArtistSearchResult, Album, DownloadRecord, DownloadStatus, DownloadsResponse,
-    LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, Member, MetadataProfile,
-    MonitorType, NewItemMonitorType, SystemStatus,
+    LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, LidarrTask, Member,
+    MetadataProfile, MonitorType, NewItemMonitorType, SystemStatus,
   };
   use crate::models::servarr_models::{
-    DiskSpace, HostConfig, Indexer, IndexerSettings, IndexerTestResult, QualityProfile, RootFolder,
-    SecurityConfig, Tag,
+    DiskSpace, HostConfig, Indexer, IndexerSettings, IndexerTestResult, Log, LogResponse,
+    QualityProfile, QueueEvent, RootFolder, SecurityConfig, Tag, Update,
   };
   use crate::models::{
     Serdeable,
@@ -364,6 +364,20 @@ mod tests {
   }
 
   #[test]
+  fn test_lidarr_serdeable_from_log_response() {
+    let log_response = LogResponse {
+      records: vec![Log {
+        level: "info".to_owned(),
+        ..Log::default()
+      }],
+    };
+
+    let lidarr_serdeable: LidarrSerdeable = log_response.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::LogResponse(log_response));
+  }
+
+  #[test]
   fn test_lidarr_serdeable_from_metadata_profiles() {
     let metadata_profiles = vec![MetadataProfile {
       id: 1,
@@ -403,6 +417,18 @@ mod tests {
       lidarr_serdeable,
       LidarrSerdeable::QualityProfiles(quality_profiles)
     );
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_queue_events() {
+    let queue_events = vec![QueueEvent {
+      trigger: "test".to_owned(),
+      ..QueueEvent::default()
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = queue_events.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::QueueEvents(queue_events));
   }
 
   #[test]
@@ -499,6 +525,30 @@ mod tests {
     let lidarr_serdeable: LidarrSerdeable = album.clone().into();
 
     assert_eq!(lidarr_serdeable, LidarrSerdeable::Album(album));
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_tasks() {
+    let tasks = vec![LidarrTask {
+      name: "test".to_owned(),
+      ..LidarrTask::default()
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = tasks.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::Tasks(tasks));
+  }
+
+  #[test]
+  fn test_lidarr_serdeable_from_updates() {
+    let updates = vec![Update {
+      version: "test".to_owned(),
+      ..Update::default()
+    }];
+
+    let lidarr_serdeable: LidarrSerdeable = updates.clone().into();
+
+    assert_eq!(lidarr_serdeable, LidarrSerdeable::Updates(updates));
   }
 
   #[test]

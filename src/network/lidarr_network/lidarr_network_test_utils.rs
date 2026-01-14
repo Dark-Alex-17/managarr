@@ -1,19 +1,20 @@
 #[cfg(test)]
 #[allow(dead_code)]
 pub mod test_utils {
-  use crate::models::HorizontallyScrollableText;
   use crate::models::lidarr_models::{
     AddArtistSearchResult, Album, AlbumStatistics, Artist, ArtistStatistics, ArtistStatus,
     DownloadRecord, DownloadStatus, DownloadsResponse, EditArtistParams, LidarrHistoryData,
-    LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, Member, MetadataProfile,
-    NewItemMonitorType, Ratings, SystemStatus,
+    LidarrHistoryEventType, LidarrHistoryItem, LidarrHistoryWrapper, LidarrTask, LidarrTaskName,
+    Member, MetadataProfile, NewItemMonitorType, Ratings, SystemStatus,
   };
   use crate::models::servarr_models::IndexerSettings;
   use crate::models::servarr_models::{
     Indexer, IndexerField, Quality, QualityProfile, QualityWrapper, RootFolder, Tag,
   };
+  use crate::models::{HorizontallyScrollableText, ScrollableText};
   use bimap::BiMap;
   use chrono::DateTime;
+  use indoc::formatdoc;
   use serde_json::{Number, json};
 
   pub const ADD_ARTIST_SEARCH_RESULT_JSON: &str = r#"{
@@ -332,5 +333,48 @@ pub mod test_utils {
       maximum_size: 12345,
       rss_sync_interval: 60,
     }
+  }
+
+  pub fn task() -> LidarrTask {
+    LidarrTask {
+      name: "Backup".to_owned(),
+      task_name: LidarrTaskName::Backup,
+      interval: 60,
+      last_execution: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T21:29:16Z").unwrap()),
+      next_execution: DateTime::from(DateTime::parse_from_rfc3339("2023-05-20T22:29:16Z").unwrap()),
+    }
+  }
+
+  pub fn log_line() -> &'static str {
+    "2025-12-16 16:40:59 UTC|INFO|ImportListSyncService|No list items to process"
+  }
+
+  pub fn updates() -> ScrollableText {
+    let line_break = "-".repeat(200);
+    ScrollableText::with_string(formatdoc!(
+      "
+    The latest version of Lidarr is already installed
+
+    4.3.2.1 - 2023-04-15 02:02:53 UTC (Currently Installed)
+    {line_break}
+    New:
+      * Cool new thing
+    Fixed:
+      * Some bugs killed
+
+
+    3.2.1.0 - 2023-04-15 02:02:53 UTC (Previously Installed)
+    {line_break}
+    New:
+      * Cool new thing (old)
+      * Other cool new thing (old)
+
+
+    2.1.0 - 2023-04-15 02:02:53 UTC
+    {line_break}
+    Fixed:
+      * Killed bug 1
+      * Fixed bug 2"
+    ))
   }
 }

@@ -90,7 +90,9 @@ mod tests {
       LidarrEvent::UpdateAllArtists,
       LidarrEvent::TriggerAutomaticArtistSearch(0),
       LidarrEvent::UpdateAndScanArtist(0),
-      LidarrEvent::UpdateDownloads
+      LidarrEvent::UpdateDownloads,
+      LidarrEvent::GetQueuedEvents,
+      LidarrEvent::StartTask(Default::default())
     )]
     event: LidarrEvent,
   ) {
@@ -128,6 +130,9 @@ mod tests {
   #[case(LidarrEvent::GetQualityProfiles, "/qualityprofile")]
   #[case(LidarrEvent::GetStatus, "/system/status")]
   #[case(LidarrEvent::GetTags, "/tag")]
+  #[case(LidarrEvent::GetLogs(500), "/log")]
+  #[case(LidarrEvent::GetTasks, "/system/task")]
+  #[case(LidarrEvent::GetUpdates, "/update")]
   #[case(LidarrEvent::HealthCheck, "/health")]
   #[case(LidarrEvent::MarkHistoryItemAsFailed(0), "/history/failed")]
   #[case(LidarrEvent::TestIndexer(0), "/indexer/test")]

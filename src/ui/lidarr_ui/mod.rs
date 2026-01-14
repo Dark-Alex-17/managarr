@@ -26,6 +26,7 @@ use super::{
 use crate::ui::lidarr_ui::downloads::DownloadsUi;
 use crate::ui::lidarr_ui::indexers::IndexersUi;
 use crate::ui::lidarr_ui::root_folders::RootFoldersUi;
+use crate::ui::lidarr_ui::system::SystemUi;
 use crate::{
   app::App,
   logos::LIDARR_LOGO,
@@ -43,11 +44,12 @@ mod history;
 mod indexers;
 mod library;
 mod lidarr_ui_utils;
+mod root_folders;
+mod system;
 
 #[cfg(test)]
 #[path = "lidarr_ui_tests.rs"]
 mod lidarr_ui_tests;
-mod root_folders;
 
 pub(super) struct LidarrUi;
 
@@ -66,6 +68,7 @@ impl DrawUi for LidarrUi {
       _ if HistoryUi::accepts(route) => HistoryUi::draw(f, app, content_area),
       _ if RootFoldersUi::accepts(route) => RootFoldersUi::draw(f, app, content_area),
       _ if IndexersUi::accepts(route) => IndexersUi::draw(f, app, content_area),
+      _ if SystemUi::accepts(route) => SystemUi::draw(f, app, content_area),
       _ => (),
     }
   }

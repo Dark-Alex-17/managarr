@@ -135,6 +135,44 @@ mod tests {
     }
 
     #[test]
+    fn test_start_task_requires_task_name() {
+      let result = Cli::command().try_get_matches_from(["managarr", "sonarr", "start-task"]);
+
+      assert_err!(&result);
+      assert_eq!(
+        result.unwrap_err().kind(),
+        ErrorKind::MissingRequiredArgument
+      );
+    }
+
+    #[test]
+    fn test_start_task_task_name_validation() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "start-task",
+        "--task-name",
+        "test",
+      ]);
+
+      assert_err!(&result);
+      assert_eq!(result.unwrap_err().kind(), ErrorKind::InvalidValue);
+    }
+
+    #[test]
+    fn test_start_task_requirements_satisfied() {
+      let result = Cli::command().try_get_matches_from([
+        "managarr",
+        "lidarr",
+        "start-task",
+        "--task-name",
+        "application-update-check",
+      ]);
+
+      assert_ok!(&result);
+    }
+
+    #[test]
     fn test_mark_history_item_as_failed_requires_history_item_id() {
       let result =
         Cli::command().try_get_matches_from(["managarr", "lidarr", "mark-history-item-as-failed"]);
@@ -196,6 +234,7 @@ mod tests {
     use crate::cli::lidarr::get_command_handler::LidarrGetCommand;
     use crate::cli::lidarr::refresh_command_handler::LidarrRefreshCommand;
     use crate::cli::lidarr::trigger_automatic_search_command_handler::LidarrTriggerAutomaticSearchCommand;
+    use crate::models::lidarr_models::LidarrTaskName;
     use crate::models::servarr_models::IndexerSettings;
     use crate::{
       app::App,
@@ -478,6 +517,33 @@ mod tests {
       };
 
       let result = LidarrCliHandler::with(&app_arc, search_new_artist_command, &mut mock_network)
+        .handle()
+        .await;
+
+      assert_ok!(&result);
+    }
+
+    #[tokio::test]
+    async fn test_start_task_command() {
+      let expected_task_name = LidarrTaskName::ApplicationUpdateCheck;
+      let mut mock_network = MockNetworkTrait::new();
+      mock_network
+        .expect_handle_network_event()
+        .with(eq::<NetworkEvent>(
+          LidarrEvent::StartTask(expected_task_name).into(),
+        ))
+        .times(1)
+        .returning(|_| {
+          Ok(Serdeable::Lidarr(LidarrSerdeable::Value(
+            json!({"testResponse": "response"}),
+          )))
+        });
+      let app_arc = Arc::new(Mutex::new(App::test_default()));
+      let start_task_command = LidarrCommand::StartTask {
+        task_name: LidarrTaskName::ApplicationUpdateCheck,
+      };
+
+      let result = LidarrCliHandler::with(&app_arc, start_task_command, &mut mock_network)
         .handle()
         .await;
 

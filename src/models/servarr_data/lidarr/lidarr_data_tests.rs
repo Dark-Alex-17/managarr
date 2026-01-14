@@ -2,7 +2,7 @@
 mod tests {
   use crate::app::context_clues::{
     DOWNLOADS_CONTEXT_CLUES, HISTORY_CONTEXT_CLUES, INDEXERS_CONTEXT_CLUES,
-    ROOT_FOLDERS_CONTEXT_CLUES,
+    ROOT_FOLDERS_CONTEXT_CLUES, SYSTEM_CONTEXT_CLUES,
   };
   use crate::app::lidarr::lidarr_context_clues::{
     ARTIST_DETAILS_CONTEXT_CLUES, ARTISTS_CONTEXT_CLUES,
@@ -14,7 +14,7 @@ mod tests {
     DELETE_ARTIST_SELECTION_BLOCKS, DOWNLOADS_BLOCKS, EDIT_ARTIST_BLOCKS,
     EDIT_ARTIST_SELECTION_BLOCKS, EDIT_INDEXER_BLOCKS, EDIT_INDEXER_NZB_SELECTION_BLOCKS,
     EDIT_INDEXER_TORRENT_SELECTION_BLOCKS, HISTORY_BLOCKS, INDEXER_SETTINGS_BLOCKS,
-    INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS, ROOT_FOLDERS_BLOCKS,
+    INDEXER_SETTINGS_SELECTION_BLOCKS, INDEXERS_BLOCKS, ROOT_FOLDERS_BLOCKS, SYSTEM_DETAILS_BLOCKS,
   };
   use crate::models::{
     BlockSelectionState, Route,
@@ -143,17 +143,22 @@ mod tests {
     assert_none!(lidarr_data.edit_artist_modal);
     assert_none!(lidarr_data.add_root_folder_modal);
     assert_is_empty!(lidarr_data.history);
+    assert_is_empty!(lidarr_data.logs);
+    assert_is_empty!(lidarr_data.log_details);
     assert_is_empty!(lidarr_data.metadata_profile_map);
     assert!(!lidarr_data.prompt_confirm);
     assert_none!(lidarr_data.prompt_confirm_action);
     assert_is_empty!(lidarr_data.quality_profile_map);
+    assert_is_empty!(lidarr_data.queued_events);
     assert_is_empty!(lidarr_data.root_folders);
     assert_eq!(lidarr_data.selected_block, BlockSelectionState::default());
     assert_eq!(lidarr_data.start_time, <DateTime<Utc>>::default());
     assert_is_empty!(lidarr_data.tags_map);
+    assert_is_empty!(lidarr_data.tasks);
+    assert_is_empty!(lidarr_data.updates);
     assert_is_empty!(lidarr_data.version);
 
-    assert_eq!(lidarr_data.main_tabs.tabs.len(), 5);
+    assert_eq!(lidarr_data.main_tabs.tabs.len(), 6);
 
     assert_str_eq!(lidarr_data.main_tabs.tabs[0].title, "Library");
     assert_eq!(
@@ -209,6 +214,17 @@ mod tests {
       &INDEXERS_CONTEXT_CLUES
     );
     assert_none!(lidarr_data.main_tabs.tabs[4].config);
+
+    assert_str_eq!(lidarr_data.main_tabs.tabs[5].title, "System");
+    assert_eq!(
+      lidarr_data.main_tabs.tabs[5].route,
+      ActiveLidarrBlock::System.into()
+    );
+    assert_some_eq_x!(
+      &lidarr_data.main_tabs.tabs[5].contextual_help,
+      &SYSTEM_CONTEXT_CLUES
+    );
+    assert_none!(lidarr_data.main_tabs.tabs[5].config);
 
     assert_eq!(lidarr_data.artist_info_tabs.tabs.len(), 1);
     assert_str_eq!(lidarr_data.artist_info_tabs.tabs[0].title, "Albums");
@@ -604,5 +620,15 @@ mod tests {
       ADD_ROOT_FOLDER_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderSelectMetadataProfile)
     );
     assert!(ADD_ROOT_FOLDER_BLOCKS.contains(&ActiveLidarrBlock::AddRootFolderTagsInput));
+  }
+
+  #[test]
+  fn test_system_details_blocks_contents() {
+    assert_eq!(SYSTEM_DETAILS_BLOCKS.len(), 5);
+    assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SystemLogs));
+    assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SystemQueuedEvents));
+    assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SystemTasks));
+    assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SystemTaskStartConfirmPrompt));
+    assert!(SYSTEM_DETAILS_BLOCKS.contains(&ActiveLidarrBlock::SystemUpdates));
   }
 }

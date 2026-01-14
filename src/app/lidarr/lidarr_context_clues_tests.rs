@@ -3,6 +3,7 @@ mod tests {
   use crate::app::App;
   use crate::app::context_clues::{
     BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES, ContextClue, ContextClueProvider,
+    SYSTEM_TASKS_CONTEXT_CLUES,
   };
   use crate::app::key_binding::DEFAULT_KEYBINDINGS;
   use crate::app::lidarr::lidarr_context_clues::{
@@ -265,5 +266,15 @@ mod tests {
     let context_clues = LidarrContextClueProvider::get_context_clues(&mut app);
 
     assert_some_eq_x!(context_clues, &CONFIRMATION_PROMPT_CONTEXT_CLUES);
+  }
+
+  #[test]
+  fn test_sonarr_context_clue_provider_system_tasks_clues() {
+    let mut app = App::test_default();
+
+    app.push_navigation_stack(ActiveLidarrBlock::SystemTasks.into());
+    let context_clues = LidarrContextClueProvider::get_context_clues(&mut app);
+
+    assert_some_eq_x!(context_clues, &SYSTEM_TASKS_CONTEXT_CLUES);
   }
 }

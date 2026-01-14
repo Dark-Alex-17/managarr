@@ -80,6 +80,22 @@ impl App<'_> {
           .dispatch_network_event(LidarrEvent::TestAllIndexers.into())
           .await;
       }
+      ActiveLidarrBlock::System => {
+        self
+          .dispatch_network_event(LidarrEvent::GetTasks.into())
+          .await;
+        self
+          .dispatch_network_event(LidarrEvent::GetQueuedEvents.into())
+          .await;
+        self
+          .dispatch_network_event(LidarrEvent::GetLogs(500).into())
+          .await;
+      }
+      ActiveLidarrBlock::SystemUpdates => {
+        self
+          .dispatch_network_event(LidarrEvent::GetUpdates.into())
+          .await;
+      }
       _ => (),
     }
 

@@ -14,10 +14,10 @@ use trigger_automatic_search_command_handler::{
   LidarrTriggerAutomaticSearchCommand, LidarrTriggerAutomaticSearchCommandHandler,
 };
 
+use super::{CliCommandHandler, Command};
+use crate::models::lidarr_models::LidarrTaskName;
 use crate::network::lidarr_network::LidarrEvent;
 use crate::{app::App, network::NetworkTrait};
-
-use super::{CliCommandHandler, Command};
 
 mod add_command_handler;
 mod delete_command_handler;
@@ -85,6 +85,16 @@ pub enum LidarrCommand {
       required = true
     )]
     query: String,
+  },
+  #[command(about = "Start the specified Lidarr task")]
+  StartTask {
+    #[arg(
+      long,
+      help = "The name of the task to trigger",
+      value_enum,
+      required = true
+    )]
+    task_name: LidarrTaskName,
   },
   #[command(
     about = "Test the indexer with the given ID. Note that a successful test returns an empty JSON body; i.e. '{}'"
@@ -196,6 +206,13 @@ impl<'a, 'b> CliCommandHandler<'a, 'b, LidarrCommand> for LidarrCliHandler<'a, '
         let resp = self
           .network
           .handle_network_event(LidarrEvent::SearchNewArtist(query).into())
+          .await?;
+        serde_json::to_string_pretty(&resp)?
+      }
+      LidarrCommand::StartTask { task_name } => {
+        let resp = self
+          .network
+          .handle_network_event(LidarrEvent::StartTask(task_name).into())
           .await?;
         serde_json::to_string_pretty(&resp)?
       }

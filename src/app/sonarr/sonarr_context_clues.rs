@@ -1,5 +1,6 @@
 use crate::app::context_clues::{
   BARE_POPUP_CONTEXT_CLUES, CONFIRMATION_PROMPT_CONTEXT_CLUES, ContextClueProvider,
+  SYSTEM_TASKS_CONTEXT_CLUES,
 };
 use crate::app::{App, context_clues::ContextClue, key_binding::DEFAULT_KEYBINDINGS};
 use crate::models::Route;
@@ -160,11 +161,6 @@ pub static SELECTABLE_EPISODE_DETAILS_CONTEXT_CLUES: [ContextClue; 4] = [
     DEFAULT_KEYBINDINGS.auto_search.desc,
   ),
   (DEFAULT_KEYBINDINGS.submit, "details"),
-  (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
-];
-
-pub static SYSTEM_TASKS_CONTEXT_CLUES: [ContextClue; 2] = [
-  (DEFAULT_KEYBINDINGS.submit, "start task"),
   (DEFAULT_KEYBINDINGS.esc, DEFAULT_KEYBINDINGS.esc.desc),
 ];
 

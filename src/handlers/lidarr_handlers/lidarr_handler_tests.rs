@@ -52,11 +52,12 @@ mod tests {
   }
 
   #[rstest]
-  #[case(0, ActiveLidarrBlock::Indexers, ActiveLidarrBlock::Downloads)]
+  #[case(0, ActiveLidarrBlock::System, ActiveLidarrBlock::Downloads)]
   #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::History)]
   #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::RootFolders)]
   #[case(3, ActiveLidarrBlock::History, ActiveLidarrBlock::Indexers)]
-  #[case(4, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::Artists)]
+  #[case(4, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::System)]
+  #[case(5, ActiveLidarrBlock::Indexers, ActiveLidarrBlock::Artists)]
   fn test_lidarr_handler_change_tab_left_right_keys(
     #[case] index: usize,
     #[case] left_block: ActiveLidarrBlock,
@@ -85,11 +86,12 @@ mod tests {
   }
 
   #[rstest]
-  #[case(0, ActiveLidarrBlock::Indexers, ActiveLidarrBlock::Downloads)]
+  #[case(0, ActiveLidarrBlock::System, ActiveLidarrBlock::Downloads)]
   #[case(1, ActiveLidarrBlock::Artists, ActiveLidarrBlock::History)]
   #[case(2, ActiveLidarrBlock::Downloads, ActiveLidarrBlock::RootFolders)]
   #[case(3, ActiveLidarrBlock::History, ActiveLidarrBlock::Indexers)]
-  #[case(4, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::Artists)]
+  #[case(4, ActiveLidarrBlock::RootFolders, ActiveLidarrBlock::System)]
+  #[case(5, ActiveLidarrBlock::Indexers, ActiveLidarrBlock::Artists)]
   fn test_lidarr_handler_change_tab_left_right_keys_alt_navigation(
     #[case] index: usize,
     #[case] left_block: ActiveLidarrBlock,
@@ -123,6 +125,7 @@ mod tests {
   #[case(2, ActiveLidarrBlock::History)]
   #[case(3, ActiveLidarrBlock::RootFolders)]
   #[case(4, ActiveLidarrBlock::Indexers)]
+  #[case(5, ActiveLidarrBlock::System)]
   fn test_lidarr_handler_change_tab_left_right_keys_alt_navigation_no_op_when_ignoring_quit_key(
     #[case] index: usize,
     #[case] block: ActiveLidarrBlock,
@@ -247,6 +250,25 @@ mod tests {
     test_handler_delegation!(
       LidarrHandler,
       ActiveLidarrBlock::Indexers,
+      active_sonarr_block
+    );
+  }
+
+  #[rstest]
+  fn test_delegates_system_blocks_to_system_handler(
+    #[values(
+      ActiveLidarrBlock::System,
+      ActiveLidarrBlock::SystemLogs,
+      ActiveLidarrBlock::SystemQueuedEvents,
+      ActiveLidarrBlock::SystemTasks,
+      ActiveLidarrBlock::SystemTaskStartConfirmPrompt,
+      ActiveLidarrBlock::SystemUpdates
+    )]
+    active_sonarr_block: ActiveLidarrBlock,
+  ) {
+    test_handler_delegation!(
+      LidarrHandler,
+      ActiveLidarrBlock::System,
       active_sonarr_block
     );
   }

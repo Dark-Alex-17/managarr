@@ -4,7 +4,7 @@ use log::info;
 use super::{NetworkEvent, NetworkResource};
 use crate::models::lidarr_models::{
   AddArtistBody, AddLidarrRootFolderBody, DeleteParams, EditArtistParams, LidarrSerdeable,
-  MetadataProfile,
+  LidarrTaskName, MetadataProfile,
 };
 use crate::models::servarr_models::{EditIndexerParams, IndexerSettings, QualityProfile, Tag};
 use crate::network::{Network, RequestMethod};
@@ -47,16 +47,21 @@ pub enum LidarrEvent {
   GetHistory(u64),
   GetHostConfig,
   GetIndexers,
+  GetLogs(u64),
   MarkHistoryItemAsFailed(i64),
   GetMetadataProfiles,
   GetQualityProfiles,
+  GetQueuedEvents,
   GetRootFolders,
   GetSecurityConfig,
   GetStatus,
+  GetUpdates,
   GetTags,
+  GetTasks,
   HealthCheck,
   ListArtists,
   SearchNewArtist(String),
+  StartTask(LidarrTaskName),
   TestIndexer(i64),
   TestAllIndexers,
   ToggleAlbumMonitoring(i64),
@@ -84,6 +89,7 @@ impl NetworkResource for LidarrEvent {
       | LidarrEvent::ToggleAlbumMonitoring(_)
       | LidarrEvent::GetAlbumDetails(_)
       | LidarrEvent::DeleteAlbum(_) => "/album",
+      LidarrEvent::GetLogs(_) => "/log",
       LidarrEvent::GetDiskSpace => "/diskspace",
       LidarrEvent::GetDownloads(_) | LidarrEvent::DeleteDownload(_) => "/queue",
       LidarrEvent::GetHistory(_) => "/history",
@@ -95,7 +101,9 @@ impl NetworkResource for LidarrEvent {
       LidarrEvent::TriggerAutomaticArtistSearch(_)
       | LidarrEvent::UpdateAllArtists
       | LidarrEvent::UpdateAndScanArtist(_)
-      | LidarrEvent::UpdateDownloads => "/command",
+      | LidarrEvent::UpdateDownloads
+      | LidarrEvent::GetQueuedEvents
+      | LidarrEvent::StartTask(_) => "/command",
       LidarrEvent::GetMetadataProfiles => "/metadataprofile",
       LidarrEvent::GetQualityProfiles => "/qualityprofile",
       LidarrEvent::GetRootFolders
@@ -104,6 +112,8 @@ impl NetworkResource for LidarrEvent {
       LidarrEvent::TestIndexer(_) => "/indexer/test",
       LidarrEvent::TestAllIndexers => "/indexer/testall",
       LidarrEvent::GetStatus => "/system/status",
+      LidarrEvent::GetTasks => "/system/task",
+      LidarrEvent::GetUpdates => "/update",
       LidarrEvent::HealthCheck => "/health",
       LidarrEvent::SearchNewArtist(_) => "/artist/lookup",
     }
@@ -182,6 +192,10 @@ impl Network<'_, '_> {
         .get_lidarr_history(events)
         .await
         .map(LidarrSerdeable::from),
+      LidarrEvent::GetLogs(events) => self
+        .get_lidarr_logs(events)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::MarkHistoryItemAsFailed(history_item_id) => self
         .mark_lidarr_history_item_as_failed(history_item_id)
         .await
@@ -198,6 +212,10 @@ impl Network<'_, '_> {
         .get_lidarr_quality_profiles()
         .await
         .map(LidarrSerdeable::from),
+      LidarrEvent::GetQueuedEvents => self
+        .get_queued_lidarr_events()
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::GetRootFolders => self
         .get_lidarr_root_folders()
         .await
@@ -208,6 +226,8 @@ impl Network<'_, '_> {
         .map(LidarrSerdeable::from),
       LidarrEvent::GetStatus => self.get_lidarr_status().await.map(LidarrSerdeable::from),
       LidarrEvent::GetTags => self.get_lidarr_tags().await.map(LidarrSerdeable::from),
+      LidarrEvent::GetTasks => self.get_lidarr_tasks().await.map(LidarrSerdeable::from),
+      LidarrEvent::GetUpdates => self.get_lidarr_updates().await.map(LidarrSerdeable::from),
       LidarrEvent::HealthCheck => self
         .get_lidarr_healthcheck()
         .await
@@ -216,6 +236,10 @@ impl Network<'_, '_> {
       LidarrEvent::SearchNewArtist(query) => {
         self.search_artist(query).await.map(LidarrSerdeable::from)
       }
+      LidarrEvent::StartTask(task_name) => self
+        .start_lidarr_task(task_name)
+        .await
+        .map(LidarrSerdeable::from),
       LidarrEvent::ToggleAlbumMonitoring(album_id) => self
         .toggle_album_monitoring(album_id)
         .await
